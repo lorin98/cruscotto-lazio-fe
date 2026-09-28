@@ -1,0 +1,4 @@
+# LF ovunque: gli hash dei gate (sha256 sui byte) devono restare validi dopo un clone
+* text=auto eol=lf
+*.png binary
+*.jar binary

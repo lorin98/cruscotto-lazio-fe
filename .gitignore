@@ -1,0 +1,19 @@
+# Dipendenze e build
+node_modules/
+dist/
+build/
+coverage/
+.angular/
+.vite/
+
+# Segreti e config locali
+.env
+.env.*
+!.env.example
+
+# IDE e varie
+.idea/
+.vscode/
+*.log
+.DS_Store
+Thumbs.db
