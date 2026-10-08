@@ -53,7 +53,7 @@
       "ownership": "finanziario",
       "path": "./openapi/openapi-finanziario.json",
       "role": "adapter-in-rest",
-      "sha256": "sha256:d5db8997d6f883f373cfcd7c177643e20e6c3af46c8fe8e601bfa8b2c029e634",
+      "sha256": "sha256:68a59b8b2fbc4e48b1b46630991d533e11198f19a6236c98ef90c35d2b9edac9",
       "step": "step8-rest"
     }
   ],
@@ -104,7 +104,7 @@
     "step9-functions.functions": "pass"
   },
   "openapi": {
-    "hash": "sha256:d5db8997d6f883f373cfcd7c177643e20e6c3af46c8fe8e601bfa8b2c029e634",
+    "hash": "sha256:68a59b8b2fbc4e48b1b46630991d533e11198f19a6236c98ef90c35d2b9edac9",
     "path": "openapi/openapi-finanziario.json"
   },
   "pack_hash": "sha256:1ef3a90c51c555441a3a3e3fb203dfdaa0f2f7d1861a5664982f33cb828de4c4",

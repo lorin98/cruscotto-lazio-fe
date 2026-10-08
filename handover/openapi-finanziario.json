@@ -178,6 +178,13 @@
               "$ref": "#/components/schemas/VoceFiltro"
             },
             "type": "array"
+          },
+          "ultimiDatiSincronizzati": {
+            "description": "NFR-25 (b): per ogni flusso d'import con almeno un'esecuzione conclusa (SUCCESS o PARTIAL), la conclusione della piu' recente, in ordine di flusso: la stessa data dell'intestazione degli export (D-08 di nfr-conformance). Vuoto finche' nessuna acquisizione e' conclusa",
+            "items": {
+              "$ref": "#/components/schemas/UltimoDatoSincronizzato"
+            },
+            "type": "array"
           }
         },
         "type": "object"
@@ -302,6 +309,13 @@
           }
         },
         "type": "object"
+      },
+      "Instant": {
+        "examples": [
+          "2022-03-10T16:15:50Z"
+        ],
+        "format": "date-time",
+        "type": "string"
       },
       "LocalDate": {
         "examples": [
@@ -616,6 +630,21 @@
           "primaAnnualita": {
             "format": "int64",
             "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "UltimoDatoSincronizzato": {
+        "description": "NFR-25 (b): ultimo dato sincronizzato di un flusso d'import",
+        "properties": {
+          "conclusoIl": {
+            "$ref": "#/components/schemas/Instant",
+            "description": "Conclusione dell'esecuzione SUCCESS o PARTIAL piu' recente del flusso",
+            "type": "string"
+          },
+          "flusso": {
+            "description": "Flusso d'import del registro IMPORT_RUN, es. PROSA_DS04",
+            "type": "string"
           }
         },
         "type": "object"
