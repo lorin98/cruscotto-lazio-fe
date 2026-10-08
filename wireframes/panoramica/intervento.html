@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<!-- Wireframe v2 (template wireframe-v2 di green-fe, ADR 0027). Valori di esempio, nessun dato reale. -->
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Intervento SRA01 - Finanziario - Cruscotto CSR 2023-2027</title>
+<link rel="stylesheet" href="wireframe.css">
+</head>
+<body>
+<a class="skip-link" href="#contenuto">Salta al contenuto</a>
+<header class="ui-testata">
+  <div class="ui-ente">
+    <span class="ui-logo">Regione Lazio</span>
+    <span class="ui-logo">ARSIAL</span>
+  </div>
+  <div class="ui-appbar">
+    <a class="ui-appbar__nome" href="../panoramica/panoramica.html">Cruscotto CSR 2023-2027</a>
+    <form class="ui-cerca" action="#" method="get" role="search">
+      <label class="form-label" for="cerca-app">Cerca un intervento</label>
+      <input class="form-control" type="search" id="cerca-app" name="q">
+    </form>
+    <span class="ui-utente">Nome Cognome - <a href="#contenuto">Esci</a></span>
+  </div>
+</header>
+<div class="ui-layout">
+  <nav class="ui-sidebar" aria-label="Navigazione principale">
+    <p class="ui-menu__sezione">Aree del cruscotto</p>
+    <ul class="ui-menu">
+      <li><a class="ui-menu__gruppo" href="../panoramica/panoramica.html">Finanziario</a>
+        <ul class="ui-menu__sub">
+          <li><a href="../panoramica/panoramica.html">Panoramica</a></li>
+          <li><a href="../riepilogo/riepilogo.html">Riepilogo per intervento</a></li>
+          <li><a href="../dotazione-avanzamento/dotazione.html">Dotazione e spesa</a></li>
+          <li><a href="../dotazione-avanzamento/avanzamento.html">Avanzamento</a></li>
+          <li><a href="../domande/domande.html">Domande e importi</a></li>
+          <li><a href="../sigc/sigc.html">SIGC: domande e importi</a></li>
+          <li><a href="../sigc/riserva.html">Riserva di efficacia</a></li>
+          <li><a href="../sigc/verifica-smp.html">Verifica SMP</a></li>
+        </ul>
+      </li>
+      <li><span class="ui-menu__presto">Fisico (presto)</span></li>
+      <li><span class="ui-menu__presto">Procedurale (presto)</span></li>
+      <li><span class="ui-menu__presto">Istituzionale (presto)</span></li>
+      <li><span class="ui-menu__presto">Primo pilastro (presto)</span></li>
+    </ul>
+  </nav>
+  <main class="ui-main" id="contenuto">
+    <div class="ui-filtri" role="region" aria-label="Filtri attivi">
+      <a class="btn btn-primary" href="../panoramica/panoramica.html#pannello-filtri">Filtri (1)</a>
+      <span class="ui-chip">Intervento: SRA01 <button class="btn" type="button" aria-label="Togli il filtro Intervento SRA01">x</button></span>
+      <span class="ui-pill">Perimetro: regionale (profilo ADA: solo la propria area, non rimovibile)</span>
+      <span class="ui-pill">Ultimo dato sincronizzato: gg/mm/aaaa (un valore per ogni flusso di import)</span>
+    </div>
+    <nav class="breadcrumb-container" aria-label="Percorso">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="../panoramica/panoramica.html">Home</a></li>
+        <li class="breadcrumb-item"><a href="../panoramica/panoramica.html">Finanziario</a></li>
+        <li class="breadcrumb-item"><a href="../riepilogo/riepilogo.html">Riepilogo per intervento</a></li>
+        <li class="breadcrumb-item" aria-current="page">SRA01</li>
+      </ol>
+    </nav>
+    <section class="ui-hero">
+      <p class="ui-eyebrow">Intervento SRA01</p>
+      <h1>Descrizione dell'intervento (da TX-0001)</h1>
+      <p><span class="badge">Perimetro regionale</span> <span class="badge">Contributo ambientale nn%</span></p>
+      <a class="btn btn-primary" href="../panoramica/panoramica.html">Filtra i report su questo intervento</a> <a class="btn" href="../riepilogo/riepilogo.html">Torna al riepilogo</a>
+    </section>
+    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0011.read, csr.tx-0002.read, csr.tx-0008.read, csr.tx-0010.read, csr.tx-0012.read, csr.tx-0013.read - Transazioni: le stesse dei report, filtrate su intervento = codice della route (nessuna transazione nuova). Le schede leggono i dati solo quando si aprono.</p>
+    <div class="ui-griglia ui-griglia--4">
+      <section class="ui-kpi" aria-label="Dotazione spesa pubblica">
+        <p>Dotazione spesa pubblica</p>
+        <p class="ui-kpi__valore">n,n M euro</p>
+        <p class="ui-barra">TX-0011</p>
+      </section>
+      <section class="ui-kpi" aria-label="Risorse quota FEASR">
+        <p>Risorse quota FEASR</p>
+        <p class="ui-kpi__valore">n,n M euro</p>
+        <p class="ui-barra">TX-0011</p>
+      </section>
+      <section class="ui-kpi" aria-label="Pagamenti al netto delle rettifiche">
+        <p>Pagamenti al netto delle rettifiche</p>
+        <p class="ui-kpi__valore">n,n M euro</p>
+        <p class="ui-barra">TX-0011</p>
+      </section>
+      <section class="ui-kpi" aria-label="Domande presentate">
+        <p>Domande presentate</p>
+        <p class="ui-kpi__valore">n</p>
+        <p class="ui-barra">TX-0011</p>
+      </section>
+    </div>
+    <div class="ui-tabs" role="tablist" aria-label="Sezioni dell'intervento">
+      <button class="btn" type="button" role="tab" aria-selected="true">Sintesi</button> <button class="btn" type="button" role="tab" aria-selected="false">Domande</button> <button class="btn" type="button" role="tab" aria-selected="false">SIGC</button> <button class="btn" type="button" role="tab" aria-selected="false">Tutte le voci</button>
+    </div>
+    <section role="tabpanel" aria-label="Sintesi">
+    <div class="ui-griglia ui-griglia--2">
+      <section class="ui-card" aria-labelledby="g-d-gauge">
+        <div class="ui-card__testa">
+          <h2 id="g-d-gauge">Pagato sulla dotazione</h2>
+          <div class="ui-seg" role="group" aria-label="Vista di Pagato sulla dotazione"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+        </div>
+        <figure class="ui-grafico ui-grafico--gauge">
+          <figcaption>Gauge: pagamenti totali (TX-0002) sulla dotazione (TX-0011). Non disegnato se uno dei due manca.</figcaption>
+        </figure>
+        <p class="ui-fonte">Fonte: TX-0002, TX-0011. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati.</p>
+      </section>
+      <section class="ui-card" aria-labelledby="g-d-cascata">
+        <div class="ui-card__testa">
+          <h2 id="g-d-cascata">Dalla dotazione al residuo</h2>
+          <div class="ui-seg" role="group" aria-label="Vista di Dalla dotazione al residuo"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+        </div>
+        <figure class="ui-grafico ui-grafico--cascata">
+          <figcaption>Cascata: dotazione, pagamenti netti, dotazione residua sui pagamenti. L'impegnato e il residuo sugli impegni non ci sono: fonte non attiva (impegni), dichiarata nella didascalia.</figcaption>
+        </figure>
+        <p class="ui-fonte">Fonte: TX-0011. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati.</p>
+      </section>
+    </div>
+    </section>
+    <section role="tabpanel" aria-label="Domande">
+    <div class="ui-griglia ui-griglia--2">
+      <section class="ui-card" aria-labelledby="g-d-dom">
+        <div class="ui-card__testa">
+          <h2 id="g-d-dom">Domande per anno di raccolta</h2>
+          <div class="ui-seg" role="group" aria-label="Vista di Domande per anno di raccolta"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+        </div>
+        <figure class="ui-grafico ui-grafico--barre">
+          <figcaption>Barre impilate: prima annualita', altre annualita', non classificate. La riga senza anno di raccolta e' una barra a parte, dichiarata.</figcaption>
+        </figure>
+        <p class="ui-fonte">Fonte: TX-0008. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati.</p>
+      </section>
+      <section class="ui-card" aria-labelledby="g-d-imp">
+        <div class="ui-card__testa">
+          <h2 id="g-d-imp">Importi ammessi e decretati per anno</h2>
+          <div class="ui-seg" role="group" aria-label="Vista di Importi ammessi e decretati per anno"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+        </div>
+        <figure class="ui-grafico ui-grafico--linea">
+          <figcaption>Linee con zoom: importo ammesso e importo decretato per anno di raccolta. L'importo stanziato non c'e' (fonte non attiva).</figcaption>
+        </figure>
+        <p class="ui-fonte">Fonte: TX-0010. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati.</p>
+      </section>
+    </div>
+    </section>
+    <section role="tabpanel" aria-label="SIGC">
+    <div class="ui-griglia ui-griglia--2">
+      <section class="ui-card" aria-labelledby="g-d-sigc">
+        <div class="ui-card__testa">
+          <h2 id="g-d-sigc">Domande SIGC</h2>
+          <div class="ui-seg" role="group" aria-label="Vista di Domande SIGC"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+        </div>
+        <figure class="ui-grafico ui-grafico--imbuto">
+          <figcaption>Imbuto: presentate, pagate, da pagare per questo intervento.</figcaption>
+        </figure>
+        <p class="ui-fonte">Fonte: TX-0012. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati.</p>
+      </section>
+      <section class="ui-card" aria-labelledby="g-d-sigci">
+        <div class="ui-card__testa">
+          <h2 id="g-d-sigci">Importi SIGC</h2>
+          <div class="ui-seg" role="group" aria-label="Vista di Importi SIGC"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+        </div>
+        <figure class="ui-grafico ui-grafico--cascata">
+          <figcaption>Cascata: richiesto, ammesso, pagato, ancora da pagare.</figcaption>
+        </figure>
+        <p class="ui-fonte">Fonte: TX-0013. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati.</p>
+      </section>
+    </div>
+    </section>
+    <section role="tabpanel" aria-label="Tutte le voci">
+      <table class="ui-tabella">
+        <caption>Voci finanziarie dell'intervento (RF011), con i valori assenti e il loro motivo</caption>
+        <tbody>
+          <tr><th scope="row">Importo stanziato</th><td>non disponibile (fonte non attiva: quadro sinottico)</td></tr>
+          <tr><th scope="row">Impegnato cofinanziato FEASR</th><td>non disponibile (fonte non attiva: impegni)</td></tr>
+          <tr><th scope="row">Dotazione residua sui pagamenti</th><td class="ui-num">n,nn euro</td></tr>
+        </tbody>
+      </table>
+    </section>
+    <h2>Stato: caricamento</h2>
+    <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro della testata e delle card)</div>
+    <h2>Stato: intervento senza dati nel perimetro</h2>
+    <div class="ui-vuoto" role="status">Nessun dato per questo intervento nel tuo perimetro. <a class="btn btn-primary" href="../riepilogo/riepilogo.html">Torna al riepilogo</a></div>
+    <h2>Stato: errore</h2>
+    <div class="alert alert-danger" role="alert">Intervento non disponibile (codice non valido: 400 dato non valido; accesso negato: 403).</div>
+  </main>
+</div>
+<footer class="ui-footer">
+  <ul>
+    <li><a href="#contenuto">Dichiarazione di accessibilita' (indirizzo da definire)</a></li>
+    <li><a href="#contenuto">Privacy (indirizzo da definire)</a></li>
+    <li><a href="#contenuto">Note legali (indirizzo da definire)</a></li>
+    <li>Regione Lazio - ARSIAL</li>
+  </ul>
+</footer>
+</body>
+</html>

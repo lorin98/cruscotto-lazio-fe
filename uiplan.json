@@ -13,17 +13,64 @@
   "routes": [
     {
       "path": "/finanziario",
-      "kind": "form",
+      "kind": "cruscotto",
       "transactions": [
-        "TX-0001"
+        "TX-0001",
+        "TX-0002",
+        "TX-0009",
+        "TX-0012",
+        "TX-0013"
       ],
       "reqs": [
-        "RF001"
+        "RF001",
+        "RF002",
+        "RF009",
+        "RF012",
+        "RF013"
       ],
       "roles": [
-        "csr.tx-0001.read"
+        "csr.tx-0001.read",
+        "csr.tx-0002.read",
+        "csr.tx-0009.read",
+        "csr.tx-0012.read",
+        "csr.tx-0013.read"
       ],
-      "flow": "riepilogo"
+      "scope_filters": [
+        "territoriale-ada"
+      ],
+      "flow": "panoramica"
+    },
+    {
+      "path": "/finanziario/interventi/:codice",
+      "kind": "dettaglio",
+      "transactions": [
+        "TX-0011",
+        "TX-0002",
+        "TX-0008",
+        "TX-0010",
+        "TX-0012",
+        "TX-0013"
+      ],
+      "reqs": [
+        "RF011",
+        "RF002",
+        "RF008",
+        "RF010",
+        "RF012",
+        "RF013"
+      ],
+      "roles": [
+        "csr.tx-0011.read",
+        "csr.tx-0002.read",
+        "csr.tx-0008.read",
+        "csr.tx-0010.read",
+        "csr.tx-0012.read",
+        "csr.tx-0013.read"
+      ],
+      "scope_filters": [
+        "territoriale-ada"
+      ],
+      "flow": "panoramica"
     },
     {
       "path": "/finanziario/riepilogo",
@@ -871,13 +918,303 @@
       "name": "righe[].indicatoreRisultato",
       "provenance": "spec",
       "source_ref": "openapi-finanziario.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/finanziario",
+      "name": "ultimiDatiSincronizzati[].flusso",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/FiltriFinanziari"
+    },
+    {
+      "route": "/finanziario",
+      "name": "ultimiDatiSincronizzati[].conclusoIl",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/FiltriFinanziari"
+    },
+    {
+      "route": "/finanziario",
+      "name": "perimetro",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/SpesaPerIntervento"
+    },
+    {
+      "route": "/finanziario",
+      "name": "righe[].codiceIntervento",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/SpesaPerIntervento"
+    },
+    {
+      "route": "/finanziario",
+      "name": "righe[].dotazioneSpesaPubblica",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/SpesaPerIntervento"
+    },
+    {
+      "route": "/finanziario",
+      "name": "righe[].pagamentiTotali",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/SpesaPerIntervento"
+    },
+    {
+      "route": "/finanziario",
+      "name": "presentate",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/TotaleDomande"
+    },
+    {
+      "route": "/finanziario",
+      "name": "primaAnnualita",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/TotaleDomande"
+    },
+    {
+      "route": "/finanziario",
+      "name": "presentate",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/DomandeSigc"
+    },
+    {
+      "route": "/finanziario",
+      "name": "pagate",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/DomandeSigc"
+    },
+    {
+      "route": "/finanziario",
+      "name": "daPagare",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/DomandeSigc"
+    },
+    {
+      "route": "/finanziario",
+      "name": "richiesto",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/ImportiSigc"
+    },
+    {
+      "route": "/finanziario",
+      "name": "ammesso",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/ImportiSigc"
+    },
+    {
+      "route": "/finanziario",
+      "name": "pagato",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/ImportiSigc"
+    },
+    {
+      "route": "/finanziario",
+      "name": "ancoraDaPagare",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/ImportiSigc"
+    },
+    {
+      "route": "/finanziario/interventi/:codice",
+      "name": "interventi[].chiave",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/FiltriFinanziari"
+    },
+    {
+      "route": "/finanziario/interventi/:codice",
+      "name": "interventi[].descrizione",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/FiltriFinanziari"
+    },
+    {
+      "route": "/finanziario/interventi/:codice",
+      "name": "perimetro",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/RiepilogoFinanziario"
+    },
+    {
+      "route": "/finanziario/interventi/:codice",
+      "name": "righe[].codiceIntervento",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/RiepilogoFinanziario"
+    },
+    {
+      "route": "/finanziario/interventi/:codice",
+      "name": "righe[].domandePresentate",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/RiepilogoFinanziario"
+    },
+    {
+      "route": "/finanziario/interventi/:codice",
+      "name": "righe[].dotazioneSpesaPubblica",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/RiepilogoFinanziario"
+    },
+    {
+      "route": "/finanziario/interventi/:codice",
+      "name": "righe[].risorseQuotaFeasr",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/RiepilogoFinanziario"
+    },
+    {
+      "route": "/finanziario/interventi/:codice",
+      "name": "righe[].importoStanziato",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/RiepilogoFinanziario"
+    },
+    {
+      "route": "/finanziario/interventi/:codice",
+      "name": "righe[].impegnatoCofinanziatoFeasr",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/RiepilogoFinanziario"
+    },
+    {
+      "route": "/finanziario/interventi/:codice",
+      "name": "righe[].impegnatoCofinanziatoFeasrENon",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/RiepilogoFinanziario"
+    },
+    {
+      "route": "/finanziario/interventi/:codice",
+      "name": "righe[].pagamentiNettoRettifiche",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/RiepilogoFinanziario"
+    },
+    {
+      "route": "/finanziario/interventi/:codice",
+      "name": "righe[].dotazioneResiduaSuImpegni",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/RiepilogoFinanziario"
+    },
+    {
+      "route": "/finanziario/interventi/:codice",
+      "name": "righe[].dotazioneResiduaSuPagamenti",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/RiepilogoFinanziario"
+    },
+    {
+      "route": "/finanziario/interventi/:codice",
+      "name": "righe[].pagamentiTotali",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/SpesaPerIntervento"
+    },
+    {
+      "route": "/finanziario/interventi/:codice",
+      "name": "righe[].percentualeContributoAmbientale",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/SpesaPerIntervento"
+    },
+    {
+      "route": "/finanziario/interventi/:codice",
+      "name": "righe[].annoRaccolta",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/DomandePerAnno"
+    },
+    {
+      "route": "/finanziario/interventi/:codice",
+      "name": "righe[].primaAnnualita",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/DomandePerAnno"
+    },
+    {
+      "route": "/finanziario/interventi/:codice",
+      "name": "righe[].altreAnnualita",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/DomandePerAnno"
+    },
+    {
+      "route": "/finanziario/interventi/:codice",
+      "name": "righe[].nonClassificate",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/DomandePerAnno"
+    },
+    {
+      "route": "/finanziario/interventi/:codice",
+      "name": "righe[].totali",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/DomandePerAnno"
+    },
+    {
+      "route": "/finanziario/interventi/:codice",
+      "name": "righe[].annoRaccolta",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/ImportiPerAnno"
+    },
+    {
+      "route": "/finanziario/interventi/:codice",
+      "name": "righe[].importoAmmesso",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/ImportiPerAnno"
+    },
+    {
+      "route": "/finanziario/interventi/:codice",
+      "name": "righe[].importoDecretato",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/ImportiPerAnno"
+    },
+    {
+      "route": "/finanziario/interventi/:codice",
+      "name": "presentate",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/DomandeSigc"
+    },
+    {
+      "route": "/finanziario/interventi/:codice",
+      "name": "pagate",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/DomandeSigc"
+    },
+    {
+      "route": "/finanziario/interventi/:codice",
+      "name": "daPagare",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/DomandeSigc"
+    },
+    {
+      "route": "/finanziario/interventi/:codice",
+      "name": "richiesto",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/ImportiSigc"
+    },
+    {
+      "route": "/finanziario/interventi/:codice",
+      "name": "ammesso",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/ImportiSigc"
+    },
+    {
+      "route": "/finanziario/interventi/:codice",
+      "name": "pagato",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/ImportiSigc"
+    },
+    {
+      "route": "/finanziario/interventi/:codice",
+      "name": "ancoraDaPagare",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/ImportiSigc"
     }
   ],
   "flows": [
     {
-      "name": "riepilogo",
+      "name": "panoramica",
       "routes": [
         "/finanziario",
+        "/finanziario/interventi/:codice"
+      ],
+      "wireframe_dir": "wireframes/panoramica",
+      "wcag_notes": [
+        "Ogni grafico ha la tabella equivalente subito sotto (canale primario, WCAG 1.1.1 e 1.4.1): il grafico e' un complemento.",
+        "Importi non disponibili resi come testo (motivo e fonte attesa dalla spec), mai come cella vuota o zero.",
+        "Perimetro (REGIONALE o ADA) dichiarato in testa alla pagina con testo, non solo con colore.",
+        "Filtri a selezione multipla con label esplicite; il filtro azioni portanti e' disabilitato con spiegazione testuale quando legameAzioniDisponibile e' falso.",
+        "Esportazione CSV: pulsante con testo esplicito del formato; esito annunciato in role=status."
+      ],
+      "approval": {
+        "approved_hash": "sha256:ecffce8c1dc73d87475d4fc338c8e5702f68ca81cf14fbe267d683caab2133ff",
+        "baseline_ref": "./wireframes/panoramica",
+        "approved_at": "2026-10-08T19:40:06Z",
+        "rework_rounds": 0
+      }
+    },
+    {
+      "name": "riepilogo",
+      "routes": [
         "/finanziario/riepilogo"
       ],
       "wireframe_dir": "wireframes/riepilogo",
@@ -889,10 +1226,10 @@
         "Esportazione CSV: pulsante con testo esplicito del formato; esito annunciato in role=status."
       ],
       "approval": {
-        "approved_hash": "sha256:589347b877bd7fba5c4131c9b8ec6bb21957ba311125b9c31f0ea136c18d1d60",
+        "approved_hash": "sha256:cfd3e79a08917ad2d73050d7a06a0e147c175736725e890be9afc0a95083d946",
         "baseline_ref": "./wireframes/riepilogo",
-        "approved_at": "2026-10-08T18:10:38Z",
-        "rework_rounds": 1
+        "approved_at": "2026-10-08T19:40:06Z",
+        "rework_rounds": 0
       }
     },
     {
@@ -908,10 +1245,10 @@
         "Perimetro (REGIONALE o ADA) dichiarato in testa alla pagina con testo, non solo con colore."
       ],
       "approval": {
-        "approved_hash": "sha256:3953c5409fee2fb5680cb48b53e18a3081643269b9a30256562d67772da256e6",
+        "approved_hash": "sha256:cacbae46568ade77e42d1fd7d473d609220181ff561a584e6a7fa0884d357e2e",
         "baseline_ref": "./wireframes/dotazione-avanzamento",
-        "approved_at": "2026-10-08T18:10:38Z",
-        "rework_rounds": 1
+        "approved_at": "2026-10-08T19:40:06Z",
+        "rework_rounds": 0
       }
     },
     {
@@ -926,10 +1263,10 @@
         "Perimetro (REGIONALE o ADA) dichiarato in testa alla pagina con testo, non solo con colore."
       ],
       "approval": {
-        "approved_hash": "sha256:bb752ad481cfecb36556e79e18238fd9363a0e2f37b97b79fb54799bdfea97d6",
+        "approved_hash": "sha256:8add28975911489fb65d33091ab17123599f9210f2dc0e6a4b831fd74cdd0a2e",
         "baseline_ref": "./wireframes/domande",
-        "approved_at": "2026-10-08T18:10:38Z",
-        "rework_rounds": 1
+        "approved_at": "2026-10-08T19:40:06Z",
+        "rework_rounds": 0
       }
     },
     {
@@ -948,10 +1285,10 @@
         "Tabella della verifica SMP larga (19 dati): intestazioni di riga sul codice intervento, scorrimento orizzontale del solo contenitore della tabella."
       ],
       "approval": {
-        "approved_hash": "sha256:64583871920855269d072f433c99eb929ca6759534b242e72084251e709a2c73",
+        "approved_hash": "sha256:c8ff776b8fb0cf997092f0aaa66c8550b84cd74453015978fcc94837ab3f98f7",
         "baseline_ref": "./wireframes/sigc",
-        "approved_at": "2026-10-08T18:10:38Z",
-        "rework_rounds": 2
+        "approved_at": "2026-10-08T19:40:06Z",
+        "rework_rounds": 0
       }
     }
   ],
@@ -959,7 +1296,7 @@
     {
       "id": "OP-FE-01",
       "kind": "altro",
-      "detail": "RF002-RF008 e RF010 chiedono 'un grafico e una tabella': il progetto green-fe (foundation pins) non porta una libreria di grafici. Nei wireframe il grafico e' un segnaposto e la tabella e' il canale primario. La libreria (o SVG accessibile fatto a mano) va decisa e pinnata prima di step5-ui."
+      "detail": "RISOLTO il 08/10/2026 (UI v2): grafici interattivi Apache ECharts 6 (ADR 0027 di green-fe), con la tabella equivalente a un clic per ogni grafico. RF002-RF008 e RF010 chiedono 'un grafico e una tabella': il progetto green-fe (foundation pins) non porta una libreria di grafici. Nei wireframe il grafico e' un segnaposto e la tabella e' il canale primario. La libreria (o SVG accessibile fatto a mano) va decisa e pinnata prima di step5-ui."
     },
     {
       "id": "OP-FE-02",
@@ -985,6 +1322,11 @@
       "id": "OP-FE-06",
       "kind": "altro",
       "detail": "Dopo una sessione scaduta (401) il BFF riporta su / (restore-path-after-redirect=false): pagina, filtri, anno ed esercizio si perdono, contro lo stato 401 dei wireframe approvati. Il ritorno alla pagina richiede una scelta sul BFF (es. /auth/login?da=<percorso> validato lato server contro la route-table, foundation-auth da risigillare): limite noto accettato l 08/10/2026 (review step9 R-01)."
+    },
+    {
+      "id": "OP-FE-07",
+      "kind": "campo-assente-dalla-spec",
+      "detail": "La gerarchia intervento -> obiettivo specifico (OS) -> obiettivo generale (OG) -> obiettivo di policy (OP) non e' nei DTO della slice: TX-0001 da' le liste piatte. Senza, la panoramica raggruppa la dotazione per famiglia di intervento (prefisso del codice, es. SRA, SRD) e non per obiettivo, e i filtri non possono restringersi a cascata. Richiesta a green-be: campo ADDITIVO su una risposta esistente (es. su TX-0001 un elenco di legami intervento-OS-OG-OP), stessa transazione e stesso grant, risigillo della sola slice."
     }
   ]
 }

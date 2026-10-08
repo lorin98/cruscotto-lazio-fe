@@ -22,34 +22,38 @@
     "step1-uiplan": {
       "status": "done",
       "gates": {
+        "wireframe_panoramica": {
+          "approved_hash": "sha256:ecffce8c1dc73d87475d4fc338c8e5702f68ca81cf14fbe267d683caab2133ff",
+          "baseline_ref": "./wireframes/panoramica",
+          "approved_at": "2026-10-08T19:40:11Z",
+          "deviations_reviewed": []
+        },
         "wireframe_riepilogo": {
-          "approved_hash": "sha256:589347b877bd7fba5c4131c9b8ec6bb21957ba311125b9c31f0ea136c18d1d60",
+          "approved_hash": "sha256:cfd3e79a08917ad2d73050d7a06a0e147c175736725e890be9afc0a95083d946",
           "baseline_ref": "./wireframes/riepilogo",
-          "approved_at": "2026-10-08T18:10:37Z",
+          "approved_at": "2026-10-08T19:40:11Z",
           "deviations_reviewed": []
         },
         "wireframe_dotazione-avanzamento": {
-          "approved_hash": "sha256:3953c5409fee2fb5680cb48b53e18a3081643269b9a30256562d67772da256e6",
+          "approved_hash": "sha256:cacbae46568ade77e42d1fd7d473d609220181ff561a584e6a7fa0884d357e2e",
           "baseline_ref": "./wireframes/dotazione-avanzamento",
-          "approved_at": "2026-10-08T18:10:37Z",
+          "approved_at": "2026-10-08T19:40:11Z",
           "deviations_reviewed": []
         },
         "wireframe_domande": {
-          "approved_hash": "sha256:bb752ad481cfecb36556e79e18238fd9363a0e2f37b97b79fb54799bdfea97d6",
+          "approved_hash": "sha256:8add28975911489fb65d33091ab17123599f9210f2dc0e6a4b831fd74cdd0a2e",
           "baseline_ref": "./wireframes/domande",
-          "approved_at": "2026-10-08T18:10:37Z",
+          "approved_at": "2026-10-08T19:40:11Z",
           "deviations_reviewed": []
         },
         "wireframe_sigc": {
-          "approved_hash": "sha256:64583871920855269d072f433c99eb929ca6759534b242e72084251e709a2c73",
+          "approved_hash": "sha256:c8ff776b8fb0cf997092f0aaa66c8550b84cd74453015978fcc94837ab3f98f7",
           "baseline_ref": "./wireframes/sigc",
-          "approved_at": "2026-10-08T18:10:37Z",
-          "deviations_reviewed": [
-            "riserva senza Filtri attivi (OP-FE-03): TX-0014 non accetta filtri"
-          ]
+          "approved_at": "2026-10-08T19:40:11Z",
+          "deviations_reviewed": []
         }
       },
-      "completed_at": "2026-10-08T12:05:58Z",
+      "completed_at": "2026-10-08T19:40:23Z",
       "artifacts": [
         "./uiplan.json"
       ]

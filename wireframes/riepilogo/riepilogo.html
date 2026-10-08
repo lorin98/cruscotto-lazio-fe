@@ -1,81 +1,133 @@
 <!DOCTYPE html>
+<!-- Wireframe v2 (template wireframe-v2 di green-fe, ADR 0027). Valori di esempio, nessun dato reale. -->
 <html lang="it">
 <head>
 <meta charset="utf-8">
-<title>Finanziario - Riepilogo per intervento</title>
+<title>Riepilogo per intervento - Finanziario - Cruscotto CSR 2023-2027</title>
 <link rel="stylesheet" href="wireframe.css">
 </head>
 <body>
 <a class="skip-link" href="#contenuto">Salta al contenuto</a>
-<header class="it-header-wrapper">
-  <span>Cruscotto CSR 2023-2027 - ARSIAL / Regione Lazio</span>
-</header>
-<nav class="breadcrumb-container" aria-label="Percorso">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="filtri.html">Home</a></li>
-    <li class="breadcrumb-item"><a href="filtri.html">Finanziario</a></li>
-    <li class="breadcrumb-item" aria-current="page">Riepilogo per intervento</li>
-  </ol>
-</nav>
-<main class="container" id="contenuto">
-  <h1>Finanziario: riepilogo per intervento</h1>
-  <p class="wf-note">Ruoli (grant verbatim): csr.tx-0011.read - Transazioni: TX-0011 (RF011) - GET /api/finanziario/riepilogo e /riepilogo/csv. Sola lettura.</p>
-  <p class="wf-note">Ultimo dato sincronizzato (NFR-25, OP-FE-04): dalla risposta di TX-0001, una voce per flusso d'import con la conclusione dell'ultima acquisizione; visibile con csr.tx-0001.read. Senza acquisizioni concluse: "nessuna acquisizione conclusa".</p>
-  <p>Ultimo dato sincronizzato: DS-12 02/03/2026 10:15; PROSA DS-04 03/03/2026 09:30; SIAN DS-01 01/03/2026 18:05.</p>
-  <p>Filtri attivi: Intervento SRA01, SRA02; OS, OG, OP e Azioni portanti: tutti. <a class="btn" href="filtri.html">Modifica filtri</a></p>
-  <p>Perimetro: <span class="badge">REGIONALE</span> tutte le domande della regione. Per il profilo ADA: <span class="badge">ADA</span> solo le domande della propria area, il perimetro non si puo' togliere.</p>
-  <div class="card">
-    <div class="card-body">
-      <h2 class="card-title">Tabella di riepilogo</h2>
-    <table class="table">
-      <caption>Riepilogo per intervento: i nove campi finanziari di RF011</caption>
-      <thead>
-        <tr>
-          <th scope="col">Intervento</th>
-          <th scope="col">Dotazione spesa pubblica</th>
-          <th scope="col">Risorse quota FEASR</th>
-          <th scope="col">Importo stanziato</th>
-          <th scope="col">Domande presentate</th>
-          <th scope="col">Impegnato cofinanziato FEASR</th>
-          <th scope="col">Impegnato cofinanziato FEASR e non</th>
-          <th scope="col">Pagamenti al netto di rettifiche</th>
-          <th scope="col">Dotazione residua sugli impegni</th>
-          <th scope="col">Dotazione residua sui pagamenti</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><th scope="row">SRA01</th><td>importo in euro</td><td>importo in euro</td><td><span class="badge">non disponibile</span> fonte QUADRO_SINOTTICO non attiva</td><td>numero</td><td><span class="badge">non disponibile</span> fonte IMPEGNI non attiva</td><td><span class="badge">non disponibile</span> fonte IMPEGNI non attiva</td><td>importo in euro</td><td><span class="badge">non disponibile</span> fonte IMPEGNI non attiva</td><td>importo in euro</td></tr>
-      </tbody>
-    </table>
-    <table class="table">
-      <caption>Valori fuori tabella</caption>
-      <tbody>
-          <tr><th scope="row">Dotazione assistenza tecnica</th><td>importo in euro</td></tr>
-      </tbody>
-    </table>
-    </div>
+<header class="ui-testata">
+  <div class="ui-ente">
+    <span class="ui-logo">Regione Lazio</span>
+    <span class="ui-logo">ARSIAL</span>
   </div>
-  <h2>Esportazione</h2>
-  <p><a class="btn btn-primary" href="riepilogo.html">Esporta la tabella in CSV</a></p>
-  <div class="alert alert-info" role="status" aria-live="polite">Esportazione del file CSV in corso (GET /api/finanziario/riepilogo/csv con gli stessi filtri)...</div>
-  <h2>Altri report del finanziario</h2>
-  <p>
-    <a class="btn" href="../dotazione-avanzamento/dotazione.html">Dotazione e spesa per intervento</a>
-    <a class="btn" href="../dotazione-avanzamento/avanzamento.html">Avanzamento finanziario</a>
-    <a class="btn" href="../domande/domande.html">Domande e importi per anno</a>
-    <a class="btn" href="../sigc/sigc.html">Domande e importi SIGC</a>
-    <a class="btn" href="../sigc/riserva.html">Riserva al 5% (SIGC)</a>
-    <a class="btn" href="../sigc/verifica-smp.html">Verifica SMP (SIGC)</a>
-  </p>
-  <h2>Stato: vuoto</h2>
-  <div class="alert alert-info" role="status">Nessun intervento per i filtri scelti. Modifica i filtri.</div>
-  <h2>Stato: caricamento</h2>
-  <div class="alert alert-info" role="status" aria-live="polite">Caricamento in corso...</div>
-  <h2>Stato: errore</h2>
-  <div class="alert alert-danger" role="alert">Dati non disponibili: accesso negato (403, problem-type urn:problema:accesso-negato), troppe richieste (429) o servizio non disponibile (503). <a href="#contenuto">Riprova</a></div>
-  <h2>Stato: sessione scaduta (401)</h2>
-  <div class="alert alert-danger" role="alert">Sessione scaduta: verrai riportato alla pagina di accesso; i filtri restano nell'indirizzo della pagina.</div>
-</main>
-<footer class="it-footer">Cruscotto CSR 2023-2027 - ARSIAL / Regione Lazio - wireframe low-fi</footer>
+  <div class="ui-appbar">
+    <a class="ui-appbar__nome" href="../panoramica/panoramica.html">Cruscotto CSR 2023-2027</a>
+    <form class="ui-cerca" action="#" method="get" role="search">
+      <label class="form-label" for="cerca-app">Cerca un intervento</label>
+      <input class="form-control" type="search" id="cerca-app" name="q">
+    </form>
+    <span class="ui-utente">Nome Cognome - <a href="#contenuto">Esci</a></span>
+  </div>
+</header>
+<div class="ui-layout">
+  <nav class="ui-sidebar" aria-label="Navigazione principale">
+    <p class="ui-menu__sezione">Aree del cruscotto</p>
+    <ul class="ui-menu">
+      <li><a class="ui-menu__gruppo" href="../panoramica/panoramica.html">Finanziario</a>
+        <ul class="ui-menu__sub">
+          <li><a href="../panoramica/panoramica.html">Panoramica</a></li>
+          <li><a href="../riepilogo/riepilogo.html" aria-current="page">Riepilogo per intervento</a></li>
+          <li><a href="../dotazione-avanzamento/dotazione.html">Dotazione e spesa</a></li>
+          <li><a href="../dotazione-avanzamento/avanzamento.html">Avanzamento</a></li>
+          <li><a href="../domande/domande.html">Domande e importi</a></li>
+          <li><a href="../sigc/sigc.html">SIGC: domande e importi</a></li>
+          <li><a href="../sigc/riserva.html">Riserva di efficacia</a></li>
+          <li><a href="../sigc/verifica-smp.html">Verifica SMP</a></li>
+        </ul>
+      </li>
+      <li><span class="ui-menu__presto">Fisico (presto)</span></li>
+      <li><span class="ui-menu__presto">Procedurale (presto)</span></li>
+      <li><span class="ui-menu__presto">Istituzionale (presto)</span></li>
+      <li><span class="ui-menu__presto">Primo pilastro (presto)</span></li>
+    </ul>
+  </nav>
+  <main class="ui-main" id="contenuto">
+    <div class="ui-filtri" role="region" aria-label="Filtri attivi">
+      <a class="btn btn-primary" href="../panoramica/panoramica.html#pannello-filtri">Filtri (1)</a>
+      <span class="ui-chip">Intervento: SRA01 <button class="btn" type="button" aria-label="Togli il filtro Intervento SRA01">x</button></span>
+      <span class="ui-pill">Perimetro: regionale (profilo ADA: solo la propria area, non rimovibile)</span>
+      <span class="ui-pill">Ultimo dato sincronizzato: gg/mm/aaaa (un valore per ogni flusso di import)</span>
+    </div>
+    <nav class="breadcrumb-container" aria-label="Percorso">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="../panoramica/panoramica.html">Home</a></li>
+        <li class="breadcrumb-item"><a href="../panoramica/panoramica.html">Finanziario</a></li>
+        <li class="breadcrumb-item" aria-current="page">Riepilogo per intervento</li>
+      </ol>
+    </nav>
+    <div class="ui-titolo">
+      <h1>Finanziario: riepilogo per intervento</h1>
+      <p>Cerca, ordina, scegli le colonne; clic su una riga per l'anteprima, poi il dettaglio.</p>
+    </div>
+    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0011.read - Transazioni: TX-0011 (RF011), export CSV con X-Requested-With. Perimetro ADA: le colonne di programma sono regionali, segnalate nell'intestazione.</p>
+    <section class="ui-card" aria-labelledby="t-riep">
+      <div class="ui-card__testa"><h2 id="t-riep">Riepilogo per intervento</h2></div>
+      <div class="ui-strumenti">
+        <label class="form-label" for="t-cerca">Cerca nella tabella</label>
+        <input class="form-control" type="search" id="t-cerca" name="t">
+        <button class="btn" type="button">Colonne (10)</button> <button class="btn" type="button">Esporta CSV</button>
+      </div>
+      <table class="ui-tabella">
+        <caption>Riepilogo per intervento: i nove campi finanziari di RF011 e le domande presentate. Clic o Invio su una riga per l'anteprima.</caption>
+        <thead>
+          <tr>
+            <th scope="col"><button class="btn" type="button">Intervento</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Domande</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Dotazione</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Quota FEASR</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Pagamenti netti</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Residuo sui pagamenti</button></th>
+            <th scope="col"><button class="btn" type="button">Impegnato</button></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="ui-riga"><th scope="row">SRA01</th><td class="ui-num">n</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td>fonte non attiva</td></tr>
+        </tbody>
+        <tfoot>
+          <tr><th scope="row">Totale (n interventi)</th><td class="ui-num">n</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td></td></tr>
+          <tr><th scope="row">Dotazione dell'Assistenza tecnica</th><td></td><td class="ui-num">n,nn</td><td></td><td></td><td></td><td></td></tr>
+        </tfoot>
+      </table>
+      <nav class="ui-paginazione" aria-label="Pagine della tabella"><button class="btn" type="button" aria-current="page">1</button> <button class="btn" type="button">2</button></nav>
+    </section>
+      <section class="ui-card" aria-labelledby="g-riep">
+        <div class="ui-card__testa">
+          <h2 id="g-riep">Dotazione e pagamenti per intervento (vista grafico)</h2>
+          <div class="ui-seg" role="group" aria-label="Vista di Dotazione e pagamenti per intervento (vista grafico)"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+        </div>
+        <figure class="ui-grafico ui-grafico--barre">
+          <figcaption>Barre raggruppate con zoom: dotazione e pagamenti netti per intervento. Clic su una barra: dettaglio dell'intervento.</figcaption>
+        </figure>
+        <p class="ui-fonte">Fonte: TX-0011. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati.</p>
+      </section>
+    <aside class="ui-drawer" aria-label="Anteprima dell'intervento SRA01">
+      <h2>Anteprima: SRA01</h2>
+      <dl>
+        <dt>Dotazione spesa pubblica</dt><dd>n,nn euro</dd>
+        <dt>Pagamenti al netto delle rettifiche</dt><dd>n,nn euro</dd>
+        <dt>Domande presentate</dt><dd>n</dd>
+        <dt>Impegnato</dt><dd>non disponibile (fonte non attiva: impegni)</dd>
+      </dl>
+      <a class="btn btn-primary" href="../panoramica/intervento.html">Apri il dettaglio dell'intervento</a>
+    </aside>
+    <h2>Stato: caricamento</h2>
+    <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro delle card): le letture partono al piu' due alla volta</div>
+    <h2>Stato: vuoto</h2>
+    <div class="ui-vuoto" role="status">Nessun intervento per i filtri scelti. <a class="btn btn-primary" href="../panoramica/panoramica.html#pannello-filtri">Modifica i filtri</a></div>
+    <h2>Stato: errore</h2>
+    <div class="alert alert-danger" role="alert">Dati non disponibili: messaggio dal problem-type (403 accesso negato, 503 capacita' esaurita con nuovo tentativo, 504 tempo scaduto). <a href="#contenuto">Riprova</a></div>
+  </main>
+</div>
+<footer class="ui-footer">
+  <ul>
+    <li><a href="#contenuto">Dichiarazione di accessibilita' (indirizzo da definire)</a></li>
+    <li><a href="#contenuto">Privacy (indirizzo da definire)</a></li>
+    <li><a href="#contenuto">Note legali (indirizzo da definire)</a></li>
+    <li>Regione Lazio - ARSIAL</li>
+  </ul>
+</footer>
 </body>
 </html>

@@ -1,4 +1,4 @@
-# Flusso dotazione-avanzamento - wireframe (feature finanziario)
+# Flusso dotazione-avanzamento - wireframe v2 (feature finanziario)
 
 > Doc del gate umano PER FLUSSO. L'approvazione e' content-addressed sull'INTERA dir
 > `wireframes/dotazione-avanzamento/` (hash da `wireframe-hash.sh`): modificare un file qui invalida
@@ -6,39 +6,44 @@
 
 ## Route del flusso
 
-| route | kind | pattern | file | grant (verbatim dal catalogo) |
-|---|---|---|---|---|
-| /finanziario/dotazione | report | dettaglio.html in sola lettura | dotazione.html | csr.tx-0002.read, csr.tx-0003.read |
-| /finanziario/avanzamento | report | dettaglio.html in sola lettura | avanzamento.html | csr.tx-0004.read .. csr.tx-0007.read |
+| route | kind | pattern | grant (verbatim dal catalogo) |
+|---|---|---|---|
+| /finanziario/dotazione | report | report v2 (KPI, grafici, tabella interattiva) | csr.tx-0002.read, csr.tx-0003.read |
+| /finanziario/avanzamento | report | report v2 (KPI, grafici, tabella interattiva) | csr.tx-0004.read, csr.tx-0005.read, csr.tx-0006.read, csr.tx-0007.read |
 
 ## Component tree (per pagina)
 
-- /finanziario/dotazione: Layout > Breadcrumb > H1 > Ultimo dato sincronizzato > Filtri attivi > Perimetro > Card RF002 (grafico + tabella per intervento) > Card RF003 (grafico + voci) > Altri report > Stati
-- /finanziario/avanzamento: Layout > Breadcrumb > H1 > Ultimo dato sincronizzato > Filtri attivi > Perimetro > 4 Card RF004-RF007 (grafico + voci) > Altri report > Stati
+Vocabolario del kit UI v2 (ADR 0027 di green-fe), resa approvata nel prototipo `prototipo/finanziario/`.
+
+- /finanziario/dotazione: Shell > Barra filtri > Breadcrumb > Titolo > Card dotazione e pagamenti (barre) + Card quota FEASR (ciambella) > Card contributo ambientale (barre) > Stati
+- /finanziario/avanzamento: Shell > Barra filtri > Breadcrumb > Titolo > KPI x4 (con fonte non attiva dichiarata) > Card dove va la dotazione (sankey) + Card pagato sulla dotazione (gauge) > Stati
+
+## Grafici del flusso
+
+| pagina | grafico | tipo | dati (transazione) | clic | valori assenti |
+|---|---|---|---|---|---|
+| /finanziario/dotazione | Dotazione e pagamenti per intervento | barre | TX-0002 | dettaglio dell'intervento | perimetro ADA: dotazione regionale non affiancata |
+| /finanziario/dotazione | Quota FEASR e non FEASR | ciambella | TX-0003 | nessuno | 'grafico non disponibile' con il motivo |
+| /finanziario/dotazione | Contributo ambientale | barre | TX-0002 | dettaglio dell'intervento | percentuale assente: omessa |
+| /finanziario/avanzamento | Dove va la dotazione | sankey | TX-0005, TX-0006, TX-0007 | nessuno | ramo impegnato non disegnato (fonte non attiva), dichiarato |
+| /finanziario/avanzamento | Pagato sulla dotazione | gauge | TX-0007 | nessuno | non disegnato se manca un termine |
+
+Stanziato, impegnato, quote Stato e Regione e vincolo LEADER hanno fonte non attiva nel backend: le card lo dicono con il motivo, mai uno zero.
 
 ## Stati resi (obbligatori)
 
-- vuoto: messaggio azionabile (mai schermo bianco)
-- caricamento: `role="status"` + `aria-live="polite"`
-- errore: `role="alert"`, discriminato sul problem-type RFC 9457 (401 sessione; 403 accesso negato, anche
-  per perimetro ADA; 429 troppe richieste; 503 servizio non disponibile)
-- dato non disponibile: un importo con `motivo` FONTE_NON_ATTIVA si mostra come testo con la fonte attesa,
-  mai come zero
+- vuoto: messaggio azionabile con "Modifica i filtri" (mai schermo bianco)
+- caricamento: scheletro delle card, `role="status"` + `aria-live="polite"`; letture al piu' due alla volta
+- errore: `role="alert"`, discriminato sul problem-type `urn:cruscottocsr:problem:*` (403 accesso negato; 503 capacita'
+  esaurita, ritentata rispettando Retry-After; 504 tempo scaduto; 401/419 sessione)
 
 ## Note WCAG 2.2 (residuo manuale DICHIARATO)
 
-- Meccanizzato a valle (step7/step8): tab-order, focus dopo route-change, focus-trap, axe (deferito a step8).
-- RESIDUO umano da verificare qui: ordine di lettura, testi alternativi sensati, etichette
-  comprensibili, contrasto della resa finale (il low-fi non fa fede sul colore).
-- Ogni grafico ha la tabella equivalente subito sotto (canale primario, WCAG 1.1.1 e 1.4.1): il grafico e' un complemento.
-- Importi non disponibili resi come testo (motivo e fonte attesa dalla spec), mai come cella vuota o zero.
-- Perimetro (REGIONALE o ADA) dichiarato in testa alla pagina con testo, non solo con colore.
-
-## Note del flusso
-
-- Con i dati attuali molti valori sono 'non disponibile' (fonti IMPEGNI e QUADRO_SINOTTICO non attive): la pagina deve restare leggibile anche cosi'.
+- Meccanizzato a valle (step7/step8): tab-order, focus sul titolo dopo il cambio di route, focus-trap di pannello e
+  drawer, tabella equivalente di ogni grafico, axe.
+- RESIDUO umano da verificare qui: ordine di lettura, didascalie dei grafici, etichette comprensibili, contrasto della
+  resa finale (il low-fi non fa fede sul colore; fa fede il prototipo approvato).
 
 ## Punti aperti che toccano questo flusso
 
-- OP-FE-04 (risolto): la data dell'ultimo dato sincronizzato (NFR-25 b) arriva con la risposta di TX-0001, una voce per flusso d'import; la riga sotto il titolo la mostra a chi ha csr.tx-0001.read.
-- OP-FE-01: libreria dei grafici non nei foundation pins; la tabella e' il canale primario.
+- Nessuno specifico del flusso.
