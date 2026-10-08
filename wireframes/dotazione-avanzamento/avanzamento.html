@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Finanziario - Avanzamento finanziario</title>
+<link rel="stylesheet" href="wireframe.css">
+</head>
+<body>
+<a class="skip-link" href="#contenuto">Salta al contenuto</a>
+<header class="it-header-wrapper">
+  <span>Cruscotto CSR 2023-2027 - ARSIAL / Regione Lazio</span>
+</header>
+<nav class="breadcrumb-container" aria-label="Percorso">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="../riepilogo/filtri.html">Home</a></li>
+    <li class="breadcrumb-item"><a href="../riepilogo/filtri.html">Finanziario</a></li>
+    <li class="breadcrumb-item" aria-current="page">Avanzamento finanziario</li>
+  </ol>
+</nav>
+<main class="container" id="contenuto">
+  <h1>Finanziario: avanzamento finanziario</h1>
+  <p class="wf-note">Ruoli (grant verbatim): csr.tx-0004.read, csr.tx-0005.read, csr.tx-0006.read, csr.tx-0007.read - Transazioni: TX-0004..TX-0007 (RF004-RF007) - GET /api/finanziario/stanziato, /pagamenti-su-impegnato, /residuo-impegni, /residuo-pagamenti. Sola lettura.</p>
+  <p class="wf-note">Ultimo dato sincronizzato (NFR-25, OP-FE-04): dalla risposta di TX-0001, una voce per flusso d'import con la conclusione dell'ultima acquisizione; visibile con csr.tx-0001.read. Senza acquisizioni concluse: "nessuna acquisizione conclusa".</p>
+  <p>Ultimo dato sincronizzato: DS-12 02/03/2026 10:15; PROSA DS-04 03/03/2026 09:30; SIAN DS-01 01/03/2026 18:05.</p>
+  <p>Filtri attivi: Intervento SRA01, SRA02; OS, OG, OP e Azioni portanti: tutti. <a class="btn" href="../riepilogo/filtri.html">Modifica filtri</a></p>
+  <p>Perimetro: <span class="badge">REGIONALE</span> tutte le domande della regione. Per il profilo ADA: <span class="badge">ADA</span> solo le domande della propria area, il perimetro non si puo' togliere.</p>
+  <div class="card">
+    <div class="card-body">
+      <h2 class="card-title">Importo stanziato e da stanziare (RF004)</h2>
+      <img class="anteprima" src="grafico.png" alt="Grafico a torta: stanziato e da stanziare (segnaposto low-fi: i valori sono nella tabella che segue)">
+    <table class="table">
+      <caption>Stanziato</caption>
+      <tbody>
+          <tr><th scope="row">Importo stanziato</th><td><span class="badge">non disponibile</span> fonte QUADRO_SINOTTICO non attiva</td></tr>
+          <tr><th scope="row">Importo da stanziare</th><td><span class="badge">non disponibile</span> fonte QUADRO_SINOTTICO non attiva</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h2 class="card-title">Pagamenti sull'impegnato (RF005)</h2>
+      <img class="anteprima" src="grafico.png" alt="Grafico a torta: pagamenti totali e impegnato da pagare (segnaposto low-fi: i valori sono nella tabella che segue)">
+    <table class="table">
+      <caption>Impegnato</caption>
+      <tbody>
+          <tr><th scope="row">Totale impegnato</th><td><span class="badge">non disponibile</span> fonte IMPEGNI non attiva</td></tr>
+          <tr><th scope="row">Pagamenti totali</th><td>importo in euro</td></tr>
+          <tr><th scope="row">Impegnato ancora da pagare</th><td><span class="badge">non disponibile</span> fonte IMPEGNI non attiva</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h2 class="card-title">Dotazione residua sugli impegni (RF006)</h2>
+      <img class="anteprima" src="grafico.png" alt="Grafico a torta: impegnato e dotazione residua (segnaposto low-fi: i valori sono nella tabella che segue)">
+    <table class="table">
+      <caption>Residuo sugli impegni</caption>
+      <tbody>
+          <tr><th scope="row">Dotazione spesa pubblica</th><td>importo in euro</td></tr>
+          <tr><th scope="row">Importo impegnato</th><td><span class="badge">non disponibile</span> fonte IMPEGNI non attiva</td></tr>
+          <tr><th scope="row">Dotazione residua</th><td><span class="badge">non disponibile</span> fonte IMPEGNI non attiva</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h2 class="card-title">Dotazione residua sui pagamenti (RF007)</h2>
+      <img class="anteprima" src="grafico.png" alt="Grafico a torta: pagato e dotazione residua (segnaposto low-fi: i valori sono nella tabella che segue)">
+    <table class="table">
+      <caption>Residuo sui pagamenti</caption>
+      <tbody>
+          <tr><th scope="row">Dotazione spesa pubblica</th><td>importo in euro</td></tr>
+          <tr><th scope="row">Importo pagato</th><td>importo in euro</td></tr>
+          <tr><th scope="row">Importo recuperato</th><td>importo in euro</td></tr>
+          <tr><th scope="row">Pagamenti al netto di rettifiche</th><td>importo in euro</td></tr>
+          <tr><th scope="row">Dotazione residua</th><td>importo in euro</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+  <h2>Altri report del finanziario</h2>
+  <p>
+    <a class="btn" href="../riepilogo/riepilogo.html">Riepilogo per intervento</a>
+    <a class="btn" href="dotazione.html">Dotazione e spesa per intervento</a>
+    <a class="btn" href="../domande/domande.html">Domande e importi per anno</a>
+    <a class="btn" href="../sigc/sigc.html">Domande e importi SIGC</a>
+    <a class="btn" href="../sigc/riserva.html">Riserva al 5% (SIGC)</a>
+    <a class="btn" href="../sigc/verifica-smp.html">Verifica SMP (SIGC)</a>
+  </p>
+  <h2>Stato: vuoto</h2>
+  <div class="alert alert-info" role="status">Nessun dato per i filtri scelti. Modifica i filtri.</div>
+  <h2>Stato: caricamento</h2>
+  <div class="alert alert-info" role="status" aria-live="polite">Caricamento in corso...</div>
+  <h2>Stato: errore</h2>
+  <div class="alert alert-danger" role="alert">Dati non disponibili: accesso negato (403, problem-type urn:problema:accesso-negato), troppe richieste (429) o servizio non disponibile (503). <a href="#contenuto">Riprova</a></div>
+  <h2>Stato: sessione scaduta (401)</h2>
+  <div class="alert alert-danger" role="alert">Sessione scaduta: verrai riportato alla pagina di accesso; i filtri restano nell'indirizzo della pagina.</div>
+</main>
+<footer class="it-footer">Cruscotto CSR 2023-2027 - ARSIAL / Regione Lazio - wireframe low-fi</footer>
+</body>
+</html>

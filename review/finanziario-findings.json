@@ -1,0 +1,66 @@
+[
+  {
+    "id": "Z-01",
+    "rif": "R-01",
+    "severity": "MINORE",
+    "file": "src/shared/api/mutator/bff-mutator.ts:63",
+    "titolo": "Dopo un 401 si perdono pagina, filtri, anno ed esercizio (limite accettato, OP-FE-06)",
+    "fix": "Come da OP-FE-06: parametro di ritorno sul BFF (/auth/login?da=<percorso>) validato lato server contro la route-table. Fino ad allora correggere il testo dello stato 401 nei wireframe al prossimo giro di approvazione, oppure citare OP-FE-06 fra le deviazioni riviste di ogni flusso."
+  },
+  {
+    "id": "Z-02",
+    "rif": "R-04",
+    "severity": "MINORE",
+    "file": "eslint.config.js:163",
+    "titolo": "boundaries ancora per layer: nessun controllo fra slice ne' verso i moduli di prova (latente)",
+    "fix": "Element 'src/features/*/**' con capture ['slice'] e una policy che ammetta lo stesso slice o il solo barrel di un altro. Group no-restricted-imports per shared/testing e api/mock nel blocco dei consumatori, escludendo i test, src/shared/test/** e src/app/main.tsx. Una canary per ciascuna regola in tests/eslint-regole.test.ts."
+  },
+  {
+    "id": "Z-03",
+    "rif": "R-13",
+    "severity": "MINORE",
+    "file": "src/app/inattivita.tsx:71",
+    "titolo": "La scadenza per inattivita' resta solo una finestra del frontend: al minuto 30 la sessione del BFF e' viva e 'Accedi' non riautentica",
+    "fix": "Allo scadere del limite chiudere davvero la sessione: navigazione top-level a resolveLogoutPath() (la GuardiaLogout ammette le navigazioni same-origin), poi la Home dice 'Accedi'. Oppure la finestra offre 'Esci' e non 'Accedi'. Allineare le schede con BroadcastChannel (non e' Web Storage), facendo ripartire il timer anche a ogni risposta /api riuscita. Ricavare il testo da preavviso. Test: scaduto il limite si naviga a /auth/logout."
+  },
+  {
+    "id": "Z-04",
+    "rif": "nuovo",
+    "severity": "MINORE",
+    "file": "../cruscotto-lazio-be/ARSCSR/bootstrap/bootstrap-postgres/src/main/resources/application.properties:67",
+    "titolo": "Il passaggio di session-age-extension a 30M (R-13) non e' arrivato alla cache del back-channel logout ne' alla decisione D-11",
+    "fix": "Portare token-cache-time-to-live a 45M o piu' e far verificare al test la relazione TTL >= token + estensione. Aggiungere a D-11 una revisione (estensione 30M, tolleranza 30-45 minuti, avviso del frontend a 28/30 con R-13) e aggiornare la nota di NFR-41 e la matrice di conformita'."
+  },
+  {
+    "id": "Z-05",
+    "rif": "R-07, R-09, R-15",
+    "severity": "MINORE",
+    "file": "tests/shell.test.tsx:134",
+    "titolo": "Le ultime correzioni non hanno test che le proteggano: il test del focus dopo 'Chiudi' passa comunque, R-09 e R-15 non hanno test",
+    "fix": "(1) userEvent.click su 'Chiudi', oppure spostare prima il focus sul bottone, e verificare che l'h1 riceva il focus. (2) Tre test con l'auth-status ridotto e un flag sull'handler MSW (come 'senza il grant di una transazione', finanziario-ui.test.tsx:302). (3) TX-0002 e TX-0012 con delay(): prima della risposta nessun valore della sezione, solo 'Caricamento in corso'."
+  },
+  {
+    "id": "Z-06",
+    "rif": "R-09",
+    "severity": "COSMETICO",
+    "file": "src/app/routes.tsx:42",
+    "titolo": "Home, breadcrumb e 'Modifica filtri' presumono csr.tx-0001.read (latente)",
+    "fix": "Nella Home mostrare l'area se l'utente ha almeno un grant di una sua route e puntarla al primo report visibile quando manca tx-0001. Senza tx-0001 rendere il breadcrumb come testo e nascondere 'Modifica filtri'."
+  },
+  {
+    "id": "Z-07",
+    "rif": "R-12",
+    "severity": "COSMETICO",
+    "file": "tests/finanziario-ui.test.tsx:63",
+    "titolo": "Restano un nome di test e un commento della fixture sui valori OP composti, gestione rimossa",
+    "fix": "Rinominare il test (es. 'OP atomici dal backend, selezione multipla in alternativa; il testo spiega E/O') e togliere il commento della fixture."
+  },
+  {
+    "id": "Z-08",
+    "rif": "R-16, R-05",
+    "severity": "COSMETICO",
+    "file": "src/app/routes.tsx:24",
+    "titolo": "Blocco 'sessione non verificabile' duplicato fra Home e RequireGrant; etichetta dei test e QueryClient locali",
+    "fix": "Estrarre un componente SessioneNonVerificabile in app/ e usarlo nei due punti. Spostare i test R-08 e R-16 in un describe proprio, o farli girare su createQueryClient. Un helper tests/app-client.ts che costruisca createQueryClient senza retry per i test sotto tests/."
+  }
+]

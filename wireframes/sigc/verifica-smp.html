@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Finanziario - Verifica SMP (SIGC)</title>
+<link rel="stylesheet" href="wireframe.css">
+</head>
+<body>
+<a class="skip-link" href="#contenuto">Salta al contenuto</a>
+<header class="it-header-wrapper">
+  <span>Cruscotto CSR 2023-2027 - ARSIAL / Regione Lazio</span>
+</header>
+<nav class="breadcrumb-container" aria-label="Percorso">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="../riepilogo/filtri.html">Home</a></li>
+    <li class="breadcrumb-item"><a href="../riepilogo/filtri.html">Finanziario</a></li>
+    <li class="breadcrumb-item" aria-current="page">Verifica SMP (SIGC)</li>
+  </ol>
+</nav>
+<main class="container" id="contenuto">
+  <h1>Finanziario: verifica smp (sigc)</h1>
+  <p class="wf-note">Ruoli (grant verbatim): csr.tx-0015.read - Transazioni: TX-0015 (RF015) - GET /api/finanziario/sigc/verifica-smp. Sola lettura.</p>
+  <p class="wf-note">Ultimo dato sincronizzato (NFR-25, OP-FE-04): dalla risposta di TX-0001, una voce per flusso d'import con la conclusione dell'ultima acquisizione; visibile con csr.tx-0001.read. Senza acquisizioni concluse: "nessuna acquisizione conclusa".</p>
+  <p>Ultimo dato sincronizzato: DS-12 02/03/2026 10:15; PROSA DS-04 03/03/2026 09:30; SIAN DS-01 01/03/2026 18:05.</p>
+  <p>Filtri attivi: Intervento SRA01, SRA02; OS, OG, OP e Azioni portanti: tutti. <a class="btn" href="../riepilogo/filtri.html">Modifica filtri</a></p>
+  <p>Perimetro: <span class="badge">REGIONALE</span> tutte le domande della regione. Per il profilo ADA: <span class="badge">ADA</span> solo le domande della propria area, il perimetro non si puo' togliere.</p>
+  <form action="verifica-smp.html" method="get">
+    <label class="form-label" for="f-esercizio">Esercizio finanziario</label>
+    <select class="form-select" id="f-esercizio" name="esercizio" aria-describedby="f-esercizio-aiuto"><option>2025</option></select>
+    <p class="form-text" id="f-esercizio-aiuto">Obbligatorio. Le domande considerate sono quelle dell'anno precedente all'esercizio.</p>
+    <button class="btn btn-primary" type="submit">Mostra</button>
+  </form>
+  <div class="card">
+    <div class="card-body">
+      <h2 class="card-title">Dati SIGC per il confronto con SMP (RF015)</h2>
+    <table class="table">
+      <caption>Esercizio</caption>
+      <tbody>
+          <tr><th scope="row">Esercizio</th><td>anno</td></tr>
+          <tr><th scope="row">Anno delle domande</th><td>anno</td></tr>
+          <tr><th scope="row">Pagamenti senza data di autorizzazione (esclusi)</th><td>numero</td></tr>
+      </tbody>
+    </table>
+    <table class="table">
+      <caption>I diciannove dati ASR per intervento</caption>
+      <thead>
+        <tr>
+          <th scope="col">Intervento</th>
+          <th scope="col">Avvisi attivati</th>
+          <th scope="col">Azioni attivate</th>
+          <th scope="col">Domande ricevute</th>
+          <th scope="col">Domande ricevute senza richiesto</th>
+          <th scope="col">Valore domande ricevute</th>
+          <th scope="col">Domande finanziate</th>
+          <th scope="col">Valore domande finanziate</th>
+          <th scope="col">Dotazione anno precedente</th>
+          <th scope="col">Dotazione periodo di impegno</th>
+          <th scope="col">Domande pagate nell'esercizio</th>
+          <th scope="col">Spesa erogata campagna precedente</th>
+          <th scope="col">Spesa erogata campagne anteriori</th>
+          <th scope="col">Previsione di pagamento</th>
+          <th scope="col">Importo top-up</th>
+          <th scope="col">Include top-up</th>
+          <th scope="col">Ettari o UBA richiesti</th>
+          <th scope="col">Output atteso finanziate</th>
+          <th scope="col">Output erogato nell'esercizio</th>
+          <th scope="col">Indicatore di output</th>
+          <th scope="col">Indicatore di risultato</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">SRA01</th><td>numero</td><td>numero</td><td>numero</td><td>numero</td><td>importo in euro</td><td>numero</td><td>importo in euro</td><td>importo in euro</td><td>importo in euro</td><td>numero</td><td>importo in euro</td><td>importo in euro</td><td><span class="badge">non disponibile</span> fonte PREVISIONE_PAGAMENTO non attiva</td><td>importo in euro</td><td>si/no</td><td>numero</td><td>numero</td><td>numero</td><td>codice</td><td>codice</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+  <h2>Altri report del finanziario</h2>
+  <p>
+    <a class="btn" href="../riepilogo/riepilogo.html">Riepilogo per intervento</a>
+    <a class="btn" href="../dotazione-avanzamento/dotazione.html">Dotazione e spesa per intervento</a>
+    <a class="btn" href="../dotazione-avanzamento/avanzamento.html">Avanzamento finanziario</a>
+    <a class="btn" href="../domande/domande.html">Domande e importi per anno</a>
+    <a class="btn" href="sigc.html">Domande e importi SIGC</a>
+    <a class="btn" href="riserva.html">Riserva al 5% (SIGC)</a>
+  </p>
+  <h2>Stato: vuoto</h2>
+  <div class="alert alert-info" role="status">Nessun dato SIGC per l'esercizio scelto. Scegli un altro esercizio o modifica i filtri.</div>
+  <h2>Stato: caricamento</h2>
+  <div class="alert alert-info" role="status" aria-live="polite">Caricamento in corso...</div>
+  <h2>Stato: errore</h2>
+  <div class="alert alert-danger" role="alert">Dati non disponibili: accesso negato (403, problem-type urn:problema:accesso-negato), troppe richieste (429) o servizio non disponibile (503). <a href="#contenuto">Riprova</a></div>
+  <h2>Stato: sessione scaduta (401)</h2>
+  <div class="alert alert-danger" role="alert">Sessione scaduta: verrai riportato alla pagina di accesso; i filtri restano nell'indirizzo della pagina.</div>
+</main>
+<footer class="it-footer">Cruscotto CSR 2023-2027 - ARSIAL / Regione Lazio - wireframe low-fi</footer>
+</body>
+</html>

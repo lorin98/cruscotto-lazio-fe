@@ -1,0 +1,3455 @@
+{
+  "schema_version": "1.0",
+  "pack_hash": "sha256:1ef3a90c51c555441a3a3e3fb203dfdaa0f2f7d1861a5664982f33cb828de4c4",
+  "authz_strategy": "two-tier",
+  "claim_mapping": {
+    "role_claim_path": "resource_access/cruscotto-csr/roles",
+    "principal_claim": "preferred_username",
+    "profile_claim": "groups"
+  },
+  "profiles": [
+    {
+      "id": "p1-dirigente",
+      "grants": [
+        "csr.tx-0001.read",
+        "csr.tx-0002.read",
+        "csr.tx-0003.read",
+        "csr.tx-0004.read",
+        "csr.tx-0005.read",
+        "csr.tx-0006.read",
+        "csr.tx-0007.read",
+        "csr.tx-0008.read",
+        "csr.tx-0009.read",
+        "csr.tx-0010.read",
+        "csr.tx-0011.read",
+        "csr.tx-0012.read",
+        "csr.tx-0013.read",
+        "csr.tx-0014.read",
+        "csr.tx-0015.read",
+        "csr.tx-0016.read",
+        "csr.tx-0017.read",
+        "csr.tx-0018.read",
+        "csr.tx-0020.read",
+        "csr.tx-0024.read",
+        "csr.tx-0025.read",
+        "csr.tx-0026.read",
+        "csr.tx-0027.read",
+        "csr.tx-0028.read",
+        "csr.tx-0029.read",
+        "csr.tx-0030.read",
+        "csr.tx-0031.read",
+        "csr.tx-0032.read",
+        "csr.tx-0033.read",
+        "csr.tx-0034.read",
+        "csr.tx-0035.read",
+        "csr.tx-0036.read",
+        "csr.tx-0037.read",
+        "csr.tx-0038.read",
+        "csr.tx-0039.read",
+        "csr.tx-0040.read",
+        "csr.tx-0041.read",
+        "csr.tx-0042.read",
+        "csr.tx-0043.read",
+        "csr.tx-0044.read",
+        "csr.tx-0045.read",
+        "csr.tx-0046.read",
+        "csr.tx-0047.read",
+        "csr.tx-0048.read",
+        "csr.tx-0049.read",
+        "csr.tx-0050.read",
+        "csr.tx-0051.read",
+        "csr.tx-0052.read",
+        "csr.tx-0053.read",
+        "csr.tx-0054.read",
+        "csr.tx-0055.read"
+      ]
+    },
+    {
+      "id": "p2-referente-adg",
+      "grants": [
+        "csr.tx-0001.read",
+        "csr.tx-0002.read",
+        "csr.tx-0003.read",
+        "csr.tx-0004.read",
+        "csr.tx-0005.read",
+        "csr.tx-0006.read",
+        "csr.tx-0007.read",
+        "csr.tx-0008.read",
+        "csr.tx-0009.read",
+        "csr.tx-0010.read",
+        "csr.tx-0011.read",
+        "csr.tx-0012.read",
+        "csr.tx-0013.read",
+        "csr.tx-0014.read",
+        "csr.tx-0015.read",
+        "csr.tx-0016.read",
+        "csr.tx-0017.read",
+        "csr.tx-0018.read",
+        "csr.tx-0020.read",
+        "csr.tx-0024.read",
+        "csr.tx-0025.read",
+        "csr.tx-0026.read",
+        "csr.tx-0027.read",
+        "csr.tx-0028.read",
+        "csr.tx-0029.read",
+        "csr.tx-0030.read",
+        "csr.tx-0031.read",
+        "csr.tx-0032.read",
+        "csr.tx-0033.read",
+        "csr.tx-0034.read",
+        "csr.tx-0035.read",
+        "csr.tx-0036.read",
+        "csr.tx-0037.read",
+        "csr.tx-0038.read",
+        "csr.tx-0039.read",
+        "csr.tx-0040.read",
+        "csr.tx-0041.read",
+        "csr.tx-0042.read",
+        "csr.tx-0043.read",
+        "csr.tx-0044.read",
+        "csr.tx-0045.read",
+        "csr.tx-0046.read",
+        "csr.tx-0047.read",
+        "csr.tx-0048.read",
+        "csr.tx-0049.read",
+        "csr.tx-0050.read",
+        "csr.tx-0051.read",
+        "csr.tx-0052.read",
+        "csr.tx-0053.read",
+        "csr.tx-0054.read",
+        "csr.tx-0055.read"
+      ]
+    },
+    {
+      "id": "p3-funzionario-area-fin",
+      "grants": [
+        "csr.tx-0001.read",
+        "csr.tx-0002.read",
+        "csr.tx-0003.read",
+        "csr.tx-0004.read",
+        "csr.tx-0005.read",
+        "csr.tx-0006.read",
+        "csr.tx-0007.read",
+        "csr.tx-0008.read",
+        "csr.tx-0009.read",
+        "csr.tx-0010.read",
+        "csr.tx-0011.read",
+        "csr.tx-0012.read",
+        "csr.tx-0013.read",
+        "csr.tx-0014.read",
+        "csr.tx-0015.read"
+      ]
+    },
+    {
+      "id": "p3-funzionario-area-ist",
+      "grants": [
+        "csr.tx-0016.read",
+        "csr.tx-0017.read"
+      ]
+    },
+    {
+      "id": "p3-funzionario-area-fis",
+      "grants": [
+        "csr.tx-0018.read",
+        "csr.tx-0020.read"
+      ]
+    },
+    {
+      "id": "p3-funzionario-area-pro",
+      "grants": [
+        "csr.tx-0024.read",
+        "csr.tx-0025.read",
+        "csr.tx-0026.read",
+        "csr.tx-0027.read",
+        "csr.tx-0028.read",
+        "csr.tx-0029.read",
+        "csr.tx-0030.read",
+        "csr.tx-0031.read",
+        "csr.tx-0032.read"
+      ]
+    },
+    {
+      "id": "p3-funzionario-area-pil",
+      "grants": [
+        "csr.tx-0033.read",
+        "csr.tx-0034.read",
+        "csr.tx-0035.read",
+        "csr.tx-0036.read",
+        "csr.tx-0037.read",
+        "csr.tx-0038.read",
+        "csr.tx-0039.read",
+        "csr.tx-0040.read",
+        "csr.tx-0041.read",
+        "csr.tx-0042.read",
+        "csr.tx-0043.read",
+        "csr.tx-0044.read",
+        "csr.tx-0045.read",
+        "csr.tx-0046.read",
+        "csr.tx-0047.read",
+        "csr.tx-0048.read",
+        "csr.tx-0049.read",
+        "csr.tx-0050.read",
+        "csr.tx-0051.read",
+        "csr.tx-0052.read",
+        "csr.tx-0053.read",
+        "csr.tx-0054.read",
+        "csr.tx-0055.read"
+      ]
+    },
+    {
+      "id": "p4-responsabile-procedimento-ada",
+      "grants": [
+        "csr.tx-0001.read",
+        "csr.tx-0002.read",
+        "csr.tx-0003.read",
+        "csr.tx-0004.read",
+        "csr.tx-0005.read",
+        "csr.tx-0006.read",
+        "csr.tx-0007.read",
+        "csr.tx-0008.read",
+        "csr.tx-0009.read",
+        "csr.tx-0010.read",
+        "csr.tx-0011.read",
+        "csr.tx-0012.read",
+        "csr.tx-0013.read",
+        "csr.tx-0014.read",
+        "csr.tx-0015.read",
+        "csr.tx-0024.read",
+        "csr.tx-0025.read",
+        "csr.tx-0026.read",
+        "csr.tx-0027.read",
+        "csr.tx-0028.read",
+        "csr.tx-0029.read",
+        "csr.tx-0030.read",
+        "csr.tx-0031.read",
+        "csr.tx-0032.read"
+      ],
+      "scope_level": "ADA"
+    },
+    {
+      "id": "p5-amministratore-funzionale",
+      "grants": [
+        "csr.tx-0001.read",
+        "csr.tx-0002.read",
+        "csr.tx-0003.read",
+        "csr.tx-0004.read",
+        "csr.tx-0005.read",
+        "csr.tx-0006.read",
+        "csr.tx-0007.read",
+        "csr.tx-0008.read",
+        "csr.tx-0009.read",
+        "csr.tx-0010.read",
+        "csr.tx-0011.read",
+        "csr.tx-0012.read",
+        "csr.tx-0013.read",
+        "csr.tx-0014.read",
+        "csr.tx-0015.read",
+        "csr.tx-0018.read",
+        "csr.tx-0020.read",
+        "csr.tx-1008.write",
+        "csr.tx-1009.write"
+      ]
+    },
+    {
+      "id": "p6-amministratore-tecnico",
+      "grants": [
+        "csr.tx-1001.write",
+        "csr.tx-1002.write",
+        "csr.tx-1003.write",
+        "csr.tx-1004.write",
+        "csr.tx-1005.write",
+        "csr.tx-1006.write",
+        "csr.tx-1007.write"
+      ]
+    },
+    {
+      "id": "p7-sistema-acquisizione",
+      "grants": [
+        "csr.tx-0019.write",
+        "csr.tx-0021.write",
+        "csr.tx-0022.write",
+        "csr.tx-0023.write",
+        "csr.tx-1001.write",
+        "csr.tx-1002.write",
+        "csr.tx-1003.write",
+        "csr.tx-1004.write",
+        "csr.tx-1005.write",
+        "csr.tx-1006.write",
+        "csr.tx-1007.write"
+      ],
+      "grant_identity": false
+    }
+  ],
+  "grants": [
+    {
+      "id": "csr.tx-0001.read",
+      "origin": "RU-00000001"
+    },
+    {
+      "id": "csr.tx-0002.read",
+      "origin": "RU-00000002"
+    },
+    {
+      "id": "csr.tx-0003.read",
+      "origin": "RU-00000003"
+    },
+    {
+      "id": "csr.tx-0004.read",
+      "origin": "RU-00000004"
+    },
+    {
+      "id": "csr.tx-0005.read",
+      "origin": "RU-00000005"
+    },
+    {
+      "id": "csr.tx-0006.read",
+      "origin": "RU-00000006"
+    },
+    {
+      "id": "csr.tx-0007.read",
+      "origin": "RU-00000007"
+    },
+    {
+      "id": "csr.tx-0008.read",
+      "origin": "RU-00000008"
+    },
+    {
+      "id": "csr.tx-0009.read",
+      "origin": "RU-00000009"
+    },
+    {
+      "id": "csr.tx-0010.read",
+      "origin": "RU-00000010"
+    },
+    {
+      "id": "csr.tx-0011.read",
+      "origin": "RU-00000011"
+    },
+    {
+      "id": "csr.tx-0012.read",
+      "origin": "RU-00000012"
+    },
+    {
+      "id": "csr.tx-0013.read",
+      "origin": "RU-00000013"
+    },
+    {
+      "id": "csr.tx-0014.read",
+      "origin": "RU-00000014"
+    },
+    {
+      "id": "csr.tx-0015.read",
+      "origin": "RU-00000015"
+    },
+    {
+      "id": "csr.tx-0016.read",
+      "origin": "RU-00000016"
+    },
+    {
+      "id": "csr.tx-0017.read",
+      "origin": "RU-00000017"
+    },
+    {
+      "id": "csr.tx-0018.read",
+      "origin": "RU-00000018"
+    },
+    {
+      "id": "csr.tx-0019.write",
+      "origin": "RU-00000019"
+    },
+    {
+      "id": "csr.tx-0020.read",
+      "origin": "RU-00000020"
+    },
+    {
+      "id": "csr.tx-0021.write",
+      "origin": "RU-00000021"
+    },
+    {
+      "id": "csr.tx-0022.write",
+      "origin": "RU-00000022"
+    },
+    {
+      "id": "csr.tx-0023.write",
+      "origin": "RU-00000023"
+    },
+    {
+      "id": "csr.tx-0024.read",
+      "origin": "RU-00000024"
+    },
+    {
+      "id": "csr.tx-0025.read",
+      "origin": "RU-00000025"
+    },
+    {
+      "id": "csr.tx-0026.read",
+      "origin": "RU-00000026"
+    },
+    {
+      "id": "csr.tx-0027.read",
+      "origin": "RU-00000027"
+    },
+    {
+      "id": "csr.tx-0028.read",
+      "origin": "RU-00000028"
+    },
+    {
+      "id": "csr.tx-0029.read",
+      "origin": "RU-00000029"
+    },
+    {
+      "id": "csr.tx-0030.read",
+      "origin": "RU-00000030"
+    },
+    {
+      "id": "csr.tx-0031.read",
+      "origin": "RU-00000031"
+    },
+    {
+      "id": "csr.tx-0032.read",
+      "origin": "RU-00000032"
+    },
+    {
+      "id": "csr.tx-0033.read",
+      "origin": "RU-00000033"
+    },
+    {
+      "id": "csr.tx-0034.read",
+      "origin": "RU-00000034"
+    },
+    {
+      "id": "csr.tx-0035.read",
+      "origin": "RU-00000035"
+    },
+    {
+      "id": "csr.tx-0036.read",
+      "origin": "RU-00000036"
+    },
+    {
+      "id": "csr.tx-0037.read",
+      "origin": "RU-00000037"
+    },
+    {
+      "id": "csr.tx-0038.read",
+      "origin": "RU-00000038"
+    },
+    {
+      "id": "csr.tx-0039.read",
+      "origin": "RU-00000039"
+    },
+    {
+      "id": "csr.tx-0040.read",
+      "origin": "RU-00000040"
+    },
+    {
+      "id": "csr.tx-0041.read",
+      "origin": "RU-00000041"
+    },
+    {
+      "id": "csr.tx-0042.read",
+      "origin": "RU-00000042"
+    },
+    {
+      "id": "csr.tx-0043.read",
+      "origin": "RU-00000043"
+    },
+    {
+      "id": "csr.tx-0044.read",
+      "origin": "RU-00000044"
+    },
+    {
+      "id": "csr.tx-0045.read",
+      "origin": "RU-00000045"
+    },
+    {
+      "id": "csr.tx-0046.read",
+      "origin": "RU-00000046"
+    },
+    {
+      "id": "csr.tx-0047.read",
+      "origin": "RU-00000047"
+    },
+    {
+      "id": "csr.tx-0048.read",
+      "origin": "RU-00000048"
+    },
+    {
+      "id": "csr.tx-0049.read",
+      "origin": "RU-00000049"
+    },
+    {
+      "id": "csr.tx-0050.read",
+      "origin": "RU-00000050"
+    },
+    {
+      "id": "csr.tx-0051.read",
+      "origin": "RU-00000051"
+    },
+    {
+      "id": "csr.tx-0052.read",
+      "origin": "RU-00000052"
+    },
+    {
+      "id": "csr.tx-0053.read",
+      "origin": "RU-00000053"
+    },
+    {
+      "id": "csr.tx-0054.read",
+      "origin": "RU-00000054"
+    },
+    {
+      "id": "csr.tx-0055.read",
+      "origin": "RU-00000055"
+    },
+    {
+      "id": "csr.tx-1001.write",
+      "origin": "RU-00000001"
+    },
+    {
+      "id": "csr.tx-1002.write",
+      "origin": "RU-00000001"
+    },
+    {
+      "id": "csr.tx-1003.write",
+      "origin": "RU-00000001"
+    },
+    {
+      "id": "csr.tx-1004.write",
+      "origin": "RU-00000001"
+    },
+    {
+      "id": "csr.tx-1005.write",
+      "origin": "RU-00000001"
+    },
+    {
+      "id": "csr.tx-1006.write",
+      "origin": "RU-00000019"
+    },
+    {
+      "id": "csr.tx-1007.write",
+      "origin": "RU-00000035"
+    },
+    {
+      "id": "csr.tx-1008.write",
+      "origin": "RU-00000056"
+    },
+    {
+      "id": "csr.tx-1009.write",
+      "origin": "RU-00000014"
+    }
+  ],
+  "scope_dimensions": [
+    {
+      "name": "territoriale-ada",
+      "entity": "Domanda",
+      "kind": "containment",
+      "level": "ADA",
+      "field_path": "domanda.ente_delegato + domanda.provincia (P4: utente.perimetro_ada == domanda.ente_delegato e utente.provincia == domanda.provincia; fuori perimetro solo aggregato regionale)",
+      "claim": "ada"
+    }
+  ],
+  "role_transaction_matrix": [
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0001",
+      "access": "allow",
+      "grant": "csr.tx-0001.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0002",
+      "access": "allow",
+      "grant": "csr.tx-0002.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0003",
+      "access": "allow",
+      "grant": "csr.tx-0003.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0004",
+      "access": "allow",
+      "grant": "csr.tx-0004.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0005",
+      "access": "allow",
+      "grant": "csr.tx-0005.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0006",
+      "access": "allow",
+      "grant": "csr.tx-0006.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0007",
+      "access": "allow",
+      "grant": "csr.tx-0007.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0008",
+      "access": "allow",
+      "grant": "csr.tx-0008.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0009",
+      "access": "allow",
+      "grant": "csr.tx-0009.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0010",
+      "access": "allow",
+      "grant": "csr.tx-0010.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0011",
+      "access": "allow",
+      "grant": "csr.tx-0011.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0012",
+      "access": "allow",
+      "grant": "csr.tx-0012.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0013",
+      "access": "allow",
+      "grant": "csr.tx-0013.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0014",
+      "access": "allow",
+      "grant": "csr.tx-0014.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0015",
+      "access": "allow",
+      "grant": "csr.tx-0015.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0016",
+      "access": "allow",
+      "grant": "csr.tx-0016.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0017",
+      "access": "allow",
+      "grant": "csr.tx-0017.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0018",
+      "access": "allow",
+      "grant": "csr.tx-0018.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0019",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0020",
+      "access": "allow",
+      "grant": "csr.tx-0020.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0021",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0022",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0023",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0024",
+      "access": "allow",
+      "grant": "csr.tx-0024.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0025",
+      "access": "allow",
+      "grant": "csr.tx-0025.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0026",
+      "access": "allow",
+      "grant": "csr.tx-0026.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0027",
+      "access": "allow",
+      "grant": "csr.tx-0027.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0028",
+      "access": "allow",
+      "grant": "csr.tx-0028.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0029",
+      "access": "allow",
+      "grant": "csr.tx-0029.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0030",
+      "access": "allow",
+      "grant": "csr.tx-0030.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0031",
+      "access": "allow",
+      "grant": "csr.tx-0031.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0032",
+      "access": "allow",
+      "grant": "csr.tx-0032.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0033",
+      "access": "allow",
+      "grant": "csr.tx-0033.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0034",
+      "access": "allow",
+      "grant": "csr.tx-0034.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0035",
+      "access": "allow",
+      "grant": "csr.tx-0035.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0036",
+      "access": "allow",
+      "grant": "csr.tx-0036.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0037",
+      "access": "allow",
+      "grant": "csr.tx-0037.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0038",
+      "access": "allow",
+      "grant": "csr.tx-0038.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0039",
+      "access": "allow",
+      "grant": "csr.tx-0039.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0040",
+      "access": "allow",
+      "grant": "csr.tx-0040.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0041",
+      "access": "allow",
+      "grant": "csr.tx-0041.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0042",
+      "access": "allow",
+      "grant": "csr.tx-0042.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0043",
+      "access": "allow",
+      "grant": "csr.tx-0043.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0044",
+      "access": "allow",
+      "grant": "csr.tx-0044.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0045",
+      "access": "allow",
+      "grant": "csr.tx-0045.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0046",
+      "access": "allow",
+      "grant": "csr.tx-0046.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0047",
+      "access": "allow",
+      "grant": "csr.tx-0047.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0048",
+      "access": "allow",
+      "grant": "csr.tx-0048.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0049",
+      "access": "allow",
+      "grant": "csr.tx-0049.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0050",
+      "access": "allow",
+      "grant": "csr.tx-0050.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0051",
+      "access": "allow",
+      "grant": "csr.tx-0051.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0052",
+      "access": "allow",
+      "grant": "csr.tx-0052.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0053",
+      "access": "allow",
+      "grant": "csr.tx-0053.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0054",
+      "access": "allow",
+      "grant": "csr.tx-0054.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-0055",
+      "access": "allow",
+      "grant": "csr.tx-0055.read",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-1001",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-1002",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-1003",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-1004",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-1005",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-1006",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-1007",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-1008",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p1-dirigente",
+      "transaction": "TX-1009",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0001",
+      "access": "allow",
+      "grant": "csr.tx-0001.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0002",
+      "access": "allow",
+      "grant": "csr.tx-0002.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0003",
+      "access": "allow",
+      "grant": "csr.tx-0003.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0004",
+      "access": "allow",
+      "grant": "csr.tx-0004.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0005",
+      "access": "allow",
+      "grant": "csr.tx-0005.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0006",
+      "access": "allow",
+      "grant": "csr.tx-0006.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0007",
+      "access": "allow",
+      "grant": "csr.tx-0007.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0008",
+      "access": "allow",
+      "grant": "csr.tx-0008.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0009",
+      "access": "allow",
+      "grant": "csr.tx-0009.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0010",
+      "access": "allow",
+      "grant": "csr.tx-0010.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0011",
+      "access": "allow",
+      "grant": "csr.tx-0011.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0012",
+      "access": "allow",
+      "grant": "csr.tx-0012.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0013",
+      "access": "allow",
+      "grant": "csr.tx-0013.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0014",
+      "access": "allow",
+      "grant": "csr.tx-0014.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0015",
+      "access": "allow",
+      "grant": "csr.tx-0015.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0016",
+      "access": "allow",
+      "grant": "csr.tx-0016.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0017",
+      "access": "allow",
+      "grant": "csr.tx-0017.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0018",
+      "access": "allow",
+      "grant": "csr.tx-0018.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0019",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0020",
+      "access": "allow",
+      "grant": "csr.tx-0020.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0021",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0022",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0023",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0024",
+      "access": "allow",
+      "grant": "csr.tx-0024.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0025",
+      "access": "allow",
+      "grant": "csr.tx-0025.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0026",
+      "access": "allow",
+      "grant": "csr.tx-0026.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0027",
+      "access": "allow",
+      "grant": "csr.tx-0027.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0028",
+      "access": "allow",
+      "grant": "csr.tx-0028.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0029",
+      "access": "allow",
+      "grant": "csr.tx-0029.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0030",
+      "access": "allow",
+      "grant": "csr.tx-0030.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0031",
+      "access": "allow",
+      "grant": "csr.tx-0031.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0032",
+      "access": "allow",
+      "grant": "csr.tx-0032.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0033",
+      "access": "allow",
+      "grant": "csr.tx-0033.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0034",
+      "access": "allow",
+      "grant": "csr.tx-0034.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0035",
+      "access": "allow",
+      "grant": "csr.tx-0035.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0036",
+      "access": "allow",
+      "grant": "csr.tx-0036.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0037",
+      "access": "allow",
+      "grant": "csr.tx-0037.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0038",
+      "access": "allow",
+      "grant": "csr.tx-0038.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0039",
+      "access": "allow",
+      "grant": "csr.tx-0039.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0040",
+      "access": "allow",
+      "grant": "csr.tx-0040.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0041",
+      "access": "allow",
+      "grant": "csr.tx-0041.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0042",
+      "access": "allow",
+      "grant": "csr.tx-0042.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0043",
+      "access": "allow",
+      "grant": "csr.tx-0043.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0044",
+      "access": "allow",
+      "grant": "csr.tx-0044.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0045",
+      "access": "allow",
+      "grant": "csr.tx-0045.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0046",
+      "access": "allow",
+      "grant": "csr.tx-0046.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0047",
+      "access": "allow",
+      "grant": "csr.tx-0047.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0048",
+      "access": "allow",
+      "grant": "csr.tx-0048.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0049",
+      "access": "allow",
+      "grant": "csr.tx-0049.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0050",
+      "access": "allow",
+      "grant": "csr.tx-0050.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0051",
+      "access": "allow",
+      "grant": "csr.tx-0051.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0052",
+      "access": "allow",
+      "grant": "csr.tx-0052.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0053",
+      "access": "allow",
+      "grant": "csr.tx-0053.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0054",
+      "access": "allow",
+      "grant": "csr.tx-0054.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-0055",
+      "access": "allow",
+      "grant": "csr.tx-0055.read",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-1001",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-1002",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-1003",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-1004",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-1005",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-1006",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-1007",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-1008",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p2-referente-adg",
+      "transaction": "TX-1009",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0001",
+      "access": "allow",
+      "grant": "csr.tx-0001.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0002",
+      "access": "allow",
+      "grant": "csr.tx-0002.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0003",
+      "access": "allow",
+      "grant": "csr.tx-0003.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0004",
+      "access": "allow",
+      "grant": "csr.tx-0004.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0005",
+      "access": "allow",
+      "grant": "csr.tx-0005.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0006",
+      "access": "allow",
+      "grant": "csr.tx-0006.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0007",
+      "access": "allow",
+      "grant": "csr.tx-0007.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0008",
+      "access": "allow",
+      "grant": "csr.tx-0008.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0009",
+      "access": "allow",
+      "grant": "csr.tx-0009.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0010",
+      "access": "allow",
+      "grant": "csr.tx-0010.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0011",
+      "access": "allow",
+      "grant": "csr.tx-0011.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0012",
+      "access": "allow",
+      "grant": "csr.tx-0012.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0013",
+      "access": "allow",
+      "grant": "csr.tx-0013.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0014",
+      "access": "allow",
+      "grant": "csr.tx-0014.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0015",
+      "access": "allow",
+      "grant": "csr.tx-0015.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0016",
+      "access": "allow",
+      "grant": "csr.tx-0016.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0017",
+      "access": "allow",
+      "grant": "csr.tx-0017.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0018",
+      "access": "allow",
+      "grant": "csr.tx-0018.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0019",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0020",
+      "access": "allow",
+      "grant": "csr.tx-0020.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0021",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0022",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0023",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0024",
+      "access": "allow",
+      "grant": "csr.tx-0024.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0025",
+      "access": "allow",
+      "grant": "csr.tx-0025.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0026",
+      "access": "allow",
+      "grant": "csr.tx-0026.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0027",
+      "access": "allow",
+      "grant": "csr.tx-0027.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0028",
+      "access": "allow",
+      "grant": "csr.tx-0028.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0029",
+      "access": "allow",
+      "grant": "csr.tx-0029.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0030",
+      "access": "allow",
+      "grant": "csr.tx-0030.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0031",
+      "access": "allow",
+      "grant": "csr.tx-0031.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0032",
+      "access": "allow",
+      "grant": "csr.tx-0032.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0033",
+      "access": "allow",
+      "grant": "csr.tx-0033.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0034",
+      "access": "allow",
+      "grant": "csr.tx-0034.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0035",
+      "access": "allow",
+      "grant": "csr.tx-0035.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0036",
+      "access": "allow",
+      "grant": "csr.tx-0036.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0037",
+      "access": "allow",
+      "grant": "csr.tx-0037.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0038",
+      "access": "allow",
+      "grant": "csr.tx-0038.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0039",
+      "access": "allow",
+      "grant": "csr.tx-0039.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0040",
+      "access": "allow",
+      "grant": "csr.tx-0040.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0041",
+      "access": "allow",
+      "grant": "csr.tx-0041.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0042",
+      "access": "allow",
+      "grant": "csr.tx-0042.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0043",
+      "access": "allow",
+      "grant": "csr.tx-0043.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0044",
+      "access": "allow",
+      "grant": "csr.tx-0044.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0045",
+      "access": "allow",
+      "grant": "csr.tx-0045.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0046",
+      "access": "allow",
+      "grant": "csr.tx-0046.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0047",
+      "access": "allow",
+      "grant": "csr.tx-0047.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0048",
+      "access": "allow",
+      "grant": "csr.tx-0048.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0049",
+      "access": "allow",
+      "grant": "csr.tx-0049.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0050",
+      "access": "allow",
+      "grant": "csr.tx-0050.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0051",
+      "access": "allow",
+      "grant": "csr.tx-0051.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0052",
+      "access": "allow",
+      "grant": "csr.tx-0052.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0053",
+      "access": "allow",
+      "grant": "csr.tx-0053.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0054",
+      "access": "allow",
+      "grant": "csr.tx-0054.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-0055",
+      "access": "allow",
+      "grant": "csr.tx-0055.read",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-1001",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-1002",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-1003",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-1004",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-1005",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-1006",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-1007",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-1008",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p3-funzionario-area",
+      "transaction": "TX-1009",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0001",
+      "access": "allow",
+      "grant": "csr.tx-0001.read",
+      "scoped": true
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0002",
+      "access": "allow",
+      "grant": "csr.tx-0002.read",
+      "scoped": true
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0003",
+      "access": "allow",
+      "grant": "csr.tx-0003.read",
+      "scoped": true
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0004",
+      "access": "allow",
+      "grant": "csr.tx-0004.read",
+      "scoped": true
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0005",
+      "access": "allow",
+      "grant": "csr.tx-0005.read",
+      "scoped": true
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0006",
+      "access": "allow",
+      "grant": "csr.tx-0006.read",
+      "scoped": true
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0007",
+      "access": "allow",
+      "grant": "csr.tx-0007.read",
+      "scoped": true
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0008",
+      "access": "allow",
+      "grant": "csr.tx-0008.read",
+      "scoped": true
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0009",
+      "access": "allow",
+      "grant": "csr.tx-0009.read",
+      "scoped": true
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0010",
+      "access": "allow",
+      "grant": "csr.tx-0010.read",
+      "scoped": true
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0011",
+      "access": "allow",
+      "grant": "csr.tx-0011.read",
+      "scoped": true
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0012",
+      "access": "allow",
+      "grant": "csr.tx-0012.read",
+      "scoped": true
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0013",
+      "access": "allow",
+      "grant": "csr.tx-0013.read",
+      "scoped": true
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0014",
+      "access": "allow",
+      "grant": "csr.tx-0014.read",
+      "scoped": true
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0015",
+      "access": "allow",
+      "grant": "csr.tx-0015.read",
+      "scoped": true
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0016",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0017",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0018",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0019",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0020",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0021",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0022",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0023",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0024",
+      "access": "allow",
+      "grant": "csr.tx-0024.read",
+      "scoped": true
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0025",
+      "access": "allow",
+      "grant": "csr.tx-0025.read",
+      "scoped": true
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0026",
+      "access": "allow",
+      "grant": "csr.tx-0026.read",
+      "scoped": true
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0027",
+      "access": "allow",
+      "grant": "csr.tx-0027.read",
+      "scoped": true
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0028",
+      "access": "allow",
+      "grant": "csr.tx-0028.read",
+      "scoped": true
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0029",
+      "access": "allow",
+      "grant": "csr.tx-0029.read",
+      "scoped": true
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0030",
+      "access": "allow",
+      "grant": "csr.tx-0030.read",
+      "scoped": true
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0031",
+      "access": "allow",
+      "grant": "csr.tx-0031.read",
+      "scoped": true
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0032",
+      "access": "allow",
+      "grant": "csr.tx-0032.read",
+      "scoped": true
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0033",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0034",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0035",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0036",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0037",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0038",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0039",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0040",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0041",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0042",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0043",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0044",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0045",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0046",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0047",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0048",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0049",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0050",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0051",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0052",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0053",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0054",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-0055",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-1001",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-1002",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-1003",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-1004",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-1005",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-1006",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-1007",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-1008",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p4-responsabile-procedimento-ada",
+      "transaction": "TX-1009",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0001",
+      "access": "allow",
+      "grant": "csr.tx-0001.read",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0002",
+      "access": "allow",
+      "grant": "csr.tx-0002.read",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0003",
+      "access": "allow",
+      "grant": "csr.tx-0003.read",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0004",
+      "access": "allow",
+      "grant": "csr.tx-0004.read",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0005",
+      "access": "allow",
+      "grant": "csr.tx-0005.read",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0006",
+      "access": "allow",
+      "grant": "csr.tx-0006.read",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0007",
+      "access": "allow",
+      "grant": "csr.tx-0007.read",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0008",
+      "access": "allow",
+      "grant": "csr.tx-0008.read",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0009",
+      "access": "allow",
+      "grant": "csr.tx-0009.read",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0010",
+      "access": "allow",
+      "grant": "csr.tx-0010.read",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0011",
+      "access": "allow",
+      "grant": "csr.tx-0011.read",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0012",
+      "access": "allow",
+      "grant": "csr.tx-0012.read",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0013",
+      "access": "allow",
+      "grant": "csr.tx-0013.read",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0014",
+      "access": "allow",
+      "grant": "csr.tx-0014.read",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0015",
+      "access": "allow",
+      "grant": "csr.tx-0015.read",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0016",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0017",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0018",
+      "access": "allow",
+      "grant": "csr.tx-0018.read",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0019",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0020",
+      "access": "allow",
+      "grant": "csr.tx-0020.read",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0021",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0022",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0023",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0024",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0025",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0026",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0027",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0028",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0029",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0030",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0031",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0032",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0033",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0034",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0035",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0036",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0037",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0038",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0039",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0040",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0041",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0042",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0043",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0044",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0045",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0046",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0047",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0048",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0049",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0050",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0051",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0052",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0053",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0054",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-0055",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-1001",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-1002",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-1003",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-1004",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-1005",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-1006",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-1007",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-1008",
+      "access": "allow",
+      "grant": "csr.tx-1008.write",
+      "scoped": false
+    },
+    {
+      "role": "p5-amministratore-funzionale",
+      "transaction": "TX-1009",
+      "access": "allow",
+      "grant": "csr.tx-1009.write",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0001",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0002",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0003",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0004",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0005",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0006",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0007",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0008",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0009",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0010",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0011",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0012",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0013",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0014",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0015",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0016",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0017",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0018",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0019",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0020",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0021",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0022",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0023",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0024",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0025",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0026",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0027",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0028",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0029",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0030",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0031",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0032",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0033",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0034",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0035",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0036",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0037",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0038",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0039",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0040",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0041",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0042",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0043",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0044",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0045",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0046",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0047",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0048",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0049",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0050",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0051",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0052",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0053",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0054",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-0055",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-1001",
+      "access": "allow",
+      "grant": "csr.tx-1001.write",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-1002",
+      "access": "allow",
+      "grant": "csr.tx-1002.write",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-1003",
+      "access": "allow",
+      "grant": "csr.tx-1003.write",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-1004",
+      "access": "allow",
+      "grant": "csr.tx-1004.write",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-1005",
+      "access": "allow",
+      "grant": "csr.tx-1005.write",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-1006",
+      "access": "allow",
+      "grant": "csr.tx-1006.write",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-1007",
+      "access": "allow",
+      "grant": "csr.tx-1007.write",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-1008",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p6-amministratore-tecnico",
+      "transaction": "TX-1009",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0001",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0002",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0003",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0004",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0005",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0006",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0007",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0008",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0009",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0010",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0011",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0012",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0013",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0014",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0015",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0016",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0017",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0018",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0019",
+      "access": "allow",
+      "grant": "csr.tx-0019.write",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0020",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0021",
+      "access": "allow",
+      "grant": "csr.tx-0021.write",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0022",
+      "access": "allow",
+      "grant": "csr.tx-0022.write",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0023",
+      "access": "allow",
+      "grant": "csr.tx-0023.write",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0024",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0025",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0026",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0027",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0028",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0029",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0030",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0031",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0032",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0033",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0034",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0035",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0036",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0037",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0038",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0039",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0040",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0041",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0042",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0043",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0044",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0045",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0046",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0047",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0048",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0049",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0050",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0051",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0052",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0053",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0054",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-0055",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-1001",
+      "access": "allow",
+      "grant": "csr.tx-1001.write",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-1002",
+      "access": "allow",
+      "grant": "csr.tx-1002.write",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-1003",
+      "access": "allow",
+      "grant": "csr.tx-1003.write",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-1004",
+      "access": "allow",
+      "grant": "csr.tx-1004.write",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-1005",
+      "access": "allow",
+      "grant": "csr.tx-1005.write",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-1006",
+      "access": "allow",
+      "grant": "csr.tx-1006.write",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-1007",
+      "access": "allow",
+      "grant": "csr.tx-1007.write",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-1008",
+      "access": "deny",
+      "scoped": false
+    },
+    {
+      "role": "p7-sistema-acquisizione",
+      "transaction": "TX-1009",
+      "access": "deny",
+      "scoped": false
+    }
+  ]
+}

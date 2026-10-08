@@ -1,0 +1,177 @@
+{
+  "feature": "finanziario",
+  "pack_hash": "sha256:1ef3a90c51c555441a3a3e3fb203dfdaa0f2f7d1861a5664982f33cb828de4c4",
+  "routes": [
+    {
+      "actions": [
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0001.read",
+          "operationId": "TX-0001"
+        }
+      ],
+      "component": "src/pages/finanziario/filtri/page.tsx",
+      "flow": "riepilogo",
+      "path": "/finanziario",
+      "visibility": [
+        "csr.tx-0001.read"
+      ]
+    },
+    {
+      "actions": [
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0011.read",
+          "operationId": "TX-0011"
+        }
+      ],
+      "component": "src/pages/finanziario/riepilogo/page.tsx",
+      "flow": "riepilogo",
+      "path": "/finanziario/riepilogo",
+      "visibility": [
+        "csr.tx-0011.read"
+      ]
+    },
+    {
+      "actions": [
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0002.read",
+          "operationId": "TX-0002"
+        },
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0003.read",
+          "operationId": "TX-0003"
+        }
+      ],
+      "component": "src/pages/finanziario/dotazione/page.tsx",
+      "flow": "dotazione-avanzamento",
+      "path": "/finanziario/dotazione",
+      "visibility": [
+        "csr.tx-0002.read",
+        "csr.tx-0003.read"
+      ]
+    },
+    {
+      "actions": [
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0004.read",
+          "operationId": "TX-0004"
+        },
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0005.read",
+          "operationId": "TX-0005"
+        },
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0006.read",
+          "operationId": "TX-0006"
+        },
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0007.read",
+          "operationId": "TX-0007"
+        }
+      ],
+      "component": "src/pages/finanziario/avanzamento/page.tsx",
+      "flow": "dotazione-avanzamento",
+      "path": "/finanziario/avanzamento",
+      "visibility": [
+        "csr.tx-0004.read",
+        "csr.tx-0005.read",
+        "csr.tx-0006.read",
+        "csr.tx-0007.read"
+      ]
+    },
+    {
+      "actions": [
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0008.read",
+          "operationId": "TX-0008"
+        },
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0009.read",
+          "operationId": "TX-0009"
+        },
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0010.read",
+          "operationId": "TX-0010"
+        }
+      ],
+      "component": "src/pages/finanziario/domande/page.tsx",
+      "flow": "domande",
+      "path": "/finanziario/domande",
+      "visibility": [
+        "csr.tx-0008.read",
+        "csr.tx-0009.read",
+        "csr.tx-0010.read"
+      ]
+    },
+    {
+      "actions": [
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0012.read",
+          "operationId": "TX-0012"
+        },
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0013.read",
+          "operationId": "TX-0013"
+        }
+      ],
+      "component": "src/pages/finanziario/sigc/page.tsx",
+      "flow": "sigc",
+      "path": "/finanziario/sigc",
+      "visibility": [
+        "csr.tx-0012.read",
+        "csr.tx-0013.read"
+      ]
+    },
+    {
+      "actions": [
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0014.read",
+          "operationId": "TX-0014"
+        }
+      ],
+      "component": "src/pages/finanziario/sigc/riserva/page.tsx",
+      "flow": "sigc",
+      "path": "/finanziario/sigc/riserva",
+      "visibility": [
+        "csr.tx-0014.read"
+      ]
+    },
+    {
+      "actions": [
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0015.read",
+          "operationId": "TX-0015"
+        }
+      ],
+      "component": "src/pages/finanziario/sigc/verifica-smp/page.tsx",
+      "flow": "sigc",
+      "path": "/finanziario/sigc/verifica-smp",
+      "visibility": [
+        "csr.tx-0015.read"
+      ]
+    }
+  ],
+  "schema_version": "1.0",
+  "spec_pins": [
+    {
+      "manifest_hash_match": true,
+      "path": "handover/openapi-finanziario.json",
+      "sha256": "sha256:d5db8997d6f883f373cfcd7c177643e20e6c3af46c8fe8e601bfa8b2c029e634",
+      "slice": "finanziario"
+    }
+  ]
+}

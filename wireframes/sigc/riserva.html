@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Finanziario - Riserva al 5% (SIGC)</title>
+<link rel="stylesheet" href="wireframe.css">
+</head>
+<body>
+<a class="skip-link" href="#contenuto">Salta al contenuto</a>
+<header class="it-header-wrapper">
+  <span>Cruscotto CSR 2023-2027 - ARSIAL / Regione Lazio</span>
+</header>
+<nav class="breadcrumb-container" aria-label="Percorso">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="../riepilogo/filtri.html">Home</a></li>
+    <li class="breadcrumb-item"><a href="../riepilogo/filtri.html">Finanziario</a></li>
+    <li class="breadcrumb-item" aria-current="page">Riserva al 5% (SIGC)</li>
+  </ol>
+</nav>
+<main class="container" id="contenuto">
+  <h1>Finanziario: riserva al 5% (sigc)</h1>
+  <p class="wf-note">Ruoli (grant verbatim): csr.tx-0014.read - Transazioni: TX-0014 (RF014) - GET /api/finanziario/riserva/{anno}. Sola lettura.</p>
+  <p class="wf-note">Ultimo dato sincronizzato (NFR-25, OP-FE-04): dalla risposta di TX-0001, una voce per flusso d'import con la conclusione dell'ultima acquisizione; visibile con csr.tx-0001.read. Senza acquisizioni concluse: "nessuna acquisizione conclusa".</p>
+  <p>Ultimo dato sincronizzato: DS-12 02/03/2026 10:15; PROSA DS-04 03/03/2026 09:30; SIAN DS-01 01/03/2026 18:05.</p>
+  <p>Filtri attivi: Intervento SRA01, SRA02; OS, OG, OP e Azioni portanti: tutti. <a class="btn" href="../riepilogo/filtri.html">Modifica filtri</a></p>
+  <form action="riserva.html" method="get">
+    <label class="form-label" for="f-anno">Anno della riserva (anno n)</label>
+    <select class="form-select" id="f-anno" name="anno"><option>2025</option></select>
+    <button class="btn btn-primary" type="submit">Mostra</button>
+  </form>
+  <div class="card">
+    <div class="card-body">
+      <h2 class="card-title">Fase e valori della riserva (RF014)</h2>
+      <img class="anteprima" src="grafico.png" alt="Grafico a linea: utilizzo progressivo e cumulato nel tempo (segnaposto low-fi: i valori sono nella tabella che segue)">
+    <table class="table">
+      <caption>Riserva dell'anno n</caption>
+      <tbody>
+          <tr><th scope="row">Fase</th><td><span class="badge">ACCUMULO</span> (NON_INIZIATA, ACCUMULO, UTILIZZO o RESIDUO)</td></tr>
+          <tr><th scope="row">Data di estrazione</th><td>data</td></tr>
+          <tr><th scope="row">Data di congelamento (30 giugno n+1)</th><td>data</td></tr>
+          <tr><th scope="row">Montante dei pagamenti</th><td>importo in euro</td></tr>
+          <tr><th scope="row">Importo accumulato</th><td>importo in euro</td></tr>
+          <tr><th scope="row">Importo congelato</th><td>importo in euro</td></tr>
+          <tr><th scope="row">Importo utilizzato</th><td>importo in euro</td></tr>
+          <tr><th scope="row">Residuo disponibile (2% del montante, dal 1 gennaio n+2)</th><td>importo in euro</td></tr>
+          <tr><th scope="row">Regola n+2</th><td>importo in euro</td></tr>
+      </tbody>
+    </table>
+    <table class="table">
+      <caption>Utilizzo progressivo</caption>
+      <thead>
+        <tr>
+          <th scope="col">Data</th>
+          <th scope="col">Importo</th>
+          <th scope="col">Cumulato</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">data</th><td>importo in euro</td><td>importo in euro</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+  <h2>Altri report del finanziario</h2>
+  <p>
+    <a class="btn" href="../riepilogo/riepilogo.html">Riepilogo per intervento</a>
+    <a class="btn" href="../dotazione-avanzamento/dotazione.html">Dotazione e spesa per intervento</a>
+    <a class="btn" href="../dotazione-avanzamento/avanzamento.html">Avanzamento finanziario</a>
+    <a class="btn" href="../domande/domande.html">Domande e importi per anno</a>
+    <a class="btn" href="sigc.html">Domande e importi SIGC</a>
+    <a class="btn" href="verifica-smp.html">Verifica SMP (SIGC)</a>
+  </p>
+  <h2>Stato: vuoto</h2>
+  <div class="alert alert-info" role="status">Nessun dato di riserva per l'anno scelto (risposta 404 del servizio): i movimenti della riserva non sono ancora stati acquisiti.</div>
+  <h2>Stato: caricamento</h2>
+  <div class="alert alert-info" role="status" aria-live="polite">Caricamento in corso...</div>
+  <h2>Stato: errore</h2>
+  <div class="alert alert-danger" role="alert">Dati non disponibili: accesso negato (403, problem-type urn:problema:accesso-negato), troppe richieste (429) o servizio non disponibile (503). <a href="#contenuto">Riprova</a></div>
+  <h2>Stato: sessione scaduta (401)</h2>
+  <div class="alert alert-danger" role="alert">Sessione scaduta: verrai riportato alla pagina di accesso; i filtri restano nell'indirizzo della pagina.</div>
+</main>
+<footer class="it-footer">Cruscotto CSR 2023-2027 - ARSIAL / Regione Lazio - wireframe low-fi</footer>
+</body>
+</html>

@@ -1,0 +1,166 @@
+{
+  "routes": [
+    {
+      "path": "/finanziario",
+      "flow": "riepilogo",
+      "component": "src/pages/finanziario/filtri/page.tsx",
+      "visibility": [
+        "csr.tx-0001.read"
+      ],
+      "actions": [
+        {
+          "operationId": "TX-0001",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0001.read"
+        }
+      ]
+    },
+    {
+      "path": "/finanziario/riepilogo",
+      "flow": "riepilogo",
+      "component": "src/pages/finanziario/riepilogo/page.tsx",
+      "visibility": [
+        "csr.tx-0011.read"
+      ],
+      "actions": [
+        {
+          "operationId": "TX-0011",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0011.read"
+        }
+      ]
+    },
+    {
+      "path": "/finanziario/dotazione",
+      "flow": "dotazione-avanzamento",
+      "component": "src/pages/finanziario/dotazione/page.tsx",
+      "visibility": [
+        "csr.tx-0002.read",
+        "csr.tx-0003.read"
+      ],
+      "actions": [
+        {
+          "operationId": "TX-0002",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0002.read"
+        },
+        {
+          "operationId": "TX-0003",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0003.read"
+        }
+      ]
+    },
+    {
+      "path": "/finanziario/avanzamento",
+      "flow": "dotazione-avanzamento",
+      "component": "src/pages/finanziario/avanzamento/page.tsx",
+      "visibility": [
+        "csr.tx-0004.read",
+        "csr.tx-0005.read",
+        "csr.tx-0006.read",
+        "csr.tx-0007.read"
+      ],
+      "actions": [
+        {
+          "operationId": "TX-0004",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0004.read"
+        },
+        {
+          "operationId": "TX-0005",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0005.read"
+        },
+        {
+          "operationId": "TX-0006",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0006.read"
+        },
+        {
+          "operationId": "TX-0007",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0007.read"
+        }
+      ]
+    },
+    {
+      "path": "/finanziario/domande",
+      "flow": "domande",
+      "component": "src/pages/finanziario/domande/page.tsx",
+      "visibility": [
+        "csr.tx-0008.read",
+        "csr.tx-0009.read",
+        "csr.tx-0010.read"
+      ],
+      "actions": [
+        {
+          "operationId": "TX-0008",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0008.read"
+        },
+        {
+          "operationId": "TX-0009",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0009.read"
+        },
+        {
+          "operationId": "TX-0010",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0010.read"
+        }
+      ]
+    },
+    {
+      "path": "/finanziario/sigc",
+      "flow": "sigc",
+      "component": "src/pages/finanziario/sigc/page.tsx",
+      "visibility": [
+        "csr.tx-0012.read",
+        "csr.tx-0013.read"
+      ],
+      "actions": [
+        {
+          "operationId": "TX-0012",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0012.read"
+        },
+        {
+          "operationId": "TX-0013",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0013.read"
+        }
+      ]
+    },
+    {
+      "path": "/finanziario/sigc/riserva",
+      "flow": "sigc",
+      "component": "src/pages/finanziario/sigc/riserva/page.tsx",
+      "visibility": [
+        "csr.tx-0014.read"
+      ],
+      "actions": [
+        {
+          "operationId": "TX-0014",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0014.read"
+        }
+      ]
+    },
+    {
+      "path": "/finanziario/sigc/verifica-smp",
+      "flow": "sigc",
+      "component": "src/pages/finanziario/sigc/verifica-smp/page.tsx",
+      "visibility": [
+        "csr.tx-0015.read"
+      ],
+      "actions": [
+        {
+          "operationId": "TX-0015",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0015.read"
+        }
+      ]
+    }
+  ]
+}

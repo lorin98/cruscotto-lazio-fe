@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Finanziario - filtri</title>
+<link rel="stylesheet" href="wireframe.css">
+</head>
+<body>
+<a class="skip-link" href="#contenuto">Salta al contenuto</a>
+<header class="it-header-wrapper">
+  <span>Cruscotto CSR 2023-2027 - ARSIAL / Regione Lazio</span>
+</header>
+<nav class="breadcrumb-container" aria-label="Percorso">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="filtri.html">Home</a></li>
+    <li class="breadcrumb-item" aria-current="page">Finanziario</li>
+  </ol>
+</nav>
+<main class="container" id="contenuto">
+  <h1>Finanziario: filtri dei report</h1>
+  <p class="wf-note">Ruoli (grant verbatim): csr.tx-0001.read - Transazione: TX-0001 (RF001) - GET /api/finanziario/filtri. I valori scelti restano nell'indirizzo della pagina e valgono per tutti i report del finanziario.</p>
+  <p class="wf-note">Ultimo dato sincronizzato (NFR-25, OP-FE-04): dalla risposta di TX-0001, una voce per flusso d'import con la conclusione dell'ultima acquisizione; visibile con csr.tx-0001.read. Senza acquisizioni concluse: "nessuna acquisizione conclusa".</p>
+  <p>Ultimo dato sincronizzato: DS-12 02/03/2026 10:15; PROSA DS-04 03/03/2026 09:30; SIAN DS-01 01/03/2026 18:05.</p>
+  <form action="riepilogo.html" method="get">
+    <fieldset>
+      <legend>Programmazione</legend>
+      <label class="form-label" for="f-intervento">Intervento</label>
+      <select class="form-select" id="f-intervento" name="intervento" multiple aria-describedby="f-intervento-aiuto"><option>SRA01 - descrizione dell'intervento</option></select>
+      <p class="form-text" id="f-intervento-aiuto">Selezione multipla. Nessuna scelta: tutti gli interventi. Provenance: spec (interventi[].chiave, descrizione).</p>
+      <label class="form-label" for="f-os">Obiettivo specifico (OS)</label>
+      <select class="form-select" id="f-os" name="os" multiple><option>SO1</option></select>
+      <label class="form-label" for="f-og">Obiettivo generale (OG)</label>
+      <select class="form-select" id="f-og" name="og" multiple><option>OG1</option></select>
+      <label class="form-label" for="f-op">Obiettivo di policy (OP)</label>
+      <select class="form-select" id="f-op" name="op" multiple><option>OP2</option></select>
+    </fieldset>
+    <fieldset>
+      <legend>Azioni portanti</legend>
+      <label class="form-label" for="f-azione">Azione portante</label>
+      <select class="form-select" id="f-azione" name="azione" multiple disabled aria-describedby="f-azione-aiuto"><option>Azione portante</option></select>
+      <p class="form-text" id="f-azione-aiuto">Non disponibile finche' nessun intervento e' collegato a un'azione portante (legameAzioniDisponibile falso nella spec).</p>
+    </fieldset>
+    <button class="btn btn-primary" type="submit">Applica filtri</button>
+    <a class="btn" href="filtri.html">Azzera i filtri</a>
+  </form>
+  <h2>Altri report del finanziario</h2>
+  <p>
+    <a class="btn" href="riepilogo.html">Riepilogo per intervento</a>
+    <a class="btn" href="../dotazione-avanzamento/dotazione.html">Dotazione e spesa per intervento</a>
+    <a class="btn" href="../dotazione-avanzamento/avanzamento.html">Avanzamento finanziario</a>
+    <a class="btn" href="../domande/domande.html">Domande e importi per anno</a>
+    <a class="btn" href="../sigc/sigc.html">Domande e importi SIGC</a>
+    <a class="btn" href="../sigc/riserva.html">Riserva al 5% (SIGC)</a>
+    <a class="btn" href="../sigc/verifica-smp.html">Verifica SMP (SIGC)</a>
+  </p>
+  <h2>Stato: caricamento dei valori dei filtri</h2>
+  <div class="alert alert-info" role="status" aria-live="polite">Caricamento dei valori in corso...</div>
+  <h2>Stato: errore</h2>
+  <div class="alert alert-danger" role="alert">Valori dei filtri non disponibili: i report restano consultabili senza filtri. <a href="#contenuto">Riprova</a></div>
+  <h2>Stato: sessione scaduta (401)</h2>
+  <div class="alert alert-danger" role="alert">Sessione scaduta: verrai riportato alla pagina di accesso.</div>
+</main>
+<footer class="it-footer">Cruscotto CSR 2023-2027 - ARSIAL / Regione Lazio - wireframe low-fi</footer>
+</body>
+</html>

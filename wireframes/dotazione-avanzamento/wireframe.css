@@ -1,0 +1,35 @@
+/* wireframe.css -- resa LOW-FI dei wireframe (F4 step1-uiplan).
+   Non e' il tema Bootstrap Italia: e' il minimo per rendere navigabile e leggibile il wireframe
+   in locale senza toolchain. Le CLASSI nei markup sono quelle del design system (BI 2.18.2):
+   la resa fedele arriva col progetto generato (step2+). */
+body { font-family: system-ui, sans-serif; margin: 0; color: #1a1a1a; }
+.skip-link { position: absolute; left: -999px; } .skip-link:focus { left: 8px; top: 8px; background: #fff; padding: 4px 8px; }
+header.it-header-wrapper { background: #06c; color: #fff; padding: 12px 16px; }
+header.it-header-wrapper a { color: #fff; }
+nav.breadcrumb-container { padding: 8px 16px; background: #f2f2f2; }
+.breadcrumb { list-style: none; display: flex; gap: 8px; margin: 0; padding: 0; }
+.breadcrumb-item + .breadcrumb-item::before { content: "/"; margin-right: 8px; color: #888; }
+main.container { padding: 16px; max-width: 1080px; margin: 0 auto; }
+h1 { font-size: 1.5rem; } h2 { font-size: 1.15rem; margin-top: 1.5rem; border-top: 1px dashed #bbb; padding-top: 1rem; }
+.table { border-collapse: collapse; width: 100%; }
+.table th, .table td { border: 1px solid #ccc; padding: 6px 10px; text-align: left; }
+.table th { background: #eef; }
+.btn { display: inline-block; border: 1px solid #06c; padding: 6px 14px; border-radius: 4px; background: #fff; color: #06c; cursor: pointer; }
+.btn-primary { background: #06c; color: #fff; }
+.form-label { display: block; margin-top: 12px; font-weight: 600; }
+.form-control, .form-select { display: block; width: 100%; max-width: 28rem; padding: 6px; border: 1px solid #999; border-radius: 4px; }
+.form-text { color: #555; font-size: 0.85rem; }
+fieldset { border: 1px solid #ccc; margin-top: 16px; padding: 12px; }
+.alert { border: 1px solid; border-radius: 4px; padding: 10px 14px; margin: 10px 0; }
+.alert-info { border-color: #06c; background: #eef4ff; }
+.alert-danger { border-color: #b00; background: #ffecec; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 8px; background: #e0e0e0; font-size: 0.8rem; }
+.card { border: 1px solid #ccc; border-radius: 6px; margin: 8px 0; }
+.card-body { padding: 12px; } .card-title { margin: 0 0 6px 0; font-size: 1.05rem; }
+.steppers { display: flex; gap: 12px; list-style: none; padding: 0; }
+.steppers li { padding: 6px 10px; border: 1px solid #999; border-radius: 4px; }
+.steppers li[aria-current="step"] { background: #06c; color: #fff; }
+.row { display: flex; flex-wrap: wrap; gap: 16px; } .col { flex: 1 1 260px; }
+footer.it-footer { background: #333; color: #fff; padding: 10px 16px; margin-top: 24px; }
+.wf-note { background: #fffbe6; border: 1px dashed #c90; padding: 8px 12px; font-size: 0.85rem; }
+.anteprima { max-width: 200px; border: 1px solid #ccc; display: block; margin-bottom: 8px; }

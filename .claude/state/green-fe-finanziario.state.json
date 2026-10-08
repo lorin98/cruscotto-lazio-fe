@@ -1,0 +1,176 @@
+{
+  "schema_version": "1.0",
+  "plugin": "green-fe",
+  "slice": "finanziario",
+  "current_step": 9,
+  "status": "in_progress",
+  "steps": {
+    "step0-config": {
+      "status": "done",
+      "completed_at": "2026-10-08T11:02:12Z",
+      "artifacts": [
+        "./handover.json"
+      ],
+      "gates": {
+        "handover_verified": {
+          "approved_hash": "sha256:114184dbbbf6e256ba623423eefa5defe1d47ff6cfb9179393e541ac2f869136",
+          "baseline_ref": "./handover.json",
+          "approved_at": "2026-10-08T13:16:11Z"
+        }
+      }
+    },
+    "step1-uiplan": {
+      "status": "done",
+      "gates": {
+        "wireframe_riepilogo": {
+          "approved_hash": "sha256:589347b877bd7fba5c4131c9b8ec6bb21957ba311125b9c31f0ea136c18d1d60",
+          "baseline_ref": "./wireframes/riepilogo",
+          "approved_at": "2026-10-08T18:10:37Z",
+          "deviations_reviewed": []
+        },
+        "wireframe_dotazione-avanzamento": {
+          "approved_hash": "sha256:3953c5409fee2fb5680cb48b53e18a3081643269b9a30256562d67772da256e6",
+          "baseline_ref": "./wireframes/dotazione-avanzamento",
+          "approved_at": "2026-10-08T18:10:37Z",
+          "deviations_reviewed": []
+        },
+        "wireframe_domande": {
+          "approved_hash": "sha256:bb752ad481cfecb36556e79e18238fd9363a0e2f37b97b79fb54799bdfea97d6",
+          "baseline_ref": "./wireframes/domande",
+          "approved_at": "2026-10-08T18:10:37Z",
+          "deviations_reviewed": []
+        },
+        "wireframe_sigc": {
+          "approved_hash": "sha256:64583871920855269d072f433c99eb929ca6759534b242e72084251e709a2c73",
+          "baseline_ref": "./wireframes/sigc",
+          "approved_at": "2026-10-08T18:10:37Z",
+          "deviations_reviewed": [
+            "riserva senza Filtri attivi (OP-FE-03): TX-0014 non accetta filtri"
+          ]
+        }
+      },
+      "completed_at": "2026-10-08T12:05:58Z",
+      "artifacts": [
+        "./uiplan.json"
+      ]
+    },
+    "step2-codegen": {
+      "status": "done",
+      "completed_at": "2026-10-08T13:18:15Z",
+      "artifacts": [
+        "./specs/.spec-lock.json",
+        "./src/shared/api/generated"
+      ],
+      "gates": {
+        "codegen_compiles": "pass",
+        "orval_types": "pass",
+        "csrf_static": "pass"
+      }
+    },
+    "step3-api": {
+      "status": "done",
+      "completed_at": "2026-10-08T13:18:28Z",
+      "artifacts": [
+        "./src/features"
+      ],
+      "gates": {
+        "api_wrappers_compile": "pass",
+        "querykey_from_factory": "pass"
+      }
+    },
+    "step4-lib": {
+      "status": "done",
+      "completed_at": "2026-10-08T13:18:40Z",
+      "artifacts": [
+        "./src/shared/lib"
+      ],
+      "gates": {
+        "lib_pure_compile": "pass",
+        "lib_zero_react": "pass"
+      }
+    },
+    "step5-ui": {
+      "status": "done",
+      "completed_at": "2026-10-08T13:19:01Z",
+      "artifacts": [
+        "./src/features"
+      ],
+      "gates": {
+        "ui_components_compile": "pass",
+        "ui_a11y_axe": "pass"
+      }
+    },
+    "step6-page": {
+      "status": "done",
+      "completed_at": "2026-10-08T13:19:18Z",
+      "artifacts": [
+        "./src/pages",
+        "./route-manifest.json"
+      ],
+      "gates": {
+        "pages_compile": "pass",
+        "route_manifest_valid": "pass"
+      }
+    },
+    "step7-test": {
+      "status": "done",
+      "completed_at": "2026-10-08T13:19:24Z",
+      "artifacts": [
+        "./src/shared/test",
+        "./src/shared/api/mock",
+        "./src/shared/testing/axe.ts"
+      ],
+      "gates": {
+        "tests_generated": "pass",
+        "msw_fail_closed": "pass"
+      }
+    },
+    "step8-gate": {
+      "status": "done",
+      "completed_at": "2026-10-08T13:20:33Z",
+      "artifacts": [
+        "./fe-gate-report.json"
+      ],
+      "gates": {
+        "lint": "pass",
+        "typecheck": "pass",
+        "test": "pass",
+        "a11y": "pass",
+        "build": "pass",
+        "fsd_import": "pass",
+        "orval_types": "pass",
+        "security": "pass",
+        "authz": "pass",
+        "wireframe_approved": "pass",
+        "req_coverage_ui": "pass"
+      }
+    },
+    "step9-review": {
+      "status": "done",
+      "completed_at": "2026-10-08T15:09:28Z",
+      "gates": {
+        "review": "pass"
+      }
+    }
+  },
+  "open_blockers": [],
+  "config": {
+    "project_name": "Cruscotto di monitoraggio CSR 2023-2027 - ARSIAL / Regione Lazio",
+    "project_code": "ARSCSR",
+    "reqpack_path": "../cruscotto-lazio-spec/reqpack",
+    "spec_dir": "handover",
+    "output_dir": ".",
+    "package_manager": "npm",
+    "host_mode": "same-origin-path",
+    "style_guide_source": "docs/decisioni/style-guide.md",
+    "style_guide_hash": "sha256:56d70fc3b2b8095889fa4fc768a0dfebc94fe0252d1fde0e57e18d6a981e5f29",
+    "wcag_target": "2.2-AA",
+    "map_viewer": false,
+    "review_budget": 3,
+    "rework_budget": 2,
+    "gate_budget": 8
+  },
+  "didactic_level": "standard",
+  "pack_version": "1.0.0",
+  "pack_hash": "sha256:1ef3a90c51c555441a3a3e3fb203dfdaa0f2f7d1861a5664982f33cb828de4c4"
+}

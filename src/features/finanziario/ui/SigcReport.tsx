@@ -1,0 +1,91 @@
+// SigcReport — pattern DS "report" (route /finanziario/sigc, TX-0012/RF012 e TX-0013/RF013, wireframe sigc.html):
+// domande SIGC presentate, pagate e da pagare; importi SIGC richiesto, ammesso, pagato e ancora da pagare con i conteggi
+// delle domande senza importo. Ogni sezione ha il suo grant e il suo perimetro. Lo stato vuoto viene dal conteggio delle
+// domande presentate (RF012), mai da importi a zero. "Pagato" ha due fonti diverse (OP-FE-05): il conteggio delle
+// pagate dagli elenchi di liquidazione, l'importo pagato dal flusso ASR2-20; la nota lo dice accanto ai dati.
+// Solo voci in tabella (il wireframe approvato non ha grafici).
+import { ValoreImporto } from '../../../entities/importo';
+import { VistaQuery } from '../../../shared/ui';
+import { useSigcDomande, useSigcImporti } from '../api';
+import { inAttesaDelSegnale, useSelezioneSenzaDomandeSigc } from './selezione';
+import type { Filtri } from '../lib/filtri';
+import { ConGrant, Numero, PerimetroSezione, Sezione, TabellaVoci, vuotoConPerimetro } from './comuni';
+
+const TITOLO_DOMANDE = 'Domande SIGC (RF012)';
+const TITOLO_IMPORTI = 'Importi SIGC (RF013)';
+const VUOTO = vuotoConPerimetro('Nessuna domanda SIGC per i filtri scelti. Modifica i filtri.');
+
+function NotaFonti() {
+  return (
+    <p className="small mb-0">
+      {"Fonti diverse: le domande pagate si contano dagli elenchi di liquidazione, l'importo pagato viene dal flusso ASR2-20. I due dati possono non coincidere."}
+    </p>
+  );
+}
+
+function DomandeSigc({ filtri }: { filtri: Filtri }) {
+  const stato = useSigcDomande(filtri);
+  return (
+    <Sezione titolo={TITOLO_DOMANDE}>
+      <VistaQuery stato={stato} eVuoto={(d) => d.presentate === 0} vuoto={VUOTO}>
+        {(d) => (
+          <>
+            <PerimetroSezione perimetro={d.perimetro} />
+            <TabellaVoci
+              caption="Domande SIGC"
+              voci={[
+                { etichetta: 'Presentate', valore: <Numero valore={d.presentate} /> },
+                { etichetta: 'Pagate (con pagamento in un elenco di liquidazione)', valore: <Numero valore={d.pagate} /> },
+                { etichetta: 'Da pagare (presentate meno pagate, comprese le non ammesse)', valore: <Numero valore={d.daPagare} /> },
+              ]}
+            />
+            <NotaFonti />
+          </>
+        )}
+      </VistaQuery>
+    </Sezione>
+  );
+}
+
+function ImportiSigc({ filtri }: { filtri: Filtri }) {
+  const stato = useSigcImporti(filtri);
+  // segnale positivo: il conteggio delle domande SIGC presentate per gli stessi filtri (cache condivisa con RF012)
+  const segnale = useSelezioneSenzaDomandeSigc(filtri);
+  return (
+    <Sezione titolo={TITOLO_IMPORTI}>
+      <VistaQuery stato={inAttesaDelSegnale(stato, segnale)} eVuoto={() => segnale === 'vuota'} vuoto={VUOTO}>
+        {(d) => (
+          <>
+            <PerimetroSezione perimetro={d.perimetro} />
+            <TabellaVoci
+              caption="Importi SIGC"
+              voci={[
+                { etichetta: 'Importo richiesto', valore: <ValoreImporto importo={d.richiesto} aggregato /> },
+                { etichetta: 'Importo ammesso', valore: <ValoreImporto importo={d.ammesso} aggregato /> },
+                { etichetta: 'Importo pagato (flusso ASR2-20)', valore: <ValoreImporto importo={d.pagato} aggregato /> },
+                { etichetta: 'Ancora da pagare', valore: <ValoreImporto importo={d.ancoraDaPagare} aggregato /> },
+                { etichetta: 'Domande senza importo richiesto', valore: <Numero valore={d.domandeSenza?.richiesto} /> },
+                { etichetta: 'Domande senza importo ammesso', valore: <Numero valore={d.domandeSenza?.ammesso} /> },
+                { etichetta: 'Domande senza importo pagato', valore: <Numero valore={d.domandeSenza?.pagato} /> },
+              ]}
+            />
+            <NotaFonti />
+          </>
+        )}
+      </VistaQuery>
+    </Sezione>
+  );
+}
+
+export function SigcReport({ filtri }: { filtri: Filtri }) {
+  return (
+    <>
+      <ConGrant grant="csr.tx-0012.read" titolo={TITOLO_DOMANDE}>
+        <DomandeSigc filtri={filtri} />
+      </ConGrant>
+      <ConGrant grant="csr.tx-0013.read" titolo={TITOLO_IMPORTI}>
+        <ImportiSigc filtri={filtri} />
+      </ConGrant>
+    </>
+  );
+}
