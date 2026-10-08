@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -15,7 +15,10 @@ import { AvvisoInattivita, CANALE_INATTIVITA } from '../src/app/inattivita';
 import { Layout } from '../src/app/layout';
 import { AUTH_STATUS_QUERY_KEY } from '../src/shared/api/auth/auth-status';
 import PaginaRiepilogo from '../src/pages/finanziario/riepilogo/page';
-import { RIEPILOGO } from '../src/shared/testing/fixture-finanziario';
+import { FILTRI, RIEPILOGO } from '../src/shared/testing/fixture-finanziario';
+import { rispondi } from '../src/shared/testing/msw';
+import { PAGINE_FINANZIARIO } from '../src/features/finanziario';
+import { SITO_ARSIAL, SITO_REGIONE } from '../src/app/collegamenti';
 import { clientApp } from './app-client';
 
 // Shell dell'app (review step9: V-03, V-04, V-05, V-17, A-01, A-04, A-10, A-12/NFR-41), sempre sul QueryClient di
@@ -211,5 +214,76 @@ describe('QueryClient di produzione montato con la shell (R-05, R-07, R-08, R-16
     expect((await screen.findByRole('alert')).textContent).toContain('Non riesco a verificare la sessione');
     expect(screen.getByRole('button', { name: 'Riprova' })).toBeTruthy();
     expect(screen.queryByRole('link', { name: 'Accedi' })).toBeNull();
+  });
+});
+
+describe('shell UI v2: intestazione degli enti, menu laterale, ricerca, piede', () => {
+  const servi = () => server.use(rispondi('/api/finanziario/riepilogo', RIEPILOGO), rispondi('/api/finanziario/filtri', FILTRI));
+
+  it('loghi degli enti con il link al sito in una nuova finestra; piede con i collegamenti e quelli ancora da definire', async () => {
+    apriApp('/');
+    const intestazione = screen.getByRole('banner');
+    const regione = within(intestazione).getByRole('link', { name: 'Regione Lazio (si apre in una nuova finestra)' });
+    expect(regione.getAttribute('href')).toBe(SITO_REGIONE.url);
+    expect(regione.getAttribute('target')).toBe('_blank');
+    expect(regione.getAttribute('rel')).toContain('noopener');
+    expect(within(intestazione).getByRole('link', { name: /^ARSIAL - Agenzia Regionale .* \(si apre in una nuova finestra\)$/ }).getAttribute('href')).toBe(SITO_ARSIAL.url);
+    const istituzioni = screen.getByRole('navigation', { name: 'Collegamenti istituzionali' });
+    expect(within(istituzioni).getAllByRole('link').map((l) => l.getAttribute('href'))).toEqual([SITO_REGIONE.url, SITO_ARSIAL.url]);
+    const legali = screen.getByRole('navigation', { name: 'Informazioni legali' });
+    // nessun link verso pagine che non esistono ancora
+    expect(within(legali).queryAllByRole('link')).toHaveLength(0);
+    expect(legali.textContent).toContain('Privacy (indirizzo da definire)');
+  });
+
+  it("menu laterale: le pagine del finanziario visibili, la corrente marcata, i filtri dell'indirizzo conservati, le aree future senza link", async () => {
+    servi();
+    apriApp('/finanziario/riepilogo?intervento=SRA01');
+    const menu = await screen.findByRole('navigation', { name: 'Navigazione principale' });
+    const gruppo = within(menu).getByRole('button', { name: 'Finanziario' });
+    expect(gruppo.getAttribute('aria-expanded')).toBe('true');
+    const voci = await within(menu).findAllByRole('link');
+    expect(voci.map((v) => v.textContent)).toEqual(PAGINE_FINANZIARIO.map((p) => p.titolo));
+    for (const v of voci) expect(v.getAttribute('href')).toMatch(/\?intervento=SRA01$/);
+    const corrente = within(menu).getByRole('link', { name: 'Riepilogo per intervento' });
+    await waitFor(() => expect(corrente.getAttribute('aria-current')).toBe('page'));
+    expect(within(menu).getByRole('link', { name: 'Panoramica' }).getAttribute('aria-current')).toBeNull();
+    expect(menu.textContent).toContain('Fisicopresto');
+    await userEvent.click(gruppo);
+    expect(gruppo.getAttribute('aria-expanded')).toBe('false');
+    expect(within(menu).queryAllByRole('link')).toHaveLength(0);
+  });
+
+  it('menu laterale: solo le pagine visibili per i grant dell utente (gate di UX)', async () => {
+    servi();
+    server.use(http.get('*/auth/status', () => HttpResponse.json({ authenticated: true, user: { username: 'U', roles: ['csr.tx-0011.read', 'csr.tx-0001.read', 'csr.tx-0013.read'] } })));
+    apriApp('/finanziario/riepilogo');
+    const menu = await screen.findByRole('navigation', { name: 'Navigazione principale' });
+    await waitFor(() => expect(within(menu).getAllByRole('link').map((l) => l.textContent)).toEqual(['Panoramica', 'Riepilogo per intervento', 'Domande e importi SIGC']));
+  });
+
+  it('menu su schermo piccolo: il bottone apre il pannello col menu, la scelta di una pagina lo chiude', async () => {
+    servi();
+    const { router, container } = apriApp('/finanziario/riepilogo');
+    await userEvent.click(await screen.findByRole('button', { name: 'Apri il menu' }));
+    const pannello = await screen.findByRole('dialog', { name: 'Menu' });
+    await expectNoA11yViolations(container.ownerDocument.body);
+    await userEvent.click(within(pannello).getByRole('link', { name: 'Avanzamento finanziario' }));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/finanziario/avanzamento'));
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Menu' })).toBeNull());
+  });
+
+  it("ricerca nella barra: un codice noto apre il dettaglio dell'intervento, uno sconosciuto lo dice in modo visibile", async () => {
+    servi();
+    const { router } = apriApp('/finanziario/riepilogo');
+    const campo = await screen.findByRole('combobox', { name: 'Cerca un intervento per codice' });
+    await userEvent.type(campo, 'SRZ99{Enter}');
+    expect((await screen.findByRole('alert')).textContent).toBe('Codice non trovato');
+    expect(campo.getAttribute('aria-invalid')).toBe('true');
+    await userEvent.clear(campo);
+    expect(screen.queryByRole('alert')).toBeNull();
+    await userEvent.type(campo, 'sra01 Intervento di prova A{Enter}');
+    await waitFor(() => expect(router.state.location.pathname).toBe('/finanziario/interventi/SRA01'));
+    expect((campo as HTMLInputElement).value).toBe('');
   });
 });

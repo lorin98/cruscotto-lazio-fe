@@ -1,7 +1,9 @@
-// features/finanziario — public API (barrel): le pagine e il widget di impaginazione compongono solo da qui.
-export { FiltriForm } from './ui/FiltriForm';
-export { FiltriAttivi } from './ui/FiltriAttivi';
+// features/finanziario — public API (barrel): le pagine, il widget di impaginazione e la shell compongono solo da qui.
+export { PannelloFiltri } from './ui/PannelloFiltri';
+export { CercaIntervento } from './ui/CercaIntervento';
 export { UltimoAggiornamento } from './ui/UltimoAggiornamento';
+export { Panoramica } from './ui/Panoramica';
+export { DettaglioIntervento } from './ui/DettaglioIntervento';
 export { RiepilogoReport } from './ui/RiepilogoReport';
 export { DotazioneReport } from './ui/DotazioneReport';
 export { AvanzamentoReport } from './ui/AvanzamentoReport';
@@ -10,7 +12,18 @@ export { SigcReport } from './ui/SigcReport';
 export { RiservaReport } from './ui/RiservaReport';
 export { VerificaSmpReport } from './ui/VerificaSmpReport';
 export { useAnnoNellIndirizzo } from './ui/useAnnoNellIndirizzo';
-export { filtriDaRicerca, ricercaDaFiltri } from './lib/filtri';
+export { CHIAVI_FILTRO, filtriDaRicerca, ricercaDaFiltri } from './lib/filtri';
 export type { Filtri } from './lib/filtri';
-export { PAGINA_FILTRI, REPORT_FINANZIARIO, daPer, reportVisibili, ritornoValido, titoloH1, voceDi } from './lib/report';
+export {
+  DETTAGLIO_INTERVENTO,
+  PAGINE_FINANZIARIO,
+  PANORAMICA,
+  REPORT_FINANZIARIO,
+  codiceInterventoValido,
+  pagineVisibili,
+  percorsoIntervento,
+  reportVisibili,
+  titoloH1,
+  voceDi,
+} from './lib/report';
 export type { VoceReport } from './lib/report';

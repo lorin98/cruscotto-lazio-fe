@@ -1,13 +1,19 @@
-// layout.tsx — shell dell'applicazione (wireframe approvati: skip-link, intestazione, piè di pagina): nome
-// dell'applicazione, utente collegato e "Esci" (logout del BFF, navigazione e non XHR), avviso globale del diniego 403
-// delle mutation, avviso di inattivita' (NFR-41). Le pagine rendono il proprio <main id="contenuto">.
+// layout.tsx — shell dell'applicazione UI v2 (wireframe v2 approvati, prototipo): fascia dell'ente con i loghi, barra
+// con nome, ricerca di un intervento e utente con "Esci" (logout del BFF, navigazione e non XHR), menu laterale con le
+// aree (su schermi stretti in un pannello), piede con i link istituzionali; avviso globale del 403 delle mutation e
+// avviso di inattivita' (NFR-41). Le pagine rendono la propria barra dei filtri e il proprio <main id="contenuto">.
 import { useEffect, useState } from 'react';
 import { Link, Outlet } from 'react-router';
+import { CercaIntervento } from '../features/finanziario';
 import { useAuthStatus } from '../shared/api/auth/use-auth-status';
 import { resolveLogoutPath } from '../shared/config/base-path';
-import { NOME_APPLICAZIONE } from '../shared/ui';
+import { Icona, NOME_APPLICAZIONE, PannelloLaterale } from '../shared/ui';
+import logoArsial from './assets/logo-arsial.png';
+import logoLazio from './assets/logo-lazio.png';
 import { EVENTO_ACCESSO_NEGATO } from './avvisi';
+import { COLLEGAMENTI_LEGALI, SITO_ARSIAL, SITO_REGIONE } from './collegamenti';
 import { AvvisoInattivita } from './inattivita';
+import { MenuLaterale } from './menu';
 
 function AvvisoAccessoNegato() {
   const [visibile, setVisibile] = useState(false);
@@ -33,34 +39,116 @@ function AvvisoAccessoNegato() {
   );
 }
 
+const iniziali = (nome: string) =>
+  nome
+    .split(/[\s.]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p.charAt(0).toUpperCase())
+    .join('');
+
+const nuovaFinestra = ' (si apre in una nuova finestra)';
+
 export function Layout() {
   const { data: auth } = useAuthStatus();
   const utente = auth?.authenticated ? (auth.user?.displayName ?? auth.user?.username) : undefined;
+  const [menuAperto, setMenuAperto] = useState(false);
   return (
     <>
-      <a className="visually-hidden-focusable" href="#contenuto">
+      <a className="visually-hidden-focusable ui-skip" href="#contenuto">
         Salta al contenuto
       </a>
-      <header className="it-header-wrapper bg-primary text-white">
-        <div className="container d-flex flex-wrap align-items-center justify-content-between py-2 gap-2">
-          <Link to="/" className="text-white fw-semibold text-decoration-none">
-            {NOME_APPLICAZIONE} - ARSIAL / Regione Lazio
-          </Link>
+      <header>
+        <div className="ui-ente">
+          <div className="ui-ente__interno">
+            <a className="ui-logo" href={SITO_REGIONE.url ?? undefined} target="_blank" rel="noopener noreferrer">
+              <img src={logoLazio} alt={`${SITO_REGIONE.etichetta}${nuovaFinestra}`} />
+            </a>
+            <span className="ui-ente__sep" aria-hidden="true" />
+            <a className="ui-logo" href={SITO_ARSIAL.url ?? undefined} target="_blank" rel="noopener noreferrer">
+              <img src={logoArsial} alt={`ARSIAL - Agenzia Regionale per lo Sviluppo e l'Innovazione dell'Agricoltura del Lazio${nuovaFinestra}`} />
+            </a>
+          </div>
+        </div>
+        <div className="ui-appbar">
           {utente && (
-            <div className="d-flex align-items-center gap-3">
+            <button type="button" className="ui-appbar__menu" aria-label="Apri il menu" aria-haspopup="dialog" onClick={() => setMenuAperto(true)}>
+              <Icona nome="it-burger" />
+            </button>
+          )}
+          <Link to="/" className="ui-appbar__nome">
+            <span className="ui-appbar__sigla" aria-hidden="true">
+              CSR
+            </span>
+            <span>
+              {NOME_APPLICAZIONE} <small>Lazio</small>
+            </span>
+          </Link>
+          {utente && <CercaIntervento />}
+          {utente && (
+            <div className="ui-utente">
+              <span className="ui-utente__avatar" aria-hidden="true">
+                {iniziali(utente)}
+              </span>
               <span>{utente}</span>
-              <a className="btn btn-sm btn-outline-light" href={resolveLogoutPath()}>
-                Esci
-              </a>
+              <a href={resolveLogoutPath()}>Esci</a>
             </div>
           )}
         </div>
       </header>
       <AvvisoAccessoNegato />
-      <Outlet />
-      <footer className="it-footer bg-dark text-white mt-4">
-        <div className="container py-3 small">{NOME_APPLICAZIONE} - ARSIAL / Regione Lazio</div>
+      <div className={utente ? 'ui-layout' : 'ui-layout ui-layout--senza-menu'}>
+        {utente && (
+          <nav className="ui-sidebar" aria-label="Navigazione principale">
+            <div className="ui-sidebar__interno">
+              <MenuLaterale />
+            </div>
+          </nav>
+        )}
+        <div className="ui-main">
+          <Outlet />
+        </div>
+      </div>
+      <footer className="ui-footer">
+        <div className="ui-footer__interno">
+          <div>
+            <div className="ui-footer__loghi">
+              <img src={logoLazio} alt={SITO_REGIONE.etichetta} />
+              <img src={logoArsial} alt="ARSIAL" />
+            </div>
+            <p className="mb-0">{`${NOME_APPLICAZIONE}: monitoraggio del Complemento di Sviluppo Rurale della Regione Lazio, a cura di ARSIAL.`}</p>
+          </div>
+          <nav aria-label="Collegamenti istituzionali">
+            <h2>Istituzioni</h2>
+            <ul>
+              {[SITO_REGIONE, SITO_ARSIAL].map((c) => (
+                <li key={c.etichetta}>
+                  <a href={c.url ?? undefined} target="_blank" rel="noopener noreferrer">
+                    {c.etichetta}
+                    <span className="visually-hidden">{nuovaFinestra}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          <nav aria-label="Informazioni legali">
+            <h2>Informazioni</h2>
+            <ul>
+              {COLLEGAMENTI_LEGALI.map((c) => (
+                <li key={c.etichetta}>{c.url ? <a href={c.url}>{c.etichetta}</a> : <span>{`${c.etichetta} (indirizzo da definire)`}</span>}</li>
+              ))}
+            </ul>
+          </nav>
+        </div>
+        <div className="ui-footer__fondo">Regione Lazio - ARSIAL</div>
       </footer>
+      {utente && (
+        <PannelloLaterale aperto={menuAperto} onChiudi={() => setMenuAperto(false)} titolo="Menu" stretto>
+          <nav aria-label="Navigazione principale">
+            <MenuLaterale onNaviga={() => setMenuAperto(false)} />
+          </nav>
+        </PannelloLaterale>
+      )}
       {auth?.authenticated && <AvvisoInattivita />}
     </>
   );

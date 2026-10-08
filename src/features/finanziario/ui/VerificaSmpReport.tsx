@@ -1,14 +1,15 @@
 // VerificaSmpReport — pattern DS "report" (route /finanziario/sigc/verifica-smp, TX-0015/RF015, wireframe
 // verifica-smp.html): i dati SIGC per intervento da confrontare con SMP - Data Platform, per l'esercizio scelto
 // (obbligatorio). Tabella larga in un contenitore scorrevole, intestazione di riga sul codice intervento; i dati ASR
-// mancanti sono "non disponibile" (decisione di OP-004). Classi bootstrap-italia, nessun react-aria.
-import { VistaQuery, Vuoto } from '../../../shared/ui';
+// mancanti sono "non disponibile" (decisione di OP-004). UI v2: barre della previsione e della spesa erogata con zoom.
+import { CardGrafico, VistaQuery, Vuoto } from '../../../shared/ui';
 import { useVerificaSmp } from '../api';
 import type { VerificaSmpRiga } from '../api';
 import type { Filtri } from '../lib/filtri';
 import { annoOpzionale, numeroOpzionale, siNo, testoOpzionale } from '../lib/formato';
 import { Numero, PerimetroSezione, Sezione, TabellaRighe, TabellaVoci, colonnaImporto, vuotoConPerimetro } from './comuni';
 import type { Colonna } from './comuni';
+import { graficoSmp } from '../lib/grafici';
 import { SelettoreAnno } from './SelettoreAnno';
 
 type Riga = VerificaSmpRiga;
@@ -52,6 +53,14 @@ function DatiSmp({ filtri, esercizio }: { filtri: Filtri; esercizio: number }) {
                 { etichetta: 'Anno delle domande', valore: annoOpzionale(d.annoDomande) },
                 { etichetta: 'Pagamenti senza data di autorizzazione (esclusi)', valore: <Numero valore={d.pagamentiSenzaData} /> },
               ]}
+            />
+            <CardGrafico
+              titolo="Previsione di pagamento e spesa erogata per intervento"
+              sottotitolo="Trascina il cursore sotto il grafico per ingrandire"
+              dati={graficoSmp(d.righe ?? [])}
+              fonte={`Fonte: TX-0015, esercizio ${d.esercizio ?? esercizio}`}
+              livello={3}
+              altezza="alto"
             />
             <TabellaRighe caption="I dati ASR per intervento da confrontare con SMP" intestazione="Intervento" chiave={(r) => r.codiceIntervento ?? ''} colonne={COLONNE} righe={d.righe ?? []} />
           </>

@@ -1,7 +1,19 @@
-// shared/ui — componenti trasversali senza dominio: stati della vista, grafici SVG, salvataggio file, focus di pagina.
+// shared/ui — componenti trasversali senza dominio: stati della vista, kit UI v2 (ADR 0027: grafici ECharts, KPI, filtri,
+// pannello laterale, tabella interattiva, icone), salvataggio file, focus di pagina.
 export { Caricamento, ErroreVista, Vuoto, VistaQuery } from './stati/StatiVista';
 export type { StatoQuery } from './stati/StatiVista';
-export { GraficoBarre, GraficoCiambella, GraficoLinea } from './grafici/grafici';
-export type { Serie } from './grafici/grafici';
 export { salvaFile } from './salva-file';
 export { NOME_APPLICAZIONE, useFocusTitolo } from './focus';
+export { Icona } from './icona';
+export type { NomeIcona } from './icona';
+export { Grafico } from './grafici/Grafico';
+export type { AltezzaGrafico, ClicGrafico } from './grafici/Grafico';
+export { CardGrafico, TabellaDati } from './grafici/CardGrafico';
+export type { DatiGrafico, TabellaEquivalente } from './grafici/CardGrafico';
+export { Kpi } from './kpi/Kpi';
+export type { TonoKpi } from './kpi/Kpi';
+export { BarraFiltri } from './filtri/BarraFiltri';
+export type { ChipFiltro } from './filtri/BarraFiltri';
+export { PannelloLaterale } from './laterale/PannelloLaterale';
+export { TabellaInterattiva } from './tabella/TabellaInterattiva';
+export type { ColonnaTabella } from './tabella/TabellaInterattiva';

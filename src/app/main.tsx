@@ -5,6 +5,7 @@ import { App } from './App';
 import { segnalaAccessoNegato } from './avvisi';
 import { createQueryClient } from './query-client';
 import 'bootstrap-italia/dist/css/bootstrap-italia.min.css';
+import '../shared/ui/tema.css';
 
 // MutationCache globale: intercetta il 403 ACCESSO_NEGATO delle mutation come rete di sicurezza (query-client.ts) e
 // lo rende con l'avviso della shell (layout.tsx).

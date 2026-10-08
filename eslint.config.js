@@ -144,6 +144,9 @@ export default tseslint.config(
       // su OGNI progetto). La prova che i confini FSD siano armati resta doppia: `lint:canary` (scaffold) +
       // la canary EFFIMERA `__gate_canary__` che step8-gate crea/rimuove FUORI da eslint.json (gate).
       'canary/**',
+      // Prototipo cliccabile approvato (UI v2): pagina statica di progetto con script da browser, non codice
+      // dell'applicazione ne' importato da essa.
+      'prototipo/**',
     ],
   },
   js.configs.recommended,

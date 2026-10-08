@@ -8,13 +8,82 @@
           "gating": "hide-by-role",
           "grant": "csr.tx-0001.read",
           "operationId": "TX-0001"
+        },
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0002.read",
+          "operationId": "TX-0002"
+        },
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0009.read",
+          "operationId": "TX-0009"
+        },
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0012.read",
+          "operationId": "TX-0012"
+        },
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0013.read",
+          "operationId": "TX-0013"
         }
       ],
-      "component": "src/pages/finanziario/filtri/page.tsx",
-      "flow": "riepilogo",
+      "component": "src/pages/finanziario/panoramica/page.tsx",
+      "flow": "panoramica",
       "path": "/finanziario",
       "visibility": [
-        "csr.tx-0001.read"
+        "csr.tx-0001.read",
+        "csr.tx-0002.read",
+        "csr.tx-0009.read",
+        "csr.tx-0012.read",
+        "csr.tx-0013.read"
+      ]
+    },
+    {
+      "actions": [
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0011.read",
+          "operationId": "TX-0011"
+        },
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0002.read",
+          "operationId": "TX-0002"
+        },
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0008.read",
+          "operationId": "TX-0008"
+        },
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0010.read",
+          "operationId": "TX-0010"
+        },
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0012.read",
+          "operationId": "TX-0012"
+        },
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0013.read",
+          "operationId": "TX-0013"
+        }
+      ],
+      "component": "src/pages/finanziario/interventi/page.tsx",
+      "flow": "panoramica",
+      "path": "/finanziario/interventi/:codice",
+      "visibility": [
+        "csr.tx-0011.read",
+        "csr.tx-0002.read",
+        "csr.tx-0008.read",
+        "csr.tx-0010.read",
+        "csr.tx-0012.read",
+        "csr.tx-0013.read"
       ]
     },
     {
@@ -170,7 +239,7 @@
     {
       "manifest_hash_match": true,
       "path": "handover/openapi-finanziario.json",
-      "sha256": "sha256:d5db8997d6f883f373cfcd7c177643e20e6c3af46c8fe8e601bfa8b2c029e634",
+      "sha256": "sha256:68a59b8b2fbc4e48b1b46630991d533e11198f19a6236c98ef90c35d2b9edac9",
       "slice": "finanziario"
     }
   ]

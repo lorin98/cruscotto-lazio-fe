@@ -3,13 +3,14 @@
 // delle domande senza importo. Ogni sezione ha il suo grant e il suo perimetro. Lo stato vuoto viene dal conteggio delle
 // domande presentate (RF012), mai da importi a zero. "Pagato" ha due fonti diverse (OP-FE-05): il conteggio delle
 // pagate dagli elenchi di liquidazione, l'importo pagato dal flusso ASR2-20; la nota lo dice accanto ai dati.
-// Solo voci in tabella (il wireframe approvato non ha grafici).
+// UI v2 (wireframe sigc v2): imbuto delle domande e cascata degli importi, con le voci in tabella sotto ogni grafico.
 import { ValoreImporto } from '../../../entities/importo';
-import { VistaQuery } from '../../../shared/ui';
+import { CardGrafico, VistaQuery } from '../../../shared/ui';
 import { useSigcDomande, useSigcImporti } from '../api';
 import { inAttesaDelSegnale, useSelezioneSenzaDomandeSigc } from './selezione';
 import type { Filtri } from '../lib/filtri';
-import { ConGrant, Numero, PerimetroSezione, Sezione, TabellaVoci, vuotoConPerimetro } from './comuni';
+import { graficoCascataSigc, graficoImbutoSigc } from '../lib/grafici';
+import { ConGrant, Griglia, Numero, PerimetroSezione, TabellaVoci, vuotoConPerimetro } from './comuni';
 
 const TITOLO_DOMANDE = 'Domande SIGC (RF012)';
 const TITOLO_IMPORTI = 'Importi SIGC (RF013)';
@@ -26,10 +27,11 @@ function NotaFonti() {
 function DomandeSigc({ filtri }: { filtri: Filtri }) {
   const stato = useSigcDomande(filtri);
   return (
-    <Sezione titolo={TITOLO_DOMANDE}>
-      <VistaQuery stato={stato} eVuoto={(d) => d.presentate === 0} vuoto={VUOTO}>
-        {(d) => (
-          <>
+    <VistaQuery stato={stato} eVuoto={(d) => d.presentate === 0} vuoto={VUOTO}>
+      {(d) => (
+        <div>
+          <CardGrafico titolo={TITOLO_DOMANDE} sottotitolo="Dalla presentazione al pagamento" dati={graficoImbutoSigc(d)} fonte="Fonte: TX-0012, elenchi di liquidazione" />
+          <section className="ui-card mt-3" aria-label="Voci delle domande SIGC">
             <PerimetroSezione perimetro={d.perimetro} />
             <TabellaVoci
               caption="Domande SIGC"
@@ -40,10 +42,10 @@ function DomandeSigc({ filtri }: { filtri: Filtri }) {
               ]}
             />
             <NotaFonti />
-          </>
-        )}
-      </VistaQuery>
-    </Sezione>
+          </section>
+        </div>
+      )}
+    </VistaQuery>
   );
 }
 
@@ -52,10 +54,11 @@ function ImportiSigc({ filtri }: { filtri: Filtri }) {
   // segnale positivo: il conteggio delle domande SIGC presentate per gli stessi filtri (cache condivisa con RF012)
   const segnale = useSelezioneSenzaDomandeSigc(filtri);
   return (
-    <Sezione titolo={TITOLO_IMPORTI}>
-      <VistaQuery stato={inAttesaDelSegnale(stato, segnale)} eVuoto={() => segnale === 'vuota'} vuoto={VUOTO}>
-        {(d) => (
-          <>
+    <VistaQuery stato={inAttesaDelSegnale(stato, segnale)} eVuoto={() => segnale === 'vuota'} vuoto={VUOTO}>
+      {(d) => (
+        <div>
+          <CardGrafico titolo={TITOLO_IMPORTI} sottotitolo="Dal richiesto al pagato" dati={graficoCascataSigc(d)} fonte="Fonte: TX-0013, pagato dal flusso ASR2-20" />
+          <section className="ui-card mt-3" aria-label="Voci degli importi SIGC">
             <PerimetroSezione perimetro={d.perimetro} />
             <TabellaVoci
               caption="Importi SIGC"
@@ -70,22 +73,22 @@ function ImportiSigc({ filtri }: { filtri: Filtri }) {
               ]}
             />
             <NotaFonti />
-          </>
-        )}
-      </VistaQuery>
-    </Sezione>
+          </section>
+        </div>
+      )}
+    </VistaQuery>
   );
 }
 
 export function SigcReport({ filtri }: { filtri: Filtri }) {
   return (
-    <>
+    <Griglia>
       <ConGrant grant="csr.tx-0012.read" titolo={TITOLO_DOMANDE}>
         <DomandeSigc filtri={filtri} />
       </ConGrant>
       <ConGrant grant="csr.tx-0013.read" titolo={TITOLO_IMPORTI}>
         <ImportiSigc filtri={filtri} />
       </ConGrant>
-    </>
+    </Griglia>
   );
 }

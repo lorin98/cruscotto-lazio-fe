@@ -16,10 +16,12 @@ import { SessioneNonVerificabile } from './sessione-non-verificabile';
 function Esito({ titolo, children }: { titolo: string; children: ReactNode }) {
   const h1 = useFocusTitolo<HTMLHeadingElement>(titolo);
   return (
-    <main className="container my-4" id="contenuto">
-      <h1 ref={h1} tabIndex={-1}>
-        {titolo}
-      </h1>
+    <main className="ui-pagina" id="contenuto">
+      <div className="ui-titolo">
+        <h1 ref={h1} tabIndex={-1}>
+          {titolo}
+        </h1>
+      </div>
       {children}
     </main>
   );

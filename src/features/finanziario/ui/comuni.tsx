@@ -1,6 +1,5 @@
-// comuni.tsx — mattoni condivisi dai report del finanziario (pattern DS "dettaglio in sola lettura", wireframe
-// approvati): sezione a card con il SUO perimetro, tabella per righe e tabella voce/valore, numeri, gating per grant
-// della sezione. Solo classi bootstrap-italia (card, table, badge); nessun comportamento ARIA complesso, niente react-aria.
+// comuni.tsx — mattoni condivisi dai report del finanziario (UI v2, wireframe v2 approvati): sezione a card con il SUO
+// perimetro, tabella voce/valore, numeri, gating per grant della sezione, griglia delle card.
 import { useId } from 'react';
 import type { ReactNode } from 'react';
 import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
@@ -16,7 +15,7 @@ export function PerimetroSezione({ perimetro }: { perimetro: Perimetro | null | 
   if (!perimetro) return null;
   return (
     <p className="small mb-2">
-      Perimetro: <span className="badge bg-primary me-1">{perimetro}</span>
+      <span className={perimetro === 'ADA' ? 'ui-pill ui-pill--perimetro me-2' : 'ui-pill me-2'}>{`Perimetro ${perimetro}`}</span>
       {etichettaPerimetro(perimetro)}
     </p>
   );
@@ -59,25 +58,26 @@ export function NotaPerimetroMisto({ perimetro }: { perimetro: Perimetro | null 
 export function Sezione({ titolo, children }: { titolo: string; children: ReactNode }) {
   const id = useId();
   return (
-    <section className="card my-3" aria-labelledby={id}>
-      <div className="card-body">
-        <h2 className="card-title h5" id={id}>
-          {titolo}
-        </h2>
-        {children}
+    <section className="ui-card ui-dissolvenza" aria-labelledby={id}>
+      <div className="ui-card__testa">
+        <div>
+          <h2 id={id}>{titolo}</h2>
+        </div>
       </div>
+      {children}
     </section>
   );
 }
 
 /**
- * Monta la sezione (e quindi la sua lettura) solo con il grant della sua transazione; altrimenti lo dice. Finche' lo
- * stato di autenticazione e' in caricamento non afferma nulla sul profilo: mostra il caricamento. Gate di UX:
- * l'enforcement e' del backend.
+ * Monta la sezione (e quindi la sua lettura) solo con il grant della sua transazione; altrimenti lo dice. Una sezione che
+ * combina piu' transazioni chiede tutti i loro grant. Finche' lo stato di autenticazione e' in caricamento non afferma
+ * nulla sul profilo: mostra il caricamento. Gate di UX: l'enforcement e' del backend. Gli hook che leggono vanno chiamati
+ * nei figli, mai nel componente che monta ConGrant (R-09).
  */
-export function ConGrant({ grant, titolo, children }: { grant: string; titolo: string; children: ReactNode }) {
+export function ConGrant({ grant, titolo, children }: { grant: string | string[]; titolo: string; children: ReactNode }) {
   const auth = useAuthStatus();
-  if (hasGrant(auth.data, grant)) return <>{children}</>;
+  if ((Array.isArray(grant) ? grant : [grant]).every((g) => hasGrant(auth.data, g))) return <>{children}</>;
   return (
     <Sezione titolo={titolo}>
       {auth.data === undefined && !auth.isError ? <Caricamento /> : <p className="small mb-0">Sezione non disponibile per il tuo profilo.</p>}
@@ -92,17 +92,19 @@ export interface Voce {
 
 export function TabellaVoci({ caption, voci }: { caption: string; voci: Voce[] }) {
   return (
-    <table className="table table-sm">
-      <caption>{caption}</caption>
-      <tbody>
-        {voci.map((v) => (
-          <tr key={v.etichetta}>
-            <th scope="row">{v.etichetta}</th>
-            <td className="text-end">{v.valore}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <div className="ui-tabella-contenitore mb-2">
+      <table className="ui-tabella">
+        <caption>{caption}</caption>
+        <tbody>
+          {voci.map((v) => (
+            <tr key={v.etichetta}>
+              <th scope="row">{v.etichetta}</th>
+              <td className="ui-num">{v.valore}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
@@ -119,25 +121,25 @@ export function TabellaRighe<T>(props: {
 }) {
   const { caption, intestazione, chiave, colonne, righe } = props;
   return (
-    <div className="table-responsive">
-      <table className="table table-sm">
+    <div className="ui-tabella-contenitore">
+      <table className="ui-tabella">
         <caption>{caption}</caption>
         <thead>
           <tr>
             <th scope="col">{intestazione}</th>
             {colonne.map(([c]) => (
-              <th key={c} scope="col" className="text-end">
+              <th key={c} scope="col" className="ui-num">
                 {c}
               </th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {righe.map((r) => (
-            <tr key={chiave(r)}>
+          {righe.map((r, n) => (
+            <tr key={`${n}-${chiave(r)}`}>
               <th scope="row">{chiave(r)}</th>
               {colonne.map(([c, cella]) => (
-                <td key={c} className="text-end">
+                <td key={c} className="ui-num">
                   {cella(r)}
                 </td>
               ))}
@@ -157,4 +159,9 @@ export function Numero({ valore }: { valore: number | null | undefined }) {
 /** Colonna con un Importo della spec (valore, oppure l'assenza dichiarata: mai uno zero). */
 export function colonnaImporto<T>(etichetta: string, leggi: (riga: T) => ImportoLike | undefined): Colonna<T> {
   return [etichetta, (r) => <ValoreImporto importo={leggi(r)} />];
+}
+
+/** Griglia delle card del kit (2 colonne su schermi larghi, 4 per i KPI). */
+export function Griglia({ colonne = 2, children }: { colonne?: 2 | 4; children: ReactNode }) {
+  return <div className={`ui-griglia ui-griglia--${colonne}`}>{children}</div>;
 }

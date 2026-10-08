@@ -16,12 +16,12 @@
     {
       "name": "test",
       "status": "pass",
-      "evidence": "vitest.json verde (total=242) + coverage>=soglie (L93.55 S93.33 F93.85 B78.11 vs L80 S80 F80 B70)"
+      "evidence": "vitest.json verde (total=387) + coverage>=soglie (L91.54 S90.65 F89.08 B81.45 vs L80 S80 F80 B70)"
     },
     {
       "name": "a11y",
       "status": "pass",
-      "evidence": "axe.json: 0 violations su 25 run (wcag2a/2aa/22aa); incomplete=25 dichiarato"
+      "evidence": "axe.json: 0 violations su 33 run (wcag2a/2aa/22aa); incomplete=28 dichiarato"
     },
     {
       "name": "build",
@@ -47,13 +47,13 @@
     {
       "name": "authz",
       "status": "pass",
-      "evidence": "check-ui-authz: deny-by-default + anti-widening OK (8 route)",
+      "evidence": "check-ui-authz: deny-by-default + anti-widening OK (9 route)",
       "exit_code": 0
     },
     {
       "name": "wireframe_approved",
       "status": "pass",
-      "evidence": "hash canonico == approved_hash per 4 flusso/i as-built"
+      "evidence": "hash canonico == approved_hash per 5 flusso/i as-built"
     },
     {
       "name": "req_coverage_ui",
@@ -67,7 +67,7 @@
   "total": 11,
   "verdict": "pass",
   "a11y_residual": {
-    "incomplete": 25,
+    "incomplete": 28,
     "manual_checklist_ref": "wireframes/<flusso>.md note WCAG + review FULL"
   }
 }

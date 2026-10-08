@@ -4,11 +4,11 @@
 import type { ReactNode } from 'react';
 import { getErrorMessage } from '../../lib';
 
-export function Caricamento({ testo = 'Caricamento in corso…' }: { testo?: string }) {
+// UI v2 (ADR 0027): il caricamento e' uno scheletro della card, con il testo per i lettori di schermo.
+export function Caricamento({ testo = 'Caricamento in corso…', alto = false }: { testo?: string; alto?: boolean }) {
   return (
-    <div className="d-flex align-items-center gap-2 my-3" role="status" aria-live="polite">
-      <div className="progress-spinner progress-spinner-active size-sm" aria-hidden="true" />
-      <span>{testo}</span>
+    <div className={alto ? 'ui-skeleton ui-skeleton--alto' : 'ui-skeleton'} role="status" aria-live="polite">
+      <span className="visually-hidden">{testo}</span>
     </div>
   );
 }

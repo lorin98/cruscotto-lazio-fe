@@ -3,15 +3,16 @@
 // e' regionale e l'endpoint non accetta i filtri del finanziario (OP-FE-03): la pagina lo dice invece di mostrare filtri
 // che non si applicano. Il 404 NOT_FOUND (anno senza movimenti) e' uno stato vuoto spiegato, non un errore. Come nel
 // backend la fase e' calcolata al giorno della consultazione, gli importi sono quelli dell'istantanea alla data di
-// estrazione: la tabella lo dichiara e avvisa se l'istantanea precede la fase attuale (lib/riserva.ts). Grafico SVG
-// proprio, classi bootstrap-italia.
+// estrazione: la tabella lo dichiara e avvisa se l'istantanea precede la fase attuale (lib/riserva.ts). UI v2: linea
+// dell'utilizzo cumulato con zoom e la riserva accumulata come riferimento.
 import { ValoreImporto } from '../../../entities/importo';
-import { formatDate, formatEuro } from '../../../shared/lib';
-import { GraficoLinea, VistaQuery, Vuoto } from '../../../shared/ui';
+import { formatDate } from '../../../shared/lib';
+import { CardGrafico, VistaQuery, Vuoto } from '../../../shared/ui';
 import { rispostaRiservaAssente, useRiserva } from '../api';
 import type { MonitoraggioRiserva, UtilizzoRiserva } from '../api';
 import { etichettaFaseRiserva } from '../lib/filtri';
 import { euroOpzionale, testoOpzionale } from '../lib/formato';
+import { graficoUtilizzoRiserva } from '../lib/grafici';
 import { istantaneaAnteriore, testoCongelato, testoResiduo, utilizzoOltreRiserva } from '../lib/riserva';
 import { PerimetroSezione, Sezione, TabellaRighe, TabellaVoci } from './comuni';
 import type { Colonna } from './comuni';
@@ -58,16 +59,19 @@ function ValoriRiserva({ d, anno }: { d: MonitoraggioRiserva; anno: number }) {
   );
 }
 
-function UtilizzoProgressivo({ utilizzi }: { utilizzi: UtilizzoRiserva[] }) {
+function UtilizzoProgressivo({ d }: { d: MonitoraggioRiserva }) {
+  const utilizzi = d.utilizzoProgressivo ?? [];
   if (utilizzi.length === 0) return <p>Nessun utilizzo registrato.</p>;
   return (
     <>
-      <GraficoLinea
+      <CardGrafico
         titolo="Utilizzo progressivo cumulato della riserva"
-        punti={utilizzi.map((u) => ({ etichetta: formatDate(u.data), valore: u.cumulato ?? null }))}
-        formatta={formatEuro}
+        sottotitolo="La linea orizzontale è la riserva accumulata; trascina per ingrandire"
+        dati={graficoUtilizzoRiserva(d)}
+        fonte="Fonte: TX-0014, movimenti della riserva"
+        livello={3}
       />
-      <TabellaRighe caption="Utilizzo progressivo" intestazione="Data" chiave={(u) => formatDate(u.data)} colonne={COLONNE_UTILIZZO} righe={utilizzi} />
+      <TabellaRighe caption="Utilizzo progressivo" intestazione="Data" chiave={(u) => formatDate(u.data) || 'senza data'} colonne={COLONNE_UTILIZZO} righe={utilizzi} />
     </>
   );
 }
@@ -83,7 +87,7 @@ function Riserva({ anno }: { anno: number }) {
           <>
             <PerimetroSezione perimetro={d.perimetro} />
             <ValoriRiserva d={d} anno={anno} />
-            <UtilizzoProgressivo utilizzi={d.utilizzoProgressivo ?? []} />
+            <UtilizzoProgressivo d={d} />
           </>
         )}
       </VistaQuery>

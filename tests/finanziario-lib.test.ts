@@ -21,8 +21,17 @@ import {
   siNo,
   testoOpzionale,
 } from '../src/features/finanziario/lib/formato';
-import { daPer, reportVisibili, ritornoValido, titoloH1, voceDi } from '../src/features/finanziario/lib/report';
-import { etichettaFlusso, testoUltimiDati } from '../src/features/finanziario/lib/aggiornamento';
+import {
+  DETTAGLIO_INTERVENTO,
+  PAGINE_FINANZIARIO,
+  codiceInterventoValido,
+  pagineVisibili,
+  percorsoIntervento,
+  reportVisibili,
+  titoloH1,
+  voceDi,
+} from '../src/features/finanziario/lib/report';
+import { etichettaFlusso, piuRecente, testoUltimiDati } from '../src/features/finanziario/lib/aggiornamento';
 import { inizioFase, istantaneaAnteriore, testoCongelato, testoResiduo, utilizzoOltreRiserva } from '../src/features/finanziario/lib/riserva';
 
 // gli spazi del formato it-IT sono non separabili: si confronta con spazi normali
@@ -186,31 +195,44 @@ describe('ultimo dato sincronizzato (NFR-25 b, OP-FE-04)', () => {
     expect(testoUltimiDati([])).toBe('nessuna acquisizione conclusa');
     expect(testoUltimiDati([{ flusso: 'DS-12' }, { conclusoIl: '2026-03-02T09:15:00Z' }])).toBe('nessuna acquisizione conclusa');
   });
+  it('piuRecente: l istante piu recente fra le voci complete (la data della pill), indipendente dall ordine', () => {
+    expect(
+      piuRecente([
+        { flusso: 'PROSA_DS04', conclusoIl: '2026-03-03T08:30:00Z' },
+        { flusso: 'DS-12', conclusoIl: '2026-03-02T09:15:00Z' },
+        { conclusoIl: '2026-12-31T00:00:00Z' },
+      ]),
+    ).toBe('2026-03-03T08:30:00Z');
+    expect(piuRecente([{ flusso: 'DS-12', conclusoIl: '2026-03-02T09:15:00Z' }, { flusso: 'PROSA_DS04', conclusoIl: '2026-03-03T08:30:00Z' }])).toBe('2026-03-03T08:30:00Z');
+    expect(piuRecente([])).toBeUndefined();
+    expect(piuRecente([{ flusso: 'DS-12' }])).toBeUndefined();
+  });
 });
 
-describe('catalogo dei report', () => {
-  it('voceDi, titoloH1', () => {
-    expect(voceDi('/finanziario')?.titolo).toBe('Filtri dei report');
+describe('catalogo delle pagine (UI v2)', () => {
+  it('voceDi, titoloH1: la panoramica apre il menu, il dettaglio non e una voce di menu', () => {
+    expect(voceDi('/finanziario')?.titolo).toBe('Panoramica');
     expect(voceDi('/finanziario/sigc')?.grant).toEqual(['csr.tx-0012.read', 'csr.tx-0013.read']);
+    expect(voceDi(DETTAGLIO_INTERVENTO.percorso)?.titolo).toBe("Dettaglio dell'intervento");
+    expect(PAGINE_FINANZIARIO.map((p) => p.percorso)).not.toContain(DETTAGLIO_INTERVENTO.percorso);
+    expect(PAGINE_FINANZIARIO[0].percorso).toBe('/finanziario');
     expect(voceDi('/altro')).toBeUndefined();
     expect(titoloH1('Riserva al 5% (SIGC)')).toBe('Finanziario: riserva al 5% (SIGC)');
   });
-  it('reportVisibili: basta uno dei grant della pagina', () => {
+  it('reportVisibili e pagineVisibili: basta uno dei grant della pagina', () => {
     expect(reportVisibili((g) => g === 'csr.tx-0003.read').map((r) => r.percorso)).toEqual(['/finanziario/dotazione']);
     expect(reportVisibili(() => false)).toEqual([]);
+    // la panoramica si vede con uno qualunque dei suoi grant (qui TX-0009, che apre anche Domande)
+    expect(pagineVisibili((g) => g === 'csr.tx-0009.read').map((r) => r.percorso)).toEqual(['/finanziario', '/finanziario/domande']);
+    expect(pagineVisibili((g) => g === 'csr.tx-0014.read').map((r) => r.percorso)).toEqual(['/finanziario/sigc/riserva']);
   });
-  it('ritornoValido: solo percorsi del catalogo e parametri anno/esercizio interi (niente open-redirect)', () => {
-    const r = ritornoValido('/finanziario/sigc/riserva?anno=2025&x=1&esercizio=abc');
-    expect(r?.percorso).toBe('/finanziario/sigc/riserva');
-    expect(r?.parametri.toString()).toBe('anno=2025');
-    expect(ritornoValido('https://altro.example/finanziario/riepilogo')).toBeUndefined();
-    expect(ritornoValido('//altro.example')).toBeUndefined();
-    expect(ritornoValido('/finanziario/inesistente')).toBeUndefined();
-    expect(ritornoValido(null)).toBeUndefined();
+  it('codiceInterventoValido: stesso formato del filtro intervento, niente percorsi o markup', () => {
+    expect(codiceInterventoValido('SRA01')).toBe(true);
+    for (const v of ['', null, undefined, '<x>', '../riepilogo', 'SRA01/altro', 'a'.repeat(200)]) expect(codiceInterventoValido(v)).toBe(false);
   });
-  it('daPer: tiene solo i parametri di pagina', () => {
-    expect(daPer('/finanziario/sigc/verifica-smp', '?intervento=SRA01&esercizio=2025')).toBe('/finanziario/sigc/verifica-smp?esercizio=2025');
-    expect(daPer('/finanziario/riepilogo', '?intervento=SRA01')).toBe('/finanziario/riepilogo');
+  it('percorsoIntervento: il codice entra codificato nella route di dettaglio', () => {
+    expect(percorsoIntervento('SRA01')).toBe('/finanziario/interventi/SRA01');
+    expect(percorsoIntervento('A B')).toBe('/finanziario/interventi/A%20B');
   });
 });
 

@@ -20,3 +20,9 @@ export function testoUltimiDati(voci: readonly UltimoDato[]): string {
   if (complete.length === 0) return 'nessuna acquisizione conclusa';
   return complete.map((v) => `${etichettaFlusso(v.flusso)} ${formatDataOra(v.conclusoIl)}`).join('; ');
 }
+
+/** L'istante di conclusione piu' recente fra le voci complete (ISO), o undefined se nessuna voce e' completa. */
+export function piuRecente(voci: readonly UltimoDato[]): string | undefined {
+  const istanti = voci.filter((v) => v.flusso && v.conclusoIl).map((v) => v.conclusoIl as string);
+  return istanti.length ? istanti.reduce((a, b) => (new Date(b).getTime() > new Date(a).getTime() ? b : a)) : undefined;
+}

@@ -15,7 +15,10 @@ import routeTable from './route-table.json';
 // Home: porta d'ingresso dell'applicazione (dopo il login il BFF torna su "/"). Elenca le aree della route-table
 // (la voce di primo livello di ogni feature, es. /finanziario) visibili per i grant dell'utente: hide-by-role di sola
 // UX, l'enforcement resta server-side. Non e' una feature (nessuna authz-surface propria): resta fuori dal manifest.
-const ETICHETTE_AREE: Record<string, string> = { '/finanziario': 'Finanziario' };
+const ETICHETTE_AREE: Record<string, { titolo: string; descrizione: string }> = {
+  '/finanziario': { titolo: 'Finanziario', descrizione: 'Dotazione, pagamenti, domande e SIGC per intervento, con il dettaglio di ogni intervento.' },
+};
+const AREE_FUTURE = ['Fisico', 'Procedurale', 'Istituzionale', 'Primo pilastro'];
 
 function Home() {
   const { data: auth, isLoading, isError, refetch } = useAuthStatus();
@@ -24,10 +27,12 @@ function Home() {
   // stato della sessione non verificabile: come RequireGrant, niente invito ad accedere che rimanderebbe al giro login -> /
   if (isError && auth === undefined) {
     return (
-      <main className="container my-4" id="contenuto">
-        <h1 ref={h1} tabIndex={-1}>
-          {NOME_APPLICAZIONE}
-        </h1>
+      <main className="ui-pagina" id="contenuto">
+        <div className="ui-titolo">
+          <h1 ref={h1} tabIndex={-1}>
+            {NOME_APPLICAZIONE}
+          </h1>
+        </div>
         <SessioneNonVerificabile onRiprova={() => void refetch()} />
       </main>
     );
@@ -36,27 +41,46 @@ function Home() {
     (r) => r.path.split('/').length === 2 && r.visibility.some((g) => hasGrant(auth, g)),
   );
   return (
-    <main className="container my-4" id="contenuto">
-      <h1 ref={h1} tabIndex={-1}>
-        {NOME_APPLICAZIONE}
-      </h1>
+    <main className="ui-pagina" id="contenuto">
+      <div className="ui-titolo">
+        <div>
+          <h1 ref={h1} tabIndex={-1}>
+            {NOME_APPLICAZIONE}
+          </h1>
+          <p>Monitoraggio del Complemento di Sviluppo Rurale 2023-2027 della Regione Lazio.</p>
+        </div>
+      </div>
       {!auth?.authenticated ? (
-        <>
+        <section className="ui-card">
           <p>Per consultare il cruscotto devi accedere con le tue credenziali.</p>
           <a className="btn btn-primary" href={resolveLoginPath()}>
             Accedi
           </a>
-        </>
+        </section>
       ) : aree.length === 0 ? (
         <p role="status">Il tuo profilo non ha ancora aree del cruscotto da consultare.</p>
       ) : (
         <nav aria-label="Aree del cruscotto">
-          <ul className="list-unstyled">
+          <ul className="ui-griglia ui-griglia--2 list-unstyled">
             {aree.map((a) => (
-              <li key={a.path} className="mb-2">
-                <Link className="btn btn-primary" to={a.path}>
-                  {ETICHETTE_AREE[a.path] ?? a.path}
-                </Link>
+              <li key={a.path}>
+                <section className="ui-card ui-dissolvenza" aria-labelledby={`area-${a.path}`}>
+                  <h2 id={`area-${a.path}`} className="h4">
+                    {ETICHETTE_AREE[a.path]?.titolo ?? a.path}
+                  </h2>
+                  <p>{ETICHETTE_AREE[a.path]?.descrizione}</p>
+                  <Link className="btn btn-primary" to={a.path}>
+                    {ETICHETTE_AREE[a.path]?.titolo ?? a.path}
+                  </Link>
+                </section>
+              </li>
+            ))}
+            {AREE_FUTURE.map((a) => (
+              <li key={a}>
+                <section className="ui-card" aria-label={`${a}: presto disponibile`}>
+                  <h2 className="h4 text-muted">{a}</h2>
+                  <p className="text-muted mb-0">Area in preparazione.</p>
+                </section>
               </li>
             ))}
           </ul>

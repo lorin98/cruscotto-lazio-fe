@@ -2,16 +2,85 @@
   "routes": [
     {
       "path": "/finanziario",
-      "flow": "riepilogo",
-      "component": "src/pages/finanziario/filtri/page.tsx",
+      "flow": "panoramica",
+      "component": "src/pages/finanziario/panoramica/page.tsx",
       "visibility": [
-        "csr.tx-0001.read"
+        "csr.tx-0001.read",
+        "csr.tx-0002.read",
+        "csr.tx-0009.read",
+        "csr.tx-0012.read",
+        "csr.tx-0013.read"
       ],
       "actions": [
         {
           "operationId": "TX-0001",
           "gating": "hide-by-role",
           "grant": "csr.tx-0001.read"
+        },
+        {
+          "operationId": "TX-0002",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0002.read"
+        },
+        {
+          "operationId": "TX-0009",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0009.read"
+        },
+        {
+          "operationId": "TX-0012",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0012.read"
+        },
+        {
+          "operationId": "TX-0013",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0013.read"
+        }
+      ]
+    },
+    {
+      "path": "/finanziario/interventi/:codice",
+      "flow": "panoramica",
+      "component": "src/pages/finanziario/interventi/page.tsx",
+      "visibility": [
+        "csr.tx-0011.read",
+        "csr.tx-0002.read",
+        "csr.tx-0008.read",
+        "csr.tx-0010.read",
+        "csr.tx-0012.read",
+        "csr.tx-0013.read"
+      ],
+      "actions": [
+        {
+          "operationId": "TX-0011",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0011.read"
+        },
+        {
+          "operationId": "TX-0002",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0002.read"
+        },
+        {
+          "operationId": "TX-0008",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0008.read"
+        },
+        {
+          "operationId": "TX-0010",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0010.read"
+        },
+        {
+          "operationId": "TX-0012",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0012.read"
+        },
+        {
+          "operationId": "TX-0013",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0013.read"
         }
       ]
     },

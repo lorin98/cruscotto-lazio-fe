@@ -29,11 +29,11 @@ describe('confini fra slice delle feature (Z-02)', () => {
   const DA_ALTRA = 'src/features/__altra__/ui/__canary__.ts';
   const confini = (m: string[]) => m.filter((x) => x.startsWith('boundaries/'));
   it('scatta su un import dentro un altro slice', async () => {
-    const codice = "import { FiltriAttivi } from '../../finanziario/ui/FiltriAttivi';\nexport const x = FiltriAttivi;\n";
+    const codice = "import { Panoramica } from '../../finanziario/ui/Panoramica';\nexport const x = Panoramica;\n";
     expect(confini(await regole(codice, DA_ALTRA)).length).toBeGreaterThan(0);
   });
   it("non scatta sul barrel dell'altro slice", async () => {
-    const codice = "import { FiltriAttivi } from '../../finanziario';\nexport const x = FiltriAttivi;\n";
+    const codice = "import { Panoramica } from '../../finanziario';\nexport const x = Panoramica;\n";
     expect(confini(await regole(codice, DA_ALTRA))).toEqual([]);
   });
   it('non scatta dentro lo stesso slice', async () => {

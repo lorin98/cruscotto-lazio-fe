@@ -5,6 +5,7 @@ import { http, HttpResponse } from 'msw';
 import { server } from '../../../../shared/api/mock/server';
 import { expectNoA11yViolations } from '../../../../shared/testing/axe';
 import { RISERVA } from '../../../../shared/testing/fixture-finanziario';
+import { descrizioneDi, graficoDi, trovaCard } from '../../../../shared/testing/card-grafico';
 import { renderPagina } from '../../../../shared/testing/render-pagina';
 import Pagina from './page';
 
@@ -19,14 +20,18 @@ describe("RF014: monitoraggio della riserva al 5% dell'anno n nelle quattro fasi
     await waitFor(() => expect(router.state.location.search).toBe('?anno=2025'));
     expect(screen.getByText('Per il 2025: accumulo dal 1/10/2025 al 30/6/2026, utilizzo fino al 31/12/2026, residuo dal 1/1/2027.')).toBeTruthy();
     expect(await screen.findByText('residuo (2% del montante, dal 1/1/2027)')).toBeTruthy();
-    expect(screen.queryByText(/Filtri attivi/)).toBeNull();
+    expect(screen.queryByRole('region', { name: 'Filtri attivi' })).toBeNull();
   });
   it('fase, valori, utilizzo progressivo in grafico e tabella', async () => {
     server.use(http.get('*/api/finanziario/riserva/2025', () => HttpResponse.json(RISERVA)));
     renderPagina(Pagina, '/finanziario/sigc/riserva', '/finanziario/sigc/riserva?anno=2025');
     expect(await screen.findByRole('table', { name: 'Utilizzo progressivo' })).toBeTruthy();
-    expect(screen.getByRole('img', { name: /Utilizzo progressivo cumulato/ })).toBeTruthy();
+    const card = await trovaCard('Utilizzo progressivo cumulato della riserva');
+    expect(graficoDi(card)).toBeTruthy();
+    expect(descrizioneDi(card)).toBeTruthy();
     expect(screen.getByText(/i filtri del finanziario non si applicano/)).toBeTruthy();
+    // dato regionale: niente barra dei filtri del finanziario
+    expect(screen.queryByRole('region', { name: 'Filtri attivi' })).toBeNull();
   });
   it("anno senza movimenti (404): stato vuoto spiegato, non un errore", async () => {
     server.use(

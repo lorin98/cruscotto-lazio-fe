@@ -9,7 +9,8 @@ Frontend del Cruscotto di monitoraggio CSR 2023-2027 (ARSIAL / Regione Lazio), g
 
 Stato della generazione: `.claude/state/green-fe-<feature>.state.json` (si legge con gli script del plugin);
 per proseguire `/green-fe:build finanziario`. Piano UI in `uiplan.json`, wireframe approvati in `wireframes/`,
-decisione sul tema in `docs/decisioni/style-guide.md`.
+decisione sul tema in `docs/decisioni/style-guide.md`. Il linguaggio visivo e' la UI v2 (ADR 0027 del plugin
+green-fe), dal prototipo approvato in `prototipo/finanziario/`.
 
 ## Sviluppo
 
@@ -17,7 +18,7 @@ Node `^24.15.0` (`.nvmrc`), poi `npm ci`.
 
 | Comando | Cosa |
 |---|---|
-| `npm run dev` | dev server con i mock MSW (nessun backend): tutte le chiamate sono servite dagli handler generati |
+| `npm run dev` | dev server con i mock MSW (nessun backend): il finanziario usa i dati d'esempio inventati di `src/shared/api/mock/esempio-finanziario.ts` (coerenti fra le pagine, rispettano i filtri, fonti non attive come nei dati reali); il resto gli handler generati |
 | `npm run dev:be` | dev server collegato al **backend vero** (BFF, Keycloak, PostgreSQL): niente MSW |
 | `npm run api:generate` | rigenera il client orval da `specs/openapi-*.json` |
 | `npm run typecheck`, `build`, `test`, `lint` | i controlli del gate di green-fe |
@@ -74,21 +75,48 @@ aperta.
 ### Shell dell'applicazione
 
 `src/app/layout.tsx` e' la shell di tutte le route:
-- skip-link, intestazione con utente ed "Esci" (`/auth/logout` del BFF) e pie' di pagina;
+- skip-link; fascia degli enti con i loghi di Regione Lazio e ARSIAL (link ai siti, in una nuova finestra); barra
+  dell'applicazione con la ricerca di un intervento (Invio su un codice noto apre il suo dettaglio), utente ed "Esci"
+  (`/auth/logout` del BFF);
+- menu laterale (`src/app/menu.tsx`) con le pagine del finanziario visibili per i grant (solo UX) e le aree future
+  dichiarate "presto"; i filtri dell'indirizzo restano passando da una pagina all'altra; su schermo piccolo il menu
+  si apre in un pannello;
+- pie' di pagina con i collegamenti istituzionali; accessibilita', privacy e note legali sono dichiarati "indirizzo
+  da definire" finche' ARSIAL non li fornisce (`src/app/collegamenti.ts`);
 - l'avviso globale del 403 delle mutation;
 - l'avviso di inattivita' di NFR-41: a 28 minuti una finestra modale chiede se restare collegati; a 30 minuti la SPA
   chiude davvero la sessione navigando a `/auth/logout` del BFF. Le schede aperte condividono la sessione: l'attivita'
   e la scadenza passano fra le schede con un `BroadcastChannel`, cosi' una scheda ferma non chiude la sessione su cui
   si lavora in un'altra.
 
-Ogni pagina del finanziario mostra sotto il titolo l'ultimo dato sincronizzato per flusso d'import (NFR-25 b): arriva
-con la risposta di `/api/finanziario/filtri` (TX-0001), la stessa data dell'intestazione degli export, in ora italiana.
+Ogni pagina del finanziario ha in alto la barra dei filtri: i filtri attivi come chip rimovibili, il bottone che apre il
+pannello dei filtri (TX-0001) e a destra la data dell'ultimo dato sincronizzato (NFR-25 b), con il dettaglio per flusso
+d'import in un popover; arriva con la risposta di `/api/finanziario/filtri`, in ora italiana.
 
 La Home (`/`, dove il BFF riporta dopo il login) elenca le aree visibili per i grant dell'utente. `RequireGrant`
 distingue tre casi:
 - utente non collegato: invito ad accedere;
 - sessione non verificabile: "Riprova" e "Accedi di nuovo", senza redirect automatico, per non creare un ciclo di login;
 - utente senza il grant: accesso non disponibile.
+
+### Interfaccia (UI v2)
+
+Il kit generico sta in `src/shared/ui` e si riusa nelle prossime aree:
+- `tema.css`: token (`--ui-*`) e classi `ui-*` sopra bootstrap-italia; font Titillium serviti dall'app;
+- `grafici/`: `Grafico`, il solo wrapper di Apache ECharts (import modulari, renderer SVG, niente animazioni con
+  `prefers-reduced-motion`), e `CardGrafico`: titolo, vista Grafico/Tabella, download, voci omesse, fonte;
+- `Kpi`, `BarraFiltri`, `PannelloLaterale` (dialogo laterale di react-aria-components), `TabellaInterattiva`
+  (ricerca, ordinamento con `aria-sort`, scelta delle colonne, paginazione, totali, riga apribile con clic o Invio;
+  la logica e' in `src/shared/lib/tabella.ts`).
+
+Le opzioni dei grafici le preparano funzioni pure delle feature (`src/features/finanziario/lib/grafici.ts`,
+`due-parti.ts`): ognuna restituisce le opzioni oppure il motivo per cui il grafico non si disegna, la tabella
+equivalente (il canale accessibile) e le voci omesse. Un valore assente non diventa mai zero. Il clic su un elemento e'
+il drill-down: dal grafico al dettaglio dell'intervento (`/finanziario/interventi/:codice`) o alla pagina collegata.
+
+Nei test jsdom non disegna: `src/shared/test/setup.ts` sostituisce ECharts con un grafico finto
+(`src/shared/testing/grafico-finto.ts`) che registra le opzioni e simula il clic; `src/shared/testing/card-grafico.ts`
+trova una card, il suo grafico e la sua tabella.
 
 Il service worker di MSW sta in `public-dev/` ed e' servito solo dal dev server: la build di produzione non lo
 contiene.
@@ -104,8 +132,13 @@ X-Content-Type-Options: nosniff
 Referrer-Policy: same-origin
 ```
 
-`style-src` va verificato con i font e le icone di bootstrap-italia: se richiedono `data:` per i font, va aggiunto. I
-grafici SVG usano attributi di presentazione, non stili inline.
+Verificato sulla build di produzione con Playwright e questa CSP: nessuna violazione, con i grafici ECharts (SVG) e il
+tooltip disegnati (ECharts imposta gli stili via CSSOM, che la CSP ammette). L'unico `<style>` iniettato, quello di
+react-aria per `touch-action`, e' bloccato dalla CSP: la stessa regola sta in `src/shared/ui/tema.css` e il segnaposto
+`<meta id="react-aria-pressable-style">` in `index.html` dice a react-aria di non iniettarla.
+
+Peso: il chunk del finanziario e' di circa 1,2 MB (380 kB gzip), in gran parte ECharts; se servisse, ECharts si puo'
+caricare a parte con un import dinamico nel wrapper `Grafico`.
 
 ### Convenzioni del codice e test
 

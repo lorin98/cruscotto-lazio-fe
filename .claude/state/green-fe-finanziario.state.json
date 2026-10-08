@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "finanziario",
-  "current_step": 2,
+  "current_step": 9,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -59,64 +59,95 @@
       ]
     },
     "step2-codegen": {
-      "status": "in_progress",
-      "completed_at": "2026-10-08T13:18:15Z",
+      "status": "done",
+      "completed_at": "2026-10-08T19:41:39Z",
       "artifacts": [
         "./specs/.spec-lock.json",
         "./src/shared/api/generated"
       ],
-      "gates": {}
+      "gates": {
+        "codegen_compiles": "pass",
+        "orval_types": "pass",
+        "csrf_static": "pass"
+      }
     },
     "step3-api": {
-      "status": "in_progress",
-      "completed_at": "2026-10-08T13:18:28Z",
+      "status": "done",
+      "completed_at": "2026-10-08T19:42:51Z",
       "artifacts": [
         "./src/features"
       ],
-      "gates": {}
+      "gates": {
+        "api_wrappers_compile": "pass",
+        "querykey_from_factory": "pass"
+      }
     },
     "step4-lib": {
-      "status": "in_progress",
-      "completed_at": "2026-10-08T13:18:40Z",
+      "status": "done",
+      "completed_at": "2026-10-08T20:33:08Z",
       "artifacts": [
-        "./src/shared/lib"
+        "/c/Users/lorin/Desktop/Lorenzo/sian-ng/progetti/arsial/arsial-cruscotto/cruscotto-lazio-fe/src/shared/lib"
       ],
-      "gates": {}
+      "gates": {
+        "lib_pure_compile": "pass",
+        "lib_zero_react": "pass"
+      }
     },
     "step5-ui": {
-      "status": "in_progress",
-      "completed_at": "2026-10-08T13:19:01Z",
+      "status": "done",
+      "completed_at": "2026-10-08T20:34:16Z",
       "artifacts": [
-        "./src/features"
+        "/c/Users/lorin/Desktop/Lorenzo/sian-ng/progetti/arsial/arsial-cruscotto/cruscotto-lazio-fe/src/features"
       ],
-      "gates": {}
+      "gates": {
+        "ui_components_compile": "pass",
+        "ui_a11y_axe": "pass"
+      }
     },
     "step6-page": {
-      "status": "in_progress",
-      "completed_at": "2026-10-08T13:19:18Z",
+      "status": "done",
+      "completed_at": "2026-10-08T20:34:59Z",
       "artifacts": [
-        "./src/pages",
-        "./route-manifest.json"
+        "/c/Users/lorin/Desktop/Lorenzo/sian-ng/progetti/arsial/arsial-cruscotto/cruscotto-lazio-fe/src/pages",
+        "/c/Users/lorin/Desktop/Lorenzo/sian-ng/progetti/arsial/arsial-cruscotto/cruscotto-lazio-fe/route-manifest.json"
       ],
-      "gates": {}
+      "gates": {
+        "pages_compile": "pass",
+        "route_manifest_valid": "pass"
+      }
     },
     "step7-test": {
-      "status": "in_progress",
-      "completed_at": "2026-10-08T13:19:24Z",
+      "status": "done",
+      "completed_at": "2026-10-08T20:35:26Z",
       "artifacts": [
-        "./src/shared/test",
-        "./src/shared/api/mock",
-        "./src/shared/testing/axe.ts"
+        "/c/Users/lorin/Desktop/Lorenzo/sian-ng/progetti/arsial/arsial-cruscotto/cruscotto-lazio-fe/src/shared/test",
+        "/c/Users/lorin/Desktop/Lorenzo/sian-ng/progetti/arsial/arsial-cruscotto/cruscotto-lazio-fe/src/shared/api/mock",
+        "/c/Users/lorin/Desktop/Lorenzo/sian-ng/progetti/arsial/arsial-cruscotto/cruscotto-lazio-fe/src/shared/testing/axe.ts"
       ],
-      "gates": {}
+      "gates": {
+        "tests_generated": "pass",
+        "msw_fail_closed": "pass"
+      }
     },
     "step8-gate": {
-      "status": "in_progress",
-      "completed_at": "2026-10-08T13:20:33Z",
+      "status": "done",
+      "completed_at": "2026-10-08T20:38:13Z",
       "artifacts": [
-        "./fe-gate-report.json"
+        "/c/Users/lorin/Desktop/Lorenzo/sian-ng/progetti/arsial/arsial-cruscotto/cruscotto-lazio-fe/fe-gate-report.json"
       ],
-      "gates": {}
+      "gates": {
+        "lint": "pass",
+        "typecheck": "pass",
+        "test": "pass",
+        "a11y": "pass",
+        "build": "pass",
+        "fsd_import": "pass",
+        "orval_types": "pass",
+        "security": "pass",
+        "authz": "pass",
+        "wireframe_approved": "pass",
+        "req_coverage_ui": "pass"
+      }
     },
     "step9-review": {
       "status": "in_progress",
