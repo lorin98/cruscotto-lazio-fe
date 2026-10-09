@@ -3,7 +3,7 @@
 // Congelato e residuo sono null finche' l'istantanea precede il congelamento (30/6/n+1); il residuo c'e' gia' dal
 // congelamento ma diventa disponibile solo dal 1/1/n+2, se la riserva non e' utilizzata tutta entro il 31/12/n+1.
 // Date ISO (AAAA-MM-GG): il confronto fra stringhe ISO e' cronologico.
-import { formatDate, formatEuro } from '../../../shared/lib';
+import { formatDate, formatEuro, maiuscolaIniziale } from '../../../shared/lib';
 
 /** Fasi della riserva al 5% (enum della spec, RF014). */
 export type FaseRiserva = 'NON_INIZIATA' | 'ACCUMULO' | 'UTILIZZO' | 'RESIDUO';
@@ -77,4 +77,39 @@ export function testoResiduo(v: number | null | undefined, n: number, dataEstraz
 export function utilizzoOltreRiserva(d: { importoUtilizzato?: number | null; importoCongelato?: number | null; importoAccumulato?: number | null }): boolean {
   const riserva = d.importoCongelato ?? d.importoAccumulato;
   return d.importoUtilizzato != null && riserva != null && d.importoUtilizzato > riserva;
+}
+
+export interface ValoreKpiRiserva {
+  valore: number | null;
+  /** Assenza gia' composta (frase con l'iniziale maiuscola), se il valore manca. */
+  assente?: string;
+  nota?: string;
+}
+
+export interface KpiRiserva {
+  accumulato: ValoreKpiRiserva;
+  congelato: ValoreKpiRiserva;
+  utilizzato: ValoreKpiRiserva & { oltreRiserva: boolean };
+  residuo: ValoreKpiRiserva;
+}
+
+function valoreKpi(valore: number | null | undefined, assente: () => string, nota?: string): ValoreKpiRiserva {
+  return valore == null ? { valore: null, assente: assente(), nota } : { valore, nota };
+}
+
+/** I quattro KPI della riserva dell'anno n: valori, assenze spiegate (quando ci saranno) e residuo "previsto" fino al 1/1/n+2. */
+export function kpiRiserva(
+  d: { fase?: FaseRiserva | null; dataEstrazione?: string | null; importoAccumulato?: number | null; importoCongelato?: number | null; importoUtilizzato?: number | null; importoResiduoDisponibile?: number | null },
+  anno: number,
+  oggi: string,
+): KpiRiserva {
+  const inizioResiduo = calendarioRiserva(anno).inizioResiduo;
+  const oltreRiserva = utilizzoOltreRiserva(d);
+  const previsto = d.importoResiduoDisponibile != null && oggi < inizioResiduo;
+  return {
+    accumulato: valoreKpi(d.importoAccumulato, () => 'Non disponibile', `Fase: ${etichettaFaseRiserva(d.fase, anno)}`),
+    congelato: valoreKpi(d.importoCongelato, () => maiuscolaIniziale(testoCongelato(null, anno, d.dataEstrazione))),
+    utilizzato: { ...valoreKpi(d.importoUtilizzato, () => 'Non disponibile', oltreRiserva ? 'Supera la riserva di questa estrazione' : undefined), oltreRiserva },
+    residuo: valoreKpi(d.importoResiduoDisponibile, () => maiuscolaIniziale(testoResiduo(null, anno, d.dataEstrazione, oggi)), previsto ? `Previsto: disponibile dal ${dataBreve(inizioResiduo)}` : undefined),
+  };
 }

@@ -6,9 +6,6 @@ import { describe, expect, it } from 'vitest';
 import type { ImportoLike } from '../src/entities/importo';
 import { FAMIGLIA_ALTRO, famigliaDi } from '../src/features/finanziario/lib/famiglie';
 import {
-  assenzaImporto,
-  avanzamentoPonderato,
-  cellaImporto,
   graficoAvanzamento,
   graficoCascataIntervento,
   graficoCascataSigc,
@@ -24,9 +21,12 @@ import {
   graficoSankey,
   graficoSmp,
   graficoUtilizzoRiserva,
+  sottotitoloFlusso,
   vociIntervento,
 } from '../src/features/finanziario/lib/grafici';
 import type { RigaRiepilogo, RigaSpesa } from '../src/features/finanziario/lib/grafici';
+import { avanzamentoPonderato } from '../src/features/finanziario/lib/avanzamento';
+import { assenzaImporto, cellaImporto } from '../src/features/finanziario/lib/importi';
 import { COLORI, milioni, opzioniSicure } from '../src/shared/lib';
 import type { DatiGrafico } from '../src/shared/lib';
 
@@ -236,9 +236,9 @@ describe('graficoAvanzamento', () => {
     expect(valoriDi(o.series[0])).not.toContain(0);
     // dati di una riga: NON_VALORIZZATO e' "non valorizzato" nella fonte, non "non calcolabile"
     expect(g.omessi).toEqual([
-      'SRA03: dotazione non disponibile (fonte quadro sinottico non attiva)',
+      'SRA03: dotazione: non disponibile (fonte quadro sinottico non attiva)',
       'SRB01: dotazione pari a zero',
-      `SRC01: pagato ${NON_VALORIZZATO_RIGA}`,
+      `SRC01: pagato: ${NON_VALORIZZATO_RIGA}`,
     ]);
   });
 
@@ -264,7 +264,7 @@ describe('graficoAvanzamento', () => {
   it('nessuna riga utile: non disegnabile, le voci restano dichiarate', () => {
     const g = graficoAvanzamento([righeSpesa[3]]);
     controllaNonDisegnabile(g, 'nessun intervento con dotazione e pagato valorizzati');
-    expect(g.omessi).toEqual(['SRA03: dotazione non disponibile (fonte quadro sinottico non attiva)']);
+    expect(g.omessi).toEqual(['SRA03: dotazione: non disponibile (fonte quadro sinottico non attiva)']);
     expect(g.tabella.righe).toHaveLength(1);
     expect(graficoAvanzamento([]).opzioni).toBeNull();
   });
@@ -287,8 +287,8 @@ describe('graficoAvanzamento', () => {
       ['SRA02', 20_000_000, 2_000_000, 0.1],
     ]);
     expect(a.omessi).toEqual([
-      'SRA03: dotazione non disponibile (fonte quadro sinottico non attiva)',
-      'SRZ01: dotazione non disponibile, pagato non disponibile',
+      'SRA03: dotazione: non disponibile (fonte quadro sinottico non attiva)',
+      'SRZ01: dotazione: non disponibile, pagato: non disponibile',
     ]);
     expect([a.totaleDotazione, a.totalePagato, a.media]).toEqual([40_000_000, 12_000_000, 30]);
     // la stessa media del grafico
@@ -336,7 +336,7 @@ describe('graficoFamiglie', () => {
 
   it('dotazione assente o non positiva: omessa e dichiarata', () => {
     const g = graficoFamiglie([...righeSpesa, { codiceIntervento: 'SRE01', dotazioneSpesaPubblica: imp(-5) }]);
-    expect(g.omessi).toEqual(['SRA03: dotazione non disponibile (fonte quadro sinottico non attiva)', 'SRE01: dotazione negativa']);
+    expect(g.omessi).toEqual(['SRA03: dotazione: non disponibile (fonte quadro sinottico non attiva)', 'SRE01: dotazione negativa']);
     const foglie = (opzioniDi(g).series[0].data ?? []).flatMap((f) => item(f).children ?? []);
     expect(foglie.map((f) => f.codice)).not.toContain('SRA03');
     expect(foglie.map((f) => f.value)).not.toContain(0);
@@ -646,7 +646,7 @@ describe('graficoSankey', () => {
     expect(n(g.tabella.righe[2][1])).toBe('35.000.000,00 €');
     // senza il residuo del DTO non si ricalcola nel browser: il flusso non si disegna
     const senza = graficoSankey({ dotazioneSpesaPubblica: imp(100_000_000), importoImpegnato: imp(60_000_000) }, pagamenti);
-    controllaNonDisegnabile(senza, 'il flusso richiede da impegnare (non disponibile)');
+    controllaNonDisegnabile(senza, 'il flusso richiede da impegnare: non disponibile');
     expect(senza.tabella.righe[2]).toEqual(['Da impegnare (dotazione residua sugli impegni)', 'non disponibile']);
   });
 
@@ -666,7 +666,7 @@ describe('graficoSankey', () => {
 
   it('impegnato da fonte non attiva e nessun residuo sui pagamenti: non disegnabile, tabella con le voci disponibili e le assenti col motivo', () => {
     const g = graficoSankey({ ...impegni, importoImpegnato: assente('FONTE_NON_ATTIVA', 'IMPEGNI'), dotazioneResidua: assente('FONTE_NON_ATTIVA', 'IMPEGNI') }, pagamenti);
-    controllaNonDisegnabile(g, 'il flusso richiede pagamenti netti (non disponibile) e dotazione residua (non disponibile)');
+    controllaNonDisegnabile(g, 'il flusso richiede pagamenti netti: non disponibile; dotazione residua: non disponibile');
     expect(righeN(g)).toEqual([
       ['Dotazione', '100.000.000,00 €'],
       ['Impegnato', 'non disponibile (fonte impegni non attiva)'],
@@ -810,7 +810,7 @@ describe('graficoCascataIntervento e vociIntervento', () => {
 
   it('dotazione o pagamenti assenti, negativi, pagamenti oltre la dotazione: non disegnabile', () => {
     const senza = graficoCascataIntervento({ ...rigaIntervento, pagamentiNettoRettifiche: assente('FUORI_PERIMETRO') });
-    controllaNonDisegnabile(senza, `la cascata di SRA01 richiede dotazione e pagamenti netti: pagamenti netti ${FUORI_PERIMETRO}`);
+    controllaNonDisegnabile(senza, `la cascata di SRA01 richiede dotazione e pagamenti netti; pagamenti netti: ${FUORI_PERIMETRO}`);
     expect(senza.tabella.righe).toHaveLength(8);
     controllaNonDisegnabile(graficoCascataIntervento({ ...rigaIntervento, pagamentiNettoRettifiche: imp(11_000_000) }), 'i pagamenti netti di SRA01 superano la dotazione: la cascata non si può disegnare');
     controllaNonDisegnabile(graficoCascataIntervento({ ...rigaIntervento, dotazioneResiduaSuPagamenti: imp(-1) }), 'importi negativi per SRA01: la cascata non si può disegnare');
@@ -1199,5 +1199,14 @@ describe('regola dei motivi: segue "Grafico non disponibile: ", iniziale minusco
     expect(g.opzioni).toBeNull();
     expect(g.motivoAssenza).toMatch(REGOLA);
     expect(g.tabella.colonne.length).toBeGreaterThan(0);
+  });
+});
+
+describe('sottotitoloFlusso (N-18)', () => {
+  it("dice il ramo disegnato: con l'impegnato fino al pagato, senza dalla dotazione ai pagamenti netti col motivo", () => {
+    expect(sottotitoloFlusso({ importoImpegnato: { valore: 10, motivo: null, fonte: null } })).toBe("Dalla dotazione all'impegnato e al pagato");
+    expect(sottotitoloFlusso({ importoImpegnato: { valore: null, motivo: 'FONTE_NON_ATTIVA', fonte: 'IMPEGNI' } })).toBe(
+      'Dalla dotazione ai pagamenti netti e al residuo; impegnato: non disponibile (fonte impegni non attiva)',
+    );
   });
 });

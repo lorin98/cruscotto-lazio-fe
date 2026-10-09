@@ -43,21 +43,50 @@ describe('confini fra slice delle feature (Z-02)', () => {
 });
 
 describe("un'entity si importa solo dal suo barrel (H-11)", () => {
-  const DA_FEATURE = 'src/features/finanziario/ui/__canary__.ts';
+  // residuo H-11: il blocco dei lib/ e quello dei test sotto src/ ridefiniscono no-restricted-imports, quindi ognuno ha
+  // la sua canary (il difetto originale era proprio in lib/)
+  const DA_FEATURE = ['src/features/finanziario/ui/__canary__.ts', 'src/features/finanziario/lib/__canary__.ts', 'src/features/finanziario/ui/__canary__.test.tsx'];
   const ristretti = (m: string[]) => m.filter((x) => x.startsWith('no-restricted-imports'));
-  it("scatta su un import dentro l'entity", async () => {
+  it.each(DA_FEATURE)("scatta su un import dentro l'entity da %s", async (percorso) => {
     const codice = "import { descriviImporto } from '../../../entities/importo/lib/importo';\nexport const x = descriviImporto;\n";
-    expect(ristretti(await regole(codice, DA_FEATURE)).length).toBeGreaterThan(0);
+    expect(ristretti(await regole(codice, percorso)).length).toBeGreaterThan(0);
   });
-  it("non scatta sul barrel dell'entity", async () => {
+  it.each(DA_FEATURE)("non scatta sul barrel dell'entity da %s", async (percorso) => {
     const codice = "import { descriviImporto } from '../../../entities/importo';\nexport const x = descriviImporto;\n";
-    expect(ristretti(await regole(codice, DA_FEATURE))).toEqual([]);
+    expect(ristretti(await regole(codice, percorso))).toEqual([]);
+  });
+});
+
+describe('soglie dei lib/ (H-06)', () => {
+  // funzione con n rami: n - 1 if e il return finale, complessita' n
+  const conRami = (n: number) =>
+    `export function rami(x: number): number {\n${Array.from({ length: n - 1 }, (_, i) => `  if (x === ${i}) return ${i};`).join('\n')}\n  return -1;\n}\n`;
+  // funzione di n righe, dalla firma alla graffa di chiusura, senza righe vuote ne' commenti
+  const conRighe = (n: number) =>
+    `export function righe(): number {\n  let x = 0;\n${Array.from({ length: n - 4 }, (_, i) => `  x += ${i};`).join('\n')}\n  return x;\n}\n`;
+  const di = (regola: string) => async (codice: string, percorso: string) => (await regole(codice, percorso)).filter((m) => m.startsWith(`${regola}:`));
+  const complessita = di('complexity');
+  const lunghezza = di('max-lines-per-function');
+
+  it.each(['src/shared/lib/__canary__.ts', 'src/entities/importo/lib/__canary__.ts', 'src/features/finanziario/lib/__canary__.ts'])(
+    'in %s scattano con 11 rami e con 61 righe, non al limite (10 e 60)',
+    async (percorso) => {
+      expect(await complessita(conRami(11), percorso)).toHaveLength(1);
+      expect(await lunghezza(conRighe(61), percorso)).toHaveLength(1);
+      expect(await complessita(conRami(10), percorso)).toEqual([]);
+      expect(await lunghezza(conRighe(60), percorso)).toEqual([]);
+    },
+  );
+  it('non scattano in ui/', async () => {
+    const percorso = 'src/features/finanziario/ui/__canary__.ts';
+    expect(await complessita(conRami(11), percorso)).toEqual([]);
+    expect(await lunghezza(conRighe(61), percorso)).toEqual([]);
   });
 });
 
 describe('moduli di prova fuori dal codice di produzione (Z-02)', () => {
   const vietati = (m: string[]) => m.filter((x) => x.startsWith('no-restricted-imports') && x.includes('Z-02'));
-  const fixture = "import { FILTRI } from '../../../shared/testing/fixture-finanziario';\nexport const x = FILTRI;\n";
+  const fixture = "import { FILTRI } from '../../../features/finanziario/testing/fixture';\nexport const x = FILTRI;\n";
   const mock = "import { handlers } from '../../../shared/api/mock/handlers';\nexport const x = handlers;\n";
   it.each([
     ['src/features/finanziario/ui/__canary__.ts', fixture],
@@ -68,8 +97,21 @@ describe('moduli di prova fuori dal codice di produzione (Z-02)', () => {
     expect(vietati(await regole(codice, percorso)).length).toBeGreaterThan(0);
   });
   it('non scatta nei test delle pagine', async () => {
-    const codice = "import { FILTRI } from '../../../shared/testing/fixture-finanziario';\nexport const x = FILTRI;\n";
+    const codice = "import { FILTRI } from '../../../features/finanziario/testing/fixture';\nexport const x = FILTRI;\n";
     expect(vietati(await regole(codice, 'src/pages/finanziario/__canary__/page.test.tsx'))).toEqual([]);
+  });
+  // H-20: nei test delle pagine l'ingresso testing della feature e' ammesso, le altre sotto-cartelle no
+  const sottoCartelle = (m: string[]) => m.filter((x) => x.startsWith('no-restricted-imports') && x.includes('invariante #3'));
+  it("test delle pagine: fixture della feature ammesse, sotto-cartelle interne vietate", async () => {
+    const percorso = 'src/pages/finanziario/__canary__/page.test.tsx';
+    const fixture = "import { FILTRI } from '../../../features/finanziario/testing/fixture';\nexport const x = FILTRI;\n";
+    const interno = "import { GRANT } from '../../../features/finanziario/lib/report';\nexport const x = GRANT;\n";
+    expect(sottoCartelle(await regole(fixture, percorso))).toEqual([]);
+    expect(sottoCartelle(await regole(interno, percorso)).length).toBeGreaterThan(0);
+  });
+  it('esempi del dev server nella feature: vietati nel codice di produzione', async () => {
+    const codice = "import { handlersEsempio } from '../api/mock/esempio';\nexport const x = handlersEsempio;\n";
+    expect(vietati(await regole(codice, 'src/features/finanziario/ui/__canary__.ts')).length).toBeGreaterThan(0);
   });
 });
 

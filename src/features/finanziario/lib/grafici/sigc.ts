@@ -22,8 +22,9 @@ import {
   tooltipDettaglio,
 } from '../../../../shared/lib';
 import type { DatiGrafico, DatoSerie, PassoCascata } from '../../../../shared/lib';
-import type { DomandeSigcLike, ImportiSigcLike, RigaSmp } from './dto';
-import { assenzaImporto, cellaImporto, cellaNumero, codiceDi, valoreDi } from './resa';
+import type { DomandeSigcLike, ImportiSigcLike, RigaSmp } from '../dto';
+import { numeroOpzionale } from '../formato';
+import { assenzaImporto, cellaImporto, codiceDi, valoreDi } from '../importi';
 
 // ---------------------------------------------------------------- 1. imbuto delle domande SIGC
 
@@ -54,7 +55,7 @@ export function graficoImbutoSigc(d: DomandeSigcLike): DatiGrafico {
     { nome: 'Da pagare', valore: numeroDi(d.daPagare) },
   ];
   const quota = quotaSulle(presentate);
-  const tabella = { caption: 'Domande SIGC: presentate, pagate e da pagare', colonne: ['Fase', 'Domande', 'Quota sulle presentate'], righe: fasi.map((f) => [f.nome, cellaNumero(f.valore), f.valore == null ? NON_CALCOLABILE : quota(f.valore)]) };
+  const tabella = { caption: 'Domande SIGC: presentate, pagate e da pagare', colonne: ['Fase', 'Domande', 'Quota sulle presentate'], righe: fasi.map((f) => [f.nome, numeroOpzionale(f.valore), f.valore == null ? NON_CALCOLABILE : quota(f.valore)]) };
   const omessi = fasi.filter((f) => f.valore == null).map((f) => `${f.nome}: numero di domande ${NON_DISPONIBILE}`);
   if (presentate == null) return nonDisegnabile("domande presentate non disponibili: l'imbuto non si può disegnare", tabella, omessi);
   if (presentate <= 0) return nonDisegnabile("nessuna domanda presentata: l'imbuto non si può disegnare", tabella, omessi);
@@ -98,9 +99,9 @@ function righeDomandeSenza(i: ImportiSigcLike): string[][] {
   const s = i.domandeSenza;
   if (!s) return [];
   return [
-    ['Domande senza importo richiesto', cellaNumero(s.richiesto)],
-    ['Domande senza importo ammesso', cellaNumero(s.ammesso)],
-    ['Domande senza importo pagato', cellaNumero(s.pagato)],
+    ['Domande senza importo richiesto', numeroOpzionale(s.richiesto)],
+    ['Domande senza importo ammesso', numeroOpzionale(s.ammesso)],
+    ['Domande senza importo pagato', numeroOpzionale(s.pagato)],
   ];
 }
 
@@ -157,6 +158,7 @@ export function graficoSmp(righe: RigaSmp[]): DatiGrafico {
       colonne: ['Intervento', 'Previsione di pagamento', 'Spesa erogata nella campagna precedente'],
       titolo: 'Barre raggruppate della previsione di pagamento e della spesa erogata nella campagna precedente',
       vuoto: 'nessun intervento con previsione di pagamento o spesa erogata valorizzate',
+      unita: ['intervento', 'interventi'],
     },
   );
 }

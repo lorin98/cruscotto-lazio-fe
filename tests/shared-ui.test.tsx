@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AxiosError, AxiosHeaders } from 'axios';
 import type { AxiosResponse } from 'axios';
-import { VistaQuery } from '../src/shared/ui';
+import { AvvisoPagina, VistaQuery } from '../src/shared/ui';
 import type { StatoQuery } from '../src/shared/ui';
 import { ValoreImporto } from '../src/entities/importo';
 import { expectNoA11yViolations } from '../src/shared/testing/axe';
@@ -65,5 +65,52 @@ describe('ValoreImporto', () => {
     expect(screen.getByText('non disponibile')).toBeTruthy();
     expect(screen.getByText('fonte impegni non attiva')).toBeTruthy();
     await expectNoA11yViolations(container);
+  });
+});
+
+describe('AvvisoPagina: un solo avviso d errore per la pagina (A-07)', () => {
+  const sezione = (nome: string, status: number, riprovate: string[]) => (
+    <VistaQuery key={nome} stato={stato({ isError: true, error: erroreHttp(status), refetch: () => riprovate.push(nome) })}>
+      {() => <p>dati</p>}
+    </VistaQuery>
+  );
+
+  it('piu sezioni in errore: un solo role=alert con i messaggi distinti, testo statico nelle sezioni, Riprova rilegge tutte', async () => {
+    const riprovate: string[] = [];
+    const { container } = render(<AvvisoPagina>{[sezione('a', 503, riprovate), sezione('b', 503, riprovate), sezione('c', 404, riprovate)]}</AvvisoPagina>);
+    const avviso = await screen.findByRole('alert');
+    expect(screen.getAllByRole('alert')).toHaveLength(1);
+    // due messaggi distinti (503 e 404) e il conteggio delle sezioni
+    expect(avviso.querySelectorAll('p')).toHaveLength(3);
+    expect(avviso.textContent).toContain('3 sezioni della pagina non si sono caricate.');
+    expect(screen.getAllByText(/^Dati non caricati: l'avviso in cima alla pagina/)).toHaveLength(3);
+    expect(within(avviso).getAllByRole('button')).toHaveLength(1);
+    await userEvent.click(within(avviso).getByRole('button', { name: 'Riprova' }));
+    expect([...riprovate].sort()).toEqual(['a', 'b', 'c']);
+    await expectNoA11yViolations(container);
+  });
+
+  it('una sezione torna ai dati: l avviso si aggiorna; errore gestito dalla sezione (errorePersonalizzato) non entra', async () => {
+    const riprovate: string[] = [];
+    const { rerender } = render(<AvvisoPagina>{[sezione('a', 503, riprovate), sezione('b', 503, riprovate)]}</AvvisoPagina>);
+    expect((await screen.findByRole('alert')).textContent).toContain('2 sezioni della pagina non si sono caricate.');
+    rerender(
+      <AvvisoPagina>
+        {sezione('a', 503, riprovate)}
+        <VistaQuery stato={stato({ data: [1] })}>{() => <p>dati b</p>}</VistaQuery>
+        <VistaQuery stato={stato({ isError: true, error: erroreHttp(404) })} errorePersonalizzato={() => <p>anno senza dati</p>}>
+          {() => <p>dati</p>}
+        </VistaQuery>
+      </AvvisoPagina>,
+    );
+    expect((await screen.findByRole('alert')).textContent).toContain('Una sezione della pagina non si è caricata.');
+    expect(screen.getByText('dati b')).toBeTruthy();
+    expect(screen.getByText('anno senza dati')).toBeTruthy();
+    rerender(
+      <AvvisoPagina>
+        <VistaQuery stato={stato({ data: [1] })}>{() => <p>dati a</p>}</VistaQuery>
+      </AvvisoPagina>,
+    );
+    expect(screen.queryByRole('alert')).toBeNull();
   });
 });

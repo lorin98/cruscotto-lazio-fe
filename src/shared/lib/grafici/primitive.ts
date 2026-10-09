@@ -46,6 +46,10 @@ export function minuscolaIniziale(testo: string): string {
   return testo.charAt(0).toLowerCase() + testo.slice(1);
 }
 
+export function maiuscolaIniziale(testo: string): string {
+  return testo.charAt(0).toUpperCase() + testo.slice(1);
+}
+
 /** Importo in milioni di euro con una cifra decimale, per assi, tooltip ed etichette: 12345678 -> "12,3 M€". */
 export function milioni(v: number): string {
   return `${(v / 1_000_000).toLocaleString('it-IT', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} M€`;

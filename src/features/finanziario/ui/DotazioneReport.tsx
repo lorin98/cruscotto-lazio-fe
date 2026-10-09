@@ -4,10 +4,8 @@
 // perimetro ADA la dotazione regionale non sta sullo stesso grafico dei pagamenti dell'area. Lo stato vuoto di RF003 si
 // ricava dalle righe di RF002. Tutte le colonne si vedono, con il motivo di ogni assenza (wireframe dotazione). Clic su
 // un intervento: il suo dettaglio.
-import { useNavigate } from 'react-router';
-import { codiceDalClic } from '../../../shared/lib';
 import { CardGrafico, Griglia, Sezione, TabellaInterattiva, VistaQuery } from '../../../shared/ui';
-import type { ClicGrafico, ColonnaTabella } from '../../../shared/ui';
+import type { ColonnaTabella } from '../../../shared/ui';
 import { useDistribuzioneDotazione, useSpesaPerIntervento } from '../api';
 import type { SpesaPerIntervento, SpesaPerInterventoRiga } from '../api';
 import { ricercaDaFiltri } from '../lib/filtri';
@@ -15,10 +13,11 @@ import type { Filtri } from '../lib/filtri';
 import { percentualeOpzionale } from '../lib/formato';
 import { graficoContributo, graficoDotazionePagamenti, graficoQuotaFeasr } from '../lib/grafici';
 import type { Perimetro } from '../lib/perimetro';
-import { GRANT, codiceInterventoValido, percorsoIntervento } from '../lib/report';
+import { GRANT } from '../lib/report';
 import { ConGrant, NotaPerimetroMisto, PerimetroSezione, colonneImporti, diProgramma, vuotoConPerimetro } from './comuni';
 import type { CampoImporto } from './comuni';
 import { useSelezioneSenzaInterventi } from './selezione';
+import { useApriIntervento } from './useApriIntervento';
 
 type Riga = SpesaPerInterventoRiga;
 
@@ -44,12 +43,9 @@ function colonne(p: Perimetro | undefined): ColonnaTabella<Riga>[] {
   ];
 }
 
-function SpesaPerInterventoSezione({ d, filtri, onIntervento }: { d: SpesaPerIntervento; filtri: Filtri; onIntervento: (c: string) => void }) {
+function SpesaPerInterventoSezione({ d, filtri }: { d: SpesaPerIntervento; filtri: Filtri }) {
   const righe = d.righe ?? [];
-  const clic = (p: ClicGrafico) => {
-    const codice = codiceDalClic(p);
-    if (codiceInterventoValido(codice)) onIntervento(codice);
-  };
+  const { apri: onIntervento, dalClic: clic } = useApriIntervento(filtri);
   return (
     <>
       <Griglia>
@@ -84,11 +80,11 @@ function SpesaPerInterventoSezione({ d, filtri, onIntervento }: { d: SpesaPerInt
   );
 }
 
-function Spesa({ filtri, onIntervento }: { filtri: Filtri; onIntervento: (c: string) => void }) {
+function Spesa({ filtri }: { filtri: Filtri }) {
   const stato = useSpesaPerIntervento(filtri);
   return (
     <VistaQuery stato={stato} eVuoto={(d) => (d.righe ?? []).length === 0} vuoto={VUOTO}>
-      {(d) => <SpesaPerInterventoSezione d={d} filtri={filtri} onIntervento={onIntervento} />}
+      {(d) => <SpesaPerInterventoSezione d={d} filtri={filtri} />}
     </VistaQuery>
   );
 }
@@ -104,13 +100,10 @@ function Distribuzione({ filtri }: { filtri: Filtri }) {
 }
 
 export function DotazioneReport({ filtri }: { filtri: Filtri }) {
-  const naviga = useNavigate();
-  // il dettaglio e' dell'intervento intero: ci si arriva senza gli altri filtri (wireframe intervento)
-  const apri = (c: string) => void naviga(percorsoIntervento(c));
   return (
     <>
       <ConGrant grant={GRANT.spesaPerIntervento} titolo={TITOLO_SPESA}>
-        <Spesa filtri={filtri} onIntervento={apri} />
+        <Spesa filtri={filtri} />
       </ConGrant>
       <Griglia>
         <ConGrant grant={GRANT.distribuzioneDotazione} titolo={TITOLO_QUOTE}>

@@ -1,6 +1,9 @@
 // TabelleSemplici — tabelle statiche del kit (ADR 0027), sullo stesso markup accessibile: caption, intestazioni di
 // colonna (th scope=col) e di riga (th scope=row), valori allineati a destra. TabellaRighe (una riga per elemento,
-// colonne dichiarate), TabellaVoci (coppie voce/valore), TabellaDati (la tabella equivalente di un grafico).
+// colonne dichiarate), TabellaVoci (coppie voce/valore), TabellaDati (la tabella equivalente di un grafico). Le celle
+// vanno a capo solo negli spazi (le assenze col motivo); gli importi non si spezzano (spazio indivisibile prima di €).
+// Il contenitore scorre in orizzontale sugli schermi stretti: e' una regione con nome, raggiungibile da tastiera.
+import { useId } from 'react';
 import type { ReactNode } from 'react';
 import type { TabellaEquivalente } from '../../lib/grafici';
 
@@ -8,10 +11,11 @@ import type { TabellaEquivalente } from '../../lib/grafici';
 export type Colonna<T> = [string, (riga: T) => ReactNode];
 
 function Contenitore({ caption, children }: { caption: string; children: ReactNode }) {
+  const id = useId();
   return (
-    <div className="ui-tabella-contenitore">
-      <table className="ui-tabella">
-        <caption>{caption}</caption>
+    <div className="ui-tabella-contenitore" role="region" aria-labelledby={id} tabIndex={0}>
+      <table className="ui-tabella ui-tabella--semplice">
+        <caption id={id}>{caption}</caption>
         {children}
       </table>
     </div>

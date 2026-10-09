@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatDataOra, formatDate, formatNumber } from '../src/shared/lib/format';
+import { formatDataOra, formatDate, formatGiorno, formatNumber } from '../src/shared/lib/format';
 import { isOpenEnded, isSentinelDate, SENTINEL_DATE_MAX } from '../src/shared/lib/sentinel-dates';
 import { isEditable, makeRolePredicate } from '../src/shared/lib/predicates';
 import type { AuthStatus } from '../src/shared/api/auth/auth-status';
@@ -63,5 +63,15 @@ describe('lib/predicates — gate UX, mai enforcement', () => {
     expect(isEditable({ modificabile: false })).toBe(false);
     expect(isEditable({})).toBe(false);
     expect(isEditable(null)).toBe(false);
+  });
+});
+
+describe('formatGiorno (H-25)', () => {
+  it("il giorno dell'istante in ora italiana, lo stesso di formatDataOra", () => {
+    // 23:30 UTC del 31 dicembre e' gia' il primo gennaio a Roma
+    expect(formatGiorno('2025-12-31T23:30:00Z')).toBe('01/01/2026');
+    expect(formatGiorno('2026-03-03T08:30:00.123456Z')).toBe(formatDataOra('2026-03-03T08:30:00.123456Z').slice(0, 10));
+    expect(formatGiorno(null)).toBe('');
+    expect(formatGiorno('non una data')).toBe('non una data');
   });
 });

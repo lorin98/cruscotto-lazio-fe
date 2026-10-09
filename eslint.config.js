@@ -117,15 +117,24 @@ const barrelOnlyImportGroup = {
   message: "Le pagine/widgets compongono SOLO dal barrel della feature/entity (public API), mai da una sotto-cartella interna (invariante #3 step6-page).",
 };
 
-// H-11 (review v2): anche le feature e le altre entity usano un'entity solo dal suo barrel (public API).
+// H-11 (review v2): anche le feature e le altre entity usano un'entity solo dal suo barrel (public API). In flat config
+// no-restricted-imports non si fonde fra blocchi (vince l'ultimo che combacia): va ripetuto in OGNI blocco che ridefinisce
+// la regola per file di features/entities (consumatori, lib/, test sotto src/), altrimenti li' la regola si spegne.
 const entityBarrelOnlyImportGroup = {
   group: ['**/entities/*/*', '**/entities/*/*/**'],
   message: "Un'entity si importa SOLO dal suo barrel (src/entities/<entity>), mai da una sotto-cartella interna.",
 };
 
 const testingImportGroup = {
-  group: ['**/shared/testing', '**/shared/testing/*', '**/api/mock', '**/api/mock/*'],
-  message: 'I moduli di prova (shared/testing, api/mock) servono solo ai test e al dev server: non vanno nel codice di produzione (Z-02).',
+  group: ['**/shared/testing', '**/shared/testing/*', '**/features/*/testing', '**/features/*/testing/*', '**/api/mock', '**/api/mock/*'],
+  message: 'I moduli di prova (shared/testing, features/<slice>/testing, api/mock) servono solo ai test e al dev server: non vanno nel codice di produzione (Z-02).',
+};
+
+// H-20 (review v2): i test delle pagine leggono le fixture della feature (features/<slice>/testing), l'unica sotto-cartella
+// ammessa oltre al barrel; le altre restano vietate. Le negazioni seguono la sintassi gitignore: vengono dopo le regole.
+const barrelOnlyImportGroupNeiTest = {
+  group: [...barrelOnlyImportGroup.group, '!**/features/*/testing', '!**/features/*/testing/*'],
+  message: barrelOnlyImportGroup.message,
 };
 
 // Group no-restricted-imports del client generato (statico + @generated alias) — 2^ via allo statico, riusato in
@@ -277,6 +286,8 @@ export default tseslint.config(
     // Glob dell'INTERO ecosistema react: `react-*`/`react-*/*` coprono react-dom/react-aria-components/react-aria/
     // react-stately/react-router(-dom) e i loro subpath; `react`/`react/*` la radice; `@react-*/*` l'intera famiglia
     // scoped; `@tanstack/*` React Query. (@internationalized/date NON matcha: non e' react.)
+    // Residuo H-11 (review v2 iter2): il blocco ridefinisce no-restricted-imports anche per features/*/lib ed
+    // entities/*/lib, quindi ri-include il barrel-only delle entity (prima qui si spegneva: il difetto era proprio in lib/).
     files: ['src/**/lib/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-imports': ['error', { patterns: [
@@ -286,6 +297,7 @@ export default tseslint.config(
           message: "Il layer lib/ e' puro: niente React/React Query/router (sposta la funzione in api/ o ui/).",
         },
         testingImportGroup,
+        entityBarrelOnlyImportGroup,
       ] }],
     },
   },
@@ -303,14 +315,15 @@ export default tseslint.config(
     // Z-02: i test delle pagine sotto src/ usano i moduli di prova; restano gli altri divieti del loro layer.
     files: ['src/pages/**/*.test.{ts,tsx}', 'src/widgets/**/*.test.{ts,tsx}'],
     rules: {
-      'no-restricted-imports': ['error', { patterns: [generatedImportGroup, barrelOnlyImportGroup] }],
+      'no-restricted-imports': ['error', { patterns: [generatedImportGroup, barrelOnlyImportGroupNeiTest] }],
     },
   },
   {
     // Z-02: gli altri test sotto src/ e il bootstrap dei mock del dev server (main.tsx avvia MSW solo fuori dal mode be).
+    // Residuo H-11: riaprono i moduli di prova, non le sotto-cartelle delle entity (barrel-only anche nei test).
     files: ['src/features/**/*.test.{ts,tsx}', 'src/entities/**/*.test.{ts,tsx}', 'src/app/**/*.test.{ts,tsx}', 'src/app/main.tsx'],
     rules: {
-      'no-restricted-imports': ['error', { patterns: [generatedImportGroup] }],
+      'no-restricted-imports': ['error', { patterns: [generatedImportGroup, entityBarrelOnlyImportGroup] }],
     },
   },
   {

@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router';
 import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { Icona } from '../../../shared/ui';
 import { useFiltri } from '../api';
-import { GRANT, codiceInterventoValido, percorsoIntervento } from '../lib/report';
+import { GRANT, codiceDaRicerca, percorsoIntervento } from '../lib/report';
 
 export function CercaIntervento() {
   const id = useId();
@@ -22,8 +22,8 @@ export function CercaIntervento() {
       role="search"
       onSubmit={(e) => {
         e.preventDefault();
-        const scelto = testo.trim().toUpperCase().split(/\s/)[0];
-        if (codiceInterventoValido(scelto) && voci.some((v) => v.chiave === scelto)) {
+        const scelto = codiceDaRicerca(testo);
+        if (scelto && voci.some((v) => v.chiave === scelto)) {
           setTesto('');
           setErrore(false);
           void naviga(percorsoIntervento(scelto));

@@ -19,7 +19,6 @@ import {
   nonDisegnabile,
   notaOmessi,
   numeroDi,
-  percentuale,
   plurale,
   sommaCentesimi,
   tooltipDettaglio,
@@ -27,56 +26,13 @@ import {
 } from '../../../../shared/lib';
 import type { DatiGrafico, DatoSerie, TabellaEquivalente } from '../../../../shared/lib';
 import { famigliaDi } from '../famiglie';
-import type { RigaSpesa } from './dto';
-import { PERIMETRO_ADA, assenzaImporto, cellaImporto, codiceDi, problemaDotazione, valoreDi } from './resa';
+import { avanzamentoPonderato, esclusione } from '../avanzamento';
+import type { InterventoAvanzamento } from '../avanzamento';
+import type { RigaSpesa } from '../dto';
+import { cellaImporto, codiceDi, problemaDotazione, valoreDi } from '../importi';
+import { PERIMETRO_ADA } from '../perimetro';
 
 export const MOTIVO_ADA_RAPPORTO = "perimetro ADA: la dotazione è regionale, i pagamenti sono dell'area: il rapporto non è confrontabile";
-
-// ---------------------------------------------------------------- avanzamento ponderato (anche per i KPI)
-
-export interface InterventoAvanzamento {
-  codice: string;
-  dotazione: number;
-  pagato: number;
-  quota: number;
-}
-
-export interface Avanzamento {
-  /** Interventi con dotazione positiva e pagato valorizzato, dalla quota maggiore. */
-  incluse: InterventoAvanzamento[];
-  /** Interventi esclusi, con il motivo: "SRA03: dotazione pari a zero". */
-  omessi: string[];
-  totaleDotazione: number;
-  totalePagato: number;
-  /** Media ponderata del pagato sulla dotazione (0-100), null se nessun intervento e' utilizzabile. */
-  media: number | null;
-}
-
-function esclusione(r: RigaSpesa): string | null {
-  const problemi = [problemaDotazione(r.dotazioneSpesaPubblica), valoreDi(r.pagamentiTotali) == null ? `pagato ${assenzaImporto(r.pagamentiTotali)}` : null];
-  const elenco = problemi.filter((p): p is string => p != null);
-  return elenco.length ? `${codiceDi(r)}: ${elenco.join(', ')}` : null;
-}
-
-/** Pagato sulla dotazione degli interventi utilizzabili: la stessa regola per il grafico e per il KPI della panoramica. */
-export function avanzamentoPonderato(righe: readonly RigaSpesa[]): Avanzamento {
-  const incluse: InterventoAvanzamento[] = [];
-  const omessi: string[] = [];
-  for (const r of righe) {
-    const motivo = esclusione(r);
-    if (motivo) {
-      omessi.push(motivo);
-      continue;
-    }
-    const dotazione = valoreDi(r.dotazioneSpesaPubblica) as number;
-    const pagato = valoreDi(r.pagamentiTotali) as number;
-    incluse.push({ codice: codiceDi(r), dotazione, pagato, quota: pagato / dotazione });
-  }
-  incluse.sort((a, b) => b.quota - a.quota || confronta(a.codice, b.codice));
-  const totaleDotazione = sommaCentesimi(incluse.map((x) => x.dotazione));
-  const totalePagato = sommaCentesimi(incluse.map((x) => x.pagato));
-  return { incluse, omessi, totaleDotazione, totalePagato, media: incluse.length ? percentuale(totalePagato, totaleDotazione) : null };
-}
 
 // ---------------------------------------------------------------- 1. avanzamento per intervento
 
@@ -249,6 +205,7 @@ export function graficoContributo(righe: RigaSpesa[]): DatiGrafico {
 
 // ---------------------------------------------------------------- 4. dotazione e pagato per intervento
 
+const INTERVENTI: [string, string] = ['intervento', 'interventi'];
 const OMESSO_ADA_DOTAZIONE = "perimetro ADA: la dotazione regionale non si affianca ai pagamenti dell'area";
 
 export interface RigaDotazionePagato {
@@ -269,9 +226,9 @@ function voce(r: RigaDotazionePagato, importi: Array<ImportoLike | null | undefi
 export function graficoDotazionePagamenti(righe: RigaDotazionePagato[], perimetro?: string | null, nomePagato = 'Pagamenti totali'): DatiGrafico {
   const pagato = { nome: nomePagato, soggetto: nomePagato.toLowerCase() };
   if (perimetro === PERIMETRO_ADA) {
-    const testi = { caption: `${nomePagato} per intervento`, colonne: ['Intervento', nomePagato], titolo: `Barre dei ${pagato.soggetto}`, vuoto: `nessun intervento con ${pagato.soggetto} valorizzati` };
+    const testi = { caption: `${nomePagato} per intervento`, colonne: ['Intervento', nomePagato], titolo: `Barre dei ${pagato.soggetto}`, vuoto: `nessun intervento con ${pagato.soggetto} valorizzati`, unita: INTERVENTI };
     return barreRaggruppate(righe.map((r) => voce(r, [r.pagato])), [pagato], testi, [OMESSO_ADA_DOTAZIONE]);
   }
-  const testi = { caption: `Dotazione e ${pagato.soggetto} per intervento`, colonne: ['Intervento', 'Dotazione', nomePagato], titolo: `Barre raggruppate di dotazione e ${pagato.soggetto}`, vuoto: `nessun intervento con dotazione o ${pagato.soggetto} valorizzati` };
+  const testi = { caption: `Dotazione e ${pagato.soggetto} per intervento`, colonne: ['Intervento', 'Dotazione', nomePagato], titolo: `Barre raggruppate di dotazione e ${pagato.soggetto}`, vuoto: `nessun intervento con dotazione o ${pagato.soggetto} valorizzati`, unita: INTERVENTI };
   return barreRaggruppate(righe.map((r) => voce(r, [r.dotazione, r.pagato])), [{ nome: 'Dotazione', soggetto: 'dotazione' }, pagato], testi);
 }

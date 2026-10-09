@@ -5,7 +5,7 @@
 // "nessuna acquisizione conclusa".
 import { Button, Dialog, DialogTrigger, Popover } from 'react-aria-components';
 import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
-import { formatDataOra } from '../../../shared/lib/format';
+import { formatDataOra, formatGiorno } from '../../../shared/lib';
 import { Icona } from '../../../shared/ui';
 import { useFiltri } from '../api';
 import { etichettaFlusso, menoRecente, testoUltimiDati } from '../lib/aggiornamento';
@@ -22,9 +22,9 @@ export function UltimoAggiornamento() {
   if (!recente) return <span className="ui-pill">{`Ultimo dato sincronizzato: ${testoUltimiDati(voci)}`}</span>;
   return (
     <DialogTrigger>
-      <Button className="ui-pill ui-pill--bottone" aria-label={`Ultimo dato sincronizzato: dati al ${formatDataOra(recente).slice(0, 10)} per tutti i flussi. Mostra il dettaglio per flusso`}>
+      <Button className="ui-pill ui-pill--bottone" aria-label={`Ultimo dato sincronizzato: dati al ${formatGiorno(recente)} per tutti i flussi. Mostra il dettaglio per flusso`}>
         <Icona nome="it-refresh" />
-        {`Dati al ${formatDataOra(recente).slice(0, 10)}`}
+        {`Dati al ${formatGiorno(recente)}`}
       </Button>
       <Popover placement="bottom end" className="ui-pop__corpo">
         <Dialog aria-label="Ultimo dato sincronizzato per flusso d'import">

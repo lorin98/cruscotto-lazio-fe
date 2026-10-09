@@ -6,10 +6,10 @@ import type { ReactNode } from 'react';
 import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { ValoreImporto, descriviImporto } from '../../../entities/importo';
 import type { ImportoLike } from '../../../entities/importo';
-import { formatNumber, importoKpi } from '../../../shared/lib';
+import { formatNumber, importoKpi, maiuscolaIniziale } from '../../../shared/lib';
 import { Caricamento, Kpi, Sezione } from '../../../shared/ui';
 import type { Colonna, ColonnaTabella, NomeIcona, TonoKpi } from '../../../shared/ui';
-import { etichettaPerimetro } from '../lib/perimetro';
+import { PERIMETRO_ADA, etichettaDiProgramma, etichettaPerimetro } from '../lib/perimetro';
 import type { Perimetro } from '../lib/perimetro';
 
 /** Badge del perimetro della singola sezione: ogni DTO dichiara il suo (misure per domanda ADA, dati di programma regionali). */
@@ -17,7 +17,7 @@ export function PerimetroSezione({ perimetro }: { perimetro: Perimetro | null | 
   if (!perimetro) return null;
   return (
     <p className="small mb-2">
-      <span className={perimetro === 'ADA' ? 'ui-pill ui-pill--perimetro me-2' : 'ui-pill me-2'}>{`Perimetro ${perimetro}`}</span>
+      <span className={perimetro === PERIMETRO_ADA ? 'ui-pill ui-pill--evidenza me-2' : 'ui-pill me-2'}>{`Perimetro ${perimetro}`}</span>
       {etichettaPerimetro(perimetro)}
     </p>
   );
@@ -30,7 +30,7 @@ function MessaggioVuoto({ testo, perimetro, programma }: { testo: string; perime
   const apriFiltri = useContext(ContestoFiltri);
   // per le misure per domanda di un P4 il vuoto puo' dipendere dall'area; i dati di programma sono gli stessi per tutti
   const messaggio =
-    perimetro === 'ADA' && !programma ? 'Nessun dato nella tua area (perimetro ADA) per i filtri scelti: le domande delle altre aree non rientrano nel tuo profilo.' : testo;
+    perimetro === PERIMETRO_ADA && !programma ? 'Nessun dato nella tua area (perimetro ADA) per i filtri scelti: le domande delle altre aree non rientrano nel tuo profilo.' : testo;
   return (
     <>
       <PerimetroSezione perimetro={perimetro} />
@@ -58,12 +58,12 @@ export function vuotoConPerimetro(testo: string, { programma = false }: { progra
 
 /** Etichetta di un dato di programma (dotazione, quote): con il perimetro ADA resta regionale e lo si dichiara. */
 export function diProgramma(etichetta: string, perimetro: Perimetro | null | undefined): string {
-  return perimetro === 'ADA' ? `${etichetta} (regionale)` : etichetta;
+  return etichettaDiProgramma(etichetta, perimetro);
 }
 
 /** Nota per le sezioni che, con il perimetro ADA, affiancano dati di programma regionali e misure della sola area. */
 export function NotaPerimetroMisto({ perimetro }: { perimetro: Perimetro | null | undefined }) {
-  if (perimetro !== 'ADA') return null;
+  if (perimetro !== PERIMETRO_ADA) return null;
   return (
     <p className="small mb-2">
       La dotazione e le quote sono regionali (dati di programma), domande, impegni e pagamenti sono della tua area: i due valori non sono confrontabili.
@@ -125,7 +125,7 @@ export function colonneImporti<T>(campi: readonly CampoImporto<T>[], perimetro: 
  */
 export function KpiImporto({ etichetta, importo, icona, tono, nota, aggregato = true }: { etichetta: string; importo: ImportoLike | null | undefined; icona: NomeIcona; tono: TonoKpi; nota?: string; aggregato?: boolean }) {
   const r = descriviImporto(importo, aggregato);
-  const assente = r.disponibile ? undefined : `${r.testo.charAt(0).toUpperCase()}${r.testo.slice(1)}${r.nota ? `: ${r.nota}` : ''}`;
+  const assente = r.disponibile ? undefined : `${maiuscolaIniziale(r.testo)}${r.nota ? `: ${r.nota}` : ''}`;
   return <Kpi etichetta={etichetta} icona={icona} tono={tono} valore={importo?.valore != null ? importoKpi(importo.valore) : undefined} assente={assente} nota={nota} />;
 }
 

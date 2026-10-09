@@ -22,8 +22,9 @@ import {
   tooltipDettaglio,
 } from '../../../../shared/lib';
 import type { DatiGrafico, TabellaEquivalente } from '../../../../shared/lib';
-import type { AvanzamentoPagamentiLike, DistribuzioneDotazioneLike, ResiduoSuImpegniLike, ResiduoSuPagamentiLike } from './dto';
-import { PERIMETRO_ADA, assenzaImporto, cellaImporto, valoreDi } from './resa';
+import type { AvanzamentoPagamentiLike, DistribuzioneDotazioneLike, ResiduoSuImpegniLike, ResiduoSuPagamentiLike } from '../dto';
+import { assenzaImporto, cellaImporto, valoreDi } from '../importi';
+import { PERIMETRO_ADA } from '../perimetro';
 import { MOTIVO_ADA_RAPPORTO } from './spesa';
 
 type Voce = [string, ImportoLike | null | undefined];
@@ -76,10 +77,16 @@ function ramiFlusso(i: ResiduoSuImpegniLike, p: AvanzamentoPagamentiLike, r: Res
   return { rami: [['Dotazione', 'Pagamenti netti', r.pagamentiNettoRettifiche], ['Dotazione', 'Dotazione residua', r.dotazioneResidua]], omessi };
 }
 
+/** Sottotitolo del flusso: dice il ramo disegnato (con l'impegnato, oppure dalla dotazione ai pagamenti netti). */
+export function sottotitoloFlusso(impegni: ResiduoSuImpegniLike): string {
+  if (valoreDi(impegni.importoImpegnato) != null) return "Dalla dotazione all'impegnato e al pagato";
+  return `Dalla dotazione ai pagamenti netti e al residuo; impegnato: ${assenzaImporto(impegni.importoImpegnato, true)}`;
+}
+
 function motivoFlusso(rami: ReadonlyArray<[string, string, ImportoLike | null | undefined]>): string | null {
   const [dotazione1, dotazione2] = rami;
   const assenti = [dotazione1, dotazione2].filter(([, , x]) => valoreDi(x) == null);
-  if (assenti.length > 0) return `il flusso richiede ${assenti.map(([, t, x]) => `${t.toLowerCase()} (${assenzaImporto(x, true)})`).join(' e ')}`;
+  if (assenti.length > 0) return `il flusso richiede ${assenti.map(([, t, x]) => `${t.toLowerCase()}: ${assenzaImporto(x, true)}`).join('; ')}`;
   return rami.some(([, , x]) => (valoreDi(x) ?? 0) < 0) ? 'valori negativi: il flusso non si può disegnare' : null;
 }
 

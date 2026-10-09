@@ -7,6 +7,7 @@ import {
   aria,
   asseMilioni,
   confronta,
+  formatDate,
   formatEuro,
   milioni,
   nonDisegnabile,
@@ -16,8 +17,8 @@ import {
   valoreInMilioni,
 } from '../../../../shared/lib';
 import type { DatiGrafico } from '../../../../shared/lib';
-import type { RiservaLike } from './dto';
-import { cellaEuro, dataItaliana } from './resa';
+import type { RiservaLike } from '../dto';
+import { euroOpzionale } from '../formato';
 
 interface Movimento {
   data: string;
@@ -43,8 +44,8 @@ function lineaUtilizzo(cumulati: Array<number | null>, accumulato: number | null
 export function graficoUtilizzoRiserva(m: RiservaLike): DatiGrafico {
   const accumulato = numeroDi(m.importoAccumulato);
   const { datati, senzaData } = movimentiDatati(m);
-  const categorie = datati.map((p) => dataItaliana(p.data));
-  const righe = [...datati.map((p, k) => [categorie[k], cellaEuro(p.importo), cellaEuro(p.cumulato)]), ...senzaData.map((p) => ['senza data', cellaEuro(p.importo), cellaEuro(p.cumulato)])];
+  const categorie = datati.map((p) => formatDate(p.data));
+  const righe = [...datati.map((p, k) => [categorie[k], euroOpzionale(p.importo), euroOpzionale(p.cumulato)]), ...senzaData.map((p) => ['senza data', euroOpzionale(p.importo), euroOpzionale(p.cumulato)])];
   const tabella = { caption: `Utilizzo progressivo della riserva (riserva accumulata: ${accumulato == null ? NON_DISPONIBILE : formatEuro(accumulato)})`, colonne: ['Data', 'Importo del movimento', 'Utilizzo cumulato'], righe };
   const omessi = [
     ...(senzaData.length > 0 ? [plurale(senzaData.length, 'movimento senza data', 'movimenti senza data')] : []),
@@ -57,7 +58,8 @@ export function graficoUtilizzoRiserva(m: RiservaLike): DatiGrafico {
   const descrizione =
     `Area dell'utilizzo cumulato della riserva dal ${categorie[0]} al ${categorie[categorie.length - 1]}: ${milioni(ultimo)} utilizzati` +
     `${accumulato == null ? '' : ` su ${milioni(accumulato)} di riserva accumulata`}.${notaOmessi(omessi)}`;
-  const massimo = accumulato == null ? {} : { max: (estensione: { max: number }) => Math.max(estensione.max, accumulato) };
+  // massimo dell'asse calcolato qui: le funzioni delle opzioni non catturano dati (la firma le confronta per sorgente)
+  const massimo = accumulato == null ? {} : { max: Math.max(accumulato, ...cumulati.filter((c): c is number => c != null)) };
   const opzioni: EChartsOption = {
     aria: aria(descrizione),
     tooltip: { trigger: 'axis', valueFormatter: valoreInMilioni },

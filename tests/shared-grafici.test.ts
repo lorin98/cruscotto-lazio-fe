@@ -6,6 +6,7 @@ import { resolve } from 'node:path';
 import type { EChartsOption } from 'echarts';
 import { describe, expect, it } from 'vitest';
 import {
+  maiuscolaIniziale,
   COLORI,
   MAX_BARRE_VISIBILI,
   PALETTE,
@@ -351,7 +352,7 @@ describe('barreRaggruppate', () => {
     { nome: 'Previsto', soggetto: 'previsto' },
     { nome: 'Erogato', soggetto: 'erogato' },
   ];
-  const testi: TestiBarre = { caption: 'Previsto ed erogato per intervento', colonne: ['Intervento', 'Previsto', 'Erogato'], titolo: 'Barre di prova', vuoto: 'nessun intervento con valori' };
+  const testi: TestiBarre = { caption: 'Previsto ed erogato per intervento', colonne: ['Intervento', 'Previsto', 'Erogato'], titolo: 'Barre di prova', vuoto: 'nessun intervento con valori', unita: ['intervento', 'interventi'] };
   const voci: VoceRaggruppata[] = [
     { categoria: 'SRA01', codice: 'SRA01', valori: [3_000_000, 2_000_000], celle: ['3.000.000 euro', '2.000.000 euro'] },
     { categoria: 'SRA02', codice: 'SRA02', valori: [null, 1_000_000], celle: ['non disponibile (fonte di prova non attiva)', '1.000.000 euro'] },
@@ -480,7 +481,7 @@ describe('graficoDueParti', () => {
       graficoDueParti('Prova', [parte('A', null), parte('B', 1)], tabella),
       graficoDueParti('Prova', [parte('A', -1), parte('B', 1)], tabella),
       graficoDueParti('Prova', [parte('A', 0), parte('B', 0)], tabella),
-      barreRaggruppate([], [{ nome: 'Serie', soggetto: 'serie' }], { caption: 'Prova', colonne: ['Voce'], titolo: 'Barre', vuoto: 'nessun dato' }),
+      barreRaggruppate([], [{ nome: 'Serie', soggetto: 'serie' }], { caption: 'Prova', colonne: ['Voce'], titolo: 'Barre', vuoto: 'nessun dato', unita: ['voce', 'voci'] }),
     ];
     for (const g of casi) expect(g.motivoAssenza).toMatch(REGOLA_MOTIVO);
   });
@@ -505,5 +506,12 @@ describe('colori del tema (H-09)', () => {
   it('la palette delle serie parte dai colori semantici', () => {
     expect(PALETTE.slice(0, 3)).toEqual([COLORI.primario, COLORI.positivo, COLORI.attenzione]);
     expect(new Set(PALETTE).size).toBe(PALETTE.length);
+  });
+});
+
+describe('maiuscolaIniziale', () => {
+  it("solo l'iniziale, il resto com'e'", () => {
+    expect(maiuscolaIniziale('non disponibile (fonte IMPEGNI)')).toBe('Non disponibile (fonte IMPEGNI)');
+    expect(maiuscolaIniziale('')).toBe('');
   });
 });

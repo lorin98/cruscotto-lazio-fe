@@ -9,14 +9,11 @@
 // esplicita ("Esci" della barra o dell'avviso) passa alle altre schede come scadenza.
 // Scaduta la sessione, qui o altrove, i dati non devono restare leggibili su una postazione incustodita (review step9
 // A-04): la cache di React Query si svuota, la shell smette di rendere le pagine (onScaduta) e il velo e' opaco.
-// Lo stesso canale porta il controllo dell'utente (review X-06): una scheda appena collegata, o una che ha trovato un
-// utente diverso (EVENTO_UTENTE_CAMBIATO), manda "utente" e le altre rileggono /auth/status; se l'utente e' cambiato la
-// lettura toglie dalla cache i dati del precedente (shared/api/auth/use-auth-status.ts).
+// Il cambio d'utente fra le schede non passa di qui (review N-05): e' di utente-della-sessione.ts, col suo canale.
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Dialog, Heading, Modal, ModalOverlay } from 'react-aria-components';
 import { useQueryClient } from '@tanstack/react-query';
 import { AUTH_STATUS_QUERY_KEY } from '../shared/api/auth/auth-status';
-import { EVENTO_UTENTE_CAMBIATO } from '../shared/api/auth/use-auth-status';
 import { resolveLoginPath, resolveLogoutPath } from '../shared/config/base-path';
 
 export const LIMITE_INATTIVITA_MS = 30 * 60 * 1000;
@@ -29,7 +26,7 @@ const ANNUNCIO_ATTIVITA_MS = 10_000;
 const EVENTI_ATTIVITA = ['pointerdown', 'keydown', 'wheel', 'touchstart'] as const;
 
 type Stato = 'attivo' | 'preavviso' | 'scaduta';
-type Messaggio = 'attivita' | 'scaduta' | 'utente';
+type Messaggio = 'attivita' | 'scaduta';
 
 const chiudiSessione = () => window.location.assign(resolveLogoutPath());
 
@@ -94,8 +91,6 @@ export function useInattivita(
   useEffect(() => {
     canale.current = apriCanale();
     riparti();
-    // questa scheda si e' appena collegata: le altre verificano che l'utente della sessione sia ancora il loro
-    annuncia('utente');
     // l'attivita' rimanda la scadenza solo finche' l'avviso non e' aperto: da li' decide l'utente
     const attivita = () => {
       if (statoCorrente.current !== 'attivo') return;
@@ -113,27 +108,22 @@ export function useInattivita(
       } else if (e.data === 'attivita') {
         imposta('attivo');
         riparti();
-      } else if (e.data === 'utente') {
-        void queryClient.invalidateQueries({ queryKey: AUTH_STATUS_QUERY_KEY });
       }
     };
-    const utenteCambiato = () => annuncia('utente');
     // uscita esplicita da questa scheda: la navigazione a /auth/logout segue, qui basta avvisare le altre
     const uscita = () => annuncia('scaduta');
     canale.current?.addEventListener('message', daAltraScheda);
     EVENTI_ATTIVITA.forEach((e) => window.addEventListener(e, attivita, { passive: true }));
     window.addEventListener(EVENTO_USCITA, uscita);
-    window.addEventListener(EVENTO_UTENTE_CAMBIATO, utenteCambiato);
     return () => {
       timer.current.forEach(clearTimeout);
       EVENTI_ATTIVITA.forEach((e) => window.removeEventListener(e, attivita));
       window.removeEventListener(EVENTO_USCITA, uscita);
-      window.removeEventListener(EVENTO_UTENTE_CAMBIATO, utenteCambiato);
       canale.current?.removeEventListener('message', daAltraScheda);
       canale.current?.close();
       canale.current = undefined;
     };
-  }, [annuncia, chiudiVista, imposta, queryClient, riparti]);
+  }, [annuncia, chiudiVista, imposta, riparti]);
   const resta = () => {
     void queryClient.invalidateQueries({ queryKey: AUTH_STATUS_QUERY_KEY });
     imposta('attivo');

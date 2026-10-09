@@ -33,7 +33,7 @@ import {
 } from '../src/features/finanziario';
 import type { Filtri } from '../src/features/finanziario';
 import { graficoQuotaFeasr } from '../src/features/finanziario/lib/grafici';
-import * as F from '../src/shared/testing/fixture-finanziario';
+import * as F from '../src/features/finanziario/testing/fixture';
 
 // Test dei componenti del finanziario nella UI v2 (ADR 0027): card con grafico ECharts (sostituito nei test dal grafico
 // finto di shared/testing) e tabella equivalente, KPI, pannelli laterali react-aria, tabella interattiva.
@@ -231,7 +231,7 @@ describe('PannelloFiltri (pannello laterale dei filtri, TX-0001)', () => {
   });
 
   it('con piu di 8 interventi compare la ricerca; nessuna corrispondenza e detta', async () => {
-    const interventi = Array.from({ length: 10 }, (_, n) => ({ chiave: `SRD${String(n + 1).padStart(2, '0')}`, descrizione: `Intervento di prova ${n + 1}` }));
+    const interventi = Array.from({ length: 10 }, (_, n) => ({ chiave: `SRD${String(n + 1).padStart(2, '0')}`, descrizione: n === 0 ? 'Qualità di prova 1' : `Intervento di prova ${n + 1}` }));
     server.use(rispondi('/api/finanziario/filtri', { ...F.FILTRI, interventi }));
     renderConQuery(<ConPulsante valori={{}} onApplica={nessunaAzione} />);
     await apri();
@@ -239,6 +239,10 @@ describe('PannelloFiltri (pannello laterale dei filtri, TX-0001)', () => {
     expect(within(gruppo('Intervento')).getAllByRole('checkbox')).toHaveLength(10);
     await userEvent.type(cerca, 'srd07');
     expect(within(gruppo('Intervento')).getAllByRole('checkbox').map((c) => c.closest('label')?.textContent)).toEqual(['SRD07 Intervento di prova 7']);
+    // la stessa ricerca della tabella interattiva: senza maiuscole e accenti
+    await userEvent.clear(cerca);
+    await userEvent.type(cerca, 'QUALITA');
+    expect(within(gruppo('Intervento')).getAllByRole('checkbox').map((c) => c.closest('label')?.textContent)).toEqual(['SRD01 Qualità di prova 1']);
     await userEvent.clear(cerca);
     await userEvent.type(cerca, 'nessuno');
     expect(within(gruppo('Intervento')).queryAllByRole('checkbox')).toHaveLength(0);
@@ -413,8 +417,8 @@ describe('Panoramica (route /finanziario: TX-0002, TX-0009, TX-0012, TX-0013)', 
     expect(g.el.parentElement?.hidden).toBe(true);
   });
 
-  // V-01: il dettaglio e' dell'intervento intero, ci si arriva senza gli altri filtri
-  it('drill-down: clic su una barra apre il dettaglio dell intervento senza gli altri filtri; clic su una famiglia non naviga', async () => {
+  // V-01, N-03: il dettaglio e' dell'intervento intero; l'indirizzo conserva la selezione da cui ci si arriva
+  it('drill-down: clic su una barra apre il dettaglio dell intervento conservando la selezione; clic su una famiglia non naviga', async () => {
     servi();
     const { router } = conRouter(<Panoramica filtri={{ intervento: ['SRA01'], og: ['OG2'] }} />);
     await waitFor(() => expect(graficiVivi()).toHaveLength(4));
@@ -422,7 +426,7 @@ describe('Panoramica (route /finanziario: TX-0002, TX-0009, TX-0012, TX-0013)', 
     await notifiche();
     expect(indirizzo(router)).toBe('/prova');
     act(() => clicSu(graficoDi('Avanzamento per intervento'), { name: 'SRA01', dataIndex: 0, data: { codice: 'SRA01' } }));
-    await waitFor(() => expect(indirizzo(router)).toBe('/finanziario/interventi/SRA01'));
+    await waitFor(() => expect(indirizzo(router)).toBe('/finanziario/interventi/SRA01?intervento=SRA01&og=OG2'));
     expect(screen.getByText('pagina del dettaglio')).toBeTruthy();
   });
 
@@ -630,9 +634,9 @@ describe('DettaglioIntervento (route /finanziario/interventi/:codice)', () => {
 
     await userEvent.click(screen.getByRole('tab', { name: 'Domande' }));
     expect(await screen.findByRole('heading', { name: 'Domande per anno di raccolta' })).toBeTruthy();
-    await waitFor(() => expect(graficoDi('Importi per anno di raccolta').opzioni.length).toBeGreaterThan(0));
+    await waitFor(() => expect(graficoDi('Importi ammessi e decretati per anno').opzioni.length).toBeGreaterThan(0));
     // V-11: la tabella degli importi per anno dichiara anche lo stanziato e le domande senza ammesso
-    await vediTabella('Importi per anno di raccolta');
+    await vediTabella('Importi ammessi e decretati per anno');
     const importi = screen.getByRole('table', { name: 'Importi per anno di raccolta: stanziato, ammesso e decretato' });
     expect(intestazioni(importi)).toEqual(['Anno', 'Stanziato', 'Ammesso', 'Decretato', 'Domande senza importo ammesso']);
     expect(letture(client, '/api/finanziario/sigc/domande')).toHaveLength(0);
@@ -789,8 +793,9 @@ describe('RiepilogoReport (TX-0011, tabella interattiva)', () => {
     expect(totali).toContain('Totale (2 interventi)');
     expect(totali).toContain('1.500.000,00 €');
     expect(totali).toContain('1.300.000,00 €');
-    // un totale con anche un solo valore assente non e' una somma parziale
-    expect(totali).toContain('non calcolabile');
+    // mai una somma parziale: un'assenza comune a tutte le righe dice il suo motivo (N-02)
+    expect(totali).toContain('non disponibile (fonte quadro sinottico non attiva)');
+    expect(totali).toContain('non disponibile (fonte impegni non attiva)');
     expect(screen.getByText('Regionale: tutte le domande della regione')).toBeTruthy();
     expect(within(t).getByRole('rowheader', { name: 'Dotazione assistenza tecnica (AT001, intero programma: non dipende dai filtri)' }).closest('tr')).toBe(assistenza);
     // la dotazione AT sta nella colonna della dotazione e non entra nel totale
@@ -799,7 +804,7 @@ describe('RiepilogoReport (TX-0011, tabella interattiva)', () => {
     expect(screen.queryByRole('region', { name: 'Assistenza tecnica' })).toBeNull();
   });
 
-  it("da Colonne una colonna si nasconde e si rimostra: l'assenza resta dichiarata nelle celle e il totale non e calcolabile", async () => {
+  it("da Colonne una colonna si nasconde e si rimostra: l'assenza resta dichiarata nelle celle e nel totale", async () => {
     server.use(rispondi('/api/finanziario/riepilogo', F.RIEPILOGO));
     conRouter(<RiepilogoReport filtri={{}} />);
     const t = await tabella();
@@ -812,7 +817,7 @@ describe('RiepilogoReport (TX-0011, tabella interattiva)', () => {
     expect(within(t).getByRole('columnheader', { name: 'Importo stanziato' })).toBeTruthy();
     expect(testo(within(t).getByRole('row', { name: "Apri l'anteprima dell'intervento SRA01" }).textContent)).toMatch(/non disponibile ?fonte quadro sinottico non attiva/);
     const indice = intestazioni(t).indexOf('Importo stanziato');
-    expect((t as HTMLTableElement).tFoot?.rows[0].cells[indice].textContent).toBe('non calcolabile');
+    expect((t as HTMLTableElement).tFoot?.rows[0].cells[indice].textContent).toBe('non disponibile (fonte quadro sinottico non attiva)');
   });
 
   it('ordinamento per colonna con aria-sort (iniziale: dotazione decrescente)', async () => {
@@ -858,8 +863,8 @@ describe('RiepilogoReport (TX-0011, tabella interattiva)', () => {
     expect(testo((t as HTMLTableElement).tFoot?.textContent)).toContain('Totale (12 interventi)');
   });
 
-  // V-01: il dettaglio e' dell'intervento intero, ci si arriva senza gli altri filtri
-  it("clic o Invio su una riga aprono l'anteprima laterale, da cui si apre il dettaglio senza gli altri filtri", async () => {
+  // V-01, N-03: il dettaglio e' dell'intervento intero; l'indirizzo conserva la selezione da cui ci si arriva
+  it("clic o Invio su una riga aprono l'anteprima laterale, da cui si apre il dettaglio con la selezione", async () => {
     server.use(rispondi('/api/finanziario/riepilogo', F.RIEPILOGO));
     const { router } = conRouter(<RiepilogoReport filtri={{ intervento: ['SRA01', 'SRA03'] }} />);
     const t = await tabella();
@@ -875,9 +880,9 @@ describe('RiepilogoReport (TX-0011, tabella interattiva)', () => {
     await userEvent.keyboard('{Enter}');
     anteprima = await screen.findByRole('dialog', { name: 'SRA01' });
     const dettaglio = within(anteprima).getByRole('link', { name: "Apri il dettaglio dell'intervento" });
-    expect(dettaglio.getAttribute('href')).toBe('/finanziario/interventi/SRA01');
+    expect(dettaglio.getAttribute('href')).toBe('/finanziario/interventi/SRA01?intervento=SRA01&intervento=SRA03');
     await userEvent.click(dettaglio);
-    await waitFor(() => expect(indirizzo(router)).toBe('/finanziario/interventi/SRA01'));
+    await waitFor(() => expect(indirizzo(router)).toBe('/finanziario/interventi/SRA01?intervento=SRA01&intervento=SRA03'));
   });
 
   // V-18: dalla vista grafico il clic su una barra va al dettaglio, come in Dotazione; V-19: il pagato e' quello netto
@@ -894,7 +899,7 @@ describe('RiepilogoReport (TX-0011, tabella interattiva)', () => {
     expect(within(equivalente).getAllByRole('rowheader').map((c) => c.textContent)).toEqual(['SRA01', 'SRA03']);
     expect(intestazioni(equivalente)).toEqual(['Intervento', 'Dotazione', 'Pagamenti al netto delle rettifiche']);
     act(() => clicSu(graficoDi(titolo), { name: 'SRA03', dataIndex: 1, data: { codice: 'SRA03' } }));
-    await waitFor(() => expect(indirizzo(router)).toBe('/finanziario/interventi/SRA03'));
+    await waitFor(() => expect(indirizzo(router)).toBe('/finanziario/interventi/SRA03?og=OG2'));
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(screen.getByText('pagina del dettaglio')).toBeTruthy();
   });
@@ -1069,13 +1074,13 @@ describe('DotazioneReport (TX-0002, TX-0003)', () => {
     expect(within(screen.getByRole('navigation', { name: 'Pagine della tabella' })).getByRole('button', { name: 'Pagina 1' }).getAttribute('aria-current')).toBe('page');
   });
 
-  // V-01: il dettaglio e' dell'intervento intero, ci si arriva senza gli altri filtri
-  it('drill-down: clic su una barra o su una riga apre il dettaglio dell intervento senza gli altri filtri', async () => {
+  // V-01, N-03: il dettaglio e' dell'intervento intero; l'indirizzo conserva la selezione da cui ci si arriva
+  it('drill-down: clic su una barra o su una riga apre il dettaglio dell intervento con la selezione', async () => {
     servi();
     const primo = conRouter(<DotazioneReport filtri={{ og: ['OG2'] }} />);
     await waitFor(() => expect(graficiVivi()).toHaveLength(3));
     act(() => clicSu(graficoDi('Contributo ambientale per intervento'), { name: 'SRA01', dataIndex: 0 }));
-    await waitFor(() => expect(indirizzo(primo.router)).toBe('/finanziario/interventi/SRA01'));
+    await waitFor(() => expect(indirizzo(primo.router)).toBe('/finanziario/interventi/SRA01?og=OG2'));
     primo.unmount();
     servi();
     const secondo = conRouter(<DotazioneReport filtri={{}} />);
@@ -1432,20 +1437,43 @@ describe('DomandeReport (TX-0008..TX-0010)', () => {
     expect(valoreKpi('di cui prima annualità')).toBe('400');
   });
 
-  it("clic su un anno del grafico: la tabella di dettaglio mostra quell'anno, 'Mostra tutti gli anni' la riporta intera", async () => {
+  // N-14: l'anno si sceglie anche da tastiera; il controllo resta montato, il focus non si perde togliendo la scelta
+  it("anno del dettaglio dal clic sul grafico o dalla scelta sopra la tabella; 'Tutti gli anni' la riporta intera", async () => {
     servi();
     renderConQuery(<DomandeReport filtri={{}} />);
     await waitFor(() => expect(graficoDi(RF008).opzioni.length).toBeGreaterThan(0));
     const anni = () => within(screen.getByRole('table', { name: 'Domande per anno di raccolta' })).getAllByRole('rowheader').map((c) => c.textContent);
+    const scelta = () => screen.getByRole('combobox', { name: 'Anno di raccolta' }) as HTMLSelectElement;
     expect(anni()).toEqual(['2024', 'senza campagna']);
+    expect(Array.from(scelta().options).map((o) => o.textContent)).toEqual(['Tutti gli anni', '2024', 'senza campagna']);
     act(() => clicSu(graficoDi(RF008), { name: '2024', dataIndex: 0 }));
     await waitFor(() => expect(anni()).toEqual(['2024']));
-    await userEvent.click(screen.getByRole('button', { name: 'Mostra tutti gli anni (ora: 2024)' }));
+    expect(scelta().value).toBe('2024');
+    const controllo = scelta();
+    await userEvent.selectOptions(controllo, 'Tutti gli anni');
     expect(anni()).toEqual(['2024', 'senza campagna']);
-    expect(screen.queryByRole('button', { name: /^Mostra tutti gli anni/ })).toBeNull();
-    // anche le domande senza campagna sono un anno che si puo' scegliere
-    act(() => clicSu(graficoDi(RF008), { name: 'senza campagna', dataIndex: 1 }));
-    await waitFor(() => expect(anni()).toEqual(['senza campagna']));
+    expect(scelta()).toBe(controllo);
+    // anche le domande senza campagna sono un anno che si puo' scegliere, dal grafico o dalla scelta
+    await userEvent.selectOptions(controllo, 'senza campagna');
+    expect(anni()).toEqual(['senza campagna']);
+    act(() => clicSu(graficoDi(RF008), { name: '2024', dataIndex: 0 }));
+    await waitFor(() => expect(anni()).toEqual(['2024']));
+    // un nome che non e' un anno delle righe non filtra la tabella fino al vuoto
+    act(() => clicSu(graficoDi(RF008), { name: 'Prima annualità', dataIndex: 0 }));
+    await waitFor(() => expect(anni()).toEqual(['2024', 'senza campagna']));
+  });
+
+  // N-01: una selezione nuova e' un dettaglio nuovo, l'anno scelto prima non resta
+  it("cambio dei filtri dopo la scelta di un anno: il dettaglio torna a tutti gli anni", async () => {
+    servi();
+    const { cambiaFiltri } = conFiltriVariabili(DomandeReport, {});
+    await waitFor(() => expect(graficoDi(RF008).opzioni.length).toBeGreaterThan(0));
+    const anni = () => within(screen.getByRole('table', { name: 'Domande per anno di raccolta' })).getAllByRole('rowheader').map((c) => c.textContent);
+    act(() => clicSu(graficoDi(RF008), { name: '2024', dataIndex: 0 }));
+    await waitFor(() => expect(anni()).toEqual(['2024']));
+    cambiaFiltri({ og: ['OG2'] });
+    await waitFor(() => expect(anni()).toEqual(['2024', 'senza campagna']));
+    expect((screen.getByRole('combobox', { name: 'Anno di raccolta' }) as HTMLSelectElement).value).toBe('');
   });
 
   it('perimetro ADA senza domande: lo stato vuoto (status) nomina la propria area', async () => {
@@ -1728,13 +1756,23 @@ describe('VerificaSmpReport (TX-0015)', () => {
     expect(screen.queryByRole('navigation', { name: 'Pagine della tabella' })).toBeNull();
   });
 
-  it("clic su una barra del grafico: dettaglio dell'intervento, senza gli altri filtri", async () => {
+  it("clic su una barra del grafico: dettaglio dell'intervento, con la selezione nell'indirizzo", async () => {
     server.use(rispondi('/api/finanziario/sigc/verifica-smp', F.VERIFICA_SMP));
     const { router } = conRouter(<VerificaSmpReport filtri={{ og: ['OG2'] }} esercizio={2025} onCambiaEsercizio={nessunaAzione} />);
     await waitFor(() => expect(graficoDi(GRAFICO_SMP).opzioni.length).toBeGreaterThan(0));
     act(() => clicSu(graficoDi(GRAFICO_SMP), { name: 'SRA01', dataIndex: 0, data: { codice: 'SRA01' } }));
-    await waitFor(() => expect(indirizzo(router)).toBe('/finanziario/interventi/SRA01'));
+    await waitFor(() => expect(indirizzo(router)).toBe('/finanziario/interventi/SRA01?og=OG2'));
     expect(screen.getByText('pagina del dettaglio')).toBeTruthy();
+  });
+
+  // N-14: il dettaglio si apre anche da tastiera, dalla riga della tabella
+  it("Invio su una riga della tabella: dettaglio dell'intervento, come il clic sulla barra", async () => {
+    server.use(rispondi('/api/finanziario/sigc/verifica-smp', F.VERIFICA_SMP));
+    const { router } = conRouter(<VerificaSmpReport filtri={{ og: ['OG2'] }} esercizio={2025} onCambiaEsercizio={nessunaAzione} />);
+    const riga = await screen.findByRole('row', { name: "Apri il dettaglio dell'intervento SRA01" });
+    act(() => riga.focus());
+    await userEvent.keyboard('{Enter}');
+    await waitFor(() => expect(indirizzo(router)).toBe('/finanziario/interventi/SRA01?og=OG2'));
   });
 
   it('grafico della previsione e della spesa erogata montato, con la previsione assente dichiarata fra le voci omesse', async () => {

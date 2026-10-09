@@ -4,14 +4,15 @@
 import type { ImportoLike } from '../../../../entities/importo';
 import { COLORI, centesimi, descrizioneCascata, nonDisegnabile, opzioniCascata } from '../../../../shared/lib';
 import type { DatiGrafico, PassoCascata, TabellaEquivalente } from '../../../../shared/lib';
-import type { RigaRiepilogo } from './dto';
-import { PERIMETRO_ADA, assenzaImporto, cellaImporto, codiceDi, valoreDi } from './resa';
+import type { RigaRiepilogo } from '../dto';
+import { assenzaImporto, cellaImporto, codiceDi, valoreDi } from '../importi';
+import { PERIMETRO_ADA, etichettaDiProgramma } from '../perimetro';
 
 const MOTIVO_ADA_CASCATA = "perimetro ADA: la dotazione è regionale, i pagamenti sono dell'area e il residuo è fuori perimetro";
 
 /** Tutte le voci della riga, con le assenze dichiarate: tabella della cascata e scheda "Tutte le voci" del dettaglio. */
 export function vociIntervento(riga: RigaRiepilogo, perimetro?: string | null): TabellaEquivalente {
-  const programma = (nome: string) => (perimetro === PERIMETRO_ADA ? `${nome} (regionale)` : nome);
+  const programma = (nome: string) => etichettaDiProgramma(nome, perimetro);
   const voci: Array<[string, ImportoLike | null | undefined]> = [
     [programma('Dotazione di spesa pubblica'), riga.dotazioneSpesaPubblica],
     [programma('Quota FEASR'), riga.risorseQuotaFeasr],
@@ -27,8 +28,8 @@ export function vociIntervento(riga: RigaRiepilogo, perimetro?: string | null): 
 
 function motivoCascata(codice: string, dotazione: number | null, pagamenti: number | null, residuo: number | null, riga: RigaRiepilogo): string | null {
   if (dotazione == null || pagamenti == null) {
-    const mancanti = [dotazione == null ? `dotazione ${assenzaImporto(riga.dotazioneSpesaPubblica)}` : null, pagamenti == null ? `pagamenti netti ${assenzaImporto(riga.pagamentiNettoRettifiche)}` : null];
-    return `la cascata di ${codice} richiede dotazione e pagamenti netti: ${mancanti.filter(Boolean).join(', ')}`;
+    const mancanti = [dotazione == null ? `dotazione: ${assenzaImporto(riga.dotazioneSpesaPubblica)}` : null, pagamenti == null ? `pagamenti netti: ${assenzaImporto(riga.pagamentiNettoRettifiche)}` : null];
+    return `la cascata di ${codice} richiede dotazione e pagamenti netti; ${mancanti.filter(Boolean).join('; ')}`;
   }
   if (dotazione < 0 || pagamenti < 0 || (residuo != null && residuo < 0)) return `importi negativi per ${codice}: la cascata non si può disegnare`;
   return pagamenti > dotazione ? `i pagamenti netti di ${codice} superano la dotazione: la cascata non si può disegnare` : null;

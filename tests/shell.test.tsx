@@ -12,12 +12,13 @@ import { RequireGrant } from '../src/app/require-grant';
 import { appRoutes } from '../src/app/routes';
 import { segnalaAccessoNegato } from '../src/app/avvisi';
 import { AvvisoInattivita, CANALE_INATTIVITA } from '../src/app/inattivita';
+import { CANALE_UTENTE } from '../src/app/utente-della-sessione';
 import { Layout } from '../src/app/layout';
 import { AUTH_STATUS_QUERY_KEY } from '../src/shared/api/auth/auth-status';
 import PaginaRiepilogo from '../src/pages/finanziario/riepilogo/page';
-import { FILTRI, RIEPILOGO } from '../src/shared/testing/fixture-finanziario';
+import { FILTRI, RIEPILOGO } from '../src/features/finanziario/testing/fixture';
 import { rispondi } from '../src/shared/testing/msw';
-import { PAGINE_FINANZIARIO } from '../src/features/finanziario';
+import { PAGINE_FINANZIARIO } from '../src/features/finanziario/lib/report';
 import { SITO_ARSIAL, SITO_REGIONE } from '../src/app/collegamenti';
 import { clientApp } from './app-client';
 
@@ -215,16 +216,20 @@ describe('NFR-41: avviso di scadenza per inattivita', () => {
     expect(document.body.textContent).not.toContain('SRA03');
     expect(document.body.textContent).not.toContain('Riepilogo per intervento');
     expect(screen.queryByRole('link', { name: 'Esci', hidden: true })).toBeNull();
-    // la cache resta vuota: nessuna lettura riparte dopo lo svuotamento, nemmeno quella dello stato della sessione
+    // la cache resta vuota: nessuna lettura riparte dopo lo svuotamento, nemmeno quella dello stato della sessione,
+    // neanche su un annuncio d'utente da un'altra scheda (la shell non segue piu' l'identita')
+    const schedaUtente = new BroadcastChannel(CANALE_UTENTE);
+    schedaUtente.postMessage('utente');
     await act(() => new Promise<void>((r) => setTimeout(r, 50)));
     expect(client.getQueryCache().getAll().filter((q) => q.state.data !== undefined)).toEqual([]);
     expect(lettureStato).toBe(letturePrima);
     expect(veloDi(screen.getByRole('alertdialog'))?.classList.contains('bg-opacity-50')).toBe(false);
     altraScheda.close();
+    schedaUtente.close();
   });
   it("una scheda collegata fa rileggere l'utente alle altre; se e' cambiato, via i dati del precedente (X-06)", async () => {
     const ricevuti: string[] = [];
-    const altraScheda = new BroadcastChannel(CANALE_INATTIVITA);
+    const altraScheda = new BroadcastChannel(CANALE_UTENTE);
     altraScheda.onmessage = (e: MessageEvent<string>) => ricevuti.push(e.data);
     const client = clientApp();
     const router = createMemoryRouter(appRoutes(), { initialEntries: ['/'] });

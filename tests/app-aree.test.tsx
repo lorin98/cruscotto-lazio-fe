@@ -9,7 +9,8 @@ import { server } from '../src/shared/api/mock/server';
 import { AREE, AREE_FUTURE, areeVisibili } from '../src/app/aree';
 import { appRoutes } from '../src/app/routes';
 import routeTable from '../src/app/route-table.json';
-import { PAGINE_FINANZIARIO, pagineVisibili } from '../src/features/finanziario';
+import { pagineVisibili } from '../src/features/finanziario';
+import { PAGINE_FINANZIARIO } from '../src/features/finanziario/lib/report';
 import { clientApp } from './app-client';
 
 function apriHomeCon(ruoli: string[]) {

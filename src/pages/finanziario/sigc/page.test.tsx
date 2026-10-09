@@ -3,7 +3,7 @@ import { screen } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { server } from '../../../shared/api/mock/server';
 import { expectNoA11yViolations } from '../../../shared/testing/axe';
-import { SIGC_DOMANDE, SIGC_IMPORTI } from '../../../shared/testing/fixture-finanziario';
+import { SIGC_DOMANDE, SIGC_IMPORTI } from '../../../features/finanziario/testing/fixture';
 import { renderPagina } from '../../../shared/testing/render-pagina';
 import Pagina from './page';
 

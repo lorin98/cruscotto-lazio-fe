@@ -23,7 +23,7 @@ import {
   VerificaSmpReport,
 } from '../src/features/finanziario';
 import type { Filtri } from '../src/features/finanziario';
-import * as F from '../src/shared/testing/fixture-finanziario';
+import * as F from '../src/features/finanziario/testing/fixture';
 
 // Casi limite dei DTO (tutti i campi sono opzionali nella spec): liste vuote, campi assenti o null, voci incomplete,
 // legame delle azioni attivo. Regola trasversale: un dato assente non diventa mai uno zero ne' una cella vuota.
@@ -180,7 +180,7 @@ describe('DettaglioIntervento: casi limite', () => {
     expect(valoreKpi('Domande presentate')).toBe('0');
     const cascata = await trovaCard('Dalla dotazione al residuo');
     expect(within(cascata).getByText(NON_DISPONIBILE_GRAFICO).textContent).toBe(
-      'Grafico non disponibile: la cascata di SRD99 richiede dotazione e pagamenti netti: dotazione non disponibile, pagamenti netti non disponibile.',
+      'Grafico non disponibile: la cascata di SRD99 richiede dotazione e pagamenti netti; dotazione: non disponibile; pagamenti netti: non disponibile.',
     );
     expect(within(await trovaCard('Pagato sulla dotazione')).getByText(NON_DISPONIBILE_GRAFICO).textContent).toBe(
       'Grafico non disponibile: valore non disponibile: la percentuale non si può calcolare.',
@@ -213,7 +213,7 @@ describe('RiepilogoReport: casi limite', () => {
   });
 
   // V-05: nessuna colonna parte nascosta, nemmeno senza valori; ogni cella dice il suo motivo (anche per un P4)
-  it('nessun intervento con un valore: le colonne restano visibili, ogni cella dice il suo motivo, i totali sono non calcolabili', async () => {
+  it('nessun intervento con un valore: le colonne restano visibili, ogni cella dice il suo motivo, anche i totali (N-02)', async () => {
     const riga = {
       codiceIntervento: 'SRA01',
       domandePresentate: 10,
@@ -237,7 +237,10 @@ describe('RiepilogoReport: casi limite', () => {
     const totali = (t as HTMLTableElement).tFoot?.rows[0] as HTMLTableRowElement;
     const totale = (colonna: string) => testo(totali.cells[intestazioni(t).indexOf(colonna)].textContent);
     expect(totale('Dotazione spesa pubblica (regionale)')).toBe('100.000,00 €');
-    for (const c of ['Risorse quota FEASR (regionale)', 'Importo stanziato (regionale)', 'Impegnato cofinanziato FEASR', 'Dotazione residua sui pagamenti']) expect(totale(c)).toBe('non calcolabile');
+    // un'assenza con lo stesso motivo in tutte le righe dice il motivo; un non valorizzato o un campo mancante no
+    expect(totale('Importo stanziato (regionale)')).toBe('non disponibile (fonte quadro sinottico non attiva)');
+    expect(totale('Dotazione residua sui pagamenti')).toBe('fuori perimetro (non visibile nel perimetro del profilo)');
+    for (const c of ['Risorse quota FEASR (regionale)', 'Impegnato cofinanziato FEASR']) expect(totale(c)).toBe('non calcolabile');
   });
 
   it("anteprima: una voce per campo (dt e dd raggruppati), assenze con il motivo, dati di programma regionali nell'ADA", async () => {
@@ -350,7 +353,7 @@ describe('AvanzamentoReport: casi limite', () => {
     );
     // nemmeno il flusso ridotto da TX-0007: senza pagamenti netti e residuo non si disegna
     expect(within(await trovaCard('Dove va la dotazione')).getByText(NON_DISPONIBILE_GRAFICO).textContent).toBe(
-      'Grafico non disponibile: il flusso richiede pagamenti netti (non disponibile) e dotazione residua (non disponibile).',
+      'Grafico non disponibile: il flusso richiede pagamenti netti: non disponibile; dotazione residua: non disponibile.',
     );
     expect(graficiVivi()).toHaveLength(0);
   });

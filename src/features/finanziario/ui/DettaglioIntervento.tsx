@@ -2,7 +2,8 @@
 // flusso panoramica v2): le transazioni dei report filtrate sull'intervento (nessuna transazione nuova). Il titolo (h1)
 // e' della pagina; qui la testata con i badge e le azioni, i KPI dalla riga del riepilogo (TX-0011), le schede: Sintesi
 // (gauge, cascata), Domande (TX-0008, TX-0010), SIGC (TX-0012, TX-0013), Tutte le voci (con il motivo dei valori
-// assenti). Le schede leggono solo quando si aprono e solo con il grant (letture nei figli di ConGrant, R-09).
+// assenti). Le schede leggono solo quando si aprono e solo con il grant (letture nei figli di ConGrant, R-09). I dati
+// sono del solo intervento; i link di ritorno conservano la selezione della pagina (filtri dell'indirizzo, N-03).
 import { Link } from 'react-router';
 import { Tab, TabList, TabPanel, Tabs } from 'react-aria-components';
 import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
@@ -13,20 +14,23 @@ import type { RiepilogoFinanziarioRiga } from '../api';
 import type { Filtri } from '../lib/filtri';
 import { graficoCascataIntervento, graficoCascataSigc, graficoDomandePerAnno, graficoGauge, graficoImbutoSigc, graficoImportiPerAnno, vociIntervento } from '../lib/grafici';
 import type { Perimetro } from '../lib/perimetro';
-import { GRANT, PERCORSI } from '../lib/report';
+import { GRANT, PERCORSI, conFiltri } from '../lib/report';
 import { ConGrant, KpiImporto, NotaPerimetroMisto, PerimetroSezione, diProgramma } from './comuni';
 
-function Testata({ codice, perimetro, contributo }: { codice: string; perimetro?: Perimetro; contributo?: number | null }) {
+// titolo del wireframe intervento (scheda Domande)
+const IMPORTI_PER_ANNO = 'Importi ammessi e decretati per anno';
+
+function Testata({ codice, selezione, perimetro, contributo }: { codice: string; selezione: Filtri; perimetro?: Perimetro; contributo?: number | null }) {
   return (
     <section className="ui-hero ui-dissolvenza" aria-label={`Intervento ${codice}`}>
       <span className="ui-eyebrow">{`Intervento ${codice}`}</span>
       {perimetro && <span className="ui-hero__badge">{`Perimetro ${perimetro}`}</span>}
       {contributo != null && <span className="ui-hero__badge">{`Contributo ambientale ${formatPercentuale(contributo)}`}</span>}
       <div className="ui-hero__azioni">
-        <Link className="btn btn-light btn-sm" to={`${PERCORSI.panoramica}?intervento=${encodeURIComponent(codice)}`}>
+        <Link className="btn btn-light btn-sm" to={conFiltri(PERCORSI.panoramica, { intervento: [codice] })}>
           Filtra i report su questo intervento
         </Link>
-        <Link className="btn btn-outline-light btn-sm" to={PERCORSI.riepilogo}>
+        <Link className="btn btn-outline-light btn-sm" to={conFiltri(PERCORSI.riepilogo, selezione)}>
           Torna al riepilogo
         </Link>
       </div>
@@ -76,7 +80,7 @@ function DomandePerAnno({ filtri }: { filtri: Filtri }) {
 }
 
 function ImportiPerAnno({ filtri }: { filtri: Filtri }) {
-  return <VistaQuery stato={useImportiPerAnno(filtri)}>{(d) => <CardGrafico titolo="Importi per anno di raccolta" dati={graficoImportiPerAnno(d.righe ?? [])} fonte="Fonte: TX-0010" />}</VistaQuery>;
+  return <VistaQuery stato={useImportiPerAnno(filtri)}>{(d) => <CardGrafico titolo={IMPORTI_PER_ANNO} dati={graficoImportiPerAnno(d.righe ?? [])} fonte="Fonte: TX-0010" />}</VistaQuery>;
 }
 
 function DomandeSigc({ filtri }: { filtri: Filtri }) {
@@ -112,7 +116,7 @@ function Schede({ filtri, r, perimetro }: { filtri: Filtri; r: RiepilogoFinanzia
           <ConGrant grant={GRANT.domandePerAnno} titolo="Domande per anno di raccolta">
             <DomandePerAnno filtri={filtri} />
           </ConGrant>
-          <ConGrant grant={GRANT.importiPerAnno} titolo="Importi per anno di raccolta">
+          <ConGrant grant={GRANT.importiPerAnno} titolo={IMPORTI_PER_ANNO}>
             <ImportiPerAnno filtri={filtri} />
           </ConGrant>
         </Griglia>
@@ -134,7 +138,7 @@ function Schede({ filtri, r, perimetro }: { filtri: Filtri; r: RiepilogoFinanzia
   );
 }
 
-function Contenuto({ codice }: { codice: string }) {
+function Contenuto({ codice, selezione }: { codice: string; selezione: Filtri }) {
   const filtri: Filtri = { intervento: [codice] };
   const riepilogo = useRiepilogo(filtri);
   // il contributo ambientale della testata viene da TX-0002: si legge solo con il suo grant (R-09)
@@ -146,17 +150,17 @@ function Contenuto({ codice }: { codice: string }) {
         if (!r) {
           return (
             <>
-              <Testata codice={codice} perimetro={d.perimetro} />
+              <Testata codice={codice} selezione={selezione} perimetro={d.perimetro} />
               <Vuoto>
                 {'Nessun dato per questo intervento nel riepilogo. '}
-                <Link to={PERCORSI.riepilogo}>Torna al riepilogo</Link>
+                <Link to={conFiltri(PERCORSI.riepilogo, selezione)}>Torna al riepilogo</Link>
               </Vuoto>
             </>
           );
         }
         return (
           <>
-            <Testata codice={codice} perimetro={d.perimetro} contributo={spesa.data?.righe?.[0]?.percentualeContributoAmbientale} />
+            <Testata codice={codice} selezione={selezione} perimetro={d.perimetro} contributo={spesa.data?.righe?.[0]?.percentualeContributoAmbientale} />
             <PerimetroSezione perimetro={d.perimetro} />
             <NotaPerimetroMisto perimetro={d.perimetro} />
             <Kpis r={r} perimetro={d.perimetro} />
@@ -168,11 +172,14 @@ function Contenuto({ codice }: { codice: string }) {
   );
 }
 
-/** Dettaglio dell'intervento; il codice viene dalla route ed e' gia' validato dalla pagina. */
-export function DettaglioIntervento({ codice }: { codice: string }) {
+/**
+ * Dettaglio dell'intervento; il codice viene dalla route ed e' gia' validato dalla pagina. `selezione`: i filtri
+ * dell'indirizzo, da cui l'utente e' arrivato e a cui tornano i link (le letture usano solo l'intervento).
+ */
+export function DettaglioIntervento({ codice, selezione = {} }: { codice: string; selezione?: Filtri }) {
   return (
     <ConGrant grant={GRANT.riepilogo} titolo="Dettaglio dell'intervento">
-      <Contenuto codice={codice} />
+      <Contenuto codice={codice} selezione={selezione} />
     </ConGrant>
   );
 }

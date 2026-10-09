@@ -12,7 +12,10 @@ export interface TabellaEquivalente {
 }
 
 export interface DatiGrafico {
-  /** null = grafico non disegnabile (il motivo e' in motivoAssenza). */
+  /**
+   * null = grafico non disegnabile (il motivo e' in motivoAssenza). Le funzioni nelle opzioni (formatter) non catturano
+   * dati: il wrapper Grafico confronta le opzioni per contenuto e le funzioni per sorgente (firmaOpzioni).
+   */
   opzioni: EChartsOption | null;
   /** Presente quando opzioni e' null: segue "Grafico non disponibile: ", quindi iniziale minuscola salvo sigle e codici. */
   motivoAssenza?: string;

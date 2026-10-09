@@ -1,8 +1,9 @@
 import type { ComponentType } from 'react';
 import { Link, createBrowserRouter } from 'react-router';
 import { hasGrant, useAuthStatus } from '../shared/api/auth/use-auth-status';
+import { NOME_APPLICAZIONE } from '../shared/config/applicazione';
 import { resolveLoginPath } from '../shared/config/base-path';
-import { NOME_APPLICAZIONE, useFocusTitolo } from '../shared/ui';
+import { useFocusTitolo } from '../shared/ui';
 import { AREE_FUTURE, areeVisibili } from './aree';
 import { ErroreDiPagina, PaginaNonTrovata } from './errori';
 import { Layout } from './layout';

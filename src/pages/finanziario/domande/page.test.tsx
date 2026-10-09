@@ -4,7 +4,7 @@ import { http, HttpResponse } from 'msw';
 import { server } from '../../../shared/api/mock/server';
 import { expectNoA11yViolations } from '../../../shared/testing/axe';
 import { descrizioneDi, graficoDi, tabellaDi, trovaCard } from '../../../shared/testing/card-grafico';
-import { DOMANDE_PER_ANNO, IMPORTI_PER_ANNO, TOTALE_DOMANDE } from '../../../shared/testing/fixture-finanziario';
+import { DOMANDE_PER_ANNO, IMPORTI_PER_ANNO, TOTALE_DOMANDE } from '../../../features/finanziario/testing/fixture';
 import { renderPagina } from '../../../shared/testing/render-pagina';
 import Pagina from './page';
 

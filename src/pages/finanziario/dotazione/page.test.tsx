@@ -5,7 +5,7 @@ import { http, HttpResponse } from 'msw';
 import { server } from '../../../shared/api/mock/server';
 import { expectNoA11yViolations } from '../../../shared/testing/axe';
 import { descrizioneDi, graficoDi, tabellaDi, trovaCard } from '../../../shared/testing/card-grafico';
-import { DISTRIBUZIONE, SPESA } from '../../../shared/testing/fixture-finanziario';
+import { DISTRIBUZIONE, SPESA } from '../../../features/finanziario/testing/fixture';
 import { clicSu } from '../../../shared/testing/grafico-finto';
 import { renderPagina } from '../../../shared/testing/render-pagina';
 import Pagina from './page';
@@ -32,7 +32,7 @@ describe('RF002: grafico e tabella per intervento con dotazione, impegnato e pag
     expect(tabella.textContent).toContain('fonte impegni non attiva');
     expect(tabella.textContent).toContain('fonte vincolo LEADER non attiva');
   });
-  it("drill-down: il clic su una barra e su una riga apre il dettaglio dell'intervento intero", async () => {
+  it("drill-down: il clic su una barra e su una riga apre il dettaglio dell'intervento, con la selezione nell'indirizzo", async () => {
     servi();
     const { router } = renderPagina(Pagina, '/finanziario/dotazione', '/finanziario/dotazione?os=SO4');
     const card = await trovaCard('Dotazione e pagamenti per intervento');
@@ -40,7 +40,7 @@ describe('RF002: grafico e tabella per intervento con dotazione, impegnato e pag
     expect(grafico).toBeTruthy();
     if (grafico) clicSu(grafico, { name: 'SRA01' });
     await waitFor(() => expect(router.state.location.pathname).toBe('/finanziario/interventi/SRA01'));
-    expect(router.state.location.search).toBe('');
+    expect(router.state.location.search).toBe('?os=SO4');
     await router.navigate('/finanziario/dotazione');
     await userEvent.click(await screen.findByRole('row', { name: "Apri il dettaglio dell'intervento SRA01" }));
     await waitFor(() => expect(router.state.location.pathname).toBe('/finanziario/interventi/SRA01'));

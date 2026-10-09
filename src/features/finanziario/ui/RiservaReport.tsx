@@ -14,7 +14,8 @@ import { rispostaRiservaAssente, useRiserva } from '../api';
 import type { MonitoraggioRiserva, UtilizzoRiserva } from '../api';
 import { euroOpzionale, testoOpzionale } from '../lib/formato';
 import { graficoUtilizzoRiserva } from '../lib/grafici';
-import { aiutoRiserva, calendarioRiserva, dataBreve, etichettaFaseRiserva, istantaneaAnteriore, testoCongelato, testoResiduo, utilizzoOltreRiserva } from '../lib/riserva';
+import { aiutoRiserva, etichettaFaseRiserva, istantaneaAnteriore, kpiRiserva, testoCongelato, testoResiduo, utilizzoOltreRiserva } from '../lib/riserva';
+import type { ValoreKpiRiserva } from '../lib/riserva';
 import { PerimetroSezione } from './comuni';
 import { SelettoreAnno } from './SelettoreAnno';
 
@@ -29,33 +30,17 @@ const COLONNE_UTILIZZO: Colonna<UtilizzoRiserva>[] = [
   ['Cumulato', (u) => euroOpzionale(u.cumulato)],
 ];
 
-const maiuscola = (t: string) => `${t.charAt(0).toUpperCase()}${t.slice(1)}`;
+const importo = (v: ValoreKpiRiserva) => (v.valore === null ? undefined : importoKpi(v.valore));
 
-/** I quattro valori della riserva come KPI; un valore che non c'e' ancora dice quando ci sara' (lib/riserva). */
+/** I quattro valori della riserva come KPI; un valore che non c'e' ancora dice quando ci sara' (lib/riserva, kpiRiserva). */
 function KpiRiserva({ d, anno }: { d: MonitoraggioRiserva; anno: number }) {
-  const estrazione = d.dataEstrazione;
-  const oltre = utilizzoOltreRiserva(d);
-  const residuoPrevisto = d.importoResiduoDisponibile != null && oggiIso() < calendarioRiserva(anno).inizioResiduo;
+  const k = kpiRiserva(d, anno, oggiIso());
   return (
     <Griglia colonne={4}>
-      <Kpi etichetta="Importo accumulato" icona="it-card" tono="scuro" valore={d.importoAccumulato == null ? undefined : importoKpi(d.importoAccumulato)} assente={d.importoAccumulato == null ? 'Non disponibile' : undefined} nota={`Fase: ${etichettaFaseRiserva(d.fase, anno)}`} />
-      <Kpi etichetta="Importo congelato" icona="it-presentation" tono="blu" valore={d.importoCongelato == null ? undefined : importoKpi(d.importoCongelato)} assente={d.importoCongelato == null ? maiuscola(testoCongelato(null, anno, estrazione)) : undefined} />
-      <Kpi
-        etichetta="Importo utilizzato"
-        icona="it-chart-line"
-        tono={oltre ? 'ambra' : 'verde'}
-        valore={d.importoUtilizzato == null ? undefined : importoKpi(d.importoUtilizzato)}
-        assente={d.importoUtilizzato == null ? 'Non disponibile' : undefined}
-        nota={oltre ? 'Supera la riserva di questa estrazione' : undefined}
-      />
-      <Kpi
-        etichetta="Residuo disponibile"
-        icona="it-calendar"
-        tono="ambra"
-        valore={d.importoResiduoDisponibile == null ? undefined : importoKpi(d.importoResiduoDisponibile)}
-        assente={d.importoResiduoDisponibile == null ? maiuscola(testoResiduo(null, anno, estrazione, oggiIso())) : undefined}
-        nota={residuoPrevisto ? `Previsto: disponibile dal ${dataBreve(calendarioRiserva(anno).inizioResiduo)}` : undefined}
-      />
+      <Kpi etichetta="Importo accumulato" icona="it-card" tono="scuro" valore={importo(k.accumulato)} assente={k.accumulato.assente} nota={k.accumulato.nota} />
+      <Kpi etichetta="Importo congelato" icona="it-presentation" tono="blu" valore={importo(k.congelato)} assente={k.congelato.assente} nota={k.congelato.nota} />
+      <Kpi etichetta="Importo utilizzato" icona="it-chart-line" tono={k.utilizzato.oltreRiserva ? 'ambra' : 'verde'} valore={importo(k.utilizzato)} assente={k.utilizzato.assente} nota={k.utilizzato.nota} />
+      <Kpi etichetta="Residuo disponibile" icona="it-calendar" tono="ambra" valore={importo(k.residuo)} assente={k.residuo.assente} nota={k.residuo.nota} />
     </Griglia>
   );
 }

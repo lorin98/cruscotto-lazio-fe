@@ -4,21 +4,19 @@
 // intervento; i dati ASR mancanti sono "non disponibile" (decisione di OP-004). UI v2: barre della previsione e della
 // spesa erogata con zoom; clic su una barra: il dettaglio dell'intervento.
 import type { ReactNode } from 'react';
-import { useNavigate } from 'react-router';
 import { ValoreImporto } from '../../../entities/importo';
 import type { ImportoLike } from '../../../entities/importo';
-import { codiceDalClic } from '../../../shared/lib';
 import { CardGrafico, Sezione, TabellaInterattiva, TabellaVoci, VistaQuery, Vuoto } from '../../../shared/ui';
-import type { ClicGrafico, ColonnaTabella } from '../../../shared/ui';
+import type { ColonnaTabella } from '../../../shared/ui';
 import { useVerificaSmp } from '../api';
 import type { VerificaSmpRiga } from '../api';
 import { ricercaDaFiltri } from '../lib/filtri';
 import type { Filtri } from '../lib/filtri';
 import { annoOpzionale, numeroOpzionale, siNo, testoOpzionale } from '../lib/formato';
 import { graficoSmp } from '../lib/grafici';
-import { codiceInterventoValido, percorsoIntervento } from '../lib/report';
 import { Numero, PerimetroSezione, vuotoConPerimetro } from './comuni';
 import { SelettoreAnno } from './SelettoreAnno';
+import { useApriIntervento } from './useApriIntervento';
 
 type Riga = VerificaSmpRiga;
 type Ordinabile = string | number | null | undefined;
@@ -58,11 +56,7 @@ const VUOTO = vuotoConPerimetro("Nessun dato SIGC per l'esercizio scelto. Scegli
 
 function DatiSmp({ filtri, esercizio }: { filtri: Filtri; esercizio: number }) {
   const stato = useVerificaSmp(filtri, esercizio);
-  const naviga = useNavigate();
-  const clic = (p: ClicGrafico) => {
-    const codice = codiceDalClic(p);
-    if (codiceInterventoValido(codice)) void naviga(percorsoIntervento(codice));
-  };
+  const { apri, dalClic: clic } = useApriIntervento(filtri);
   return (
     <Sezione titolo={`Dati SIGC per il confronto con SMP, esercizio ${esercizio} (RF015)`}>
       <VistaQuery stato={stato} eVuoto={(d) => (d.righe ?? []).length === 0} vuoto={VUOTO}>
@@ -94,6 +88,9 @@ function DatiSmp({ filtri, esercizio }: { filtri: Filtri; esercizio: number }) {
               chiaveRiga={(r) => r.codiceIntervento ?? ''}
               testoRicerca={(r) => `${r.codiceIntervento ?? ''} ${r.indicatoreOutput ?? ''} ${r.indicatoreRisultato ?? ''}`}
               segnapostoRicerca="Cerca per codice o indicatore"
+              // la riga apre il dettaglio anche da tastiera (Invio), come il clic sulla barra del grafico
+              etichettaRiga={(r) => `Apri il dettaglio dell'intervento ${r.codiceIntervento ?? ''}`}
+              onRiga={(r) => r.codiceIntervento && apri(r.codiceIntervento)}
               perPagina={20}
             />
           </>

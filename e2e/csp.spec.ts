@@ -1,5 +1,6 @@
 // csp.spec.ts — la build di produzione sotto la CSP del README (sezione "Deploy: header di sicurezza"): nessuna
-// violazione con i grafici ECharts disegnati e i tooltip aperti, sia di un elemento sia di un asse (review v2 A-02).
+// violazione con i grafici ECharts disegnati e i tooltip aperti, sia di un elemento sia di un asse (review v2 A-02), con
+// i dialoghi di react-aria aperti (pannello dei filtri, anteprima dell'intervento) e sul dettaglio dell'intervento.
 // Le risposte del backend sono intercettate con dati inventati; l'utente ha tutti i grant del finanziario.
 import { expect, test } from '@playwright/test';
 import type { Page, Route } from '@playwright/test';
@@ -11,6 +12,20 @@ const GRANT = Array.from({ length: 15 }, (_, i) => `csr.tx-${String(i + 1).padSt
 const euro = (valore: number) => ({ valore, motivo: null, fonte: null });
 const nonAttiva = (fonte: string) => ({ valore: null, motivo: 'FONTE_NON_ATTIVA', fonte });
 
+/** Una riga del riepilogo (TX-0011) nella forma della fixture RIEPILOGO: stanziato e impegni da fonti non attive. */
+const rigaRiepilogo = (codiceIntervento: string, domandePresentate: number, dotazione: number, pagati: number) => ({
+  codiceIntervento,
+  domandePresentate,
+  dotazioneSpesaPubblica: euro(dotazione),
+  risorseQuotaFeasr: euro(dotazione * 0.4),
+  importoStanziato: nonAttiva('QUADRO_SINOTTICO'),
+  impegnatoCofinanziatoFeasr: nonAttiva('IMPEGNI'),
+  impegnatoCofinanziatoFeasrENon: nonAttiva('IMPEGNI'),
+  pagamentiNettoRettifiche: euro(pagati),
+  dotazioneResiduaSuImpegni: nonAttiva('IMPEGNI'),
+  dotazioneResiduaSuPagamenti: euro(dotazione - pagati),
+});
+
 const RISPOSTE: Record<string, unknown> = {
   '/auth/status': { authenticated: true, user: { username: 'utente.prova', roles: GRANT } },
   '/api/finanziario/filtri': {
@@ -21,6 +36,11 @@ const RISPOSTE: Record<string, unknown> = {
     azioniPortanti: [],
     legameAzioniDisponibile: false,
     ultimiDatiSincronizzati: [{ flusso: 'DS-12', conclusoIl: '2026-03-02T09:15:00Z' }],
+  },
+  '/api/finanziario/riepilogo': {
+    perimetro: 'REGIONALE',
+    dotazioneAssistenzaTecnica: euro(100_000),
+    righe: [rigaRiepilogo('SRA01', 12, 1_000_000, 380_000), rigaRiepilogo('SRB02', 3, 2_000_000, 450_000)],
   },
   '/api/finanziario/spesa-per-intervento': {
     perimetro: 'REGIONALE',
@@ -48,6 +68,14 @@ const RISPOSTE: Record<string, unknown> = {
   },
 };
 
+/** La risposta intercettata: le righe per intervento seguono il filtro `intervento` della query, come il backend. */
+function rispostaPer(url: URL): unknown {
+  const risposta = RISPOSTE[url.pathname] as { righe?: { codiceIntervento?: string }[] } | undefined;
+  const interventi = url.searchParams.getAll('intervento');
+  if (!risposta?.righe || interventi.length === 0) return risposta;
+  return { ...risposta, righe: risposta.righe.filter((r) => r.codiceIntervento === undefined || interventi.includes(r.codiceIntervento)) };
+}
+
 /** Il backend intercettato e la CSP del README sul documento; le violazioni si raccolgono nella pagina. */
 async function preparaPagina(page: Page) {
   await page.addInitScript(() => {
@@ -57,7 +85,7 @@ async function preparaPagina(page: Page) {
   });
   await page.route('**/*', async (route: Route) => {
     const url = new URL(route.request().url());
-    const risposta = RISPOSTE[url.pathname];
+    const risposta = rispostaPer(url);
     if (risposta) return route.fulfill({ json: risposta });
     if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/auth/')) return route.fulfill({ status: 404, json: { type: 'about:blank', status: 404, title: 'Not Found' } });
     if (route.request().resourceType() === 'document') {
@@ -69,6 +97,18 @@ async function preparaPagina(page: Page) {
 }
 
 const violazioni = (page: Page) => page.evaluate(() => (window as unknown as { violazioni: string[] }).violazioni);
+
+// Review v2 A-03: eccezione iOS dichiarata nel README. Su WebKit iOS, all'apertura di una modale, usePreventScroll di
+// react-aria antepone in <head> uno <style> con `overscroll-behavior: contain`, bloccato da style-src 'self'. E' l'UNICA
+// violazione tollerata, e solo sul profilo webkit-mobile di playwright.config.ts (attivo con E2E_WEBKIT=1).
+const PROFILO_WEBKIT = 'webkit-mobile';
+const ECCEZIONE_IOS = /^style-src-elem .*\[.*overscroll-behavior.*\]$/s;
+
+/** Le violazioni dopo l'apertura di una modale: sul profilo WebKit mobile senza l'eccezione iOS dichiarata. */
+async function violazioniConModale(page: Page) {
+  const tutte = await violazioni(page);
+  return test.info().project.name === PROFILO_WEBKIT ? tutte.filter((v) => !ECCEZIONE_IOS.test(v)) : tutte;
+}
 
 /**
  * Passa il mouse sul grafico (indice nella pagina) finche' compare il tooltip: in richText e' testo disegnato nell'SVG
@@ -116,7 +156,33 @@ test('pannello dei filtri e anteprima: dialoghi senza violazioni (react-aria con
   await preparaPagina(page);
   await page.goto('/finanziario');
   await page.getByRole('button', { name: /^Filtri/ }).click();
-  await expect(page.getByRole('dialog', { name: 'Filtri' })).toBeVisible();
+  const filtri = page.getByRole('dialog', { name: 'Filtri' });
+  await expect(filtri).toBeVisible();
   await page.keyboard.press('Escape');
+  await expect(filtri).toBeHidden();
+  expect(await violazioniConModale(page)).toEqual([]);
+
+  // review v2 N-25: anche l'anteprima laterale del riepilogo, aperta dalla riga della tabella
+  await page.goto('/finanziario/riepilogo');
+  await page.getByRole('row', { name: "Apri l'anteprima dell'intervento SRA01" }).click();
+  const anteprima = page.getByRole('dialog', { name: 'SRA01' });
+  await expect(anteprima).toBeVisible();
+  await expect(anteprima).toContainText('Domande presentate');
+  await page.keyboard.press('Escape');
+  await expect(anteprima).toBeHidden();
+  expect(await violazioniConModale(page)).toEqual([]);
+});
+
+test("dettaglio dell'intervento: KPI, grafici e schede senza violazioni della CSP", async ({ page }) => {
+  await preparaPagina(page);
+  await page.goto('/finanziario/interventi/SRA01');
+  await expect(page.getByRole('heading', { level: 1, name: 'Intervento di prova A' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Domande presentate' })).toContainText('12');
+  // scheda Sintesi (gauge e cascata), poi le schede che leggono solo quando si aprono, ognuna con due grafici
+  await expect(page.getByRole('tabpanel').locator('.ui-grafico svg')).toHaveCount(2);
+  for (const scheda of ['Domande', 'SIGC']) {
+    await page.getByRole('tab', { name: scheda }).click();
+    await expect(page.getByRole('tabpanel', { name: scheda }).locator('.ui-grafico svg')).toHaveCount(2);
+  }
   expect(await violazioni(page)).toEqual([]);
 });

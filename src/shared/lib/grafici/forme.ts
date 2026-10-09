@@ -80,6 +80,8 @@ export interface TestiBarre {
   colonne: string[];
   titolo: string;
   vuoto: string;
+  /** Unita' delle categorie nella descrizione accessibile, singolare e plurale (es. ['intervento', 'interventi']). */
+  unita: [string, string];
 }
 
 function datiBarre(voci: readonly VoceRaggruppata[], definizioni: readonly SerieRaggruppata[], omessi: string[]) {
@@ -106,7 +108,7 @@ export function barreRaggruppate(voci: readonly VoceRaggruppata[], definizioni: 
   const { categorie, datiSerie } = datiBarre(voci, definizioni, omessi);
   if (categorie.length === 0) return nonDisegnabile(testi.vuoto, tabella, omessi);
   const estremi = categorie.length === 1 ? ` (${categorie[0]})` : `, da ${categorie[0]} a ${categorie[categorie.length - 1]}`;
-  const descrizione = `${testi.titolo} per ${plurale(categorie.length, 'intervento', 'interventi')}${estremi}, in milioni di euro.${notaOmessi(omessi)}`;
+  const descrizione = `${testi.titolo} per ${plurale(categorie.length, testi.unita[0], testi.unita[1])}${estremi}, in milioni di euro.${notaOmessi(omessi)}`;
   const opzioni: EChartsOption = {
     aria: aria(descrizione),
     legend: {},

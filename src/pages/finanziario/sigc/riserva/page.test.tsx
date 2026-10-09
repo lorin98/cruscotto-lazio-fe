@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { server } from '../../../../shared/api/mock/server';
 import { expectNoA11yViolations } from '../../../../shared/testing/axe';
-import { RISERVA } from '../../../../shared/testing/fixture-finanziario';
+import { RISERVA } from '../../../../features/finanziario/testing/fixture';
 import { descrizioneDi, graficoDi, trovaCard } from '../../../../shared/testing/card-grafico';
 import { renderPagina } from '../../../../shared/testing/render-pagina';
 import Pagina from './page';

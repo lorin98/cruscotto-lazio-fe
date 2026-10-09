@@ -4,19 +4,22 @@
 // avviso di inattivita' (NFR-41). Le pagine rendono la propria barra dei filtri e il proprio <main id="contenuto">.
 // Scaduta la sessione (qui o in un'altra scheda) la shell smette di rendere pagine, menu, ricerca e utente e non
 // rilegge /auth/status: dietro l'avviso non resta nulla da leggere (review step9 A-04). "Esci" lo annuncia alle altre
-// schede prima della navigazione al logout del BFF.
+// schede prima della navigazione al logout del BFF. Finche' la sessione e' aperta la shell segue l'identita' della
+// sessione (utente-della-sessione.ts): se cambia, via i dati della precedente (review X-06, N-05).
 import { useEffect, useState } from 'react';
 import { Link, Outlet } from 'react-router';
 import { CercaIntervento } from '../features/finanziario';
 import { useAuthStatus } from '../shared/api/auth/use-auth-status';
+import { NOME_APPLICAZIONE } from '../shared/config/applicazione';
 import { resolveLogoutPath } from '../shared/config/base-path';
-import { Icona, NOME_APPLICAZIONE, PannelloLaterale } from '../shared/ui';
+import { Icona, PannelloLaterale } from '../shared/ui';
 import logoArsial from './assets/logo-arsial.png';
 import logoLazio from './assets/logo-lazio.png';
 import { EVENTO_ACCESSO_NEGATO } from './avvisi';
 import { COLLEGAMENTI_LEGALI, SITO_ARSIAL, SITO_REGIONE } from './collegamenti';
 import { AvvisoInattivita, annunciaUscita } from './inattivita';
 import { MenuLaterale } from './menu';
+import { useUtenteDellaSessione } from './utente-della-sessione';
 
 function AvvisoAccessoNegato() {
   const [visibile, setVisibile] = useState(false);
@@ -55,6 +58,7 @@ const nuovaFinestra = ' (si apre in una nuova finestra)';
 export function Layout() {
   const [sessioneChiusa, setSessioneChiusa] = useState(false);
   const { data: auth } = useAuthStatus(!sessioneChiusa);
+  useUtenteDellaSessione(!sessioneChiusa);
   const utente = !sessioneChiusa && auth?.authenticated ? (auth.user?.displayName ?? auth.user?.username) : undefined;
   const [menuAperto, setMenuAperto] = useState(false);
   return (

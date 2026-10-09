@@ -6,6 +6,7 @@ import type { ReactNode } from 'react';
 import { COLORI } from '../../lib/grafici';
 import type { DatiGrafico } from '../../lib/grafici';
 import { TestaCard } from '../card/Sezione';
+import { blobDaDataUrl, salvaFile } from '../salva-file';
 import { Icona } from '../icona';
 import { TabellaDati } from '../tabella/TabelleSemplici';
 import { Grafico } from './Grafico';
@@ -40,10 +41,7 @@ export function CardGrafico({
   const scarica = () => {
     const c = istanza.current;
     if (!c) return;
-    const a = document.createElement('a');
-    a.href = c.getDataURL({ backgroundColor: COLORI.superficie });
-    a.download = `${titolo.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}.svg`;
-    a.click();
+    salvaFile(blobDaDataUrl(c.getDataURL({ backgroundColor: COLORI.superficie })), `${titolo.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}.svg`);
   };
 
   return (

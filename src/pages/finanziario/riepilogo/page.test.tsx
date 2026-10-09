@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { server } from '../../../shared/api/mock/server';
 import { expectNoA11yViolations } from '../../../shared/testing/axe';
-import { FILTRI, RIEPILOGO } from '../../../shared/testing/fixture-finanziario';
+import { FILTRI, RIEPILOGO } from '../../../features/finanziario/testing/fixture';
 import { renderPagina } from '../../../shared/testing/render-pagina';
 import Pagina from './page';
 
@@ -35,7 +35,7 @@ describe('RF011: tabella di riepilogo per intervento con i nove campi finanziari
     expect(within(tabella).queryByRole('columnheader', { name: /Importo stanziato/ })).toBeNull();
   });
 
-  it("riga apribile: l'anteprima laterale porta al dettaglio dell'intervento intero", async () => {
+  it("riga apribile: l'anteprima laterale porta al dettaglio dell'intervento, con la selezione nell'indirizzo", async () => {
     server.use(http.get('*/api/finanziario/riepilogo', () => HttpResponse.json(RIEPILOGO)));
     const { router } = renderPagina(Pagina, '/finanziario/riepilogo', '/finanziario/riepilogo?os=SO4');
     await screen.findByRole('table', { name: TABELLA });
@@ -44,7 +44,34 @@ describe('RF011: tabella di riepilogo per intervento con i nove campi finanziari
     expect(anteprima.textContent).toContain('Domande presentate');
     await userEvent.click(within(anteprima).getByRole('link', { name: "Apri il dettaglio dell'intervento" }));
     await waitFor(() => expect(router.state.location.pathname).toBe('/finanziario/interventi/SRA01'));
-    expect(router.state.location.search).toBe('');
+    expect(router.state.location.search).toBe('?os=SO4');
+  });
+
+  // X-03: senza il legame interventi - azioni il filtro per azione non si applica e il chip lo dice; finche' TX-0001 non
+  // risponde il riepilogo non si legge (mai prima con l'azione e poi senza)
+  it("filtro per azione senza il legame: riepilogo letto solo dopo TX-0001, senza l'azione, e il chip lo spiega", async () => {
+    let rilascia: () => void = () => undefined;
+    const pronti = new Promise<void>((r) => {
+      rilascia = r;
+    });
+    const lette: string[] = [];
+    server.use(
+      http.get('*/api/finanziario/filtri', async () => {
+        await pronti;
+        return HttpResponse.json(FILTRI);
+      }),
+      http.get('*/api/finanziario/riepilogo', ({ request }) => {
+        lette.push(new URL(request.url).search);
+        return HttpResponse.json(RIEPILOGO);
+      }),
+    );
+    renderPagina(Pagina, '/finanziario/riepilogo', '/finanziario/riepilogo?os=SO4&azione=1');
+    expect(await screen.findByText('Verifica dei filtri in corso…')).toBeTruthy();
+    expect(lette).toEqual([]);
+    rilascia();
+    await screen.findByRole('table', { name: TABELLA });
+    expect(lette).toEqual(['?os=SO4']);
+    expect(screen.getByText(/non applicato: il legame con le azioni portanti viene da una fonte non attiva/)).toBeTruthy();
   });
 
   it('vuoto ed errore sono rami distinti', async () => {

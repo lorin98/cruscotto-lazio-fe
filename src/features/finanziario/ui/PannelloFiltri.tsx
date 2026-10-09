@@ -4,10 +4,11 @@
 // quelli di TX-0001; stesso filtro = valori in alternativa, filtri diversi = insieme.
 import { useId, useState } from 'react';
 import type { ReactNode } from 'react';
+import { filtraRighe } from '../../../shared/lib';
 import { ErroreVista, PannelloLaterale, VistaQuery } from '../../../shared/ui';
 import { useFiltri } from '../api';
 import type { FiltriFinanziari, VoceFiltro } from '../api';
-import { senzaAzioneSeNonDisponibile } from '../lib/filtri';
+import { ETICHETTE_FILTRO, senzaAzioneSeNonDisponibile } from '../lib/filtri';
 import type { ChiaveFiltro, Filtri } from '../lib/filtri';
 
 interface Opzione {
@@ -33,8 +34,8 @@ function Gruppo({ titolo, scelti, aperto = false, children }: { titolo: string; 
 
 function Caselle({ id, etichetta, opzioni, scelti, disabilitato, onCambia }: { id: string; etichetta: string; opzioni: Opzione[]; scelti: string[]; disabilitato?: boolean; onCambia: (v: string[]) => void }) {
   const [cercato, setCercato] = useState('');
-  const q = cercato.trim().toLowerCase();
-  const visibili = opzioni.filter((o) => !q || `${o.valore} ${o.descrizione ?? ''}`.toLowerCase().includes(q));
+  // stessa ricerca della tabella interattiva: senza distinguere maiuscole e accenti
+  const visibili = filtraRighe(opzioni, cercato, (o) => `${o.valore} ${o.descrizione ?? ''}`);
   return (
     <fieldset disabled={disabilitato}>
       <legend className="visually-hidden">{etichetta}</legend>
@@ -82,23 +83,25 @@ function Contenuto({ dati, bozza, imposta }: { dati: FiltriFinanziari; bozza: Fi
   const id = useId();
   const legame = dati.legameAzioniDisponibile === true;
   const sel = (k: ChiaveFiltro) => bozza[k] ?? [];
+  // le etichette estese della lib, le stesse dei chip della barra in forma breve (H-07)
+  const nome = (k: ChiaveFiltro) => ETICHETTE_FILTRO[k].estesa;
   return (
     <>
-      <Gruppo titolo="Intervento" scelti={sel('intervento').length} aperto>
-        <Caselle id={`${id}-int`} etichetta="Intervento" opzioni={daVoci(dati.interventi)} scelti={sel('intervento')} onCambia={imposta('intervento')} />
+      <Gruppo titolo={nome('intervento')} scelti={sel('intervento').length} aperto>
+        <Caselle id={`${id}-int`} etichetta={nome('intervento')} opzioni={daVoci(dati.interventi)} scelti={sel('intervento')} onCambia={imposta('intervento')} />
       </Gruppo>
-      <Gruppo titolo="Obiettivo generale (OG)" scelti={sel('og').length}>
-        <Chip etichetta="Obiettivo generale (OG)" opzioni={daTesti(dati.obiettiviGenerali)} scelti={sel('og')} onCambia={imposta('og')} />
+      <Gruppo titolo={nome('og')} scelti={sel('og').length}>
+        <Chip etichetta={nome('og')} opzioni={daTesti(dati.obiettiviGenerali)} scelti={sel('og')} onCambia={imposta('og')} />
       </Gruppo>
-      <Gruppo titolo="Obiettivo specifico (OS)" scelti={sel('os').length}>
-        <Chip etichetta="Obiettivo specifico (OS)" opzioni={daVoci(dati.obiettiviSpecifici)} scelti={sel('os')} onCambia={imposta('os')} />
+      <Gruppo titolo={nome('os')} scelti={sel('os').length}>
+        <Chip etichetta={nome('os')} opzioni={daVoci(dati.obiettiviSpecifici)} scelti={sel('os')} onCambia={imposta('os')} />
       </Gruppo>
-      <Gruppo titolo="Obiettivo di policy (OP)" scelti={sel('op').length}>
-        <Chip etichetta="Obiettivo di policy (OP)" opzioni={daTesti(dati.obiettiviPolicy)} scelti={sel('op')} onCambia={imposta('op')} />
+      <Gruppo titolo={nome('op')} scelti={sel('op').length}>
+        <Chip etichetta={nome('op')} opzioni={daTesti(dati.obiettiviPolicy)} scelti={sel('op')} onCambia={imposta('op')} />
       </Gruppo>
-      <Gruppo titolo="Azione portante" scelti={sel('azione').length}>
+      <Gruppo titolo={nome('azione')} scelti={sel('azione').length}>
         {!legame && <p className="ui-nota">{"Non disponibile finché nessun intervento è collegato a un'azione portante."}</p>}
-        <Caselle id={`${id}-az`} etichetta="Azione portante" opzioni={daVoci(dati.azioniPortanti)} scelti={sel('azione')} disabilitato={!legame} onCambia={imposta('azione')} />
+        <Caselle id={`${id}-az`} etichetta={nome('azione')} opzioni={daVoci(dati.azioniPortanti)} scelti={sel('azione')} disabilitato={!legame} onCambia={imposta('azione')} />
       </Gruppo>
       <p className="ui-nota">Valori dello stesso filtro in alternativa (O); filtri diversi insieme (E). Nessuna scelta: tutti i valori.</p>
     </>

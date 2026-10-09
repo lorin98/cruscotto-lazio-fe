@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { server } from '../../../shared/api/mock/server';
 import { expectNoA11yViolations } from '../../../shared/testing/axe';
 import { descrizioneDi, graficoDi, tabellaDi, trovaCard } from '../../../shared/testing/card-grafico';
-import { PAGAMENTI, RESIDUO_IMPEGNI, RESIDUO_PAGAMENTI, SPESA, STANZIATO } from '../../../shared/testing/fixture-finanziario';
+import { PAGAMENTI, RESIDUO_IMPEGNI, RESIDUO_PAGAMENTI, SPESA, STANZIATO } from '../../../features/finanziario/testing/fixture';
 import { renderPagina } from '../../../shared/testing/render-pagina';
 import Pagina from './page';
 
@@ -74,12 +75,34 @@ describe('RF007: dotazione tra importo pagato e dotazione residua', () => {
     expect(card.textContent).toContain('La dotazione è regionale, i pagamenti sono della tua area: non confrontabili.');
     expect(await voci('Dotazione residua sui pagamenti (RF007)')).toContain('Dotazione spesa pubblica (regionale)');
   });
-  it('errore di un report: solo la sua sezione mostra l errore', async () => {
+  it('errore di un report: un solo avviso nella pagina, le altre sezioni si vedono', async () => {
     servi();
     server.use(http.get('*/api/finanziario/residuo-pagamenti', () => new HttpResponse(null, { status: 404 })));
     renderPagina(Pagina, '/finanziario/avanzamento');
-    expect((await screen.findAllByRole('alert'))[0].textContent).toContain('Dati non trovati');
+    const avviso = await screen.findByRole('alert');
+    expect(avviso.textContent).toContain('Dati non trovati');
+    expect(screen.getAllByRole('alert')).toHaveLength(1);
     expect(await voci('Dotazione residua sugli impegni (RF006)')).toContain('Dotazione residua');
+  });
+  // A-07: con il backend che non risponde un solo avviso per la pagina; "Riprova" rilegge tutte le sezioni in errore
+  it('backend non disponibile: un solo avviso di pagina, sezioni senza alert, Riprova rilegge tutto', async () => {
+    let letture = 0;
+    server.use(
+      http.get('*/api/finanziario/*', () => {
+        letture += 1;
+        return new HttpResponse(null, { status: 503 });
+      }),
+    );
+    const { container } = renderPagina(Pagina, '/finanziario/avanzamento');
+    await waitFor(() => expect(screen.getByRole('alert').textContent).toMatch(/\d sezioni della pagina non si sono caricate\./));
+    const avviso = screen.getByRole('alert');
+    expect(screen.getAllByRole('alert')).toHaveLength(1);
+    expect(within(avviso).getAllByRole('button')).toHaveLength(1);
+    expect(screen.getAllByText(/^Dati non caricati: l'avviso in cima alla pagina/).length).toBeGreaterThan(1);
+    const prima = letture;
+    await userEvent.click(within(avviso).getByRole('button', { name: 'Riprova' }));
+    await waitFor(() => expect(letture).toBeGreaterThan(prima));
+    await expectNoA11yViolations(container);
   });
   it('nessuna violazione axe', async () => {
     servi();

@@ -2,6 +2,7 @@
 // sottotitoli e grant per il menu, l'impaginazione, la navigazione e il gating delle sezioni. Percorsi e grant sono
 // quelli di src/app/route-table.json (un test li confronta); titoli e sottotitoli quelli dei wireframe approvati. La
 // visibilita' per grant e' solo UX (hide-by-role): l'enforcement resta del backend.
+import { minuscolaIniziale } from '../../../shared/lib';
 import { ricercaDaFiltri, valoreFiltroValido } from './filtri';
 import type { Filtri } from './filtri';
 
@@ -130,19 +131,20 @@ export function pagineVisibili(haGrant: (grant: string) => boolean): VoceReport[
   return PAGINE_FINANZIARIO.filter((r) => r.grant.some(haGrant));
 }
 
-/** Report (senza la panoramica) visibili per i grant dell'utente (gate di UX). */
-export function reportVisibili(haGrant: (grant: string) => boolean): VoceReport[] {
-  return REPORT_FINANZIARIO.filter((r) => r.grant.some(haGrant));
-}
-
 /** Titolo dell'h1: "Finanziario: " + titolo con la sola iniziale minuscola (le sigle restano maiuscole). */
 export function titoloH1(titolo: string): string {
-  return `Finanziario: ${titolo.charAt(0).toLowerCase()}${titolo.slice(1)}`;
+  return `Finanziario: ${minuscolaIniziale(titolo)}`;
 }
 
 /** Il codice della route di dettaglio e' un codice intervento valido (stesso formato del filtro). */
 export function codiceInterventoValido(codice: string | null | undefined): codice is string {
   return !!codice && valoreFiltroValido('intervento', codice);
+}
+
+/** Codice cercato nella barra ("sra01 Intervento A" -> "SRA01"): la prima parola in maiuscolo, se e' un codice valido. */
+export function codiceDaRicerca(testo: string): string | undefined {
+  const codice = testo.trim().toUpperCase().split(/\s/)[0];
+  return codiceInterventoValido(codice) ? codice : undefined;
 }
 
 /** Percorso del dettaglio dell'intervento. */

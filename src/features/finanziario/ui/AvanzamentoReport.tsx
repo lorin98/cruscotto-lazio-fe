@@ -10,7 +10,8 @@ import { Caricamento, CardGrafico, Griglia, VistaQuery } from '../../../shared/u
 import type { StatoQuery } from '../../../shared/ui';
 import { usePagamentiSuImpegnato, useResiduoImpegni, useResiduoPagamenti, useStanziato } from '../api';
 import type { Filtri } from '../lib/filtri';
-import { graficoGauge, graficoPartiImporto, graficoSankey } from '../lib/grafici';
+import { graficoGauge, graficoPartiImporto, graficoSankey, sottotitoloFlusso } from '../lib/grafici';
+import { PERIMETRO_ADA, perimetroCombinato } from '../lib/perimetro';
 import type { Perimetro } from '../lib/perimetro';
 import { GRANT } from '../lib/report';
 import { ConGrant, KpiImporto, diProgramma, erroreGiaMostrato, vuotoConPerimetro } from './comuni';
@@ -80,8 +81,8 @@ function FlussoDotazione({ filtri }: { filtri: Filtri }) {
               {(r) => (
                 <CardGrafico
                   titolo="Dove va la dotazione"
-                  sottotitolo="Dalla dotazione all'impegnato e al pagato"
-                  dati={graficoSankey(i, p, r, i.perimetro === 'ADA' || p.perimetro === 'ADA' || r.perimetro === 'ADA' ? 'ADA' : i.perimetro)}
+                  sottotitolo={sottotitoloFlusso(i)}
+                  dati={graficoSankey(i, p, r, perimetroCombinato([i.perimetro, p.perimetro, r.perimetro]))}
                   fonte="Fonte: TX-0006 (impegni), TX-0005 (pagamenti sull'impegnato), TX-0007 (residuo sui pagamenti)"
                   altezza="alto"
                 />
@@ -158,7 +159,7 @@ function Parti<T extends { perimetro?: Perimetro }>(props: {
       {(d) => (
         <CardGrafico
           titolo={titolo}
-          sottotitolo={misto && d.perimetro === 'ADA' ? `${grafico}. La dotazione è regionale, i pagamenti sono della tua area: non confrontabili.` : grafico}
+          sottotitolo={misto && d.perimetro === PERIMETRO_ADA ? `${grafico}. La dotazione è regionale, i pagamenti sono della tua area: non confrontabili.` : grafico}
           dati={graficoPartiImporto(grafico, parti(d), voci(d))}
           fonte={`${fonte} · Perimetro ${d.perimetro ?? 'non indicato'}`}
         />

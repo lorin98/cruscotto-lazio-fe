@@ -12,7 +12,7 @@ import { PROBLEM_TYPES } from '../src/shared/api/problem/problem-types';
 import { attesaPrimaDiRiprovare, soloTransitori } from '../src/shared/api/retry/nuovi-tentativi';
 import { server } from '../src/shared/api/mock/server';
 import { clientDiTest } from '../src/shared/testing/render';
-import { RIEPILOGO } from '../src/shared/testing/fixture-finanziario';
+import { RIEPILOGO } from '../src/features/finanziario/testing/fixture';
 import { problema } from '../src/shared/testing/msw';
 import { useRiepilogo } from '../src/features/finanziario/api';
 

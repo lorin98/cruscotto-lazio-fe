@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { BarraFiltri, CardGrafico, Grafico, Kpi, PannelloLaterale, Sezione, TabellaInterattiva, TabellaRighe, TabellaVoci, VistaQuery } from '../src/shared/ui';
+import { BarraFiltri, CardGrafico, Grafico, Kpi, PannelloLaterale, Sezione, TabellaDati, TabellaInterattiva, TabellaRighe, TabellaVoci, VistaQuery, blobDaDataUrl } from '../src/shared/ui';
 import type { StatoQuery } from '../src/shared/ui';
 import type { ColonnaTabella, DatiGrafico } from '../src/shared/ui';
 import { filtraRighe, numeroPagine, ordinaRighe, paginaDi } from '../src/shared/lib';
@@ -255,6 +255,7 @@ describe('CardGrafico', () => {
   it('voci omesse dichiarate; clic sul grafico al chiamante; download come immagine', async () => {
     const clic = vi.fn();
     const scaricato = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
+    const oggetto = vi.spyOn(URL, 'createObjectURL');
     render(<CardGrafico titolo="Dotazione per intervento" dati={{ ...DATI, omessi: ['X: assente', 'Y: negativo'] }} fonte="Fonte: prova" onClic={clic} />);
     expect(screen.getByText('2 voci non nel grafico')).toBeTruthy();
     expect(screen.getAllByRole('listitem').map((v) => v.textContent)).toEqual(['X: assente', 'Y: negativo']);
@@ -263,7 +264,10 @@ describe('CardGrafico', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Scarica il grafico Dotazione per intervento come immagine' }));
     expect(scaricato).toHaveBeenCalledTimes(1);
     expect((scaricato.mock.contexts[0] as HTMLAnchorElement).download).toBe('dotazione-per-intervento.svg');
+    // lo stesso salvataggio dei file del kit (salvaFile): un Blob con il tipo dell'immagine
+    expect((oggetto.mock.calls[0][0] as Blob).type).toBe('image/svg+xml');
     scaricato.mockRestore();
+    oggetto.mockRestore();
   });
 
   it('nessuna violazione axe (vista grafico e vista tabella)', async () => {
@@ -397,5 +401,29 @@ describe('PannelloLaterale', () => {
     await userEvent.click(apri);
     await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Chiudi: Pannello' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+  });
+});
+
+describe('tabelle semplici: regione scorrevole e assenze a capo (N-12)', () => {
+  it('TabellaDati: contenitore raggiungibile da tastiera con il nome della tabella, celle che vanno a capo negli spazi', async () => {
+    const { container } = render(
+      <TabellaDati tabella={{ caption: 'Voci di prova', colonne: ['Voce', 'Importo'], righe: [['A', '1.000,00\u00a0€'], ['B', 'non disponibile (fonte di prova non attiva)']] }} />,
+    );
+    const regione = screen.getByRole('region', { name: 'Voci di prova' });
+    expect(regione.getAttribute('tabindex')).toBe('0');
+    expect(within(regione).getByRole('table', { name: 'Voci di prova' }).classList.contains('ui-tabella--semplice')).toBe(true);
+    expect(within(regione).getByRole('cell', { name: 'non disponibile (fonte di prova non attiva)' }).classList.contains('ui-num')).toBe(true);
+    await expectNoA11yViolations(container);
+  });
+});
+
+describe('blobDaDataUrl (H-25)', () => {
+  it('testo codificato per URL e base64, con il tipo del data URL', async () => {
+    const svg = blobDaDataUrl(`data:image/svg+xml;charset=utf-8,${encodeURIComponent('<svg>à</svg>')}`);
+    expect(svg.type).toBe('image/svg+xml');
+    expect(await svg.text()).toBe('<svg>à</svg>');
+    const png = blobDaDataUrl(`data:image/png;base64,${btoa('PNG')}`);
+    expect(png.type).toBe('image/png');
+    expect(await png.text()).toBe('PNG');
   });
 });

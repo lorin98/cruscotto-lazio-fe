@@ -1,5 +1,7 @@
 // Dati di prova dei report del finanziario per i test: forma delle spec, valori TONDI E INVENTATI (nessun conteggio o
 // importo preso dall'ambiente con i dati reali). I codici di intervento e obiettivo sono quelli pubblici del CSR.
+// Stanno nella feature (review v2 H-20): li importano i test (tests/ e i test delle pagine), mai il codice di produzione
+// (Z-02, eslint.config.js).
 const nd = (fonte: string) => ({ valore: null, motivo: 'FONTE_NON_ATTIVA', fonte });
 const euro = (valore: number) => ({ valore, motivo: null, fonte: null });
 

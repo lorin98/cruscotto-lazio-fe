@@ -6,7 +6,7 @@ import type { JsonBodyType } from 'msw';
 import { server } from '../../../shared/api/mock/server';
 import { expectNoA11yViolations } from '../../../shared/testing/axe';
 import { graficoDi, tabellaDi, trovaCard } from '../../../shared/testing/card-grafico';
-import { DOMANDE_PER_ANNO, FILTRI, IMPORTI_PER_ANNO, RIEPILOGO, SIGC_DOMANDE, SIGC_IMPORTI, SPESA } from '../../../shared/testing/fixture-finanziario';
+import { DOMANDE_PER_ANNO, FILTRI, IMPORTI_PER_ANNO, RIEPILOGO, SIGC_DOMANDE, SIGC_IMPORTI, SPESA } from '../../../features/finanziario/testing/fixture';
 import { renderPagina } from '../../../shared/testing/render-pagina';
 import Pagina from './page';
 
@@ -49,6 +49,20 @@ describe("dettaglio dell'intervento (flusso panoramica)", () => {
     const briciole = screen.getByRole('navigation', { name: 'Percorso' });
     expect(within(briciole).getByRole('link', { name: 'Riepilogo per intervento' }).getAttribute('href')).toBe('/finanziario/riepilogo');
     expect(within(briciole).getByText('SRA01').getAttribute('aria-current')).toBe('page');
+  });
+
+  // N-03: l'indirizzo del dettaglio porta la selezione da cui si e' arrivati; le letture restano sull'intervento
+  it("selezione conservata: breadcrumb e Torna al riepilogo tornano con i filtri, nella barra il solo intervento", async () => {
+    const lette = servi();
+    renderPagina(Pagina, PERCORSO, '/finanziario/interventi/SRA01?og=OG1');
+    await screen.findByRole('heading', { level: 1, name: 'Intervento di prova A' });
+    await waitFor(() => expect(lette.riepilogo).toBe('?intervento=SRA01'));
+    const briciole = screen.getByRole('navigation', { name: 'Percorso' });
+    expect(within(briciole).getByRole('link', { name: 'Finanziario' }).getAttribute('href')).toBe('/finanziario?og=OG1');
+    expect(within(briciole).getByRole('link', { name: 'Riepilogo per intervento' }).getAttribute('href')).toBe('/finanziario/riepilogo?og=OG1');
+    expect((await screen.findByRole('link', { name: 'Torna al riepilogo' })).getAttribute('href')).toBe('/finanziario/riepilogo?og=OG1');
+    expect(screen.getByRole('link', { name: 'Filtra i report su questo intervento' }).getAttribute('href')).toBe('/finanziario?intervento=SRA01');
+    expect(screen.queryByText('OG1')).toBeNull();
   });
 
   it('le schede leggono solo quando si aprono; la scheda delle voci dice il motivo dei valori assenti', async () => {

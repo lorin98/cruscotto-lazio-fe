@@ -18,11 +18,11 @@ Node `^24.15.0` (`.nvmrc`), poi `npm ci`.
 
 | Comando | Cosa |
 |---|---|
-| `npm run dev` | dev server con i mock MSW (nessun backend): il finanziario usa i dati d'esempio inventati di `src/shared/api/mock/esempio-finanziario.ts` (coerenti fra le pagine, rispettano i filtri, fonti non attive come nei dati reali); il resto gli handler generati |
+| `npm run dev` | dev server con i mock MSW (nessun backend): il finanziario usa i dati d'esempio inventati di `src/features/finanziario/api/mock/esempio.ts` (il worker raccoglie gli `esempio.ts` delle feature) (coerenti fra le pagine, rispettano i filtri, fonti non attive come nei dati reali); il resto gli handler generati |
 | `npm run dev:be` | dev server collegato al **backend vero** (BFF, Keycloak, PostgreSQL): niente MSW |
 | `npm run api:generate` | rigenera il client orval da `specs/openapi-*.json` |
 | `npm run typecheck`, `build`, `test`, `lint` | i controlli del gate di green-fe |
-| `npm run test:e2e` | test e2e con Playwright sulla build di produzione (`e2e/`): CSP del contenitore, grafici e tooltip, dialoghi |
+| `npm run test:e2e` | test e2e con Playwright sulla build di produzione (`e2e/`): CSP del contenitore, grafici e tooltip, dialoghi, anteprima e dettaglio dell'intervento; `E2E_WEBKIT=1` aggiunge il profilo WebKit mobile (serve `npx playwright install webkit`) |
 
 ### Con il backend vero (`npm run dev:be`)
 
@@ -68,11 +68,14 @@ aperta.
 - **Errori delle risposte binarie.** Per l'export CSV (`responseType: 'blob'`) il mutator rilegge come JSON il corpo
   d'errore, cosi' anche il problem+json dell'export viene classificato.
 - **Letture in coda.** Il backend ammette 2 letture dei report del finanziario in corso per utente (oltre: 503
-  CAPACITA_ESAURITA): il mutator mette in coda le GET verso `/api/finanziario/` oltre la seconda (tetti per prefisso,
-  le altre GET non vanno in coda). Le schede aperte si coordinano con la Web Locks API, cosi' il tetto vale per
-  l'utente e non per la scheda; una lettura annullata tiene il posto finche' la risposta arriva (il backend la lavora
-  comunque), al piu' per un tempo di guardia. I nuovi tentativi (solo i transitori, con `Retry-After`) sono la
-  politica del QueryClient (`src/shared/api/retry/`).
+  CAPACITA_ESAURITA): il mutator mette in coda le GET verso `/api/finanziario/` oltre la seconda. Il mutator condiviso
+  non ha tetti predefiniti: li sceglie l'app per prefisso (`src/app/tetti-letture.ts`, configurati all'avvio da
+  `main.tsx`); le altre GET non vanno in coda. Le schede aperte si coordinano con la Web Locks API, cosi' il tetto vale
+  per l'utente e non per la scheda: una lettura prende il primo posto libero fra quelli del tetto. Ogni lettura in coda
+  ha un tempo di guardia dall'invio: senza risposta entro la guardia libera il posto e finisce con l'errore "Il server
+  non risponde"; una lettura annullata tiene il posto finche' la risposta arriva (il backend la lavora comunque), al
+  piu' fino alla guardia. I nuovi tentativi (solo i transitori, con `Retry-After`) sono la politica del QueryClient
+  (`src/shared/api/retry/`).
 - **CSRF.** La difesa effettiva con questo backend e' `X-Requested-With` + controllo dell'Origin; le opzioni `xsrf*`
   restano per il contratto della suite ma sono inerti (il backend non emette il cookie XSRF-TOKEN).
 
@@ -93,8 +96,10 @@ aperta.
   smette di mostrare le pagine e il velo e' opaco: su una postazione incustodita i dati non restano leggibili. Le
   schede aperte condividono la sessione: attivita', scadenza e "Esci" passano fra le schede con un `BroadcastChannel`,
   cosi' una scheda ferma non chiude la sessione su cui si lavora in un'altra;
-- il cambio d'utente senza un 401 (nuovo accesso in un'altra scheda): se `/auth/status` restituisce un altro utente,
-  la cache dei dati del precedente si svuota e le altre schede rileggono la sessione;
+- il cambio d'utente senza un 401 (nuovo accesso in un'altra scheda): la lettura di `/auth/status` e' pura;
+  `useUtenteDellaSessione` (`src/app/utente-della-sessione.ts`) osserva le sue risposte e, se cambia l'identita'
+  (username, profilo e ruoli: e' solo una chiave per svuotare la cache, mai un controllo d'accesso), svuota la cache
+  dei dati del precedente e lo annuncia alle altre schede, che rileggono la sessione;
 - gli errori di pagina: un indirizzo inesistente mostra "Pagina non trovata" e un errore inatteso "Errore nella
   pagina" (mai messaggio o stack), dentro la shell (`src/app/errori.tsx`).
 
@@ -102,7 +107,14 @@ Ogni pagina del finanziario ha in alto la barra dei filtri: i filtri attivi come
 pannello dei filtri (TX-0001) e a destra il perimetro dei dati (regionale o la propria area ADA) e la data fino a cui
 tutti i flussi d'import sono aggiornati (NFR-25 b: la conclusione meno recente, con il dettaglio per flusso in un
 popover); arriva con la risposta di `/api/finanziario/filtri`, in ora italiana. Il dettaglio di un intervento ha nella
-barra il solo intervento, fisso: riguarda l'intervento intero.
+barra il solo intervento, fisso: riguarda l'intervento intero. L'indirizzo del dettaglio conserva pero' la selezione da
+cui ci si e' arrivati (il drill-down da grafici e tabelle la porta con se'), cosi' breadcrumb, menu e "Torna al
+riepilogo" la ritrovano. Un filtro per azione portante si applica solo se il legame interventi - azioni c'e': finche'
+`/api/finanziario/filtri` non lo dice, le pagine aspettano invece di leggere i report con un filtro che forse non vale.
+
+Gli errori di lettura hanno un solo avviso per pagina (`AvvisoPagina` del kit): le sezioni in errore lo rimandano
+all'avviso con un testo statico, l'avviso dice i messaggi distinti e quante sezioni non si sono caricate, e il suo
+"Riprova" rilegge tutte le sezioni in errore.
 
 La Home (`/`, dove il BFF riporta dopo il login) elenca le aree visibili per i grant dell'utente (catalogo unico delle
 aree in `src/app/aree.ts`, lo stesso del menu); la card di un'area porta alla sua prima pagina visibile. `RequireGrant`
@@ -121,7 +133,13 @@ Il kit generico sta in `src/shared/ui` e si riusa nelle prossime aree:
   `TabellaInterattiva` (ricerca, ordinamento con `aria-sort`, scelta delle colonne, paginazione, totali e righe di
   piede, riga apribile con clic o Invio; tabella HTML nativa: la `Table` di react-aria non serve senza selezione ne'
   modifica di celle; la logica e' in `src/shared/lib/tabella.ts`), tabelle semplici (`TabellaRighe`, `TabellaVoci`,
-  `TabellaDati`).
+  `TabellaDati`: le assenze col motivo vanno a capo, gli importi no; su schermo stretto il contenitore scorre ed e' una
+  regione raggiungibile da tastiera);
+- `VistaQuery` con i rami della vista dati e `AvvisoPagina`, l'avviso d'errore unico della pagina;
+- `salvaFile` e `blobDaDataUrl`: lo stesso salvataggio per l'export CSV e per l'immagine di un grafico.
+
+Il nome dell'applicazione (titolo dei documenti, testata, Home) e' configurazione del progetto:
+`src/shared/config/applicazione.ts`.
 
 I mattoni puri dei grafici stanno in `src/shared/lib/grafici/`:
 - il contratto dei builder (`DatiGrafico`: le opzioni oppure il motivo per cui il grafico non si disegna, la tabella
@@ -131,9 +149,12 @@ I mattoni puri dei grafici stanno in `src/shared/lib/grafici/`:
 - `opzioniSicure`: tooltip disegnato nel grafico (richText, mai HTML) e numeri degli assi in italiano.
 
 I builder di dominio stanno nelle feature, uno per report (`src/features/finanziario/lib/grafici/`), e gli aggregati
-calcolati dal frontend in `lib/aggregati.ts`: mai somme parziali, un totale con un valore assente e' "non
-calcolabile". Un valore assente non diventa mai zero. Il clic su un elemento e' il drill-down: dal grafico al dettaglio
-dell'intervento (`/finanziario/interventi/:codice`) o alla pagina collegata. Complessita' e lunghezza delle funzioni
+calcolati dal frontend in `lib/aggregati.ts`: mai somme parziali; un totale con un valore assente e' "non
+calcolabile", salvo un'assenza con lo stesso motivo in tutte le righe, che dice il suo motivo. Un valore assente non
+diventa mai zero. Le regole sugli Importo (`lib/importi.ts`), sull'avanzamento (`lib/avanzamento.ts`) e sul perimetro
+(`lib/perimetro.ts`) sono uniche e condivise da builder, aggregati e componenti. Il clic su un elemento e' il
+drill-down: dal grafico al dettaglio dell'intervento (`/finanziario/interventi/:codice`, con la selezione
+nell'indirizzo; anche da tastiera, con Invio sulla riga della tabella) o alla pagina collegata. Complessita' e lunghezza delle funzioni
 dei layer `lib/` sono limitate da eslint (10 e 60 righe).
 
 Nei test jsdom non disegna: `src/shared/test/setup.ts` sostituisce ECharts con un grafico finto
@@ -155,8 +176,9 @@ Referrer-Policy: same-origin
 ```
 
 La verifica e' un test e2e versionato: `npm run test:e2e` (`e2e/csp.spec.ts`) serve la build di produzione con questa
-CSP, apre la panoramica e la pagina delle domande, mostra i tooltip di un elemento e di un asse e apre il pannello dei
-filtri: nessuna violazione. Il tooltip di ECharts e' disegnato nel grafico (`renderMode: 'richText'`, imposto dal kit):
+CSP, apre la panoramica e la pagina delle domande, mostra i tooltip di un elemento e di un asse, apre il pannello dei
+filtri e l'anteprima di un intervento dal riepilogo, e apre il dettaglio dell'intervento con le sue schede: nessuna
+violazione. Il tooltip di ECharts e' disegnato nel grafico (`renderMode: 'richText'`, imposto dal kit):
 il tooltip HTML scriverebbe attributi `style` con `innerHTML`, bloccati da `style-src 'self'`.
 
 Gli `<style>` che react-aria inietta sono due, ed entrambi sono bloccati da `style-src 'self'`:
@@ -171,8 +193,10 @@ Gli `<style>` che react-aria inietta sono due, ed entrambi sono bloccati da `sty
 Se serve la regola su iOS, il contenitore la puo' ammettere con un nonce generato a ogni risposta, mai fisso nella
 build: `style-src 'self' 'nonce-<valore>'` e, nell'`index.html` servito, `<meta property="csp-nonce" content="<valore>">`
 con lo stesso valore (react-aria lo legge e lo mette sul suo `<style>`). Con un `index.html` statico servito da cache il
-nonce per risposta non e' praticabile, e resta l'eccezione dichiarata qui; il test e2e va esteso a un profilo WebKit
-mobile (Playwright `devices['iPhone 15']`) quando WebKit e' installato.
+nonce per risposta non e' praticabile, e resta l'eccezione dichiarata qui. Il profilo WebKit mobile degli e2e
+(Playwright `devices['iPhone 15']`) si attiva con `E2E_WEBKIT=1 npm run test:e2e`, dopo `npx playwright install webkit`:
+su quel profilo il test delle modali tollera solo questa violazione. Non e' ancora stato eseguito: WebKit non e'
+installato sulle postazioni di sviluppo.
 
 Peso: il chunk del finanziario e' di circa 1,2 MB (380 kB gzip), in gran parte ECharts; se servisse, ECharts si puo'
 caricare a parte con un import dinamico nel wrapper `Grafico`.
@@ -184,10 +208,13 @@ caricare a parte con un import dinamico nel wrapper `Grafico`.
   limite e' del plugin green-fe (detector dei gate di step5/step6 non ancora su AST): da riportare al manutentore.
 
 - **Confini fra slice (Z-02).** Una feature importa liberamente dentro il proprio slice; da un altro slice solo dal
-  barrel (`src/features/<slice>/index.ts`). I moduli di prova (`shared/testing`, `api/mock`) sono vietati nel codice di
-  produzione: li usano i test e `src/app/main.tsx` per il dev server con MSW. Le canary sono in
+  barrel (`src/features/<slice>/index.ts`). I moduli di prova (`shared/testing`, `features/<slice>/testing`,
+  `api/mock`) sono vietati nel codice di produzione: li usano i test e `src/app/main.tsx` per il dev server con MSW. I
+  dati di prova e d'esempio di un'area stanno nella sua feature (`testing/` e `api/mock/esempio.ts`); i test delle
+  pagine importano dalla feature solo il barrel e `testing/`. Le canary sono in
   `tests/eslint-regole.test.ts`.
 
 Test e gate: `npm run test` esegue i test dei componenti (`tests/`) e delle pagine (`src/pages/**/page.test.tsx`,
 con i `describe` etichettati sui requisiti RF001-RF015). L'helper axe e' `src/shared/testing/axe.ts` e i dati di
-prova sono in `src/shared/testing/fixture-finanziario.ts`, inventati e senza dati reali.
+prova sono in `src/features/finanziario/testing/fixture.ts`, inventati e senza dati reali (nella feature: i test delle
+pagine li importano da li', il codice di produzione no).

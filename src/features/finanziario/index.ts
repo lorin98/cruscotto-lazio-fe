@@ -18,5 +18,5 @@ export { useFiltriNellIndirizzo } from './ui/useFiltriNellIndirizzo';
 export { useDescrizioneIntervento } from './ui/useDescrizioneIntervento';
 export { filtriDaRicerca, ricercaDaFiltri } from './lib/filtri';
 export type { Filtri } from './lib/filtri';
-export { DETTAGLIO_INTERVENTO, PAGINE_FINANZIARIO, PANORAMICA, PERCORSI, codiceInterventoValido, conFiltri, pagineVisibili, titoloH1, voceDi } from './lib/report';
+export { DETTAGLIO_INTERVENTO, PANORAMICA, PERCORSI, codiceInterventoValido, conFiltri, pagineVisibili, titoloH1, voceDi } from './lib/report';
 export type { VoceReport } from './lib/report';

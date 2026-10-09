@@ -1,6 +1,6 @@
-// dto.ts — forme minime dei DTO letti dai builder, con i nomi dei campi del contratto. Sono strutturali (i layer puri
+// dto.ts — forme minime dei DTO letti dalle funzioni pure (builder dei grafici, aggregati), con i nomi dei campi del contratto. Sono strutturali (i layer puri
 // non importano dal confine api/): ui/contratto.ts verifica a compilazione che ogni campo esista nel DTO generato.
-import type { ImportoLike } from '../../../../entities/importo';
+import type { ImportoLike } from '../../../entities/importo';
 
 type Importo = ImportoLike | null;
 

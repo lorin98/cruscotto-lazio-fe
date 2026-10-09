@@ -1,20 +1,20 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { delay, http, HttpResponse } from 'msw';
-import { isCancel } from 'axios';
-import type { AxiosError } from 'axios';
+import { AxiosError, isCancel } from 'axios';
 import { server } from '../src/shared/api/mock/server';
 import {
   AXIOS_INSTANCE,
-  GUARDIA_DOPO_ANNULLO_MS,
+  GUARDIA_LETTURA_MS,
   LETTURE_IN_PARALLELO,
   NOME_LOCK_LETTURE,
-  TETTI_LETTURE_PREDEFINITI,
   authEvents,
   azzeraCodeLetture,
   configuraTettiLetture,
   customInstance,
 } from '../src/shared/api/mutator/bff-mutator';
 import { classifyProblem, PROBLEM_TYPES } from '../src/shared/api/problem/problem-types';
+import { getErrorMessage } from '../src/shared/lib';
+import { TETTI_LETTURE, configuraTettiDellApp } from '../src/app/tetti-letture';
 
 // Path neutro: il contratto BFF non dipende da alcuna slice.
 const PATH = '/api/risorsa';
@@ -81,7 +81,9 @@ describe('Problem-type end-to-end sul flusso axios reale', () => {
   });
 });
 
+// I tetti li configura l'app all'avvio (app/tetti-letture.ts, review H-21): qui come in main.tsx.
 describe('coda delle letture: tetto per prefisso del percorso (review step9 H-21)', () => {
+  beforeEach(() => configuraTettiDellApp());
   afterEach(() => azzeraCodeLetture());
 
   // risposta lenta che misura quante richieste al percorso sono in corso insieme
@@ -101,11 +103,18 @@ describe('coda delle letture: tetto per prefisso del percorso (review step9 H-21
   const insieme = (url: string, method = 'GET', n = 5) =>
     Promise.all(Array.from({ length: n }, () => customInstance<{ ok: boolean }>({ url, method })));
 
-  it(`di default solo il finanziario ha un tetto: al piu' ${LETTURE_IN_PARALLELO} GET insieme, le altre in coda`, async () => {
-    expect(TETTI_LETTURE_PREDEFINITI).toEqual({ '/api/finanziario/': 2 });
+  it(`con i tetti dell'app solo il finanziario ha un tetto: al piu' ${LETTURE_IN_PARALLELO} GET insieme, le altre in coda`, async () => {
+    expect(TETTI_LETTURE).toEqual({ '/api/finanziario/': 2 });
     const misura = misuraParallelo('/api/finanziario/lenta');
     expect((await insieme('/api/finanziario/lenta')).every((e) => e.ok)).toBe(true);
     expect(misura.massimo).toBe(LETTURE_IN_PARALLELO);
+  });
+
+  it("il mutator condiviso non ha tetti predefiniti: senza la configurazione dell'app nessuna GET aspetta", async () => {
+    azzeraCodeLetture();
+    const misura = misuraParallelo('/api/finanziario/lenta');
+    await insieme('/api/finanziario/lenta');
+    expect(misura.massimo).toBe(5);
   });
 
   it('le GET fuori dai prefissi con un tetto e le scritture non vanno in coda', async () => {
@@ -128,13 +137,6 @@ describe('coda delle letture: tetto per prefisso del percorso (review step9 H-21
     expect(finanziario.massimo).toBe(5);
   });
 
-  it('il reset torna ai tetti predefiniti', async () => {
-    configuraTettiLetture({});
-    azzeraCodeLetture();
-    const misura = misuraParallelo('/api/finanziario/lenta');
-    await insieme('/api/finanziario/lenta');
-    expect(misura.massimo).toBe(LETTURE_IN_PARALLELO);
-  });
 
   it('un errore libera comunque il posto', async () => {
     server.use(
@@ -147,6 +149,7 @@ describe('coda delle letture: tetto per prefisso del percorso (review step9 H-21
 });
 
 describe("coda delle letture: tetto dell'utente, non della scheda (review X-02)", () => {
+  beforeEach(() => configuraTettiDellApp());
   afterEach(() => {
     vi.useRealTimers();
     Reflect.deleteProperty(navigator, 'locks');
@@ -198,43 +201,56 @@ describe("coda delle letture: tetto dell'utente, non della scheda (review X-02)"
     expect(stato.arrivate).toBe(2);
   });
 
-  it('una lettura annullata e senza risposta libera il posto dopo il tempo di guardia', async () => {
+  // la consegna delle risposte MSW non passa dai timer finti: si lascia girare il ciclo degli eventi
+  const giri = async (n = 20) => {
+    for (let i = 0; i < n; i++) await new Promise<void>((r) => setImmediate(r));
+  };
+  // seconda lettura, servita subito, che segna quando arriva la risposta
+  function letturaSana() {
+    server.use(http.get('*/api/finanziario/sana', () => HttpResponse.json({ ok: true })));
+    const esito = { servita: false };
+    const risposta = customInstance<{ ok: boolean }>({ url: '/api/finanziario/sana', method: 'GET' }).then((r) => {
+      esito.servita = true;
+      return r;
+    });
+    return { esito, risposta };
+  }
+
+  it("una lettura annullata e senza risposta libera il posto alla guardia, contata dall'invio", async () => {
     configuraTettiLetture({ '/api/finanziario/': 1 });
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
     const appesa = backend('infinite');
     const annullamento = new AbortController();
     const annullata = leggi(annullamento.signal);
-    await finche(() => appesa.arrivate === 1);
-    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    await giri();
+    expect(appesa.arrivate).toBe(1);
     annullamento.abort();
     expect(isCancel(await annullata.catch((e: unknown) => e))).toBe(true);
-    server.use(http.get('*/api/finanziario/sana', () => HttpResponse.json({ ok: true })));
-    let servita = false;
-    const dopo = customInstance<{ ok: boolean }>({ url: '/api/finanziario/sana', method: 'GET' }).then((r) => {
-      servita = true;
-      return r;
-    });
-    for (let i = 0; i < 20; i++) await new Promise<void>((r) => setImmediate(r));
-    expect(servita).toBe(false);
-    vi.advanceTimersByTime(GUARDIA_DOPO_ANNULLO_MS);
+    const dopo = letturaSana();
+    await giri();
+    expect(dopo.esito.servita).toBe(false);
+    vi.advanceTimersByTime(GUARDIA_LETTURA_MS);
     vi.useRealTimers();
-    expect(await dopo).toEqual({ ok: true });
+    expect(await dopo.risposta).toEqual({ ok: true });
   });
 
-  // LockManager finto, come quello condiviso fra le schede: lock esclusivi con nome, serviti in ordine di richiesta
+  // LockManager finto, come quello condiviso fra le schede: lock esclusivi con nome, serviti in ordine di richiesta;
+  // con ifAvailable un lock tenuto da altri non si aspetta, il lavoro riceve null
   function installaLocksFinti() {
     const tenuti = new Set<string>();
     const attese = new Map<string, (() => void)[]>();
-    const request = (nome: string, opzioni: LockOptions, lavoro: (lock: Lock | null) => Promise<unknown>) =>
+    const request = (nome: string, opzioni: LockOptions, lavoro: (lock: Lock | null) => unknown) =>
       new Promise((ok, ko) => {
         const esegui = () => {
           tenuti.add(nome);
-          void lavoro({ name: nome, mode: 'exclusive' }).then((v) => {
+          void Promise.resolve(lavoro({ name: nome, mode: 'exclusive' })).then((v) => {
             tenuti.delete(nome);
             attese.get(nome)?.shift()?.();
             ok(v);
           }, ko);
         };
         if (!tenuti.has(nome)) return esegui();
+        if (opzioni.ifAvailable) return void Promise.resolve(lavoro(null)).then(ok, ko);
         attese.set(nome, [...(attese.get(nome) ?? []), esegui]);
         opzioni.signal?.addEventListener('abort', () => {
           attese.set(nome, (attese.get(nome) ?? []).filter((f) => f !== esegui));
@@ -260,6 +276,46 @@ describe("coda delle letture: tetto dell'utente, non della scheda (review X-02)"
     expect(stato.servite).toBe(4);
     expect(stato.massimo).toBeLessThanOrEqual(LETTURE_IN_PARALLELO);
     // finite le letture, i lock di questa scheda sono liberi
+    expect(locks.tenuti.size).toBe(0);
+  });
+
+  it("posto 0 tenuto da un'altra scheda e una sola lettura qui: parte subito, sul primo lock libero (N-11)", async () => {
+    const locks = installaLocksFinti();
+    const altraScheda = `${NOME_LOCK_LETTURE}:/api/finanziario/:0`;
+    void locks.request(altraScheda, {}, () => new Promise<void>(() => {}));
+    const stato = backend(30);
+    const lettura = leggi();
+    await finche(() => stato.arrivate === 1);
+    // la lettura tiene il posto 1, l'altra scheda il suo
+    expect([...locks.tenuti].sort()).toEqual([altraScheda, `${NOME_LOCK_LETTURE}:/api/finanziario/:1`]);
+    expect(await lettura).toEqual({ ok: true });
+    expect([...locks.tenuti]).toEqual([altraScheda]);
+  });
+
+  it('una lettura senza risposta libera posto e lock alla guardia e finisce con un timeout di rete (N-13)', async () => {
+    configuraTettiLetture({ '/api/finanziario/': 1 });
+    const locks = installaLocksFinti();
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    const appesa = backend('infinite');
+    const senzaRisposta = leggi().catch((e: unknown) => e);
+    await giri();
+    expect(appesa.arrivate).toBe(1);
+    expect(locks.tenuti.size).toBe(1);
+    const dopo = letturaSana();
+    await giri();
+    expect(dopo.esito.servita).toBe(false);
+    vi.advanceTimersByTime(GUARDIA_LETTURA_MS - 1);
+    await giri();
+    expect(dopo.esito.servita).toBe(false);
+    vi.advanceTimersByTime(1);
+    vi.useRealTimers();
+    // errore classificabile: AxiosError di rete senza risposta, non un annullamento
+    const errore = await senzaRisposta;
+    expect(errore).toBeInstanceOf(AxiosError);
+    expect((errore as AxiosError).code).toBe(AxiosError.ETIMEDOUT);
+    expect(isCancel(errore)).toBe(false);
+    expect(getErrorMessage(errore)).toMatch(/server non risponde/);
+    expect(await dopo.risposta).toEqual({ ok: true });
     expect(locks.tenuti.size).toBe(0);
   });
 });

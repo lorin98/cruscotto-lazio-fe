@@ -4,8 +4,12 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { App } from './App';
 import { segnalaAccessoNegato } from './avvisi';
 import { createQueryClient } from './query-client';
+import { configuraTettiDellApp } from './tetti-letture';
 import 'bootstrap-italia/dist/css/bootstrap-italia.min.css';
 import '../shared/ui/tema.css';
+
+// Tetti delle letture in parallelo per area (tetti-letture.ts): prima di ogni lettura.
+configuraTettiDellApp();
 
 // MutationCache globale: intercetta il 403 ACCESSO_NEGATO delle mutation come rete di sicurezza (query-client.ts) e
 // lo rende con l'avviso della shell (layout.tsx).

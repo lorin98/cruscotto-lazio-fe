@@ -3,6 +3,7 @@
 // (role=status: e' informativo, non un errore, come nei wireframe approvati). Classi bootstrap-italia, niente react-aria.
 import type { ReactNode } from 'react';
 import { getErrorMessage } from '../../lib';
+import { ErroreNellaPagina, useErroreNellaPagina } from './AvvisoPagina';
 
 // UI v2 (ADR 0027): il caricamento e' uno scheletro della card, con il testo per i lettori di schermo.
 export function Caricamento({ testo = 'Caricamento in corso…', alto = false }: { testo?: string; alto?: boolean }) {
@@ -61,7 +62,7 @@ function AggiornamentoFallito({ errore, onRiprova }: { errore: unknown; onRiprov
  * Sceglie il ramo della vista. Senza dati: caricamento, attesa della connessione (fetch in pausa offline), errore
  * (`errorePersonalizzato` puo' trasformare un errore atteso in un contenuto, es. il 404 della riserva) o niente se la
  * query e' disabilitata. Con dati: vuoto (se `eVuoto`) oppure i dati; un refetch fallito NON cancella i dati gia'
- * mostrati, aggiunge un avviso con "Riprova".
+ * mostrati, aggiunge un avviso con "Riprova". Dentro <AvvisoPagina> l'errore senza dati lo dice la pagina, una volta.
  */
 export function VistaQuery<T>(props: {
   stato: StatoQuery<T>;
@@ -75,9 +76,12 @@ export function VistaQuery<T>(props: {
 }) {
   const { stato, eVuoto, vuoto, errorePersonalizzato, inAttesa = false, children } = props;
   const riprova = () => void stato.refetch();
+  const senzaDati = stato.data === undefined && stato.isError;
+  const personalizzato = senzaDati ? errorePersonalizzato?.(stato.error) : undefined;
+  const nellaPagina = useErroreNellaPagina(senzaDati && personalizzato == null, stato.error, stato.refetch);
   if (inAttesa && !stato.isError) return <Caricamento />;
   if (stato.data === undefined) {
-    if (stato.isError) return <>{errorePersonalizzato?.(stato.error) ?? <ErroreVista errore={stato.error} onRiprova={riprova} />}</>;
+    if (stato.isError) return <>{personalizzato ?? (nellaPagina ? <ErroreNellaPagina /> : <ErroreVista errore={stato.error} onRiprova={riprova} />)}</>;
     if (stato.fetchStatus === 'paused') return <Caricamento testo="In attesa della connessione…" />;
     if (stato.isPending && stato.fetchStatus === 'fetching') return <Caricamento />;
     return null;

@@ -6,14 +6,31 @@
 // - Errori: nessun onError qui. I componenti li rendono con getErrorMessage (problem-type del backend); il 404
 //   NOT_FOUND della riserva e' uno stato vuoto (anno senza movimenti), riconosciuto da rispostaRiservaAssente.
 // - Filtri: gli stessi cinque filtri ripetibili (RF001) per tutti i report; il mutator li serializza ripetuti e mette
-//   in coda le letture oltre il tetto del backend (2 per utente).
+//   in coda le letture oltre il tetto del backend (2 per utente, configurato dall'app: app/tetti-letture.ts).
 // - Retry: nessuna opzione qui (review step9 H-18). La politica (solo rete assente e 503 CAPACITA_ESAURITA, con
 //   Retry-After) e' generica e sta nei defaultOptions del QueryClient di produzione (app/query-client.ts).
-import { useMutation } from '@tanstack/react-query';
+// - Perimetro: perimetriInCache legge quello delle risposte gia' in cache con le key factory generate (review N-07):
+//   chi lo mostra non conosce la forma delle chiavi.
+import { hashKey, useMutation } from '@tanstack/react-query';
+import type { Query, QueryClient } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
 import { classifyProblem } from '../../../shared/api/problem/problem-types';
 import {
   getApiFinanziarioRiepilogoCsv,
+  getTx0002QueryKey,
+  getTx0003QueryKey,
+  getTx0004QueryKey,
+  getTx0005QueryKey,
+  getTx0006QueryKey,
+  getTx0007QueryKey,
+  getTx0008QueryKey,
+  getTx0009QueryKey,
+  getTx0010QueryKey,
+  getTx0011QueryKey,
+  getTx0012QueryKey,
+  getTx0013QueryKey,
+  getTx0014QueryKey,
+  getTx0015QueryKey,
   useTx0001,
   useTx0002,
   useTx0003,
@@ -30,7 +47,23 @@ import {
   useTx0014,
   useTx0015,
 } from '../../../shared/api/generated/finanziario/finanziario/finanziario';
-import type { Tx0011Params } from '../../../shared/api/generated/finanziario/aRSCSRBootstrapPostgresAPI.schemas';
+import type {
+  AvanzamentoPagamenti,
+  AvanzamentoStanziato,
+  DistribuzioneDotazione,
+  DomandePerAnno,
+  DomandeSigc,
+  ImportiPerAnno,
+  ImportiSigc,
+  MonitoraggioRiserva,
+  ResiduoSuImpegni,
+  ResiduoSuPagamenti,
+  RiepilogoFinanziario,
+  SpesaPerIntervento,
+  TotaleDomande,
+  Tx0011Params,
+  VerificaSmp,
+} from '../../../shared/api/generated/finanziario/aRSCSRBootstrapPostgresAPI.schemas';
 
 export type {
   AvanzamentoPagamenti,
@@ -109,3 +142,55 @@ export function rispostaRiservaAssente(errore: unknown): boolean {
 // TX-0015 (RF015): esercizio obbligatorio; senza esercizio nessuna richiesta (enabled guard).
 export const useVerificaSmp = (filtri: FiltriReport, esercizio: number | undefined) =>
   useTx0015({ ...filtri, esercizio: esercizio ?? 0 }, { query: { enabled: esercizio !== undefined } });
+
+// Risposte che dichiarano il perimetro: tutte le letture tranne i filtri (TX-0001).
+type RispostaConPerimetro =
+  | SpesaPerIntervento
+  | DistribuzioneDotazione
+  | AvanzamentoStanziato
+  | AvanzamentoPagamenti
+  | ResiduoSuImpegni
+  | ResiduoSuPagamenti
+  | DomandePerAnno
+  | TotaleDomande
+  | ImportiPerAnno
+  | RiepilogoFinanziario
+  | DomandeSigc
+  | ImportiSigc
+  | MonitoraggioRiserva
+  | VerificaSmp;
+
+// Chiavi generate senza parametri: prefisso delle chiavi di ogni combinazione di filtri della stessa lettura.
+const prefissiConPerimetro = () => [
+  getTx0002QueryKey(),
+  getTx0003QueryKey(),
+  getTx0004QueryKey(),
+  getTx0005QueryKey(),
+  getTx0006QueryKey(),
+  getTx0007QueryKey(),
+  getTx0008QueryKey(),
+  getTx0009QueryKey(),
+  getTx0010QueryKey(),
+  getTx0011QueryKey(),
+  getTx0012QueryKey(),
+  getTx0013QueryKey(),
+  getTx0015QueryKey(),
+];
+
+// TX-0014: l'anno sta nel percorso, quindi la chiave non fa da prefisso. Una query e' della riserva se la factory,
+// con l'anno in fondo alla sua chiave, rigenera la stessa chiave.
+function eRiserva(q: Query): boolean {
+  const percorso = q.queryKey[0];
+  if (typeof percorso !== 'string') return false;
+  const anno = Number(percorso.slice(percorso.lastIndexOf('/') + 1));
+  return Number.isInteger(anno) && q.queryHash === hashKey(getTx0014QueryKey(anno));
+}
+
+/** Perimetri dichiarati dalle risposte del finanziario gia' in cache (nessuna lettura): uno per risposta. */
+export function perimetriInCache(client: QueryClient): string[] {
+  const dati = [
+    ...prefissiConPerimetro().flatMap((queryKey) => client.getQueriesData<RispostaConPerimetro>({ queryKey })),
+    ...client.getQueriesData<RispostaConPerimetro>({ predicate: eRiserva }),
+  ];
+  return dati.flatMap(([, risposta]) => (risposta?.perimetro ? [risposta.perimetro] : []));
+}

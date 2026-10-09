@@ -41,6 +41,17 @@ const DATA_ORA_ROMA = new Intl.DateTimeFormat('it-IT', {
   hourCycle: 'h23',
 });
 
+const GIORNO_ROMA = new Intl.DateTimeFormat('it-IT', { timeZone: 'Europe/Rome', day: '2-digit', month: '2-digit', year: 'numeric' });
+
+// Giorno di un istante del backend in ora italiana, "03/03/2026": lo stesso giorno di formatDataOra.
+export function formatGiorno(value: string | null | undefined): string {
+  if (!value) return '';
+  const d = new Date(value.replace(/(\.\d{3})\d+/, '$1'));
+  if (Number.isNaN(d.getTime())) return value;
+  const p = Object.fromEntries(GIORNO_ROMA.formatToParts(d).map((x) => [x.type, x.value]));
+  return `${p.day}/${p.month}/${p.year}`;
+}
+
 // Istante del backend (es. "2026-03-03T08:30:00Z") in ora italiana, "03/03/2026 09:30": come l'intestazione degli export.
 // Il backend manda i microsecondi (Instant di Java): lo standard di Date garantisce solo i millisecondi, quindi si tagliano.
 export function formatDataOra(value: string | null | undefined): string {

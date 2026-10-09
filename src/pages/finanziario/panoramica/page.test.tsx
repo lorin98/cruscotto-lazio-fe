@@ -5,7 +5,7 @@ import { http, HttpResponse } from 'msw';
 import { server } from '../../../shared/api/mock/server';
 import { expectNoA11yViolations } from '../../../shared/testing/axe';
 import { graficoDi, trovaCard } from '../../../shared/testing/card-grafico';
-import { FILTRI, SIGC_DOMANDE, SIGC_IMPORTI, SPESA, TOTALE_DOMANDE } from '../../../shared/testing/fixture-finanziario';
+import { FILTRI, SIGC_DOMANDE, SIGC_IMPORTI, SPESA, TOTALE_DOMANDE } from '../../../features/finanziario/testing/fixture';
 import { clicSu } from '../../../shared/testing/grafico-finto';
 import { renderPagina } from '../../../shared/testing/render-pagina';
 import Pagina from './page';
@@ -113,14 +113,14 @@ describe('panoramica: indicatori, grafici e drill-down', () => {
     expect((await screen.findByRole('region', { name: 'Domande presentate' })).textContent).toContain('1200');
   });
 
-  it("clic su un intervento: dettaglio dell'intervento intero (senza gli altri filtri); clic sull'imbuto SIGC: pagina SIGC con i filtri", async () => {
+  it("clic su un intervento: dettaglio dell'intervento con la selezione nell'indirizzo; clic sull'imbuto SIGC: pagina SIGC con i filtri", async () => {
     servi();
     const { router } = renderPagina(Pagina, '/finanziario', '/finanziario?og=OG2');
     const avanzamento = graficoDi(await trovaCard('Avanzamento per intervento'));
     expect(avanzamento).toBeTruthy();
     if (avanzamento) clicSu(avanzamento, { name: 'SRA01' });
     await waitFor(() => expect(router.state.location.pathname).toBe('/finanziario/interventi/SRA01'));
-    expect(router.state.location.search).toBe('');
+    expect(router.state.location.search).toBe('?og=OG2');
     await router.navigate('/finanziario?og=OG2');
     const famiglie = graficoDi(await trovaCard('Dotazione per famiglia di intervento'));
     // un clic su una famiglia (non un codice di intervento) non naviga: il treemap entra nel gruppo

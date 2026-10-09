@@ -4,8 +4,9 @@
 // Dati di prova inventati, numeri tondi.
 import { describe, expect, it } from 'vitest';
 import type { ImportoLike } from '../src/entities/importo';
-import { kpiSpesa, quotaPagata, sommaSeCompleta, totaleImporti } from '../src/features/finanziario/lib/aggregati';
-import { avanzamentoPonderato, graficoAvanzamento } from '../src/features/finanziario/lib/grafici';
+import { cellaTotale, kpiImportiPerAnno, kpiSpesa, notaSenzaAmmesso, quotaPagata, sommaSeCompleta, totaleImporti } from '../src/features/finanziario/lib/aggregati';
+import { avanzamentoPonderato } from '../src/features/finanziario/lib/avanzamento';
+import { graficoAvanzamento } from '../src/features/finanziario/lib/grafici';
 import type { RigaSpesa } from '../src/features/finanziario/lib/grafici';
 
 const imp = (valore: number): ImportoLike => ({ valore, motivo: null, fonte: null });
@@ -167,5 +168,47 @@ describe('quotaPagata e kpiSpesa', () => {
     expect(k.dotazione).toEqual({ valore: null, motivo: 'Non calcolabile: nessun intervento nella selezione' });
     expect(k.pagato.valore).toBeNull();
     expect(k.quota).toEqual({ valore: null, motivo: NESSUNO_UTILIZZABILE });
+  });
+});
+
+// ---------------------------------------------------------------- iterazione 3 della review v2
+
+describe('cellaTotale (N-02)', () => {
+  const r = (x: ImportoLike | undefined) => ({ x });
+  const leggi = (riga: { x: ImportoLike | undefined }) => riga.x;
+  it('tutti valorizzati: la somma in euro', () => {
+    expect(cellaTotale([r(imp(1_000_000)), r(imp(2_000_000))], leggi).replace(/\s/g, ' ')).toBe('3.000.000,00 €');
+  });
+  it('assenti tutti con lo stesso motivo (non un non valorizzato): il motivo comune', () => {
+    const fonte = assente('FONTE_NON_ATTIVA', 'IMPEGNI');
+    expect(cellaTotale([r(fonte), r(fonte)], leggi)).toBe('non disponibile (fonte impegni non attiva)');
+  });
+  it('mai una somma parziale: un valore mancante, motivi diversi, non valorizzato o campo assente danno non calcolabile', () => {
+    expect(cellaTotale([r(imp(1_000)), r(assente('FONTE_NON_ATTIVA', 'IMPEGNI'))], leggi)).toBe('non calcolabile');
+    expect(cellaTotale([r(assente('FONTE_NON_ATTIVA', 'IMPEGNI')), r(assente('FUORI_PERIMETRO'))], leggi)).toBe('non calcolabile');
+    expect(cellaTotale([r(assente('NON_VALORIZZATO')), r(assente('NON_VALORIZZATO'))], leggi)).toBe('non calcolabile');
+    expect(cellaTotale([r(undefined), r(undefined)], leggi)).toBe('non calcolabile');
+  });
+});
+
+describe('kpiImportiPerAnno e notaSenzaAmmesso (N-08)', () => {
+  const anno = (ammesso: ImportoLike | undefined, stanziato: ImportoLike | undefined, senza: number | null) => ({ annoRaccolta: 2024, importoAmmesso: ammesso, importoStanziato: stanziato, domandeSenzaAmmesso: senza });
+  const STANZIATO_ASSENTE = assente('FONTE_NON_ATTIVA', 'QUADRO_SINOTTICO');
+  it('somme solo se ogni anno e valorizzato; lo stanziato assente porta l Importo del primo anno che manca', () => {
+    const k = kpiImportiPerAnno([anno(imp(500), STANZIATO_ASSENTE, 0), anno(imp(300), STANZIATO_ASSENTE, 2)]);
+    expect(k.ammesso).toEqual({ valore: 800, nota: '2 domande senza importo ammesso: non entrano nella somma' });
+    expect(k.stanziato).toEqual({ valore: null, importo: STANZIATO_ASSENTE });
+    const pieni = kpiImportiPerAnno([anno(imp(500), imp(700), 0)]);
+    expect(pieni.stanziato).toEqual({ valore: 700, nota: 'somma degli anni di raccolta' });
+  });
+  it('ammesso mancante per un anno: non calcolabile, con il motivo', () => {
+    const k = kpiImportiPerAnno([anno(imp(500), undefined, 0), anno(assente('NON_VALORIZZATO'), undefined, 0)]);
+    expect(k.ammesso.valore).toBeNull();
+    expect(k.ammesso.motivo).toBe('Non calcolabile: manca per almeno un anno di raccolta');
+  });
+  it('notaSenzaAmmesso: singolare, plurale, nessuna e conteggio mancante', () => {
+    expect(notaSenzaAmmesso([anno(imp(1), undefined, 1)])).toBe('1 domanda senza importo ammesso: non entra nella somma');
+    expect(notaSenzaAmmesso([anno(imp(1), undefined, 0)])).toBe('somma degli anni di raccolta');
+    expect(notaSenzaAmmesso([anno(imp(1), undefined, null)])).toBe('domande senza importo ammesso: conteggio non disponibile per almeno un anno');
   });
 });

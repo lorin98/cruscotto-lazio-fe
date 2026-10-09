@@ -6,11 +6,12 @@ import { server } from '../src/shared/api/mock/server';
 import { expectNoA11yViolations } from '../src/shared/testing/axe';
 import { rispondi } from '../src/shared/testing/msw';
 import { renderPagina } from '../src/shared/testing/render-pagina';
-import { DETTAGLIO_INTERVENTO, PAGINE_FINANZIARIO } from '../src/features/finanziario';
+import { DETTAGLIO_INTERVENTO } from '../src/features/finanziario';
+import { PAGINE_FINANZIARIO } from '../src/features/finanziario/lib/report';
 import PaginaRiepilogo from '../src/pages/finanziario/riepilogo/page';
 import PaginaVerificaSmp from '../src/pages/finanziario/sigc/verifica-smp/page';
 import routeTable from '../src/app/route-table.json';
-import * as F from '../src/shared/testing/fixture-finanziario';
+import * as F from '../src/features/finanziario/testing/fixture';
 
 // Impaginazione comune delle pagine (widget PaginaFinanziario, UI v2) e coerenza del catalogo delle pagine con la
 // route-table. I comportamenti di ogni pagina sono nei page.test.tsx accanto alle pagine; menu e intestazione nei test

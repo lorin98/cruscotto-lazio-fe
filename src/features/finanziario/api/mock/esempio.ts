@@ -1,7 +1,9 @@
-// esempio-finanziario.ts — dati DI ESEMPIO del finanziario per il dev server con MSW (npm run dev): valori INVENTATI e
+// esempio.ts — dati DI ESEMPIO del finanziario per il dev server con MSW (npm run dev): valori INVENTATI e
 // deterministici, nella forma dei DTO della spec e con le stesse assenze dei dati reali (impegni, stanziato, quote Stato
 // e Regione, vincolo LEADER da fonte non attiva). Rispettano i filtri intervento/og/os/op, cosi' panoramica, dettaglio e
 // pannello dei filtri si provano davvero. Solo il worker del browser li usa: i test hanno le loro fixture.
+// Stanno nella feature (review v2 H-20): il worker di shared/api/mock/browser.ts li raccoglie per convenzione di percorso
+// (features/<slice>/api/mock/esempio.ts, export handlersEsempio).
 import { http, HttpResponse } from 'msw';
 import type { RequestHandler } from 'msw';
 

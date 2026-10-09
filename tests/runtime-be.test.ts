@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { delay, http, HttpResponse } from 'msw';
 import { AxiosError, AxiosHeaders } from 'axios';
 import type { AxiosResponse } from 'axios';
@@ -7,6 +7,10 @@ import { AXIOS_INSTANCE, LETTURE_IN_PARALLELO, authEvents, customInstance } from
 import { classifyProblem } from '../src/shared/api/problem/problem-types';
 import { getErrorMessage } from '../src/shared/lib';
 import { rispostaRiservaAssente } from '../src/features/finanziario/api';
+import { configuraTettiDellApp } from '../src/app/tetti-letture';
+
+// il tetto delle letture lo configura l'app all'avvio (main.tsx, H-21): qui la stessa configurazione
+beforeAll(() => configuraTettiDellApp());
 import { attesaPrimaDiRiprovare, soloTransitori } from '../src/shared/api/retry/nuovi-tentativi';
 
 // Runtime allineato al contratto reale del backend ARSCSR (review step9: H-01..H-04, A-02, A-04, A-05, V-02).

@@ -18,7 +18,7 @@ import {
   valoreFiltroValido,
 } from '../src/features/finanziario/lib/filtri';
 import type { Filtri } from '../src/features/finanziario/lib/filtri';
-import { etichettaPerimetro, perimetroBreve } from '../src/features/finanziario/lib/perimetro';
+import { PERIMETRO_ADA, etichettaDiProgramma, etichettaPerimetro, perimetroBreve, perimetroCombinato } from '../src/features/finanziario/lib/perimetro';
 import {
   annoDiRaccolta,
   annoOpzionale,
@@ -33,11 +33,11 @@ import {
   GRANT,
   PAGINE_FINANZIARIO,
   PERCORSI,
+  codiceDaRicerca,
   codiceInterventoValido,
   conFiltri,
   pagineVisibili,
   percorsoIntervento,
-  reportVisibili,
   titoloH1,
   voceDi,
 } from '../src/features/finanziario/lib/report';
@@ -49,6 +49,7 @@ import {
   etichettaFaseRiserva,
   inizioFase,
   istantaneaAnteriore,
+  kpiRiserva,
   testoCongelato,
   testoResiduo,
   utilizzoOltreRiserva,
@@ -352,9 +353,9 @@ describe('catalogo delle pagine (UI v2)', () => {
   it('PERCORSI: le route della route-table', () => {
     expect(Object.values(PERCORSI).sort()).toEqual(routeTable.routes.map((r) => r.path).sort());
   });
-  it('reportVisibili e pagineVisibili: basta uno dei grant della pagina', () => {
-    expect(reportVisibili((g) => g === GRANT.distribuzioneDotazione).map((r) => r.percorso)).toEqual(['/finanziario/dotazione']);
-    expect(reportVisibili(() => false)).toEqual([]);
+  it('pagineVisibili: basta uno dei grant della pagina', () => {
+    expect(pagineVisibili((g) => g === GRANT.distribuzioneDotazione).map((r) => r.percorso)).toEqual(['/finanziario/dotazione']);
+    expect(pagineVisibili(() => false)).toEqual([]);
     // la panoramica si vede con uno qualunque dei suoi grant (qui TX-0009, che apre anche Domande)
     expect(pagineVisibili((g) => g === 'csr.tx-0009.read').map((r) => r.percorso)).toEqual(['/finanziario', '/finanziario/domande']);
     expect(pagineVisibili((g) => g === 'csr.tx-0014.read').map((r) => r.percorso)).toEqual(['/finanziario/sigc/riserva']);
@@ -447,5 +448,56 @@ describe('tabella interattiva: ordine, aria-sort, didascalia, colonne', () => {
     expect([...conColonna(nascoste, 'stanziato', false)].sort()).toEqual(['quotaFeasr', 'stanziato']);
     expect([...conColonna(nascoste, 'stanziato', true)]).toEqual(['quotaFeasr']);
     expect(conColonna(nascoste, 'quotaFeasr', false)).not.toBe(nascoste);
+  });
+});
+
+// ---------------------------------------------------------------- iterazione 3 della review v2
+
+describe('perimetro: regole uniche (N-20)', () => {
+  it('perimetroCombinato: ADA se anche una sola risposta lo e, regionale se ce n e, altrimenti non indicato', () => {
+    expect(perimetroCombinato(['REGIONALE', 'ADA', undefined])).toBe(PERIMETRO_ADA);
+    expect(perimetroCombinato(['REGIONALE', null])).toBe('REGIONALE');
+    expect(perimetroCombinato([undefined, null])).toBeUndefined();
+  });
+  it('etichettaDiProgramma: con il perimetro ADA il dato di programma si dichiara regionale', () => {
+    expect(etichettaDiProgramma('Dotazione', 'ADA')).toBe('Dotazione (regionale)');
+    expect(etichettaDiProgramma('Dotazione', 'REGIONALE')).toBe('Dotazione');
+    expect(etichettaDiProgramma('Dotazione', undefined)).toBe('Dotazione');
+  });
+});
+
+describe('codiceDaRicerca (H-25)', () => {
+  it('la prima parola in maiuscolo se e un codice di intervento, altrimenti niente', () => {
+    expect(codiceDaRicerca('  sra01 Intervento di prova A')).toBe('SRA01');
+    expect(codiceDaRicerca('SRD07')).toBe('SRD07');
+    for (const t of ['', '   ', 'intervento', '<x>', '../riepilogo']) expect(codiceDaRicerca(t)).toBeUndefined();
+  });
+});
+
+describe('kpiRiserva (N-09)', () => {
+  const ANNO = 2024;
+  const inizioResiduo = calendarioRiserva(ANNO).inizioResiduo;
+  it('valori presenti: niente assenze; utilizzo oltre la riserva segnalato; residuo previsto prima dell inizio della fase', () => {
+    const d = { fase: 'UTILIZZO' as FaseRiserva, dataEstrazione: '2025-06-30', importoAccumulato: 1000, importoCongelato: 900, importoUtilizzato: 950, importoResiduoDisponibile: 50 };
+    const k = kpiRiserva(d, ANNO, '2025-07-01');
+    expect(k.accumulato).toEqual({ valore: 1000, nota: `Fase: ${etichettaFaseRiserva('UTILIZZO', ANNO)}` });
+    expect(k.congelato).toEqual({ valore: 900, nota: undefined });
+    expect(k.utilizzato).toEqual({ valore: 950, nota: 'Supera la riserva di questa estrazione', oltreRiserva: utilizzoOltreRiserva(d) });
+    expect(k.utilizzato.oltreRiserva).toBe(true);
+    expect(k.residuo.valore).toBe(50);
+    expect(k.residuo.nota).toBe(`Previsto: disponibile dal ${dataBreve(inizioResiduo)}`);
+    // dal primo giorno della fase il residuo non e' piu' "previsto"
+    expect(kpiRiserva(d, ANNO, inizioResiduo).residuo.nota).toBeUndefined();
+  });
+  it('valori assenti: ogni KPI dice perche, con l iniziale maiuscola, come la tabella delle voci', () => {
+    const d = { fase: 'ACCUMULO' as FaseRiserva, dataEstrazione: '2024-06-30' };
+    const k = kpiRiserva(d, ANNO, '2024-07-01');
+    expect(k.accumulato).toEqual({ valore: null, assente: 'Non disponibile', nota: `Fase: ${etichettaFaseRiserva('ACCUMULO', ANNO)}` });
+    const congelato = testoCongelato(null, ANNO, d.dataEstrazione);
+    expect(k.congelato.assente).toBe(`${congelato.charAt(0).toUpperCase()}${congelato.slice(1)}`);
+    expect(k.utilizzato).toEqual({ valore: null, assente: 'Non disponibile', nota: undefined, oltreRiserva: false });
+    const residuo = testoResiduo(null, ANNO, d.dataEstrazione, '2024-07-01');
+    expect(k.residuo.assente).toBe(`${residuo.charAt(0).toUpperCase()}${residuo.slice(1)}`);
+    expect(k.residuo.nota).toBeUndefined();
   });
 });

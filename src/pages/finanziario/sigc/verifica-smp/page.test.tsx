@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { server } from '../../../../shared/api/mock/server';
 import { expectNoA11yViolations } from '../../../../shared/testing/axe';
-import { VERIFICA_SMP } from '../../../../shared/testing/fixture-finanziario';
+import { VERIFICA_SMP } from '../../../../features/finanziario/testing/fixture';
 import { renderPagina } from '../../../../shared/testing/render-pagina';
 import Pagina from './page';
 

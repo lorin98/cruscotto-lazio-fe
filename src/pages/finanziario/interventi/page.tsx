@@ -1,6 +1,7 @@
 // Pagina /finanziario/interventi/:codice (UI v2, flusso panoramica): dettaglio dell'intervento. Il codice della route e'
 // validato con il formato dei filtri: un codice non valido non genera richieste. Titolo (h1, focus, titolo del documento)
-// sempre della pagina, anche in caricamento, in errore o senza grant; nella barra il solo intervento, fisso.
+// sempre della pagina, anche in caricamento, in errore o senza grant; nella barra il solo intervento, fisso. L'indirizzo
+// porta la selezione da cui si e' arrivati: breadcrumb, menu e "Torna al riepilogo" la conservano (N-03).
 import { useParams } from 'react-router';
 import { DETTAGLIO_INTERVENTO, DettaglioIntervento, PERCORSI, codiceInterventoValido, useDescrizioneIntervento, voceDi } from '../../../features/finanziario';
 
@@ -26,7 +27,7 @@ export default function Pagina() {
       titoloDocumento={codice}
       briciole={[AL_RIEPILOGO, { etichetta: codice }]}
     >
-      {() => <DettaglioIntervento codice={codice} />}
+      {(filtri) => <DettaglioIntervento codice={codice} selezione={filtri} />}
     </PaginaFinanziario>
   );
 }

@@ -15,8 +15,10 @@ import {
   valoreInNumero,
 } from '../../../../shared/lib';
 import type { DatiGrafico } from '../../../../shared/lib';
-import type { RigaDomandeAnno, RigaImportiAnno } from './dto';
-import { annoDi, assenzaImporto, cellaImporto, cellaNumero, perAnno, valoreDi } from './resa';
+import { sommaSeCompleta } from '../aggregati';
+import type { RigaDomandeAnno, RigaImportiAnno } from '../dto';
+import { annoDiRaccolta, numeroOpzionale } from '../formato';
+import { assenzaImporto, cellaImporto, perAnno, valoreDi } from '../importi';
 
 // ---------------------------------------------------------------- 1. domande per anno di raccolta
 
@@ -26,20 +28,15 @@ const ANNUALITA = [
   { nome: 'Non classificate', campo: 'nonClassificate' },
 ] as const;
 
-/** Somma di conteggi solo se ognuno e' noto: con anche un solo assente il totale non si dichiara. */
-function totaleConteggi(valori: ReadonlyArray<number | null | undefined>): number | null {
-  const noti = valori.map(numeroDi);
-  return noti.every((t): t is number => t != null) ? noti.reduce((a, t) => a + t, 0) : null;
-}
 
 /** Barre impilate delle domande per anno di raccolta (senza campagna in coda): prima annualita', altre, non classificate. */
 export function graficoDomandePerAnno(righe: RigaDomandeAnno[]): DatiGrafico {
   const ordinate = perAnno(righe);
-  const categorie = ordinate.map((r) => annoDi(r.annoRaccolta));
+  const categorie = ordinate.map((r) => annoDiRaccolta(r.annoRaccolta));
   const tabella = {
     caption: 'Domande per anno di raccolta',
     colonne: ['Anno', 'Prima annualità', 'Altre', 'Non classificate', 'Totale'],
-    righe: ordinate.map((r, k) => [categorie[k], cellaNumero(r.primaAnnualita), cellaNumero(r.altreAnnualita), cellaNumero(r.nonClassificate), cellaNumero(r.totali)]),
+    righe: ordinate.map((r, k) => [categorie[k], numeroOpzionale(r.primaAnnualita), numeroOpzionale(r.altreAnnualita), numeroOpzionale(r.nonClassificate), numeroOpzionale(r.totali)]),
   };
   if (ordinate.length === 0) return nonDisegnabile('nessuna domanda per anno di raccolta', tabella, []);
   const omessi: string[] = [];
@@ -54,7 +51,7 @@ export function graficoDomandePerAnno(righe: RigaDomandeAnno[]): DatiGrafico {
     }),
   }));
   if (!serie.some((s) => (s.data ?? []).some((v) => v != null))) return nonDisegnabile('nessun numero di domande valorizzato', tabella, omessi);
-  const totale = totaleConteggi(ordinate.map((r) => r.totali));
+  const totale = sommaSeCompleta(ordinate.map((r) => r.totali));
   const descrizione =
     `Barre impilate delle domande per anno di raccolta (${categorie.join(', ')}): prima annualità, altre annualità e non classificate` +
     `${totale == null ? '' : `; ${plurale(totale, 'domanda', 'domande')} in tutto`}.${notaOmessi(omessi)}`;
@@ -88,17 +85,17 @@ function lineaImporti(def: (typeof IMPORTI)[number], righe: readonly RigaImporti
 /** Linee degli importi per anno di raccolta; i punti assenti sono vuoti (mai zero) e dichiarati, come le domande senza ammesso. */
 export function graficoImportiPerAnno(righe: RigaImportiAnno[]): DatiGrafico {
   const ordinate = perAnno(righe);
-  const categorie = ordinate.map((r) => annoDi(r.annoRaccolta));
+  const categorie = ordinate.map((r) => annoDiRaccolta(r.annoRaccolta));
   const tabella = {
     caption: 'Importi per anno di raccolta: stanziato, ammesso e decretato',
     colonne: ['Anno', 'Stanziato', 'Ammesso', 'Decretato', 'Domande senza importo ammesso'],
-    righe: ordinate.map((r, k) => [categorie[k], cellaImporto(r.importoStanziato, true), cellaImporto(r.importoAmmesso, true), cellaImporto(r.importoDecretato, true), cellaNumero(r.domandeSenzaAmmesso)]),
+    righe: ordinate.map((r, k) => [categorie[k], cellaImporto(r.importoStanziato, true), cellaImporto(r.importoAmmesso, true), cellaImporto(r.importoDecretato, true), numeroOpzionale(r.domandeSenzaAmmesso)]),
   };
   if (ordinate.length === 0) return nonDisegnabile('nessun importo per anno di raccolta', tabella, []);
   const omessi: string[] = [];
   const serie = IMPORTI.map((def) => lineaImporti(def, ordinate, categorie, omessi)).filter((s): s is LineSeriesOption => s != null);
   if (serie.length === 0) return nonDisegnabile('nessun importo valorizzato per anno di raccolta', tabella, omessi);
-  const senzaAmmesso = totaleConteggi(ordinate.map((r) => r.domandeSenzaAmmesso));
+  const senzaAmmesso = sommaSeCompleta(ordinate.map((r) => r.domandeSenzaAmmesso));
   if (senzaAmmesso) omessi.push(`${plurale(senzaAmmesso, 'domanda senza importo ammesso', 'domande senza importo ammesso')}: ${senzaAmmesso === 1 ? 'non entra' : 'non entrano'} nelle somme`);
   const descrizione = `Linee ${serie.map((s) => `dell'${String(s.name).toLowerCase()}`).join(' e ')} per anno di raccolta (${categorie.join(', ')}), in milioni di euro.${notaOmessi(omessi)}`;
   const opzioni: EChartsOption = {

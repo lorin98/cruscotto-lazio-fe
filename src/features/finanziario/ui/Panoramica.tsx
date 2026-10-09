@@ -5,7 +5,7 @@
 // il suo dettaglio; raggruppamento per famiglia finche' manca la gerarchia degli obiettivi (OP-FE-07).
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { codiceDalClic, formatNumber, formatPercentuale, importoKpi } from '../../../shared/lib';
+import { formatNumber, formatPercentuale, importoKpi } from '../../../shared/lib';
 import { Caricamento, CardGrafico, Griglia, Kpi, VistaQuery } from '../../../shared/ui';
 import type { ClicGrafico } from '../../../shared/ui';
 import { useSigcDomande, useSigcImporti, useSpesaPerIntervento, useTotaleDomande } from '../api';
@@ -14,9 +14,10 @@ import { kpiSpesa } from '../lib/aggregati';
 import type { Aggregato } from '../lib/aggregati';
 import type { Filtri } from '../lib/filtri';
 import { graficoAvanzamento, graficoCascataSigc, graficoFamiglie, graficoImbutoSigc } from '../lib/grafici';
-import { GRANT, PERCORSI, codiceInterventoValido, conFiltri, percorsoIntervento } from '../lib/report';
+import { GRANT, PERCORSI, conFiltri } from '../lib/report';
 import { ConGrant, NotaPerimetroMisto, PerimetroSezione, diProgramma, erroreGiaMostrato, vuotoConPerimetro } from './comuni';
 import { useSelezioneSenzaDomandeSigc, useSelezioneSenzaInterventi } from './selezione';
+import { useApriIntervento } from './useApriIntervento';
 
 const VUOTO_INTERVENTI = vuotoConPerimetro('Nessun intervento per i filtri scelti.', { programma: true });
 const VUOTO_SIGC = vuotoConPerimetro('Nessuna domanda SIGC per i filtri scelti.');
@@ -75,14 +76,10 @@ function KpiDomande({ filtri }: { filtri: Filtri }) {
   return segnale === 'in-attesa' ? <Caricamento /> : <KpiDomandeDati filtri={filtri} />;
 }
 
-function GraficiSpesa({ filtri, onIntervento }: { filtri: Filtri; onIntervento: (codice: string) => void }) {
+// il clic su un intervento (barra o foglia) apre il dettaglio; su una famiglia il treemap entra nel gruppo
+function GraficiSpesa({ filtri, clic }: { filtri: Filtri; clic: (p: ClicGrafico) => void }) {
   const stato = useSpesaPerIntervento(filtri);
   const [forma, setForma] = useState<'treemap' | 'sunburst'>('treemap');
-  // il clic su un intervento (barra o foglia) apre il dettaglio; su una famiglia il treemap entra nel gruppo
-  const clic = (p: ClicGrafico) => {
-    const codice = codiceDalClic(p);
-    if (codiceInterventoValido(codice)) onIntervento(codice);
-  };
   return (
     <VistaQuery stato={stato} eVuoto={(d) => (d.righe ?? []).length === 0} vuoto={VUOTO_INTERVENTI}>
       {(d) => (
@@ -161,8 +158,7 @@ function ImportiSigc({ filtri }: { filtri: Filtri }) {
 
 export function Panoramica({ filtri }: { filtri: Filtri }) {
   const naviga = useNavigate();
-  // il dettaglio e' dell'intervento intero: ci si arriva senza gli altri filtri (V-01, wireframe intervento)
-  const apriIntervento = (c: string) => void naviga(percorsoIntervento(c));
+  const { dalClic } = useApriIntervento(filtri);
   return (
     <>
       <Griglia colonne={4}>
@@ -174,7 +170,7 @@ export function Panoramica({ filtri }: { filtri: Filtri }) {
         </ConGrant>
       </Griglia>
       <ConGrant grant={GRANT.spesaPerIntervento} titolo="Dotazione e pagamenti per intervento">
-        <GraficiSpesa filtri={filtri} onIntervento={apriIntervento} />
+        <GraficiSpesa filtri={filtri} clic={dalClic} />
       </ConGrant>
       <Griglia>
         <ConGrant grant={GRANT.sigcDomande} titolo="Domande SIGC">

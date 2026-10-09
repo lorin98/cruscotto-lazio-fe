@@ -4,20 +4,21 @@
 // nel piede la dotazione dell'Assistenza tecnica (intero programma, non dipende dai filtri). Ogni cella assente dice il
 // suo motivo; i totali sono "non calcolabile" se manca anche un solo valore (mai somme parziali).
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link } from 'react-router';
 import { ValoreImporto } from '../../../entities/importo';
-import { codiceDalClic, formatEuro, formatNumber, getErrorMessage } from '../../../shared/lib';
+import { formatNumber, getErrorMessage } from '../../../shared/lib';
 import { CardGrafico, PannelloLaterale, Sezione, TabellaInterattiva, VistaQuery, salvaFile } from '../../../shared/ui';
 import type { ColonnaTabella, RigaPiede } from '../../../shared/ui';
 import { useEsportaRiepilogoCsv, useRiepilogo } from '../api';
 import type { RiepilogoFinanziario, RiepilogoFinanziarioRiga } from '../api';
-import { sommaSeCompleta, totaleImporti } from '../lib/aggregati';
+import { cellaTotale, sommaSeCompleta } from '../lib/aggregati';
 import { ricercaDaFiltri } from '../lib/filtri';
 import type { Filtri } from '../lib/filtri';
 import { graficoDotazionePagamenti } from '../lib/grafici';
 import type { Perimetro } from '../lib/perimetro';
-import { codiceInterventoValido, percorsoIntervento } from '../lib/report';
+import { conFiltri, percorsoIntervento } from '../lib/report';
 import { NotaPerimetroMisto, PerimetroSezione, colonneImporti, diProgramma, vuotoConPerimetro } from './comuni';
+import { useApriIntervento } from './useApriIntervento';
 import type { CampoImporto } from './comuni';
 
 type Riga = RiepilogoFinanziarioRiga;
@@ -43,13 +44,10 @@ function colonne(perimetro: Perimetro | undefined): ColonnaTabella<Riga>[] {
   ];
 }
 
-/** Riga dei totali sulle righe filtrate: un totale con anche un solo assente e' "non calcolabile". */
+/** Riga dei totali sulle righe filtrate: mai somme parziali; un'assenza comune a tutte le righe dice il suo motivo. */
 function totali(righe: readonly Riga[]): RigaPiede {
   const domande = sommaSeCompleta(righe.map((r) => r.domandePresentate));
-  const importi = CAMPI.map((c) => {
-    const t = totaleImporti(righe, (r) => r[c.chiave] as Riga['dotazioneSpesaPubblica']);
-    return [c.chiave, t.valore === null ? 'non calcolabile' : formatEuro(t.valore)];
-  });
+  const importi = CAMPI.map((c) => [c.chiave, cellaTotale(righe, (r) => r[c.chiave] as Riga['dotazioneSpesaPubblica'])]);
   return {
     codice: righe.length === 1 ? 'Totale (1 intervento)' : `Totale (${righe.length} interventi)`,
     domande: domande === null ? 'non calcolabile' : formatNumber(domande),
@@ -78,7 +76,7 @@ function EsportaCsv({ filtri }: { filtri: Filtri }) {
   );
 }
 
-function Anteprima({ riga, perimetro, onChiudi }: { riga: Riga | null; perimetro?: Perimetro; onChiudi: () => void }) {
+function Anteprima({ riga, perimetro, filtri, onChiudi }: { riga: Riga | null; perimetro?: Perimetro; filtri: Filtri; onChiudi: () => void }) {
   return (
     <PannelloLaterale aperto={riga !== null} onChiudi={onChiudi} titolo={riga?.codiceIntervento ?? ''} sopratitolo="Anteprima dell'intervento" stretto>
       {riga && (
@@ -98,7 +96,7 @@ function Anteprima({ riga, perimetro, onChiudi }: { riga: Riga | null; perimetro
             ))}
           </dl>
           {riga.codiceIntervento && (
-            <Link className="btn btn-primary mt-3 w-100" to={percorsoIntervento(riga.codiceIntervento)}>
+            <Link className="btn btn-primary mt-3 w-100" to={conFiltri(percorsoIntervento(riga.codiceIntervento), filtri)}>
               {"Apri il dettaglio dell'intervento"}
             </Link>
           )}
@@ -109,7 +107,7 @@ function Anteprima({ riga, perimetro, onChiudi }: { riga: Riga | null; perimetro
 }
 
 function Contenuto({ d, filtri }: { d: RiepilogoFinanziario; filtri: Filtri }) {
-  const naviga = useNavigate();
+  const { dalClic } = useApriIntervento(filtri);
   const righe = d.righe ?? [];
   const [aperta, setAperta] = useState<Riga | null>(null);
   const [vista, setVista] = useState<'tabella' | 'grafico'>('tabella');
@@ -154,13 +152,10 @@ function Contenuto({ d, filtri }: { d: RiepilogoFinanziario; filtri: Filtri }) {
             'Pagamenti al netto delle rettifiche',
           )}
           fonte="Fonte: TX-0011, riepilogo per intervento"
-          onClic={(p) => {
-            const codice = codiceDalClic(p);
-            if (codiceInterventoValido(codice)) void naviga(percorsoIntervento(codice));
-          }}
+          onClic={dalClic}
         />
       )}
-      <Anteprima riga={aperta} perimetro={d.perimetro} onChiudi={() => setAperta(null)} />
+      <Anteprima riga={aperta} perimetro={d.perimetro} filtri={filtri} onChiudi={() => setAperta(null)} />
     </>
   );
 }
