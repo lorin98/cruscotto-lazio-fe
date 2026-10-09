@@ -16,7 +16,9 @@ export interface GraficoFinto {
   on: (evento: string, f: (p: unknown) => void) => GraficoFinto;
   resize: () => void;
   dispose: () => void;
-  getDataURL: () => string;
+  getOption: () => unknown;
+  getWidth: () => number;
+  getHeight: () => number;
 }
 
 // ogni metodo di IstanzaGrafico deve esistere nel finto
@@ -43,7 +45,10 @@ export function creaGraficoFinto(el: HTMLElement): IstanzaGrafico {
     dispose: () => {
       g.dismesso = true;
     },
-    getDataURL: () => 'data:image/svg+xml;charset=utf-8,',
+    // le ultime opzioni ricevute, come l'istanza vera dopo setOption con notMerge
+    getOption: () => g.opzioni.at(-1),
+    getWidth: () => 800,
+    getHeight: () => 320,
   };
   graficiFinti.push(g);
   return g as unknown as IstanzaGrafico;

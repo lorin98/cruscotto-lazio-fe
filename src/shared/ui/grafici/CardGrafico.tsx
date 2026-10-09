@@ -1,16 +1,21 @@
 // CardGrafico — card di un grafico (ADR 0027): titolo, interruttore Grafico / Tabella (la tabella equivalente e' il
-// canale accessibile, WCAG 1.1.1 e 1.4.1), download SVG, valori omessi dichiarati, nota sulla fonte. Se il grafico non e'
-// disegnabile (opzioni null) dice perche' e mostra subito la tabella con cio' che c'e'.
+// canale accessibile, WCAG 1.1.1 e 1.4.1), download, valori omessi dichiarati, nota sulla fonte. Se il grafico non e'
+// disegnabile (opzioni null) dice perche' e mostra subito la tabella con cio' che c'e'. Download (09/10/2026): PNG del
+// grafico come si vede, nella vista Grafico; poi i file dei dati che passa il chiamante (CSV e XLSX dal backend).
 import { useId, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { COLORI } from '../../lib/grafici';
+import { nomeFile } from '../../lib/nome-file';
 import type { DatiGrafico } from '../../lib/grafici';
 import { TestaCard } from '../card/Sezione';
 import { blobDaDataUrl, salvaFile } from '../salva-file';
 import { Icona } from '../icona';
+import { PulsantiScarica } from '../scarica/PulsantiScarica';
+import type { Scaricamento } from '../scarica/PulsantiScarica';
 import { TabellaDati } from '../tabella/TabelleSemplici';
 import { Grafico } from './Grafico';
 import type { AltezzaGrafico, ClicGrafico } from './Grafico';
+import { pngDelGrafico } from './echarts';
 import type { IstanzaGrafico } from './echarts';
 
 export function CardGrafico({
@@ -21,6 +26,7 @@ export function CardGrafico({
   altezza = 'normale',
   onClic,
   strumenti,
+  scaricamenti = [],
   livello = 2,
 }: {
   titolo: string;
@@ -30,6 +36,8 @@ export function CardGrafico({
   altezza?: AltezzaGrafico;
   onClic?: (p: ClicGrafico) => void;
   strumenti?: ReactNode;
+  /** File dei dati del grafico (CSV, XLSX), dopo il PNG. */
+  scaricamenti?: readonly Scaricamento[];
   livello?: 2 | 3;
 }) {
   const id = useId();
@@ -38,11 +46,20 @@ export function CardGrafico({
   const istanza = useRef<IstanzaGrafico | null>(null);
   const mostraTabella = !disegnabile || vista === 'tabella';
 
-  const scarica = () => {
-    const c = istanza.current;
-    if (!c) return;
-    salvaFile(blobDaDataUrl(c.getDataURL({ backgroundColor: COLORI.superficie })), `${titolo.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}.svg`);
-  };
+  // il PNG solo nella vista Grafico: nella vista Tabella il grafico e' nascosto e non ha dimensioni
+  const png: Scaricamento[] =
+    disegnabile && vista === 'grafico'
+      ? [
+          {
+            formato: 'PNG',
+            scarica: () => {
+              const c = istanza.current;
+              if (!c) throw new Error('grafico non ancora disegnato');
+              salvaFile(blobDaDataUrl(pngDelGrafico(c, COLORI.superficie)), nomeFile(titolo, 'png'));
+            },
+          },
+        ]
+      : [];
 
   return (
     // data-card-grafico: la card con grafico o con il motivo dell'assenza (i test la distinguono da una Sezione omonima)
@@ -65,11 +82,9 @@ export function CardGrafico({
                     Tabella
                   </button>
                 </div>
-                <button type="button" className="ui-icona-btn" onClick={scarica} aria-label={`Scarica il grafico ${titolo} come immagine`} title="Scarica come immagine">
-                  <Icona nome="it-download" />
-                </button>
               </>
             )}
+            <PulsantiScarica oggetto={`il grafico ${titolo}`} scaricamenti={[...png, ...scaricamenti]} />
           </>
         }
       />

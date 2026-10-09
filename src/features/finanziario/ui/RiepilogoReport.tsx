@@ -6,8 +6,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
 import { ValoreImporto } from '../../../entities/importo';
-import { formatNumber, getErrorMessage } from '../../../shared/lib';
-import { CardGrafico, PannelloLaterale, Sezione, TabellaInterattiva, VistaQuery, salvaFile } from '../../../shared/ui';
+import { formatNumber } from '../../../shared/lib';
+import { CardGrafico, PannelloLaterale, PulsantiScarica, Sezione, TabellaInterattiva, VistaQuery, salvaFile } from '../../../shared/ui';
 import type { ColonnaTabella, RigaPiede } from '../../../shared/ui';
 import { useEsportaRiepilogoCsv, useRiepilogo } from '../api';
 import type { RiepilogoFinanziario, RiepilogoFinanziarioRiga } from '../api';
@@ -57,22 +57,11 @@ function totali(righe: readonly Riga[]): RigaPiede {
 
 function EsportaCsv({ filtri }: { filtri: Filtri }) {
   const esportazione = useEsportaRiepilogoCsv();
-  const esporta = () => esportazione.mutate(filtri, { onSuccess: (csv) => salvaFile(csv, 'riepilogo-finanziario.csv') });
   return (
-    <>
-      <button type="button" className="btn btn-outline-primary btn-sm" onClick={esporta} disabled={esportazione.isPending}>
-        Esporta la tabella in CSV
-      </button>
-      <span role="status" aria-live="polite" className="small">
-        {esportazione.isPending && 'Esportazione del file CSV in corso…'}
-        {esportazione.isSuccess && 'File CSV scaricato.'}
-      </span>
-      {esportazione.isError && (
-        <div className="alert alert-danger w-100 mb-0" role="alert">
-          {getErrorMessage(esportazione.error)}
-        </div>
-      )}
-    </>
+    <PulsantiScarica
+      oggetto="la tabella Riepilogo per intervento"
+      scaricamenti={[{ formato: 'CSV', scarica: async () => salvaFile(await esportazione.mutateAsync(filtri), 'riepilogo-finanziario.csv') }]}
+    />
   );
 }
 

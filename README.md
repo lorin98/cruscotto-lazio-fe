@@ -128,7 +128,11 @@ distingue tre casi:
 Il kit generico sta in `src/shared/ui` e si riusa nelle prossime aree:
 - `tema.css`: token (`--ui-*`) e classi `ui-*` sopra bootstrap-italia; font Titillium serviti dall'app;
 - `grafici/`: `Grafico`, il solo wrapper di Apache ECharts (import modulari, renderer SVG, niente animazioni con
-  `prefers-reduced-motion`), e `CardGrafico`: titolo, vista Grafico/Tabella, download, voci omesse, fonte;
+  `prefers-reduced-motion`), e `CardGrafico`: titolo, vista Grafico/Tabella, download, voci omesse, fonte. Il PNG del
+  grafico (`pngDelGrafico`) si ridisegna fuori pagina col renderer canvas, con le opzioni correnti (legenda, zoom) e le
+  stesse dimensioni: e' il grafico come si vede, coi font della pagina, a densita' almeno doppia;
+- `PulsantiScarica`: un pulsante per formato (PNG, CSV, XLSX) con icona e sigla, esito in `role=status`, errore in un
+  avviso. CSV e XLSX dei dati vengono dal backend (D-08: ogni export e' registrato in audit), mai generati nel browser;
 - `Kpi`, `BarraFiltri`, `PannelloLaterale` (dialogo laterale di react-aria-components), `Sezione` e `Griglia`,
   `TabellaInterattiva` (ricerca, ordinamento con `aria-sort`, scelta delle colonne, paginazione, totali e righe di
   piede, riga apribile con clic o Invio; tabella HTML nativa: la `Table` di react-aria non serve senza selezione ne'
@@ -136,7 +140,9 @@ Il kit generico sta in `src/shared/ui` e si riusa nelle prossime aree:
   `TabellaDati`: le assenze col motivo vanno a capo, gli importi no; su schermo stretto il contenitore scorre ed e' una
   regione raggiungibile da tastiera);
 - `VistaQuery` con i rami della vista dati e `AvvisoPagina`, l'avviso d'errore unico della pagina;
-- `salvaFile` e `blobDaDataUrl`: lo stesso salvataggio per l'export CSV e per l'immagine di un grafico.
+- `salvaFile` e `blobDaDataUrl`: lo stesso salvataggio per gli export e per l'immagine di un grafico.
+- Nella `Griglia` una card non ha `height: 100%`: la allunga la griglia, o il contenitore in colonna quando nella stessa
+  cella ci sono piu' card (grafico e voci della pagina SIGC); con `height: 100%` ognuna diventava alta quanto la cella.
 
 Il nome dell'applicazione (titolo dei documenti, testata, Home) e' configurazione del progetto:
 `src/shared/config/applicazione.ts`.

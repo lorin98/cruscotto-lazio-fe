@@ -3,3 +3,4 @@ export * from './format';
 export * from './errori';
 export * from './tabella';
 export * from './grafici';
+export * from './nome-file';

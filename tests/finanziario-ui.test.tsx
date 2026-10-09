@@ -917,7 +917,7 @@ describe('RiepilogoReport (TX-0011, tabella interattiva)', () => {
     URL.revokeObjectURL = vi.fn();
     const clic = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
     conRouter(<RiepilogoReport filtri={{ intervento: ['SRA01'] }} />);
-    await userEvent.click(await screen.findByRole('button', { name: 'Esporta la tabella in CSV' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Scarica la tabella Riepilogo per intervento in CSV' }));
     expect(await screen.findByText('File CSV scaricato.')).toBeTruthy();
     expect(new URL(richiesta?.url ?? 'http://x').search).toBe('?intervento=SRA01');
     expect(richiesta?.headers.get('X-Requested-With')).toBe('XMLHttpRequest');
@@ -933,9 +933,9 @@ describe('RiepilogoReport (TX-0011, tabella interattiva)', () => {
       ),
     );
     conRouter(<RiepilogoReport filtri={{}} />);
-    await userEvent.click(await screen.findByRole('button', { name: 'Esporta la tabella in CSV' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Scarica la tabella Riepilogo per intervento in CSV' }));
     const avviso = await screen.findByRole('alert');
-    expect(avviso.textContent).toBe('Non hai i permessi per consultare questi dati.');
+    expect(avviso.textContent).toBe('File CSV non scaricato. Non hai i permessi per consultare questi dati.');
     expect(avviso.closest('.ui-strumenti')).toBeTruthy();
     expect(screen.getByRole('table', { name: NOME_TABELLA })).toBeTruthy();
   });
@@ -947,7 +947,7 @@ describe('RiepilogoReport (TX-0011, tabella interattiva)', () => {
     expect(screen.queryByRole('table')).toBeNull();
     expect(screen.queryByText(/Dotazione assistenza tecnica/)).toBeNull();
     expect(screen.queryByText(/100\.000,00/)).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Esporta la tabella in CSV' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Scarica la tabella Riepilogo per intervento in CSV' })).toBeNull();
     unmount();
     // 429 non si riprova (CAPACITA_ESAURITA si', con Retry-After): basta a provare il ramo errore
     server.use(rispondi('/api/finanziario/riepilogo', problema(429, 'TROPPE_RICHIESTE'), 429));

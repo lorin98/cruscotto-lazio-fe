@@ -1,18 +1,20 @@
 // echarts.ts — ECharts 6 con import MODULARI (ADR 0027): solo i grafici e i componenti usati dai builder, renderer SVG
-// (testo selezionabile, nitido in stampa, nessun canvas). Unico punto d'ingresso della libreria: i test L2 lo
+// sullo schermo (testo selezionabile, nitido in stampa) e canvas solo per l'immagine PNG scaricata, che si ridisegna
+// fuori dalla pagina con le stesse opzioni e dimensioni. Unico punto d'ingresso della libreria: i test L2 lo
 // sostituiscono (jsdom non disegna), i builder delle opzioni stanno nei lib/ e restano puri. Un tipo di grafico nuovo
 // si registra qui quando un builder lo adotta.
 import * as echarts from 'echarts/core';
+import type { EChartsOption } from 'echarts';
 import type { EChartsType } from 'echarts/core';
 import { BarChart, FunnelChart, GaugeChart, LineChart, PieChart, SankeyChart, SunburstChart, TreemapChart } from 'echarts/charts';
 import { AriaComponent, DataZoomComponent, GridComponent, LegendComponent, MarkLineComponent, TooltipComponent } from 'echarts/components';
-import { SVGRenderer } from 'echarts/renderers';
+import { CanvasRenderer, SVGRenderer } from 'echarts/renderers';
 import { COLORI, PALETTE } from '../../lib/grafici';
 
 echarts.use([
   BarChart, FunnelChart, GaugeChart, LineChart, PieChart, SankeyChart, SunburstChart, TreemapChart,
   AriaComponent, DataZoomComponent, GridComponent, LegendComponent, MarkLineComponent, TooltipComponent,
-  SVGRenderer,
+  CanvasRenderer, SVGRenderer,
 ]);
 
 export const TEMA = 'ui';
@@ -27,8 +29,23 @@ echarts.registerTheme(TEMA, {
 });
 
 /** Cio' che il kit usa di un'istanza di ECharts: il grafico finto dei test implementa gli stessi metodi. */
-export type IstanzaGrafico = Pick<EChartsType, 'setOption' | 'on' | 'resize' | 'dispose' | 'getDataURL'>;
+export type IstanzaGrafico = Pick<EChartsType, 'setOption' | 'on' | 'resize' | 'dispose' | 'getOption' | 'getWidth' | 'getHeight'>;
 
 export function creaGrafico(el: HTMLElement): IstanzaGrafico {
   return echarts.init(el, TEMA, { renderer: 'svg' });
+}
+
+/**
+ * Immagine PNG (data URL) del grafico come si vede: le opzioni CORRENTI dell'istanza (serie nascoste dalla legenda, zoom)
+ * alle stesse dimensioni, ridisegnate senza animazioni col renderer canvas, che usa i font gia' caricati dalla pagina (un
+ * SVG aperto come immagine non li vedrebbe e cambierebbe il testo), a densita' almeno doppia per la nitidezza.
+ */
+export function pngDelGrafico(sorgente: IstanzaGrafico, sfondo: string): string {
+  const copia = echarts.init(document.createElement('div'), TEMA, { renderer: 'canvas', width: sorgente.getWidth(), height: sorgente.getHeight() });
+  try {
+    copia.setOption({ ...(sorgente.getOption() as EChartsOption), animation: false });
+    return copia.getDataURL({ type: 'png', pixelRatio: Math.max(2, window.devicePixelRatio || 1), backgroundColor: sfondo });
+  } finally {
+    copia.dispose();
+  }
 }
