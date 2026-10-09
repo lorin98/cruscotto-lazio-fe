@@ -173,6 +173,29 @@ test('pannello dei filtri e anteprima: dialoghi senza violazioni (react-aria con
   expect(await violazioniConModale(page)).toEqual([]);
 });
 
+// 09/10/2026: il PNG del grafico si ridisegna fuori pagina col renderer canvas e si salva da un blob: niente violazioni
+test('PNG di un grafico scaricato senza violazioni della CSP', async ({ page }) => {
+  await preparaPagina(page);
+  await page.goto('/finanziario');
+  const card = page.locator('section.ui-card', { has: page.getByRole('heading', { name: 'Avanzamento per intervento' }) });
+  await expect(card.locator('.ui-grafico svg')).toHaveCount(1);
+  const [scaricato] = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByRole('button', { name: 'Scarica il grafico Avanzamento per intervento in PNG' }).click(),
+  ]);
+  expect(scaricato.suggestedFilename()).toBe('avanzamento-per-intervento.png');
+  const flusso = await scaricato.createReadStream();
+  const byte: Buffer[] = [];
+  for await (const b of flusso) byte.push(b as Buffer);
+  // firma PNG (PNG) e larghezza doppia di quella del grafico (densita' almeno 2)
+  const png = Buffer.concat(byte);
+  expect(png.subarray(1, 4).toString()).toBe('PNG');
+  const larghezza = await card.locator('.ui-grafico').evaluate((el) => Math.round(el.getBoundingClientRect().width));
+  expect(png.readUInt32BE(16)).toBeGreaterThanOrEqual(2 * larghezza - 2);
+  await expect(page.getByRole('status').filter({ hasText: 'Immagine PNG scaricata.' })).toHaveCount(1);
+  expect(await violazioni(page)).toEqual([]);
+});
+
 test("dettaglio dell'intervento: KPI, grafici e schede senza violazioni della CSP", async ({ page }) => {
   await preparaPagina(page);
   await page.goto('/finanziario/interventi/SRA01');

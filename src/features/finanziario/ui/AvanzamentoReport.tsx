@@ -7,8 +7,9 @@
 import type { ReactNode } from 'react';
 import type { ImportoLike } from '../../../entities/importo';
 import { Caricamento, CardGrafico, Griglia, VistaQuery } from '../../../shared/ui';
-import type { StatoQuery } from '../../../shared/ui';
+import type { Scaricamento, StatoQuery } from '../../../shared/ui';
 import { usePagamentiSuImpegnato, useResiduoImpegni, useResiduoPagamenti, useStanziato } from '../api';
+import { datiDelReport } from './esportazioni';
 import type { Filtri } from '../lib/filtri';
 import { graficoGauge, graficoPartiImporto, graficoSankey, sottotitoloFlusso } from '../lib/grafici';
 import { PERIMETRO_ADA, perimetroCombinato } from '../lib/perimetro';
@@ -104,6 +105,7 @@ function PagatoSullaDotazione({ filtri }: { filtri: Filtri }) {
           dati={graficoGauge(d.importoPagato?.valore, d.dotazioneSpesaPubblica?.valore, 'della dotazione pagato', d.perimetro)}
           fonte={`Fonte: TX-0007 · Perimetro ${d.perimetro ?? 'non indicato'}`}
           altezza="alto"
+          scaricamenti={datiDelReport('Pagato sulla dotazione', 'residuoPagamenti', filtri)}
         />
       )}
     </VistaQuery>
@@ -151,9 +153,11 @@ function Parti<T extends { perimetro?: Perimetro }>(props: {
   parti: (d: T) => [Voce, Voce];
   voci: (d: T) => Voce[];
   fonte: string;
+  /** CSV e XLSX della TX della sezione. */
+  scaricamenti: Scaricamento[];
   misto?: boolean;
 }) {
-  const { titolo, grafico, stato, segnale, parti, voci, fonte, misto = false } = props;
+  const { titolo, grafico, stato, segnale, parti, voci, fonte, scaricamenti, misto = false } = props;
   return (
     <VistaQuery stato={stato} inAttesa={segnale === 'in-attesa'} eVuoto={() => segnale === 'vuota'} vuoto={VUOTO}>
       {(d) => (
@@ -162,6 +166,7 @@ function Parti<T extends { perimetro?: Perimetro }>(props: {
           sottotitolo={misto && d.perimetro === PERIMETRO_ADA ? `${grafico}. La dotazione è regionale, i pagamenti sono della tua area: non confrontabili.` : grafico}
           dati={graficoPartiImporto(grafico, parti(d), voci(d))}
           fonte={`${fonte} · Perimetro ${d.perimetro ?? 'non indicato'}`}
+          scaricamenti={scaricamenti}
         />
       )}
     </VistaQuery>
@@ -172,12 +177,13 @@ type PropsSezione = { filtri: Filtri; titolo: string };
 
 function Stanziato({ filtri, titolo }: PropsSezione) {
   const parti = (d: { importoStanziato?: ImportoLike; importoDaStanziare?: ImportoLike }): [Voce, Voce] => [['Importo stanziato', d.importoStanziato], ['Importo da stanziare', d.importoDaStanziare]];
-  return <Parti titolo={titolo} grafico="Stanziato e da stanziare" stato={useStanziato(filtri)} segnale={useSelezioneSenzaInterventi(filtri)} parti={parti} voci={parti} fonte="Fonte: TX-0004" />;
+  return <Parti titolo={titolo} grafico="Stanziato e da stanziare" stato={useStanziato(filtri)} segnale={useSelezioneSenzaInterventi(filtri)} parti={parti} voci={parti} fonte="Fonte: TX-0004" scaricamenti={datiDelReport(titolo, 'stanziato', filtri)} />;
 }
 
 function PagamentiSuImpegnato({ filtri, titolo }: PropsSezione) {
   return (
     <Parti titolo={titolo} grafico="Impegnato tra pagamenti e ancora da pagare" stato={usePagamentiSuImpegnato(filtri)} segnale={useSelezioneSenzaInterventi(filtri)} fonte="Fonte: TX-0005"
+      scaricamenti={datiDelReport(titolo, 'pagamentiSuImpegnato', filtri)}
       parti={(d) => [['Pagamenti totali (elenchi di liquidazione)', d.pagamentiTotali], ['Impegnato ancora da pagare', d.impegnatoDaPagare]]}
       voci={(d) => [['Totale impegnato', d.totaleImpegnato], ['Pagamenti totali (elenchi di liquidazione)', d.pagamentiTotali], ['Impegnato ancora da pagare', d.impegnatoDaPagare]]} />
   );
@@ -186,6 +192,7 @@ function PagamentiSuImpegnato({ filtri, titolo }: PropsSezione) {
 function ResiduoImpegni({ filtri, titolo }: PropsSezione) {
   return (
     <Parti titolo={titolo} grafico="Dotazione tra impegnato e residuo" stato={useResiduoImpegni(filtri)} segnale={useSelezioneSenzaInterventi(filtri)} fonte="Fonte: TX-0006"
+      scaricamenti={datiDelReport(titolo, 'residuoImpegni', filtri)}
       parti={(d) => [['Importo impegnato', d.importoImpegnato], ['Dotazione residua', d.dotazioneResidua]]}
       voci={(d) => [['Dotazione spesa pubblica', d.dotazioneSpesaPubblica], ['Importo impegnato', d.importoImpegnato], ['Dotazione residua', d.dotazioneResidua]]} />
   );
@@ -194,6 +201,7 @@ function ResiduoImpegni({ filtri, titolo }: PropsSezione) {
 function ResiduoPagamenti({ filtri, titolo }: PropsSezione) {
   return (
     <Parti titolo={titolo} grafico="Dotazione tra pagato e residuo" stato={useResiduoPagamenti(filtri)} segnale={useSelezioneSenzaInterventi(filtri)} misto fonte="Fonte: TX-0007"
+      scaricamenti={datiDelReport(titolo, 'residuoPagamenti', filtri)}
       parti={(d) => [['Pagamenti al netto di rettifiche', d.pagamentiNettoRettifiche], ['Dotazione residua', d.dotazioneResidua]]}
       voci={(d) => [
         [diProgramma('Dotazione spesa pubblica', d.perimetro), d.dotazioneSpesaPubblica], ['Importo pagato', d.importoPagato], ['Importo recuperato', d.importoRecuperato],

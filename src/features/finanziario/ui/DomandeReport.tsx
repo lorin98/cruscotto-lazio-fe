@@ -7,10 +7,11 @@
 // totali di RF005 (OP-FE-05).
 import { useId, useState } from 'react';
 import { formatNumber, importoKpi } from '../../../shared/lib';
-import { CardGrafico, Griglia, Kpi, Sezione, TabellaRighe, VistaQuery } from '../../../shared/ui';
+import { CardGrafico, Griglia, Kpi, PulsantiScarica, Sezione, TabellaRighe, VistaQuery } from '../../../shared/ui';
 import type { ClicGrafico, Colonna } from '../../../shared/ui';
 import { useDomandePerAnno, useImportiPerAnno, useTotaleDomande } from '../api';
 import type { DomandePerAnnoRiga, ImportiPerAnno, ImportiPerAnnoRiga } from '../api';
+import { datiDelReport } from './esportazioni';
 import { kpiImportiPerAnno } from '../lib/aggregati';
 import { ricercaDaFiltri } from '../lib/filtri';
 import type { Filtri } from '../lib/filtri';
@@ -115,8 +116,17 @@ function DomandePerAnno({ filtri }: { filtri: Filtri }) {
               dati={graficoDomandePerAnno(d.righe ?? [])}
               fonte={`Fonte: TX-0008 · Perimetro ${d.perimetro ?? 'non indicato'}`}
               onClic={(p: ClicGrafico) => setAnno(p.name && anni.includes(p.name) ? p.name : null)}
+              scaricamenti={datiDelReport(TITOLI.perAnno, 'domandePerAnno', filtri)}
             />
-            <Sezione titolo="Domande per anno: dettaglio" strumenti={<SceltaAnno id={`${id}-anno`} anni={anni} anno={anno} onCambia={setAnno} />}>
+            <Sezione
+              titolo="Domande per anno: dettaglio"
+              strumenti={
+                <>
+                  <SceltaAnno id={`${id}-anno`} anni={anni} anno={anno} onCambia={setAnno} />
+                  <PulsantiScarica oggetto="la tabella Domande per anno" scaricamenti={datiDelReport('Domande per anno', 'domandePerAnno', filtri)} />
+                </>
+              }
+            >
               <TabellaRighe caption="Domande per anno di raccolta" intestazione="Anno di raccolta" chiave={(r) => annoDiRaccolta(r.annoRaccolta)} colonne={COLONNE_ANNO} righe={righe} />
             </Sezione>
           </div>
@@ -141,8 +151,8 @@ function ImportiPerAnnoSezione({ filtri }: { filtri: Filtri }) {
     <VistaQuery stato={stato} eVuoto={(d) => (d.righe ?? []).length === 0} vuoto={VUOTO}>
       {(d) => (
         <div>
-          <CardGrafico titolo={TITOLI.importi} sottotitolo="Importo ammesso e decretato; trascina per ingrandire" dati={graficoImportiPerAnno(d.righe ?? [])} fonte={`Fonte: TX-0010 · ${DECRETATO}`} />
-          <Sezione titolo="Importi per anno: dettaglio">
+          <CardGrafico titolo={TITOLI.importi} sottotitolo="Importo ammesso e decretato; trascina per ingrandire" dati={graficoImportiPerAnno(d.righe ?? [])} fonte={`Fonte: TX-0010 · ${DECRETATO}`} scaricamenti={datiDelReport(TITOLI.importi, 'importiPerAnno', filtri)} />
+          <Sezione titolo="Importi per anno: dettaglio" strumenti={<PulsantiScarica oggetto="la tabella Importi per anno" scaricamenti={datiDelReport('Importi per anno', 'importiPerAnno', filtri)} />}>
             <PerimetroSezione perimetro={d.perimetro} />
             <TabellaRighe caption="Importi per anno di raccolta" intestazione="Anno di raccolta" chiave={(r) => annoDiRaccolta(r.annoRaccolta)} colonne={COLONNE_IMPORTI} righe={d.righe ?? []} />
           </Sezione>

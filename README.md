@@ -65,8 +65,14 @@ aperta.
   della spec (ACCESSO_NEGATO, RICHIESTA_NON_AMMESSA, DATO_NON_VALIDO, NOT_FOUND, TROPPE_RICHIESTE, CAPACITA_ESAURITA,
   TEMPO_SCADUTO, ESPORTAZIONE_NON_REGISTRATA, ...). `getErrorMessage` sceglie il messaggio dal problem-type e
   mostra il `detail` solo dove la spec lo dichiara leggibile.
-- **Errori delle risposte binarie.** Per l'export CSV (`responseType: 'blob'`) il mutator rilegge come JSON il corpo
-  d'errore, cosi' anche il problem+json dell'export viene classificato.
+- **Errori delle risposte binarie.** Per gli export CSV e XLSX (`responseType: 'blob'`) il mutator rilegge come JSON il
+  corpo d'errore, cosi' anche il problem+json dell'export viene classificato.
+- **Export dal backend (D-08).** Ogni report del finanziario si scarica in CSV o XLSX da `<report>/{formato}` (TX-0002..
+  TX-0015; `riepilogo/csv` resta lo stesso indirizzo): stessi filtri e grant della consultazione, intestazione con fonte,
+  filtri, data e uso interno, una riga di `AUDIT_ESPORTAZIONE` per file. Nel FE: `esportaReport`, `esportaRiserva`,
+  `esportaVerificaSmp` (`features/finanziario/api`) e `datiDelReport` (`ui/esportazioni.ts`), che i grafici e le tabelle
+  passano a `PulsantiScarica`. I grafici costruiti da piu' TX (il flusso della dotazione, il gauge del dettaglio) hanno
+  solo il PNG: un export registrato e' di una sola TX.
 - **Letture in coda.** Il backend ammette 2 letture dei report del finanziario in corso per utente (oltre: 503
   CAPACITA_ESAURITA): il mutator mette in coda le GET verso `/api/finanziario/` oltre la seconda. Il mutator condiviso
   non ha tetti predefiniti: li sceglie l'app per prefisso (`src/app/tetti-letture.ts`, configurati all'avvio da
@@ -183,8 +189,8 @@ Referrer-Policy: same-origin
 
 La verifica e' un test e2e versionato: `npm run test:e2e` (`e2e/csp.spec.ts`) serve la build di produzione con questa
 CSP, apre la panoramica e la pagina delle domande, mostra i tooltip di un elemento e di un asse, apre il pannello dei
-filtri e l'anteprima di un intervento dal riepilogo, e apre il dettaglio dell'intervento con le sue schede: nessuna
-violazione. Il tooltip di ECharts e' disegnato nel grafico (`renderMode: 'richText'`, imposto dal kit):
+filtri e l'anteprima di un intervento dal riepilogo, apre il dettaglio dell'intervento con le sue schede e scarica il
+PNG di un grafico (canvas fuori pagina, salvataggio da un blob): nessuna violazione. Il tooltip di ECharts e' disegnato nel grafico (`renderMode: 'richText'`, imposto dal kit):
 il tooltip HTML scriverebbe attributi `style` con `innerHTML`, bloccati da `style-src 'self'`.
 
 Gli `<style>` che react-aria inietta sono due, ed entrambi sono bloccati da `style-src 'self'`:

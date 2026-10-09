@@ -1,8 +1,8 @@
 // api/index.ts — confine api/ della feature finanziario (green-fe step3): wrapper React Query sopra il client orval
 // sigillato della slice finanziario (TX-0001..TX-0015, tutte letture; gli hook generati portano l'operationId TX-00NN).
 // I componenti importano da qui, mai dal generato.
-// - Query-key: quelle delle factory generate (dentro gli hook orval). L'unica mutation e' l'esportazione CSV, che non
-//   modifica dati: nessuna invalidazione.
+// - Query-key: quelle delle factory generate (dentro gli hook orval). Nessuna mutation: le esportazioni (CSV e XLSX di
+//   ogni report, dal backend) sono funzioni che restituiscono il file; l'esito lo mostra chi le chiama.
 // - Errori: nessun onError qui. I componenti li rendono con getErrorMessage (problem-type del backend); il 404
 //   NOT_FOUND della riserva e' uno stato vuoto (anno senza movimenti), riconosciuto da rispostaRiservaAssente.
 // - Filtri: gli stessi cinque filtri ripetibili (RF001) per tutti i report; il mutator li serializza ripetuti e mette
@@ -11,12 +11,25 @@
 //   Retry-After) e' generica e sta nei defaultOptions del QueryClient di produzione (app/query-client.ts).
 // - Perimetro: perimetriInCache legge quello delle risposte gia' in cache con le key factory generate (review N-07):
 //   chi lo mostra non conosce la forma delle chiavi.
-import { hashKey, useMutation } from '@tanstack/react-query';
+import { hashKey } from '@tanstack/react-query';
 import type { Query, QueryClient } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
 import { classifyProblem } from '../../../shared/api/problem/problem-types';
 import {
-  getApiFinanziarioRiepilogoCsv,
+  getApiFinanziarioDistribuzioneDotazioneFormato,
+  getApiFinanziarioDomandePerAnnoFormato,
+  getApiFinanziarioImportiPerAnnoFormato,
+  getApiFinanziarioPagamentiSuImpegnatoFormato,
+  getApiFinanziarioResiduoImpegniFormato,
+  getApiFinanziarioResiduoPagamentiFormato,
+  getApiFinanziarioRiepilogoFormato,
+  getApiFinanziarioRiservaAnnoFormato,
+  getApiFinanziarioSigcDomandeFormato,
+  getApiFinanziarioSigcImportiFormato,
+  getApiFinanziarioSigcVerificaSmpFormato,
+  getApiFinanziarioSpesaPerInterventoFormato,
+  getApiFinanziarioStanziatoFormato,
+  getApiFinanziarioTotaleDomandeFormato,
   getTx0002QueryKey,
   getTx0003QueryKey,
   getTx0004QueryKey,
@@ -100,13 +113,6 @@ export const useFiltri = (abilitato = true) => useTx0001({ query: { enabled: abi
 
 // TX-0011 (RF011)
 export const useRiepilogo = (filtri: FiltriReport) => useTx0011(filtri);
-/** Esportazione CSV del riepilogo con gli stessi filtri (TX-0011, D-08): mutation che restituisce il Blob da salvare. */
-// meta.erroreInLinea: il componente mostra ogni errore dell'esportazione (403 compreso) accanto al pulsante.
-export const useEsportaRiepilogoCsv = () =>
-  useMutation({
-    mutationFn: (filtri: FiltriReport): Promise<Blob> => getApiFinanziarioRiepilogoCsv(filtri),
-    meta: { erroreInLinea: true },
-  });
 
 // TX-0002, TX-0003 (RF002, RF003)
 /** `abilitato` falso: nessuna lettura (es. profilo senza il grant di TX-0002 quando serve solo come segnale). */
@@ -142,6 +148,35 @@ export function rispostaRiservaAssente(errore: unknown): boolean {
 // TX-0015 (RF015): esercizio obbligatorio; senza esercizio nessuna richiesta (enabled guard).
 export const useVerificaSmp = (filtri: FiltriReport, esercizio: number | undefined) =>
   useTx0015({ ...filtri, esercizio: esercizio ?? 0 }, { query: { enabled: esercizio !== undefined } });
+
+// Esportazioni (D-08 di nfr-conformance; ogni report dal 09/10/2026): il file CSV o XLSX lo scrive il backend, con gli
+// stessi filtri della consultazione, l'intestazione (fonte, filtri, data, uso interno) e la registrazione in
+// AUDIT_ESPORTAZIONE. Funzioni e non mutation: l'esito e l'errore li mostra chi le chiama (PulsantiScarica), accanto ai
+// pulsanti, senza avvisi globali; il 401 resta del mutator come per ogni richiesta.
+export type FormatoEsportazione = 'csv' | 'xlsx';
+const ESPORTA = {
+  spesaPerIntervento: getApiFinanziarioSpesaPerInterventoFormato,
+  distribuzioneDotazione: getApiFinanziarioDistribuzioneDotazioneFormato,
+  stanziato: getApiFinanziarioStanziatoFormato,
+  pagamentiSuImpegnato: getApiFinanziarioPagamentiSuImpegnatoFormato,
+  residuoImpegni: getApiFinanziarioResiduoImpegniFormato,
+  residuoPagamenti: getApiFinanziarioResiduoPagamentiFormato,
+  domandePerAnno: getApiFinanziarioDomandePerAnnoFormato,
+  totaleDomande: getApiFinanziarioTotaleDomandeFormato,
+  importiPerAnno: getApiFinanziarioImportiPerAnnoFormato,
+  riepilogo: getApiFinanziarioRiepilogoFormato,
+  sigcDomande: getApiFinanziarioSigcDomandeFormato,
+  sigcImporti: getApiFinanziarioSigcImportiFormato,
+} satisfies Record<string, (formato: FormatoEsportazione, filtri?: FiltriReport) => Promise<Blob>>;
+/** I report coi cinque filtri della consultazione (TX-0002..TX-0013). */
+export type ReportEsportabile = keyof typeof ESPORTA;
+export const esportaReport = (report: ReportEsportabile, formato: FormatoEsportazione, filtri: FiltriReport): Promise<Blob> =>
+  ESPORTA[report](formato, filtri);
+/** TX-0014: la riserva dell'anno n (dato regionale, senza filtri). */
+export const esportaRiserva = (anno: number, formato: FormatoEsportazione): Promise<Blob> => getApiFinanziarioRiservaAnnoFormato(anno, formato);
+/** TX-0015: i filtri e l'esercizio n. */
+export const esportaVerificaSmp = (filtri: FiltriReport, esercizio: number, formato: FormatoEsportazione): Promise<Blob> =>
+  getApiFinanziarioSigcVerificaSmpFormato(formato, { ...filtri, esercizio });
 
 // Risposte che dichiarano il perimetro: tutte le letture tranne i filtri (TX-0001).
 type RispostaConPerimetro =

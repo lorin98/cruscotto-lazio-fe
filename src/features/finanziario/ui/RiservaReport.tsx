@@ -8,10 +8,11 @@
 // riserva accumulata come riferimento, voci di contorno in tabella.
 import { ValoreImporto } from '../../../entities/importo';
 import { formatDate, importoKpi } from '../../../shared/lib';
-import { CardGrafico, Griglia, Kpi, Sezione, TabellaRighe, TabellaVoci, VistaQuery, Vuoto } from '../../../shared/ui';
-import type { Colonna } from '../../../shared/ui';
-import { rispostaRiservaAssente, useRiserva } from '../api';
+import { CardGrafico, Griglia, Kpi, PulsantiScarica, Sezione, TabellaRighe, TabellaVoci, VistaQuery, Vuoto } from '../../../shared/ui';
+import type { Colonna, Scaricamento } from '../../../shared/ui';
+import { esportaRiserva, rispostaRiservaAssente, useRiserva } from '../api';
 import type { MonitoraggioRiserva, UtilizzoRiserva } from '../api';
+import { scaricamentiDati } from './esportazioni';
 import { euroOpzionale, testoOpzionale } from '../lib/formato';
 import { graficoUtilizzoRiserva } from '../lib/grafici';
 import { aiutoRiserva, etichettaFaseRiserva, istantaneaAnteriore, kpiRiserva, testoCongelato, testoResiduo, utilizzoOltreRiserva } from '../lib/riserva';
@@ -76,7 +77,7 @@ function ValoriRiserva({ d, anno }: { d: MonitoraggioRiserva; anno: number }) {
   );
 }
 
-function UtilizzoProgressivo({ d }: { d: MonitoraggioRiserva }) {
+function UtilizzoProgressivo({ d, scaricamenti }: { d: MonitoraggioRiserva; scaricamenti: Scaricamento[] }) {
   const utilizzi = d.utilizzoProgressivo ?? [];
   if (utilizzi.length === 0) return <p>Nessun utilizzo registrato.</p>;
   return (
@@ -87,6 +88,7 @@ function UtilizzoProgressivo({ d }: { d: MonitoraggioRiserva }) {
         dati={graficoUtilizzoRiserva(d)}
         fonte="Fonte: TX-0014, movimenti della riserva"
         livello={3}
+        scaricamenti={scaricamenti}
       />
       <TabellaRighe caption="Utilizzo progressivo" intestazione="Data" chiave={(u) => formatDate(u.data) || 'senza data'} colonne={COLONNE_UTILIZZO} righe={utilizzi} />
     </>
@@ -97,14 +99,16 @@ function Riserva({ anno }: { anno: number }) {
   const stato = useRiserva(anno);
   const assente = (e: unknown) =>
     rispostaRiservaAssente(e) ? <Vuoto>{`Nessuna riserva calcolata per il ${anno}. Scegli un altro anno.`}</Vuoto> : null;
+  const dati = scaricamentiDati(`Riserva di efficacia ${anno}`, (formato) => esportaRiserva(anno, formato));
+  // i file solo con la riserva caricata: per un anno mai calcolato il backend risponde 404 anche all'export
   return (
-    <Sezione titolo={`Riserva di efficacia (5%) dell'anno ${anno} (RF014)`}>
+    <Sezione titolo={`Riserva di efficacia (5%) dell'anno ${anno} (RF014)`} strumenti={stato.data && <PulsantiScarica oggetto={`i dati della riserva ${anno}`} scaricamenti={dati} />}>
       <VistaQuery stato={stato} errorePersonalizzato={assente}>
         {(d) => (
           <>
             <PerimetroSezione perimetro={d.perimetro} />
             <ValoriRiserva d={d} anno={anno} />
-            <UtilizzoProgressivo d={d} />
+            <UtilizzoProgressivo d={d} scaricamenti={dati} />
           </>
         )}
       </VistaQuery>

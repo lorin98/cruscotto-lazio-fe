@@ -9,6 +9,7 @@ import { formatNumber, formatPercentuale, importoKpi } from '../../../shared/lib
 import { Caricamento, CardGrafico, Griglia, Kpi, VistaQuery } from '../../../shared/ui';
 import type { ClicGrafico } from '../../../shared/ui';
 import { useSigcDomande, useSigcImporti, useSpesaPerIntervento, useTotaleDomande } from '../api';
+import { datiDelReport } from './esportazioni';
 import type { SpesaPerIntervento } from '../api';
 import { kpiSpesa } from '../lib/aggregati';
 import type { Aggregato } from '../lib/aggregati';
@@ -94,6 +95,7 @@ function GraficiSpesa({ filtri, clic }: { filtri: Filtri; clic: (p: ClicGrafico)
               fonte={`Fonte: TX-0002, dotazione e spesa per intervento · Perimetro ${d.perimetro ?? 'non indicato'}`}
               altezza="alto"
               onClic={clic}
+              scaricamenti={datiDelReport('Avanzamento per intervento', 'spesaPerIntervento', filtri)}
             />
             <CardGrafico
               titolo="Dotazione per famiglia di intervento"
@@ -102,6 +104,7 @@ function GraficiSpesa({ filtri, clic }: { filtri: Filtri; clic: (p: ClicGrafico)
               fonte="Fonte: TX-0002 · famiglia = prefisso del codice dell'intervento"
               altezza="alto"
               onClic={clic}
+              scaricamenti={datiDelReport('Dotazione per famiglia di intervento', 'spesaPerIntervento', filtri)}
               strumenti={
                 <div className="ui-seg" role="group" aria-label="Forma del grafico della dotazione">
                   <button type="button" aria-pressed={forma === 'treemap'} onClick={() => setForma('treemap')}>
@@ -132,6 +135,7 @@ function DomandeSigc({ filtri, onSigc }: { filtri: Filtri; onSigc: () => void })
           dati={graficoImbutoSigc(d)}
           fonte="Fonte: TX-0012 · domande pagate dagli elenchi di liquidazione"
           onClic={onSigc}
+          scaricamenti={datiDelReport('Domande SIGC', 'sigcDomande', filtri)}
         />
       )}
     </VistaQuery>
@@ -150,6 +154,7 @@ function ImportiSigc({ filtri }: { filtri: Filtri }) {
           sottotitolo="Dal richiesto al pagato"
           dati={graficoCascataSigc(d)}
           fonte="Fonte: TX-0013 · importo pagato dal flusso ASR2-20: può non coincidere con le domande pagate"
+          scaricamenti={datiDelReport('Importi SIGC', 'sigcImporti', filtri)}
         />
       )}
     </VistaQuery>

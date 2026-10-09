@@ -6,10 +6,11 @@
 import type { ReactNode } from 'react';
 import { ValoreImporto } from '../../../entities/importo';
 import type { ImportoLike } from '../../../entities/importo';
-import { CardGrafico, Sezione, TabellaInterattiva, TabellaVoci, VistaQuery, Vuoto } from '../../../shared/ui';
+import { CardGrafico, PulsantiScarica, Sezione, TabellaInterattiva, TabellaVoci, VistaQuery, Vuoto } from '../../../shared/ui';
 import type { ColonnaTabella } from '../../../shared/ui';
-import { useVerificaSmp } from '../api';
+import { esportaVerificaSmp, useVerificaSmp } from '../api';
 import type { VerificaSmpRiga } from '../api';
+import { scaricamentiDati } from './esportazioni';
 import { ricercaDaFiltri } from '../lib/filtri';
 import type { Filtri } from '../lib/filtri';
 import { annoOpzionale, numeroOpzionale, siNo, testoOpzionale } from '../lib/formato';
@@ -57,8 +58,13 @@ const VUOTO = vuotoConPerimetro("Nessun dato SIGC per l'esercizio scelto. Scegli
 function DatiSmp({ filtri, esercizio }: { filtri: Filtri; esercizio: number }) {
   const stato = useVerificaSmp(filtri, esercizio);
   const { apri, dalClic: clic } = useApriIntervento(filtri);
+  const dati = scaricamentiDati(`Verifica SMP esercizio ${esercizio}`, (formato) => esportaVerificaSmp(filtri, esercizio, formato));
+  const conRighe = (stato.data?.righe ?? []).length > 0;
   return (
-    <Sezione titolo={`Dati SIGC per il confronto con SMP, esercizio ${esercizio} (RF015)`}>
+    <Sezione
+      titolo={`Dati SIGC per il confronto con SMP, esercizio ${esercizio} (RF015)`}
+      strumenti={conRighe && <PulsantiScarica oggetto={`i dati SIGC per il confronto con SMP, esercizio ${esercizio}`} scaricamenti={dati} />}
+    >
       <VistaQuery stato={stato} eVuoto={(d) => (d.righe ?? []).length === 0} vuoto={VUOTO}>
         {(d) => (
           <>
@@ -79,6 +85,7 @@ function DatiSmp({ filtri, esercizio }: { filtri: Filtri; esercizio: number }) {
               livello={3}
               altezza="alto"
               onClic={clic}
+              scaricamenti={dati}
             />
             <TabellaInterattiva
               key={`${esercizio}-${ricercaDaFiltri(filtri)}`}

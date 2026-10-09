@@ -39,11 +39,12 @@ describe('RF002: grafico e tabella per intervento con dotazione, impegnato e pag
     const grafico = graficoDi(card);
     expect(grafico).toBeTruthy();
     if (grafico) clicSu(grafico, { name: 'SRA01' });
-    await waitFor(() => expect(router.state.location.pathname).toBe('/finanziario/interventi/SRA01'));
+    // il dettaglio e' una route lazy: sotto il carico del gate (copertura) il primo caricamento puo' superare 1 s
+    await waitFor(() => expect(router.state.location.pathname).toBe('/finanziario/interventi/SRA01'), { timeout: 5000 });
     expect(router.state.location.search).toBe('?os=SO4');
     await router.navigate('/finanziario/dotazione');
     await userEvent.click(await screen.findByRole('row', { name: "Apri il dettaglio dell'intervento SRA01" }));
-    await waitFor(() => expect(router.state.location.pathname).toBe('/finanziario/interventi/SRA01'));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/finanziario/interventi/SRA01'), { timeout: 5000 });
   });
   it('un clic fuori dagli interventi (nome non valido) non naviga', async () => {
     servi();

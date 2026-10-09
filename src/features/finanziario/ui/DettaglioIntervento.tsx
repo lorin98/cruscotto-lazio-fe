@@ -11,6 +11,7 @@ import { formatNumber, formatPercentuale } from '../../../shared/lib';
 import { CardGrafico, Griglia, Kpi, TabellaDati, VistaQuery, Vuoto } from '../../../shared/ui';
 import { useDomandePerAnno, useImportiPerAnno, useRiepilogo, useSigcDomande, useSigcImporti, useSpesaPerIntervento } from '../api';
 import type { RiepilogoFinanziarioRiga } from '../api';
+import { datiDelReport } from './esportazioni';
 import type { Filtri } from '../lib/filtri';
 import { graficoCascataIntervento, graficoCascataSigc, graficoDomandePerAnno, graficoGauge, graficoImbutoSigc, graficoImportiPerAnno, vociIntervento } from '../lib/grafici';
 import type { Perimetro } from '../lib/perimetro';
@@ -70,25 +71,30 @@ function Sintesi({ filtri, r, perimetro }: { filtri: Filtri; r: RiepilogoFinanzi
       <ConGrant grant={GRANT.spesaPerIntervento} titolo="Pagato sulla dotazione">
         <PagatoSullaDotazione filtri={filtri} r={r} perimetro={perimetro} />
       </ConGrant>
-      <CardGrafico titolo="Dalla dotazione al residuo" dati={graficoCascataIntervento(r, perimetro)} fonte="Fonte: TX-0011, riepilogo per intervento" />
+      <CardGrafico
+        titolo="Dalla dotazione al residuo"
+        dati={graficoCascataIntervento(r, perimetro)}
+        fonte="Fonte: TX-0011, riepilogo per intervento"
+        scaricamenti={datiDelReport(`Riepilogo ${r.codiceIntervento ?? 'intervento'}`, 'riepilogo', filtri)}
+      />
     </Griglia>
   );
 }
 
 function DomandePerAnno({ filtri }: { filtri: Filtri }) {
-  return <VistaQuery stato={useDomandePerAnno(filtri)}>{(d) => <CardGrafico titolo="Domande per anno di raccolta" dati={graficoDomandePerAnno(d.righe ?? [])} fonte="Fonte: TX-0008" />}</VistaQuery>;
+  return <VistaQuery stato={useDomandePerAnno(filtri)}>{(d) => <CardGrafico titolo="Domande per anno di raccolta" dati={graficoDomandePerAnno(d.righe ?? [])} fonte="Fonte: TX-0008" scaricamenti={datiDelReport('Domande per anno di raccolta', 'domandePerAnno', filtri)} />}</VistaQuery>;
 }
 
 function ImportiPerAnno({ filtri }: { filtri: Filtri }) {
-  return <VistaQuery stato={useImportiPerAnno(filtri)}>{(d) => <CardGrafico titolo={IMPORTI_PER_ANNO} dati={graficoImportiPerAnno(d.righe ?? [])} fonte="Fonte: TX-0010" />}</VistaQuery>;
+  return <VistaQuery stato={useImportiPerAnno(filtri)}>{(d) => <CardGrafico titolo={IMPORTI_PER_ANNO} dati={graficoImportiPerAnno(d.righe ?? [])} fonte="Fonte: TX-0010" scaricamenti={datiDelReport(IMPORTI_PER_ANNO, 'importiPerAnno', filtri)} />}</VistaQuery>;
 }
 
 function DomandeSigc({ filtri }: { filtri: Filtri }) {
-  return <VistaQuery stato={useSigcDomande(filtri)}>{(d) => <CardGrafico titolo="Domande SIGC" dati={graficoImbutoSigc(d)} fonte="Fonte: TX-0012" />}</VistaQuery>;
+  return <VistaQuery stato={useSigcDomande(filtri)}>{(d) => <CardGrafico titolo="Domande SIGC" dati={graficoImbutoSigc(d)} fonte="Fonte: TX-0012" scaricamenti={datiDelReport('Domande SIGC', 'sigcDomande', filtri)} />}</VistaQuery>;
 }
 
 function ImportiSigc({ filtri }: { filtri: Filtri }) {
-  return <VistaQuery stato={useSigcImporti(filtri)}>{(d) => <CardGrafico titolo="Importi SIGC" dati={graficoCascataSigc(d)} fonte="Fonte: TX-0013 · pagato dal flusso ASR2-20" />}</VistaQuery>;
+  return <VistaQuery stato={useSigcImporti(filtri)}>{(d) => <CardGrafico titolo="Importi SIGC" dati={graficoCascataSigc(d)} fonte="Fonte: TX-0013 · pagato dal flusso ASR2-20" scaricamenti={datiDelReport('Importi SIGC', 'sigcImporti', filtri)} />}</VistaQuery>;
 }
 
 function Schede({ filtri, r, perimetro }: { filtri: Filtri; r: RiepilogoFinanziarioRiga; perimetro?: Perimetro }) {
