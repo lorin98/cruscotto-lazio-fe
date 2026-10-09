@@ -1326,7 +1326,7 @@
     {
       "id": "OP-FE-07",
       "kind": "campo-assente-dalla-spec",
-      "detail": "La gerarchia intervento -> obiettivo specifico (OS) -> obiettivo generale (OG) -> obiettivo di policy (OP) non e' nei DTO della slice: TX-0001 da' le liste piatte. Senza, la panoramica raggruppa la dotazione per famiglia di intervento (prefisso del codice, es. SRA, SRD) e non per obiettivo, e i filtri non possono restringersi a cascata. Richiesta a green-be: campo ADDITIVO su una risposta esistente (es. su TX-0001 un elenco di legami intervento-OS-OG-OP), stessa transazione e stesso grant, risigillo della sola slice."
+      "detail": "La gerarchia intervento -> obiettivo specifico (OS) -> obiettivo generale (OG) -> obiettivo di policy (OP) non e' nei DTO della slice: TX-0001 da' le liste piatte. Senza, la panoramica raggruppa la dotazione per famiglia di intervento (prefisso del codice, es. SRA, SRD) e non per obiettivo, e i filtri non possono restringersi a cascata. Richiesta a green-be: campo ADDITIVO su una risposta esistente (es. su TX-0001 un elenco di legami intervento-OS-OG-OP), stessa transazione e stesso grant, risigillo della sola slice. Finche' manca, il pulsante del pannello dei filtri resta 'Applica i filtri' e non 'Mostra n interventi' del wireframe panoramica (deviazione rivista, scelta dell'utente del 09/10/2026, review step9 v2 V-22)."
     }
   ]
 }

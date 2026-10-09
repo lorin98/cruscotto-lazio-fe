@@ -55,7 +55,8 @@ Temi principali corretti nelle iterazioni 1 e 2:
 
 - **V-22** `src/features/finanziario/ui/PannelloFiltri.tsx:134`: il pulsante del pannello e' "Applica i filtri", il
   wireframe dice "Mostra n interventi". Il conteggio n richiede il legame intervento - OG/OS/OP, che TX-0001 non
-  espone: la scelta e' dell'utente.
+  espone. Accettato dall'utente il 09/10/2026 come deviazione rivista del wireframe panoramica (stato di step1,
+  `deviations_reviewed`; uiplan, OP-FE-07).
 - **N-08** `src/features/finanziario/lib/grafici/domande.ts:99`: la nota sulle domande senza importo ammesso e'
   scritta due volte con testi diversi ("nella somma" in `aggregati.ts`, "nelle somme" nel builder).
 - **N-24** `src/pages/finanziario/panoramica/page.tsx:7`: la pagina passa un sottotitolo identico a quello del
@@ -87,4 +88,11 @@ verifica: 11/11, 650 test verdi, 4 e2e verdi.
 | M-03 | Risolto, e piu' largo del finding: `no-restricted-imports` confronta lo specificatore scritto, quindi i percorsi relativi dentro lo slice (`../testing/fixture`, `./mock/esempio`) passavano anche da `ui/` e `lib/`. Il gruppo Z-02 ora li comprende, e un blocco nuovo lo applica ai wrapper `api/`. Canary da `api/`, `ui/` e `lib/`; prova di mutazione: con il gruppo precedente 4 canary falliscono. | `eslint.config.js`, `tests/eslint-regole.test.ts` |
 | N-08 | Risolto. Una sola frase (`testoSenzaAmmesso`) per la nota del KPI e per le voci omesse del grafico. | `src/features/finanziario/lib/aggregati.ts`, `lib/grafici/domande.ts` |
 | N-24 | Risolto. La panoramica usa il sottotitolo del catalogo. | `src/pages/finanziario/panoramica/page.tsx` |
-| V-22 | Aperto: la scelta del testo del pulsante e' dell'utente. | |
+| V-22 | Accettato dall'utente (09/10/2026): resta "Applica i filtri" finche' il backend non espone il legame intervento-OS-OG-OP (OP-FE-07). Deviazione rivista registrata. | `.claude/state/`, `uiplan.json` |
+
+## Dipendenze (09/10/2026)
+
+axios portato da 1.19.0 a 1.20.0 (advisory alte sulla 1.19.0, fra cui gadget di prototype pollution e header injection),
+su richiesta dell'utente. Verifiche: 650 test, 4 e2e, gate di step8 11/11. Resta nell'audit di produzione
+`@xmldom/xmldom` 0.8.13 (bootstrap-italia -> video.js -> mpd-parser): l'app importa di bootstrap-italia solo il CSS e
+gli sprite SVG, quindi il pacchetto non entra nel bundle.

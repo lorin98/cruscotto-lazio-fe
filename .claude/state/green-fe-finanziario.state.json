@@ -26,7 +26,9 @@
           "approved_hash": "sha256:ecffce8c1dc73d87475d4fc338c8e5702f68ca81cf14fbe267d683caab2133ff",
           "baseline_ref": "./wireframes/panoramica",
           "approved_at": "2026-10-08T19:40:11Z",
-          "deviations_reviewed": []
+          "deviations_reviewed": [
+            "V-22 (review step9 v2, scelta dell utente del 09/10/2026): il pulsante del pannello dei filtri resta Applica i filtri e non Mostra n interventi; il conteggio richiede il legame intervento-OS-OG-OP (OP-FE-07), che TX-0001 non espone"
+          ]
         },
         "wireframe_riepilogo": {
           "approved_hash": "sha256:cfd3e79a08917ad2d73050d7a06a0e147c175736725e890be9afc0a95083d946",
