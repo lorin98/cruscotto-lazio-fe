@@ -1,0 +1,233 @@
+[
+  {
+    "id": "V-20",
+    "esito": "RISOLTO",
+    "file": "src/features/finanziario/ui/PerimetroPill.tsx:13",
+    "motivo": "La pill legge perimetriInCache (api/index.ts:190) e lo combina con perimetroCombinato. tests/perimetro-pill.test.tsx copre dentro le pagine: REGIONALE, ADA, ADA che prevale su REGIONALE arrivato dopo, nessuna pill senza risposte o con lettura fallita, axe. Verde."
+  },
+  {
+    "id": "V-22",
+    "esito": "NON_RISOLTO",
+    "severity_residua": "COSMETICO",
+    "file": "src/features/finanziario/ui/PannelloFiltri.tsx:134",
+    "motivo": "Non toccato di proposito: il pulsante resta 'Applica i filtri' contro 'Mostra n interventi' di wireframes/panoramica/panoramica.html:149. Il conteggio n richiede il legame intervento - OG/OS/OP che TX-0001 non espone: la scelta va riportata all'utente."
+  },
+  {
+    "id": "H-03",
+    "esito": "RISOLTO",
+    "file": "src/features/finanziario/lib/grafici/domande.ts:20",
+    "motivo": "grafici/resa.ts eliminato; cellaNumero e cellaEuro non esistono piu' (grep vuoto). I builder usano numeroOpzionale ed euroOpzionale di lib/formato.ts (domande.ts, sigc.ts, riserva.ts). I test di finanziario-grafici sulle celle restano verdi."
+  },
+  {
+    "id": "H-07",
+    "esito": "RISOLTO",
+    "file": "src/features/finanziario/ui/PannelloFiltri.tsx:87",
+    "motivo": "Il pannello usa ETICHETTE_FILTRO[k].estesa per titoli ed etichette di tutti e cinque i gruppi, la barra la forma breve. I test di PannelloFiltri trovano i gruppi per quei nomi ('Obiettivo generale (OG)', 'Azione portante'...)."
+  },
+  {
+    "id": "H-11",
+    "esito": "RISOLTO",
+    "file": "eslint.config.js:300",
+    "motivo": "entityBarrelOnlyImportGroup aggiunto al blocco 'src/**/lib/**' e a quello dei test sotto src/. La canary (tests/eslint-regole.test.ts:46) gira su ui/, lib/ e su un test della feature: scatta sull'import profondo e tace sul barrel."
+  },
+  {
+    "id": "H-14",
+    "esito": "RISOLTO",
+    "file": "src/shared/config/applicazione.ts:3",
+    "motivo": "NOME_APPLICAZIONE spostato in shared/config e tolto dal barrel del kit. La classe del kit e' ora generica (.ui-pill--evidenza, tema.css:100), senza residui di ui-pill--perimetro; perimetro-pill.test.tsx verifica la classe."
+  },
+  {
+    "id": "H-20",
+    "esito": "RISOLTO",
+    "file": "src/shared/api/mock/browser.ts:8",
+    "motivo": "Esempi spostati in features/finanziario/api/mock/esempio.ts e fixture in features/finanziario/testing/fixture.ts; il worker li raccoglie con import.meta.glob. L'eccezione eslint per i test delle pagine ammette solo testing/ (canary a tests/eslint-regole.test.ts:103). Esempi assenti dalla build di produzione. Il buco di lint su features/*/api e' il nuovo M-03."
+  },
+  {
+    "id": "H-21",
+    "esito": "RISOLTO",
+    "file": "src/app/tetti-letture.ts:7",
+    "motivo": "Il mutator condiviso parte senza tetti (tetti = {}); li configura l'app all'avvio (main.tsx:12 configuraTettiDellApp). bff-mutator.test.ts prova che senza la configurazione nessuna GET va in coda e che con quella dell'app solo il finanziario ha il tetto 2."
+  },
+  {
+    "id": "H-25",
+    "esito": "RISOLTO",
+    "file": "src/features/finanziario/ui/PannelloFiltri.tsx:38",
+    "motivo": "Applicati tutti e quattro i punti, ognuno con il suo test verde: filtraRighe nel pannello (test con 'QUALITA' contro 'Qualità'); salvaFile + blobDaDataUrl in CardGrafico (test del Blob image/svg+xml); codiceDaRicerca in lib/report.ts; formatGiorno con fuso Europe/Rome al posto di formatDataOra(...).slice(0, 10)."
+  },
+  {
+    "id": "H-26",
+    "esito": "RISOLTO",
+    "file": "src/shared/lib/index.ts:2",
+    "motivo": "predicates e sentinel-dates sono fuori dal barrel e marcati come SCAFFOLDING. PAGINE_FINANZIARIO e' fuori dal barrel della feature (i test lo prendono da lib/report), TestaCard fuori da quello del kit. tsc e lint verdi."
+  },
+  {
+    "id": "A-03",
+    "esito": "RISOLTO",
+    "file": "playwright.config.ts:13",
+    "motivo": "Applicata la seconda via del fix: profilo webkit-mobile (iPhone 15) opzionale con E2E_WEBKIT=1, dove il test delle modali tollera solo l'eccezione iOS. Il README registra che il profilo e' fuori dal gate e non ancora eseguito. Il campione di 40 caratteri dello <style> di react-aria contiene 'overscroll-behavior', quindi la regex puo' combaciare."
+  },
+  {
+    "id": "A-07",
+    "esito": "RISOLTO",
+    "file": "src/widgets/report-finanziario/ui/PaginaFinanziario.tsx:107",
+    "motivo": "AvvisoPagina raccoglie gli errori senza dati in un solo role=alert, con i messaggi distinti, il numero di sezioni e un Riprova che rilegge tutto; nelle sezioni resta un testo statico. Sonda su tutte le 9 pagine, con 503 e con rete assente: 1 alert e 1 Riprova per pagina. Test in shared-ui.test.tsx e nella pagina avanzamento. Il focus dopo Riprova e' il nuovo M-02."
+  },
+  {
+    "id": "X-03",
+    "esito": "RISOLTO",
+    "file": "src/features/finanziario/ui/useFiltriNellIndirizzo.ts:27",
+    "motivo": "Con l'azione nell'indirizzo e il legame ignoto (profilo o TX-0001 in corso), la pagina mostra 'Verifica dei filtri in corso…' e non legge. Il test del riepilogo con ?os=SO4&azione=1 e TX-0001 trattenuto verifica: nessuna lettura prima, poi una sola senza azione ('?os=SO4'), chip spiegato."
+  },
+  {
+    "id": "N-01",
+    "esito": "RISOLTO",
+    "file": "src/features/finanziario/ui/DomandeReport.tsx:169",
+    "motivo": "DomandePerAnno ha key={ricercaDaFiltri(filtri)}. Il test 'cambio dei filtri dopo la scelta di un anno' verifica che si torni a tutti gli anni con la select vuota; un clic su un nome che non e' un anno non svuota la tabella."
+  },
+  {
+    "id": "N-02",
+    "esito": "RISOLTO",
+    "file": "src/features/finanziario/lib/aggregati.ts:64",
+    "motivo": "cellaTotale scrive la somma se completa; con la stessa assenza (diversa da NON_VALORIZZATO) in tutte le righe ne dice il motivo, altrimenti 'non calcolabile', mai una somma parziale. Test L1 in finanziario-aggregati e piede del riepilogo in casi-limite: fonte quadro sinottico non attiva, fuori perimetro per il P4."
+  },
+  {
+    "id": "N-03",
+    "esito": "RISOLTO",
+    "file": "src/features/finanziario/ui/useApriIntervento.ts:12",
+    "motivo": "Ogni drill-down (Panoramica, Dotazione, Riepilogo con grafico e anteprima, Verifica SMP) apre il dettaglio con la selezione nell'indirizzo. Breadcrumb, 'Torna al riepilogo' e menu (ricercaConservata sull'indirizzo corrente) la conservano, le letture restano sul solo intervento. Test interventi/page.test.tsx con ?og=OG1."
+  },
+  {
+    "id": "N-04",
+    "esito": "RISOLTO",
+    "file": "src/widgets/report-finanziario/ui/PaginaFinanziario.tsx:86",
+    "motivo": "Briciole e TestaPagina estratti; la modalita' della barra e' decisa una volta (const barra). Misurato con eslint: complessita' da 25 a 19 e righe da 85 a 62, cioe' il livello di dadc66c (18) piu' il ramo inAttesa di X-03."
+  },
+  {
+    "id": "N-05",
+    "esito": "RISOLTO",
+    "file": "src/shared/api/auth/use-auth-status.ts:14",
+    "motivo": "La queryFn e' fetchAuthStatus, una lettura pura. Il cambio d'identita' e' in app/utente-della-sessione.ts: queryCache.subscribe, removeQueries e canale proprio. useInattivita e' tornato al solo timer. Test in auth-status.test.tsx: lettura pura, annuncio, rilettura da un'altra scheda, nessun ciclo."
+  },
+  {
+    "id": "N-06",
+    "esito": "RISOLTO",
+    "file": "src/shared/lib/grafici/forme.ts:84",
+    "motivo": "TestiBarre ha unita: [singolare, plurale], usata nella descrizione; ['intervento', 'interventi'] arriva da graficoDotazionePagamenti e graficoSmp. Il test del kit usa anche un'unita' neutra ('voce', 'voci')."
+  },
+  {
+    "id": "N-07",
+    "esito": "RISOLTO",
+    "file": "src/features/finanziario/api/index.ts:190",
+    "motivo": "perimetriInCache usa le key factory generate (prefissi di TX-0002..0013 e 0015, TX-0014 col confronto dell'hash) e restituisce i perimetri; la pill combina con lib/perimetro.ts. Il test esclude la chiave del CSV e chiavi estranee e include la riserva."
+  },
+  {
+    "id": "N-08",
+    "esito": "PARZIALE",
+    "severity_residua": "COSMETICO",
+    "file": "src/features/finanziario/lib/grafici/domande.ts:99",
+    "motivo": "Fatti kpiImportiPerAnno in lib e sommaSeCompleta al posto di totaleConteggi, con test L1. Resta la nota sulle domande senza importo ammesso scritta due volte con testi diversi: aggregati.ts:83 ('... non entrano nella somma', notaSenzaAmmesso) e domande.ts:99 ('... non entrano nelle somme')."
+  },
+  {
+    "id": "N-09",
+    "esito": "RISOLTO",
+    "file": "src/features/finanziario/lib/riserva.ts:101",
+    "motivo": "kpiRiserva in lib calcola valori, assenze e la regola del residuo previsto in un solo punto; il componente rende solo il risultato. Test L1 sul residuo previsto prima e dal primo giorno della fase e sulle assenze."
+  },
+  {
+    "id": "N-10",
+    "esito": "RISOLTO",
+    "file": "src/features/finanziario/lib/grafici/riserva.ts:62",
+    "motivo": "Il max dell'asse e' un numero calcolato nel builder (Math.max(accumulato, cumulati)), senza closure; contratto.ts dichiara che le funzioni delle opzioni non catturano dati. Il test del builder verifica il max a 5.000.000."
+  },
+  {
+    "id": "N-11",
+    "esito": "RISOLTO",
+    "file": "src/shared/api/mutator/bff-mutator.ts:177",
+    "motivo": "prendiLock prova prima ogni lock con ifAvailable e solo se sono tutti tenuti aspetta quello del posto locale, come chiedeva il fix. Test con il posto 0 tenuto da un'altra scheda: la lettura parte sul lock 1. Limite rimasto, non bloccante: una lettura gia' in attesa resta legata a quel lock anche se un altro si libera (attesa limitata dalla guardia)."
+  },
+  {
+    "id": "N-12",
+    "esito": "RISOLTO",
+    "file": "src/shared/ui/tabella/TabelleSemplici.tsx:16",
+    "motivo": "Le tabelle semplici hanno ui-tabella--semplice, con td.ui-num a capo negli spazi (gli importi no: spazio indivisibile prima di €). Il contenitore e' una regione con nome e tabIndex=0, quindi scrollable-region-focusable e' soddisfatta; la regola morta ui-testo e' tolta. Test L2 in shared-ui-kit.test.tsx con axe."
+  },
+  {
+    "id": "N-13",
+    "esito": "RISOLTO",
+    "file": "src/shared/api/mutator/bff-mutator.ts:231",
+    "motivo": "La guardia e' armata all'invio: dopo GUARDIA_LETTURA_MS interrompe la XHR, libera posto e lock e rifiuta con AxiosError ETIMEDOUT. Test L1 con timer finti: posto e lock liberi, la lettura successiva servita, getErrorMessage 'server non risponde'. Il retry di quell'errore da parte del QueryClient e' il nuovo M-01."
+  },
+  {
+    "id": "N-14",
+    "esito": "RISOLTO",
+    "file": "src/features/finanziario/ui/DomandeReport.tsx:82",
+    "motivo": "Domande: select 'Anno di raccolta' sempre montata, quindi togliere la scelta non sposta il focus. Verifica SMP: onRiga ed etichettaRiga sulla TabellaInterattiva. Test da tastiera: selectOptions e Invio sulla riga verso /finanziario/interventi/SRA01?og=OG2."
+  },
+  {
+    "id": "N-15",
+    "esito": "RISOLTO",
+    "file": "src/shared/api/auth/auth-status.ts:35",
+    "motivo": "improntaIdentita (username, profilo, ruoli ordinati) decide lo svuotamento della cache. E' documentata come chiave di svuotamento e mai come controllo d'accesso; nessun uso di contextProjection. Test: stesso username con altri ruoli o un altro profilo svuota la cache, stessi ruoli in altro ordine no."
+  },
+  {
+    "id": "N-16",
+    "esito": "RISOLTO",
+    "file": "src/features/finanziario/ui/DettaglioIntervento.tsx:21",
+    "motivo": "Titolo 'Importi ammessi e decretati per anno', come intervento.html:132, nella card e nel ConGrant. Il test del dettaglio cerca il grafico e la tabella con quel titolo."
+  },
+  {
+    "id": "N-17",
+    "esito": "RISOLTO",
+    "file": "src/features/finanziario/ui/DomandeReport.tsx:53",
+    "motivo": "I KPI ammesso e stanziato usano importoKpi (M€ da 1 milione in su, come gli altri KPI). Il test della pagina passa per quel ramo; la fixture e' sotto il milione, quindi la forma in M€ e' coperta dai test di importoKpi del kit."
+  },
+  {
+    "id": "N-18",
+    "esito": "RISOLTO",
+    "file": "src/features/finanziario/lib/grafici/avanzamento.ts:81",
+    "motivo": "sottotitoloFlusso segue lo stesso ramo di ramiFlusso: con l'impegnato il testo originale, senza 'Dalla dotazione ai pagamenti netti e al residuo; impegnato: <motivo>'. Test L1 su entrambi i rami."
+  },
+  {
+    "id": "N-19",
+    "esito": "RISOLTO",
+    "file": "src/features/finanziario/lib/grafici/avanzamento.ts:89",
+    "motivo": "I motivi composti usano la forma con i due punti: 'dotazione: ...' (importi.ts problemaDotazione), 'pagamenti netti: ...' (intervento.ts), 'pagamenti netti: non disponibile; dotazione residua: ...' (motivoFlusso). Test di grafici e casi limite aggiornati e verdi."
+  },
+  {
+    "id": "N-20",
+    "esito": "RISOLTO",
+    "file": "src/features/finanziario/lib/perimetro.ts:30",
+    "motivo": "PERIMETRO_ADA, perimetroCombinato ed etichettaDiProgramma stanno in lib/perimetro.ts e li usano AvanzamentoReport, PerimetroPill, comuni.diProgramma e vociIntervento. Nessun letterale 'ADA' fuori da perimetro.ts (grep). Test L1 in finanziario-lib."
+  },
+  {
+    "id": "N-21",
+    "esito": "RISOLTO",
+    "file": "src/features/finanziario/lib/aggregati.ts:7",
+    "motivo": "avanzamentoPonderato, esclusione e i tipi sono in lib/avanzamento.ts; valoreDi, codiceDi e le assenze in lib/importi.ts. Aggregati e builder importano da li': nessuna dipendenza dagli aggregati verso grafici/."
+  },
+  {
+    "id": "N-22",
+    "esito": "RISOLTO",
+    "file": "src/features/finanziario/lib/report.ts:136",
+    "motivo": "Tolti reportVisibili (con il suo test), annoDi e dataItaliana. minuscolaIniziale e' usata da titoloH1; maiuscolaIniziale, nuova nel kit, da KpiImporto e kpiRiserva. Test del kit per maiuscolaIniziale."
+  },
+  {
+    "id": "N-23",
+    "esito": "RISOLTO",
+    "file": "tests/eslint-regole.test.ts:60",
+    "motivo": "Canary 'soglie dei lib/ (H-06)' su shared, entities e features lib/: 11 rami e 61 righe scattano, 10 e 60 no; in ui/ non scattano. Verde."
+  },
+  {
+    "id": "N-24",
+    "esito": "PARZIALE",
+    "severity_residua": "COSMETICO",
+    "file": "src/pages/finanziario/panoramica/page.tsx:7",
+    "motivo": "Fatti useApriIntervento, usato da tutti i drill-down, e conFiltri in DettaglioIntervento. Resta la prop sottotitolo della pagina della panoramica, identica al sottotitolo del catalogo (lib/report.ts:58), che il fix chiedeva di togliere."
+  },
+  {
+    "id": "N-25",
+    "esito": "RISOLTO",
+    "file": "e2e/csp.spec.ts:165",
+    "motivo": "Il test e2e apre il riepilogo, clicca la riga SRA01, attende il dialogo dell'anteprima con 'Domande presentate', chiude con Esc e verifica zero violazioni. Un test nuovo copre il dettaglio con le schede. npm run test:e2e: 4/4 verdi."
+  }
+]
