@@ -3,7 +3,7 @@
 // calcolabile e lo si dice con gli interventi che mancano; la quota pagata sulla dotazione e' la stessa media
 // ponderata del grafico dell'avanzamento (stessi interventi inclusi ed esclusi).
 import type { ImportoLike } from '../../../entities/importo';
-import { centesimi, formatEuro, formatNumber, plurale } from '../../../shared/lib';
+import { centesimi, formatEuro, plurale } from '../../../shared/lib';
 import { avanzamentoPonderato } from './avanzamento';
 import type { RigaImportiAnno, RigaSpesa } from './dto';
 import { assenzaImporto, codiceDi, valoreDi } from './importi';
@@ -75,12 +75,17 @@ export interface KpiImportiPerAnno {
   stanziato: Aggregato & { importo?: ImportoLike | null };
 }
 
+/** "2 domande senza importo ammesso: non entrano nella somma": la stessa frase nel KPI e fra le voci omesse del grafico. */
+export function testoSenzaAmmesso(n: number): string {
+  return `${plurale(n, 'domanda senza importo ammesso', 'domande senza importo ammesso')}: ${n === 1 ? 'non entra' : 'non entrano'} nella somma`;
+}
+
 /** Nota sulle domande senza importo ammesso: quante sono (non entrano nella somma) o che il conteggio manca. */
 export function notaSenzaAmmesso(righe: readonly RigaImportiAnno[]): string {
   const senza = sommaSeCompleta(righe.map((r) => r.domandeSenzaAmmesso));
   if (senza === null) return 'domande senza importo ammesso: conteggio non disponibile per almeno un anno';
   if (senza === 0) return 'somma degli anni di raccolta';
-  return `${formatNumber(senza)} ${senza === 1 ? 'domanda senza importo ammesso: non entra' : 'domande senza importo ammesso: non entrano'} nella somma`;
+  return testoSenzaAmmesso(senza);
 }
 
 /** KPI della pagina Domande da TX-0010: ammesso e stanziato come somme degli anni, mai parziali. */

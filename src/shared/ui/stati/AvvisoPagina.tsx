@@ -1,7 +1,8 @@
 // AvvisoPagina — un solo avviso d'errore per pagina (review v2 A-07). Le viste dati dentro <AvvisoPagina> non mostrano
 // ognuna il suo alert con "Riprova": registrano qui l'errore e nella sezione resta un testo statico. La pagina dice una
 // volta i messaggi distinti e quante sezioni non si sono caricate, con un "Riprova" che rilegge tutte le sezioni in
-// errore. Fuori da AvvisoPagina VistaQuery mostra l'errore nella sezione, come prima.
+// errore. Fuori da AvvisoPagina VistaQuery mostra l'errore nella sezione, come prima. Quando l'avviso sparisce (un
+// "Riprova" riuscito) e il focus era sul suo pulsante, il focus resta nella pagina: va sul contenitore (WCAG 2.4.3).
 import { createContext, useCallback, useContext, useEffect, useId, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { getErrorMessage } from '../../lib';
@@ -27,22 +28,32 @@ export function AvvisoPagina({ children }: { children: ReactNode }) {
     });
   }, []);
   const messaggi = [...new Set([...errori.values()].map((e) => e.messaggio))];
+  const contenitore = useRef<HTMLDivElement>(null);
+  const primaConErrori = useRef(false);
+  useEffect(() => {
+    // l'avviso e' sparito col pulsante che aveva il focus (finito su BODY): il focus torna al contenuto della pagina
+    const focusPerso = document.activeElement === null || document.activeElement === document.body;
+    if (primaConErrori.current && errori.size === 0 && focusPerso) contenitore.current?.focus();
+    primaConErrori.current = errori.size > 0;
+  }, [errori.size]);
   return (
     <ContestoAvviso.Provider value={segnala}>
-      {errori.size > 0 && (
-        <div className="alert alert-danger my-3" role="alert">
-          {messaggi.map((m) => (
-            <p key={m} className="mb-1">
-              {m}
-            </p>
-          ))}
-          <p className="mb-2">{errori.size === 1 ? 'Una sezione della pagina non si è caricata.' : `${errori.size} sezioni della pagina non si sono caricate.`}</p>
-          <button type="button" className="btn btn-outline-danger btn-sm" onClick={() => errori.forEach((e) => e.riprova())}>
-            Riprova
-          </button>
-        </div>
-      )}
-      {children}
+      <div ref={contenitore} tabIndex={-1} className="ui-avviso-pagina">
+        {errori.size > 0 && (
+          <div className="alert alert-danger my-3" role="alert">
+            {messaggi.map((m) => (
+              <p key={m} className="mb-1">
+                {m}
+              </p>
+            ))}
+            <p className="mb-2">{errori.size === 1 ? 'Una sezione della pagina non si è caricata.' : `${errori.size} sezioni della pagina non si sono caricate.`}</p>
+            <button type="button" className="btn btn-outline-danger btn-sm" onClick={() => errori.forEach((e) => e.riprova())}>
+              Riprova
+            </button>
+          </div>
+        )}
+        {children}
+      </div>
     </ContestoAvviso.Provider>
   );
 }

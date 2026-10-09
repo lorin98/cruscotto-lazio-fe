@@ -595,7 +595,8 @@ describe('graficoImportiPerAnno', () => {
     const o = opzioniDi(g);
     expect(o.series.map((s) => s.name)).toEqual(['Importo stanziato', 'Importo ammesso', 'Importo decretato']);
     expect(o.series[0].data).toEqual([5_000_000, 8_000_000]);
-    expect(g.omessi).toEqual(['30 domande senza importo ammesso: non entrano nelle somme']);
+    // N-08: la stessa frase della nota del KPI (lib/aggregati, testoSenzaAmmesso)
+    expect(g.omessi).toEqual(['30 domande senza importo ammesso: non entrano nella somma']);
     expect(righeN(g)).toEqual([
       ['2023', '5.000.000,00 €', '4.000.000,00 €', '2.000.000,00 €', '10'],
       ['2024', '8.000.000,00 €', '6.000.000,00 €', '3.000.000,00 €', '20'],

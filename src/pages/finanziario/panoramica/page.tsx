@@ -4,7 +4,7 @@ import { PaginaFinanziario } from '../../../widgets/report-finanziario';
 
 export default function Pagina() {
   return (
-    <PaginaFinanziario percorso={PANORAMICA.percorso} sottotitolo="Dotazione, pagamenti e domande degli interventi selezionati. I grafici portano al dettaglio dell'intervento.">
+    <PaginaFinanziario percorso={PANORAMICA.percorso}>
       {(filtri) => <Panoramica filtri={filtri} />}
     </PaginaFinanziario>
   );

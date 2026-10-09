@@ -305,3 +305,5 @@ h1[tabindex='-1']:focus { outline: none !important; box-shadow: none !important;
 /* tabelle semplici (N-12): le assenze col motivo vanno a capo; gli importi no (spazio indivisibile prima di €) */
 .ui-tabella--semplice td.ui-num { white-space: normal; min-width: 8rem; }
 .ui-tabella-contenitore:focus-visible { outline: 3px solid var(--ui-fuoco); outline-offset: 2px; }
+/* AvvisoPagina: il contenitore riceve il focus solo da programma, quando l'avviso sparisce col pulsante (M-02) */
+.ui-avviso-pagina:focus { outline: none; }

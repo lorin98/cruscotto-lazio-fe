@@ -15,7 +15,7 @@ import {
   valoreInNumero,
 } from '../../../../shared/lib';
 import type { DatiGrafico } from '../../../../shared/lib';
-import { sommaSeCompleta } from '../aggregati';
+import { sommaSeCompleta, testoSenzaAmmesso } from '../aggregati';
 import type { RigaDomandeAnno, RigaImportiAnno } from '../dto';
 import { annoDiRaccolta, numeroOpzionale } from '../formato';
 import { assenzaImporto, cellaImporto, perAnno, valoreDi } from '../importi';
@@ -96,7 +96,7 @@ export function graficoImportiPerAnno(righe: RigaImportiAnno[]): DatiGrafico {
   const serie = IMPORTI.map((def) => lineaImporti(def, ordinate, categorie, omessi)).filter((s): s is LineSeriesOption => s != null);
   if (serie.length === 0) return nonDisegnabile('nessun importo valorizzato per anno di raccolta', tabella, omessi);
   const senzaAmmesso = sommaSeCompleta(ordinate.map((r) => r.domandeSenzaAmmesso));
-  if (senzaAmmesso) omessi.push(`${plurale(senzaAmmesso, 'domanda senza importo ammesso', 'domande senza importo ammesso')}: ${senzaAmmesso === 1 ? 'non entra' : 'non entrano'} nelle somme`);
+  if (senzaAmmesso) omessi.push(testoSenzaAmmesso(senzaAmmesso));
   const descrizione = `Linee ${serie.map((s) => `dell'${String(s.name).toLowerCase()}`).join(' e ')} per anno di raccolta (${categorie.join(', ')}), in milioni di euro.${notaOmessi(omessi)}`;
   const opzioni: EChartsOption = {
     aria: aria(descrizione),

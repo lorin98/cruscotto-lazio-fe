@@ -16,7 +16,7 @@
     {
       "name": "test",
       "status": "pass",
-      "evidence": "vitest.json verde (total=642) + coverage>=soglie (L92.03 S91.31 F90.84 B85.63 vs L80 S80 F80 B70)"
+      "evidence": "vitest.json verde (total=650) + coverage>=soglie (L92.06 S91.34 F90.86 B85.75 vs L80 S80 F80 B70)"
     },
     {
       "name": "a11y",

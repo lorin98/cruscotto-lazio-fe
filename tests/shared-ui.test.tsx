@@ -113,4 +113,20 @@ describe('AvvisoPagina: un solo avviso d errore per la pagina (A-07)', () => {
     );
     expect(screen.queryByRole('alert')).toBeNull();
   });
+
+  // M-02: l'avviso sparisce col pulsante che ha il focus; il focus resta nella pagina, non su BODY
+  it('Riprova riuscito: l avviso sparisce e il focus va al contenuto della pagina', async () => {
+    const riprovate: string[] = [];
+    const { rerender } = render(<AvvisoPagina>{sezione('a', 503, riprovate)}</AvvisoPagina>);
+    await userEvent.click(within(await screen.findByRole('alert')).getByRole('button', { name: 'Riprova' }));
+    expect(document.activeElement?.textContent).toBe('Riprova');
+    rerender(
+      <AvvisoPagina>
+        <VistaQuery stato={stato({ data: [1] })}>{() => <p>dati a</p>}</VistaQuery>
+      </AvvisoPagina>,
+    );
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(document.activeElement).not.toBe(document.body);
+    expect(document.activeElement?.textContent).toBe('dati a');
+  });
 });

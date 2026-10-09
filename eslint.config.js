@@ -125,8 +125,10 @@ const entityBarrelOnlyImportGroup = {
   message: "Un'entity si importa SOLO dal suo barrel (src/entities/<entity>), mai da una sotto-cartella interna.",
 };
 
+// Il gruppo confronta lo specificatore cosi' come e' scritto, non il percorso risolto (M-03): dentro lo slice le fixture
+// e gli esempi si importano con percorsi relativi ('../testing/fixture', './mock/esempio'), che vanno elencati anche loro.
 const testingImportGroup = {
-  group: ['**/shared/testing', '**/shared/testing/*', '**/features/*/testing', '**/features/*/testing/*', '**/api/mock', '**/api/mock/*'],
+  group: ['**/testing', '**/testing/*', '**/api/mock', '**/api/mock/*', './mock', './mock/*'],
   message: 'I moduli di prova (shared/testing, features/<slice>/testing, api/mock) servono solo ai test e al dev server: non vanno nel codice di produzione (Z-02).',
 };
 
@@ -309,6 +311,16 @@ export default tseslint.config(
     rules: {
       complexity: ['error', 10],
       'max-lines-per-function': ['error', { max: 60, skipBlankLines: true, skipComments: true }],
+    },
+  },
+  {
+    // M-03 (review v2 iter3): i wrapper api/ delle feature e delle entity stanno fuori dal blocco dei consumatori (sono i
+    // soli a importare il client generato), ma i moduli di prova restano vietati anche a loro (Z-02). Fanno eccezione gli
+    // esempi del dev server in api/mock/, che sono essi stessi moduli di prova.
+    files: ['src/features/*/api/**/*.{ts,tsx}', 'src/entities/*/api/**/*.{ts,tsx}'],
+    ignores: ['src/features/*/api/mock/**', 'src/entities/*/api/mock/**'],
+    rules: {
+      'no-restricted-imports': ['error', { patterns: [testingImportGroup, entityBarrelOnlyImportGroup] }],
     },
   },
   {

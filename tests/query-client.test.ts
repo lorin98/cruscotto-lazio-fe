@@ -53,6 +53,8 @@ describe('query-client — politica di retry nei defaultOptions (review step9 H-
     expect(soloTransitori(0, erroreHttp(503, { type: PROBLEM_TYPES.CAPACITA_ESAURITA }))).toBe(true);
     expect(soloTransitori(0, erroreHttp(503))).toBe(true);
     expect(soloTransitori(0, new AxiosError('Network Error', 'ERR_NETWORK'))).toBe(true);
+    // M-01: la lettura chiusa dalla guardia del mutator ha gia' atteso, non si riprova
+    expect(soloTransitori(0, new AxiosError('Nessuna risposta', AxiosError.ETIMEDOUT))).toBe(false);
     expect(soloTransitori(0, erroreHttp(503, { type: PROBLEM_TYPES.TEMPO_SCADUTO }))).toBe(false);
     expect(soloTransitori(0, erroreHttp(403, { type: PROBLEM_TYPES.ACCESSO_NEGATO }))).toBe(false);
     expect(soloTransitori(0, new Error('non HTTP'))).toBe(false);

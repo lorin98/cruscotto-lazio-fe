@@ -109,6 +109,26 @@ describe('moduli di prova fuori dal codice di produzione (Z-02)', () => {
     expect(sottoCartelle(await regole(fixture, percorso))).toEqual([]);
     expect(sottoCartelle(await regole(interno, percorso)).length).toBeGreaterThan(0);
   });
+  // M-03: il gruppo confronta lo specificatore scritto; quello relativo dentro lo slice va vietato anche lui, compresi i
+  // wrapper api/ (fuori dal blocco dei consumatori)
+  const fixtureRelativa = "import { FILTRI } from '../testing/fixture';\nexport const x = FILTRI;\n";
+  it.each([
+    ['src/features/finanziario/api/__canary__.ts', "import { handlersEsempio } from './mock/esempio';\nexport const x = handlersEsempio;\n"],
+    ['src/features/finanziario/api/__canary__.ts', fixtureRelativa],
+    ['src/features/finanziario/ui/__canary__.ts', fixtureRelativa],
+    ['src/features/finanziario/lib/__canary__.ts', fixtureRelativa],
+    ['src/features/finanziario/ui/__canary__.ts', "import { handlersEsempio } from '../api/mock/esempio';\nexport const x = handlersEsempio;\n"],
+  ])('moduli di prova vietati con lo specificatore relativo, in %s', async (percorso, codice) => {
+    expect(vietati(await regole(codice, percorso)).length).toBeGreaterThan(0);
+  });
+  it('le librerie con testing nel nome non sono moduli di prova', async () => {
+    const codice = "import { render } from '@testing-library/react';\nexport const x = render;\n";
+    expect(vietati(await regole(codice, 'src/features/finanziario/ui/__canary__.ts'))).toEqual([]);
+  });
+  it('gli esempi del dev server in api/mock/ restano liberi', async () => {
+    const codice = "import { http } from 'msw';\nexport const x = http;\n";
+    expect(vietati(await regole(codice, 'src/features/finanziario/api/mock/__canary__.ts'))).toEqual([]);
+  });
   it('esempi del dev server nella feature: vietati nel codice di produzione', async () => {
     const codice = "import { handlersEsempio } from '../api/mock/esempio';\nexport const x = handlersEsempio;\n";
     expect(vietati(await regole(codice, 'src/features/finanziario/ui/__canary__.ts')).length).toBeGreaterThan(0);

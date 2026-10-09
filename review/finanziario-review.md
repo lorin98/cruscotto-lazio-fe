@@ -74,3 +74,17 @@ Nessuno. Il Judge dell'iterazione 1 ha rigettato 3 finding, tutti duplicati (V-0
   postazioni di sviluppo.
 - Una lettura gia' in attesa resta legata al lock del proprio posto anche se se ne libera un altro; l'attesa e'
   limitata dalla guardia (120 s).
+
+## Correzioni dopo la review (09/10/2026)
+
+Applicate dopo il PASS, senza cambiare il verdetto (che resta quello di `d9c427f`). Gate di step8 rieseguito in sola
+verifica: 11/11, 650 test verdi, 4 e2e verdi.
+
+| Residuo | Esito | Dove |
+|---|---|---|
+| M-01 | Risolto. La lettura chiusa dalla guardia (ETIMEDOUT) non si riprova: l'errore arriva alla guardia. Test L1. | `src/shared/api/retry/nuovi-tentativi.ts`, `tests/query-client.test.ts` |
+| M-02 | Risolto. Il contenuto della pagina sta in un contenitore con `tabIndex=-1`, che riceve il focus quando l'avviso sparisce dopo un "Riprova" riuscito e il focus era finito su BODY. Test L2. | `src/shared/ui/stati/AvvisoPagina.tsx`, `tests/shared-ui.test.tsx` |
+| M-03 | Risolto, e piu' largo del finding: `no-restricted-imports` confronta lo specificatore scritto, quindi i percorsi relativi dentro lo slice (`../testing/fixture`, `./mock/esempio`) passavano anche da `ui/` e `lib/`. Il gruppo Z-02 ora li comprende, e un blocco nuovo lo applica ai wrapper `api/`. Canary da `api/`, `ui/` e `lib/`; prova di mutazione: con il gruppo precedente 4 canary falliscono. | `eslint.config.js`, `tests/eslint-regole.test.ts` |
+| N-08 | Risolto. Una sola frase (`testoSenzaAmmesso`) per la nota del KPI e per le voci omesse del grafico. | `src/features/finanziario/lib/aggregati.ts`, `lib/grafici/domande.ts` |
+| N-24 | Risolto. La panoramica usa il sottotitolo del catalogo. | `src/pages/finanziario/panoramica/page.tsx` |
+| V-22 | Aperto: la scelta del testo del pulsante e' dell'utente. | |
