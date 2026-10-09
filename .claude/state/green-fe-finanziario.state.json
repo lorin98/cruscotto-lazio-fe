@@ -62,7 +62,7 @@
     },
     "step2-codegen": {
       "status": "done",
-      "completed_at": "2026-10-08T19:41:39Z",
+      "completed_at": "2026-10-09T13:45:12Z",
       "artifacts": [
         "./specs/.spec-lock.json",
         "./src/shared/api/generated"
@@ -75,7 +75,7 @@
     },
     "step3-api": {
       "status": "done",
-      "completed_at": "2026-10-08T19:42:51Z",
+      "completed_at": "2026-10-09T13:45:48Z",
       "artifacts": [
         "./src/features"
       ],
@@ -86,9 +86,9 @@
     },
     "step4-lib": {
       "status": "done",
-      "completed_at": "2026-10-08T20:33:08Z",
+      "completed_at": "2026-10-09T13:46:24Z",
       "artifacts": [
-        "/c/Users/lorin/Desktop/Lorenzo/sian-ng/progetti/arsial/arsial-cruscotto/cruscotto-lazio-fe/src/shared/lib"
+        "./src/shared/lib"
       ],
       "gates": {
         "lib_pure_compile": "pass",
@@ -97,9 +97,9 @@
     },
     "step5-ui": {
       "status": "done",
-      "completed_at": "2026-10-08T20:34:16Z",
+      "completed_at": "2026-10-09T13:47:29Z",
       "artifacts": [
-        "/c/Users/lorin/Desktop/Lorenzo/sian-ng/progetti/arsial/arsial-cruscotto/cruscotto-lazio-fe/src/features"
+        "./src/features"
       ],
       "gates": {
         "ui_components_compile": "pass",
@@ -108,10 +108,10 @@
     },
     "step6-page": {
       "status": "done",
-      "completed_at": "2026-10-08T20:34:59Z",
+      "completed_at": "2026-10-09T13:48:10Z",
       "artifacts": [
-        "/c/Users/lorin/Desktop/Lorenzo/sian-ng/progetti/arsial/arsial-cruscotto/cruscotto-lazio-fe/src/pages",
-        "/c/Users/lorin/Desktop/Lorenzo/sian-ng/progetti/arsial/arsial-cruscotto/cruscotto-lazio-fe/route-manifest.json"
+        "./src/pages",
+        "./route-manifest.json"
       ],
       "gates": {
         "pages_compile": "pass",
@@ -120,11 +120,11 @@
     },
     "step7-test": {
       "status": "done",
-      "completed_at": "2026-10-08T20:35:26Z",
+      "completed_at": "2026-10-09T13:48:17Z",
       "artifacts": [
-        "/c/Users/lorin/Desktop/Lorenzo/sian-ng/progetti/arsial/arsial-cruscotto/cruscotto-lazio-fe/src/shared/test",
-        "/c/Users/lorin/Desktop/Lorenzo/sian-ng/progetti/arsial/arsial-cruscotto/cruscotto-lazio-fe/src/shared/api/mock",
-        "/c/Users/lorin/Desktop/Lorenzo/sian-ng/progetti/arsial/arsial-cruscotto/cruscotto-lazio-fe/src/shared/testing/axe.ts"
+        "./src/shared/test",
+        "./src/shared/api/mock",
+        "./src/shared/testing/axe.ts"
       ],
       "gates": {
         "tests_generated": "pass",
@@ -133,9 +133,9 @@
     },
     "step8-gate": {
       "status": "done",
-      "completed_at": "2026-10-08T20:38:13Z",
+      "completed_at": "2026-10-09T13:53:23Z",
       "artifacts": [
-        "/c/Users/lorin/Desktop/Lorenzo/sian-ng/progetti/arsial/arsial-cruscotto/cruscotto-lazio-fe/fe-gate-report.json"
+        "./fe-gate-report.json"
       ],
       "gates": {
         "lint": "pass",
@@ -152,11 +152,9 @@
       }
     },
     "step9-review": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-09T10:35:51Z",
-      "gates": {
-        "review": "pass"
-      }
+      "gates": {}
     }
   },
   "open_blockers": [],

@@ -917,12 +917,33 @@ describe('RiepilogoReport (TX-0011, tabella interattiva)', () => {
     URL.revokeObjectURL = vi.fn();
     const clic = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
     conRouter(<RiepilogoReport filtri={{ intervento: ['SRA01'] }} />);
-    await userEvent.click(await screen.findByRole('button', { name: 'Esporta la tabella in CSV' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Scarica la tabella Riepilogo per intervento in CSV' }));
     expect(await screen.findByText('File CSV scaricato.')).toBeTruthy();
     expect(new URL(richiesta?.url ?? 'http://x').search).toBe('?intervento=SRA01');
     expect(richiesta?.headers.get('X-Requested-With')).toBe('XMLHttpRequest');
     expect(clic).toHaveBeenCalledTimes(1);
-    expect((clic.mock.contexts[0] as HTMLAnchorElement).download).toBe('riepilogo-finanziario.csv');
+    expect((clic.mock.contexts[0] as HTMLAnchorElement).download).toBe('riepilogo-per-intervento.csv');
+  });
+
+  it("esporta l'XLSX dal backend con gli stessi filtri e X-Requested-With (D-08)", async () => {
+    let richiesta: Request | undefined;
+    server.use(
+      rispondi('/api/finanziario/riepilogo', F.RIEPILOGO),
+      http.get('*/api/finanziario/riepilogo/xlsx', ({ request }) => {
+        richiesta = request;
+        return new HttpResponse('PK', { headers: { 'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' } });
+      }),
+    );
+    URL.createObjectURL = vi.fn(() => 'blob:prova');
+    URL.revokeObjectURL = vi.fn();
+    const clic = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    conRouter(<RiepilogoReport filtri={{ intervento: ['SRA01'], os: ['OS4'] }} />);
+    await userEvent.click(await screen.findByRole('button', { name: 'Scarica la tabella Riepilogo per intervento in XLSX' }));
+    expect(await screen.findByText('File XLSX scaricato.')).toBeTruthy();
+    expect(new URL(richiesta?.url ?? 'http://x').search).toBe('?intervento=SRA01&os=OS4');
+    expect(richiesta?.headers.get('X-Requested-With')).toBe('XMLHttpRequest');
+    expect((clic.mock.contexts[0] as HTMLAnchorElement).download).toBe('riepilogo-per-intervento.xlsx');
+    clic.mockRestore();
   });
 
   it("errore dell'esportazione classificato sul problem-type, in linea, senza perdere la tabella", async () => {
@@ -933,9 +954,9 @@ describe('RiepilogoReport (TX-0011, tabella interattiva)', () => {
       ),
     );
     conRouter(<RiepilogoReport filtri={{}} />);
-    await userEvent.click(await screen.findByRole('button', { name: 'Esporta la tabella in CSV' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Scarica la tabella Riepilogo per intervento in CSV' }));
     const avviso = await screen.findByRole('alert');
-    expect(avviso.textContent).toBe('Non hai i permessi per consultare questi dati.');
+    expect(avviso.textContent).toBe('File CSV non scaricato. Non hai i permessi per consultare questi dati.');
     expect(avviso.closest('.ui-strumenti')).toBeTruthy();
     expect(screen.getByRole('table', { name: NOME_TABELLA })).toBeTruthy();
   });
@@ -947,7 +968,7 @@ describe('RiepilogoReport (TX-0011, tabella interattiva)', () => {
     expect(screen.queryByRole('table')).toBeNull();
     expect(screen.queryByText(/Dotazione assistenza tecnica/)).toBeNull();
     expect(screen.queryByText(/100\.000,00/)).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Esporta la tabella in CSV' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Scarica la tabella Riepilogo per intervento in CSV' })).toBeNull();
     unmount();
     // 429 non si riprova (CAPACITA_ESAURITA si', con Retry-After): basta a provare il ramo errore
     server.use(rispondi('/api/finanziario/riepilogo', problema(429, 'TROPPE_RICHIESTE'), 429));
@@ -1528,6 +1549,30 @@ describe('SigcReport (TX-0012, TX-0013)', () => {
     expect(within(card(RF013)).getByRole('table', { name: 'Importi delle domande SIGC: dal richiesto al pagato' })).toBeTruthy();
   });
 
+  it('grafici: PNG, CSV e XLSX; CSV e XLSX della TX dal backend coi filtri della pagina', async () => {
+    servi();
+    const richieste: string[] = [];
+    server.use(
+      http.get('*/api/finanziario/sigc/:report/:formato', ({ request }) => {
+        const u = new URL(request.url);
+        richieste.push(`${u.pathname}${u.search} ${request.headers.get('X-Requested-With')}`);
+        return new HttpResponse('dati', { headers: { 'Content-Type': 'text/csv' } });
+      }),
+    );
+    URL.createObjectURL = vi.fn(() => 'blob:prova');
+    URL.revokeObjectURL = vi.fn();
+    const clic = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    renderConQuery(<SigcReport filtri={{ intervento: ['SRA01'] }} />);
+    const gruppo = await screen.findByRole('group', { name: `Scarica il grafico ${RF012}` });
+    expect(within(gruppo).getAllByRole('button').map((b) => b.textContent)).toEqual(['PNG', 'CSV', 'XLSX']);
+    await userEvent.click(screen.getByRole('button', { name: `Scarica il grafico ${RF012} in XLSX` }));
+    await userEvent.click(screen.getByRole('button', { name: `Scarica il grafico ${RF013} in CSV` }));
+    await waitFor(() => expect(richieste).toHaveLength(2));
+    expect(richieste).toEqual(['/api/finanziario/sigc/domande/xlsx?intervento=SRA01 XMLHttpRequest', '/api/finanziario/sigc/importi/csv?intervento=SRA01 XMLHttpRequest']);
+    expect(clic.mock.contexts.map((a) => (a as HTMLAnchorElement).download)).toEqual(['domande-sigc-rf012.xlsx', 'importi-sigc-rf013.csv']);
+    clic.mockRestore();
+  });
+
   it('importi a zero con domande presentate: dati, non stato vuoto', async () => {
     server.use(
       rispondi('/api/finanziario/sigc/domande', F.SIGC_DOMANDE),
@@ -1602,6 +1647,27 @@ describe('RiservaReport (TX-0014)', () => {
     expect(vuoto.closest('[role]')?.getAttribute('role')).toBe('status');
     expect(within(screen.getByRole('region', { name: "Riserva di efficacia (5%) dell'anno 2025 (RF014)" })).getByText(/^Nessuna riserva calcolata/)).toBeTruthy();
     expect(screen.queryByRole('alert')).toBeNull();
+    // per un anno mai calcolato nessun pulsante di download: il backend risponderebbe 404 anche all'export
+    expect(screen.queryByRole('group', { name: 'Scarica i dati della riserva 2025' })).toBeNull();
+  });
+
+  it("CSV e XLSX della riserva dell'anno dal backend, solo con la riserva caricata", async () => {
+    let percorso = '';
+    server.use(
+      rispondi('/api/finanziario/riserva/2025', F.RISERVA),
+      http.get('*/api/finanziario/riserva/2025/:formato', ({ request }) => {
+        percorso = new URL(request.url).pathname;
+        return new HttpResponse('dati', { headers: { 'Content-Type': 'text/csv' } });
+      }),
+    );
+    URL.createObjectURL = vi.fn(() => 'blob:prova');
+    URL.revokeObjectURL = vi.fn();
+    const clic = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    renderConQuery(<RiservaReport anno={2025} onCambiaAnno={nessunaAzione} />);
+    await userEvent.click(await screen.findByRole('button', { name: 'Scarica i dati della riserva 2025 in XLSX' }));
+    await waitFor(() => expect(percorso).toBe('/api/finanziario/riserva/2025/xlsx'));
+    expect((clic.mock.contexts[0] as HTMLAnchorElement).download).toBe('riserva-di-efficacia-2025.xlsx');
+    clic.mockRestore();
   });
 
   // V-17: accumulato, congelato, utilizzato e residuo come tessere, sopra la tabella delle voci di contorno
@@ -1707,6 +1773,25 @@ describe('RiservaReport (TX-0014)', () => {
 describe('VerificaSmpReport (TX-0015)', () => {
   const TABELLA_SMP = /^I dati ASR per intervento da confrontare con SMP/;
   const GRAFICO_SMP = 'Previsione di pagamento e spesa erogata per intervento';
+
+  it("CSV e XLSX dal backend coi filtri e l'esercizio", async () => {
+    let query = '';
+    server.use(
+      rispondi('/api/finanziario/sigc/verifica-smp', F.VERIFICA_SMP),
+      http.get('*/api/finanziario/sigc/verifica-smp/csv', ({ request }) => {
+        query = new URL(request.url).search;
+        return new HttpResponse('dati', { headers: { 'Content-Type': 'text/csv' } });
+      }),
+    );
+    URL.createObjectURL = vi.fn(() => 'blob:prova');
+    URL.revokeObjectURL = vi.fn();
+    const clic = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    conRouter(<VerificaSmpReport filtri={{ intervento: ['SRA01'] }} esercizio={2025} onCambiaEsercizio={nessunaAzione} />);
+    await userEvent.click(await screen.findByRole('button', { name: 'Scarica i dati SIGC per il confronto con SMP, esercizio 2025 in CSV' }));
+    await waitFor(() => expect(query).toBe('?intervento=SRA01&esercizio=2025'));
+    expect((clic.mock.contexts[0] as HTMLAnchorElement).download).toBe('verifica-smp-esercizio-2025.csv');
+    clic.mockRestore();
+  });
 
   it("senza esercizio chiede di sceglierlo; l'esercizio 2030 e selezionabile", () => {
     renderConQuery(<VerificaSmpReport filtri={{}} esercizio={undefined} onCambiaEsercizio={nessunaAzione} />);

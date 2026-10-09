@@ -6,7 +6,7 @@ export type NomeIcona =
   | 'it-search' | 'it-close' | 'it-funnel' | 'it-chevron-right' | 'it-download' | 'it-info-circle' | 'it-user' | 'it-logout'
   | 'it-arrow-left' | 'it-arrow-right' | 'it-calendar' | 'it-chart-line' | 'it-files' | 'it-folder' | 'it-pa' | 'it-list'
   | 'it-refresh' | 'it-map-marker' | 'it-burger' | 'it-card' | 'it-box' | 'it-inbox' | 'it-clock' | 'it-plus' | 'it-minus'
-  | 'it-help-circle' | 'it-external-link' | 'it-file-csv' | 'it-presentation' | 'it-settings' | 'it-warning-circle' | 'it-check-circle';
+  | 'it-help-circle' | 'it-external-link' | 'it-file-csv' | 'it-file-image' | 'it-file-xlsx' | 'it-presentation' | 'it-settings' | 'it-warning-circle' | 'it-check-circle';
 
 export function Icona({ nome, classe = '' }: { nome: NomeIcona; classe?: string }) {
   return (

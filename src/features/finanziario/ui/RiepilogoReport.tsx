@@ -1,15 +1,15 @@
 // RiepilogoReport — report RF011 (route /finanziario/riepilogo, TX-0011, flusso riepilogo v2): tabella interattiva per
 // intervento con i nove campi (cerca, ordina, colonne, paginazione, totali), riga che apre l'anteprima laterale e da li'
-// il dettaglio dell'intervento, vista grafico (clic su una barra: dettaglio), esportazione CSV con gli stessi filtri, e
+// il dettaglio dell'intervento, vista grafico (clic su una barra: dettaglio), file CSV e XLSX dal backend con gli stessi filtri, e
 // nel piede la dotazione dell'Assistenza tecnica (intero programma, non dipende dai filtri). Ogni cella assente dice il
 // suo motivo; i totali sono "non calcolabile" se manca anche un solo valore (mai somme parziali).
 import { useState } from 'react';
 import { Link } from 'react-router';
 import { ValoreImporto } from '../../../entities/importo';
-import { formatNumber, getErrorMessage } from '../../../shared/lib';
-import { CardGrafico, PannelloLaterale, Sezione, TabellaInterattiva, VistaQuery, salvaFile } from '../../../shared/ui';
+import { formatNumber } from '../../../shared/lib';
+import { CardGrafico, PannelloLaterale, PulsantiScarica, Sezione, TabellaInterattiva, VistaQuery } from '../../../shared/ui';
 import type { ColonnaTabella, RigaPiede } from '../../../shared/ui';
-import { useEsportaRiepilogoCsv, useRiepilogo } from '../api';
+import { useRiepilogo } from '../api';
 import type { RiepilogoFinanziario, RiepilogoFinanziarioRiga } from '../api';
 import { cellaTotale, sommaSeCompleta } from '../lib/aggregati';
 import { ricercaDaFiltri } from '../lib/filtri';
@@ -18,6 +18,7 @@ import { graficoDotazionePagamenti } from '../lib/grafici';
 import type { Perimetro } from '../lib/perimetro';
 import { conFiltri, percorsoIntervento } from '../lib/report';
 import { NotaPerimetroMisto, PerimetroSezione, colonneImporti, diProgramma, vuotoConPerimetro } from './comuni';
+import { datiDelReport } from './esportazioni';
 import { useApriIntervento } from './useApriIntervento';
 import type { CampoImporto } from './comuni';
 
@@ -55,25 +56,8 @@ function totali(righe: readonly Riga[]): RigaPiede {
   };
 }
 
-function EsportaCsv({ filtri }: { filtri: Filtri }) {
-  const esportazione = useEsportaRiepilogoCsv();
-  const esporta = () => esportazione.mutate(filtri, { onSuccess: (csv) => salvaFile(csv, 'riepilogo-finanziario.csv') });
-  return (
-    <>
-      <button type="button" className="btn btn-outline-primary btn-sm" onClick={esporta} disabled={esportazione.isPending}>
-        Esporta la tabella in CSV
-      </button>
-      <span role="status" aria-live="polite" className="small">
-        {esportazione.isPending && 'Esportazione del file CSV in corso…'}
-        {esportazione.isSuccess && 'File CSV scaricato.'}
-      </span>
-      {esportazione.isError && (
-        <div className="alert alert-danger w-100 mb-0" role="alert">
-          {getErrorMessage(esportazione.error)}
-        </div>
-      )}
-    </>
-  );
+function Esporta({ filtri }: { filtri: Filtri }) {
+  return <PulsantiScarica oggetto="la tabella Riepilogo per intervento" scaricamenti={datiDelReport('Riepilogo per intervento', 'riepilogo', filtri)} />;
 }
 
 function Anteprima({ riga, perimetro, filtri, onChiudi }: { riga: Riga | null; perimetro?: Perimetro; filtri: Filtri; onChiudi: () => void }) {
@@ -138,7 +122,7 @@ function Contenuto({ d, filtri }: { d: RiepilogoFinanziario; filtri: Filtri }) {
           ordineIniziale={{ chiave: 'dotazioneSpesaPubblica', verso: 'decrescente' }}
           totali={totali}
           righePiede={[assistenzaTecnica]}
-          strumenti={<EsportaCsv filtri={filtri} />}
+          strumenti={<Esporta filtri={filtri} />}
         />
       ) : (
         <CardGrafico
@@ -153,6 +137,7 @@ function Contenuto({ d, filtri }: { d: RiepilogoFinanziario; filtri: Filtri }) {
           )}
           fonte="Fonte: TX-0011, riepilogo per intervento"
           onClic={dalClic}
+          scaricamenti={datiDelReport('Dotazione e pagamenti per intervento', 'riepilogo', filtri)}
         />
       )}
       <Anteprima riga={aperta} perimetro={d.perimetro} filtri={filtri} onChiudi={() => setAperta(null)} />

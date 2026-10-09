@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { BarraFiltri, CardGrafico, Grafico, Kpi, PannelloLaterale, Sezione, TabellaDati, TabellaInterattiva, TabellaRighe, TabellaVoci, VistaQuery, blobDaDataUrl } from '../src/shared/ui';
+import { BarraFiltri, CardGrafico, Grafico, Kpi, PannelloLaterale, PulsantiScarica, Sezione, TabellaDati, TabellaInterattiva, TabellaRighe, TabellaVoci, VistaQuery, blobDaDataUrl } from '../src/shared/ui';
 import type { StatoQuery } from '../src/shared/ui';
 import type { ColonnaTabella, DatiGrafico } from '../src/shared/ui';
 import { filtraRighe, numeroPagine, ordinaRighe, paginaDi } from '../src/shared/lib';
@@ -252,7 +252,7 @@ describe('CardGrafico', () => {
     expect(screen.getByText('Grafico non disponibile: dati insufficienti.')).toBeTruthy();
   });
 
-  it('voci omesse dichiarate; clic sul grafico al chiamante; download come immagine', async () => {
+  it('voci omesse dichiarate; clic sul grafico al chiamante; download PNG del grafico come si vede', async () => {
     const clic = vi.fn();
     const scaricato = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
     const oggetto = vi.spyOn(URL, 'createObjectURL');
@@ -261,11 +261,12 @@ describe('CardGrafico', () => {
     expect(screen.getAllByRole('listitem').map((v) => v.textContent)).toEqual(['X: assente', 'Y: negativo']);
     clicSu(graficiVivi()[0], { name: 'A' });
     expect(clic).toHaveBeenCalledWith({ name: 'A' });
-    await userEvent.click(screen.getByRole('button', { name: 'Scarica il grafico Dotazione per intervento come immagine' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Scarica il grafico Dotazione per intervento in PNG' }));
     expect(scaricato).toHaveBeenCalledTimes(1);
-    expect((scaricato.mock.contexts[0] as HTMLAnchorElement).download).toBe('dotazione-per-intervento.svg');
+    expect((scaricato.mock.contexts[0] as HTMLAnchorElement).download).toBe('dotazione-per-intervento.png');
     // lo stesso salvataggio dei file del kit (salvaFile): un Blob con il tipo dell'immagine
-    expect((oggetto.mock.calls[0][0] as Blob).type).toBe('image/svg+xml');
+    expect((oggetto.mock.calls[0][0] as Blob).type).toBe('image/png');
+    expect(await screen.findByText('Immagine PNG scaricata.')).toBeTruthy();
     scaricato.mockRestore();
     oggetto.mockRestore();
   });
@@ -425,5 +426,60 @@ describe('blobDaDataUrl (H-25)', () => {
     const png = blobDaDataUrl(`data:image/png;base64,${btoa('PNG')}`);
     expect(png.type).toBe('image/png');
     expect(await png.text()).toBe('PNG');
+  });
+});
+
+// ---------------------------------------------------------------- PulsantiScarica
+
+describe('PulsantiScarica', () => {
+  it('un pulsante per formato: sigla visibile, nome accessibile completo, esito in role=status', async () => {
+    const scaricati: string[] = [];
+    render(
+      <PulsantiScarica
+        oggetto="il grafico Prova"
+        scaricamenti={[
+          { formato: 'PNG', scarica: () => void scaricati.push('PNG') },
+          { formato: 'CSV', scarica: async () => void scaricati.push('CSV') },
+          { formato: 'XLSX', scarica: async () => void scaricati.push('XLSX') },
+        ]}
+      />,
+    );
+    const gruppo = screen.getByRole('group', { name: 'Scarica il grafico Prova' });
+    expect(within(gruppo).getAllByRole('button').map((b) => [b.getAttribute('aria-label'), b.textContent])).toEqual([
+      ['Scarica il grafico Prova in PNG', 'PNG'],
+      ['Scarica il grafico Prova in CSV', 'CSV'],
+      ['Scarica il grafico Prova in XLSX', 'XLSX'],
+    ]);
+    await userEvent.click(screen.getByRole('button', { name: 'Scarica il grafico Prova in XLSX' }));
+    expect(await screen.findByText('File XLSX scaricato.')).toBeTruthy();
+    expect(screen.getByRole('status').textContent).toBe('File XLSX scaricato.');
+    expect(scaricati).toEqual(['XLSX']);
+  });
+
+  it('un file alla volta: pulsanti disabilitati mentre si prepara; poi riattivi', async () => {
+    let chiudi: () => void = () => undefined;
+    render(<PulsantiScarica oggetto="la tabella Prova" scaricamenti={[{ formato: 'CSV', scarica: () => new Promise<void>((r) => (chiudi = r)) }, { formato: 'XLSX', scarica: () => undefined }]} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Scarica la tabella Prova in CSV' }));
+    expect(screen.getByRole('status').textContent).toBe('File CSV in preparazione…');
+    expect(screen.getAllByRole('button').every((b) => (b as HTMLButtonElement).disabled)).toBe(true);
+    chiudi();
+    await waitFor(() => expect(screen.getAllByRole('button').some((b) => (b as HTMLButtonElement).disabled)).toBe(false));
+  });
+
+  it('errore: avviso col motivo, accordato al formato; nessun pulsante senza scaricamenti', async () => {
+    const { container } = render(<PulsantiScarica oggetto="il grafico Prova" scaricamenti={[{ formato: 'PNG', scarica: () => { throw new Error('rotto'); } }]} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Scarica il grafico Prova in PNG' }));
+    expect((await screen.findByRole('alert')).textContent).toBe('Immagine PNG non scaricata. Errore inatteso nella pagina.');
+    await expectNoA11yViolations(container);
+    const { container: vuoto } = render(<PulsantiScarica oggetto="x" scaricamenti={[]} />);
+    expect(vuoto.innerHTML).toBe('');
+  });
+
+  it('CardGrafico: PNG solo nella vista Grafico, gli scaricamenti del chiamante sempre', async () => {
+    render(<CardGrafico titolo="Prova" dati={DATI} fonte="Fonte: prova" scaricamenti={[{ formato: 'CSV', scarica: () => undefined }]} />);
+    const sigle = () => within(screen.getByRole('group', { name: 'Scarica il grafico Prova' })).getAllByRole('button').map((b) => b.textContent);
+    expect(sigle()).toEqual(['PNG', 'CSV']);
+    await userEvent.click(screen.getByRole('button', { name: 'Tabella' }));
+    expect(sigle()).toEqual(['CSV']);
   });
 });

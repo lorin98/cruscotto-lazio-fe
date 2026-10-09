@@ -65,8 +65,14 @@ aperta.
   della spec (ACCESSO_NEGATO, RICHIESTA_NON_AMMESSA, DATO_NON_VALIDO, NOT_FOUND, TROPPE_RICHIESTE, CAPACITA_ESAURITA,
   TEMPO_SCADUTO, ESPORTAZIONE_NON_REGISTRATA, ...). `getErrorMessage` sceglie il messaggio dal problem-type e
   mostra il `detail` solo dove la spec lo dichiara leggibile.
-- **Errori delle risposte binarie.** Per l'export CSV (`responseType: 'blob'`) il mutator rilegge come JSON il corpo
-  d'errore, cosi' anche il problem+json dell'export viene classificato.
+- **Errori delle risposte binarie.** Per gli export CSV e XLSX (`responseType: 'blob'`) il mutator rilegge come JSON il
+  corpo d'errore, cosi' anche il problem+json dell'export viene classificato.
+- **Export dal backend (D-08).** Ogni report del finanziario si scarica in CSV o XLSX da `<report>/{formato}` (TX-0002..
+  TX-0015; `riepilogo/csv` resta lo stesso indirizzo): stessi filtri e grant della consultazione, intestazione con fonte,
+  filtri, data e uso interno, una riga di `AUDIT_ESPORTAZIONE` per file. Nel FE: `esportaReport`, `esportaRiserva`,
+  `esportaVerificaSmp` (`features/finanziario/api`) e `datiDelReport` (`ui/esportazioni.ts`), che i grafici e le tabelle
+  passano a `PulsantiScarica`. I grafici costruiti da piu' TX (il flusso della dotazione, il gauge del dettaglio) hanno
+  solo il PNG: un export registrato e' di una sola TX.
 - **Letture in coda.** Il backend ammette 2 letture dei report del finanziario in corso per utente (oltre: 503
   CAPACITA_ESAURITA): il mutator mette in coda le GET verso `/api/finanziario/` oltre la seconda. Il mutator condiviso
   non ha tetti predefiniti: li sceglie l'app per prefisso (`src/app/tetti-letture.ts`, configurati all'avvio da
@@ -128,7 +134,11 @@ distingue tre casi:
 Il kit generico sta in `src/shared/ui` e si riusa nelle prossime aree:
 - `tema.css`: token (`--ui-*`) e classi `ui-*` sopra bootstrap-italia; font Titillium serviti dall'app;
 - `grafici/`: `Grafico`, il solo wrapper di Apache ECharts (import modulari, renderer SVG, niente animazioni con
-  `prefers-reduced-motion`), e `CardGrafico`: titolo, vista Grafico/Tabella, download, voci omesse, fonte;
+  `prefers-reduced-motion`), e `CardGrafico`: titolo, vista Grafico/Tabella, download, voci omesse, fonte. Il PNG del
+  grafico (`pngDelGrafico`) si ridisegna fuori pagina col renderer canvas, con le opzioni correnti (legenda, zoom) e le
+  stesse dimensioni: e' il grafico come si vede, coi font della pagina, a densita' almeno doppia;
+- `PulsantiScarica`: un pulsante per formato (PNG, CSV, XLSX) con icona e sigla, esito in `role=status`, errore in un
+  avviso. CSV e XLSX dei dati vengono dal backend (D-08: ogni export e' registrato in audit), mai generati nel browser;
 - `Kpi`, `BarraFiltri`, `PannelloLaterale` (dialogo laterale di react-aria-components), `Sezione` e `Griglia`,
   `TabellaInterattiva` (ricerca, ordinamento con `aria-sort`, scelta delle colonne, paginazione, totali e righe di
   piede, riga apribile con clic o Invio; tabella HTML nativa: la `Table` di react-aria non serve senza selezione ne'
@@ -136,7 +146,9 @@ Il kit generico sta in `src/shared/ui` e si riusa nelle prossime aree:
   `TabellaDati`: le assenze col motivo vanno a capo, gli importi no; su schermo stretto il contenitore scorre ed e' una
   regione raggiungibile da tastiera);
 - `VistaQuery` con i rami della vista dati e `AvvisoPagina`, l'avviso d'errore unico della pagina;
-- `salvaFile` e `blobDaDataUrl`: lo stesso salvataggio per l'export CSV e per l'immagine di un grafico.
+- `salvaFile` e `blobDaDataUrl`: lo stesso salvataggio per gli export e per l'immagine di un grafico.
+- Nella `Griglia` una card non ha `height: 100%`: la allunga la griglia, o il contenitore in colonna quando nella stessa
+  cella ci sono piu' card (grafico e voci della pagina SIGC); con `height: 100%` ognuna diventava alta quanto la cella.
 
 Il nome dell'applicazione (titolo dei documenti, testata, Home) e' configurazione del progetto:
 `src/shared/config/applicazione.ts`.
@@ -177,8 +189,8 @@ Referrer-Policy: same-origin
 
 La verifica e' un test e2e versionato: `npm run test:e2e` (`e2e/csp.spec.ts`) serve la build di produzione con questa
 CSP, apre la panoramica e la pagina delle domande, mostra i tooltip di un elemento e di un asse, apre il pannello dei
-filtri e l'anteprima di un intervento dal riepilogo, e apre il dettaglio dell'intervento con le sue schede: nessuna
-violazione. Il tooltip di ECharts e' disegnato nel grafico (`renderMode: 'richText'`, imposto dal kit):
+filtri e l'anteprima di un intervento dal riepilogo, apre il dettaglio dell'intervento con le sue schede e scarica il
+PNG di un grafico (canvas fuori pagina, salvataggio da un blob): nessuna violazione. Il tooltip di ECharts e' disegnato nel grafico (`renderMode: 'richText'`, imposto dal kit):
 il tooltip HTML scriverebbe attributi `style` con `innerHTML`, bloccati da `style-src 'self'`.
 
 Gli `<style>` che react-aria inietta sono due, ed entrambi sono bloccati da `style-src 'self'`:

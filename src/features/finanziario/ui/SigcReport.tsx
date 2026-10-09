@@ -7,6 +7,7 @@
 import { ValoreImporto } from '../../../entities/importo';
 import { CardGrafico, Griglia, TabellaVoci, VistaQuery } from '../../../shared/ui';
 import { useSigcDomande, useSigcImporti } from '../api';
+import { datiDelReport } from './esportazioni';
 import { useSelezioneSenzaDomandeSigc } from './selezione';
 import type { Filtri } from '../lib/filtri';
 import { graficoCascataSigc, graficoImbutoSigc } from '../lib/grafici';
@@ -31,7 +32,7 @@ function DomandeSigc({ filtri }: { filtri: Filtri }) {
     <VistaQuery stato={stato} eVuoto={(d) => d.presentate === 0} vuoto={VUOTO}>
       {(d) => (
         <div>
-          <CardGrafico titolo={TITOLO_DOMANDE} sottotitolo="Dalla presentazione al pagamento" dati={graficoImbutoSigc(d)} fonte="Fonte: TX-0012, elenchi di liquidazione" />
+          <CardGrafico titolo={TITOLO_DOMANDE} sottotitolo="Dalla presentazione al pagamento" dati={graficoImbutoSigc(d)} fonte="Fonte: TX-0012, elenchi di liquidazione" scaricamenti={datiDelReport(TITOLO_DOMANDE, 'sigcDomande', filtri)} />
           <section className="ui-card mt-3" aria-label="Voci delle domande SIGC">
             <PerimetroSezione perimetro={d.perimetro} />
             <TabellaVoci
@@ -58,7 +59,7 @@ function ImportiSigc({ filtri }: { filtri: Filtri }) {
     <VistaQuery stato={stato} inAttesa={segnale === 'in-attesa'} eVuoto={() => segnale === 'vuota'} vuoto={VUOTO}>
       {(d) => (
         <div>
-          <CardGrafico titolo={TITOLO_IMPORTI} sottotitolo="Dal richiesto al pagato" dati={graficoCascataSigc(d)} fonte="Fonte: TX-0013, pagato dal flusso ASR2-20" />
+          <CardGrafico titolo={TITOLO_IMPORTI} sottotitolo="Dal richiesto al pagato" dati={graficoCascataSigc(d)} fonte="Fonte: TX-0013, pagato dal flusso ASR2-20" scaricamenti={datiDelReport(TITOLO_IMPORTI, 'sigcImporti', filtri)} />
           <section className="ui-card mt-3" aria-label="Voci degli importi SIGC">
             <PerimetroSezione perimetro={d.perimetro} />
             <TabellaVoci

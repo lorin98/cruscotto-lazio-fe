@@ -303,7 +303,7 @@ describe('QueryClient di produzione montato con la shell (R-05, R-07, R-08, R-16
       ),
     );
     apriConClientReale('/finanziario/riepilogo');
-    fireEvent.click(await screen.findByRole('button', { name: 'Esporta la tabella in CSV' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Scarica la tabella Riepilogo per intervento in CSV' }));
     await waitFor(() => expect(screen.getAllByRole('alert')).toHaveLength(1));
     expect(screen.getByRole('alert').textContent).toContain('Non hai i permessi per consultare questi dati');
     expect(screen.queryByText('Non hai i permessi per questa operazione.')).toBeNull();

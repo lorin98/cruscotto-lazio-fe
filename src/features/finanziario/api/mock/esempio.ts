@@ -154,7 +154,13 @@ export const handlersEsempio: RequestHandler[] = [
       })),
     });
   }),
-  http.get(`${B}/riepilogo/csv`, () => new HttpResponse('Codice;Dotazione\nSRA01;0\n', { headers: { 'Content-Type': 'text/csv' } })),
+  // export del riepilogo (D-08): il CSV d'esempio; l'XLSX e' un segnaposto (il dev server non scrive fogli veri), gli altri
+  // export restano agli handler generati
+  http.get(`${B}/riepilogo/:formato`, ({ params }) =>
+    params.formato === 'xlsx'
+      ? new HttpResponse('esempio', { headers: { 'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' } })
+      : new HttpResponse('Codice;Dotazione\nSRA01;0\n', { headers: { 'Content-Type': 'text/csv' } }),
+  ),
   http.get(`${B}/riepilogo`, ({ request }) =>
     HttpResponse.json({
       perimetro: PERIMETRO,

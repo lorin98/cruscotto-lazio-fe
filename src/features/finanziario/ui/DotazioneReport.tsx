@@ -4,10 +4,11 @@
 // perimetro ADA la dotazione regionale non sta sullo stesso grafico dei pagamenti dell'area. Lo stato vuoto di RF003 si
 // ricava dalle righe di RF002. Tutte le colonne si vedono, con il motivo di ogni assenza (wireframe dotazione). Clic su
 // un intervento: il suo dettaglio.
-import { CardGrafico, Griglia, Sezione, TabellaInterattiva, VistaQuery } from '../../../shared/ui';
+import { CardGrafico, Griglia, PulsantiScarica, Sezione, TabellaInterattiva, VistaQuery } from '../../../shared/ui';
 import type { ColonnaTabella } from '../../../shared/ui';
 import { useDistribuzioneDotazione, useSpesaPerIntervento } from '../api';
 import type { SpesaPerIntervento, SpesaPerInterventoRiga } from '../api';
+import { datiDelReport } from './esportazioni';
 import { ricercaDaFiltri } from '../lib/filtri';
 import type { Filtri } from '../lib/filtri';
 import { percentualeOpzionale } from '../lib/formato';
@@ -56,10 +57,19 @@ function SpesaPerInterventoSezione({ d, filtri }: { d: SpesaPerIntervento; filtr
           fonte={`Fonte: TX-0002 · Perimetro ${d.perimetro ?? 'non indicato'}`}
           altezza="alto"
           onClic={clic}
+          scaricamenti={datiDelReport('Dotazione e pagamenti per intervento', 'spesaPerIntervento', filtri)}
         />
-        <CardGrafico titolo="Contributo ambientale per intervento" sottotitolo="Clic su una barra per il dettaglio" dati={graficoContributo(righe)} fonte="Fonte: TX-0002" altezza="alto" onClic={clic} />
+        <CardGrafico
+          titolo="Contributo ambientale per intervento"
+          sottotitolo="Clic su una barra per il dettaglio"
+          dati={graficoContributo(righe)}
+          fonte="Fonte: TX-0002"
+          altezza="alto"
+          onClic={clic}
+          scaricamenti={datiDelReport('Contributo ambientale per intervento', 'spesaPerIntervento', filtri)}
+        />
       </Griglia>
-      <Sezione titolo={TITOLO_SPESA}>
+      <Sezione titolo={TITOLO_SPESA} strumenti={<PulsantiScarica oggetto={`la tabella ${TITOLO_SPESA}`} scaricamenti={datiDelReport(TITOLO_SPESA, 'spesaPerIntervento', filtri)} />}>
         <PerimetroSezione perimetro={d.perimetro} />
         <NotaPerimetroMisto perimetro={d.perimetro} />
         <TabellaInterattiva
@@ -94,7 +104,7 @@ function Distribuzione({ filtri }: { filtri: Filtri }) {
   const segnale = useSelezioneSenzaInterventi(filtri);
   return (
     <VistaQuery stato={stato} inAttesa={segnale === 'in-attesa'} eVuoto={() => segnale === 'vuota'} vuoto={VUOTO}>
-      {(d) => <CardGrafico titolo={TITOLO_QUOTE} sottotitolo="Ripartizione della dotazione di spesa pubblica" dati={graficoQuotaFeasr(d)} fonte={`Fonte: TX-0003 · Perimetro ${d.perimetro ?? 'non indicato'}`} />}
+      {(d) => <CardGrafico titolo={TITOLO_QUOTE} sottotitolo="Ripartizione della dotazione di spesa pubblica" dati={graficoQuotaFeasr(d)} fonte={`Fonte: TX-0003 · Perimetro ${d.perimetro ?? 'non indicato'}`} scaricamenti={datiDelReport(TITOLO_QUOTE, 'distribuzioneDotazione', filtri)} />}
     </VistaQuery>
   );
 }

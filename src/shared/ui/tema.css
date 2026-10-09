@@ -147,7 +147,12 @@ body { background: var(--ui-sfondo); color: var(--ui-testo); font-family: 'Titil
 .ui-griglia { display: grid; gap: 1rem; margin-bottom: 1rem; }
 .ui-griglia--4 { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
 .ui-griglia--2 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); }
-.ui-card { height: 100%; padding: 1.15rem 1.25rem; background: var(--ui-superficie); border: 1px solid var(--ui-bordo); border-radius: var(--ui-raggio); box-shadow: var(--ui-ombra);
+/* Card alte quanto la riga della griglia senza height: 100% (con due card impilate nella stessa cella ognuna diventava
+   alta quanto la cella e la pagina sbordava sul footer): la card figlia diretta la allunga la griglia; dentro un
+   contenitore (sezione con grafico e voci, stati della vista) il contenitore e' una colonna e l'ultima card prende il resto. */
+.ui-griglia > :not(.ui-card) { display: flex; flex-direction: column; min-width: 0; }
+.ui-griglia > :not(.ui-card) > .ui-card:last-child { flex-grow: 1; }
+.ui-card { padding: 1.15rem 1.25rem; background: var(--ui-superficie); border: 1px solid var(--ui-bordo); border-radius: var(--ui-raggio); box-shadow: var(--ui-ombra);
   transition: box-shadow .2s; min-width: 0; }
 .ui-card:hover { box-shadow: var(--ui-ombra-forte); }
 .ui-card__testa { display: flex; flex-wrap: wrap; align-items: flex-start; gap: .5rem .75rem; margin-bottom: .75rem; }
@@ -160,6 +165,13 @@ body { background: var(--ui-sfondo); color: var(--ui-testo); font-family: 'Titil
 .ui-seg button[aria-pressed='true'] { background: #fff; color: var(--ui-scuro); box-shadow: 0 1px 3px rgba(16, 24, 40, .12); }
 .ui-icona-btn { display: inline-grid; place-items: center; width: 32px; height: 32px; border: 1px solid var(--ui-bordo); border-radius: 8px; background: #fff; color: var(--ui-attenuato); }
 .ui-icona-btn:hover { color: var(--ui-primario); border-color: #b7c4d3; }
+/* PulsantiScarica: un pulsante per formato, icona e sigla (PNG, CSV, XLSX) */
+.ui-scarica { display: inline-flex; gap: .25rem; }
+.ui-scarica__pulsante { display: inline-flex; align-items: center; gap: .2rem; height: 32px; padding: 0 .45rem; border: 1px solid var(--ui-bordo);
+  border-radius: 8px; background: #fff; color: var(--ui-attenuato); font-size: .72rem; font-weight: 700; letter-spacing: .02em; }
+.ui-scarica__pulsante .ui-icona { width: 18px; height: 18px; }
+.ui-scarica__pulsante:hover:not(:disabled) { color: var(--ui-primario); border-color: #b7c4d3; }
+.ui-scarica__pulsante:disabled { opacity: .55; cursor: progress; }
 .ui-grafico { width: 100%; height: 340px; }
 .ui-grafico--alto { height: 420px; }
 .ui-grafico--basso { height: 260px; }

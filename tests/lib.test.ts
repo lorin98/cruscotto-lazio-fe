@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { formatDataOra, formatDate, formatGiorno, formatNumber } from '../src/shared/lib/format';
+import { nomeFile } from '../src/shared/lib/nome-file';
 import { isOpenEnded, isSentinelDate, SENTINEL_DATE_MAX } from '../src/shared/lib/sentinel-dates';
 import { isEditable, makeRolePredicate } from '../src/shared/lib/predicates';
 import type { AuthStatus } from '../src/shared/api/auth/auth-status';
@@ -73,5 +74,15 @@ describe('formatGiorno (H-25)', () => {
     expect(formatGiorno('2026-03-03T08:30:00.123456Z')).toBe(formatDataOra('2026-03-03T08:30:00.123456Z').slice(0, 10));
     expect(formatGiorno(null)).toBe('');
     expect(formatGiorno('non una data')).toBe('non una data');
+  });
+});
+
+describe('lib/nome-file — nome del file dal titolo', () => {
+  it('minuscole, accenti tolti, trattini al posto del resto', () => {
+    expect(nomeFile('Domande SIGC (RF012)', 'png')).toBe('domande-sigc-rf012.png');
+    expect(nomeFile("Riserva di efficacia: quantità e attività", 'xlsx')).toBe('riserva-di-efficacia-quantita-e-attivita.xlsx');
+  });
+  it('un titolo senza lettere ne cifre da un nome comunque valido', () => {
+    expect(nomeFile(' — ', 'csv')).toBe('cruscotto.csv');
   });
 });
