@@ -57,7 +57,8 @@ export function descriviImporto(importo: ImportoLike | null | undefined, aggrega
   if (importo?.valore != null) return { disponibile: true, testo: formatEuro(importo.valore) };
   switch (importo?.motivo) {
     case 'FONTE_NON_ATTIVA':
-      return { disponibile: false, testo: 'non disponibile', nota: `fonte ${etichettaFonte(importo.fonte)} non attiva` };
+      // la fonte attesa, se il backend la dichiara ("fonte impegni non attiva")
+      return { disponibile: false, testo: 'non disponibile', nota: importo.fonte ? `fonte ${etichettaFonte(importo.fonte)} non attiva` : 'fonte non attiva' };
     case 'NON_VALORIZZATO':
       return aggregato
         ? { disponibile: false, testo: 'non calcolabile', nota: 'manca per almeno un intervento della selezione: vedi il riepilogo per intervento' }

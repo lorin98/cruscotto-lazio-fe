@@ -18,8 +18,13 @@ export function formatPercentuale(value: number | null | undefined): string {
   return `${value.toLocaleString('it-IT', { maximumFractionDigits: 2 })} %`;
 }
 
+const DATA_ISO = /^(\d{4})-(\d{2})-(\d{2})$/;
+
 export function formatDate(value: string | null | undefined): string {
   if (!value) return '';
+  // una data senza ora (AAAA-MM-GG) si rende cosi' com'e', senza passare dal fuso orario
+  const iso = DATA_ISO.exec(value);
+  if (iso) return `${iso[3]}/${iso[2]}/${iso[1]}`;
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return value; // data non parsabile -> grezzo, non un throw
   // anno a quattro cifre, coerente con i testi dei report (es. 30/06/2026)

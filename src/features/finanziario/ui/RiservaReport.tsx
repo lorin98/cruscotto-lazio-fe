@@ -3,19 +3,19 @@
 // e' regionale e l'endpoint non accetta i filtri del finanziario (OP-FE-03): la pagina lo dice invece di mostrare filtri
 // che non si applicano. Il 404 NOT_FOUND (anno senza movimenti) e' uno stato vuoto spiegato, non un errore. Come nel
 // backend la fase e' calcolata al giorno della consultazione, gli importi sono quelli dell'istantanea alla data di
-// estrazione: la tabella lo dichiara e avvisa se l'istantanea precede la fase attuale (lib/riserva.ts). UI v2: linea
-// dell'utilizzo cumulato con zoom e la riserva accumulata come riferimento.
+// estrazione: la tabella lo dichiara e avvisa se l'istantanea precede la fase attuale (lib/riserva.ts). UI v2 (wireframe
+// riserva v2): quattro KPI (accumulato, congelato, utilizzato, residuo), linea dell'utilizzo cumulato con zoom e la
+// riserva accumulata come riferimento, voci di contorno in tabella.
 import { ValoreImporto } from '../../../entities/importo';
-import { formatDate } from '../../../shared/lib';
-import { CardGrafico, VistaQuery, Vuoto } from '../../../shared/ui';
+import { formatDate, importoKpi } from '../../../shared/lib';
+import { CardGrafico, Griglia, Kpi, Sezione, TabellaRighe, TabellaVoci, VistaQuery, Vuoto } from '../../../shared/ui';
+import type { Colonna } from '../../../shared/ui';
 import { rispostaRiservaAssente, useRiserva } from '../api';
 import type { MonitoraggioRiserva, UtilizzoRiserva } from '../api';
-import { etichettaFaseRiserva } from '../lib/filtri';
 import { euroOpzionale, testoOpzionale } from '../lib/formato';
 import { graficoUtilizzoRiserva } from '../lib/grafici';
-import { istantaneaAnteriore, testoCongelato, testoResiduo, utilizzoOltreRiserva } from '../lib/riserva';
-import { PerimetroSezione, Sezione, TabellaRighe, TabellaVoci } from './comuni';
-import type { Colonna } from './comuni';
+import { aiutoRiserva, calendarioRiserva, dataBreve, etichettaFaseRiserva, istantaneaAnteriore, testoCongelato, testoResiduo, utilizzoOltreRiserva } from '../lib/riserva';
+import { PerimetroSezione } from './comuni';
 import { SelettoreAnno } from './SelettoreAnno';
 
 /** Data di oggi (locale) in forma ISO AAAA-MM-GG, confrontabile con le date del contratto. */
@@ -29,6 +29,37 @@ const COLONNE_UTILIZZO: Colonna<UtilizzoRiserva>[] = [
   ['Cumulato', (u) => euroOpzionale(u.cumulato)],
 ];
 
+const maiuscola = (t: string) => `${t.charAt(0).toUpperCase()}${t.slice(1)}`;
+
+/** I quattro valori della riserva come KPI; un valore che non c'e' ancora dice quando ci sara' (lib/riserva). */
+function KpiRiserva({ d, anno }: { d: MonitoraggioRiserva; anno: number }) {
+  const estrazione = d.dataEstrazione;
+  const oltre = utilizzoOltreRiserva(d);
+  const residuoPrevisto = d.importoResiduoDisponibile != null && oggiIso() < calendarioRiserva(anno).inizioResiduo;
+  return (
+    <Griglia colonne={4}>
+      <Kpi etichetta="Importo accumulato" icona="it-card" tono="scuro" valore={d.importoAccumulato == null ? undefined : importoKpi(d.importoAccumulato)} assente={d.importoAccumulato == null ? 'Non disponibile' : undefined} nota={`Fase: ${etichettaFaseRiserva(d.fase, anno)}`} />
+      <Kpi etichetta="Importo congelato" icona="it-presentation" tono="blu" valore={d.importoCongelato == null ? undefined : importoKpi(d.importoCongelato)} assente={d.importoCongelato == null ? maiuscola(testoCongelato(null, anno, estrazione)) : undefined} />
+      <Kpi
+        etichetta="Importo utilizzato"
+        icona="it-chart-line"
+        tono={oltre ? 'ambra' : 'verde'}
+        valore={d.importoUtilizzato == null ? undefined : importoKpi(d.importoUtilizzato)}
+        assente={d.importoUtilizzato == null ? 'Non disponibile' : undefined}
+        nota={oltre ? 'Supera la riserva di questa estrazione' : undefined}
+      />
+      <Kpi
+        etichetta="Residuo disponibile"
+        icona="it-calendar"
+        tono="ambra"
+        valore={d.importoResiduoDisponibile == null ? undefined : importoKpi(d.importoResiduoDisponibile)}
+        assente={d.importoResiduoDisponibile == null ? maiuscola(testoResiduo(null, anno, estrazione, oggiIso())) : undefined}
+        nota={residuoPrevisto ? `Previsto: disponibile dal ${dataBreve(calendarioRiserva(anno).inizioResiduo)}` : undefined}
+      />
+    </Griglia>
+  );
+}
+
 function ValoriRiserva({ d, anno }: { d: MonitoraggioRiserva; anno: number }) {
   const estrazione = d.dataEstrazione;
   return (
@@ -41,6 +72,7 @@ function ValoriRiserva({ d, anno }: { d: MonitoraggioRiserva; anno: number }) {
       {utilizzoOltreRiserva(d) && (
         <div className="alert alert-warning my-2">{"L'importo utilizzato supera la riserva (congelata o, prima del congelamento, accumulata) di questa estrazione."}</div>
       )}
+      <KpiRiserva d={d} anno={anno} />
       <TabellaVoci
         caption={estrazione ? `Riserva dell'anno ${anno}: valori all'estrazione del ${formatDate(estrazione)}` : `Riserva dell'anno ${anno}`}
         voci={[
@@ -79,9 +111,9 @@ function UtilizzoProgressivo({ d }: { d: MonitoraggioRiserva }) {
 function Riserva({ anno }: { anno: number }) {
   const stato = useRiserva(anno);
   const assente = (e: unknown) =>
-    rispostaRiservaAssente(e) ? <Vuoto>{`Nessun dato di riserva per il ${anno}: i movimenti della riserva non sono ancora stati acquisiti.`}</Vuoto> : null;
+    rispostaRiservaAssente(e) ? <Vuoto>{`Nessuna riserva calcolata per il ${anno}. Scegli un altro anno.`}</Vuoto> : null;
   return (
-    <Sezione titolo={`Riserva al 5% dell'anno ${anno} (RF014)`}>
+    <Sezione titolo={`Riserva di efficacia (5%) dell'anno ${anno} (RF014)`}>
       <VistaQuery stato={stato} errorePersonalizzato={assente}>
         {(d) => (
           <>
@@ -96,14 +128,10 @@ function Riserva({ anno }: { anno: number }) {
 }
 
 export function RiservaReport({ anno, onCambiaAnno }: { anno: number | undefined; onCambiaAnno: (anno: number | undefined) => void }) {
-  const aiuto =
-    anno === undefined
-      ? 'Accumulo dal 1 ottobre n al 30 giugno n+1, utilizzo fino al 31 dicembre n+1, residuo dal 1 gennaio n+2.'
-      : `Per il ${anno}: accumulo dal 1/10/${anno} al 30/6/${anno + 1}, utilizzo fino al 31/12/${anno + 1}, residuo dal 1/1/${anno + 2}.`;
   return (
     <>
       <p className="mb-2">Dato regionale: i filtri del finanziario non si applicano alla riserva.</p>
-      <SelettoreAnno id="f-anno-riserva" etichetta="Anno della riserva (anno n)" aiuto={aiuto} tipo="riserva" anno={anno} onCambia={onCambiaAnno} />
+      <SelettoreAnno id="f-anno-riserva" etichetta="Anno di riferimento (anno n)" aiuto={aiutoRiserva(anno)} tipo="riserva" anno={anno} onCambia={onCambiaAnno} />
       {anno === undefined ? <Vuoto>{"Scegli l'anno della riserva da consultare."}</Vuoto> : <Riserva anno={anno} />}
     </>
   );

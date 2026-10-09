@@ -7,7 +7,8 @@ export interface ChipFiltro {
   chiave: string;
   etichetta: string;
   valore: string;
-  onTogli: () => void;
+  /** Assente = chip fisso (es. l'elemento della pagina di dettaglio): non si toglie. */
+  onTogli?: () => void;
 }
 
 export function BarraFiltri({
@@ -20,7 +21,7 @@ export function BarraFiltri({
   chip: ChipFiltro[];
   /** Apre il pannello dei filtri; assente (es. senza il grant dei filtri) = niente bottone. */
   onApri?: () => void;
-  onTogliTutti: () => void;
+  onTogliTutti?: () => void;
   vuoto?: string;
   destra?: ReactNode;
 }) {
@@ -41,14 +42,18 @@ export function BarraFiltri({
             {chip.map((c) => (
               <span key={c.chiave} className="ui-chip">
                 <b>{c.etichetta}</b> {c.valore}
-                <button type="button" onClick={c.onTogli} aria-label={`Togli il filtro ${c.etichetta} ${c.valore}`}>
-                  <Icona nome="it-close" />
-                </button>
+                {c.onTogli && (
+                  <button type="button" onClick={c.onTogli} aria-label={`Togli il filtro ${c.etichetta} ${c.valore}`}>
+                    <Icona nome="it-close" />
+                  </button>
+                )}
               </span>
             ))}
-            <button type="button" className="btn btn-link btn-sm p-0 ms-1" onClick={onTogliTutti}>
-              Togli tutti
-            </button>
+            {onTogliTutti && chip.some((c) => c.onTogli) && (
+              <button type="button" className="btn btn-link btn-sm p-0 ms-1" onClick={onTogliTutti}>
+                Togli tutti
+              </button>
+            )}
           </>
         )}
       </div>

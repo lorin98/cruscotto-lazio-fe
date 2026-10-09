@@ -5,22 +5,31 @@
 // rilegge /auth/status e cosi' rinnova la sessione, ed "Esci". Al limite chiude davvero la sessione con una navigazione
 // a /auth/logout del BFF (Z-03): la finestra "Sessione scaduta" non deve lasciare viva la sessione del backend.
 // Le schede della stessa origine condividono la sessione: l'attivita' e la scadenza passano fra le schede con un
-// BroadcastChannel, cosi' una scheda ferma non chiude la sessione su cui l'utente lavora in un'altra.
-import { useCallback, useEffect, useRef, useState } from 'react';
+// BroadcastChannel, cosi' una scheda ferma non chiude la sessione su cui l'utente lavora in un'altra. Anche l'uscita
+// esplicita ("Esci" della barra o dell'avviso) passa alle altre schede come scadenza.
+// Scaduta la sessione, qui o altrove, i dati non devono restare leggibili su una postazione incustodita (review step9
+// A-04): la cache di React Query si svuota, la shell smette di rendere le pagine (onScaduta) e il velo e' opaco.
+// Lo stesso canale porta il controllo dell'utente (review X-06): una scheda appena collegata, o una che ha trovato un
+// utente diverso (EVENTO_UTENTE_CAMBIATO), manda "utente" e le altre rileggono /auth/status; se l'utente e' cambiato la
+// lettura toglie dalla cache i dati del precedente (shared/api/auth/use-auth-status.ts).
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Dialog, Heading, Modal, ModalOverlay } from 'react-aria-components';
 import { useQueryClient } from '@tanstack/react-query';
 import { AUTH_STATUS_QUERY_KEY } from '../shared/api/auth/auth-status';
+import { EVENTO_UTENTE_CAMBIATO } from '../shared/api/auth/use-auth-status';
 import { resolveLoginPath, resolveLogoutPath } from '../shared/config/base-path';
 
 export const LIMITE_INATTIVITA_MS = 30 * 60 * 1000;
 export const PREAVVISO_MS = 2 * 60 * 1000;
 export const CANALE_INATTIVITA = 'cruscotto-csr-inattivita';
+// evento della finestra con cui "Esci" chiede all'avviso montato di annunciare l'uscita alle altre schede
+export const EVENTO_USCITA = 'csr:uscita';
 // l'attivita' locale si annuncia alle altre schede al massimo una volta in questo intervallo
 const ANNUNCIO_ATTIVITA_MS = 10_000;
 const EVENTI_ATTIVITA = ['pointerdown', 'keydown', 'wheel', 'touchstart'] as const;
 
 type Stato = 'attivo' | 'preavviso' | 'scaduta';
-type Messaggio = 'attivita' | 'scaduta';
+type Messaggio = 'attivita' | 'scaduta' | 'utente';
 
 const chiudiSessione = () => window.location.assign(resolveLogoutPath());
 
@@ -28,37 +37,65 @@ function apriCanale(): BroadcastChannel | undefined {
   return typeof BroadcastChannel === 'undefined' ? undefined : new BroadcastChannel(CANALE_INATTIVITA);
 }
 
-/** Stato dell'inattivita' e azione "resta collegato" (riparte il conteggio e rilegge lo stato della sessione). */
-export function useInattivita(limite: number, preavviso: number, alloScadere: () => void = chiudiSessione): [Stato, () => void] {
+/**
+ * Da chiamare nel clic di "Esci", prima della navigazione a /auth/logout: le altre schede ricevono la scadenza. Passa
+ * dal canale dell'avviso montato, che non riceve i propri messaggi: questa scheda non mostra "Sessione scaduta" mentre
+ * esce.
+ */
+export function annunciaUscita(): void {
+  window.dispatchEvent(new CustomEvent(EVENTO_USCITA));
+}
+
+/**
+ * Stato dell'inattivita' e azione "resta collegato" (riparte il conteggio e rilegge lo stato della sessione).
+ * `onScaduta`: chiamata quando la sessione scade, qui o in un'altra scheda, insieme allo svuotamento della cache.
+ */
+export function useInattivita(
+  limite: number,
+  preavviso: number,
+  alloScadere: () => void = chiudiSessione,
+  onScaduta?: () => void,
+): [Stato, () => void] {
   const [stato, setStato] = useState<Stato>('attivo');
   const statoCorrente = useRef<Stato>('attivo');
   const timer = useRef<ReturnType<typeof setTimeout>[]>([]);
   const canale = useRef<BroadcastChannel | undefined>(undefined);
   const ultimoAnnuncio = useRef(0);
   const scadere = useRef(alloScadere);
+  const avvisaScaduta = useRef(onScaduta);
   useEffect(() => {
     scadere.current = alloScadere;
-  }, [alloScadere]);
+    avvisaScaduta.current = onScaduta;
+  }, [alloScadere, onScaduta]);
   const queryClient = useQueryClient();
   const imposta = useCallback((s: Stato) => {
     statoCorrente.current = s;
     setStato(s);
   }, []);
   const annuncia = useCallback((m: Messaggio) => canale.current?.postMessage(m), []);
+  // stessa render per stato, cache e shell: le pagine si smontano prima di poter rileggere dalla cache vuota
+  const chiudiVista = useCallback(() => {
+    timer.current.forEach(clearTimeout);
+    imposta('scaduta');
+    queryClient.clear();
+    avvisaScaduta.current?.();
+  }, [imposta, queryClient]);
   const riparti = useCallback(() => {
     timer.current.forEach(clearTimeout);
     timer.current = [
       setTimeout(() => imposta('preavviso'), limite - preavviso),
       setTimeout(() => {
-        imposta('scaduta');
+        chiudiVista();
         annuncia('scaduta');
         scadere.current();
       }, limite),
     ];
-  }, [annuncia, imposta, limite, preavviso]);
+  }, [annuncia, chiudiVista, imposta, limite, preavviso]);
   useEffect(() => {
     canale.current = apriCanale();
     riparti();
+    // questa scheda si e' appena collegata: le altre verificano che l'utente della sessione sia ancora il loro
+    annuncia('utente');
     // l'attivita' rimanda la scadenza solo finche' l'avviso non e' aperto: da li' decide l'utente
     const attivita = () => {
       if (statoCorrente.current !== 'attivo') return;
@@ -72,23 +109,31 @@ export function useInattivita(limite: number, preavviso: number, alloScadere: ()
     const daAltraScheda = (e: MessageEvent<Messaggio>) => {
       if (statoCorrente.current === 'scaduta') return;
       if (e.data === 'scaduta') {
-        timer.current.forEach(clearTimeout);
-        imposta('scaduta');
+        chiudiVista();
       } else if (e.data === 'attivita') {
         imposta('attivo');
         riparti();
+      } else if (e.data === 'utente') {
+        void queryClient.invalidateQueries({ queryKey: AUTH_STATUS_QUERY_KEY });
       }
     };
+    const utenteCambiato = () => annuncia('utente');
+    // uscita esplicita da questa scheda: la navigazione a /auth/logout segue, qui basta avvisare le altre
+    const uscita = () => annuncia('scaduta');
     canale.current?.addEventListener('message', daAltraScheda);
     EVENTI_ATTIVITA.forEach((e) => window.addEventListener(e, attivita, { passive: true }));
+    window.addEventListener(EVENTO_USCITA, uscita);
+    window.addEventListener(EVENTO_UTENTE_CAMBIATO, utenteCambiato);
     return () => {
       timer.current.forEach(clearTimeout);
       EVENTI_ATTIVITA.forEach((e) => window.removeEventListener(e, attivita));
+      window.removeEventListener(EVENTO_USCITA, uscita);
+      window.removeEventListener(EVENTO_UTENTE_CAMBIATO, utenteCambiato);
       canale.current?.removeEventListener('message', daAltraScheda);
       canale.current?.close();
       canale.current = undefined;
     };
-  }, [annuncia, imposta, riparti]);
+  }, [annuncia, chiudiVista, imposta, queryClient, riparti]);
   const resta = () => {
     void queryClient.invalidateQueries({ queryKey: AUTH_STATUS_QUERY_KEY });
     imposta('attivo');
@@ -104,20 +149,22 @@ function minuti(ms: number): string {
   return n === 1 ? '1 minuto' : `${n} minuti`;
 }
 
-function Preavviso({ onResta, preavviso }: { onResta: () => void; preavviso: number }) {
+// idDescrizione: il paragrafo e' la descrizione accessibile dell'alertdialog (aria-describedby, review step9 A-05), cosi'
+// il lettore di schermo annuncia anche il tempo rimasto, non solo il titolo.
+function Preavviso({ onResta, preavviso, idDescrizione }: { onResta: () => void; preavviso: number; idDescrizione: string }) {
   return (
     <>
       <Heading slot="title" className="h5">
         La sessione sta per scadere
       </Heading>
-      <p>
+      <p id={idDescrizione}>
         Per inattività la sessione scadrà tra {minuti(preavviso)}. Vuoi restare collegato?
       </p>
       <div>
         <button type="button" className="btn btn-primary me-2" onClick={onResta} autoFocus>
           Resta collegato
         </button>
-        <a className="btn btn-outline-primary" href={resolveLogoutPath()}>
+        <a className="btn btn-outline-primary" href={resolveLogoutPath()} onClick={annunciaUscita}>
           Esci
         </a>
       </div>
@@ -125,13 +172,13 @@ function Preavviso({ onResta, preavviso }: { onResta: () => void; preavviso: num
   );
 }
 
-function Scaduta() {
+function Scaduta({ idDescrizione }: { idDescrizione: string }) {
   return (
     <>
       <Heading slot="title" className="h5">
         Sessione scaduta
       </Heading>
-      <p>La sessione è scaduta per inattività ed è stata chiusa: accedi di nuovo per continuare.</p>
+      <p id={idDescrizione}>La sessione è scaduta per inattività ed è stata chiusa: accedi di nuovo per continuare.</p>
       <a className="btn btn-primary" href={resolveLoginPath()} autoFocus>
         Accedi
       </a>
@@ -143,21 +190,28 @@ export function AvvisoInattivita({
   limite = LIMITE_INATTIVITA_MS,
   preavviso = PREAVVISO_MS,
   alloScadere,
+  onScaduta,
 }: {
   limite?: number;
   preavviso?: number;
   alloScadere?: () => void;
+  onScaduta?: () => void;
 }) {
-  const [stato, resta] = useInattivita(limite, preavviso, alloScadere);
+  const [stato, resta] = useInattivita(limite, preavviso, alloScadere, onScaduta);
+  const idDescrizione = useId();
+  // a sessione scaduta il velo e' opaco: sotto non deve restare leggibile nulla
+  const velo = stato === 'scaduta' ? 'bg-dark' : 'bg-dark bg-opacity-50';
   return (
     <ModalOverlay
       isOpen={stato !== 'attivo'}
       isDismissable={false}
-      className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-dark bg-opacity-50"
+      className={`position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center ${velo}`}
       style={{ zIndex: 1050 }}
     >
       <Modal className="bg-white rounded shadow p-4 m-3" style={{ maxWidth: '32rem' }}>
-        <Dialog role="alertdialog">{stato === 'preavviso' ? <Preavviso onResta={resta} preavviso={preavviso} /> : <Scaduta />}</Dialog>
+        <Dialog role="alertdialog" aria-describedby={idDescrizione}>
+          {stato === 'preavviso' ? <Preavviso onResta={resta} preavviso={preavviso} idDescrizione={idDescrizione} /> : <Scaduta idDescrizione={idDescrizione} />}
+        </Dialog>
       </Modal>
     </ModalOverlay>
   );

@@ -22,6 +22,7 @@ Node `^24.15.0` (`.nvmrc`), poi `npm ci`.
 | `npm run dev:be` | dev server collegato al **backend vero** (BFF, Keycloak, PostgreSQL): niente MSW |
 | `npm run api:generate` | rigenera il client orval da `specs/openapi-*.json` |
 | `npm run typecheck`, `build`, `test`, `lint` | i controlli del gate di green-fe |
+| `npm run test:e2e` | test e2e con Playwright sulla build di produzione (`e2e/`): CSP del contenitore, grafici e tooltip, dialoghi |
 
 ### Con il backend vero (`npm run dev:be`)
 
@@ -66,9 +67,12 @@ aperta.
   mostra il `detail` solo dove la spec lo dichiara leggibile.
 - **Errori delle risposte binarie.** Per l'export CSV (`responseType: 'blob'`) il mutator rilegge come JSON il corpo
   d'errore, cosi' anche il problem+json dell'export viene classificato.
-- **Letture in coda.** Il backend ammette 2 letture dei report in corso per utente (oltre: 503 CAPACITA_ESAURITA): il
-  mutator mette in coda le GET verso `/api` oltre la seconda, e i wrapper riprovano solo i transitori rispettando
-  `Retry-After`.
+- **Letture in coda.** Il backend ammette 2 letture dei report del finanziario in corso per utente (oltre: 503
+  CAPACITA_ESAURITA): il mutator mette in coda le GET verso `/api/finanziario/` oltre la seconda (tetti per prefisso,
+  le altre GET non vanno in coda). Le schede aperte si coordinano con la Web Locks API, cosi' il tetto vale per
+  l'utente e non per la scheda; una lettura annullata tiene il posto finche' la risposta arriva (il backend la lavora
+  comunque), al piu' per un tempo di guardia. I nuovi tentativi (solo i transitori, con `Retry-After`) sono la
+  politica del QueryClient (`src/shared/api/retry/`).
 - **CSRF.** La difesa effettiva con questo backend e' `X-Requested-With` + controllo dell'Origin; le opzioni `xsrf*`
   restano per il contratto della suite ma sono inerti (il backend non emette il cookie XSRF-TOKEN).
 
@@ -85,15 +89,23 @@ aperta.
   da definire" finche' ARSIAL non li fornisce (`src/app/collegamenti.ts`);
 - l'avviso globale del 403 delle mutation;
 - l'avviso di inattivita' di NFR-41: a 28 minuti una finestra modale chiede se restare collegati; a 30 minuti la SPA
-  chiude davvero la sessione navigando a `/auth/logout` del BFF. Le schede aperte condividono la sessione: l'attivita'
-  e la scadenza passano fra le schede con un `BroadcastChannel`, cosi' una scheda ferma non chiude la sessione su cui
-  si lavora in un'altra.
+  chiude davvero la sessione navigando a `/auth/logout` del BFF. Alla scadenza la cache dei dati si svuota, la shell
+  smette di mostrare le pagine e il velo e' opaco: su una postazione incustodita i dati non restano leggibili. Le
+  schede aperte condividono la sessione: attivita', scadenza e "Esci" passano fra le schede con un `BroadcastChannel`,
+  cosi' una scheda ferma non chiude la sessione su cui si lavora in un'altra;
+- il cambio d'utente senza un 401 (nuovo accesso in un'altra scheda): se `/auth/status` restituisce un altro utente,
+  la cache dei dati del precedente si svuota e le altre schede rileggono la sessione;
+- gli errori di pagina: un indirizzo inesistente mostra "Pagina non trovata" e un errore inatteso "Errore nella
+  pagina" (mai messaggio o stack), dentro la shell (`src/app/errori.tsx`).
 
 Ogni pagina del finanziario ha in alto la barra dei filtri: i filtri attivi come chip rimovibili, il bottone che apre il
-pannello dei filtri (TX-0001) e a destra la data dell'ultimo dato sincronizzato (NFR-25 b), con il dettaglio per flusso
-d'import in un popover; arriva con la risposta di `/api/finanziario/filtri`, in ora italiana.
+pannello dei filtri (TX-0001) e a destra il perimetro dei dati (regionale o la propria area ADA) e la data fino a cui
+tutti i flussi d'import sono aggiornati (NFR-25 b: la conclusione meno recente, con il dettaglio per flusso in un
+popover); arriva con la risposta di `/api/finanziario/filtri`, in ora italiana. Il dettaglio di un intervento ha nella
+barra il solo intervento, fisso: riguarda l'intervento intero.
 
-La Home (`/`, dove il BFF riporta dopo il login) elenca le aree visibili per i grant dell'utente. `RequireGrant`
+La Home (`/`, dove il BFF riporta dopo il login) elenca le aree visibili per i grant dell'utente (catalogo unico delle
+aree in `src/app/aree.ts`, lo stesso del menu); la card di un'area porta alla sua prima pagina visibile. `RequireGrant`
 distingue tre casi:
 - utente non collegato: invito ad accedere;
 - sessione non verificabile: "Riprova" e "Accedi di nuovo", senza redirect automatico, per non creare un ciclo di login;
@@ -105,14 +117,24 @@ Il kit generico sta in `src/shared/ui` e si riusa nelle prossime aree:
 - `tema.css`: token (`--ui-*`) e classi `ui-*` sopra bootstrap-italia; font Titillium serviti dall'app;
 - `grafici/`: `Grafico`, il solo wrapper di Apache ECharts (import modulari, renderer SVG, niente animazioni con
   `prefers-reduced-motion`), e `CardGrafico`: titolo, vista Grafico/Tabella, download, voci omesse, fonte;
-- `Kpi`, `BarraFiltri`, `PannelloLaterale` (dialogo laterale di react-aria-components), `TabellaInterattiva`
-  (ricerca, ordinamento con `aria-sort`, scelta delle colonne, paginazione, totali, riga apribile con clic o Invio;
-  la logica e' in `src/shared/lib/tabella.ts`).
+- `Kpi`, `BarraFiltri`, `PannelloLaterale` (dialogo laterale di react-aria-components), `Sezione` e `Griglia`,
+  `TabellaInterattiva` (ricerca, ordinamento con `aria-sort`, scelta delle colonne, paginazione, totali e righe di
+  piede, riga apribile con clic o Invio; tabella HTML nativa: la `Table` di react-aria non serve senza selezione ne'
+  modifica di celle; la logica e' in `src/shared/lib/tabella.ts`), tabelle semplici (`TabellaRighe`, `TabellaVoci`,
+  `TabellaDati`).
 
-Le opzioni dei grafici le preparano funzioni pure delle feature (`src/features/finanziario/lib/grafici.ts`,
-`due-parti.ts`): ognuna restituisce le opzioni oppure il motivo per cui il grafico non si disegna, la tabella
-equivalente (il canale accessibile) e le voci omesse. Un valore assente non diventa mai zero. Il clic su un elemento e'
-il drill-down: dal grafico al dettaglio dell'intervento (`/finanziario/interventi/:codice`) o alla pagina collegata.
+I mattoni puri dei grafici stanno in `src/shared/lib/grafici/`:
+- il contratto dei builder (`DatiGrafico`: le opzioni oppure il motivo per cui il grafico non si disegna, la tabella
+  equivalente, le voci omesse) e i colori del tema;
+- le primitive (descrizione accessibile, zoom, testi delle serie) e gli scheletri di cascata, barre raggruppate e
+  ciambella;
+- `opzioniSicure`: tooltip disegnato nel grafico (richText, mai HTML) e numeri degli assi in italiano.
+
+I builder di dominio stanno nelle feature, uno per report (`src/features/finanziario/lib/grafici/`), e gli aggregati
+calcolati dal frontend in `lib/aggregati.ts`: mai somme parziali, un totale con un valore assente e' "non
+calcolabile". Un valore assente non diventa mai zero. Il clic su un elemento e' il drill-down: dal grafico al dettaglio
+dell'intervento (`/finanziario/interventi/:codice`) o alla pagina collegata. Complessita' e lunghezza delle funzioni
+dei layer `lib/` sono limitate da eslint (10 e 60 righe).
 
 Nei test jsdom non disegna: `src/shared/test/setup.ts` sostituisce ECharts con un grafico finto
 (`src/shared/testing/grafico-finto.ts`) che registra le opzioni e simula il clic; `src/shared/testing/card-grafico.ts`
@@ -132,10 +154,25 @@ X-Content-Type-Options: nosniff
 Referrer-Policy: same-origin
 ```
 
-Verificato sulla build di produzione con Playwright e questa CSP: nessuna violazione, con i grafici ECharts (SVG) e il
-tooltip disegnati (ECharts imposta gli stili via CSSOM, che la CSP ammette). L'unico `<style>` iniettato, quello di
-react-aria per `touch-action`, e' bloccato dalla CSP: la stessa regola sta in `src/shared/ui/tema.css` e il segnaposto
-`<meta id="react-aria-pressable-style">` in `index.html` dice a react-aria di non iniettarla.
+La verifica e' un test e2e versionato: `npm run test:e2e` (`e2e/csp.spec.ts`) serve la build di produzione con questa
+CSP, apre la panoramica e la pagina delle domande, mostra i tooltip di un elemento e di un asse e apre il pannello dei
+filtri: nessuna violazione. Il tooltip di ECharts e' disegnato nel grafico (`renderMode: 'richText'`, imposto dal kit):
+il tooltip HTML scriverebbe attributi `style` con `innerHTML`, bloccati da `style-src 'self'`.
+
+Gli `<style>` che react-aria inietta sono due, ed entrambi sono bloccati da `style-src 'self'`:
+- quello di `usePress` per `touch-action`: la stessa regola sta in `src/shared/ui/tema.css`, e il segnaposto
+  `<meta id="react-aria-pressable-style">` in `index.html` dice a react-aria di non iniettarla;
+- su iOS e iPadOS (ogni browser WebKit), all'apertura di una finestra modale (pannello dei filtri, menu su schermo
+  stretto, anteprima dell'intervento, avviso di inattivita'), `usePreventScroll` antepone in `<head>` uno `<style>`
+  con `overscroll-behavior: contain`, per non far scorrere la pagina sotto la modale. Con questa CSP la regola e'
+  bloccata: il browser segnala una violazione a ogni apertura e su iPhone e iPad la pagina sotto la modale puo'
+  scorrere. Focus, chiusura e lettori di schermo funzionano comunque; non e' un rischio di sicurezza.
+
+Se serve la regola su iOS, il contenitore la puo' ammettere con un nonce generato a ogni risposta, mai fisso nella
+build: `style-src 'self' 'nonce-<valore>'` e, nell'`index.html` servito, `<meta property="csp-nonce" content="<valore>">`
+con lo stesso valore (react-aria lo legge e lo mette sul suo `<style>`). Con un `index.html` statico servito da cache il
+nonce per risposta non e' praticabile, e resta l'eccezione dichiarata qui; il test e2e va esteso a un profilo WebKit
+mobile (Playwright `devices['iPhone 15']`) quando WebKit e' installato.
 
 Peso: il chunk del finanziario e' di circa 1,2 MB (380 kB gzip), in gran parte ECharts; se servisse, ECharts si puo'
 caricare a parte con un import dinamico nel wrapper `Grafico`.

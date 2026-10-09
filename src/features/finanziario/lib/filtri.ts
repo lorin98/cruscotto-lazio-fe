@@ -1,5 +1,5 @@
-// filtri.ts — funzioni PURE della feature finanziario (zero React): filtri di RF001 nell'indirizzo della pagina,
-// etichette di perimetro e fase della riserva, anni consultabili.
+// filtri.ts — funzioni PURE della feature finanziario (zero React): filtri di RF001 nell'indirizzo della pagina, le loro
+// etichette e i chip, anni consultabili.
 // I filtri vivono nella query string (uiplan: la pagina dei filtri li applica, ogni report li legge e li mostra).
 
 export const CHIAVI_FILTRO = ['intervento', 'os', 'og', 'op', 'azione'] as const;
@@ -53,29 +53,6 @@ export function senzaAzioneSeNonDisponibile(filtri: Filtri, legameDisponibile: b
   return resto;
 }
 
-/** Perimetro delle misure per domanda (enum della spec: il controllo di allineamento e' in ui/contratto.ts). */
-export type Perimetro = 'REGIONALE' | 'ADA';
-const PERIMETRI: Record<Perimetro, string> = {
-  REGIONALE: 'Regionale: tutte le domande della regione',
-  ADA: 'Area decentrata (ADA): solo le domande della propria area',
-};
-export function etichettaPerimetro(perimetro: Perimetro | null | undefined): string {
-  return perimetro ? PERIMETRI[perimetro] : 'non indicato';
-}
-
-/** Fasi della riserva al 5% (enum della spec, RF014). */
-export type FaseRiserva = 'NON_INIZIATA' | 'ACCUMULO' | 'UTILIZZO' | 'RESIDUO';
-const FASI_RISERVA: Record<FaseRiserva, (n: number) => string> = {
-  NON_INIZIATA: (n) => `non iniziata (l'accumulo parte il 1/10/${n})`,
-  ACCUMULO: (n) => `accumulo (dal 1/10/${n} al 30/6/${n + 1})`,
-  UTILIZZO: (n) => `utilizzo (fino al 31/12/${n + 1})`,
-  RESIDUO: (n) => `residuo (2% del montante, dal 1/1/${n + 2})`,
-};
-/** Etichetta della fase con le date dell'anno n della riserva. */
-export function etichettaFaseRiserva(fase: FaseRiserva | null | undefined, anno: number): string {
-  return fase ? FASI_RISERVA[fase](anno) : 'non disponibile';
-}
-
 /** Anno della riserva ed esercizio della verifica SMP: intero 2000-2100 (descrizione dei parametri nella spec). */
 export function isAnnoValido(anno: number | null | undefined): anno is number {
   return typeof anno === 'number' && Number.isInteger(anno) && anno >= 2000 && anno <= 2100;
@@ -92,4 +69,48 @@ export function anniSelezionabili(tipo: 'riserva' | 'esercizio', corrente?: numb
   for (let a = PRIMO_ANNO_CSR; a <= ULTIMO_ANNO[tipo]; a++) anni.push(a);
   if (isAnnoValido(corrente) && !anni.includes(corrente)) anni.push(corrente);
   return anni.sort((x, y) => x - y);
+}
+
+/** Etichette dei filtri, le stesse nella barra (forma breve) e nel pannello (forma estesa). */
+export const ETICHETTE_FILTRO: Record<ChiaveFiltro, { breve: string; estesa: string }> = {
+  intervento: { breve: 'Intervento', estesa: 'Intervento' },
+  os: { breve: 'OS', estesa: 'Obiettivo specifico (OS)' },
+  og: { breve: 'OG', estesa: 'Obiettivo generale (OG)' },
+  op: { breve: 'OP', estesa: 'Obiettivo di policy (OP)' },
+  azione: { breve: 'Azione portante', estesa: 'Azione portante' },
+};
+
+/** Un filtro attivo: chiave, valore ed etichetta breve. */
+export interface FiltroAttivo {
+  chiave: ChiaveFiltro;
+  valore: string;
+  etichetta: string;
+}
+
+/** I filtri attivi, nell'ordine delle chiavi. */
+export function filtriAttivi(filtri: Filtri): FiltroAttivo[] {
+  return CHIAVI_FILTRO.flatMap((chiave) => (filtri[chiave] ?? []).map((valore) => ({ chiave, valore, etichetta: ETICHETTE_FILTRO[chiave].breve })));
+}
+
+/** I filtri senza un valore (un chip tolto); una chiave rimasta senza valori sparisce. */
+export function senzaValore(filtri: Filtri, chiave: ChiaveFiltro, valore: string): Filtri {
+  const resto = (filtri[chiave] ?? []).filter((v) => v !== valore);
+  const nuovi: Filtri = { ...filtri };
+  if (resto.length > 0) nuovi[chiave] = resto;
+  else delete nuovi[chiave];
+  return nuovi;
+}
+
+/** Parametri di pagina (non filtri) che restano nell'indirizzo quando i filtri cambiano. */
+export const PARAMETRI_DI_PAGINA = ['anno', 'esercizio'] as const;
+
+/** Query string con i filtri dati e i parametri di pagina della ricerca corrente (anno della riserva, esercizio SMP). */
+export function ricercaConParametri(ricercaCorrente: string, filtri: Filtri): string {
+  const corrente = new URLSearchParams(ricercaCorrente);
+  const pagina = new URLSearchParams();
+  for (const k of PARAMETRI_DI_PAGINA) {
+    const v = corrente.get(k);
+    if (v) pagina.set(k, v);
+  }
+  return [ricercaDaFiltri(filtri), pagina.toString()].filter(Boolean).join('&');
 }

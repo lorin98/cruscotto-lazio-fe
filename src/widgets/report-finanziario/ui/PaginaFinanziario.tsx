@@ -1,81 +1,63 @@
 // PaginaFinanziario — impaginazione comune delle pagine del finanziario (UI v2, wireframe v2 approvati): barra dei filtri
-// a chip con il pannello laterale e la data dell'ultimo dato, breadcrumb, titolo (o testata di dettaglio) che riceve il
-// focus e da' il titolo al documento, contenuto. I filtri vivono nella query string: le pagine li ricevono come props e
-// "Applica" li riscrive conservando i parametri di pagina (anno, esercizio).
+// a chip con il pannello laterale, il perimetro e la data dell'ultimo dato, breadcrumb, titolo (h1 SEMPRE presente, che
+// riceve il focus e da' il titolo al documento), contenuto. La semantica dei filtri e' della feature
+// (useFiltriNellIndirizzo); qui solo l'impaginazione e il contesto che apre il pannello dallo stato vuoto.
 import { useState } from 'react';
 import type { ReactNode } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router';
-import { CHIAVI_FILTRO, PannelloFiltri, UltimoAggiornamento, filtriDaRicerca, ricercaDaFiltri, titoloH1, voceDi } from '../../../features/finanziario';
+import { Link } from 'react-router';
+import { ContestoFiltri, PANORAMICA, PannelloFiltri, PerimetroPill, UltimoAggiornamento, conFiltri, titoloH1, useFiltriNellIndirizzo, voceDi } from '../../../features/finanziario';
 import type { Filtri } from '../../../features/finanziario';
-import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { BarraFiltri, useFocusTitolo } from '../../../shared/ui';
 import type { ChipFiltro } from '../../../shared/ui';
-
-const ETICHETTE = { intervento: 'Intervento', os: 'OS', og: 'OG', op: 'OP', azione: 'Azione portante' } as const;
-const PARAMETRI_DI_PAGINA = ['anno', 'esercizio'];
-
-/** Indirizzo con i filtri dati e i parametri di pagina dell'indirizzo corrente. */
-function conFiltri(percorso: string, ricerca: string, filtri: Filtri): string {
-  const corrente = new URLSearchParams(ricerca);
-  const pagina = new URLSearchParams();
-  for (const k of PARAMETRI_DI_PAGINA) {
-    const v = corrente.get(k);
-    if (v) pagina.set(k, v);
-  }
-  const q = [ricercaDaFiltri(filtri), pagina.toString()].filter(Boolean).join('&');
-  return q ? `${percorso}?${q}` : percorso;
-}
 
 export function PaginaFinanziario({
   percorso,
   conBarraFiltri = true,
+  chipFissi,
   briciole,
+  titolo,
+  titoloDocumento,
   sottotitolo,
-  senzaTitolo = false,
   azioni,
   children,
 }: {
   percorso: string;
   /** Falso dove i filtri del finanziario non si applicano (riserva, OP-FE-03). */
   conBarraFiltri?: boolean;
+  /** Chip non rimovibili al posto dei filtri dell'indirizzo (es. l'intervento della pagina di dettaglio). */
+  chipFissi?: ChipFiltro[];
   /** Voci intermedie del percorso (dopo Home e Finanziario). */
   briciole?: Array<{ etichetta: string; a?: string }>;
+  /** Testo dell'h1 al posto di quello del catalogo (es. la descrizione dell'intervento). */
+  titolo?: string;
+  /** Prima parte del titolo del documento, al posto del titolo del catalogo. */
+  titoloDocumento?: string;
   sottotitolo?: string;
-  /** Il contenuto rende la propria testata con l'h1 (dettaglio): niente titolo standard. */
-  senzaTitolo?: boolean;
   azioni?: ReactNode;
   children: (filtri: Filtri) => ReactNode;
 }) {
-  const { pathname, search } = useLocation();
-  const naviga = useNavigate();
-  const { data: auth } = useAuthStatus();
+  const { filtri, chip, applica, togliTutti, conPannello } = useFiltriNellIndirizzo();
   const [pannello, setPannello] = useState(false);
-  const titolo = voceDi(percorso)?.titolo ?? 'Finanziario';
-  const filtri = filtriDaRicerca(search);
-  const h1 = useFocusTitolo<HTMLHeadingElement>(senzaTitolo ? undefined : `${titolo} - Finanziario`);
-  const vai = (f: Filtri) => void naviga(conFiltri(pathname, search, f));
-
-  const chip: ChipFiltro[] = CHIAVI_FILTRO.flatMap((k) =>
-    (filtri[k] ?? []).map((v) => ({
-      chiave: `${k}:${v}`,
-      etichetta: ETICHETTE[k],
-      valore: v,
-      onTogli: () => vai({ ...filtri, [k]: (filtri[k] ?? []).filter((x) => x !== v) }),
-    })),
-  );
-  const conPannello = hasGrant(auth, 'csr.tx-0001.read');
-  const voci = briciole ?? (percorso === '/finanziario' ? [] : [{ etichetta: titolo }]);
-  const queryFiltri = ricercaDaFiltri(filtri);
+  const voce = voceDi(percorso);
+  const titoloCatalogo = voce?.titolo ?? 'Finanziario';
+  const h1 = useFocusTitolo<HTMLHeadingElement>(`${titoloDocumento ?? titoloCatalogo} - Finanziario`);
+  const pannelloAttivo = conBarraFiltri && conPannello && !chipFissi;
+  const voci = briciole ?? (percorso === PANORAMICA.percorso ? [] : [{ etichetta: titoloCatalogo }]);
 
   return (
-    <>
+    <ContestoFiltri.Provider value={pannelloAttivo ? () => setPannello(true) : null}>
       {conBarraFiltri && (
         <BarraFiltri
-          chip={chip}
-          onApri={conPannello ? () => setPannello(true) : undefined}
-          onTogliTutti={() => vai({})}
+          chip={chipFissi ?? chip}
+          onApri={pannelloAttivo ? () => setPannello(true) : undefined}
+          onTogliTutti={chipFissi ? undefined : togliTutti}
           vuoto="Nessun filtro: tutti gli interventi del perimetro"
-          destra={<UltimoAggiornamento />}
+          destra={
+            <>
+              <PerimetroPill />
+              <UltimoAggiornamento />
+            </>
+          }
         />
       )}
       <main className="ui-pagina" id="contenuto">
@@ -85,7 +67,7 @@ export function PaginaFinanziario({
               <Link to="/">Home</Link>
             </li>
             <li aria-current={voci.length === 0 ? 'page' : undefined}>
-              {voci.length === 0 ? 'Finanziario' : <Link to={queryFiltri ? `/finanziario?${queryFiltri}` : '/finanziario'}>Finanziario</Link>}
+              {voci.length === 0 ? 'Finanziario' : <Link to={conFiltri(PANORAMICA.percorso, chipFissi ? {} : filtri)}>Finanziario</Link>}
             </li>
             {voci.map((v, i) => (
               <li key={v.etichetta} aria-current={i === voci.length - 1 ? 'page' : undefined}>
@@ -94,30 +76,28 @@ export function PaginaFinanziario({
             ))}
           </ol>
         </nav>
-        {!senzaTitolo && (
-          <div className="ui-titolo">
-            <div>
-              <h1 ref={h1} tabIndex={-1}>
-                {titoloH1(titolo)}
-              </h1>
-              {sottotitolo && <p>{sottotitolo}</p>}
-            </div>
-            {azioni && <div className="ui-titolo__azioni">{azioni}</div>}
+        <div className="ui-titolo">
+          <div>
+            <h1 ref={h1} tabIndex={-1}>
+              {titolo ?? titoloH1(titoloCatalogo)}
+            </h1>
+            {(sottotitolo ?? voce?.sottotitolo) && <p>{sottotitolo ?? voce?.sottotitolo}</p>}
           </div>
-        )}
+          {azioni && <div className="ui-titolo__azioni">{azioni}</div>}
+        </div>
         {children(filtri)}
       </main>
-      {conBarraFiltri && conPannello && (
+      {pannelloAttivo && (
         <PannelloFiltri
           aperto={pannello}
           valori={filtri}
           onChiudi={() => setPannello(false)}
           onApplica={(f) => {
             setPannello(false);
-            vai(f);
+            applica(f);
           }}
         />
       )}
-    </>
+    </ContestoFiltri.Provider>
   );
 }

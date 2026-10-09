@@ -5,16 +5,17 @@
 // pagate dagli elenchi di liquidazione, l'importo pagato dal flusso ASR2-20; la nota lo dice accanto ai dati.
 // UI v2 (wireframe sigc v2): imbuto delle domande e cascata degli importi, con le voci in tabella sotto ogni grafico.
 import { ValoreImporto } from '../../../entities/importo';
-import { CardGrafico, VistaQuery } from '../../../shared/ui';
+import { CardGrafico, Griglia, TabellaVoci, VistaQuery } from '../../../shared/ui';
 import { useSigcDomande, useSigcImporti } from '../api';
-import { inAttesaDelSegnale, useSelezioneSenzaDomandeSigc } from './selezione';
+import { useSelezioneSenzaDomandeSigc } from './selezione';
 import type { Filtri } from '../lib/filtri';
 import { graficoCascataSigc, graficoImbutoSigc } from '../lib/grafici';
-import { ConGrant, Griglia, Numero, PerimetroSezione, TabellaVoci, vuotoConPerimetro } from './comuni';
+import { GRANT } from '../lib/report';
+import { ConGrant, Numero, PerimetroSezione, vuotoConPerimetro } from './comuni';
 
 const TITOLO_DOMANDE = 'Domande SIGC (RF012)';
 const TITOLO_IMPORTI = 'Importi SIGC (RF013)';
-const VUOTO = vuotoConPerimetro('Nessuna domanda SIGC per i filtri scelti. Modifica i filtri.');
+const VUOTO = vuotoConPerimetro('Nessuna domanda SIGC per i filtri scelti.');
 
 function NotaFonti() {
   return (
@@ -54,7 +55,7 @@ function ImportiSigc({ filtri }: { filtri: Filtri }) {
   // segnale positivo: il conteggio delle domande SIGC presentate per gli stessi filtri (cache condivisa con RF012)
   const segnale = useSelezioneSenzaDomandeSigc(filtri);
   return (
-    <VistaQuery stato={inAttesaDelSegnale(stato, segnale)} eVuoto={() => segnale === 'vuota'} vuoto={VUOTO}>
+    <VistaQuery stato={stato} inAttesa={segnale === 'in-attesa'} eVuoto={() => segnale === 'vuota'} vuoto={VUOTO}>
       {(d) => (
         <div>
           <CardGrafico titolo={TITOLO_IMPORTI} sottotitolo="Dal richiesto al pagato" dati={graficoCascataSigc(d)} fonte="Fonte: TX-0013, pagato dal flusso ASR2-20" />
@@ -83,10 +84,10 @@ function ImportiSigc({ filtri }: { filtri: Filtri }) {
 export function SigcReport({ filtri }: { filtri: Filtri }) {
   return (
     <Griglia>
-      <ConGrant grant="csr.tx-0012.read" titolo={TITOLO_DOMANDE}>
+      <ConGrant grant={GRANT.sigcDomande} titolo={TITOLO_DOMANDE}>
         <DomandeSigc filtri={filtri} />
       </ConGrant>
-      <ConGrant grant="csr.tx-0013.read" titolo={TITOLO_IMPORTI}>
+      <ConGrant grant={GRANT.sigcImporti} titolo={TITOLO_IMPORTI}>
         <ImportiSigc filtri={filtri} />
       </ConGrant>
     </Griglia>

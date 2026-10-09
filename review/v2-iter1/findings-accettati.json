@@ -1,0 +1,436 @@
+[
+  {
+    "id": "V-01",
+    "severity": "MAGGIORE",
+    "file": "src/pages/finanziario/interventi/page.tsx:31",
+    "titolo": "Dettaglio intervento: i filtri dell'indirizzo restano nella barra come attivi ma non si applicano ai dati (RF001)",
+    "fix": "Scegliere una strada e testarla: passare i filtri al dettaglio e leggere con { ...filtri, intervento: [codice] }, oppure navigare al dettaglio senza gli altri filtri e mostrare nella barra il solo chip fisso 'Intervento: <codice>' come in intervento.html. Test in interventi/page.test.tsx con ?og=... sulla query inviata e sui chip."
+  },
+  {
+    "id": "V-03",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/lib/grafici.ts:975",
+    "titolo": "Cascata 'Dalla dotazione al residuo' del dettaglio disegnata anche nel perimetro ADA: dotazione regionale meno pagamenti dell'area",
+    "fix": "Passare il perimetro a graficoCascataIntervento e in ADA non disegnare la cascata (motivo come MOTIVO_ADA_GAUGE), lasciando la tabella; nei KPI del dettaglio usare diProgramma e NotaPerimetroMisto. Test del dettaglio con perimetro ADA e residuo FUORI_PERIMETRO."
+  },
+  {
+    "id": "V-04",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici.ts:1025",
+    "titolo": "TX-0003: il campo dotazioneSpesaPubblica del contratto e' ignorato, il 'Totale' e' ricalcolato come somma delle quote",
+    "fix": "Aggiungere dotazioneSpesaPubblica a DistribuzioneDotazioneLike e alla tabella equivalente (cellaImporto con il motivo); calcolare le percentuali sulla dotazione del DTO o dichiarare lo scarto se le quote non la ricompongono. Test con dotazione NON_VALORIZZATO."
+  },
+  {
+    "id": "V-05",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/RiepilogoReport.tsx:47",
+    "titolo": "RF011: quattro dei nove campi partono nascosti, contro il wireframe che mostra la colonna con 'fonte non attiva'; motivo della nota sbagliato per il P4",
+    "fix": "Mostrare di default le colonne del wireframe riepilogo.html (compreso 'Impegnato' con il motivo nella cella) e ricavare il motivo della nota dai valori reali (FONTE_NON_ATTIVA, NON_VALORIZZATO, FUORI_PERIMETRO). Aggiornare riepilogo/page.test.tsx:128-137."
+  },
+  {
+    "id": "V-06",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/DotazioneReport.tsx:49",
+    "titolo": "RF002: impegnati, quote Stato e Regione e vincolo LEADER partono nascosti, il wireframe chiede 'colonne con il motivo'",
+    "fix": "Rendere visibili di default le colonne di importo con ValoreImporto (motivo e fonte), come chiede dotazione.html; se resta una nota, ricavarne il motivo dai dati. Aggiornare il test RF002 di dotazione/page.test.tsx:29-35."
+  },
+  {
+    "id": "V-07",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/ui/DettaglioIntervento.tsx:61",
+    "titolo": "Scheda Sintesi del dettaglio: la lettura di TX-0002 non ha stati di caricamento ed errore, un 503 o 403 diventa 'valore non disponibile'",
+    "fix": "Rendere il gauge dentro VistaQuery sullo stato di TX-0002 (scheletro in caricamento, ErroreVista con Riprova in errore); il messaggio di dato mancante resta solo per grant assente o valore null. Test con TX-0002 in errore."
+  },
+  {
+    "id": "V-08",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici.ts:837",
+    "titolo": "Sankey: dotazioneResidua di TX-0006 ignorata e 'Da impegnare' calcolato lato client, anche nel perimetro ADA (regressione latente)",
+    "fix": "Usare dotazioneResidua del DTO per il ramo 'Da impegnare' (non disegnabile se null, con il suo motivo) e passare il perimetro a graficoSankey. Test con impegni attivi e residuo null."
+  },
+  {
+    "id": "V-09",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici.ts:856",
+    "titolo": "Sankey 'Dove va la dotazione': con gli impegni non attivi non si disegna nulla, il wireframe prevede dotazione e pagato con il ramo mancante dichiarato",
+    "fix": "Senza impegnato disegnare il flusso ridotto Dotazione -> Pagato / non pagato e dichiarare il ramo dell'impegnato fra gli omessi, oppure riportare la scelta al gate dei wireframe. Aggiornare avanzamento/page.test.tsx:133-138."
+  },
+  {
+    "id": "V-10",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/DettaglioIntervento.tsx:48",
+    "titolo": "KPI del dettaglio: un importo assente diventa 'Non disponibile nel riepilogo', senza il motivo e la fonte del contratto",
+    "fix": "In Kpis usare descriviImporto, come KpiImporto di AvanzamentoReport, per testo e nota dell'assenza; aggiornare interventi/page.test.tsx:73-79."
+  },
+  {
+    "id": "V-11",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/DettaglioIntervento.tsx:87",
+    "titolo": "Dettaglio, importi per anno: importo stanziato e domande senza ammesso di TX-0010 non dichiarati",
+    "fix": "Nel dettaglio dichiarare lo stanziato con il suo motivo e il numero di domande senza ammesso (colonne della tabella equivalente o voci omesse), riusando COLONNE_IMPORTI di DomandeReport."
+  },
+  {
+    "id": "V-12",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici.ts:686",
+    "titolo": "Importi SIGC in panoramica e dettaglio: domandeSenza ignorato, l'ancora da pagare sembra un dato completo",
+    "fix": "Aggiungere domandeSenza a ImportiSigcLike e riportarne i conteggi nella tabella equivalente (o negli omessi) di graficoCascataSigc."
+  },
+  {
+    "id": "V-14",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/Panoramica.tsx:82",
+    "titolo": "Panoramica: il KPI delle domande (TX-0009) dipende da TX-0002 e sparisce se la spesa e' in errore o senza grant",
+    "fix": "Spostare la tessera delle domande fuori dalla VistaQuery di TX-0002 (griglia KPI con ConGrant per tessera); aggiornare il test di finanziario-ui sul grant di TX-0002."
+  },
+  {
+    "id": "V-15",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/DomandeReport.tsx:30",
+    "titolo": "Pagina Domande: mancano i KPI 'Importo ammesso' e 'Importo stanziato' e il drill-down 'clic su un anno: filtra la tabella'",
+    "fix": "Aggiungere le tessere 'Importo ammesso' (somma degli anni con le domande senza ammesso) e 'Importo stanziato' (con il motivo) e il clic sull'anno che filtra la tabella; test."
+  },
+  {
+    "id": "V-16",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/VerificaSmpReport.tsx:57",
+    "titolo": "Verifica SMP: tabella senza ricerca ne' scelta delle colonne e grafico senza drill-down al dettaglio",
+    "fix": "Usare TabellaInterattiva (ricerca, colonne, intestazione di riga sul codice) e aggiungere il clic sulle barre verso percorsoIntervento con i filtri; test."
+  },
+  {
+    "id": "V-17",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/RiservaReport.tsx:44",
+    "titolo": "Riserva: i quattro KPI del wireframe sono resi come tabella voce/valore",
+    "fix": "Rendere accumulato, congelato, utilizzato e residuo come Kpi (testi di lib/riserva per le assenze) sopra la card dell'utilizzo; in tabella restano date, montante e regola n+2."
+  },
+  {
+    "id": "V-18",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/RiepilogoReport.tsx:167",
+    "titolo": "Riepilogo: il clic su una barra apre l'anteprima invece del dettaglio e la dotazione AT sta fuori dalla tabella",
+    "fix": "Clic sulla barra verso percorsoIntervento con i filtri, come in Dotazione; riga 'Dotazione dell'Assistenza tecnica' nel piede della tabella del riepilogo."
+  },
+  {
+    "id": "V-19",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/RiepilogoReport.tsx:163",
+    "titolo": "Vista grafico del riepilogo: i pagamenti al netto delle rettifiche sono etichettati 'Pagato'",
+    "fix": "Parametrizzare il nome della serie in graficoDotazionePagamenti e usare 'Pagamenti al netto delle rettifiche' nel riepilogo; test sull'etichetta."
+  },
+  {
+    "id": "V-20",
+    "severity": "MINORE",
+    "file": "src/widgets/report-finanziario/ui/PaginaFinanziario.tsx:78",
+    "titolo": "Perimetro non dichiarato nella barra dei filtri come nei wireframe approvati",
+    "fix": "Aggiungere nella BarraFiltri un chip non rimovibile del perimetro (dalla prima risposta o dal profilo), lasciando i badge per sezione dove i perimetri differiscono."
+  },
+  {
+    "id": "V-21",
+    "severity": "MINORE",
+    "file": "src/shared/ui/stati/StatiVista.tsx:85",
+    "titolo": "Stato vuoto non azionabile: 'Modifica i filtri' e' testo, nel wireframe e' un pulsante; nel perimetro ADA sparisce del tutto",
+    "fix": "Rendere il vuoto con un pulsante 'Modifica i filtri' che apre PannelloFiltri (callback o contesto da PaginaFinanziario), anche nella variante ADA; test sul pulsante."
+  },
+  {
+    "id": "V-22",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/lib/report.ts:41",
+    "titolo": "Titoli, sottotitoli, voci di menu e alcuni testi diversi dai wireframe approvati",
+    "fix": "Allineare ai wireframe titoli (report.ts:41-42), voci di menu, sottotitoli, testo del pannello e testi della riserva (RiservaReport.tsx:82, 106)."
+  },
+  {
+    "id": "H-01",
+    "severity": "CRITICO",
+    "file": "src/features/finanziario/ui/Panoramica.tsx:24",
+    "titolo": "KpiSpesa calcola gli aggregati finanziari nel componente, con regole diverse dal resto dell'app: somme parziali e quote assurde",
+    "fix": "Spostare in lib/ una funzione pura kpiSpesa(righe, perimetro) con le regole di graficoAvanzamento: totale 'non calcolabile' se manca anche un solo valore, dotazioni non positive escluse dalla quota, niente Math.max(1, ...). Panoramica rende solo il risultato. Test L1 su somma parziale, dotazione zero e righe miste."
+  },
+  {
+    "id": "H-02",
+    "severity": "MAGGIORE",
+    "file": "src/shared/ui/grafici/Grafico.tsx:55",
+    "titolo": "Le opzioni dei grafici si ricalcolano a ogni render: qualunque stato estraneo azzera zoom, drill-down e animazione",
+    "fix": "Memoizzare i builder sui dati (useMemo(() => graficoX(d.righe, d.perimetro), [d.righe, d.perimetro])) oppure confrontare le opzioni per valore in Grafico prima di setOption. Test L2: un cambio di stato estraneo non produce un nuovo setOption."
+  },
+  {
+    "id": "H-03",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/lib/grafici.ts:164",
+    "titolo": "grafici.ts riscrive la resa degli importi assenti e i formattatori già esistenti, con esiti diversi da entities/importo",
+    "fix": "In grafici.ts usare descriviImporto (flag aggregato per SIGC, sankey e quote) e i formattatori di lib/formato.ts, eliminando le copie locali. Test che confronti la cella della tabella equivalente con ValoreImporto per ogni motivo."
+  },
+  {
+    "id": "H-04",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/ui/DettaglioIntervento.tsx:24",
+    "titolo": "L'h1, il titolo del documento e il focus della pagina di dettaglio dipendono da un componente della feature che in vari stati non li rende",
+    "fix": "Rendere sempre h1, titolo e focus nella pagina o nel widget (PaginaFinanziario con un prop titolo dinamico, es. 'Intervento SRA01'); DettaglioIntervento fornisce solo eyebrow, badge e azioni. Asserzioni su h1 e document.title nei test senza grant e d'errore."
+  },
+  {
+    "id": "H-05",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici.ts:1",
+    "titolo": "grafici.ts è un modulo unico di 1305 righe e chiude dentro la feature le primitive generiche dei grafici che il kit dovrebbe offrire alle prossime aree",
+    "fix": "Spostare in shared/lib/grafici/ le primitive generiche (aria, zoomSeMolti, nonDisegnabile, notaOmessi, DatoSerie e tooltip sicuro, formattatori degli assi, opzioniCascata, barreRaggruppate); nella feature restano i builder di dominio, divisi per report."
+  },
+  {
+    "id": "H-06",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/lib/grafici.ts:656",
+    "titolo": "Otto builder superano le soglie di complessità o lunghezza (fino a complessità 23 e 94 righe)",
+    "fix": "Spezzare ogni builder oltre soglia in motivoNonDisegnabile(dati) (tabella di regole [condizione, motivo]), tabellaX(dati) e opzioniX(dati); i test L1 di finanziario-grafici fanno da rete."
+  },
+  {
+    "id": "H-07",
+    "severity": "MINORE",
+    "file": "src/widgets/report-finanziario/ui/PaginaFinanziario.tsx:29",
+    "titolo": "Il widget di impaginazione possiede la semantica dei filtri della feature: indirizzo, etichette, parametri di pagina, grant",
+    "fix": "Portare nella feature un hook useFiltriNellIndirizzo() (filtri, applica, togli, togliTutti, parametri di pagina) e in lib/filtri.ts chipDaFiltri(filtri) con un'unica mappa di etichette usata anche da PannelloFiltri."
+  },
+  {
+    "id": "H-08",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici.ts:30",
+    "titolo": "Il contratto dei builder (DatiGrafico/TabellaEquivalente) è dichiarato tre volte",
+    "fix": "Definire un solo tipo DatiGrafico (con TabellaEquivalente) in shared/lib, riesportato da shared/ui, e importarlo in grafici.ts e due-parti.ts."
+  },
+  {
+    "id": "H-09",
+    "severity": "MINORE",
+    "file": "src/shared/ui/grafici/echarts.ts:24",
+    "titolo": "I colori del tema sono scritti come esadecimali in tre posti",
+    "fix": "Esportare i colori semantici da un modulo puro del kit (es. shared/lib/tema.ts) e usarlo nel tema ECharts e nei builder, al posto di COLORI e degli esadecimali sparsi."
+  },
+  {
+    "id": "H-10",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/due-parti.ts:24",
+    "titolo": "Due builder diversi per la stessa forma «due parti di un totale», con regole divergenti e un ramo senza test",
+    "fix": "Tenere un solo builder graficoDueParti, usato anche per la quota FEASR; test L1 per parte assente, parte negativa, totale zero e percentuali."
+  },
+  {
+    "id": "H-11",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/due-parti.ts:5",
+    "titolo": "Import profondo nell'entità importo, fuori dal barrel; il lint non lo impedisce da features verso entities",
+    "fix": "Importare da '../../../entities/importo' in due-parti.ts; estendere barrelOnlyImportGroup ai file di src/features/** e src/entities/** con la canary in tests/eslint-regole.test.ts."
+  },
+  {
+    "id": "H-12",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/RiepilogoReport.tsx:34",
+    "titolo": "La logica pura delle colonne e dei totali è duplicata fra Riepilogo e Dotazione e tenuta nei componenti",
+    "fix": "Portare in lib/, con test L1, colonneNascoste(campi, righe, perimetro) e totaleCompleto(valori); in comuni.tsx un helper colonneImporti<T> usato da Riepilogo e Dotazione."
+  },
+  {
+    "id": "H-13",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/comuni.tsx:58",
+    "titolo": "Nel kit mancano i mattoni generici di impaginazione: la feature li definisce in proprio e le tabelle sono diventate quattro",
+    "fix": "Portare in shared/ui Sezione, Griglia e una tabella semplice parametrica da cui derivare TabellaDati, TabellaVoci e TabellaRighe; in comuni.tsx restano ConGrant, PerimetroSezione, NotaPerimetroMisto e colonnaImporto."
+  },
+  {
+    "id": "H-14",
+    "severity": "MINORE",
+    "file": "src/shared/ui/tabella/TabellaInterattiva.tsx:78",
+    "titolo": "Il kit contiene testi ed euristiche legati al caso d'uso finanziario invece di parametri",
+    "fix": "Aggiungere a TabellaInterattiva la prop segnapostoRicerca (default 'Cerca nella tabella'); far passare dalla feature i testi di vuoto ed errore; dare a TabellaEquivalente il tipo di colonna al posto della regex; NOME_APPLICAZIONE in shared/config."
+  },
+  {
+    "id": "H-15",
+    "severity": "MINORE",
+    "file": "src/shared/ui/tabella/TabellaInterattiva.tsx:22",
+    "titolo": "TabellaInterattiva è un componente unico di 171 righe con logica in linea, e la scelta della tabella nativa non è registrata in ADR 0027",
+    "fix": "Estrarre StrumentiTabella, IntestazioneOrdinabile e PaginazioneTabella e portare versoSuccessivo, didascalia e ariaSort in shared/lib/tabella.ts con test L1; registrare la tabella nativa in ADR 0027 o nel README."
+  },
+  {
+    "id": "H-16",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/AvanzamentoReport.tsx:63",
+    "titolo": "Grant e percorsi scritti a mano nei componenti, nonostante il catalogo «unica fonte» di lib/report.ts",
+    "fix": "In lib/report.ts esportare le costanti dei grant, i percorsi per voce e conFiltri(percorso, filtri); usarli in ui, widget e pagine, con un test che confronti i grant con route-table.json."
+  },
+  {
+    "id": "H-17",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/filtri.ts:68",
+    "titolo": "Il calendario della riserva è scritto in tre file, e filtri.ts mescola responsabilità diverse",
+    "fix": "Scrivere in lib/riserva.ts calendarioRiserva(n), usata da etichettaFaseRiserva, inizioFase, testoCongelato, testoResiduo e dal testo di aiuto; spostare le fasi in riserva.ts e il perimetro in lib/perimetro.ts."
+  },
+  {
+    "id": "H-18",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/api/index.ts:81",
+    "titolo": "La politica di retry è cablata nei wrapper e annulla il client di test «senza retry»",
+    "fix": "Spostare retry e retryDelay nei defaultOptions di createQueryClient e soloTransitori/attesaPrimaDiRiprovare in shared/api; i wrapper restano senza retry. Test L2 del ramo a tentativi esauriti."
+  },
+  {
+    "id": "H-19",
+    "severity": "MINORE",
+    "file": "src/shared/testing/grafico-finto.ts:5",
+    "titolo": "Il grafico finto non è legato al tipo reale di ECharts e non registra come vengono applicate le opzioni",
+    "fix": "Tipizzare la dipendenza di Grafico come Pick<EChartsType, 'setOption' | 'on' | 'resize' | 'dispose' | 'getDataURL'> e creaGraficoFinto su quel tipo; registrare anche il secondo argomento di setOption; trovare la card per nome accessibile."
+  },
+  {
+    "id": "H-20",
+    "severity": "MINORE",
+    "file": "src/shared/api/mock/esempio-finanziario.ts:1",
+    "titolo": "Dati di esempio e fixture del finanziario stanno in shared",
+    "fix": "Spostare i dati d'esempio in features/finanziario/api/mock/ e le fixture in features/finanziario/testing/ (o tests/fixtures/); browser.ts raccoglie gli handler delle feature con import.meta.glob."
+  },
+  {
+    "id": "H-21",
+    "severity": "MINORE",
+    "file": "src/shared/api/mutator/bff-mutator.ts:73",
+    "titolo": "Il tetto di letture del backend finanziario è applicato dal mutator condiviso a tutte le GET verso /api/",
+    "fix": "Rendere la coda configurabile per prefisso (es. { '/api/finanziario/': 2 } fornito dall'app) oppure documentare che il tetto vale sull'intero backend; esporre un reset per i test."
+  },
+  {
+    "id": "H-22",
+    "severity": "MINORE",
+    "file": "src/app/menu.tsx:27",
+    "titolo": "La shell scrive a mano l'area Finanziario e duplica l'elenco delle aree future, invece di ricavare il menu dalla route-table",
+    "fix": "Introdurre un catalogo delle aree (src/app/aree.ts o un campo area in route-table.json) da cui derivare Home e menu; AREE_FUTURE in un'unica costante."
+  },
+  {
+    "id": "H-23",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/selezione.ts:31",
+    "titolo": "inAttesaDelSegnale falsifica lo stato della query per piegare VistaQuery",
+    "fix": "Aggiungere a VistaQuery una prop inAttesa?: boolean e passare il segnale invece di riscrivere lo stato della query."
+  },
+  {
+    "id": "H-24",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici.ts:59",
+    "titolo": "Le forme dei DTO usate dai builder non hanno il controllo statico contro la spec",
+    "fix": "Estendere contratto.ts con un controllo per ogni forma 'Like' (ogni campo della forma deve esistere nel DTO, es. Exclude<keyof Forma, keyof Dto> extends never)."
+  },
+  {
+    "id": "H-25",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/ui/CercaIntervento.tsx:25",
+    "titolo": "Piccole funzioni pure lasciate nei componenti o duplicate",
+    "fix": "Portare in lib/ codiceDaRicerca, codiceDalClic e vociIntervento(r); riusare filtraRighe in PannelloFiltri e salvaFile in CardGrafico; una formatData con fuso Europe/Rome in shared/lib."
+  },
+  {
+    "id": "H-26",
+    "severity": "COSMETICO",
+    "file": "src/shared/ui/grafici/echarts.ts:5",
+    "titolo": "Codice registrato o esportato ma non usato",
+    "fix": "Togliere HeatmapChart e VisualMapComponent da echarts.use; ridurre il barrel alla API usata da pagine, widget e app; rimuovere o marcare come scaffolding predicates.ts e sentinel-dates.ts."
+  },
+  {
+    "id": "A-01",
+    "severity": "MAGGIORE",
+    "file": "src/app/routes.tsx:131",
+    "titolo": "Nessun errorElement/ErrorBoundary: in produzione la pagina d'errore di default di React Router mostra messaggio e stack trace e toglie la shell",
+    "fix": "In appRoutes() aggiungere sotto Layout una route senza path con ErrorBoundary in italiano (404 -> 'Pagina non trovata', modulo non caricato -> invito a ricaricare, altrimenti messaggio generico, mai message ne' stack) e una route { path: '*' }. Test con indirizzo sconosciuto e componente che lancia."
+  },
+  {
+    "id": "A-02",
+    "severity": "MAGGIORE",
+    "file": "README.md:135",
+    "titolo": "La conformita' CSP dichiarata nel README e' falsa: i tooltip HTML di ECharts violano style-src 'self' a ogni visualizzazione",
+    "fix": "Impostare tooltip.renderMode: 'richText' nel tema ECharts (togliendo l'escaping HTML di tooltipDettaglio) oppure documentare l'eccezione; correggere README.md:135-136 e versionare la verifica come test e2e Playwright con il suo script npm."
+  },
+  {
+    "id": "A-03",
+    "severity": "MINORE",
+    "file": "src/shared/ui/laterale/PannelloLaterale.tsx:27",
+    "titolo": "Su iOS react-aria inietta un secondo <style> senza nonce all'apertura delle modali: violazione CSP non dichiarata nel README",
+    "fix": "Documentare l'eccezione iOS nel README oppure servire un nonce per risposta (style-src 'nonce-...' piu' <meta property=\"csp-nonce\">); includere un profilo WebKit mobile nel test e2e della CSP."
+  },
+  {
+    "id": "A-04",
+    "severity": "MINORE",
+    "file": "src/app/inattivita.tsx:74",
+    "titolo": "Dopo la scadenza o l'uscita in un'altra scheda i dati restano leggibili nelle altre schede: cache non svuotata, velo semitrasparente",
+    "fix": "Allo stato 'scaduta' (locale o da altra scheda) chiamare queryClient.clear() e non rendere l'Outlet, con velo opaco; trasmettere sul canale anche l'uscita da 'Esci'. Test: dopo 'scaduta' i dati non sono nel DOM."
+  },
+  {
+    "id": "A-05",
+    "severity": "MINORE",
+    "file": "src/app/inattivita.tsx:160",
+    "titolo": "L'alertdialog di inattivita' non ha aria-describedby: il lettore di schermo non legge il tempo rimasto",
+    "fix": "Dare un id (useId) al paragrafo del preavviso e della scadenza e passarlo come aria-describedby al Dialog; asserire toHaveAccessibleDescription in shell.test.tsx."
+  },
+  {
+    "id": "A-07",
+    "severity": "MINORE",
+    "file": "src/shared/ui/stati/StatiVista.tsx:18",
+    "titolo": "Con il backend non raggiungibile una pagina emette una raffica di role=alert identici (10 su Avanzamento)",
+    "fix": "Aggregare gli errori a livello di pagina (un solo alert con 'Riprova' che rilegge tutte le sezioni, testo statico nelle sezioni) e annunciare un solo stato di caricamento per pagina."
+  },
+  {
+    "id": "A-08",
+    "severity": "MINORE",
+    "file": "package.json:23",
+    "titolo": "Dipendenze: axios in produzione non pinnato (^1.7.9) e @playwright/test 1.56.0 dichiarato ma inutilizzato",
+    "fix": "Pinnare axios a 1.19.0, aggiungere save-exact=true a .npmrc e pinnare le devDependencies con il caret; per @playwright/test aggiungere config, spec e script (vedi A-02) oppure rimuoverlo."
+  },
+  {
+    "id": "A-09",
+    "severity": "COSMETICO",
+    "file": "index.html:6",
+    "titolo": "Il commento interno e il percorso del sorgente finiscono nell'index.html di produzione",
+    "fix": "Lasciare il meta segnaposto con content vuoto e spostare la spiegazione in tema.css o nel README (oppure togliere i commenti HTML in build con transformIndexHtml)."
+  },
+  {
+    "id": "X-01",
+    "severity": "MAGGIORE",
+    "file": "src/shared/ui/tabella/TabellaInterattiva.tsx:52",
+    "titolo": "Stato derivato dalle props congelato al primo montaggio: tornando a filtri in cache una colonna con valori resta nascosta e la nota non la elenca",
+    "fix": "In TabellaInterattiva tenere nello stato solo le scelte dell'utente e calcolare le colonne visibili a ogni render, oppure rimontare con key={ricercaDaFiltri(filtri)}. Test di pagina: navigate verso filtri in cache e ritorno, colonne con valori visibili e nota esatta."
+  },
+  {
+    "id": "X-02",
+    "severity": "MINORE",
+    "file": "src/shared/api/mutator/bff-mutator.ts:98",
+    "titolo": "La coda delle letture non rispecchia il contatore del backend: libera il posto all'annullamento e vale per scheda, non per utente",
+    "fix": "Tenere il posto fino alla risposta del server: non abortire la XHR delle letture e scartare solo il risultato; coordinare le schede con Web Locks o BroadcastChannel. Test L1: annullata una lettura, la successiva parte solo alla sua risposta."
+  },
+  {
+    "id": "X-03",
+    "severity": "MINORE",
+    "file": "src/widgets/report-finanziario/ui/PaginaFinanziario.tsx:54",
+    "titolo": "Filtro per azione portante nell'indirizzo senza legame: i report dicono 'nessun intervento' invece di FONTE_NON_ATTIVA LEGAME_AZIONI_PORTANTI (SC-FI_FILTRO_AZIONI_SENZA_LEGAME)",
+    "fix": "In PaginaFinanziario leggere legameAzioniDisponibile da TX-0001: se e' false e l'indirizzo porta azione, avviso di pagina e filtro non applicato; con TX-0001 in errore non toccare il filtro. Test con ?azione=1 e legame false."
+  },
+  {
+    "id": "X-04",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/comuni.tsx:35",
+    "titolo": "Il vuoto viene attribuito al perimetro ADA anche dove il segnale (righe di TX-0002 o TX-0011) è un dato di programma, non dell'area",
+    "fix": "Usare vuotoConPerimetro solo dove il segnale e' una misura per domanda (TX-0008, 0010, 0012, 0015); per i vuoti da TX-0002/TX-0011 il testo dei filtri, e nel dettaglio un messaggio per codice fuori piano o AT001. Test P4 e AT001."
+  },
+  {
+    "id": "X-05",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici.ts:764",
+    "titolo": "Il grafico finto nasconde la resa reale di ECharts: asse, etichette e tooltip con il formato numerico inglese",
+    "fix": "Dare formatter italiani: axisLabel.formatter con formatNumber in graficoDomandePerAnno, label.formatter con la quota calcolata e tooltip.valueFormatter con formatEuro in graficoDueParti; suite L1 con ECharts SSR che escluda '1,000' e '28.57'."
+  },
+  {
+    "id": "X-06",
+    "severity": "MINORE",
+    "file": "src/shared/api/auth/use-auth-status.ts:12",
+    "titolo": "Cache e grant non legati all'identità: se l'utente cambia senza un 401, una scheda aperta mostra i dati del profilo precedente (P1 regionale) al nuovo (P4)",
+    "fix": "Rileggere /auth/status al ritorno sulla scheda (visibilitychange) e, se cambia lo username, chiamare queryClient.clear() e tornare alla Home; in alternativa lo username nelle chiavi delle query. Test che cambi /auth/status fra due letture."
+  },
+  {
+    "id": "X-07",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/aggiornamento.ts:25",
+    "titolo": "'Dati al' mostra il flusso aggiornato più di recente: un flusso fermo resta nascosto dietro una data fresca (NFR-25 b, wireframe)",
+    "fix": "Nella pill mostrare la data piu' vecchia fra i flussi o un valore per flusso come nel wireframe; normalizzare i microsecondi prima del confronto in piuRecente e aggiungere fixture con microsecondi."
+  },
+  {
+    "id": "X-08",
+    "severity": "MINORE",
+    "file": "src/shared/testing/fixture-finanziario.ts:63",
+    "titolo": "Fixture ed esempi MSW con la forma giusta ma con valori che il contratto non produce: i test girano su stati impossibili",
+    "fix": "Allineare le fixture di base agli scenari SC-FI_* (quote Stato e Regione FONTE_NON_ATTIVA, fonte RIPARTO_STATO_REGIONE) e tenere gli stati futuri in fixture con nome esplicito; negli esempi MSW mettere gli utilizzi della riserva nella finestra di utilizzo."
+  }
+]

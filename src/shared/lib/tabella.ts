@@ -35,3 +35,35 @@ export function paginaDi<T>(righe: readonly T[], pagina: number, perPagina: numb
   const p = Math.min(Math.max(0, pagina), pagine - 1);
   return { righe: righe.slice(p * perPagina, (p + 1) * perPagina), pagina: p, pagine };
 }
+
+export interface Ordine {
+  chiave: string;
+  verso: Verso;
+}
+
+/** Ordine dopo il clic su una colonna: sulla stessa si inverte il verso, una nuova parte dal decrescente. */
+export function versoSuccessivo(ordine: Ordine, chiave: string): Ordine {
+  if (ordine.chiave !== chiave) return { chiave, verso: 'decrescente' };
+  return { chiave, verso: ordine.verso === 'crescente' ? 'decrescente' : 'crescente' };
+}
+
+/** Valore di aria-sort di una colonna. */
+export function ariaSort(ordine: Ordine, chiave: string): 'ascending' | 'descending' | 'none' {
+  if (ordine.chiave !== chiave) return 'none';
+  return ordine.verso === 'crescente' ? 'ascending' : 'descending';
+}
+
+/** Didascalia con il conteggio delle righe, la ricerca e, se le righe si aprono, come aprirle. */
+export function didascalia(caption: string, righe: number, cercato: string, apribile: boolean): string {
+  const conteggio = righe === 1 ? '1 riga' : `${righe} righe`;
+  const ricerca = cercato.trim() ? ` per «${cercato.trim()}»` : '';
+  return `${caption}: ${conteggio}${ricerca}.${apribile ? ' Clic o Invio su una riga per aprirla.' : ''}`;
+}
+
+/** Insieme delle colonne nascoste dopo aver mostrato o nascosto una colonna. */
+export function conColonna(nascoste: ReadonlySet<string>, chiave: string, visibile: boolean): Set<string> {
+  const n = new Set(nascoste);
+  if (visibile) n.delete(chiave);
+  else n.add(chiave);
+  return n;
+}

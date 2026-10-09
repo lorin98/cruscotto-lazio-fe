@@ -5,12 +5,12 @@ import { useNavigate } from 'react-router';
 import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { Icona } from '../../../shared/ui';
 import { useFiltri } from '../api';
-import { codiceInterventoValido, percorsoIntervento } from '../lib/report';
+import { GRANT, codiceInterventoValido, percorsoIntervento } from '../lib/report';
 
 export function CercaIntervento() {
   const id = useId();
   const naviga = useNavigate();
-  const abilitato = hasGrant(useAuthStatus().data, 'csr.tx-0001.read');
+  const abilitato = hasGrant(useAuthStatus().data, GRANT.filtri);
   const { data } = useFiltri(abilitato);
   const [testo, setTesto] = useState('');
   const [errore, setErrore] = useState(false);

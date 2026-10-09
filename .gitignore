@@ -25,3 +25,7 @@ Thumbs.db
 
 # inbox degli output dei tool per il gate di green-fe (step8): rigenerata a ogni esecuzione
 .gate-inbox/
+
+# risultati dei test e2e di Playwright
+test-results/
+playwright-report/

@@ -1,51 +1,42 @@
 // AvanzamentoReport — report RF004-RF007 (route /finanziario/avanzamento, TX-0004..TX-0007, flusso dotazione-avanzamento v2):
-// KPI con l'assenza dichiarata (stanziato e impegnato oggi da fonte non attiva), sankey della dotazione (disegnato solo con
-// gli impegni), gauge del pagato, e le quattro sezioni come card con ciambella e tabella equivalente. Ogni sezione ha il
-// suo grant e il suo perimetro (RF004 e RF006 regionali, RF005 e RF007 seguono il perimetro ADA); lo stato vuoto viene
-// dalle righe di TX-0002 (segnale), mai da importi a zero.
+// KPI con l'assenza dichiarata (stanziato e impegnato oggi da fonte non attiva), flusso della dotazione (sankey: con gli
+// impegni fino al pagato, senza impegni dalla dotazione al pagato di TX-0007), gauge del pagato, e le quattro sezioni
+// come card con ciambella e tabella equivalente. Ogni sezione ha il suo grant e il suo perimetro (RF004 e RF006
+// regionali, RF005 e RF007 seguono il perimetro ADA); lo stato vuoto viene dalle righe di TX-0002 (segnale), mai da
+// importi a zero. Le letture stanno nei figli di ConGrant (R-09).
 import type { ReactNode } from 'react';
-import { descriviImporto } from '../../../entities/importo';
 import type { ImportoLike } from '../../../entities/importo';
-import { Caricamento, CardGrafico, Kpi, VistaQuery } from '../../../shared/ui';
-import type { NomeIcona, StatoQuery, TonoKpi } from '../../../shared/ui';
+import { Caricamento, CardGrafico, Griglia, VistaQuery } from '../../../shared/ui';
+import type { StatoQuery } from '../../../shared/ui';
 import { usePagamentiSuImpegnato, useResiduoImpegni, useResiduoPagamenti, useStanziato } from '../api';
-import { graficoDueParti } from '../lib/due-parti';
-import type { Filtri, Perimetro } from '../lib/filtri';
-import { graficoGauge, graficoSankey, milioni } from '../lib/grafici';
-import { ConGrant, Griglia, diProgramma, vuotoConPerimetro } from './comuni';
-import { inAttesaDelSegnale, useSelezioneSenzaInterventi } from './selezione';
+import type { Filtri } from '../lib/filtri';
+import { graficoGauge, graficoPartiImporto, graficoSankey } from '../lib/grafici';
+import type { Perimetro } from '../lib/perimetro';
+import { GRANT } from '../lib/report';
+import { ConGrant, KpiImporto, diProgramma, erroreGiaMostrato, vuotoConPerimetro } from './comuni';
+import { useSelezioneSenzaInterventi } from './selezione';
 import type { Segnale } from './selezione';
 
 type Voce = [string, ImportoLike | undefined];
-const VUOTO = vuotoConPerimetro('Nessun intervento per i filtri scelti. Modifica i filtri.');
+const VUOTO = vuotoConPerimetro('Nessun intervento per i filtri scelti.', { programma: true });
 
-/** KPI di un Importo aggregato: il valore in milioni, oppure l'assenza col suo motivo. */
-function KpiImporto({ etichetta, importo, icona, tono, nota }: { etichetta: string; importo: ImportoLike | undefined; icona: NomeIcona; tono: TonoKpi; nota?: string }) {
-  const r = descriviImporto(importo, true);
-  return (
-    <Kpi
-      etichetta={etichetta}
-      icona={icona}
-      tono={tono}
-      valore={importo?.valore != null ? milioni(importo.valore) : undefined}
-      assente={r.disponibile ? undefined : `${r.testo.charAt(0).toUpperCase()}${r.testo.slice(1)}${r.nota ? `: ${r.nota}` : ''}`}
-      nota={nota}
-    />
-  );
-}
+// ---------------------------------------------------------------- KPI e flussi
 
-// Ogni KPI e ogni flusso legge nel figlio del suo ConGrant: senza il grant la lettura non parte (R-09).
+// KPI e flussi rileggono (dalla cache) le transazioni delle quattro sezioni: in errore tacciono, l'errore con "Riprova"
+// lo dice una volta la sezione della sua transazione (A-07: niente raffica di avvisi uguali)
+const silenzioso = erroreGiaMostrato;
+
 function KpiStanziato({ filtri }: { filtri: Filtri }) {
-  return <VistaQuery stato={useStanziato(filtri)}>{(d) => <KpiImporto etichetta="Importo stanziato" importo={d.importoStanziato} icona="it-card" tono="scuro" nota="dato di programma (regionale)" />}</VistaQuery>;
+  return <VistaQuery stato={useStanziato(filtri)} errorePersonalizzato={silenzioso}>{(d) => <KpiImporto etichetta="Importo stanziato" importo={d.importoStanziato} icona="it-card" tono="scuro" nota="dato di programma (regionale)" />}</VistaQuery>;
 }
 
 function KpiImpegnato({ filtri }: { filtri: Filtri }) {
-  return <VistaQuery stato={usePagamentiSuImpegnato(filtri)}>{(d) => <KpiImporto etichetta="Totale impegnato" importo={d.totaleImpegnato} icona="it-files" tono="blu" />}</VistaQuery>;
+  return <VistaQuery stato={usePagamentiSuImpegnato(filtri)} errorePersonalizzato={silenzioso}>{(d) => <KpiImporto etichetta="Totale impegnato" importo={d.totaleImpegnato} icona="it-files" tono="blu" />}</VistaQuery>;
 }
 
 function KpiResiduo({ filtri, voce }: { filtri: Filtri; voce: 'pagato' | 'residuo' }) {
   return (
-    <VistaQuery stato={useResiduoPagamenti(filtri)}>
+    <VistaQuery stato={useResiduoPagamenti(filtri)} errorePersonalizzato={silenzioso}>
       {(d) =>
         voce === 'pagato' ? (
           <KpiImporto etichetta="Importo pagato" importo={d.importoPagato} icona="it-chart-line" tono="verde" />
@@ -60,16 +51,16 @@ function KpiResiduo({ filtri, voce }: { filtri: Filtri; voce: 'pagato' | 'residu
 function Indicatori({ filtri }: { filtri: Filtri }) {
   return (
     <Griglia colonne={4}>
-      <ConGrant grant="csr.tx-0004.read" titolo="Importo stanziato">
+      <ConGrant grant={GRANT.stanziato} titolo="Importo stanziato">
         <KpiStanziato filtri={filtri} />
       </ConGrant>
-      <ConGrant grant="csr.tx-0005.read" titolo="Totale impegnato">
+      <ConGrant grant={GRANT.pagamentiSuImpegnato} titolo="Totale impegnato">
         <KpiImpegnato filtri={filtri} />
       </ConGrant>
-      <ConGrant grant="csr.tx-0007.read" titolo="Importo pagato">
+      <ConGrant grant={GRANT.residuoPagamenti} titolo="Importo pagato">
         <KpiResiduo filtri={filtri} voce="pagato" />
       </ConGrant>
-      <ConGrant grant="csr.tx-0007.read" titolo="Dotazione residua sui pagamenti">
+      <ConGrant grant={GRANT.residuoPagamenti} titolo="Dotazione residua sui pagamenti">
         <KpiResiduo filtri={filtri} voce="residuo" />
       </ConGrant>
     </Griglia>
@@ -79,18 +70,23 @@ function Indicatori({ filtri }: { filtri: Filtri }) {
 function FlussoDotazione({ filtri }: { filtri: Filtri }) {
   const impegni = useResiduoImpegni(filtri);
   const pagamenti = usePagamentiSuImpegnato(filtri);
+  const residuo = useResiduoPagamenti(filtri);
   return (
-    <VistaQuery stato={impegni}>
+    <VistaQuery stato={impegni} errorePersonalizzato={silenzioso}>
       {(i) => (
-        <VistaQuery stato={pagamenti}>
+        <VistaQuery stato={pagamenti} errorePersonalizzato={silenzioso}>
           {(p) => (
-            <CardGrafico
-              titolo="Dove va la dotazione"
-              sottotitolo="Dalla dotazione all'impegnato e al pagato"
-              dati={graficoSankey(i, p)}
-              fonte="Fonte: TX-0006 (impegni) e TX-0005 (pagamenti sull'impegnato)"
-              altezza="alto"
-            />
+            <VistaQuery stato={residuo} errorePersonalizzato={silenzioso}>
+              {(r) => (
+                <CardGrafico
+                  titolo="Dove va la dotazione"
+                  sottotitolo="Dalla dotazione all'impegnato e al pagato"
+                  dati={graficoSankey(i, p, r, i.perimetro === 'ADA' || p.perimetro === 'ADA' || r.perimetro === 'ADA' ? 'ADA' : i.perimetro)}
+                  fonte="Fonte: TX-0006 (impegni), TX-0005 (pagamenti sull'impegnato), TX-0007 (residuo sui pagamenti)"
+                  altezza="alto"
+                />
+              )}
+            </VistaQuery>
           )}
         </VistaQuery>
       )}
@@ -100,7 +96,7 @@ function FlussoDotazione({ filtri }: { filtri: Filtri }) {
 
 function PagatoSullaDotazione({ filtri }: { filtri: Filtri }) {
   return (
-    <VistaQuery stato={useResiduoPagamenti(filtri)}>
+    <VistaQuery stato={useResiduoPagamenti(filtri)} errorePersonalizzato={silenzioso}>
       {(d) => (
         <CardGrafico
           titolo="Pagato sulla dotazione"
@@ -116,11 +112,11 @@ function PagatoSullaDotazione({ filtri }: { filtri: Filtri }) {
 function Flussi({ filtri }: { filtri: Filtri }) {
   return (
     <Griglia>
-      {/* il flusso combina impegni (TX-0006) e pagamenti sull'impegnato (TX-0005): servono entrambi i grant */}
-      <ConGrant grant={['csr.tx-0006.read', 'csr.tx-0005.read']} titolo="Dove va la dotazione">
+      {/* il flusso combina impegni (TX-0006), pagamenti sull'impegnato (TX-0005) e residuo sui pagamenti (TX-0007) */}
+      <ConGrant grant={[GRANT.residuoImpegni, GRANT.pagamentiSuImpegnato, GRANT.residuoPagamenti]} titolo="Dove va la dotazione">
         <FlussoDotazione filtri={filtri} />
       </ConGrant>
-      <ConGrant grant="csr.tx-0007.read" titolo="Pagato sulla dotazione">
+      <ConGrant grant={GRANT.residuoPagamenti} titolo="Pagato sulla dotazione">
         <PagatoSullaDotazione filtri={filtri} />
       </ConGrant>
     </Griglia>
@@ -144,6 +140,8 @@ function IndicatoriEFlussi({ filtri }: { filtri: Filtri }) {
   );
 }
 
+// ---------------------------------------------------------------- le quattro sezioni
+
 function Parti<T extends { perimetro?: Perimetro }>(props: {
   titolo: string;
   grafico: string;
@@ -156,12 +154,12 @@ function Parti<T extends { perimetro?: Perimetro }>(props: {
 }) {
   const { titolo, grafico, stato, segnale, parti, voci, fonte, misto = false } = props;
   return (
-    <VistaQuery stato={inAttesaDelSegnale(stato, segnale)} eVuoto={() => segnale === 'vuota'} vuoto={VUOTO}>
+    <VistaQuery stato={stato} inAttesa={segnale === 'in-attesa'} eVuoto={() => segnale === 'vuota'} vuoto={VUOTO}>
       {(d) => (
         <CardGrafico
           titolo={titolo}
           sottotitolo={misto && d.perimetro === 'ADA' ? `${grafico}. La dotazione è regionale, i pagamenti sono della tua area: non confrontabili.` : grafico}
-          dati={graficoDueParti(grafico, parti(d), voci(d))}
+          dati={graficoPartiImporto(grafico, parti(d), voci(d))}
           fonte={`${fonte} · Perimetro ${d.perimetro ?? 'non indicato'}`}
         />
       )}
@@ -204,10 +202,10 @@ function ResiduoPagamenti({ filtri, titolo }: PropsSezione) {
 }
 
 const SEZIONI: { titolo: string; grant: string; Componente: (p: PropsSezione) => ReactNode }[] = [
-  { titolo: 'Importo stanziato e da stanziare (RF004)', grant: 'csr.tx-0004.read', Componente: Stanziato },
-  { titolo: "Pagamenti sull'impegnato (RF005)", grant: 'csr.tx-0005.read', Componente: PagamentiSuImpegnato },
-  { titolo: 'Dotazione residua sugli impegni (RF006)', grant: 'csr.tx-0006.read', Componente: ResiduoImpegni },
-  { titolo: 'Dotazione residua sui pagamenti (RF007)', grant: 'csr.tx-0007.read', Componente: ResiduoPagamenti },
+  { titolo: 'Importo stanziato e da stanziare (RF004)', grant: GRANT.stanziato, Componente: Stanziato },
+  { titolo: "Pagamenti sull'impegnato (RF005)", grant: GRANT.pagamentiSuImpegnato, Componente: PagamentiSuImpegnato },
+  { titolo: 'Dotazione residua sugli impegni (RF006)', grant: GRANT.residuoImpegni, Componente: ResiduoImpegni },
+  { titolo: 'Dotazione residua sui pagamenti (RF007)', grant: GRANT.residuoPagamenti, Componente: ResiduoPagamenti },
 ];
 
 export function AvanzamentoReport({ filtri }: { filtri: Filtri }) {

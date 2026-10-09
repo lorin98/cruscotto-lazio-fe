@@ -14,7 +14,7 @@ describe("RF014: monitoraggio della riserva al 5% dell'anno n nelle quattro fasi
     server.use(http.get('*/api/finanziario/riserva/2025', () => HttpResponse.json(RISERVA)));
     const { router } = renderPagina(Pagina, '/finanziario/sigc/riserva');
     expect(screen.getByRole('status').textContent).toContain("Scegli l'anno");
-    await userEvent.selectOptions(screen.getByLabelText('Anno della riserva (anno n)'), '2025');
+    await userEvent.selectOptions(screen.getByLabelText('Anno di riferimento (anno n)'), '2025');
     expect(router.state.location.search).toBe('');
     await userEvent.click(screen.getByRole('button', { name: 'Mostra' }));
     await waitFor(() => expect(router.state.location.search).toBe('?anno=2025'));
@@ -40,7 +40,7 @@ describe("RF014: monitoraggio della riserva al 5% dell'anno n nelle quattro fasi
       ),
     );
     renderPagina(Pagina, '/finanziario/sigc/riserva', '/finanziario/sigc/riserva?anno=2026');
-    expect((await screen.findByText(/Nessun dato di riserva per il 2026/)).closest('[role]')?.getAttribute('role')).toBe('status');
+    expect((await screen.findByText(/Nessuna riserva calcolata per il 2026/)).closest('[role]')?.getAttribute('role')).toBe('status');
     expect(screen.queryByRole('alert')).toBeNull();
   });
   it('nessuna violazione axe', async () => {

@@ -2,6 +2,9 @@
 // con nome, ricerca di un intervento e utente con "Esci" (logout del BFF, navigazione e non XHR), menu laterale con le
 // aree (su schermi stretti in un pannello), piede con i link istituzionali; avviso globale del 403 delle mutation e
 // avviso di inattivita' (NFR-41). Le pagine rendono la propria barra dei filtri e il proprio <main id="contenuto">.
+// Scaduta la sessione (qui o in un'altra scheda) la shell smette di rendere pagine, menu, ricerca e utente e non
+// rilegge /auth/status: dietro l'avviso non resta nulla da leggere (review step9 A-04). "Esci" lo annuncia alle altre
+// schede prima della navigazione al logout del BFF.
 import { useEffect, useState } from 'react';
 import { Link, Outlet } from 'react-router';
 import { CercaIntervento } from '../features/finanziario';
@@ -12,7 +15,7 @@ import logoArsial from './assets/logo-arsial.png';
 import logoLazio from './assets/logo-lazio.png';
 import { EVENTO_ACCESSO_NEGATO } from './avvisi';
 import { COLLEGAMENTI_LEGALI, SITO_ARSIAL, SITO_REGIONE } from './collegamenti';
-import { AvvisoInattivita } from './inattivita';
+import { AvvisoInattivita, annunciaUscita } from './inattivita';
 import { MenuLaterale } from './menu';
 
 function AvvisoAccessoNegato() {
@@ -50,8 +53,9 @@ const iniziali = (nome: string) =>
 const nuovaFinestra = ' (si apre in una nuova finestra)';
 
 export function Layout() {
-  const { data: auth } = useAuthStatus();
-  const utente = auth?.authenticated ? (auth.user?.displayName ?? auth.user?.username) : undefined;
+  const [sessioneChiusa, setSessioneChiusa] = useState(false);
+  const { data: auth } = useAuthStatus(!sessioneChiusa);
+  const utente = !sessioneChiusa && auth?.authenticated ? (auth.user?.displayName ?? auth.user?.username) : undefined;
   const [menuAperto, setMenuAperto] = useState(false);
   return (
     <>
@@ -91,7 +95,9 @@ export function Layout() {
                 {iniziali(utente)}
               </span>
               <span>{utente}</span>
-              <a href={resolveLogoutPath()}>Esci</a>
+              <a href={resolveLogoutPath()} onClick={annunciaUscita}>
+                Esci
+              </a>
             </div>
           )}
         </div>
@@ -105,9 +111,7 @@ export function Layout() {
             </div>
           </nav>
         )}
-        <div className="ui-main">
-          <Outlet />
-        </div>
+        <div className="ui-main">{!sessioneChiusa && <Outlet />}</div>
       </div>
       <footer className="ui-footer">
         <div className="ui-footer__interno">
@@ -149,7 +153,7 @@ export function Layout() {
           </nav>
         </PannelloLaterale>
       )}
-      {auth?.authenticated && <AvvisoInattivita />}
+      {(sessioneChiusa || auth?.authenticated) && <AvvisoInattivita onScaduta={() => setSessioneChiusa(true)} />}
     </>
   );
 }

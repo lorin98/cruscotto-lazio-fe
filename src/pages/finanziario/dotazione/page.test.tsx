@@ -26,15 +26,13 @@ describe('RF002: grafico e tabella per intervento con dotazione, impegnato e pag
     expect(within(await tabellaDi(card)).getAllByRole('rowheader').map((c) => c.textContent)).toEqual(['SRA01']);
     const tabella = screen.getByRole('table', { name: /^Dotazione, impegni e pagamenti per intervento: 1 riga\./ });
     expect(within(tabella).getByRole('rowheader').textContent).toBe('SRA01');
-    // le colonne senza alcun valore partono nascoste e lo si dice; i valori assenti non diventano zero
-    expect(
-      screen.getByText(
-        /Colonne nascoste perché nessun intervento ha un valore \(fonte non attiva\): Impegnato cofinanziato FEASR e non, Impegnato spesa pubblica, Vincolo dotazione LEADER\./,
-      ),
-    ).toBeTruthy();
-    expect(within(tabella).queryByRole('columnheader', { name: /Impegnato spesa pubblica/ })).toBeNull();
+    // tutte le colonne si vedono (wireframe dotazione): ogni assenza dice il motivo, mai uno zero
+    expect(within(tabella).getByRole('columnheader', { name: /Impegnato spesa pubblica/ })).toBeTruthy();
+    expect(within(tabella).getByRole('columnheader', { name: /Vincolo dotazione LEADER/ })).toBeTruthy();
+    expect(tabella.textContent).toContain('fonte impegni non attiva');
+    expect(tabella.textContent).toContain('fonte vincolo LEADER non attiva');
   });
-  it("drill-down: il clic su una barra e su una riga apre il dettaglio dell'intervento con i filtri", async () => {
+  it("drill-down: il clic su una barra e su una riga apre il dettaglio dell'intervento intero", async () => {
     servi();
     const { router } = renderPagina(Pagina, '/finanziario/dotazione', '/finanziario/dotazione?os=SO4');
     const card = await trovaCard('Dotazione e pagamenti per intervento');
@@ -42,7 +40,7 @@ describe('RF002: grafico e tabella per intervento con dotazione, impegnato e pag
     expect(grafico).toBeTruthy();
     if (grafico) clicSu(grafico, { name: 'SRA01' });
     await waitFor(() => expect(router.state.location.pathname).toBe('/finanziario/interventi/SRA01'));
-    expect(router.state.location.search).toBe('?os=SO4');
+    expect(router.state.location.search).toBe('');
     await router.navigate('/finanziario/dotazione');
     await userEvent.click(await screen.findByRole('row', { name: "Apri il dettaglio dell'intervento SRA01" }));
     await waitFor(() => expect(router.state.location.pathname).toBe('/finanziario/interventi/SRA01'));
@@ -60,8 +58,9 @@ describe('RF002: grafico e tabella per intervento con dotazione, impegnato e pag
       http.get('*/api/finanziario/distribuzione-dotazione', () => HttpResponse.json(DISTRIBUZIONE)),
     );
     renderPagina(Pagina, '/finanziario/dotazione');
-    await waitFor(() => expect(screen.getAllByText('Nessun intervento per i filtri scelti. Modifica i filtri.')).toHaveLength(2));
-    for (const v of screen.getAllByText('Nessun intervento per i filtri scelti. Modifica i filtri.')) expect(v.closest('[role]')?.getAttribute('role')).toBe('status');
+    await waitFor(() => expect(screen.getAllByText('Nessun intervento per i filtri scelti.')).toHaveLength(2));
+    for (const v of screen.getAllByText('Nessun intervento per i filtri scelti.')) expect(v.closest('[role]')?.getAttribute('role')).toBe('status');
+    expect(screen.getAllByRole('button', { name: 'Modifica i filtri' })).toHaveLength(2);
     expect(screen.queryByRole('alert')).toBeNull();
   });
   it('nessuna violazione axe', async () => {
@@ -78,7 +77,10 @@ describe('RF003: dotazione ripartita tra quota FEASR e quota non FEASR', () => {
     servi();
     renderPagina(Pagina, '/finanziario/dotazione');
     const card = await trovaCard('Dotazione tra quota FEASR e non FEASR (RF003)');
-    expect(descrizioneDi(card)).toMatch(/quota FEASR .*\(40\s?%\).*quota non FEASR .*\(60\s?%\)/);
-    expect((await tabellaDi(card)).textContent).toContain('Quota non FEASR');
+    expect(descrizioneDi(card)).toMatch(/Quota FEASR 40\s?%, Quota non FEASR 60\s?%/);
+    const t = (await tabellaDi(card)).textContent ?? '';
+    // la dotazione e' quella del contratto, non la somma delle quote (V-04)
+    expect(t).toContain('Dotazione spesa pubblica');
+    expect(t.replace(/\s/g, ' ')).toContain('1.000.000,00 €');
   });
 });

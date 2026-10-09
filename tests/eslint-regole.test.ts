@@ -42,6 +42,19 @@ describe('confini fra slice delle feature (Z-02)', () => {
   });
 });
 
+describe("un'entity si importa solo dal suo barrel (H-11)", () => {
+  const DA_FEATURE = 'src/features/finanziario/ui/__canary__.ts';
+  const ristretti = (m: string[]) => m.filter((x) => x.startsWith('no-restricted-imports'));
+  it("scatta su un import dentro l'entity", async () => {
+    const codice = "import { descriviImporto } from '../../../entities/importo/lib/importo';\nexport const x = descriviImporto;\n";
+    expect(ristretti(await regole(codice, DA_FEATURE)).length).toBeGreaterThan(0);
+  });
+  it("non scatta sul barrel dell'entity", async () => {
+    const codice = "import { descriviImporto } from '../../../entities/importo';\nexport const x = descriviImporto;\n";
+    expect(ristretti(await regole(codice, DA_FEATURE))).toEqual([]);
+  });
+});
+
 describe('moduli di prova fuori dal codice di produzione (Z-02)', () => {
   const vietati = (m: string[]) => m.filter((x) => x.startsWith('no-restricted-imports') && x.includes('Z-02'));
   const fixture = "import { FILTRI } from '../../../shared/testing/fixture-finanziario';\nexport const x = FILTRI;\n";

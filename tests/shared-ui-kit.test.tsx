@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { BarraFiltri, CardGrafico, Grafico, Kpi, PannelloLaterale, TabellaInterattiva } from '../src/shared/ui';
+import { BarraFiltri, CardGrafico, Grafico, Kpi, PannelloLaterale, Sezione, TabellaInterattiva, TabellaRighe, TabellaVoci, VistaQuery } from '../src/shared/ui';
+import type { StatoQuery } from '../src/shared/ui';
 import type { ColonnaTabella, DatiGrafico } from '../src/shared/ui';
 import { filtraRighe, numeroPagine, ordinaRighe, paginaDi } from '../src/shared/lib';
 import { expectNoA11yViolations } from '../src/shared/testing/axe';
@@ -140,6 +141,16 @@ describe('TabellaInterattiva', () => {
     expect(within(screen.getByRole('table')).getByRole('rowheader', { name: 'Totale (3)' }).nextElementSibling?.textContent).toBe('3300');
   });
 
+  it('segnaposto della ricerca neutro o dichiarato; righe di piede indipendenti dalla ricerca', async () => {
+    const { unmount } = tabella();
+    expect(screen.getByRole('searchbox', { name: 'Cerca nella tabella' }).getAttribute('placeholder')).toBe('Cerca nella tabella');
+    unmount();
+    tabella({ segnapostoRicerca: 'Cerca per codice', righePiede: [{ codice: 'Valore fuori tabella', importo: '42' }] });
+    expect(screen.getByRole('searchbox', { name: 'Cerca nella tabella' }).getAttribute('placeholder')).toBe('Cerca per codice');
+    await userEvent.type(screen.getByRole('searchbox', { name: 'Cerca nella tabella' }), 'x01');
+    expect(within(screen.getByRole('table')).getByRole('rowheader', { name: 'Valore fuori tabella' }).nextElementSibling?.textContent).toBe('42');
+  });
+
   it('nessuna violazione axe', async () => {
     const { container } = tabella({ onRiga: () => undefined, etichettaRiga: (r) => `Apri ${r.codice}`, totali: () => ({}) });
     await expectNoA11yViolations(container);
@@ -177,6 +188,24 @@ describe('Grafico: ciclo di vita del wrapper ECharts', () => {
     expect(graficiVivi()).toHaveLength(0);
   });
 
+  it('stesse opzioni ricreate da un nuovo render: nessun nuovo setOption (zoom e drill-down restano)', () => {
+    const opzioni = () => ({ series: [{ type: 'bar' as const, data: [1, 2] }], tooltip: { formatter: (p: unknown) => String(p) } });
+    const { rerender } = render(<Grafico opzioni={opzioni()} />);
+    const [g] = graficiVivi();
+    rerender(<Grafico opzioni={opzioni()} />);
+    rerender(<Grafico opzioni={opzioni()} />);
+    expect(g.opzioni).toHaveLength(1);
+    // impostazioni: le opzioni sostituiscono le precedenti, non si fondono
+    expect(g.impostazioni[0]).toEqual({ notMerge: true });
+    rerender(<Grafico opzioni={{ ...opzioni(), series: [{ type: 'bar' as const, data: [1, 3] }] }} />);
+    expect(g.opzioni).toHaveLength(2);
+  });
+
+  it('tooltip disegnato nel grafico (richText), mai HTML: niente stili inline bloccati dalla CSP', () => {
+    render(<Grafico opzioni={{ series: [], tooltip: { trigger: 'axis' } }} />);
+    expect(graficiVivi()[0].opzioni[0]).toMatchObject({ tooltip: { trigger: 'axis', renderMode: 'richText' } });
+  });
+
   it('con prefers-reduced-motion niente animazioni', () => {
     // jsdom non ha matchMedia: lo si fornisce solo per questo test
     vi.stubGlobal('matchMedia', (q: string) => ({ matches: q.includes('reduce'), media: q }));
@@ -186,7 +215,7 @@ describe('Grafico: ciclo di vita del wrapper ECharts', () => {
 });
 
 describe('CardGrafico', () => {
-  it('regione col titolo, interruttore Grafico/Tabella con aria-pressed, tabella equivalente con numeri e testi distinti', async () => {
+  it('regione col titolo, interruttore Grafico/Tabella con aria-pressed, tabella equivalente con i valori a destra', async () => {
     render(<CardGrafico titolo="Prova" sottotitolo="Sotto" dati={DATI} fonte="Fonte: prova" />);
     const card = screen.getByRole('region', { name: 'Prova' });
     expect(card.textContent).toContain('Fonte: prova');
@@ -197,8 +226,8 @@ describe('CardGrafico', () => {
     expect(vTabella.getAttribute('aria-pressed')).toBe('true');
     const t = within(card).getByRole('table', { name: 'Barre di prova' });
     const celle = within(t).getAllByRole('cell');
-    expect(celle[0].className).toBe('ui-num');
-    expect(celle[1].className).toBe('ui-testo');
+    // le colonne dopo la prima sono valori: numeri e assenze (che vanno a capo) allineati a destra
+    expect(celle.map((c) => c.className)).toEqual(['ui-num', 'ui-num']);
     // il grafico resta montato (nascosto): tornando alla vista grafico non si ricrea
     expect(graficiVivi()).toHaveLength(1);
     await userEvent.click(vGrafico);
@@ -214,8 +243,8 @@ describe('CardGrafico', () => {
     expect(graficiVivi()).toHaveLength(0);
   });
 
-  it('il motivo continua la frase: iniziale minuscola, salvo sigle e codici', () => {
-    const { rerender } = render(<CardGrafico titolo="Prova" dati={{ ...DATI, opzioni: null, motivoAssenza: "L'ammesso supera il richiesto" }} fonte="Fonte: prova" />);
+  it('il motivo continua la frase cosi come lo scrive il builder; senza motivo: dati insufficienti', () => {
+    const { rerender } = render(<CardGrafico titolo="Prova" dati={{ ...DATI, opzioni: null, motivoAssenza: "l'ammesso supera il richiesto" }} fonte="Fonte: prova" />);
     expect(screen.getByText("Grafico non disponibile: l'ammesso supera il richiesto.")).toBeTruthy();
     rerender(<CardGrafico titolo="Prova" dati={{ ...DATI, opzioni: null, motivoAssenza: 'SRA01 senza dotazione' }} fonte="Fonte: prova" />);
     expect(screen.getByText('Grafico non disponibile: SRA01 senza dotazione.')).toBeTruthy();
@@ -311,6 +340,46 @@ function ConPannello() {
     </>
   );
 }
+
+describe('BarraFiltri: chip fissi', () => {
+  it('un chip senza onTogli non si toglie e non c e "Togli tutti"', () => {
+    render(<BarraFiltri chip={[{ chiave: 'i:SRA01', etichetta: 'Intervento', valore: 'SRA01' }]} onTogliTutti={() => undefined} />);
+    const barra = screen.getByRole('region', { name: 'Filtri attivi' });
+    expect(barra.textContent).toContain('Intervento SRA01');
+    expect(within(barra).queryByRole('button')).toBeNull();
+  });
+});
+
+describe('Sezione e tabelle semplici', () => {
+  it('Sezione: regione col titolo, sottotitolo e strumenti; TabellaRighe e TabellaVoci con intestazioni di riga', async () => {
+    const { container } = render(
+      <Sezione titolo="Prova" sottotitolo="Sotto" livello={3} strumenti={<button type="button">Azione</button>}>
+        <TabellaRighe caption="Righe" intestazione="Anno" chiave={(r: { a: string; v: number }) => r.a} colonne={[['Valore', (r) => r.v]]} righe={[{ a: '2024', v: 1 }, { a: '2024', v: 2 }]} />
+        <TabellaVoci caption="Voci" voci={[{ etichetta: 'Totale', valore: '3' }]} />
+      </Sezione>,
+    );
+    const sezione = screen.getByRole('region', { name: 'Prova' });
+    expect(within(sezione).getByRole('heading', { level: 3, name: 'Prova' })).toBeTruthy();
+    expect(within(sezione).getByRole('button', { name: 'Azione' })).toBeTruthy();
+    // righe con la stessa intestazione (stessa data): entrambe rese
+    expect(within(screen.getByRole('table', { name: 'Righe' })).getAllByRole('rowheader').map((c) => c.textContent)).toEqual(['2024', '2024']);
+    expect(within(screen.getByRole('table', { name: 'Voci' })).getByRole('rowheader', { name: 'Totale' }).nextElementSibling?.textContent).toBe('3');
+    await expectNoA11yViolations(container);
+  });
+});
+
+describe('VistaQuery: attesa esplicita', () => {
+  const stato = (parziale: Partial<StatoQuery<number>>): StatoQuery<number> => ({ data: undefined, isPending: false, isError: false, fetchStatus: 'idle', error: null, refetch: () => undefined, ...parziale });
+  it('inAttesa mostra il caricamento anche con i dati; un errore resta un errore', () => {
+    const { rerender } = render(<VistaQuery stato={stato({ data: 3 })} inAttesa>{(d) => <p>{`dati ${d}`}</p>}</VistaQuery>);
+    expect(screen.queryByText('dati 3')).toBeNull();
+    expect(screen.getByRole('status').textContent).toContain('Caricamento');
+    rerender(<VistaQuery stato={stato({ data: 3 })}>{(d) => <p>{`dati ${d}`}</p>}</VistaQuery>);
+    expect(screen.getByText('dati 3')).toBeTruthy();
+    rerender(<VistaQuery stato={stato({ data: 3 })} eVuoto={() => true}>{(d) => <p>{`dati ${d}`}</p>}</VistaQuery>);
+    expect(screen.getByRole('status').textContent).toBe('Nessun dato da mostrare.');
+  });
+});
 
 describe('PannelloLaterale', () => {
   it('dialogo col titolo; Esc e il bottone Chiudi lo chiudono e il focus torna al controllo che lo ha aperto', async () => {

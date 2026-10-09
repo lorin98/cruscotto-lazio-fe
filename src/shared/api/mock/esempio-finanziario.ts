@@ -199,19 +199,21 @@ export const handlersEsempio: RequestHandler[] = [
         { status: 404, headers: { 'Content-Type': 'application/problem+json' } },
       );
     }
-    const utilizzi = [3.1, 2.4, 4.8, 1.9].map((m, k) => ({ data: `2025-0${k + 2}-15`, importo: m * 1e6 }));
+    // anno 2024: accumulo dal 1/10/2024 al 30/6/2025, utilizzo dal 1/7/2025 al 31/12/2025, residuo dal 1/1/2026; i
+    // movimenti cadono nella finestra di utilizzo e l'istantanea e' dopo il congelamento (come il backend li produce)
+    const utilizzi = [3.1, 2.4, 4.8, 1.9].map((m, k) => ({ data: `2025-${String(k + 7).padStart(2, '0')}-15`, importo: m * 1e6 }));
     let cumulato = 0;
     return HttpResponse.json({
       perimetro: PERIMETRO,
       anno,
-      fase: 'UTILIZZO',
-      dataEstrazione: '2025-06-01',
+      fase: 'RESIDUO',
+      dataEstrazione: '2025-11-30',
       dataCongelamento: '2025-06-30',
       montantePagamenti: 410e6,
       importoAccumulato: 20.5e6,
-      importoCongelato: null,
+      importoCongelato: 20.5e6,
       importoUtilizzato: 12.2e6,
-      importoResiduoDisponibile: null,
+      importoResiduoDisponibile: 8.2e6,
       regolaN2: fna('REGOLA_N2'),
       utilizzoProgressivo: utilizzi.map((u) => ({ ...u, cumulato: (cumulato += u.importo) })),
     });

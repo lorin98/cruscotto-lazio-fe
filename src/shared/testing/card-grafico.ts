@@ -7,12 +7,12 @@ import { graficiVivi } from './grafico-finto';
 import type { GraficoFinto } from './grafico-finto';
 
 /**
- * La CardGrafico col titolo dato (attende che compaia): una regione con lo stesso nome ma senza grafico ne' avviso di
- * grafico assente (la sezione di ConGrant mentre si carica il profilo) non conta.
+ * La CardGrafico col titolo dato (attende che compaia): la regione con l'attributo data-card-grafico. Una Sezione con
+ * lo stesso nome (es. quella di ConGrant mentre si carica il profilo) non conta.
  */
 export function trovaCard(titolo: string | RegExp): Promise<HTMLElement> {
   return waitFor(() => {
-    const card = screen.getAllByRole('region', { name: titolo }).find((r) => r.querySelector(':scope > .ui-grafico-assente, :scope > div > .ui-grafico'));
+    const card = screen.getAllByRole('region', { name: titolo }).find((r) => r.hasAttribute('data-card-grafico'));
     if (!card) throw new Error(`nessuna card con grafico per ${String(titolo)}`);
     return card;
   });

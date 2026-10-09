@@ -1,88 +1,94 @@
 // Panoramica — cruscotto del finanziario (route /finanziario, flusso panoramica v2): KPI e grafici interattivi sui dati
 // che esistono davvero (dotazione e pagamenti per intervento TX-0002, domande TX-0009, SIGC TX-0012 e TX-0013). Ogni
-// card legge solo con il grant della sua transazione; il clic su un intervento apre il suo dettaglio. Raggruppamento per
-// famiglia di intervento finche' manca la gerarchia degli obiettivi (OP-FE-07).
+// card legge solo con il grant della sua transazione (le letture stanno nei figli di ConGrant, R-09). I KPI vengono
+// dagli aggregati di lib (mai somme parziali, la quota e' la media ponderata del grafico). Il clic su un intervento apre
+// il suo dettaglio; raggruppamento per famiglia finche' manca la gerarchia degli obiettivi (OP-FE-07).
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { formatNumber, formatPercentuale } from '../../../shared/lib';
-import { CardGrafico, Kpi, VistaQuery } from '../../../shared/ui';
+import { codiceDalClic, formatNumber, formatPercentuale, importoKpi } from '../../../shared/lib';
+import { Caricamento, CardGrafico, Griglia, Kpi, VistaQuery } from '../../../shared/ui';
 import type { ClicGrafico } from '../../../shared/ui';
 import { useSigcDomande, useSigcImporti, useSpesaPerIntervento, useTotaleDomande } from '../api';
 import type { SpesaPerIntervento } from '../api';
-import { ricercaDaFiltri } from '../lib/filtri';
+import { kpiSpesa } from '../lib/aggregati';
+import type { Aggregato } from '../lib/aggregati';
 import type { Filtri } from '../lib/filtri';
-import { graficoAvanzamento, graficoCascataSigc, graficoFamiglie, graficoImbutoSigc, milioni } from '../lib/grafici';
-import { codiceInterventoValido, percorsoIntervento } from '../lib/report';
-import { ConGrant, Griglia, NotaPerimetroMisto, PerimetroSezione, diProgramma, vuotoConPerimetro } from './comuni';
-import { inAttesaDelSegnale, useSelezioneSenzaDomandeSigc } from './selezione';
+import { graficoAvanzamento, graficoCascataSigc, graficoFamiglie, graficoImbutoSigc } from '../lib/grafici';
+import { GRANT, PERCORSI, codiceInterventoValido, conFiltri, percorsoIntervento } from '../lib/report';
+import { ConGrant, NotaPerimetroMisto, PerimetroSezione, diProgramma, erroreGiaMostrato, vuotoConPerimetro } from './comuni';
+import { useSelezioneSenzaDomandeSigc, useSelezioneSenzaInterventi } from './selezione';
 
-const somma = (vv: Array<number | null | undefined>) => {
-  const valori = vv.filter((v): v is number => v != null);
-  return valori.length ? valori.reduce((a, b) => a + b, 0) : null;
-};
+const VUOTO_INTERVENTI = vuotoConPerimetro('Nessun intervento per i filtri scelti.', { programma: true });
+const VUOTO_SIGC = vuotoConPerimetro('Nessuna domanda SIGC per i filtri scelti.');
+
+const assente = (a: Aggregato) => (a.valore === null ? a.motivo : undefined);
 
 function KpiSpesa({ d }: { d: SpesaPerIntervento }) {
-  const righe = d.righe ?? [];
-  const dotazione = somma(righe.map((r) => r.dotazioneSpesaPubblica?.valore));
-  const pagato = somma(righe.map((r) => r.pagamentiTotali?.valore));
-  const conEntrambi = righe.filter((r) => r.dotazioneSpesaPubblica?.valore != null && r.pagamentiTotali?.valore != null);
-  const quota =
-    d.perimetro === 'ADA' || conEntrambi.length === 0
-      ? null
-      : (somma(conEntrambi.map((r) => r.pagamentiTotali?.valore)) ?? 0) / Math.max(1, somma(conEntrambi.map((r) => r.dotazioneSpesaPubblica?.valore)) ?? 1);
+  const k = kpiSpesa(d.righe ?? [], d.perimetro);
+  const n = (d.righe ?? []).length;
   return (
     <>
       <Kpi
         etichetta={diProgramma('Dotazione spesa pubblica', d.perimetro)}
         icona="it-card"
         tono="scuro"
-        valore={dotazione === null ? undefined : milioni(dotazione)}
-        assente={dotazione === null ? 'Non disponibile: nessun intervento con dotazione valorizzata' : undefined}
-        nota={righe.length === 1 ? '1 intervento nella selezione' : `${righe.length} interventi nella selezione`}
+        valore={k.dotazione.valore === null ? undefined : importoKpi(k.dotazione.valore)}
+        assente={assente(k.dotazione)}
+        nota={n === 1 ? '1 intervento nella selezione' : `${n} interventi nella selezione`}
       />
-      <Kpi etichetta="Pagamenti totali" icona="it-chart-line" tono="verde" valore={pagato === null ? undefined : milioni(pagato)} assente={pagato === null ? 'Non disponibile: nessun pagamento valorizzato' : undefined} />
+      <Kpi etichetta="Pagamenti totali" icona="it-chart-line" tono="verde" valore={k.pagato.valore === null ? undefined : importoKpi(k.pagato.valore)} assente={assente(k.pagato)} />
       <Kpi
         etichetta="Pagato sulla dotazione"
         icona="it-presentation"
         tono="blu"
-        valore={quota === null ? undefined : formatPercentuale(Math.round(quota * 1000) / 10)}
-        assente={quota === null ? (d.perimetro === 'ADA' ? 'Non confrontabile: dotazione regionale e pagamenti dell’area (perimetro ADA)' : 'Non calcolabile: dati insufficienti') : undefined}
-        quota={quota}
-        nota={quota === null ? undefined : 'sugli interventi con entrambi i valori'}
+        valore={k.quota.valore === null ? undefined : formatPercentuale(k.quota.valore)}
+        assente={assente(k.quota)}
+        quota={k.quota.valore === null ? null : k.quota.valore / 100}
+        nota={k.quota.nota}
       />
     </>
   );
 }
 
-function KpiDomande({ filtri }: { filtri: Filtri }) {
-  const stato = useTotaleDomande(filtri);
+// le tessere della spesa compaiono con i dati; caricamento, errore e vuoto li dice la sezione dei grafici
+function KpiSpesaSezione({ filtri }: { filtri: Filtri }) {
   return (
-    <VistaQuery stato={stato}>
+    <VistaQuery stato={useSpesaPerIntervento(filtri)} errorePersonalizzato={erroreGiaMostrato}>
+      {(d) => ((d.righe ?? []).length === 0 ? null : <KpiSpesa d={d} />)}
+    </VistaQuery>
+  );
+}
+
+function KpiDomandeDati({ filtri }: { filtri: Filtri }) {
+  return (
+    <VistaQuery stato={useTotaleDomande(filtri)}>
       {(d) => <Kpi etichetta="Domande presentate" icona="it-files" tono="ambra" valore={formatNumber(d.presentate)} nota={`di cui prima annualità ${formatNumber(d.primaAnnualita)}`} />}
     </VistaQuery>
   );
 }
 
-function Spesa({ filtri, onIntervento }: { filtri: Filtri; onIntervento: (codice: string) => void }) {
+// le domande non dipendono dalla spesa: hanno il loro grant e la loro lettura (senza il grant di TX-0002 il segnale non
+// afferma nulla e la tessera c'e'); con la selezione vuota non si mostrano e non si leggono
+function KpiDomande({ filtri }: { filtri: Filtri }) {
+  const segnale = useSelezioneSenzaInterventi(filtri);
+  if (segnale === 'vuota') return null;
+  return segnale === 'in-attesa' ? <Caricamento /> : <KpiDomandeDati filtri={filtri} />;
+}
+
+function GraficiSpesa({ filtri, onIntervento }: { filtri: Filtri; onIntervento: (codice: string) => void }) {
   const stato = useSpesaPerIntervento(filtri);
   const [forma, setForma] = useState<'treemap' | 'sunburst'>('treemap');
   // il clic su un intervento (barra o foglia) apre il dettaglio; su una famiglia il treemap entra nel gruppo
   const clic = (p: ClicGrafico) => {
-    const codice = (p.data as { codice?: string } | undefined)?.codice ?? p.name;
+    const codice = codiceDalClic(p);
     if (codiceInterventoValido(codice)) onIntervento(codice);
   };
   return (
-    <VistaQuery stato={stato} eVuoto={(d) => (d.righe ?? []).length === 0} vuoto="Nessun intervento per i filtri scelti. Modifica i filtri.">
+    <VistaQuery stato={stato} eVuoto={(d) => (d.righe ?? []).length === 0} vuoto={VUOTO_INTERVENTI}>
       {(d) => (
         <>
           <PerimetroSezione perimetro={d.perimetro} />
           <NotaPerimetroMisto perimetro={d.perimetro} />
-          <Griglia colonne={4}>
-            <KpiSpesa d={d} />
-            <ConGrant grant="csr.tx-0009.read" titolo="Domande presentate">
-              <KpiDomande filtri={filtri} />
-            </ConGrant>
-          </Griglia>
           <Griglia>
             <CardGrafico
               titolo="Avanzamento per intervento"
@@ -117,8 +123,6 @@ function Spesa({ filtri, onIntervento }: { filtri: Filtri; onIntervento: (codice
   );
 }
 
-const VUOTO_SIGC = vuotoConPerimetro('Nessuna domanda SIGC per i filtri scelti. Modifica i filtri.');
-
 // le letture SIGC stanno nei figli di ConGrant: senza il grant non partono (R-09)
 function DomandeSigc({ filtri, onSigc }: { filtri: Filtri; onSigc: () => void }) {
   const stato = useSigcDomande(filtri);
@@ -142,7 +146,7 @@ function ImportiSigc({ filtri }: { filtri: Filtri }) {
   const stato = useSigcImporti(filtri);
   const segnale = useSelezioneSenzaDomandeSigc(filtri);
   return (
-    <VistaQuery stato={inAttesaDelSegnale(stato, segnale)} eVuoto={() => segnale === 'vuota'} vuoto={VUOTO_SIGC}>
+    <VistaQuery stato={stato} inAttesa={segnale === 'in-attesa'} eVuoto={() => segnale === 'vuota'} vuoto={VUOTO_SIGC}>
       {(d) => (
         <CardGrafico
           titolo="Importi SIGC"
@@ -155,29 +159,31 @@ function ImportiSigc({ filtri }: { filtri: Filtri }) {
   );
 }
 
-function Sigc({ filtri, onSigc }: { filtri: Filtri; onSigc: () => void }) {
-  return (
-    <Griglia>
-      <ConGrant grant="csr.tx-0012.read" titolo="Domande SIGC">
-        <DomandeSigc filtri={filtri} onSigc={onSigc} />
-      </ConGrant>
-      <ConGrant grant="csr.tx-0013.read" titolo="Importi SIGC">
-        <ImportiSigc filtri={filtri} />
-      </ConGrant>
-    </Griglia>
-  );
-}
-
 export function Panoramica({ filtri }: { filtri: Filtri }) {
   const naviga = useNavigate();
-  const query = ricercaDaFiltri(filtri);
-  const conQuery = (p: string) => (query ? `${p}?${query}` : p);
+  // il dettaglio e' dell'intervento intero: ci si arriva senza gli altri filtri (V-01, wireframe intervento)
+  const apriIntervento = (c: string) => void naviga(percorsoIntervento(c));
   return (
     <>
-      <ConGrant grant="csr.tx-0002.read" titolo="Dotazione e pagamenti">
-        <Spesa filtri={filtri} onIntervento={(c) => void naviga(conQuery(percorsoIntervento(c)))} />
+      <Griglia colonne={4}>
+        <ConGrant grant={GRANT.spesaPerIntervento} titolo="Dotazione e pagamenti">
+          <KpiSpesaSezione filtri={filtri} />
+        </ConGrant>
+        <ConGrant grant={GRANT.totaleDomande} titolo="Domande presentate">
+          <KpiDomande filtri={filtri} />
+        </ConGrant>
+      </Griglia>
+      <ConGrant grant={GRANT.spesaPerIntervento} titolo="Dotazione e pagamenti per intervento">
+        <GraficiSpesa filtri={filtri} onIntervento={apriIntervento} />
       </ConGrant>
-      <Sigc filtri={filtri} onSigc={() => void naviga(conQuery('/finanziario/sigc'))} />
+      <Griglia>
+        <ConGrant grant={GRANT.sigcDomande} titolo="Domande SIGC">
+          <DomandeSigc filtri={filtri} onSigc={() => void naviga(conFiltri(PERCORSI.sigc, filtri))} />
+        </ConGrant>
+        <ConGrant grant={GRANT.sigcImporti} titolo="Importi SIGC">
+          <ImportiSigc filtri={filtri} />
+        </ConGrant>
+      </Griglia>
     </>
   );
 }

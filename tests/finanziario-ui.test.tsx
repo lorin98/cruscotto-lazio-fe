@@ -1,11 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { useState } from 'react';
-import type { ReactElement } from 'react';
-import { act, screen, waitFor, within } from '@testing-library/react';
+import type { ComponentType, ReactElement } from 'react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { http, HttpResponse } from 'msw';
 import type { JsonBodyType } from 'msw';
-import { createMemoryRouter, RouterProvider } from 'react-router';
+import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router';
 import type { EChartsOption } from 'echarts';
 import { server } from '../src/shared/api/mock/server';
 import { AUTH_STATUS_QUERY_KEY } from '../src/shared/api/auth/auth-status';
@@ -18,6 +19,7 @@ import { clientDiTest, renderConQuery } from '../src/shared/testing/render';
 import {
   AvanzamentoReport,
   CercaIntervento,
+  ContestoFiltri,
   DettaglioIntervento,
   DomandeReport,
   DotazioneReport,
@@ -87,6 +89,21 @@ function conRouter(ui: ReactElement, indirizzo = '/prova', client: Client = clie
 }
 const indirizzo = (router: ReturnType<typeof createMemoryRouter>) => `${router.state.location.pathname}${router.state.location.search}`;
 
+// Report reso con filtri che cambiano (rerender, come quando la pagina applica altri filtri): stesso QueryClient, quindi
+// i filtri gia' letti restano in cache; router in memoria perche' i report navigano al dettaglio.
+function conFiltriVariabili(Report: ComponentType<{ filtri: Filtri }>, filtri: Filtri) {
+  const client = clientDiTest();
+  const ui = (f: Filtri) => (
+    <QueryClientProvider client={client}>
+      <MemoryRouter>
+        <Report filtri={f} />
+      </MemoryRouter>
+    </QueryClientProvider>
+  );
+  const resa = render(ui(filtri));
+  return { ...resa, cambiaFiltri: (f: Filtri) => resa.rerender(ui(f)) };
+}
+
 // Grafico finto montato nella card con quel titolo (h2 o h3 della CardGrafico).
 function graficoDi(titolo: string): GraficoFinto {
   const g = graficiVivi().find((x) => x.el.closest('section')?.querySelector('h2, h3')?.textContent === titolo);
@@ -107,6 +124,13 @@ const vediTabella = (titolo: string) => userEvent.click(within(screen.getByRole(
 const valoreDi = (tabella: HTMLElement, voce: string) => testo(within(tabella).getByRole('rowheader', { name: voce }).nextElementSibling?.textContent);
 // Codici delle righe del corpo di una tabella (senza la riga dei totali).
 const righeCorpo = (tabella: HTMLElement) => Array.from((tabella as HTMLTableElement).tBodies[0].rows, (r) => r.cells[0].textContent);
+// Intestazioni di colonna di una tabella, senza il glifo dell'ordinamento.
+const intestazioni = (tabella: HTMLElement) => within(tabella).getAllByRole('columnheader').map((c) => c.textContent?.replace(/[▲▼↕]/g, ''));
+// Valore e nota di una tessera KPI (l'assenza, se c'e', sta al posto del valore).
+const valoreKpi = (nome: string) => testo(screen.getByRole('region', { name: nome }).querySelector('.ui-kpi__valore')?.textContent);
+const notaKpi = (nome: string) => testo(screen.getByRole('region', { name: nome }).querySelector('.ui-kpi__nota')?.textContent);
+// La ricerca della tabella interattiva (l'etichetta resta "Cerca nella tabella", il segnaposto dice su cosa si cerca).
+const ricerca = () => screen.getByRole('searchbox', { name: 'Cerca nella tabella' }) as HTMLInputElement;
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -257,11 +281,12 @@ describe('PannelloFiltri (pannello laterale dei filtri, TX-0001)', () => {
 });
 
 describe('UltimoAggiornamento (pill "Dati al", NFR-25 b, OP-FE-04)', () => {
-  it('la pill porta la data piu recente anche se non e l ultima voce; il popover ha una voce per flusso', async () => {
+  // X-07: la pill dice fino a quando TUTTI i flussi sono aggiornati, cosi' un flusso fermo non si nasconde dietro uno fresco
+  it('la pill porta la data meno recente anche se non e la prima voce; il popover ha una voce per flusso', async () => {
     server.use(rispondi('/api/finanziario/filtri', { ...F.FILTRI, ultimiDatiSincronizzati: [...F.FILTRI.ultimiDatiSincronizzati].reverse() }));
     renderConQuery(<UltimoAggiornamento />);
-    const pill = await screen.findByRole('button', { name: 'Ultimo dato sincronizzato: dati al 03/03/2026. Mostra il dettaglio per flusso' });
-    expect(pill.textContent).toBe('Dati al 03/03/2026');
+    const pill = await screen.findByRole('button', { name: 'Ultimo dato sincronizzato: dati al 02/03/2026 per tutti i flussi. Mostra il dettaglio per flusso' });
+    expect(pill.textContent).toBe('Dati al 02/03/2026');
     await userEvent.click(pill);
     const popover = await screen.findByRole('dialog', { name: "Ultimo dato sincronizzato per flusso d'import" });
     const voci = within(popover)
@@ -366,7 +391,7 @@ describe('Panoramica (route /finanziario: TX-0002, TX-0009, TX-0012, TX-0013)', 
     servi();
     conRouter(<Panoramica filtri={{}} />);
     await regioneContiene('Dotazione spesa pubblica', '1,0 M€');
-    await regioneContiene('Pagamenti totali', '0,2 M€');
+    await regioneContiene('Pagamenti totali', '200.000,00 €');
     await regioneContiene('Pagato sulla dotazione', '20 %');
     await regioneContiene('Domande presentate', 'di cui prima annualità 400');
     expect(within(card('Pagato sulla dotazione')).getByRole('img', { name: '20%' })).toBeTruthy();
@@ -388,15 +413,16 @@ describe('Panoramica (route /finanziario: TX-0002, TX-0009, TX-0012, TX-0013)', 
     expect(g.el.parentElement?.hidden).toBe(true);
   });
 
-  it('drill-down: clic su una barra apre il dettaglio dell intervento con i filtri; clic su una famiglia non naviga', async () => {
+  // V-01: il dettaglio e' dell'intervento intero, ci si arriva senza gli altri filtri
+  it('drill-down: clic su una barra apre il dettaglio dell intervento senza gli altri filtri; clic su una famiglia non naviga', async () => {
     servi();
-    const { router } = conRouter(<Panoramica filtri={{ intervento: ['SRA01'] }} />);
+    const { router } = conRouter(<Panoramica filtri={{ intervento: ['SRA01'], og: ['OG2'] }} />);
     await waitFor(() => expect(graficiVivi()).toHaveLength(4));
     act(() => clicSu(graficoDi('Dotazione per famiglia di intervento'), { name: 'SRA', data: { name: 'SRA' } }));
     await notifiche();
     expect(indirizzo(router)).toBe('/prova');
     act(() => clicSu(graficoDi('Avanzamento per intervento'), { name: 'SRA01', dataIndex: 0, data: { codice: 'SRA01' } }));
-    await waitFor(() => expect(indirizzo(router)).toBe('/finanziario/interventi/SRA01?intervento=SRA01'));
+    await waitFor(() => expect(indirizzo(router)).toBe('/finanziario/interventi/SRA01'));
     expect(screen.getByText('pagina del dettaglio')).toBeTruthy();
   });
 
@@ -414,19 +440,52 @@ describe('Panoramica (route /finanziario: TX-0002, TX-0009, TX-0012, TX-0013)', 
     await waitFor(() => expect(indirizzo(secondo.router)).toBe('/finanziario/sigc?op=OP2'));
   });
 
-  it('perimetro ADA: avanzamento non confrontabile (grafico non disegnato, tabella subito) e KPI della quota dichiarato', async () => {
+  it('perimetro ADA: avanzamento non confrontabile (grafico non disegnato, tabella subito), dotazione regionale con la nota del perimetro misto, KPI della quota dichiarato', async () => {
     servi();
     server.use(rispondi('/api/finanziario/spesa-per-intervento', { ...F.SPESA, perimetro: 'ADA' }));
     conRouter(<Panoramica filtri={{}} />);
     const avanzamento = await trovaCard('Avanzamento per intervento');
     expect(
-      within(avanzamento).getByText("Grafico non disponibile: perimetro ADA: la dotazione è regionale, i pagamenti sono dell'area: la quota non è confrontabile."),
+      within(avanzamento).getByText("Grafico non disponibile: perimetro ADA: la dotazione è regionale, i pagamenti sono dell'area: il rapporto non è confrontabile."),
     ).toBeTruthy();
     expect(within(avanzamento).queryByRole('group', { name: /^Vista di/ })).toBeNull();
     expect(testo(within(avanzamento).getByRole('table').textContent)).toContain('non confrontabile (perimetro ADA)');
-    await regioneContiene('Pagato sulla dotazione', 'Non confrontabile: dotazione regionale e pagamenti dell’area (perimetro ADA)');
+    await regioneContiene('Pagato sulla dotazione', "Non confrontabile: dotazione regionale e pagamenti dell'area (perimetro ADA)");
+    // la dotazione e' un dato di programma: per un P4 resta regionale e lo si dichiara
+    await regioneContiene('Dotazione spesa pubblica (regionale)', '1,0 M€');
+    expect(screen.queryByRole('region', { name: 'Dotazione spesa pubblica' })).toBeNull();
+    expect(screen.getByText(/i due valori non sono confrontabili/)).toBeTruthy();
     expect(screen.getByText('Area decentrata (ADA): solo le domande della propria area')).toBeTruthy();
     await waitFor(() => expect(graficiVivi()).toHaveLength(3));
+  });
+
+  // H-01: i KPI vengono da lib/aggregati con la regola del backend, niente somme parziali
+  it('una riga senza dotazione: il KPI della dotazione e "non calcolabile" con l intervento che manca, mai la somma parziale', async () => {
+    servi();
+    const senzaDotazione = { codiceIntervento: 'SRA03', dotazioneSpesaPubblica: { valore: null, motivo: 'NON_VALORIZZATO', fonte: null }, pagamentiTotali: euro(100000) };
+    server.use(rispondi('/api/finanziario/spesa-per-intervento', { ...F.SPESA, righe: [...F.SPESA.righe, senzaDotazione] }));
+    conRouter(<Panoramica filtri={{}} />);
+    await waitFor(() => expect(valoreKpi('Dotazione spesa pubblica')).toBe('Non calcolabile: manca per 1 intervento (SRA03)'));
+    expect(notaKpi('Dotazione spesa pubblica')).toBe('2 interventi nella selezione');
+    expect(valoreKpi('Pagamenti totali')).toBe('300.000,00 €');
+    // la quota esclude l'intervento senza dotazione, come il grafico dell'avanzamento
+    expect(valoreKpi('Pagato sulla dotazione')).toBe('20 %');
+    expect(notaKpi('Pagato sulla dotazione')).toBe('media ponderata su 1 di 2 interventi');
+    expect(screen.queryByText('1,0 M€')).toBeNull();
+  });
+
+  it('un intervento a dotazione 0: la quota resta la media ponderata del grafico (lo esclude), i totali lo contano', async () => {
+    servi();
+    const dotazioneZero = { codiceIntervento: 'SRG08', dotazioneSpesaPubblica: ZERO, pagamentiTotali: euro(100000) };
+    server.use(rispondi('/api/finanziario/spesa-per-intervento', { ...F.SPESA, righe: [...F.SPESA.righe, dotazioneZero] }));
+    conRouter(<Panoramica filtri={{}} />);
+    // 0,2 su 1,0 (non 0,3 su 1,0: la dotazione zero non entra nella quota)
+    await waitFor(() => expect(valoreKpi('Pagato sulla dotazione')).toBe('20 %'));
+    expect(notaKpi('Pagato sulla dotazione')).toBe('media ponderata su 1 di 2 interventi');
+    expect(valoreKpi('Dotazione spesa pubblica')).toBe('1,0 M€');
+    expect(valoreKpi('Pagamenti totali')).toBe('300.000,00 €');
+    await waitFor(() => expect(descrizione(graficoDi('Avanzamento per intervento'))).toContain('media ponderata 20 %'));
+    expect(within(card('Avanzamento per intervento')).getByText('SRG08: dotazione pari a zero')).toBeTruthy();
   });
 
   it('selezione senza interventi: stato vuoto (status) al posto di KPI e grafici della spesa', async () => {
@@ -439,20 +498,33 @@ describe('Panoramica (route /finanziario: TX-0002, TX-0009, TX-0012, TX-0013)', 
     expect(screen.queryByRole('region', { name: 'Dotazione spesa pubblica' })).toBeNull();
     expect(screen.queryByRole('region', { name: 'Avanzamento per intervento' })).toBeNull();
     await notifiche();
-    // il KPI delle domande sta dentro la sezione della spesa: senza interventi non si legge
+    // la tessera delle domande segue il segnale di TX-0002: con la selezione vuota non c'e' e TX-0009 non si legge
+    expect(screen.queryByRole('region', { name: 'Domande presentate' })).toBeNull();
     expect(letture(client, '/api/finanziario/totale-domande')).toHaveLength(0);
   });
 
-  it('senza il grant di TX-0002 la sezione della spesa lo dice e non legge TX-0002 ne TX-0009 (R-09)', async () => {
+  it('senza il grant di TX-0002 la sezione della spesa lo dice e non legge TX-0002 (R-09)', async () => {
     servi();
     profilo('csr.tx-0012.read', 'csr.tx-0013.read', 'csr.tx-0009.read');
     const client = clientDiTest();
     conRouter(<Panoramica filtri={{}} />, '/prova', client);
     await sezioneNonDisponibile('Dotazione e pagamenti');
+    await sezioneNonDisponibile('Dotazione e pagamenti per intervento');
     await trovaCard('Importi SIGC');
     await waitFor(() => expect(graficiVivi()).toHaveLength(2));
     expect(letture(client, '/api/finanziario/spesa-per-intervento')).toHaveLength(0);
-    expect(letture(client, '/api/finanziario/totale-domande')).toHaveLength(0);
+  });
+
+  // V-14: la tessera delle domande ha il suo ConGrant e la sua lettura, non dipende dalla spesa
+  it('senza il grant di TX-0002 la tessera delle domande c e e legge TX-0009', async () => {
+    servi();
+    profilo('csr.tx-0009.read');
+    const client = clientDiTest();
+    conRouter(<Panoramica filtri={{}} />, '/prova', client);
+    await regioneContiene('Domande presentate', '1200');
+    expect(notaKpi('Domande presentate')).toBe('di cui prima annualità 400');
+    expect(lettaConSuccesso(client, '/api/finanziario/totale-domande')).toBe(true);
+    expect(letture(client, '/api/finanziario/spesa-per-intervento')).toHaveLength(0);
   });
 
   it('senza il grant di TX-0009 il solo KPI delle domande lo dice e non legge TX-0009', async () => {
@@ -500,7 +572,9 @@ describe('DettaglioIntervento (route /finanziario/interventi/:codice)', () => {
       rispondi('/api/finanziario/sigc/importi', F.SIGC_IMPORTI),
     );
 
-  it("testata con la descrizione di TX-0001 e il focus, letture filtrate sull'intervento, KPI dalla riga del riepilogo", async () => {
+  // H-04: h1, titolo del documento e focus sono della pagina (interventi/page.tsx, con la descrizione di TX-0001); il
+  // componente rende la testata come regione col codice, con i badge e le azioni
+  it("testata (regione col codice) con perimetro e contributo, letture filtrate sull'intervento, KPI dalla riga del riepilogo; niente h1 ne TX-0001", async () => {
     servi();
     let query = '';
     server.use(
@@ -509,21 +583,39 @@ describe('DettaglioIntervento (route /finanziario/interventi/:codice)', () => {
         return HttpResponse.json(RIEPILOGO_SRA01);
       }),
     );
-    const { router } = conRouter(<DettaglioIntervento codice="SRA01" />);
-    const h1 = await screen.findByRole('heading', { level: 1, name: 'Intervento di prova A' });
-    await waitFor(() => expect(document.activeElement).toBe(h1));
-    expect(document.title).toBe('SRA01 - Finanziario - Cruscotto CSR 2023-2027');
+    const client = clientDiTest();
+    const { router } = conRouter(<DettaglioIntervento codice="SRA01" />, '/prova', client);
+    const testata = await screen.findByRole('region', { name: 'Intervento SRA01' });
     expect(query).toBe('?intervento=SRA01');
-    expect(screen.getByText('Intervento SRA01')).toBeTruthy();
-    expect(screen.getByText('Perimetro REGIONALE', { selector: '.ui-hero__badge' })).toBeTruthy();
-    expect(await screen.findByText('Contributo ambientale 12,5 %')).toBeTruthy();
-    const kpi = (nome: string) => testo(screen.getByRole('region', { name: nome }).textContent);
-    expect(kpi('Dotazione spesa pubblica')).toContain('1,0 M€');
-    expect(kpi('Risorse quota FEASR')).toContain('0,4 M€');
-    expect(kpi('Pagamenti al netto delle rettifiche')).toContain('0,2 M€');
-    expect(kpi('Domande presentate')).toContain('12');
-    await userEvent.click(screen.getByRole('link', { name: 'Filtra i report su questo intervento' }));
+    expect(within(testata).getByText('Intervento SRA01')).toBeTruthy();
+    expect(within(testata).getByText('Perimetro REGIONALE')).toBeTruthy();
+    expect(await within(testata).findByText('Contributo ambientale 12,5 %')).toBeTruthy();
+    expect(valoreKpi('Dotazione spesa pubblica')).toBe('1,0 M€');
+    expect(valoreKpi('Risorse quota FEASR')).toBe('400.000,00 €');
+    expect(valoreKpi('Pagamenti al netto delle rettifiche')).toBe('200.000,00 €');
+    expect(valoreKpi('Domande presentate')).toBe('12');
+    expect(screen.queryByRole('heading', { level: 1 })).toBeNull();
+    expect(letture(client, '/api/finanziario/filtri')).toHaveLength(0);
+    await userEvent.click(within(testata).getByRole('link', { name: 'Filtra i report su questo intervento' }));
     expect(indirizzo(router)).toBe('/finanziario?intervento=SRA01');
+  });
+
+  // V-10: le tessere usano KpiImporto, con il motivo e la fonte attesa del contratto
+  it("KPI con il motivo dell'assenza (non valorizzato, fonte non attiva, fuori perimetro), mai uno zero", async () => {
+    servi();
+    const riga = {
+      ...F.RIEPILOGO.righe[0],
+      dotazioneSpesaPubblica: { valore: null, motivo: 'NON_VALORIZZATO', fonte: null },
+      risorseQuotaFeasr: { valore: null, motivo: 'FONTE_NON_ATTIVA', fonte: 'QUADRO_SINOTTICO' },
+      pagamentiNettoRettifiche: { valore: null, motivo: 'FUORI_PERIMETRO', fonte: null },
+    };
+    server.use(rispondi('/api/finanziario/riepilogo', { ...RIEPILOGO_SRA01, righe: [riga] }));
+    conRouter(<DettaglioIntervento codice="SRA01" />);
+    await screen.findByRole('region', { name: 'Intervento SRA01' });
+    expect(valoreKpi('Dotazione spesa pubblica')).toBe('Non valorizzato: il dato non è presente nella fonte');
+    expect(valoreKpi('Risorse quota FEASR')).toBe('Non disponibile: fonte quadro sinottico non attiva');
+    expect(valoreKpi('Pagamenti al netto delle rettifiche')).toBe('Fuori perimetro: non visibile nel perimetro del profilo');
+    expect(screen.queryAllByText(/^0,00\s€$/)).toHaveLength(0);
   });
 
   it('schede: Sintesi con i due grafici; Domande e SIGC leggono solo quando si aprono; Tutte le voci con il motivo delle assenze', async () => {
@@ -538,7 +630,11 @@ describe('DettaglioIntervento (route /finanziario/interventi/:codice)', () => {
 
     await userEvent.click(screen.getByRole('tab', { name: 'Domande' }));
     expect(await screen.findByRole('heading', { name: 'Domande per anno di raccolta' })).toBeTruthy();
-    await waitFor(() => expect(graficoDi('Importi ammessi e decretati per anno').opzioni.length).toBeGreaterThan(0));
+    await waitFor(() => expect(graficoDi('Importi per anno di raccolta').opzioni.length).toBeGreaterThan(0));
+    // V-11: la tabella degli importi per anno dichiara anche lo stanziato e le domande senza ammesso
+    await vediTabella('Importi per anno di raccolta');
+    const importi = screen.getByRole('table', { name: 'Importi per anno di raccolta: stanziato, ammesso e decretato' });
+    expect(intestazioni(importi)).toEqual(['Anno', 'Stanziato', 'Ammesso', 'Decretato', 'Domande senza importo ammesso']);
     expect(letture(client, '/api/finanziario/sigc/domande')).toHaveLength(0);
 
     await userEvent.click(screen.getByRole('tab', { name: 'SIGC' }));
@@ -566,8 +662,10 @@ describe('DettaglioIntervento (route /finanziario/interventi/:codice)', () => {
     servi();
     server.use(rispondi('/api/finanziario/riepilogo', { perimetro: 'ADA', righe: [] }));
     conRouter(<DettaglioIntervento codice="SRA01" />);
-    const vuoto = await screen.findByText(/Nessun dato per questo intervento nel tuo perimetro\./);
+    // X-04: le righe di TX-0011 sono dati di programma, il vuoto non viene dall'area del profilo
+    const vuoto = await screen.findByText(/^Nessun dato per questo intervento nel riepilogo\./);
     expect(vuoto.closest('[role]')?.getAttribute('role')).toBe('status');
+    expect(screen.queryByText(/Nessun dato nella tua area/)).toBeNull();
     expect(within(vuoto.closest('[role]') as HTMLElement).getByRole('link', { name: 'Torna al riepilogo' }).getAttribute('href')).toBe('/finanziario/riepilogo');
     expect(screen.getByText('Perimetro ADA')).toBeTruthy();
     expect(screen.queryByRole('tablist')).toBeNull();
@@ -584,17 +682,54 @@ describe('DettaglioIntervento (route /finanziario/interventi/:codice)', () => {
     expect(letture(client, '/api/finanziario/spesa-per-intervento')).toHaveLength(0);
   });
 
-  it('senza il grant di TX-0002 la Sintesi non legge la spesa e il gauge dichiara il dato mancante', async () => {
+  // V-07: la Sintesi legge TX-0002 dentro un ConGrant; senza il grant la card lo dice, non "valore non disponibile"
+  it('senza il grant di TX-0002 la card del pagato sulla dotazione lo dice e la Sintesi non legge la spesa; la cascata resta', async () => {
     servi();
     profilo('csr.tx-0011.read');
     const client = clientDiTest();
     conRouter(<DettaglioIntervento codice="SRA01" />, '/prova', client);
-    const gauge = await trovaCard('Pagato sulla dotazione');
-    expect(within(gauge).getByText(/^Grafico non disponibile: della dotazione pagato: valore non disponibile/)).toBeTruthy();
-    expect(screen.getByRole('heading', { level: 1, name: 'SRA01' })).toBeTruthy();
+    await sezioneNonDisponibile('Pagato sulla dotazione');
+    expect(screen.getByRole('region', { name: 'Intervento SRA01' })).toBeTruthy();
+    await waitFor(() => expect(graficoDi('Dalla dotazione al residuo').opzioni.length).toBeGreaterThan(0));
+    expect(screen.queryByText(/valore non disponibile/)).toBeNull();
     await notifiche();
     expect(letture(client, '/api/finanziario/spesa-per-intervento')).toHaveLength(0);
     expect(letture(client, '/api/finanziario/filtri')).toHaveLength(0);
+  });
+
+  it("TX-0002 in errore: la card del pagato e' un avviso con Riprova, non un dato mancante; la cascata resta (V-07)", async () => {
+    servi();
+    server.use(rispondi('/api/finanziario/spesa-per-intervento', problema(500, 'ERRORE_INTERNO'), 500));
+    conRouter(<DettaglioIntervento codice="SRA01" />);
+    const avviso = await screen.findByRole('alert');
+    expect(within(avviso).getByRole('button', { name: 'Riprova' })).toBeTruthy();
+    await waitFor(() => expect(graficoDi('Dalla dotazione al residuo').opzioni.length).toBeGreaterThan(0));
+    expect(screen.queryByRole('region', { name: 'Pagato sulla dotazione' })).toBeNull();
+    expect(screen.queryByText(/valore non disponibile/)).toBeNull();
+    expect(screen.getAllByRole('alert')).toHaveLength(1);
+  });
+
+  // V-03: dotazione regionale e pagamenti dell'area non si sottraggono; i dati di programma si dichiarano regionali
+  it('perimetro ADA: la cascata e il gauge non si disegnano, voci e KPI dei dati di programma sono "(regionale)", nota del perimetro misto', async () => {
+    servi();
+    const riga = { ...F.RIEPILOGO.righe[0], dotazioneResiduaSuPagamenti: { valore: null, motivo: 'FUORI_PERIMETRO', fonte: null } };
+    server.use(rispondi('/api/finanziario/riepilogo', { ...RIEPILOGO_SRA01, perimetro: 'ADA', righe: [riga] }));
+    conRouter(<DettaglioIntervento codice="SRA01" />);
+    const cascata = await trovaCard('Dalla dotazione al residuo');
+    expect(
+      within(cascata).getByText("Grafico non disponibile: perimetro ADA: la dotazione è regionale, i pagamenti sono dell'area e il residuo è fuori perimetro."),
+    ).toBeTruthy();
+    const voci = within(cascata).getByRole('table', { name: 'Intervento SRA01: dalla dotazione al residuo sui pagamenti' });
+    expect(valoreDi(voci, 'Dotazione di spesa pubblica (regionale)')).toBe('1.000.000,00 €');
+    expect(valoreDi(voci, 'Quota FEASR (regionale)')).toBe('400.000,00 €');
+    expect(valoreDi(voci, 'Pagamenti al netto delle rettifiche')).toBe('200.000,00 €');
+    expect(valoreDi(voci, 'Residuo sui pagamenti')).toBe('fuori perimetro (non visibile nel perimetro del profilo)');
+    const gauge = await trovaCard('Pagato sulla dotazione');
+    expect(within(gauge).getByText("Grafico non disponibile: perimetro ADA: la dotazione è regionale, i pagamenti sono dell'area: il rapporto non è confrontabile.")).toBeTruthy();
+    expect(valoreKpi('Dotazione spesa pubblica (regionale)')).toBe('1,0 M€');
+    expect(valoreKpi('Risorse quota FEASR (regionale)')).toBe('400.000,00 €');
+    expect(screen.getByText(/i due valori non sono confrontabili/)).toBeTruthy();
+    expect(graficiVivi()).toHaveLength(0);
   });
 
   // regressione R-09: le letture delle schede stanno nei figli di ConGrant (prima partivano anche senza grant)
@@ -623,52 +758,66 @@ describe('RiepilogoReport (TX-0011, tabella interattiva)', () => {
   const NOME_TABELLA = /^Riepilogo per intervento \(RF011\)/;
   const tabella = () => screen.findByRole('table', { name: NOME_TABELLA });
 
-  it('righe per intervento con importi e assenze dichiarate, colonne senza valori nascoste con la nota, totali, perimetro', async () => {
+  // V-05: tutte le colonne del wireframe si vedono, l'assenza la dice ogni cella; V-18: la dotazione AT sta nel piede
+  it('righe per intervento con tutte le colonne visibili e le assenze dichiarate, totali, perimetro, dotazione AT nel piede', async () => {
     server.use(rispondi('/api/finanziario/riepilogo', F.RIEPILOGO));
-    renderConQuery(<RiepilogoReport filtri={{}} />);
+    conRouter(<RiepilogoReport filtri={{}} />);
     const t = await tabella();
     expect(t.querySelector('caption')?.textContent).toBe('Riepilogo per intervento (RF011): 2 righe. Clic o Invio su una riga per aprirla.');
-    expect(within(t).getAllByRole('columnheader').map((c) => c.textContent?.replace(/[▲▼↕]/g, ''))).toEqual([
+    expect(intestazioni(t)).toEqual([
       'Intervento',
       'Domande presentate',
       'Dotazione spesa pubblica',
       'Risorse quota FEASR',
+      'Importo stanziato',
+      'Impegnato cofinanziato FEASR',
+      'Impegnato cofinanziato FEASR e non',
       'Pagamenti al netto di rettifiche',
+      'Dotazione residua sugli impegni',
       'Dotazione residua sui pagamenti',
     ]);
+    expect(screen.queryByText(/^Colonne nascoste/)).toBeNull();
     expect(righeCorpo(t)).toEqual(['SRA01', 'SRA03']);
-    expect(testo(within(t).getByRole('row', { name: "Apri l'anteprima dell'intervento SRA01" }).textContent)).toContain('1.000.000,00 €');
+    const sra01 = testo(within(t).getByRole('row', { name: "Apri l'anteprima dell'intervento SRA01" }).textContent);
+    expect(sra01).toContain('1.000.000,00 €');
+    expect(sra01).toMatch(/non disponibile ?fonte quadro sinottico non attiva/);
+    expect(sra01).toMatch(/non disponibile ?fonte impegni non attiva/);
     // lo zero di un intervento senza pagamenti e' un dato, non un'assenza
     expect(testo(within(t).getByRole('row', { name: "Apri l'anteprima dell'intervento SRA03" }).textContent)).toContain('0,00 €');
-    const totali = testo((t as HTMLTableElement).tFoot?.textContent);
+    const [riga, assistenza] = Array.from((t as HTMLTableElement).tFoot?.rows ?? []);
+    const totali = testo(riga.textContent);
     expect(totali).toContain('Totale (2 interventi)');
     expect(totali).toContain('1.500.000,00 €');
     expect(totali).toContain('1.300.000,00 €');
-    expect(
-      screen.getByText(
-        'Colonne nascoste perché nessun intervento ha un valore (fonte non attiva o non valorizzato): Importo stanziato, Impegnato cofinanziato FEASR, Impegnato cofinanziato FEASR e non, Dotazione residua sugli impegni. Si mostrano da "Colonne".',
-      ),
-    ).toBeTruthy();
+    // un totale con anche un solo valore assente non e' una somma parziale
+    expect(totali).toContain('non calcolabile');
     expect(screen.getByText('Regionale: tutte le domande della regione')).toBeTruthy();
-    const at = screen.getByRole('table', { name: 'Valore fuori tabella, indipendente dai filtri' });
-    expect(testo(at.textContent)).toContain('100.000,00 €');
+    expect(within(t).getByRole('rowheader', { name: 'Dotazione assistenza tecnica (AT001, intero programma: non dipende dai filtri)' }).closest('tr')).toBe(assistenza);
+    // la dotazione AT sta nella colonna della dotazione e non entra nel totale
+    expect(testo(assistenza.cells[2].textContent)).toBe('100.000,00 €');
+    expect(screen.queryByRole('table', { name: 'Valore fuori tabella, indipendente dai filtri' })).toBeNull();
+    expect(screen.queryByRole('region', { name: 'Assistenza tecnica' })).toBeNull();
   });
 
-  it("una colonna nascosta si mostra da Colonne: l'assenza e dichiarata nelle celle e il totale non e calcolabile", async () => {
+  it("da Colonne una colonna si nasconde e si rimostra: l'assenza resta dichiarata nelle celle e il totale non e calcolabile", async () => {
     server.use(rispondi('/api/finanziario/riepilogo', F.RIEPILOGO));
-    renderConQuery(<RiepilogoReport filtri={{}} />);
+    conRouter(<RiepilogoReport filtri={{}} />);
     const t = await tabella();
-    expect(within(t).queryByRole('columnheader', { name: 'Importo stanziato' })).toBeNull();
+    const stanziato = () => within(screen.getByRole('group', { name: 'Colonne visibili' })).getByRole('checkbox', { name: 'Importo stanziato' });
+    expect((stanziato() as HTMLInputElement).checked).toBe(true);
     await userEvent.click(screen.getByText('Colonne'));
-    await userEvent.click(within(screen.getByRole('group', { name: 'Colonne visibili' })).getByRole('checkbox', { name: 'Importo stanziato' }));
+    await userEvent.click(stanziato());
+    expect(within(t).queryByRole('columnheader', { name: 'Importo stanziato' })).toBeNull();
+    await userEvent.click(stanziato());
     expect(within(t).getByRole('columnheader', { name: 'Importo stanziato' })).toBeTruthy();
     expect(testo(within(t).getByRole('row', { name: "Apri l'anteprima dell'intervento SRA01" }).textContent)).toMatch(/non disponibile ?fonte quadro sinottico non attiva/);
-    expect(testo((t as HTMLTableElement).tFoot?.textContent)).toContain('non calcolabile');
+    const indice = intestazioni(t).indexOf('Importo stanziato');
+    expect((t as HTMLTableElement).tFoot?.rows[0].cells[indice].textContent).toBe('non calcolabile');
   });
 
   it('ordinamento per colonna con aria-sort (iniziale: dotazione decrescente)', async () => {
     server.use(rispondi('/api/finanziario/riepilogo', F.RIEPILOGO));
-    renderConQuery(<RiepilogoReport filtri={{}} />);
+    conRouter(<RiepilogoReport filtri={{}} />);
     const t = await tabella();
     const intestazione = (nome: string) => within(t).getByRole('columnheader', { name: nome });
     expect(intestazione('Dotazione spesa pubblica').getAttribute('aria-sort')).toBe('descending');
@@ -684,11 +833,12 @@ describe('RiepilogoReport (TX-0011, tabella interattiva)', () => {
     expect(righeCorpo(t)).toEqual(['SRA01', 'SRA03']);
   });
 
-  it('ricerca: righe, caption e totali seguono il testo cercato', async () => {
+  it('ricerca per codice: righe, caption e totali seguono il testo cercato', async () => {
     server.use(rispondi('/api/finanziario/riepilogo', F.RIEPILOGO));
-    renderConQuery(<RiepilogoReport filtri={{}} />);
+    conRouter(<RiepilogoReport filtri={{}} />);
     const t = await tabella();
-    await userEvent.type(screen.getByRole('searchbox', { name: 'Cerca nella tabella' }), 'sra03');
+    expect(ricerca().placeholder).toBe("Cerca per codice dell'intervento");
+    await userEvent.type(ricerca(), 'sra03');
     expect(righeCorpo(t)).toEqual(['SRA03']);
     expect(t.querySelector('caption')?.textContent).toBe('Riepilogo per intervento (RF011): 1 riga per «sra03». Clic o Invio su una riga per aprirla.');
     expect(testo((t as HTMLTableElement).tFoot?.textContent)).toContain('500.000,00 €');
@@ -697,7 +847,7 @@ describe('RiepilogoReport (TX-0011, tabella interattiva)', () => {
   it('paginazione a 10 righe', async () => {
     const righe = Array.from({ length: 12 }, (_, n) => ({ ...F.RIEPILOGO.righe[0], codiceIntervento: `SRB${10 + n}`, dotazioneSpesaPubblica: euro((12 - n) * 100000) }));
     server.use(rispondi('/api/finanziario/riepilogo', { ...F.RIEPILOGO, righe }));
-    renderConQuery(<RiepilogoReport filtri={{}} />);
+    conRouter(<RiepilogoReport filtri={{}} />);
     const t = await tabella();
     expect(righeCorpo(t)).toHaveLength(10);
     const pagine = screen.getByRole('navigation', { name: 'Pagine della tabella' });
@@ -708,7 +858,8 @@ describe('RiepilogoReport (TX-0011, tabella interattiva)', () => {
     expect(testo((t as HTMLTableElement).tFoot?.textContent)).toContain('Totale (12 interventi)');
   });
 
-  it("clic o Invio su una riga aprono l'anteprima laterale, da cui si apre il dettaglio con gli stessi filtri", async () => {
+  // V-01: il dettaglio e' dell'intervento intero, ci si arriva senza gli altri filtri
+  it("clic o Invio su una riga aprono l'anteprima laterale, da cui si apre il dettaglio senza gli altri filtri", async () => {
     server.use(rispondi('/api/finanziario/riepilogo', F.RIEPILOGO));
     const { router } = conRouter(<RiepilogoReport filtri={{ intervento: ['SRA01', 'SRA03'] }} />);
     const t = await tabella();
@@ -724,26 +875,28 @@ describe('RiepilogoReport (TX-0011, tabella interattiva)', () => {
     await userEvent.keyboard('{Enter}');
     anteprima = await screen.findByRole('dialog', { name: 'SRA01' });
     const dettaglio = within(anteprima).getByRole('link', { name: "Apri il dettaglio dell'intervento" });
-    expect(dettaglio.getAttribute('href')).toBe('/finanziario/interventi/SRA01?intervento=SRA01&intervento=SRA03');
+    expect(dettaglio.getAttribute('href')).toBe('/finanziario/interventi/SRA01');
     await userEvent.click(dettaglio);
-    await waitFor(() => expect(indirizzo(router)).toBe('/finanziario/interventi/SRA01?intervento=SRA01&intervento=SRA03'));
+    await waitFor(() => expect(indirizzo(router)).toBe('/finanziario/interventi/SRA01'));
   });
 
-  it("vista grafico: card con il grafico montato, tabella equivalente, clic su una barra apre l'anteprima", async () => {
+  // V-18: dalla vista grafico il clic su una barra va al dettaglio, come in Dotazione; V-19: il pagato e' quello netto
+  it("vista grafico: card con il grafico montato, tabella equivalente dei pagamenti netti, clic su una barra apre il dettaglio (non l'anteprima)", async () => {
     server.use(rispondi('/api/finanziario/riepilogo', F.RIEPILOGO));
-    conRouter(<RiepilogoReport filtri={{}} />);
+    const { router } = conRouter(<RiepilogoReport filtri={{ og: ['OG2'] }} />);
     await tabella();
     await userEvent.click(within(screen.getByRole('group', { name: 'Vista del riepilogo' })).getByRole('button', { name: 'Grafico' }));
     expect(screen.queryByRole('table', { name: NOME_TABELLA })).toBeNull();
     const titolo = 'Dotazione e pagamenti per intervento';
     await waitFor(() => expect(graficoDi(titolo).opzioni.length).toBeGreaterThan(0));
-    act(() => clicSu(graficoDi(titolo), { name: 'SRA03', dataIndex: 1 }));
-    expect(await screen.findByRole('dialog', { name: 'SRA03' })).toBeTruthy();
-    await userEvent.keyboard('{Escape}');
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     await vediTabella(titolo);
-    const equivalente = screen.getByRole('table', { name: 'Dotazione e pagato per intervento' });
+    const equivalente = screen.getByRole('table', { name: 'Dotazione e pagamenti al netto delle rettifiche per intervento' });
     expect(within(equivalente).getAllByRole('rowheader').map((c) => c.textContent)).toEqual(['SRA01', 'SRA03']);
+    expect(intestazioni(equivalente)).toEqual(['Intervento', 'Dotazione', 'Pagamenti al netto delle rettifiche']);
+    act(() => clicSu(graficoDi(titolo), { name: 'SRA03', dataIndex: 1, data: { codice: 'SRA03' } }));
+    await waitFor(() => expect(indirizzo(router)).toBe('/finanziario/interventi/SRA03'));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.getByText('pagina del dettaglio')).toBeTruthy();
   });
 
   it('esporta il CSV con gli stessi filtri e X-Requested-With', async () => {
@@ -758,7 +911,7 @@ describe('RiepilogoReport (TX-0011, tabella interattiva)', () => {
     URL.createObjectURL = vi.fn(() => 'blob:prova');
     URL.revokeObjectURL = vi.fn();
     const clic = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
-    renderConQuery(<RiepilogoReport filtri={{ intervento: ['SRA01'] }} />);
+    conRouter(<RiepilogoReport filtri={{ intervento: ['SRA01'] }} />);
     await userEvent.click(await screen.findByRole('button', { name: 'Esporta la tabella in CSV' }));
     expect(await screen.findByText('File CSV scaricato.')).toBeTruthy();
     expect(new URL(richiesta?.url ?? 'http://x').search).toBe('?intervento=SRA01');
@@ -774,7 +927,7 @@ describe('RiepilogoReport (TX-0011, tabella interattiva)', () => {
         HttpResponse.json(problema(403, 'ACCESSO_NEGATO'), { status: 403, headers: { 'Content-Type': 'application/problem+json' } }),
       ),
     );
-    renderConQuery(<RiepilogoReport filtri={{}} />);
+    conRouter(<RiepilogoReport filtri={{}} />);
     await userEvent.click(await screen.findByRole('button', { name: 'Esporta la tabella in CSV' }));
     const avviso = await screen.findByRole('alert');
     expect(avviso.textContent).toBe('Non hai i permessi per consultare questi dati.');
@@ -782,39 +935,62 @@ describe('RiepilogoReport (TX-0011, tabella interattiva)', () => {
     expect(screen.getByRole('table', { name: NOME_TABELLA })).toBeTruthy();
   });
 
-  it('vuoto (status) ed errore (alert) sono rami distinti; senza righe la dotazione AT resta e il CSV no', async () => {
-    server.use(rispondi('/api/finanziario/riepilogo', { perimetro: 'REGIONALE', dotazioneAssistenzaTecnica: { valore: 100000 }, righe: [] }));
-    const { unmount } = renderConQuery(<RiepilogoReport filtri={{ intervento: ['SRA01'] }} />);
+  it('vuoto (status) ed errore (alert) sono rami distinti; senza righe c e solo lo stato vuoto: niente dotazione AT ne CSV', async () => {
+    server.use(rispondi('/api/finanziario/riepilogo', { perimetro: 'REGIONALE', dotazioneAssistenzaTecnica: euro(100000), righe: [] }));
+    const { unmount } = conRouter(<RiepilogoReport filtri={{ intervento: ['SRA01'] }} />);
     expect((await screen.findByText(VUOTO_INTERVENTI)).closest('[role]')?.getAttribute('role')).toBe('status');
-    const at = screen.getByRole('table', { name: 'Valore fuori tabella, indipendente dai filtri' });
-    expect(testo(at.textContent)).toContain('intero programma: non dipende dai filtri');
-    expect(testo(at.textContent)).toContain('100.000,00 €');
+    expect(screen.queryByRole('table')).toBeNull();
+    expect(screen.queryByText(/Dotazione assistenza tecnica/)).toBeNull();
+    expect(screen.queryByText(/100\.000,00/)).toBeNull();
     expect(screen.queryByRole('button', { name: 'Esporta la tabella in CSV' })).toBeNull();
     unmount();
     // 429 non si riprova (CAPACITA_ESAURITA si', con Retry-After): basta a provare il ramo errore
     server.use(rispondi('/api/finanziario/riepilogo', problema(429, 'TROPPE_RICHIESTE'), 429));
-    renderConQuery(<RiepilogoReport filtri={{}} />);
+    conRouter(<RiepilogoReport filtri={{}} />);
     expect((await screen.findByRole('alert')).textContent).toContain('Troppe richieste');
   });
 
-  it('perimetro ADA: colonne di programma dichiarate regionali con la nota del perimetro misto; vuoto che nomina la propria area', async () => {
+  // X-04: le righe di TX-0011 sono dati di programma, uguali per ogni profilo: il loro vuoto non dipende dall'area
+  it('perimetro ADA: colonne di programma dichiarate regionali con la nota del perimetro misto; il vuoto non nomina la propria area', async () => {
     server.use(rispondi('/api/finanziario/riepilogo', { ...F.RIEPILOGO, perimetro: 'ADA' }));
-    const { unmount } = renderConQuery(<RiepilogoReport filtri={{}} />);
+    const { unmount } = conRouter(<RiepilogoReport filtri={{}} />);
     const t = await tabella();
     expect(within(t).getByRole('columnheader', { name: 'Dotazione spesa pubblica (regionale)' })).toBeTruthy();
     expect(within(t).getByRole('columnheader', { name: 'Risorse quota FEASR (regionale)' })).toBeTruthy();
+    expect(within(t).getByRole('columnheader', { name: 'Importo stanziato (regionale)' })).toBeTruthy();
     expect(within(t).getByRole('columnheader', { name: 'Pagamenti al netto di rettifiche' })).toBeTruthy();
     expect(screen.getByText(/i due valori non sono confrontabili/)).toBeTruthy();
     expect(screen.getByText('Perimetro ADA')).toBeTruthy();
     unmount();
     server.use(rispondi('/api/finanziario/riepilogo', { perimetro: 'ADA', righe: [] }));
-    renderConQuery(<RiepilogoReport filtri={{}} />);
-    expect(await screen.findByText(/Nessun dato nella tua area \(perimetro ADA\)/)).toBeTruthy();
+    conRouter(<RiepilogoReport filtri={{}} />);
+    expect(await screen.findByText(VUOTO_INTERVENTI)).toBeTruthy();
+    expect(screen.queryByText(/Nessun dato nella tua area/)).toBeNull();
+  });
+
+  // X-01: la tabella si rimonta quando cambiano i filtri (key), anche tornando a filtri gia' in cache
+  it('una selezione nuova e una tabella nuova: tornando a filtri gia letti ricerca e pagina ripartono da capo', async () => {
+    const righe = Array.from({ length: 12 }, (_, n) => ({ ...F.RIEPILOGO.righe[0], codiceIntervento: `SRB${10 + n}`, dotazioneSpesaPubblica: euro((12 - n) * 100000) }));
+    server.use(rispondi('/api/finanziario/riepilogo', { ...F.RIEPILOGO, righe }));
+    const { cambiaFiltri } = conFiltriVariabili(RiepilogoReport, {});
+    await tabella();
+    cambiaFiltri({ og: ['OG2'] });
+    let t = await tabella();
+    await userEvent.type(ricerca(), 'srb');
+    await userEvent.click(within(screen.getByRole('navigation', { name: 'Pagine della tabella' })).getByRole('button', { name: 'Pagina 2' }));
+    expect(righeCorpo(t)).toEqual(['SRB20', 'SRB21']);
+    // i filtri di prima sono in cache: la tabella c'e' subito, ma e' un'altra
+    cambiaFiltri({});
+    t = screen.getByRole('table', { name: NOME_TABELLA });
+    expect(ricerca().value).toBe('');
+    expect(righeCorpo(t)).toHaveLength(10);
+    expect(righeCorpo(t)[0]).toBe('SRB10');
+    expect(within(screen.getByRole('navigation', { name: 'Pagine della tabella' })).getByRole('button', { name: 'Pagina 1' }).getAttribute('aria-current')).toBe('page');
   });
 
   it('a11y: zero violazioni axe', async () => {
     server.use(rispondi('/api/finanziario/riepilogo', F.RIEPILOGO));
-    const { container } = renderConQuery(<RiepilogoReport filtri={{}} />);
+    const { container } = conRouter(<RiepilogoReport filtri={{}} />);
     await tabella();
     await expectNoA11yViolations(container);
   });
@@ -824,7 +1000,8 @@ describe('DotazioneReport (TX-0002, TX-0003)', () => {
   const servi = () => server.use(rispondi('/api/finanziario/spesa-per-intervento', F.SPESA), rispondi('/api/finanziario/distribuzione-dotazione', F.DISTRIBUZIONE));
   const QUOTE = 'Dotazione tra quota FEASR e non FEASR (RF003)';
 
-  it('tre card con il grafico montato, opzioni dai builder, tabella interattiva per intervento', async () => {
+  // V-06: tutte le colonne si vedono, con il motivo di ogni assenza; V-04: la ciambella porta la dotazione del contratto
+  it('tre card con il grafico montato, opzioni dai builder, tabella interattiva per intervento con tutte le colonne', async () => {
     servi();
     conRouter(<DotazioneReport filtri={{}} />);
     await waitFor(() => expect(graficiVivi()).toHaveLength(3));
@@ -832,20 +1009,73 @@ describe('DotazioneReport (TX-0002, TX-0003)', () => {
     expect(graficoDi('Contributo ambientale per intervento').opzioni.length).toBeGreaterThan(0);
     expect(ultimeOpzioni(graficoDi(QUOTE))).toMatchObject(graficoQuotaFeasr(F.DISTRIBUZIONE).opzioni as object);
     const t = screen.getByRole('table', { name: /^Dotazione, impegni e pagamenti per intervento/ });
+    expect(intestazioni(t)).toEqual([
+      'Intervento',
+      'Dotazione spesa pubblica',
+      'Impegnato cofinanziato FEASR e non',
+      'Impegnato spesa pubblica',
+      'Pagamenti totali (elenchi di liquidazione)',
+      'Quota Stato',
+      'Quota Regione',
+      'Vincolo dotazione LEADER',
+      'Contributo ambientale',
+    ]);
     expect(within(t).getByRole('rowheader', { name: 'SRA01' })).toBeTruthy();
-    expect(testo(within(t).getByRole('row', { name: /SRA01/ }).textContent)).toContain('12,5 %');
-    expect(screen.getByText(/^Colonne nascoste perché nessun intervento ha un valore \(fonte non attiva\): Impegnato cofinanziato FEASR e non, Impegnato spesa pubblica, Vincolo dotazione LEADER\./)).toBeTruthy();
+    const sra01 = testo(within(t).getByRole('row', { name: /SRA01/ }).textContent);
+    expect(sra01).toContain('12,5 %');
+    expect(sra01).toMatch(/non disponibile ?fonte impegni non attiva/);
+    expect(sra01).toMatch(/non disponibile ?fonte vincolo LEADER non attiva/);
+    expect(screen.queryByText(/^Colonne nascoste/)).toBeNull();
     await vediTabella(QUOTE);
     const equivalente = screen.getByRole('table', { name: 'Dotazione: quota FEASR e quota non FEASR' });
+    expect(intestazioni(equivalente)).toEqual(['Voce', 'Importo', 'Sulla dotazione']);
+    expect(testo(within(equivalente).getByRole('row', { name: /^Dotazione spesa pubblica/ }).textContent)).toBe('Dotazione spesa pubblica1.000.000,00 €100 %');
     expect(testo(within(equivalente).getByRole('row', { name: /^Quota FEASR/ }).textContent)).toContain('40 %');
+    // le quote ricompongono la dotazione: nessuno scarto
+    expect(within(equivalente).queryByRole('rowheader', { name: /^Scarto/ })).toBeNull();
   });
 
-  it('drill-down: clic su una barra o su una riga apre il dettaglio dell intervento con i filtri', async () => {
+  it('ciambella FEASR: se le quote non ricompongono la dotazione del contratto, lo scarto e dichiarato con la quota sulla dotazione (V-04)', async () => {
+    server.use(rispondi('/api/finanziario/spesa-per-intervento', F.SPESA), rispondi('/api/finanziario/distribuzione-dotazione', { ...F.DISTRIBUZIONE, quotaNonFeasr: euro(500000) }));
+    conRouter(<DotazioneReport filtri={{}} />);
+    await waitFor(() => expect(graficoDi(QUOTE).opzioni.length).toBeGreaterThan(0));
+    await vediTabella(QUOTE);
+    const t = within(card(QUOTE)).getByRole('table', { name: 'Dotazione: quota FEASR e quota non FEASR' });
+    const celle = (voce: string) => Array.from((within(t).getByRole('rowheader', { name: voce }).closest('tr') as HTMLTableRowElement).cells, (c) => testo(c.textContent)).slice(1);
+    expect(celle('Dotazione spesa pubblica')).toEqual(['1.000.000,00 €', '100 %']);
+    expect(celle('Quota FEASR')).toEqual(['400.000,00 €', '40 %']);
+    expect(celle('Quota non FEASR')).toEqual(['500.000,00 €', '50 %']);
+    expect(celle('Scarto fra la dotazione e la somma delle quote')).toEqual(['100.000,00 €', '10 %']);
+  });
+
+  // X-01: la tabella si rimonta quando cambiano i filtri (key), anche tornando a filtri gia' in cache
+  it('una selezione nuova e una tabella nuova: tornando a filtri gia letti ricerca e pagina ripartono da capo', async () => {
+    const righe = Array.from({ length: 12 }, (_, n) => ({ ...F.SPESA.righe[0], codiceIntervento: `SRB${10 + n}`, dotazioneSpesaPubblica: euro((12 - n) * 100000) }));
+    server.use(rispondi('/api/finanziario/spesa-per-intervento', { ...F.SPESA, righe }), rispondi('/api/finanziario/distribuzione-dotazione', F.DISTRIBUZIONE));
+    const tabella = () => screen.findByRole('table', { name: /^Dotazione, impegni e pagamenti per intervento/ });
+    const { cambiaFiltri } = conFiltriVariabili(DotazioneReport, {});
+    await tabella();
+    cambiaFiltri({ og: ['OG2'] });
+    let t = await tabella();
+    expect(ricerca().placeholder).toBe("Cerca per codice dell'intervento");
+    await userEvent.type(ricerca(), 'srb');
+    await userEvent.click(within(screen.getByRole('navigation', { name: 'Pagine della tabella' })).getByRole('button', { name: 'Pagina 2' }));
+    expect(righeCorpo(t)).toEqual(['SRB20', 'SRB21']);
+    // i filtri di prima sono in cache: la tabella c'e' subito, ma e' un'altra
+    cambiaFiltri({});
+    t = screen.getByRole('table', { name: /^Dotazione, impegni e pagamenti per intervento/ });
+    expect(ricerca().value).toBe('');
+    expect(righeCorpo(t)).toHaveLength(10);
+    expect(within(screen.getByRole('navigation', { name: 'Pagine della tabella' })).getByRole('button', { name: 'Pagina 1' }).getAttribute('aria-current')).toBe('page');
+  });
+
+  // V-01: il dettaglio e' dell'intervento intero, ci si arriva senza gli altri filtri
+  it('drill-down: clic su una barra o su una riga apre il dettaglio dell intervento senza gli altri filtri', async () => {
     servi();
     const primo = conRouter(<DotazioneReport filtri={{ og: ['OG2'] }} />);
     await waitFor(() => expect(graficiVivi()).toHaveLength(3));
     act(() => clicSu(graficoDi('Contributo ambientale per intervento'), { name: 'SRA01', dataIndex: 0 }));
-    await waitFor(() => expect(indirizzo(primo.router)).toBe('/finanziario/interventi/SRA01?og=OG2'));
+    await waitFor(() => expect(indirizzo(primo.router)).toBe('/finanziario/interventi/SRA01'));
     primo.unmount();
     servi();
     const secondo = conRouter(<DotazioneReport filtri={{}} />);
@@ -885,7 +1115,7 @@ describe('DotazioneReport (TX-0002, TX-0003)', () => {
     conRouter(<DotazioneReport filtri={{ intervento: ['SRG08'] }} />);
     expect(await screen.findByRole('rowheader', { name: 'SRG08' })).toBeTruthy();
     const quote = await trovaCard(QUOTE);
-    expect(within(quote).getByText('Grafico non disponibile: quote FEASR e non FEASR entrambe pari a zero: la ciambella non si può disegnare.')).toBeTruthy();
+    expect(within(quote).getByText('Grafico non disponibile: il totale è zero.')).toBeTruthy();
     // grafico non disegnabile: la tabella equivalente e' subito visibile
     expect(within(quote).getByRole('table', { name: 'Dotazione: quota FEASR e quota non FEASR' })).toBeTruthy();
     expect(screen.queryByText(VUOTO_INTERVENTI)).toBeNull();
@@ -898,9 +1128,9 @@ describe('DotazioneReport (TX-0002, TX-0003)', () => {
     await waitFor(() => expect(graficoDi(titolo).opzioni.length).toBeGreaterThan(0));
     const barre = card(titolo);
     expect(within(barre).getByText('1 voce non nel grafico')).toBeTruthy();
-    expect(within(barre).getByText("Perimetro ADA: la dotazione regionale non si affianca ai pagamenti dell'area")).toBeTruthy();
+    expect(within(barre).getByText("perimetro ADA: la dotazione regionale non si affianca ai pagamenti dell'area")).toBeTruthy();
     await vediTabella(titolo);
-    expect(within(barre).getByRole('table', { name: 'Pagato per intervento' })).toBeTruthy();
+    expect(within(barre).getByRole('table', { name: 'Pagamenti totali per intervento' })).toBeTruthy();
     expect(screen.getByRole('columnheader', { name: 'Dotazione spesa pubblica (regionale)' })).toBeTruthy();
     expect(screen.getByRole('columnheader', { name: 'Pagamenti totali (elenchi di liquidazione)' })).toBeTruthy();
     expect(screen.getByText(/i due valori non sono confrontabili/)).toBeTruthy();
@@ -954,8 +1184,8 @@ describe('AvanzamentoReport (TX-0004..TX-0007)', () => {
     await regioneContiene('Importo stanziato', 'Non disponibile: fonte quadro sinottico non attiva');
     await regioneContiene('Importo stanziato', 'dato di programma (regionale)');
     await regioneContiene('Totale impegnato', 'Non disponibile: fonte impegni non attiva');
-    await regioneContiene('Importo pagato', '0,2 M€');
-    await regioneContiene('Dotazione residua sui pagamenti', '0,8 M€');
+    await regioneContiene('Importo pagato', '220.000,00 €');
+    await regioneContiene('Dotazione residua sui pagamenti', '800.000,00 €');
   });
 
   it('quattro sezioni a card; senza tutte e due le parti la ciambella non inventa proporzioni e la tabella mostra cio che c e', async () => {
@@ -977,13 +1207,62 @@ describe('AvanzamentoReport (TX-0004..TX-0007)', () => {
     expect(valoreDi(within(card(RF007)).getByRole('table'), 'Importo recuperato')).toBe('20.000,00 €');
   });
 
-  it('flussi: sankey non disegnato con gli impegni da fonte non attiva, gauge del pagato sulla dotazione disegnato', async () => {
+  // V-09: senza impegni il flusso ridotto dalla dotazione ai pagamenti netti (TX-0007), con il ramo dell'impegnato dichiarato
+  it("flussi: con gli impegni da fonte non attiva il sankey disegna il flusso ridotto da TX-0007 e dichiara il ramo dell'impegnato; gauge disegnato", async () => {
     servi();
     renderConQuery(<AvanzamentoReport filtri={{}} />);
-    const sankey = await trovaCard('Dove va la dotazione');
-    expect(within(sankey).getByText("Grafico non disponibile: impegni da fonte non attiva: il flusso dalla dotazione all'impegnato non si può disegnare.")).toBeTruthy();
-    expect(valoreDi(within(sankey).getByRole('table', { name: "Dalla dotazione all'impegnato e al pagato" }), 'Da impegnare (dotazione meno impegnato)')).toBe('non calcolabile');
+    const titolo = 'Dove va la dotazione';
+    await waitFor(() =>
+      expect(descrizione(graficoDi(titolo))).toBe('Flusso della dotazione (1,0 M€): pagamenti netti 0,2 M€, dotazione residua 0,8 M€. 1 voce omessa per dati mancanti o non utilizzabili.'),
+    );
+    const sankey = card(titolo);
+    expect(within(sankey).getByText('1 voce non nel grafico')).toBeTruthy();
+    expect(within(sankey).getByText("Impegnato non disponibile (fonte impegni non attiva): il ramo dell'impegnato non si disegna")).toBeTruthy();
+    await vediTabella(titolo);
+    const voci = within(sankey).getByRole('table', { name: "Dalla dotazione all'impegnato e al pagato" });
+    // V-08: il da impegnare e' il residuo di TX-0006, non un calcolo del browser
+    expect(valoreDi(voci, 'Da impegnare (dotazione residua sugli impegni)')).toBe('non disponibile (fonte impegni non attiva)');
+    expect(valoreDi(voci, 'Pagamenti al netto delle rettifiche')).toBe('200.000,00 €');
+    expect(valoreDi(voci, 'Dotazione residua sui pagamenti')).toBe('800.000,00 €');
     await waitFor(() => expect(descrizione(graficoDi('Pagato sulla dotazione'))).toContain('22 %'));
+  });
+
+  it('il flusso legge TX-0006, TX-0005 e TX-0007: senza il grant di TX-0006 lo dice come la sezione RF006 e TX-0006 non si legge (R-09)', async () => {
+    servi();
+    profilo('csr.tx-0004.read', 'csr.tx-0005.read', 'csr.tx-0007.read');
+    const client = clientDiTest();
+    renderConQuery(<AvanzamentoReport filtri={{}} />, client);
+    await waitFor(() => expect(screen.getAllByText(NON_DISPONIBILE_PROFILO)).toHaveLength(2));
+    expect(within(card('Dove va la dotazione')).getByText(NON_DISPONIBILE_PROFILO)).toBeTruthy();
+    expect(within(card(RF006)).getByText(NON_DISPONIBILE_PROFILO)).toBeTruthy();
+    await waitFor(() => expect(descrizione(graficoDi('Pagato sulla dotazione'))).toContain('22 %'));
+    await notifiche();
+    expect(letture(client, '/api/finanziario/residuo-impegni')).toHaveLength(0);
+  });
+
+  // A-07: KPI e flussi rileggono dalla cache la transazione della sezione e in errore tacciono: l'avviso e' uno solo
+  it('TX-0007 in errore: un solo avviso, quello della sezione RF007; le tessere del pagato e del residuo e i flussi non compaiono', async () => {
+    servi();
+    server.use(rispondi('/api/finanziario/residuo-pagamenti', problema(500, 'ERRORE_INTERNO'), 500));
+    renderConQuery(<AvanzamentoReport filtri={{}} />);
+    await trovaCard(RF006);
+    await regioneContiene('Totale impegnato', 'Non disponibile: fonte impegni non attiva');
+    await waitFor(() => expect(screen.getAllByRole('alert')).toHaveLength(1));
+    await notifiche();
+    await waitFor(() => expect(screen.getAllByRole('alert')).toHaveLength(1));
+    const avviso = screen.getByRole('alert');
+    expect(within(avviso).getByRole('button', { name: 'Riprova' })).toBeTruthy();
+    for (const nome of ['Importo pagato', 'Dotazione residua sui pagamenti', 'Dove va la dotazione', 'Pagato sulla dotazione', RF007]) {
+      expect(screen.queryByRole('region', { name: nome })).toBeNull();
+    }
+    expect(screen.getByRole('region', { name: 'Importo stanziato' })).toBeTruthy();
+    // l'avviso e' quello di TX-0007: con la lettura di nuovo a buon fine, Riprova riporta la sezione, le tessere e i flussi
+    server.use(rispondi('/api/finanziario/residuo-pagamenti', F.RESIDUO_PAGAMENTI));
+    await userEvent.click(within(avviso).getByRole('button', { name: 'Riprova' }));
+    await waitFor(() => expect(graficoDi(RF007).opzioni.length).toBeGreaterThan(0));
+    await regioneContiene('Importo pagato', '220.000,00 €');
+    expect(screen.getByRole('region', { name: 'Dove va la dotazione' })).toBeTruthy();
+    expect(screen.queryByRole('alert')).toBeNull();
   });
 
   it('perimetro per sezione: dati di programma regionali accanto a misure ADA', async () => {
@@ -1004,14 +1283,19 @@ describe('AvanzamentoReport (TX-0004..TX-0007)', () => {
     expect(within(card(RF007)).getByRole('rowheader', { name: 'Dotazione spesa pubblica (regionale)' })).toBeTruthy();
   });
 
-  // regressione: col perimetro ADA il gauge non divide i pagamenti dell'area per la dotazione regionale
-  it('perimetro ADA: il gauge del pagato sulla dotazione non si disegna (non confrontabile)', async () => {
+  // regressione: col perimetro ADA il gauge e il flusso non mettono in rapporto i pagamenti dell'area e la dotazione regionale
+  it('perimetro ADA: il gauge del pagato sulla dotazione e il flusso della dotazione non si disegnano (non confrontabili)', async () => {
     servi();
     server.use(rispondi('/api/finanziario/residuo-pagamenti', { ...F.RESIDUO_PAGAMENTI, perimetro: 'ADA' }));
     renderConQuery(<AvanzamentoReport filtri={{}} />);
     await waitFor(() => expect(graficoDi(RF007).opzioni.length).toBeGreaterThan(0));
     expect(() => graficoDi('Pagato sulla dotazione')).toThrow();
-    expect(within(card('Pagato sulla dotazione')).getByText(/^Grafico non disponibile/)).toBeTruthy();
+    expect(
+      within(card('Pagato sulla dotazione')).getByText("Grafico non disponibile: perimetro ADA: la dotazione è regionale, i pagamenti sono dell'area: il rapporto non è confrontabile."),
+    ).toBeTruthy();
+    const flusso = await trovaCard('Dove va la dotazione');
+    expect(within(flusso).getByText("Grafico non disponibile: perimetro ADA: la dotazione è regionale, impegni e pagamenti sono dell'area: il flusso non è confrontabile.")).toBeTruthy();
+    expect(() => graficoDi('Dove va la dotazione')).toThrow();
   });
 
   it('selezione senza interventi (righe di TX-0002): quattro stati vuoti', async () => {
@@ -1054,7 +1338,7 @@ describe('AvanzamentoReport (TX-0004..TX-0007)', () => {
     );
     renderConQuery(<AvanzamentoReport filtri={{ intervento: ['SRA99'] }} />);
     await waitFor(() => expect(screen.getAllByText(VUOTO_INTERVENTI)).toHaveLength(4));
-    expect(screen.queryAllByText('0,0 M€')).toHaveLength(0);
+    expect(screen.queryAllByText(/^0,00\s€$/)).toHaveLength(0);
     expect(screen.queryAllByText(/0,00.€/)).toHaveLength(0);
   });
 
@@ -1065,7 +1349,7 @@ describe('AvanzamentoReport (TX-0004..TX-0007)', () => {
     const rf004 = await trovaCard(RF004);
     expect(within(rf004).getByText('Grafico non disponibile: il totale è zero.')).toBeTruthy();
     expect(valoreDi(within(rf004).getByRole('table'), 'Importo stanziato')).toBe('0,00 €');
-    await regioneContiene('Importo stanziato', '0,0 M€');
+    await regioneContiene('Importo stanziato', '0,00 €');
     expect(screen.queryByText(VUOTO_INTERVENTI)).toBeNull();
   });
 
@@ -1134,7 +1418,34 @@ describe('DomandeReport (TX-0008..TX-0010)', () => {
     expect(within(importi).getByRole('columnheader', { name: 'Importo decretato (elenchi di liquidazione, come i pagamenti totali di RF005)' })).toBeTruthy();
     expect(testo(importi.textContent)).toMatch(/non disponibile ?fonte quadro sinottico non attiva/);
     await vediTabella(RF010);
-    expect(within(card(RF010)).getByRole('table', { name: 'Importo ammesso e decretato per anno di raccolta' })).toBeTruthy();
+    expect(within(card(RF010)).getByRole('table', { name: 'Importi per anno di raccolta: stanziato, ammesso e decretato' })).toBeTruthy();
+  });
+
+  // V-15: le quattro tessere del wireframe domande
+  it("quattro KPI: domande presentate e di prima annualita (TX-0009), importo ammesso somma degli anni con le domande senza ammesso, importo stanziato con il motivo", async () => {
+    servi();
+    renderConQuery(<DomandeReport filtri={{}} />);
+    await waitFor(() => expect(valoreKpi('Importo ammesso')).toBe('910.000,00 €'));
+    expect(notaKpi('Importo ammesso')).toBe('90 domande senza importo ammesso: non entrano nella somma');
+    expect(valoreKpi('Importo stanziato')).toBe('Non disponibile: fonte quadro sinottico non attiva');
+    await waitFor(() => expect(valoreKpi('Domande presentate')).toBe('1200'));
+    expect(valoreKpi('di cui prima annualità')).toBe('400');
+  });
+
+  it("clic su un anno del grafico: la tabella di dettaglio mostra quell'anno, 'Mostra tutti gli anni' la riporta intera", async () => {
+    servi();
+    renderConQuery(<DomandeReport filtri={{}} />);
+    await waitFor(() => expect(graficoDi(RF008).opzioni.length).toBeGreaterThan(0));
+    const anni = () => within(screen.getByRole('table', { name: 'Domande per anno di raccolta' })).getAllByRole('rowheader').map((c) => c.textContent);
+    expect(anni()).toEqual(['2024', 'senza campagna']);
+    act(() => clicSu(graficoDi(RF008), { name: '2024', dataIndex: 0 }));
+    await waitFor(() => expect(anni()).toEqual(['2024']));
+    await userEvent.click(screen.getByRole('button', { name: 'Mostra tutti gli anni (ora: 2024)' }));
+    expect(anni()).toEqual(['2024', 'senza campagna']);
+    expect(screen.queryByRole('button', { name: /^Mostra tutti gli anni/ })).toBeNull();
+    // anche le domande senza campagna sono un anno che si puo' scegliere
+    act(() => clicSu(graficoDi(RF008), { name: 'senza campagna', dataIndex: 1 }));
+    await waitFor(() => expect(anni()).toEqual(['senza campagna']));
   });
 
   it('perimetro ADA senza domande: lo stato vuoto (status) nomina la propria area', async () => {
@@ -1249,7 +1560,7 @@ describe('RiservaReport (TX-0014)', () => {
     const client = clientDiTest();
     renderConQuery(<RiservaReport anno={undefined} onCambiaAnno={onCambia} />, client);
     expect(screen.getByRole('status').textContent).toBe("Scegli l'anno della riserva da consultare.");
-    await userEvent.selectOptions(screen.getByLabelText('Anno della riserva (anno n)'), '2025');
+    await userEvent.selectOptions(screen.getByLabelText('Anno di riferimento (anno n)'), '2025');
     expect(onCambia).not.toHaveBeenCalled();
     await userEvent.click(screen.getByRole('button', { name: 'Mostra' }));
     expect(onCambia).toHaveBeenCalledWith(2025);
@@ -1259,9 +1570,41 @@ describe('RiservaReport (TX-0014)', () => {
   it('il 404 NOT_FOUND e uno stato vuoto spiegato (status), non un errore', async () => {
     server.use(rispondi('/api/finanziario/riserva/2025', problema(404, 'NOT_FOUND'), 404));
     renderConQuery(<RiservaReport anno={2025} onCambiaAnno={nessunaAzione} />);
-    const vuoto = await screen.findByText('Nessun dato di riserva per il 2025: i movimenti della riserva non sono ancora stati acquisiti.');
+    const vuoto = await screen.findByText('Nessuna riserva calcolata per il 2025. Scegli un altro anno.');
     expect(vuoto.closest('[role]')?.getAttribute('role')).toBe('status');
+    expect(within(screen.getByRole('region', { name: "Riserva di efficacia (5%) dell'anno 2025 (RF014)" })).getByText(/^Nessuna riserva calcolata/)).toBeTruthy();
     expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  // V-17: accumulato, congelato, utilizzato e residuo come tessere, sopra la tabella delle voci di contorno
+  it("quattro KPI (accumulato, congelato, utilizzato, residuo) sopra la tabella delle voci, nella sezione dell'anno", async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2027, 1, 1));
+    try {
+      const riserva = {
+        ...F.RISERVA,
+        montantePagamenti: 100000000,
+        importoAccumulato: 5000000,
+        importoCongelato: 5000000,
+        importoUtilizzato: 3000000,
+        importoResiduoDisponibile: 2000000,
+        utilizzoProgressivo: [],
+      };
+      server.use(rispondi('/api/finanziario/riserva/2025', riserva));
+      renderConQuery(<RiservaReport anno={2025} onCambiaAnno={nessunaAzione} />);
+      const sezione = await screen.findByRole('region', { name: "Riserva di efficacia (5%) dell'anno 2025 (RF014)" });
+      const voci = await within(sezione).findByRole('table', { name: /^Riserva dell'anno 2025/ });
+      const KPI = ['Importo accumulato', 'Importo congelato', 'Importo utilizzato', 'Residuo disponibile'];
+      expect(KPI.map(valoreKpi)).toEqual(['5,0 M€', '5,0 M€', '3,0 M€', '2,0 M€']);
+      expect(notaKpi('Importo accumulato')).toBe('Fase: residuo (2% del montante, dal 1/1/2027)');
+      for (const k of KPI) {
+        const tessera = within(sezione).getByRole('region', { name: k });
+        expect(tessera.compareDocumentPosition(voci) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      }
+      expect(valoreDi(voci, 'Montante dei pagamenti')).toBe('100.000.000,00 €');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('un errore diverso dal 404 NOT_FOUND resta un errore (alert)', async () => {
@@ -1334,6 +1677,9 @@ describe('RiservaReport (TX-0014)', () => {
 });
 
 describe('VerificaSmpReport (TX-0015)', () => {
+  const TABELLA_SMP = /^I dati ASR per intervento da confrontare con SMP/;
+  const GRAFICO_SMP = 'Previsione di pagamento e spesa erogata per intervento';
+
   it("senza esercizio chiede di sceglierlo; l'esercizio 2030 e selezionabile", () => {
     renderConQuery(<VerificaSmpReport filtri={{}} esercizio={undefined} onCambiaEsercizio={nessunaAzione} />);
     expect(screen.getByRole('status').textContent).toBe("Scegli l'esercizio finanziario da consultare.");
@@ -1348,8 +1694,8 @@ describe('VerificaSmpReport (TX-0015)', () => {
         return HttpResponse.json(F.VERIFICA_SMP);
       }),
     );
-    renderConQuery(<VerificaSmpReport filtri={{ intervento: ['SRA01'] }} esercizio={2025} onCambiaEsercizio={nessunaAzione} />);
-    const tabella = await screen.findByRole('table', { name: 'I dati ASR per intervento da confrontare con SMP' });
+    conRouter(<VerificaSmpReport filtri={{ intervento: ['SRA01'] }} esercizio={2025} onCambiaEsercizio={nessunaAzione} />);
+    const tabella = await screen.findByRole('table', { name: TABELLA_SMP });
     expect(within(tabella).getAllByRole('columnheader')).toHaveLength(21);
     expect(within(tabella).getByRole('rowheader').textContent).toBe('SRA01');
     expect(tabella.textContent).toContain('non disponibile');
@@ -1358,21 +1704,93 @@ describe('VerificaSmpReport (TX-0015)', () => {
     expect(valoreDi(screen.getByRole('table', { name: 'Esercizio' }), 'Anno delle domande')).toBe('2024');
   });
 
+  // V-16: TabellaInterattiva con ricerca e scelta delle colonne, come nel wireframe verifica-smp
+  it('tabella interattiva: Intervento fisso, scelta delle altre 20 colonne, ricerca per codice o indicatore, 20 righe per pagina', async () => {
+    const righe = Array.from({ length: 25 }, (_, n) => ({ ...F.VERIFICA_SMP.righe[0], codiceIntervento: `SRB${10 + n}`, indicatoreRisultato: n === 24 ? 'R.1' : null }));
+    server.use(rispondi('/api/finanziario/sigc/verifica-smp', { ...F.VERIFICA_SMP, righe }));
+    conRouter(<VerificaSmpReport filtri={{}} esercizio={2025} onCambiaEsercizio={nessunaAzione} />);
+    const t = await screen.findByRole('table', { name: TABELLA_SMP });
+    expect(righeCorpo(t)).toHaveLength(20);
+    expect(screen.getByRole('navigation', { name: 'Pagine della tabella' }).textContent).toContain('Pagina 1 di 2');
+    const colonne = within(screen.getByRole('group', { name: 'Colonne visibili' }));
+    expect(colonne.getAllByRole('checkbox')).toHaveLength(20);
+    expect(colonne.queryByRole('checkbox', { name: 'Intervento' })).toBeNull();
+    await userEvent.click(screen.getByText('Colonne'));
+    await userEvent.click(colonne.getByRole('checkbox', { name: 'Indicatore di risultato' }));
+    expect(within(t).getAllByRole('columnheader')).toHaveLength(20);
+    expect(within(t).queryByRole('columnheader', { name: 'Indicatore di risultato' })).toBeNull();
+    expect(ricerca().placeholder).toBe('Cerca per codice o indicatore');
+    await userEvent.type(ricerca(), 'r.1');
+    expect(righeCorpo(t)).toEqual(['SRB34']);
+    await userEvent.clear(ricerca());
+    await userEvent.type(ricerca(), 'srb3');
+    expect(righeCorpo(t)).toEqual(['SRB30', 'SRB31', 'SRB32', 'SRB33', 'SRB34']);
+    expect(screen.queryByRole('navigation', { name: 'Pagine della tabella' })).toBeNull();
+  });
+
+  it("clic su una barra del grafico: dettaglio dell'intervento, senza gli altri filtri", async () => {
+    server.use(rispondi('/api/finanziario/sigc/verifica-smp', F.VERIFICA_SMP));
+    const { router } = conRouter(<VerificaSmpReport filtri={{ og: ['OG2'] }} esercizio={2025} onCambiaEsercizio={nessunaAzione} />);
+    await waitFor(() => expect(graficoDi(GRAFICO_SMP).opzioni.length).toBeGreaterThan(0));
+    act(() => clicSu(graficoDi(GRAFICO_SMP), { name: 'SRA01', dataIndex: 0, data: { codice: 'SRA01' } }));
+    await waitFor(() => expect(indirizzo(router)).toBe('/finanziario/interventi/SRA01'));
+    expect(screen.getByText('pagina del dettaglio')).toBeTruthy();
+  });
+
   it('grafico della previsione e della spesa erogata montato, con la previsione assente dichiarata fra le voci omesse', async () => {
     server.use(rispondi('/api/finanziario/sigc/verifica-smp', F.VERIFICA_SMP));
-    renderConQuery(<VerificaSmpReport filtri={{}} esercizio={2025} onCambiaEsercizio={nessunaAzione} />);
+    conRouter(<VerificaSmpReport filtri={{}} esercizio={2025} onCambiaEsercizio={nessunaAzione} />);
     const titolo = 'Previsione di pagamento e spesa erogata per intervento';
     await waitFor(() => expect(graficoDi(titolo).opzioni.length).toBeGreaterThan(0));
     const c = card(titolo);
     expect(within(c).getByText('1 voce non nel grafico')).toBeTruthy();
-    expect(within(c).getByText('SRA01: previsione di pagamento non disponibile (fonte previsione di pagamento non attiva)')).toBeTruthy();
+    expect(within(c).getByText('SRA01, previsione di pagamento: non disponibile (fonte previsione di pagamento non attiva)')).toBeTruthy();
     expect(within(c).getByText('Fonte: TX-0015, esercizio 2025')).toBeTruthy();
   });
 
   it('a11y: zero violazioni axe', async () => {
     server.use(rispondi('/api/finanziario/sigc/verifica-smp', F.VERIFICA_SMP));
-    const { container } = renderConQuery(<VerificaSmpReport filtri={{}} esercizio={2025} onCambiaEsercizio={nessunaAzione} />);
-    await screen.findByRole('table', { name: 'I dati ASR per intervento da confrontare con SMP' });
+    const { container } = conRouter(<VerificaSmpReport filtri={{}} esercizio={2025} onCambiaEsercizio={nessunaAzione} />);
+    await screen.findByRole('table', { name: TABELLA_SMP });
     await expectNoA11yViolations(container);
+  });
+});
+
+describe('Stato vuoto azionabile (V-21) e perimetro del vuoto (X-04)', () => {
+  const SIGC_SENZA_DOMANDE = { presentate: 0, pagate: 0, daPagare: 0 };
+  const SIGC_IMPORTI_ZERO = { richiesto: ZERO, ammesso: ZERO, pagato: ZERO, ancoraDaPagare: ZERO, domandeSenza: { richiesto: 0, ammesso: 0, pagato: 0 } };
+
+  it('dentro una pagina con il pannello dei filtri il vuoto ha il bottone "Modifica i filtri", che apre il pannello', async () => {
+    server.use(
+      rispondi('/api/finanziario/sigc/domande', { perimetro: 'REGIONALE', ...SIGC_SENZA_DOMANDE }),
+      rispondi('/api/finanziario/sigc/importi', { perimetro: 'REGIONALE', ...SIGC_IMPORTI_ZERO }),
+    );
+    const apriFiltri = vi.fn();
+    renderConQuery(
+      <ContestoFiltri.Provider value={apriFiltri}>
+        <SigcReport filtri={{ intervento: ['SRA99'] }} />
+      </ContestoFiltri.Provider>,
+    );
+    await waitFor(() => expect(screen.getAllByText('Nessuna domanda SIGC per i filtri scelti.')).toHaveLength(2));
+    // l'invito non resta nel testo: e' il bottone
+    expect(screen.queryByText(/Modifica i filtri\.$/)).toBeNull();
+    const bottoni = screen.getAllByRole('button', { name: 'Modifica i filtri' });
+    expect(bottoni).toHaveLength(2);
+    await userEvent.click(bottoni[0]);
+    expect(apriFiltri).toHaveBeenCalledTimes(1);
+  });
+
+  it("per un P4 il vuoto delle misure per domanda (SIGC) nomina la sua area, quello dei dati di programma (righe di TX-0002) no", async () => {
+    server.use(
+      rispondi('/api/finanziario/spesa-per-intervento', { perimetro: 'ADA', righe: [] }),
+      rispondi('/api/finanziario/sigc/domande', { perimetro: 'ADA', ...SIGC_SENZA_DOMANDE }),
+      rispondi('/api/finanziario/sigc/importi', { perimetro: 'ADA', ...SIGC_IMPORTI_ZERO }),
+    );
+    conRouter(<Panoramica filtri={{ intervento: ['SRA99'] }} />);
+    expect(await screen.findByText(VUOTO_INTERVENTI)).toBeTruthy();
+    await waitFor(() =>
+      expect(screen.getAllByText('Nessun dato nella tua area (perimetro ADA) per i filtri scelti: le domande delle altre aree non rientrano nel tuo profilo. Modifica i filtri.')).toHaveLength(2),
+    );
+    expect(screen.getAllByText(/^Nessun dato nella tua area/)).toHaveLength(2);
   });
 });

@@ -1,8 +1,19 @@
-import { describe, expect, it, vi } from 'vitest';
-import { http, HttpResponse } from 'msw';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { delay, http, HttpResponse } from 'msw';
+import { isCancel } from 'axios';
 import type { AxiosError } from 'axios';
 import { server } from '../src/shared/api/mock/server';
-import { AXIOS_INSTANCE, authEvents } from '../src/shared/api/mutator/bff-mutator';
+import {
+  AXIOS_INSTANCE,
+  GUARDIA_DOPO_ANNULLO_MS,
+  LETTURE_IN_PARALLELO,
+  NOME_LOCK_LETTURE,
+  TETTI_LETTURE_PREDEFINITI,
+  authEvents,
+  azzeraCodeLetture,
+  configuraTettiLetture,
+  customInstance,
+} from '../src/shared/api/mutator/bff-mutator';
 import { classifyProblem, PROBLEM_TYPES } from '../src/shared/api/problem/problem-types';
 
 // Path neutro: il contratto BFF non dipende da alcuna slice.
@@ -67,5 +78,188 @@ describe('Problem-type end-to-end sul flusso axios reale', () => {
   });
   it('501 => not-portable per STATUS (nessun problem-type URI dedicato)', async () => {
     expect((await callAndClassify(501)).kind).toBe('not-portable');
+  });
+});
+
+describe('coda delle letture: tetto per prefisso del percorso (review step9 H-21)', () => {
+  afterEach(() => azzeraCodeLetture());
+
+  // risposta lenta che misura quante richieste al percorso sono in corso insieme
+  function misuraParallelo(percorso: string, metodo: 'get' | 'post' = 'get') {
+    const misura = { inCorso: 0, massimo: 0 };
+    server.use(
+      http[metodo](`*${percorso}`, async () => {
+        misura.inCorso++;
+        misura.massimo = Math.max(misura.massimo, misura.inCorso);
+        await delay(20);
+        misura.inCorso--;
+        return HttpResponse.json({ ok: true });
+      }),
+    );
+    return misura;
+  }
+  const insieme = (url: string, method = 'GET', n = 5) =>
+    Promise.all(Array.from({ length: n }, () => customInstance<{ ok: boolean }>({ url, method })));
+
+  it(`di default solo il finanziario ha un tetto: al piu' ${LETTURE_IN_PARALLELO} GET insieme, le altre in coda`, async () => {
+    expect(TETTI_LETTURE_PREDEFINITI).toEqual({ '/api/finanziario/': 2 });
+    const misura = misuraParallelo('/api/finanziario/lenta');
+    expect((await insieme('/api/finanziario/lenta')).every((e) => e.ok)).toBe(true);
+    expect(misura.massimo).toBe(LETTURE_IN_PARALLELO);
+  });
+
+  it('le GET fuori dai prefissi con un tetto e le scritture non vanno in coda', async () => {
+    const altraArea = misuraParallelo('/api/altra-area/lenta');
+    const scrittura = misuraParallelo('/api/finanziario/scrittura', 'post');
+    await Promise.all([insieme('/api/altra-area/lenta'), insieme('/api/finanziario/scrittura', 'POST')]);
+    expect(altraArea.massimo).toBe(5);
+    expect(scrittura.massimo).toBe(5);
+  });
+
+  it('tetti configurabili: una coda per prefisso, vale il prefisso piu lungo', async () => {
+    configuraTettiLetture({ '/api/area/': 3, '/api/area/pesante/': 1 });
+    const pesante = misuraParallelo('/api/area/pesante/report');
+    const leggera = misuraParallelo('/api/area/leggera');
+    const finanziario = misuraParallelo('/api/finanziario/lenta');
+    await Promise.all([insieme('/api/area/pesante/report'), insieme('/api/area/leggera'), insieme('/api/finanziario/lenta')]);
+    expect(pesante.massimo).toBe(1);
+    expect(leggera.massimo).toBe(3);
+    // il finanziario non e' piu' fra i tetti configurati
+    expect(finanziario.massimo).toBe(5);
+  });
+
+  it('il reset torna ai tetti predefiniti', async () => {
+    configuraTettiLetture({});
+    azzeraCodeLetture();
+    const misura = misuraParallelo('/api/finanziario/lenta');
+    await insieme('/api/finanziario/lenta');
+    expect(misura.massimo).toBe(LETTURE_IN_PARALLELO);
+  });
+
+  it('un errore libera comunque il posto', async () => {
+    server.use(
+      http.get('*/api/finanziario/rotta', () => new HttpResponse(null, { status: 500 })),
+      http.get('*/api/finanziario/sana', () => HttpResponse.json({ ok: true })),
+    );
+    await Promise.all([1, 2, 3].map(() => customInstance({ url: '/api/finanziario/rotta', method: 'GET' }).catch(() => undefined)));
+    expect(await customInstance<{ ok: boolean }>({ url: '/api/finanziario/sana', method: 'GET' })).toEqual({ ok: true });
+  });
+});
+
+describe("coda delle letture: tetto dell'utente, non della scheda (review X-02)", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    Reflect.deleteProperty(navigator, 'locks');
+    azzeraCodeLetture();
+  });
+
+  const URL = '/api/finanziario/lenta';
+  // risposta lenta (o appesa) che conta le richieste arrivate e quelle in corso insieme sul backend
+  function backend(attesaMs: number | 'infinite' = 50) {
+    const stato = { arrivate: 0, inCorso: 0, massimo: 0, servite: 0 };
+    server.use(
+      http.get(`*${URL}`, async () => {
+        stato.arrivate++;
+        stato.inCorso++;
+        stato.massimo = Math.max(stato.massimo, stato.inCorso);
+        await delay(attesaMs);
+        stato.inCorso--;
+        stato.servite++;
+        return HttpResponse.json({ ok: true });
+      }),
+    );
+    return stato;
+  }
+  const leggi = (signal?: AbortSignal) => customInstance<{ ok: boolean }>({ url: URL, method: 'GET', signal });
+  const finche = (condizione: () => boolean) => vi.waitFor(() => expect(condizione()).toBe(true), { timeout: 2000, interval: 5 });
+
+  it("una lettura annullata risponde subito a chi l'ha chiesta ma tiene il posto finche' il backend non risponde", async () => {
+    const stato = backend(50);
+    const annullamento = new AbortController();
+    const annullate = [leggi(annullamento.signal), leggi(annullamento.signal)];
+    await finche(() => stato.arrivate === 2);
+    annullamento.abort();
+    for (const a of annullate) expect(isCancel(await a.catch((e: unknown) => e))).toBe(true);
+    // l'annullamento e' arrivato prima delle risposte: il backend sta ancora lavorando le due letture
+    expect(stato.inCorso).toBe(2);
+    expect(await leggi()).toEqual({ ok: true });
+    // la terza e' partita solo dopo le risposte delle due annullate
+    expect(stato.massimo).toBe(LETTURE_IN_PARALLELO);
+  });
+
+  it('annullata mentre aspetta il posto, esce dalla coda senza partire', async () => {
+    const stato = backend(30);
+    const annullamento = new AbortController();
+    const prime = [leggi(), leggi()];
+    const inCoda = leggi(annullamento.signal);
+    annullamento.abort();
+    expect(isCancel(await inCoda.catch((e: unknown) => e))).toBe(true);
+    await Promise.all(prime);
+    expect(stato.arrivate).toBe(2);
+  });
+
+  it('una lettura annullata e senza risposta libera il posto dopo il tempo di guardia', async () => {
+    configuraTettiLetture({ '/api/finanziario/': 1 });
+    const appesa = backend('infinite');
+    const annullamento = new AbortController();
+    const annullata = leggi(annullamento.signal);
+    await finche(() => appesa.arrivate === 1);
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    annullamento.abort();
+    expect(isCancel(await annullata.catch((e: unknown) => e))).toBe(true);
+    server.use(http.get('*/api/finanziario/sana', () => HttpResponse.json({ ok: true })));
+    let servita = false;
+    const dopo = customInstance<{ ok: boolean }>({ url: '/api/finanziario/sana', method: 'GET' }).then((r) => {
+      servita = true;
+      return r;
+    });
+    for (let i = 0; i < 20; i++) await new Promise<void>((r) => setImmediate(r));
+    expect(servita).toBe(false);
+    vi.advanceTimersByTime(GUARDIA_DOPO_ANNULLO_MS);
+    vi.useRealTimers();
+    expect(await dopo).toEqual({ ok: true });
+  });
+
+  // LockManager finto, come quello condiviso fra le schede: lock esclusivi con nome, serviti in ordine di richiesta
+  function installaLocksFinti() {
+    const tenuti = new Set<string>();
+    const attese = new Map<string, (() => void)[]>();
+    const request = (nome: string, opzioni: LockOptions, lavoro: (lock: Lock | null) => Promise<unknown>) =>
+      new Promise((ok, ko) => {
+        const esegui = () => {
+          tenuti.add(nome);
+          void lavoro({ name: nome, mode: 'exclusive' }).then((v) => {
+            tenuti.delete(nome);
+            attese.get(nome)?.shift()?.();
+            ok(v);
+          }, ko);
+        };
+        if (!tenuti.has(nome)) return esegui();
+        attese.set(nome, [...(attese.get(nome) ?? []), esegui]);
+        opzioni.signal?.addEventListener('abort', () => {
+          attese.set(nome, (attese.get(nome) ?? []).filter((f) => f !== esegui));
+          ko(new DOMException('annullata', 'AbortError'));
+        });
+      });
+    Object.defineProperty(navigator, 'locks', { value: { request }, configurable: true });
+    return { request, tenuti };
+  }
+
+  it("con le Web Locks il tetto vale fra le schede: il posto tenuto da un'altra scheda qui non si usa", async () => {
+    const locks = installaLocksFinti();
+    // l'altra scheda tiene il posto 0 del finanziario
+    let rilasciaAltraScheda = () => {};
+    void locks.request(`${NOME_LOCK_LETTURE}:/api/finanziario/:0`, {}, () => new Promise<void>((r) => (rilasciaAltraScheda = r)));
+    const stato = backend(10);
+    const letture = Promise.all([leggi(), leggi(), leggi(), leggi()]);
+    await finche(() => stato.servite >= 2);
+    // una lettura alla volta, sul solo posto 1
+    expect(stato.massimo).toBe(1);
+    rilasciaAltraScheda();
+    expect((await letture).every((r) => r.ok)).toBe(true);
+    expect(stato.servite).toBe(4);
+    expect(stato.massimo).toBeLessThanOrEqual(LETTURE_IN_PARALLELO);
+    // finite le letture, i lock di questa scheda sono liberi
+    expect(locks.tenuti.size).toBe(0);
   });
 });

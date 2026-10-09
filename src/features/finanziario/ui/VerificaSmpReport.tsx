@@ -1,45 +1,68 @@
 // VerificaSmpReport — pattern DS "report" (route /finanziario/sigc/verifica-smp, TX-0015/RF015, wireframe
 // verifica-smp.html): i dati SIGC per intervento da confrontare con SMP - Data Platform, per l'esercizio scelto
-// (obbligatorio). Tabella larga in un contenitore scorrevole, intestazione di riga sul codice intervento; i dati ASR
-// mancanti sono "non disponibile" (decisione di OP-004). UI v2: barre della previsione e della spesa erogata con zoom.
-import { CardGrafico, VistaQuery, Vuoto } from '../../../shared/ui';
+// (obbligatorio). Tabella interattiva dei venti dati (cerca, ordina, scegli le colonne), intestazione di riga sul codice
+// intervento; i dati ASR mancanti sono "non disponibile" (decisione di OP-004). UI v2: barre della previsione e della
+// spesa erogata con zoom; clic su una barra: il dettaglio dell'intervento.
+import type { ReactNode } from 'react';
+import { useNavigate } from 'react-router';
+import { ValoreImporto } from '../../../entities/importo';
+import type { ImportoLike } from '../../../entities/importo';
+import { codiceDalClic } from '../../../shared/lib';
+import { CardGrafico, Sezione, TabellaInterattiva, TabellaVoci, VistaQuery, Vuoto } from '../../../shared/ui';
+import type { ClicGrafico, ColonnaTabella } from '../../../shared/ui';
 import { useVerificaSmp } from '../api';
 import type { VerificaSmpRiga } from '../api';
+import { ricercaDaFiltri } from '../lib/filtri';
 import type { Filtri } from '../lib/filtri';
 import { annoOpzionale, numeroOpzionale, siNo, testoOpzionale } from '../lib/formato';
-import { Numero, PerimetroSezione, Sezione, TabellaRighe, TabellaVoci, colonnaImporto, vuotoConPerimetro } from './comuni';
-import type { Colonna } from './comuni';
 import { graficoSmp } from '../lib/grafici';
+import { codiceInterventoValido, percorsoIntervento } from '../lib/report';
+import { Numero, PerimetroSezione, vuotoConPerimetro } from './comuni';
 import { SelettoreAnno } from './SelettoreAnno';
 
 type Riga = VerificaSmpRiga;
-const COLONNE: Colonna<Riga>[] = [
-  ['Avvisi attivati', (r) => <Numero valore={r.avvisiAttivati} />],
-  ['Azioni attivate', (r) => numeroOpzionale(r.azioniAttivate)],
-  ['Domande ricevute', (r) => <Numero valore={r.domandeRicevute} />],
-  ['Domande ricevute senza richiesto', (r) => <Numero valore={r.domandeRicevuteSenzaRichiesto} />],
-  colonnaImporto<Riga>('Valore domande ricevute', (r) => r.valoreDomandeRicevute),
-  ['Domande finanziate', (r) => <Numero valore={r.domandeFinanziate} />],
-  colonnaImporto<Riga>('Valore domande finanziate', (r) => r.valoreDomandeFinanziate),
-  colonnaImporto<Riga>('Dotazione anno precedente', (r) => r.dotazioneAnnoPrecedente),
-  colonnaImporto<Riga>('Dotazione periodo di impegno', (r) => r.dotazionePeriodoImpegno),
-  ["Domande pagate nell'esercizio", (r) => <Numero valore={r.domandePagateEsercizio} />],
-  colonnaImporto<Riga>('Spesa erogata campagna precedente', (r) => r.spesaErogataCampagnaPrecedente),
-  colonnaImporto<Riga>('Spesa erogata campagne anteriori', (r) => r.spesaErogataCampagneAnteriori),
-  colonnaImporto<Riga>("Previsione di pagamento nell'esercizio", (r) => r.previsionePagamentoEsercizio),
-  colonnaImporto<Riga>('Importo top-up', (r) => r.importoTopUp),
-  ['Include top-up', (r) => siNo(r.includeTopUp)],
-  ['Ettari o UBA richiesti', (r) => numeroOpzionale(r.ettariUbaRichiesti)],
-  ['Output atteso delle finanziate', (r) => numeroOpzionale(r.outputAttesoFinanziate)],
-  ["Output erogato nell'esercizio", (r) => numeroOpzionale(r.outputErogatoEsercizio)],
-  ['Indicatore di output', (r) => testoOpzionale(r.indicatoreOutput)],
-  ['Indicatore di risultato', (r) => testoOpzionale(r.indicatoreRisultato)],
+type Ordinabile = string | number | null | undefined;
+
+function colonna(chiave: string, titolo: string, valore: (r: Riga) => Ordinabile, resa: (r: Riga) => ReactNode): ColonnaTabella<Riga> {
+  return { chiave, titolo, valore: (r) => valore(r) ?? null, resa, numerica: true };
+}
+const conteggio = (chiave: string, titolo: string, leggi: (r: Riga) => number | null | undefined) => colonna(chiave, titolo, leggi, (r) => <Numero valore={leggi(r)} />);
+const importo = (chiave: string, titolo: string, leggi: (r: Riga) => ImportoLike | undefined) => colonna(chiave, titolo, (r) => leggi(r)?.valore, (r) => <ValoreImporto importo={leggi(r)} />);
+const opzionale = (chiave: string, titolo: string, leggi: (r: Riga) => number | null | undefined) => colonna(chiave, titolo, leggi, (r) => numeroOpzionale(leggi(r)));
+
+const COLONNE: ColonnaTabella<Riga>[] = [
+  { chiave: 'codice', titolo: 'Intervento', valore: (r) => r.codiceIntervento ?? null, fissa: true },
+  conteggio('avvisi', 'Avvisi attivati', (r) => r.avvisiAttivati),
+  opzionale('azioni', 'Azioni attivate', (r) => r.azioniAttivate),
+  conteggio('ricevute', 'Domande ricevute', (r) => r.domandeRicevute),
+  conteggio('senzaRichiesto', 'Domande ricevute senza richiesto', (r) => r.domandeRicevuteSenzaRichiesto),
+  importo('valoreRicevute', 'Valore domande ricevute', (r) => r.valoreDomandeRicevute),
+  conteggio('finanziate', 'Domande finanziate', (r) => r.domandeFinanziate),
+  importo('valoreFinanziate', 'Valore domande finanziate', (r) => r.valoreDomandeFinanziate),
+  importo('dotazionePrecedente', 'Dotazione anno precedente', (r) => r.dotazioneAnnoPrecedente),
+  importo('dotazioneImpegno', 'Dotazione periodo di impegno', (r) => r.dotazionePeriodoImpegno),
+  conteggio('pagate', "Domande pagate nell'esercizio", (r) => r.domandePagateEsercizio),
+  importo('spesaPrecedente', 'Spesa erogata campagna precedente', (r) => r.spesaErogataCampagnaPrecedente),
+  importo('spesaAnteriori', 'Spesa erogata campagne anteriori', (r) => r.spesaErogataCampagneAnteriori),
+  importo('previsione', "Previsione di pagamento nell'esercizio", (r) => r.previsionePagamentoEsercizio),
+  importo('topUp', 'Importo top-up', (r) => r.importoTopUp),
+  colonna('includeTopUp', 'Include top-up', (r) => siNo(r.includeTopUp), (r) => siNo(r.includeTopUp)),
+  opzionale('ettari', 'Ettari o UBA richiesti', (r) => r.ettariUbaRichiesti),
+  opzionale('outputAtteso', 'Output atteso delle finanziate', (r) => r.outputAttesoFinanziate),
+  opzionale('outputErogato', "Output erogato nell'esercizio", (r) => r.outputErogatoEsercizio),
+  colonna('indicatoreOutput', 'Indicatore di output', (r) => r.indicatoreOutput, (r) => testoOpzionale(r.indicatoreOutput)),
+  colonna('indicatoreRisultato', 'Indicatore di risultato', (r) => r.indicatoreRisultato, (r) => testoOpzionale(r.indicatoreRisultato)),
 ];
 
-const VUOTO = vuotoConPerimetro("Nessun dato SIGC per l'esercizio scelto. Scegli un altro esercizio o modifica i filtri.");
+const VUOTO = vuotoConPerimetro("Nessun dato SIGC per l'esercizio scelto. Scegli un altro esercizio.");
 
 function DatiSmp({ filtri, esercizio }: { filtri: Filtri; esercizio: number }) {
   const stato = useVerificaSmp(filtri, esercizio);
+  const naviga = useNavigate();
+  const clic = (p: ClicGrafico) => {
+    const codice = codiceDalClic(p);
+    if (codiceInterventoValido(codice)) void naviga(percorsoIntervento(codice));
+  };
   return (
     <Sezione titolo={`Dati SIGC per il confronto con SMP, esercizio ${esercizio} (RF015)`}>
       <VistaQuery stato={stato} eVuoto={(d) => (d.righe ?? []).length === 0} vuoto={VUOTO}>
@@ -56,13 +79,23 @@ function DatiSmp({ filtri, esercizio }: { filtri: Filtri; esercizio: number }) {
             />
             <CardGrafico
               titolo="Previsione di pagamento e spesa erogata per intervento"
-              sottotitolo="Trascina il cursore sotto il grafico per ingrandire"
+              sottotitolo="Trascina il cursore sotto il grafico per ingrandire; clic su una barra per il dettaglio dell'intervento"
               dati={graficoSmp(d.righe ?? [])}
               fonte={`Fonte: TX-0015, esercizio ${d.esercizio ?? esercizio}`}
               livello={3}
               altezza="alto"
+              onClic={clic}
             />
-            <TabellaRighe caption="I dati ASR per intervento da confrontare con SMP" intestazione="Intervento" chiave={(r) => r.codiceIntervento ?? ''} colonne={COLONNE} righe={d.righe ?? []} />
+            <TabellaInterattiva
+              key={`${esercizio}-${ricercaDaFiltri(filtri)}`}
+              caption="I dati ASR per intervento da confrontare con SMP"
+              righe={d.righe ?? []}
+              colonne={COLONNE}
+              chiaveRiga={(r) => r.codiceIntervento ?? ''}
+              testoRicerca={(r) => `${r.codiceIntervento ?? ''} ${r.indicatoreOutput ?? ''} ${r.indicatoreRisultato ?? ''}`}
+              segnapostoRicerca="Cerca per codice o indicatore"
+              perPagina={20}
+            />
           </>
         )}
       </VistaQuery>

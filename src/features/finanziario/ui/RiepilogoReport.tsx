@@ -1,26 +1,28 @@
 // RiepilogoReport — report RF011 (route /finanziario/riepilogo, TX-0011, flusso riepilogo v2): tabella interattiva per
-// intervento (cerca, ordina, colonne, paginazione, totali), riga che apre l'anteprima laterale e da li' il dettaglio
-// dell'intervento, vista grafico, esportazione CSV con gli stessi filtri, dotazione dell'Assistenza tecnica (intero
-// programma, non dipende dai filtri). Le colonne senza alcun valore nelle righe ricevute partono nascoste e lo si dice.
+// intervento con i nove campi (cerca, ordina, colonne, paginazione, totali), riga che apre l'anteprima laterale e da li'
+// il dettaglio dell'intervento, vista grafico (clic su una barra: dettaglio), esportazione CSV con gli stessi filtri, e
+// nel piede la dotazione dell'Assistenza tecnica (intero programma, non dipende dai filtri). Ogni cella assente dice il
+// suo motivo; i totali sono "non calcolabile" se manca anche un solo valore (mai somme parziali).
 import { useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { ValoreImporto } from '../../../entities/importo';
-import type { ImportoLike } from '../../../entities/importo';
-import { formatEuro, formatNumber, getErrorMessage } from '../../../shared/lib';
-import { CardGrafico, PannelloLaterale, TabellaInterattiva, VistaQuery, Vuoto, salvaFile } from '../../../shared/ui';
-import type { ColonnaTabella } from '../../../shared/ui';
+import { codiceDalClic, formatEuro, formatNumber, getErrorMessage } from '../../../shared/lib';
+import { CardGrafico, PannelloLaterale, Sezione, TabellaInterattiva, VistaQuery, salvaFile } from '../../../shared/ui';
+import type { ColonnaTabella, RigaPiede } from '../../../shared/ui';
 import { useEsportaRiepilogoCsv, useRiepilogo } from '../api';
 import type { RiepilogoFinanziario, RiepilogoFinanziarioRiga } from '../api';
+import { sommaSeCompleta, totaleImporti } from '../lib/aggregati';
 import { ricercaDaFiltri } from '../lib/filtri';
-import type { Filtri, Perimetro } from '../lib/filtri';
+import type { Filtri } from '../lib/filtri';
 import { graficoDotazionePagamenti } from '../lib/grafici';
-import { percorsoIntervento } from '../lib/report';
-import { NotaPerimetroMisto, PerimetroSezione, Sezione, TabellaVoci, diProgramma, vuotoConPerimetro } from './comuni';
+import type { Perimetro } from '../lib/perimetro';
+import { codiceInterventoValido, percorsoIntervento } from '../lib/report';
+import { NotaPerimetroMisto, PerimetroSezione, colonneImporti, diProgramma, vuotoConPerimetro } from './comuni';
+import type { CampoImporto } from './comuni';
 
 type Riga = RiepilogoFinanziarioRiga;
-type CampoImporto = Exclude<{ [K in keyof Riga]-?: Riga[K] extends ImportoLike | undefined ? K : never }[keyof Riga], undefined>;
 
-const CAMPI: Array<{ chiave: CampoImporto; titolo: string; programma?: boolean }> = [
+const CAMPI: CampoImporto<Riga>[] = [
   { chiave: 'dotazioneSpesaPubblica', titolo: 'Dotazione spesa pubblica', programma: true },
   { chiave: 'risorseQuotaFeasr', titolo: 'Risorse quota FEASR', programma: true },
   { chiave: 'importoStanziato', titolo: 'Importo stanziato', programma: true },
@@ -31,34 +33,28 @@ const CAMPI: Array<{ chiave: CampoImporto; titolo: string; programma?: boolean }
   { chiave: 'dotazioneResiduaSuPagamenti', titolo: 'Dotazione residua sui pagamenti' },
 ];
 
-const valore = (i: ImportoLike | undefined | null) => i?.valore ?? null;
-const senzaValori = (righe: Riga[], c: CampoImporto) => righe.every((r) => valore(r[c]) === null);
+const VUOTO = vuotoConPerimetro('Nessun intervento per i filtri scelti.', { programma: true });
 
-function colonne(righe: Riga[], perimetro: Perimetro | undefined): ColonnaTabella<Riga>[] {
+function colonne(perimetro: Perimetro | undefined): ColonnaTabella<Riga>[] {
   return [
     { chiave: 'codice', titolo: 'Intervento', valore: (r) => r.codiceIntervento ?? null, fissa: true },
     { chiave: 'domande', titolo: 'Domande presentate', valore: (r) => r.domandePresentate ?? null, resa: (r) => formatNumber(r.domandePresentate), numerica: true },
-    ...CAMPI.map((c) => ({
-      chiave: c.chiave,
-      titolo: c.programma ? diProgramma(c.titolo, perimetro) : c.titolo,
-      valore: (r: Riga) => valore(r[c.chiave]),
-      resa: (r: Riga) => <ValoreImporto importo={r[c.chiave]} />,
-      numerica: true,
-      nascosta: senzaValori(righe, c.chiave),
-    })),
+    ...colonneImporti(CAMPI, perimetro),
   ];
 }
 
-/** Somma di una colonna solo se ogni riga ha il valore: con anche un solo assente il totale non e' calcolabile. */
-function totale(righe: readonly Riga[], c: CampoImporto): string {
-  const v = righe.map((r) => valore(r[c]));
-  return v.every((x): x is number => x !== null) ? formatEuro(v.reduce((a, b) => a + b, 0)) : 'non calcolabile';
-}
-
-/** Come per gli importi: con anche un solo conteggio assente il totale non e' calcolabile (mai un assente come zero). */
-function totaleDomande(righe: readonly Riga[]): string {
-  const v = righe.map((r) => r.domandePresentate);
-  return v.every((x): x is number => x != null) ? formatNumber(v.reduce((a, b) => a + b, 0)) : 'non calcolabile';
+/** Riga dei totali sulle righe filtrate: un totale con anche un solo assente e' "non calcolabile". */
+function totali(righe: readonly Riga[]): RigaPiede {
+  const domande = sommaSeCompleta(righe.map((r) => r.domandePresentate));
+  const importi = CAMPI.map((c) => {
+    const t = totaleImporti(righe, (r) => r[c.chiave] as Riga['dotazioneSpesaPubblica']);
+    return [c.chiave, t.valore === null ? 'non calcolabile' : formatEuro(t.valore)];
+  });
+  return {
+    codice: righe.length === 1 ? 'Totale (1 intervento)' : `Totale (${righe.length} interventi)`,
+    domande: domande === null ? 'non calcolabile' : formatNumber(domande),
+    ...Object.fromEntries(importi),
+  };
 }
 
 function EsportaCsv({ filtri }: { filtri: Filtri }) {
@@ -82,8 +78,7 @@ function EsportaCsv({ filtri }: { filtri: Filtri }) {
   );
 }
 
-function Anteprima({ riga, perimetro, filtri, onChiudi }: { riga: Riga | null; perimetro?: Perimetro; filtri: Filtri; onChiudi: () => void }) {
-  const query = ricercaDaFiltri(filtri);
+function Anteprima({ riga, perimetro, onChiudi }: { riga: Riga | null; perimetro?: Perimetro; onChiudi: () => void }) {
   return (
     <PannelloLaterale aperto={riga !== null} onChiudi={onChiudi} titolo={riga?.codiceIntervento ?? ''} sopratitolo="Anteprima dell'intervento" stretto>
       {riga && (
@@ -97,13 +92,13 @@ function Anteprima({ riga, perimetro, filtri, onChiudi }: { riga: Riga | null; p
               <div key={c.chiave}>
                 <dt>{c.programma ? diProgramma(c.titolo, perimetro) : c.titolo}</dt>
                 <dd>
-                  <ValoreImporto importo={riga[c.chiave]} />
+                  <ValoreImporto importo={riga[c.chiave] as Riga['dotazioneSpesaPubblica']} />
                 </dd>
               </div>
             ))}
           </dl>
           {riga.codiceIntervento && (
-            <Link className="btn btn-primary mt-3 w-100" to={`${percorsoIntervento(riga.codiceIntervento)}${query ? `?${query}` : ''}`}>
+            <Link className="btn btn-primary mt-3 w-100" to={percorsoIntervento(riga.codiceIntervento)}>
               {"Apri il dettaglio dell'intervento"}
             </Link>
           )}
@@ -114,11 +109,12 @@ function Anteprima({ riga, perimetro, filtri, onChiudi }: { riga: Riga | null; p
 }
 
 function Contenuto({ d, filtri }: { d: RiepilogoFinanziario; filtri: Filtri }) {
+  const naviga = useNavigate();
   const righe = d.righe ?? [];
   const [aperta, setAperta] = useState<Riga | null>(null);
   const [vista, setVista] = useState<'tabella' | 'grafico'>('tabella');
-  const nascoste = CAMPI.filter((c) => senzaValori(righe, c.chiave)).map((c) => (c.programma ? diProgramma(c.titolo, d.perimetro) : c.titolo));
-  if (righe.length === 0) return <Vuoto>{vuotoConPerimetro('Nessun intervento per i filtri scelti. Modifica i filtri.')(d)}</Vuoto>;
+  // valore fuori tabella, indipendente dai filtri: nel piede, come nel wireframe
+  const assistenzaTecnica: RigaPiede = { codice: 'Dotazione assistenza tecnica (AT001, intero programma: non dipende dai filtri)', dotazioneSpesaPubblica: <ValoreImporto importo={d.dotazioneAssistenzaTecnica} /> };
   return (
     <>
       <PerimetroSezione perimetro={d.perimetro} />
@@ -132,45 +128,39 @@ function Contenuto({ d, filtri }: { d: RiepilogoFinanziario; filtri: Filtri }) {
         </button>
       </div>
       {vista === 'tabella' ? (
-        <>
-          {nascoste.length > 0 && (
-            <p className="ui-nota">{`Colonne nascoste perché nessun intervento ha un valore (fonte non attiva o non valorizzato): ${nascoste.join(', ')}. Si mostrano da "Colonne".`}</p>
-          )}
-          <TabellaInterattiva
-            caption="Riepilogo per intervento (RF011)"
-            righe={righe}
-            colonne={colonne(righe, d.perimetro)}
-            chiaveRiga={(r) => r.codiceIntervento ?? ''}
-            testoRicerca={(r) => r.codiceIntervento ?? ''}
-            etichettaRiga={(r) => `Apri l'anteprima dell'intervento ${r.codiceIntervento ?? ''}`}
-            onRiga={setAperta}
-            ordineIniziale={{ chiave: 'dotazioneSpesaPubblica', verso: 'decrescente' }}
-            totali={(rr) => ({
-              codice: rr.length === 1 ? 'Totale (1 intervento)' : `Totale (${rr.length} interventi)`,
-              domande: totaleDomande(rr),
-              ...Object.fromEntries(CAMPI.map((c) => [c.chiave, totale(rr, c.chiave)])),
-            })}
-            strumenti={<EsportaCsv filtri={filtri} />}
-          />
-        </>
+        <TabellaInterattiva
+          caption="Riepilogo per intervento (RF011)"
+          righe={righe}
+          colonne={colonne(d.perimetro)}
+          chiaveRiga={(r) => r.codiceIntervento ?? ''}
+          testoRicerca={(r) => r.codiceIntervento ?? ''}
+          segnapostoRicerca="Cerca per codice dell'intervento"
+          etichettaRiga={(r) => `Apri l'anteprima dell'intervento ${r.codiceIntervento ?? ''}`}
+          onRiga={setAperta}
+          ordineIniziale={{ chiave: 'dotazioneSpesaPubblica', verso: 'decrescente' }}
+          totali={totali}
+          righePiede={[assistenzaTecnica]}
+          strumenti={<EsportaCsv filtri={filtri} />}
+        />
       ) : (
         <CardGrafico
           titolo="Dotazione e pagamenti per intervento"
-          sottotitolo="Trascina il cursore sotto il grafico per ingrandire"
+          sottotitolo="Trascina il cursore sotto il grafico per ingrandire; clic su una barra per il dettaglio"
           livello={3}
           altezza="alto"
           dati={graficoDotazionePagamenti(
             righe.map((r) => ({ codiceIntervento: r.codiceIntervento, dotazione: r.dotazioneSpesaPubblica, pagato: r.pagamentiNettoRettifiche })),
             d.perimetro,
+            'Pagamenti al netto delle rettifiche',
           )}
           fonte="Fonte: TX-0011, riepilogo per intervento"
           onClic={(p) => {
-            const r = righe.find((x) => x.codiceIntervento === p.name);
-            if (r) setAperta(r);
+            const codice = codiceDalClic(p);
+            if (codiceInterventoValido(codice)) void naviga(percorsoIntervento(codice));
           }}
         />
       )}
-      <Anteprima riga={aperta} perimetro={d.perimetro} filtri={filtri} onChiudi={() => setAperta(null)} />
+      <Anteprima riga={aperta} perimetro={d.perimetro} onChiudi={() => setAperta(null)} />
     </>
   );
 }
@@ -178,19 +168,12 @@ function Contenuto({ d, filtri }: { d: RiepilogoFinanziario; filtri: Filtri }) {
 export function RiepilogoReport({ filtri }: { filtri: Filtri }) {
   const stato = useRiepilogo(filtri);
   return (
-    <VistaQuery stato={stato}>
+    <VistaQuery stato={stato} eVuoto={(d) => (d.righe ?? []).length === 0} vuoto={VUOTO}>
       {(d) => (
-        <>
-          <Sezione titolo="Riepilogo per intervento">
-            <Contenuto d={d} filtri={filtri} />
-          </Sezione>
-          <Sezione titolo="Assistenza tecnica">
-            <TabellaVoci
-              caption="Valore fuori tabella, indipendente dai filtri"
-              voci={[{ etichetta: 'Dotazione assistenza tecnica (AT001, intero programma: non dipende dai filtri)', valore: <ValoreImporto importo={d.dotazioneAssistenzaTecnica} /> }]}
-            />
-          </Sezione>
-        </>
+        <Sezione titolo="Riepilogo per intervento">
+          {/* una selezione nuova e' un contenuto nuovo: ricerca, ordine, pagina e anteprima non restano quelli di prima */}
+          <Contenuto key={ricercaDaFiltri(filtri)} d={d} filtri={filtri} />
+        </Sezione>
       )}
     </VistaQuery>
   );

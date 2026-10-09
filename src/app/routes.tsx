@@ -3,6 +3,8 @@ import { Link, createBrowserRouter } from 'react-router';
 import { hasGrant, useAuthStatus } from '../shared/api/auth/use-auth-status';
 import { resolveLoginPath } from '../shared/config/base-path';
 import { NOME_APPLICAZIONE, useFocusTitolo } from '../shared/ui';
+import { AREE_FUTURE, areeVisibili } from './aree';
+import { ErroreDiPagina, PaginaNonTrovata } from './errori';
 import { Layout } from './layout';
 import { RequireGrant } from './require-grant';
 import { SessioneNonVerificabile } from './sessione-non-verificabile';
@@ -12,13 +14,10 @@ import routeTable from './route-table.json';
 // route-table.json (la SINGLE SOURCE dichiarativa) e i moduli pagina sotto src/pages/**. La stessa
 // route-table.json e' proiettata (jq -S) in route-manifest.json: as-built == manifest per costruzione.
 
-// Home: porta d'ingresso dell'applicazione (dopo il login il BFF torna su "/"). Elenca le aree della route-table
-// (la voce di primo livello di ogni feature, es. /finanziario) visibili per i grant dell'utente: hide-by-role di sola
-// UX, l'enforcement resta server-side. Non e' una feature (nessuna authz-surface propria): resta fuori dal manifest.
-const ETICHETTE_AREE: Record<string, { titolo: string; descrizione: string }> = {
-  '/finanziario': { titolo: 'Finanziario', descrizione: 'Dotazione, pagamenti, domande e SIGC per intervento, con il dettaglio di ogni intervento.' },
-};
-const AREE_FUTURE = ['Fisico', 'Procedurale', 'Istituzionale', 'Primo pilastro'];
+// Home: porta d'ingresso dell'applicazione (dopo il login il BFF torna su "/"). Elenca le aree del catalogo (aree.ts,
+// lo stesso del menu laterale) con almeno una pagina visibile per i grant dell'utente: hide-by-role di sola UX,
+// l'enforcement resta server-side. La card porta alla prima pagina visibile dell'area. Non e' una feature (nessuna
+// authz-surface propria): resta fuori dal manifest.
 
 function Home() {
   const { data: auth, isLoading, isError, refetch } = useAuthStatus();
@@ -37,9 +36,7 @@ function Home() {
       </main>
     );
   }
-  const aree = (routeTable.routes as RouteEntry[]).filter(
-    (r) => r.path.split('/').length === 2 && r.visibility.some((g) => hasGrant(auth, g)),
-  );
+  const aree = areeVisibili((g) => hasGrant(auth, g));
   return (
     <main className="ui-pagina" id="contenuto">
       <div className="ui-titolo">
@@ -62,15 +59,15 @@ function Home() {
       ) : (
         <nav aria-label="Aree del cruscotto">
           <ul className="ui-griglia ui-griglia--2 list-unstyled">
-            {aree.map((a) => (
-              <li key={a.path}>
-                <section className="ui-card ui-dissolvenza" aria-labelledby={`area-${a.path}`}>
-                  <h2 id={`area-${a.path}`} className="h4">
-                    {ETICHETTE_AREE[a.path]?.titolo ?? a.path}
+            {aree.map(({ area, pagine }) => (
+              <li key={area.chiave}>
+                <section className="ui-card ui-dissolvenza" aria-labelledby={`area-${area.chiave}`}>
+                  <h2 id={`area-${area.chiave}`} className="h4">
+                    {area.titolo}
                   </h2>
-                  <p>{ETICHETTE_AREE[a.path]?.descrizione}</p>
-                  <Link className="btn btn-primary" to={a.path}>
-                    {ETICHETTE_AREE[a.path]?.titolo ?? a.path}
+                  <p>{area.descrizione}</p>
+                  <Link className="btn btn-primary" to={pagine[0].percorso}>
+                    {area.titolo}
                   </Link>
                 </section>
               </li>
@@ -126,9 +123,23 @@ const featureRoutes = (routeTable.routes as RouteEntry[]).map((entry) => ({
   },
 }));
 
-// Tutte le route sotto la shell (layout.tsx: skip-link, intestazione con utente ed Esci, piè di pagina).
+// Tutte le route sotto la shell (layout.tsx: skip-link, intestazione con utente ed Esci, piè di pagina). La route senza
+// path sotto Layout raccoglie gli errori di Home, pagine (anche il loro caricamento lazy) e indirizzi inesistenti: la
+// shell resta e l'utente legge un testo in italiano, mai lo stack (errori.tsx, review step9 A-01). L'ErrorBoundary di
+// Layout e' l'ultima rete, per un errore della shell stessa.
 export function appRoutes() {
-  return [{ Component: Layout, children: [{ index: true, Component: Home }, ...featureRoutes] }];
+  return [
+    {
+      Component: Layout,
+      ErrorBoundary: ErroreDiPagina,
+      children: [
+        {
+          ErrorBoundary: ErroreDiPagina,
+          children: [{ index: true, Component: Home }, ...featureRoutes, { path: '*', Component: PaginaNonTrovata }],
+        },
+      ],
+    },
+  ];
 }
 
 export function createAppRouter() {

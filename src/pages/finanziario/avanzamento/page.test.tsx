@@ -46,11 +46,14 @@ describe('RF005: totale impegnato tra pagamenti e impegnato ancora da pagare', (
 });
 
 describe('RF006: dotazione tra importo impegnato e dotazione residua', () => {
-  it('voci del residuo sugli impegni; senza impegni il flusso della dotazione non si disegna', async () => {
+  it('voci del residuo sugli impegni; senza impegni il flusso va dalla dotazione al pagato e dichiara il ramo mancante', async () => {
     servi();
     renderPagina(Pagina, '/finanziario/avanzamento');
     expect(await voci('Dotazione residua sugli impegni (RF006)')).toContain('Dotazione residua');
-    expect(graficoDi(await trovaCard('Dove va la dotazione'))).toBeUndefined();
+    const flusso = await trovaCard('Dove va la dotazione');
+    expect(graficoDi(flusso)).toBeTruthy();
+    expect(descrizioneDi(flusso)).toMatch(/pagamenti netti .*dotazione residua/);
+    expect(within(flusso).getByText(/Impegnato non disponibile \(fonte impegni non attiva\): il ramo dell'impegnato non si disegna/)).toBeTruthy();
   });
 });
 

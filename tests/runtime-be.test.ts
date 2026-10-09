@@ -6,7 +6,8 @@ import { server } from '../src/shared/api/mock/server';
 import { AXIOS_INSTANCE, LETTURE_IN_PARALLELO, authEvents, customInstance } from '../src/shared/api/mutator/bff-mutator';
 import { classifyProblem } from '../src/shared/api/problem/problem-types';
 import { getErrorMessage } from '../src/shared/lib';
-import { attesaPrimaDiRiprovare, rispostaRiservaAssente, soloTransitori } from '../src/features/finanziario/api';
+import { rispostaRiservaAssente } from '../src/features/finanziario/api';
+import { attesaPrimaDiRiprovare, soloTransitori } from '../src/shared/api/retry/nuovi-tentativi';
 
 // Runtime allineato al contratto reale del backend ARSCSR (review step9: H-01..H-04, A-02, A-04, A-05, V-02).
 const tipo = (codice: string) => `urn:cruscottocsr:problem:${codice}`;
@@ -74,12 +75,13 @@ describe('redirect al login', () => {
   });
 });
 
+// il tetto del backend vale per le letture del finanziario (cruscottocsr.finanziario.letture-per-utente)
 describe('letture verso il backend: mai oltre il tetto per utente', () => {
-  it(`al piu' ${LETTURE_IN_PARALLELO} GET /api in corso insieme, le altre in coda`, async () => {
+  it(`al piu' ${LETTURE_IN_PARALLELO} GET /api/finanziario in corso insieme, le altre in coda`, async () => {
     let inCorso = 0;
     let massimo = 0;
     server.use(
-      http.get('*/api/lenta', async () => {
+      http.get('*/api/finanziario/lenta', async () => {
         inCorso++;
         massimo = Math.max(massimo, inCorso);
         await delay(20);
@@ -87,14 +89,14 @@ describe('letture verso il backend: mai oltre il tetto per utente', () => {
         return HttpResponse.json({ ok: true });
       }),
     );
-    const esiti = await Promise.all(Array.from({ length: 5 }, () => customInstance<{ ok: boolean }>({ url: '/api/lenta', method: 'GET' })));
+    const esiti = await Promise.all(Array.from({ length: 5 }, () => customInstance<{ ok: boolean }>({ url: '/api/finanziario/lenta', method: 'GET' })));
     expect(esiti.every((e) => e.ok)).toBe(true);
     expect(massimo).toBe(LETTURE_IN_PARALLELO);
   });
   it('un errore libera comunque il posto', async () => {
-    server.use(http.get('*/api/rotta', () => new HttpResponse(null, { status: 500 })), http.get('*/api/sana', () => HttpResponse.json({ ok: true })));
-    await Promise.all([1, 2, 3].map(() => customInstance({ url: '/api/rotta', method: 'GET' }).catch(() => undefined)));
-    expect(await customInstance<{ ok: boolean }>({ url: '/api/sana', method: 'GET' })).toEqual({ ok: true });
+    server.use(http.get('*/api/finanziario/rotta', () => new HttpResponse(null, { status: 500 })), http.get('*/api/finanziario/sana', () => HttpResponse.json({ ok: true })));
+    await Promise.all([1, 2, 3].map(() => customInstance({ url: '/api/finanziario/rotta', method: 'GET' }).catch(() => undefined)));
+    expect(await customInstance<{ ok: boolean }>({ url: '/api/finanziario/sana', method: 'GET' })).toEqual({ ok: true });
   });
 });
 

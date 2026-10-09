@@ -74,7 +74,7 @@ describe("dettaglio dell'intervento (flusso panoramica)", () => {
     servi();
     server.use(http.get('*/api/finanziario/riepilogo', () => HttpResponse.json({ ...SRA01, righe: [{ ...SRA01.righe[0], risorseQuotaFeasr: { valore: null, motivo: 'NON_VALORIZZATO', fonte: null } }] })));
     renderPagina(Pagina, PERCORSO, '/finanziario/interventi/SRA01');
-    expect((await screen.findByRole('region', { name: 'Risorse quota FEASR' })).textContent).toContain('Non disponibile nel riepilogo');
+    expect((await screen.findByRole('region', { name: 'Risorse quota FEASR' })).textContent).toContain('Non valorizzato: il dato non è presente nella fonte');
     expect((await tabellaDi(await trovaCard('Dalla dotazione al residuo'))).textContent).toBeTruthy();
   });
 
@@ -83,7 +83,7 @@ describe("dettaglio dell'intervento (flusso panoramica)", () => {
     server.use(http.get('*/api/finanziario/riepilogo', () => HttpResponse.json({ perimetro: 'ADA', righe: [] })));
     renderPagina(Pagina, PERCORSO, '/finanziario/interventi/SRA03');
     expect(await screen.findByRole('heading', { level: 1, name: 'Intervento di prova B' })).toBeTruthy();
-    const vuoto = (await screen.findByText(/Nessun dato per questo intervento nel tuo perimetro/)).closest('[role]');
+    const vuoto = (await screen.findByText(/Nessun dato per questo intervento nel riepilogo/)).closest('[role]');
     expect(vuoto?.getAttribute('role')).toBe('status');
     expect(within(vuoto as HTMLElement).getByRole('link', { name: 'Torna al riepilogo' })).toBeTruthy();
     expect(screen.queryByRole('tablist')).toBeNull();

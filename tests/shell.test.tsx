@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -21,8 +21,8 @@ import { PAGINE_FINANZIARIO } from '../src/features/finanziario';
 import { SITO_ARSIAL, SITO_REGIONE } from '../src/app/collegamenti';
 import { clientApp } from './app-client';
 
-// Shell dell'app (review step9: V-03, V-04, V-05, V-17, A-01, A-04, A-10, A-12/NFR-41), sempre sul QueryClient di
-// produzione (Z-08).
+// Shell dell'app (review step9: V-03, V-04, V-05, V-17, A-01, A-04, A-10, A-12/NFR-41; v2: A-04, A-05), sempre sul
+// QueryClient di produzione (Z-08).
 function conQuery(ui: ReactElement, client = clientApp()) {
   return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
 }
@@ -38,6 +38,18 @@ function apriApp(percorso = '/') {
   const router = createMemoryRouter(appRoutes(), { initialEntries: [percorso] });
   return { ...conQuery(<RouterProvider router={router} />), router };
 }
+
+// descrizione accessibile di un elemento: il testo degli elementi indicati da aria-describedby (jest-dom non c'e')
+function descrizione(el: HTMLElement): string {
+  const id = el.getAttribute('aria-describedby');
+  return (id ?? '')
+    .split(/\s+/)
+    .map((i) => document.getElementById(i)?.textContent ?? '')
+    .join(' ')
+    .trim();
+}
+// il velo della modale di inattivita' (ModalOverlay intorno all'alertdialog)
+const veloDi = (dialogo: HTMLElement) => dialogo.closest('.position-fixed');
 
 afterEach(() => vi.useRealTimers());
 
@@ -155,6 +167,115 @@ describe('NFR-41: avviso di scadenza per inattivita', () => {
     expect(chiudiSessione).not.toHaveBeenCalled();
     altraScheda.close();
   });
+  it("l'avviso ha come descrizione accessibile il tempo rimasto, e alla scadenza il motivo (A-05)", () => {
+    vi.useFakeTimers();
+    conQuery(<AvvisoInattivita limite={10 * 60_000} preavviso={2 * 60_000} alloScadere={vi.fn()} />);
+    act(() => vi.advanceTimersByTime(8 * 60_000 + 100));
+    expect(descrizione(screen.getByRole('alertdialog'))).toBe('Per inattività la sessione scadrà tra 2 minuti. Vuoi restare collegato?');
+    act(() => vi.advanceTimersByTime(2 * 60_000));
+    expect(descrizione(screen.getByRole('alertdialog'))).toBe('La sessione è scaduta per inattività ed è stata chiusa: accedi di nuovo per continuare.');
+  });
+  it('alla scadenza qui la cache si svuota, la shell viene avvisata e il velo diventa opaco (A-04)', () => {
+    vi.useFakeTimers();
+    const client = clientApp();
+    client.setQueryData(['report'], { importo: 1000 });
+    const onScaduta = vi.fn();
+    conQuery(<AvvisoInattivita limite={10_000} preavviso={2_000} alloScadere={vi.fn()} onScaduta={onScaduta} />, client);
+    act(() => vi.advanceTimersByTime(8_100));
+    // nel preavviso il velo lascia intravedere la pagina, la cache resta
+    expect(veloDi(screen.getByRole('alertdialog'))?.classList.contains('bg-opacity-50')).toBe(true);
+    expect(onScaduta).not.toHaveBeenCalled();
+    act(() => vi.advanceTimersByTime(2_000));
+    expect(onScaduta).toHaveBeenCalledTimes(1);
+    expect(client.getQueryCache().getAll()).toHaveLength(0);
+    const velo = veloDi(screen.getByRole('alertdialog'));
+    expect(velo?.classList.contains('bg-dark')).toBe(true);
+    expect(velo?.classList.contains('bg-opacity-50')).toBe(false);
+  });
+  it("scaduta la sessione in un'altra scheda, i dati del report non restano: pagina smontata e cache vuota (A-04)", async () => {
+    server.use(rispondi('/api/finanziario/riepilogo', RIEPILOGO), rispondi('/api/finanziario/filtri', FILTRI));
+    let lettureStato = 0;
+    server.use(
+      http.get('*/auth/status', () => {
+        lettureStato++;
+        return HttpResponse.json({ authenticated: true, user: { username: 'U', roles: ['csr.tx-0011.read', 'csr.tx-0001.read'] } });
+      }),
+    );
+    const client = clientApp();
+    const router = createMemoryRouter(appRoutes(), { initialEntries: ['/finanziario/riepilogo'] });
+    conQuery(<RouterProvider router={router} />, client);
+    await waitFor(() => expect(document.body.textContent).toContain('SRA03'));
+    const letturePrima = lettureStato;
+    const altraScheda = new BroadcastChannel(CANALE_INATTIVITA);
+    altraScheda.postMessage('scaduta');
+    await consegnati(() => screen.queryByRole('alertdialog') !== null);
+    expect(screen.getByRole('alertdialog').textContent).toContain('Sessione scaduta');
+    // la pagina, il menu e l'utente non sono piu' nel DOM, neanche nascosti dalla modale
+    expect(document.getElementById('contenuto')).toBeNull();
+    expect(document.body.textContent).not.toContain('SRA03');
+    expect(document.body.textContent).not.toContain('Riepilogo per intervento');
+    expect(screen.queryByRole('link', { name: 'Esci', hidden: true })).toBeNull();
+    // la cache resta vuota: nessuna lettura riparte dopo lo svuotamento, nemmeno quella dello stato della sessione
+    await act(() => new Promise<void>((r) => setTimeout(r, 50)));
+    expect(client.getQueryCache().getAll().filter((q) => q.state.data !== undefined)).toEqual([]);
+    expect(lettureStato).toBe(letturePrima);
+    expect(veloDi(screen.getByRole('alertdialog'))?.classList.contains('bg-opacity-50')).toBe(false);
+    altraScheda.close();
+  });
+  it("una scheda collegata fa rileggere l'utente alle altre; se e' cambiato, via i dati del precedente (X-06)", async () => {
+    const ricevuti: string[] = [];
+    const altraScheda = new BroadcastChannel(CANALE_INATTIVITA);
+    altraScheda.onmessage = (e: MessageEvent<string>) => ricevuti.push(e.data);
+    const client = clientApp();
+    const router = createMemoryRouter(appRoutes(), { initialEntries: ['/'] });
+    conQuery(<RouterProvider router={router} />, client);
+    await screen.findByRole('link', { name: 'Esci' });
+    // anche questa scheda, appena collegata, lo ha annunciato
+    await consegnati(() => ricevuti.includes('utente'));
+    ricevuti.length = 0;
+    client.setQueryData(['report', 'riepilogo'], { righe: ['SRA01'] });
+    // nuovo accesso in un'altra scheda: la sessione ora e' di un altro utente, senza un 401 qui
+    server.use(
+      http.get('*/auth/status', () =>
+        HttpResponse.json({ authenticated: true, user: { username: 'bruno', displayName: 'Bruno Bianchi', roles: ['csr.tx-0011.read'] } }),
+      ),
+    );
+    altraScheda.postMessage('utente');
+    await waitFor(() => expect(screen.getByRole('banner').textContent).toContain('Bruno Bianchi'));
+    expect(client.getQueryData(['report', 'riepilogo'])).toBeUndefined();
+    const menu = screen.getByRole('navigation', { name: 'Navigazione principale' });
+    expect(within(menu).getAllByRole('link').map((l) => l.textContent)).toEqual(['Riepilogo per intervento']);
+    // e lo annuncia a sua volta, per le schede che ancora non lo sanno
+    await consegnati(() => ricevuti.includes('utente'));
+    altraScheda.close();
+  });
+  it("Esci, nella barra e nell'avviso, annuncia la chiusura alle altre schede prima del logout (A-04)", async () => {
+    const ricevuti: string[] = [];
+    const altraScheda = new BroadcastChannel(CANALE_INATTIVITA);
+    altraScheda.onmessage = (e: MessageEvent<string>) => ricevuti.push(e.data);
+    // jsdom non naviga: il link resta fermo, conta il messaggio partito nel clic
+    const fermaLink = (e: Event) => e.preventDefault();
+    document.addEventListener('click', fermaLink);
+    try {
+      apriApp('/');
+      const esci = await screen.findByRole('link', { name: 'Esci' });
+      expect(esci.getAttribute('href')).toBe('/auth/logout');
+      fireEvent.click(esci);
+      await consegnati(() => ricevuti.includes('scaduta'));
+      // questa scheda esce con la navigazione: nessuna finestra "Sessione scaduta"
+      expect(screen.queryByRole('alertdialog')).toBeNull();
+      cleanup();
+      ricevuti.length = 0;
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] });
+      conQuery(<AvvisoInattivita limite={10_000} preavviso={2_000} alloScadere={vi.fn()} />);
+      act(() => vi.advanceTimersByTime(8_100));
+      fireEvent.click(within(screen.getByRole('alertdialog')).getByRole('link', { name: 'Esci' }));
+      await consegnati(() => ricevuti.includes('scaduta'));
+    } finally {
+      document.removeEventListener('click', fermaLink);
+      altraScheda.close();
+    }
+  });
 });
 
 describe('QueryClient di produzione montato con la shell (R-05, R-07, R-08, R-16)', () => {
@@ -243,7 +364,7 @@ describe('shell UI v2: intestazione degli enti, menu laterale, ricerca, piede', 
     const gruppo = within(menu).getByRole('button', { name: 'Finanziario' });
     expect(gruppo.getAttribute('aria-expanded')).toBe('true');
     const voci = await within(menu).findAllByRole('link');
-    expect(voci.map((v) => v.textContent)).toEqual(PAGINE_FINANZIARIO.map((p) => p.titolo));
+    expect(voci.map((v) => v.textContent)).toEqual(PAGINE_FINANZIARIO.map((p) => p.voceMenu));
     for (const v of voci) expect(v.getAttribute('href')).toMatch(/\?intervento=SRA01$/);
     const corrente = within(menu).getByRole('link', { name: 'Riepilogo per intervento' });
     await waitFor(() => expect(corrente.getAttribute('aria-current')).toBe('page'));
@@ -259,7 +380,7 @@ describe('shell UI v2: intestazione degli enti, menu laterale, ricerca, piede', 
     server.use(http.get('*/auth/status', () => HttpResponse.json({ authenticated: true, user: { username: 'U', roles: ['csr.tx-0011.read', 'csr.tx-0001.read', 'csr.tx-0013.read'] } })));
     apriApp('/finanziario/riepilogo');
     const menu = await screen.findByRole('navigation', { name: 'Navigazione principale' });
-    await waitFor(() => expect(within(menu).getAllByRole('link').map((l) => l.textContent)).toEqual(['Panoramica', 'Riepilogo per intervento', 'Domande e importi SIGC']));
+    await waitFor(() => expect(within(menu).getAllByRole('link').map((l) => l.textContent)).toEqual(['Panoramica', 'Riepilogo per intervento', 'SIGC: domande e importi']));
   });
 
   it('menu su schermo piccolo: il bottone apre il pannello col menu, la scelta di una pagina lo chiude', async () => {
@@ -268,7 +389,7 @@ describe('shell UI v2: intestazione degli enti, menu laterale, ricerca, piede', 
     await userEvent.click(await screen.findByRole('button', { name: 'Apri il menu' }));
     const pannello = await screen.findByRole('dialog', { name: 'Menu' });
     await expectNoA11yViolations(container.ownerDocument.body);
-    await userEvent.click(within(pannello).getByRole('link', { name: 'Avanzamento finanziario' }));
+    await userEvent.click(within(pannello).getByRole('link', { name: 'Avanzamento' }));
     await waitFor(() => expect(router.state.location.pathname).toBe('/finanziario/avanzamento'));
     await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Menu' })).toBeNull());
   });

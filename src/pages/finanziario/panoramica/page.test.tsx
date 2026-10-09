@@ -74,11 +74,11 @@ describe('RF001: filtri per intervento, obiettivi e azione portante, validi per 
     expect(router.state.location.search).toBe('');
   });
 
-  it('ultimo dato sincronizzato nella barra dei filtri: la data piu recente, il dettaglio per flusso nel popover', async () => {
+  it('ultimo dato sincronizzato nella barra dei filtri: la data meno recente (tutti i flussi aggiornati), il dettaglio per flusso nel popover', async () => {
     servi();
     renderPagina(Pagina, '/finanziario');
-    const pill = await screen.findByRole('button', { name: /^Ultimo dato sincronizzato: dati al 03\/03\/2026/ });
-    expect(pill.textContent).toBe('Dati al 03/03/2026');
+    const pill = await screen.findByRole('button', { name: /^Ultimo dato sincronizzato: dati al 02\/03\/2026 per tutti i flussi/ });
+    expect(pill.textContent).toBe('Dati al 02/03/2026');
     await userEvent.click(pill);
     const pop = await screen.findByRole('dialog', { name: "Ultimo dato sincronizzato per flusso d'import" });
     expect(within(pop).getAllByRole('listitem').map((v) => v.textContent)).toEqual(['DS-1202/03/2026 10:15', 'PROSA DS-0403/03/2026 09:30']);
@@ -113,14 +113,14 @@ describe('panoramica: indicatori, grafici e drill-down', () => {
     expect((await screen.findByRole('region', { name: 'Domande presentate' })).textContent).toContain('1200');
   });
 
-  it("clic su un intervento: dettaglio dell'intervento con i filtri; clic sull'imbuto SIGC: pagina SIGC", async () => {
+  it("clic su un intervento: dettaglio dell'intervento intero (senza gli altri filtri); clic sull'imbuto SIGC: pagina SIGC con i filtri", async () => {
     servi();
     const { router } = renderPagina(Pagina, '/finanziario', '/finanziario?og=OG2');
     const avanzamento = graficoDi(await trovaCard('Avanzamento per intervento'));
     expect(avanzamento).toBeTruthy();
     if (avanzamento) clicSu(avanzamento, { name: 'SRA01' });
     await waitFor(() => expect(router.state.location.pathname).toBe('/finanziario/interventi/SRA01'));
-    expect(router.state.location.search).toBe('?og=OG2');
+    expect(router.state.location.search).toBe('');
     await router.navigate('/finanziario?og=OG2');
     const famiglie = graficoDi(await trovaCard('Dotazione per famiglia di intervento'));
     // un clic su una famiglia (non un codice di intervento) non naviga: il treemap entra nel gruppo
@@ -143,7 +143,11 @@ describe('panoramica: indicatori, grafici e drill-down', () => {
     servi();
     server.use(http.get('*/api/finanziario/spesa-per-intervento', () => HttpResponse.json({ perimetro: 'REGIONALE', righe: [] })));
     renderPagina(Pagina, '/finanziario');
-    expect((await screen.findByText('Nessun intervento per i filtri scelti. Modifica i filtri.')).closest('[role]')?.getAttribute('role')).toBe('status');
+    const vuoto = (await screen.findByText('Nessun intervento per i filtri scelti.')).closest('[role]') as HTMLElement;
+    expect(vuoto.getAttribute('role')).toBe('status');
+    // il vuoto e' azionabile: il bottone apre il pannello dei filtri
+    await userEvent.click(within(vuoto).getByRole('button', { name: 'Modifica i filtri' }));
+    expect(await screen.findByRole('dialog', { name: 'Filtri' })).toBeTruthy();
     expect(screen.queryByRole('region', { name: 'Dotazione spesa pubblica' })).toBeNull();
   });
 

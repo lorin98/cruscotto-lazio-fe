@@ -60,8 +60,9 @@ export const SPESA = {
       impegnatoCofinanziatoFeasrENon: nd('IMPEGNI'),
       impegnatoSpesaPubblica: nd('IMPEGNI'),
       pagamentiTotali: euro(200000),
-      quotaStato: euro(420000),
-      quotaRegione: euro(180000),
+      // come le produce il backend: il riparto Stato - Regione viene da una fonte non attiva (SC-FI_SPESA_INTERVENTO)
+      quotaStato: nd('RIPARTO_STATO_REGIONE'),
+      quotaRegione: nd('RIPARTO_STATO_REGIONE'),
       vincoloDotazioneLeader: nd('VINCOLO_LEADER'),
       percentualeContributoAmbientale: 12.5,
     },

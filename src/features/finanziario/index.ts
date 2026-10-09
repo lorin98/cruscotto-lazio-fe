@@ -2,6 +2,8 @@
 export { PannelloFiltri } from './ui/PannelloFiltri';
 export { CercaIntervento } from './ui/CercaIntervento';
 export { UltimoAggiornamento } from './ui/UltimoAggiornamento';
+export { PerimetroPill } from './ui/PerimetroPill';
+export { ContestoFiltri } from './ui/comuni';
 export { Panoramica } from './ui/Panoramica';
 export { DettaglioIntervento } from './ui/DettaglioIntervento';
 export { RiepilogoReport } from './ui/RiepilogoReport';
@@ -12,18 +14,9 @@ export { SigcReport } from './ui/SigcReport';
 export { RiservaReport } from './ui/RiservaReport';
 export { VerificaSmpReport } from './ui/VerificaSmpReport';
 export { useAnnoNellIndirizzo } from './ui/useAnnoNellIndirizzo';
-export { CHIAVI_FILTRO, filtriDaRicerca, ricercaDaFiltri } from './lib/filtri';
+export { useFiltriNellIndirizzo } from './ui/useFiltriNellIndirizzo';
+export { useDescrizioneIntervento } from './ui/useDescrizioneIntervento';
+export { filtriDaRicerca, ricercaDaFiltri } from './lib/filtri';
 export type { Filtri } from './lib/filtri';
-export {
-  DETTAGLIO_INTERVENTO,
-  PAGINE_FINANZIARIO,
-  PANORAMICA,
-  REPORT_FINANZIARIO,
-  codiceInterventoValido,
-  pagineVisibili,
-  percorsoIntervento,
-  reportVisibili,
-  titoloH1,
-  voceDi,
-} from './lib/report';
+export { DETTAGLIO_INTERVENTO, PAGINE_FINANZIARIO, PANORAMICA, PERCORSI, codiceInterventoValido, conFiltri, pagineVisibili, titoloH1, voceDi } from './lib/report';
 export type { VoceReport } from './lib/report';

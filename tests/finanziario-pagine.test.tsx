@@ -57,8 +57,8 @@ describe('pagine del finanziario (step6)', () => {
       'Togli il filtro Intervento SRA01',
       'Togli il filtro OS SO4',
     ]);
-    // NFR-25 (b), OP-FE-04: la data dell'ultimo dato sta nella barra dei filtri (wireframe v2 approvati)
-    expect(await within(barra).findByRole('button', { name: /^Ultimo dato sincronizzato: dati al 03\/03\/2026/ })).toBeTruthy();
+    // NFR-25 (b), OP-FE-04: nella barra la data fino a cui tutti i flussi sono aggiornati (la meno recente)
+    expect(await within(barra).findByRole('button', { name: /^Ultimo dato sincronizzato: dati al 02\/03\/2026 per tutti i flussi/ })).toBeTruthy();
     const briciole = screen.getByRole('navigation', { name: 'Percorso' });
     expect(within(briciole).getAllByRole('listitem').map((v) => v.textContent)).toEqual(['Home', 'Finanziario', 'Riepilogo per intervento']);
     expect(within(briciole).getByRole('link', { name: 'Finanziario' }).getAttribute('href')).toBe('/finanziario?intervento=SRA01&os=SO4');

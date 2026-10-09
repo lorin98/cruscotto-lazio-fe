@@ -21,8 +21,16 @@ export function testoUltimiDati(voci: readonly UltimoDato[]): string {
   return complete.map((v) => `${etichettaFlusso(v.flusso)} ${formatDataOra(v.conclusoIl)}`).join('; ');
 }
 
-/** L'istante di conclusione piu' recente fra le voci complete (ISO), o undefined se nessuna voce e' completa. */
-export function piuRecente(voci: readonly UltimoDato[]): string | undefined {
-  const istanti = voci.filter((v) => v.flusso && v.conclusoIl).map((v) => v.conclusoIl as string);
-  return istanti.length ? istanti.reduce((a, b) => (new Date(b).getTime() > new Date(a).getTime() ? b : a)) : undefined;
+/** Istante in millisecondi (il backend manda i microsecondi: si tagliano come in formatDataOra), NaN se non leggibile. */
+function istante(iso: string): number {
+  return new Date(iso.replace(/(\.\d{3})\d+/, '$1')).getTime();
+}
+
+/**
+ * L'istante di conclusione MENO recente fra le voci complete (ISO), o undefined se nessuna voce e' completa: la data fino
+ * a cui tutti i flussi sono aggiornati. Un flusso fermo non si nasconde dietro la data di un flusso appena acquisito.
+ */
+export function menoRecente(voci: readonly UltimoDato[]): string | undefined {
+  const istanti = voci.filter((v) => v.flusso && v.conclusoIl && !Number.isNaN(istante(v.conclusoIl))).map((v) => v.conclusoIl as string);
+  return istanti.length ? istanti.reduce((a, b) => (istante(b) < istante(a) ? b : a)) : undefined;
 }

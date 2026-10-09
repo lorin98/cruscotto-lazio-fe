@@ -32,22 +32,19 @@ function perStatus(status: number): string {
   return 'Errore nel recupero dei dati: riprova più tardi.';
 }
 
+// Tipi in cui la spec dichiara il `detail` leggibile: il messaggio lo usa se c'e'.
+const CON_DETTAGLIO: Partial<Record<ProblemKind, (d: string | undefined) => string>> = {
+  'invalid-data': (d) => `Richiesta non valida${d ? `: ${d}` : ''}. Correggila e riprova.`,
+  timeout: (d) => (d ? `La lettura ha richiesto troppo tempo: ${d}.` : 'La lettura ha richiesto troppo tempo: restringi i filtri e riprova.'),
+  'export-not-registered': (d) => (d ? `Esportazione non riuscita: ${d}.` : 'Esportazione non riuscita: riprova tra poco.'),
+};
+
 export function getErrorMessage(errore: unknown): string {
   if (!isAxiosError(errore)) return 'Errore inatteso nella pagina.';
   const status = errore.response?.status;
   if (status === undefined) return 'Il server non risponde: controlla la connessione e riprova.';
   const { kind, problem } = classifyProblem(status, errore.response?.data);
-  const d = dettaglio(problem?.detail);
-  switch (kind) {
-    case 'invalid-data':
-      return `Filtri non validi${d ? `: ${d}` : ''}. Modificali e riprova.`;
-    case 'timeout':
-      return d ? `La lettura ha richiesto troppo tempo: ${d}.` : 'La lettura ha richiesto troppo tempo: restringi i filtri e riprova.';
-    case 'export-not-registered':
-      return d ? `Esportazione non riuscita: ${d}.` : 'Esportazione non riuscita: riprova tra poco.';
-    case 'unknown':
-      return perStatus(status);
-    default:
-      return MESSAGGI[kind] ?? perStatus(status);
-  }
+  const conDettaglio = CON_DETTAGLIO[kind];
+  if (conDettaglio) return conDettaglio(dettaglio(problem?.detail));
+  return (kind !== 'unknown' && MESSAGGI[kind]) || perStatus(status);
 }

@@ -11,25 +11,31 @@ import Pagina from './page';
 const TABELLA = /^Riepilogo per intervento \(RF011\): 2 righe\./;
 
 describe('RF011: tabella di riepilogo per intervento con i nove campi finanziari', () => {
-  it('una riga per intervento, le colonne con almeno un valore, le altre nascoste e dichiarate, le assenze spiegate', async () => {
+  it('una riga per intervento con i nove campi, le assenze spiegate, totali e Assistenza tecnica nel piede', async () => {
     server.use(http.get('*/api/finanziario/riepilogo', () => HttpResponse.json(RIEPILOGO)));
     renderPagina(Pagina, '/finanziario/riepilogo');
     const tabella = await screen.findByRole('table', { name: TABELLA });
     // ordinata per dotazione decrescente; la prima colonna e' l'intestazione di riga
-    expect(within(tabella).getAllByRole('rowheader').map((c) => c.textContent)).toEqual(['SRA01', 'SRA03', 'Totale (2 interventi)']);
+    expect(within(tabella).getAllByRole('rowheader').map((c) => c.textContent)).toEqual([
+      'SRA01',
+      'SRA03',
+      'Totale (2 interventi)',
+      'Dotazione assistenza tecnica (AT001, intero programma: non dipende dai filtri)',
+    ]);
     const intestazioni = within(tabella).getAllByRole('columnheader').map((c) => c.textContent?.replace(/[▲▼↕]/g, ''));
     expect(intestazioni[0]).toBe('Intervento');
     expect(intestazioni).toContain('Pagamenti al netto di rettifiche');
-    expect(screen.getByText(/^Colonne nascoste perché nessun intervento ha un valore/).textContent).toContain('Importo stanziato');
-    // le colonne nascoste si mostrano da "Colonne": le assenze dicono la fonte, mai uno zero
-    await userEvent.click(screen.getByText('Colonne'));
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Importo stanziato' }));
+    // tutte le colonne si vedono (wireframe riepilogo): le assenze dicono la fonte, mai uno zero
+    expect(within(tabella).getByRole('columnheader', { name: /Importo stanziato/ })).toBeTruthy();
     expect(within(tabella).getAllByText('non disponibile').length).toBeGreaterThan(0);
     expect(tabella.textContent).toContain('fonte quadro sinottico non attiva');
-    expect(screen.getByRole('table', { name: 'Valore fuori tabella, indipendente dai filtri' }).textContent).toContain('Dotazione assistenza tecnica (AT001');
+    // la scelta delle colonne resta: si nasconde una colonna su richiesta
+    await userEvent.click(screen.getByText('Colonne'));
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Importo stanziato' }));
+    expect(within(tabella).queryByRole('columnheader', { name: /Importo stanziato/ })).toBeNull();
   });
 
-  it("riga apribile: l'anteprima laterale porta al dettaglio dell'intervento con i filtri", async () => {
+  it("riga apribile: l'anteprima laterale porta al dettaglio dell'intervento intero", async () => {
     server.use(http.get('*/api/finanziario/riepilogo', () => HttpResponse.json(RIEPILOGO)));
     const { router } = renderPagina(Pagina, '/finanziario/riepilogo', '/finanziario/riepilogo?os=SO4');
     await screen.findByRole('table', { name: TABELLA });
@@ -38,7 +44,7 @@ describe('RF011: tabella di riepilogo per intervento con i nove campi finanziari
     expect(anteprima.textContent).toContain('Domande presentate');
     await userEvent.click(within(anteprima).getByRole('link', { name: "Apri il dettaglio dell'intervento" }));
     await waitFor(() => expect(router.state.location.pathname).toBe('/finanziario/interventi/SRA01'));
-    expect(router.state.location.search).toBe('?os=SO4');
+    expect(router.state.location.search).toBe('');
   });
 
   it('vuoto ed errore sono rami distinti', async () => {

@@ -117,6 +117,12 @@ const barrelOnlyImportGroup = {
   message: "Le pagine/widgets compongono SOLO dal barrel della feature/entity (public API), mai da una sotto-cartella interna (invariante #3 step6-page).",
 };
 
+// H-11 (review v2): anche le feature e le altre entity usano un'entity solo dal suo barrel (public API).
+const entityBarrelOnlyImportGroup = {
+  group: ['**/entities/*/*', '**/entities/*/*/**'],
+  message: "Un'entity si importa SOLO dal suo barrel (src/entities/<entity>), mai da una sotto-cartella interna.",
+};
+
 const testingImportGroup = {
   group: ['**/shared/testing', '**/shared/testing/*', '**/api/mock', '**/api/mock/*'],
   message: 'I moduli di prova (shared/testing, api/mock) servono solo ai test e al dev server: non vanno nel codice di produzione (Z-02).',
@@ -147,6 +153,9 @@ export default tseslint.config(
       // Prototipo cliccabile approvato (UI v2): pagina statica di progetto con script da browser, non codice
       // dell'applicazione ne' importato da essa.
       'prototipo/**',
+      // risultati dei test e2e di Playwright (tracce, rapporti)
+      'test-results/**',
+      'playwright-report/**',
     ],
   },
   js.configs.recommended,
@@ -240,7 +249,7 @@ export default tseslint.config(
     files: ['src/features/**/*.{ts,tsx}', 'src/entities/**/*.{ts,tsx}', 'src/pages/**/*.{ts,tsx}', 'src/widgets/**/*.{ts,tsx}', 'src/app/**/*.{ts,tsx}'],
     ignores: ['src/features/*/api/**', 'src/entities/*/api/**'],
     rules: {
-      'no-restricted-imports': ['error', { patterns: [generatedImportGroup, testingImportGroup] }],
+      'no-restricted-imports': ['error', { patterns: [generatedImportGroup, testingImportGroup, entityBarrelOnlyImportGroup] }],
       'no-restricted-syntax': ['error', ...credentialSyntaxSelectors, ...generatedClientSyntaxSelectors, ...dynamicPathGuardSelectors],
     },
   },
@@ -281,6 +290,16 @@ export default tseslint.config(
     },
   },
   {
+    // Review step9 v2 H-06: le funzioni pure dei layer lib/ (builder dei grafici, aggregati, resa) restano sotto le soglie
+    // della checklist di review: complessita' 10 e 60 righe (oltre e' un MAGGIORE); un builder che cresce si spezza in
+    // funzioni pure piu' piccole (motivo, tabella, opzioni) invece di superarle.
+    files: ['src/shared/lib/**/*.{ts,tsx}', 'src/entities/*/lib/**/*.{ts,tsx}', 'src/features/*/lib/**/*.{ts,tsx}'],
+    rules: {
+      complexity: ['error', 10],
+      'max-lines-per-function': ['error', { max: 60, skipBlankLines: true, skipComments: true }],
+    },
+  },
+  {
     // Z-02: i test delle pagine sotto src/ usano i moduli di prova; restano gli altri divieti del loro layer.
     files: ['src/pages/**/*.test.{ts,tsx}', 'src/widgets/**/*.test.{ts,tsx}'],
     rules: {
@@ -295,7 +314,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['tests/**/*.{ts,tsx}'],
+    files: ['tests/**/*.{ts,tsx}', 'e2e/**/*.ts', 'playwright.config.ts'],
     languageOptions: {
       globals: { ...globals.browser, ...globals.node },
     },

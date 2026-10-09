@@ -6,10 +6,13 @@
 //    duplicherebbe il canale. Una mutation che rende gia' inline anche il 403 lo dichiara con
 //    meta.erroreInLinea: la rete di sicurezza la salta, cosi' l'utente non riceve due avvisi (review step9 R-07).
 // La discriminazione e' via classifyProblem (sul problem-type urn:cruscottocsr:problem:*, MAI sul solo status).
+// Anche la politica di retry delle letture sta qui, nei defaultOptions (review step9 H-18): i wrapper delle feature non
+// passano opzioni di retry, quindi un client di test con retry: false vale anche per loro.
 import { MutationCache, QueryClient } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
 import { classifyProblem } from '../shared/api/problem/problem-types';
 import type { ClassifiedProblem } from '../shared/api/problem/problem-types';
+import { attesaPrimaDiRiprovare, soloTransitori } from '../shared/api/retry/nuovi-tentativi';
 
 export type AccessDeniedHandler = (problem: ClassifiedProblem) => void;
 
@@ -23,8 +26,16 @@ export function handleMutationError(error: unknown, onAccessDenied: AccessDenied
 // Default no-op: l'app reale monta un toast/banner accessibile. Isolato per il test.
 export function createQueryClient(onAccessDenied: AccessDeniedHandler = () => {}): QueryClient {
   return new QueryClient({
-    // report aggregati e pesanti, aggiornati dalle acquisizioni: non si rileggono a ogni ritorno sulla scheda
-    defaultOptions: { queries: { staleTime: 5 * 60 * 1000, refetchOnWindowFocus: false } },
+    defaultOptions: {
+      queries: {
+        // report aggregati e pesanti, aggiornati dalle acquisizioni: non si rileggono a ogni ritorno sulla scheda
+        staleTime: 5 * 60 * 1000,
+        refetchOnWindowFocus: false,
+        // si riprovano solo rete assente e 503 CAPACITA_ESAURITA, rispettando Retry-After (shared/api/retry)
+        retry: soloTransitori,
+        retryDelay: attesaPrimaDiRiprovare,
+      },
+    },
     mutationCache: new MutationCache({
       onError: (error, _variabili, _contesto, mutation) => {
         if (mutation.meta?.erroreInLinea === true) return;

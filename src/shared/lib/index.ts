@@ -4,3 +4,4 @@ export * from './sentinel-dates';
 export * from './predicates';
 export * from './errori';
 export * from './tabella';
+export * from './grafici';

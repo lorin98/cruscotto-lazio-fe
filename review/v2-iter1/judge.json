@@ -1,0 +1,395 @@
+[
+  {
+    "id": "V-01",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: interventi/page.tsx:31 passa solo il codice e Corpo legge { intervento: [codice] }, mentre i drill-down conservano la query: chip attivi senza effetto sui dati.",
+    "severity": "MAGGIORE"
+  },
+  {
+    "id": "V-02",
+    "verdetto": "RIGETTATO",
+    "motivo": "Duplicato di H-01: stessa somma parziale di KpiSpesa (Panoramica.tsx:19-27); H-01 e' piu' completo e verificato su tre casi.",
+    "severity": "MAGGIORE",
+    "duplicato_di": "H-01"
+  },
+  {
+    "id": "V-03",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: graficoCascataIntervento (grafici.ts:975) non riceve il perimetro e per un P4 disegna la dotazione regionale meno i pagamenti dell'area, confronto che il gauge invece rifiuta.",
+    "severity": "MAGGIORE"
+  },
+  {
+    "id": "V-04",
+    "verdetto": "DECLASSATO",
+    "motivo": "Reale (DistribuzioneDotazioneLike senza dotazioneSpesaPubblica, Totale = somma delle quote), ma con quote coerenti (SC-FI_DISTRIBUZIONE) il Totale coincide con la dotazione e l'assenza resta dichiarata dalle quote: impatto basso.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "V-05",
+    "verdetto": "DECLASSATO",
+    "motivo": "Sovrastimato: le colonne si mostrano da 'Colonne' con la nota e il wireframe stesso parte con 7 colonne su 10; restano reali la colonna 'Impegnato' nascosta e il motivo falso per il P4 (FUORI_PERIMETRO detto 'fonte non attiva o non valorizzato').",
+    "severity": "MINORE"
+  },
+  {
+    "id": "V-06",
+    "verdetto": "DECLASSATO",
+    "motivo": "Deviazione dal wireframe ('colonne con il motivo') verificata, ma le colonne sono nominate nella nota e ripristinabili e il motivo e' corretto con il backend attuale: stessa classe di V-15..V-18.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "V-07",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: Sintesi (DettaglioIntervento.tsx:61) usa spesa.data senza VistaQuery, quindi caricamento ed errore di TX-0002 diventano 'valore non disponibile', contro l'invariante dei rami distinti (StatiVista).",
+    "severity": "MAGGIORE"
+  },
+  {
+    "id": "V-08",
+    "verdetto": "DECLASSATO",
+    "motivo": "Latente: IMPEGNI e' fonte non attiva e TX-0006 non e' fra i report per domanda di SC-FI_SCOPE_P4, quindi il rischio ADA e' ipotetico; resta reale che dotazioneResidua del DTO sia ignorata.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "V-09",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: graficoSankey (grafici.ts:856-862) non disegna nulla senza impegnato, mentre avanzamento.html chiede dotazione e pagato con il ramo mancante dichiarato.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "V-10",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: kpiImporto (DettaglioIntervento.tsx:48) scarta motivo e fonte; KpiImporto di AvanzamentoReport fa gia' la resa corretta.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "V-11",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: graficoImportiPerAnno ha solo Anno, Ammesso e Decretato; nel dettaglio stanziato e domandeSenzaAmmesso non sono dichiarati.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "V-12",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: ImportiSigcLike non ha domandeSenza e la tabella di graficoCascataSigc (grafici.ts:686-693) non lo riporta; panoramica e dettaglio perdono la parzialita'.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "V-13",
+    "verdetto": "RIGETTATO",
+    "motivo": "Duplicato di H-01: denominatore Math.max(1, ...) di KpiSpesa, che H-01 copre insieme al caso della dotazione zero.",
+    "severity": "MINORE",
+    "duplicato_di": "H-01"
+  },
+  {
+    "id": "V-14",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: KpiDomande e' montato nel ramo dati della VistaQuery di TX-0002 (Panoramica.tsx:82).",
+    "severity": "MINORE"
+  },
+  {
+    "id": "V-15",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: due tessere su quattro del wireframe domande.html e nessun clic sull'anno.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "V-16",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: TabellaRighe statica e CardGrafico senza onClic, mentre verifica-smp.html prevede cerca, colonne e drill-down.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "V-17",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: una TabellaVoci di nove righe al posto dei quattro KPI di riserva.html.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "V-18",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: il clic sulla barra apre l'anteprima (RiepilogoReport.tsx:167) e la dotazione AT sta in una sezione a parte.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "V-19",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: la serie 'Pagato' di graficoDotazionePagamenti riceve pagamentiNettoRettifiche (RiepilogoReport.tsx:163).",
+    "severity": "MINORE"
+  },
+  {
+    "id": "V-20",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: la barra riceve solo UltimoAggiornamento (PaginaFinanziario.tsx:78), mentre i wireframe hanno il chip del perimetro.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "V-21",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: il vuoto e' un testo senza pulsante e nella variante ADA l'invito a modificare i filtri sparisce.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "V-22",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: titoli e testi diversi dai wireframe (report.ts:41-42, RiservaReport.tsx:82 e 106).",
+    "severity": "COSMETICO"
+  },
+  {
+    "id": "H-01",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: somma() scarta i null e il denominatore e' Math.max(1, ...): il KPI di testata presenta una somma parziale come totale su dati che il contratto prevede (SC-FI_SPESA_INTERVENTO, NON_VALORIZZATO), contro l'invariante 'mai somma parziale'.",
+    "severity": "CRITICO"
+  },
+  {
+    "id": "H-02",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: setOption con notMerge a ogni nuova identita' delle opzioni (Grafico.tsx:55) e builder chiamati in linea senza useMemo: il clic che apre l'anteprima azzera lo zoom del grafico.",
+    "severity": "MAGGIORE"
+  },
+  {
+    "id": "H-03",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: motivoDi, nonDisponibile e cellaImporto riscrivono descriviImporto con testi diversi; per un aggregato NON_VALORIZZATO la pagina SIGC da' due letture diverse dello stesso importo.",
+    "severity": "MAGGIORE"
+  },
+  {
+    "id": "H-04",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: con senzaTitolo l'h1, il titolo e il focus stanno solo in Testata, resa a riepilogo caricato; senza grant TX-0011, in caricamento o in errore manca l'h1 (invariante #6 di step6).",
+    "severity": "MAGGIORE"
+  },
+  {
+    "id": "H-05",
+    "verdetto": "DECLASSATO",
+    "motivo": "Reale ma di prospettiva: oggi non esiste una seconda area e il README colloca i builder nella feature; complessita' e duplicazioni concrete sono gia' in H-06, H-08 e H-10.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "H-06",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato con l'output ESLint della lente H: otto builder oltre complessita' 10 o 60 righe, soglie MAGGIORE della review-checklist.",
+    "severity": "MAGGIORE"
+  },
+  {
+    "id": "H-07",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: ETICHETTE, PARAMETRI_DI_PAGINA, il grant di TX-0001 e i percorsi stanno nel widget (PaginaFinanziario.tsx:14-15, 66-67, 88).",
+    "severity": "MINORE"
+  },
+  {
+    "id": "H-08",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: TabellaEquivalente/DatiGrafico in CardGrafico.tsx, Grafico in grafici.ts e DatiDueParti in due-parti.ts.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "H-09",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: PALETTE di echarts.ts e COLORI di grafici.ts ripetono i token di tema.css.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "H-10",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: graficoDueParti e graficoQuotaFeasr divergono su arrotondamento, etichette, tooltip e resa degli assenti; graficoDueParti non ha test L1.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "H-11",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: import profondo in due-parti.ts:5-6; barrelOnlyImportGroup non e' applicato ai file di features ed entities (eslint.config.js).",
+    "severity": "MINORE"
+  },
+  {
+    "id": "H-12",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: valore, senzaValori e colonne() duplicati fra RiepilogoReport e DotazioneReport; totale e totaleDomande stanno in ui/.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "H-13",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: Sezione, Griglia, TabellaVoci e TabellaRighe in comuni.tsx non contengono dominio.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "H-14",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: il segnaposto promette la ricerca per descrizione ma testoRicerca e' solo il codice; reali anche la regex di allineamento e la correzione delle maiuscole in CardGrafico.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "H-15",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: un componente di circa 175 righe con logica in linea; ADR 0027 par. 2 prevede la Table di react-aria-components e la scelta della tabella nativa non e' registrata.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "H-16",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: 35 letterali di grant fuori da lib/report.ts e percorsi scritti a mano, nonostante l'unica fonte dichiarata.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "H-17",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: le date delle fasi stanno in filtri.ts:68-73, in riserva.ts e in RiservaReport.tsx:99-102.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "H-18",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: il retry nelle opzioni per query (api/index.ts:81, 122, 133) prevale su clientDiTest; il ramo transitorio non e' provato a L2.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "H-19",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: GraficoFinto e' un'interfaccia indipendente e setOption ignora il secondo argomento.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "H-20",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: dati d'esempio e fixture del finanziario stanno in shared/api/mock e in shared/testing.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "H-21",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: la coda vale per ogni GET '/api/' e il suo stato e' un singleton di modulo non azzerabile.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "H-22",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: il gruppo Finanziario e' scritto a mano in menu.tsx e AREE_FUTURE e' duplicato in routes.tsx:21; ADR 0027 par. 2 chiede il menu dalla route-table.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "H-23",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: inAttesaDelSegnale (selezione.ts:31) costruisce uno StatoQuery fittizio legato ai rami interni di VistaQuery.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "H-24",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: 11 forme 'Like' con campi tutti opzionali; contratto.ts controlla solo Importo, fase e perimetro.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "H-25",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato a campione (CercaIntervento.tsx:25, PannelloFiltri.tsx:34-36, UltimoAggiornamento.tsx:23-25): piccole funzioni pure in linea o duplicate.",
+    "severity": "COSMETICO"
+  },
+  {
+    "id": "H-26",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: HeatmapChart e VisualMapComponent registrati senza usi; quattro export del barrel usati solo nei test.",
+    "severity": "COSMETICO"
+  },
+  {
+    "id": "A-01",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: appRoutes() non ha errorElement ne' route '*'; un indirizzo sbagliato o un chunk sparito dopo un rilascio mostra la pagina inglese di React Router con messaggio e stack, senza shell.",
+    "severity": "MAGGIORE"
+  },
+  {
+    "id": "A-02",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: il README attesta una verifica CSP non riproducibile (nessuna config ne' spec Playwright) e il tooltip HTML di ECharts scrive attributi style vietati da style-src 'self'.",
+    "severity": "MAGGIORE"
+  },
+  {
+    "id": "A-03",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: su iOS usePreventScroll di react-aria antepone un <style> con il nonce solo se presente, e l'app non lo fornisce.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "A-04",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: alla 'scaduta' ricevuta da un'altra scheda (inattivita.tsx:72-76) la cache non si svuota e il velo e' semitrasparente; in src non c'e' nessun clear.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "A-05",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: Dialog role=alertdialog senza aria-describedby, quindi il tempo rimasto non e' la descrizione accessibile.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "A-06",
+    "verdetto": "RIGETTATO",
+    "motivo": "Duplicato di H-04: stesso difetto (h1, titolo e focus del dettaglio assenti fuori dallo stato dati); H-04 lo riproduce e ne individua la causa nel flag senzaTitolo.",
+    "severity": "MINORE",
+    "duplicato_di": "H-04"
+  },
+  {
+    "id": "A-07",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: ogni VistaQuery in errore rende un role=alert e il segnale in errore vale 'non-vuota' (selezione.ts:15), da cui la raffica di alert identici.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "A-08",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: axios '^1.7.9' e' l'unica dipendenza di runtime non esatta, .npmrc non ha save-exact e @playwright/test non ha config ne' spec.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "A-09",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: commento interno e percorso del sorgente in index.html.",
+    "severity": "COSMETICO"
+  },
+  {
+    "id": "X-01",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato sul codice (TabellaInterattiva.tsx:52, stato iniziale congelato) e dall'output della sonda: tornando a filtri in cache una colonna con valori resta nascosta e la nota non la elenca.",
+    "severity": "MAGGIORE"
+  },
+  {
+    "id": "X-02",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: il posto si libera nel finally anche all'annullamento (bff-mutator.ts:98) e il contatore e' per scheda; la sonda vede 4 letture contemporanee contro il tetto di 2.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "X-03",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: senzaAzioneSeNonDisponibile vale solo all'Applica del pannello; con ?azione=1 dall'indirizzo i report dicono 'nessun intervento' (sonda).",
+    "severity": "MINORE"
+  },
+  {
+    "id": "X-04",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: vuotoConPerimetro attribuisce all'area ADA vuoti che vengono dai filtri (righe di TX-0002 e TX-0011) e il vuoto di AT001 (sonda).",
+    "severity": "MINORE"
+  },
+  {
+    "id": "X-05",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: asse delle domande senza formatter (grafici.ts:764) e label '{d}%' in due-parti.ts; la resa SSR della sonda mostra '1,000' e '28.57%'.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "X-06",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato sul codice: staleTime di 5 minuti, refetchOnWindowFocus false e chiavi dei report senza utente; scenario plausibile su postazione condivisa, non riprodotto.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "X-07",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: piuRecente sceglie il massimo dei conclusoIl, mentre il wireframe panoramica.html chiede un valore per flusso.",
+    "severity": "MINORE"
+  },
+  {
+    "id": "X-08",
+    "verdetto": "ACCETTATO",
+    "motivo": "Verificato: quotaStato e quotaRegione valorizzate nella fixture (righe 63-64) e utilizzi della riserva 2024 in fase di accumulo negli esempi MSW.",
+    "severity": "MINORE"
+  }
+]

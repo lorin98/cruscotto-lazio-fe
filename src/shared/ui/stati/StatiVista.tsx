@@ -69,10 +69,13 @@ export function VistaQuery<T>(props: {
   /** Contenuto dello stato vuoto; una funzione lo calcola dai dati (es. per dire il perimetro). */
   vuoto?: ReactNode | ((dati: T) => ReactNode);
   errorePersonalizzato?: (errore: unknown) => ReactNode | null;
+  /** In attesa di un'informazione esterna (es. il segnale di vuoto della selezione): si mostra il caricamento. */
+  inAttesa?: boolean;
   children: (dati: T) => ReactNode;
 }) {
-  const { stato, eVuoto, vuoto, errorePersonalizzato, children } = props;
+  const { stato, eVuoto, vuoto, errorePersonalizzato, inAttesa = false, children } = props;
   const riprova = () => void stato.refetch();
+  if (inAttesa && !stato.isError) return <Caricamento />;
   if (stato.data === undefined) {
     if (stato.isError) return <>{errorePersonalizzato?.(stato.error) ?? <ErroreVista errore={stato.error} onRiprova={riprova} />}</>;
     if (stato.fetchStatus === 'paused') return <Caricamento testo="In attesa della connessione…" />;
@@ -82,7 +85,7 @@ export function VistaQuery<T>(props: {
   return (
     <>
       {stato.isError && <AggiornamentoFallito errore={stato.error} onRiprova={riprova} />}
-      {eVuoto?.(stato.data) ? <Vuoto>{(typeof vuoto === 'function' ? vuoto(stato.data) : vuoto) ?? 'Nessun dato per i filtri scelti. Modifica i filtri.'}</Vuoto> : children(stato.data)}
+      {eVuoto?.(stato.data) ? <Vuoto>{(typeof vuoto === 'function' ? vuoto(stato.data) : vuoto) ?? 'Nessun dato da mostrare.'}</Vuoto> : children(stato.data)}
     </>
   );
 }

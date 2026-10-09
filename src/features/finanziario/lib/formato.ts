@@ -1,8 +1,8 @@
 // formato.ts — resa PURA dei campi dei report del finanziario (zero React). Un dato assente non e' mai uno zero ne' una
 // cella vuota: e' "non disponibile" come per gli Importo (ValoreImporto), salvo dove la spec ne dice il motivo.
-import { formatEuro, formatNumber, formatPercentuale } from '../../../shared/lib';
+import { NON_DISPONIBILE, formatEuro, formatNumber, formatPercentuale } from '../../../shared/lib';
 
-export const NON_DISPONIBILE = 'non disponibile';
+export { NON_DISPONIBILE };
 
 export function testoOpzionale(v: string | null | undefined): string {
   return v == null || v.trim() === '' ? NON_DISPONIBILE : v;

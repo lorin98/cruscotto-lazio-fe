@@ -1,14 +1,16 @@
-// comuni.tsx — mattoni condivisi dai report del finanziario (UI v2, wireframe v2 approvati): sezione a card con il SUO
-// perimetro, tabella voce/valore, numeri, gating per grant della sezione, griglia delle card.
-import { useId } from 'react';
+// comuni.tsx — mattoni di DOMINIO condivisi dai report del finanziario (UI v2, wireframe v2 approvati): gating per grant
+// della sezione, perimetro della sezione, stato vuoto con "Modifica i filtri", etichette dei dati di programma, colonne
+// degli Importo. I mattoni senza dominio (Sezione, Griglia, tabelle) stanno nel kit di shared/ui.
+import { createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
 import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
-import { ValoreImporto } from '../../../entities/importo';
+import { ValoreImporto, descriviImporto } from '../../../entities/importo';
 import type { ImportoLike } from '../../../entities/importo';
-import { formatNumber } from '../../../shared/lib';
-import { Caricamento } from '../../../shared/ui';
-import { etichettaPerimetro } from '../lib/filtri';
-import type { Perimetro } from '../lib/filtri';
+import { formatNumber, importoKpi } from '../../../shared/lib';
+import { Caricamento, Kpi, Sezione } from '../../../shared/ui';
+import type { Colonna, ColonnaTabella, NomeIcona, TonoKpi } from '../../../shared/ui';
+import { etichettaPerimetro } from '../lib/perimetro';
+import type { Perimetro } from '../lib/perimetro';
 
 /** Badge del perimetro della singola sezione: ogni DTO dichiara il suo (misure per domanda ADA, dati di programma regionali). */
 export function PerimetroSezione({ perimetro }: { perimetro: Perimetro | null | undefined }) {
@@ -21,22 +23,36 @@ export function PerimetroSezione({ perimetro }: { perimetro: Perimetro | null | 
   );
 }
 
+/** Apre il pannello dei filtri della pagina; null fuori da una pagina con il pannello (es. senza il grant dei filtri). */
+export const ContestoFiltri = createContext<(() => void) | null>(null);
+
+function MessaggioVuoto({ testo, perimetro, programma }: { testo: string; perimetro?: Perimetro | null; programma: boolean }) {
+  const apriFiltri = useContext(ContestoFiltri);
+  // per le misure per domanda di un P4 il vuoto puo' dipendere dall'area; i dati di programma sono gli stessi per tutti
+  const messaggio =
+    perimetro === 'ADA' && !programma ? 'Nessun dato nella tua area (perimetro ADA) per i filtri scelti: le domande delle altre aree non rientrano nel tuo profilo.' : testo;
+  return (
+    <>
+      <PerimetroSezione perimetro={perimetro} />
+      <span>{apriFiltri ? messaggio : `${messaggio} Modifica i filtri.`}</span>
+      {apriFiltri && (
+        <button type="button" className="btn btn-outline-primary btn-sm ms-2" onClick={apriFiltri}>
+          Modifica i filtri
+        </button>
+      )}
+    </>
+  );
+}
+
 /**
- * Stato vuoto con il perimetro: per un P4 (perimetro ADA) il motivo puo' essere la sua area, non i filtri.
- * Uso: vuoto={vuotoConPerimetro('Nessuna domanda per i filtri scelti. Modifica i filtri.')}.
+ * Stato vuoto azionabile, con il perimetro: per un P4 (perimetro ADA) il motivo delle misure per domanda puo' essere la
+ * sua area, non i filtri; `programma` = il vuoto viene da dati di programma (righe per intervento di TX-0002/TX-0011),
+ * uguali per ogni profilo. Nella pagina con il pannello dei filtri c'e' il bottone "Modifica i filtri", altrimenti
+ * l'invito resta nel testo. Uso: vuoto={vuotoConPerimetro('Nessuna domanda per i filtri scelti.')}.
  */
-export function vuotoConPerimetro(testo: string) {
-  return function MessaggioVuoto(d: { perimetro?: Perimetro | null }) {
-    return (
-      <>
-        <PerimetroSezione perimetro={d.perimetro} />
-        <span>
-          {d.perimetro === 'ADA'
-            ? 'Nessun dato nella tua area (perimetro ADA) per i filtri scelti: le domande delle altre aree non rientrano nel tuo profilo.'
-            : testo}
-        </span>
-      </>
-    );
+export function vuotoConPerimetro(testo: string, { programma = false }: { programma?: boolean } = {}) {
+  return function vuoto(d: { perimetro?: Perimetro | null }) {
+    return <MessaggioVuoto testo={testo} perimetro={d.perimetro} programma={programma} />;
   };
 }
 
@@ -52,20 +68,6 @@ export function NotaPerimetroMisto({ perimetro }: { perimetro: Perimetro | null 
     <p className="small mb-2">
       La dotazione e le quote sono regionali (dati di programma), domande, impegni e pagamenti sono della tua area: i due valori non sono confrontabili.
     </p>
-  );
-}
-
-export function Sezione({ titolo, children }: { titolo: string; children: ReactNode }) {
-  const id = useId();
-  return (
-    <section className="ui-card ui-dissolvenza" aria-labelledby={id}>
-      <div className="ui-card__testa">
-        <div>
-          <h2 id={id}>{titolo}</h2>
-        </div>
-      </div>
-      {children}
-    </section>
   );
 }
 
@@ -85,83 +87,52 @@ export function ConGrant({ grant, titolo, children }: { grant: string | string[]
   );
 }
 
-export interface Voce {
-  etichetta: string;
-  valore: ReactNode;
-}
-
-export function TabellaVoci({ caption, voci }: { caption: string; voci: Voce[] }) {
-  return (
-    <div className="ui-tabella-contenitore mb-2">
-      <table className="ui-tabella">
-        <caption>{caption}</caption>
-        <tbody>
-          {voci.map((v) => (
-            <tr key={v.etichetta}>
-              <th scope="row">{v.etichetta}</th>
-              <td className="ui-num">{v.valore}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-/** Colonna di TabellaRighe: intestazione e cella dalla stessa voce, cosi' non si possono disallineare. */
-export type Colonna<T> = [string, (riga: T) => ReactNode];
-
-/** Tabella per righe: prima colonna come intestazione di riga (th scope=row), le altre numeriche a destra. */
-export function TabellaRighe<T>(props: {
-  caption: string;
-  intestazione: string;
-  chiave: (riga: T) => string;
-  colonne: Colonna<T>[];
-  righe: T[];
-}) {
-  const { caption, intestazione, chiave, colonne, righe } = props;
-  return (
-    <div className="ui-tabella-contenitore">
-      <table className="ui-tabella">
-        <caption>{caption}</caption>
-        <thead>
-          <tr>
-            <th scope="col">{intestazione}</th>
-            {colonne.map(([c]) => (
-              <th key={c} scope="col" className="ui-num">
-                {c}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {righe.map((r, n) => (
-            <tr key={`${n}-${chiave(r)}`}>
-              <th scope="row">{chiave(r)}</th>
-              {colonne.map(([c, cella]) => (
-                <td key={c} className="ui-num">
-                  {cella(r)}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
 /** Conteggio (numero di domande): il backend non lo rende null; un assente resta "-" del formattatore. */
 export function Numero({ valore }: { valore: number | null | undefined }) {
   return <span className="font-monospace">{formatNumber(valore)}</span>;
 }
 
-/** Colonna con un Importo della spec (valore, oppure l'assenza dichiarata: mai uno zero). */
+/** Colonna di TabellaRighe con un Importo della spec (valore, oppure l'assenza dichiarata: mai uno zero). */
 export function colonnaImporto<T>(etichetta: string, leggi: (riga: T) => ImportoLike | undefined): Colonna<T> {
   return [etichetta, (r) => <ValoreImporto importo={leggi(r)} />];
 }
 
-/** Griglia delle card del kit (2 colonne su schermi larghi, 4 per i KPI). */
-export function Griglia({ colonne = 2, children }: { colonne?: 2 | 4; children: ReactNode }) {
-  return <div className={`ui-griglia ui-griglia--${colonne}`}>{children}</div>;
+/** Un campo Importo di una riga per intervento: chiave, titolo, e se e' un dato di programma (regionale per un P4). */
+export interface CampoImporto<T> {
+  chiave: keyof T & string;
+  titolo: string;
+  programma?: boolean;
+}
+
+/**
+ * Colonne di TabellaInterattiva per i campi Importo di una riga per intervento (Riepilogo, Dotazione): tutte visibili,
+ * come nei wireframe approvati; l'assenza di ogni cella dice il suo motivo e la fonte attesa.
+ */
+export function colonneImporti<T>(campi: readonly CampoImporto<T>[], perimetro: Perimetro | null | undefined): ColonnaTabella<T>[] {
+  const importo = (r: T, c: CampoImporto<T>) => r[c.chiave] as ImportoLike | undefined;
+  return campi.map((c) => ({
+    chiave: c.chiave,
+    titolo: c.programma ? diProgramma(c.titolo, perimetro) : c.titolo,
+    valore: (r: T) => importo(r, c)?.valore ?? null,
+    resa: (r: T) => <ValoreImporto importo={importo(r, c)} />,
+    numerica: true,
+  }));
+}
+
+/**
+ * KPI di un Importo: il valore in milioni, oppure l'assenza con il suo motivo e la fonte attesa ("Non disponibile: fonte
+ * impegni non attiva", "Non calcolabile: manca per almeno un intervento ..."). `aggregato`: totale su piu' interventi.
+ */
+export function KpiImporto({ etichetta, importo, icona, tono, nota, aggregato = true }: { etichetta: string; importo: ImportoLike | null | undefined; icona: NomeIcona; tono: TonoKpi; nota?: string; aggregato?: boolean }) {
+  const r = descriviImporto(importo, aggregato);
+  const assente = r.disponibile ? undefined : `${r.testo.charAt(0).toUpperCase()}${r.testo.slice(1)}${r.nota ? `: ${r.nota}` : ''}`;
+  return <Kpi etichetta={etichetta} icona={icona} tono={tono} valore={importo?.valore != null ? importoKpi(importo.valore) : undefined} assente={assente} nota={nota} />;
+}
+
+/**
+ * Per VistaQuery.errorePersonalizzato: l'errore non si mostra qui perche' lo dice gia', una volta e con "Riprova", la
+ * sezione della stessa transazione (A-07). Un frammento vuoto, non null: null vorrebbe dire "errore non gestito".
+ */
+export function erroreGiaMostrato() {
+  return <></>;
 }

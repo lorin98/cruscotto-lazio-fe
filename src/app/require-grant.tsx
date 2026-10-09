@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { useAuthStatus, hasGrant } from '../shared/api/auth/use-auth-status';
 import { resolveLoginPath } from '../shared/config/base-path';
-import { useFocusTitolo } from '../shared/ui';
+import { Esito } from './esito';
 import { SessioneNonVerificabile } from './sessione-non-verificabile';
 
 // RequireGrant — route-guard di UX (hide-by-role). DOTTRINA (auth-runtime-pattern.md): e' SOLO UX,
@@ -12,20 +12,6 @@ import { SessioneNonVerificabile } from './sessione-non-verificabile';
 // Tre casi distinti (review step9 V-04/A-01): /auth/status non raggiungibile o 401 (sessione non valida),
 // utente non collegato (invito ad accedere, navigazione verso /auth/login del BFF), utente senza il grant.
 // Nessun redirect automatico: un'identita' rifiutata dal backend non deve finire in un ciclo di login (A-04).
-
-function Esito({ titolo, children }: { titolo: string; children: ReactNode }) {
-  const h1 = useFocusTitolo<HTMLHeadingElement>(titolo);
-  return (
-    <main className="ui-pagina" id="contenuto">
-      <div className="ui-titolo">
-        <h1 ref={h1} tabIndex={-1}>
-          {titolo}
-        </h1>
-      </div>
-      {children}
-    </main>
-  );
-}
 
 export function RequireGrant({
   visibility,
