@@ -1,0 +1,148 @@
+{
+  "artifacts": [
+    {
+      "consumers": [],
+      "ownership": "finanziario",
+      "path": "slice-plan.json",
+      "role": "artifact",
+      "sha256": "sha256:2a363995d00682b92a9730fc9bc3b22de6885c4f3bf3080306e1a933afbccbdc",
+      "step": "step1-import"
+    },
+    {
+      "consumers": [],
+      "ownership": "finanziario",
+      "path": "authz-catalog.json",
+      "role": "authz-catalog",
+      "sha256": "sha256:e871aa1b27a750372e7433fa1c5d282c33a83b1541411099b8a4d5e5cb41a9f2",
+      "step": "authz-catalog"
+    },
+    {
+      "consumers": [],
+      "ownership": "finanziario",
+      "path": "ARSCSR/pom.xml",
+      "role": "artifact",
+      "sha256": "sha256:4c6a6c7cadd6a32fbd600124269e8e47b98479f86c301f26a21737f85557bf72",
+      "step": "step1b-scaffold"
+    },
+    {
+      "consumers": [],
+      "ownership": "finanziario",
+      "path": "./datamodel/finanziario-decisions.json",
+      "role": "migration",
+      "sha256": "sha256:553ea2987620793880aa9193b3514b3bf18dbf979e56006c4622571f2a0167d2",
+      "step": "step2-datamodel"
+    },
+    {
+      "consumers": [],
+      "ownership": "finanziario",
+      "path": "ARSCSR/bootstrap/bootstrap-postgres/src/main/resources/db/migration/postgres/V14__finanziario.sql",
+      "role": "migration",
+      "sha256": "sha256:428dcec82e39b67f2625f43e5d8f034561e9cda5ab1d290176a0dc6500d8ee63",
+      "step": "step2-datamodel"
+    },
+    {
+      "consumers": [],
+      "ownership": "finanziario",
+      "path": "./acceptance/finanziario-scenarios.json",
+      "role": "application",
+      "sha256": "sha256:01eeec60e4fcb7f04863b2cae223d402b4cdf4b10fb85df5636838cd9211b797",
+      "step": "step5-service"
+    },
+    {
+      "consumers": [],
+      "ownership": "finanziario",
+      "path": "./openapi/openapi-finanziario.json",
+      "role": "adapter-in-rest",
+      "sha256": "sha256:68a59b8b2fbc4e48b1b46630991d533e11198f19a6236c98ef90c35d2b9edac9",
+      "step": "step8-rest"
+    }
+  ],
+  "authz_catalog": {
+    "hash": "sha256:e871aa1b27a750372e7433fa1c5d282c33a83b1541411099b8a4d5e5cb41a9f2",
+    "path": "authz-catalog.json"
+  },
+  "gates": {
+    "authz-catalog.authz_approved": {
+      "approved_at": "2026-09-28T11:15:17Z",
+      "approved_hash": "sha256:e871aa1b27a750372e7433fa1c5d282c33a83b1541411099b8a4d5e5cb41a9f2",
+      "baseline_ref": "sha256:1ef3a90c51c555441a3a3e3fb203dfdaa0f2f7d1861a5664982f33cb828de4c4"
+    },
+    "step1-import.plan_approved": {
+      "approved_at": "2026-09-28T09:52:46Z",
+      "approved_hash": "sha256:2a363995d00682b92a9730fc9bc3b22de6885c4f3bf3080306e1a933afbccbdc",
+      "baseline_ref": "sha256:1ef3a90c51c555441a3a3e3fb203dfdaa0f2f7d1861a5664982f33cb828de4c4"
+    },
+    "step10-gate.acceptance": "pass",
+    "step10-gate.assumptions": "pass",
+    "step10-gate.branch_bodies": "pass",
+    "step10-gate.build": "pass",
+    "step10-gate.contract_openapi": "pass",
+    "step10-gate.coverage_matrix": "pass",
+    "step10-gate.endpoints_authz": "pass",
+    "step10-gate.no_template_residue": "pass",
+    "step10-gate.property_scope_history_audit": "pass",
+    "step11-review.review": "pass",
+    "step1b-scaffold.reactor_compiles": "pass",
+    "step2-datamodel.ddl_approved": {
+      "approved_at": "2026-10-02T15:16:56Z",
+      "approved_hash": "sha256:553ea2987620793880aa9193b3514b3bf18dbf979e56006c4622571f2a0167d2",
+      "baseline_ref": "sha256:1ef3a90c51c555441a3a3e3fb203dfdaa0f2f7d1861a5664982f33cb828de4c4"
+    },
+    "step3-domain.domain_compiles": "pass",
+    "step3-domain.domain_pure": "pass",
+    "step4-ports.ports_pure": "pass",
+    "step5-service.acceptance_approved": {
+      "approved_at": "2026-10-02T15:16:56Z",
+      "approved_hash": "sha256:01eeec60e4fcb7f04863b2cae223d402b4cdf4b10fb85df5636838cd9211b797",
+      "baseline_ref": "sha256:1ef3a90c51c555441a3a3e3fb203dfdaa0f2f7d1861a5664982f33cb828de4c4"
+    },
+    "step5-service.authz_import_zero": "pass",
+    "step6-adapter-pg.adapter_pg_compiles": "pass",
+    "step7-adapter-oracle.skipped_no_oracle": "pass",
+    "step8-rest.boundary_pure": "pass",
+    "step8-rest.openapi_emitted": "pass",
+    "step9-functions.functions": "pass"
+  },
+  "openapi": {
+    "hash": "sha256:68a59b8b2fbc4e48b1b46630991d533e11198f19a6236c98ef90c35d2b9edac9",
+    "path": "openapi/openapi-finanziario.json"
+  },
+  "pack_hash": "sha256:1ef3a90c51c555441a3a3e3fb203dfdaa0f2f7d1861a5664982f33cb828de4c4",
+  "pack_version": "1.0.0",
+  "reqs": [
+    "RU-00000001",
+    "RU-00000002",
+    "RU-00000003",
+    "RU-00000004",
+    "RU-00000005",
+    "RU-00000006",
+    "RU-00000007",
+    "RU-00000008",
+    "RU-00000009",
+    "RU-00000010",
+    "RU-00000011",
+    "RU-00000012",
+    "RU-00000013",
+    "RU-00000014",
+    "RU-00000015"
+  ],
+  "slice": "finanziario",
+  "slice_type": "transactional",
+  "transactions": [
+    "TX-0001",
+    "TX-0002",
+    "TX-0003",
+    "TX-0004",
+    "TX-0005",
+    "TX-0006",
+    "TX-0007",
+    "TX-0008",
+    "TX-0009",
+    "TX-0010",
+    "TX-0011",
+    "TX-0012",
+    "TX-0013",
+    "TX-0014",
+    "TX-0015"
+  ]
+}

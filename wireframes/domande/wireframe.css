@@ -1,0 +1,134 @@
+/* wireframe.css v2 -- resa LOW-FI dei wireframe UI v2 (ADR 0027).
+   Non e' il tema del prodotto: e' il minimo per leggere in locale, senza toolchain, la struttura delle
+   pagine (shell, filtri a chip, KPI, grafici, tabella, drawer, schede). Le classi ui-* sono quelle del
+   kit del progetto generato; i grafici sono riquadri con il tipo dichiarato, non disegni. */
+:root { --wf-primario: #0066cc; --wf-scuro: #0b2d4e; --wf-sfondo: #f2f5f9; --wf-bordo: #d5dde6; --wf-tenue: #546474; }
+* { box-sizing: border-box; }
+body { font-family: system-ui, sans-serif; margin: 0; color: #17212b; background: var(--wf-sfondo); }
+.skip-link { position: absolute; left: -999px; } .skip-link:focus { left: 8px; top: 8px; background: #fff; padding: 4px 8px; z-index: 10; }
+a { color: var(--wf-primario); }
+
+/* testata: fascia dell'ente + barra dell'applicazione */
+.ui-testata { position: sticky; top: 0; z-index: 5; }
+.ui-ente { display: flex; gap: 16px; align-items: center; background: #fff; border-bottom: 1px solid var(--wf-bordo); padding: 10px 20px; }
+.ui-logo { display: inline-block; border: 1px dashed var(--wf-tenue); border-radius: 6px; padding: 8px 14px; color: var(--wf-tenue); font-weight: 600; }
+.ui-appbar { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; background: var(--wf-scuro); color: #fff; padding: 10px 20px; }
+.ui-appbar__nome { color: #fff; font-weight: 700; text-decoration: none; }
+.ui-cerca { display: flex; gap: 8px; align-items: center; margin-left: auto; }
+.ui-cerca .form-label { margin: 0; color: #fff; }
+.ui-cerca .form-control { width: 18rem; max-width: 50vw; border-radius: 999px; }
+.ui-utente a { color: #fff; }
+
+/* layout: menu laterale + contenuto */
+.ui-layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: 70vh; }
+.ui-sidebar { background: #fff; border-right: 1px solid var(--wf-bordo); padding: 16px 12px; }
+.ui-menu, .ui-menu__sub { list-style: none; margin: 0; padding: 0; }
+.ui-menu__sezione { font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--wf-tenue); font-weight: 700; margin: 4px 8px 8px; }
+.ui-menu a { display: block; padding: 7px 10px; border-radius: 8px; text-decoration: none; color: #17212b; }
+.ui-menu a[aria-current="page"] { background: #e8f1fb; color: var(--wf-primario); font-weight: 600; }
+.ui-menu__gruppo { font-weight: 600; }
+.ui-menu__sub { margin-left: 14px; border-left: 1px solid var(--wf-bordo); padding-left: 6px; }
+.ui-menu__presto { display: block; padding: 7px 10px; color: #8a97a5; }
+.ui-main { padding: 0 24px 32px; min-width: 0; }
+
+/* barra dei filtri a chip */
+.ui-filtri { position: sticky; top: 104px; z-index: 4; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 0; background: var(--wf-sfondo); border-bottom: 1px solid var(--wf-bordo); margin-bottom: 8px; }
+.ui-chip { display: inline-flex; gap: 6px; align-items: center; background: #fff; border: 1px solid #c9d8ea; border-radius: 999px; padding: 2px 4px 2px 10px; font-size: .9rem; }
+.ui-chip .btn { border-radius: 50%; padding: 0 7px; }
+.ui-pill { display: inline-block; border: 1px solid var(--wf-bordo); background: #fff; border-radius: 999px; padding: 3px 10px; font-size: .85rem; color: var(--wf-tenue); }
+
+/* titolo di pagina */
+.breadcrumb-container { padding: 12px 0 4px; }
+.breadcrumb { list-style: none; display: flex; gap: 8px; margin: 0; padding: 0; font-size: .9rem; }
+.breadcrumb-item + .breadcrumb-item::before { content: "/"; margin-right: 8px; color: #8a97a5; }
+.ui-titolo h1, h1 { font-size: 1.6rem; margin: 6px 0; }
+.ui-titolo p { color: var(--wf-tenue); margin: 0 0 12px; }
+h2 { font-size: 1.1rem; margin: 18px 0 8px; }
+.ui-eyebrow { text-transform: uppercase; letter-spacing: .08em; font-size: .8rem; font-weight: 700; margin: 0; }
+
+/* griglia, card, KPI */
+.ui-griglia { display: grid; gap: 16px; margin: 12px 0; }
+.ui-griglia--4 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.ui-griglia--2 { grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); }
+.ui-card, .ui-kpi { background: #fff; border: 1px solid var(--wf-bordo); border-radius: 12px; padding: 14px 16px; }
+.ui-card__testa { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+.ui-card__testa h2 { margin: 0; }
+.ui-seg .btn { font-size: .8rem; padding: 3px 9px; }
+.ui-kpi p { margin: 0; color: var(--wf-tenue); }
+.ui-kpi .ui-kpi__valore { font-size: 1.7rem; font-weight: 700; color: #17212b; margin: 6px 0; }
+.ui-barra { font-size: .8rem; border-top: 6px solid #cfe0f3; padding-top: 4px; }
+
+/* grafici: riquadro con il tipo dichiarato */
+.ui-grafico { margin: 12px 0 0; min-height: 220px; border: 2px dashed #9fb3c8; border-radius: 10px; display: flex; flex-direction: column; justify-content: center; padding: 16px; background: repeating-linear-gradient(45deg, #fafcff, #fafcff 10px, #f1f5fa 10px, #f1f5fa 20px); }
+.ui-grafico::before { font-weight: 700; color: var(--wf-scuro); margin-bottom: 6px; }
+.ui-grafico--mini { min-height: 120px; }
+.ui-grafico--sankey::before { content: "Grafico: sankey"; }
+.ui-grafico--treemap::before { content: "Grafico: treemap con drill-down"; }
+.ui-grafico--sunburst::before { content: "Grafico: sunburst con drill-down"; }
+.ui-grafico--heatmap::before { content: "Grafico: heatmap"; }
+.ui-grafico--barre::before { content: "Grafico: barre"; }
+.ui-grafico--linea::before { content: "Grafico: linea o area con zoom"; }
+.ui-grafico--gauge::before { content: "Grafico: gauge"; }
+.ui-grafico--cascata::before { content: "Grafico: cascata"; }
+.ui-grafico--imbuto::before { content: "Grafico: imbuto"; }
+.ui-grafico--ciambella::before { content: "Grafico: ciambella"; }
+.ui-grafico figcaption { color: var(--wf-tenue); }
+.ui-fonte { font-size: .8rem; color: var(--wf-tenue); margin: 8px 0 0; }
+
+/* tabella interattiva, pannello, drawer */
+.ui-strumenti { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; margin: 10px 0; }
+.ui-strumenti .form-label { width: 100%; margin: 0; }
+.ui-strumenti .form-control { max-width: 20rem; }
+.ui-tabella { border-collapse: collapse; width: 100%; background: #fff; }
+.ui-tabella caption { text-align: left; color: var(--wf-tenue); padding-bottom: 6px; }
+.ui-tabella th, .ui-tabella td { border-bottom: 1px solid #e6ebf1; padding: 8px 10px; text-align: left; }
+.ui-tabella thead th { background: #f7f9fc; font-size: .85rem; }
+.ui-tabella .btn { border: 0; padding: 0; background: transparent; font-weight: 600; }
+.ui-num { text-align: right !important; }
+.ui-riga { cursor: pointer; }
+.ui-paginazione { display: flex; gap: 6px; justify-content: flex-end; margin-top: 10px; }
+.ui-pannello, .ui-drawer { background: #fff; border: 2px solid var(--wf-primario); border-radius: 12px; padding: 14px 16px; margin: 12px 0; max-width: 32rem; }
+.ui-pannello::before { content: "Pannello laterale (si apre da Filtri)"; display: block; font-size: .8rem; color: var(--wf-primario); font-weight: 700; }
+.ui-drawer::before { content: "Drawer di anteprima (si apre dal clic su una riga)"; display: block; font-size: .8rem; color: var(--wf-primario); font-weight: 700; }
+.ui-gruppo-filtro { border: 1px solid var(--wf-bordo); border-radius: 8px; padding: 8px 10px; margin: 8px 0; }
+.ui-gruppo-filtro summary { font-weight: 600; cursor: pointer; }
+.ui-opzione { display: block; padding: 4px 0; }
+.ui-toggle-chip { border: 1px solid #c9d8ea; background: #fff; border-radius: 999px; padding: 3px 10px; }
+.ui-toggle-chip[aria-pressed="true"] { background: var(--wf-primario); color: #fff; }
+.ui-drawer dl { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; }
+.ui-drawer dd { margin: 0; text-align: right; font-weight: 600; }
+
+/* dettaglio: testata e schede */
+.ui-hero { background: var(--wf-scuro); color: #fff; border-radius: 12px; padding: 18px 20px; margin: 8px 0 12px; }
+.ui-hero h1 { color: #fff; }
+.ui-hero .btn { background: #fff; }
+.ui-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--wf-bordo); margin: 12px 0; }
+.ui-tabs .btn { border: 0; border-bottom: 3px solid transparent; border-radius: 0; background: transparent; }
+.ui-tabs .btn[aria-selected="true"] { border-bottom-color: var(--wf-primario); color: var(--wf-primario); font-weight: 600; }
+
+/* stati */
+.ui-skeleton { border-radius: 10px; padding: 18px; color: var(--wf-tenue); background: repeating-linear-gradient(90deg, #e9eef4, #e9eef4 40px, #f4f7fa 40px, #f4f7fa 80px); }
+.ui-vuoto { background: #fff; border: 1px dashed var(--wf-bordo); border-radius: 10px; padding: 18px; text-align: center; }
+.alert { border: 1px solid; border-radius: 8px; padding: 10px 14px; margin: 10px 0; }
+.alert-info { border-color: var(--wf-primario); background: #eef4ff; }
+.alert-danger { border-color: #b00; background: #ffecec; }
+
+/* elementi del design system */
+.btn { display: inline-block; border: 1px solid var(--wf-primario); padding: 5px 12px; border-radius: 6px; background: #fff; color: var(--wf-primario); cursor: pointer; text-decoration: none; font: inherit; }
+.btn-primary { background: var(--wf-primario); color: #fff; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 8px; background: #e0e8f2; color: var(--wf-scuro); font-size: .8rem; }
+.form-label { display: block; margin-top: 10px; font-weight: 600; }
+.form-control, .form-select { display: block; width: 100%; max-width: 28rem; padding: 6px 8px; border: 1px solid #9aa8b6; border-radius: 6px; font: inherit; }
+.form-text { color: var(--wf-tenue); font-size: .85rem; }
+fieldset { border: 1px solid var(--wf-bordo); margin: 12px 0; padding: 12px; border-radius: 8px; }
+.steppers { display: flex; gap: 12px; list-style: none; padding: 0; }
+.steppers li { padding: 6px 10px; border: 1px solid #9aa8b6; border-radius: 6px; background: #fff; }
+.steppers li[aria-current="step"] { background: var(--wf-primario); color: #fff; }
+.wf-note { background: #fffbe6; border: 1px dashed #c90; padding: 8px 12px; font-size: .85rem; border-radius: 6px; }
+
+/* piede */
+.ui-footer { background: var(--wf-scuro); color: #d6e2ee; padding: 16px 24px; }
+.ui-footer ul { list-style: none; display: flex; flex-wrap: wrap; gap: 18px; margin: 0; padding: 0; }
+.ui-footer a { color: #fff; }
+
+@media (max-width: 900px) { .ui-layout { grid-template-columns: 1fr; } .ui-sidebar { border-right: 0; border-bottom: 1px solid var(--wf-bordo); } .ui-filtri { top: 0; } }

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<!-- Wireframe v2 (template wireframe-v2 di green-fe, ADR 0027). Valori di esempio, nessun dato reale. -->
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Riserva di efficacia - Finanziario - Cruscotto CSR 2023-2027</title>
+<link rel="stylesheet" href="wireframe.css">
+</head>
+<body>
+<a class="skip-link" href="#contenuto">Salta al contenuto</a>
+<header class="ui-testata">
+  <div class="ui-ente">
+    <span class="ui-logo">Regione Lazio</span>
+    <span class="ui-logo">ARSIAL</span>
+  </div>
+  <div class="ui-appbar">
+    <a class="ui-appbar__nome" href="../panoramica/panoramica.html">Cruscotto CSR 2023-2027</a>
+    <form class="ui-cerca" action="#" method="get" role="search">
+      <label class="form-label" for="cerca-app">Cerca un intervento</label>
+      <input class="form-control" type="search" id="cerca-app" name="q">
+    </form>
+    <span class="ui-utente">Nome Cognome - <a href="#contenuto">Esci</a></span>
+  </div>
+</header>
+<div class="ui-layout">
+  <nav class="ui-sidebar" aria-label="Navigazione principale">
+    <p class="ui-menu__sezione">Aree del cruscotto</p>
+    <ul class="ui-menu">
+      <li><a class="ui-menu__gruppo" href="../panoramica/panoramica.html">Finanziario</a>
+        <ul class="ui-menu__sub">
+          <li><a href="../panoramica/panoramica.html">Panoramica</a></li>
+          <li><a href="../riepilogo/riepilogo.html">Riepilogo per intervento</a></li>
+          <li><a href="../dotazione-avanzamento/dotazione.html">Dotazione e spesa</a></li>
+          <li><a href="../dotazione-avanzamento/avanzamento.html">Avanzamento</a></li>
+          <li><a href="../domande/domande.html">Domande e importi</a></li>
+          <li><a href="../sigc/sigc.html">SIGC: domande e importi</a></li>
+          <li><a href="../sigc/riserva.html" aria-current="page">Riserva di efficacia</a></li>
+          <li><a href="../sigc/verifica-smp.html">Verifica SMP</a></li>
+        </ul>
+      </li>
+      <li><span class="ui-menu__presto">Fisico (presto)</span></li>
+      <li><span class="ui-menu__presto">Procedurale (presto)</span></li>
+      <li><span class="ui-menu__presto">Istituzionale (presto)</span></li>
+      <li><span class="ui-menu__presto">Primo pilastro (presto)</span></li>
+    </ul>
+  </nav>
+  <main class="ui-main" id="contenuto">
+    <nav class="breadcrumb-container" aria-label="Percorso">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="../panoramica/panoramica.html">Home</a></li>
+        <li class="breadcrumb-item"><a href="../panoramica/panoramica.html">Finanziario</a></li>
+        <li class="breadcrumb-item" aria-current="page">Riserva di efficacia</li>
+      </ol>
+    </nav>
+    <div class="ui-titolo">
+      <h1>Finanziario: riserva di efficacia (5%)</h1>
+      <p>Accumulato, congelato, utilizzato e residuo della riserva per l'anno scelto.</p>
+    </div>
+    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0014.read - Transazioni: TX-0014 (RF014). Dato regionale: i filtri del finanziario non si applicano (OP-FE-03), la barra dei filtri non c'e'.</p>
+    <form action="#" method="get">
+      <label class="form-label" for="anno">Anno di riferimento</label>
+      <select class="form-select" id="anno" name="anno"><option>aaaa</option></select>
+      <button class="btn btn-primary" type="submit">Mostra</button>
+    </form>
+    <div class="ui-griglia ui-griglia--4">
+      <section class="ui-kpi" aria-label="Importo accumulato">
+        <p>Importo accumulato</p>
+        <p class="ui-kpi__valore">n,n M euro</p>
+        <p class="ui-barra">fase: badge con la data</p>
+      </section>
+      <section class="ui-kpi" aria-label="Importo congelato">
+        <p>Importo congelato</p>
+        <p class="ui-kpi__valore">n,n M euro</p>
+        <p class="ui-barra">dopo la data di congelamento</p>
+      </section>
+      <section class="ui-kpi" aria-label="Importo utilizzato">
+        <p>Importo utilizzato</p>
+        <p class="ui-kpi__valore">n,n M euro</p>
+        <p class="ui-barra">oltre la riserva: segnalato</p>
+      </section>
+      <section class="ui-kpi" aria-label="Residuo disponibile">
+        <p>Residuo disponibile</p>
+        <p class="ui-kpi__valore">n,n M euro</p>
+        <p class="ui-barra">previsto, con la data, se non ancora disponibile</p>
+      </section>
+    </div>
+      <section class="ui-card" aria-labelledby="g-ris">
+        <div class="ui-card__testa">
+          <h2 id="g-ris">Utilizzo progressivo della riserva</h2>
+          <div class="ui-seg" role="group" aria-label="Vista di Utilizzo progressivo della riserva"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+        </div>
+        <figure class="ui-grafico ui-grafico--linea">
+          <figcaption>Area con zoom: utilizzo cumulato per data, con la soglia della riserva come linea di riferimento. Punti assenti omessi e dichiarati.</figcaption>
+        </figure>
+        <p class="ui-fonte">Fonte: TX-0014. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati.</p>
+      </section>
+    <h2>Stato: anno senza riserva</h2>
+    <div class="ui-vuoto" role="status">Nessuna riserva calcolata per l'anno scelto (404). Scegli un altro anno.</div>
+    <h2>Stato: errore</h2>
+    <div class="alert alert-danger" role="alert">Riserva non disponibile: messaggio dal problem-type.</div>
+  </main>
+</div>
+<footer class="ui-footer">
+  <ul>
+    <li><a href="#contenuto">Dichiarazione di accessibilita' (indirizzo da definire)</a></li>
+    <li><a href="#contenuto">Privacy (indirizzo da definire)</a></li>
+    <li><a href="#contenuto">Note legali (indirizzo da definire)</a></li>
+    <li>Regione Lazio - ARSIAL</li>
+  </ul>
+</footer>
+</body>
+</html>

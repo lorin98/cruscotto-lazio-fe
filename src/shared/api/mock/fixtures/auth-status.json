@@ -1,0 +1,356 @@
+{
+  "fixtures": [
+    {
+      "authenticated": false,
+      "id": "anonymous"
+    },
+    {
+      "authenticated": true,
+      "id": "p1-dirigente",
+      "user": {
+        "contextProjection": {},
+        "profile": "p1-dirigente",
+        "roles": [
+          "csr.tx-0001.read",
+          "csr.tx-0002.read",
+          "csr.tx-0003.read",
+          "csr.tx-0004.read",
+          "csr.tx-0005.read",
+          "csr.tx-0006.read",
+          "csr.tx-0007.read",
+          "csr.tx-0008.read",
+          "csr.tx-0009.read",
+          "csr.tx-0010.read",
+          "csr.tx-0011.read",
+          "csr.tx-0012.read",
+          "csr.tx-0013.read",
+          "csr.tx-0014.read",
+          "csr.tx-0015.read",
+          "csr.tx-0016.read",
+          "csr.tx-0017.read",
+          "csr.tx-0018.read",
+          "csr.tx-0020.read",
+          "csr.tx-0024.read",
+          "csr.tx-0025.read",
+          "csr.tx-0026.read",
+          "csr.tx-0027.read",
+          "csr.tx-0028.read",
+          "csr.tx-0029.read",
+          "csr.tx-0030.read",
+          "csr.tx-0031.read",
+          "csr.tx-0032.read",
+          "csr.tx-0033.read",
+          "csr.tx-0034.read",
+          "csr.tx-0035.read",
+          "csr.tx-0036.read",
+          "csr.tx-0037.read",
+          "csr.tx-0038.read",
+          "csr.tx-0039.read",
+          "csr.tx-0040.read",
+          "csr.tx-0041.read",
+          "csr.tx-0042.read",
+          "csr.tx-0043.read",
+          "csr.tx-0044.read",
+          "csr.tx-0045.read",
+          "csr.tx-0046.read",
+          "csr.tx-0047.read",
+          "csr.tx-0048.read",
+          "csr.tx-0049.read",
+          "csr.tx-0050.read",
+          "csr.tx-0051.read",
+          "csr.tx-0052.read",
+          "csr.tx-0053.read",
+          "csr.tx-0054.read",
+          "csr.tx-0055.read",
+          "p1-dirigente"
+        ],
+        "username": "user-p1-dirigente"
+      }
+    },
+    {
+      "authenticated": true,
+      "id": "p2-referente-adg",
+      "user": {
+        "contextProjection": {},
+        "profile": "p2-referente-adg",
+        "roles": [
+          "csr.tx-0001.read",
+          "csr.tx-0002.read",
+          "csr.tx-0003.read",
+          "csr.tx-0004.read",
+          "csr.tx-0005.read",
+          "csr.tx-0006.read",
+          "csr.tx-0007.read",
+          "csr.tx-0008.read",
+          "csr.tx-0009.read",
+          "csr.tx-0010.read",
+          "csr.tx-0011.read",
+          "csr.tx-0012.read",
+          "csr.tx-0013.read",
+          "csr.tx-0014.read",
+          "csr.tx-0015.read",
+          "csr.tx-0016.read",
+          "csr.tx-0017.read",
+          "csr.tx-0018.read",
+          "csr.tx-0020.read",
+          "csr.tx-0024.read",
+          "csr.tx-0025.read",
+          "csr.tx-0026.read",
+          "csr.tx-0027.read",
+          "csr.tx-0028.read",
+          "csr.tx-0029.read",
+          "csr.tx-0030.read",
+          "csr.tx-0031.read",
+          "csr.tx-0032.read",
+          "csr.tx-0033.read",
+          "csr.tx-0034.read",
+          "csr.tx-0035.read",
+          "csr.tx-0036.read",
+          "csr.tx-0037.read",
+          "csr.tx-0038.read",
+          "csr.tx-0039.read",
+          "csr.tx-0040.read",
+          "csr.tx-0041.read",
+          "csr.tx-0042.read",
+          "csr.tx-0043.read",
+          "csr.tx-0044.read",
+          "csr.tx-0045.read",
+          "csr.tx-0046.read",
+          "csr.tx-0047.read",
+          "csr.tx-0048.read",
+          "csr.tx-0049.read",
+          "csr.tx-0050.read",
+          "csr.tx-0051.read",
+          "csr.tx-0052.read",
+          "csr.tx-0053.read",
+          "csr.tx-0054.read",
+          "csr.tx-0055.read",
+          "p2-referente-adg"
+        ],
+        "username": "user-p2-referente-adg"
+      }
+    },
+    {
+      "authenticated": true,
+      "id": "p3-funzionario-area-fin",
+      "user": {
+        "contextProjection": {},
+        "profile": "p3-funzionario-area-fin",
+        "roles": [
+          "csr.tx-0001.read",
+          "csr.tx-0002.read",
+          "csr.tx-0003.read",
+          "csr.tx-0004.read",
+          "csr.tx-0005.read",
+          "csr.tx-0006.read",
+          "csr.tx-0007.read",
+          "csr.tx-0008.read",
+          "csr.tx-0009.read",
+          "csr.tx-0010.read",
+          "csr.tx-0011.read",
+          "csr.tx-0012.read",
+          "csr.tx-0013.read",
+          "csr.tx-0014.read",
+          "csr.tx-0015.read",
+          "p3-funzionario-area-fin"
+        ],
+        "username": "user-p3-funzionario-area-fin"
+      }
+    },
+    {
+      "authenticated": true,
+      "id": "p3-funzionario-area-ist",
+      "user": {
+        "contextProjection": {},
+        "profile": "p3-funzionario-area-ist",
+        "roles": [
+          "csr.tx-0016.read",
+          "csr.tx-0017.read",
+          "p3-funzionario-area-ist"
+        ],
+        "username": "user-p3-funzionario-area-ist"
+      }
+    },
+    {
+      "authenticated": true,
+      "id": "p3-funzionario-area-fis",
+      "user": {
+        "contextProjection": {},
+        "profile": "p3-funzionario-area-fis",
+        "roles": [
+          "csr.tx-0018.read",
+          "csr.tx-0020.read",
+          "p3-funzionario-area-fis"
+        ],
+        "username": "user-p3-funzionario-area-fis"
+      }
+    },
+    {
+      "authenticated": true,
+      "id": "p3-funzionario-area-pro",
+      "user": {
+        "contextProjection": {},
+        "profile": "p3-funzionario-area-pro",
+        "roles": [
+          "csr.tx-0024.read",
+          "csr.tx-0025.read",
+          "csr.tx-0026.read",
+          "csr.tx-0027.read",
+          "csr.tx-0028.read",
+          "csr.tx-0029.read",
+          "csr.tx-0030.read",
+          "csr.tx-0031.read",
+          "csr.tx-0032.read",
+          "p3-funzionario-area-pro"
+        ],
+        "username": "user-p3-funzionario-area-pro"
+      }
+    },
+    {
+      "authenticated": true,
+      "id": "p3-funzionario-area-pil",
+      "user": {
+        "contextProjection": {},
+        "profile": "p3-funzionario-area-pil",
+        "roles": [
+          "csr.tx-0033.read",
+          "csr.tx-0034.read",
+          "csr.tx-0035.read",
+          "csr.tx-0036.read",
+          "csr.tx-0037.read",
+          "csr.tx-0038.read",
+          "csr.tx-0039.read",
+          "csr.tx-0040.read",
+          "csr.tx-0041.read",
+          "csr.tx-0042.read",
+          "csr.tx-0043.read",
+          "csr.tx-0044.read",
+          "csr.tx-0045.read",
+          "csr.tx-0046.read",
+          "csr.tx-0047.read",
+          "csr.tx-0048.read",
+          "csr.tx-0049.read",
+          "csr.tx-0050.read",
+          "csr.tx-0051.read",
+          "csr.tx-0052.read",
+          "csr.tx-0053.read",
+          "csr.tx-0054.read",
+          "csr.tx-0055.read",
+          "p3-funzionario-area-pil"
+        ],
+        "username": "user-p3-funzionario-area-pil"
+      }
+    },
+    {
+      "authenticated": true,
+      "id": "p4-responsabile-procedimento-ada",
+      "user": {
+        "contextProjection": {},
+        "profile": "p4-responsabile-procedimento-ada",
+        "roles": [
+          "csr.tx-0001.read",
+          "csr.tx-0002.read",
+          "csr.tx-0003.read",
+          "csr.tx-0004.read",
+          "csr.tx-0005.read",
+          "csr.tx-0006.read",
+          "csr.tx-0007.read",
+          "csr.tx-0008.read",
+          "csr.tx-0009.read",
+          "csr.tx-0010.read",
+          "csr.tx-0011.read",
+          "csr.tx-0012.read",
+          "csr.tx-0013.read",
+          "csr.tx-0014.read",
+          "csr.tx-0015.read",
+          "csr.tx-0024.read",
+          "csr.tx-0025.read",
+          "csr.tx-0026.read",
+          "csr.tx-0027.read",
+          "csr.tx-0028.read",
+          "csr.tx-0029.read",
+          "csr.tx-0030.read",
+          "csr.tx-0031.read",
+          "csr.tx-0032.read",
+          "p4-responsabile-procedimento-ada"
+        ],
+        "username": "user-p4-responsabile-procedimento-ada"
+      }
+    },
+    {
+      "authenticated": true,
+      "id": "p5-amministratore-funzionale",
+      "user": {
+        "contextProjection": {},
+        "profile": "p5-amministratore-funzionale",
+        "roles": [
+          "csr.tx-0001.read",
+          "csr.tx-0002.read",
+          "csr.tx-0003.read",
+          "csr.tx-0004.read",
+          "csr.tx-0005.read",
+          "csr.tx-0006.read",
+          "csr.tx-0007.read",
+          "csr.tx-0008.read",
+          "csr.tx-0009.read",
+          "csr.tx-0010.read",
+          "csr.tx-0011.read",
+          "csr.tx-0012.read",
+          "csr.tx-0013.read",
+          "csr.tx-0014.read",
+          "csr.tx-0015.read",
+          "csr.tx-0018.read",
+          "csr.tx-0020.read",
+          "csr.tx-1008.write",
+          "csr.tx-1009.write",
+          "p5-amministratore-funzionale"
+        ],
+        "username": "user-p5-amministratore-funzionale"
+      }
+    },
+    {
+      "authenticated": true,
+      "id": "p6-amministratore-tecnico",
+      "user": {
+        "contextProjection": {},
+        "profile": "p6-amministratore-tecnico",
+        "roles": [
+          "csr.tx-1001.write",
+          "csr.tx-1002.write",
+          "csr.tx-1003.write",
+          "csr.tx-1004.write",
+          "csr.tx-1005.write",
+          "csr.tx-1006.write",
+          "csr.tx-1007.write",
+          "p6-amministratore-tecnico"
+        ],
+        "username": "user-p6-amministratore-tecnico"
+      }
+    },
+    {
+      "authenticated": true,
+      "id": "p7-sistema-acquisizione",
+      "user": {
+        "contextProjection": {},
+        "profile": "p7-sistema-acquisizione",
+        "roles": [
+          "csr.tx-0019.write",
+          "csr.tx-0021.write",
+          "csr.tx-0022.write",
+          "csr.tx-0023.write",
+          "csr.tx-1001.write",
+          "csr.tx-1002.write",
+          "csr.tx-1003.write",
+          "csr.tx-1004.write",
+          "csr.tx-1005.write",
+          "csr.tx-1006.write",
+          "csr.tx-1007.write",
+          "p7-sistema-acquisizione"
+        ],
+        "username": "user-p7-sistema-acquisizione"
+      }
+    }
+  ],
+  "pack_hash": "sha256:1ef3a90c51c555441a3a3e3fb203dfdaa0f2f7d1861a5664982f33cb828de4c4",
+  "schema_version": "1.0"
+}

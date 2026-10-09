@@ -1,0 +1,268 @@
+[
+ {
+  "id": "V-20",
+  "severity": "MINORE",
+  "file": "src/features/finanziario/ui/PerimetroPill.tsx:10",
+  "titolo": "Residuo di V-20 (PARZIALE): La pill del perimetro c'e' e funziona (sonda: 'Perimetro: la tua area (ADA)'), ma nessun test del componente: perimetroDallaCache (lettura della cache, ADA che prevale) non e' coperta; c'e' solo il test L1 di perimetroBreve.",
+  "fix": "Test di PerimetroPill dentro una pagina: risposta REGIONALE, risposta ADA, ADA che prevale su REGIONALE in cache, nessuna pill senza risposte."
+ },
+ {
+  "id": "V-22",
+  "severity": "COSMETICO",
+  "file": "src/features/finanziario/ui/PannelloFiltri.tsx:131",
+  "titolo": "Residuo di V-22 (PARZIALE): Titoli, voci di menu, sottotitoli e testi della riserva allineati ai wireframe; resta il pulsante del pannello 'Applica i filtri' contro 'Mostra n interventi' di wireframes/panoramica/panoramica.html:149 (file non toccato).",
+  "fix": "PannelloFiltri.tsx:131: pulsante 'Mostra n interventi' (n dalla bozza) come panoramica.html:149, oppure riportare la scelta al gate dei wireframe."
+ },
+ {
+  "id": "H-03",
+  "severity": "COSMETICO",
+  "file": "src/features/finanziario/lib/grafici/resa.ts:28",
+  "titolo": "Residuo di H-03 (PARZIALE): Assenze sempre via descriviImporto (assenzaImporto, cellaImporto; test H-03); restano pero' le copie locali cellaNumero e cellaEuro, uguali a numeroOpzionale ed euroOpzionale di lib/formato.ts:212-218.",
+  "fix": "Una sola coppia di formattatori: togliere cellaNumero e cellaEuro da grafici/resa.ts e usare numeroOpzionale ed euroOpzionale di lib/formato.ts."
+ },
+ {
+  "id": "H-07",
+  "severity": "COSMETICO",
+  "file": "src/features/finanziario/lib/filtri.ts:75",
+  "titolo": "Residuo di H-07 (PARZIALE): Semantica dei filtri nella feature (useFiltriNellIndirizzo, filtriAttivi); ma ETICHETTE_FILTRO.estesa non e' usata: PannelloFiltri.tsx:87-101 riscrive a mano le etichette, contro il commento 'le stesse nella barra e nel pannello'.",
+  "fix": "PannelloFiltri usa ETICHETTE_FILTRO[chiave].estesa per titoli ed etichette dei gruppi; altrimenti togliere 'estesa' e correggere il commento di filtri.ts:74."
+ },
+ {
+  "id": "H-11",
+  "severity": "MINORE",
+  "file": "eslint.config.js:280",
+  "titolo": "Residuo di H-11 (PARZIALE): due-parti.ts eliminato e regola entityBarrelOnlyImportGroup aggiunta, ma solo al blocco di features/entities: il blocco 'src/**/lib/**' (eslint.config.js:280-289) ridefinisce no-restricted-imports senza quel gruppo e in flat config vince lui. Sonda eslint --stdin: import profondo nell'entity da features/finanziario/lib/ = 0 errori, da ui/ = errore. Il difetto originale era proprio in lib/; la canary (tests/eslint-regole.test.ts:46) prova solo ui/.",
+  "fix": "Aggiungere entityBarrelOnlyImportGroup ai patterns del blocco 'src/**/lib/**' (eslint.config.js:282-289) e una canary su un percorso lib/ in tests/eslint-regole.test.ts."
+ },
+ {
+  "id": "H-14",
+  "severity": "COSMETICO",
+  "file": "src/shared/ui/focus.ts:6",
+  "titolo": "Residuo di H-14 (PARZIALE): segnapostoRicerca, testi neutri, niente regex di allineamento ne' correzione delle maiuscole; restano nel kit NOME_APPLICAZIONE (non spostato in shared/config) e la classe di dominio .ui-pill--perimetro.",
+  "fix": "Spostare NOME_APPLICAZIONE in shared/config e rendere generica la classe del kit (es. .ui-pill--evidenza) al posto di .ui-pill--perimetro."
+ },
+ {
+  "id": "H-20",
+  "severity": "MINORE",
+  "file": "src/shared/api/mock/esempio-finanziario.ts:1",
+  "titolo": "Residuo di H-20 (NON_RISOLTO): Non affrontato: esempi MSW e fixture del finanziario restano in shared/api/mock/esempio-finanziario.ts e shared/testing/fixture-finanziario.ts (sono cambiati solo i valori, per X-08).",
+  "fix": "Spostare gli esempi in features/finanziario/api/mock/ e le fixture in features/finanziario/testing/ (o tests/fixtures/); browser.ts raccoglie gli handler delle feature con import.meta.glob."
+ },
+ {
+  "id": "H-21",
+  "severity": "COSMETICO",
+  "file": "src/shared/api/mutator/bff-mutator.ts:83",
+  "titolo": "Residuo di H-21 (PARZIALE): Il tetto vale ora solo per /api/finanziario/ ed e' configurabile per prefisso (test bff-mutator); ma il prefisso del finanziario resta cablato come default nel mutator condiviso: configuraTettiLetture lo chiamano solo i test, l'app non fornisce la configurazione come chiedeva il fix.",
+  "fix": "Configurare il tetto del finanziario dall'app (configuraTettiLetture({ '/api/finanziario/': 2 }) in main.tsx) e lasciare vuoto il default del mutator condiviso."
+ },
+ {
+  "id": "H-25",
+  "severity": "COSMETICO",
+  "file": "src/features/finanziario/ui/PannelloFiltri.tsx:36",
+  "titolo": "Residuo di H-25 (PARZIALE): Fatti codiceDalClic unico e vociIntervento; restano il filtro del pannello che duplica filtraRighe senza normalizzare gli accenti, il parsing in CercaIntervento.tsx:25, formatDataOra(...).slice(0, 10) in UltimoAggiornamento.tsx:25 e il download di CardGrafico.tsx:40 che non riusa salvaFile.",
+  "fix": "Riusare filtraRighe in PannelloFiltri e salvaFile in CardGrafico, estrarre codiceDaRicerca in lib/, una formatData con fuso Europe/Rome al posto di formatDataOra(...).slice(0, 10)."
+ },
+ {
+  "id": "H-26",
+  "severity": "COSMETICO",
+  "file": "src/shared/lib/index.ts:3",
+  "titolo": "Residuo di H-26 (PARZIALE): HeatmapChart e VisualMapComponent tolti; restano esportati e senza usi in produzione predicates.ts e sentinel-dates.ts (non marcati come scaffolding), PAGINE_FINANZIARIO nel barrel della feature e TestaCard nel barrel del kit.",
+  "fix": "Togliere dal barrel di shared/lib predicates e sentinel-dates (o marcarli scaffolding), PAGINE_FINANZIARIO dal barrel della feature e TestaCard da quello del kit."
+ },
+ {
+  "id": "A-03",
+  "severity": "COSMETICO",
+  "file": "playwright.config.ts:18",
+  "titolo": "Residuo di A-03 (PARZIALE): Eccezione iOS (usePreventScroll di react-aria) documentata nel README con l'alternativa del nonce; manca il profilo WebKit mobile nel test e2e della CSP (solo il progetto chrome), rimandato nel README.",
+  "fix": "Aggiungere a playwright.config.ts un progetto WebKit mobile (devices['iPhone 15']) che verifichi l'eccezione dichiarata, oppure registrare nel README che resta fuori dal gate."
+ },
+ {
+  "id": "A-07",
+  "severity": "MINORE",
+  "file": "src/features/finanziario/ui/AvanzamentoReport.tsx:27",
+  "titolo": "Residuo di A-07 (PARZIALE): KPI e flussi silenziosi (erroreGiaMostrato): da 10 a 4 alert; ma l'aggregazione per pagina chiesta dal fix non c'e': sonda col backend irraggiungibile = 4 role=alert identici, ognuno col suo 'Riprova', su Avanzamento e altrettanti sulla Panoramica.",
+  "fix": "Un solo avviso di pagina quando piu' sezioni falliscono con lo stesso errore (rete, 503), con un Riprova che rilegge tutte le sezioni; nelle sezioni un testo statico senza role=alert."
+ },
+ {
+  "id": "X-03",
+  "severity": "MINORE",
+  "file": "src/features/finanziario/ui/useFiltriNellIndirizzo.ts:22",
+  "titolo": "Residuo di X-03 (PARZIALE): Con il legame assente il filtro azione non si applica e il chip lo spiega; ma nessun test con ?azione=1 e legame false, e finche' TX-0001 non risponde i report leggono con l'azione (sonda sul riepilogo: prima ?os=OS4&azione=1, poi ?os=OS4), con un possibile stato 'nessun intervento' transitorio.",
+  "fix": "Test di pagina con ?azione=1 e legame false (query senza azione, chip spiegato); finche' TX-0001 e' in attesa e l'indirizzo porta azione, PaginaFinanziario mostra il caricamento al posto dei report."
+ },
+ {
+  "id": "N-01",
+  "severity": "MINORE",
+  "file": "src/features/finanziario/ui/DomandeReport.tsx:102",
+  "titolo": "Domande: l'anno scelto col clic resta dopo il cambio dei filtri e la tabella di dettaglio si svuota senza messaggio ('Mostra tutti gli anni (ora: 2024)'); verificato con una sonda",
+  "fix": "Rendere <DomandePerAnno key={ricercaDaFiltri(filtri)} filtri={filtri} />, come RiepilogoReport.tsx:175, oppure azzerare l'anno se non e' fra le righe nuove. Test: clic su un anno, cambio dei filtri, tabella con tutti gli anni."
+ },
+ {
+  "id": "N-02",
+  "severity": "MINORE",
+  "file": "src/features/finanziario/ui/RiepilogoReport.tsx:51",
+  "titolo": "Riepilogo: con le colonne ora tutte visibili il piede scrive 'non calcolabile' anche per stanziato, impegnati e residuo sugli impegni (FONTE_NON_ATTIVA) e, per un P4, per il residuo sui pagamenti (FUORI_PERIMETRO); descriviImporto riserva 'non calcolabile' agli aggregati NON_VALORIZZATO e riepilogo.html:90 lascia vuota la cella",
+  "fix": "In totali(): se nessuna riga ha il valore e tutte hanno lo stesso motivo diverso da NON_VALORIZZATO, usare assenzaImporto(prima riga, true) (es. 'non disponibile (fonte impegni non attiva)'); 'non calcolabile' solo per NON_VALORIZZATO o motivi misti. Test sul piede con la fixture RIEPILOGO."
+ },
+ {
+  "id": "N-03",
+  "severity": "MINORE",
+  "file": "src/widgets/report-finanziario/ui/PaginaFinanziario.tsx:70",
+  "titolo": "Dal dettaglio la selezione dell'utente non si recupera piu': il drill-down apre il dettaglio senza query (Panoramica.tsx:165, DotazioneReport.tsx:109, RiepilogoReport.tsx:101 e 159, VerificaSmpReport.tsx:64), il breadcrumb 'Finanziario' passa {} e il menu (app/aree.ts:35) conserva una query vuota: chi filtra per OG/OS e torna dal breadcrumb o dal menu ritrova tutti gli interventi (in dadc66c no)",
+  "fix": "Aprire il dettaglio con conFiltri(percorsoIntervento(c), filtri): la pagina continua a leggere solo { intervento: [codice] } e a mostrare il solo chip fisso; nel breadcrumb, in AL_RIEPILOGO e in 'Torna al riepilogo' usare filtriDaRicerca(search). Test: da ?og=OG1 al dettaglio e ritorno dal breadcrumb con OG1."
+ },
+ {
+  "id": "N-04",
+  "severity": "MINORE",
+  "file": "src/widgets/report-finanziario/ui/PaginaFinanziario.tsx:13",
+  "titolo": "PaginaFinanziario sale da complessita' 18 a 25 (85 righe, misurato con eslint): chipFissi cambia quattro comportamenti (chip, onApri, onTogliTutti, breadcrumb) e titolo, titoloDocumento e sottotitolo aggiungono tre catene di fallback",
+  "fix": "Estrarre Briciole e TestaPagina come componenti del widget e risolvere la modalita' una volta: const barra = chipFissi ? { chip: chipFissi } : { chip, onTogliTutti: togliTutti, onApri }; passare {...barra} a BarraFiltri."
+ },
+ {
+  "id": "N-05",
+  "severity": "MINORE",
+  "file": "src/shared/api/auth/use-auth-status.ts:21",
+  "titolo": "La queryFn di /auth/status (leggiStatoSessione) svuota la cache ed emette un evento della finestra, e useInattivita (app/inattivita.tsx:53) passa da 67 a 88 righe per sincronizzare anche l'utente fra le schede: due responsabilita' nuove dentro una lettura e dentro il timer di inattivita'",
+  "fix": "Nuovo hook di app useUtenteDellaSessione(): queryCache.subscribe sulla chiave di /auth/status; se lo username cambia removeQueries e postMessage('utente'). leggiStatoSessione torna una lettura pura; useInattivita resta sul solo timer."
+ },
+ {
+  "id": "N-06",
+  "severity": "MINORE",
+  "file": "src/shared/lib/grafici/forme.ts:109",
+  "titolo": "Il kit condiviso barreRaggruppate scrive nella descrizione accessibile 'per N interventi': dominio del finanziario in shared, sbagliato per le prossime aree; il test del kit (tests/shared-grafici.test.ts:396) lo fissa",
+  "fix": "Aggiungere a TestiBarre unita: [singolare, plurale] e usarla alla riga 109; passare ['intervento', 'interventi'] da graficoDotazionePagamenti e graficoSmp; nel test del kit un'unita' neutra."
+ },
+ {
+  "id": "N-07",
+  "severity": "MINORE",
+  "file": "src/features/finanziario/ui/PerimetroPill.tsx:10",
+  "titolo": "La pill legge la cache di React Query cercando le chiavi che iniziano con '/api/finanziario/' e fa il cast di state.data: aggira il confine api/ della feature e dipende dalla forma delle chiavi generate da orval",
+  "fix": "Esportare da api/index.ts perimetriInCache(client) che usa getQueriesData con le key factory generate e restituisce i perimetri tipizzati; la pill combina quei valori con una funzione pura di lib/perimetro.ts."
+ },
+ {
+  "id": "N-08",
+  "severity": "MINORE",
+  "file": "src/features/finanziario/ui/DomandeReport.tsx:44",
+  "titolo": "I KPI di TX-0010 (KpiAmmesso, KpiStanziato) calcolano somme e motivi nel componente, lo schema che H-01 ha tolto dalla Panoramica; totaleConteggi (grafici/domande.ts:30) duplica sommaSeCompleta e la nota sulle domande senza importo ammesso e' scritta due volte con testi diversi (domande.ts:102, DomandeReport.tsx:52)",
+  "fix": "In lib/aggregati.ts kpiImportiPerAnno(righe) -> { ammesso, stanziato }: Aggregato (riusando totaleImporti e un'unica funzione per la nota); DomandeReport rende solo gli Aggregato; domande.ts usa sommaSeCompleta."
+ },
+ {
+  "id": "N-09",
+  "severity": "MINORE",
+  "file": "src/features/finanziario/ui/RiservaReport.tsx:35",
+  "titolo": "KpiRiserva (nuovo, complessita' 13) riscrive nel componente la regola del residuo 'previsto' (oggi < inizioResiduo) gia' in lib/riserva.ts testoResiduo",
+  "fix": "In lib/riserva.ts kpiRiserva(d, anno, oggi) con i quattro valori, assenze e note e la regola del residuo previsto in un solo punto; il componente rende solo il risultato. Test L1."
+ },
+ {
+  "id": "N-10",
+  "severity": "MINORE",
+  "file": "src/shared/ui/grafici/Grafico.tsx:62",
+  "titolo": "firmaOpzioni confronta le funzioni per sorgente: una closure che cattura un dato non cambia la firma e il grafico non si ridisegna; succede gia' in grafici/riserva.ts:60 (max che cattura accumulato), innocuo solo perche' lo stesso valore compare anche nella markLine. Vincolo non dichiarato",
+  "fix": "Sostituire la closure di riserva.ts:60 con un max calcolato nel builder (Math.max(accumulato, massimo dei cumulati)) e dichiarare in contratto.ts che le funzioni delle opzioni non catturano dati; in alternativa confrontare la firma dei dati del builder."
+ },
+ {
+  "id": "N-11",
+  "severity": "MINORE",
+  "file": "src/shared/api/mutator/bff-mutator.ts:167",
+  "titolo": "Coordinamento fra schede (X-02): ogni lettura aspetta il lock del proprio indice locale, non un posto libero qualsiasi; se un'altra scheda tiene il posto 0 (anche per i 120 s della guardia dopo un annullamento) la prima lettura di questa scheda resta ferma con il posto 1 libero (sonda con LockManager finto: non servita finche' l'altra scheda non rilascia)",
+  "fix": "Prendere il primo lock libero fra gli indici: prima navigator.locks.request(nome_i, { ifAvailable: true }) per ogni i, e solo se nessuno e' libero attendere quello dell'indice locale. Test con il posto 0 tenuto da un'altra scheda e una sola lettura qui."
+ },
+ {
+  "id": "N-12",
+  "severity": "MINORE",
+  "file": "src/shared/ui/tabella/TabelleSemplici.tsx:95",
+  "titolo": "TabellaDati (spostata nel kit con H-13/H-14) mette ui-num (white-space: nowrap) su ogni cella non di intestazione: le assenze non vanno piu' a capo come con ui-testo in dadc66c (CardGrafico.tsx:57); a 390 px 4 tabelle equivalenti su 6 di Avanzamento traboccano e axe segnala scrollable-region-focusable (serious); .ui-tabella td.ui-testo (tema.css:305) e' codice morto",
+  "fix": "Dare a TabellaEquivalente il tipo delle colonne (es. numeriche: boolean[] prodotto dai builder) o ripristinare la regola per cella: className={numerica ? 'ui-num' : 'ui-testo'}. Test L2: una cella d'assenza della TabellaDati ha ui-testo."
+ },
+ {
+  "id": "N-13",
+  "severity": "MINORE",
+  "file": "src/shared/api/mutator/bff-mutator.ts:196",
+  "titolo": "Una lettura senza risposta tiene il posto e il Web Lock finche' la XHR non si chiude: la guardia scatta solo dopo un annullamento (riga 201) e axios non ha timeout; con la coda fra schede (X-02) il blocco passa a tutte le schede (sonda Playwright: scheda B ferma finche' A, con 2 letture appese, non si chiude)",
+  "fix": "Armare la guardia all'invio: const guardia = setTimeout(rilascia, GUARDIA_DOPO_ANNULLO_MS); void risposta.finally(() => clearTimeout(guardia)); oppure un timeout sulle letture in coda. Test L1: lettura senza risposta, dopo la guardia posto e lock liberi."
+ },
+ {
+  "id": "N-14",
+  "severity": "MINORE",
+  "file": "src/features/finanziario/ui/DomandeReport.tsx:114",
+  "titolo": "Funzioni nuove solo col mouse sul grafico (WCAG 2.1.1): il filtro per anno delle Domande (V-15) e il dettaglio da Verifica SMP (VerificaSmpReport.tsx:87, V-16), la cui TabellaInterattiva (riga 89) non ha onRiga; attivato con Invio, 'Mostra tutti gli anni' (riga 120) si smonta e il focus finisce su BODY (WCAG 2.4.3)",
+  "fix": "Domande: un controllo da tastiera per l'anno negli strumenti della Sezione (select o pulsanti con aria-pressed) e focus sul controllo o sul titolo quando il filtro si toglie. Verifica SMP: onRiga verso percorsoIntervento con etichettaRiga, come DotazioneReport. Test da tastiera."
+ },
+ {
+  "id": "N-15",
+  "severity": "MINORE",
+  "file": "src/shared/api/auth/use-auth-status.ts:24",
+  "titolo": "Il cambio d'identita' (X-06) si riconosce solo dallo username: con lo stesso username e profilo o ruoli diversi (es. gruppo Keycloak da P1 a P4) la cache del profilo precedente resta a schermo e non si rilegge (sonda Playwright: letture del riepilogo 2 -> 2)",
+  "fix": "Confrontare un'impronta dell'identita' (username, profile, ruoli ordinati) invece del solo username; se cambia, removeQueries ed EVENTO_UTENTE_CAMBIATO. La contextProjection al piu' come chiave di svuotamento, mai come controllo d'accesso. Test: stesso username, ruoli diversi, la cache si svuota."
+ },
+ {
+  "id": "N-16",
+  "severity": "COSMETICO",
+  "file": "src/features/finanziario/ui/DettaglioIntervento.tsx:79",
+  "titolo": "Dettaglio, scheda Domande: titolo della card e del ConGrant (riga 115) cambiato in 'Importi per anno di raccolta'; il wireframe intervento.html:132 e dadc66c dicono 'Importi ammessi e decretati per anno'",
+  "fix": "Ripristinare titolo='Importi ammessi e decretati per anno' alle righe 79 e 115."
+ },
+ {
+  "id": "N-17",
+  "severity": "COSMETICO",
+  "file": "src/features/finanziario/ui/DomandeReport.tsx:59",
+  "titolo": "I KPI nuovi 'Importo ammesso' e 'Importo stanziato' (righe 59 e 70) sono in euro pieni con formatEuro; domande.html:79 chiede 'n,n M euro' e gli altri KPI usano importoKpi",
+  "fix": "Usare importoKpi(somma) alle righe 59 e 70."
+ },
+ {
+  "id": "N-18",
+  "severity": "COSMETICO",
+  "file": "src/features/finanziario/ui/AvanzamentoReport.tsx:83",
+  "titolo": "Sankey: il sottotitolo fisso 'Dalla dotazione all'impegnato e al pagato' promette l'impegnato anche quando, con gli impegni da fonte non attiva (oggi sempre), il flusso disegnato (fix V-09) non ha il nodo 'Impegnato'",
+  "fix": "Sottotitolo legato al ramo (o restituito dal builder): con l'impegnato valorizzato il testo attuale, altrimenti 'Dalla dotazione ai pagamenti netti e al residuo (impegni da fonte non attiva)'."
+ },
+ {
+  "id": "N-19",
+  "severity": "COSMETICO",
+  "file": "src/features/finanziario/lib/grafici/resa.ts:67",
+  "titolo": "Motivi composti senza accordo dopo il refactor: 'dotazione non valorizzato (...)' (resa.ts:67), 'pagamenti netti non valorizzato' (intervento.ts:30), parentesi annidate 'pagamenti netti (non calcolabile (...))' (avanzamento.ts:82)",
+  "fix": "Usare la forma con i due punti gia' adottata in forme.ts:90: `dotazione: ${assenzaImporto(...)}`, `pagamenti netti: ${...}`, `${t.toLowerCase()}: ${assenzaImporto(x, true)}`."
+ },
+ {
+  "id": "N-20",
+  "severity": "COSMETICO",
+  "file": "src/features/finanziario/ui/AvanzamentoReport.tsx:84",
+  "titolo": "Regole del perimetro ADA ripetute: 'ADA se almeno una risposta e' ADA' qui e in PerimetroPill.tsx:16, l'etichetta '(regionale)' in intervento.ts:14 e comuni.tsx:60, il letterale 'ADA' scritto a mano accanto a PERIMETRO_ADA e al tipo Perimetro",
+  "fix": "In lib/perimetro.ts PERIMETRO_ADA, perimetroCombinato(perimetri) ed etichettaDiProgramma(etichetta, perimetro); usarle in AvanzamentoReport, PerimetroPill, comuni.diProgramma e intervento.vociIntervento."
+ },
+ {
+  "id": "N-21",
+  "severity": "COSMETICO",
+  "file": "src/features/finanziario/lib/aggregati.ts:7",
+  "titolo": "Gli aggregati di dominio importano avanzamentoPonderato da grafici/spesa e valoreDi/codiceDi da grafici/resa: la dipendenza va dagli aggregati ai builder dei grafici, al contrario",
+  "fix": "Spostare esclusione, avanzamentoPonderato e i tipi Avanzamento in lib/aggregati.ts (o lib/avanzamento.ts) e valoreDi/codiceDi in un modulo di lib; grafici/spesa.ts importa da li'."
+ },
+ {
+  "id": "N-22",
+  "severity": "COSMETICO",
+  "file": "src/features/finanziario/lib/report.ts:134",
+  "titolo": "Codice morto o di solo inoltro lasciato dalle correzioni: reportVisibili e minuscolaIniziale (shared/lib/grafici/primitive.ts:45) usati solo dai test, annoDi e dataItaliana (grafici/resa.ts:45 e :60) che inoltrano soltanto",
+  "fix": "Togliere reportVisibili e il suo test; usare annoDiRaccolta e formatDate al posto di annoDi e dataItaliana; affiancare a minuscolaIniziale una maiuscolaIniziale usata da titoloH1, RiservaReport e KpiImporto."
+ },
+ {
+  "id": "N-23",
+  "severity": "COSMETICO",
+  "file": "tests/eslint-regole.test.ts:14",
+  "titolo": "Il blocco etichettato H-06 non prova la regola di H-06: le soglie complexity 10 e max-lines-per-function 60 sui lib/ (eslint.config.js:298) non hanno una canary",
+  "fix": "Aggiungere describe('soglie dei lib/ (H-06)') con it.each su shared, entities e features lib/: una funzione con 11 rami deve dare complexity, una di 61 righe max-lines-per-function; un caso in ui/ che non scatta."
+ },
+ {
+  "id": "N-24",
+  "severity": "COSMETICO",
+  "file": "src/features/finanziario/ui/Panoramica.tsx:82",
+  "titolo": "Il gestore del clic verso il dettaglio (codiceDalClic + codiceInterventoValido + naviga) e' copiato in quattro componenti; DettaglioIntervento.tsx:26 scrive a mano '?intervento=' invece di conFiltri; panoramica/page.tsx:7 ripete il sottotitolo del catalogo",
+  "fix": "Un hook useApriInterventoDalClic() in ui/ usato dai quattro componenti; in DettaglioIntervento to={conFiltri(PERCORSI.panoramica, { intervento: [codice] })}; togliere la prop sottotitolo dalla pagina della panoramica."
+ },
+ {
+  "id": "N-25",
+  "severity": "COSMETICO",
+  "file": "e2e/csp.spec.ts:115",
+  "titolo": "Il terzo test e2e si chiama 'pannello dei filtri e anteprima' ma apre solo il pannello dei filtri: l'anteprima dell'intervento non viene mai aperta sotto la CSP",
+  "fix": "Aggiungere goto('/finanziario/riepilogo'), clic su una riga, attesa del dialogo dell'anteprima, Esc e violazioni == []; oppure togliere 'e anteprima' dal titolo."
+ }
+]

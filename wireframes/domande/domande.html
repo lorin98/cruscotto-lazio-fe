@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<!-- Wireframe v2 (template wireframe-v2 di green-fe, ADR 0027). Valori di esempio, nessun dato reale. -->
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Domande e importi - Finanziario - Cruscotto CSR 2023-2027</title>
+<link rel="stylesheet" href="wireframe.css">
+</head>
+<body>
+<a class="skip-link" href="#contenuto">Salta al contenuto</a>
+<header class="ui-testata">
+  <div class="ui-ente">
+    <span class="ui-logo">Regione Lazio</span>
+    <span class="ui-logo">ARSIAL</span>
+  </div>
+  <div class="ui-appbar">
+    <a class="ui-appbar__nome" href="../panoramica/panoramica.html">Cruscotto CSR 2023-2027</a>
+    <form class="ui-cerca" action="#" method="get" role="search">
+      <label class="form-label" for="cerca-app">Cerca un intervento</label>
+      <input class="form-control" type="search" id="cerca-app" name="q">
+    </form>
+    <span class="ui-utente">Nome Cognome - <a href="#contenuto">Esci</a></span>
+  </div>
+</header>
+<div class="ui-layout">
+  <nav class="ui-sidebar" aria-label="Navigazione principale">
+    <p class="ui-menu__sezione">Aree del cruscotto</p>
+    <ul class="ui-menu">
+      <li><a class="ui-menu__gruppo" href="../panoramica/panoramica.html">Finanziario</a>
+        <ul class="ui-menu__sub">
+          <li><a href="../panoramica/panoramica.html">Panoramica</a></li>
+          <li><a href="../riepilogo/riepilogo.html">Riepilogo per intervento</a></li>
+          <li><a href="../dotazione-avanzamento/dotazione.html">Dotazione e spesa</a></li>
+          <li><a href="../dotazione-avanzamento/avanzamento.html">Avanzamento</a></li>
+          <li><a href="../domande/domande.html" aria-current="page">Domande e importi</a></li>
+          <li><a href="../sigc/sigc.html">SIGC: domande e importi</a></li>
+          <li><a href="../sigc/riserva.html">Riserva di efficacia</a></li>
+          <li><a href="../sigc/verifica-smp.html">Verifica SMP</a></li>
+        </ul>
+      </li>
+      <li><span class="ui-menu__presto">Fisico (presto)</span></li>
+      <li><span class="ui-menu__presto">Procedurale (presto)</span></li>
+      <li><span class="ui-menu__presto">Istituzionale (presto)</span></li>
+      <li><span class="ui-menu__presto">Primo pilastro (presto)</span></li>
+    </ul>
+  </nav>
+  <main class="ui-main" id="contenuto">
+    <div class="ui-filtri" role="region" aria-label="Filtri attivi">
+      <a class="btn btn-primary" href="../panoramica/panoramica.html#pannello-filtri">Filtri (1)</a>
+      <span class="ui-chip">Intervento: SRA01 <button class="btn" type="button" aria-label="Togli il filtro Intervento SRA01">x</button></span>
+      <span class="ui-pill">Perimetro: regionale (profilo ADA: solo la propria area, non rimovibile)</span>
+      <span class="ui-pill">Ultimo dato sincronizzato: gg/mm/aaaa (un valore per ogni flusso di import)</span>
+    </div>
+    <nav class="breadcrumb-container" aria-label="Percorso">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="../panoramica/panoramica.html">Home</a></li>
+        <li class="breadcrumb-item"><a href="../panoramica/panoramica.html">Finanziario</a></li>
+        <li class="breadcrumb-item" aria-current="page">Domande e importi</li>
+      </ol>
+    </nav>
+    <div class="ui-titolo">
+      <h1>Finanziario: domande e importi per anno</h1>
+      <p>Domande per anno di raccolta e importi ammessi e decretati.</p>
+    </div>
+    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0008.read, csr.tx-0009.read, csr.tx-0010.read - Transazioni: TX-0008 (RF008), TX-0009 (RF009), TX-0010 (RF010).</p>
+    <div class="ui-griglia ui-griglia--4">
+      <section class="ui-kpi" aria-label="Domande presentate">
+        <p>Domande presentate</p>
+        <p class="ui-kpi__valore">n</p>
+        <p class="ui-barra">TX-0009</p>
+      </section>
+      <section class="ui-kpi" aria-label="Di cui prima annualita'">
+        <p>Di cui prima annualita'</p>
+        <p class="ui-kpi__valore">n</p>
+        <p class="ui-barra">TX-0009</p>
+      </section>
+      <section class="ui-kpi" aria-label="Importo ammesso">
+        <p>Importo ammesso</p>
+        <p class="ui-kpi__valore">n,n M euro</p>
+        <p class="ui-barra">somma degli anni (TX-0010)</p>
+      </section>
+      <section class="ui-kpi" aria-label="Importo stanziato">
+        <p>Importo stanziato</p>
+        <p class="ui-kpi__valore">non disponibile</p>
+        <p class="ui-barra">fonte non attiva (TX-0010)</p>
+      </section>
+    </div>
+    <div class="ui-griglia ui-griglia--2">
+      <section class="ui-card" aria-labelledby="g-dom">
+        <div class="ui-card__testa">
+          <h2 id="g-dom">Domande per anno di raccolta</h2>
+          <div class="ui-seg" role="group" aria-label="Vista di Domande per anno di raccolta"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+        </div>
+        <figure class="ui-grafico ui-grafico--barre">
+          <figcaption>Barre impilate: prima annualita', altre annualita', non classificate; la riga senza anno e' una barra a parte, dichiarata. Clic su un anno: filtra la tabella.</figcaption>
+        </figure>
+        <p class="ui-fonte">Fonte: TX-0008. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati.</p>
+      </section>
+      <section class="ui-card" aria-labelledby="g-imp">
+        <div class="ui-card__testa">
+          <h2 id="g-imp">Importi ammessi e decretati per anno</h2>
+          <div class="ui-seg" role="group" aria-label="Vista di Importi ammessi e decretati per anno"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+        </div>
+        <figure class="ui-grafico ui-grafico--linea">
+          <figcaption>Linee con zoom: importo ammesso e decretato (il decretato e' calcolato dai pagamenti totali: OP-FE-05).</figcaption>
+        </figure>
+        <p class="ui-fonte">Fonte: TX-0010. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati.</p>
+      </section>
+    </div>
+    <h2>Stato: caricamento</h2>
+    <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro delle card): le letture partono al piu' due alla volta</div>
+    <h2>Stato: vuoto</h2>
+    <div class="ui-vuoto" role="status">Nessuna domanda per i filtri scelti. <a class="btn btn-primary" href="../panoramica/panoramica.html#pannello-filtri">Modifica i filtri</a></div>
+    <h2>Stato: errore</h2>
+    <div class="alert alert-danger" role="alert">Dati non disponibili: messaggio dal problem-type (403 accesso negato, 503 capacita' esaurita con nuovo tentativo, 504 tempo scaduto). <a href="#contenuto">Riprova</a></div>
+  </main>
+</div>
+<footer class="ui-footer">
+  <ul>
+    <li><a href="#contenuto">Dichiarazione di accessibilita' (indirizzo da definire)</a></li>
+    <li><a href="#contenuto">Privacy (indirizzo da definire)</a></li>
+    <li><a href="#contenuto">Note legali (indirizzo da definire)</a></li>
+    <li>Regione Lazio - ARSIAL</li>
+  </ul>
+</footer>
+</body>
+</html>

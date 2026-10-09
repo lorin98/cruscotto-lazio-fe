@@ -1,19 +1,31 @@
-# Dipendenze e build
 node_modules/
 dist/
-build/
 coverage/
+*.local
+.DS_Store
+# codice generato da orval (rigenerato da `npm run api:generate`)
+src/shared/api/generated/
+# spec-lock prodotto da api:fetch
+specs/.spec-lock.json
+
+# dal .gitignore del repository (prima dello scaffold green-fe)
+# Dipendenze e build
+build/
 .angular/
 .vite/
-
 # Segreti e config locali
 .env
 .env.*
 !.env.example
-
 # IDE e varie
 .idea/
 .vscode/
 *.log
-.DS_Store
 Thumbs.db
+
+# inbox degli output dei tool per il gate di green-fe (step8): rigenerata a ogni esecuzione
+.gate-inbox/
+
+# risultati dei test e2e di Playwright
+test-results/
+playwright-report/

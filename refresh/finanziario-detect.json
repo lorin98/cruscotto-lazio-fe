@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0",
+  "from_pack_hash": "sha256:1ef3a90c51c555441a3a3e3fb203dfdaa0f2f7d1861a5664982f33cb828de4c4",
+  "to_pack_hash": "sha256:1ef3a90c51c555441a3a3e3fb203dfdaa0f2f7d1861a5664982f33cb828de4c4",
+  "changed": {
+    "pack": false,
+    "style_guide": false,
+    "specs": [
+      "finanziario"
+    ]
+  },
+  "stale_features": [
+    {
+      "name": "finanziario",
+      "reason": "spec-changed",
+      "reopen_step": 2,
+      "changed_slices": [
+        "finanziario"
+      ]
+    }
+  ]
+}

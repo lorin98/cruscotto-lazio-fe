@@ -1,0 +1,74 @@
+[
+  {
+    "id": "A-01",
+    "severity": "MAGGIORE",
+    "file": "src/app/routes.tsx:131",
+    "titolo": "Nessun errorElement/ErrorBoundary: in produzione la pagina d'errore di default di React Router mostra messaggio e stack trace e toglie la shell",
+    "evidenza": "appRoutes() restituisce [{ Component: Layout, children: [index Home, ...featureRoutes] }] senza errorElement/ErrorBoundary e senza route '*' (grep di errorElement|ErrorBoundary in src: zero risultati). Il bundle di produzione (vite build nello scratchpad, chunk finanziario-*.js) contiene il componente di default di React Router: function Ei(){...t = e instanceof Error ? e.message : ..., n = e instanceof Error ? e.stack : null; ... 'Unexpected Application Error!' ... <h3>{t}</h3> ... n ? <pre>{n}</pre>}. Riprodotto con react-router 8.3.0 in NODE_ENV=production (sonda jsdom in scratchpad/review-v2/rr-probe): (1) un indirizzo inesistente, es. /finanziario/nonesiste, rende 'Unexpected Application Error! 404 Not Found' in inglese, senza testata, menu, skip-link ne' piede; (2) un errore di render rende il messaggio e lo stack completo in un <pre> e scrive in console 'React Router caught the following error during render'. Inneschi realistici: chunk lazy non piu' presente dopo un rilascio (routes.tsx:114-116, 'Failed to fetch dynamically imported module: https://<host>/assets/page-XXXX.js' piu' stack); un valore di enum non previsto dal backend, es. fase della riserva fuori enum -> FASI_RISERVA[fase](anno) in lib/filtri.ts:76 lancia TypeError; il messaggio di routes.tsx:115 che espone il percorso del sorgente. Nessun test copre il 404 o l'errore di render (shell.test.tsx non ha casi per indirizzi sconosciuti). Contraddice la regola del progetto 'mai la stringa tecnica' (StatiVista.tsx:2, errori.ts:1).",
+    "fix": "In appRoutes() aggiungere sotto Layout una route senza path con ErrorBoundary che avvolge Home e featureRoutes (cosi' la shell resta), piu' una route { path: '*', Component: PaginaNonTrovata } in italiano con h1 focalizzato. L'ErrorBoundary usa useRouteError/isRouteErrorResponse: 404 -> 'Pagina non trovata'; errore di caricamento di un modulo (regex /dynamically imported module|module script failed/) -> invito a ricaricare la pagina; ogni altro errore -> messaggio generico ('Errore inatteso nella pagina'), mai message ne' stack. Rendere robusti i lookup su enum del backend (Object.hasOwn(FASI_RISERVA, fase) prima di chiamare la funzione). Aggiungere test: indirizzo sconosciuto e componente che lancia, con l'asserzione che nel DOM non compaiano 'Unexpected Application Error' ne' righe di stack."
+  },
+  {
+    "id": "A-02",
+    "severity": "MAGGIORE",
+    "file": "README.md:135",
+    "titolo": "La conformita' CSP dichiarata nel README e' falsa: i tooltip HTML di ECharts violano style-src 'self' a ogni visualizzazione",
+    "evidenza": "README.md:135-136 dichiara 'Verificato sulla build di produzione con Playwright e questa CSP: nessuna violazione, con i grafici ECharts (SVG) e il tooltip disegnati (ECharts imposta gli stili via CSSOM)'. Il contenitore del tooltip usa CSSOM, il CONTENUTO invece no: TooltipHTMLContent.js:316 fa el.innerHTML = content + arrow, e il markup di default (tooltipMarkup.js) e la freccia sono pieni di attributi style. Sonda headless (Chromium 1208 locale, page.setContent, nessun server ne' rete; scratchpad/review-v2/csp-probe) con ECharts 6.1.0, renderer SVG e style-src 'self': tooltip trigger 'axis' con valueFormatter (come lib/grafici.ts:762, 809, 1178, 1273) -> 21 violazioni style-src-attr per una sola visualizzazione con 2 serie, e il marker colorato delle serie non viene disegnato (larghezza calcolata 'auto' invece di 10px); tooltip 'item' con formatter funzione (come tooltipDettaglio, lib/grafici.ts:434) -> 1 violazione per la freccia; due-parti.ts:37 usa il tooltip di default. La verifica dichiarata non e' riproducibile: @playwright/test e' in devDependencies ma nel repository non ci sono playwright.config, spec e2e ne' uno script npm. I test non possono accorgersene: src/shared/test/setup.ts:9-12 sostituisce ECharts con un grafico finto, quindi il tooltip reale non e' mai eseguito. Rischio: chi deploya si fida dell'attestazione e, alle prime segnalazioni di violazione, allenta la CSP con 'unsafe-inline'.",
+    "fix": "Impostare nel tema (shared/ui/grafici/echarts.ts) tooltip.renderMode: 'richText': il tooltip e' disegnato nell'SVG, non passa da innerHTML (niente attributi style e niente superficie XSS HTML); di conseguenza togliere l'escaping HTML di tooltipDettaglio (lib/grafici.ts:313-320), che in richText mostrerebbe le entita'. In alternativa, mantenere l'HTML ma documentare l'eccezione nel README. In ogni caso correggere README.md:135-136 e rendere la verifica un test e2e versionato (Playwright: build, CSP impostata come nel README, ascolto di securitypolicyviolation, hover su un grafico 'axis' e su uno 'item', zero violazioni attese) con il suo script npm."
+  },
+  {
+    "id": "A-03",
+    "severity": "MINORE",
+    "file": "src/shared/ui/laterale/PannelloLaterale.tsx:27",
+    "titolo": "Su iOS react-aria inietta un secondo <style> senza nonce all'apertura delle modali: violazione CSP non dichiarata nel README",
+    "evidenza": "README.md:136-137 afferma che l'unico <style> iniettato e' quello di usePress, neutralizzato dal segnaposto in index.html. Ma ModalOverlay (usato da PannelloLaterale per filtri, menu e anteprima, e da AvvisoInattivita in inattivita.tsx:153) chiama usePreventScroll: su iOS (preventScrollMobileSafari, node_modules/react-aria/dist/private/overlays/usePreventScroll.mjs:102-111) crea un <style> con '@layer { * { overscroll-behavior: contain; } }' e lo antepone in head. Il nonce viene da getNonce (meta[property=csp-nonce] o __webpack_nonce__), che l'app non fornisce. Con la CSP del README (style-src 'self') su iPhone e iPad la regola viene bloccata: una violazione a ogni apertura di un pannello, e lo scorrimento passa alla pagina sotto la modale.",
+    "fix": "Documentare l'eccezione nel README. Se serve la regola su iOS, farla servire dal contenitore con un nonce per risposta: CSP style-src 'self' 'nonce-<valore>' piu' <meta property=\"csp-nonce\" content=\"<valore>\"> in index.html, valorizzato dal server. Includere un profilo WebKit mobile nel test e2e della CSP (vedi A-02)."
+  },
+  {
+    "id": "A-04",
+    "severity": "MINORE",
+    "file": "src/app/inattivita.tsx:74",
+    "titolo": "Dopo la scadenza o l'uscita in un'altra scheda i dati restano leggibili nelle altre schede: cache non svuotata, velo semitrasparente",
+    "evidenza": "Quando una scheda riceve 'scaduta' dal BroadcastChannel (righe 72-76), ferma i timer e mostra 'Sessione scaduta', ma non naviga, non chiama queryClient.clear() e non smonta i report: in src non c'e' nessun clear/removeQueries/resetQueries. La modale sta su un ModalOverlay 'bg-dark bg-opacity-50' (riga 156), quindi gli importi e le tabelle sotto restano leggibili a tempo indefinito su una postazione incustodita, proprio il caso che NFR-41 vuole coprire. Lo conferma shell.test.tsx:140-155 ('una scadenza altrove non richiude la sessione'): il test verifica solo la modale. L'uscita esplicita ('Esci' della barra, layout.tsx:94, e della modale, inattivita.tsx:120) non manda nessun messaggio alle altre schede: queste continuano a mostrare i dati della sessione chiusa finche' una nuova lettura non riceve 401.",
+    "fix": "Allo stato 'scaduta', locale o ricevuto da un'altra scheda, chiamare queryClient.clear() e smontare il contenuto (es. Layout che non rende l'Outlet in quello stato), oppure navigare a una pagina neutra; rendere il velo opaco nello stato 'scaduta'. Trasmettere sul canale anche l'uscita esplicita: un onClick su 'Esci' che fa postMessage('scaduta') prima della navigazione. Nel test, verificare che dopo 'scaduta' i dati dei report non siano piu' nel DOM."
+  },
+  {
+    "id": "A-05",
+    "severity": "MINORE",
+    "file": "src/app/inattivita.tsx:160",
+    "titolo": "L'alertdialog di inattivita' non ha aria-describedby: il lettore di schermo non legge il tempo rimasto",
+    "evidenza": "<Dialog role=\"alertdialog\"> riceve da react-aria solo aria-labelledby, collegato all'Heading 'La sessione sta per scadere' (useDialog.mjs:83-85; nessun aria-describedby automatico). Il paragrafo 'Per inattivita' la sessione scadra' tra 2 minuti. Vuoi restare collegato?' (righe 113-115) non e' la descrizione accessibile, quindi all'apertura viene annunciato solo il titolo e il focus va su 'Resta collegato' (autoFocus, riga 117). Un utente con lettore di schermo non sente quanto tempo resta (WCAG 2.2.1 e pattern ARIA alertdialog). Vale anche per lo stato 'Sessione scaduta' (riga 134).",
+    "fix": "Dare un id al paragrafo con useId e passare aria-describedby={id} al Dialog, sia per il preavviso sia per la scadenza. Aggiungere al test di shell.test.tsx l'asserzione toHaveAccessibleDescription(/scadrà tra/)."
+  },
+  {
+    "id": "A-06",
+    "severity": "MINORE",
+    "file": "src/pages/finanziario/interventi/page.tsx:28",
+    "titolo": "Il dettaglio dell'intervento senza dati non ha h1: focus perso e document.title della pagina precedente",
+    "evidenza": "La pagina usa PaginaFinanziario con senzaTitolo, quindi useFocusTitolo(undefined) (PaginaFinanziario.tsx:55) non aggiorna il titolo e il ref non e' collegato a nessun elemento. L'unico h1 e' nella Testata, resa solo dentro VistaQuery quando il riepilogo e' arrivato (DettaglioIntervento.tsx:135-151). Durante il caricamento, con un errore (ErroreVista) o senza il grant di TX-0011 (ConGrant mostra una Sezione con h2) la pagina non ha h1, il focus resta sull'elemento cliccato prima (spesso smontato, quindi passa al body) e document.title resta quello della pagina di partenza, es. 'Panoramica - Finanziario - Cruscotto CSR 2023-2027'. Ritorno del focus e titolo della pagina (WCAG 2.4.2, 2.4.3) falliscono proprio nei casi d'errore.",
+    "fix": "Impostare titolo e focus a livello di pagina indipendentemente dai dati: useFocusTitolo(`${codice} - Finanziario`) nella pagina e un h1 di riserva ('Intervento CODICE') finche' la Testata non c'e', oppure la Testata resa fuori da VistaQuery con la sola descrizione opzionale. Aggiungere un test: dettaglio con il riepilogo in errore -> h1 presente e focalizzato, document.title aggiornato."
+  },
+  {
+    "id": "A-07",
+    "severity": "MINORE",
+    "file": "src/shared/ui/stati/StatiVista.tsx:18",
+    "titolo": "Con il backend non raggiungibile una pagina emette una raffica di role=alert identici (10 su Avanzamento)",
+    "evidenza": "Ogni VistaQuery in errore rende ErroreVista con role=\"alert\" (riga 18) e ogni scheletro di caricamento ha role=\"status\" con aria-live=\"polite\" (riga 10). Su /finanziario/avanzamento con la rete assente: il segnale di TX-0002 in errore vale 'non-vuota' (selezione.ts:15), quindi si montano 4 KPI (TX-0004, TX-0005, TX-0007 due volte), 2 flussi (TX-0006, TX-0007) e 4 sezioni (AvanzamentoReport.tsx:60-77, 116-128, 213-224). Il risultato sono 10 alert con lo stesso testo 'Il server non risponde: controlla la connessione e riprova.', ciascuno con il suo 'Riprova', annunciati uno dopo l'altro dal lettore di schermo. Al caricamento ci sono altrettanti annunci 'Caricamento in corso…'.",
+    "fix": "Aggregare per pagina: un solo alert di pagina quando piu' sezioni falliscono con lo stesso tipo d'errore (rete, 503), con un 'Riprova' che rilegge tutte le sezioni; nelle sezioni un testo statico senza role=alert. Per gli scheletri, un solo stato di caricamento annunciato a livello di pagina e gli altri con aria-hidden o senza live region."
+  },
+  {
+    "id": "A-08",
+    "severity": "MINORE",
+    "file": "package.json:23",
+    "titolo": "Dipendenze: axios in produzione non pinnato (^1.7.9) e @playwright/test 1.56.0 dichiarato ma inutilizzato",
+    "evidenza": "Tutte le dipendenze di runtime sono a versione esatta (echarts 6.1.0, react-aria-components 1.19.0, react-router 8.3.0, ...) tranne axios, a '^1.7.9'. Il lockfile risolve 1.19.0: npm ci e' riproducibile, ma un npm install o un aggiornamento del lock puo' portare una minor nuova del client HTTP che trasporta cookie di sessione e header anti-CSRF. In .npmrc non c'e' save-exact. Anche devDependencies come jsdom, @vitejs/plugin-react, typescript-eslint e @testing-library/* hanno il caret. @playwright/test 1.56.0 (riga 34) non ha config, spec ne' script, quindi e' superficie di supply chain senza uso; i browser installati in locale sono chromium-1208, non quelli attesi da 1.56. Lockfile verificato: tutte le voci vengono da registry.npmjs.org e hanno integrity; script di installazione solo in esbuild, msw e fsevents. echarts 6.1.0, zrender 6.1.0 e react-aria-components 1.19.0 sono pinnati e coerenti.",
+    "fix": "Pinnare \"axios\": \"1.19.0\", aggiungere save-exact=true a .npmrc e pinnare le devDependencies con caret. Per @playwright/test: aggiungere config, e2e e script (vedi A-02), oppure rimuoverlo."
+  },
+  {
+    "id": "A-09",
+    "severity": "COSMETICO",
+    "file": "index.html:6",
+    "titolo": "Il commento interno e il percorso del sorgente finiscono nell'index.html di produzione",
+    "evidenza": "La build (dist/index.html, identico all'output nello scratchpad) conserva il commento '<!-- CSP senza stili inline: la regola che react-aria inietterebbe ... sta in src/shared/ui/tema.css ... -->' e il meta content=\"src/shared/ui/tema.css\". Espongono la struttura dei sorgenti e un dettaglio della strategia CSP. Il dato non e' sensibile.",
+    "fix": "Lasciare il meta segnaposto con content vuoto (react-aria controlla solo l'id: usePress.mjs:606), spostare la spiegazione in un commento del sorgente non servito (README o tema.css), oppure togliere i commenti HTML in build con un plugin transformIndexHtml."
+  }
+]

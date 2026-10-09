@@ -1,0 +1,44 @@
+[
+  {
+    "id": "V-22",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/ui/PannelloFiltri.tsx:134",
+    "titolo": "Residuo di V-22 (NON_RISOLTO, rimandato di proposito): il pulsante del pannello resta 'Applica i filtri' contro 'Mostra n interventi' di wireframes/panoramica/panoramica.html:149; il conteggio n richiede il legame intervento - OG/OS/OP, che TX-0001 non espone.",
+    "fix": "Riportare la scelta all'utente al gate dei wireframe: accettare 'Applica i filtri' nel wireframe, oppure esporre il legame in TX-0001 e mostrare 'Mostra n interventi' con n dalla bozza."
+  },
+  {
+    "id": "N-08",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/lib/grafici/domande.ts:99",
+    "titolo": "Residuo di N-08 (PARZIALE): la nota sulle domande senza importo ammesso e' scritta due volte con testi diversi, in notaSenzaAmmesso (aggregati.ts:83, 'nella somma') e nel builder (domande.ts:99, 'nelle somme').",
+    "fix": "Una sola funzione di lib (es. notaSenzaAmmesso(n, 'somma' | 'somme')) usata da kpiImportiPerAnno e da graficoImportiPerAnno; aggiornare i test L1."
+  },
+  {
+    "id": "N-24",
+    "severity": "COSMETICO",
+    "file": "src/pages/finanziario/panoramica/page.tsx:7",
+    "titolo": "Residuo di N-24 (PARZIALE): la pagina della panoramica passa ancora la prop sottotitolo, identica a quella del catalogo (lib/report.ts:58).",
+    "fix": "Togliere sottotitolo da panoramica/page.tsx: PaginaFinanziario usa gia' voce?.sottotitolo del catalogo."
+  },
+  {
+    "id": "M-01",
+    "severity": "MINORE",
+    "file": "src/shared/api/mutator/bff-mutator.ts:130",
+    "titolo": "Il timeout della guardia (AxiosError ETIMEDOUT senza risposta) e' trattato da soloTransitori (nuovi-tentativi.ts:17) come rete assente e riprovato 3 volte. Una lettura appesa da' l'errore solo dopo circa 8 minuti, tenendo un posto del tetto per 120 s a ogni tentativo.",
+    "fix": "In soloTransitori, prima del controllo sullo status: if (errore.code === AxiosError.ETIMEDOUT) return false; test L1 in query-client.test.ts con l'errore della guardia."
+  },
+  {
+    "id": "M-02",
+    "severity": "MINORE",
+    "file": "src/shared/ui/stati/AvvisoPagina.tsx:40",
+    "titolo": "Dopo un 'Riprova' riuscito l'avviso di pagina si smonta col pulsante che ha il focus: il focus finisce su BODY (WCAG 2.4.3).",
+    "fix": "Contenitore sempre montato con tabIndex=-1 (ref) in AvvisoPagina; quando errori.size torna a 0 dopo un Riprova, focus su quel contenitore o sull'h1 della pagina. Test L2 sul focus dopo Riprova riuscito."
+  },
+  {
+    "id": "M-03",
+    "severity": "MINORE",
+    "file": "eslint.config.js:259",
+    "titolo": "Il divieto dei moduli di prova (Z-02) non copre src/features/*/api/**, ignorato dal blocco dei consumatori: api/index.ts puo' importare ./mock/esempio e ../testing/fixture senza errori di lint (sonda: 0 errori).",
+    "fix": "Blocco files ['src/features/*/api/**/*.{ts,tsx}'], ignores ['src/features/*/api/mock/**'], con no-restricted-imports [testingImportGroup, entityBarrelOnlyImportGroup], piu' una canary da features/finanziario/api/ in tests/eslint-regole.test.ts."
+  }
+]

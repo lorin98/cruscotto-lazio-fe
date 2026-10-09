@@ -1,0 +1,178 @@
+[
+  {
+    "id": "V-01",
+    "severity": "MAGGIORE",
+    "file": "src/pages/finanziario/interventi/page.tsx:31",
+    "titolo": "Dettaglio intervento: i filtri dell'indirizzo restano nella barra come attivi ma non si applicano ai dati (RF001)",
+    "evidenza": "La pagina passa a DettaglioIntervento solo il codice ({() => ... <DettaglioIntervento codice={codice} />}, i filtri di PaginaFinanziario sono scartati) e DettaglioIntervento.tsx:131 legge sempre con { intervento: [codice] }. Panoramica, Dotazione e Riepilogo invece navigano al dettaglio CONSERVANDO la query (?og=OG2, ?os=SO4: lo asseriscono panoramica/page.test.tsx:123, dotazione/page.test.tsx:45, riepilogo/page.test.tsx:155). Risultato: nel dettaglio la barra mostra i chip OG/OS/OP/Azione (e anche un 'Intervento' diverso dal codice della route), 'Togli' e 'Applica i filtri' cambiano l'indirizzo ma nessuna lettura cambia. RF001 (must) chiede che i filtri valgano per tutti i grafici e campi; il wireframe approvato wireframes/panoramica/intervento.html mostra nella barra solo 'Intervento: SRA01' e dice 'Transazioni: le stesse dei report, filtrate su intervento = codice della route'. Nessun test esercita il dettaglio con filtri nell'indirizzo: i test di drill-down verificano solo la query string, non che i filtri abbiano effetto.",
+    "fix": "Scegliere una delle due strade e testarla: (a) passare i filtri al dettaglio e leggere con { ...filtri, intervento: [codice] } (dimensioni in AND come nel backend), oppure (b) navigare al dettaglio senza gli altri filtri e rendere nella barra il solo chip fisso 'Intervento: <codice>' come nel wireframe. Aggiungere a interventi/page.test.tsx un caso con ?og=... che verifichi la query effettivamente inviata e i chip mostrati."
+  },
+  {
+    "id": "V-02",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/ui/Panoramica.tsx:19",
+    "titolo": "KPI della panoramica: somma parziale presentata come totale quando un intervento non ha la dotazione o il pagato",
+    "evidenza": "somma() (righe 19-22) scarta i null e somma il resto; KpiSpesa (righe 26-27, 35-43) mostra 'Dotazione spesa pubblica' e 'Pagamenti totali' come totale della selezione con la nota 'N interventi nella selezione', senza dire che alcuni sono esclusi. Il pack vieta le somme parziali: SC-FI_DISTRIBUZIONE 'se un intervento selezionato non ha la riga di periodo del piano il totale e' null con motivo NON_VALORIZZATO, non una somma parziale'; SC-FI_SPESA_INTERVENTO prevede proprio righe con dotazione null NON_VALORIZZATO. La stessa codebase applica la regola altrove (RiepilogoReport.tsx:53-56 'non calcolabile' con un solo assente; entities/importo descriviImporto: 'niente somme parziali'). Il wireframe panoramica.html dice 'somma delle righe di TX-0002', non 'delle righe valorizzate'. I test coprono solo il caso tutto assente (finanziario-casi-limite 'righe senza importi'), non righe miste.",
+    "fix": "Se almeno una riga ha valore null, il KPI diventa 'non calcolabile' con il motivo (come i totali del riepilogo), oppure dichiara esplicitamente 'somma su K di N interventi; omessi: <codice: motivo>'. Aggiungere un test con una riga valorizzata e una NON_VALORIZZATO."
+  },
+  {
+    "id": "V-03",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/lib/grafici.ts:975",
+    "titolo": "Cascata 'Dalla dotazione al residuo' del dettaglio disegnata anche nel perimetro ADA: dotazione regionale meno pagamenti dell'area",
+    "evidenza": "graficoCascataIntervento non riceve il perimetro (chiamata in DettaglioIntervento.tsx:70) e disegna Dotazione e 'Pagamenti netti' come barra flottante su base dotazione-pagamenti. Per un P4 la riga di TX-0011 ha dotazione regionale, pagamenti della sola area e dotazioneResiduaSuPagamenti FUORI_PERIMETRO (SC-FI_RIEPILOGO 'per un P4 il residuo sui pagamenti e' FUORI_PERIMETRO'; SC-FI_SCOPE_P4 'i residui misti FUORI_PERIMETRO'). Verificato eseguendo il builder: dotazione 1.000.000, netti 200.000, residuo FUORI_PERIMETRO -> grafico disegnato con serie base [0, 800000] e valori [1000000, 200000], cioe' il residuo misto che il backend rifiuta e' suggerito visivamente. Lo stesso dettaglio rifiuta invece il confronto nel gauge (graficoGauge con MOTIVO_ADA_GAUGE) e la panoramica nell'avanzamento: incoerenza. Anche i KPI del dettaglio (righe 52-55) affiancano dotazione e quota FEASR regionali ai pagamenti dell'area senza '(regionale)' ne' NotaPerimetroMisto. Il test grafici 'dotazione o pagamenti assenti' usa pagamentiNettoRettifiche FUORI_PERIMETRO, forma che il contratto non produce, e nessun test copre il dettaglio con una riga ADA reale.",
+    "fix": "Passare il perimetro a graficoCascataIntervento e, in ADA, non disegnare la cascata (motivo come MOTIVO_ADA_GAUGE) lasciando la tabella delle voci; nei KPI del dettaglio usare diProgramma e NotaPerimetroMisto. Aggiungere un test del dettaglio con perimetro ADA e residuo FUORI_PERIMETRO."
+  },
+  {
+    "id": "V-04",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/lib/grafici.ts:1025",
+    "titolo": "TX-0003: il campo dotazioneSpesaPubblica del contratto e' ignorato, il 'Totale' e' ricalcolato come somma delle quote",
+    "evidenza": "DistribuzioneDotazioneLike (righe 122-126) non ha dotazioneSpesaPubblica e graficoQuotaFeasr calcola 'Totale' = quotaFeasr + quotaNonFeasr (riga 1047); DotazioneReport.tsx:124 non rende altro. TX-0003 ha come primo io_det 'Dotazione spesa pubblica (totale)', RF003 chiede la dotazione ripartita fra le quote, lo uiplan elenca DistribuzioneDotazione.dotazioneSpesaPubblica per /finanziario/dotazione e SC-FI_DISTRIBUZIONE ne fissa la semantica (1000000.00; null NON_VALORIZZATO se manca la riga di piano, mai somma parziale). Verificato eseguendo il builder con dotazione 1.000.000 e quote 405.300 + 594.000: la tabella mostra 'Totale 999.300,00 EUR' e la dotazione del backend non compare; un NON_VALORIZZATO della dotazione non viene mai dichiarato. Il test RF003 (dotazione/page.test.tsx:76-83) controlla solo la ciambella e la voce 'Quota non FEASR'.",
+    "fix": "Aggiungere dotazioneSpesaPubblica al tipo e alla tabella equivalente (riga 'Dotazione spesa pubblica' con cellaImporto e motivo), calcolare le percentuali sulla dotazione del DTO o dichiarare lo scarto se le quote non la ricompongono; testare la presenza del campo e il caso NON_VALORIZZATO."
+  },
+  {
+    "id": "V-05",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/ui/RiepilogoReport.tsx:47",
+    "titolo": "RF011: quattro dei nove campi partono nascosti, contro il wireframe che mostra la colonna con 'fonte non attiva'; motivo della nota sbagliato per il P4",
+    "evidenza": "colonne() marca nascosta ogni colonna senza valori (nascosta: senzaValori) e la nota (righe 120, 136-138) dice 'nessun intervento ha un valore (fonte non attiva o non valorizzato)'. Con il backend attuale importoStanziato (QUADRO_SINOTTICO), impegnatoCofinanziatoFeasr, impegnatoCofinanziatoFeasrENon e dotazioneResiduaSuImpegni (IMPEGNI) sono sempre FONTE_NON_ATTIVA (SC-FI_RIEPILOGO), quindi 4 dei 9 campi di RF011 (must: 'tabella di riepilogo che mostri ... i nove campi') non si vedono finche' l'utente non li riattiva. Il wireframe approvato wireframes/riepilogo/riepilogo.html ha la colonna 'Impegnato' visibile con la cella 'fonte non attiva'. Per un P4 anche dotazioneResiduaSuPagamenti e' tutta FUORI_PERIMETRO: viene nascosta con il motivo 'fonte non attiva o non valorizzato', che e' falso. Il test riepilogo/page.test.tsx:128-137 asserisce il nascondimento: passa verificando il contrario di cio' che dichiara il suo describe ('con i nove campi finanziari').",
+    "fix": "Mostrare di default tutte le colonne di RF011 con ValoreImporto (motivo e fonte nella cella), come nel wireframe; se si vuole ridurre la larghezza, nascondere solo su scelta dell'utente. Se resta una nota, ricavarne il motivo dai valori reali (FONTE_NON_ATTIVA con fonte, NON_VALORIZZATO, FUORI_PERIMETRO). Aggiornare il test."
+  },
+  {
+    "id": "V-06",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/ui/DotazioneReport.tsx:49",
+    "titolo": "RF002: impegnati, quote Stato e Regione e vincolo LEADER partono nascosti, il wireframe chiede 'colonne con il motivo'",
+    "evidenza": "Come nel riepilogo, nascosta: senzaValori(righe, c.chiave) e la nota (righe 63, 90-92) con il motivo fisso '(fonte non attiva)'. Con il backend attuale impegnatoSpesaPubblica, impegnatoCofinanziatoFeasrENon (IMPEGNI), quotaStato, quotaRegione (RIPARTO_STATO_REGIONE) e vincoloDotazioneLeader (VINCOLO_LEADER) sono FONTE_NON_ATTIVA (SC-FI_SPESA_INTERVENTO): 5 delle 7 colonne di importo non si vedono, comprese le due voci di impegnato che RF002 (must) cita esplicitamente. Il wireframe approvato wireframes/dotazione-avanzamento/dotazione.html dice testualmente 'Le quote Stato e Regione e il vincolo LEADER non ci sono (fonte non attiva): colonne con il motivo'. Il motivo della nota e' fisso e non deriva dai dati (finanziario-casi-limite 'righe senza importi' lo usa per una dotazione senza motivo). Il test dotazione/page.test.tsx:29-35 asserisce che 'Impegnato spesa pubblica' non e' fra le intestazioni.",
+    "fix": "Colonne visibili di default con ValoreImporto (motivo e fonte); nota, se resta, con il motivo letto dai dati. Aggiornare il test RF002 perche' verifichi la presenza delle colonne e del motivo."
+  },
+  {
+    "id": "V-07",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/ui/DettaglioIntervento.tsx:61",
+    "titolo": "Scheda Sintesi del dettaglio: la lettura di TX-0002 non ha stati di caricamento ed errore, un 503 o 403 diventa 'valore non disponibile'",
+    "evidenza": "Sintesi legge useSpesaPerIntervento e usa spesa.data?.righe?.[0]?.pagamentiTotali?.valore direttamente nel gauge, senza VistaQuery. Mentre TX-0002 e' in volo, e se fallisce (503 CAPACITA_ESAURITA esaurito il retry, 504/503 TEMPO_SCADUTO, 403), il gauge mostra 'della dotazione pagato: valore non disponibile, la percentuale non si può calcolare': lo stesso testo del grant mancante o del dato assente. Il wireframe panoramica.md, 'Stati resi (obbligatori)', chiede caricamento con role=status ed errore con role=alert discriminato sul problem-type, distinti. Nessun test copre l'errore di TX-0002 nel dettaglio (finanziario-ui 'senza il grant di TX-0002 ... il gauge dichiara il dato mancante' copre solo il grant).",
+    "fix": "Rendere il gauge dentro VistaQuery sullo stato di TX-0002 (scheletro in caricamento, ErroreVista con Riprova in errore), lasciando il messaggio di dato mancante ai soli casi di grant assente o valore null. Aggiungere un test con TX-0002 in errore."
+  },
+  {
+    "id": "V-08",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/lib/grafici.ts:837",
+    "titolo": "Sankey: dotazioneResidua di TX-0006 ignorata e 'Da impegnare' calcolato lato client, anche nel perimetro ADA (regressione latente)",
+    "evidenza": "ResiduoSuImpegniLike (righe 111-114) non ha dotazioneResidua; graficoSankey calcola daImpegnare = dotazione - impegnato e lo disegna senza guardare il perimetro. Per il P4 il contratto da' dotazione regionale e residuo FUORI_PERIMETRO (SC-FI_RESIDUO_IMPEGNI, SC-FI_SCOPE_P4 'residui misti FUORI_PERIMETRO'). Verificato eseguendo il builder con impegnato valorizzato e dotazioneResidua FUORI_PERIMETRO: grafico disegnato e tabella con 'Da impegnare (dotazione meno impegnato) 1.200.000,00'. Oggi non si vede perche' IMPEGNI e' fonte non attiva, ma la fonte e' destinata ad attivarsi (OP-027 'attivare i canali per fasi') e in quel momento il P4 vedrebbe un residuo misto che il backend nega. I test del sankey (finanziario-grafici 478-535) non hanno dotazioneResidua ne' il perimetro.",
+    "fix": "Usare dotazioneResidua del DTO per il ramo 'Da impegnare' (non disegnabile se null, con il suo motivo) e passare il perimetro: in ADA il flusso non si disegna o mostra solo le misure dell'area. Testare il caso ADA con impegni attivi."
+  },
+  {
+    "id": "V-09",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici.ts:856",
+    "titolo": "Sankey 'Dove va la dotazione': con gli impegni non attivi non si disegna nulla, il wireframe prevede dotazione e pagato con il ramo mancante dichiarato",
+    "evidenza": "Con importoImpegnato null il builder ritorna nonDisegnabile (righe 856-862) e la card resta senza grafico. Il wireframe approvato wireframes/dotazione-avanzamento/avanzamento.html dice: 'Con gli impegni da fonte non attiva il ramo dell'impegnato non si disegna: il grafico mostra dotazione e pagato e dichiara il ramo mancante'. Con il backend attuale il sankey non compare mai. Il test avanzamento/page.test.tsx:133-138 ('senza impegni il flusso della dotazione non si disegna') consolida la deviazione.",
+    "fix": "Senza impegnato disegnare il flusso ridotto Dotazione -> Pagato / Dotazione -> non pagato (TX-0007 o TX-0005, con le cautele ADA di V-08) e dichiarare il ramo dell'impegnato fra gli omessi; oppure riportare la scelta al gate dei wireframe e riapprovarli."
+  },
+  {
+    "id": "V-10",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/DettaglioIntervento.tsx:48",
+    "titolo": "KPI del dettaglio: un importo assente diventa 'Non disponibile nel riepilogo', senza il motivo e la fonte del contratto",
+    "evidenza": "kpiImporto passa solo valore e scarta motivo e fonte dell'Importo. Per pagamentiNettoRettifiche NON_VALORIZZATO (SC-FI_RETTIFICHE, recuperato vuoto nella fonte) o per un FONTE_NON_ATTIVA la tessera dice sempre 'Non disponibile nel riepilogo'. Le note WCAG dello uiplan per il flusso panoramica: 'Importi non disponibili resi come testo (motivo e fonte attesa dalla spec)'. AvanzamentoReport.tsx:23-35 (KpiImporto con descriviImporto) fa gia' la cosa giusta. Il test interventi/page.test.tsx:73-79 asserisce il testo generico con un NON_VALORIZZATO.",
+    "fix": "Usare descriviImporto (come KpiImporto dell'avanzamento) per comporre 'non valorizzato: il dato non è presente nella fonte', 'fonte X non attiva', 'fuori perimetro'; aggiornare il test."
+  },
+  {
+    "id": "V-11",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/DettaglioIntervento.tsx:87",
+    "titolo": "Dettaglio, importi per anno: importo stanziato e domande senza ammesso di TX-0010 non dichiarati",
+    "evidenza": "La card usa solo graficoImportiPerAnno, la cui tabella ha le colonne Anno, Ammesso, Decretato (grafici.ts:777-780): verificato eseguendo il builder, colonne ['Anno','Ammesso','Decretato'] e nessun omesso anche con importoStanziato FONTE_NON_ATTIVA e domandeSenzaAmmesso 5. Il wireframe panoramica.md (tabella dei grafici) chiede per questa card 'stanziato: fonte non attiva, dichiarato' e intervento.html dice 'L'importo stanziato non c'e' (fonte non attiva)'. SC-FI_IMPORTI_PER_ANNO: la domanda senza ammesso non entra nella somma e si conta in domandeSenzaAmmesso; senza quel conteggio l'ammesso dell'intervento sembra completo. La pagina Domande lo fa (DomandeReport.tsx:63-68), il dettaglio no.",
+    "fix": "Dichiarare nel dettaglio lo stanziato con il suo motivo e il numero di domande senza ammesso (colonne della tabella equivalente o voci omesse del builder), riusando le colonne di DomandeReport."
+  },
+  {
+    "id": "V-12",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici.ts:686",
+    "titolo": "Importi SIGC in panoramica e dettaglio: domandeSenza ignorato, l'ancora da pagare sembra un dato completo",
+    "evidenza": "graficoCascataSigc non legge domandeSenza (tabella alle righe 686-693: richiesto, ammesso, pagato, ancora da pagare, differenze). La panoramica (Panoramica.tsx:147-152) e il dettaglio (DettaglioIntervento.tsx:112) rendono solo questa card. SC-FI_SIGC_IMPORTI: le SIGC senza uno dei tre importi 'si contano in domandeSenza.richiesto/ammesso/pagato, cosi' l'ancora da pagare non sembra un dato completo'. La sola pagina SIGC (SigcReport.tsx:173-175) li mostra; con la fixture di prova (domandeSenza.pagato 300) la panoramica li perde senza dirlo.",
+    "fix": "Portare i conteggi di domandeSenza nella tabella equivalente (o fra gli omessi) di graficoCascataSigc, cosi' tutte e tre le route dichiarano la parzialita' delle somme."
+  },
+  {
+    "id": "V-13",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/Panoramica.tsx:32",
+    "titolo": "KPI 'Pagato sulla dotazione': denominatore forzato a 1, con dotazione zero mostra '0 %' invece di 'non calcolabile'",
+    "evidenza": "La quota e' somma(pagati) / Math.max(1, somma(dotazioni) ?? 1). Con interventi a dotazione 0,00 (caso reale citato nei test: SRG08) e pagato 0 il KPI mostra '0 %' con la barra; con pagato > 0 mostrerebbe una percentuale enorme. Il wireframe panoramica.html: 'solo se entrambi i totali sono valorizzati'; nello stesso flusso graficoGauge (t <= 0) e graficoAvanzamento (problemaDotazione 'dotazione pari a zero') trattano lo zero come non calcolabile. Un dato non calcolabile reso come numero.",
+    "fix": "Quota null (KPI 'non calcolabile: dotazione pari a zero') quando la somma delle dotazioni e' <= 0; escludere le righe a dotazione non positiva come fa il grafico; test dedicato."
+  },
+  {
+    "id": "V-14",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/Panoramica.tsx:82",
+    "titolo": "Panoramica: il KPI delle domande (TX-0009) dipende da TX-0002 e sparisce se la spesa e' in errore o senza grant",
+    "evidenza": "KpiDomande e' montato dentro il ramo dati di Spesa (VistaQuery di TX-0002): se TX-0002 va in errore (503, 504) o il profilo non ha csr.tx-0002.read, la tessera 'Domande presentate' non compare pur avendo il suo grant e una lettura indipendente. Il wireframe panoramica.html dice 'Ogni card compare solo con il grant della sua transazione'. Il test finanziario-ui 'senza il grant di TX-0002 ... non legge TX-0002 ne TX-0009' consolida l'accoppiamento. Oggi i profili P1-P5 hanno tutti i 15 grant, quindi l'effetto pratico e' sull'errore di TX-0002.",
+    "fix": "Spostare la tessera delle domande fuori dalla VistaQuery di TX-0002 (griglia KPI con ConGrant per tessera), mantenendo il vuoto della selezione come segnale positivo; aggiornare il test."
+  },
+  {
+    "id": "V-15",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/DomandeReport.tsx:30",
+    "titolo": "Pagina Domande: mancano i KPI 'Importo ammesso' e 'Importo stanziato' e il drill-down 'clic su un anno: filtra la tabella'",
+    "evidenza": "La griglia KPI (righe 30-33) ha due tessere; il wireframe approvato domande.html e il component tree di domande.md hanno 'KPI x4': domande presentate, di cui prima annualita', 'Importo ammesso (somma degli anni, TX-0010)' e 'Importo stanziato non disponibile, fonte non attiva (TX-0010)'. Il grafico delle domande per anno (riga 52) non ha onClic, mentre domande.md prevede 'clic: filtra la tabella sull'anno'. I test RF008-RF010 non verificano ne' le tessere ne' il clic.",
+    "fix": "Aggiungere le due tessere (l'ammesso come somma degli anni con la dichiarazione delle domande senza ammesso, lo stanziato con il motivo) e il clic sull'anno che filtra la tabella di dettaglio; test."
+  },
+  {
+    "id": "V-16",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/VerificaSmpReport.tsx:57",
+    "titolo": "Verifica SMP: tabella senza ricerca ne' scelta delle colonne e grafico senza drill-down al dettaglio",
+    "evidenza": "La tabella dei 20 dati e' una TabellaRighe statica (riga 65) e il CardGrafico (righe 57-64) non ha onClic. Il wireframe approvato verifica-smp.html e sigc.md prevedono 'Card tabella 20 dati (cerca, colonne)' ('Cerca nella tabella', 'Colonne (20)') e per il grafico 'clic: dettaglio dell'intervento'. Riepilogo e Dotazione usano gia' TabellaInterattiva e il clic con codiceInterventoValido.",
+    "fix": "Usare TabellaInterattiva (ricerca, colonne, intestazione di riga sul codice) e aggiungere il clic sulle barre verso percorsoIntervento con i filtri; test."
+  },
+  {
+    "id": "V-17",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/RiservaReport.tsx:44",
+    "titolo": "Riserva: i quattro KPI del wireframe sono resi come tabella voce/valore",
+    "evidenza": "Il wireframe approvato riserva.html e sigc.md ('Selettore anno > KPI x4 > Card utilizzo progressivo') hanno quattro tessere (accumulato con la fase e la data, congelato, utilizzato con il superamento segnalato, residuo previsto con la data). Il codice rende una TabellaVoci con nove righe; i dati ci sono tutti, ma l'impaginazione approvata no.",
+    "fix": "Rendere accumulato, congelato, utilizzato e residuo come Kpi (con i testi di lib/riserva per le assenze) sopra la card dell'utilizzo, lasciando in tabella le voci di contorno (date, montante, regola n+2)."
+  },
+  {
+    "id": "V-18",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/RiepilogoReport.tsx:167",
+    "titolo": "Riepilogo: il clic su una barra apre l'anteprima invece del dettaglio e la dotazione AT sta fuori dalla tabella",
+    "evidenza": "onClic della vista grafico (righe 167-170) apre l'anteprima laterale; riepilogo.md prevede per 'Dotazione e pagamenti per intervento' il clic verso il 'dettaglio dell'intervento' (e riepilogo.html: 'Clic su una barra: dettaglio dell'intervento'). La dotazione dell'Assistenza tecnica e' in una sezione separata (righe 187-192) mentre il component tree di riepilogo.md e il wireframe la mettono nella card della tabella, sotto i totali ('riga AT').",
+    "fix": "Clic sulla barra verso percorsoIntervento con i filtri (come Dotazione); riga 'Dotazione dell'Assistenza tecnica' nel piede della tabella del riepilogo."
+  },
+  {
+    "id": "V-19",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/RiepilogoReport.tsx:163",
+    "titolo": "Vista grafico del riepilogo: i pagamenti al netto delle rettifiche sono etichettati 'Pagato'",
+    "evidenza": "La vista passa pagato: r.pagamentiNettoRettifiche a graficoDotazionePagamenti, che chiama la serie e la colonna 'Pagato' (grafici.ts:1208-1211). Il contratto distingue il pagato lordo dal netto (TX-0007 importoPagato vs pagamentiNettoRettifiche; SC-FI_RETTIFICHE 'mai il pagato lordo spacciato per netto'), e il wireframe riepilogo.html dice 'dotazione e pagamenti netti per intervento'. Qui il netto e' presentato come pagato, mentre la Dotazione usa lo stesso builder con il lordo di TX-0002.",
+    "fix": "Parametrizzare il nome della serie in graficoDotazionePagamenti e usare 'Pagamenti al netto delle rettifiche' nel riepilogo; test sull'etichetta."
+  },
+  {
+    "id": "V-20",
+    "severity": "MINORE",
+    "file": "src/widgets/report-finanziario/ui/PaginaFinanziario.tsx:78",
+    "titolo": "Perimetro non dichiarato nella barra dei filtri come nei wireframe approvati",
+    "evidenza": "Tutti i wireframe con barra (panoramica, intervento, riepilogo, dotazione, avanzamento, domande, sigc, verifica-smp) hanno il chip 'Perimetro: regionale (profilo ADA: solo la propria area, non rimovibile)'; lo uiplan (note WCAG) chiede il perimetro 'dichiarato in testa alla pagina con testo'. BarraFiltri dichiara nel commento che a destra stanno 'perimetro, ultimo dato', ma PaginaFinanziario passa solo UltimoAggiornamento. Il perimetro compare per sezione e dopo il caricamento, e in alcune sezioni solo dentro il testo della fonte (es. DomandeReport.tsx:52).",
+    "fix": "Aggiungere nella barra un chip non rimovibile del perimetro (ricavato dalla prima risposta o dal profilo), mantenendo i badge per sezione dove i perimetri differiscono."
+  },
+  {
+    "id": "V-21",
+    "severity": "MINORE",
+    "file": "src/shared/ui/stati/StatiVista.tsx:85",
+    "titolo": "Stato vuoto non azionabile: 'Modifica i filtri' e' testo, nel wireframe e' un pulsante; nel perimetro ADA sparisce del tutto",
+    "evidenza": "Il vuoto rende il testo 'Nessun intervento per i filtri scelti. Modifica i filtri.' senza azione; i wireframe (panoramica.html:154, dotazione.html:101, avanzamento.html:113, domande.html:113) hanno un pulsante 'Modifica i filtri' che apre il pannello, e tutti i <flusso>.md chiedono 'vuoto: messaggio azionabile con Modifica i filtri'. Con il perimetro ADA vuotoConPerimetro (comuni.tsx:34-36) sostituisce il testo e l'invito scompare.",
+    "fix": "Rendere il vuoto con un pulsante 'Modifica i filtri' che apre PannelloFiltri (esposto da PaginaFinanziario via contesto o callback), anche nella variante ADA; test sul pulsante."
+  },
+  {
+    "id": "V-22",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/lib/report.ts:41",
+    "titolo": "Titoli, sottotitoli, voci di menu e alcuni testi diversi dai wireframe approvati",
+    "evidenza": "Titoli: 'Riserva al 5% (SIGC)' e 'Verifica SMP (SIGC)' (righe 41-42) contro 'Finanziario: riserva di efficacia (5%)' e 'Finanziario: verifica SMP'. Menu: voci lunghe ('Dotazione e spesa per intervento', 'Avanzamento finanziario', ...) contro le voci brevi dei wireframe ('Dotazione e spesa', 'Avanzamento', 'Domande e importi', 'SIGC: domande e importi', 'Riserva di efficacia', 'Verifica SMP'). Sottotitoli dei wireframe assenti in 7 pagine su 8 (solo panoramica/page.tsx:7 passa sottotitolo). Pannello: 'Applica i filtri' (PannelloFiltri.tsx:131) contro 'Mostra n interventi'. Riserva: 'Anno della riserva (anno n)' contro 'Anno di riferimento'; il 404 dice 'i movimenti della riserva non sono ancora stati acquisiti' (RiservaReport.tsx:82) contro 'Nessuna riserva calcolata per l'anno scelto. Scegli un altro anno.', e la causa citata non viene dal contratto (NOT_FOUND = anno mai calcolato).",
+    "fix": "Allineare titoli, voci di menu (eventualmente un campo 'voceMenu' nel catalogo), sottotitoli e testi ai wireframe approvati."
+  }
+]

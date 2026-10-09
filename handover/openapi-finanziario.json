@@ -1,0 +1,3185 @@
+{
+  "components": {
+    "schemas": {
+      "AvanzamentoPagamenti": {
+        "description": "TX-0005",
+        "properties": {
+          "impegnatoDaPagare": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "pagamentiTotali": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "perimetro": {
+            "description": "A quali domande si riferiscono le misure per domanda: REGIONALE (tutte) o ADA (solo quelle dei perimetri ADA del chiamante, P4). I report di soli dati di programma sono sempre REGIONALE",
+            "enum": [
+              "REGIONALE",
+              "ADA"
+            ],
+            "type": "string"
+          },
+          "totaleImpegnato": {
+            "$ref": "#/components/schemas/Importo"
+          }
+        },
+        "type": "object"
+      },
+      "AvanzamentoStanziato": {
+        "description": "TX-0004",
+        "properties": {
+          "importoDaStanziare": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "importoStanziato": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "perimetro": {
+            "description": "A quali domande si riferiscono le misure per domanda: REGIONALE (tutte) o ADA (solo quelle dei perimetri ADA del chiamante, P4). I report di soli dati di programma sono sempre REGIONALE",
+            "enum": [
+              "REGIONALE",
+              "ADA"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "DistribuzioneDotazione": {
+        "description": "TX-0003",
+        "properties": {
+          "dotazioneSpesaPubblica": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "perimetro": {
+            "description": "A quali domande si riferiscono le misure per domanda: REGIONALE (tutte) o ADA (solo quelle dei perimetri ADA del chiamante, P4). I report di soli dati di programma sono sempre REGIONALE",
+            "enum": [
+              "REGIONALE",
+              "ADA"
+            ],
+            "type": "string"
+          },
+          "quotaFeasr": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "quotaNonFeasr": {
+            "$ref": "#/components/schemas/Importo"
+          }
+        },
+        "type": "object"
+      },
+      "DomandePerAnno": {
+        "description": "TX-0008: anno di raccolta = anno di campagna; null per le domande senza campagna",
+        "properties": {
+          "perimetro": {
+            "description": "A quali domande si riferiscono le misure per domanda: REGIONALE (tutte) o ADA (solo quelle dei perimetri ADA del chiamante, P4). I report di soli dati di programma sono sempre REGIONALE",
+            "enum": [
+              "REGIONALE",
+              "ADA"
+            ],
+            "type": "string"
+          },
+          "righe": {
+            "items": {
+              "$ref": "#/components/schemas/DomandePerAnnoRiga"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "DomandePerAnnoRiga": {
+        "properties": {
+          "altreAnnualita": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "annoRaccolta": {
+            "format": "int32",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "nonClassificate": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "primaAnnualita": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "totali": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "DomandeSigc": {
+        "description": "TX-0012",
+        "properties": {
+          "daPagare": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "pagate": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "perimetro": {
+            "description": "A quali domande si riferiscono le misure per domanda: REGIONALE (tutte) o ADA (solo quelle dei perimetri ADA del chiamante, P4). I report di soli dati di programma sono sempre REGIONALE",
+            "enum": [
+              "REGIONALE",
+              "ADA"
+            ],
+            "type": "string"
+          },
+          "presentate": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "FiltriFinanziari": {
+        "description": "TX-0001: valori selezionabili dei filtri",
+        "properties": {
+          "azioniPortanti": {
+            "items": {
+              "$ref": "#/components/schemas/VoceFiltro"
+            },
+            "type": "array"
+          },
+          "interventi": {
+            "description": "Interventi del CSR, senza l'Assistenza tecnica AT001",
+            "items": {
+              "$ref": "#/components/schemas/VoceFiltro"
+            },
+            "type": "array"
+          },
+          "legameAzioniDisponibile": {
+            "description": "Falso finche' nessun intervento e' collegato a un'azione portante (OP-002): con il filtro azione gli elenchi sono vuoti e gli importi aggregati null con FONTE_NON_ATTIVA LEGAME_AZIONI_PORTANTI",
+            "type": "boolean"
+          },
+          "obiettiviGenerali": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "obiettiviPolicy": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "obiettiviSpecifici": {
+            "items": {
+              "$ref": "#/components/schemas/VoceFiltro"
+            },
+            "type": "array"
+          },
+          "ultimiDatiSincronizzati": {
+            "description": "NFR-25 (b): per ogni flusso d'import con almeno un'esecuzione conclusa (SUCCESS o PARTIAL), la conclusione della piu' recente, in ordine di flusso: la stessa data dell'intestazione degli export (D-08 di nfr-conformance). Vuoto finche' nessuna acquisizione e' conclusa",
+            "items": {
+              "$ref": "#/components/schemas/UltimoDatoSincronizzato"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "ImportiPerAnno": {
+        "description": "TX-0010",
+        "properties": {
+          "perimetro": {
+            "description": "A quali domande si riferiscono le misure per domanda: REGIONALE (tutte) o ADA (solo quelle dei perimetri ADA del chiamante, P4). I report di soli dati di programma sono sempre REGIONALE",
+            "enum": [
+              "REGIONALE",
+              "ADA"
+            ],
+            "type": "string"
+          },
+          "righe": {
+            "items": {
+              "$ref": "#/components/schemas/ImportiPerAnnoRiga"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "ImportiPerAnnoRiga": {
+        "properties": {
+          "annoRaccolta": {
+            "format": "int32",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "domandeSenzaAmmesso": {
+            "description": "Domande presentate senza importo ammesso nella fonte: escluse dalla somma",
+            "format": "int64",
+            "type": "integer"
+          },
+          "importoAmmesso": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "importoDecretato": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "importoStanziato": {
+            "$ref": "#/components/schemas/Importo"
+          }
+        },
+        "type": "object"
+      },
+      "ImportiSigc": {
+        "description": "TX-0013",
+        "properties": {
+          "ammesso": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "ancoraDaPagare": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "domandeSenza": {
+            "$ref": "#/components/schemas/ImportiSigcCampiVuoti",
+            "description": "Domande SIGC senza l'importo nella fonte, escluse dalla somma (es. il pagato arriva solo da ASR2-20)",
+            "type": "object"
+          },
+          "pagato": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "perimetro": {
+            "description": "A quali domande si riferiscono le misure per domanda: REGIONALE (tutte) o ADA (solo quelle dei perimetri ADA del chiamante, P4). I report di soli dati di programma sono sempre REGIONALE",
+            "enum": [
+              "REGIONALE",
+              "ADA"
+            ],
+            "type": "string"
+          },
+          "richiesto": {
+            "$ref": "#/components/schemas/Importo"
+          }
+        },
+        "type": "object"
+      },
+      "ImportiSigcCampiVuoti": {
+        "properties": {
+          "ammesso": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "pagato": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "richiesto": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "Importo": {
+        "description": "Importo al centesimo, oppure null con il motivo dell'assenza",
+        "properties": {
+          "fonte": {
+            "description": "Fonte attesa, solo con FONTE_NON_ATTIVA (es. IMPEGNI, QUADRO_SINOTTICO)",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "motivo": {
+            "description": "Motivo dell'assenza, null se c'e' il valore: FONTE_NON_ATTIVA, NON_VALORIZZATO, FUORI_PERIMETRO",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "valore": {
+            "description": "Valore in euro, due decimali; null se il dato non e' disponibile",
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "Instant": {
+        "examples": [
+          "2022-03-10T16:15:50Z"
+        ],
+        "format": "date-time",
+        "type": "string"
+      },
+      "LocalDate": {
+        "examples": [
+          "2022-03-10"
+        ],
+        "format": "date",
+        "type": "string"
+      },
+      "MonitoraggioRiserva": {
+        "description": "TX-0014: riserva al 5% dell'anno n, regionale",
+        "properties": {
+          "anno": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "dataCongelamento": {
+            "$ref": "#/components/schemas/LocalDate"
+          },
+          "dataEstrazione": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LocalDate"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fase": {
+            "enum": [
+              "NON_INIZIATA",
+              "ACCUMULO",
+              "UTILIZZO",
+              "RESIDUO"
+            ],
+            "type": "string"
+          },
+          "importoAccumulato": {
+            "type": "number"
+          },
+          "importoCongelato": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "importoResiduoDisponibile": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "importoUtilizzato": {
+            "type": "number"
+          },
+          "montantePagamenti": {
+            "type": "number"
+          },
+          "perimetro": {
+            "description": "A quali domande si riferiscono le misure per domanda: REGIONALE (tutte) o ADA (solo quelle dei perimetri ADA del chiamante, P4). I report di soli dati di programma sono sempre REGIONALE",
+            "enum": [
+              "REGIONALE",
+              "ADA"
+            ],
+            "type": "string"
+          },
+          "regolaN2": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "utilizzoProgressivo": {
+            "items": {
+              "$ref": "#/components/schemas/UtilizzoRiserva"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "Problema": {
+        "description": "Errore in formato problem+json (RFC 9457)",
+        "properties": {
+          "detail": {
+            "description": "Dettaglio leggibile, senza dati personali: per 400, 404, 405, 409, 501, per il 429 (TROPPE_RICHIESTE) e per i 503 TEMPO_SCADUTO ed ESPORTAZIONE_NON_REGISTRATA; altrimenti assente (mai null)",
+            "examples": [
+              "campo anno: valore non ammesso"
+            ],
+            "type": "string"
+          },
+          "errorCode": {
+            "description": "Codice stabile dell'errore, per esempio NON_AUTENTICATO, ACCESSO_NEGATO, RICHIESTA_NON_AMMESSA, DATO_NON_VALIDO, NOT_FOUND, METODO_NON_AMMESSO, VINCOLO_VIOLATO, TROPPE_RICHIESTE, TEMPO_SCADUTO: i codici di ciascuna operazione sono nelle descrizioni delle sue risposte",
+            "examples": [
+              "ACCESSO_NEGATO"
+            ],
+            "type": "string"
+          },
+          "status": {
+            "description": "Status HTTP",
+            "examples": [
+              403
+            ],
+            "format": "int32",
+            "type": "integer"
+          },
+          "title": {
+            "description": "Frase di stato HTTP",
+            "examples": [
+              "Forbidden"
+            ],
+            "type": "string"
+          },
+          "type": {
+            "description": "URI del tipo di errore, derivato da errorCode",
+            "examples": [
+              "urn:cruscottocsr:problem:accesso-negato"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "title",
+          "status",
+          "errorCode"
+        ],
+        "type": "object"
+      },
+      "ResiduoSuImpegni": {
+        "description": "TX-0006",
+        "properties": {
+          "dotazioneResidua": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "dotazioneSpesaPubblica": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "importoImpegnato": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "perimetro": {
+            "description": "A quali domande si riferiscono le misure per domanda: REGIONALE (tutte) o ADA (solo quelle dei perimetri ADA del chiamante, P4). I report di soli dati di programma sono sempre REGIONALE",
+            "enum": [
+              "REGIONALE",
+              "ADA"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ResiduoSuPagamenti": {
+        "description": "TX-0007: residuo = dotazione meno pagamenti al netto di rettifiche (pagato meno recuperato, mai negativo per domanda)",
+        "properties": {
+          "dotazioneResidua": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "dotazioneSpesaPubblica": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "importoPagato": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "importoRecuperato": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "pagamentiNettoRettifiche": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "perimetro": {
+            "description": "A quali domande si riferiscono le misure per domanda: REGIONALE (tutte) o ADA (solo quelle dei perimetri ADA del chiamante, P4). I report di soli dati di programma sono sempre REGIONALE",
+            "enum": [
+              "REGIONALE",
+              "ADA"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "RiepilogoFinanziario": {
+        "description": "TX-0011",
+        "properties": {
+          "dotazioneAssistenzaTecnica": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "perimetro": {
+            "description": "A quali domande si riferiscono le misure per domanda: REGIONALE (tutte) o ADA (solo quelle dei perimetri ADA del chiamante, P4). I report di soli dati di programma sono sempre REGIONALE",
+            "enum": [
+              "REGIONALE",
+              "ADA"
+            ],
+            "type": "string"
+          },
+          "righe": {
+            "items": {
+              "$ref": "#/components/schemas/RiepilogoFinanziarioRiga"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "RiepilogoFinanziarioRiga": {
+        "properties": {
+          "codiceIntervento": {
+            "type": "string"
+          },
+          "domandePresentate": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "dotazioneResiduaSuImpegni": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "dotazioneResiduaSuPagamenti": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "dotazioneSpesaPubblica": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "impegnatoCofinanziatoFeasr": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "impegnatoCofinanziatoFeasrENon": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "importoStanziato": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "pagamentiNettoRettifiche": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "risorseQuotaFeasr": {
+            "$ref": "#/components/schemas/Importo"
+          }
+        },
+        "type": "object"
+      },
+      "SpesaPerIntervento": {
+        "description": "TX-0002",
+        "properties": {
+          "perimetro": {
+            "description": "A quali domande si riferiscono le misure per domanda: REGIONALE (tutte) o ADA (solo quelle dei perimetri ADA del chiamante, P4). I report di soli dati di programma sono sempre REGIONALE",
+            "enum": [
+              "REGIONALE",
+              "ADA"
+            ],
+            "type": "string"
+          },
+          "righe": {
+            "items": {
+              "$ref": "#/components/schemas/SpesaPerInterventoRiga"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "SpesaPerInterventoRiga": {
+        "properties": {
+          "codiceIntervento": {
+            "type": "string"
+          },
+          "dotazioneSpesaPubblica": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "impegnatoCofinanziatoFeasrENon": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "impegnatoSpesaPubblica": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "pagamentiTotali": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "percentualeContributoAmbientale": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "quotaRegione": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "quotaStato": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "vincoloDotazioneLeader": {
+            "$ref": "#/components/schemas/Importo"
+          }
+        },
+        "type": "object"
+      },
+      "TotaleDomande": {
+        "description": "TX-0009: domande presentate = di sostegno o SIGC (D-07)",
+        "properties": {
+          "perimetro": {
+            "description": "A quali domande si riferiscono le misure per domanda: REGIONALE (tutte) o ADA (solo quelle dei perimetri ADA del chiamante, P4). I report di soli dati di programma sono sempre REGIONALE",
+            "enum": [
+              "REGIONALE",
+              "ADA"
+            ],
+            "type": "string"
+          },
+          "presentate": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "primaAnnualita": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "UltimoDatoSincronizzato": {
+        "description": "NFR-25 (b): ultimo dato sincronizzato di un flusso d'import",
+        "properties": {
+          "conclusoIl": {
+            "$ref": "#/components/schemas/Instant",
+            "description": "Conclusione dell'esecuzione SUCCESS o PARTIAL piu' recente del flusso",
+            "type": "string"
+          },
+          "flusso": {
+            "description": "Flusso d'import del registro IMPORT_RUN, es. PROSA_DS04",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "UtilizzoRiserva": {
+        "properties": {
+          "cumulato": {
+            "type": "number"
+          },
+          "data": {
+            "$ref": "#/components/schemas/LocalDate"
+          },
+          "importo": {
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "VerificaSmp": {
+        "description": "TX-0015: dati SIGC per il confronto con SMP, esercizio n e domande dell'anno n-1",
+        "properties": {
+          "annoDomande": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "esercizio": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "pagamentiSenzaData": {
+            "description": "Pagamenti senza data di autorizzazione, esclusi dall'esercizio",
+            "format": "int64",
+            "type": "integer"
+          },
+          "perimetro": {
+            "description": "A quali domande si riferiscono le misure per domanda: REGIONALE (tutte) o ADA (solo quelle dei perimetri ADA del chiamante, P4). I report di soli dati di programma sono sempre REGIONALE",
+            "enum": [
+              "REGIONALE",
+              "ADA"
+            ],
+            "type": "string"
+          },
+          "righe": {
+            "items": {
+              "$ref": "#/components/schemas/VerificaSmpRiga"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "VerificaSmpRiga": {
+        "properties": {
+          "avvisiAttivati": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "azioniAttivate": {
+            "format": "int32",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "codiceIntervento": {
+            "type": "string"
+          },
+          "domandeFinanziate": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "domandePagateEsercizio": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "domandeRicevute": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "domandeRicevuteSenzaRichiesto": {
+            "description": "Domande ricevute senza importo richiesto nella fonte, escluse dal valore",
+            "format": "int64",
+            "type": "integer"
+          },
+          "dotazioneAnnoPrecedente": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "dotazionePeriodoImpegno": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "ettariUbaRichiesti": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "importoTopUp": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "includeTopUp": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "indicatoreOutput": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "indicatoreRisultato": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "outputAttesoFinanziate": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "outputErogatoEsercizio": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "previsionePagamentoEsercizio": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "spesaErogataCampagnaPrecedente": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "spesaErogataCampagneAnteriori": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "valoreDomandeFinanziate": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "valoreDomandeRicevute": {
+            "$ref": "#/components/schemas/Importo"
+          }
+        },
+        "type": "object"
+      },
+      "VoceFiltro": {
+        "properties": {
+          "chiave": {
+            "description": "Valore da rimandare nel parametro del filtro",
+            "type": "string"
+          },
+          "descrizione": {
+            "description": "Descrizione; null per gli OS (solo codice)",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "SecurityScheme": {
+        "description": "Authentication",
+        "openIdConnectUrl": "https://idp.example.invalid/realms/sian/.well-known/openid-configuration",
+        "type": "openIdConnect"
+      }
+    }
+  },
+  "info": {
+    "title": "ARSCSR-bootstrap-postgres API",
+    "version": "1.0.0-SNAPSHOT"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/finanziario/distribuzione-dotazione": {
+      "get": {
+        "operationId": "TX-0003",
+        "parameters": [
+          {
+            "description": "Id dell'azione portante (ripetibile, numerico)",
+            "in": "query",
+            "name": "azione",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Codice intervento (ripetibile); l'Assistenza tecnica AT001 non e' selezionabile",
+            "in": "query",
+            "name": "intervento",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Obiettivo generale, testo della gerarchia (ripetibile)",
+            "in": "query",
+            "name": "og",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Obiettivo di policy, testo della gerarchia (ripetibile)",
+            "in": "query",
+            "name": "op",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Codice dell'obiettivo specifico (ripetibile): seleziona gli interventi collegati, ognuno una volta",
+            "in": "query",
+            "name": "os",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DistribuzioneDotazione"
+                }
+              }
+            },
+            "description": "Totali degli interventi selezionati"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Filtri non validi (DATO_NON_VALIDO)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Non autenticato"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Senza il grant della transazione; RICHIESTA_NON_AMMESSA se la richiesta non viene dall'applicazione: partita da un altro sito (Sec-Fetch-Site) oppure, per scritture ed export, senza X-Requested-With o da un'origine non ammessa"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Troppe richieste dello stesso utente in un minuto, o troppe autenticazioni con bearer fallite dallo stesso indirizzo (TROPPE_RICHIESTE): riprovare dopo i secondi di Retry-After",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Da riprovare (header Retry-After): troppe letture in corso, in tutto o dello stesso utente (CAPACITA_ESAURITA, tutti gli endpoint), o lettura dei report oltre il tetto di durata (TEMPO_SCADUTO)",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SecurityScheme": [
+              "csr.tx-0003.read"
+            ]
+          }
+        ],
+        "summary": "TX-0003: dotazione di spesa pubblica tra quota FEASR e non FEASR",
+        "tags": [
+          "Finanziario"
+        ]
+      }
+    },
+    "/api/finanziario/domande-per-anno": {
+      "get": {
+        "operationId": "TX-0008",
+        "parameters": [
+          {
+            "description": "Id dell'azione portante (ripetibile, numerico)",
+            "in": "query",
+            "name": "azione",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Codice intervento (ripetibile); l'Assistenza tecnica AT001 non e' selezionabile",
+            "in": "query",
+            "name": "intervento",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Obiettivo generale, testo della gerarchia (ripetibile)",
+            "in": "query",
+            "name": "og",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Obiettivo di policy, testo della gerarchia (ripetibile)",
+            "in": "query",
+            "name": "op",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Codice dell'obiettivo specifico (ripetibile): seleziona gli interventi collegati, ognuno una volta",
+            "in": "query",
+            "name": "os",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DomandePerAnno"
+                }
+              }
+            },
+            "description": "Una riga per anno; le domande senza campagna per ultime"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Filtri non validi (DATO_NON_VALIDO)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Non autenticato"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Senza il grant della transazione; RICHIESTA_NON_AMMESSA se la richiesta non viene dall'applicazione: partita da un altro sito (Sec-Fetch-Site) oppure, per scritture ed export, senza X-Requested-With o da un'origine non ammessa"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Troppe richieste dello stesso utente in un minuto, o troppe autenticazioni con bearer fallite dallo stesso indirizzo (TROPPE_RICHIESTE): riprovare dopo i secondi di Retry-After",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Da riprovare (header Retry-After): troppe letture in corso, in tutto o dello stesso utente (CAPACITA_ESAURITA, tutti gli endpoint), o lettura dei report oltre il tetto di durata (TEMPO_SCADUTO)",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SecurityScheme": [
+              "csr.tx-0008.read"
+            ]
+          }
+        ],
+        "summary": "TX-0008: domande per anno di raccolta, prima e altre annualita'",
+        "tags": [
+          "Finanziario"
+        ]
+      }
+    },
+    "/api/finanziario/filtri": {
+      "get": {
+        "operationId": "TX-0001",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FiltriFinanziari"
+                }
+              }
+            },
+            "description": "Valori dei filtri"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Filtri non validi (DATO_NON_VALIDO)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Non autenticato"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Senza il grant della transazione; RICHIESTA_NON_AMMESSA se la richiesta non viene dall'applicazione: partita da un altro sito (Sec-Fetch-Site) oppure, per scritture ed export, senza X-Requested-With o da un'origine non ammessa"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Troppe richieste dello stesso utente in un minuto, o troppe autenticazioni con bearer fallite dallo stesso indirizzo (TROPPE_RICHIESTE): riprovare dopo i secondi di Retry-After",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Da riprovare (header Retry-After): troppe letture in corso, in tutto o dello stesso utente (CAPACITA_ESAURITA, tutti gli endpoint), o lettura dei report oltre il tetto di durata (TEMPO_SCADUTO)",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SecurityScheme": [
+              "csr.tx-0001.read"
+            ]
+          }
+        ],
+        "summary": "TX-0001: valori dei filtri (interventi, OS, OG, OP, azioni portanti)",
+        "tags": [
+          "Finanziario"
+        ]
+      }
+    },
+    "/api/finanziario/importi-per-anno": {
+      "get": {
+        "operationId": "TX-0010",
+        "parameters": [
+          {
+            "description": "Id dell'azione portante (ripetibile, numerico)",
+            "in": "query",
+            "name": "azione",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Codice intervento (ripetibile); l'Assistenza tecnica AT001 non e' selezionabile",
+            "in": "query",
+            "name": "intervento",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Obiettivo generale, testo della gerarchia (ripetibile)",
+            "in": "query",
+            "name": "og",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Obiettivo di policy, testo della gerarchia (ripetibile)",
+            "in": "query",
+            "name": "op",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Codice dell'obiettivo specifico (ripetibile): seleziona gli interventi collegati, ognuno una volta",
+            "in": "query",
+            "name": "os",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportiPerAnno"
+                }
+              }
+            },
+            "description": "Una riga per anno"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Filtri non validi (DATO_NON_VALIDO)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Non autenticato"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Senza il grant della transazione; RICHIESTA_NON_AMMESSA se la richiesta non viene dall'applicazione: partita da un altro sito (Sec-Fetch-Site) oppure, per scritture ed export, senza X-Requested-With o da un'origine non ammessa"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Troppe richieste dello stesso utente in un minuto, o troppe autenticazioni con bearer fallite dallo stesso indirizzo (TROPPE_RICHIESTE): riprovare dopo i secondi di Retry-After",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Da riprovare (header Retry-After): troppe letture in corso, in tutto o dello stesso utente (CAPACITA_ESAURITA, tutti gli endpoint), o lettura dei report oltre il tetto di durata (TEMPO_SCADUTO)",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SecurityScheme": [
+              "csr.tx-0010.read"
+            ]
+          }
+        ],
+        "summary": "TX-0010: stanziato, ammesso e decretato per anno di raccolta",
+        "tags": [
+          "Finanziario"
+        ]
+      }
+    },
+    "/api/finanziario/pagamenti-su-impegnato": {
+      "get": {
+        "operationId": "TX-0005",
+        "parameters": [
+          {
+            "description": "Id dell'azione portante (ripetibile, numerico)",
+            "in": "query",
+            "name": "azione",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Codice intervento (ripetibile); l'Assistenza tecnica AT001 non e' selezionabile",
+            "in": "query",
+            "name": "intervento",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Obiettivo generale, testo della gerarchia (ripetibile)",
+            "in": "query",
+            "name": "og",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Obiettivo di policy, testo della gerarchia (ripetibile)",
+            "in": "query",
+            "name": "op",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Codice dell'obiettivo specifico (ripetibile): seleziona gli interventi collegati, ognuno una volta",
+            "in": "query",
+            "name": "os",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AvanzamentoPagamenti"
+                }
+              }
+            },
+            "description": "Importi degli interventi selezionati"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Filtri non validi (DATO_NON_VALIDO)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Non autenticato"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Senza il grant della transazione; RICHIESTA_NON_AMMESSA se la richiesta non viene dall'applicazione: partita da un altro sito (Sec-Fetch-Site) oppure, per scritture ed export, senza X-Requested-With o da un'origine non ammessa"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Troppe richieste dello stesso utente in un minuto, o troppe autenticazioni con bearer fallite dallo stesso indirizzo (TROPPE_RICHIESTE): riprovare dopo i secondi di Retry-After",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Da riprovare (header Retry-After): troppe letture in corso, in tutto o dello stesso utente (CAPACITA_ESAURITA, tutti gli endpoint), o lettura dei report oltre il tetto di durata (TEMPO_SCADUTO)",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SecurityScheme": [
+              "csr.tx-0005.read"
+            ]
+          }
+        ],
+        "summary": "TX-0005: impegnato tra pagamenti e impegnato ancora da pagare",
+        "tags": [
+          "Finanziario"
+        ]
+      }
+    },
+    "/api/finanziario/residuo-impegni": {
+      "get": {
+        "operationId": "TX-0006",
+        "parameters": [
+          {
+            "description": "Id dell'azione portante (ripetibile, numerico)",
+            "in": "query",
+            "name": "azione",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Codice intervento (ripetibile); l'Assistenza tecnica AT001 non e' selezionabile",
+            "in": "query",
+            "name": "intervento",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Obiettivo generale, testo della gerarchia (ripetibile)",
+            "in": "query",
+            "name": "og",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Obiettivo di policy, testo della gerarchia (ripetibile)",
+            "in": "query",
+            "name": "op",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Codice dell'obiettivo specifico (ripetibile): seleziona gli interventi collegati, ognuno una volta",
+            "in": "query",
+            "name": "os",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResiduoSuImpegni"
+                }
+              }
+            },
+            "description": "Importi degli interventi selezionati"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Filtri non validi (DATO_NON_VALIDO)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Non autenticato"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Senza il grant della transazione; RICHIESTA_NON_AMMESSA se la richiesta non viene dall'applicazione: partita da un altro sito (Sec-Fetch-Site) oppure, per scritture ed export, senza X-Requested-With o da un'origine non ammessa"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Troppe richieste dello stesso utente in un minuto, o troppe autenticazioni con bearer fallite dallo stesso indirizzo (TROPPE_RICHIESTE): riprovare dopo i secondi di Retry-After",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Da riprovare (header Retry-After): troppe letture in corso, in tutto o dello stesso utente (CAPACITA_ESAURITA, tutti gli endpoint), o lettura dei report oltre il tetto di durata (TEMPO_SCADUTO)",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SecurityScheme": [
+              "csr.tx-0006.read"
+            ]
+          }
+        ],
+        "summary": "TX-0006: dotazione tra impegnato e residuo",
+        "tags": [
+          "Finanziario"
+        ]
+      }
+    },
+    "/api/finanziario/residuo-pagamenti": {
+      "get": {
+        "operationId": "TX-0007",
+        "parameters": [
+          {
+            "description": "Id dell'azione portante (ripetibile, numerico)",
+            "in": "query",
+            "name": "azione",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Codice intervento (ripetibile); l'Assistenza tecnica AT001 non e' selezionabile",
+            "in": "query",
+            "name": "intervento",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Obiettivo generale, testo della gerarchia (ripetibile)",
+            "in": "query",
+            "name": "og",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Obiettivo di policy, testo della gerarchia (ripetibile)",
+            "in": "query",
+            "name": "op",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Codice dell'obiettivo specifico (ripetibile): seleziona gli interventi collegati, ognuno una volta",
+            "in": "query",
+            "name": "os",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResiduoSuPagamenti"
+                }
+              }
+            },
+            "description": "Importi degli interventi selezionati"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Filtri non validi (DATO_NON_VALIDO)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Non autenticato"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Senza il grant della transazione; RICHIESTA_NON_AMMESSA se la richiesta non viene dall'applicazione: partita da un altro sito (Sec-Fetch-Site) oppure, per scritture ed export, senza X-Requested-With o da un'origine non ammessa"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Troppe richieste dello stesso utente in un minuto, o troppe autenticazioni con bearer fallite dallo stesso indirizzo (TROPPE_RICHIESTE): riprovare dopo i secondi di Retry-After",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Da riprovare (header Retry-After): troppe letture in corso, in tutto o dello stesso utente (CAPACITA_ESAURITA, tutti gli endpoint), o lettura dei report oltre il tetto di durata (TEMPO_SCADUTO)",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SecurityScheme": [
+              "csr.tx-0007.read"
+            ]
+          }
+        ],
+        "summary": "TX-0007: dotazione tra pagato e residuo",
+        "tags": [
+          "Finanziario"
+        ]
+      }
+    },
+    "/api/finanziario/riepilogo": {
+      "get": {
+        "operationId": "TX-0011",
+        "parameters": [
+          {
+            "description": "Id dell'azione portante (ripetibile, numerico)",
+            "in": "query",
+            "name": "azione",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Codice intervento (ripetibile); l'Assistenza tecnica AT001 non e' selezionabile",
+            "in": "query",
+            "name": "intervento",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Obiettivo generale, testo della gerarchia (ripetibile)",
+            "in": "query",
+            "name": "og",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Obiettivo di policy, testo della gerarchia (ripetibile)",
+            "in": "query",
+            "name": "op",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Codice dell'obiettivo specifico (ripetibile): seleziona gli interventi collegati, ognuno una volta",
+            "in": "query",
+            "name": "os",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RiepilogoFinanziario"
+                }
+              }
+            },
+            "description": "Una riga per intervento e la dotazione dell'Assistenza tecnica"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Filtri non validi (DATO_NON_VALIDO)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Non autenticato"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Senza il grant della transazione; RICHIESTA_NON_AMMESSA se la richiesta non viene dall'applicazione: partita da un altro sito (Sec-Fetch-Site) oppure, per scritture ed export, senza X-Requested-With o da un'origine non ammessa"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Troppe richieste dello stesso utente in un minuto, o troppe autenticazioni con bearer fallite dallo stesso indirizzo (TROPPE_RICHIESTE): riprovare dopo i secondi di Retry-After",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Da riprovare (header Retry-After): troppe letture in corso, in tutto o dello stesso utente (CAPACITA_ESAURITA, tutti gli endpoint), o lettura dei report oltre il tetto di durata (TEMPO_SCADUTO)",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SecurityScheme": [
+              "csr.tx-0011.read"
+            ]
+          }
+        ],
+        "summary": "TX-0011: tabella di riepilogo per intervento",
+        "tags": [
+          "Finanziario"
+        ]
+      }
+    },
+    "/api/finanziario/riepilogo/csv": {
+      "get": {
+        "parameters": [
+          {
+            "description": "Id dell'azione portante (ripetibile, numerico)",
+            "in": "query",
+            "name": "azione",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Codice intervento (ripetibile); l'Assistenza tecnica AT001 non e' selezionabile",
+            "in": "query",
+            "name": "intervento",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Obiettivo generale, testo della gerarchia (ripetibile)",
+            "in": "query",
+            "name": "og",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Obiettivo di policy, testo della gerarchia (ripetibile)",
+            "in": "query",
+            "name": "op",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Codice dell'obiettivo specifico (ripetibile): seleziona gli interventi collegati, ognuno una volta",
+            "in": "query",
+            "name": "os",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/csv; charset=UTF-8": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "File CSV (UTF-8 con BOM, separatore punto e virgola, virgola decimale, testi tra virgolette): intestazione con fonte, filtri, data di estrazione, profili, ultimo dato sincronizzato per flusso e uso interno, poi la tabella. Registrato in AUDIT_ESPORTAZIONE",
+            "headers": {
+              "Content-Disposition": {
+                "description": "attachment, con il nome del file CSV da salvare",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Filtri non validi, oppure tabella oltre il limite dell'export sincrono di 5.000 righe o 50.000 celle (DATO_NON_VALIDO: restringere i filtri)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Non autenticato"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Senza il grant della transazione (ACCESSO_NEGATO), oppure richiesta senza l'header X-Requested-With (o un bearer) o da un'origine non ammessa (RICHIESTA_NON_AMMESSA): l'export si scarica con una richiesta dell'applicazione, non con un collegamento"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Troppe richieste dello stesso utente in un minuto, o troppe autenticazioni con bearer fallite dallo stesso indirizzo (TROPPE_RICHIESTE): riprovare dopo i secondi di Retry-After",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Da riprovare (header Retry-After): troppe letture in corso (CAPACITA_ESAURITA), lettura oltre il tetto di durata (TEMPO_SCADUTO) o esportazione non registrata nel registro di audit (ESPORTAZIONE_NON_REGISTRATA)",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SecurityScheme": [
+              "csr.tx-0011.read"
+            ]
+          }
+        ],
+        "summary": "TX-0011: tabella di riepilogo per intervento in CSV (esportazione, D-08 di nfr-conformance)",
+        "tags": [
+          "Finanziario"
+        ]
+      }
+    },
+    "/api/finanziario/riserva/{anno}": {
+      "get": {
+        "operationId": "TX-0014",
+        "parameters": [
+          {
+            "description": "Anno n della riserva (2000-2100)",
+            "example": 2025,
+            "in": "path",
+            "name": "anno",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MonitoraggioRiserva"
+                }
+              }
+            },
+            "description": "Riserva dell'anno, fase al giorno e utilizzo progressivo"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Filtri non validi (DATO_NON_VALIDO)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Non autenticato"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Senza il grant della transazione; RICHIESTA_NON_AMMESSA se la richiesta non viene dall'applicazione: partita da un altro sito (Sec-Fetch-Site) oppure, per scritture ed export, senza X-Requested-With o da un'origine non ammessa"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Riserva dell'anno mai calcolata"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Troppe richieste dello stesso utente in un minuto, o troppe autenticazioni con bearer fallite dallo stesso indirizzo (TROPPE_RICHIESTE): riprovare dopo i secondi di Retry-After",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Da riprovare (header Retry-After): troppe letture in corso, in tutto o dello stesso utente (CAPACITA_ESAURITA, tutti gli endpoint), o lettura dei report oltre il tetto di durata (TEMPO_SCADUTO)",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SecurityScheme": [
+              "csr.tx-0014.read"
+            ]
+          }
+        ],
+        "summary": "TX-0014: monitoraggio della riserva al 5% dell'anno n",
+        "tags": [
+          "Finanziario"
+        ]
+      }
+    },
+    "/api/finanziario/sigc/domande": {
+      "get": {
+        "operationId": "TX-0012",
+        "parameters": [
+          {
+            "description": "Id dell'azione portante (ripetibile, numerico)",
+            "in": "query",
+            "name": "azione",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Codice intervento (ripetibile); l'Assistenza tecnica AT001 non e' selezionabile",
+            "in": "query",
+            "name": "intervento",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Obiettivo generale, testo della gerarchia (ripetibile)",
+            "in": "query",
+            "name": "og",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Obiettivo di policy, testo della gerarchia (ripetibile)",
+            "in": "query",
+            "name": "op",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Codice dell'obiettivo specifico (ripetibile): seleziona gli interventi collegati, ognuno una volta",
+            "in": "query",
+            "name": "os",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DomandeSigc"
+                }
+              }
+            },
+            "description": "Totali SIGC"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Filtri non validi (DATO_NON_VALIDO)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Non autenticato"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Senza il grant della transazione; RICHIESTA_NON_AMMESSA se la richiesta non viene dall'applicazione: partita da un altro sito (Sec-Fetch-Site) oppure, per scritture ed export, senza X-Requested-With o da un'origine non ammessa"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Troppe richieste dello stesso utente in un minuto, o troppe autenticazioni con bearer fallite dallo stesso indirizzo (TROPPE_RICHIESTE): riprovare dopo i secondi di Retry-After",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Da riprovare (header Retry-After): troppe letture in corso, in tutto o dello stesso utente (CAPACITA_ESAURITA, tutti gli endpoint), o lettura dei report oltre il tetto di durata (TEMPO_SCADUTO)",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SecurityScheme": [
+              "csr.tx-0012.read"
+            ]
+          }
+        ],
+        "summary": "TX-0012: domande SIGC presentate, pagate e da pagare",
+        "tags": [
+          "Finanziario"
+        ]
+      }
+    },
+    "/api/finanziario/sigc/importi": {
+      "get": {
+        "operationId": "TX-0013",
+        "parameters": [
+          {
+            "description": "Id dell'azione portante (ripetibile, numerico)",
+            "in": "query",
+            "name": "azione",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Codice intervento (ripetibile); l'Assistenza tecnica AT001 non e' selezionabile",
+            "in": "query",
+            "name": "intervento",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Obiettivo generale, testo della gerarchia (ripetibile)",
+            "in": "query",
+            "name": "og",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Obiettivo di policy, testo della gerarchia (ripetibile)",
+            "in": "query",
+            "name": "op",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Codice dell'obiettivo specifico (ripetibile): seleziona gli interventi collegati, ognuno una volta",
+            "in": "query",
+            "name": "os",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportiSigc"
+                }
+              }
+            },
+            "description": "Totali SIGC"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Filtri non validi (DATO_NON_VALIDO)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Non autenticato"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Senza il grant della transazione; RICHIESTA_NON_AMMESSA se la richiesta non viene dall'applicazione: partita da un altro sito (Sec-Fetch-Site) oppure, per scritture ed export, senza X-Requested-With o da un'origine non ammessa"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Troppe richieste dello stesso utente in un minuto, o troppe autenticazioni con bearer fallite dallo stesso indirizzo (TROPPE_RICHIESTE): riprovare dopo i secondi di Retry-After",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Da riprovare (header Retry-After): troppe letture in corso, in tutto o dello stesso utente (CAPACITA_ESAURITA, tutti gli endpoint), o lettura dei report oltre il tetto di durata (TEMPO_SCADUTO)",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SecurityScheme": [
+              "csr.tx-0013.read"
+            ]
+          }
+        ],
+        "summary": "TX-0013: importi SIGC richiesto, ammesso, pagato e ancora da pagare",
+        "tags": [
+          "Finanziario"
+        ]
+      }
+    },
+    "/api/finanziario/sigc/verifica-smp": {
+      "get": {
+        "operationId": "TX-0015",
+        "parameters": [
+          {
+            "description": "Id dell'azione portante (ripetibile, numerico)",
+            "in": "query",
+            "name": "azione",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Esercizio finanziario n (16/10/n-1 - 15/10/n), 2000-2100",
+            "example": 2025,
+            "in": "query",
+            "name": "esercizio",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Codice intervento (ripetibile); l'Assistenza tecnica AT001 non e' selezionabile",
+            "in": "query",
+            "name": "intervento",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Obiettivo generale, testo della gerarchia (ripetibile)",
+            "in": "query",
+            "name": "og",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Obiettivo di policy, testo della gerarchia (ripetibile)",
+            "in": "query",
+            "name": "op",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Codice dell'obiettivo specifico (ripetibile): seleziona gli interventi collegati, ognuno una volta",
+            "in": "query",
+            "name": "os",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificaSmp"
+                }
+              }
+            },
+            "description": "Una riga per intervento"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Filtri non validi (DATO_NON_VALIDO)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Non autenticato"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Senza il grant della transazione; RICHIESTA_NON_AMMESSA se la richiesta non viene dall'applicazione: partita da un altro sito (Sec-Fetch-Site) oppure, per scritture ed export, senza X-Requested-With o da un'origine non ammessa"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Troppe richieste dello stesso utente in un minuto, o troppe autenticazioni con bearer fallite dallo stesso indirizzo (TROPPE_RICHIESTE): riprovare dopo i secondi di Retry-After",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Da riprovare (header Retry-After): troppe letture in corso, in tutto o dello stesso utente (CAPACITA_ESAURITA, tutti gli endpoint), o lettura dei report oltre il tetto di durata (TEMPO_SCADUTO)",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SecurityScheme": [
+              "csr.tx-0015.read"
+            ]
+          }
+        ],
+        "summary": "TX-0015: dati SIGC per il confronto con SMP - Data Platform",
+        "tags": [
+          "Finanziario"
+        ]
+      }
+    },
+    "/api/finanziario/spesa-per-intervento": {
+      "get": {
+        "operationId": "TX-0002",
+        "parameters": [
+          {
+            "description": "Id dell'azione portante (ripetibile, numerico)",
+            "in": "query",
+            "name": "azione",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Codice intervento (ripetibile); l'Assistenza tecnica AT001 non e' selezionabile",
+            "in": "query",
+            "name": "intervento",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Obiettivo generale, testo della gerarchia (ripetibile)",
+            "in": "query",
+            "name": "og",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Obiettivo di policy, testo della gerarchia (ripetibile)",
+            "in": "query",
+            "name": "op",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Codice dell'obiettivo specifico (ripetibile): seleziona gli interventi collegati, ognuno una volta",
+            "in": "query",
+            "name": "os",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpesaPerIntervento"
+                }
+              }
+            },
+            "description": "Una riga per intervento"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Filtri non validi (DATO_NON_VALIDO)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Non autenticato"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Senza il grant della transazione; RICHIESTA_NON_AMMESSA se la richiesta non viene dall'applicazione: partita da un altro sito (Sec-Fetch-Site) oppure, per scritture ed export, senza X-Requested-With o da un'origine non ammessa"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Troppe richieste dello stesso utente in un minuto, o troppe autenticazioni con bearer fallite dallo stesso indirizzo (TROPPE_RICHIESTE): riprovare dopo i secondi di Retry-After",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Da riprovare (header Retry-After): troppe letture in corso, in tutto o dello stesso utente (CAPACITA_ESAURITA, tutti gli endpoint), o lettura dei report oltre il tetto di durata (TEMPO_SCADUTO)",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SecurityScheme": [
+              "csr.tx-0002.read"
+            ]
+          }
+        ],
+        "summary": "TX-0002: dotazione, impegni e pagamenti per intervento",
+        "tags": [
+          "Finanziario"
+        ]
+      }
+    },
+    "/api/finanziario/stanziato": {
+      "get": {
+        "operationId": "TX-0004",
+        "parameters": [
+          {
+            "description": "Id dell'azione portante (ripetibile, numerico)",
+            "in": "query",
+            "name": "azione",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Codice intervento (ripetibile); l'Assistenza tecnica AT001 non e' selezionabile",
+            "in": "query",
+            "name": "intervento",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Obiettivo generale, testo della gerarchia (ripetibile)",
+            "in": "query",
+            "name": "og",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Obiettivo di policy, testo della gerarchia (ripetibile)",
+            "in": "query",
+            "name": "op",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Codice dell'obiettivo specifico (ripetibile): seleziona gli interventi collegati, ognuno una volta",
+            "in": "query",
+            "name": "os",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AvanzamentoStanziato"
+                }
+              }
+            },
+            "description": "Importi degli interventi selezionati"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Filtri non validi (DATO_NON_VALIDO)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Non autenticato"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Senza il grant della transazione; RICHIESTA_NON_AMMESSA se la richiesta non viene dall'applicazione: partita da un altro sito (Sec-Fetch-Site) oppure, per scritture ed export, senza X-Requested-With o da un'origine non ammessa"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Troppe richieste dello stesso utente in un minuto, o troppe autenticazioni con bearer fallite dallo stesso indirizzo (TROPPE_RICHIESTE): riprovare dopo i secondi di Retry-After",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Da riprovare (header Retry-After): troppe letture in corso, in tutto o dello stesso utente (CAPACITA_ESAURITA, tutti gli endpoint), o lettura dei report oltre il tetto di durata (TEMPO_SCADUTO)",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SecurityScheme": [
+              "csr.tx-0004.read"
+            ]
+          }
+        ],
+        "summary": "TX-0004: importo stanziato e da stanziare",
+        "tags": [
+          "Finanziario"
+        ]
+      }
+    },
+    "/api/finanziario/totale-domande": {
+      "get": {
+        "operationId": "TX-0009",
+        "parameters": [
+          {
+            "description": "Id dell'azione portante (ripetibile, numerico)",
+            "in": "query",
+            "name": "azione",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Codice intervento (ripetibile); l'Assistenza tecnica AT001 non e' selezionabile",
+            "in": "query",
+            "name": "intervento",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Obiettivo generale, testo della gerarchia (ripetibile)",
+            "in": "query",
+            "name": "og",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Obiettivo di policy, testo della gerarchia (ripetibile)",
+            "in": "query",
+            "name": "op",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Codice dell'obiettivo specifico (ripetibile): seleziona gli interventi collegati, ognuno una volta",
+            "in": "query",
+            "name": "os",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TotaleDomande"
+                }
+              }
+            },
+            "description": "Totali"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Filtri non validi (DATO_NON_VALIDO)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Non autenticato"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Senza il grant della transazione; RICHIESTA_NON_AMMESSA se la richiesta non viene dall'applicazione: partita da un altro sito (Sec-Fetch-Site) oppure, per scritture ed export, senza X-Requested-With o da un'origine non ammessa"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Troppe richieste dello stesso utente in un minuto, o troppe autenticazioni con bearer fallite dallo stesso indirizzo (TROPPE_RICHIESTE): riprovare dopo i secondi di Retry-After",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Da riprovare (header Retry-After): troppe letture in corso, in tutto o dello stesso utente (CAPACITA_ESAURITA, tutti gli endpoint), o lettura dei report oltre il tetto di durata (TEMPO_SCADUTO)",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SecurityScheme": [
+              "csr.tx-0009.read"
+            ]
+          }
+        ],
+        "summary": "TX-0009: totale delle domande presentate e di prima annualita'",
+        "tags": [
+          "Finanziario"
+        ]
+      }
+    }
+  },
+  "servers": [
+    {
+      "description": "Auto generated value",
+      "url": "http://localhost:8080"
+    },
+    {
+      "description": "Auto generated value",
+      "url": "http://0.0.0.0:8080"
+    }
+  ],
+  "tags": [
+    {
+      "description": "Report dell'area finanziaria (TX-0001..TX-0015)",
+      "name": "Finanziario"
+    }
+  ]
+}

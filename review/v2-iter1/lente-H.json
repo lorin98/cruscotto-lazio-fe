@@ -1,0 +1,210 @@
+[
+  {
+    "id": "H-01",
+    "severity": "CRITICO",
+    "file": "src/features/finanziario/ui/Panoramica.tsx:24",
+    "titolo": "KpiSpesa calcola gli aggregati finanziari nel componente, con regole diverse dal resto dell'app: somme parziali e quote assurde",
+    "evidenza": "Panoramica.tsx:19-32 definisce una `somma` che scarta i null e somma il resto, e calcola la quota pagato/dotazione su `conEntrambi` (righe con entrambi i valori, comprese le dotazioni zero o negative) con denominatore `Math.max(1, …)`. L'ho verificato con un test fuori dal repo (config vitest nello scratchpad, fixture e MSW del repo): (a) un intervento con dotazione 0 e pagato 300.000 produce il KPI «Pagato sulla dotazione 30.000.000 %»; (b) due interventi, uno con dotazione 1.000.000 e pagato 200.000, l'altro con dotazione 0 e pagato 300.000: il KPI dice 50 %, mentre la linea «Media ponderata» di graficoAvanzamento nella card accanto dice 20 %, perché il builder esclude le dotazioni non positive (grafici.ts:376-379); (c) un intervento con dotazione NON_VALORIZZATO produce «Dotazione spesa pubblica 1,0 M€ · 2 interventi nella selezione», cioè una somma parziale presentata come totale. Questo contraddice la regola «niente somme parziali» di entities/importo (importo.ts:56-59) e di RiepilogoReport.totale, che risponde «non calcolabile» (RiepilogoReport.tsx:53-56). Il codice stesso considera reale una dotazione 0,00 (selezione.ts:4). La logica di business sta in ui/, quindi non è testabile a L1, e le tre `somma` divergono fra loro (grafici.ts:218, Panoramica.tsx:19, RiepilogoReport.tsx:53).",
+    "fix": "Spostare in lib/ una funzione pura `kpiSpesa(righe, perimetro)` che restituisca dotazione, pagato e quota, ciascuno come valore oppure come assenza con il motivo. Deve applicare le regole di graficoAvanzamento: esclusione delle dotazioni assenti o non positive, totale «non calcolabile» se manca anche un solo valore. Serve un unico modulo di aggregazione (per esempio lib/aggregati.ts con sommaCompleta esplicita) usato da Panoramica, RiepilogoReport e grafici.ts. Aggiungere test L1 sui tre casi sopra; il componente si limita a rendere il risultato."
+  },
+  {
+    "id": "H-02",
+    "severity": "MAGGIORE",
+    "file": "src/shared/ui/grafici/Grafico.tsx:55",
+    "titolo": "Le opzioni dei grafici si ricalcolano a ogni render: qualunque stato estraneo azzera zoom, drill-down e animazione",
+    "evidenza": "Grafico chiama setOption(…, { notMerge: true }) ogni volta che cambia l'identità di `opzioni`. Nessun componente della feature memoizza i builder: in src/features non c'è alcun useMemo e i builder sono chiamati in linea in `dati={graficoX(...)}` (per esempio Panoramica.tsx:90,98, RiepilogoReport.tsx:162, DotazioneReport.tsx:73). L'ho verificato con il grafico finto. In Panoramica il clic su «Anelli» rimanda setOption al grafico «Avanzamento per intervento» (da 1 a 2 chiamate). In RiepilogoReport il clic su una barra apre l'anteprima (setAperta) e rimanda setOption allo stesso grafico (da 1 a 2). Con notMerge il dataZoom torna alla finestra iniziale proprio mentre il sottotitolo invita a «trascinare il cursore per ingrandire», e il treemap esce dal nodo in cui l'utente era entrato. I test non se ne accorgono, perché leggono solo opzioni.at(-1).",
+    "fix": "Memoizzare il risultato dei builder sui dati, per esempio useMemo(() => graficoX(d.righe, d.perimetro), [d.righe, d.perimetro]): i builder sono puri e deterministici. In alternativa Grafico può confrontare le opzioni per valore prima di chiamare setOption. Aggiungere un test L2 che, dopo un cambio di stato estraneo (cambio di forma, apertura dell'anteprima), verifichi che il grafico non abbia ricevuto un nuovo setOption."
+  },
+  {
+    "id": "H-03",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/lib/grafici.ts:164",
+    "titolo": "grafici.ts riscrive la resa degli importi assenti e i formattatori già esistenti, con esiti diversi da entities/importo",
+    "evidenza": "motivoDi, nonDisponibile e cellaImporto (grafici.ts:164-188) reimplementano descriviImporto di entities/importo (importo.ts:60-74) con testi diversi. L'ho verificato: per un aggregato NON_VALORIZZATO il builder scrive «non disponibile (non valorizzato)», l'entità «non calcolabile: manca per almeno un intervento della selezione»; per FUORI_PERIMETRO il builder scrive «non disponibile (fuori perimetro)», l'entità «fuori perimetro: non visibile nel perimetro del profilo». Nella pagina SIGC la tabella equivalente della cascata (graficoCascataSigc) e la TabellaVoci subito sotto (SigcReport.tsx:264-267, ValoreImporto aggregato) danno quindi due letture diverse dello stesso importo. Inoltre due-parti.ts usa descriviImporto: i due builder della stessa feature divergono. La stessa duplicazione c'è per SENZA_ANNO/annoDi (grafici.ts:149,237) rispetto ad annoDiRaccolta (formato.ts:29), per cellaEuro/cellaNumero (grafici.ts:190-199) rispetto a euroOpzionale/numeroOpzionale (formato.ts:16-22) e per dataItaliana (grafici.ts:252) rispetto a formatDate, che RiservaReport.tsx:74 usa per le stesse date nella tabella accanto al grafico.",
+    "fix": "Far usare a grafici.ts descriviImporto, con il flag aggregato corretto per ogni builder (SIGC, sankey e quote sono aggregati), e i formattatori di lib/formato.ts; eliminare le copie locali. Tenere una sola resa delle date ISO senza fuso orario, in shared/lib, usata da tabelle e grafici. Aggiungere un test che, per ogni motivo, confronti la cella della tabella equivalente con ValoreImporto."
+  },
+  {
+    "id": "H-04",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/ui/DettaglioIntervento.tsx:24",
+    "titolo": "L'h1, il titolo del documento e il focus della pagina di dettaglio dipendono da un componente della feature che in vari stati non li rende",
+    "evidenza": "La pagina interventi passa `senzaTitolo` al widget (interventi/page.tsx:28, PaginaFinanziario.tsx:55,97) e delega h1 e useFocusTitolo a Testata. Testata però è montata solo dentro ConGrant tx-0011 e solo a riepilogo caricato (DettaglioIntervento.tsx:141,151). L'ho verificato con un profilo che ha il solo csr.tx-0002.read, come nel test page.test.tsx:100: la pagina ha 0 h1, document.title resta quello della pagina precedente e il focus resta sul BODY. Lo stesso accade durante il caricamento e quando TX-0011 risponde con un errore. È una responsabilità della pagina (invariante #6 di step6) spostata nel layer ui/ della feature tramite un flag booleano del widget.",
+    "fix": "Tenere h1, titolo e focus nella pagina o nel widget: PaginaFinanziario rende sempre l'h1 (per esempio «Intervento SRA01», con un prop `titolo` dinamico) e DettaglioIntervento fornisce solo il contenuto della testata (eyebrow, badge, azioni, descrizione). Nel test senza grant e nel test d'errore aggiungere l'asserzione sull'h1 e su document.title."
+  },
+  {
+    "id": "H-05",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/lib/grafici.ts:1",
+    "titolo": "grafici.ts è un modulo unico di 1305 righe e chiude dentro la feature le primitive generiche dei grafici che il kit dovrebbe offrire alle prossime aree",
+    "evidenza": "Un solo file contiene il contratto (TabellaEquivalente, Grafico), 11 forme dei DTO, circa 30 helper e 14 builder. Una parte rilevante non ha nulla di finanziario:\n- aria() (270), nonDisegnabile (274), notaOmessi (266), zoomSeMolti (279);\n- DatoSerie con campoTesto, nomeDi, testoHtml, tooltipDettaglio ed etichettaDato (288-324); l'escape HTML del tooltip è una regola di sicurezza;\n- plurale, percentuale, milioni, valoreInMilioni e asseMilioni;\n- lo scheletro della cascata opzioniCascata (610) e quello delle barre raggruppate barreRaggruppate (1143).\nLe regole FSD ammettono da un'altra feature solo il barrel (eslint boundaries), e il barrel non esporta queste funzioni. Un'area futura (Fisico, Procedurale…, già annunciate in menu.tsx:10) dovrà quindi ricopiarle. Questo contraddice l'obiettivo dichiarato nel README («Il kit generico … si riusa nelle prossime aree») e in ADR 0027 §2.",
+    "fix": "Spostare le primitive generiche in shared/lib/grafici/, insieme al contratto DatiGrafico: aria, zoom, tooltip sicuro, DatoSerie, nonDisegnabile/notaOmessi, formattatori degli assi, scheletri di cascata, barre raggruppate e ciambella. Il layer è puro, senza React, e il lint di lib/ lo consente già. Nella feature restano i builder di dominio, divisi per report (avanzamento.ts, sigc.ts, domande.ts, riserva.ts…), ciascuno sotto le 300 righe."
+  },
+  {
+    "id": "H-06",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/lib/grafici.ts:656",
+    "titolo": "Otto builder superano le soglie di complessità o lunghezza (fino a complessità 23 e 94 righe)",
+    "evidenza": "Ho eseguito ESLint sul codice attuale con complexity 10 e max-lines-per-function 60. Oltre soglia MAGGIORE:\n- graficoCascataSigc, complessità 23 (656);\n- graficoSankey, 94 righe e complessità 15 (830);\n- graficoAvanzamento, 87 righe (355);\n- graficoFamiglie, 83 righe e complessità 11 (459);\n- graficoUtilizzoRiserva, 66 righe e complessità 12 (1219);\n- graficoQuotaFeasr, complessità 14 (1025);\n- graficoCascataIntervento, complessità 13 (975);\n- graficoGauge, complessità 12 (929).\nSuperano le 30 righe (soglia MINORE) anche graficoImbutoSigc (53), graficoDomandePerAnno (52), graficoImportiPerAnno (44), barreRaggruppate (43), graficoContributo (40) e opzioniCascata (36). Ogni builder mescola la validazione (catene if/else if di motivi), la tabella, la descrizione accessibile e le opzioni ECharts.",
+    "fix": "Spezzare ogni builder in tre funzioni pure composte dal builder stesso: `motivoNonDisegnabile(dati)`, guidata da una tabella di regole [condizione, motivo] al posto delle catene di 4-5 rami; `tabellaX(dati)`; `opzioniX(dati)`. I 61 test L1 esistenti in tests/finanziario-grafici.test.ts fanno da rete di sicurezza per il refactoring."
+  },
+  {
+    "id": "H-07",
+    "severity": "MINORE",
+    "file": "src/widgets/report-finanziario/ui/PaginaFinanziario.tsx:29",
+    "titolo": "Il widget di impaginazione possiede la semantica dei filtri della feature: indirizzo, etichette, parametri di pagina, grant",
+    "evidenza": "PaginaFinanziario (90 righe, complessità 18):\n- costruisce le chip e l'indirizzo dei filtri (conFiltri 20-29, chip 60-67);\n- duplica le etichette delle dimensioni (ETICHETTE, riga 14: 'OS', 'OG', 'OP', 'Azione portante'), già scritte con testi diversi in PannelloFiltri.tsx:87-99;\n- conosce i parametri di pagina della feature (PARAMETRI_DI_PAGINA = ['anno', 'esercizio'], riga 15, gli stessi di useAnnoNellIndirizzo);\n- conosce il grant 'csr.tx-0001.read' (66) e il percorso '/finanziario' (67, 88).\nPer aggiungere un filtro o un parametro di pagina bisogna toccare insieme widget e feature, e questa logica si prova solo montando la pagina.",
+    "fix": "Portare nella feature un hook `useFiltriNellIndirizzo()` che esponga filtri, applica, togli e togliTutti, e che conservi i parametri di pagina dichiarati dalla feature. Aggiungere in lib/filtri.ts una funzione pura `chipDaFiltri(filtri)` con l'unica mappa ETICHETTE_FILTRO, usata anche da PannelloFiltri. Il widget riceve chip e azioni già pronti e resta solo impaginazione."
+  },
+  {
+    "id": "H-08",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici.ts:30",
+    "titolo": "Il contratto dei builder (DatiGrafico/TabellaEquivalente) è dichiarato tre volte",
+    "evidenza": "shared/ui/grafici/CardGrafico.tsx:12-24 (TabellaEquivalente, DatiGrafico), features/finanziario/lib/grafici.ts:30-45 (TabellaEquivalente, Grafico) e lib/due-parti.ts:9-14 (DatiDueParti) sono copie: oggi sono compatibili solo grazie alla tipizzazione strutturale. Un campo aggiunto al contratto del kit (per esempio il tipo di colonna, vedi H-14) non obbliga i builder ad adeguarsi.",
+    "fix": "Definire un solo tipo `DatiGrafico` in shared/lib (puro, importabile sia da lib/ sia da ui/) e riesportarlo da shared/ui; grafici.ts e due-parti.ts lo importano."
+  },
+  {
+    "id": "H-09",
+    "severity": "MINORE",
+    "file": "src/shared/ui/grafici/echarts.ts:24",
+    "titolo": "I colori del tema sono scritti come esadecimali in tre posti",
+    "evidenza": "tema.css:15-27 definisce i token --ui-*. echarts.ts:24-39 ripete gli stessi valori in PALETTE e nel tema ECharts, e grafici.ts:48-54 (COLORI) li ripete di nuovo. '#fff' compare in due-parti.ts:44, grafici.ts:590 e CardGrafico.tsx:100. Un cambio di palette, o un tema scuro, richiede tre modifiche coordinate, e i builder della feature dipendono da valori che appartengono al kit.",
+    "fix": "Esportare i colori semantici (primario, scuro, positivo, attenzione, neutro, superficie) da un modulo puro del kit, per esempio shared/lib/tema.ts, e farli usare sia ai builder sia al tema ECharts. Idealmente vanno letti dalle custom property CSS all'avvio, così la fonte resta una sola."
+  },
+  {
+    "id": "H-10",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/due-parti.ts:24",
+    "titolo": "Due builder diversi per la stessa forma «due parti di un totale», con regole divergenti e un ramo senza test",
+    "evidenza": "graficoDueParti (due-parti.ts) e graficoQuotaFeasr (grafici.ts:1025) disegnano entrambi una ciambella a due parti con gli stessi controlli (parte assente, parte negativa, totale zero), ma divergono su:\n- arrotondamento: Math.round(…*1000)/10 contro percentuale();\n- etichette: '{d}%' contro testi composti;\n- tooltip: predefinito contro tooltipDettaglio con escape;\n- motivi: iniziale minuscola contro maiuscola, che il kit raddrizza con motivoInFrase (CardGrafico.tsx:30);\n- resa dei valori: descriviImporto contro cellaImporto.\ngraficoDueParti è l'unico builder senza test L1 in tests/finanziario-grafici.test.ts: i rami assente e totale zero sono coperti solo dai test di pagina, il ramo «parte negativa» da nessun test.",
+    "fix": "Tenere un solo builder `graficoDueParti`, generico e nel kit come da H-05, usato anche per la quota FEASR. Aggiungere test L1 per parte assente, parte negativa, totale zero e percentuali."
+  },
+  {
+    "id": "H-11",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/due-parti.ts:5",
+    "titolo": "Import profondo nell'entità importo, fuori dal barrel; il lint non lo impedisce da features verso entities",
+    "evidenza": "due-parti.ts:5-6 importa da '../../../entities/importo/lib/importo' invece che da '../../../entities/importo'. Il barrel esporta già descriviImporto e ImportoLike, e grafici.ts:21-22 lo usa correttamente. In eslint.config.js barrelOnlyImportGroup vale solo per pages e widgets, e la policy boundaries consente features → entities su qualunque file. La regola «fra slice si passa solo dal barrel» non è quindi applicata a features ed entities.",
+    "fix": "Importare dal barrel. Estendere barrelOnlyImportGroup (pattern '**/entities/*/*') ai file di src/features/** e src/entities/**, oppure aggiungere in boundaries una policy con fileInternalPath 'index.{ts,tsx}' verso entities. Aggiungere la canary corrispondente in tests/eslint-regole.test.ts."
+  },
+  {
+    "id": "H-12",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/RiepilogoReport.tsx:34",
+    "titolo": "La logica pura delle colonne e dei totali è duplicata fra Riepilogo e Dotazione e tenuta nei componenti",
+    "evidenza": "RiepilogoReport.tsx:34-50 e DotazioneReport.tsx:37-59 hanno le stesse funzioni valore e senzaValori e lo stesso costruttore colonne() (codice fisso, poi CAMPI.map con diProgramma, ValoreImporto, numerica, nascosta). Sono identici anche il calcolo delle colonne nascoste e la nota «Colonne nascoste perché…» (RiepilogoReport.tsx:120,137; DotazioneReport.tsx:63,91) e le props chiaveRiga, testoRicerca, etichettaRiga e ordineIniziale della TabellaInterattiva: circa 25 righe duplicate. totale e totaleDomande (RiepilogoReport.tsx:53-62) sono regole di business pure scritte dentro ui/.",
+    "fix": "Portare in lib/, con test L1, una funzione pura `colonneNascoste(campi, righe, perimetro)` e una `totaleCompleto(valori)`. Aggiungere in ui/comuni.tsx un helper `colonneImporti<T>(campi, righe, perimetro)` usato da entrambi i report."
+  },
+  {
+    "id": "H-13",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/comuni.tsx:58",
+    "titolo": "Nel kit mancano i mattoni generici di impaginazione: la feature li definisce in proprio e le tabelle sono diventate quattro",
+    "evidenza": "comuni.tsx definisce Sezione (58, una card con testa e h2 identica a quella di CardGrafico), Griglia (165), TabellaVoci (93) e TabellaRighe (115): nessuno di questi contiene dominio. Con TabellaDati (CardGrafico.tsx:34) e TabellaInterattiva il progetto ha quattro componenti tabella con markup ripetuto (contenitore, caption, th scope=row, ui-num), e SigcReport.tsx:232,259 aggiunge altre sezioni ad hoc. Le prossime aree non possono importare questi componenti da un'altra feature.",
+    "fix": "Portare in shared/ui una Card/Sezione (riusata da CardGrafico per la testa), Griglia e una tabella semplice parametrica (righe più colonne tipizzate) da cui derivare TabellaDati, TabellaVoci e TabellaRighe. In comuni.tsx restano solo i pezzi di dominio: ConGrant, PerimetroSezione, NotaPerimetroMisto, colonnaImporto."
+  },
+  {
+    "id": "H-14",
+    "severity": "MINORE",
+    "file": "src/shared/ui/tabella/TabellaInterattiva.tsx:78",
+    "titolo": "Il kit contiene testi ed euristiche legati al caso d'uso finanziario invece di parametri",
+    "evidenza": "- TabellaInterattiva.tsx:78 fissa il segnaposto «Cerca per codice o descrizione», ma entrambi gli usi cercano solo per codice (testoRicerca = codiceIntervento in RiepilogoReport.tsx:144 e DotazioneReport.tsx:98): l'interfaccia promette una ricerca che non esiste.\n- StatiVista.tsx:85 ed errori.ts:43 danno per scontata una vista filtrata («Nessun dato per i filtri scelti», «Filtri non validi… Modificali»), cosa che non vale per un futuro form.\n- CardGrafico.tsx:27 decide l'allineamento numerico indovinandolo dal testo formattato (regex con €, M, n, d) e CardGrafico.tsx:30 corregge le maiuscole dei motivi prodotti dai builder: due euristiche al posto di metadati, mentre TabellaInterattiva ha già la proprietà `numerica`.\n- NOME_APPLICAZIONE (focus.ts:6) e .ui-pill--perimetro (tema.css:100) sono configurazione e dominio dentro il kit.",
+    "fix": "Aggiungere una prop `segnapostoRicerca` con un default neutro («Cerca nella tabella») e far passare dalla feature i testi di vuoto e di errore. Aggiungere a TabellaEquivalente il tipo di colonna (per esempio `allineamento: ('testo' | 'numero')[]`), prodotto dai builder. Fissare nel tipo il formato di motivoAssenza (frase con iniziale minuscola) e verificarlo nei test dei builder. Spostare NOME_APPLICAZIONE in shared/config."
+  },
+  {
+    "id": "H-15",
+    "severity": "MINORE",
+    "file": "src/shared/ui/tabella/TabellaInterattiva.tsx:22",
+    "titolo": "TabellaInterattiva è un componente unico di 171 righe con logica in linea, e la scelta della tabella nativa non è registrata in ADR 0027",
+    "evidenza": "Oltre al JSX dichiarativo il componente contiene logica:\n- alternanza del verso di ordinamento (64);\n- composizione della caption con conteggio e ricerca (116);\n- mappa aria-sort/glifo con ternari annidati (122, 125);\n- gestione del Set delle colonne nascoste (98-105);\n- tastiera della riga (140-149).\nStrumenti, intestazione ordinabile, corpo, piede e paginazione stanno tutti in una sola funzione. ADR 0027 §2 prevede la `Table` di react-aria-components; l'implementazione usa una tabella HTML nativa, scelta legittima ma non registrata né nel README né nell'ADR.",
+    "fix": "Estrarre sottocomponenti (StrumentiTabella, IntestazioneOrdinabile, PaginazioneTabella) e portare in shared/lib/tabella.ts le funzioni pure `versoSuccessivo`, `didascalia` e `ariaSort`, con test L1. Registrare la scelta della tabella nativa in ADR 0027 o nel README."
+  },
+  {
+    "id": "H-16",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/AvanzamentoReport.tsx:63",
+    "titolo": "Grant e percorsi scritti a mano nei componenti, nonostante il catalogo «unica fonte» di lib/report.ts",
+    "evidenza": "- Grant: ci sono 35 letterali 'csr.tx-00NN.read' fuori da lib/report.ts, in 10 file di ui/ e del widget (per esempio AvanzamentoReport.tsx:63-72,120-123,207-210; DettaglioIntervento.tsx:61,95,133,191; selezione.ts:21,26; PaginaFinanziario.tsx:66). Un refuso nasconde una sezione senza alcun errore. makeRolePredicate (shared/lib/predicates.ts), creato proprio per questo, non è usato.\n- Percorsi: report.ts:1 si dichiara «unica fonte di percorsi», ma ci sono percorsi scritti a mano in DettaglioIntervento.tsx:35,38,144, Panoramica.tsx:180, interventi/page.tsx:29 e PaginaFinanziario.tsx:67,88. Sette pagine passano percorso=\"/finanziario/…\" come letterale, e se il percorso è sbagliato voceDi ripiega in silenzio sul titolo 'Finanziario'.\n- La composizione «percorso + ?filtri» è ripetuta in Panoramica.tsx:174, DotazioneReport.tsx:134, RiepilogoReport.tsx:106, menu.tsx:33 e PaginaFinanziario.tsx:28,88.",
+    "fix": "In lib/report.ts esportare le costanti dei grant (GRANT.TX_0002 …), i percorsi per voce e una funzione `conFiltri(percorso, filtri)`, e usarli in ui, widget e pagine. Aggiungere un test che confronti GRANT con route-table.json, come si fa già per le voci."
+  },
+  {
+    "id": "H-17",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/filtri.ts:68",
+    "titolo": "Il calendario della riserva è scritto in tre file, e filtri.ts mescola responsabilità diverse",
+    "evidenza": "Le date delle fasi (1/10/n, 30/6/n+1, 31/12/n+1, 1/1/n+2) compaiono in filtri.ts:68-73 (FASI_RISERVA), in riserva.ts:10-21 e 31-41 (inizioFase, testoCongelato, testoResiduo) e in RiservaReport.tsx:99-102 (testo di aiuto). filtri.ts contiene, oltre ai filtri, il perimetro (57-64), le fasi della riserva (66-77) e il calendario del periodo CSR (79-95): poca coesione per un file chiamato «filtri».",
+    "fix": "Scrivere in lib/riserva.ts una funzione pura `calendarioRiserva(n)` che restituisca le date delle fasi, usata da etichettaFaseRiserva, inizioFase, testoCongelato, testoResiduo e dal testo di aiuto. Spostare fasi e calendario in riserva.ts e il perimetro in un lib/perimetro.ts."
+  },
+  {
+    "id": "H-18",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/api/index.ts:81",
+    "titolo": "La politica di retry è cablata nei wrapper e annulla il client di test «senza retry»",
+    "evidenza": "Ogni wrapper passa retry: soloTransitori e retryDelay (riga 81, ripetuti per esteso alle righe 122 e 133 invece di riusare opzioni.query). Le opzioni della singola query prevalgono sui defaultOptions, quindi clientDiTest (shared/testing/render.tsx:8, retry: false) non ha effetto sulle letture della feature. Per questo i test di componente evitano il ramo transitorio (rete assente, 503 CAPACITA_ESAURITA), che attenderebbe 1+2+4 secondi: lo dice il commento in tests/finanziario-ui.test.tsx:794 («429 non si riprova … basta a provare il ramo errore»). Il comportamento dell'interfaccia dopo i tentativi esauriti non è provato a L2.",
+    "fix": "Spostare retry e retryDelay nei defaultOptions di createQueryClient (app/query-client.ts) e mettere soloTransitori e attesaPrimaDiRiprovare in shared/api: sono generiche (problem-type e Retry-After). I wrapper restano senza opzioni di retry, e i test possono disattivarlo o accorciarlo dal client di test."
+  },
+  {
+    "id": "H-19",
+    "severity": "MINORE",
+    "file": "src/shared/testing/grafico-finto.ts:5",
+    "titolo": "Il grafico finto non è legato al tipo reale di ECharts e non registra come vengono applicate le opzioni",
+    "evidenza": "GraficoFinto è un'interfaccia indipendente. setup.ts:9-12 lo sostituisce a creaGrafico con vi.mock, la cui factory ha valori di tipo any. Se Grafico cominciasse a usare un altro metodo di IstanzaGrafico (getOption, dispatchAction, off con argomenti), il typecheck passerebbe e i test fallirebbero a runtime, o peggio non eserciterebbero quel codice. setOption ignora il secondo argomento (notMerge) e i test leggono solo opzioni.at(-1), quindi il reset descritto in H-02 non è osservabile. trovaCard (card-grafico.ts:12) seleziona per classi CSS (.ui-grafico, .ui-grafico-assente), cioè per un dettaglio d'implementazione.",
+    "fix": "Restringere la dipendenza di Grafico a un'interfaccia, per esempio `type IstanzaGrafico = Pick<EChartsType, 'setOption' | 'on' | 'resize' | 'dispose' | 'getDataURL'>`, e tipizzare `creaGraficoFinto(el)` come IstanzaGrafico più i campi di registrazione. Registrare anche le impostazioni passate a setOption. Individuare il grafico con un attributo dedicato o con un nome accessibile invece che con le classi."
+  },
+  {
+    "id": "H-20",
+    "severity": "MINORE",
+    "file": "src/shared/api/mock/esempio-finanziario.ts:1",
+    "titolo": "Dati di esempio e fixture del finanziario stanno in shared",
+    "evidenza": "shared/api/mock/esempio-finanziario.ts (251 righe di dominio finanziario) viene composto in shared/api/mock/browser.ts:3,7, e shared/testing/fixture-finanziario.ts (155 righe) contiene i DTO di prova del finanziario. Lo strato shared dovrebbe essere privo di dominio. Con le prossime aree questi file cresceranno per ogni feature, e browser.ts dovrà conoscerle tutte.",
+    "fix": "Spostare i dati di esempio in features/finanziario/api/mock/ (testingImportGroup copre già '**/api/mock') e le fixture in features/finanziario/testing/ o in tests/fixtures/. browser.ts raccoglie gli handler delle feature con import.meta.glob, come fa già per quelli generati (handlers.ts:44)."
+  },
+  {
+    "id": "H-21",
+    "severity": "MINORE",
+    "file": "src/shared/api/mutator/bff-mutator.ts:73",
+    "titolo": "Il tetto di letture del backend finanziario è applicato dal mutator condiviso a tutte le GET verso /api/",
+    "evidenza": "La coda (73-100) limita a 2 tutte le GET il cui url inizia con '/api/', ma il commento (70-72) la motiva con la proprietà cruscottocsr.finanziario.letture-per-utente, specifica del finanziario. Quando arriveranno le altre aree, le loro letture condivideranno la stessa coda del finanziario anche se il loro tetto fosse diverso o assente. Lo stato della coda è un singleton di modulo, non configurabile e non azzerabile nei test.",
+    "fix": "Rendere la coda configurabile per prefisso (per esempio una mappa { '/api/finanziario/': 2 } fornita dall'app), oppure documentare che il tetto vale per utente sull'intero backend. Esporre un reset per i test."
+  },
+  {
+    "id": "H-22",
+    "severity": "MINORE",
+    "file": "src/app/menu.tsx:27",
+    "titolo": "La shell scrive a mano l'area Finanziario e duplica l'elenco delle aree future, invece di ricavare il menu dalla route-table",
+    "evidenza": "menu.tsx:22-40 scrive a mano il gruppo «Finanziario» e usa pagineVisibili della feature. routes.tsx:18-20 tiene ETICHETTE_AREE solo per '/finanziario'. AREE_FUTURE è duplicato in menu.tsx:10 e routes.tsx:21. ADR 0027 §2 prevede un «menu laterale con gruppi e sottomenu ricavati dalla route-table». Ogni nuova area richiede modifiche in tre punti della shell.",
+    "fix": "Introdurre un catalogo delle aree (per esempio src/app/aree.ts, oppure un campo area/titolo in route-table.json) da cui derivare Home e menu. Ogni area espone dal proprio barrel le voci visibili e la shell le itera; le aree future stanno in un'unica costante."
+  },
+  {
+    "id": "H-23",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/selezione.ts:31",
+    "titolo": "inAttesaDelSegnale falsifica lo stato della query per piegare VistaQuery",
+    "evidenza": "Per mostrare il caricamento mentre il segnale è in attesa, la feature costruisce uno StatoQuery fittizio (data undefined, isPending true, isError false, fetchStatus 'fetching') che dipende dai rami interni di VistaQuery (StatiVista.tsx:76-79). Se VistaQuery cambia la condizione del caricamento, il comportamento cambia senza alcun errore. La funzione è usata in 4 componenti (AvanzamentoReport, DotazioneReport, Panoramica, SigcReport).",
+    "fix": "Dare a VistaQuery un ingresso esplicito, per esempio una prop `inAttesa?: boolean`, e far passare alla feature il segnale invece di riscrivere lo stato della query."
+  },
+  {
+    "id": "H-24",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici.ts:59",
+    "titolo": "Le forme dei DTO usate dai builder non hanno il controllo statico contro la spec",
+    "evidenza": "grafici.ts:59-139 dichiara 11 interfacce «Like» (RigaSpesa, RigaRiepilogo, ImportiSigcLike…) con tutti i campi opzionali. contratto.ts:11-13 controlla solo Importo, fase e perimetro (review H-17). Con la tipizzazione strutturale, un DTO che rinomina un campo resta assegnabile alla forma finché ne condivide almeno un altro: la compilazione passa e il grafico mostra «non disponibile» ovunque. È proprio il rischio che contratto.ts è nato per chiudere.",
+    "fix": "Estendere contratto.ts con un controllo per ogni forma, per esempio `type Sotto<A, B> = Exclude<keyof A, keyof B> extends never ? true : false; export const C_RIGA_SPESA: Sotto<RigaSpesa, SpesaPerInterventoRiga> = true;`, cioè ogni campo della forma deve esistere nel DTO. Applicarlo a tutte le forme di grafici.ts."
+  },
+  {
+    "id": "H-25",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/ui/CercaIntervento.tsx:25",
+    "titolo": "Piccole funzioni pure lasciate nei componenti o duplicate",
+    "evidenza": "- Parsing del codice cercato (CercaIntervento.tsx:25).\n- Filtro delle opzioni del pannello (PannelloFiltri.tsx:36-37), che duplica filtraRighe di shared/lib/tabella senza la normalizzazione degli accenti.\n- Data «Dati al» ricavata tagliando la stringa formattata (UltimoAggiornamento.tsx:23,25: formatDataOra(…).slice(0, 10)).\n- Maiuscola del testo d'assenza costruita in linea (AvanzamentoReport.tsx:31).\n- Estrazione del codice dal clic sul grafico fatta in due modi: Panoramica.tsx:71 usa data.codice ?? name, DotazioneReport.tsx:65 e RiepilogoReport.tsx:168 usano name.\n- Tabella «Tutte le voci» ottenuta dal builder della cascata (DettaglioIntervento.tsx:179).\n- Download del grafico (CardGrafico.tsx:96-103) che duplica salvaFile senza appendere l'ancora al documento.",
+    "fix": "Portarle in lib/: codiceDaRicerca; codiceDalClic accanto a DatoSerie; vociIntervento(r), usata sia dalla tabella sia dalla cascata; un formatData con fuso Europe/Rome in shared/lib. Riusare filtraRighe e salvaFile."
+  },
+  {
+    "id": "H-26",
+    "severity": "COSMETICO",
+    "file": "src/shared/ui/grafici/echarts.ts:5",
+    "titolo": "Codice registrato o esportato ma non usato",
+    "evidenza": "echarts.ts registra HeatmapChart e VisualMapComponent (5, 13, 18-19), che nessun builder usa, nel chunk già pesante del finanziario (circa 1,2 MB secondo il README). Il barrel della feature esporta REPORT_FINANZIARIO, reportVisibili, PAGINE_FINANZIARIO e percorsoIntervento, che fuori dalla feature sono usati solo nei test, mai nel codice di produzione. shared/lib/predicates.ts (makeRolePredicate, isEditable) e sentinel-dates.ts non hanno usi in produzione.",
+    "fix": "Registrare solo i tipi di grafico usati e aggiungerli quando un builder li adotta. Ridurre il barrel alla API che pagine, widget e app compongono davvero. Rimuovere i predicati inutilizzati o marcarli come scaffolding."
+  }
+]

@@ -1,0 +1,73 @@
+{
+  "schema_version": "1.0",
+  "feature": "finanziario",
+  "checks": [
+    {
+      "name": "lint",
+      "status": "pass",
+      "evidence": "eslint.json: 0 errori (severity 2, esclusi boundaries/* e local/*)"
+    },
+    {
+      "name": "typecheck",
+      "status": "pass",
+      "evidence": "typecheck.json: tsc exit 0",
+      "exit_code": 0
+    },
+    {
+      "name": "test",
+      "status": "pass",
+      "evidence": "vitest.json verde (total=650) + coverage>=soglie (L92.06 S91.34 F90.86 B85.81 vs L80 S80 F80 B70)"
+    },
+    {
+      "name": "a11y",
+      "status": "pass",
+      "evidence": "axe.json: 0 violations su 41 run (wcag2a/2aa/22aa); incomplete=36 dichiarato"
+    },
+    {
+      "name": "build",
+      "status": "pass",
+      "evidence": "build.json: vite build exit 0",
+      "exit_code": 0
+    },
+    {
+      "name": "fsd_import",
+      "status": "pass",
+      "evidence": "eslint.json: 0 violazioni boundaries/* (sev 1|2); dependencies+no-unknown-files+no-unknown-dependencies=error [v7]; canary=1"
+    },
+    {
+      "name": "orval_types",
+      "status": "pass",
+      "evidence": "orval.json: double-run diff vuoto (client deterministico)"
+    },
+    {
+      "name": "security",
+      "status": "pass",
+      "evidence": "regole AST local/* armate (config-mutator) + scattano (canary) + 0 violazioni in eslint.json + mutator BFF presente"
+    },
+    {
+      "name": "authz",
+      "status": "pass",
+      "evidence": "check-ui-authz: deny-by-default + anti-widening OK (9 route)",
+      "exit_code": 0
+    },
+    {
+      "name": "wireframe_approved",
+      "status": "pass",
+      "evidence": "hash canonico == approved_hash per 5 flusso/i as-built"
+    },
+    {
+      "name": "req_coverage_ui",
+      "status": "pass",
+      "evidence": "coverage-matrix-fe: 15 must della feature coperti da describe verde",
+      "exit_code": 0
+    }
+  ],
+  "advisory": [],
+  "passed": 11,
+  "total": 11,
+  "verdict": "pass",
+  "a11y_residual": {
+    "incomplete": 36,
+    "manual_checklist_ref": "wireframes/<flusso>.md note WCAG + review FULL"
+  }
+}
