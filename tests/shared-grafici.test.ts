@@ -12,7 +12,7 @@ import {
   PALETTE,
   arrotonda1,
   aria,
-  asseMilioni,
+  asseImporti,
   assePercentuale,
   barreRaggruppate,
   centesimi,
@@ -23,6 +23,7 @@ import {
   firmaOpzioni,
   formatNumber,
   graficoDueParti,
+  importoBreve,
   milioni,
   minuscolaIniziale,
   nonDisegnabile,
@@ -34,7 +35,7 @@ import {
   plurale,
   sommaCentesimi,
   tooltipDettaglio,
-  valoreInMilioni,
+  valoreBreve,
   valoreInNumero,
   zoomSeMolti,
 } from '../src/shared/lib';
@@ -134,13 +135,23 @@ describe('contratto e primitive numeriche', () => {
   });
   it('milioni e valori di assi e tooltip: assente = "non disponibile"', () => {
     expect(milioni(12_345_678)).toBe('12,3 M€');
-    expect(asseMilioni(2_000_000)).toBe('2,0 M€');
+    expect(asseImporti(2_000_000)).toBe('2,0 M€');
     expect(assePercentuale(25)).toBe('25 %');
-    expect(valoreInMilioni(3_000_000)).toBe('3,0 M€');
-    expect(valoreInMilioni(null)).toBe('non disponibile');
-    expect(valoreInMilioni('3')).toBe('non disponibile');
+    expect(valoreBreve(3_000_000)).toBe('3,0 M€');
+    expect(valoreBreve(null)).toBe('non disponibile');
+    expect(valoreBreve('3')).toBe('non disponibile');
     expect(valoreInNumero(12_000)).toBe('12.000');
     expect(valoreInNumero(undefined)).toBe('non disponibile');
+  });
+  it('importi piccoli in euro, mai "0,0 M€" (review v3 X-03)', () => {
+    expect(n(importoBreve(300))).toBe('300,00 €');
+    expect(n(importoBreve(-49_999))).toBe('-49.999,00 €');
+    expect(n(importoBreve(1_000_000))).toBe('1,0 M€');
+    expect(n(valoreBreve(500))).toBe('500,00 €');
+    expect(n(asseImporti(0))).toBe('0 €');
+    expect(n(asseImporti(250_000))).toBe('250.000 €');
+    expect(n(asseImporti(1_500_000))).toBe('1,5 M€');
+    for (const t of [importoBreve(300), valoreBreve(40_000), asseImporti(200)]) expect(t).not.toContain('M€');
   });
   it('aria e notaOmessi', () => {
     expect(aria('Barre di prova')).toEqual({ enabled: true, label: { description: 'Barre di prova' } });
@@ -250,8 +261,8 @@ describe('opzioniSicure', () => {
     expect(formatterDi(y)(12_000)).toBe('12.000');
   });
   it('asse di valori con un formatter proprio: invariato', () => {
-    const y = asse(prova(opzioniSicure({ yAxis: { type: 'value', axisLabel: { formatter: asseMilioni } }, series: [] })).yAxis);
-    expect(y.axisLabel?.formatter).toBe(asseMilioni);
+    const y = asse(prova(opzioniSicure({ yAxis: { type: 'value', axisLabel: { formatter: asseImporti } }, series: [] })).yAxis);
+    expect(y.axisLabel?.formatter).toBe(asseImporti);
     const conTesto = asse(prova(opzioniSicure({ xAxis: { type: 'value', axisLabel: { formatter: '{value} %' } }, series: [] })).xAxis);
     expect(conTesto.axisLabel?.formatter).toBe('{value} %');
   });
@@ -316,7 +327,7 @@ describe('opzioniCascata e descrizioneCascata', () => {
     const o = prova(opzioniCascata(passi, 'Cascata di prova'));
     expect(o.aria).toEqual({ enabled: true, label: { description: 'Cascata di prova' } });
     expect(asse(o.xAxis)).toEqual({ type: 'category', data: ['Dotazione', 'Pagato', 'Residuo'] });
-    expect(asse(o.yAxis).axisLabel?.formatter).toBe(asseMilioni);
+    expect(asse(o.yAxis).axisLabel?.formatter).toBe(asseImporti);
     expect(o.tooltip).toEqual({ trigger: 'item', formatter: tooltipDettaglio });
     expect(o.series.map((s) => [s.type, s.name, s.stack])).toEqual([
       ['bar', 'Base', 'cascata'],
@@ -373,8 +384,8 @@ describe('barreRaggruppate', () => {
     expect(o.series[0].data).toEqual([{ value: 3_000_000, name: 'SRA01', codice: 'SRA01', dettaglio: 'SRA01, previsto: 3,0 M€' }, null]);
     expect(o.series[1].data?.[1]).toEqual({ value: 1_000_000, name: 'SRA02', codice: 'SRA02', dettaglio: 'SRA02, erogato: 1,0 M€' });
     expect(o.legend).toEqual({});
-    expect(o.tooltip).toEqual({ trigger: 'axis', valueFormatter: valoreInMilioni });
-    expect(asse(o.yAxis).axisLabel?.formatter).toBe(asseMilioni);
+    expect(o.tooltip).toEqual({ trigger: 'axis', valueFormatter: valoreBreve });
+    expect(asse(o.yAxis).axisLabel?.formatter).toBe(asseImporti);
     expect(o.dataZoom).toBeUndefined();
   });
 
@@ -394,9 +405,9 @@ describe('barreRaggruppate', () => {
 
   it('descrizione accessibile: titolo, estremi e nota degli omessi', () => {
     expect(n(prova(barreRaggruppate(voci, definizioni, testi).opzioni).aria?.label.description ?? '')).toBe(
-      'Barre di prova per 2 interventi, da SRA01 a SRA02, in milioni di euro. 3 voci omesse per dati mancanti o non utilizzabili.',
+      'Barre di prova per 2 interventi, da SRA01 a SRA02, importi in euro. 3 voci omesse per dati mancanti o non utilizzabili.',
     );
-    expect(n(prova(barreRaggruppate(voci.slice(0, 1), definizioni, testi).opzioni).aria?.label.description ?? '')).toBe('Barre di prova per 1 intervento (SRA01), in milioni di euro.');
+    expect(n(prova(barreRaggruppate(voci.slice(0, 1), definizioni, testi).opzioni).aria?.label.description ?? '')).toBe('Barre di prova per 1 intervento (SRA01), importi in euro.');
   });
 
   it('omessi iniziali in testa (es. una nota di perimetro)', () => {

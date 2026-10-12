@@ -10,6 +10,7 @@ export type { NomeIcona } from './icona';
 export { Grafico } from './grafici/Grafico';
 export type { AltezzaGrafico, ClicGrafico } from './grafici/Grafico';
 export { CardGrafico } from './grafici/CardGrafico';
+export { ContestoIntestazione } from './grafici/usePngDelGrafico';
 export type { DatiGrafico, TabellaEquivalente } from '../lib/grafici';
 export { Griglia, Sezione } from './card/Sezione';
 export { TabellaDati, TabellaRighe, TabellaVoci } from './tabella/TabelleSemplici';

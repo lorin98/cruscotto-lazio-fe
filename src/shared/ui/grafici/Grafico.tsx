@@ -17,17 +17,28 @@ export type AltezzaGrafico = 'normale' | 'alto' | 'basso' | 'mini';
 
 const movimentoRidotto = () => typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-export function Grafico({
-  opzioni,
-  altezza = 'normale',
-  onClic,
-  onIstanza,
-}: {
+interface PropsGrafico {
   opzioni: EChartsOption;
   altezza?: AltezzaGrafico;
   onClic?: (p: ClicGrafico) => void;
   onIstanza?: (c: IstanzaGrafico | null) => void;
-}) {
+}
+
+/**
+ * Ridisegna il grafico quando il contenitore cambia dimensione. Allo smontaggio il contenitore esce dal documento prima
+ * del disconnect e l'osservatore lo consegna staccato, a 0x0: il sankey con larghezza zero lancerebbe un TypeError
+ * (review v3 A-01). Si ridisegna solo un contenitore nel documento e con dimensioni. Restituisce lo stacco.
+ */
+function osservaDimensioni(el: HTMLElement, c: IstanzaGrafico): () => void {
+  if (typeof ResizeObserver === 'undefined') return () => undefined;
+  const osservatore = new ResizeObserver(([voce]) => {
+    if (voce?.target.isConnected && voce.contentRect.width > 0 && voce.contentRect.height > 0) c.resize();
+  });
+  osservatore.observe(el);
+  return () => osservatore.disconnect();
+}
+
+export function Grafico({ opzioni, altezza = 'normale', onClic, onIstanza }: PropsGrafico) {
   const el = useRef<HTMLDivElement>(null);
   const istanza = useRef<IstanzaGrafico | null>(null);
   // firma delle opzioni gia' applicate all'istanza corrente (azzerata quando l'istanza si ricrea)
@@ -46,10 +57,9 @@ export function Grafico({
     firmaApplicata.current = null;
     notifica.current?.(c);
     c.on('click', (p) => clic.current?.(p as ClicGrafico));
-    const osservatore = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(() => c.resize());
-    osservatore?.observe(el.current);
+    const stacca = osservaDimensioni(el.current, c);
     return () => {
-      osservatore?.disconnect();
+      stacca();
       c.dispose();
       istanza.current = null;
       notifica.current?.(null);

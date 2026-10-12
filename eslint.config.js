@@ -15,6 +15,19 @@ import local from './eslint-local/index.js';
 // non solo .ts/.tsx ma anche .js/.jsx/.mjs/.cjs/.mts/.cts -> su quelle un header spezzato su piu' righe o uno shorthand
 // `{ Authorization }` sfuggirebbe a un grep line-oriented. L'AST e' immune a whitespace/newline/backtick/shorthand.
 // La chiave a BACKTICK (punto cieco esquery) e' coperta dalla regola local/no-credential-header (eslint-local/).
+// Review v3 H-04: il mutator BFF e' l'UNICA istanza HTTP della SPA: porta X-Requested-With (regola d'origine del
+// backend), la coda delle letture (tetti per utente, 503 CAPACITA_ESAURITA) e il ritorno al login sul 401. Fuori dal
+// mutator niente fetch ne' un'istanza axios propria (import default o namespace, classe Axios); restano ammessi i named
+// import di axios che non fanno richieste (isAxiosError, AxiosError, tipi). Spalmati con i selettori credenziale in ogni
+// blocco; il blocco del mutator li toglie.
+const httpFuoriDalMutatorSelectors = [
+  { selector: "CallExpression[callee.name='fetch']", message: "fetch vietato nella SPA: le richieste passano dal mutator BFF (X-Requested-With, coda delle letture, 401). Usa i wrapper api/." },
+  { selector: "CallExpression[callee.property.name='fetch']", message: "fetch (via membro globale) vietato nella SPA: le richieste passano dal mutator BFF. Usa i wrapper api/." },
+  { selector: "CallExpression[callee.property.value='fetch']", message: "fetch (computed) vietato nella SPA: le richieste passano dal mutator BFF. Usa i wrapper api/." },
+  { selector: "ImportDeclaration[source.value='axios'] > :matches(ImportDefaultSpecifier, ImportNamespaceSpecifier)", message: "Un'istanza axios propria e' vietata fuori dal mutator BFF (unica istanza sancita): usa i wrapper api/. Ammessi isAxiosError, AxiosError e i tipi." },
+  { selector: "ImportDeclaration[source.value='axios'] > ImportSpecifier[imported.name='Axios']", message: "La classe Axios e' vietata fuori dal mutator BFF (unica istanza sancita): usa i wrapper api/." },
+];
+
 const credentialRules = {
   // niente token/stato nella SPA -> nessun Web Storage. L'accesso dinamico OFFUSCATO (bracket-con-variabile,
   // concat 'local'+'Storage', fromCharCode/atob) resta best-effort: limite noto, enforcement reale server-side.
@@ -77,6 +90,7 @@ const credentialRules = {
     // callee.name assente) e computed `new window['XMLHttpRequest']()` (giro 18). Insieme FINITO (bare + member + computed).
     { selector: "NewExpression[callee.property.name='XMLHttpRequest']", message: "XMLHttpRequest (via membro globale) vietato nella SPA (modello BFF): usa l'istanza axios; XHR puo' portare Basic auth via open(user,pass)." },
     { selector: "NewExpression[callee.property.value='XMLHttpRequest']", message: "XMLHttpRequest (computed) vietato nella SPA (modello BFF): usa l'istanza axios; XHR puo' portare Basic auth via open(user,pass)." },
+    ...httpFuoriDalMutatorSelectors,
   ],
 };
 
@@ -271,7 +285,8 @@ export default tseslint.config(
     // no-restricted-syntax. Flat-config REPLACE: re-include il group generato e TUTTI i selettori dei consumatori.
     // NB: il barrel di UN'ALTRA feature (segmento singolo, es. features/OtherFeature) NON e' preso da qui (serve
     // >=2 segmenti): a chiuderlo e' il detector feature-aware del gate step6-page (§3), fail-closed nel gate.
-    files: ['src/pages/**/*.{ts,tsx}', 'src/widgets/**/*.{ts,tsx}'],
+    // Review v3 H-05: anche la shell (src/app) compone solo dal barrel, come dice il barrel della feature.
+    files: ['src/pages/**/*.{ts,tsx}', 'src/widgets/**/*.{ts,tsx}', 'src/app/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-imports': ['error', { patterns: [generatedImportGroup, barrelOnlyImportGroup, testingImportGroup] }],
       'no-restricted-syntax': ['error', ...credentialSyntaxSelectors, ...generatedClientSyntaxSelectors, ...dynamicPathGuardSelectors, ...deepFeatureSyntaxSelectors],
@@ -298,6 +313,20 @@ export default tseslint.config(
           group: ['react', 'react/*', 'react-*', 'react-*/*', '@react-*/*', '@tanstack/*'],
           message: "Il layer lib/ e' puro: niente React/React Query/router (sposta la funzione in api/ o ui/).",
         },
+        // Review v3 H-03: il divieto confronta lo specificatore scritto, quindi un import relativo di ui/ o dei wrapper api/
+        // passava. Vietati ui/ (componenti e hook), il barrel api/ della feature (wrapper React Query), il mutator e i
+        // moduli auth con effetti (auth-status carica il mutator). Restano ammessi i moduli puri di shared/api
+        // (problem/, auth/stato).
+        {
+          group: ['**/ui', '**/ui/*', '**/ui/**', '**/api/mutator', '**/api/mutator/*', '**/api/auth/auth-status', '**/api/auth/use-auth-status'],
+          message: "Il layer lib/ e' puro: niente ui/, mutator o moduli auth con effetti (passa il dato come parametro; i tipi e i predicati puri stanno in shared/api/auth/stato).",
+        },
+        // il barrel api/ della feature (i wrapper React Query): una cartella in gitignore vieterebbe anche i moduli puri
+        // di shared/api, quindi il solo barrel con una regex sullo specificatore
+        {
+          regex: '^(\\.\\./){1,2}api(/index(\\.tsx?)?)?$',
+          message: "Il layer lib/ e' puro: niente wrapper api/ della feature (hook React Query); passa il dato come parametro.",
+        },
         testingImportGroup,
         entityBarrelOnlyImportGroup,
       ] }],
@@ -307,7 +336,20 @@ export default tseslint.config(
     // Review step9 v2 H-06: le funzioni pure dei layer lib/ (builder dei grafici, aggregati, resa) restano sotto le soglie
     // della checklist di review: complessita' 10 e 60 righe (oltre e' un MAGGIORE); un builder che cresce si spezza in
     // funzioni pure piu' piccole (motivo, tabella, opzioni) invece di superarle.
-    files: ['src/shared/lib/**/*.{ts,tsx}', 'src/entities/*/lib/**/*.{ts,tsx}', 'src/features/*/lib/**/*.{ts,tsx}'],
+    // Review v3 H-01: le stesse soglie valgono per i layer della UI (kit, ui/ delle feature e delle entity, widget, pagine):
+    // un componente che cresce si spezza in sottocomponenti e hook. Fuori restano i test (describe lunghi per natura) e,
+    // per ora, la shell e il mutator (src/app, src/shared/api), con funzioni gia' oltre soglia da rivedere a parte.
+    files: [
+      'src/shared/lib/**/*.{ts,tsx}',
+      'src/entities/*/lib/**/*.{ts,tsx}',
+      'src/features/*/lib/**/*.{ts,tsx}',
+      'src/shared/ui/**/*.{ts,tsx}',
+      'src/features/*/ui/**/*.{ts,tsx}',
+      'src/entities/*/ui/**/*.{ts,tsx}',
+      'src/widgets/**/*.{ts,tsx}',
+      'src/pages/**/*.{ts,tsx}',
+    ],
+    ignores: ['**/*.test.{ts,tsx}'],
     rules: {
       complexity: ['error', 10],
       'max-lines-per-function': ['error', { max: 60, skipBlankLines: true, skipComments: true }],
@@ -333,9 +375,23 @@ export default tseslint.config(
   {
     // Z-02: gli altri test sotto src/ e il bootstrap dei mock del dev server (main.tsx avvia MSW solo fuori dal mode be).
     // Residuo H-11: riaprono i moduli di prova, non le sotto-cartelle delle entity (barrel-only anche nei test).
-    files: ['src/features/**/*.test.{ts,tsx}', 'src/entities/**/*.test.{ts,tsx}', 'src/app/**/*.test.{ts,tsx}', 'src/app/main.tsx'],
+    files: ['src/features/**/*.test.{ts,tsx}', 'src/entities/**/*.test.{ts,tsx}'],
     rules: {
       'no-restricted-imports': ['error', { patterns: [generatedImportGroup, entityBarrelOnlyImportGroup] }],
+    },
+  },
+  {
+    // Come sopra per i test della shell e il bootstrap dei mock, che restano barrel-only verso le feature (review v3 H-05).
+    files: ['src/app/**/*.test.{ts,tsx}', 'src/app/main.tsx'],
+    rules: {
+      'no-restricted-imports': ['error', { patterns: [generatedImportGroup, entityBarrelOnlyImportGroup, barrelOnlyImportGroupNeiTest] }],
+    },
+  },
+  {
+    // Review v3 H-04: il mutator BFF e' l'unica istanza HTTP sancita: qui l'import di axios e' ammesso.
+    files: ['src/shared/api/mutator/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-syntax': ['error', ...credentialSyntaxSelectors.filter((s) => !httpFuoriDalMutatorSelectors.includes(s))],
     },
   },
   {

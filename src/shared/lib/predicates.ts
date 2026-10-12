@@ -1,8 +1,8 @@
 // predicates.ts — predicati PURI di UI (zero React). Sono GATE DI UX, MAI enforcement (il BE ridecide).
 // SCAFFOLDING del template green-fe: nessun uso in produzione, fuori dal barrel di shared/lib (review v2 H-26).
 // Si importa dal file quando una feature ne ha bisogno.
-import { hasGrant } from '../api/auth/auth-status';
-import type { AuthStatus } from '../api/auth/auth-status';
+import { hasGrant } from '../api/auth/stato';
+import type { AuthStatus } from '../api/auth/stato';
 
 // Fabbrica di predicati ruolo (hide-by-role): fine || coarse sui grant VERBATIM dell'authz-catalog.
 // Uno per grant, cosi' step5-ui compone la visibilita' senza logica inline nei componenti.

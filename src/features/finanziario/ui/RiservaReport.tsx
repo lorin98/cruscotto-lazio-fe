@@ -7,7 +7,7 @@
 // riserva v2): quattro KPI (accumulato, congelato, utilizzato, residuo), linea dell'utilizzo cumulato con zoom e la
 // riserva accumulata come riferimento, voci di contorno in tabella.
 import { ValoreImporto } from '../../../entities/importo';
-import { formatDate, importoKpi } from '../../../shared/lib';
+import { formatDate, importoBreve } from '../../../shared/lib';
 import { CardGrafico, Griglia, Kpi, PulsantiScarica, Sezione, TabellaRighe, TabellaVoci, VistaQuery, Vuoto } from '../../../shared/ui';
 import type { Colonna, Scaricamento } from '../../../shared/ui';
 import { esportaRiserva, rispostaRiservaAssente, useRiserva } from '../api';
@@ -31,7 +31,7 @@ const COLONNE_UTILIZZO: Colonna<UtilizzoRiserva>[] = [
   ['Cumulato', (u) => euroOpzionale(u.cumulato)],
 ];
 
-const importo = (v: ValoreKpiRiserva) => (v.valore === null ? undefined : importoKpi(v.valore));
+const importo = (v: ValoreKpiRiserva) => (v.valore === null ? undefined : importoBreve(v.valore));
 
 /** I quattro valori della riserva come KPI; un valore che non c'e' ancora dice quando ci sara' (lib/riserva, kpiRiserva). */
 function KpiRiserva({ d, anno }: { d: MonitoraggioRiserva; anno: number }) {
@@ -99,7 +99,7 @@ function Riserva({ anno }: { anno: number }) {
   const stato = useRiserva(anno);
   const assente = (e: unknown) =>
     rispostaRiservaAssente(e) ? <Vuoto>{`Nessuna riserva calcolata per il ${anno}. Scegli un altro anno.`}</Vuoto> : null;
-  const dati = scaricamentiDati(`Riserva di efficacia ${anno}`, (formato) => esportaRiserva(anno, formato));
+  const dati = scaricamentiDati(`Riserva di efficacia ${anno}`, 'riserva', (formato) => esportaRiserva(anno, formato));
   // i file solo con la riserva caricata: per un anno mai calcolato il backend risponde 404 anche all'export
   return (
     <Sezione titolo={`Riserva di efficacia (5%) dell'anno ${anno} (RF014)`} strumenti={stato.data && <PulsantiScarica oggetto={`i dati della riserva ${anno}`} scaricamenti={dati} />}>

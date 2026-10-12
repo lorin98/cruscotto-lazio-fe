@@ -1,13 +1,14 @@
 // PaginaFinanziario — impaginazione comune delle pagine del finanziario (UI v2, wireframe v2 approvati): barra dei filtri
 // a chip con il pannello laterale, il perimetro e la data dell'ultimo dato, breadcrumb, titolo (h1 SEMPRE presente, che
 // riceve il focus e da' il titolo al documento), un solo avviso d'errore per la pagina, contenuto. La semantica dei filtri
-// e' della feature (useFiltriNellIndirizzo); qui solo l'impaginazione e il contesto che apre il pannello dallo stato vuoto.
+// e' della feature (useFiltriNellIndirizzo); qui solo l'impaginazione, il contesto che apre il pannello dallo stato vuoto e
+// le righe della pagina nell'intestazione dei PNG dei grafici (filtri della barra, profilo, ultimo dato: NFR-50, V-01).
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
-import { ContestoFiltri, PANORAMICA, PannelloFiltri, PerimetroPill, UltimoAggiornamento, conFiltri, titoloH1, useFiltriNellIndirizzo, voceDi } from '../../../features/finanziario';
+import { ContestoFiltri, PANORAMICA, PannelloFiltri, PerimetroPill, UltimoAggiornamento, conFiltri, titoloH1, useFiltriNellIndirizzo, useRigheIntestazione, voceDi } from '../../../features/finanziario';
 import type { Filtri } from '../../../features/finanziario';
-import { AvvisoPagina, BarraFiltri, Caricamento, useFocusTitolo } from '../../../shared/ui';
+import { AvvisoPagina, BarraFiltri, Caricamento, ContestoIntestazione, useFocusTitolo } from '../../../shared/ui';
 import type { ChipFiltro } from '../../../shared/ui';
 
 interface Briciola {
@@ -50,17 +51,7 @@ function TestaPagina({ titolo, titoloDocumento, sottotitolo, azioni }: { titolo:
   );
 }
 
-export function PaginaFinanziario({
-  percorso,
-  conBarraFiltri = true,
-  chipFissi,
-  briciole,
-  titolo,
-  titoloDocumento,
-  sottotitolo,
-  azioni,
-  children,
-}: {
+interface PropsPagina {
   percorso: string;
   /** Falso dove i filtri del finanziario non si applicano (riserva, OP-FE-03). */
   conBarraFiltri?: boolean;
@@ -75,48 +66,67 @@ export function PaginaFinanziario({
   sottotitolo?: string;
   azioni?: ReactNode;
   children: (filtri: Filtri) => ReactNode;
-}) {
-  const { filtri, inAttesa, chip, applica, togliTutti, conPannello } = useFiltriNellIndirizzo();
-  const [pannello, setPannello] = useState(false);
+}
+
+/** Briciole e titolo dal catalogo dei report, con le sostituzioni della pagina. */
+function Testata({ percorso, briciole, titolo, titoloDocumento, sottotitolo, azioni, filtri }: Omit<PropsPagina, 'children' | 'conBarraFiltri' | 'chipFissi'> & { filtri: Filtri }) {
   const voce = voceDi(percorso);
   const catalogo = voce?.titolo ?? 'Finanziario';
-  // la modalita' della barra si decide una volta: i chip fissi (dettaglio), oppure i filtri dell'indirizzo con il pannello
-  const pannelloAttivo = conBarraFiltri && conPannello && !chipFissi;
-  const apriPannello = pannelloAttivo ? () => setPannello(true) : undefined;
-  const barra = chipFissi ? { chip: chipFissi } : { chip, onApri: apriPannello, onTogliTutti: togliTutti };
-  // finche' non si sa se il filtro per azione si applica, i report non leggono (X-03)
-  const contenuto = conBarraFiltri && inAttesa ? <Caricamento testo="Verifica dei filtri in corso…" /> : children(filtri);
+  return (
+    <>
+      <Briciole voci={briciole ?? (percorso === PANORAMICA.percorso ? [] : [{ etichetta: catalogo }])} filtri={filtri} />
+      <TestaPagina titolo={titolo ?? titoloH1(catalogo)} titoloDocumento={titoloDocumento ?? catalogo} sottotitolo={sottotitolo ?? voce?.sottotitolo} azioni={azioni} />
+    </>
+  );
+}
 
+/**
+ * La modalita' della barra si decide una volta: i chip fissi (dettaglio), oppure i filtri dell'indirizzo con il pannello.
+ * Restituisce anche le righe della pagina per l'intestazione dei PNG (i filtri della barra, NFR-50, review v3 V-01).
+ */
+function useBarraFiltri(conBarraFiltri: boolean, chipFissi: ChipFiltro[] | undefined) {
+  const { filtri, inAttesa, chip, applica, togliTutti, conPannello } = useFiltriNellIndirizzo();
+  const [aperto, setAperto] = useState(false);
+  const pannelloAttivo = conBarraFiltri && conPannello && !chipFissi;
+  const apriPannello = pannelloAttivo ? () => setAperto(true) : undefined;
+  const barra = chipFissi ? { chip: chipFissi } : { chip, onApri: apriPannello, onTogliTutti: togliTutti };
+  const righe = useRigheIntestazione((conBarraFiltri ? barra.chip : []).map((c) => `${c.etichetta}: ${c.valore}`));
+  const pannello = pannelloAttivo ? { aperto, chiudi: () => setAperto(false), applica } : null;
+  return { filtri, inAttesa: conBarraFiltri && inAttesa, barra, apriPannello, righe, pannello };
+}
+
+export function PaginaFinanziario({ conBarraFiltri = true, chipFissi, children, ...testata }: PropsPagina) {
+  const { filtri, inAttesa, barra, apriPannello, righe, pannello } = useBarraFiltri(conBarraFiltri, chipFissi);
   return (
     <ContestoFiltri.Provider value={apriPannello ?? null}>
-      {conBarraFiltri && (
-        <BarraFiltri
-          {...barra}
-          vuoto="Nessun filtro: tutti gli interventi del perimetro"
-          destra={
-            <>
-              <PerimetroPill />
-              <UltimoAggiornamento />
-            </>
-          }
-        />
-      )}
+      {conBarraFiltri && <BarraFiltri {...barra} vuoto="Nessun filtro: tutti gli interventi del perimetro" destra={<PillDellaBarra />} />}
       <main className="ui-pagina" id="contenuto">
-        <Briciole voci={briciole ?? (percorso === PANORAMICA.percorso ? [] : [{ etichetta: catalogo }])} filtri={filtri} />
-        <TestaPagina titolo={titolo ?? titoloH1(catalogo)} titoloDocumento={titoloDocumento ?? catalogo} sottotitolo={sottotitolo ?? voce?.sottotitolo} azioni={azioni} />
-        <AvvisoPagina>{contenuto}</AvvisoPagina>
+        <Testata {...testata} filtri={filtri} />
+        <ContestoIntestazione.Provider value={righe}>
+          {/* finche' non si sa se il filtro per azione si applica, i report non leggono (X-03) */}
+          <AvvisoPagina>{inAttesa ? <Caricamento testo="Verifica dei filtri in corso…" /> : children(filtri)}</AvvisoPagina>
+        </ContestoIntestazione.Provider>
       </main>
-      {pannelloAttivo && (
+      {pannello && (
         <PannelloFiltri
-          aperto={pannello}
+          aperto={pannello.aperto}
           valori={filtri}
-          onChiudi={() => setPannello(false)}
+          onChiudi={pannello.chiudi}
           onApplica={(f) => {
-            setPannello(false);
-            applica(f);
+            pannello.chiudi();
+            pannello.applica(f);
           }}
         />
       )}
     </ContestoFiltri.Provider>
+  );
+}
+
+function PillDellaBarra() {
+  return (
+    <>
+      <PerimetroPill />
+      <UltimoAggiornamento />
+    </>
   );
 }

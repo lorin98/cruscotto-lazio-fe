@@ -273,7 +273,7 @@ describe('graficoAvanzamento', () => {
     const g = graficoAvanzamento([{ codiceIntervento: 'SR<b>', dotazioneSpesaPubblica: imp(100), pagamentiTotali: imp(50) }]);
     const o = opzioniDi(g);
     const testo = o.tooltip?.formatter?.({ name: 'SR<b>', data: o.series[0].data?.[0] }) ?? '';
-    expect(n(testo)).toBe('SR<b>: 50 % della dotazione (pagato 0,0 M€ su 0,0 M€)');
+    expect(n(testo)).toBe('SR<b>: 50 % della dotazione (pagato 50,00 € su 100,00 €)');
     expect(testo).not.toContain('&lt;');
     const sicure = opzioniSicure(g.opzioni ?? {}) as unknown as OpzioniProva;
     expect(sicure.tooltip?.renderMode).toBe('richText');
@@ -342,17 +342,31 @@ describe('graficoFamiglie', () => {
     expect(foglie.map((f) => f.value)).not.toContain(0);
   });
 
-  it('tabella: foglie e totale per famiglia, poi le omesse', () => {
+  it('tabella: foglie e totale per famiglia (non calcolabile se manca un intervento, review v3 X-02), poi le omesse', () => {
     const g = graficoFamiglie(righeSpesa);
     expect(g.tabella.colonne).toEqual(['Famiglia', 'Intervento', 'Dotazione']);
     expect(righeN(g)).toEqual([
       ['SRA', 'SRA02', '20.000.000,00 €'],
       ['SRA', 'SRA01', '10.000.000,00 €'],
-      ['SRA', 'Totale della famiglia', '30.000.000,00 €'],
+      ['SRA', 'Totale della famiglia', 'non calcolabile (manca per SRA03)'],
       ['SRD', 'SRD13', '10.000.000,00 €'],
       ['SRD', 'Totale della famiglia', '10.000.000,00 €'],
       ['SRA', 'SRA03', 'non disponibile (fonte quadro sinottico non attiva)'],
     ]);
+  });
+
+  it('famiglia con un intervento senza dotazione: nodo e descrizione non chiamano totale la somma parziale (review v3 X-02)', () => {
+    const g = graficoFamiglie(righeSpesa);
+    const [sra, srd] = (opzioniDi(g).series[0].data ?? []).map(item);
+    expect(n(sra.etichetta ?? '')).toBe('SRA non calcolabile');
+    expect(n(sra.dettaglio ?? '')).toBe('Famiglia SRA: dotazione non calcolabile (manca per SRA03); 2 interventi con dotazione, 30,0 M€');
+    expect(sra.value).toBe(30_000_000);
+    expect(n(srd.etichetta ?? '')).toBe('SRD 10,0 M€');
+    const descrizione = opzioniDi(g).aria.label.description;
+    expect(n(descrizione)).toContain('2 famiglie e 3 interventi; dotazione non calcolabile per SRA (manca per SRA03).');
+    expect(descrizione).not.toContain('maggiore');
+    // tutte complete: la famiglia maggiore si dichiara
+    expect(n(opzioniDi(graficoFamiglie(righeSpesa.filter((r) => r.codiceIntervento !== 'SRA03'))).aria.label.description)).toContain('la famiglia con la dotazione maggiore è SRA (30,0 M€)');
   });
 
   it('nessuna dotazione utile: non disegnabile', () => {

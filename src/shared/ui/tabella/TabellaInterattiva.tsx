@@ -137,21 +137,44 @@ function Paginazione({ pagina, pagine, onPagina }: { pagina: number; pagine: num
   );
 }
 
-export function TabellaInterattiva<T>({
-  caption,
-  righe,
-  colonne,
-  chiaveRiga,
-  testoRicerca,
-  segnapostoRicerca = 'Cerca nella tabella',
-  onRiga,
-  etichettaRiga,
-  totali,
-  righePiede = [],
-  ordineIniziale,
-  perPagina = 10,
+/** Ricerca, strumenti del chiamante, scelta delle colonne; con una ricerca attiva, la nota del chiamante (X-04). */
+function Strumenti<T>({
+  id,
+  cercato,
+  onCerca,
+  segnaposto,
   strumenti,
+  notaRicerca,
+  colonne,
+  nascoste,
+  onColonna,
 }: {
+  id: string;
+  cercato: string;
+  onCerca: (testo: string) => void;
+  segnaposto: string;
+  strumenti?: ReactNode;
+  notaRicerca?: string;
+  colonne: ColonnaTabella<T>[];
+  nascoste: ReadonlySet<string>;
+  onColonna: (chiave: string, visibile: boolean) => void;
+}) {
+  return (
+    <>
+      <div className="ui-strumenti">
+        <label className="visually-hidden" htmlFor={`${id}-cerca`}>
+          Cerca nella tabella
+        </label>
+        <input id={`${id}-cerca`} type="search" placeholder={segnaposto} value={cercato} onChange={(e) => onCerca(e.target.value)} />
+        {strumenti}
+        {colonne.some((c) => !c.fissa) && <SceltaColonne colonne={colonne} nascoste={nascoste} onCambia={onColonna} />}
+      </div>
+      {notaRicerca && cercato.trim() !== '' && <p className="ui-nota">{notaRicerca}</p>}
+    </>
+  );
+}
+
+interface PropsTabellaInterattiva<T> {
   caption: string;
   righe: readonly T[];
   colonne: ColonnaTabella<T>[];
@@ -160,6 +183,8 @@ export function TabellaInterattiva<T>({
   testoRicerca: (r: T) => string;
   /** Segnaposto del campo di ricerca: dice su cosa si cerca. */
   segnapostoRicerca?: string;
+  /** Nota mostrata mentre la ricerca e' attiva (es. i file scaricati non la applicano: review v3 X-04). */
+  notaRicerca?: string;
   onRiga?: (r: T) => void;
   etichettaRiga?: (r: T) => string;
   /** Riga dei totali, calcolata sulle righe filtrate. */
@@ -169,10 +194,13 @@ export function TabellaInterattiva<T>({
   ordineIniziale?: Ordine;
   perPagina?: number;
   strumenti?: ReactNode;
-}) {
+}
+
+export function TabellaInterattiva<T>(props: PropsTabellaInterattiva<T>) {
+  const { caption, righe, colonne, chiaveRiga, testoRicerca, onRiga, etichettaRiga, totali, righePiede = [], perPagina = 10 } = props;
   const id = useId();
   const [cercato, setCercato] = useState('');
-  const [ordine, setOrdine] = useState<Ordine>(ordineIniziale ?? { chiave: colonne[0].chiave, verso: 'crescente' });
+  const [ordine, setOrdine] = useState<Ordine>(props.ordineIniziale ?? { chiave: colonne[0].chiave, verso: 'crescente' });
   const [pagina, setPagina] = useState(0);
   const [nascoste, setNascoste] = useState<Set<string>>(() => new Set(colonne.filter((c) => c.nascosta).map((c) => c.chiave)));
 
@@ -181,37 +209,32 @@ export function TabellaInterattiva<T>({
   const ordinate = useMemo(() => ordinaRighe(filtrate, (colonne.find((c) => c.chiave === ordine.chiave) ?? colonne[0]).valore, ordine.verso), [filtrate, colonne, ordine]);
   const corrente = paginaDi(ordinate, pagina, perPagina);
   const piede = [...(totali ? [totali(filtrate)] : []), ...righePiede];
+  const cerca = (testo: string) => {
+    setCercato(testo);
+    setPagina(0);
+  };
+  const ordina = (chiave: string) => {
+    setOrdine((o) => versoSuccessivo(o, chiave));
+    setPagina(0);
+  };
 
   return (
     <div>
-      <div className="ui-strumenti">
-        <label className="visually-hidden" htmlFor={`${id}-cerca`}>
-          Cerca nella tabella
-        </label>
-        <input
-          id={`${id}-cerca`}
-          type="search"
-          placeholder={segnapostoRicerca}
-          value={cercato}
-          onChange={(e) => {
-            setCercato(e.target.value);
-            setPagina(0);
-          }}
-        />
-        {strumenti}
-        {colonne.some((c) => !c.fissa) && <SceltaColonne colonne={colonne} nascoste={nascoste} onCambia={(chiave, visibile) => setNascoste((s) => conColonna(s, chiave, visibile))} />}
-      </div>
+      <Strumenti
+        id={id}
+        cercato={cercato}
+        onCerca={cerca}
+        segnaposto={props.segnapostoRicerca ?? 'Cerca nella tabella'}
+        strumenti={props.strumenti}
+        notaRicerca={props.notaRicerca}
+        colonne={colonne}
+        nascoste={nascoste}
+        onColonna={(chiave, visibile) => setNascoste((s) => conColonna(s, chiave, visibile))}
+      />
       <div className="ui-tabella-contenitore">
         <table className="ui-tabella">
           <caption>{didascalia(caption, filtrate.length, cercato, !!onRiga)}</caption>
-          <Intestazioni
-            colonne={visibili}
-            ordine={ordine}
-            onOrdina={(chiave) => {
-              setOrdine((o) => versoSuccessivo(o, chiave));
-              setPagina(0);
-            }}
-          />
+          <Intestazioni colonne={visibili} ordine={ordine} onOrdina={ordina} />
           <tbody>
             {corrente.righe.map((r) => (
               <Riga key={chiaveRiga(r)} riga={r} colonne={visibili} onRiga={onRiga} etichetta={etichettaRiga?.(r)} />

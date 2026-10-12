@@ -58,7 +58,7 @@ const VUOTO = vuotoConPerimetro("Nessun dato SIGC per l'esercizio scelto. Scegli
 function DatiSmp({ filtri, esercizio }: { filtri: Filtri; esercizio: number }) {
   const stato = useVerificaSmp(filtri, esercizio);
   const { apri, dalClic: clic } = useApriIntervento(filtri);
-  const dati = scaricamentiDati(`Verifica SMP esercizio ${esercizio}`, (formato) => esportaVerificaSmp(filtri, esercizio, formato));
+  const dati = scaricamentiDati(`Verifica SMP esercizio ${esercizio}`, 'verificaSmp', (formato) => esportaVerificaSmp(filtri, esercizio, formato));
   const conRighe = (stato.data?.righe ?? []).length > 0;
   return (
     <Sezione

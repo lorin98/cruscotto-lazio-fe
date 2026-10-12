@@ -147,12 +147,15 @@ describe('quotaPagata e kpiSpesa', () => {
       pagato: { valore: 13_000_000 },
       quota: { valore: 30, nota: 'media ponderata su 3 di 4 interventi' },
     });
-    // una dotazione assente: il totale della dotazione non e calcolabile, il pagato si'
+    // una dotazione assente: il totale della dotazione non e calcolabile, il pagato si'; la quota non compare accanto a
+    // un totale non calcolabile (wireframe panoramica, review v3 V-05)
     expect(kpiSpesa([...righe, senzaDotazione])).toEqual({
       dotazione: { valore: null, motivo: 'Non calcolabile: manca per 1 intervento (SRA03)' },
       pagato: { valore: 13_000_000 },
-      quota: { valore: 30, nota: 'media ponderata su 3 di 4 interventi' },
+      quota: { valore: null, motivo: 'Non calcolabile: manca il totale della dotazione' },
     });
+    const senzaNulla = { ...senzaDotazione, pagamentiTotali: undefined };
+    expect(kpiSpesa([...righe, senzaNulla]).quota).toEqual({ valore: null, motivo: 'Non calcolabile: manca il totale della dotazione e dei pagamenti' });
   });
 
   it('kpiSpesa col perimetro ADA: i totali restano, la quota non e confrontabile', () => {

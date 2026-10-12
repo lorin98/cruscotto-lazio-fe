@@ -57,7 +57,7 @@ describe("un'entity si importa solo dal suo barrel (H-11)", () => {
   });
 });
 
-describe('soglie dei lib/ (H-06)', () => {
+describe('soglie dei lib/ (H-06) e della UI (review v3 H-01)', () => {
   // funzione con n rami: n - 1 if e il return finale, complessita' n
   const conRami = (n: number) =>
     `export function rami(x: number): number {\n${Array.from({ length: n - 1 }, (_, i) => `  if (x === ${i}) return ${i};`).join('\n')}\n  return -1;\n}\n`;
@@ -68,7 +68,15 @@ describe('soglie dei lib/ (H-06)', () => {
   const complessita = di('complexity');
   const lunghezza = di('max-lines-per-function');
 
-  it.each(['src/shared/lib/__canary__.ts', 'src/entities/importo/lib/__canary__.ts', 'src/features/finanziario/lib/__canary__.ts'])(
+  it.each([
+    'src/shared/lib/__canary__.ts',
+    'src/entities/importo/lib/__canary__.ts',
+    'src/features/finanziario/lib/__canary__.ts',
+    'src/shared/ui/__canary__.tsx',
+    'src/features/finanziario/ui/__canary__.tsx',
+    'src/widgets/report-finanziario/ui/__canary__.tsx',
+    'src/pages/finanziario/__canary__.tsx',
+  ])(
     'in %s scattano con 11 rami e con 61 righe, non al limite (10 e 60)',
     async (percorso) => {
       expect(await complessita(conRami(11), percorso)).toHaveLength(1);
@@ -77,8 +85,8 @@ describe('soglie dei lib/ (H-06)', () => {
       expect(await lunghezza(conRighe(60), percorso)).toEqual([]);
     },
   );
-  it('non scattano in ui/', async () => {
-    const percorso = 'src/features/finanziario/ui/__canary__.ts';
+  it('non scattano nei test', async () => {
+    const percorso = 'src/features/finanziario/ui/__canary__.test.tsx';
     expect(await complessita(conRami(11), percorso)).toEqual([]);
     expect(await lunghezza(conRighe(61), percorso)).toEqual([]);
   });
@@ -145,5 +153,59 @@ describe('mutator BFF: X-Requested-With obbligatorio (R-11)', () => {
   it('non scatta con X-Requested-With inline', async () => {
     const msg = await regole(con(", headers: { 'X-Requested-With': 'XMLHttpRequest' }"), MUTATOR);
     expect(msg.filter((m) => m.startsWith('local/bff-mutator-armed'))).toEqual([]);
+  });
+});
+
+describe('lib/: niente ui/ ne wrapper api/ con un import relativo (review v3 H-03)', () => {
+  const ristretti = (m: string[]) => m.filter((x) => x.startsWith('no-restricted-imports'));
+  it.each([
+    ["import { ConGrant } from '../ui/comuni';", 'src/features/finanziario/lib/__canary__.ts'],
+    ["import { useRiepilogo } from '../api';", 'src/features/finanziario/lib/__canary__.ts'],
+    ["import { useRiepilogo } from '../../api';", 'src/features/finanziario/lib/grafici/__canary__.ts'],
+    ["import { AXIOS_INSTANCE } from '../api/mutator/bff-mutator';", 'src/shared/lib/__canary__.ts'],
+    ["import { hasGrant } from '../api/auth/auth-status';", 'src/shared/lib/__canary__.ts'],
+    ["import { Kpi } from '../ui';", 'src/shared/lib/__canary__.ts'],
+  ])('scatta su %s', async (riga, percorso) => {
+    expect(ristretti(await regole(`${riga}\nexport const x = 1;\n`, percorso)).length).toBeGreaterThan(0);
+  });
+  it.each([
+    ["import { hasGrant } from '../api/auth/stato';", 'src/shared/lib/__canary__.ts'],
+    ["import { classifyProblem } from '../api/problem/problem-types';", 'src/shared/lib/__canary__.ts'],
+    ["import { testoUltimiDati } from './aggiornamento';", 'src/features/finanziario/lib/__canary__.ts'],
+  ])('non scatta sui moduli puri: %s', async (riga, percorso) => {
+    expect(ristretti(await regole(`${riga}\nexport const x = 1;\n`, percorso))).toEqual([]);
+  });
+});
+
+describe('una sola istanza HTTP, il mutator BFF (review v3 H-04)', () => {
+  const sintassi = (m: string[]) => m.filter((x) => x.startsWith('no-restricted-syntax'));
+  const DOVE = ['src/features/finanziario/ui/__canary__.tsx', 'src/shared/ui/__canary__.tsx', 'src/app/__canary__.ts', 'src/shared/lib/__canary__.ts'];
+  it.each(DOVE)('scatta su fetch, window.fetch e un axios proprio in %s', async (percorso) => {
+    for (const codice of [
+      "export const x = fetch('/api/finanziario/riepilogo');\n",
+      "export const x = window.fetch('/api/finanziario/riepilogo');\n",
+      "import axios from 'axios';\nexport const x = axios.get('/api/finanziario/riepilogo');\n",
+      "import * as ax from 'axios';\nexport const x = ax;\n",
+      "import { Axios } from 'axios';\nexport const x = new Axios({});\n",
+    ]) {
+      expect(sintassi(await regole(codice, percorso)).length, codice).toBeGreaterThan(0);
+    }
+  });
+  it('ammessi isAxiosError e i tipi; il mutator importa axios', async () => {
+    expect(sintassi(await regole("import { isAxiosError } from 'axios';\nexport const x = isAxiosError;\n", DOVE[0]))).toEqual([]);
+    const mutator = "import Axios from 'axios';\nexport const AXIOS_INSTANCE = Axios.create({ withCredentials: true, headers: { 'X-Requested-With': 'XMLHttpRequest' } });\n";
+    expect(sintassi(await regole(mutator, 'src/shared/api/mutator/bff-mutator.ts'))).toEqual([]);
+  });
+});
+
+describe('la shell compone solo dal barrel della feature (review v3 H-05)', () => {
+  const ristretti = (m: string[]) => m.filter((x) => x.startsWith('no-restricted-imports'));
+  it('scatta su un import interno della feature da src/app', async () => {
+    const codice = "import { useRiepilogo } from '../features/finanziario/api';\nexport const x = useRiepilogo;\n";
+    expect(ristretti(await regole(codice, 'src/app/__canary__.ts')).length).toBeGreaterThan(0);
+  });
+  it('non scatta sul barrel', async () => {
+    const codice = "import { CercaIntervento } from '../features/finanziario';\nexport const x = CercaIntervento;\n";
+    expect(ristretti(await regole(codice, 'src/app/__canary__.ts'))).toEqual([]);
   });
 });

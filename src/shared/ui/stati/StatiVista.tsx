@@ -58,13 +58,20 @@ function AggiornamentoFallito({ errore, onRiprova }: { errore: unknown; onRiprov
   );
 }
 
-/**
- * Sceglie il ramo della vista. Senza dati: caricamento, attesa della connessione (fetch in pausa offline), errore
- * (`errorePersonalizzato` puo' trasformare un errore atteso in un contenuto, es. il 404 della riserva) o niente se la
- * query e' disabilitata. Con dati: vuoto (se `eVuoto`) oppure i dati; un refetch fallito NON cancella i dati gia'
- * mostrati, aggiunge un avviso con "Riprova". Dentro <AvvisoPagina> l'errore senza dati lo dice la pagina, una volta.
- */
-export function VistaQuery<T>(props: {
+/** Senza dati: errore (personalizzato, nella pagina o qui), attesa della connessione, caricamento, o niente (disabilitata). */
+function RamoSenzaDati({ stato, personalizzato, nellaPagina }: { stato: StatoQuery<unknown>; personalizzato: ReactNode; nellaPagina: boolean }) {
+  if (stato.isError) return <>{personalizzato ?? (nellaPagina ? <ErroreNellaPagina /> : <ErroreVista errore={stato.error} onRiprova={() => void stato.refetch()} />)}</>;
+  if (stato.fetchStatus === 'paused') return <Caricamento testo="In attesa della connessione…" />;
+  if (stato.isPending && stato.fetchStatus === 'fetching') return <Caricamento />;
+  return null;
+}
+
+/** Contenuto dello stato vuoto: quello del chiamante (anche calcolato dai dati), altrimenti il testo generico. */
+function contenutoVuoto<T>(vuoto: ReactNode | ((dati: T) => ReactNode), dati: T): ReactNode {
+  return (typeof vuoto === 'function' ? vuoto(dati) : vuoto) ?? 'Nessun dato da mostrare.';
+}
+
+interface PropsVistaQuery<T> {
   stato: StatoQuery<T>;
   eVuoto?: (dati: T) => boolean;
   /** Contenuto dello stato vuoto; una funzione lo calcola dai dati (es. per dire il perimetro). */
@@ -73,23 +80,31 @@ export function VistaQuery<T>(props: {
   /** In attesa di un'informazione esterna (es. il segnale di vuoto della selezione): si mostra il caricamento. */
   inAttesa?: boolean;
   children: (dati: T) => ReactNode;
-}) {
-  const { stato, eVuoto, vuoto, errorePersonalizzato, inAttesa = false, children } = props;
-  const riprova = () => void stato.refetch();
+}
+
+/**
+ * Sceglie il ramo della vista. Senza dati: caricamento, attesa della connessione (fetch in pausa offline), errore
+ * (`errorePersonalizzato` puo' trasformare un errore atteso in un contenuto, es. il 404 della riserva) o niente se la
+ * query e' disabilitata. Con dati: vuoto (se `eVuoto`) oppure i dati; un refetch fallito NON cancella i dati gia'
+ * mostrati, aggiunge un avviso con "Riprova". Dentro <AvvisoPagina> l'errore senza dati lo dice la pagina, una volta.
+ */
+/** L'errore senza dati: il contenuto personalizzato del chiamante, oppure se lo dice la pagina (una volta per pagina). */
+function useErroreSenzaDati<T>(stato: StatoQuery<T>, errorePersonalizzato: PropsVistaQuery<T>['errorePersonalizzato']) {
   const senzaDati = stato.data === undefined && stato.isError;
   const personalizzato = senzaDati ? errorePersonalizzato?.(stato.error) : undefined;
   const nellaPagina = useErroreNellaPagina(senzaDati && personalizzato == null, stato.error, stato.refetch);
+  return { personalizzato, nellaPagina };
+}
+
+export function VistaQuery<T>({ stato, eVuoto, vuoto, errorePersonalizzato, inAttesa, children }: PropsVistaQuery<T>) {
+  const { personalizzato, nellaPagina } = useErroreSenzaDati(stato, errorePersonalizzato);
   if (inAttesa && !stato.isError) return <Caricamento />;
-  if (stato.data === undefined) {
-    if (stato.isError) return <>{personalizzato ?? (nellaPagina ? <ErroreNellaPagina /> : <ErroreVista errore={stato.error} onRiprova={riprova} />)}</>;
-    if (stato.fetchStatus === 'paused') return <Caricamento testo="In attesa della connessione…" />;
-    if (stato.isPending && stato.fetchStatus === 'fetching') return <Caricamento />;
-    return null;
-  }
+  const dati = stato.data;
+  if (dati === undefined) return <RamoSenzaDati stato={stato} personalizzato={personalizzato} nellaPagina={nellaPagina} />;
   return (
     <>
-      {stato.isError && <AggiornamentoFallito errore={stato.error} onRiprova={riprova} />}
-      {eVuoto?.(stato.data) ? <Vuoto>{(typeof vuoto === 'function' ? vuoto(stato.data) : vuoto) ?? 'Nessun dato da mostrare.'}</Vuoto> : children(stato.data)}
+      {stato.isError && <AggiornamentoFallito errore={stato.error} onRiprova={() => void stato.refetch()} />}
+      {eVuoto?.(dati) ? <Vuoto>{contenutoVuoto(vuoto, dati)}</Vuoto> : children(dati)}
     </>
   );
 }

@@ -472,9 +472,9 @@ describe('Panoramica (route /finanziario: TX-0002, TX-0009, TX-0012, TX-0013)', 
     await waitFor(() => expect(valoreKpi('Dotazione spesa pubblica')).toBe('Non calcolabile: manca per 1 intervento (SRA03)'));
     expect(notaKpi('Dotazione spesa pubblica')).toBe('2 interventi nella selezione');
     expect(valoreKpi('Pagamenti totali')).toBe('300.000,00 €');
-    // la quota esclude l'intervento senza dotazione, come il grafico dell'avanzamento
-    expect(valoreKpi('Pagato sulla dotazione')).toBe('20 %');
-    expect(notaKpi('Pagato sulla dotazione')).toBe('media ponderata su 1 di 2 interventi');
+    // la quota non compare accanto a un totale non calcolabile (wireframe panoramica, review v3 V-05)
+    expect(valoreKpi('Pagato sulla dotazione')).toBe('Non calcolabile: manca il totale della dotazione');
+    expect(within(screen.getByRole('region', { name: 'Pagato sulla dotazione' })).queryByRole('img')).toBeNull();
     expect(screen.queryByText('1,0 M€')).toBeNull();
   });
 
@@ -922,7 +922,7 @@ describe('RiepilogoReport (TX-0011, tabella interattiva)', () => {
     expect(new URL(richiesta?.url ?? 'http://x').search).toBe('?intervento=SRA01');
     expect(richiesta?.headers.get('X-Requested-With')).toBe('XMLHttpRequest');
     expect(clic).toHaveBeenCalledTimes(1);
-    expect((clic.mock.contexts[0] as HTMLAnchorElement).download).toBe('riepilogo-per-intervento.csv');
+    expect((clic.mock.contexts[0] as HTMLAnchorElement).download).toBe('riepilogo-per-intervento-tx-0011.csv');
   });
 
   it("esporta l'XLSX dal backend con gli stessi filtri e X-Requested-With (D-08)", async () => {
@@ -942,7 +942,7 @@ describe('RiepilogoReport (TX-0011, tabella interattiva)', () => {
     expect(await screen.findByText('File XLSX scaricato.')).toBeTruthy();
     expect(new URL(richiesta?.url ?? 'http://x').search).toBe('?intervento=SRA01&os=OS4');
     expect(richiesta?.headers.get('X-Requested-With')).toBe('XMLHttpRequest');
-    expect((clic.mock.contexts[0] as HTMLAnchorElement).download).toBe('riepilogo-per-intervento.xlsx');
+    expect((clic.mock.contexts[0] as HTMLAnchorElement).download).toBe('riepilogo-per-intervento-tx-0011.xlsx');
     clic.mockRestore();
   });
 
@@ -1120,6 +1120,25 @@ describe('DotazioneReport (TX-0002, TX-0003)', () => {
     expect(graficiVivi()).toHaveLength(0);
   });
 
+  it('sezioni nell ordine del wireframe dotazione: dotazione e quote affiancate, poi contributo e tabella di RF002 (review v3 V-06)', async () => {
+    server.use(rispondi('/api/finanziario/spesa-per-intervento', F.SPESA), rispondi('/api/finanziario/distribuzione-dotazione', F.DISTRIBUZIONE));
+    const client = clientDiTest();
+    conRouter(<DotazioneReport filtri={{}} />, '/prova', client);
+    await screen.findByRole('table', { name: /Dotazione, impegni e pagamenti per intervento/ });
+    await trovaCard(QUOTE);
+    expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual([
+      'Dotazione e pagamenti per intervento',
+      QUOTE,
+      'Contributo ambientale per intervento',
+      'Spesa pubblica per intervento (RF002)',
+    ]);
+    // la griglia a due colonne affianca dotazione e quote
+    const griglia = screen.getByRole('region', { name: 'Dotazione e pagamenti per intervento' }).parentElement;
+    expect(within(griglia as HTMLElement).getByRole('region', { name: QUOTE })).toBeTruthy();
+    // una sola lettura di TX-0002 per le tre sezioni
+    expect(letture(client, '/api/finanziario/spesa-per-intervento')).toHaveLength(1);
+  });
+
   it('con TX-0002 ancora in attesa le quote restano in caricamento, senza mostrare prima i valori (R-15)', async () => {
     server.use(rispondi('/api/finanziario/distribuzione-dotazione', F.DISTRIBUZIONE));
     const rilascia = trattenuta('/api/finanziario/spesa-per-intervento', { perimetro: 'REGIONALE', righe: [] });
@@ -1127,7 +1146,8 @@ describe('DotazioneReport (TX-0002, TX-0003)', () => {
     conRouter(<DotazioneReport filtri={{ intervento: ['SRA99'] }} />, '/prova', client);
     await waitFor(() => expect(lettaConSuccesso(client, '/api/finanziario/distribuzione-dotazione')).toBe(true));
     await notifiche();
-    expect(screen.getAllByText('Caricamento in corso…')).toHaveLength(2);
+    // tre sezioni in caricamento: dotazione, quote, contributo e tabella (ordine del wireframe, review v3 V-06)
+    expect(screen.getAllByText('Caricamento in corso…')).toHaveLength(3);
     expect(screen.queryByRole('region', { name: QUOTE })).toBeNull();
     await rilascia();
     await waitFor(() => expect(screen.getAllByText(VUOTO_INTERVENTI)).toHaveLength(2));
@@ -1239,7 +1259,7 @@ describe('AvanzamentoReport (TX-0004..TX-0007)', () => {
     renderConQuery(<AvanzamentoReport filtri={{}} />);
     const titolo = 'Dove va la dotazione';
     await waitFor(() =>
-      expect(descrizione(graficoDi(titolo))).toBe('Flusso della dotazione (1,0 M€): pagamenti netti 0,2 M€, dotazione residua 0,8 M€. 1 voce omessa per dati mancanti o non utilizzabili.'),
+      expect(descrizione(graficoDi(titolo)).replace(/\s/g, ' ')).toBe('Flusso della dotazione (1,0 M€): pagamenti netti 200.000,00 €, dotazione residua 800.000,00 €. 1 voce omessa per dati mancanti o non utilizzabili.'),
     );
     const sankey = card(titolo);
     expect(within(sankey).getByText('1 voce non nel grafico')).toBeTruthy();
@@ -1569,7 +1589,7 @@ describe('SigcReport (TX-0012, TX-0013)', () => {
     await userEvent.click(screen.getByRole('button', { name: `Scarica il grafico ${RF013} in CSV` }));
     await waitFor(() => expect(richieste).toHaveLength(2));
     expect(richieste).toEqual(['/api/finanziario/sigc/domande/xlsx?intervento=SRA01 XMLHttpRequest', '/api/finanziario/sigc/importi/csv?intervento=SRA01 XMLHttpRequest']);
-    expect(clic.mock.contexts.map((a) => (a as HTMLAnchorElement).download)).toEqual(['domande-sigc-rf012.xlsx', 'importi-sigc-rf013.csv']);
+    expect(clic.mock.contexts.map((a) => (a as HTMLAnchorElement).download)).toEqual(['domande-sigc-rf012-tx-0012.xlsx', 'importi-sigc-rf013-tx-0013.csv']);
     clic.mockRestore();
   });
 
@@ -1666,7 +1686,7 @@ describe('RiservaReport (TX-0014)', () => {
     renderConQuery(<RiservaReport anno={2025} onCambiaAnno={nessunaAzione} />);
     await userEvent.click(await screen.findByRole('button', { name: 'Scarica i dati della riserva 2025 in XLSX' }));
     await waitFor(() => expect(percorso).toBe('/api/finanziario/riserva/2025/xlsx'));
-    expect((clic.mock.contexts[0] as HTMLAnchorElement).download).toBe('riserva-di-efficacia-2025.xlsx');
+    expect((clic.mock.contexts[0] as HTMLAnchorElement).download).toBe('riserva-di-efficacia-2025-tx-0014.xlsx');
     clic.mockRestore();
   });
 
@@ -1789,7 +1809,7 @@ describe('VerificaSmpReport (TX-0015)', () => {
     conRouter(<VerificaSmpReport filtri={{ intervento: ['SRA01'] }} esercizio={2025} onCambiaEsercizio={nessunaAzione} />);
     await userEvent.click(await screen.findByRole('button', { name: 'Scarica i dati SIGC per il confronto con SMP, esercizio 2025 in CSV' }));
     await waitFor(() => expect(query).toBe('?intervento=SRA01&esercizio=2025'));
-    expect((clic.mock.contexts[0] as HTMLAnchorElement).download).toBe('verifica-smp-esercizio-2025.csv');
+    expect((clic.mock.contexts[0] as HTMLAnchorElement).download).toBe('verifica-smp-esercizio-2025-tx-0015.csv');
     clic.mockRestore();
   });
 

@@ -50,18 +50,21 @@ export function maiuscolaIniziale(testo: string): string {
   return testo.charAt(0).toUpperCase() + testo.slice(1);
 }
 
-/** Importo in milioni di euro con una cifra decimale, per assi, tooltip ed etichette: 12345678 -> "12,3 M€". */
+/** Importo in milioni di euro con una cifra decimale: 12345678 -> "12,3 M€". Sotto il milione si usa importoBreve. */
 export function milioni(v: number): string {
   return `${(v / 1_000_000).toLocaleString('it-IT', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} M€`;
 }
 
-/** Importo di un KPI: in milioni da un milione in su, altrimenti in euro pieni (un importo piccolo non sembra uno zero). */
-export function importoKpi(v: number): string {
+/**
+ * Importo di KPI, etichette, tooltip e descrizioni accessibili: in milioni da un milione in su, altrimenti in euro pieni
+ * (un importo piccolo non sembra uno zero: 300 € non diventa "0,0 M€", review v3 X-03).
+ */
+export function importoBreve(v: number): string {
   return Math.abs(v) >= 1_000_000 ? milioni(v) : formatEuro(v);
 }
 
-export function valoreInMilioni(v: unknown): string {
-  return typeof v === 'number' ? milioni(v) : NON_DISPONIBILE;
+export function valoreBreve(v: unknown): string {
+  return typeof v === 'number' ? importoBreve(v) : NON_DISPONIBILE;
 }
 
 export function valoreInNumero(v: unknown): string {
@@ -72,8 +75,9 @@ export function assePercentuale(v: number): string {
   return formatPercentuale(v);
 }
 
-export function asseMilioni(v: number): string {
-  return milioni(v);
+/** Tacca di un asse di importi: in milioni da un milione in su, sotto in euro senza decimali (mai "0,0 M€" ripetuto). */
+export function asseImporti(v: number): string {
+  return Math.abs(v) >= 1_000_000 ? milioni(v) : v.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
 }
 
 /** Descrizione accessibile: ECharts la mette sull'SVG del grafico. */

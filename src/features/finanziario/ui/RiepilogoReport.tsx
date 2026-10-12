@@ -117,6 +117,7 @@ function Contenuto({ d, filtri }: { d: RiepilogoFinanziario; filtri: Filtri }) {
           chiaveRiga={(r) => r.codiceIntervento ?? ''}
           testoRicerca={(r) => r.codiceIntervento ?? ''}
           segnapostoRicerca="Cerca per codice dell'intervento"
+          notaRicerca="I file CSV e XLSX contengono tutti gli interventi dei filtri, non solo quelli trovati dalla ricerca."
           etichettaRiga={(r) => `Apri l'anteprima dell'intervento ${r.codiceIntervento ?? ''}`}
           onRiga={setAperta}
           ordineIniziale={{ chiave: 'dotazioneSpesaPubblica', verso: 'decrescente' }}

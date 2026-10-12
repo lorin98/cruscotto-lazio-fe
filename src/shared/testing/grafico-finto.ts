@@ -11,6 +11,8 @@ export interface GraficoFinto {
   /** Impostazioni passate a setOption insieme alle opzioni (es. notMerge). */
   impostazioni: unknown[];
   clic: Array<(p: unknown) => void>;
+  /** Chiamate a resize (il ResizeObserver del kit). */
+  ridimensionamenti: number;
   dismesso: boolean;
   setOption: (o: unknown, impostazioni?: unknown) => void;
   on: (evento: string, f: (p: unknown) => void) => GraficoFinto;
@@ -32,6 +34,7 @@ export function creaGraficoFinto(el: HTMLElement): IstanzaGrafico {
     opzioni: [],
     impostazioni: [],
     clic: [],
+    ridimensionamenti: 0,
     dismesso: false,
     setOption: (o, impostazioni) => {
       g.opzioni.push(o);
@@ -41,7 +44,9 @@ export function creaGraficoFinto(el: HTMLElement): IstanzaGrafico {
       if (evento === 'click') g.clic.push(f);
       return g;
     },
-    resize: () => undefined,
+    resize: () => {
+      g.ridimensionamenti += 1;
+    },
     dispose: () => {
       g.dismesso = true;
     },

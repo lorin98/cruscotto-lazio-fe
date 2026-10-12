@@ -5,16 +5,16 @@ import {
   COLORI,
   NON_DISPONIBILE,
   aria,
-  asseMilioni,
+  asseImporti,
   confronta,
   formatDate,
   formatEuro,
-  milioni,
+  importoBreve,
   nonDisegnabile,
   notaOmessi,
   numeroDi,
   plurale,
-  valoreInMilioni,
+  valoreBreve,
 } from '../../../../shared/lib';
 import type { DatiGrafico } from '../../../../shared/lib';
 import type { RiservaLike } from '../dto';
@@ -36,7 +36,7 @@ function lineaUtilizzo(cumulati: Array<number | null>, accumulato: number | null
   const riferimento =
     accumulato == null
       ? {}
-      : { markLine: { silent: true, symbol: 'none' as const, lineStyle: { color: COLORI.attenzione, type: 'dashed' as const }, label: { formatter: `Riserva accumulata ${milioni(accumulato)}` }, data: [{ name: 'Riserva accumulata', yAxis: accumulato }] } };
+      : { markLine: { silent: true, symbol: 'none' as const, lineStyle: { color: COLORI.attenzione, type: 'dashed' as const }, label: { formatter: `Riserva accumulata ${importoBreve(accumulato)}` }, data: [{ name: 'Riserva accumulata', yAxis: accumulato }] } };
   return { type: 'line', name: 'Utilizzo cumulato', connectNulls: false, areaStyle: { opacity: 0.2 }, data: cumulati, ...riferimento };
 }
 
@@ -56,16 +56,16 @@ export function graficoUtilizzoRiserva(m: RiservaLike): DatiGrafico {
   if (accumulato == null) omessi.push(`Riserva accumulata ${NON_DISPONIBILE}: linea di riferimento omessa`);
   const ultimo = [...cumulati].reverse().find((c): c is number => c != null) ?? 0;
   const descrizione =
-    `Area dell'utilizzo cumulato della riserva dal ${categorie[0]} al ${categorie[categorie.length - 1]}: ${milioni(ultimo)} utilizzati` +
-    `${accumulato == null ? '' : ` su ${milioni(accumulato)} di riserva accumulata`}.${notaOmessi(omessi)}`;
+    `Area dell'utilizzo cumulato della riserva dal ${categorie[0]} al ${categorie[categorie.length - 1]}: ${importoBreve(ultimo)} utilizzati` +
+    `${accumulato == null ? '' : ` su ${importoBreve(accumulato)} di riserva accumulata`}.${notaOmessi(omessi)}`;
   // massimo dell'asse calcolato qui: le funzioni delle opzioni non catturano dati (la firma le confronta per sorgente)
   const massimo = accumulato == null ? {} : { max: Math.max(accumulato, ...cumulati.filter((c): c is number => c != null)) };
   const opzioni: EChartsOption = {
     aria: aria(descrizione),
-    tooltip: { trigger: 'axis', valueFormatter: valoreInMilioni },
+    tooltip: { trigger: 'axis', valueFormatter: valoreBreve },
     dataZoom: [{ type: 'inside' }, { type: 'slider' }],
     xAxis: { type: 'category', data: categorie },
-    yAxis: { type: 'value', min: 0, ...massimo, axisLabel: { formatter: asseMilioni } },
+    yAxis: { type: 'value', min: 0, ...massimo, axisLabel: { formatter: asseImporti } },
     series: [lineaUtilizzo(cumulati, accumulato)],
   };
   return { opzioni, tabella, omessi };
