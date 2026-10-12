@@ -97,14 +97,19 @@ export const IMPORTI_PER_ANNO = {
     { annoRaccolta: null, importoStanziato: nd('QUADRO_SINOTTICO'), importoAmmesso: euro(10000), importoDecretato: euro(0), domandeSenzaAmmesso: 40 },
   ],
 };
-export const SIGC_DOMANDE = { perimetro: 'REGIONALE', presentate: 800, pagate: 500, daPagare: 300 };
+// TX-0012 come la definisce il backend (D-09): 60 senza importi; delle altre 740, 500 pagate e 320 da pagare, che si
+// sovrappongono (120 pagate in parte); le 40 restanti non sono ammesse ne' pagate
+export const SIGC_DOMANDE = { perimetro: 'REGIONALE', presentate: 800, pagate: 500, daPagare: 320, senzaImporti: 60 };
+// TX-0013, somme per domanda: ammesso = pagato + ancora da pagare - pagato oltre l'ammesso; le domande senza importi
+// sono le stesse per i tre importi (campagne senza ASR2-20)
 export const SIGC_IMPORTI = {
   perimetro: 'REGIONALE',
   richiesto: euro(5000000),
   ammesso: euro(4500000),
   pagato: euro(3000000),
-  ancoraDaPagare: euro(1500000),
-  domandeSenza: { richiesto: 50, ammesso: 50, pagato: 300 },
+  ancoraDaPagare: euro(1600000),
+  pagatoOltreAmmesso: euro(100000),
+  domandeSenza: { richiesto: 60, ammesso: 60, pagato: 60 },
 };
 // Riserva come nello scenario SC-FI_RISERVA del backend: anno n = 2025, istantanea estratta il 31/12/2026 (dopo il
 // congelamento del 30/6/2026: congelato e residuo valorizzati), fase calcolata al giorno della consultazione.

@@ -14,7 +14,7 @@ import type { SpesaPerIntervento } from '../api';
 import { kpiSpesa } from '../lib/aggregati';
 import type { Aggregato } from '../lib/aggregati';
 import type { Filtri } from '../lib/filtri';
-import { graficoAvanzamento, graficoCascataSigc, graficoFamiglie, graficoImbutoSigc } from '../lib/grafici';
+import { PAGAMENTI_LORDI, graficoAvanzamento, graficoCascataSigc, graficoDomandeSigc, graficoFamiglie } from '../lib/grafici';
 import { GRANT, PERCORSI, conFiltri } from '../lib/report';
 import { ConGrant, NotaPerimetroMisto, PerimetroSezione, ScaricaKpi, diProgramma, erroreGiaMostrato, vuotoConPerimetro } from './comuni';
 import { useSelezioneSenzaDomandeSigc, useSelezioneSenzaInterventi } from './selezione';
@@ -38,9 +38,9 @@ function KpiSpesa({ d }: { d: SpesaPerIntervento }) {
         assente={assente(k.dotazione)}
         nota={n === 1 ? '1 intervento nella selezione' : `${n} interventi nella selezione`}
       />
-      <Kpi etichetta="Pagamenti totali" icona="it-chart-line" tono="verde" valore={k.pagato.valore === null ? undefined : importoBreve(k.pagato.valore)} assente={assente(k.pagato)} />
+      <Kpi etichetta={PAGAMENTI_LORDI} icona="it-chart-line" tono="verde" valore={k.pagato.valore === null ? undefined : importoBreve(k.pagato.valore)} assente={assente(k.pagato)} />
       <Kpi
-        etichetta="Pagato sulla dotazione"
+        etichetta="Pagato lordo sulla dotazione"
         icona="it-presentation"
         tono="blu"
         valore={k.quota.valore === null ? undefined : formatPercentuale(k.quota.valore)}
@@ -97,7 +97,7 @@ function GraficiSpesa({ filtri, clic }: { filtri: Filtri; clic: (p: ClicGrafico)
           <Griglia>
             <CardGrafico
               titolo="Avanzamento per intervento"
-              sottotitolo="Pagamenti totali sulla dotazione; la linea tratteggiata è la media. Clic su una barra: dettaglio dell'intervento."
+              sottotitolo="Pagamenti totali (lordi, elenchi di liquidazione) sulla dotazione; la linea tratteggiata è la media. Clic su una barra: dettaglio dell'intervento."
               dati={graficoAvanzamento(d.righe ?? [], d.perimetro)}
               fonte={`Fonte: TX-0002, dotazione e spesa per intervento · Perimetro ${d.perimetro ?? 'non indicato'}`}
               altezza="alto"
@@ -137,10 +137,10 @@ function DomandeSigc({ filtri, onSigc }: { filtri: Filtri; onSigc: () => void })
     <VistaQuery stato={stato} eVuoto={(d) => d.presentate === 0} vuoto={VUOTO_SIGC}>
       {(d) => (
         <CardGrafico
-          titolo="Domande SIGC: dalla presentazione al pagamento"
-          sottotitolo="Clic su una fase: pagina SIGC"
-          dati={graficoImbutoSigc(d)}
-          fonte="Fonte: TX-0012 · domande pagate dagli elenchi di liquidazione"
+          titolo="Domande SIGC: presentate, pagate e da pagare"
+          sottotitolo="Pagate e da pagare si sovrappongono (domande pagate in parte). Clic su una barra: pagina SIGC"
+          dati={graficoDomandeSigc(d)}
+          fonte="Fonte: TX-0012 · pagate e da pagare dagli importi della domanda (flusso ASR2-20), come l'importo pagato"
           onClic={onSigc}
           scaricamenti={datiDelReport('Domande SIGC', 'sigcDomande', filtri)}
         />
@@ -158,9 +158,9 @@ function ImportiSigc({ filtri }: { filtri: Filtri }) {
       {(d) => (
         <CardGrafico
           titolo="Importi SIGC"
-          sottotitolo="Dal richiesto al pagato"
+          sottotitolo="Dal richiesto all'ancora da pagare"
           dati={graficoCascataSigc(d)}
-          fonte="Fonte: TX-0013 · importo pagato dal flusso ASR2-20: può non coincidere con le domande pagate"
+          fonte="Fonte: TX-0013 · importi della domanda (flusso ASR2-20)"
           scaricamenti={datiDelReport('Importi SIGC', 'sigcImporti', filtri)}
         />
       )}

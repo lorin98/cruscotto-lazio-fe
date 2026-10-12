@@ -25,7 +25,7 @@ export interface RigaRiepilogo {
   dotazioneResiduaSuPagamenti?: Importo;
 }
 
-/** Riga di DomandePerAnno (TX-0008): annoRaccolta null per le domande senza campagna. */
+/** Riga di DomandePerAnno (TX-0008): annoRaccolta = campagna, altrimenti anno di rilascio della domanda di sostegno; null senza nessuno dei due. */
 export interface RigaDomandeAnno {
   annoRaccolta?: number | null;
   primaAnnualita?: number | null;
@@ -43,19 +43,24 @@ export interface RigaImportiAnno {
   domandeSenzaAmmesso?: number | null;
 }
 
-/** DomandeSigc (TX-0012). */
+/** DomandeSigc (TX-0012): pagate e da pagare dagli importi della domanda (ASR2-20), si sovrappongono (pagate in parte). */
 export interface DomandeSigcLike {
   presentate?: number | null;
   pagate?: number | null;
   daPagare?: number | null;
+  senzaImporti?: number | null;
 }
 
-/** ImportiSigc (TX-0013): domandeSenza conta le domande senza uno dei tre importi (somme parziali dichiarate). */
+/**
+ * ImportiSigc (TX-0013): somme per domanda, con ammesso = pagato + ancoraDaPagare - pagatoOltreAmmesso sulle domande con
+ * entrambi gli importi; domandeSenza conta le domande senza uno dei tre importi (somme parziali dichiarate).
+ */
 export interface ImportiSigcLike {
   richiesto?: Importo;
   ammesso?: Importo;
   pagato?: Importo;
   ancoraDaPagare?: Importo;
+  pagatoOltreAmmesso?: Importo;
   domandeSenza?: { richiesto?: number | null; ammesso?: number | null; pagato?: number | null } | null;
 }
 

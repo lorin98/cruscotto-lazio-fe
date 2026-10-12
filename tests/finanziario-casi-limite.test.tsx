@@ -139,11 +139,11 @@ describe('Panoramica: casi limite', () => {
     expect(within(avanzamento).getByText('1 voce non nel grafico')).toBeTruthy();
     expect(within(await trovaCard('Dotazione per famiglia di intervento')).getByText('Grafico non disponibile: nessun intervento con dotazione valorizzata e positiva.')).toBeTruthy();
     expect(valoreKpi('Dotazione spesa pubblica')).toBe('Non calcolabile: manca per 1 intervento (SRA01)');
-    expect(valoreKpi('Pagamenti totali')).toBe('Non calcolabile: manca per 1 intervento (SRA01)');
-    expect(valoreKpi('Pagato sulla dotazione')).toBe('Non calcolabile: manca il totale della dotazione e dei pagamenti');
-    expect(within(screen.getByRole('region', { name: 'Pagato sulla dotazione' })).queryByRole('img')).toBeNull();
+    expect(valoreKpi('Pagamenti totali (lordi, elenchi di liquidazione)')).toBe('Non calcolabile: manca per 1 intervento (SRA01)');
+    expect(valoreKpi('Pagato lordo sulla dotazione')).toBe('Non calcolabile: manca il totale della dotazione e dei pagamenti');
+    expect(within(screen.getByRole('region', { name: 'Pagato lordo sulla dotazione' })).queryByRole('img')).toBeNull();
     expect(screen.queryAllByText(/0,0 M€/)).toHaveLength(0);
-    await waitFor(() => expect(graficiVivi().map(titoloGrafico)).toEqual(['Domande SIGC: dalla presentazione al pagamento', 'Importi SIGC']));
+    await waitFor(() => expect(graficiVivi().map(titoloGrafico)).toEqual(['Domande SIGC: presentate, pagate e da pagare', 'Importi SIGC']));
   });
 
   // regressione: le card SIGC seguono il segnale di TX-0012 come SigcReport (prima la cascata disegnava gli zeri)
@@ -159,7 +159,7 @@ describe('Panoramica: casi limite', () => {
     for (const v of screen.getAllByText(VUOTO_SIGC)) expect(ruolo(v)).toBe('status');
     await waitFor(() => expect(graficiVivi().length).toBeGreaterThanOrEqual(2));
     expect(graficiVivi().map(titoloGrafico)).not.toContain('Importi SIGC');
-    expect(graficiVivi().map(titoloGrafico)).not.toContain('Domande SIGC: dalla presentazione al pagamento');
+    expect(graficiVivi().map(titoloGrafico)).not.toContain('Domande SIGC: presentate, pagate e da pagare');
   });
 });
 
@@ -200,8 +200,8 @@ describe('DettaglioIntervento: casi limite', () => {
     expect(within(cascata).getByText(NON_DISPONIBILE_GRAFICO).textContent).toBe(
       'Grafico non disponibile: la cascata di SRD99 richiede dotazione e pagamenti netti; dotazione: non disponibile; pagamenti netti: non disponibile.',
     );
-    expect(within(await trovaCard('Pagato sulla dotazione')).getByText(NON_DISPONIBILE_GRAFICO).textContent).toBe(
-      'Grafico non disponibile: valore non disponibile: la percentuale non si può calcolare.',
+    expect(within(await trovaCard('Pagato netto sulla dotazione')).getByText(NON_DISPONIBILE_GRAFICO).textContent).toBe(
+      'Grafico non disponibile: la percentuale richiede pagamenti netti e dotazione; pagamenti netti: non disponibile; dotazione: non disponibile.',
     );
     expect(screen.queryByText(/^Contributo ambientale/)).toBeNull();
     expect(graficiVivi()).toHaveLength(0);
@@ -295,7 +295,7 @@ describe('DotazioneReport: casi limite', () => {
       rispondi('/api/finanziario/distribuzione-dotazione', { perimetro: 'ADA' }),
     );
     conRouter(<DotazioneReport filtri={{}} />);
-    expect(within(await trovaCard('Dotazione e pagamenti per intervento')).getByText('Grafico non disponibile: nessun intervento con pagamenti totali valorizzati.')).toBeTruthy();
+    expect(within(await trovaCard('Dotazione e pagamenti per intervento')).getByText('Grafico non disponibile: nessun intervento con pagamenti totali (lordi, elenchi di liquidazione) valorizzati.')).toBeTruthy();
     expect(within(await trovaCard('Contributo ambientale per intervento')).getByText('Grafico non disponibile: nessun intervento con il contributo ambientale valorizzato.')).toBeTruthy();
     const quote = await trovaCard('Dotazione tra quota FEASR e non FEASR (RF003)');
     expect(within(quote).getByText(NON_DISPONIBILE_GRAFICO).textContent).toBe(
@@ -312,7 +312,7 @@ describe('DotazioneReport: casi limite', () => {
       'Dotazione spesa pubblica (regionale)',
       'Impegnato cofinanziato FEASR e non',
       'Impegnato spesa pubblica',
-      'Pagamenti totali (elenchi di liquidazione)',
+      'Pagamenti totali (lordi, elenchi di liquidazione)',
       'Quota Stato (regionale)',
       'Quota Regione (regionale)',
       'Vincolo dotazione LEADER (regionale)',
@@ -364,10 +364,10 @@ describe('AvanzamentoReport: casi limite', () => {
     const rf007 = await trovaCard('Dotazione residua sui pagamenti (RF007)');
     expect(within(rf007).getByText(/^Grafico non disponibile: manca una delle due parti/)).toBeTruthy();
     expect(valoreDi(within(rf007).getByRole('table'), 'Importo recuperato')).toBe('non disponibile');
-    await waitFor(() => expect(valoreKpi('Importo pagato')).toBe('Non disponibile'));
+    await waitFor(() => expect(valoreKpi('Importo pagato (lordo, elenchi di liquidazione)')).toBe('Non disponibile'));
     for (const kpi of ['Importo stanziato', 'Totale impegnato', 'Dotazione residua sui pagamenti']) expect(valoreKpi(kpi)).toBe('Non disponibile');
-    expect(within(await trovaCard('Pagato sulla dotazione')).getByText(NON_DISPONIBILE_GRAFICO).textContent).toBe(
-      'Grafico non disponibile: valore non disponibile: la percentuale non si può calcolare.',
+    expect(within(await trovaCard('Pagato netto sulla dotazione')).getByText(NON_DISPONIBILE_GRAFICO).textContent).toBe(
+      'Grafico non disponibile: la percentuale richiede pagamenti netti e dotazione; pagamenti netti: non disponibile; dotazione: non disponibile.',
     );
     // nemmeno il flusso ridotto da TX-0007: senza pagamenti netti e residuo non si disegna
     expect(within(await trovaCard('Dove va la dotazione')).getByText(NON_DISPONIBILE_GRAFICO).textContent).toBe(
@@ -401,7 +401,7 @@ describe('DomandeReport: casi limite', () => {
     );
     renderConQuery(<DomandeReport filtri={{}} />);
     const t = await screen.findByRole('table', { name: 'Importi per anno di raccolta' });
-    expect(within(t).getByRole('rowheader').textContent).toBe('senza campagna');
+    expect(within(t).getByRole('rowheader').textContent).toBe('senza anno di raccolta');
     expect(t.textContent).toContain('non disponibile');
     expect(within(await trovaCard('Importi per anno di raccolta (RF010)')).getByText('Grafico non disponibile: nessun importo valorizzato per anno di raccolta.')).toBeTruthy();
     expect(within(await trovaCard('Domande per anno di raccolta (RF008)')).getByText('Grafico non disponibile: nessun numero di domande valorizzato.')).toBeTruthy();
@@ -428,24 +428,26 @@ describe('DomandeReport: casi limite', () => {
 });
 
 describe('SigcReport: casi limite', () => {
-  it('domande senza conteggi: non e uno stato vuoto, imbuto non disegnato con il motivo, importi mostrati', async () => {
+  it('domande senza conteggi: non e uno stato vuoto, barre non disegnate con il motivo, importi mostrati', async () => {
     server.use(rispondi('/api/finanziario/sigc/domande', { perimetro: 'REGIONALE' }), rispondi('/api/finanziario/sigc/importi', F.SIGC_IMPORTI));
     renderConQuery(<SigcReport filtri={{}} />);
-    const imbuto = await trovaCard('Domande SIGC (RF012)');
-    expect(within(imbuto).getByText("Grafico non disponibile: domande presentate non disponibili: l'imbuto non si può disegnare.")).toBeTruthy();
+    const domande = await trovaCard('Domande SIGC (RF012)');
+    expect(within(domande).getByText('Grafico non disponibile: domande presentate non disponibili: il grafico non si può disegnare.')).toBeTruthy();
     expect(valoreDi(screen.getByRole('table', { name: 'Domande SIGC' }), 'Presentate')).toBe('-');
     expect(valoreDi(await screen.findByRole('table', { name: 'Importi SIGC' }), 'Importo richiesto')).toBe('5.000.000,00 €');
     expect(screen.queryByText(VUOTO_SIGC)).toBeNull();
   });
 
-  it('importi senza valori: "non disponibile" (mai zero) e cascata non disegnata', async () => {
+  // D-09: un importo vuoto su tutte le domande selezionate e' NON_VALORIZZATO, il dato assente nella fonte (non 0,00)
+  it('importi senza valori: "non disponibile" o "non valorizzato" (mai zero) e cascata non disegnata', async () => {
     server.use(rispondi('/api/finanziario/sigc/domande', F.SIGC_DOMANDE), rispondi('/api/finanziario/sigc/importi', { perimetro: 'REGIONALE', pagato: { valore: null, motivo: 'NON_VALORIZZATO', fonte: null } }));
     renderConQuery(<SigcReport filtri={{}} />);
     const voci = await screen.findByRole('table', { name: 'Importi SIGC' });
     expect(valoreDi(voci, 'Importo richiesto')).toBe('non disponibile');
-    expect(valoreDi(voci, 'Importo pagato (flusso ASR2-20)')).toBe('non calcolabilemanca per almeno un intervento della selezione: vedi il riepilogo per intervento');
+    expect(valoreDi(voci, 'Importo pagato (flusso ASR2-20)')).toBe('non valorizzatoil dato non è presente nella fonte');
+    expect(valoreDi(voci, "Pagato oltre l'ammesso")).toBe('non disponibile');
     expect(valoreDi(voci, 'Domande senza importo richiesto')).toBe('-');
-    expect(within(await trovaCard('Importi SIGC (RF013)')).getByText(/^Grafico non disponibile: la cascata richiede richiesto, ammesso e pagato/)).toBeTruthy();
+    expect(within(await trovaCard('Importi SIGC (RF013)')).getByText(/^Grafico non disponibile: la cascata richiede ammesso, pagato oltre l'ammesso, pagato e ancora da pagare: ammesso non disponibile, /)).toBeTruthy();
   });
 });
 

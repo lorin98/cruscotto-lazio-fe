@@ -11,11 +11,12 @@ import {
   graficoCascataSigc,
   graficoContributo,
   graficoDomandePerAnno,
+  graficoDomandeSigc,
   graficoDotazionePagamenti,
   graficoFamiglie,
   graficoGauge,
-  graficoImbutoSigc,
   graficoImportiPerAnno,
+  graficoPagatoNetto,
   graficoPartiImporto,
   graficoQuotaFeasr,
   graficoSankey,
@@ -125,7 +126,15 @@ const righeSpesa: RigaSpesa[] = [
   { codiceIntervento: 'SRA03', dotazioneSpesaPubblica: assente('FONTE_NON_ATTIVA', 'QUADRO_SINOTTICO'), pagamentiTotali: imp(1_000_000) },
 ];
 
-const sigcBase = { richiesto: imp(10_000_000), ammesso: imp(8_000_000), pagato: imp(5_000_000), ancoraDaPagare: imp(3_000_000) };
+// TX-0013 (D-09): ammesso = pagato + ancora da pagare - pagato oltre l'ammesso, nessuna domanda senza importi
+const sigcBase = {
+  richiesto: imp(10_000_000),
+  ammesso: imp(8_000_000),
+  pagato: imp(5_000_000),
+  ancoraDaPagare: imp(3_100_000),
+  pagatoOltreAmmesso: imp(100_000),
+  domandeSenza: { richiesto: 0, ammesso: 0, pagato: 0 },
+};
 
 // flusso della dotazione: TX-0006 (impegni), TX-0005 (pagamenti sull'impegnato), TX-0007 (residuo sui pagamenti)
 const impegni = { dotazioneSpesaPubblica: imp(100_000_000), importoImpegnato: imp(60_000_000), dotazioneResidua: imp(40_000_000) };
@@ -244,7 +253,7 @@ describe('graficoAvanzamento', () => {
 
   it('tabella coerente: righe del grafico, poi le omesse, poi la media ponderata', () => {
     const g = graficoAvanzamento(righeSpesa);
-    expect(g.tabella.colonne).toEqual(['Intervento', 'Dotazione', 'Pagato', 'Pagato sulla dotazione']);
+    expect(g.tabella.colonne).toEqual(['Intervento', 'Dotazione', 'Pagato (lordo)', 'Pagato lordo sulla dotazione']);
     expect(righeN(g)).toEqual([
       ['SRA01', '10.000.000,00 €', '6.000.000,00 €', '60 %'],
       ['SRD13', '10.000.000,00 €', '4.000.000,00 €', '40 %'],
@@ -252,6 +261,12 @@ describe('graficoAvanzamento', () => {
       ['SRA03', 'non disponibile (fonte quadro sinottico non attiva)', '1.000.000,00 €', 'non calcolabile'],
       ['Media ponderata degli interventi nel grafico', '40.000.000,00 €', '12.000.000,00 €', '30 %'],
     ]);
+  });
+
+  it('quota piccola ma non nulla: due decimali sotto l 1 %, mai "0 %"', () => {
+    const g = graficoAvanzamento([{ codiceIntervento: 'SRA01', dotazioneSpesaPubblica: imp(10_000_000), pagamentiTotali: imp(4_000) }]);
+    expect(valoriDi(opzioniDi(g).series[0])).toEqual([0.04]);
+    expect(righeN(g)[0]).toEqual(['SRA01', '10.000.000,00 €', '4000,00 €', '0,04 %']);
   });
 
   it('perimetro ADA: non disegnabile, tabella comunque con dotazione e pagato', () => {
@@ -417,120 +432,162 @@ describe('graficoFamiglie', () => {
   });
 });
 
-// ---------------------------------------------------------------- 3. imbuto SIGC
+// ---------------------------------------------------------------- 3. domande SIGC
 
-describe('graficoImbutoSigc', () => {
-  it('fasi nell ordine Presentate, Pagate, Da pagare, senza riordino', () => {
-    const g = graficoImbutoSigc({ presentate: 10_000, pagate: 6_000, daPagare: 4_000 });
-    const o = opzioniDi(g);
+describe('graficoDomandeSigc', () => {
+  // D-09: pagate e da pagare si sovrappongono (pagate in parte), le senza importi non sono ne' l'una ne' l'altra
+  const domande = { presentate: 10_000, pagate: 6_000, daPagare: 4_500, senzaImporti: 500 };
+
+  it('barre orizzontali, non un imbuto: presentate, pagate, da pagare e senza importi, con la quota sulle presentate', () => {
+    const o = opzioniDi(graficoDomandeSigc(domande));
     controllaAria(o);
     const s = o.series[0];
-    expect(s.type).toBe('funnel');
-    expect(s.sort).toBe('none');
-    expect(s.min).toBe(0);
-    expect(s.max).toBe(10_000);
-    expect(nomiDi(s)).toEqual(['Presentate', 'Pagate', 'Da pagare']);
-    expect(valoriDi(s)).toEqual([10_000, 6_000, 4_000]);
-    expect(n(item(s.data?.[1]).dettaglio ?? '')).toBe('Pagate: 6000 domande (60 % delle presentate)');
+    expect(s.type).toBe('bar');
+    expect(o.yAxis?.data).toEqual(['Presentate', 'Pagate', 'Da pagare', 'Senza importi']);
+    expect(o.yAxis?.inverse).toBe(true);
+    expect(valoriDi(s)).toEqual([10_000, 6_000, 4_500, 500]);
+    expect(item(s.data?.[0]).etichetta).toBe('10.000');
+    expect(n(item(s.data?.[1]).etichetta ?? '')).toBe('6000 (60 %)');
+    expect(n(item(s.data?.[2]).dettaglio ?? '')).toBe('Da pagare: 4500 domande (45 % delle presentate)');
   });
 
-  it('tabella con la quota sulle presentate', () => {
-    const g = graficoImbutoSigc({ presentate: 10_000, pagate: 6_000, daPagare: 4_000 });
-    expect(g.tabella.colonne).toEqual(['Fase', 'Domande', 'Quota sulle presentate']);
+  it('pagate e da pagare si sovrappongono: la descrizione lo dice, nessuna partizione delle presentate', () => {
+    // 6000 + 4500 + 500 supera le presentate: le pagate in parte sono anche da pagare
+    expect(n(opzioniDi(graficoDomandeSigc(domande)).aria.label.description)).toBe(
+      'Barre delle domande SIGC: presentate 10.000, pagate 6000 (60 %), da pagare 4500 (45 %), senza importi 500 (5 %). ' +
+        'Pagate e da pagare si sovrappongono (domande pagate in parte): le voci non sommano alle presentate.',
+    );
+  });
+
+  it('tabella con la definizione di ogni voce e la quota sulle presentate', () => {
+    const g = graficoDomandeSigc(domande);
+    expect(g.tabella.colonne).toEqual(['Voce', 'Domande', 'Quota sulle presentate']);
     expect(righeN(g)).toEqual([
       ['Presentate', '10.000', '100 %'],
-      ['Pagate', '6000', '60 %'],
-      ['Da pagare', '4000', '40 %'],
+      ['Pagate (importo pagato maggiore di zero)', '6000', '60 %'],
+      ['Da pagare (ammesse con importo ancora da pagare, anche se pagate in parte)', '4500', '45 %'],
+      ['Senza importi (non classificabili: campagne senza ASR2-20)', '500', '5 %'],
     ]);
   });
 
-  it('fase assente: omessa e dichiarata, mai zero', () => {
-    const g = graficoImbutoSigc({ presentate: 1000, pagate: 600 });
-    const s = opzioniDi(g).series[0];
-    expect(nomiDi(s)).toEqual(['Presentate', 'Pagate']);
-    expect(g.omessi).toEqual(['Da pagare: numero di domande non disponibile']);
-    expect(g.tabella.righe[2]).toEqual(['Da pagare', 'non disponibile', 'non calcolabile']);
+  it('voce assente: omessa e dichiarata, mai zero', () => {
+    const g = graficoDomandeSigc({ presentate: 1000, pagate: 600, daPagare: 300 });
+    expect(opzioniDi(g).yAxis?.data).toEqual(['Presentate', 'Pagate', 'Da pagare']);
+    expect(g.omessi).toEqual(['Senza importi: numero di domande non disponibile']);
+    expect(g.tabella.righe[3]).toEqual(['Senza importi (non classificabili: campagne senza ASR2-20)', 'non disponibile', 'non calcolabile']);
   });
 
   it('presentate assenti o zero: non disegnabile', () => {
-    controllaNonDisegnabile(graficoImbutoSigc({ pagate: 10 }), "domande presentate non disponibili: l'imbuto non si può disegnare");
-    const zero = graficoImbutoSigc({ presentate: 0, pagate: 0, daPagare: 0 });
-    controllaNonDisegnabile(zero, "nessuna domanda presentata: l'imbuto non si può disegnare");
+    controllaNonDisegnabile(graficoDomandeSigc({ pagate: 10 }), 'domande presentate non disponibili: il grafico non si può disegnare');
+    const zero = graficoDomandeSigc({ presentate: 0, pagate: 0, daPagare: 0, senzaImporti: 0 });
+    controllaNonDisegnabile(zero, 'nessuna domanda presentata: il grafico non si può disegnare');
     expect(zero.tabella.righe[0]).toEqual(['Presentate', '0', 'non calcolabile']);
+  });
+
+  it('quota piccola ma non nulla: mai "0 %" (due decimali sotto l 1 %, "< 0,01 %" sotto lo 0,005 %)', () => {
+    const g = graficoDomandeSigc({ presentate: 100_000, pagate: 30, daPagare: 3, senzaImporti: 0 });
+    expect(righeN(g).map((r) => r[2])).toEqual(['100 %', '0,03 %', '< 0,01 %', '0 %']);
   });
 });
 
 // ---------------------------------------------------------------- 4. cascata SIGC
 
 describe('graficoCascataSigc', () => {
-  it('cascata coerente: base trasparente + valore, i decrementi partono dal totale successivo', () => {
-    const g = graficoCascataSigc(sigcBase);
-    const o = opzioniDi(g);
+  const DOPO_IL_RICHIESTO = ['Ammesso', "Pagato oltre l'ammesso", 'Pagato', 'Ancora da pagare'];
+
+  it('cascata con i valori del contratto: richiesto, non ammesso, ammesso, pagato oltre l ammesso, pagato, ancora da pagare', () => {
+    const o = opzioniDi(graficoCascataSigc(sigcBase));
     controllaAria(o);
-    expect(o.xAxis?.data).toEqual(['Richiesto', 'Non ammesso', 'Ammesso', 'Non ancora pagato', 'Pagato']);
+    expect(o.xAxis?.data).toEqual(['Richiesto', 'Non ammesso', ...DOPO_IL_RICHIESTO]);
     expect(o.series.map((s) => [s.type, s.stack])).toEqual([
       ['bar', 'cascata'],
       ['bar', 'cascata'],
     ]);
     const basi = valoriDi(o.series[0]);
     const valori = valoriDi(o.series[1]);
-    expect(basi).toEqual([0, 8_000_000, 0, 5_000_000, 0]);
-    expect(valori).toEqual([10_000_000, 2_000_000, 8_000_000, 3_000_000, 5_000_000]);
-    // ogni decremento colma il salto fra il totale precedente e il successivo
+    expect(basi).toEqual([0, 8_000_000, 0, 8_000_000, 3_100_000, 0]);
+    expect(valori).toEqual([10_000_000, 2_000_000, 8_000_000, 100_000, 5_000_000, 3_100_000]);
+    // la cascata torna: il non ammesso colma il salto dal richiesto all'ammesso, il pagato poggia sull'ancora da pagare
     expect(Number(basi[1]) + Number(valori[1])).toBe(10_000_000);
-    expect(Number(basi[3]) + Number(valori[3])).toBe(8_000_000);
-    expect(item(o.series[1].data?.[1]).itemStyle?.color).toBe(COLORI.attenzione);
+    expect(Number(basi[3]) + Number(valori[3])).toBe(Number(basi[4]) + Number(valori[4]));
+    expect(basi[4]).toBe(valori[5]);
+    expect(item(o.series[1].data?.[3]).itemStyle?.color).toBe(COLORI.attenzione);
+    expect(n(o.aria.label.description)).toBe(
+      "Cascata degli importi SIGC: richiesto 10,0 M€, non ammesso 2,0 M€, ammesso 8,0 M€, pagato oltre l'ammesso 100.000,00 €, pagato 5,0 M€, ancora da pagare 3,1 M€.",
+    );
   });
 
-  it('tabella con l ancora da pagare del DTO; nessuna nota se coincide', () => {
+  it("tabella con i valori del DTO: niente 'non ancora pagato' ricalcolato, ancora da pagare una volta sola", () => {
     const g = graficoCascataSigc(sigcBase);
+    expect(g.tabella.caption).toBe("Importi delle domande SIGC: dal richiesto all'ancora da pagare");
     expect(righeN(g)).toEqual([
       ['Richiesto', '10.000.000,00 €'],
       ['Non ammesso (richiesto meno ammesso)', '2.000.000,00 €'],
       ['Ammesso', '8.000.000,00 €'],
-      ['Non ancora pagato (ammesso meno pagato)', '3.000.000,00 €'],
+      ["Pagato oltre l'ammesso", '100.000,00 €'],
       ['Pagato', '5.000.000,00 €'],
-      ['Ancora da pagare (dal DTO)', '3.000.000,00 €'],
+      ['Ancora da pagare', '3.100.000,00 €'],
+      ['Domande senza importo richiesto', '0'],
+      ['Domande senza importo ammesso', '0'],
+      ['Domande senza importo pagato', '0'],
     ]);
     expect(g.omessi).toEqual([]);
   });
 
-  it('fonti diverse: nota come ultima riga della tabella, non fra gli omessi', () => {
-    const g = graficoCascataSigc({ ...sigcBase, ancoraDaPagare: imp(4_000_000) });
-    expect(g.tabella.righe[g.tabella.righe.length - 1]).toEqual(['Nota', 'Fonti diverse: il pagato viene dal flusso ASR2-20']);
+  it('pagato oltre l ammesso maggiore del residuo: basi non negative anche col pagato sopra l ammesso', () => {
+    // una domanda pagata 3 milioni oltre il suo ammesso non riduce l'ancora da pagare delle altre: 8 + 3 - 9 = 2
+    const o = opzioniDi(graficoCascataSigc({ ...sigcBase, pagato: imp(9_000_000), pagatoOltreAmmesso: imp(3_000_000), ancoraDaPagare: imp(2_000_000) }));
+    expect(valoriDi(o.series[0])).toEqual([0, 8_000_000, 0, 8_000_000, 2_000_000, 0]);
+    expect(valoriDi(o.series[1])).toEqual([10_000_000, 2_000_000, 8_000_000, 3_000_000, 9_000_000, 2_000_000]);
+  });
+
+  it('valori che non tornano (somme su domande diverse): non disegnabile, la tabella resta', () => {
+    const g = graficoCascataSigc({ ...sigcBase, ancoraDaPagare: imp(4_000_000), domandeSenza: { richiesto: 0, ammesso: 0, pagato: 120 } });
+    controllaNonDisegnabile(g, 'ammesso, pagato e ancora da pagare non tornano (somme su domande diverse, vedi le domande senza importo): la cascata non si può disegnare');
+    expect(righeN(g)[5]).toEqual(['Ancora da pagare', '4.000.000,00 €']);
     expect(g.omessi).toEqual([]);
-    expect(g.opzioni).not.toBeNull();
   });
 
-  it('importo assente: non disegnabile, dichiarato come aggregato, differenze non calcolabili', () => {
-    const g = graficoCascataSigc({ ...sigcBase, pagato: assente('NON_VALORIZZATO') });
-    controllaNonDisegnabile(g, `la cascata richiede richiesto, ammesso e pagato: pagato ${NON_CALCOLABILE_AGGREGATO}`);
-    expect(g.omessi).toEqual([`Pagato ${NON_CALCOLABILE_AGGREGATO}`]);
-    expect(g.tabella.righe[1]).toEqual(['Non ammesso (richiesto meno ammesso)', 'non calcolabile']);
-    expect(g.tabella.righe[3]).toEqual(['Non ancora pagato (ammesso meno pagato)', 'non calcolabile']);
-    expect(g.tabella.righe[4]).toEqual(['Pagato', NON_CALCOLABILE_AGGREGATO]);
+  it('importo assente: non disegnabile e dichiarato; NON_VALORIZZATO e il dato assente su tutte le domande (D-09)', () => {
+    const g = graficoCascataSigc({ ...sigcBase, pagatoOltreAmmesso: assente('NON_VALORIZZATO') });
+    controllaNonDisegnabile(g, `la cascata richiede ammesso, pagato oltre l'ammesso, pagato e ancora da pagare: pagato oltre l'ammesso ${NON_VALORIZZATO_RIGA}`);
+    expect(g.omessi).toEqual([`Pagato oltre l'ammesso ${NON_VALORIZZATO_RIGA}`]);
+    expect(g.tabella.righe[3]).toEqual(["Pagato oltre l'ammesso", NON_VALORIZZATO_RIGA]);
+    // il non ammesso resta: richiesto e ammesso ci sono, sulle stesse domande
+    expect(n(g.tabella.righe[1][1])).toBe('2.000.000,00 €');
   });
 
-  it('ordine violato o negativi: non disegnabile con il motivo', () => {
-    controllaNonDisegnabile(graficoCascataSigc({ ...sigcBase, ammesso: imp(12_000_000) }), "l'ammesso supera il richiesto: la cascata non si può disegnare");
-    controllaNonDisegnabile(graficoCascataSigc({ ...sigcBase, pagato: imp(9_000_000) }), "il pagato supera l'ammesso: la cascata non si può disegnare");
+  it('importi negativi: non disegnabile con il motivo', () => {
     controllaNonDisegnabile(graficoCascataSigc({ ...sigcBase, pagato: imp(-1) }), 'importi negativi: la cascata non si può disegnare');
   });
 
-  it('domande senza uno degli importi (V-12): righe in tabella dopo l ancora da pagare, la nota resta ultima', () => {
-    const g = graficoCascataSigc({ ...sigcBase, domandeSenza: { richiesto: 0, ammesso: 120, pagato: null } });
+  it('non ammesso solo sulle stesse domande: altrimenti richiesto e non ammesso fuori dalla cascata, con il motivo', () => {
+    const diverse = graficoCascataSigc({ ...sigcBase, domandeSenza: { richiesto: 50, ammesso: 0, pagato: 0 } });
+    expect(opzioniDi(diverse).xAxis?.data).toEqual(DOPO_IL_RICHIESTO);
+    const motivo = 'richiesto e ammesso sono somme su domande diverse (50 domande senza richiesto, 0 senza ammesso)';
+    expect(diverse.omessi).toEqual([`Richiesto e non ammesso: ${motivo}`]);
+    expect(diverse.tabella.righe[1]).toEqual(['Non ammesso (richiesto meno ammesso)', `non calcolabile (${motivo})`]);
+    expect(n(diverse.tabella.righe[0][1])).toBe('10.000.000,00 €');
+    // ammesso oltre il richiesto: la stessa regola, la cascata parte dall'ammesso
+    const oltre = graficoCascataSigc({ ...sigcBase, richiesto: imp(7_000_000) });
+    expect(opzioniDi(oltre).xAxis?.data).toEqual(DOPO_IL_RICHIESTO);
+    expect(oltre.omessi).toEqual(["Richiesto e non ammesso: l'ammesso supera il richiesto"]);
+    // senza i conteggi delle domande senza importo non si sa se sono le stesse domande
+    expect(graficoCascataSigc({ ...sigcBase, domandeSenza: null }).omessi).toEqual(['Richiesto e non ammesso: non si sa se richiesto e ammesso sono sulle stesse domande']);
+    // richiesto assente: dichiarato una volta, la differenza solo non calcolabile
+    const senzaRichiesto = graficoCascataSigc({ ...sigcBase, richiesto: assente('FONTE_NON_ATTIVA', 'LEGAME_AZIONI_PORTANTI') });
+    expect(opzioniDi(senzaRichiesto).xAxis?.data).toEqual(DOPO_IL_RICHIESTO);
+    expect(senzaRichiesto.omessi).toEqual(['Richiesto non disponibile (fonte legame interventi - azioni portanti non attiva)']);
+    expect(senzaRichiesto.tabella.righe[1]).toEqual(['Non ammesso (richiesto meno ammesso)', 'non calcolabile']);
+  });
+
+  it('domande senza uno degli importi (V-12): righe in tabella dopo l ancora da pagare', () => {
+    const g = graficoCascataSigc({ ...sigcBase, domandeSenza: { richiesto: 120, ammesso: 120, pagato: null } });
     expect(g.opzioni).not.toBeNull();
     expect(g.tabella.righe.slice(6)).toEqual([
-      ['Domande senza importo richiesto', '0'],
+      ['Domande senza importo richiesto', '120'],
       ['Domande senza importo ammesso', '120'],
       ['Domande senza importo pagato', 'non disponibile'],
-    ]);
-    const conNota = graficoCascataSigc({ ...sigcBase, ancoraDaPagare: imp(4_000_000), domandeSenza: { richiesto: 0, ammesso: 120, pagato: 300 } });
-    expect(conNota.tabella.righe.map((r) => r[0]).slice(6)).toEqual([
-      'Domande senza importo richiesto',
-      'Domande senza importo ammesso',
-      'Domande senza importo pagato',
-      'Nota',
     ]);
     // senza domandeSenza nel DTO nessuna riga in piu'
     expect(graficoCascataSigc({ ...sigcBase, domandeSenza: null }).tabella.righe).toHaveLength(6);
@@ -546,11 +603,11 @@ describe('graficoDomandePerAnno', () => {
     { annoRaccolta: 2023, primaAnnualita: 200, altreAnnualita: 50, nonClassificate: 50, totali: 300 },
   ];
 
-  it('barre impilate per anno, senza campagna in coda', () => {
+  it('barre impilate per anno, senza anno di raccolta in coda', () => {
     const g = graficoDomandePerAnno(righe);
     const o = opzioniDi(g);
     controllaAria(o);
-    expect(o.xAxis?.data).toEqual(['2023', '2024', 'senza campagna']);
+    expect(o.xAxis?.data).toEqual(['2023', '2024', 'senza anno di raccolta']);
     expect(o.series.map((s) => [s.type, s.name, s.stack])).toEqual([
       ['bar', 'Prima annualità', 'domande'],
       ['bar', 'Altre annualità', 'domande'],
@@ -566,7 +623,7 @@ describe('graficoDomandePerAnno', () => {
     expect(g.tabella.righe).toEqual([
       ['2023', '200', '50', '50', '300'],
       ['2024', '300', '100', '0', '400'],
-      ['senza campagna', '10', '0', '10', '20'],
+      ['senza anno di raccolta', '10', '0', '10', '20'],
     ]);
   });
 
@@ -587,7 +644,7 @@ describe('graficoDomandePerAnno', () => {
     const g = graficoDomandePerAnno([{ annoRaccolta: null }]);
     controllaNonDisegnabile(g, 'nessun numero di domande valorizzato');
     expect(g.omessi).toHaveLength(3);
-    expect(g.omessi[0]).toBe('senza campagna, prima annualità: numero di domande non disponibile');
+    expect(g.omessi[0]).toBe('senza anno di raccolta, prima annualità: numero di domande non disponibile');
   });
 });
 
@@ -608,7 +665,7 @@ describe('graficoImportiPerAnno', () => {
     const g = graficoImportiPerAnno(righe);
     const o = opzioniDi(g);
     controllaAria(o);
-    expect(o.xAxis?.data).toEqual(['2023', '2024', 'senza campagna']);
+    expect(o.xAxis?.data).toEqual(['2023', '2024', 'senza anno di raccolta']);
     expect(o.series.map((s) => [s.type, s.name, s.connectNulls])).toEqual([
       ['line', 'Importo ammesso', false],
       ['line', 'Importo decretato', false],
@@ -630,8 +687,17 @@ describe('graficoImportiPerAnno', () => {
     expect(righeN(g)).toEqual([
       ['2023', 'non disponibile', '4.000.000,00 €', NON_CALCOLABILE_AGGREGATO, 'non disponibile'],
       ['2024', 'non disponibile', '6.000.000,00 €', '3.000.000,00 €', 'non disponibile'],
-      ['senza campagna', 'non disponibile', '1.000.000,00 €', '500.000,00 €', 'non disponibile'],
+      ['senza anno di raccolta', 'non disponibile', '1.000.000,00 €', '500.000,00 €', 'non disponibile'],
     ]);
+  });
+
+  // D-09: un anno in cui nessuna domanda ha l'ammesso e' NON_VALORIZZATO (prima 0,00): il dato assente nella fonte, non
+  // un totale per intervento che manca
+  it('anno senza ammesso su nessuna domanda: punto vuoto, dichiarato come dato assente nella fonte', () => {
+    const g = graficoImportiPerAnno([...righe.slice(1), { annoRaccolta: 2025, importoAmmesso: assente('NON_VALORIZZATO'), importoDecretato: imp(0), domandeSenzaAmmesso: 40 }]);
+    expect(opzioniDi(g).series[0].data).toEqual([4_000_000, 6_000_000, null]);
+    expect(g.omessi).toContain(`2025: importo ammesso ${NON_VALORIZZATO_RIGA}`);
+    expect(righeN(g)[2]).toEqual(['2025', 'non disponibile', NON_VALORIZZATO_RIGA, '0,00 €', '40']);
   });
 
   it('nessuna riga o nessun importo: non disegnabile', () => {
@@ -711,7 +777,7 @@ describe('graficoSankey', () => {
       ['Dotazione', '100.000.000,00 €'],
       ['Impegnato', '60.000.000,00 €'],
       ['Da impegnare (dotazione residua sugli impegni)', '40.000.000,00 €'],
-      ["Pagamenti totali sull'impegnato", '45.000.000,00 €'],
+      ["Pagamenti totali sull'impegnato (lordi, elenchi di liquidazione)", '45.000.000,00 €'],
       ['Impegnato ancora da pagare', '15.000.000,00 €'],
       ['Pagamenti al netto delle rettifiche', '44.000.000,00 €'],
       ['Dotazione residua sui pagamenti', '56.000.000,00 €'],
@@ -727,7 +793,7 @@ describe('graficoSankey', () => {
       ['Dotazione', '100.000.000,00 €'],
       ['Impegnato', 'non disponibile (fonte impegni non attiva)'],
       ['Da impegnare (dotazione residua sugli impegni)', 'non disponibile (fonte impegni non attiva)'],
-      ["Pagamenti totali sull'impegnato", '45.000.000,00 €'],
+      ["Pagamenti totali sull'impegnato (lordi, elenchi di liquidazione)", '45.000.000,00 €'],
       ['Impegnato ancora da pagare', '15.000.000,00 €'],
       ['Pagamenti al netto delle rettifiche', 'non disponibile'],
       ['Dotazione residua sui pagamenti', 'non disponibile'],
@@ -825,6 +891,38 @@ describe('graficoGauge', () => {
     controllaNonDisegnabile(negativa, 'valore negativo: la percentuale non si può calcolare');
     expect(negativa.motivoAssenza).not.toContain('Quota');
     expect(negativa.tabella.righe).toEqual([['Quota', 'non calcolabile']]);
+  });
+});
+
+describe('graficoPagatoNetto', () => {
+  const TITOLO = 'della dotazione pagato (netto)';
+
+  it('pagamenti al netto delle rettifiche sulla dotazione: indicatore 0-100', () => {
+    const g = graficoPagatoNetto(imp(200_000), imp(1_000_000));
+    expect(valoriDi(opzioniDi(g).series[0])).toEqual([20]);
+    expect(g.tabella).toEqual({ caption: TITOLO, colonne: ['Misura', 'Valore'], righe: [[TITOLO, '20 %']] });
+  });
+
+  it('netto o dotazione assenti: "non calcolabile" con il motivo dell importo (totale o riga di un intervento)', () => {
+    const totale = graficoPagatoNetto(assente('NON_VALORIZZATO'), imp(1_000_000));
+    controllaNonDisegnabile(totale, `la percentuale richiede pagamenti netti e dotazione; pagamenti netti: ${NON_CALCOLABILE_AGGREGATO}`);
+    expect(totale.tabella.righe).toEqual([[TITOLO, 'non calcolabile']]);
+    controllaNonDisegnabile(
+      graficoPagatoNetto(assente('NON_VALORIZZATO'), null, null, false),
+      `la percentuale richiede pagamenti netti e dotazione; pagamenti netti: ${NON_VALORIZZATO_RIGA}; dotazione: non disponibile`,
+    );
+  });
+
+  it('perimetro ADA: non confrontabile, anche senza valori', () => {
+    controllaNonDisegnabile(graficoPagatoNetto(null, null, 'ADA'), /^perimetro ADA: .*il rapporto non è confrontabile$/);
+    controllaNonDisegnabile(graficoPagatoNetto(imp(200_000), imp(1_000_000), 'ADA'), /^perimetro ADA: /);
+  });
+
+  it('pagamento piccolo ma non nullo: mai "0 %"', () => {
+    const g = graficoPagatoNetto(imp(300), imp(1_000_000));
+    expect(g.tabella.righe).toEqual([[TITOLO, '0,03 %']]);
+    expect(valoriDi(opzioniDi(g).series[0])).toEqual([0.03]);
+    expect(n(opzioniDi(g).aria.label.description)).toContain('0,03 %');
   });
 });
 
@@ -1044,24 +1142,24 @@ describe('graficoDotazionePagamenti', () => {
     pagato: imp(500_000),
   }));
 
-  it('barre raggruppate Dotazione e Pagamenti totali, codice nel dato, assenti vuoti (mai zero) e dichiarati', () => {
+  it('barre raggruppate Dotazione e Pagamenti totali lordi, codice nel dato, assenti vuoti (mai zero) e dichiarati', () => {
     const g = graficoDotazionePagamenti(righe, 'REGIONALE');
     const o = opzioniDi(g);
     controllaAria(o);
     expect(o.series.map((s) => [s.type, s.name, s.stack])).toEqual([
       ['bar', 'Dotazione', undefined],
-      ['bar', 'Pagamenti totali', undefined],
+      ['bar', 'Pagamenti totali (lordi, elenchi di liquidazione)', undefined],
     ]);
     expect(o.xAxis?.data).toEqual(['SRA01', 'SRA02']);
     expect(item(o.series[0].data?.[0]).codice).toBe('SRA01');
     expect(o.series[1].data?.[1]).toBeNull();
     expect(g.omessi).toEqual([
-      `SRA02, pagamenti totali: ${NON_VALORIZZATO_RIGA}`,
+      `SRA02, pagamenti totali (lordi, elenchi di liquidazione): ${NON_VALORIZZATO_RIGA}`,
       'SRA03, dotazione: non disponibile (fonte non attiva)',
-      'SRA03, pagamenti totali: non disponibile (fonte non attiva)',
+      'SRA03, pagamenti totali (lordi, elenchi di liquidazione): non disponibile (fonte non attiva)',
     ]);
     expect(o.dataZoom).toBeUndefined();
-    expect(g.tabella.colonne).toEqual(['Intervento', 'Dotazione', 'Pagamenti totali']);
+    expect(g.tabella.colonne).toEqual(['Intervento', 'Dotazione', 'Pagamenti totali (lordi, elenchi di liquidazione)']);
     expect(righeN(g)).toEqual([
       ['SRA01', '10.000.000,00 €', '6.000.000,00 €'],
       ['SRA02', '20.000.000,00 €', NON_VALORIZZATO_RIGA],
@@ -1078,10 +1176,10 @@ describe('graficoDotazionePagamenti', () => {
   it('perimetro ADA: solo il pagato, la dotazione dichiarata come non affiancabile', () => {
     const g = graficoDotazionePagamenti(righe, 'ADA');
     const o = opzioniDi(g);
-    expect(o.series.map((s) => s.name)).toEqual(['Pagamenti totali']);
+    expect(o.series.map((s) => s.name)).toEqual(['Pagamenti totali (lordi, elenchi di liquidazione)']);
     expect(o.xAxis?.data).toEqual(['SRA01']);
     expect(g.omessi[0]).toBe("perimetro ADA: la dotazione regionale non si affianca ai pagamenti dell'area");
-    expect(g.tabella.colonne).toEqual(['Intervento', 'Pagamenti totali']);
+    expect(g.tabella.colonne).toEqual(['Intervento', 'Pagamenti totali (lordi, elenchi di liquidazione)']);
   });
 
   it('il nome del pagato dice quale pagato e (V-19): serie, colonne, didascalia e omessi', () => {
@@ -1098,9 +1196,9 @@ describe('graficoDotazionePagamenti', () => {
   });
 
   it('nessun valore: non disegnabile', () => {
-    controllaNonDisegnabile(graficoDotazionePagamenti([righe[2]]), 'nessun intervento con dotazione o pagamenti totali valorizzati');
+    controllaNonDisegnabile(graficoDotazionePagamenti([righe[2]]), 'nessun intervento con dotazione o pagamenti totali (lordi, elenchi di liquidazione) valorizzati');
     controllaNonDisegnabile(graficoDotazionePagamenti([]), /^nessun intervento/);
-    controllaNonDisegnabile(graficoDotazionePagamenti([righe[2]], 'ADA'), 'nessun intervento con pagamenti totali valorizzati');
+    controllaNonDisegnabile(graficoDotazionePagamenti([righe[2]], 'ADA'), 'nessun intervento con pagamenti totali (lordi, elenchi di liquidazione) valorizzati');
   });
 });
 
@@ -1219,12 +1317,11 @@ describe('regola dei motivi: segue "Grafico non disponibile: ", iniziale minusco
     ['contributo, nessun valore', graficoContributo([righeSpesa[2]])],
     ['dotazione e pagato, nessun valore', graficoDotazionePagamenti([])],
     ['dotazione e pagato ADA, nessun valore', graficoDotazionePagamenti([], 'ADA')],
-    ['imbuto SIGC, presentate assenti', graficoImbutoSigc({ pagate: 10 })],
-    ['imbuto SIGC, nessuna presentata', graficoImbutoSigc({ presentate: 0 })],
+    ['domande SIGC, presentate assenti', graficoDomandeSigc({ pagate: 10 })],
+    ['domande SIGC, nessuna presentata', graficoDomandeSigc({ presentate: 0 })],
     ['cascata SIGC, importo assente', graficoCascataSigc({ ...sigcBase, pagato: assente('NON_VALORIZZATO') })],
     ['cascata SIGC, importi negativi', graficoCascataSigc({ ...sigcBase, pagato: imp(-1) })],
-    ['cascata SIGC, ammesso oltre il richiesto', graficoCascataSigc({ ...sigcBase, ammesso: imp(12_000_000) })],
-    ['cascata SIGC, pagato oltre l ammesso', graficoCascataSigc({ ...sigcBase, pagato: imp(9_000_000) })],
+    ['cascata SIGC, valori che non tornano', graficoCascataSigc({ ...sigcBase, pagato: imp(9_000_000) })],
     ['SMP, nessun valore', graficoSmp([{ codiceIntervento: 'SRA09' }])],
     ['domande per anno, nessuna riga', graficoDomandePerAnno([])],
     ['domande per anno, nessun numero', graficoDomandePerAnno([{ annoRaccolta: 2024 }])],
@@ -1239,6 +1336,8 @@ describe('regola dei motivi: segue "Grafico non disponibile: ", iniziale minusco
     ['gauge, totale assente', graficoGauge(10, null, 'Quota')],
     ['gauge, totale zero', graficoGauge(10, 0, 'Quota')],
     ['gauge, valore negativo', graficoGauge(-1, 100, 'Quota')],
+    ['pagato netto, netto assente', graficoPagatoNetto(assente('NON_VALORIZZATO'), imp(100))],
+    ['pagato netto, perimetro ADA', graficoPagatoNetto(imp(10), imp(100), 'ADA')],
     ['quota FEASR, quota assente', graficoQuotaFeasr({ quotaFeasr: assente('NON_VALORIZZATO'), quotaNonFeasr: imp(10) })],
     ['quota FEASR, quota negativa', graficoQuotaFeasr({ quotaFeasr: imp(-1), quotaNonFeasr: imp(10) })],
     ['quota FEASR, totale zero', graficoQuotaFeasr({ quotaFeasr: imp(0), quotaNonFeasr: imp(0) })],

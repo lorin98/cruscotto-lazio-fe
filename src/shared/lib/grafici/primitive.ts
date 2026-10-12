@@ -21,9 +21,19 @@ export function arrotonda1(v: number): number {
   return Math.round(v * 10) / 10;
 }
 
-/** Percentuale (0-100) a una cifra decimale. */
+/**
+ * Percentuale gia' in centesimi arrotondata: una cifra decimale da 1 % in su, due sotto; un valore non nullo che a due
+ * cifre sarebbe zero resta com'e' (formatPercentuale lo scrive "< 0,01 %"). Un pagamento piccolo non sembra uno zero.
+ */
+export function arrotondaPercentuale(v: number): number {
+  if (Math.abs(v) >= 1) return arrotonda1(v);
+  const dueCifre = Math.round(v * 100) / 100;
+  return dueCifre === 0 ? v : dueCifre;
+}
+
+/** Percentuale (0-100) arrotondata con arrotondaPercentuale. */
 export function percentuale(parte: number, totale: number): number {
-  return arrotonda1((parte / totale) * 100);
+  return arrotondaPercentuale((parte / totale) * 100);
 }
 
 /** Somma al centesimo. */

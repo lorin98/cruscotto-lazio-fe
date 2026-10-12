@@ -51,8 +51,16 @@ const RISPOSTE: Record<string, unknown> = {
     ],
   },
   '/api/finanziario/totale-domande': { perimetro: 'REGIONALE', presentate: 1200, primaAnnualita: 400 },
-  '/api/finanziario/sigc/domande': { perimetro: 'REGIONALE', presentate: 800, pagate: 500, daPagare: 300 },
-  '/api/finanziario/sigc/importi': { perimetro: 'REGIONALE', richiesto: euro(900_000), ammesso: euro(800_000), pagato: euro(500_000), ancoraDaPagare: euro(300_000) },
+  '/api/finanziario/sigc/domande': { perimetro: 'REGIONALE', presentate: 800, pagate: 500, daPagare: 320, senzaImporti: 60 },
+  '/api/finanziario/sigc/importi': {
+    perimetro: 'REGIONALE',
+    richiesto: euro(900_000),
+    ammesso: euro(800_000),
+    pagato: euro(500_000),
+    ancoraDaPagare: euro(310_000),
+    pagatoOltreAmmesso: euro(10_000),
+    domandeSenza: { richiesto: 60, ammesso: 60, pagato: 60 },
+  },
   '/api/finanziario/domande-per-anno': {
     perimetro: 'REGIONALE',
     righe: [

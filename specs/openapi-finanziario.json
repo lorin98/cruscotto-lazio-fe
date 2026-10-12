@@ -68,7 +68,7 @@
         "type": "object"
       },
       "DomandePerAnno": {
-        "description": "TX-0008: anno di raccolta = anno di campagna; null per le domande senza campagna",
+        "description": "TX-0008: anno di raccolta = anno di campagna, altrimenti anno di rilascio della domanda di sostegno; null per le domande senza nessuno dei due",
         "properties": {
           "perimetro": {
             "description": "A quali domande si riferiscono le misure per domanda: REGIONALE (tutte) o ADA (solo quelle dei perimetri ADA del chiamante, P4). I report di soli dati di programma sono sempre REGIONALE",
@@ -116,13 +116,15 @@
         "type": "object"
       },
       "DomandeSigc": {
-        "description": "TX-0012",
+        "description": "TX-0012: pagate e da pagare dagli importi della domanda (flusso ASR2-20), come l'importo pagato di TX-0013",
         "properties": {
           "daPagare": {
+            "description": "Domande con importo ammesso maggiore del pagato (comprese quelle gia' pagate in parte)",
             "format": "int64",
             "type": "integer"
           },
           "pagate": {
+            "description": "Domande con importo pagato maggiore di zero",
             "format": "int64",
             "type": "integer"
           },
@@ -135,6 +137,11 @@
             "type": "string"
           },
           "presentate": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "senzaImporti": {
+            "description": "Domande senza importo ammesso o pagato nella fonte (campagne senza ASR2-20): non si sa se sono pagate",
             "format": "int64",
             "type": "integer"
           }
@@ -242,7 +249,9 @@
             "$ref": "#/components/schemas/Importo"
           },
           "ancoraDaPagare": {
-            "$ref": "#/components/schemas/Importo"
+            "$ref": "#/components/schemas/Importo",
+            "description": "Somma per domanda dell'ammesso non ancora pagato (mai negativa per domanda)",
+            "type": "object"
           },
           "domandeSenza": {
             "$ref": "#/components/schemas/ImportiSigcCampiVuoti",
@@ -251,6 +260,11 @@
           },
           "pagato": {
             "$ref": "#/components/schemas/Importo"
+          },
+          "pagatoOltreAmmesso": {
+            "$ref": "#/components/schemas/Importo",
+            "description": "Somma per domanda del pagato oltre l'ammesso: ammesso = pagato + ancora da pagare - pagato oltre l'ammesso, sulle domande con entrambi gli importi",
+            "type": "object"
           },
           "perimetro": {
             "description": "A quali domande si riferiscono le misure per domanda: REGIONALE (tutte) o ADA (solo quelle dei perimetri ADA del chiamante, P4). I report di soli dati di programma sono sempre REGIONALE",
@@ -1220,7 +1234,7 @@
                 }
               }
             },
-            "description": "Una riga per anno; le domande senza campagna per ultime"
+            "description": "Una riga per anno di raccolta; le domande senza anno per ultime"
           },
           "400": {
             "content": {

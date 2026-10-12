@@ -12,7 +12,7 @@ import { NOTA_RICERCA_FILE, datiDelReport } from './esportazioni';
 import { ricercaDaFiltri } from '../lib/filtri';
 import type { Filtri } from '../lib/filtri';
 import { percentualeOpzionale } from '../lib/formato';
-import { graficoContributo, graficoDotazionePagamenti, graficoQuotaFeasr } from '../lib/grafici';
+import { PAGAMENTI_LORDI, graficoContributo, graficoDotazionePagamenti, graficoQuotaFeasr } from '../lib/grafici';
 import type { Perimetro } from '../lib/perimetro';
 import { GRANT } from '../lib/report';
 import { ConGrant, NotaPerimetroMisto, PerimetroSezione, colonneImporti, diProgramma, vuotoConPerimetro } from './comuni';
@@ -26,7 +26,7 @@ const CAMPI: CampoImporto<Riga>[] = [
   { chiave: 'dotazioneSpesaPubblica', titolo: 'Dotazione spesa pubblica', programma: true },
   { chiave: 'impegnatoCofinanziatoFeasrENon', titolo: 'Impegnato cofinanziato FEASR e non' },
   { chiave: 'impegnatoSpesaPubblica', titolo: 'Impegnato spesa pubblica' },
-  { chiave: 'pagamentiTotali', titolo: 'Pagamenti totali (elenchi di liquidazione)' },
+  { chiave: 'pagamentiTotali', titolo: PAGAMENTI_LORDI },
   { chiave: 'quotaStato', titolo: 'Quota Stato', programma: true },
   { chiave: 'quotaRegione', titolo: 'Quota Regione', programma: true },
   { chiave: 'vincoloDotazioneLeader', titolo: 'Vincolo dotazione LEADER', programma: true },
@@ -55,7 +55,7 @@ function CardDotazione({ filtri }: { filtri: Filtri }) {
         <CardGrafico
           titolo="Dotazione e pagamenti per intervento"
           sottotitolo="Trascina il cursore sotto il grafico per ingrandire; clic su una barra per il dettaglio"
-          dati={graficoDotazionePagamenti((d.righe ?? []).map((r) => ({ codiceIntervento: r.codiceIntervento, dotazione: r.dotazioneSpesaPubblica, pagato: r.pagamentiTotali })), d.perimetro, 'Pagamenti totali')}
+          dati={graficoDotazionePagamenti((d.righe ?? []).map((r) => ({ codiceIntervento: r.codiceIntervento, dotazione: r.dotazioneSpesaPubblica, pagato: r.pagamentiTotali })), d.perimetro, PAGAMENTI_LORDI)}
           fonte={`Fonte: TX-0002 · Perimetro ${d.perimetro ?? 'non indicato'}`}
           altezza="alto"
           onClic={dalClic}

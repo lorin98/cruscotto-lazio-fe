@@ -1,16 +1,17 @@
 // SigcReport — pattern DS "report" (route /finanziario/sigc, TX-0012/RF012 e TX-0013/RF013, wireframe sigc.html):
-// domande SIGC presentate, pagate e da pagare; importi SIGC richiesto, ammesso, pagato e ancora da pagare con i conteggi
-// delle domande senza importo. Ogni sezione ha il suo grant e il suo perimetro. Lo stato vuoto viene dal conteggio delle
-// domande presentate (RF012), mai da importi a zero. "Pagato" ha due fonti diverse (OP-FE-05): il conteggio delle
-// pagate dagli elenchi di liquidazione, l'importo pagato dal flusso ASR2-20; la nota lo dice accanto ai dati.
-// UI v2 (wireframe sigc v2): imbuto delle domande e cascata degli importi, con le voci in tabella sotto ogni grafico.
+// domande SIGC presentate, pagate, da pagare e senza importi; importi SIGC richiesto, ammesso, pagato, pagato oltre
+// l'ammesso e ancora da pagare con i conteggi delle domande senza importo. Ogni sezione ha il suo grant e il suo
+// perimetro. Lo stato vuoto viene dal conteggio delle domande presentate (RF012), mai da importi a zero. Domande pagate e
+// importo pagato hanno la stessa fonte, gli importi della domanda del flusso ASR2-20 (D-09 del backend); pagate e da
+// pagare si sovrappongono (domande pagate in parte): la nota lo dice accanto ai dati.
+// UI v2 (wireframe sigc v2): barre delle domande e cascata degli importi, con le voci in tabella sotto ogni grafico.
 import { ValoreImporto } from '../../../entities/importo';
 import { CardGrafico, Griglia, TabellaVoci, VistaQuery } from '../../../shared/ui';
 import { useSigcDomande, useSigcImporti } from '../api';
 import { datiDelReport } from './esportazioni';
 import { useSelezioneSenzaDomandeSigc } from './selezione';
 import type { Filtri } from '../lib/filtri';
-import { graficoCascataSigc, graficoImbutoSigc } from '../lib/grafici';
+import { VOCI_DOMANDE_SIGC, graficoCascataSigc, graficoDomandeSigc } from '../lib/grafici';
 import { GRANT } from '../lib/report';
 import { ConGrant, Numero, PerimetroSezione, vuotoConPerimetro } from './comuni';
 
@@ -18,10 +19,22 @@ const TITOLO_DOMANDE = 'Domande SIGC (RF012)';
 const TITOLO_IMPORTI = 'Importi SIGC (RF013)';
 const VUOTO = vuotoConPerimetro('Nessuna domanda SIGC per i filtri scelti.');
 
-function NotaFonti() {
+function NotaDomande() {
   return (
     <p className="small mb-0">
-      {"Fonti diverse: le domande pagate si contano dagli elenchi di liquidazione, l'importo pagato viene dal flusso ASR2-20. I due dati possono non coincidere."}
+      {
+        "Pagate e da pagare vengono dagli importi della domanda (flusso ASR2-20), come l'importo pagato. Una domanda pagata in parte è sia pagata sia da pagare: le voci non sommano alle presentate. Le domande senza importi non si possono classificare; le presentate che non sono in nessuna delle tre voci non sono state ammesse né pagate."
+      }
+    </p>
+  );
+}
+
+function NotaImporti() {
+  return (
+    <p className="small mb-0">
+      {
+        "Importi della domanda dal flusso ASR2-20. Ancora da pagare e pagato oltre l'ammesso sono somme per domanda: sulle domande con entrambi gli importi l'ammesso è il pagato più l'ancora da pagare meno il pagato oltre l'ammesso."
+      }
     </p>
   );
 }
@@ -32,18 +45,17 @@ function DomandeSigc({ filtri }: { filtri: Filtri }) {
     <VistaQuery stato={stato} eVuoto={(d) => d.presentate === 0} vuoto={VUOTO}>
       {(d) => (
         <div>
-          <CardGrafico titolo={TITOLO_DOMANDE} sottotitolo="Dalla presentazione al pagamento" dati={graficoImbutoSigc(d)} fonte="Fonte: TX-0012, elenchi di liquidazione" scaricamenti={datiDelReport(TITOLO_DOMANDE, 'sigcDomande', filtri)} />
+          <CardGrafico
+            titolo={TITOLO_DOMANDE}
+            sottotitolo="Presentate, pagate, da pagare e senza importi: pagate e da pagare si sovrappongono"
+            dati={graficoDomandeSigc(d)}
+            fonte="Fonte: TX-0012, importi della domanda (flusso ASR2-20)"
+            scaricamenti={datiDelReport(TITOLO_DOMANDE, 'sigcDomande', filtri)}
+          />
           <section className="ui-card mt-3" aria-label="Voci delle domande SIGC">
             <PerimetroSezione perimetro={d.perimetro} />
-            <TabellaVoci
-              caption="Domande SIGC"
-              voci={[
-                { etichetta: 'Presentate', valore: <Numero valore={d.presentate} /> },
-                { etichetta: 'Pagate (con pagamento in un elenco di liquidazione)', valore: <Numero valore={d.pagate} /> },
-                { etichetta: 'Da pagare (presentate meno pagate, comprese le non ammesse)', valore: <Numero valore={d.daPagare} /> },
-              ]}
-            />
-            <NotaFonti />
+            <TabellaVoci caption="Domande SIGC" voci={VOCI_DOMANDE_SIGC.map((v) => ({ etichetta: v.etichetta, valore: <Numero valore={d[v.campo]} /> }))} />
+            <NotaDomande />
           </section>
         </div>
       )}
@@ -59,22 +71,24 @@ function ImportiSigc({ filtri }: { filtri: Filtri }) {
     <VistaQuery stato={stato} inAttesa={segnale === 'in-attesa'} eVuoto={() => segnale === 'vuota'} vuoto={VUOTO}>
       {(d) => (
         <div>
-          <CardGrafico titolo={TITOLO_IMPORTI} sottotitolo="Dal richiesto al pagato" dati={graficoCascataSigc(d)} fonte="Fonte: TX-0013, pagato dal flusso ASR2-20" scaricamenti={datiDelReport(TITOLO_IMPORTI, 'sigcImporti', filtri)} />
+          <CardGrafico titolo={TITOLO_IMPORTI} sottotitolo="Dal richiesto all'ancora da pagare" dati={graficoCascataSigc(d)} fonte="Fonte: TX-0013, importi della domanda (flusso ASR2-20)" scaricamenti={datiDelReport(TITOLO_IMPORTI, 'sigcImporti', filtri)} />
           <section className="ui-card mt-3" aria-label="Voci degli importi SIGC">
             <PerimetroSezione perimetro={d.perimetro} />
+            {/* somme per domanda: un importo assente su tutte le domande e' il dato assente nella fonte (non aggregato) */}
             <TabellaVoci
               caption="Importi SIGC"
               voci={[
-                { etichetta: 'Importo richiesto', valore: <ValoreImporto importo={d.richiesto} aggregato /> },
-                { etichetta: 'Importo ammesso', valore: <ValoreImporto importo={d.ammesso} aggregato /> },
-                { etichetta: 'Importo pagato (flusso ASR2-20)', valore: <ValoreImporto importo={d.pagato} aggregato /> },
-                { etichetta: 'Ancora da pagare', valore: <ValoreImporto importo={d.ancoraDaPagare} aggregato /> },
+                { etichetta: 'Importo richiesto', valore: <ValoreImporto importo={d.richiesto} /> },
+                { etichetta: 'Importo ammesso', valore: <ValoreImporto importo={d.ammesso} /> },
+                { etichetta: 'Importo pagato (flusso ASR2-20)', valore: <ValoreImporto importo={d.pagato} /> },
+                { etichetta: "Pagato oltre l'ammesso", valore: <ValoreImporto importo={d.pagatoOltreAmmesso} /> },
+                { etichetta: 'Ancora da pagare', valore: <ValoreImporto importo={d.ancoraDaPagare} /> },
                 { etichetta: 'Domande senza importo richiesto', valore: <Numero valore={d.domandeSenza?.richiesto} /> },
                 { etichetta: 'Domande senza importo ammesso', valore: <Numero valore={d.domandeSenza?.ammesso} /> },
                 { etichetta: 'Domande senza importo pagato', valore: <Numero valore={d.domandeSenza?.pagato} /> },
               ]}
             />
-            <NotaFonti />
+            <NotaImporti />
           </section>
         </div>
       )}

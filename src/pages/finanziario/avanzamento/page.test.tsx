@@ -40,7 +40,7 @@ describe('RF005: totale impegnato tra pagamenti e impegnato ancora da pagare', (
     renderPagina(Pagina, '/finanziario/avanzamento');
     const t = await voci("Pagamenti sull'impegnato (RF005)");
     expect(t).toContain('Totale impegnato');
-    expect(t).toContain('Pagamenti totali (elenchi di liquidazione)');
+    expect(t).toContain('Pagamenti totali (lordi, elenchi di liquidazione)');
     expect(t.replace(/\s/g, ' ')).toContain('200.000,00 €');
     expect(t).toContain('fonte impegni non attiva');
   });
@@ -59,13 +59,16 @@ describe('RF006: dotazione tra importo impegnato e dotazione residua', () => {
 });
 
 describe('RF007: dotazione tra importo pagato e dotazione residua', () => {
-  it('ciambella e voci del residuo sui pagamenti, gauge del pagato', async () => {
+  it('ciambella e voci del residuo sui pagamenti, gauge del pagato netto (come il residuo)', async () => {
     servi();
     renderPagina(Pagina, '/finanziario/avanzamento');
     const card = await trovaCard('Dotazione residua sui pagamenti (RF007)');
-    expect(descrizioneDi(card)).toMatch(/^Dotazione tra pagato e residuo: Pagamenti al netto di rettifiche 20\s?%, Dotazione residua 80\s?%\.$/);
-    expect(await voci('Dotazione residua sui pagamenti (RF007)')).toContain('Importo recuperato');
-    expect(descrizioneDi(await trovaCard('Pagato sulla dotazione'))).toMatch(/22\s?%/);
+    expect(descrizioneDi(card)).toMatch(/^Dotazione tra pagato e residuo: Pagamenti al netto delle rettifiche 20\s?%, Dotazione residua 80\s?%\.$/);
+    const t = await voci('Dotazione residua sui pagamenti (RF007)');
+    expect(t).toContain('Importo recuperato');
+    expect(t).toContain('Importo pagato (lordo, elenchi di liquidazione)');
+    // il gauge usa il netto (200.000 su 1.000.000), come il residuo e la ciambella accanto, non il lordo (220.000)
+    expect(descrizioneDi(await trovaCard('Pagato netto sulla dotazione'))).toMatch(/20\s?%/);
   });
   it('perimetro ADA: dotazione regionale dichiarata nella tabella e grafico dichiarato non confrontabile', async () => {
     servi();

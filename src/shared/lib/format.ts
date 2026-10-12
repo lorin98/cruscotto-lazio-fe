@@ -12,9 +12,11 @@ export function formatEuro(value: number | null | undefined): string {
   return value.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-// Percentuale gia' espressa in centesimi (es. 12.5 -> "12,5 %"), al piu' due decimali.
+// Percentuale gia' espressa in centesimi (es. 12.5 -> "12,5 %"), al piu' due decimali. Un valore non nullo che a due
+// decimali sarebbe zero non si scrive "0 %": "< 0,01 %" (o "> -0,01 %").
 export function formatPercentuale(value: number | null | undefined): string {
   if (value == null) return '-';
+  if (value !== 0 && Math.abs(value) < 0.005) return value > 0 ? '< 0,01 %' : '> -0,01 %';
   return `${value.toLocaleString('it-IT', { maximumFractionDigits: 2 })} %`;
 }
 

@@ -109,11 +109,11 @@ describe('panoramica: indicatori, grafici e drill-down', () => {
     servi();
     renderPagina(Pagina, '/finanziario');
     expect((await screen.findByRole('region', { name: 'Dotazione spesa pubblica' })).textContent).toContain('1 intervento nella selezione');
-    expect(screen.getByRole('region', { name: 'Pagato sulla dotazione' }).textContent).toMatch(/20\s?%/);
+    expect(screen.getByRole('region', { name: 'Pagato lordo sulla dotazione' }).textContent).toMatch(/20\s?%/);
     expect((await screen.findByRole('region', { name: 'Domande presentate' })).textContent).toContain('1200');
   });
 
-  it("clic su un intervento: dettaglio dell'intervento con la selezione nell'indirizzo; clic sull'imbuto SIGC: pagina SIGC con i filtri", async () => {
+  it("clic su un intervento: dettaglio dell'intervento con la selezione nell'indirizzo; clic sulle barre delle domande SIGC: pagina SIGC con i filtri", async () => {
     servi();
     const { router } = renderPagina(Pagina, '/finanziario', '/finanziario?og=OG2');
     const avanzamento = graficoDi(await trovaCard('Avanzamento per intervento'));
@@ -126,8 +126,8 @@ describe('panoramica: indicatori, grafici e drill-down', () => {
     // un clic su una famiglia (non un codice di intervento) non naviga: il treemap entra nel gruppo
     if (famiglie) clicSu(famiglie, { name: 'SRA', data: {} });
     expect(router.state.location.pathname).toBe('/finanziario');
-    const imbuto = graficoDi(await trovaCard('Domande SIGC: dalla presentazione al pagamento'));
-    if (imbuto) clicSu(imbuto, { name: 'Pagate' });
+    const domandeSigc = graficoDi(await trovaCard('Domande SIGC: presentate, pagate e da pagare'));
+    if (domandeSigc) clicSu(domandeSigc, { name: 'Pagate' });
     await waitFor(() => expect(router.state.location.pathname).toBe('/finanziario/sigc'));
     expect(router.state.location.search).toBe('?og=OG2');
   });
@@ -136,7 +136,7 @@ describe('panoramica: indicatori, grafici e drill-down', () => {
     servi();
     server.use(http.get('*/api/finanziario/spesa-per-intervento', () => HttpResponse.json({ ...SPESA, perimetro: 'ADA' })));
     renderPagina(Pagina, '/finanziario');
-    expect((await screen.findByRole('region', { name: 'Pagato sulla dotazione' })).textContent).toContain('Non confrontabile: dotazione regionale');
+    expect((await screen.findByRole('region', { name: 'Pagato lordo sulla dotazione' })).textContent).toContain('Non confrontabile: dotazione regionale');
   });
 
   it('nessun intervento: stato vuoto, nessun indicatore a zero', async () => {

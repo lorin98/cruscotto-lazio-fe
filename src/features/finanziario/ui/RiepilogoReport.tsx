@@ -30,7 +30,7 @@ const CAMPI: CampoImporto<Riga>[] = [
   { chiave: 'importoStanziato', titolo: 'Importo stanziato', programma: true },
   { chiave: 'impegnatoCofinanziatoFeasr', titolo: 'Impegnato cofinanziato FEASR' },
   { chiave: 'impegnatoCofinanziatoFeasrENon', titolo: 'Impegnato cofinanziato FEASR e non' },
-  { chiave: 'pagamentiNettoRettifiche', titolo: 'Pagamenti al netto di rettifiche' },
+  { chiave: 'pagamentiNettoRettifiche', titolo: 'Pagamenti al netto delle rettifiche' },
   { chiave: 'dotazioneResiduaSuImpegni', titolo: 'Dotazione residua sugli impegni' },
   { chiave: 'dotazioneResiduaSuPagamenti', titolo: 'Dotazione residua sui pagamenti' },
 ];

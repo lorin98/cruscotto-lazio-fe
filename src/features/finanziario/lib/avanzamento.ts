@@ -1,6 +1,6 @@
-// avanzamento.ts — pagato sulla dotazione degli interventi, funzione PURA (zero React): la media ponderata sugli
-// interventi utilizzabili (dotazione positiva e pagato valorizzato), con gli esclusi e il loro motivo. Un'unica regola
-// per il grafico dell'avanzamento e per il KPI della panoramica.
+// avanzamento.ts — pagato lordo sulla dotazione degli interventi (pagamenti totali di TX-0002), funzione PURA (zero
+// React): la media ponderata sugli interventi utilizzabili (dotazione positiva e pagato valorizzato), con gli esclusi e
+// il loro motivo. Un'unica regola per il grafico dell'avanzamento e per il KPI della panoramica.
 import { confronta, percentuale, sommaCentesimi } from '../../../shared/lib';
 import type { RigaSpesa } from './dto';
 import { assenzaImporto, codiceDi, problemaDotazione, valoreDi } from './importi';
@@ -19,7 +19,7 @@ export interface Avanzamento {
   omessi: string[];
   totaleDotazione: number;
   totalePagato: number;
-  /** Media ponderata del pagato sulla dotazione (0-100), null se nessun intervento e' utilizzabile. */
+  /** Media ponderata del pagato lordo sulla dotazione (0-100), null se nessun intervento e' utilizzabile. */
   media: number | null;
 }
 
@@ -30,7 +30,10 @@ export function esclusione(r: RigaSpesa): string | null {
   return elenco.length ? `${codiceDi(r)}: ${elenco.join(', ')}` : null;
 }
 
-/** Pagato sulla dotazione degli interventi utilizzabili: la stessa regola per il grafico e per il KPI della panoramica. */
+/**
+ * Pagato lordo (pagamenti totali di TX-0002, elenchi di liquidazione) sulla dotazione degli interventi utilizzabili: la
+ * stessa regola per il grafico e per il KPI della panoramica. Il netto delle rettifiche e' un altro dato (graficoPagatoNetto).
+ */
 export function avanzamentoPonderato(righe: readonly RigaSpesa[]): Avanzamento {
   const incluse: InterventoAvanzamento[] = [];
   const omessi: string[] = [];

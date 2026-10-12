@@ -24,7 +24,7 @@ describe('RF011: tabella di riepilogo per intervento con i nove campi finanziari
     ]);
     const intestazioni = within(tabella).getAllByRole('columnheader').map((c) => c.textContent?.replace(/[▲▼↕]/g, ''));
     expect(intestazioni[0]).toBe('Intervento');
-    expect(intestazioni).toContain('Pagamenti al netto di rettifiche');
+    expect(intestazioni).toContain('Pagamenti al netto delle rettifiche');
     // tutte le colonne si vedono (wireframe riepilogo): le assenze dicono la fonte, mai uno zero
     expect(within(tabella).getByRole('columnheader', { name: /Importo stanziato/ })).toBeTruthy();
     expect(within(tabella).getAllByText('non disponibile').length).toBeGreaterThan(0);

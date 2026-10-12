@@ -25,9 +25,9 @@ export function percentualeOpzionale(v: number | null | undefined): string {
   return v == null ? NON_DISPONIBILE : formatPercentuale(v);
 }
 
-/** Anno di raccolta: null per le domande senza campagna (spec DomandePerAnno). */
+/** Anno di raccolta: la campagna, altrimenti l'anno di rilascio della domanda di sostegno; null senza nessuno dei due (spec DomandePerAnno). */
 export function annoDiRaccolta(anno: number | null | undefined): string {
-  return anno == null ? 'senza campagna' : String(anno);
+  return anno == null ? 'senza anno di raccolta' : String(anno);
 }
 
 /** Anno come testo (senza separatore delle migliaia), "non disponibile" se assente. */

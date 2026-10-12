@@ -16,7 +16,7 @@ const servi = () =>
   );
 
 describe("RF008: domande per anno di raccolta tra prima annualita' e altre annualita'", () => {
-  it('grafico, tabella equivalente e tabella di dettaglio per anno, con le domande senza campagna', async () => {
+  it('grafico, tabella equivalente e tabella di dettaglio per anno, con le domande senza anno di raccolta', async () => {
     servi();
     renderPagina(Pagina, '/finanziario/domande');
     const card = await trovaCard('Domande per anno di raccolta (RF008)');
@@ -25,7 +25,9 @@ describe("RF008: domande per anno di raccolta tra prima annualita' e altre annua
     expect((await tabellaDi(card)).textContent).toContain('2024');
     const dettaglio = screen.getByRole('region', { name: 'Domande per anno: dettaglio' });
     const t = within(dettaglio).getByRole('table', { name: 'Domande per anno di raccolta' });
-    expect(within(t).getAllByRole('rowheader').map((c) => c.textContent)).toEqual(['2024', 'senza campagna']);
+    expect(within(t).getAllByRole('rowheader').map((c) => c.textContent)).toEqual(['2024', 'senza anno di raccolta']);
+    // la nota dice che cosa sono l'anno di raccolta e le non classificate (D-09)
+    expect(within(dettaglio).getByText(/Non classificate: le domande di sostegno NO SIGC, per cui prima e altre annualità non si applicano, e quelle delle campagne senza dati di annualità\.$/)).toBeTruthy();
   });
 });
 
@@ -63,8 +65,8 @@ describe('RF010: per anno importo stanziato, ammesso e decretato', () => {
     expect(graficoDi(card)).toBeTruthy();
     const t = screen.getByRole('table', { name: 'Importi per anno di raccolta' });
     expect((t.textContent ?? '').replace(/\s/g, ' ')).toContain('900.000,00 €');
-    expect(within(t).getByRole('columnheader', { name: /^Importo decretato \(elenchi di liquidazione/ })).toBeTruthy();
-    expect(within(t).getAllByRole('rowheader').map((c) => c.textContent)).toEqual(['2024', 'senza campagna']);
+    expect(within(t).getByRole('columnheader', { name: 'Importo decretato (elenchi di liquidazione)' })).toBeTruthy();
+    expect(within(t).getAllByRole('rowheader').map((c) => c.textContent)).toEqual(['2024', 'senza anno di raccolta']);
   });
   it('nessuna violazione axe', async () => {
     servi();

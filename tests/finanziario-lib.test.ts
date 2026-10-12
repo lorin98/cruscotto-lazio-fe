@@ -72,6 +72,12 @@ describe('formattatori di importi', () => {
     expect(formatPercentuale(33.3333)).toBe('33,33 %');
     expect(formatPercentuale(null)).toBe('-');
   });
+  it('formatPercentuale: un valore non nullo non si scrive "0 %"', () => {
+    expect(formatPercentuale(0.04)).toBe('0,04 %');
+    expect(formatPercentuale(0.003)).toBe('< 0,01 %');
+    expect(formatPercentuale(-0.003)).toBe('> -0,01 %');
+    expect(formatPercentuale(0)).toBe('0 %');
+  });
 });
 
 describe('formatDate', () => {
@@ -259,8 +265,8 @@ describe('formato dei campi facoltativi', () => {
     expect(percentualeOpzionale(undefined)).toBe('non disponibile');
     expect(percentualeOpzionale(12.5)).toBe('12,5 %');
   });
-  it('anni: senza separatore delle migliaia, "senza campagna" per l anno di raccolta assente', () => {
-    expect(annoDiRaccolta(null)).toBe('senza campagna');
+  it('anni: senza separatore delle migliaia, "senza anno di raccolta" per l anno di raccolta assente (D-09)', () => {
+    expect(annoDiRaccolta(null)).toBe('senza anno di raccolta');
     expect(annoDiRaccolta(2024)).toBe('2024');
     expect(annoOpzionale(2024)).toBe('2024');
     expect(annoOpzionale(null)).toBe('non disponibile');

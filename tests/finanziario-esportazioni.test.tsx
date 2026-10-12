@@ -121,7 +121,7 @@ describe('ogni pulsante CSV delle pagine scarica la transazione della sua card (
     ]);
   });
 
-  it('Avanzamento: le quattro parti da TX-0004..TX-0007, pagato sulla dotazione da TX-0007', async () => {
+  it('Avanzamento: le quattro parti da TX-0004..TX-0007, pagato netto sulla dotazione da TX-0007', async () => {
     server.use(
       rispondi('/api/finanziario/stanziato', F.STANZIATO),
       rispondi('/api/finanziario/pagamenti-su-impegnato', F.PAGAMENTI),
@@ -133,7 +133,7 @@ describe('ogni pulsante CSV delle pagine scarica la transazione della sua card (
     conRouter(<AvanzamentoReport filtri={SRA01} />);
     const esiti = await scaricaOgniCsv(richieste, 5);
     expect(Object.fromEntries(esiti)).toEqual({
-      'Scarica il grafico Pagato sulla dotazione in CSV': 'residuo-pagamenti',
+      'Scarica il grafico Pagato netto sulla dotazione in CSV': 'residuo-pagamenti',
       'Scarica il grafico Importo stanziato e da stanziare (RF004) in CSV': 'stanziato',
       "Scarica il grafico Pagamenti sull'impegnato (RF005) in CSV": 'pagamenti-su-impegnato',
       'Scarica il grafico Dotazione residua sugli impegni (RF006) in CSV': 'residuo-impegni',
@@ -171,7 +171,7 @@ describe('ogni pulsante CSV delle pagine scarica la transazione della sua card (
       'Scarica i dati di Domande presentate (RF009) in CSV': 'totale-domande',
       'Scarica il grafico Avanzamento per intervento in CSV': 'spesa-per-intervento',
       'Scarica il grafico Dotazione per famiglia di intervento in CSV': 'spesa-per-intervento',
-      'Scarica il grafico Domande SIGC: dalla presentazione al pagamento in CSV': 'sigc/domande',
+      'Scarica il grafico Domande SIGC: presentate, pagate e da pagare in CSV': 'sigc/domande',
       'Scarica il grafico Importi SIGC in CSV': 'sigc/importi',
     });
   });
@@ -193,8 +193,9 @@ describe('ogni pulsante CSV delle pagine scarica la transazione della sua card (
     const domande = await scaricaOgniCsv(richieste, 2);
     await userEvent.click(screen.getByRole('tab', { name: 'SIGC' }));
     const sigc = await scaricaOgniCsv(richieste, 2);
+    // il pagato netto sulla dotazione viene dalla riga del riepilogo (TX-0011), come la cascata accanto
     expect([...sintesi, ...domande, ...sigc].map(([, report]) => report)).toEqual([
-      'spesa-per-intervento',
+      'riepilogo',
       'riepilogo',
       'domande-per-anno',
       'importi-per-anno',

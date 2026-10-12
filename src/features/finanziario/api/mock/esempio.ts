@@ -46,10 +46,16 @@ const INTERVENTI = BASE.map(([codice, descrizione, og, os, op, milioni], n) => {
   const domande = ANNI.map(() => Math.round((120 + caso() * 700) * Math.max(0.3, milioni / 25)));
   const prime = domande.map((d) => Math.round(d * (0.5 + caso() * 0.3)));
   const ammesso = ANNI.map(() => tondo(dotazione * (0.1 + caso() * 0.25)));
-  const presentate = domande.reduce((a, b) => a + b, 0);
+  // una domanda senza campagna ne' anno di rilascio della domanda di sostegno: la riga "senza anno di raccolta" (D-09)
+  const senzaAnno = 1;
+  const presentate = domande.reduce((a, b) => a + b, 0) + senzaAnno;
   const pagate = Math.round(presentate * (0.3 + caso() * 0.4));
+  // TX-0012 come il backend (D-09): senza importi = campagne senza ASR2-20, ne' pagate ne' da pagare; da pagare = le
+  // pagate in parte piu' le ammesse non ancora pagate (pagate e da pagare si sovrappongono)
+  const senzaImporti = Math.round(presentate * 0.08);
+  const daPagare = Math.round(pagate * 0.2) + Math.round((presentate - senzaImporti - pagate) * 0.6);
   return {
-    codice, descrizione, og, os, op, dotazione, pagato, domande, prime, ammesso, presentate, pagate,
+    codice, descrizione, og, os, op, dotazione, pagato, domande, prime, ammesso, senzaAnno, presentate, pagate, senzaImporti, daPagare,
     contributo: Math.round(caso() * 100),
     // come nei dati reali: qualche intervento senza pagamenti netti valorizzati
     nettiValorizzati: n % 5 !== 3,
@@ -103,7 +109,7 @@ export const handlersEsempio: RequestHandler[] = [
   ),
   http.get(`${B}/distribuzione-dotazione`, ({ request }) => {
     const dot = somma(selezione(request.url), (i) => i.dotazione);
-    return HttpResponse.json({ perimetro: PERIMETRO, dotazioneSpesaPubblica: euro(dot), quotaFeasr: euro(tondo(dot * 0.4036)), quotaNonFeasr: euro(tondo(dot * 0.5964)) });
+    return HttpResponse.json({ perimetro: PERIMETRO, dotazioneSpesaPubblica: euro(dot), quotaFeasr: euro(tondo(dot * 0.407)), quotaNonFeasr: euro(tondo(dot * 0.593)) });
   }),
   http.get(`${B}/stanziato`, () => HttpResponse.json({ perimetro: PERIMETRO, importoStanziato: fna('QUADRO_SINOTTICO'), importoDaStanziare: fna('QUADRO_SINOTTICO') })),
   http.get(`${B}/pagamenti-su-impegnato`, ({ request }) =>
@@ -133,7 +139,8 @@ export const handlersEsempio: RequestHandler[] = [
           const prima = somma(s, (i) => i.prime[k]);
           return { annoRaccolta: a, primaAnnualita: prima, altreAnnualita: Math.round((totali - prima) * 0.9), nonClassificate: Math.round((totali - prima) * 0.1), totali };
         }),
-        { annoRaccolta: null, primaAnnualita: 0, altreAnnualita: 0, nonClassificate: s.length * 3, totali: s.length * 3 },
+        // senza anno di raccolta: poche domande, tutte non classificate
+        { annoRaccolta: null, primaAnnualita: 0, altreAnnualita: 0, nonClassificate: somma(s, (i) => i.senzaAnno), totali: somma(s, (i) => i.senzaAnno) },
       ],
     });
   }),
@@ -169,7 +176,7 @@ export const handlersEsempio: RequestHandler[] = [
         codiceIntervento: i.codice,
         domandePresentate: i.presentate,
         dotazioneSpesaPubblica: euro(i.dotazione),
-        risorseQuotaFeasr: euro(tondo(i.dotazione * 0.4036)),
+        risorseQuotaFeasr: euro(tondo(i.dotazione * 0.407)),
         importoStanziato: fna('QUADRO_SINOTTICO'),
         impegnatoCofinanziatoFeasr: fna('IMPEGNI'),
         impegnatoCofinanziatoFeasrENon: fna('IMPEGNI'),
@@ -181,22 +188,31 @@ export const handlersEsempio: RequestHandler[] = [
   ),
   http.get(`${B}/sigc/domande`, ({ request }) => {
     const s = selezione(request.url);
-    const presentate = somma(s, (i) => i.presentate);
-    const pagate = somma(s, (i) => i.pagate);
-    return HttpResponse.json({ perimetro: PERIMETRO, presentate, pagate, daPagare: presentate - pagate });
+    return HttpResponse.json({
+      perimetro: PERIMETRO,
+      presentate: somma(s, (i) => i.presentate),
+      pagate: somma(s, (i) => i.pagate),
+      daPagare: somma(s, (i) => i.daPagare),
+      senzaImporti: somma(s, (i) => i.senzaImporti),
+    });
   }),
   http.get(`${B}/sigc/importi`, ({ request }) => {
     const s = selezione(request.url);
     const richiesto = somma(s, (i) => i.dotazione * 0.9);
     const ammesso = somma(s, (i) => i.dotazione * 0.75);
     const pagato = somma(s, (i) => i.pagato);
+    // qualche domanda pagata oltre l'ammesso: ammesso = pagato + ancora da pagare - pagato oltre l'ammesso (D-09)
+    const oltre = somma(s, (i) => i.pagato * 0.004);
+    // le domande senza importi sono le stesse per richiesto, ammesso e pagato (campagne senza ASR2-20, come TX-0012)
+    const senza = somma(s, (i) => i.senzaImporti);
     return HttpResponse.json({
       perimetro: PERIMETRO,
       richiesto: euro(richiesto),
       ammesso: euro(ammesso),
       pagato: euro(pagato),
-      ancoraDaPagare: euro(tondo(ammesso - pagato)),
-      domandeSenza: { richiesto: s.length * 4, ammesso: s.length * 6, pagato: s.length * 9 },
+      ancoraDaPagare: euro(tondo(ammesso - pagato + oltre)),
+      pagatoOltreAmmesso: euro(oltre),
+      domandeSenza: { richiesto: senza, ammesso: senza, pagato: senza },
     });
   }),
   http.get(`${B}/riserva/:anno`, ({ params }) => {

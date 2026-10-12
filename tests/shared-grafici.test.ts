@@ -11,6 +11,7 @@ import {
   MAX_BARRE_VISIBILI,
   PALETTE,
   arrotonda1,
+  arrotondaPercentuale,
   aria,
   asseImporti,
   assePercentuale,
@@ -117,6 +118,13 @@ describe('contratto e primitive numeriche', () => {
     expect(arrotonda1(33.333)).toBe(33.3);
     expect(percentuale(1, 3)).toBe(33.3);
     expect(percentuale(50, 200)).toBe(25);
+    // sotto l'1 % due decimali, e un valore non nullo non diventa zero: un pagamento piccolo non sembra uno zero
+    expect(percentuale(3, 10_000)).toBe(0.03);
+    expect(percentuale(95, 10_000)).toBe(0.95);
+    expect(percentuale(3, 1_000_000)).toBeCloseTo(0.0003, 10);
+    expect(percentuale(0, 100)).toBe(0);
+    expect(arrotondaPercentuale(12.345)).toBe(12.3);
+    expect(arrotondaPercentuale(0.999)).toBe(1);
     expect(sommaCentesimi([0.1, 0.2])).toBe(0.3);
     expect(sommaCentesimi([1_000_000, 2_000_000])).toBe(3_000_000);
     expect(sommaCentesimi([])).toBe(0);
@@ -239,7 +247,7 @@ describe('opzioniSicure', () => {
 
   // X-05: ECharts da solo scrive i numeri all'inglese ("1,000", "12,000"). Il formatter aggiunto e' formatNumber, lo
   // stesso delle tabelle: in it-IT (CLDR) il separatore delle migliaia parte dalle cinque cifre, quindi 1000 resta
-  // "1000" come "6000 domande" nell'imbuto, e 12000 diventa "12.000". Mai la virgola inglese.
+  // "1000" come "6000 domande" nelle barre delle domande SIGC, e 12000 diventa "12.000". Mai la virgola inglese.
   it('asse di valori senza formatter: riceve un formatter con i numeri in italiano', () => {
     const opzioni: EChartsOption = { xAxis: { type: 'category', data: ['2023', '2024'] }, yAxis: { type: 'value', name: 'Domande' }, series: [] };
     const y = asse(prova(opzioniSicure(opzioni)).yAxis);

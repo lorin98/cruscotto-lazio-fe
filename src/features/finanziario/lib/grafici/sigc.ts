@@ -1,6 +1,9 @@
-// sigc.ts — grafici SIGC: imbuto delle domande (TX-0012), cascata degli importi (TX-0013, con le domande senza uno
-// degli importi dichiarate: le somme sono parziali), barre della verifica SMP per intervento (TX-0015).
-import type { EChartsOption, FunnelSeriesOption } from 'echarts';
+// sigc.ts — grafici SIGC: barre delle domande (TX-0012: presentate, pagate, da pagare e senza importi, insiemi che si
+// sovrappongono), cascata degli importi (TX-0013: dall'ammesso all'ancora da pagare con i valori del contratto, con le
+// domande senza uno degli importi dichiarate: le somme sono parziali), barre della verifica SMP per intervento (TX-0015).
+// Gli importi SIGC sono somme per domanda: NON_VALORIZZATO vuol dire che l'importo manca su tutte le domande della
+// selezione (D-09 del backend), quindi si rende come il dato assente nella fonte, non come un totale per intervento.
+import type { EChartsOption } from 'echarts';
 import {
   COLORI,
   NON_CALCOLABILE,
@@ -26,72 +29,112 @@ import type { DomandeSigcLike, ImportiSigcLike, RigaSmp } from '../dto';
 import { numeroOpzionale } from '../formato';
 import { assenzaImporto, cellaImporto, codiceDi, valoreDi } from '../importi';
 
-// ---------------------------------------------------------------- 1. imbuto delle domande SIGC
+// ---------------------------------------------------------------- 1. domande SIGC
+
+/**
+ * Le voci di TX-0012 (D-09 del backend), con l'etichetta delle tabelle: pagate e da pagare vengono dagli importi della
+ * domanda (flusso ASR2-20), come l'importo pagato di TX-0013. Una domanda pagata in parte e' sia pagata sia da pagare;
+ * quelle senza importi non sono ne' l'una ne' l'altra; le presentate fuori da tutte e tre non sono ammesse ne' pagate.
+ */
+export const VOCI_DOMANDE_SIGC = [
+  { nome: 'Presentate', campo: 'presentate', etichetta: 'Presentate', colore: COLORI.scuro },
+  { nome: 'Pagate', campo: 'pagate', etichetta: 'Pagate (importo pagato maggiore di zero)', colore: COLORI.positivo },
+  { nome: 'Da pagare', campo: 'daPagare', etichetta: 'Da pagare (ammesse con importo ancora da pagare, anche se pagate in parte)', colore: COLORI.attenzione },
+  { nome: 'Senza importi', campo: 'senzaImporti', etichetta: 'Senza importi (non classificabili: campagne senza ASR2-20)', colore: COLORI.attenuato },
+] as const;
 
 function quotaSulle(presentate: number | null) {
   return (v: number): string => (presentate != null && presentate > 0 ? formatPercentuale(percentuale(v, presentate)) : NON_CALCOLABILE);
 }
 
-function serieImbuto(dati: DatoSerie[]): FunnelSeriesOption {
-  return {
-    type: 'funnel',
-    name: 'Domande SIGC',
-    sort: 'none',
-    min: 0,
-    max: Math.max(...dati.map((x) => x.value)),
-    gap: 2,
-    // etichette bianche e in grassetto dentro i segmenti: contrasto sufficiente su ogni colore della palette
-    label: { show: true, position: 'inside', formatter: etichettaDato, color: COLORI.superficie, fontWeight: 600, textBorderColor: 'rgba(0,0,0,.35)', textBorderWidth: 2 },
-    data: dati,
-  };
+function datoDomande(nome: string, valore: number, colore: string, quota: (v: number) => string): DatoSerie {
+  const domande = plurale(valore, 'domanda', 'domande');
+  if (nome === 'Presentate') return { value: valore, name: nome, etichetta: formatNumber(valore), dettaglio: `${nome}: ${domande}`, itemStyle: { color: colore } };
+  return { value: valore, name: nome, etichetta: `${formatNumber(valore)} (${quota(valore)})`, dettaglio: `${nome}: ${domande} (${quota(valore)} delle presentate)`, itemStyle: { color: colore } };
 }
 
-/** Imbuto delle domande SIGC: presentate, pagate, da pagare (in quest'ordine), con la quota sulle presentate. */
-export function graficoImbutoSigc(d: DomandeSigcLike): DatiGrafico {
+/**
+ * Barre orizzontali delle domande SIGC, ognuna con la quota sulle presentate. Non e' un imbuto ne' una partizione delle
+ * presentate: pagate e da pagare si sovrappongono (domande pagate in parte) e la descrizione lo dice.
+ */
+export function graficoDomandeSigc(d: DomandeSigcLike): DatiGrafico {
   const presentate = numeroDi(d.presentate);
-  const fasi = [
-    { nome: 'Presentate', valore: presentate },
-    { nome: 'Pagate', valore: numeroDi(d.pagate) },
-    { nome: 'Da pagare', valore: numeroDi(d.daPagare) },
-  ];
+  const voci = VOCI_DOMANDE_SIGC.map((v) => ({ ...v, valore: numeroDi(d[v.campo]) }));
   const quota = quotaSulle(presentate);
-  const tabella = { caption: 'Domande SIGC: presentate, pagate e da pagare', colonne: ['Fase', 'Domande', 'Quota sulle presentate'], righe: fasi.map((f) => [f.nome, numeroOpzionale(f.valore), f.valore == null ? NON_CALCOLABILE : quota(f.valore)]) };
-  const omessi = fasi.filter((f) => f.valore == null).map((f) => `${f.nome}: numero di domande ${NON_DISPONIBILE}`);
-  if (presentate == null) return nonDisegnabile("domande presentate non disponibili: l'imbuto non si può disegnare", tabella, omessi);
-  if (presentate <= 0) return nonDisegnabile("nessuna domanda presentata: l'imbuto non si può disegnare", tabella, omessi);
-  const dati = fasi.flatMap((f): DatoSerie[] => (f.valore == null ? [] : [{ value: f.valore, name: f.nome, etichetta: `${f.nome}: ${formatNumber(f.valore)}`, dettaglio: `${f.nome}: ${plurale(f.valore, 'domanda', 'domande')} (${quota(f.valore)} delle presentate)` }]));
-  const descrizione = `Imbuto delle domande SIGC: ${dati.map((x) => `${x.name.toLowerCase()} ${formatNumber(x.value)} (${quota(x.value)})`).join(', ')}.${notaOmessi(omessi)}`;
-  const opzioni: EChartsOption = { aria: aria(descrizione), tooltip: { trigger: 'item', formatter: tooltipDettaglio }, series: [serieImbuto(dati)] };
+  const tabella = {
+    caption: 'Domande SIGC: presentate, pagate, da pagare e senza importi',
+    colonne: ['Voce', 'Domande', 'Quota sulle presentate'],
+    righe: voci.map((v) => [v.etichetta, numeroOpzionale(v.valore), v.valore == null ? NON_CALCOLABILE : quota(v.valore)]),
+  };
+  const omessi = voci.filter((v) => v.valore == null).map((v) => `${v.nome}: numero di domande ${NON_DISPONIBILE}`);
+  if (presentate == null) return nonDisegnabile('domande presentate non disponibili: il grafico non si può disegnare', tabella, omessi);
+  if (presentate <= 0) return nonDisegnabile('nessuna domanda presentata: il grafico non si può disegnare', tabella, omessi);
+  const dati = voci.flatMap((v): DatoSerie[] => (v.valore == null ? [] : [datoDomande(v.nome, v.valore, v.colore, quota)]));
+  const descrizione =
+    `Barre delle domande SIGC: ${dati.map((x) => `${x.name.toLowerCase()} ${x.etichetta ?? formatNumber(x.value)}`).join(', ')}. ` +
+    `Pagate e da pagare si sovrappongono (domande pagate in parte): le voci non sommano alle presentate.${notaOmessi(omessi)}`;
+  const opzioni: EChartsOption = {
+    aria: aria(descrizione),
+    tooltip: { trigger: 'item', formatter: tooltipDettaglio },
+    // spazio a destra per le etichette ("6000 (60 %)") oltre la barra piu' lunga, quella delle presentate
+    grid: { right: 110 },
+    xAxis: { type: 'value', min: 0 },
+    yAxis: { type: 'category', inverse: true, data: dati.map((x) => x.name) },
+    series: [{ type: 'bar', name: 'Domande SIGC', data: dati, label: { show: true, position: 'right', formatter: etichettaDato } }],
+  };
   return { opzioni, tabella, omessi };
 }
 
 // ---------------------------------------------------------------- 2. cascata degli importi SIGC
 
-const NOTA_FONTI_DIVERSE = 'Fonti diverse: il pagato viene dal flusso ASR2-20';
-const VOCI_SIGC = [
-  { nome: 'Richiesto', campo: 'richiesto' },
+/**
+ * Le voci della cascata con i valori del contratto, nell'ordine in cui si disegnano: ammesso + pagato oltre l'ammesso -
+ * pagato = ancora da pagare (D-09 del backend). Il pagato oltre l'ammesso si aggiunge prima di togliere il pagato: le
+ * basi restano non negative anche quando il pagato supera l'ammesso.
+ */
+const VOCI_CASCATA = [
   { nome: 'Ammesso', campo: 'ammesso' },
+  { nome: "Pagato oltre l'ammesso", campo: 'pagatoOltreAmmesso' },
   { nome: 'Pagato', campo: 'pagato' },
+  { nome: 'Ancora da pagare', campo: 'ancoraDaPagare' },
 ] as const;
 
 interface ValoriSigc {
-  richiesto: number;
   ammesso: number;
+  oltre: number;
   pagato: number;
+  daPagare: number;
 }
 
-/** Il motivo per cui la cascata non si disegna, oppure null con i tre valori utilizzabili. */
+/** Il motivo per cui la cascata non si disegna, oppure i quattro valori del contratto, che tornano al centesimo. */
 function motivoCascataSigc(i: ImportiSigcLike): { motivo: string } | { valori: ValoriSigc } {
-  const mancanti = VOCI_SIGC.filter((v) => valoreDi(i[v.campo]) == null);
-  if (mancanti.length > 0) return { motivo: `la cascata richiede richiesto, ammesso e pagato: ${mancanti.map((v) => `${v.nome.toLowerCase()} ${assenzaImporto(i[v.campo], true)}`).join(', ')}` };
-  const valori = { richiesto: valoreDi(i.richiesto) as number, ammesso: valoreDi(i.ammesso) as number, pagato: valoreDi(i.pagato) as number };
-  const regole: Array<[boolean, string]> = [
-    [valori.richiesto < 0 || valori.ammesso < 0 || valori.pagato < 0, 'importi negativi: la cascata non si può disegnare'],
-    [valori.ammesso > valori.richiesto, "l'ammesso supera il richiesto: la cascata non si può disegnare"],
-    [valori.pagato > valori.ammesso, "il pagato supera l'ammesso: la cascata non si può disegnare"],
-  ];
-  const violata = regole.find(([condizione]) => condizione);
-  return violata ? { motivo: violata[1] } : { valori };
+  const mancanti = VOCI_CASCATA.filter((v) => valoreDi(i[v.campo]) == null);
+  if (mancanti.length > 0) {
+    return { motivo: `la cascata richiede ammesso, pagato oltre l'ammesso, pagato e ancora da pagare: ${mancanti.map((v) => `${v.nome.toLowerCase()} ${assenzaImporto(i[v.campo])}`).join(', ')}` };
+  }
+  const [ammesso, oltre, pagato, daPagare] = VOCI_CASCATA.map((v) => valoreDi(i[v.campo]) as number);
+  if ([ammesso, oltre, pagato, daPagare].some((v) => v < 0)) return { motivo: 'importi negativi: la cascata non si può disegnare' };
+  // le somme escludono le domande senza uno degli importi: se non sono sulle stesse domande i valori non tornano
+  if (centesimi(ammesso + oltre - pagato) !== centesimi(daPagare)) {
+    return { motivo: 'ammesso, pagato e ancora da pagare non tornano (somme su domande diverse, vedi le domande senza importo): la cascata non si può disegnare' };
+  }
+  return { valori: { ammesso, oltre, pagato, daPagare } };
+}
+
+/**
+ * Il non ammesso (richiesto meno ammesso) solo sulle stesse domande: tante senza richiesto quante senza ammesso e
+ * richiesto non inferiore all'ammesso. Altrimenti il motivo, e richiesto e non ammesso restano fuori dalla cascata.
+ */
+function nonAmmesso(i: ImportiSigcLike): { valore: number } | { motivo: string } {
+  const [richiesto, ammesso] = [valoreDi(i.richiesto), valoreDi(i.ammesso)];
+  if (richiesto == null) return { motivo: `richiesto ${assenzaImporto(i.richiesto)}` };
+  if (ammesso == null) return { motivo: `ammesso ${assenzaImporto(i.ammesso)}` };
+  const senza = i.domandeSenza;
+  if (senza?.richiesto == null || senza.ammesso == null) return { motivo: 'non si sa se richiesto e ammesso sono sulle stesse domande' };
+  if (senza.richiesto !== senza.ammesso) {
+    return { motivo: `richiesto e ammesso sono somme su domande diverse (${plurale(senza.richiesto, 'domanda', 'domande')} senza richiesto, ${formatNumber(senza.ammesso)} senza ammesso)` };
+  }
+  return ammesso > richiesto ? { motivo: "l'ammesso supera il richiesto" } : { valore: centesimi(richiesto - ammesso) };
 }
 
 /** Le domande senza uno dei tre importi: le somme le escludono, quindi si dichiarano accanto agli importi. */
@@ -105,35 +148,55 @@ function righeDomandeSenza(i: ImportiSigcLike): string[][] {
   ];
 }
 
-function tabellaCascataSigc(i: ImportiSigcLike, valori: ValoriSigc | null) {
-  const differenza = (a: number, b: number) => (valori ? formatEuro(centesimi(a - b)) : NON_CALCOLABILE);
-  const righe = [
-    ['Richiesto', cellaImporto(i.richiesto, true)],
-    ['Non ammesso (richiesto meno ammesso)', valori ? differenza(valori.richiesto, valori.ammesso) : NON_CALCOLABILE],
-    ['Ammesso', cellaImporto(i.ammesso, true)],
-    ['Non ancora pagato (ammesso meno pagato)', valori ? differenza(valori.ammesso, valori.pagato) : NON_CALCOLABILE],
-    ['Pagato', cellaImporto(i.pagato, true)],
-    ['Ancora da pagare (dal DTO)', cellaImporto(i.ancoraDaPagare, true)],
-    ...righeDomandeSenza(i),
-  ];
-  const [ammesso, pagato, daPagare] = [valoreDi(i.ammesso), valoreDi(i.pagato), valoreDi(i.ancoraDaPagare)];
-  if (ammesso != null && pagato != null && daPagare != null && centesimi(ammesso - pagato) !== centesimi(daPagare)) righe.push(['Nota', NOTA_FONTI_DIVERSE]);
-  return { caption: 'Importi delle domande SIGC: dal richiesto al pagato', colonne: ['Voce', 'Importo'], righe };
+function cellaNonAmmesso(i: ImportiSigcLike, escluso: { valore: number } | { motivo: string }): string {
+  if ('valore' in escluso) return formatEuro(escluso.valore);
+  // con richiesto o ammesso assenti la differenza e' solo non calcolabile: l'assenza e' gia' nella sua riga
+  return valoreDi(i.richiesto) == null || valoreDi(i.ammesso) == null ? NON_CALCOLABILE : `${NON_CALCOLABILE} (${escluso.motivo})`;
 }
 
-/** Cascata richiesto -> non ammesso -> ammesso -> non ancora pagato -> pagato degli importi SIGC. */
+function tabellaCascataSigc(i: ImportiSigcLike, escluso: { valore: number } | { motivo: string }) {
+  const righe = [
+    ['Richiesto', cellaImporto(i.richiesto)],
+    ['Non ammesso (richiesto meno ammesso)', cellaNonAmmesso(i, escluso)],
+    ['Ammesso', cellaImporto(i.ammesso)],
+    ["Pagato oltre l'ammesso", cellaImporto(i.pagatoOltreAmmesso)],
+    ['Pagato', cellaImporto(i.pagato)],
+    ['Ancora da pagare', cellaImporto(i.ancoraDaPagare)],
+    ...righeDomandeSenza(i),
+  ];
+  return { caption: "Importi delle domande SIGC: dal richiesto all'ancora da pagare", colonne: ['Voce', 'Importo'], righe };
+}
+
+/** La voce omessa per richiesto e non ammesso: il richiesto assente, oppure il motivo del non ammesso (con l'ammesso). */
+function omessoRichiesto(i: ImportiSigcLike, escluso: { valore: number } | { motivo: string }): string[] {
+  if (valoreDi(i.richiesto) == null) return [`Richiesto ${assenzaImporto(i.richiesto)}`];
+  return valoreDi(i.ammesso) != null && 'motivo' in escluso ? [`Richiesto e non ammesso: ${escluso.motivo}`] : [];
+}
+
+/**
+ * Cascata degli importi SIGC: richiesto -> non ammesso -> ammesso -> pagato oltre l'ammesso -> pagato -> ancora da
+ * pagare, con i valori del contratto (il browser calcola solo il non ammesso, e solo sulle stesse domande).
+ */
 export function graficoCascataSigc(i: ImportiSigcLike): DatiGrafico {
+  const escluso = nonAmmesso(i);
+  const tabella = tabellaCascataSigc(i, escluso);
+  const omessi = [...omessoRichiesto(i, escluso), ...VOCI_CASCATA.filter((v) => valoreDi(i[v.campo]) == null).map((v) => `${v.nome} ${assenzaImporto(i[v.campo])}`)];
   const esito = motivoCascataSigc(i);
-  const valori = 'valori' in esito ? esito.valori : null;
-  const tabella = tabellaCascataSigc(i, valori);
-  const omessi = VOCI_SIGC.filter((v) => valoreDi(i[v.campo]) == null).map((v) => `${v.nome} ${assenzaImporto(i[v.campo], true)}`);
-  if (!valori) return nonDisegnabile('motivo' in esito ? esito.motivo : 'la cascata non si può disegnare', tabella, omessi);
+  if ('motivo' in esito) return nonDisegnabile(esito.motivo, tabella, omessi);
+  const { ammesso, oltre, pagato, daPagare } = esito.valori;
+  const richiesto: PassoCascata[] =
+    'valore' in escluso
+      ? [
+          { nome: 'Richiesto', valore: valoreDi(i.richiesto) as number, base: 0, colore: COLORI.scuro },
+          { nome: 'Non ammesso', valore: escluso.valore, base: ammesso, colore: COLORI.attenzione },
+        ]
+      : [];
   const passi: PassoCascata[] = [
-    { nome: 'Richiesto', valore: valori.richiesto, base: 0, colore: COLORI.scuro },
-    { nome: 'Non ammesso', valore: centesimi(valori.richiesto - valori.ammesso), base: valori.ammesso, colore: COLORI.attenzione },
-    { nome: 'Ammesso', valore: valori.ammesso, base: 0, colore: COLORI.primario },
-    { nome: 'Non ancora pagato', valore: centesimi(valori.ammesso - valori.pagato), base: valori.pagato, colore: COLORI.attenzione },
-    { nome: 'Pagato', valore: valori.pagato, base: 0, colore: COLORI.positivo },
+    ...richiesto,
+    { nome: 'Ammesso', valore: ammesso, base: 0, colore: COLORI.primario },
+    { nome: "Pagato oltre l'ammesso", valore: oltre, base: ammesso, colore: COLORI.attenzione },
+    { nome: 'Pagato', valore: pagato, base: daPagare, colore: COLORI.positivo },
+    { nome: 'Ancora da pagare', valore: daPagare, base: 0, colore: COLORI.primario },
   ];
   return { opzioni: opzioniCascata(passi, descrizioneCascata('Cascata degli importi SIGC', passi, omessi)), tabella, omessi };
 }

@@ -1,4 +1,4 @@
-// spesa.ts — grafici della spesa per intervento (TX-0002, TX-0011): avanzamento del pagato sulla dotazione, dotazione
+// spesa.ts — grafici della spesa per intervento (TX-0002, TX-0011): avanzamento del pagato lordo sulla dotazione, dotazione
 // per famiglia di intervento, contributo ambientale, dotazione e pagato affiancati. I dati per intervento portano il
 // codice (drill-down). Col perimetro ADA la dotazione (regionale) non si confronta con i pagamenti (dell'area).
 import type { BarSeriesOption, EChartsOption, SunburstSeriesOption, TreemapSeriesOption } from 'echarts';
@@ -7,8 +7,8 @@ import {
   COLORI,
   NON_CALCOLABILE,
   NON_DISPONIBILE,
-  arrotonda1,
   aria,
+  arrotondaPercentuale,
   assePercentuale,
   barreRaggruppate,
   confronta,
@@ -33,11 +33,13 @@ import { cellaImporto, codiceDi, problemaDotazione, valoreDi } from '../importi'
 import { PERIMETRO_ADA } from '../perimetro';
 
 export const MOTIVO_ADA_RAPPORTO = "perimetro ADA: la dotazione è regionale, i pagamenti sono dell'area: il rapporto non è confrontabile";
+/** I pagamenti totali di TX-0002 e TX-0005: lordi, dagli elenchi di liquidazione dei decreti (il netto e' di TX-0007 e TX-0011). */
+export const PAGAMENTI_LORDI = 'Pagamenti totali (lordi, elenchi di liquidazione)';
 
 // ---------------------------------------------------------------- 1. avanzamento per intervento
 
-const CAPTION_AVANZAMENTO = 'Pagato sulla dotazione di spesa pubblica per intervento';
-const COLONNE_AVANZAMENTO = ['Intervento', 'Dotazione', 'Pagato', 'Pagato sulla dotazione'];
+const CAPTION_AVANZAMENTO = 'Pagato lordo sulla dotazione di spesa pubblica per intervento';
+const COLONNE_AVANZAMENTO = ['Intervento', 'Dotazione', 'Pagato (lordo)', 'Pagato lordo sulla dotazione'];
 
 /** Colore della quota pagata sulla dotazione: >= 50% positivo, >= 30% primario, altrimenti attenzione. */
 function coloreQuota(quota: number): string {
@@ -46,7 +48,7 @@ function coloreQuota(quota: number): string {
 }
 
 function datoAvanzamento(x: InterventoAvanzamento): DatoSerie {
-  const valore = arrotonda1(x.quota * 100);
+  const valore = arrotondaPercentuale(x.quota * 100);
   const etichetta = formatPercentuale(valore);
   return { value: valore, name: x.codice, codice: x.codice, etichetta, dettaglio: `${x.codice}: ${etichetta} della dotazione (pagato ${importoBreve(x.pagato)} su ${importoBreve(x.dotazione)})`, itemStyle: { color: coloreQuota(x.quota) } };
 }
@@ -55,14 +57,14 @@ function descrizioneAvanzamento(dati: readonly DatoSerie[], media: number, omess
   const prima = dati[0];
   const ultima = dati[dati.length - 1];
   const estremi = dati.length === 1 ? `${prima.name} ${prima.etichetta}` : `dalla quota più alta, ${prima.name} ${prima.etichetta}, alla più bassa, ${ultima.name} ${ultima.etichetta}`;
-  return `Barre orizzontali del pagato sulla dotazione per ${plurale(dati.length, 'intervento', 'interventi')}: ${estremi}; media ponderata ${formatPercentuale(media)}.${notaOmessi(omessi)}`;
+  return `Barre orizzontali del pagato lordo sulla dotazione per ${plurale(dati.length, 'intervento', 'interventi')}: ${estremi}; media ponderata ${formatPercentuale(media)}.${notaOmessi(omessi)}`;
 }
 
 function opzioniAvanzamento(dati: DatoSerie[], media: number, omessi: readonly string[]): EChartsOption {
   const massimo = Math.max(100, Math.ceil(Math.max(...dati.map((d) => d.value)) / 10) * 10);
   const serie: BarSeriesOption = {
     type: 'bar',
-    name: 'Pagato sulla dotazione',
+    name: 'Pagato lordo sulla dotazione',
     data: dati,
     label: { show: true, position: 'right', formatter: etichettaDato },
     markLine: {
@@ -89,7 +91,7 @@ function righeOmesseAvanzamento(righe: readonly RigaSpesa[], ada: boolean): stri
   return righe.filter((r) => ada || esclusione(r) != null).map((r) => [codiceDi(r), cellaImporto(r.dotazioneSpesaPubblica), cellaImporto(r.pagamentiTotali), esito]);
 }
 
-/** Barre orizzontali del pagato sulla dotazione per intervento, dalla quota maggiore, con la media ponderata. */
+/** Barre orizzontali del pagato lordo (TX-0002) sulla dotazione per intervento, dalla quota maggiore, con la media ponderata. */
 export function graficoAvanzamento(righe: RigaSpesa[], perimetro?: string | null): DatiGrafico {
   if (perimetro === PERIMETRO_ADA) {
     return nonDisegnabile(MOTIVO_ADA_RAPPORTO, { caption: CAPTION_AVANZAMENTO, colonne: COLONNE_AVANZAMENTO, righe: righeOmesseAvanzamento(righe, true) }, []);
@@ -271,9 +273,10 @@ function voce(r: RigaDotazionePagato, importi: Array<ImportoLike | null | undefi
 
 /**
  * Barre raggruppate dotazione / pagato per intervento; nel perimetro ADA solo il pagato. `nomePagato` dice quale
- * pagato e': i pagamenti totali (TX-0002) o i pagamenti al netto delle rettifiche (TX-0011), mai l'uno per l'altro.
+ * pagato e': i pagamenti totali lordi degli elenchi di liquidazione (TX-0002) o i pagamenti al netto delle rettifiche
+ * (TX-0011), mai l'uno per l'altro.
  */
-export function graficoDotazionePagamenti(righe: RigaDotazionePagato[], perimetro?: string | null, nomePagato = 'Pagamenti totali'): DatiGrafico {
+export function graficoDotazionePagamenti(righe: RigaDotazionePagato[], perimetro?: string | null, nomePagato = PAGAMENTI_LORDI): DatiGrafico {
   const pagato = { nome: nomePagato, soggetto: nomePagato.toLowerCase() };
   if (perimetro === PERIMETRO_ADA) {
     const testi = { caption: `${nomePagato} per intervento`, colonne: ['Intervento', nomePagato], titolo: `Barre dei ${pagato.soggetto}`, vuoto: `nessun intervento con ${pagato.soggetto} valorizzati`, unita: INTERVENTI };

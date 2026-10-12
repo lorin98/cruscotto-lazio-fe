@@ -2,9 +2,10 @@
 // quattro KPI (domande presentate e di prima annualita' TX-0009, con i loro file; importo ammesso, somma degli anni, e
 // importo stanziato TX-0010), domande per anno di raccolta (barre impilate; clic su un anno, o la scelta da tastiera sopra la tabella:
 // la tabella di dettaglio mostra quell'anno) e
-// importi per anno (linee + tabella). Le domande senza campagna sono la riga "senza campagna". Ogni sezione ha il suo
-// grant e il suo perimetro. L'importo decretato e' quello degli elenchi di liquidazione, la stessa fonte dei pagamenti
-// totali di RF005 (OP-FE-05).
+// importi per anno (linee + tabella). Anno di raccolta = campagna, altrimenti anno di rilascio della domanda di sostegno
+// (D-09 del backend); le domande senza nessuno dei due sono la riga "senza anno di raccolta". Ogni sezione ha il suo
+// grant e il suo perimetro. L'importo decretato viene dagli elenchi di liquidazione: e' la colonna del decretato, non
+// quella del pagato dei pagamenti totali di RF005 (OP-FE-05).
 import { useId, useState } from 'react';
 import { formatNumber, importoBreve } from '../../../shared/lib';
 import { CardGrafico, Griglia, Kpi, PulsantiScarica, Sezione, TabellaRighe, VistaQuery } from '../../../shared/ui';
@@ -26,7 +27,7 @@ const TITOLI = {
   importi: 'Importi per anno di raccolta (RF010)',
 };
 const VUOTO = vuotoConPerimetro('Nessuna domanda per i filtri scelti.');
-const DECRETATO = 'Importo decretato (elenchi di liquidazione, come i pagamenti totali di RF005)';
+const DECRETATO = 'Importo decretato (elenchi di liquidazione)';
 
 // ---------------------------------------------------------------- KPI
 
@@ -78,6 +79,17 @@ const COLONNE_ANNO: Colonna<DomandePerAnnoRiga>[] = [
   ['Non classificate', (r) => <Numero valore={r.nonClassificate} />],
   ['Totale', (r) => <Numero valore={r.totali} />],
 ];
+
+/** Cosa sono l'anno di raccolta e le non classificate (D-09 del backend), accanto alla tabella che le mostra. */
+function NotaAnnualita() {
+  return (
+    <p className="small mb-0">
+      {
+        "Anno di raccolta: la campagna della domanda, altrimenti l'anno di rilascio della domanda di sostegno. Non classificate: le domande di sostegno NO SIGC, per cui prima e altre annualità non si applicano, e quelle delle campagne senza dati di annualità."
+      }
+    </p>
+  );
+}
 
 /** Scelta dell'anno del dettaglio, anche da tastiera (N-14): togliere la scelta non sposta il focus fuori dal controllo. */
 function SceltaAnno({ id, anni, anno, onCambia }: { id: string; anni: string[]; anno: string | null; onCambia: (anno: string | null) => void }) {
@@ -133,6 +145,7 @@ function DomandePerAnno({ filtri }: { filtri: Filtri }) {
               {/* il backend non filtra per anno: il file ha sempre tutti gli anni (review v3 X-04) */}
               {anno !== null && <p className="ui-nota">{`I file CSV e XLSX contengono tutti gli anni di raccolta, non solo il ${anno}.`}</p>}
               <TabellaRighe caption="Domande per anno di raccolta" intestazione="Anno di raccolta" chiave={(r) => annoDiRaccolta(r.annoRaccolta)} colonne={COLONNE_ANNO} righe={righe} />
+              <NotaAnnualita />
             </Sezione>
           </div>
         );

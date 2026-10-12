@@ -108,7 +108,7 @@ export const REPORT_FINANZIARIO: VoceReport[] = [
     percorso: PERCORSI.sigc,
     titolo: 'Domande e importi SIGC',
     voceMenu: 'SIGC: domande e importi',
-    sottotitolo: 'Domande dalla presentazione al pagamento e importi SIGC.',
+    sottotitolo: "Domande presentate, pagate, da pagare e senza importi; importi dal richiesto all'ancora da pagare.",
     grant: [G.sigcDomande, G.sigcImporti],
   },
   {

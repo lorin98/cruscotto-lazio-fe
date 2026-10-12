@@ -1,9 +1,10 @@
 // AvanzamentoReport — report RF004-RF007 (route /finanziario/avanzamento, TX-0004..TX-0007, flusso dotazione-avanzamento v2):
 // KPI con l'assenza dichiarata (stanziato e impegnato oggi da fonte non attiva), flusso della dotazione (sankey: con gli
-// impegni fino al pagato, senza impegni dalla dotazione al pagato di TX-0007), gauge del pagato, e le quattro sezioni
-// come card con ciambella e tabella equivalente. Ogni sezione ha il suo grant e il suo perimetro (RF004 e RF006
-// regionali, RF005 e RF007 seguono il perimetro ADA); lo stato vuoto viene dalle righe di TX-0002 (segnale), mai da
-// importi a zero. Le letture stanno nei figli di ConGrant (R-09).
+// impegni fino al pagato, senza impegni dalla dotazione al pagato di TX-0007), gauge dei pagamenti al netto delle
+// rettifiche (lo stesso netto del residuo sui pagamenti e di RF007, mai il pagato lordo degli elenchi di liquidazione) e
+// le quattro sezioni come card con ciambella e tabella equivalente. Ogni sezione ha il suo grant e il suo perimetro
+// (RF004 e RF006 regionali, RF005 e RF007 seguono il perimetro ADA); lo stato vuoto viene dalle righe di TX-0002
+// (segnale), mai da importi a zero. Le letture stanno nei figli di ConGrant (R-09).
 import type { ReactNode } from 'react';
 import type { ImportoLike } from '../../../entities/importo';
 import { Caricamento, CardGrafico, Griglia, VistaQuery } from '../../../shared/ui';
@@ -11,7 +12,7 @@ import type { Scaricamento, StatoQuery } from '../../../shared/ui';
 import { usePagamentiSuImpegnato, useResiduoImpegni, useResiduoPagamenti, useStanziato } from '../api';
 import { datiDelReport } from './esportazioni';
 import type { Filtri } from '../lib/filtri';
-import { graficoGauge, graficoPartiImporto, graficoSankey, sottotitoloFlusso } from '../lib/grafici';
+import { PAGAMENTI_LORDI, graficoPagatoNetto, graficoPartiImporto, graficoSankey, sottotitoloFlusso } from '../lib/grafici';
 import { PERIMETRO_ADA, perimetroCombinato } from '../lib/perimetro';
 import type { Perimetro } from '../lib/perimetro';
 import { GRANT } from '../lib/report';
@@ -21,6 +22,8 @@ import type { Segnale } from './selezione';
 
 type Voce = [string, ImportoLike | undefined];
 const VUOTO = vuotoConPerimetro('Nessun intervento per i filtri scelti.', { programma: true });
+// l'importo pagato di TX-0007: lordo, dagli elenchi di liquidazione dei decreti (il netto sottrae il recuperato)
+const PAGATO_LORDO = 'Importo pagato (lordo, elenchi di liquidazione)';
 
 // ---------------------------------------------------------------- KPI e flussi
 
@@ -41,7 +44,7 @@ function KpiResiduo({ filtri, voce }: { filtri: Filtri; voce: 'pagato' | 'residu
     <VistaQuery stato={useResiduoPagamenti(filtri)} errorePersonalizzato={silenzioso}>
       {(d) =>
         voce === 'pagato' ? (
-          <KpiImporto etichetta="Importo pagato" importo={d.importoPagato} icona="it-chart-line" tono="verde" />
+          <KpiImporto etichetta={PAGATO_LORDO} importo={d.importoPagato} icona="it-chart-line" tono="verde" />
         ) : (
           <KpiImporto etichetta="Dotazione residua sui pagamenti" importo={d.dotazioneResidua} icona="it-presentation" tono="ambra" />
         )
@@ -59,7 +62,7 @@ function Indicatori({ filtri }: { filtri: Filtri }) {
       <ConGrant grant={GRANT.pagamentiSuImpegnato} titolo="Totale impegnato">
         <KpiImpegnato filtri={filtri} />
       </ConGrant>
-      <ConGrant grant={GRANT.residuoPagamenti} titolo="Importo pagato">
+      <ConGrant grant={GRANT.residuoPagamenti} titolo={PAGATO_LORDO}>
         <KpiResiduo filtri={filtri} voce="pagato" />
       </ConGrant>
       <ConGrant grant={GRANT.residuoPagamenti} titolo="Dotazione residua sui pagamenti">
@@ -101,11 +104,12 @@ function PagatoSullaDotazione({ filtri }: { filtri: Filtri }) {
     <VistaQuery stato={useResiduoPagamenti(filtri)} errorePersonalizzato={silenzioso}>
       {(d) => (
         <CardGrafico
-          titolo="Pagato sulla dotazione"
-          dati={graficoGauge(d.importoPagato?.valore, d.dotazioneSpesaPubblica?.valore, 'della dotazione pagato', d.perimetro)}
-          fonte={`Fonte: TX-0007 · Perimetro ${d.perimetro ?? 'non indicato'}`}
+          titolo="Pagato netto sulla dotazione"
+          sottotitolo="Pagamenti al netto delle rettifiche sulla dotazione, come il residuo sui pagamenti"
+          dati={graficoPagatoNetto(d.pagamentiNettoRettifiche, d.dotazioneSpesaPubblica, d.perimetro)}
+          fonte={`Fonte: TX-0007, pagamenti al netto delle rettifiche · Perimetro ${d.perimetro ?? 'non indicato'}`}
           altezza="alto"
-          scaricamenti={datiDelReport('Pagato sulla dotazione', 'residuoPagamenti', filtri)}
+          scaricamenti={datiDelReport('Pagato netto sulla dotazione', 'residuoPagamenti', filtri)}
         />
       )}
     </VistaQuery>
@@ -119,7 +123,7 @@ function Flussi({ filtri }: { filtri: Filtri }) {
       <ConGrant grant={[GRANT.residuoImpegni, GRANT.pagamentiSuImpegnato, GRANT.residuoPagamenti]} titolo="Dove va la dotazione">
         <FlussoDotazione filtri={filtri} />
       </ConGrant>
-      <ConGrant grant={GRANT.residuoPagamenti} titolo="Pagato sulla dotazione">
+      <ConGrant grant={GRANT.residuoPagamenti} titolo="Pagato netto sulla dotazione">
         <PagatoSullaDotazione filtri={filtri} />
       </ConGrant>
     </Griglia>
@@ -184,8 +188,8 @@ function PagamentiSuImpegnato({ filtri, titolo }: PropsSezione) {
   return (
     <Parti titolo={titolo} grafico="Impegnato tra pagamenti e ancora da pagare" stato={usePagamentiSuImpegnato(filtri)} segnale={useSelezioneSenzaInterventi(filtri)} fonte="Fonte: TX-0005"
       scaricamenti={datiDelReport(titolo, 'pagamentiSuImpegnato', filtri)}
-      parti={(d) => [['Pagamenti totali (elenchi di liquidazione)', d.pagamentiTotali], ['Impegnato ancora da pagare', d.impegnatoDaPagare]]}
-      voci={(d) => [['Totale impegnato', d.totaleImpegnato], ['Pagamenti totali (elenchi di liquidazione)', d.pagamentiTotali], ['Impegnato ancora da pagare', d.impegnatoDaPagare]]} />
+      parti={(d) => [[PAGAMENTI_LORDI, d.pagamentiTotali], ['Impegnato ancora da pagare', d.impegnatoDaPagare]]}
+      voci={(d) => [['Totale impegnato', d.totaleImpegnato], [PAGAMENTI_LORDI, d.pagamentiTotali], ['Impegnato ancora da pagare', d.impegnatoDaPagare]]} />
   );
 }
 
@@ -202,10 +206,10 @@ function ResiduoPagamenti({ filtri, titolo }: PropsSezione) {
   return (
     <Parti titolo={titolo} grafico="Dotazione tra pagato e residuo" stato={useResiduoPagamenti(filtri)} segnale={useSelezioneSenzaInterventi(filtri)} misto fonte="Fonte: TX-0007"
       scaricamenti={datiDelReport(titolo, 'residuoPagamenti', filtri)}
-      parti={(d) => [['Pagamenti al netto di rettifiche', d.pagamentiNettoRettifiche], ['Dotazione residua', d.dotazioneResidua]]}
+      parti={(d) => [['Pagamenti al netto delle rettifiche', d.pagamentiNettoRettifiche], ['Dotazione residua', d.dotazioneResidua]]}
       voci={(d) => [
-        [diProgramma('Dotazione spesa pubblica', d.perimetro), d.dotazioneSpesaPubblica], ['Importo pagato', d.importoPagato], ['Importo recuperato', d.importoRecuperato],
-        ['Pagamenti al netto di rettifiche', d.pagamentiNettoRettifiche], ['Dotazione residua', d.dotazioneResidua],
+        [diProgramma('Dotazione spesa pubblica', d.perimetro), d.dotazioneSpesaPubblica], [PAGATO_LORDO, d.importoPagato], ['Importo recuperato', d.importoRecuperato],
+        ['Pagamenti al netto delle rettifiche', d.pagamentiNettoRettifiche], ['Dotazione residua', d.dotazioneResidua],
       ]} />
   );
 }

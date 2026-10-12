@@ -1,7 +1,7 @@
 // avanzamento.ts — grafici dell'avanzamento finanziario (RF003-RF007): flusso della dotazione (sankey), indicatore del
-// pagato sulla dotazione, ciambelle di due parti di un totale (quote FEASR, sezioni RF004-RF007). Ogni valore viene dal
-// contratto: nessun residuo ricalcolato nel browser. Col perimetro ADA la dotazione (regionale) non si confronta con
-// impegni e pagamenti (dell'area): i grafici che li mettono in rapporto non si disegnano.
+// pagato netto sulla dotazione, ciambelle di due parti di un totale (quote FEASR, sezioni RF004-RF007). Ogni valore
+// viene dal contratto: nessun residuo ricalcolato nel browser. Col perimetro ADA la dotazione (regionale) non si
+// confronta con impegni e pagamenti (dell'area): i grafici che li mettono in rapporto non si disegnano.
 import type { EChartsOption, GaugeSeriesOption, SankeySeriesOption } from 'echarts';
 import type { ImportoLike } from '../../../../entities/importo';
 import {
@@ -54,7 +54,7 @@ function tabellaFlusso(i: ResiduoSuImpegniLike, p: AvanzamentoPagamentiLike, r: 
     ['Dotazione', dotazioneFlusso(i, r)],
     ['Impegnato', i.importoImpegnato],
     ['Da impegnare (dotazione residua sugli impegni)', i.dotazioneResidua],
-    ['Pagamenti totali sull\'impegnato', p.pagamentiTotali],
+    ["Pagamenti totali sull'impegnato (lordi, elenchi di liquidazione)", p.pagamentiTotali],
     ['Impegnato ancora da pagare', p.impegnatoDaPagare],
     ['Pagamenti al netto delle rettifiche', r.pagamentiNettoRettifiche],
     ['Dotazione residua sui pagamenti', r.dotazioneResidua],
@@ -147,9 +147,13 @@ function serieGauge(titolo: string, valore: number): GaugeSeriesOption {
   };
 }
 
+function tabellaGauge(titolo: string, valore: string): TabellaEquivalente {
+  return { caption: titolo, colonne: ['Misura', 'Valore'], righe: [[titolo, valore]] };
+}
+
 /** Indicatore 0-100 della parte sul totale; col perimetro ADA (parte dell'area su un totale regionale) non si disegna. */
 export function graficoGauge(parte: number | null | undefined, totale: number | null | undefined, titolo: string, perimetro?: string | null): DatiGrafico {
-  const tabellaCon = (valore: string) => ({ caption: titolo, colonne: ['Misura', 'Valore'], righe: [[titolo, valore]] });
+  const tabellaCon = (valore: string) => tabellaGauge(titolo, valore);
   if (perimetro === PERIMETRO_ADA) return nonDisegnabile(MOTIVO_ADA_RAPPORTO, tabellaCon('non confrontabile (perimetro ADA)'), []);
   const p = numeroDi(parte);
   const t = numeroDi(totale);
@@ -158,6 +162,23 @@ export function graficoGauge(parte: number | null | undefined, totale: number | 
   const valore = percentuale(p, t);
   const opzioni: EChartsOption = { aria: aria(`Indicatore da 0 a 100 %: ${titolo} ${formatPercentuale(valore)}.`), series: [serieGauge(titolo, valore)] };
   return { opzioni, tabella: tabellaCon(formatPercentuale(valore)), omessi: [] };
+}
+
+const TITOLO_PAGATO_NETTO = 'della dotazione pagato (netto)';
+
+/**
+ * Indicatore dei pagamenti al netto delle rettifiche sulla dotazione (TX-0007, TX-0011): lo stesso netto del residuo
+ * sui pagamenti accanto, mai il pagato lordo degli elenchi di liquidazione. Un importo assente rende la percentuale non
+ * calcolabile e dice il suo motivo, come la cascata dell'intervento. `aggregato`: totale su piu' interventi (TX-0007),
+ * false per la riga di un intervento (TX-0011).
+ */
+export function graficoPagatoNetto(pagato: ImportoLike | null | undefined, dotazione: ImportoLike | null | undefined, perimetro?: string | null, aggregato = true): DatiGrafico {
+  const [p, t] = [valoreDi(pagato), valoreDi(dotazione)];
+  if (perimetro !== PERIMETRO_ADA && (p == null || t == null)) {
+    const mancanti = [p == null ? `pagamenti netti: ${assenzaImporto(pagato, aggregato)}` : null, t == null ? `dotazione: ${assenzaImporto(dotazione, aggregato)}` : null];
+    return nonDisegnabile(`la percentuale richiede pagamenti netti e dotazione; ${mancanti.filter(Boolean).join('; ')}`, tabellaGauge(TITOLO_PAGATO_NETTO, NON_CALCOLABILE), []);
+  }
+  return graficoGauge(p, t, TITOLO_PAGATO_NETTO, perimetro);
 }
 
 // ---------------------------------------------------------------- 3. due parti di un totale

@@ -1,6 +1,9 @@
 // domande.ts — grafici delle domande per anno di raccolta (TX-0008: barre impilate per annualita') e degli importi per
-// anno (TX-0010: linee dello stanziato, dell'ammesso e del decretato). Le domande senza campagna sono la categoria
-// "senza campagna", in coda. Una serie senza alcun valore (fonte non attiva) non si disegna e si dichiara una volta.
+// anno (TX-0010: linee dello stanziato, dell'ammesso e del decretato). Anno di raccolta = campagna, altrimenti anno di
+// rilascio della domanda di sostegno; le domande senza nessuno dei due sono la categoria "senza anno di raccolta", in
+// coda. Una serie senza alcun valore (fonte non attiva) non si disegna e si dichiara una volta. L'importo ammesso
+// dell'anno e' una somma per domanda: NON_VALORIZZATO = nessuna domanda dell'anno ha l'ammesso (D-09 del backend), e si
+// rende come il dato assente nella fonte, non come un totale per intervento che manca.
 import type { BarSeriesOption, EChartsOption, LineSeriesOption } from 'echarts';
 import type { ImportoLike } from '../../../../entities/importo';
 import {
@@ -29,7 +32,7 @@ const ANNUALITA = [
 ] as const;
 
 
-/** Barre impilate delle domande per anno di raccolta (senza campagna in coda): prima annualita', altre, non classificate. */
+/** Barre impilate delle domande per anno di raccolta (senza anno in coda): prima annualita', altre, non classificate. */
 export function graficoDomandePerAnno(righe: RigaDomandeAnno[]): DatiGrafico {
   const ordinate = perAnno(righe);
   const categorie = ordinate.map((r) => annoDiRaccolta(r.annoRaccolta));
@@ -61,10 +64,11 @@ export function graficoDomandePerAnno(righe: RigaDomandeAnno[]): DatiGrafico {
 
 // ---------------------------------------------------------------- 2. importi per anno di raccolta
 
+// `aggregato`: resa di NON_VALORIZZATO come totale (stanziato, decretato) o come dato assente su tutte le domande (ammesso)
 const IMPORTI = [
-  { nome: 'Importo stanziato', campo: 'importoStanziato' },
-  { nome: 'Importo ammesso', campo: 'importoAmmesso' },
-  { nome: 'Importo decretato', campo: 'importoDecretato' },
+  { nome: 'Importo stanziato', campo: 'importoStanziato', aggregato: true },
+  { nome: 'Importo ammesso', campo: 'importoAmmesso', aggregato: false },
+  { nome: 'Importo decretato', campo: 'importoDecretato', aggregato: true },
 ] as const;
 
 function lineaImporti(def: (typeof IMPORTI)[number], righe: readonly RigaImportiAnno[], categorie: readonly string[], omessi: string[]): LineSeriesOption | null {
@@ -73,11 +77,11 @@ function lineaImporti(def: (typeof IMPORTI)[number], righe: readonly RigaImporti
   const soggetto = def.nome.toLowerCase();
   if (valori.every((v) => v == null)) {
     // una serie tutta assente (es. fonte non attiva) si dichiara una volta, con il motivo del primo anno
-    omessi.push(`${def.nome}: ${assenzaImporto(importi[0], true)} per tutti gli anni`);
+    omessi.push(`${def.nome}: ${assenzaImporto(importi[0], def.aggregato)} per tutti gli anni`);
     return null;
   }
   valori.forEach((v, k) => {
-    if (v == null) omessi.push(`${categorie[k]}: ${soggetto} ${assenzaImporto(importi[k], true)}`);
+    if (v == null) omessi.push(`${categorie[k]}: ${soggetto} ${assenzaImporto(importi[k], def.aggregato)}`);
   });
   return { type: 'line', name: def.nome, connectNulls: false, data: valori };
 }
@@ -89,7 +93,7 @@ export function graficoImportiPerAnno(righe: RigaImportiAnno[]): DatiGrafico {
   const tabella = {
     caption: 'Importi per anno di raccolta: stanziato, ammesso e decretato',
     colonne: ['Anno', 'Stanziato', 'Ammesso', 'Decretato', 'Domande senza importo ammesso'],
-    righe: ordinate.map((r, k) => [categorie[k], cellaImporto(r.importoStanziato, true), cellaImporto(r.importoAmmesso, true), cellaImporto(r.importoDecretato, true), numeroOpzionale(r.domandeSenzaAmmesso)]),
+    righe: ordinate.map((r, k) => [categorie[k], cellaImporto(r.importoStanziato, true), cellaImporto(r.importoAmmesso), cellaImporto(r.importoDecretato, true), numeroOpzionale(r.domandeSenzaAmmesso)]),
   };
   if (ordinate.length === 0) return nonDisegnabile('nessun importo per anno di raccolta', tabella, []);
   const omessi: string[] = [];

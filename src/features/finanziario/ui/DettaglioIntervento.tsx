@@ -13,7 +13,7 @@ import { useDomandePerAnno, useImportiPerAnno, useRiepilogo, useSigcDomande, use
 import type { RiepilogoFinanziarioRiga } from '../api';
 import { datiDelReport } from './esportazioni';
 import type { Filtri } from '../lib/filtri';
-import { graficoCascataIntervento, graficoCascataSigc, graficoDomandePerAnno, graficoGauge, graficoImbutoSigc, graficoImportiPerAnno, vociIntervento } from '../lib/grafici';
+import { graficoCascataIntervento, graficoCascataSigc, graficoDomandePerAnno, graficoDomandeSigc, graficoImportiPerAnno, graficoPagatoNetto, vociIntervento } from '../lib/grafici';
 import type { Perimetro } from '../lib/perimetro';
 import { GRANT, PERCORSI, conFiltri } from '../lib/report';
 import { ConGrant, KpiImporto, NotaPerimetroMisto, PerimetroSezione, diProgramma } from './comuni';
@@ -58,29 +58,18 @@ function Kpis({ r, perimetro }: { r: RiepilogoFinanziarioRiga; perimetro?: Perim
   );
 }
 
-// il gauge legge i pagamenti totali di TX-0002: caricamento ed errore sono rami suoi, mai "valore non disponibile"
-function PagatoSullaDotazione({ filtri, r, perimetro }: { filtri: Filtri; r: RiepilogoFinanziarioRiga; perimetro?: Perimetro }) {
-  return (
-    <VistaQuery stato={useSpesaPerIntervento(filtri)}>
-      {(d) => (
-        <CardGrafico
-          titolo="Pagato sulla dotazione"
-          dati={graficoGauge(d.righe?.[0]?.pagamentiTotali?.valore, r.dotazioneSpesaPubblica?.valore, 'della dotazione pagato', perimetro)}
-          fonte="Fonte: TX-0002 (pagamenti totali) e TX-0011 (dotazione)"
-          // i pagamenti dell'intervento (TX-0002); la dotazione e' nel file della cascata (TX-0011): NFR-75, review v3 V-04
-          scaricamenti={datiDelReport('Pagato sulla dotazione', 'spesaPerIntervento', filtri)}
-        />
-      )}
-    </VistaQuery>
-  );
-}
-
+// il gauge usa i pagamenti al netto delle rettifiche della riga (TX-0011), come il KPI e la cascata accanto: mai il
+// pagato lordo degli elenchi di liquidazione (TX-0002) su una dotazione il cui residuo e' calcolato sul netto
 function Sintesi({ filtri, r, perimetro }: { filtri: Filtri; r: RiepilogoFinanziarioRiga; perimetro?: Perimetro }) {
   return (
     <Griglia>
-      <ConGrant grant={GRANT.spesaPerIntervento} titolo="Pagato sulla dotazione">
-        <PagatoSullaDotazione filtri={filtri} r={r} perimetro={perimetro} />
-      </ConGrant>
+      <CardGrafico
+        titolo="Pagato netto sulla dotazione"
+        sottotitolo="Pagamenti al netto delle rettifiche sulla dotazione, come il residuo sui pagamenti"
+        dati={graficoPagatoNetto(r.pagamentiNettoRettifiche, r.dotazioneSpesaPubblica, perimetro, false)}
+        fonte="Fonte: TX-0011, riepilogo per intervento"
+        scaricamenti={datiDelReport('Pagato netto sulla dotazione', 'riepilogo', filtri)}
+      />
       <CardGrafico
         titolo="Dalla dotazione al residuo"
         dati={graficoCascataIntervento(r, perimetro)}
@@ -100,7 +89,19 @@ function ImportiPerAnno({ filtri }: { filtri: Filtri }) {
 }
 
 function DomandeSigc({ filtri }: { filtri: Filtri }) {
-  return <VistaQuery stato={useSigcDomande(filtri)}>{(d) => <CardGrafico titolo="Domande SIGC" dati={graficoImbutoSigc(d)} fonte="Fonte: TX-0012" scaricamenti={datiDelReport('Domande SIGC', 'sigcDomande', filtri)} />}</VistaQuery>;
+  return (
+    <VistaQuery stato={useSigcDomande(filtri)}>
+      {(d) => (
+        <CardGrafico
+          titolo="Domande SIGC"
+          sottotitolo="Pagate e da pagare si sovrappongono (domande pagate in parte); senza importi: non classificabili"
+          dati={graficoDomandeSigc(d)}
+          fonte="Fonte: TX-0012 · pagate e da pagare dagli importi della domanda (flusso ASR2-20), come l'importo pagato"
+          scaricamenti={datiDelReport('Domande SIGC', 'sigcDomande', filtri)}
+        />
+      )}
+    </VistaQuery>
+  );
 }
 
 /**
@@ -111,7 +112,7 @@ function ImportiSigc({ filtri }: { filtri: Filtri }) {
   const segnale = useSelezioneSenzaDomandeSigc(filtri);
   return (
     <VistaQuery stato={useSigcImporti(filtri)} inAttesa={segnale === 'in-attesa'} eVuoto={() => segnale === 'vuota'} vuoto={SENZA_SIGC}>
-      {(d) => <CardGrafico titolo="Importi SIGC" dati={graficoCascataSigc(d)} fonte="Fonte: TX-0013 · pagato dal flusso ASR2-20" scaricamenti={datiDelReport('Importi SIGC', 'sigcImporti', filtri)} />}
+      {(d) => <CardGrafico titolo="Importi SIGC" dati={graficoCascataSigc(d)} fonte="Fonte: TX-0013 · importi della domanda (flusso ASR2-20)" scaricamenti={datiDelReport('Importi SIGC', 'sigcImporti', filtri)} />}
     </VistaQuery>
   );
 }

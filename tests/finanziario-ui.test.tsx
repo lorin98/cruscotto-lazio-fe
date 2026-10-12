@@ -390,15 +390,15 @@ describe('Panoramica (route /finanziario: TX-0002, TX-0009, TX-0012, TX-0013)', 
       rispondi('/api/finanziario/sigc/domande', F.SIGC_DOMANDE),
       rispondi('/api/finanziario/sigc/importi', F.SIGC_IMPORTI),
     );
-  const CARD = ['Avanzamento per intervento', 'Dotazione per famiglia di intervento', 'Domande SIGC: dalla presentazione al pagamento', 'Importi SIGC'];
+  const CARD = ['Avanzamento per intervento', 'Dotazione per famiglia di intervento', 'Domande SIGC: presentate, pagate e da pagare', 'Importi SIGC'];
   it('KPI dai dati, perimetro dichiarato e quattro card con il grafico montato', async () => {
     servi();
     conRouter(<Panoramica filtri={{}} />);
     await regioneContiene('Dotazione spesa pubblica', '1,0 M€');
-    await regioneContiene('Pagamenti totali', '200.000,00 €');
-    await regioneContiene('Pagato sulla dotazione', '20 %');
+    await regioneContiene('Pagamenti totali (lordi, elenchi di liquidazione)', '200.000,00 €');
+    await regioneContiene('Pagato lordo sulla dotazione', '20 %');
     await regioneContiene('Domande presentate', 'di cui prima annualità 400');
-    expect(within(card('Pagato sulla dotazione')).getByRole('img', { name: '20%' })).toBeTruthy();
+    expect(within(card('Pagato lordo sulla dotazione')).getByRole('img', { name: '20%' })).toBeTruthy();
     expect(screen.getByText('Regionale: tutte le domande della regione')).toBeTruthy();
     await waitFor(() => expect(graficiVivi()).toHaveLength(4));
     for (const titolo of CARD) expect(graficoDi(titolo).opzioni.length).toBeGreaterThan(0);
@@ -411,7 +411,7 @@ describe('Panoramica (route /finanziario: TX-0002, TX-0009, TX-0012, TX-0013)', 
     await waitFor(() => expect(graficiVivi()).toHaveLength(4));
     const g = graficoDi('Avanzamento per intervento');
     await vediTabella('Avanzamento per intervento');
-    const tabella = within(card('Avanzamento per intervento')).getByRole('table', { name: 'Pagato sulla dotazione di spesa pubblica per intervento' });
+    const tabella = within(card('Avanzamento per intervento')).getByRole('table', { name: 'Pagato lordo sulla dotazione di spesa pubblica per intervento' });
     expect(testo(within(tabella).getByRole('row', { name: /^SRA01/ }).textContent)).toContain('20 %');
     expect(g.dismesso).toBe(false);
     expect(g.el.parentElement?.hidden).toBe(true);
@@ -430,7 +430,7 @@ describe('Panoramica (route /finanziario: TX-0002, TX-0009, TX-0012, TX-0013)', 
     expect(screen.getByText('pagina del dettaglio')).toBeTruthy();
   });
 
-  it('drill-down: clic su un intervento della mappa apre il dettaglio, clic sull imbuto SIGC apre la pagina SIGC', async () => {
+  it('drill-down: clic su un intervento della mappa apre il dettaglio, clic sulle barre delle domande SIGC apre la pagina SIGC', async () => {
     servi();
     const primo = conRouter(<Panoramica filtri={{}} />);
     await waitFor(() => expect(graficiVivi()).toHaveLength(4));
@@ -440,7 +440,7 @@ describe('Panoramica (route /finanziario: TX-0002, TX-0009, TX-0012, TX-0013)', 
     servi();
     const secondo = conRouter(<Panoramica filtri={{ op: ['OP2'] }} />);
     await waitFor(() => expect(graficiVivi()).toHaveLength(4));
-    act(() => clicSu(graficoDi('Domande SIGC: dalla presentazione al pagamento'), { name: 'Pagate', dataIndex: 1 }));
+    act(() => clicSu(graficoDi('Domande SIGC: presentate, pagate e da pagare'), { name: 'Pagate', dataIndex: 1 }));
     await waitFor(() => expect(indirizzo(secondo.router)).toBe('/finanziario/sigc?op=OP2'));
   });
 
@@ -454,7 +454,7 @@ describe('Panoramica (route /finanziario: TX-0002, TX-0009, TX-0012, TX-0013)', 
     ).toBeTruthy();
     expect(within(avanzamento).queryByRole('group', { name: /^Vista di/ })).toBeNull();
     expect(testo(within(avanzamento).getByRole('table').textContent)).toContain('non confrontabile (perimetro ADA)');
-    await regioneContiene('Pagato sulla dotazione', "Non confrontabile: dotazione regionale e pagamenti dell'area (perimetro ADA)");
+    await regioneContiene('Pagato lordo sulla dotazione', "Non confrontabile: dotazione regionale e pagamenti dell'area (perimetro ADA)");
     // la dotazione e' un dato di programma: per un P4 resta regionale e lo si dichiara
     await regioneContiene('Dotazione spesa pubblica (regionale)', '1,0 M€');
     expect(screen.queryByRole('region', { name: 'Dotazione spesa pubblica' })).toBeNull();
@@ -471,10 +471,10 @@ describe('Panoramica (route /finanziario: TX-0002, TX-0009, TX-0012, TX-0013)', 
     conRouter(<Panoramica filtri={{}} />);
     await waitFor(() => expect(valoreKpi('Dotazione spesa pubblica')).toBe('Non calcolabile: manca per 1 intervento (SRA03)'));
     expect(notaKpi('Dotazione spesa pubblica')).toBe('2 interventi nella selezione');
-    expect(valoreKpi('Pagamenti totali')).toBe('300.000,00 €');
+    expect(valoreKpi('Pagamenti totali (lordi, elenchi di liquidazione)')).toBe('300.000,00 €');
     // la quota non compare accanto a un totale non calcolabile (wireframe panoramica, review v3 V-05)
-    expect(valoreKpi('Pagato sulla dotazione')).toBe('Non calcolabile: manca il totale della dotazione');
-    expect(within(screen.getByRole('region', { name: 'Pagato sulla dotazione' })).queryByRole('img')).toBeNull();
+    expect(valoreKpi('Pagato lordo sulla dotazione')).toBe('Non calcolabile: manca il totale della dotazione');
+    expect(within(screen.getByRole('region', { name: 'Pagato lordo sulla dotazione' })).queryByRole('img')).toBeNull();
     expect(screen.queryByText('1,0 M€')).toBeNull();
   });
 
@@ -484,10 +484,10 @@ describe('Panoramica (route /finanziario: TX-0002, TX-0009, TX-0012, TX-0013)', 
     server.use(rispondi('/api/finanziario/spesa-per-intervento', { ...F.SPESA, righe: [...F.SPESA.righe, dotazioneZero] }));
     conRouter(<Panoramica filtri={{}} />);
     // 0,2 su 1,0 (non 0,3 su 1,0: la dotazione zero non entra nella quota)
-    await waitFor(() => expect(valoreKpi('Pagato sulla dotazione')).toBe('20 %'));
-    expect(notaKpi('Pagato sulla dotazione')).toBe('media ponderata su 1 di 2 interventi');
+    await waitFor(() => expect(valoreKpi('Pagato lordo sulla dotazione')).toBe('20 %'));
+    expect(notaKpi('Pagato lordo sulla dotazione')).toBe('media ponderata su 1 di 2 interventi');
     expect(valoreKpi('Dotazione spesa pubblica')).toBe('1,0 M€');
-    expect(valoreKpi('Pagamenti totali')).toBe('300.000,00 €');
+    expect(valoreKpi('Pagamenti totali (lordi, elenchi di liquidazione)')).toBe('300.000,00 €');
     await waitFor(() => expect(descrizione(graficoDi('Avanzamento per intervento'))).toContain('media ponderata 20 %'));
     expect(within(card('Avanzamento per intervento')).getByText('SRG08: dotazione pari a zero')).toBeTruthy();
   });
@@ -630,7 +630,7 @@ describe('DettaglioIntervento (route /finanziario/interventi/:codice)', () => {
     conRouter(<DettaglioIntervento codice="SRA01" />, '/prova', client);
     expect(await screen.findByRole('tab', { name: 'Sintesi', selected: true })).toBeTruthy();
     await waitFor(() => expect(graficiVivi()).toHaveLength(2));
-    await waitFor(() => expect(descrizione(graficoDi('Pagato sulla dotazione'))).toContain('20 %'));
+    await waitFor(() => expect(descrizione(graficoDi('Pagato netto sulla dotazione'))).toContain('20 %'));
     expect(graficoDi('Dalla dotazione al residuo').opzioni.length).toBeGreaterThan(0);
     for (const p of ['domande-per-anno', 'importi-per-anno', 'sigc/domande', 'sigc/importi']) expect(letture(client, `/api/finanziario/${p}`)).toHaveLength(0);
 
@@ -688,31 +688,42 @@ describe('DettaglioIntervento (route /finanziario/interventi/:codice)', () => {
     expect(letture(client, '/api/finanziario/spesa-per-intervento')).toHaveLength(0);
   });
 
-  // V-07: la Sintesi legge TX-0002 dentro un ConGrant; senza il grant la card lo dice, non "valore non disponibile"
-  it('senza il grant di TX-0002 la card del pagato sulla dotazione lo dice e la Sintesi non legge la spesa; la cascata resta', async () => {
+  // il pagato netto sulla dotazione viene dalla riga di TX-0011, come il KPI e la cascata accanto (mai il lordo di TX-0002)
+  it('senza il grant di TX-0002 il pagato netto sulla dotazione si disegna da TX-0011 e la Sintesi non legge la spesa', async () => {
     servi();
     profilo('csr.tx-0011.read');
     const client = clientDiTest();
     conRouter(<DettaglioIntervento codice="SRA01" />, '/prova', client);
-    await sezioneNonDisponibile('Pagato sulla dotazione');
-    expect(screen.getByRole('region', { name: 'Intervento SRA01' })).toBeTruthy();
-    await waitFor(() => expect(graficoDi('Dalla dotazione al residuo').opzioni.length).toBeGreaterThan(0));
-    expect(screen.queryByText(/valore non disponibile/)).toBeNull();
+    await waitFor(() => expect(graficiVivi()).toHaveLength(2));
+    // 200.000 di pagamenti netti su 1.000.000 di dotazione
+    expect(descrizione(graficoDi('Pagato netto sulla dotazione'))).toContain('20 %');
+    expect(graficoDi('Dalla dotazione al residuo').opzioni.length).toBeGreaterThan(0);
+    expect(screen.queryByText(NON_DISPONIBILE_PROFILO)).toBeNull();
     await notifiche();
     expect(letture(client, '/api/finanziario/spesa-per-intervento')).toHaveLength(0);
     expect(letture(client, '/api/finanziario/filtri')).toHaveLength(0);
   });
 
-  it("TX-0002 in errore: la card del pagato e' un avviso con Riprova, non un dato mancante; la cascata resta (V-07)", async () => {
+  it('TX-0002 in errore: pagato netto sulla dotazione e cascata restano (TX-0011), manca solo il contributo ambientale della testata', async () => {
     servi();
     server.use(rispondi('/api/finanziario/spesa-per-intervento', problema(500, 'ERRORE_INTERNO'), 500));
     conRouter(<DettaglioIntervento codice="SRA01" />);
-    const avviso = await screen.findByRole('alert');
-    expect(within(avviso).getByRole('button', { name: 'Riprova' })).toBeTruthy();
-    await waitFor(() => expect(graficoDi('Dalla dotazione al residuo').opzioni.length).toBeGreaterThan(0));
-    expect(screen.queryByRole('region', { name: 'Pagato sulla dotazione' })).toBeNull();
+    await waitFor(() => expect(graficiVivi()).toHaveLength(2));
+    expect(descrizione(graficoDi('Pagato netto sulla dotazione'))).toContain('20 %');
+    expect(screen.queryByText(/^Contributo ambientale/)).toBeNull();
     expect(screen.queryByText(/valore non disponibile/)).toBeNull();
-    expect(screen.getAllByRole('alert')).toHaveLength(1);
+  });
+
+  it('pagamenti netti non valorizzati: il gauge e\' "non calcolabile" con il motivo, senza ripiegare sul lordo di TX-0002', async () => {
+    servi();
+    const riga = { ...F.RIEPILOGO.righe[0], pagamentiNettoRettifiche: { valore: null, motivo: 'NON_VALORIZZATO', fonte: null } };
+    server.use(rispondi('/api/finanziario/riepilogo', { ...RIEPILOGO_SRA01, righe: [riga] }));
+    conRouter(<DettaglioIntervento codice="SRA01" />);
+    const gauge = await trovaCard('Pagato netto sulla dotazione');
+    expect(
+      within(gauge).getByText('Grafico non disponibile: la percentuale richiede pagamenti netti e dotazione; pagamenti netti: non valorizzato (il dato non è presente nella fonte).'),
+    ).toBeTruthy();
+    expect(valoreDi(within(gauge).getByRole('table'), 'della dotazione pagato (netto)')).toBe('non calcolabile');
   });
 
   // V-03: dotazione regionale e pagamenti dell'area non si sottraggono; i dati di programma si dichiarano regionali
@@ -730,7 +741,7 @@ describe('DettaglioIntervento (route /finanziario/interventi/:codice)', () => {
     expect(valoreDi(voci, 'Quota FEASR (regionale)')).toBe('400.000,00 €');
     expect(valoreDi(voci, 'Pagamenti al netto delle rettifiche')).toBe('200.000,00 €');
     expect(valoreDi(voci, 'Residuo sui pagamenti')).toBe('fuori perimetro (non visibile nel perimetro del profilo)');
-    const gauge = await trovaCard('Pagato sulla dotazione');
+    const gauge = await trovaCard('Pagato netto sulla dotazione');
     expect(within(gauge).getByText("Grafico non disponibile: perimetro ADA: la dotazione è regionale, i pagamenti sono dell'area: il rapporto non è confrontabile.")).toBeTruthy();
     expect(valoreKpi('Dotazione spesa pubblica (regionale)')).toBe('1,0 M€');
     expect(valoreKpi('Risorse quota FEASR (regionale)')).toBe('400.000,00 €');
@@ -778,7 +789,7 @@ describe('RiepilogoReport (TX-0011, tabella interattiva)', () => {
       'Importo stanziato',
       'Impegnato cofinanziato FEASR',
       'Impegnato cofinanziato FEASR e non',
-      'Pagamenti al netto di rettifiche',
+      'Pagamenti al netto delle rettifiche',
       'Dotazione residua sugli impegni',
       'Dotazione residua sui pagamenti',
     ]);
@@ -986,7 +997,7 @@ describe('RiepilogoReport (TX-0011, tabella interattiva)', () => {
     expect(within(t).getByRole('columnheader', { name: 'Dotazione spesa pubblica (regionale)' })).toBeTruthy();
     expect(within(t).getByRole('columnheader', { name: 'Risorse quota FEASR (regionale)' })).toBeTruthy();
     expect(within(t).getByRole('columnheader', { name: 'Importo stanziato (regionale)' })).toBeTruthy();
-    expect(within(t).getByRole('columnheader', { name: 'Pagamenti al netto di rettifiche' })).toBeTruthy();
+    expect(within(t).getByRole('columnheader', { name: 'Pagamenti al netto delle rettifiche' })).toBeTruthy();
     expect(screen.getByText(/i due valori non sono confrontabili/)).toBeTruthy();
     expect(screen.getByText('Perimetro ADA')).toBeTruthy();
     unmount();
@@ -1042,7 +1053,7 @@ describe('DotazioneReport (TX-0002, TX-0003)', () => {
       'Dotazione spesa pubblica',
       'Impegnato cofinanziato FEASR e non',
       'Impegnato spesa pubblica',
-      'Pagamenti totali (elenchi di liquidazione)',
+      'Pagamenti totali (lordi, elenchi di liquidazione)',
       'Quota Stato',
       'Quota Regione',
       'Vincolo dotazione LEADER',
@@ -1178,9 +1189,10 @@ describe('DotazioneReport (TX-0002, TX-0003)', () => {
     expect(within(barre).getByText('1 voce non nel grafico')).toBeTruthy();
     expect(within(barre).getByText("perimetro ADA: la dotazione regionale non si affianca ai pagamenti dell'area")).toBeTruthy();
     await vediTabella(titolo);
-    expect(within(barre).getByRole('table', { name: 'Pagamenti totali per intervento' })).toBeTruthy();
-    expect(screen.getByRole('columnheader', { name: 'Dotazione spesa pubblica (regionale)' })).toBeTruthy();
-    expect(screen.getByRole('columnheader', { name: 'Pagamenti totali (elenchi di liquidazione)' })).toBeTruthy();
+    expect(within(barre).getByRole('table', { name: 'Pagamenti totali (lordi, elenchi di liquidazione) per intervento' })).toBeTruthy();
+    const tabellaRf002 = screen.getByRole('table', { name: /^Dotazione, impegni e pagamenti per intervento/ });
+    expect(within(tabellaRf002).getByRole('columnheader', { name: 'Dotazione spesa pubblica (regionale)' })).toBeTruthy();
+    expect(within(tabellaRf002).getByRole('columnheader', { name: 'Pagamenti totali (lordi, elenchi di liquidazione)' })).toBeTruthy();
     expect(screen.getByText(/i due valori non sono confrontabili/)).toBeTruthy();
   });
 
@@ -1232,7 +1244,7 @@ describe('AvanzamentoReport (TX-0004..TX-0007)', () => {
     await regioneContiene('Importo stanziato', 'Non disponibile: fonte quadro sinottico non attiva');
     await regioneContiene('Importo stanziato', 'dato di programma (regionale)');
     await regioneContiene('Totale impegnato', 'Non disponibile: fonte impegni non attiva');
-    await regioneContiene('Importo pagato', '220.000,00 €');
+    await regioneContiene('Importo pagato (lordo, elenchi di liquidazione)', '220.000,00 €');
     await regioneContiene('Dotazione residua sui pagamenti', '800.000,00 €');
   });
 
@@ -1247,9 +1259,9 @@ describe('AvanzamentoReport (TX-0004..TX-0007)', () => {
     ).toBeTruthy();
     const rf005 = await trovaCard(RF005);
     expect(within(rf005).getByText('Grafico non disponibile: manca una delle due parti (Impegnato ancora da pagare: non disponibile (fonte impegni non attiva)).')).toBeTruthy();
-    expect(valoreDi(within(rf005).getByRole('table'), 'Pagamenti totali (elenchi di liquidazione)')).toBe('200.000,00 €');
+    expect(valoreDi(within(rf005).getByRole('table'), 'Pagamenti totali (lordi, elenchi di liquidazione)')).toBe('200.000,00 €');
     expect(within(await trovaCard(RF006)).getByText(/^Grafico non disponibile: manca una delle due parti/)).toBeTruthy();
-    await waitFor(() => expect(descrizione(graficoDi(RF007))).toBe('Dotazione tra pagato e residuo: Pagamenti al netto di rettifiche 20 %, Dotazione residua 80 %.'));
+    await waitFor(() => expect(descrizione(graficoDi(RF007))).toBe('Dotazione tra pagato e residuo: Pagamenti al netto delle rettifiche 20 %, Dotazione residua 80 %.'));
     for (const s of [RF004, RF005, RF006]) expect(() => graficoDi(s)).toThrow();
     await vediTabella(RF007);
     expect(valoreDi(within(card(RF007)).getByRole('table'), 'Importo recuperato')).toBe('20.000,00 €');
@@ -1272,7 +1284,8 @@ describe('AvanzamentoReport (TX-0004..TX-0007)', () => {
     expect(valoreDi(voci, 'Da impegnare (dotazione residua sugli impegni)')).toBe('non disponibile (fonte impegni non attiva)');
     expect(valoreDi(voci, 'Pagamenti al netto delle rettifiche')).toBe('200.000,00 €');
     expect(valoreDi(voci, 'Dotazione residua sui pagamenti')).toBe('800.000,00 €');
-    await waitFor(() => expect(descrizione(graficoDi('Pagato sulla dotazione'))).toContain('22 %'));
+    // il gauge usa il netto (200.000) come il residuo accanto, non l'importo pagato lordo (220.000)
+    await waitFor(() => expect(descrizione(graficoDi('Pagato netto sulla dotazione'))).toContain('20 %'));
   });
 
   it('il flusso legge TX-0006, TX-0005 e TX-0007: senza il grant di TX-0006 lo dice come la sezione RF006 e TX-0006 non si legge (R-09)', async () => {
@@ -1283,7 +1296,7 @@ describe('AvanzamentoReport (TX-0004..TX-0007)', () => {
     await waitFor(() => expect(screen.getAllByText(NON_DISPONIBILE_PROFILO)).toHaveLength(2));
     expect(within(card('Dove va la dotazione')).getByText(NON_DISPONIBILE_PROFILO)).toBeTruthy();
     expect(within(card(RF006)).getByText(NON_DISPONIBILE_PROFILO)).toBeTruthy();
-    await waitFor(() => expect(descrizione(graficoDi('Pagato sulla dotazione'))).toContain('22 %'));
+    await waitFor(() => expect(descrizione(graficoDi('Pagato netto sulla dotazione'))).toContain('20 %'));
     await notifiche();
     expect(letture(client, '/api/finanziario/residuo-impegni')).toHaveLength(0);
   });
@@ -1300,7 +1313,7 @@ describe('AvanzamentoReport (TX-0004..TX-0007)', () => {
     await waitFor(() => expect(screen.getAllByRole('alert')).toHaveLength(1));
     const avviso = screen.getByRole('alert');
     expect(within(avviso).getByRole('button', { name: 'Riprova' })).toBeTruthy();
-    for (const nome of ['Importo pagato', 'Dotazione residua sui pagamenti', 'Dove va la dotazione', 'Pagato sulla dotazione', RF007]) {
+    for (const nome of ['Importo pagato (lordo, elenchi di liquidazione)', 'Dotazione residua sui pagamenti', 'Dove va la dotazione', 'Pagato netto sulla dotazione', RF007]) {
       expect(screen.queryByRole('region', { name: nome })).toBeNull();
     }
     expect(screen.getByRole('region', { name: 'Importo stanziato' })).toBeTruthy();
@@ -1308,9 +1321,22 @@ describe('AvanzamentoReport (TX-0004..TX-0007)', () => {
     server.use(rispondi('/api/finanziario/residuo-pagamenti', F.RESIDUO_PAGAMENTI));
     await userEvent.click(within(avviso).getByRole('button', { name: 'Riprova' }));
     await waitFor(() => expect(graficoDi(RF007).opzioni.length).toBeGreaterThan(0));
-    await regioneContiene('Importo pagato', '220.000,00 €');
+    await regioneContiene('Importo pagato (lordo, elenchi di liquidazione)', '220.000,00 €');
     expect(screen.getByRole('region', { name: 'Dove va la dotazione' })).toBeTruthy();
     expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('pagamenti netti non calcolabili: il gauge lo dice con il motivo, senza ripiegare sull importo pagato lordo', async () => {
+    servi();
+    server.use(rispondi('/api/finanziario/residuo-pagamenti', { ...F.RESIDUO_PAGAMENTI, pagamentiNettoRettifiche: { valore: null, motivo: 'NON_VALORIZZATO', fonte: null } }));
+    renderConQuery(<AvanzamentoReport filtri={{}} />);
+    const gauge = await trovaCard('Pagato netto sulla dotazione');
+    expect(
+      within(gauge).getByText(
+        'Grafico non disponibile: la percentuale richiede pagamenti netti e dotazione; pagamenti netti: non calcolabile (manca per almeno un intervento della selezione: vedi il riepilogo per intervento).',
+      ),
+    ).toBeTruthy();
+    expect(valoreDi(within(gauge).getByRole('table'), 'della dotazione pagato (netto)')).toBe('non calcolabile');
   });
 
   it('perimetro per sezione: dati di programma regionali accanto a misure ADA', async () => {
@@ -1332,14 +1358,14 @@ describe('AvanzamentoReport (TX-0004..TX-0007)', () => {
   });
 
   // regressione: col perimetro ADA il gauge e il flusso non mettono in rapporto i pagamenti dell'area e la dotazione regionale
-  it('perimetro ADA: il gauge del pagato sulla dotazione e il flusso della dotazione non si disegnano (non confrontabili)', async () => {
+  it('perimetro ADA: il gauge del pagato netto sulla dotazione e il flusso della dotazione non si disegnano (non confrontabili)', async () => {
     servi();
     server.use(rispondi('/api/finanziario/residuo-pagamenti', { ...F.RESIDUO_PAGAMENTI, perimetro: 'ADA' }));
     renderConQuery(<AvanzamentoReport filtri={{}} />);
     await waitFor(() => expect(graficoDi(RF007).opzioni.length).toBeGreaterThan(0));
-    expect(() => graficoDi('Pagato sulla dotazione')).toThrow();
+    expect(() => graficoDi('Pagato netto sulla dotazione')).toThrow();
     expect(
-      within(card('Pagato sulla dotazione')).getByText("Grafico non disponibile: perimetro ADA: la dotazione è regionale, i pagamenti sono dell'area: il rapporto non è confrontabile."),
+      within(card('Pagato netto sulla dotazione')).getByText("Grafico non disponibile: perimetro ADA: la dotazione è regionale, i pagamenti sono dell'area: il rapporto non è confrontabile."),
     ).toBeTruthy();
     const flusso = await trovaCard('Dove va la dotazione');
     expect(within(flusso).getByText("Grafico non disponibile: perimetro ADA: la dotazione è regionale, impegni e pagamenti sono dell'area: il flusso non è confrontabile.")).toBeTruthy();
@@ -1451,7 +1477,7 @@ describe('DomandeReport (TX-0008..TX-0010)', () => {
       rispondi('/api/finanziario/importi-per-anno', F.IMPORTI_PER_ANNO),
     );
 
-  it('KPI dei totali, due card con il grafico e le tabelle di dettaglio con la riga senza campagna', async () => {
+  it('KPI dei totali, due card con il grafico e le tabelle di dettaglio con la riga senza anno di raccolta', async () => {
     servi();
     renderConQuery(<DomandeReport filtri={{}} />);
     // it-IT non raggruppa le migliaia nei numeri di quattro cifre
@@ -1461,9 +1487,9 @@ describe('DomandeReport (TX-0008..TX-0010)', () => {
     await waitFor(() => expect(graficiVivi()).toHaveLength(2));
     expect(graficoDi(RF008).opzioni.length).toBeGreaterThan(0);
     expect(graficoDi(RF010).opzioni.length).toBeGreaterThan(0);
-    expect(screen.getAllByRole('rowheader', { name: 'senza campagna' })).toHaveLength(2);
+    expect(screen.getAllByRole('rowheader', { name: 'senza anno di raccolta' })).toHaveLength(2);
     const importi = screen.getByRole('table', { name: 'Importi per anno di raccolta' });
-    expect(within(importi).getByRole('columnheader', { name: 'Importo decretato (elenchi di liquidazione, come i pagamenti totali di RF005)' })).toBeTruthy();
+    expect(within(importi).getByRole('columnheader', { name: 'Importo decretato (elenchi di liquidazione)' })).toBeTruthy();
     expect(testo(importi.textContent)).toMatch(/non disponibile ?fonte quadro sinottico non attiva/);
     await vediTabella(RF010);
     expect(within(card(RF010)).getByRole('table', { name: 'Importi per anno di raccolta: stanziato, ammesso e decretato' })).toBeTruthy();
@@ -1487,8 +1513,8 @@ describe('DomandeReport (TX-0008..TX-0010)', () => {
     await waitFor(() => expect(graficoDi(RF008).opzioni.length).toBeGreaterThan(0));
     const anni = () => within(screen.getByRole('table', { name: 'Domande per anno di raccolta' })).getAllByRole('rowheader').map((c) => c.textContent);
     const scelta = () => screen.getByRole('combobox', { name: 'Anno di raccolta' }) as HTMLSelectElement;
-    expect(anni()).toEqual(['2024', 'senza campagna']);
-    expect(Array.from(scelta().options).map((o) => o.textContent)).toEqual(['Tutti gli anni', '2024', 'senza campagna']);
+    expect(anni()).toEqual(['2024', 'senza anno di raccolta']);
+    expect(Array.from(scelta().options).map((o) => o.textContent)).toEqual(['Tutti gli anni', '2024', 'senza anno di raccolta']);
     act(() => clicSu(graficoDi(RF008), { name: '2024', dataIndex: 0 }));
     await waitFor(() => expect(anni()).toEqual(['2024']));
     expect(scelta().value).toBe('2024');
@@ -1497,16 +1523,16 @@ describe('DomandeReport (TX-0008..TX-0010)', () => {
     expect(screen.getByRole('group', { name: 'Scarica la tabella Domande per anno (tutti gli anni, non solo il 2024)' })).toBeTruthy();
     const controllo = scelta();
     await userEvent.selectOptions(controllo, 'Tutti gli anni');
-    expect(anni()).toEqual(['2024', 'senza campagna']);
+    expect(anni()).toEqual(['2024', 'senza anno di raccolta']);
     expect(scelta()).toBe(controllo);
-    // anche le domande senza campagna sono un anno che si puo' scegliere, dal grafico o dalla scelta
-    await userEvent.selectOptions(controllo, 'senza campagna');
-    expect(anni()).toEqual(['senza campagna']);
+    // anche le domande senza anno di raccolta sono un anno che si puo' scegliere, dal grafico o dalla scelta
+    await userEvent.selectOptions(controllo, 'senza anno di raccolta');
+    expect(anni()).toEqual(['senza anno di raccolta']);
     act(() => clicSu(graficoDi(RF008), { name: '2024', dataIndex: 0 }));
     await waitFor(() => expect(anni()).toEqual(['2024']));
     // un nome che non e' un anno delle righe non filtra la tabella fino al vuoto
     act(() => clicSu(graficoDi(RF008), { name: 'Prima annualità', dataIndex: 0 }));
-    await waitFor(() => expect(anni()).toEqual(['2024', 'senza campagna']));
+    await waitFor(() => expect(anni()).toEqual(['2024', 'senza anno di raccolta']));
   });
 
   // N-01: una selezione nuova e' un dettaglio nuovo, l'anno scelto prima non resta
@@ -1518,7 +1544,7 @@ describe('DomandeReport (TX-0008..TX-0010)', () => {
     act(() => clicSu(graficoDi(RF008), { name: '2024', dataIndex: 0 }));
     await waitFor(() => expect(anni()).toEqual(['2024']));
     cambiaFiltri({ og: ['OG2'] });
-    await waitFor(() => expect(anni()).toEqual(['2024', 'senza campagna']));
+    await waitFor(() => expect(anni()).toEqual(['2024', 'senza anno di raccolta']));
     expect((screen.getByRole('combobox', { name: 'Anno di raccolta' }) as HTMLSelectElement).value).toBe('');
   });
 
@@ -1558,20 +1584,26 @@ describe('SigcReport (TX-0012, TX-0013)', () => {
   const servi = () => server.use(rispondi('/api/finanziario/sigc/domande', F.SIGC_DOMANDE), rispondi('/api/finanziario/sigc/importi', F.SIGC_IMPORTI));
   const VUOTO_SIGC = 'Nessuna domanda SIGC per i filtri scelti. Modifica i filtri.';
 
-  it('imbuto e cascata montati, voci in tabella con la nota delle fonti diverse', async () => {
+  it('barre delle domande e cascata montate, voci in tabella con le definizioni (D-09), nessuna nota di fonti diverse', async () => {
     servi();
     renderConQuery(<SigcReport filtri={{}} />);
     const domande = await screen.findByRole('table', { name: 'Domande SIGC' });
     expect(valoreDi(domande, 'Presentate')).toBe('800');
-    expect(valoreDi(domande, 'Pagate (con pagamento in un elenco di liquidazione)')).toBe('500');
+    expect(valoreDi(domande, 'Pagate (importo pagato maggiore di zero)')).toBe('500');
+    expect(valoreDi(domande, 'Da pagare (ammesse con importo ancora da pagare, anche se pagate in parte)')).toBe('320');
+    expect(valoreDi(domande, 'Senza importi (non classificabili: campagne senza ASR2-20)')).toBe('60');
+    expect(screen.getByText(/^Pagate e da pagare vengono dagli importi della domanda \(flusso ASR2-20\), come l'importo pagato\. Una domanda pagata in parte è sia pagata sia da pagare/)).toBeTruthy();
     const importi = await screen.findByRole('table', { name: 'Importi SIGC' });
     expect(valoreDi(importi, 'Importo ammesso')).toBe('4.500.000,00 €');
     expect(valoreDi(importi, 'Importo pagato (flusso ASR2-20)')).toBe('3.000.000,00 €');
-    expect(screen.getAllByText(/^Fonti diverse: .* possono non coincidere/)).toHaveLength(2);
+    expect(valoreDi(importi, "Pagato oltre l'ammesso")).toBe('100.000,00 €');
+    expect(valoreDi(importi, 'Ancora da pagare')).toBe('1.600.000,00 €');
+    expect(screen.queryByText(/Fonti diverse|elenchi di liquidazione|dal DTO|presentate meno pagate/)).toBeNull();
     await waitFor(() => expect(graficiVivi()).toHaveLength(2));
-    expect(graficoDi(RF012).opzioni.length).toBeGreaterThan(0);
+    expect(descrizione(graficoDi(RF012))).toContain('Pagate e da pagare si sovrappongono (domande pagate in parte)');
+    expect(testo(descrizione(graficoDi(RF013)))).toContain("pagato oltre l'ammesso 100.000,00 €, pagato 3,0 M€, ancora da pagare 1,6 M€");
     await vediTabella(RF013);
-    expect(within(card(RF013)).getByRole('table', { name: 'Importi delle domande SIGC: dal richiesto al pagato' })).toBeTruthy();
+    expect(within(card(RF013)).getByRole('table', { name: "Importi delle domande SIGC: dal richiesto all'ancora da pagare" })).toBeTruthy();
   });
 
   it('grafici: PNG, CSV e XLSX; CSV e XLSX della TX dal backend coi filtri della pagina', async () => {
@@ -1601,7 +1633,15 @@ describe('SigcReport (TX-0012, TX-0013)', () => {
   it('importi a zero con domande presentate: dati, non stato vuoto', async () => {
     server.use(
       rispondi('/api/finanziario/sigc/domande', F.SIGC_DOMANDE),
-      rispondi('/api/finanziario/sigc/importi', { ...F.SIGC_IMPORTI, richiesto: ZERO, ammesso: ZERO, pagato: ZERO, ancoraDaPagare: ZERO, domandeSenza: { richiesto: 0, ammesso: 0, pagato: 0 } }),
+      rispondi('/api/finanziario/sigc/importi', {
+        ...F.SIGC_IMPORTI,
+        richiesto: ZERO,
+        ammesso: ZERO,
+        pagato: ZERO,
+        ancoraDaPagare: ZERO,
+        pagatoOltreAmmesso: ZERO,
+        domandeSenza: { richiesto: 0, ammesso: 0, pagato: 0 },
+      }),
     );
     renderConQuery(<SigcReport filtri={{}} />);
     expect(valoreDi(await screen.findByRole('table', { name: 'Importi SIGC' }), 'Importo richiesto')).toBe('0,00 €');
