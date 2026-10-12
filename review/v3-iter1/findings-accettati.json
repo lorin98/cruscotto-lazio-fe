@@ -1,0 +1,170 @@
+[
+  {
+    "id": "V-01",
+    "severity": "MAGGIORE",
+    "file": "src/shared/ui/grafici/CardGrafico.tsx:58",
+    "titolo": "Il PNG del grafico e' un file esportato senza l'intestazione di NFR-50 e senza registrazione in audit (NFR-34), e l'eccezione non e' registrata",
+    "evidenza": "CardGrafico.tsx:58 salva `pngDelGrafico(c, COLORI.superficie)`, generato nel browser senza chiamate al backend; echarts.ts:14-18 non registra TitleComponent ne' GraphicComponent e pngDelGrafico (echarts.ts:43-51) copia solo le opzioni del grafico: nel file mancano fonte, filtri, data e ora, ultimo dato sincronizzato, profilo e la dicitura 'uso interno'. NFR-50 (reqpack/nfr.json): 'Ogni file esportato riporta in intestazione: fonte dei dati, filtri applicati, data e ora di estrazione [...] dicitura sull'uso interno; [...] ogni esportazione e' registrata ai sensi di NFR-34'. D-08 di nfr-conformance rende l'export fail-closed 'perche' NFR-50 chiede che ogni esportazione sia registrata'. La richiesta dell'utente del 09/10/2026 fissa il PNG come si vede (canvas), ma non deroga a NFR-50: README.md:137-141 descrive il PNG come disegnato nel browser (le righe 140-141 parlano solo di CSV e XLSX) e ne' uiplan.json open_points (fermi a OP-FE-07) ne' deviations_reviewed registrano l'eccezione.",
+    "fix": "In echarts.ts registrare TitleComponent e dare a pngDelGrafico un parametro `intestazione: string`, reso sulla copia come `title` (con `grid.top` maggiorato).\nCardGrafico riceve dal chiamante le voci di NFR-50 (fonte, filtri attivi, data e ora, ultimo dato sincronizzato, profilo, 'Uso interno') e le passa a riga 58.\nRegistrare in uiplan.json OP-FE-08: il PNG non scrive AUDIT_ESPORTAZIONE; richiesta al backend di un endpoint d'audit, oppure deroga esplicita dell'utente."
+  },
+  {
+    "id": "V-02",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/api/index.ts:157",
+    "titolo": "CSV e XLSX di TX-0002..TX-0010 senza alcun test: la mappatura card -> report e i filtri dell'export non sono verificati",
+    "evidenza": "I test di export coprono solo riepilogo, sigc/:report, riserva/2025 e verifica-smp (tests/finanziario-ui.test.tsx:907, 928, 1552, 1654, 1777). Un grep di 'spesa-per-intervento/', 'distribuzione-dotazione/', 'stanziato/', 'pagamenti-su-impegnato/', 'residuo-impegni/', 'residuo-pagamenti/', 'domande-per-anno/', 'totale-domande/', 'importi-per-anno/' in tests/, e2e/ e src/ (escluso il client generato) non trova nulla. I pulsanti di DotazioneReport.tsx:60,69,72,107, AvanzamentoReport.tsx:108,180,186,195,204, DomandeReport.tsx:119,126,154,155, Panoramica.tsx:98,107 e DettaglioIntervento.tsx:85,89 sono export registrati in AUDIT_ESPORTAZIONE (D-08). Le funzioni generate in ESPORTA (api/index.ts:157-170) hanno la stessa firma: una voce scambiata, o una chiave sbagliata passata a datiDelReport, supera tsc e la suite e scarica (registrandolo in audit) il report sbagliato (H-02).",
+    "fix": "In tests/finanziario-api.test.tsx un it.each sulle 12 chiavi di ESPORTA col percorso atteso (es. ['residuoImpegni', '/api/finanziario/residuo-impegni/csv']): MSW su `*/api/finanziario/*` registra pathname, query e X-Requested-With di esportaReport(chiave, 'csv', { intervento: ['SRA01'] }).\nIn tests/finanziario-ui.test.tsx un test per pagina (Dotazione, Avanzamento, Domande, Panoramica, Dettaglio) clicca il CSV di ogni card e verifica il percorso della sua TX e il nome del file."
+  },
+  {
+    "id": "V-04",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/api/index.ts:165",
+    "titolo": "TX-0009 (totale domande, RF009) non si scarica da nessuna pagina: la voce di ESPORTA e' codice morto e il README dice il contrario",
+    "evidenza": "`totaleDomande: getApiFinanziarioTotaleDomandeFormato` (api/index.ts:165) non e' usata da nessun datiDelReport (grep: nessun 'totaleDomande' in ui/). I KPI di RF009 (DomandeReport.tsx:33-44, Panoramica.tsx:64-70) non hanno un pulsante di download. README.md:70-71: 'Ogni report del finanziario si scarica in CSV o XLSX da <report>/{formato} (TX-0002.. TX-0015 ...)'. NFR-75: 'Nessuna informazione visibile in schermata e' priva di un corrispondente formato esportabile e rielaborabile'.",
+    "fix": "In DomandeReport.tsx, prima della Griglia dei KPI (riga 168), aggiungere per chi ha GRANT.totaleDomande `<PulsantiScarica oggetto=\"il totale delle domande presentate (RF009)\" scaricamenti={datiDelReport('Totale domande presentate', 'totaleDomande', filtri)} />`. In alternativa togliere la voce da ESPORTA (api/index.ts:165), correggere README.md:70-71 e registrare l'eccezione a NFR-75."
+  },
+  {
+    "id": "V-05",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/aggregati.ts:56",
+    "titolo": "KPI 'Pagato sulla dotazione' mostrato anche quando i totali accanto non sono calcolabili, contro il wireframe panoramica",
+    "evidenza": "wireframes/panoramica/panoramica.html:79 per 'Pagato sulla dotazione': 'solo se entrambi i totali sono valorizzati'. kpiSpesa calcola la quota senza guardare i totali (aggregati.ts:56 `quota: quotaPagata(righe, perimetro)`) e tests/finanziario-aggregati.test.ts:151-155 fissa 'dotazione: Non calcolabile: manca per 1 intervento (SRA03)' insieme a 'quota: 30'. La deviazione dal wireframe approvato non e' in deviations_reviewed (.claude/state/green-fe-finanziario.state.json:29-31, solo V-22).",
+    "fix": "In kpiSpesa (aggregati.ts:52-57) calcolare `dotazione` e `pagato` prima e restituire `quota: dotazione.valore === null || pagato.valore === null ? { valore: null, motivo: 'Non calcolabile: manca il totale della dotazione o dei pagamenti' } : quotaPagata(righe, perimetro)`. Aggiornare l'attesa in tests/finanziario-aggregati.test.ts:154."
+  },
+  {
+    "id": "V-06",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/DotazioneReport.tsx:52",
+    "titolo": "Pagina Dotazione: card in un ordine diverso dal wireframe approvato (quota FEASR in fondo, contributo accanto alla dotazione)",
+    "evidenza": "wireframes/dotazione-avanzamento/dotazione.html:66-87 mette nella griglia a due colonne 'Dotazione e pagamenti per intervento' e 'Quota FEASR e non FEASR della dotazione', con 'Contributo ambientale per intervento' sotto (riga 88). Il component tree della .md dice 'Card dotazione e pagamenti (barre) + Card quota FEASR (ciambella) > Card contributo ambientale (barre)'. DotazioneReport.tsx:52-71 affianca invece dotazione e contributo, poi la tabella RF002 (72-88), e la quota FEASR resta da sola in fondo (118-122).",
+    "fix": "In DotazioneReport (righe 112-124) comporre `<Griglia>` con la card della dotazione (ConGrant TX-0002) e Distribuzione (ConGrant TX-0003), poi la card del contributo e la tabella RF002. Per farlo, spostare le due CardGrafico di SpesaPerInterventoSezione (righe 53-70) in componenti che leggono useSpesaPerIntervento(filtri), con la stessa chiave di cache e quindi senza letture in piu'."
+  },
+  {
+    "id": "V-07",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/RiepilogoReport.tsx:60",
+    "titolo": "Download per formato (PNG, CSV, XLSX) diverso dai wireframe approvati, senza deviazione registrata",
+    "evidenza": "I wireframe approvati hanno un solo 'Scarica' per card e, nel riepilogo, 'Esporta CSV' (wireframes/riepilogo/riepilogo.html:71). Il codice rende un gruppo di pulsanti per formato, con sigla 'CSV'/'XLSX' e un PNG (RiepilogoReport.tsx:60, CardGrafico.tsx:87). In .claude/state/green-fe-finanziario.state.json `deviations_reviewed` resta [] per riepilogo, dotazione-avanzamento, domande e sigc (es. riga 37): e' registrata solo V-22. uiplan.json:1206 dice ancora 'Esportazione CSV: pulsante con testo esplicito del formato'.",
+    "fix": "Aggiungere in `deviations_reviewed` dei cinque flussi una voce sul download per formato (PNG, CSV e XLSX dal backend, richiesta dell'utente del 09/10/2026), come per V-22. Aggiornare le wcag_notes di uiplan.json (righe 1206 e 1226) in 'Download CSV e XLSX: un pulsante per formato con la sigla visibile; esito in role=status'."
+  },
+  {
+    "id": "H-01",
+    "severity": "MAGGIORE",
+    "file": "src/shared/ui/grafici/CardGrafico.tsx:21",
+    "titolo": "CardGrafico oltre soglia (101 righe, complessita' 16): il PNG e' orchestrato dentro la card del kit",
+    "evidenza": "Verificato con ESLint (complexity 10 e max-lines-per-function 60, le soglie MAGGIORE di review-checklist.md): CardGrafico.tsx:21 ha 101 righe e complessita' 16, contro 93 e 13 a 9ab380a; eslint.config.js:306-314 applica le soglie solo a lib/. Il blocco 49-62 mette nella card presentazionale il ref dell'istanza, il ridisegno canvas (pngDelGrafico), la conversione blobDaDataUrl, il nome del file e il salvataggio, accanto a interruttore di vista, voci omesse e fonte.",
+    "fix": "Estrarre in shared/ui/grafici un hook usePngDelGrafico(titolo, attivo) che possiede il ref e restituisce { onIstanza, png: Scaricamento[] }.\nEstrarre InterruttoreVista e VociOmesse come sottocomponenti.\nCardGrafico resta composizione: sotto 60 righe e complessita' 10."
+  },
+  {
+    "id": "H-03",
+    "severity": "MINORE",
+    "file": "eslint.config.js:293",
+    "titolo": "La purezza di lib/ si aggira con un import relativo di ui/ o api/",
+    "evidenza": "Il blocco vieta solo i pacchetti react/@tanstack: la sonda src/features/finanziario/lib/__sonda__.ts con import { ConGrant } from '../ui/comuni' (o useRiepilogo da '../api') passa ESLint con 0 errori, benche' la riga 281 la dichiari difesa autoritativa. Il buco e' gia' usato: src/shared/lib/predicates.ts:4 importa api/auth/auth-status, che a import carica il mutator (Axios.create e interceptor).",
+    "fix": "Aggiungere ai patterns del blocco un gruppo che vieti **/ui, **/ui/*, il barrel '../api' e '../../api' della feature, **/api/mutator/* e **/api/auth/* (resta ammesso shared/api/problem, puro).\nPrima di armarla spostare hasGrant in un modulo puro che non importi il mutator."
+  },
+  {
+    "id": "H-04",
+    "severity": "MINORE",
+    "file": "eslint.config.js:264",
+    "titolo": "Nessuna regola vieta fetch o un'istanza axios propria fuori dal mutator BFF",
+    "evidenza": "Le sonde in src/features/finanziario/ui con fetch('/api/finanziario/riepilogo') e con import axios from 'axios'; axios.get(...) passano ESLint con 0 errori, mentre le righe 54-55 dichiarano il mutator 'l'unica istanza axios sancita'. Una chiamata cosi' salta X-Requested-With (403 RICHIESTA_NON_AMMESSA sugli export), la coda delle letture (503 CAPACITA_ESAURITA) e il redirect del 401.",
+    "fix": "Nei selettori dei consumatori (righe 264 e 277) aggiungere CallExpression[callee.name='fetch'], CallExpression[callee.property.name='fetch'] e ImportDeclaration[source.value='axios'] > :matches(ImportDefaultSpecifier, ImportNamespaceSpecifier).\nResta ammesso import { isAxiosError } from 'axios'."
+  },
+  {
+    "id": "H-05",
+    "severity": "MINORE",
+    "file": "eslint.config.js:274",
+    "titolo": "Il barrel-only non copre app/: la shell puo' importare dall'interno della feature",
+    "evidenza": "Il blocco barrel-only vale solo per pages e widgets: la sonda src/app/__sonda7__.tsx con import da '../features/finanziario/api' e '../features/finanziario/lib/grafici' passa con 0 errori. Il barrel (src/features/finanziario/index.ts:1) dichiara invece che anche la shell compone solo da li'.",
+    "fix": "Aggiungere 'src/app/**/*.{ts,tsx}' ai files del blocco a riga 274.\nIl blocco di src/app/main.tsx e dei test di app (riga 336) resta dopo e riapre solo i moduli di prova."
+  },
+  {
+    "id": "H-06",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/esportazioni.ts:14",
+    "titolo": "Il nome del file viene dal titolo della card, non dal report: stesso nome per dati diversi",
+    "evidenza": "DotazioneReport.tsx:60 (TX-0002) e RiepilogoReport.tsx:140 (TX-0011) salvano entrambi dotazione-e-pagamenti-per-intervento.csv/.xlsx/.png con contenuti diversi: il nome nasce solo dal titolo (nomeFile in esportazioni.ts:14-15 e CardGrafico.tsx:58), e nella cartella dei download i due file si distinguono solo col suffisso '(1)' del browser (V-08). Viceversa lo stesso export TX-0002 si salva anche come contributo-ambientale-per-intervento (DotazioneReport.tsx:69) e dotazione-per-famiglia-di-intervento (Panoramica.tsx:107), che contiene righe per intervento e non le famiglie del grafico.",
+    "fix": "In scaricamentiDati/datiDelReport comporre il nome anche dal report (es. nomeFile(`${titolo} ${TX[report]}`, 'csv') con TX: Record<ReportEsportabile, string> = { spesaPerIntervento: 'tx0002', ... }).\nIn alternativa distinguere i titoli col codice RF, come gia' 'Domande SIGC (RF012)'."
+  },
+  {
+    "id": "H-08",
+    "severity": "MINORE",
+    "file": "docs/decisioni/grafici.md:5",
+    "titolo": "La decisione sui grafici descrive ancora SVG propri, senza libreria e non interattivi",
+    "evidenza": "Le righe 5-6 e 11 dicono 'componenti SVG propri, senza libreria ... non interattivi' e rinviano a un ADR futuro, mentre il codice usa ECharts 6 interattivo (ADR 0027, src/shared/ui/grafici/echarts.ts) e ora anche il renderer canvas per il PNG. Il documento fra le decisioni di progetto contraddice l'architettura reale.",
+    "fix": "Aggiornare grafici.md: ECharts 6 con import modulari (ADR 0027), renderer SVG a schermo e canvas solo per il PNG scaricato, interazioni (zoom, drill-down).\nTogliere 'senza libreria'/'non interattivi' e il rinvio della riga 11; le regole di resa restano."
+  },
+  {
+    "id": "A-01",
+    "severity": "MINORE",
+    "file": "src/shared/ui/grafici/Grafico.tsx:49",
+    "titolo": "Il ResizeObserver chiama resize() sul contenitore gia' staccato: TypeError non gestito nel sankey a ogni uscita dalla pagina Avanzamento",
+    "evidenza": "`new ResizeObserver(() => c.resize())` non filtra le osservazioni. Allo smontaggio il div esce dal documento prima che l'effetto faccia disconnect(), e l'osservatore lo consegna staccato a 0x0: la sonda registra {connesso:false,w:0,h:0} (sonda-sankey-stack.mjs, esito-sankey-stack.txt). Con larghezza 0 la matrice di View del sankey e' singolare, matrixInvert restituisce null e legacyCopyOverallTrans chiama copy(..., null). Errori: 'Cannot read properties of null (reading 0)' in Chrome e 'can't access property 0, t is null' in Firefox, con stack SankeyView._updateViewCoordSys <- render. Sulla build di produzione l'errore compare in 5 giri su 5 sia in Chrome sia in Firefox, dopo un link del menu o un cambio dei filtri (sonda-sankey-uscita.mjs, esito-sankey-uscita.txt). L'ipotesi della vista Tabella e' esclusa: con il div hidden zrender legge width:100% di .ui-grafico come 100 px, e la sonda conta 0 errori (sonda-sankey.mjs, esito-sankey.txt). Gli altri grafici smontati (riepilogo, schede del dettaglio) non danno errori (sonda-altri-grafici.mjs). Con la guardia proposta: 0 errori in 10 giri (sonda-sankey-fix.mjs, esito-sankey-fix.txt). L'effetto non si vede, perche' il grafico viene distrutto subito dopo, ma l'eccezione arriva a window.onerror. Sonde in C:/Users/lorin/AppData/Local/Temp/claude/C--Users-lorin-Desktop-Lorenzo-sian-ng-progetti-arsial/5d86aecd-01d9-4f0c-8a93-61443797d939/scratchpad/review-v3/A",
+    "fix": "Nel callback ignorare i bersagli staccati o a dimensione zero: `new ResizeObserver(([v]) => { if (v?.target.isConnected && v.contentRect.width > 0 && v.contentRect.height > 0) c.resize(); })`. Aggiungere un test L2 col grafico finto: un'osservazione su un contenitore staccato non chiama resize."
+  },
+  {
+    "id": "A-02",
+    "severity": "MINORE",
+    "file": "src/shared/ui/scarica/PulsantiScarica.tsx:57",
+    "titolo": "Il pulsante di download si disabilita mentre ha il focus: il focus finisce su BODY durante e dopo il download",
+    "evidenza": "`disabled={stato?.esito === 'in-corso'}` disabilita anche il pulsante appena attivato, e il browser gli toglie il focus. Sulla build di produzione, con l'export CSV in attesa per 1,5 s, dopo Invio sul pulsante CSV document.activeElement e' BODY durante la preparazione e resta BODY a download concluso, in Chrome e in Firefox (sonda-download.mjs, esito-download.txt: focusDurante e focusDopo = BODY). Il problema riguarda ogni PulsantiScarica, PNG compreso, perche' anche il PNG passa dallo stato in-corso. Chi usa la tastiera o un lettore di schermo perde la posizione e l'indicatore del focus (WCAG 2.4.3 e 2.4.7). Sonde in C:/Users/lorin/AppData/Local/Temp/claude/C--Users-lorin-Desktop-Lorenzo-sian-ng-progetti-arsial/5d86aecd-01d9-4f0c-8a93-61443797d939/scratchpad/review-v3/A",
+    "fix": "Al posto di disabled: `const occupato = stato?.esito === 'in-corso'`, poi `aria-disabled={occupato}` e `onClick={() => { if (!occupato) void avvia(s); }}`. In tema.css lo stile passa da `:disabled` a `[aria-disabled='true']`. Aggiungere un test: durante e dopo il download il focus resta sul pulsante attivato."
+  },
+  {
+    "id": "A-03",
+    "severity": "MINORE",
+    "file": "src/shared/ui/grafici/echarts.ts:46",
+    "titolo": "Il PNG non e' il grafico come si vede: perde il drill-down del treemap e della raggiera",
+    "evidenza": "pngDelGrafico ridisegna da `sorgente.getOption()` (echarts.ts:46). Le opzioni non contengono la radice di vista impostata dal clic, cioe' nodeClick 'zoomToNode' del treemap e 'rootToNode' della raggiera (src/features/finanziario/lib/grafici/spesa.ts:165-166). Prova sulla Panoramica, card 'Dotazione per famiglia di intervento', dopo il clic sulla famiglia SRA: lo schermo mostra SRA01, SRA03, SRA14 e la briciola 'Dotazione > SRA' (treemap-dopo-clic.png), il PNG scaricato le famiglie SRA, SRD, SRB e la sola briciola 'Dotazione' (treemap-png-scaricato.png; sonda-png-drill.mjs in scratchpad review-v3/A). Lo stesso per la raggiera: con ECharts 6.1.0 dopo `sunburstRootToNode` la vista mostra 'SRA,SRA03,SRA01' e la copia 'SRD,SRD01,SRD02,SRA,SRA03,SRA01' (review-v3/V/sonda2.cjs, V-03). Il commento di echarts.ts:39 promette le opzioni correnti, 'come si vede'; il test 'download PNG del grafico come si vede' (tests/shared-ui-kit.test.tsx:255) non puo' vederlo, perche' src/shared/test/setup.ts:13 sostituisce pngDelGrafico con un PNG fisso.",
+    "fix": "In Grafico conservare l'ultima azione di radice ricevuta dagli eventi `treemapzoomtonode`, `treemaproottonode` e `sunburstroottonode` e passarla a pngDelGrafico, che dopo setOption la riapplica alla copia con `copia.dispatchAction({ type, seriesIndex: 0, targetNodeId })`.\nAggiungere un test (e2e, o ECharts vero con renderer svg e ssr): dopo il clic su una famiglia, il PNG contiene gli interventi della famiglia."
+  },
+  {
+    "id": "A-04",
+    "severity": "MINORE",
+    "file": "e2e/csp.spec.ts:90",
+    "titolo": "Gli e2e sotto CSP non scaricano mai un CSV o un XLSX: gli export ricevono 404",
+    "evidenza": "La riga 90 risponde 404 a ogni /api/ non elencato in RISPOSTE, e nessun test clicca CSV o XLSX. Il percorso reale dell'export non e' quindi mai provato in un browser: XHR con responseType blob e X-Requested-With, interceptor che rilegge il problem+json dal Blob, salvaFile con revoca immediata dell'URL. Lo provano solo i test jsdom, con URL.createObjectURL finto (tests/finanziario-ui.test.tsx:916). Oggi funziona in Chrome e Firefox (sonda-download.mjs, esito-download.txt): CSV salvato con BOM e contenuto intatti, header X-Requested-With presente, 400, 403 e 502 senza file salvato e con l'avviso, nessuna violazione della CSP. Una regressione su questo percorso non bloccherebbe pero' il gate. Sonde in C:/Users/lorin/AppData/Local/Temp/claude/C--Users-lorin-Desktop-Lorenzo-sian-ng-progetti-arsial/5d86aecd-01d9-4f0c-8a93-61443797d939/scratchpad/review-v3/A",
+    "fix": "Aggiungere in e2e/csp.spec.ts due test. Il primo serve `/api/finanziario/spesa-per-intervento/csv` (text/csv) e verifica nome e contenuto del download, l'header X-Requested-With e zero violazioni. Il secondo risponde 400 problem+json e verifica l'avviso 'File XLSX non scaricato' e l'assenza di eventi download."
+  },
+  {
+    "id": "X-01",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/ui/DettaglioIntervento.tsx:97",
+    "titolo": "Dettaglio, scheda SIGC: per un intervento senza domande SIGC la card Importi SIGC disegna una cascata di zeri",
+    "evidenza": "Per un intervento senza domande SIGC il backend risponde 0,00 su richiesto, ammesso e pagato (ConsultaFinanziarioService.importiSigc usa Importo.diOZero), e ImportiSigc del dettaglio, a differenza di SigcReport.tsx:57 e Panoramica.tsx:148, non usa il segnale useSelezioneSenzaDomandeSigc: la sonda review-v3/ANT/sonda-sigc-zeri.test.ts mostra graficoCascataSigc disegnabile ('richiesto 0,0 M€, non ammesso 0,0 M€, ... pagato 0,0 M€'), con CSV e XLSX di zeri. E' il grafico vuoto vietato da NFR-15 (e) e la stessa regressione gia' corretta nella panoramica (tests/finanziario-casi-limite.test.tsx:148), qui senza test: finanziario-ui.test.tsx:644 e interventi/page.test.tsx:79 aprono la scheda SIGC solo con dati SIGC, mentre gli interventi non SIGC (investimenti, giovani, cooperazione) sono una parte grande del CSR.",
+    "fix": "In ImportiSigc (DettaglioIntervento.tsx:96) leggere `const segnale = useSelezioneSenzaDomandeSigc(filtri)` e passare a VistaQuery\n`inAttesa={segnale === 'in-attesa'} eVuoto={() => segnale === 'vuota'} vuoto={vuotoConPerimetro('Nessuna domanda SIGC per questo intervento.')}`, come SigcReport.tsx:57-61.\nTest: dettaglio con sigc/domande presentate 0 e sigc/importi a zero; la scheda SIGC dichiara il vuoto e graficiVivi() non contiene 'Importi SIGC'."
+  },
+  {
+    "id": "X-02",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/lib/grafici/spesa.ts:172",
+    "titolo": "'Totale della famiglia' e' una somma parziale: gli interventi senza dotazione escono dal totale, che resta chiamato totale",
+    "evidenza": "raggruppaFamiglie (spesa.ts:139-143) scarta gli interventi con dotazione assente; la riga 172 scrive 'Totale della famiglia' con la somma dei soli rimasti, e il nodo del treemap (riga 158) dice 'Famiglia SRA: 2 interventi, dotazione 30,0 M€'. tests/finanziario-grafici.test.ts:351 fissa 'SRA, Totale della famiglia, 30.000.000,00 €' con SRA03 della stessa famiglia 'non disponibile', contro la regola 'niente somme parziali' di aggregati.ts:1-3 e SC-FI_DISTRIBUZIONE: con le stesse righe il KPI della dotazione nella Panoramica (aggregati.ts:26-32) dice invece 'Non calcolabile: manca per 1 intervento (SRA03)'.",
+    "fix": "In raggruppaFamiglie tenere per famiglia gli interventi scartati (`mancanti: string[]`).\nRiga 172: con f.mancanti non vuoto la cella diventa `non calcolabile (manca per ${f.mancanti.join(', ')})`.\nNodo (righe 156-158): etichetta e dettaglio dicono 'somma parziale, manca SRA03'; il valore resta solo come area del riquadro.\nAggiornare l'attesa di tests/finanziario-grafici.test.ts:351."
+  },
+  {
+    "id": "X-03",
+    "severity": "MINORE",
+    "file": "src/shared/lib/grafici/primitive.ts:54",
+    "titolo": "Importi sotto i 50.000 € resi '0,0 M€' in etichette, tooltip, assi e descrizioni accessibili dei grafici",
+    "evidenza": "milioni() arrotonda sempre al decimo di milione, mentre importoKpi (riga 59) evita lo zero apparente solo nei KPI: con i dati di SC-FI_RISERVA (fixture RISERVA) la descrizione accessibile e' '... 0,0 M€ utilizzati su 0,0 M€ di riserva accumulata' e la linea di riferimento 'Riserva accumulata 0,0 M€', accanto ai KPI '300,00 €' e '500,00 €' (sonda review-v3/ANT/sonda-milioni.test.ts). Lo stesso nella cascata SIGC di un intervento piccolo (tutto '0,0 M€'), e tests/finanziario-grafici.test.ts:276 fissa 'pagato 0,0 M€ su 0,0 M€' per 50 € su 100 €.",
+    "fix": "Rendere milioni() adattiva come importoKpi: `Math.abs(v) >= 1_000_000 ? <milioni> : formatEuro(v)` per etichette, tooltip e aria.\nPer gli assi (asseMilioni) tenere la scala in milioni con due decimali sotto 1 M€.\nAggiornare finanziario-grafici.test.ts:276 e aggiungere un test: 300 € non produce '0,0 M€'."
+  },
+  {
+    "id": "X-04",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/DomandeReport.tsx:126",
+    "titolo": "Il download della tabella 'Domande per anno: dettaglio' ignora l'anno scelto accanto al pulsante",
+    "evidenza": "La tabella mostra solo l'anno scelto (riga 110, scelta dalla riga 125 o dal clic sul grafico), ma 'Scarica la tabella Domande per anno' (riga 126) esporta TX-0008 con i soli filtri, quindi tutti gli anni, con 'Filtri applicati: nessuno' nell'intestazione. Lo stesso nel riepilogo: i pulsanti stanno accanto alla ricerca che riduce righe e totali (RiepilogoReport.tsx:125), e il file resta completo senza che la pagina lo dica.",
+    "fix": "Il backend non filtra per anno: dirlo nel controllo e accanto.\nCon anno !== null: `oggetto={`la tabella Domande per anno (tutti gli anni, non solo il ${anno})`}` e una nota 'Il file contiene tutti gli anni'.\nIn TabellaInterattiva, con una ricerca attiva, nota analoga sotto gli strumenti ('il file contiene tutte le righe dei filtri')."
+  },
+  {
+    "id": "X-05",
+    "severity": "MINORE",
+    "file": "src/shared/ui/kpi/Kpi.tsx:48",
+    "titolo": "La barra del KPI 'Pagato sulla dotazione' annuncia '100%' quando il valore e' oltre il 100%",
+    "evidenza": "Kpi.tsx:29 limita la percentuale a 100 e la riga 48 usa quel numero come aria-label dell'immagine, mentre la tessera mostra il valore vero: Panoramica.tsx:46-48 passa la media ponderata, che supera 100 quando i pagamenti superano la dotazione (graficoAvanzamento lo prevede col suo `massimo`). Un lettore di schermo sente '130 %' e subito dopo '100%': l'alternativa testuale non e' equivalente (WCAG 1.1.1).",
+    "fix": "Separare larghezza e testo: la classe ui-barra__N usa `Math.min(100, quota * 100)`, l'aria-label il valore vero (`quota * 100`).\nIn alternativa `aria-hidden=\"true\"` sulla barra, che ripete il valore gia' scritto nella tessera.\nTest in shared-ui-kit: Kpi con quota 1.3 non espone '100%'."
+  }
+]

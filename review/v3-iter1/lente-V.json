@@ -1,0 +1,66 @@
+[
+  {
+    "id": "V-01",
+    "severity": "MAGGIORE",
+    "file": "src/shared/ui/grafici/CardGrafico.tsx:58",
+    "titolo": "Il PNG del grafico e' un file esportato senza l'intestazione di NFR-50 e senza registrazione in audit (NFR-34)",
+    "evidenza": "CardGrafico.tsx:58 salva `pngDelGrafico(c, COLORI.superficie)`, generato nel browser senza chiamate al backend; echarts.ts:14-18 non registra TitleComponent ne' GraphicComponent e pngDelGrafico (echarts.ts:46) copia solo le opzioni del grafico: nel file mancano fonte, filtri, data e ora, ultimo dato sincronizzato, profilo e la dicitura 'uso interno'. NFR-50: 'Ogni file esportato riporta in intestazione: fonte dei dati, filtri applicati, data e ora di estrazione [...] dicitura sull'uso interno; [...] ogni esportazione e' registrata ai sensi di NFR-34'. README.md:140-141 dice invece che gli export sono registrati in audit (D-08) e 'mai generati nel browser'.",
+    "fix": "Registrare TitleComponent in echarts.ts:16 e dare a pngDelGrafico (echarts.ts:43) un parametro `intestazione: string` reso sulla copia come `title` (con `grid.top` maggiorato). CardGrafico riceve l'intestazione dal chiamante (titolo, fonte, filtri attivi, data e ora, 'Uso interno') e la passa a CardGrafico.tsx:58. La mancata riga di AUDIT_ESPORTAZIONE del PNG va registrata come OP-FE-08 in uiplan.json (open_points), con la richiesta di un endpoint d'audit al backend."
+  },
+  {
+    "id": "V-02",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/api/index.ts:157",
+    "titolo": "CSV e XLSX di TX-0002..TX-0010 senza alcun test: la mappatura card -> report e i filtri dell'export non sono verificati",
+    "evidenza": "I test di export coprono solo riepilogo, sigc/:report, riserva/2025 e verifica-smp (tests/finanziario-ui.test.tsx:907, 928, 1552, 1654, 1777). Un grep di 'spesa-per-intervento/', 'distribuzione-dotazione/', 'stanziato/', 'pagamenti-su-impegnato/', 'residuo-impegni/', 'residuo-pagamenti/', 'domande-per-anno/', 'importi-per-anno/' in tests/, src/pages ed e2e/ non trova nulla. I pulsanti di DotazioneReport.tsx:60,69,72,107, AvanzamentoReport.tsx:108,180,186,195,204, DomandeReport.tsx:119,126,154,155, Panoramica.tsx:98,107 e DettaglioIntervento.tsx:85,89 sono export registrati in AUDIT_ESPORTAZIONE (D-08): se puntano alla TX sbagliata nessun test fallisce.",
+    "fix": "In tests/finanziario-ui.test.tsx aggiungere un test parametrico con `http.get('*/api/finanziario/:report/:formato')` che registra pathname, search e X-Requested-With. Il test rende DotazioneReport, AvanzamentoReport, DomandeReport e Panoramica con `filtri={{ intervento: ['SRA01'] }}` e clicca il CSV di ogni gruppo 'Scarica ...'. Poi verifica il percorso atteso per ogni card (es. '/api/finanziario/residuo-impegni/csv?intervento=SRA01') e il nome del file."
+  },
+  {
+    "id": "V-03",
+    "severity": "MINORE",
+    "file": "src/shared/ui/grafici/echarts.ts:46",
+    "titolo": "Dopo un drill-down di treemap o sunburst il PNG non e' il grafico che si vede: la copia riparte dalla radice",
+    "evidenza": "pngDelGrafico ricostruisce la copia solo con `sorgente.getOption()` (echarts.ts:46), ma la radice di un drill-down non sta nelle opzioni. Panoramica.tsx:103-107 usa graficoFamiglie con `nodeClick: 'zoomToNode'` e `nodeClick: 'rootToNode'` (lib/grafici/spesa.ts:165-166). Sonda con ECharts 6.1.0 (scratchpad review-v3/V/sonda2.cjs): dopo `sunburstRootToNode` la vista mostra 'SRA,SRA03,SRA01' e la copia PNG 'SRD,SRD01,SRD02,SRA,SRA03,SRA01'; dopo `treemapZoomToNode` le due SVG differiscono (manca la briciola 'SRD'). Il test 'download PNG del grafico come si vede' (tests/shared-ui-kit.test.tsx:255) non lo verifica: src/shared/test/setup.ts:13 sostituisce pngDelGrafico con un PNG fisso.",
+    "fix": "Grafico/CardGrafico memorizzano l'ultima azione di drill-down (dal clic su un nodo con figli: tipo di serie e nodo). pngDelGrafico la riceve e la riesegue sulla copia con `copia.dispatchAction({ type: 'treemapZoomToNode' | 'sunburstRootToNode', targetNodeId })` prima di getDataURL. Un test di pngDelGrafico con ECharts vero (renderer svg, ssr) confronta la copia con la vista dopo un drill-down."
+  },
+  {
+    "id": "V-04",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/api/index.ts:165",
+    "titolo": "TX-0009 (totale domande, RF009) non si scarica da nessuna pagina: la voce di ESPORTA e' codice morto e il README dice il contrario",
+    "evidenza": "`totaleDomande: getApiFinanziarioTotaleDomandeFormato` (api/index.ts:165) non e' usata da nessun datiDelReport (grep: nessun 'totaleDomande' in ui/). I KPI di RF009 (DomandeReport.tsx:33-44, Panoramica.tsx:64-70) non hanno un pulsante di download. README.md:70-71: 'Ogni report del finanziario si scarica in CSV o XLSX da <report>/{formato} (TX-0002.. TX-0015 ...)'. NFR-75: 'Nessuna informazione visibile in schermata e' priva di un corrispondente formato esportabile e rielaborabile'.",
+    "fix": "In DomandeReport.tsx, prima della Griglia dei KPI (riga 168), aggiungere per chi ha GRANT.totaleDomande `<PulsantiScarica oggetto=\"il totale delle domande presentate (RF009)\" scaricamenti={datiDelReport('Totale domande presentate', 'totaleDomande', filtri)} />`. In alternativa togliere la voce da ESPORTA (api/index.ts:165), correggere README.md:70-71 e registrare l'eccezione a NFR-75."
+  },
+  {
+    "id": "V-05",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/aggregati.ts:56",
+    "titolo": "KPI 'Pagato sulla dotazione' mostrato anche quando i totali accanto non sono calcolabili, contro il wireframe panoramica",
+    "evidenza": "wireframes/panoramica/panoramica.html:79 per 'Pagato sulla dotazione': 'solo se entrambi i totali sono valorizzati'. kpiSpesa calcola la quota senza guardare i totali (aggregati.ts:56 `quota: quotaPagata(righe, perimetro)`). tests/finanziario-aggregati.test.ts:151-155 fissa il caso 'dotazione: Non calcolabile' insieme a 'quota: 30'. Con una dotazione zero (righe 145-148) le tessere mostrano 40 M, 13 M e 30% invece del rapporto dei totali (32,5%). La deviazione non e' registrata.",
+    "fix": "In kpiSpesa (aggregati.ts:52-57) calcolare `dotazione` e `pagato` prima e restituire `quota: dotazione.valore === null || pagato.valore === null ? { valore: null, motivo: 'Non calcolabile: manca il totale della dotazione o dei pagamenti' } : quotaPagata(righe, perimetro)`. Aggiornare l'attesa in tests/finanziario-aggregati.test.ts:154."
+  },
+  {
+    "id": "V-06",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/DotazioneReport.tsx:52",
+    "titolo": "Pagina Dotazione: card in un ordine diverso dal wireframe approvato (quota FEASR in fondo, contributo accanto alla dotazione)",
+    "evidenza": "wireframes/dotazione-avanzamento/dotazione.html:66-87 mette nella griglia a due colonne 'Dotazione e pagamenti per intervento' e 'Quota FEASR e non FEASR della dotazione', con 'Contributo ambientale per intervento' sotto (riga 88). Il component tree della .md dice 'Card dotazione e pagamenti (barre) + Card quota FEASR (ciambella) > Card contributo ambientale (barre)'. DotazioneReport.tsx:52-71 affianca invece dotazione e contributo, poi la tabella RF002 (72-88), e la quota FEASR resta da sola in fondo (118-122).",
+    "fix": "In DotazioneReport (righe 112-124) comporre `<Griglia>` con la card della dotazione (ConGrant TX-0002) e Distribuzione (ConGrant TX-0003), poi la card del contributo e la tabella RF002. Per farlo, spostare le due CardGrafico di SpesaPerInterventoSezione (righe 53-70) in componenti che leggono useSpesaPerIntervento(filtri), con la stessa chiave di cache e quindi senza letture in piu'."
+  },
+  {
+    "id": "V-07",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/RiepilogoReport.tsx:60",
+    "titolo": "Download per formato (PNG, CSV, XLSX) diverso dai wireframe approvati, senza deviazione registrata",
+    "evidenza": "I wireframe approvati hanno un solo 'Scarica' per card e, nel riepilogo, 'Esporta CSV' (wireframes/riepilogo/riepilogo.html:71). Il codice rende un gruppo di pulsanti per formato, con sigla 'CSV'/'XLSX' e un PNG (RiepilogoReport.tsx:60, CardGrafico.tsx:87). In .claude/state/green-fe-finanziario.state.json `deviations_reviewed` resta [] per riepilogo, dotazione-avanzamento, domande e sigc (es. riga 37): e' registrata solo V-22. uiplan.json:1206 dice ancora 'Esportazione CSV: pulsante con testo esplicito del formato'.",
+    "fix": "Aggiungere in `deviations_reviewed` dei cinque flussi una voce sul download per formato (PNG, CSV e XLSX dal backend, richiesta dell'utente del 09/10/2026), come per V-22. Aggiornare le wcag_notes di uiplan.json (righe 1206 e 1226) in 'Download CSV e XLSX: un pulsante per formato con la sigla visibile; esito in role=status'."
+  },
+  {
+    "id": "V-08",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/RiepilogoReport.tsx:140",
+    "titolo": "Due export di TX diverse si salvano con lo stesso nome di file",
+    "evidenza": "RiepilogoReport.tsx:140 `datiDelReport('Dotazione e pagamenti per intervento', 'riepilogo', filtri)` (TX-0011) e DotazioneReport.tsx:60 `datiDelReport('Dotazione e pagamenti per intervento', 'spesaPerIntervento', filtri)` (TX-0002) producono entrambi 'dotazione-e-pagamenti-per-intervento.csv' e '.xlsx' (nomeFile del titolo, esportazioni.ts:14-15). Sono tracciati e colonne diversi: nella cartella dei download si distinguono solo con il suffisso '(1)' del browser.",
+    "fix": "Rendere il nome univoco per report: in esportazioni.ts:21 passare a scaricamentiDati il titolo seguito dalla TX del report (es. 'Dotazione e pagamenti per intervento TX-0011'), letta da una mappa `TX_DEL_REPORT: Record<ReportEsportabile, string>`. In alternativa cambiare il titolo della card del riepilogo (RiepilogoReport.tsx:129 e 140)."
+  }
+]
