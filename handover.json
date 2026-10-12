@@ -15,9 +15,9 @@
     {
       "slice": "finanziario",
       "spec_path": "handover/openapi-finanziario.json",
-      "spec_sha256": "sha256:9d75cf27956bfa96c2ae2eb67974cbcce2fb5593d4a85031c389530635c3fe73",
+      "spec_sha256": "sha256:60a1dfe0a67ad15ed53b37850af0dd90af5a24463a365491eab5d44666be8023",
       "manifest_path": "handover/slices/finanziario/manifest.json",
-      "manifest_openapi_hash": "sha256:9d75cf27956bfa96c2ae2eb67974cbcce2fb5593d4a85031c389530635c3fe73",
+      "manifest_openapi_hash": "sha256:60a1dfe0a67ad15ed53b37850af0dd90af5a24463a365491eab5d44666be8023",
       "manifest_hash_match": true,
       "backend_gates_ok": true
     }

@@ -6,7 +6,7 @@
     {
       "slice": "finanziario",
       "path": "handover/openapi-finanziario.json",
-      "sha256": "sha256:9d75cf27956bfa96c2ae2eb67974cbcce2fb5593d4a85031c389530635c3fe73",
+      "sha256": "sha256:60a1dfe0a67ad15ed53b37850af0dd90af5a24463a365491eab5d44666be8023",
       "manifest_hash_match": true
     }
   ],
