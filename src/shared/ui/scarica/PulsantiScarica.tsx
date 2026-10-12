@@ -1,8 +1,10 @@
 // PulsantiScarica — i download di una card o di una tabella (richiesta dell'utente del 09/10/2026): un pulsante per
 // formato, con icona e sigla visibili (PNG, CSV, XLSX) e il nome accessibile completo ("Scarica il grafico X in PNG",
-// che contiene la sigla visibile: WCAG 2.5.3). Un file alla volta: mentre si prepara i pulsanti sono disabilitati;
-// l'esito si annuncia in role=status, l'errore resta visibile in un alert col motivo. CSV e XLSX vengono dal backend
-// (D-08 e NFR-50: ogni esportazione registrata), il PNG e' l'immagine del grafico disegnata nel browser.
+// che contiene la sigla visibile: WCAG 2.5.3). Un file alla volta: mentre si prepara i pulsanti sono aria-disabled e
+// ignorano il clic, ma restano focalizzabili, cosi' il pulsante attivato tiene il focus (con `disabled` il browser lo
+// manderebbe su BODY: review v3 A-02, WCAG 2.4.3). L'esito si annuncia in role=status, l'errore resta visibile in un
+// alert col motivo. CSV e XLSX vengono dal backend (D-08 e NFR-50: ogni esportazione registrata), il PNG e' l'immagine
+// del grafico disegnata nel browser, con l'intestazione di NFR-50 (OP-FE-08: non registrata in audit).
 import { useState } from 'react';
 import { getErrorMessage } from '../../lib';
 import { Icona } from '../icona';
@@ -14,6 +16,8 @@ export interface Scaricamento {
   formato: FormatoScaricabile;
   /** Prepara e salva il file; un errore (anche una Promise rifiutata) diventa l'avviso col motivo. */
   scarica: () => void | Promise<void>;
+  /** Nome del file salvato: la card del grafico ne prende la base per il PNG (stesso nome dei dati, review v3 H-06). */
+  file?: string;
 }
 
 const ICONA: Record<FormatoScaricabile, NomeIcona> = { PNG: 'it-file-image', CSV: 'it-file-csv', XLSX: 'it-file-xlsx' };
@@ -36,6 +40,7 @@ function testoStato(stato: Stato | null): string {
 export function PulsantiScarica({ oggetto, scaricamenti }: { oggetto: string; scaricamenti: readonly Scaricamento[] }) {
   const [stato, setStato] = useState<Stato | null>(null);
   if (scaricamenti.length === 0) return null;
+  const occupato = stato?.esito === 'in-corso';
   const avvia = async (s: Scaricamento) => {
     setStato({ formato: s.formato, esito: 'in-corso' });
     try {
@@ -53,8 +58,10 @@ export function PulsantiScarica({ oggetto, scaricamenti }: { oggetto: string; sc
             key={s.formato}
             type="button"
             className="ui-scarica__pulsante"
-            onClick={() => void avvia(s)}
-            disabled={stato?.esito === 'in-corso'}
+            onClick={() => {
+              if (!occupato) void avvia(s);
+            }}
+            aria-disabled={occupato || undefined}
             aria-label={`Scarica ${oggetto} in ${s.formato}`}
             title={`Scarica in ${s.formato}`}
           >

@@ -8,14 +8,14 @@ import { nonDisegnabile } from './contratto';
 import type { DatiGrafico, TabellaEquivalente } from './contratto';
 import {
   aria,
-  asseMilioni,
+  asseImporti,
   etichettaDato,
-  milioni,
+  importoBreve,
   notaOmessi,
   percentuale,
   plurale,
   tooltipDettaglio,
-  valoreInMilioni,
+  valoreBreve,
   zoomSeMolti,
 } from './primitive';
 import type { DatoSerie } from './primitive';
@@ -30,7 +30,7 @@ export interface PassoCascata {
 }
 
 export function opzioniCascata(passi: readonly PassoCascata[], descrizione: string): EChartsOption {
-  const dati = passi.map((p): DatoSerie => ({ value: p.valore, name: p.nome, etichetta: milioni(p.valore), dettaglio: `${p.nome}: ${milioni(p.valore)}`, itemStyle: { color: p.colore } }));
+  const dati = passi.map((p): DatoSerie => ({ value: p.valore, name: p.nome, etichetta: importoBreve(p.valore), dettaglio: `${p.nome}: ${importoBreve(p.valore)}`, itemStyle: { color: p.colore } }));
   const serie: BarSeriesOption[] = [
     {
       type: 'bar',
@@ -48,13 +48,13 @@ export function opzioniCascata(passi: readonly PassoCascata[], descrizione: stri
     aria: aria(descrizione),
     tooltip: { trigger: 'item', formatter: tooltipDettaglio },
     xAxis: { type: 'category', data: passi.map((p) => p.nome) },
-    yAxis: { type: 'value', axisLabel: { formatter: asseMilioni } },
+    yAxis: { type: 'value', axisLabel: { formatter: asseImporti } },
     series: serie,
   };
 }
 
 export function descrizioneCascata(titolo: string, passi: readonly PassoCascata[], omessi: readonly string[]): string {
-  return `${titolo}: ${passi.map((p) => `${p.nome.toLowerCase()} ${milioni(p.valore)}`).join(', ')}.${notaOmessi(omessi)}`;
+  return `${titolo}: ${passi.map((p) => `${p.nome.toLowerCase()} ${importoBreve(p.valore)}`).join(', ')}.${notaOmessi(omessi)}`;
 }
 
 // ---------------------------------------------------------------- barre raggruppate per categoria
@@ -95,27 +95,27 @@ function datiBarre(voci: readonly VoceRaggruppata[], definizioni: readonly Serie
     if (v.valori.every((x) => x == null)) continue;
     categorie.push(v.categoria);
     v.valori.forEach((x, k) => {
-      datiSerie[k].push(x == null ? null : { value: x, name: v.categoria, codice: v.codice, dettaglio: `${v.categoria}, ${definizioni[k].soggetto}: ${milioni(x)}` });
+      datiSerie[k].push(x == null ? null : { value: x, name: v.categoria, codice: v.codice, dettaglio: `${v.categoria}, ${definizioni[k].soggetto}: ${importoBreve(x)}` });
     });
   }
   return { categorie, datiSerie };
 }
 
-/** Barre raggruppate (una serie per definizione) in milioni di euro; i valori assenti restano vuoti e dichiarati. */
+/** Barre raggruppate (una serie per definizione) di importi; i valori assenti restano vuoti e dichiarati. */
 export function barreRaggruppate(voci: readonly VoceRaggruppata[], definizioni: readonly SerieRaggruppata[], testi: TestiBarre, omessiIniziali: readonly string[] = []): DatiGrafico {
   const tabella: TabellaEquivalente = { caption: testi.caption, colonne: testi.colonne, righe: voci.map((v) => [v.categoria, ...v.celle]) };
   const omessi = [...omessiIniziali];
   const { categorie, datiSerie } = datiBarre(voci, definizioni, omessi);
   if (categorie.length === 0) return nonDisegnabile(testi.vuoto, tabella, omessi);
   const estremi = categorie.length === 1 ? ` (${categorie[0]})` : `, da ${categorie[0]} a ${categorie[categorie.length - 1]}`;
-  const descrizione = `${testi.titolo} per ${plurale(categorie.length, testi.unita[0], testi.unita[1])}${estremi}, in milioni di euro.${notaOmessi(omessi)}`;
+  const descrizione = `${testi.titolo} per ${plurale(categorie.length, testi.unita[0], testi.unita[1])}${estremi}, importi in euro.${notaOmessi(omessi)}`;
   const opzioni: EChartsOption = {
     aria: aria(descrizione),
     legend: {},
-    tooltip: { trigger: 'axis', valueFormatter: valoreInMilioni },
+    tooltip: { trigger: 'axis', valueFormatter: valoreBreve },
     ...zoomSeMolti(categorie.length),
     xAxis: { type: 'category', data: categorie, axisLabel: { interval: 0, rotate: categorie.length > 8 ? 45 : 0 } },
-    yAxis: { type: 'value', axisLabel: { formatter: asseMilioni } },
+    yAxis: { type: 'value', axisLabel: { formatter: asseImporti } },
     series: definizioni.map((def, k): BarSeriesOption => ({ type: 'bar', name: def.nome, data: datiSerie[k] })),
   };
   return { opzioni, tabella, omessi };
@@ -150,7 +150,7 @@ export function graficoDueParti(titolo: string, parti: readonly [Parte, Parte], 
   const quota = (v: number) => formatPercentuale(percentuale(v, totale));
   const dati = parti.map((p): DatoSerie => {
     const v = p.valore as number;
-    return { value: v, name: p.nome, etichetta: quota(v), dettaglio: `${p.nome}: ${milioni(v)} (${quota(v)})` };
+    return { value: v, name: p.nome, etichetta: quota(v), dettaglio: `${p.nome}: ${importoBreve(v)} (${quota(v)})` };
   });
   const serie: PieSeriesOption = {
     type: 'pie',

@@ -14,7 +14,7 @@ import {
   formatEuro,
   formatPercentuale,
   graficoDueParti,
-  milioni,
+  importoBreve,
   nonDisegnabile,
   notaOmessi,
   numeroDi,
@@ -41,7 +41,7 @@ interface Collegamento {
 }
 
 function collegamento(source: string, target: string, value: number): Collegamento {
-  return { source, target, value, dettaglio: `${source} → ${target}: ${milioni(value)}` };
+  return { source, target, value, dettaglio: `${source} → ${target}: ${importoBreve(value)}` };
 }
 
 /** La dotazione del flusso: quella di TX-0006 se valorizzata, altrimenti quella di TX-0007 (stesso dato di programma). */
@@ -110,8 +110,8 @@ export function graficoSankey(impegni: ResiduoSuImpegniLike, pagamenti: Avanzame
   const dotazione = valoreDi(dotazioneFlusso(impegni, residuo)) ?? centesimi(collegamenti.filter((c) => c.source === 'Dotazione').reduce((a, c) => a + c.value, 0));
   const nomi = [...new Set(collegamenti.flatMap((c) => [c.source, c.target]))];
   const valoreNodo = (n: string) => (n === 'Dotazione' ? dotazione : collegamenti.find((c) => c.target === n)?.value);
-  const nodi = nomi.map((n) => ({ name: n, etichetta: `${n}: ${milioni(valoreNodo(n) ?? 0)}`, dettaglio: `${n}: ${milioni(valoreNodo(n) ?? 0)}` }));
-  const descrizione = `Flusso della dotazione (${milioni(dotazione)}): ${collegamenti.map((c) => `${c.target.toLowerCase()} ${milioni(c.value)}`).join(', ')}.${notaOmessi(omessi)}`;
+  const nodi = nomi.map((n) => ({ name: n, etichetta: `${n}: ${importoBreve(valoreNodo(n) ?? 0)}`, dettaglio: `${n}: ${importoBreve(valoreNodo(n) ?? 0)}` }));
+  const descrizione = `Flusso della dotazione (${importoBreve(dotazione)}): ${collegamenti.map((c) => `${c.target.toLowerCase()} ${importoBreve(c.value)}`).join(', ')}.${notaOmessi(omessi)}`;
   const serie: SankeySeriesOption = { type: 'sankey', name: 'Flusso della dotazione', data: nodi, links: collegamenti, nodeAlign: 'left', emphasis: { focus: 'adjacency' }, lineStyle: { color: 'gradient', curveness: 0.5 }, label: { formatter: etichettaDato } };
   return { opzioni: { aria: aria(descrizione), tooltip: { trigger: 'item', formatter: tooltipDettaglio }, series: [serie] }, tabella, omessi };
 }

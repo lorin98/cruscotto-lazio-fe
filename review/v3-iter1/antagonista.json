@@ -1,0 +1,47 @@
+[
+  {
+    "id": "X-01",
+    "severity": "MAGGIORE",
+    "categoria": "2",
+    "file": "src/features/finanziario/ui/DettaglioIntervento.tsx:97",
+    "titolo": "Dettaglio, scheda SIGC: per un intervento senza domande SIGC la card Importi SIGC disegna una cascata di zeri",
+    "evidenza": "Per un intervento senza domande SIGC il backend risponde 0,00 su richiesto, ammesso e pagato (ConsultaFinanziarioService.importiSigc usa Importo.diOZero), e ImportiSigc del dettaglio, a differenza di SigcReport.tsx:57 e Panoramica.tsx:148, non usa il segnale useSelezioneSenzaDomandeSigc: la sonda review-v3/ANT/sonda-sigc-zeri.test.ts mostra graficoCascataSigc disegnabile ('richiesto 0,0 M€, non ammesso 0,0 M€, ... pagato 0,0 M€'), con CSV e XLSX di zeri. E' il grafico vuoto vietato da NFR-15 (e) e la stessa regressione gia' corretta nella panoramica (tests/finanziario-casi-limite.test.tsx:148), qui senza test: finanziario-ui.test.tsx:644 e interventi/page.test.tsx:79 aprono la scheda SIGC solo con dati SIGC, mentre gli interventi non SIGC (investimenti, giovani, cooperazione) sono una parte grande del CSR.",
+    "fix": "In ImportiSigc (DettaglioIntervento.tsx:96) leggere `const segnale = useSelezioneSenzaDomandeSigc(filtri)` e passare a VistaQuery\n`inAttesa={segnale === 'in-attesa'} eVuoto={() => segnale === 'vuota'} vuoto={vuotoConPerimetro('Nessuna domanda SIGC per questo intervento.')}`, come SigcReport.tsx:57-61.\nTest: dettaglio con sigc/domande presentate 0 e sigc/importi a zero; la scheda SIGC dichiara il vuoto e graficiVivi() non contiene 'Importi SIGC'."
+  },
+  {
+    "id": "X-02",
+    "severity": "MAGGIORE",
+    "categoria": "3",
+    "file": "src/features/finanziario/lib/grafici/spesa.ts:172",
+    "titolo": "'Totale della famiglia' e' una somma parziale: gli interventi senza dotazione escono dal totale, che resta chiamato totale",
+    "evidenza": "raggruppaFamiglie (spesa.ts:139-143) scarta gli interventi con dotazione assente; la riga 172 scrive 'Totale della famiglia' con la somma dei soli rimasti, e il nodo del treemap (riga 158) dice 'Famiglia SRA: 2 interventi, dotazione 30,0 M€'. tests/finanziario-grafici.test.ts:351 fissa 'SRA, Totale della famiglia, 30.000.000,00 €' con SRA03 della stessa famiglia 'non disponibile', contro la regola 'niente somme parziali' di aggregati.ts:1-3 e SC-FI_DISTRIBUZIONE: con le stesse righe il KPI della dotazione nella Panoramica (aggregati.ts:26-32) dice invece 'Non calcolabile: manca per 1 intervento (SRA03)'.",
+    "fix": "In raggruppaFamiglie tenere per famiglia gli interventi scartati (`mancanti: string[]`).\nRiga 172: con f.mancanti non vuoto la cella diventa `non calcolabile (manca per ${f.mancanti.join(', ')})`.\nNodo (righe 156-158): etichetta e dettaglio dicono 'somma parziale, manca SRA03'; il valore resta solo come area del riquadro.\nAggiornare l'attesa di tests/finanziario-grafici.test.ts:351."
+  },
+  {
+    "id": "X-03",
+    "severity": "MINORE",
+    "categoria": "5",
+    "file": "src/shared/lib/grafici/primitive.ts:54",
+    "titolo": "Importi sotto i 50.000 € resi '0,0 M€' in etichette, tooltip, assi e descrizioni accessibili dei grafici",
+    "evidenza": "milioni() arrotonda sempre al decimo di milione, mentre importoKpi (riga 59) evita lo zero apparente solo nei KPI: con i dati di SC-FI_RISERVA (fixture RISERVA) la descrizione accessibile e' '... 0,0 M€ utilizzati su 0,0 M€ di riserva accumulata' e la linea di riferimento 'Riserva accumulata 0,0 M€', accanto ai KPI '300,00 €' e '500,00 €' (sonda review-v3/ANT/sonda-milioni.test.ts). Lo stesso nella cascata SIGC di un intervento piccolo (tutto '0,0 M€'), e tests/finanziario-grafici.test.ts:276 fissa 'pagato 0,0 M€ su 0,0 M€' per 50 € su 100 €.",
+    "fix": "Rendere milioni() adattiva come importoKpi: `Math.abs(v) >= 1_000_000 ? <milioni> : formatEuro(v)` per etichette, tooltip e aria.\nPer gli assi (asseMilioni) tenere la scala in milioni con due decimali sotto 1 M€.\nAggiornare finanziario-grafici.test.ts:276 e aggiungere un test: 300 € non produce '0,0 M€'."
+  },
+  {
+    "id": "X-04",
+    "severity": "MINORE",
+    "categoria": "1",
+    "file": "src/features/finanziario/ui/DomandeReport.tsx:126",
+    "titolo": "Il download della tabella 'Domande per anno: dettaglio' ignora l'anno scelto accanto al pulsante",
+    "evidenza": "La tabella mostra solo l'anno scelto (riga 110, scelta dalla riga 125 o dal clic sul grafico), ma 'Scarica la tabella Domande per anno' (riga 126) esporta TX-0008 con i soli filtri, quindi tutti gli anni, con 'Filtri applicati: nessuno' nell'intestazione. Lo stesso nel riepilogo: i pulsanti stanno accanto alla ricerca che riduce righe e totali (RiepilogoReport.tsx:125), e il file resta completo senza che la pagina lo dica.",
+    "fix": "Il backend non filtra per anno: dirlo nel controllo e accanto.\nCon anno !== null: `oggetto={`la tabella Domande per anno (tutti gli anni, non solo il ${anno})`}` e una nota 'Il file contiene tutti gli anni'.\nIn TabellaInterattiva, con una ricerca attiva, nota analoga sotto gli strumenti ('il file contiene tutte le righe dei filtri')."
+  },
+  {
+    "id": "X-05",
+    "severity": "MINORE",
+    "categoria": "5",
+    "file": "src/shared/ui/kpi/Kpi.tsx:48",
+    "titolo": "La barra del KPI 'Pagato sulla dotazione' annuncia '100%' quando il valore e' oltre il 100%",
+    "evidenza": "Kpi.tsx:29 limita la percentuale a 100 e la riga 48 usa quel numero come aria-label dell'immagine, mentre la tessera mostra il valore vero: Panoramica.tsx:46-48 passa la media ponderata, che supera 100 quando i pagamenti superano la dotazione (graficoAvanzamento lo prevede col suo `massimo`). Un lettore di schermo sente '130 %' e subito dopo '100%': l'alternativa testuale non e' equivalente (WCAG 1.1.1).",
+    "fix": "Separare larghezza e testo: la classe ui-barra__N usa `Math.min(100, quota * 100)`, l'aria-label il valore vero (`quota * 100`).\nIn alternativa `aria-hidden=\"true\"` sulla barra, che ripete il valore gia' scritto nella tessera.\nTest in shared-ui-kit: Kpi con quota 1.3 non espone '100%'."
+  }
+]

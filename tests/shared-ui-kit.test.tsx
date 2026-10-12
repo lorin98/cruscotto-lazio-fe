@@ -2,9 +2,10 @@
 // Il grafico e' quello finto di src/shared/test/setup.ts (jsdom non disegna).
 import { useState } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { BarraFiltri, CardGrafico, Grafico, Kpi, PannelloLaterale, PulsantiScarica, Sezione, TabellaDati, TabellaInterattiva, TabellaRighe, TabellaVoci, VistaQuery, blobDaDataUrl } from '../src/shared/ui';
+import { BarraFiltri, CardGrafico, ContestoIntestazione, Grafico, Kpi, PannelloLaterale, PulsantiScarica, Sezione, TabellaDati, TabellaInterattiva, TabellaRighe, TabellaVoci, VistaQuery, blobDaDataUrl } from '../src/shared/ui';
+import { pngDelGrafico } from '../src/shared/ui/grafici/echarts';
 import type { StatoQuery } from '../src/shared/ui';
 import type { ColonnaTabella, DatiGrafico } from '../src/shared/ui';
 import { filtraRighe, numeroPagine, ordinaRighe, paginaDi } from '../src/shared/lib';
@@ -72,6 +73,14 @@ function tabella(props: Partial<Parameters<typeof TabellaInterattiva<Riga>>[0]> 
 const codici = () => within(screen.getByRole('table')).getAllByRole('rowheader').map((c) => c.textContent);
 
 describe('TabellaInterattiva', () => {
+  it('nota della ricerca: compare solo con una ricerca attiva (review v3 X-04)', async () => {
+    tabella({ notaRicerca: 'I file contengono tutte le righe.' });
+    expect(screen.queryByText('I file contengono tutte le righe.')).toBeNull();
+    await userEvent.type(screen.getByRole('searchbox', { name: 'Cerca nella tabella' }), 'X1');
+    expect(screen.getByText('I file contengono tutte le righe.')).toBeTruthy();
+    await userEvent.clear(screen.getByRole('searchbox', { name: 'Cerca nella tabella' }));
+    expect(screen.queryByText('I file contengono tutte le righe.')).toBeNull();
+  });
   it('caption con il conteggio, colonne nascoste di default, paginazione', async () => {
     tabella();
     expect(screen.getByRole('table', { name: 'Righe di prova: 12 righe.' })).toBeTruthy();
@@ -206,6 +215,29 @@ describe('Grafico: ciclo di vita del wrapper ECharts', () => {
     expect(graficiVivi()[0].opzioni[0]).toMatchObject({ tooltip: { trigger: 'axis', renderMode: 'richText' } });
   });
 
+  it('il ResizeObserver ridisegna solo un contenitore nel documento e con dimensioni (review v3 A-01)', () => {
+    let osserva: ResizeObserverCallback = () => undefined;
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        constructor(f: ResizeObserverCallback) {
+          osserva = f;
+        }
+        observe() {}
+        disconnect() {}
+      },
+    );
+    render(<Grafico opzioni={{ series: [] }} />);
+    const g = graficiVivi()[0];
+    const voce = (target: Element, width: number, height: number) => [{ target, contentRect: { width, height } }] as unknown as ResizeObserverEntry[];
+    osserva(voce(g.el, 800, 320), {} as ResizeObserver);
+    expect(g.ridimensionamenti).toBe(1);
+    // a dimensione zero (contenitore nascosto o in uscita) e staccato dal documento: nessun resize
+    osserva(voce(g.el, 0, 320), {} as ResizeObserver);
+    osserva(voce(document.createElement('div'), 800, 320), {} as ResizeObserver);
+    expect(g.ridimensionamenti).toBe(1);
+  });
+
   it('con prefers-reduced-motion niente animazioni', () => {
     // jsdom non ha matchMedia: lo si fornisce solo per questo test
     vi.stubGlobal('matchMedia', (q: string) => ({ matches: q.includes('reduce'), media: q }));
@@ -271,6 +303,32 @@ describe('CardGrafico', () => {
     oggetto.mockRestore();
   });
 
+  it("PNG con l'intestazione di NFR-50: titolo, fonte, righe della pagina, data di estrazione, uso interno (review v3 V-01)", async () => {
+    const scaricato = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
+    const png = vi.mocked(pngDelGrafico);
+    png.mockClear();
+    render(
+      <ContestoIntestazione.Provider value={['Filtri applicati: Intervento SRA01', 'Profilo: P4', 'Ultimo dato sincronizzato: DS-12 02/03/2026 10:15']}>
+        <CardGrafico titolo="Stanziato" dati={DATI} fonte="Fonte: TX-0004" scaricamenti={[{ formato: 'CSV', file: 'stanziato-rf004.csv', scarica: () => undefined }]} />
+      </ContestoIntestazione.Provider>,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Scarica il grafico Stanziato in PNG' }));
+    const [istanza, { intestazione }] = png.mock.calls[0];
+    expect(istanza).toBe(graficiVivi()[0]);
+    expect(intestazione.slice(0, 5)).toEqual([
+      'Cruscotto CSR Lazio - Stanziato',
+      'Fonte: TX-0004',
+      'Filtri applicati: Intervento SRA01',
+      'Profilo: P4',
+      'Ultimo dato sincronizzato: DS-12 02/03/2026 10:15',
+    ]);
+    expect(intestazione[5]).toMatch(/^Estratto il \d{2}\/\d{2}\/\d{4} \d{2}:\d{2} \(Europe\/Rome\)$/);
+    expect(intestazione[6]).toBe('Uso: Documento ad uso interno di ARSIAL e della Regione Lazio: dati riservati, non diffondere');
+    // il PNG prende il nome dei file dei dati della card (review v3 H-06)
+    expect((scaricato.mock.contexts[0] as HTMLAnchorElement).download).toBe('stanziato-rf004.png');
+    scaricato.mockRestore();
+  });
+
   it('nessuna violazione axe (vista grafico e vista tabella)', async () => {
     const { container } = render(<CardGrafico titolo="Prova" dati={{ ...DATI, omessi: ['X: assente'] }} fonte="Fonte: prova" />);
     await expectNoA11yViolations(container);
@@ -294,9 +352,11 @@ describe('Kpi', () => {
     expect(kpi.textContent).toBe('ImpegnatoNon disponibile: fonte impegni non attiva');
     expect(within(kpi).queryByRole('img')).toBeNull();
   });
-  it('quota oltre 1 limitata al 100%, negativa senza barra', () => {
-    const { rerender } = render(<Kpi etichetta="Q" valore="x" quota={1.4} icona="it-card" />);
-    expect(screen.getByRole('img', { name: '100%' })).toBeTruthy();
+  it('quota oltre 1: barra piena ma testo accessibile col valore vero (review v3 X-05); negativa senza barra', () => {
+    const { container, rerender } = render(<Kpi etichetta="Q" valore="x" quota={1.3} icona="it-card" />);
+    expect(screen.getByRole('img', { name: '130%' })).toBeTruthy();
+    expect(screen.queryByRole('img', { name: '100%' })).toBeNull();
+    expect(container.querySelector('.ui-barra__100')).not.toBeNull();
     rerender(<Kpi etichetta="Q" valore="x" quota={-0.1} icona="it-card" />);
     expect(screen.queryByRole('img')).toBeNull();
   });
@@ -456,14 +516,23 @@ describe('PulsantiScarica', () => {
     expect(scaricati).toEqual(['XLSX']);
   });
 
-  it('un file alla volta: pulsanti disabilitati mentre si prepara; poi riattivi', async () => {
+  it('un file alla volta: pulsanti aria-disabled mentre si prepara, il focus resta sul pulsante attivato (review v3 A-02)', async () => {
     let chiudi: () => void = () => undefined;
-    render(<PulsantiScarica oggetto="la tabella Prova" scaricamenti={[{ formato: 'CSV', scarica: () => new Promise<void>((r) => (chiudi = r)) }, { formato: 'XLSX', scarica: () => undefined }]} />);
-    await userEvent.click(screen.getByRole('button', { name: 'Scarica la tabella Prova in CSV' }));
+    const xlsx = vi.fn();
+    render(<PulsantiScarica oggetto="la tabella Prova" scaricamenti={[{ formato: 'CSV', scarica: () => new Promise<void>((r) => (chiudi = r)) }, { formato: 'XLSX', scarica: xlsx }]} />);
+    const csv = screen.getByRole('button', { name: 'Scarica la tabella Prova in CSV' });
+    csv.focus();
+    await userEvent.keyboard('{Enter}');
     expect(screen.getByRole('status').textContent).toBe('File CSV in preparazione…');
-    expect(screen.getAllByRole('button').every((b) => (b as HTMLButtonElement).disabled)).toBe(true);
+    expect(screen.getAllByRole('button').every((b) => b.getAttribute('aria-disabled') === 'true' && !(b as HTMLButtonElement).disabled)).toBe(true);
+    expect(document.activeElement).toBe(csv);
+    // durante la preparazione un altro formato non parte (clic senza spostare il focus)
+    fireEvent.click(screen.getByRole('button', { name: 'Scarica la tabella Prova in XLSX' }));
+    expect(xlsx).not.toHaveBeenCalled();
     chiudi();
-    await waitFor(() => expect(screen.getAllByRole('button').some((b) => (b as HTMLButtonElement).disabled)).toBe(false));
+    await waitFor(() => expect(screen.getAllByRole('button').some((b) => b.hasAttribute('aria-disabled'))).toBe(false));
+    expect(screen.getByRole('status').textContent).toBe('File CSV scaricato.');
+    expect(document.activeElement).toBe(csv);
   });
 
   it('errore: avviso col motivo, accordato al formato; nessun pulsante senza scaricamenti', async () => {

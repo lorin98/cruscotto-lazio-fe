@@ -25,6 +25,14 @@ export const GRANT = {
   verificaSmp: 'csr.tx-0015.read',
 } as const;
 
+/** Lettura del finanziario con dati da scaricare (tutte tranne i filtri, TX-0001). */
+export type LetturaConDati = Exclude<keyof typeof GRANT, 'filtri'>;
+
+/** La transazione di una lettura ("TX-0002"), dal suo grant: nel nome dei file scaricati, accanto al titolo (review v3 H-06). */
+export function transazioneDi(lettura: LetturaConDati): string {
+  return `TX-${/csr\.tx-(\d{4})\.read/.exec(GRANT[lettura])?.[1] ?? '????'}`;
+}
+
 export const PERCORSI = {
   panoramica: '/finanziario',
   dettaglio: '/finanziario/interventi/:codice',

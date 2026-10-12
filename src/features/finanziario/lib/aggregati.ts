@@ -48,13 +48,19 @@ export interface KpiSpesa {
   quota: Aggregato;
 }
 
-/** Indicatori della panoramica dalle righe di TX-0002. */
+/**
+ * Indicatori della panoramica dalle righe di TX-0002. La quota pagata compare solo se entrambi i totali accanto sono
+ * calcolabili (wireframe panoramica, review v3 V-05): altrimenti dice quale manca.
+ */
 export function kpiSpesa(righe: readonly RigaSpesa[], perimetro?: string | null): KpiSpesa {
-  return {
-    dotazione: totaleImporti(righe, (r) => r.dotazioneSpesaPubblica),
-    pagato: totaleImporti(righe, (r) => r.pagamentiTotali),
-    quota: quotaPagata(righe, perimetro),
-  };
+  const dotazione = totaleImporti(righe, (r) => r.dotazioneSpesaPubblica);
+  const pagato = totaleImporti(righe, (r) => r.pagamentiTotali);
+  const mancanti = [dotazione.valore === null ? 'della dotazione' : null, pagato.valore === null ? 'dei pagamenti' : null].filter((m) => m !== null);
+  const quota =
+    righe.length > 0 && perimetro !== PERIMETRO_ADA && mancanti.length > 0
+      ? { valore: null, motivo: `Non calcolabile: manca il totale ${mancanti.join(' e ')}` }
+      : quotaPagata(righe, perimetro);
+  return { dotazione, pagato, quota };
 }
 
 /**

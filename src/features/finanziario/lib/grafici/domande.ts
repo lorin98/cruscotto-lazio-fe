@@ -6,12 +6,12 @@ import type { ImportoLike } from '../../../../entities/importo';
 import {
   NON_DISPONIBILE,
   aria,
-  asseMilioni,
+  asseImporti,
   nonDisegnabile,
   notaOmessi,
   numeroDi,
   plurale,
-  valoreInMilioni,
+  valoreBreve,
   valoreInNumero,
 } from '../../../../shared/lib';
 import type { DatiGrafico } from '../../../../shared/lib';
@@ -97,14 +97,14 @@ export function graficoImportiPerAnno(righe: RigaImportiAnno[]): DatiGrafico {
   if (serie.length === 0) return nonDisegnabile('nessun importo valorizzato per anno di raccolta', tabella, omessi);
   const senzaAmmesso = sommaSeCompleta(ordinate.map((r) => r.domandeSenzaAmmesso));
   if (senzaAmmesso) omessi.push(testoSenzaAmmesso(senzaAmmesso));
-  const descrizione = `Linee ${serie.map((s) => `dell'${String(s.name).toLowerCase()}`).join(' e ')} per anno di raccolta (${categorie.join(', ')}), in milioni di euro.${notaOmessi(omessi)}`;
+  const descrizione = `Linee ${serie.map((s) => `dell'${String(s.name).toLowerCase()}`).join(' e ')} per anno di raccolta (${categorie.join(', ')}), importi in euro.${notaOmessi(omessi)}`;
   const opzioni: EChartsOption = {
     aria: aria(descrizione),
     legend: {},
-    tooltip: { trigger: 'axis', valueFormatter: valoreInMilioni },
+    tooltip: { trigger: 'axis', valueFormatter: valoreBreve },
     dataZoom: [{ type: 'inside' }],
     xAxis: { type: 'category', data: categorie },
-    yAxis: { type: 'value', axisLabel: { formatter: asseMilioni } },
+    yAxis: { type: 'value', axisLabel: { formatter: asseImporti } },
     series: serie,
   };
   return { opzioni, tabella, omessi };

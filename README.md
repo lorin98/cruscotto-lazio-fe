@@ -71,8 +71,13 @@ aperta.
   TX-0015; `riepilogo/csv` resta lo stesso indirizzo): stessi filtri e grant della consultazione, intestazione con fonte,
   filtri, data e uso interno, una riga di `AUDIT_ESPORTAZIONE` per file. Nel FE: `esportaReport`, `esportaRiserva`,
   `esportaVerificaSmp` (`features/finanziario/api`) e `datiDelReport` (`ui/esportazioni.ts`), che i grafici e le tabelle
-  passano a `PulsantiScarica`. I grafici costruiti da piu' TX (il flusso della dotazione, il gauge del dettaglio) hanno
-  solo il PNG: un export registrato e' di una sola TX.
+  passano a `PulsantiScarica`. Ogni dato in schermata si scarica (NFR-75): ogni grafico o tabella di una sola TX ha i
+  file della sua TX, le tessere di TX-0009 (pagina delle domande e panoramica) i loro pulsanti; i grafici di piu' TX
+  hanno il PNG e, se una loro TX non si scarica da un'altra card della pagina, i file di quella (il gauge del dettaglio:
+  TX-0002; la dotazione e' nel file della cascata, TX-0011). Un export registrato e' sempre di una sola TX. Il nome del
+  file e' titolo e transazione (`stanziato-tx-0004.csv`), lo stesso per il PNG della card. Un file ha tutte le righe dei
+  filtri della pagina: la ricerca nella tabella e l'anno scelto sopra la tabella delle domande non si applicano, e la
+  pagina lo dice.
 - **Letture in coda.** Il backend ammette 2 letture dei report del finanziario in corso per utente (oltre: 503
   CAPACITA_ESAURITA): il mutator mette in coda le GET verso `/api/finanziario/` oltre la seconda. Il mutator condiviso
   non ha tetti predefiniti: li sceglie l'app per prefisso (`src/app/tetti-letture.ts`, configurati all'avvio da
@@ -135,10 +140,14 @@ Il kit generico sta in `src/shared/ui` e si riusa nelle prossime aree:
 - `tema.css`: token (`--ui-*`) e classi `ui-*` sopra bootstrap-italia; font Titillium serviti dall'app;
 - `grafici/`: `Grafico`, il solo wrapper di Apache ECharts (import modulari, renderer SVG, niente animazioni con
   `prefers-reduced-motion`), e `CardGrafico`: titolo, vista Grafico/Tabella, download, voci omesse, fonte. Il PNG del
-  grafico (`pngDelGrafico`) si ridisegna fuori pagina col renderer canvas, con le opzioni correnti (legenda, zoom) e le
-  stesse dimensioni: e' il grafico come si vede, coi font della pagina, a densita' almeno doppia;
+  grafico (`pngDelGrafico`) si ridisegna fuori pagina col renderer canvas, con le opzioni correnti (legenda, zoom), la
+  radice di vista di treemap e raggiera (il drill-down) e le stesse dimensioni: e' il grafico come si vede, coi font
+  della pagina, a densita' almeno doppia, sotto l'intestazione di NFR-50 (titolo, fonte, le righe della pagina da
+  `ContestoIntestazione`: filtri, profilo, ultimo dato sincronizzato; data e ora, uso interno);
 - `PulsantiScarica`: un pulsante per formato (PNG, CSV, XLSX) con icona e sigla, esito in `role=status`, errore in un
-  avviso. CSV e XLSX dei dati vengono dal backend (D-08: ogni export e' registrato in audit), mai generati nel browser;
+  avviso; mentre il file si prepara i pulsanti sono `aria-disabled` e il focus resta su quello attivato. CSV e XLSX dei
+  dati vengono dal backend (D-08: ogni export e' registrato in audit), mai generati nel browser; il PNG e' disegnato nel
+  browser e non ha la riga d'audit (punto aperto OP-FE-08, scelta dell'utente del 12/10/2026);
 - `Kpi`, `BarraFiltri`, `PannelloLaterale` (dialogo laterale di react-aria-components), `Sezione` e `Griglia`,
   `TabellaInterattiva` (ricerca, ordinamento con `aria-sort`, scelta delle colonne, paginazione, totali e righe di
   piede, riga apribile con clic o Invio; tabella HTML nativa: la `Table` di react-aria non serve senza selezione ne'
@@ -189,8 +198,9 @@ Referrer-Policy: same-origin
 
 La verifica e' un test e2e versionato: `npm run test:e2e` (`e2e/csp.spec.ts`) serve la build di produzione con questa
 CSP, apre la panoramica e la pagina delle domande, mostra i tooltip di un elemento e di un asse, apre il pannello dei
-filtri e l'anteprima di un intervento dal riepilogo, apre il dettaglio dell'intervento con le sue schede e scarica il
-PNG di un grafico (canvas fuori pagina, salvataggio da un blob): nessuna violazione. Il tooltip di ECharts e' disegnato nel grafico (`renderMode: 'richText'`, imposto dal kit):
+filtri e l'anteprima di un intervento dal riepilogo, apre il dettaglio dell'intervento con le sue schede, scarica il
+PNG di un grafico (canvas fuori pagina, salvataggio da un blob) e un CSV dal backend (nome, contenuto, X-Requested-With)
+e prova l'errore di un XLSX (avviso, nessun file): nessuna violazione. Il tooltip di ECharts e' disegnato nel grafico (`renderMode: 'richText'`, imposto dal kit):
 il tooltip HTML scriverebbe attributi `style` con `innerHTML`, bloccati da `style-src 'self'`.
 
 Gli `<style>` che react-aria inietta sono due, ed entrambi sono bloccati da `style-src 'self'`:

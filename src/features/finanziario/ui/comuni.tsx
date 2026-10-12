@@ -6,11 +6,14 @@ import type { ReactNode } from 'react';
 import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { ValoreImporto, descriviImporto } from '../../../entities/importo';
 import type { ImportoLike } from '../../../entities/importo';
-import { formatNumber, importoKpi, maiuscolaIniziale } from '../../../shared/lib';
-import { Caricamento, Kpi, Sezione } from '../../../shared/ui';
+import { formatNumber, importoBreve, maiuscolaIniziale } from '../../../shared/lib';
+import { Caricamento, Kpi, PulsantiScarica, Sezione } from '../../../shared/ui';
 import type { Colonna, ColonnaTabella, NomeIcona, TonoKpi } from '../../../shared/ui';
 import { PERIMETRO_ADA, etichettaDiProgramma, etichettaPerimetro } from '../lib/perimetro';
 import type { Perimetro } from '../lib/perimetro';
+import type { ReportEsportabile } from '../api';
+import type { Filtri } from '../lib/filtri';
+import { datiDelReport } from './esportazioni';
 
 /** Badge del perimetro della singola sezione: ogni DTO dichiara il suo (misure per domanda ADA, dati di programma regionali). */
 export function PerimetroSezione({ perimetro }: { perimetro: Perimetro | null | undefined }) {
@@ -126,7 +129,7 @@ export function colonneImporti<T>(campi: readonly CampoImporto<T>[], perimetro: 
 export function KpiImporto({ etichetta, importo, icona, tono, nota, aggregato = true }: { etichetta: string; importo: ImportoLike | null | undefined; icona: NomeIcona; tono: TonoKpi; nota?: string; aggregato?: boolean }) {
   const r = descriviImporto(importo, aggregato);
   const assente = r.disponibile ? undefined : `${maiuscolaIniziale(r.testo)}${r.nota ? `: ${r.nota}` : ''}`;
-  return <Kpi etichetta={etichetta} icona={icona} tono={tono} valore={importo?.valore != null ? importoKpi(importo.valore) : undefined} assente={assente} nota={nota} />;
+  return <Kpi etichetta={etichetta} icona={icona} tono={tono} valore={importo?.valore != null ? importoBreve(importo.valore) : undefined} assente={assente} nota={nota} />;
 }
 
 /**
@@ -135,4 +138,20 @@ export function KpiImporto({ etichetta, importo, icona, tono, nota, aggregato = 
  */
 export function erroreGiaMostrato() {
   return <></>;
+}
+
+/**
+ * CSV e XLSX dei dati di una fila di KPI, sopra le tessere, solo con il grant della lettura: ogni dato in schermata si
+ * scarica (NFR-75, review v3 V-04). Il titolo nomina il report, si vede accanto ai pulsanti (la fila puo' avere tessere
+ * di altre letture: review v3 N-04) e da' il nome al file.
+ */
+export function ScaricaKpi({ grant, titolo, report, filtri }: { grant: string; titolo: string; report: ReportEsportabile; filtri: Filtri }) {
+  if (!hasGrant(useAuthStatus().data, grant)) return null;
+  return (
+    <div className="ui-strumenti justify-content-end">
+      {/* il nome accessibile del gruppo lo dice gia': per i lettori di schermo il testo sarebbe ripetuto */}
+      <span className="small" aria-hidden="true">{`File di ${titolo}`}</span>
+      <PulsantiScarica oggetto={`i dati di ${titolo}`} scaricamenti={datiDelReport(titolo, report, filtri)} />
+    </div>
+  );
 }

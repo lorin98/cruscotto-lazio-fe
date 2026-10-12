@@ -16,6 +16,7 @@ export { VerificaSmpReport } from './ui/VerificaSmpReport';
 export { useAnnoNellIndirizzo } from './ui/useAnnoNellIndirizzo';
 export { useFiltriNellIndirizzo } from './ui/useFiltriNellIndirizzo';
 export { useDescrizioneIntervento } from './ui/useDescrizioneIntervento';
+export { useRigheIntestazione } from './ui/useRigheIntestazione';
 export { filtriDaRicerca, ricercaDaFiltri } from './lib/filtri';
 export type { Filtri } from './lib/filtri';
 export { DETTAGLIO_INTERVENTO, PANORAMICA, PERCORSI, codiceInterventoValido, conFiltri, pagineVisibili, titoloH1, voceDi } from './lib/report';

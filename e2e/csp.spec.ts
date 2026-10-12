@@ -1,9 +1,10 @@
 // csp.spec.ts — la build di produzione sotto la CSP del README (sezione "Deploy: header di sicurezza"): nessuna
 // violazione con i grafici ECharts disegnati e i tooltip aperti, sia di un elemento sia di un asse (review v2 A-02), con
-// i dialoghi di react-aria aperti (pannello dei filtri, anteprima dell'intervento) e sul dettaglio dell'intervento.
+// i dialoghi di react-aria aperti (pannello dei filtri, anteprima dell'intervento), sul dettaglio dell'intervento e nei
+// download (PNG disegnato nel browser, CSV e XLSX dal backend con il loro errore: review v3 A-04).
 // Le risposte del backend sono intercettate con dati inventati; l'utente ha tutti i grant del finanziario.
 import { expect, test } from '@playwright/test';
-import type { Page, Route } from '@playwright/test';
+import type { Download, Page, Route } from '@playwright/test';
 
 const CSP =
   "default-src 'self'; script-src 'self'; style-src 'self' 'report-sample'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'";
@@ -98,6 +99,13 @@ async function preparaPagina(page: Page) {
 
 const violazioni = (page: Page) => page.evaluate(() => (window as unknown as { violazioni: string[] }).violazioni);
 
+/** I byte di un file scaricato. */
+async function contenuto(scaricato: Download): Promise<Buffer> {
+  const byte: Buffer[] = [];
+  for await (const b of await scaricato.createReadStream()) byte.push(b as Buffer);
+  return Buffer.concat(byte);
+}
+
 // Review v2 A-03: eccezione iOS dichiarata nel README. Su WebKit iOS, all'apertura di una modale, usePreventScroll di
 // react-aria antepone in <head> uno <style> con `overscroll-behavior: contain`, bloccato da style-src 'self'. E' l'UNICA
 // violazione tollerata, e solo sul profilo webkit-mobile di playwright.config.ts (attivo con E2E_WEBKIT=1).
@@ -183,16 +191,53 @@ test('PNG di un grafico scaricato senza violazioni della CSP', async ({ page }) 
     page.waitForEvent('download'),
     page.getByRole('button', { name: 'Scarica il grafico Avanzamento per intervento in PNG' }).click(),
   ]);
-  expect(scaricato.suggestedFilename()).toBe('avanzamento-per-intervento.png');
-  const flusso = await scaricato.createReadStream();
-  const byte: Buffer[] = [];
-  for await (const b of flusso) byte.push(b as Buffer);
-  // firma PNG (PNG) e larghezza doppia di quella del grafico (densita' almeno 2)
-  const png = Buffer.concat(byte);
+  // il nome dei file dei dati della card, con la transazione (review v3 H-06)
+  expect(scaricato.suggestedFilename()).toBe('avanzamento-per-intervento-tx-0002.png');
+  const png = await contenuto(scaricato);
+  // firma PNG, larghezza doppia di quella del grafico (densita' almeno 2) e altezza maggiore: sopra il grafico c'e'
+  // l'intestazione di NFR-50 (review v3 V-01)
   expect(png.subarray(1, 4).toString()).toBe('PNG');
-  const larghezza = await card.locator('.ui-grafico').evaluate((el) => Math.round(el.getBoundingClientRect().width));
+  const { larghezza, altezza } = await card.locator('.ui-grafico').evaluate((el) => {
+    const r = el.getBoundingClientRect();
+    return { larghezza: Math.round(r.width), altezza: Math.round(r.height) };
+  });
   expect(png.readUInt32BE(16)).toBeGreaterThanOrEqual(2 * larghezza - 2);
+  expect(png.readUInt32BE(20)).toBeGreaterThan(2 * altezza + 2 * 60);
   await expect(page.getByRole('status').filter({ hasText: 'Immagine PNG scaricata.' })).toHaveCount(1);
+  expect(await violazioni(page)).toEqual([]);
+});
+
+// Review v3 A-04: il percorso vero dell'export nel browser (XHR con responseType blob e X-Requested-With, problem+json
+// riletto dal Blob, salvataggio con revoca immediata dell'URL), che i test jsdom provano solo con URL finti
+test('CSV dal backend scaricato col nome della transazione, X-Requested-With e senza violazioni della CSP', async ({ page }) => {
+  await preparaPagina(page);
+  const CSV = '\uFEFFIntervento;Dotazione\r\nSRA01;1000000,00\r\n';
+  let richiesta: { url: string; xrw: string | null } | undefined;
+  await page.route('**/api/finanziario/spesa-per-intervento/csv*', async (route) => {
+    richiesta = { url: route.request().url(), xrw: await route.request().headerValue('X-Requested-With') };
+    return route.fulfill({ body: CSV, headers: { 'content-type': 'text/csv; charset=UTF-8' } });
+  });
+  await page.goto('/finanziario?intervento=SRA01');
+  const [scaricato] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Scarica il grafico Avanzamento per intervento in CSV' }).click()]);
+  expect(scaricato.suggestedFilename()).toBe('avanzamento-per-intervento-tx-0002.csv');
+  expect((await contenuto(scaricato)).toString('utf8')).toBe(CSV);
+  expect(new URL(richiesta?.url ?? 'http://x').search).toBe('?intervento=SRA01');
+  expect(richiesta?.xrw).toBe('XMLHttpRequest');
+  await expect(page.getByRole('status').filter({ hasText: 'File CSV scaricato.' })).toHaveCount(1);
+  expect(await violazioni(page)).toEqual([]);
+});
+
+test("errore dell'export XLSX: avviso col motivo dal problem+json, nessun file salvato, nessuna violazione", async ({ page }) => {
+  await preparaPagina(page);
+  await page.route('**/api/finanziario/spesa-per-intervento/xlsx*', (route) =>
+    route.fulfill({ status: 400, contentType: 'application/problem+json', body: JSON.stringify({ type: 'about:blank', status: 400, title: 'Bad Request', detail: 'righe oltre il limite' }) }),
+  );
+  let scaricamenti = 0;
+  page.on('download', () => (scaricamenti += 1));
+  await page.goto('/finanziario');
+  await page.getByRole('button', { name: 'Scarica il grafico Avanzamento per intervento in XLSX' }).click();
+  await expect(page.getByRole('alert').filter({ hasText: 'File XLSX non scaricato.' })).toHaveCount(1);
+  expect(scaricamenti).toBe(0);
   expect(await violazioni(page)).toEqual([]);
 });
 

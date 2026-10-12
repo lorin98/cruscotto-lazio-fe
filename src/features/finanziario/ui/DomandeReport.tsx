@@ -1,12 +1,12 @@
 // DomandeReport — pattern DS "report" (route /finanziario/domande, TX-0008..TX-0010/RF008-RF010, wireframe domande v2):
-// quattro KPI (domande presentate e di prima annualita' TX-0009; importo ammesso, somma degli anni, e importo stanziato
-// TX-0010), domande per anno di raccolta (barre impilate; clic su un anno, o la scelta da tastiera sopra la tabella:
+// quattro KPI (domande presentate e di prima annualita' TX-0009, con i loro file; importo ammesso, somma degli anni, e
+// importo stanziato TX-0010), domande per anno di raccolta (barre impilate; clic su un anno, o la scelta da tastiera sopra la tabella:
 // la tabella di dettaglio mostra quell'anno) e
 // importi per anno (linee + tabella). Le domande senza campagna sono la riga "senza campagna". Ogni sezione ha il suo
 // grant e il suo perimetro. L'importo decretato e' quello degli elenchi di liquidazione, la stessa fonte dei pagamenti
 // totali di RF005 (OP-FE-05).
 import { useId, useState } from 'react';
-import { formatNumber, importoKpi } from '../../../shared/lib';
+import { formatNumber, importoBreve } from '../../../shared/lib';
 import { CardGrafico, Griglia, Kpi, PulsantiScarica, Sezione, TabellaRighe, VistaQuery } from '../../../shared/ui';
 import type { ClicGrafico, Colonna } from '../../../shared/ui';
 import { useDomandePerAnno, useImportiPerAnno, useTotaleDomande } from '../api';
@@ -18,7 +18,7 @@ import type { Filtri } from '../lib/filtri';
 import { annoDiRaccolta } from '../lib/formato';
 import { graficoDomandePerAnno, graficoImportiPerAnno } from '../lib/grafici';
 import { GRANT } from '../lib/report';
-import { ConGrant, KpiImporto, Numero, PerimetroSezione, colonnaImporto, erroreGiaMostrato, vuotoConPerimetro } from './comuni';
+import { ConGrant, KpiImporto, Numero, PerimetroSezione, ScaricaKpi, colonnaImporto, erroreGiaMostrato, vuotoConPerimetro } from './comuni';
 
 const TITOLI = {
   totale: 'Totale domande presentate (RF009)',
@@ -51,11 +51,11 @@ function KpiAmmessoEStanziato({ d }: { d: ImportiPerAnno }) {
   const { ammesso, stanziato } = kpiImportiPerAnno(d.righe ?? []);
   return (
     <>
-      <Kpi etichetta="Importo ammesso" icona="it-card" tono="verde" valore={ammesso.valore === null ? undefined : importoKpi(ammesso.valore)} assente={ammesso.motivo} nota={ammesso.nota} />
+      <Kpi etichetta="Importo ammesso" icona="it-card" tono="verde" valore={ammesso.valore === null ? undefined : importoBreve(ammesso.valore)} assente={ammesso.motivo} nota={ammesso.nota} />
       {stanziato.valore === null ? (
         <KpiImporto etichetta="Importo stanziato" importo={stanziato.importo} icona="it-presentation" tono="scuro" />
       ) : (
-        <Kpi etichetta="Importo stanziato" icona="it-presentation" tono="scuro" valore={importoKpi(stanziato.valore)} nota={stanziato.nota} />
+        <Kpi etichetta="Importo stanziato" icona="it-presentation" tono="scuro" valore={importoBreve(stanziato.valore)} nota={stanziato.nota} />
       )}
     </>
   );
@@ -123,10 +123,15 @@ function DomandePerAnno({ filtri }: { filtri: Filtri }) {
               strumenti={
                 <>
                   <SceltaAnno id={`${id}-anno`} anni={anni} anno={anno} onCambia={setAnno} />
-                  <PulsantiScarica oggetto="la tabella Domande per anno" scaricamenti={datiDelReport('Domande per anno', 'domandePerAnno', filtri)} />
+                  <PulsantiScarica
+                    oggetto={anno === null ? 'la tabella Domande per anno' : `la tabella Domande per anno (tutti gli anni, non solo il ${anno})`}
+                    scaricamenti={datiDelReport('Domande per anno', 'domandePerAnno', filtri)}
+                  />
                 </>
               }
             >
+              {/* il backend non filtra per anno: il file ha sempre tutti gli anni (review v3 X-04) */}
+              {anno !== null && <p className="ui-nota">{`I file CSV e XLSX contengono tutti gli anni di raccolta, non solo il ${anno}.`}</p>}
               <TabellaRighe caption="Domande per anno di raccolta" intestazione="Anno di raccolta" chiave={(r) => annoDiRaccolta(r.annoRaccolta)} colonne={COLONNE_ANNO} righe={righe} />
             </Sezione>
           </div>
@@ -165,6 +170,7 @@ function ImportiPerAnnoSezione({ filtri }: { filtri: Filtri }) {
 export function DomandeReport({ filtri }: { filtri: Filtri }) {
   return (
     <>
+      <ScaricaKpi grant={GRANT.totaleDomande} titolo={TITOLI.totale} report="totaleDomande" filtri={filtri} />
       <Griglia colonne={4}>
         <ConGrant grant={GRANT.totaleDomande} titolo={TITOLI.totale}>
           <KpiTotali filtri={filtri} />

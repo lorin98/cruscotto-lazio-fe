@@ -26,7 +26,8 @@ export function Kpi({
   /** Testo completo dell'assenza (es. "Non disponibile: fonte impegni non attiva"): se presente il valore non si mostra. */
   assente?: string;
 }) {
-  const percentuale = quota != null && quota >= 0 ? Math.min(100, quota * 100) : null;
+  // la barra si ferma al pieno, il testo accessibile dice il valore vero (oltre il 100%: review v3 X-05, WCAG 1.1.1)
+  const percentuale = quota != null && quota >= 0 ? quota * 100 : null;
   return (
     <section className="ui-card ui-kpi ui-dissolvenza" aria-label={etichetta}>
       <p className="ui-kpi__etichetta">
@@ -46,7 +47,7 @@ export function Kpi({
       {nota && <p className="ui-kpi__nota">{nota}</p>}
       {!assente && percentuale !== null && (
         <div className="ui-barra" role="img" aria-label={`${percentuale.toLocaleString('it-IT', { maximumFractionDigits: 1 })}%`}>
-          <span className={`ui-barra__${Math.round(percentuale / 5) * 5}`} />
+          <span className={`ui-barra__${Math.round(Math.min(100, percentuale) / 5) * 5}`} />
         </div>
       )}
     </section>

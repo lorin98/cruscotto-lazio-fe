@@ -140,7 +140,7 @@ describe('Panoramica: casi limite', () => {
     expect(within(await trovaCard('Dotazione per famiglia di intervento')).getByText('Grafico non disponibile: nessun intervento con dotazione valorizzata e positiva.')).toBeTruthy();
     expect(valoreKpi('Dotazione spesa pubblica')).toBe('Non calcolabile: manca per 1 intervento (SRA01)');
     expect(valoreKpi('Pagamenti totali')).toBe('Non calcolabile: manca per 1 intervento (SRA01)');
-    expect(valoreKpi('Pagato sulla dotazione')).toBe('Non calcolabile: nessun intervento con dotazione positiva e pagato valorizzato');
+    expect(valoreKpi('Pagato sulla dotazione')).toBe('Non calcolabile: manca il totale della dotazione e dei pagamenti');
     expect(within(screen.getByRole('region', { name: 'Pagato sulla dotazione' })).queryByRole('img')).toBeNull();
     expect(screen.queryAllByText(/0,0 M€/)).toHaveLength(0);
     await waitFor(() => expect(graficiVivi().map(titoloGrafico)).toEqual(['Domande SIGC: dalla presentazione al pagamento', 'Importi SIGC']));
@@ -164,6 +164,24 @@ describe('Panoramica: casi limite', () => {
 });
 
 describe('DettaglioIntervento: casi limite', () => {
+  it('scheda SIGC di un intervento senza domande SIGC: vuoto dichiarato, nessuna cascata di zeri (review v3 X-01)', async () => {
+    server.use(
+      rispondi('/api/finanziario/filtri', F.FILTRI),
+      rispondi('/api/finanziario/riepilogo', { ...F.RIEPILOGO, righe: [F.RIEPILOGO.righe[0]] }),
+      rispondi('/api/finanziario/spesa-per-intervento', F.SPESA),
+      rispondi('/api/finanziario/sigc/domande', { perimetro: 'REGIONALE', presentate: 0, pagate: 0, daPagare: 0 }),
+      rispondi('/api/finanziario/sigc/importi', { perimetro: 'REGIONALE', richiesto: ZERO, ammesso: ZERO, pagato: ZERO, ancoraDaPagare: ZERO }),
+    );
+    conRouter(<DettaglioIntervento codice="SRA01" />);
+    await userEvent.click(await screen.findByRole('tab', { name: 'SIGC' }));
+    // filtri fissi nel dettaglio: nessun invito a modificarli (review v3 N-03)
+    const vuoto = await screen.findByText('Nessuna domanda SIGC per questo intervento.', { exact: false });
+    expect(ruolo(vuoto)).toBe('status');
+    expect(vuoto.closest('[role="status"]')?.textContent).not.toContain('Modifica i filtri');
+    expect(graficiVivi().map(titoloGrafico)).not.toContain('Importi SIGC');
+    expect(screen.queryByRole('group', { name: 'Scarica il grafico Importi SIGC' })).toBeNull();
+  });
+
   // il titolo (h1) e' della pagina (H-04): il componente porta il codice nella testata, anche fuori da TX-0001
   it('codice non fra i valori di TX-0001 e riga senza importi: testata col codice, KPI e grafici dichiarano le assenze', async () => {
     server.use(

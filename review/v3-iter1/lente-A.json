@@ -1,0 +1,34 @@
+[
+  {
+    "id": "A-01",
+    "severity": "MINORE",
+    "file": "src/shared/ui/grafici/Grafico.tsx:49",
+    "titolo": "Il ResizeObserver chiama resize() sul contenitore gia' staccato: TypeError non gestito nel sankey a ogni uscita dalla pagina Avanzamento",
+    "evidenza": "`new ResizeObserver(() => c.resize())` non filtra le osservazioni. Allo smontaggio il div esce dal documento prima che l'effetto faccia disconnect(), e l'osservatore lo consegna staccato a 0x0: la sonda registra {connesso:false,w:0,h:0} (sonda-sankey-stack.mjs, esito-sankey-stack.txt). Con larghezza 0 la matrice di View del sankey e' singolare, matrixInvert restituisce null e legacyCopyOverallTrans chiama copy(..., null). Errori: 'Cannot read properties of null (reading 0)' in Chrome e 'can't access property 0, t is null' in Firefox, con stack SankeyView._updateViewCoordSys <- render. Sulla build di produzione l'errore compare in 5 giri su 5 sia in Chrome sia in Firefox, dopo un link del menu o un cambio dei filtri (sonda-sankey-uscita.mjs, esito-sankey-uscita.txt). L'ipotesi della vista Tabella e' esclusa: con il div hidden zrender legge width:100% di .ui-grafico come 100 px, e la sonda conta 0 errori (sonda-sankey.mjs, esito-sankey.txt). Gli altri grafici smontati (riepilogo, schede del dettaglio) non danno errori (sonda-altri-grafici.mjs). Con la guardia proposta: 0 errori in 10 giri (sonda-sankey-fix.mjs, esito-sankey-fix.txt). L'effetto non si vede, perche' il grafico viene distrutto subito dopo, ma l'eccezione arriva a window.onerror. Sonde in C:/Users/lorin/AppData/Local/Temp/claude/C--Users-lorin-Desktop-Lorenzo-sian-ng-progetti-arsial/5d86aecd-01d9-4f0c-8a93-61443797d939/scratchpad/review-v3/A",
+    "fix": "Nel callback ignorare i bersagli staccati o a dimensione zero: `new ResizeObserver(([v]) => { if (v?.target.isConnected && v.contentRect.width > 0 && v.contentRect.height > 0) c.resize(); })`. Aggiungere un test L2 col grafico finto: un'osservazione su un contenitore staccato non chiama resize."
+  },
+  {
+    "id": "A-02",
+    "severity": "MINORE",
+    "file": "src/shared/ui/scarica/PulsantiScarica.tsx:57",
+    "titolo": "Il pulsante di download si disabilita mentre ha il focus: il focus finisce su BODY durante e dopo il download",
+    "evidenza": "`disabled={stato?.esito === 'in-corso'}` disabilita anche il pulsante appena attivato, e il browser gli toglie il focus. Sulla build di produzione, con l'export CSV in attesa per 1,5 s, dopo Invio sul pulsante CSV document.activeElement e' BODY durante la preparazione e resta BODY a download concluso, in Chrome e in Firefox (sonda-download.mjs, esito-download.txt: focusDurante e focusDopo = BODY). Il problema riguarda ogni PulsantiScarica, PNG compreso, perche' anche il PNG passa dallo stato in-corso. Chi usa la tastiera o un lettore di schermo perde la posizione e l'indicatore del focus (WCAG 2.4.3 e 2.4.7). Sonde in C:/Users/lorin/AppData/Local/Temp/claude/C--Users-lorin-Desktop-Lorenzo-sian-ng-progetti-arsial/5d86aecd-01d9-4f0c-8a93-61443797d939/scratchpad/review-v3/A",
+    "fix": "Al posto di disabled: `const occupato = stato?.esito === 'in-corso'`, poi `aria-disabled={occupato}` e `onClick={() => { if (!occupato) void avvia(s); }}`. In tema.css lo stile passa da `:disabled` a `[aria-disabled='true']`. Aggiungere un test: durante e dopo il download il focus resta sul pulsante attivato."
+  },
+  {
+    "id": "A-03",
+    "severity": "MINORE",
+    "file": "src/shared/ui/grafici/echarts.ts:46",
+    "titolo": "Il PNG non e' il grafico come si vede: perde il drill-down del treemap e della raggiera",
+    "evidenza": "pngDelGrafico ridisegna da `sorgente.getOption()`. Le opzioni non contengono la radice di vista impostata dal clic, cioe' nodeClick 'zoomToNode' del treemap e 'rootToNode' della raggiera (src/features/finanziario/lib/grafici/spesa.ts:165-166). Prova sulla Panoramica, card 'Dotazione per famiglia di intervento', dopo il clic sulla famiglia SRA. Lo schermo mostra SRA01, SRA03, SRA14 e la briciola 'Dotazione > SRA' (treemap-dopo-clic.png). Il PNG scaricato mostra le famiglie SRA, SRD, SRB e la sola briciola 'Dotazione' (treemap-png-scaricato.png). Sonda: sonda-png-drill.mjs. Il commento in echarts.ts:39 promette invece le opzioni correnti, 'come si vede'. Sonde e immagini in C:/Users/lorin/AppData/Local/Temp/claude/C--Users-lorin-Desktop-Lorenzo-sian-ng-progetti-arsial/5d86aecd-01d9-4f0c-8a93-61443797d939/scratchpad/review-v3/A",
+    "fix": "In Grafico conservare l'ultima azione di radice ricevuta dagli eventi `treemapzoomtonode`, `treemaproottonode` e `sunburstroottonode`. In pngDelGrafico, dopo setOption, riapplicarla alla copia con `copia.dispatchAction({ type, seriesIndex: 0, targetNodeId })`. Aggiungere un test e2e: dopo il clic su una famiglia, il PNG contiene gli interventi della famiglia."
+  },
+  {
+    "id": "A-04",
+    "severity": "MINORE",
+    "file": "e2e/csp.spec.ts:90",
+    "titolo": "Gli e2e sotto CSP non scaricano mai un CSV o un XLSX: gli export ricevono 404",
+    "evidenza": "La riga 90 risponde 404 a ogni /api/ non elencato in RISPOSTE, e nessun test clicca CSV o XLSX. Il percorso reale dell'export non e' quindi mai provato in un browser: XHR con responseType blob e X-Requested-With, interceptor che rilegge il problem+json dal Blob, salvaFile con revoca immediata dell'URL. Lo provano solo i test jsdom, con URL.createObjectURL finto (tests/finanziario-ui.test.tsx:916). Oggi funziona in Chrome e Firefox (sonda-download.mjs, esito-download.txt): CSV salvato con BOM e contenuto intatti, header X-Requested-With presente, 400, 403 e 502 senza file salvato e con l'avviso, nessuna violazione della CSP. Una regressione su questo percorso non bloccherebbe pero' il gate. Sonde in C:/Users/lorin/AppData/Local/Temp/claude/C--Users-lorin-Desktop-Lorenzo-sian-ng-progetti-arsial/5d86aecd-01d9-4f0c-8a93-61443797d939/scratchpad/review-v3/A",
+    "fix": "Aggiungere in e2e/csp.spec.ts due test. Il primo serve `/api/finanziario/spesa-per-intervento/csv` (text/csv) e verifica nome e contenuto del download, l'header X-Requested-With e zero violazioni. Il secondo risponde 400 problem+json e verifica l'avviso 'File XLSX non scaricato' e l'assenza di eventi download."
+  }
+]

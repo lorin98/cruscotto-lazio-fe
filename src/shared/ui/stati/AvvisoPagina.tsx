@@ -16,6 +16,36 @@ type Segnala = (id: string, errore: ErroreSezione | null) => void;
 
 const ContestoAvviso = createContext<Segnala | null>(null);
 
+/** L'avviso unico: i messaggi distinti, quante sezioni non si sono caricate, "Riprova" per tutte. */
+function ElencoErrori({ errori }: { errori: ReadonlyMap<string, ErroreSezione> }) {
+  const messaggi = [...new Set([...errori.values()].map((e) => e.messaggio))];
+  return (
+    <div className="alert alert-danger my-3" role="alert">
+      {messaggi.map((m) => (
+        <p key={m} className="mb-1">
+          {m}
+        </p>
+      ))}
+      <p className="mb-2">{errori.size === 1 ? 'Una sezione della pagina non si è caricata.' : `${errori.size} sezioni della pagina non si sono caricate.`}</p>
+      <button type="button" className="btn btn-outline-danger btn-sm" onClick={() => errori.forEach((e) => e.riprova())}>
+        Riprova
+      </button>
+    </div>
+  );
+}
+
+/** Quando l'avviso sparisce col pulsante che aveva il focus (finito su BODY), il focus torna al contenuto della pagina. */
+function useFocusDopoAvviso(errori: number) {
+  const contenitore = useRef<HTMLDivElement>(null);
+  const primaConErrori = useRef(false);
+  useEffect(() => {
+    const focusPerso = document.activeElement === null || document.activeElement === document.body;
+    if (primaConErrori.current && errori === 0 && focusPerso) contenitore.current?.focus();
+    primaConErrori.current = errori > 0;
+  }, [errori]);
+  return contenitore;
+}
+
 export function AvvisoPagina({ children }: { children: ReactNode }) {
   const [errori, setErrori] = useState<ReadonlyMap<string, ErroreSezione>>(new Map());
   const segnala = useCallback<Segnala>((id, errore) => {
@@ -27,31 +57,11 @@ export function AvvisoPagina({ children }: { children: ReactNode }) {
       return dopo;
     });
   }, []);
-  const messaggi = [...new Set([...errori.values()].map((e) => e.messaggio))];
-  const contenitore = useRef<HTMLDivElement>(null);
-  const primaConErrori = useRef(false);
-  useEffect(() => {
-    // l'avviso e' sparito col pulsante che aveva il focus (finito su BODY): il focus torna al contenuto della pagina
-    const focusPerso = document.activeElement === null || document.activeElement === document.body;
-    if (primaConErrori.current && errori.size === 0 && focusPerso) contenitore.current?.focus();
-    primaConErrori.current = errori.size > 0;
-  }, [errori.size]);
+  const contenitore = useFocusDopoAvviso(errori.size);
   return (
     <ContestoAvviso.Provider value={segnala}>
       <div ref={contenitore} tabIndex={-1} className="ui-avviso-pagina">
-        {errori.size > 0 && (
-          <div className="alert alert-danger my-3" role="alert">
-            {messaggi.map((m) => (
-              <p key={m} className="mb-1">
-                {m}
-              </p>
-            ))}
-            <p className="mb-2">{errori.size === 1 ? 'Una sezione della pagina non si è caricata.' : `${errori.size} sezioni della pagina non si sono caricate.`}</p>
-            <button type="button" className="btn btn-outline-danger btn-sm" onClick={() => errori.forEach((e) => e.riprova())}>
-              Riprova
-            </button>
-          </div>
-        )}
+        {errori.size > 0 && <ElencoErrori errori={errori} />}
         {children}
       </div>
     </ContestoAvviso.Provider>

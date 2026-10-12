@@ -1,0 +1,50 @@
+[
+  {
+    "id": "N-01",
+    "esito": "RISOLTO",
+    "file": "src/features/finanziario/lib/grafici/spesa.ts:156",
+    "motivo": "Solo un valore assente va in mancanti; zero e negativi vanno in fuoriPer e entrano nella dotazione della famiglia (dotazioneFamiglia, riga 129), che usano tabella, nodo e descrizione. La sonda CONV3/sonda-famiglie.test.ts sul caso dell'iterazione 2 (SRA01 20 M€, SRA05 0,00, SRD01 10 M€) dà 'Totale della famiglia 20.000.000,00 €', il nodo 'SRA 20,0 M€' e la descrizione 'la famiglia con la dotazione maggiore è SRA (20,0 M€)', coerenti con il KPI di 30 M€. Test in finanziario-grafici.test.ts:372. I casi limite che restano sono i nuovi M-01 e M-02."
+  },
+  {
+    "id": "H-03",
+    "esito": "PARZIALE",
+    "file": "eslint.config.js:336",
+    "motivo": "Ora scattano '..', '../', '../index', '../index.ts', '../api/', '../api/index' e '../..' (sonde --stdin, CONV3/eslint-h03.txt). Da src/features/finanziario/lib/ passano però con 0 errori '../../finanziario', '../../finanziario/index' e '../../finanziario/api', e da lib/grafici/ passa '../../../finanziario/api': sono lo stesso barrel e gli stessi wrapper React Query scritti in un altro modo. La regex sul testo dell'import non chiude il problema."
+  },
+  {
+    "id": "H-04",
+    "esito": "PARZIALE",
+    "file": "eslint.config.js:32",
+    "motivo": "In features/*/ui ora scattano `{ default as http }`, `import('axios')` e `require('axios')` (sonde, CONV3/eslint-h03-h04.txt); le canary in eslint-regole.test.ts:194-195 non coprono il require. Passano però con 0 errori `export { default as http } from 'axios'` e `export * as ax from 'axios'`, anche in shared/lib: nessun selettore guarda ExportNamedDeclaration o ExportAllDeclaration. Un modulo che riesporta l'istanza di default la rende quindi importabile ovunque con un nome locale."
+  },
+  {
+    "id": "A-03",
+    "esito": "RISOLTO",
+    "file": "src/shared/ui/grafici/echarts.ts:78",
+    "motivo": "senzaAnimazioni mette animation:false anche su ogni serie, e copiaComeSiVede (riga 87) è quella che pngDelGrafico usa (riga 102). Sonda nel browser vero sulla build di 3269d53 sotto CSP, con canvas su un div staccato (CONV3/sonda-a03.mjs, testi disegnati registrati con fillText, PNG salvati). Dopo il clic su SRA il PNG del treemap ha solo SRA01, SRA03, SRA14 e la briciola 'Dotazione > SRA'; quello della raggiera ha solo SRA e i suoi interventi, come a schermo, in Chrome e in Firefox (chrome-treemap-sra.png, chrome-raggiera-sra.png). Anche il ritorno alla radice e il grafico a barre escono corretti, con 0 violazioni CSP. Con una versione che mette animation:false solo a livello globale, il treemap lato server ha ancora '▶ SRD' e tests/grafici-vista.test.ts:45 fallirebbe (CONV3/esito-mutante-log.txt)."
+  },
+  {
+    "id": "X-04",
+    "esito": "RISOLTO",
+    "file": "src/features/finanziario/ui/VerificaSmpReport.tsx:98",
+    "motivo": "La TabellaInterattiva della Verifica SMP riceve notaRicerca={NOTA_RICERCA_FILE} (esportazioni.ts:15), lo stesso testo di Riepilogo e Dotazione. La nota compare solo con una ricerca attiva (TabellaInterattiva.tsx:172). Test in finanziario-ui.test.tsx:1821 e shared-ui-kit.test.tsx, verdi (720 test)."
+  },
+  {
+    "id": "N-02",
+    "esito": "RISOLTO",
+    "file": "src/pages/finanziario/sigc/riserva/page.tsx:9",
+    "motivo": "La pagina passa parametri=['Anno: <anno>'], che PaginaFinanziario.tsx:96 aggiunge ai filtri applicati dell'intestazione; la Verifica SMP fa lo stesso con l'esercizio. Senza un anno valido la riserva non disegna il grafico (RiservaReport.tsx:124), quindi 'nessuno' è corretto. Il test in finanziario-pagine.test.tsx:132 controlla 'Filtri applicati: Anno: 2025' sul PNG della riserva 2025."
+  },
+  {
+    "id": "N-03",
+    "esito": "RISOLTO",
+    "file": "src/features/finanziario/ui/DettaglioIntervento.tsx:25",
+    "motivo": "SENZA_SIGC non usa più vuotoConPerimetro: mostra il badge del perimetro (PerimetroSezione, che per un P4 dice 'solo le domande della propria area') e 'Nessuna domanda SIGC per questo intervento.' senza invitare a modificare i filtri. Nessun altro vuoto del dettaglio usa vuotoConPerimetro. Il test in finanziario-casi-limite.test.tsx:180 controlla che 'Modifica i filtri' non ci sia."
+  },
+  {
+    "id": "N-04",
+    "esito": "RISOLTO",
+    "file": "src/features/finanziario/ui/comuni.tsx:153",
+    "motivo": "ScaricaKpi mostra l'etichetta 'File di <titolo>' accanto ai pulsanti; è aria-hidden perché il nome accessibile del gruppo dice già la stessa cosa. In panoramica ScaricaDomande (Panoramica.tsx:81) compare solo con il segnale 'non-vuota', che senza il grant di TX-0002 o con un errore resta 'non-vuota' (selezione.ts:16), quindi i file seguono la tessera. Sonda sulla build (CONV3/sonda-n04.mjs): la riga dice 'File di Domande presentate (RF009) CSV XLSX'; con la selezione vuota non ci sono né gruppo né tessera; senza TX-0002 ci sono tutti e due. Test in finanziario-ui.test.tsx:509."
+  }
+]

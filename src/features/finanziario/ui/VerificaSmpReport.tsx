@@ -10,7 +10,7 @@ import { CardGrafico, PulsantiScarica, Sezione, TabellaInterattiva, TabellaVoci,
 import type { ColonnaTabella } from '../../../shared/ui';
 import { esportaVerificaSmp, useVerificaSmp } from '../api';
 import type { VerificaSmpRiga } from '../api';
-import { scaricamentiDati } from './esportazioni';
+import { NOTA_RICERCA_FILE, scaricamentiDati } from './esportazioni';
 import { ricercaDaFiltri } from '../lib/filtri';
 import type { Filtri } from '../lib/filtri';
 import { annoOpzionale, numeroOpzionale, siNo, testoOpzionale } from '../lib/formato';
@@ -58,7 +58,7 @@ const VUOTO = vuotoConPerimetro("Nessun dato SIGC per l'esercizio scelto. Scegli
 function DatiSmp({ filtri, esercizio }: { filtri: Filtri; esercizio: number }) {
   const stato = useVerificaSmp(filtri, esercizio);
   const { apri, dalClic: clic } = useApriIntervento(filtri);
-  const dati = scaricamentiDati(`Verifica SMP esercizio ${esercizio}`, (formato) => esportaVerificaSmp(filtri, esercizio, formato));
+  const dati = scaricamentiDati(`Verifica SMP esercizio ${esercizio}`, 'verificaSmp', (formato) => esportaVerificaSmp(filtri, esercizio, formato));
   const conRighe = (stato.data?.righe ?? []).length > 0;
   return (
     <Sezione
@@ -95,6 +95,7 @@ function DatiSmp({ filtri, esercizio }: { filtri: Filtri; esercizio: number }) {
               chiaveRiga={(r) => r.codiceIntervento ?? ''}
               testoRicerca={(r) => `${r.codiceIntervento ?? ''} ${r.indicatoreOutput ?? ''} ${r.indicatoreRisultato ?? ''}`}
               segnapostoRicerca="Cerca per codice o indicatore"
+              notaRicerca={NOTA_RICERCA_FILE}
               // la riga apre il dettaglio anche da tastiera (Invio), come il clic sulla barra del grafico
               etichettaRiga={(r) => `Apri il dettaglio dell'intervento ${r.codiceIntervento ?? ''}`}
               onRiga={(r) => r.codiceIntervento && apri(r.codiceIntervento)}

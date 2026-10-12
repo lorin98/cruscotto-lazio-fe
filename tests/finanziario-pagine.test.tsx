@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
@@ -8,7 +8,10 @@ import { rispondi } from '../src/shared/testing/msw';
 import { renderPagina } from '../src/shared/testing/render-pagina';
 import { DETTAGLIO_INTERVENTO } from '../src/features/finanziario';
 import { PAGINE_FINANZIARIO } from '../src/features/finanziario/lib/report';
+import PaginaDotazione from '../src/pages/finanziario/dotazione/page';
 import PaginaRiepilogo from '../src/pages/finanziario/riepilogo/page';
+import PaginaRiserva from '../src/pages/finanziario/sigc/riserva/page';
+import { pngDelGrafico } from '../src/shared/ui/grafici/echarts';
 import PaginaVerificaSmp from '../src/pages/finanziario/sigc/verifica-smp/page';
 import routeTable from '../src/app/route-table.json';
 import * as F from '../src/features/finanziario/testing/fixture';
@@ -85,6 +88,49 @@ describe('pagine del finanziario (step6)', () => {
     await userEvent.click(await within(pannello).findByRole('checkbox', { name: 'SRA01 Intervento di prova A' }));
     await userEvent.click(within(pannello).getByRole('button', { name: 'Applica i filtri' }));
     await waitFor(() => expect(router.state.location.search).toBe('?intervento=SRA01&esercizio=2025'));
+  });
+
+  it("PNG di un grafico con l'intestazione di NFR-50: filtri della barra, profilo, ultimo dato sincronizzato (review v3 V-01)", async () => {
+    server.use(
+      http.get('*/auth/status', () =>
+        HttpResponse.json({ authenticated: true, user: { username: 'U', profile: 'P1', roles: ['csr.tx-0001.read', 'csr.tx-0002.read', 'csr.tx-0003.read'] } }),
+      ),
+      rispondi('/api/finanziario/filtri', F.FILTRI),
+      rispondi('/api/finanziario/spesa-per-intervento', F.SPESA),
+      rispondi('/api/finanziario/distribuzione-dotazione', F.DISTRIBUZIONE),
+    );
+    const clic = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    const png = vi.mocked(pngDelGrafico);
+    png.mockClear();
+    renderPagina(PaginaDotazione, '/finanziario/dotazione', '/finanziario/dotazione?intervento=SRA01');
+    // la data dell'ultimo dato arriva con TX-0001: la pill la mostra quando la lettura e' in cache
+    await screen.findByRole('button', { name: /^Ultimo dato sincronizzato: dati al/ });
+    await userEvent.click(await screen.findByRole('button', { name: 'Scarica il grafico Dotazione e pagamenti per intervento in PNG' }));
+    const intestazione = png.mock.calls[0][1].intestazione;
+    expect(intestazione.slice(0, 5)).toEqual([
+      'Cruscotto CSR Lazio - Dotazione e pagamenti per intervento',
+      'Fonte: TX-0002 · Perimetro REGIONALE',
+      'Filtri applicati: Intervento: SRA01',
+      'Profilo: P1',
+      'Ultimo dato sincronizzato: DS-12 02/03/2026 10:15; PROSA DS-04 03/03/2026 09:30',
+    ]);
+    expect((clic.mock.contexts[0] as HTMLAnchorElement).download).toBe('dotazione-e-pagamenti-per-intervento-tx-0002.png');
+    clic.mockRestore();
+  });
+
+  it("PNG della riserva: l'anno della pagina fra i filtri applicati, come nei file del backend (review v3 N-02)", async () => {
+    server.use(
+      http.get('*/auth/status', () => HttpResponse.json({ authenticated: true, user: { username: 'U', profile: 'P1', roles: ['csr.tx-0014.read'] } })),
+      rispondi('/api/finanziario/riserva/2025', F.RISERVA),
+    );
+    const clic = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    const png = vi.mocked(pngDelGrafico);
+    png.mockClear();
+    renderPagina(PaginaRiserva, '/finanziario/sigc/riserva', '/finanziario/sigc/riserva?anno=2025');
+    await userEvent.click(await screen.findByRole('button', { name: 'Scarica il grafico Utilizzo progressivo cumulato della riserva in PNG' }));
+    await waitFor(() => expect(png).toHaveBeenCalledTimes(1));
+    expect(png.mock.calls[0][1].intestazione).toContain('Filtri applicati: Anno: 2025');
+    clic.mockRestore();
   });
 
   it('a11y della pagina completa: zero violazioni axe', async () => {

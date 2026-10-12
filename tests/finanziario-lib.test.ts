@@ -42,6 +42,7 @@ import {
   voceDi,
 } from '../src/features/finanziario/lib/report';
 import { etichettaFlusso, menoRecente, testoUltimiDati } from '../src/features/finanziario/lib/aggiornamento';
+import { righeContesto } from '../src/features/finanziario/lib/intestazione';
 import {
   aiutoRiserva,
   calendarioRiserva,
@@ -284,6 +285,19 @@ describe('ultimo dato sincronizzato (NFR-25 b, OP-FE-04)', () => {
   it('senza acquisizioni concluse lo dice come l intestazione degli export; le voci incomplete non contano', () => {
     expect(testoUltimiDati([])).toBe('nessuna acquisizione conclusa');
     expect(testoUltimiDati([{ flusso: 'DS-12' }, { conclusoIl: '2026-03-02T09:15:00Z' }])).toBe('nessuna acquisizione conclusa');
+  });
+  it('righe di contesto del PNG (NFR-50, review v3 V-01): filtri della barra, profilo, ultimo dato come negli export', () => {
+    expect(righeContesto({ filtri: ['Intervento: SRA01', 'Anno: 2024'], profilo: 'P4', ultimi: [{ flusso: 'DS-12', conclusoIl: '2026-03-02T09:15:00Z' }] })).toEqual([
+      'Filtri applicati: Intervento: SRA01; Anno: 2024',
+      'Profilo: P4',
+      'Ultimo dato sincronizzato: DS-12 02/03/2026 10:15',
+    ]);
+    expect(righeContesto({ filtri: [], profilo: undefined, ultimi: undefined })).toEqual([
+      'Filtri applicati: nessuno',
+      'Profilo: non indicato',
+      'Ultimo dato sincronizzato: non disponibile',
+    ]);
+    expect(righeContesto({ filtri: [], profilo: 'P1', ultimi: [] })[2]).toBe('Ultimo dato sincronizzato: nessuna acquisizione conclusa');
   });
   it('menoRecente (X-07): l istante meno recente fra le voci complete, la data fino a cui tutti i flussi sono aggiornati, indipendente dall ordine', () => {
     const voci = [

@@ -1,0 +1,30 @@
+[
+  {
+    "id": "N-01",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/lib/grafici/spesa.ts:147",
+    "titolo": "Regressione di X-02: raggruppaFamiglie mette in `mancanti` anche una dotazione presente ma 0,00 o negativa, e la famiglia diventa 'non calcolabile (manca per SRA05)' in tabella (accanto alla riga 'SRA05 0,00 €'), nel nodo e nella descrizione, mentre il KPI della dotazione accanto somma 30.000.000 (sonda CONV/sonda-famiglia-zero.test.ts). Nessun test copre il caso, che il codice dichiara reale (selezione.ts:4).",
+    "fix": "In raggruppaFamiglie mettere in mancantiPer solo le righe con `valoreDi(r.dotazioneSpesaPubblica) == null`; per 0 e negativi, fuori dal grafico, sommare il valore in un campo `fuoriGrafico` della famiglia.\ntotaleFamiglia, etichetta e descrizione usano `f.totale + f.fuoriGrafico` quando `mancanti` e' vuoto.\nTest in finanziario-grafici.test.ts: SRA01 20 M€ e SRA05 0,00 danno 'Totale della famiglia 20.000.000,00 €'."
+  },
+  {
+    "id": "N-02",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/RiservaReport.tsx:89",
+    "titolo": "Il PNG del grafico della riserva non dice l'anno: la pagina ha conBarraFiltri={false}, quindi l'intestazione scrive 'Filtri applicati: nessuno' (PaginaFinanziario.tsx:93), e titolo e fonte della card non hanno l'anno. Il CSV della stessa card, scritto dal backend, dichiara 'Filtri applicati: anno=2025' (CriterioRiserva); il PNG da solo non dice di quale riserva e'.",
+    "fix": "Passare l'anno a UtilizzoProgressivo e scriverlo nella fonte: `fonte={`Fonte: TX-0014, movimenti della riserva dell'anno ${anno}`}`.\nIn alternativa dare a PaginaFinanziario un prop `parametri` (es. ['anno=2025']) che useRigheIntestazione aggiunge ai filtri applicati, come il backend.\nTest: il PNG della riserva 2025 riceve un'intestazione che contiene 2025."
+  },
+  {
+    "id": "N-03",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/DettaglioIntervento.tsx:24",
+    "titolo": "Il vuoto aggiunto per X-01 dice 'Nessuna domanda SIGC per questo intervento. Modifica i filtri.', ma nel dettaglio non ci sono filtri da modificare: la barra ha il solo chip fisso dell'intervento e nessun pannello (PaginaFinanziario.tsx:90, ContestoFiltri nullo), per questo vuotoConPerimetro accoda l'invito come testo (comuni.tsx:40). Il test casi-limite.test.tsx:177 fissa la frase.",
+    "fix": "In DettaglioIntervento.tsx:24 non usare vuotoConPerimetro: `const SENZA_SIGC = (d: { perimetro?: Perimetro | null }) => <><PerimetroSezione perimetro={d.perimetro} />Nessuna domanda SIGC per questo intervento.</>`.\nAggiornare l'attesa di tests/finanziario-casi-limite.test.tsx:177."
+  },
+  {
+    "id": "N-04",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/comuni.tsx:150",
+    "titolo": "I pulsanti di TX-0009 (V-04) stanno sopra l'intera fila dei KPI con il solo 'CSV' e 'XLSX' visibili: in panoramica la fila ha tre tessere di TX-0002 e una di TX-0009 (nella pagina Domande due di TX-0010), e il file contiene solo le domande (sonda CONV/esito-scarica-kpi.txt, scarica-kpi.png). In panoramica restano anche con la selezione vuota, quando la tessera delle domande non c'e' (Panoramica.tsx:170).",
+    "fix": "In ScaricaKpi rendere visibile l'oggetto accanto ai pulsanti (es. `<span className=\"ui-nota\">{titolo}</span>` prima di PulsantiScarica), oppure portare i pulsanti nella tessera di TX-0009.\nIn Panoramica montare ScaricaKpi dentro KpiDomande, cosi' sparisce con il segnale 'vuota'."
+  }
+]

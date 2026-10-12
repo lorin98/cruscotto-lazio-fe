@@ -1203,7 +1203,7 @@
         "Importi non disponibili resi come testo (motivo e fonte attesa dalla spec), mai come cella vuota o zero.",
         "Perimetro (REGIONALE o ADA) dichiarato in testa alla pagina con testo, non solo con colore.",
         "Filtri a selezione multipla con label esplicite; il filtro azioni portanti e' disabilitato con spiegazione testuale quando legameAzioniDisponibile e' falso.",
-        "Esportazione CSV: pulsante con testo esplicito del formato; esito annunciato in role=status."
+        "Download per formato (PNG, CSV, XLSX): un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo. Deviazione rivista V-07."
       ],
       "approval": {
         "approved_hash": "sha256:ecffce8c1dc73d87475d4fc338c8e5702f68ca81cf14fbe267d683caab2133ff",
@@ -1223,7 +1223,7 @@
         "Importi non disponibili resi come testo (motivo e fonte attesa dalla spec), mai come cella vuota o zero.",
         "Perimetro (REGIONALE o ADA) dichiarato in testa alla pagina con testo, non solo con colore.",
         "Filtri a selezione multipla con label esplicite; il filtro azioni portanti e' disabilitato con spiegazione testuale quando legameAzioniDisponibile e' falso.",
-        "Esportazione CSV: pulsante con testo esplicito del formato; esito annunciato in role=status."
+        "Download per formato (PNG, CSV, XLSX): un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo. Deviazione rivista V-07."
       ],
       "approval": {
         "approved_hash": "sha256:cfd3e79a08917ad2d73050d7a06a0e147c175736725e890be9afc0a95083d946",
@@ -1242,7 +1242,8 @@
       "wcag_notes": [
         "Ogni grafico ha la tabella equivalente subito sotto (canale primario, WCAG 1.1.1 e 1.4.1): il grafico e' un complemento.",
         "Importi non disponibili resi come testo (motivo e fonte attesa dalla spec), mai come cella vuota o zero.",
-        "Perimetro (REGIONALE o ADA) dichiarato in testa alla pagina con testo, non solo con colore."
+        "Perimetro (REGIONALE o ADA) dichiarato in testa alla pagina con testo, non solo con colore.",
+        "Download per formato (PNG, CSV, XLSX): un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo. Deviazione rivista V-07."
       ],
       "approval": {
         "approved_hash": "sha256:cacbae46568ade77e42d1fd7d473d609220181ff561a584e6a7fa0884d357e2e",
@@ -1260,7 +1261,8 @@
       "wcag_notes": [
         "Ogni grafico ha la tabella equivalente subito sotto (canale primario, WCAG 1.1.1 e 1.4.1): il grafico e' un complemento.",
         "Importi non disponibili resi come testo (motivo e fonte attesa dalla spec), mai come cella vuota o zero.",
-        "Perimetro (REGIONALE o ADA) dichiarato in testa alla pagina con testo, non solo con colore."
+        "Perimetro (REGIONALE o ADA) dichiarato in testa alla pagina con testo, non solo con colore.",
+        "Download per formato (PNG, CSV, XLSX): un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo. Deviazione rivista V-07."
       ],
       "approval": {
         "approved_hash": "sha256:8add28975911489fb65d33091ab17123599f9210f2dc0e6a4b831fd74cdd0a2e",
@@ -1282,7 +1284,8 @@
         "Importi non disponibili resi come testo (motivo e fonte attesa dalla spec), mai come cella vuota o zero.",
         "Perimetro (REGIONALE o ADA) dichiarato in testa alla pagina con testo, non solo con colore.",
         "Selettori di anno (riserva) ed esercizio (verifica SMP) con label; il 404 della riserva e' uno stato vuoto spiegato, non un errore.",
-        "Tabella della verifica SMP larga (19 dati): intestazioni di riga sul codice intervento, scorrimento orizzontale del solo contenitore della tabella."
+        "Tabella della verifica SMP larga (19 dati): intestazioni di riga sul codice intervento, scorrimento orizzontale del solo contenitore della tabella.",
+        "Download per formato (PNG, CSV, XLSX): un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo. Deviazione rivista V-07."
       ],
       "approval": {
         "approved_hash": "sha256:c8ff776b8fb0cf997092f0aaa66c8550b84cd74453015978fcc94837ab3f98f7",
@@ -1327,6 +1330,11 @@
       "id": "OP-FE-07",
       "kind": "campo-assente-dalla-spec",
       "detail": "La gerarchia intervento -> obiettivo specifico (OS) -> obiettivo generale (OG) -> obiettivo di policy (OP) non e' nei DTO della slice: TX-0001 da' le liste piatte. Senza, la panoramica raggruppa la dotazione per famiglia di intervento (prefisso del codice, es. SRA, SRD) e non per obiettivo, e i filtri non possono restringersi a cascata. Richiesta a green-be: campo ADDITIVO su una risposta esistente (es. su TX-0001 un elenco di legami intervento-OS-OG-OP), stessa transazione e stesso grant, risigillo della sola slice. Finche' manca, il pulsante del pannello dei filtri resta 'Applica i filtri' e non 'Mostra n interventi' del wireframe panoramica (deviazione rivista, scelta dell'utente del 09/10/2026, review step9 v2 V-22)."
+    },
+    {
+      "id": "OP-FE-08",
+      "kind": "altro",
+      "detail": "Il PNG di un grafico e' generato nel browser: porta l'intestazione di NFR-50 (fonte, filtri applicati, data e ora di estrazione, ultimo dato sincronizzato, profilo, uso interno) ma non e' registrato in AUDIT_ESPORTAZIONE (NFR-34), che il backend scrive per CSV e XLSX. Per registrarlo serve un endpoint del backend (es. una riga d'audit con formato PNG, requisito, filtri e impronta del file), con risigillo della slice finanziario. Scelta dell'utente del 12/10/2026 (review step9 v3 V-01): intestazione nel PNG, audit come punto aperto."
     }
   ]
 }

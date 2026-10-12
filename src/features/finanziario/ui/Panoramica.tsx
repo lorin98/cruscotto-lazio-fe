@@ -5,7 +5,7 @@
 // il suo dettaglio; raggruppamento per famiglia finche' manca la gerarchia degli obiettivi (OP-FE-07).
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { formatNumber, formatPercentuale, importoKpi } from '../../../shared/lib';
+import { formatNumber, formatPercentuale, importoBreve } from '../../../shared/lib';
 import { Caricamento, CardGrafico, Griglia, Kpi, VistaQuery } from '../../../shared/ui';
 import type { ClicGrafico } from '../../../shared/ui';
 import { useSigcDomande, useSigcImporti, useSpesaPerIntervento, useTotaleDomande } from '../api';
@@ -16,7 +16,7 @@ import type { Aggregato } from '../lib/aggregati';
 import type { Filtri } from '../lib/filtri';
 import { graficoAvanzamento, graficoCascataSigc, graficoFamiglie, graficoImbutoSigc } from '../lib/grafici';
 import { GRANT, PERCORSI, conFiltri } from '../lib/report';
-import { ConGrant, NotaPerimetroMisto, PerimetroSezione, diProgramma, erroreGiaMostrato, vuotoConPerimetro } from './comuni';
+import { ConGrant, NotaPerimetroMisto, PerimetroSezione, ScaricaKpi, diProgramma, erroreGiaMostrato, vuotoConPerimetro } from './comuni';
 import { useSelezioneSenzaDomandeSigc, useSelezioneSenzaInterventi } from './selezione';
 import { useApriIntervento } from './useApriIntervento';
 
@@ -34,11 +34,11 @@ function KpiSpesa({ d }: { d: SpesaPerIntervento }) {
         etichetta={diProgramma('Dotazione spesa pubblica', d.perimetro)}
         icona="it-card"
         tono="scuro"
-        valore={k.dotazione.valore === null ? undefined : importoKpi(k.dotazione.valore)}
+        valore={k.dotazione.valore === null ? undefined : importoBreve(k.dotazione.valore)}
         assente={assente(k.dotazione)}
         nota={n === 1 ? '1 intervento nella selezione' : `${n} interventi nella selezione`}
       />
-      <Kpi etichetta="Pagamenti totali" icona="it-chart-line" tono="verde" valore={k.pagato.valore === null ? undefined : importoKpi(k.pagato.valore)} assente={assente(k.pagato)} />
+      <Kpi etichetta="Pagamenti totali" icona="it-chart-line" tono="verde" valore={k.pagato.valore === null ? undefined : importoBreve(k.pagato.valore)} assente={assente(k.pagato)} />
       <Kpi
         etichetta="Pagato sulla dotazione"
         icona="it-presentation"
@@ -75,6 +75,13 @@ function KpiDomande({ filtri }: { filtri: Filtri }) {
   const segnale = useSelezioneSenzaInterventi(filtri);
   if (segnale === 'vuota') return null;
   return segnale === 'in-attesa' ? <Caricamento /> : <KpiDomandeDati filtri={filtri} />;
+}
+
+// i file delle domande (TX-0009) solo quando la loro tessera c'e': non con la selezione vuota (review v3 N-04)
+function ScaricaDomande({ filtri }: { filtri: Filtri }) {
+  const segnale = useSelezioneSenzaInterventi(filtri);
+  if (segnale !== 'non-vuota') return null;
+  return <ScaricaKpi grant={GRANT.totaleDomande} titolo="Domande presentate (RF009)" report="totaleDomande" filtri={filtri} />;
 }
 
 // il clic su un intervento (barra o foglia) apre il dettaglio; su una famiglia il treemap entra nel gruppo
@@ -166,6 +173,8 @@ export function Panoramica({ filtri }: { filtri: Filtri }) {
   const { dalClic } = useApriIntervento(filtri);
   return (
     <>
+      {/* i dati di TX-0002 si scaricano dalle card dei grafici; quelli delle domande (TX-0009) qui (NFR-75, review v3 V-04) */}
+      <ScaricaDomande filtri={filtri} />
       <Griglia colonne={4}>
         <ConGrant grant={GRANT.spesaPerIntervento} titolo="Dotazione e pagamenti">
           <KpiSpesaSezione filtri={filtri} />

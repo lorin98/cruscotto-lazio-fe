@@ -17,9 +17,17 @@ import { graficoCascataIntervento, graficoCascataSigc, graficoDomandePerAnno, gr
 import type { Perimetro } from '../lib/perimetro';
 import { GRANT, PERCORSI, conFiltri } from '../lib/report';
 import { ConGrant, KpiImporto, NotaPerimetroMisto, PerimetroSezione, diProgramma } from './comuni';
+import { useSelezioneSenzaDomandeSigc } from './selezione';
 
 // titolo del wireframe intervento (scheda Domande)
 const IMPORTI_PER_ANNO = 'Importi ammessi e decretati per anno';
+// nel dettaglio i filtri sono fissi (il solo intervento): il vuoto non invita a modificarli (review v3 N-03)
+const SENZA_SIGC = (d: { perimetro?: Perimetro | null }) => (
+  <>
+    <PerimetroSezione perimetro={d.perimetro} />
+    Nessuna domanda SIGC per questo intervento.
+  </>
+);
 
 function Testata({ codice, selezione, perimetro, contributo }: { codice: string; selezione: Filtri; perimetro?: Perimetro; contributo?: number | null }) {
   return (
@@ -59,6 +67,8 @@ function PagatoSullaDotazione({ filtri, r, perimetro }: { filtri: Filtri; r: Rie
           titolo="Pagato sulla dotazione"
           dati={graficoGauge(d.righe?.[0]?.pagamentiTotali?.valore, r.dotazioneSpesaPubblica?.valore, 'della dotazione pagato', perimetro)}
           fonte="Fonte: TX-0002 (pagamenti totali) e TX-0011 (dotazione)"
+          // i pagamenti dell'intervento (TX-0002); la dotazione e' nel file della cascata (TX-0011): NFR-75, review v3 V-04
+          scaricamenti={datiDelReport('Pagato sulla dotazione', 'spesaPerIntervento', filtri)}
         />
       )}
     </VistaQuery>
@@ -93,8 +103,17 @@ function DomandeSigc({ filtri }: { filtri: Filtri }) {
   return <VistaQuery stato={useSigcDomande(filtri)}>{(d) => <CardGrafico titolo="Domande SIGC" dati={graficoImbutoSigc(d)} fonte="Fonte: TX-0012" scaricamenti={datiDelReport('Domande SIGC', 'sigcDomande', filtri)} />}</VistaQuery>;
 }
 
+/**
+ * Per un intervento senza domande SIGC il backend restituisce importi a zero: come in SigcReport, il segnale delle domande
+ * presentate (stessa lettura in cache di RF012) dichiara il vuoto invece di una cascata di zeri (NFR-15 e, review v3 X-01).
+ */
 function ImportiSigc({ filtri }: { filtri: Filtri }) {
-  return <VistaQuery stato={useSigcImporti(filtri)}>{(d) => <CardGrafico titolo="Importi SIGC" dati={graficoCascataSigc(d)} fonte="Fonte: TX-0013 · pagato dal flusso ASR2-20" scaricamenti={datiDelReport('Importi SIGC', 'sigcImporti', filtri)} />}</VistaQuery>;
+  const segnale = useSelezioneSenzaDomandeSigc(filtri);
+  return (
+    <VistaQuery stato={useSigcImporti(filtri)} inAttesa={segnale === 'in-attesa'} eVuoto={() => segnale === 'vuota'} vuoto={SENZA_SIGC}>
+      {(d) => <CardGrafico titolo="Importi SIGC" dati={graficoCascataSigc(d)} fonte="Fonte: TX-0013 · pagato dal flusso ASR2-20" scaricamenti={datiDelReport('Importi SIGC', 'sigcImporti', filtri)} />}
+    </VistaQuery>
+  );
 }
 
 function Schede({ filtri, r, perimetro }: { filtri: Filtri; r: RiepilogoFinanziarioRiga; perimetro?: Perimetro }) {

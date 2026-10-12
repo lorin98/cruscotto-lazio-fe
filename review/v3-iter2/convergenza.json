@@ -1,0 +1,128 @@
+[
+  {
+    "id": "V-01",
+    "esito": "RISOLTO",
+    "file": "src/shared/ui/grafici/echarts.ts:82",
+    "motivo": "pngDelGrafico riceve `intestazione` e la disegna sopra il grafico (conIntestazione, riga 48); usePngDelGrafico.ts:30 compone titolo, fonte, filtri, profilo, ultimo dato sincronizzato, data e ora, dicitura (shared/lib/intestazione.ts) con le righe della pagina da ContestoIntestazione (PaginaFinanziario.tsx:93). PNG scaricato dalla build sotto CSP: le 7 voci ci sono (CONV/treemap-png-scaricato.png); test shared-ui-kit 'PNG con l intestazione di NFR-50' ed e2e csp.spec.ts:185 (altezza maggiore) verdi. La mancanza della riga d'audit e' OP-FE-08 (uiplan.json:1335), scelta dell'utente. L'anno della riserva assente dall'intestazione e' il nuovo N-02."
+  },
+  {
+    "id": "V-02",
+    "esito": "RISOLTO",
+    "file": "tests/finanziario-esportazioni.test.tsx:82",
+    "motivo": "it.each sulle 12 chiavi di esportaReport con percorso, query e X-Requested-With, piu' riserva e verifica SMP (righe 82-108); un test per pagina (Dotazione, Avanzamento, Domande, Panoramica, Dettaglio) clicca ogni CSV e confronta il percorso e il suffisso tx-00NN del file con una mappa percorso->TX scritta dalla spec, indipendente da GRANT. Uno scambio di voci in ESPORTA o una chiave sbagliata in un componente fa fallire la suite. 711 test verdi."
+  },
+  {
+    "id": "V-04",
+    "esito": "RISOLTO",
+    "file": "src/features/finanziario/ui/DomandeReport.tsx:173",
+    "motivo": "ScaricaKpi di TX-0009 (comuni.tsx:147) nella pagina Domande e in Panoramica.tsx:170, CSV e XLSX di TX-0002 sul gauge del dettaglio (DettaglioIntervento.tsx:65); README.md:70-80 riallineato. Coperto da finanziario-esportazioni.test.tsx (Domande, Panoramica, Dettaglio). L'etichetta dei nuovi pulsanti e' il nuovo N-04."
+  },
+  {
+    "id": "V-05",
+    "esito": "RISOLTO",
+    "file": "src/features/finanziario/lib/aggregati.ts:60",
+    "motivo": "kpiSpesa calcola prima i due totali e, con righe e perimetro non ADA, restituisce 'Non calcolabile: manca il totale della dotazione/dei pagamenti' invece della media; con il perimetro ADA resta 'Non confrontabile', con la selezione vuota le tessere non si mostrano (Panoramica.tsx:59). Attese aggiornate in finanziario-aggregati.test.ts:151 e finanziario-ui.test.tsx:475. La scelta di chi ha corretto e' coerente col wireframe."
+  },
+  {
+    "id": "V-06",
+    "esito": "RISOLTO",
+    "file": "src/features/finanziario/ui/DotazioneReport.tsx:125",
+    "motivo": "Griglia con CardDotazione (TX-0002) e Distribuzione (TX-0003) affiancate, poi ContributoETabella (contributo e tabella RF002) dalla stessa lettura in cache di useSpesaPerIntervento: l'ordine del wireframe dotazione.html. Test finanziario-ui.test.tsx:1123 sull'ordine delle sezioni."
+  },
+  {
+    "id": "V-07",
+    "esito": "RISOLTO",
+    "file": ".claude/state/green-fe-finanziario.state.json:31",
+    "motivo": "La deviazione V-07 (download per formato, OP-FE-08) e' in deviations_reviewed dei cinque flussi (panoramica, riepilogo, dotazione-avanzamento, domande, sigc); le wcag_notes di uiplan.json (righe 1206, 1226 e dei flussi seguenti) descrivono un pulsante per formato, aria-disabled, role=status e role=alert."
+  },
+  {
+    "id": "H-01",
+    "esito": "RISOLTO",
+    "file": "src/shared/ui/grafici/CardGrafico.tsx:88",
+    "motivo": "CardGrafico ricomposta (usePngDelGrafico, InterruttoreVista, VociOmesse, CorpoCard). Le soglie 10/60 valgono ora su shared/ui, features/*/ui, entities/*/ui, widgets e pages (eslint.config.js:346). ESLint con le soglie forzate su tutto src (sonda CLI): oltre soglia restano solo Layout, useInattivita, Home (src/app) e l'interceptor del mutator (12), pre-esistenti e fuori dal blocco come dichiarato. Canary in eslint-regole.test.ts:80."
+  },
+  {
+    "id": "H-03",
+    "esito": "PARZIALE",
+    "file": "eslint.config.js:327",
+    "motivo": "Ora scattano '../ui/comuni', '../api', '../../api', il mutator e auth-status (sonde ESLint --stdin). Passano ancora con 0 errori, da src/features/finanziario/lib/, il barrel della feature ('..' e '../index', che riesporta ui/ e i wrapper api/) e '../api/' con la barra finale (sonde __s4__, __s6__, __s7__): la purezza di lib/ si aggira ancora con un import relativo."
+  },
+  {
+    "id": "H-04",
+    "esito": "PARZIALE",
+    "file": "eslint.config.js:23",
+    "motivo": "Vietati fetch, window.fetch, l'import default o namespace di axios e la classe Axios, fuori dal mutator (sonde e canary eslint-regole.test.ts:183). Passano ancora con 0 errori in features/*/ui `import { default as http } from 'axios'` e `import('axios')` (sonde __s1__, __s2__): un'istanza axios propria resta possibile con forme d'import standard."
+  },
+  {
+    "id": "H-05",
+    "esito": "RISOLTO",
+    "file": "eslint.config.js:289",
+    "motivo": "src/app e' nel blocco barrel-only: da src/app/*.tsx e da main.tsx scattano gli import di features/finanziario/api e lib/grafici e l'import() dinamico interno, passa il barrel (sonde ESLint); i test della shell restano barrel-only con le sole fixture (riga 385). Canary in eslint-regole.test.ts."
+  },
+  {
+    "id": "H-06",
+    "esito": "RISOLTO",
+    "file": "src/features/finanziario/ui/esportazioni.ts:16",
+    "motivo": "Il nome dei file e' titolo piu' transazione (transazioneDi, report.ts:32): TX-0002 e TX-0011 non si sovrascrivono piu', e lo stesso export TX-0002 salvato da card diverse dichiara la sua TX; il PNG prende il nome del primo file dei dati (CardGrafico.tsx:50). Verificato nella build: avanzamento-per-intervento-tx-0002.csv/.png (CONV/esito-download.txt) e nei test di finanziario-esportazioni."
+  },
+  {
+    "id": "H-08",
+    "esito": "RISOLTO",
+    "file": "docs/decisioni/grafici.md:6",
+    "motivo": "Il documento descrive ECharts 6 con import modulari, interazioni (zoom, drill-down, legenda), renderer SVG a schermo e canvas per il PNG con l'intestazione; tolti 'senza libreria', 'non interattivi' e il rinvio a un ADR futuro."
+  },
+  {
+    "id": "A-01",
+    "esito": "RISOLTO",
+    "file": "src/shared/ui/grafici/Grafico.tsx:35",
+    "motivo": "Il ResizeObserver ridisegna solo un bersaglio nel documento e con dimensioni. Sonda sankey-uscita sulla build corrente (link del menu, indietro, cambio dei filtri): 0 errori in 3 giri su 3 in Chrome e Firefox (CONV/esito-sankey-uscita.txt), contro 5 su 5 all'iterazione 1. Test L2 shared-ui-kit.test.tsx:210."
+  },
+  {
+    "id": "A-02",
+    "esito": "RISOLTO",
+    "file": "src/shared/ui/scarica/PulsantiScarica.tsx:64",
+    "motivo": "aria-disabled e clic ignorato durante la preparazione; stile spostato su [aria-disabled='true'] (tema.css). Sonda download sulla build: con Invio sul CSV il focus resta sul pulsante durante (disabled=false) e dopo il download, e il Tab va a XLSX, in Chrome e Firefox (CONV/esito-download.txt). Test shared-ui-kit.test.tsx:511 fallirebbe col ritorno a `disabled`."
+  },
+  {
+    "id": "A-03",
+    "esito": "PARZIALE",
+    "file": "src/shared/ui/grafici/echarts.ts:87",
+    "motivo": "La radice di vista ora si riapplica (radiciDiVista, briciola 'Dotazione > SRA' e figli di SRA nel PNG), ma la copia disegnata con animation:false conserva le etichette del livello precedente: nel PNG scaricato dopo il clic su SRA compaiono '▶ SRD 5,0 M€' e '▶ SRB 4,0 M€' sopra la vista di SRA, che a schermo non ci sono (CONV/treemap-png-scaricato.png, esito-png-drill.txt; sonda-ghost.mjs: con animation:false restano '▶ SRA', '▶ SRD', '▶ SRB'). tests/grafici-vista.test.ts:43 non lo vede: confronta due istanze con lo stesso difetto e cerca 'SRD01', che a leafDepth 1 non compare mai."
+  },
+  {
+    "id": "A-04",
+    "esito": "RISOLTO",
+    "file": "e2e/csp.spec.ts:212",
+    "motivo": "Due e2e sotto la CSP: CSV dal backend (nome tx-0002, contenuto con BOM, query, X-Requested-With, esito in role=status, 0 violazioni) ed errore 400 di un XLSX (avviso, nessun download, 0 violazioni). npm run test:e2e: 7 test verdi (CONV/e2e.txt)."
+  },
+  {
+    "id": "X-01",
+    "esito": "RISOLTO",
+    "file": "src/features/finanziario/ui/DettaglioIntervento.tsx:105",
+    "motivo": "ImportiSigc del dettaglio usa useSelezioneSenzaDomandeSigc come SigcReport: con presentate 0 la scheda dichiara il vuoto e non disegna la cascata ne' offre i file (test finanziario-casi-limite.test.tsx:167). Il testo del vuoto, che invita a modificare filtri che nel dettaglio non si possono modificare, e' il nuovo N-03."
+  },
+  {
+    "id": "X-02",
+    "esito": "RISOLTO",
+    "file": "src/features/finanziario/lib/grafici/spesa.ts:164",
+    "motivo": "Con un intervento senza dotazione la riga 'Totale della famiglia', il nodo e la descrizione dicono 'non calcolabile (manca per ...)' invece della somma parziale (test finanziario-grafici.test.ts:345 e 358). La correzione pero' tratta come mancante anche una dotazione 0,00 o negativa: regressione registrata come nuovo N-01."
+  },
+  {
+    "id": "X-03",
+    "esito": "RISOLTO",
+    "file": "src/shared/lib/grafici/primitive.ts:62",
+    "motivo": "importoBreve (milioni da 1 M€, sotto euro pieni) sostituisce milioni() in etichette, tooltip (valoreBreve), descrizioni e linea della riserva; asseImporti sugli assi. Nessun uso residuo di milioni() fuori da primitive.ts (grep). Test shared-grafici.test.ts:146 (300 € non diventa '0,0 M€')."
+  },
+  {
+    "id": "X-04",
+    "esito": "PARZIALE",
+    "file": "src/features/finanziario/ui/VerificaSmpReport.tsx:90",
+    "motivo": "Corretti la tabella Domande per anno (nota e nome accessibile con l'anno, DomandeReport.tsx:127-134) e le tabelle di Riepilogo e Dotazione (notaRicerca). La nota e' pero' opt-in e la TabellaInterattiva della Verifica SMP, con ricerca per codice o indicatore e i CSV/XLSX di TX-0015 nella stessa sezione, non la riceve: il file resta completo senza che la pagina lo dica."
+  },
+  {
+    "id": "X-05",
+    "esito": "RISOLTO",
+    "file": "src/shared/ui/kpi/Kpi.tsx:49",
+    "motivo": "aria-label con il valore vero (quota*100), larghezza della barra limitata a 100 solo nella classe (riga 50). Test shared-ui-kit.test.tsx:347: quota 1.3 espone '130%' e non '100%', barra ui-barra__100."
+  }
+]

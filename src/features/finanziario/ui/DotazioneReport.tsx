@@ -1,6 +1,6 @@
 // DotazioneReport — report RF002 e RF003 (route /finanziario/dotazione, TX-0002 e TX-0003, flusso dotazione-avanzamento v2):
-// dotazione e pagamenti per intervento (barre con zoom e tabella interattiva), quota FEASR e non FEASR (ciambella, con la
-// dotazione del contratto), contributo ambientale per intervento. Ogni sezione ha il suo grant e il suo perimetro; con il
+// dotazione e pagamenti per intervento (barre con zoom) accanto alla quota FEASR e non FEASR (ciambella, con la dotazione
+// del contratto), poi contributo ambientale per intervento e tabella interattiva di RF002, nell'ordine del wireframe. Ogni sezione ha il suo grant e il suo perimetro; con il
 // perimetro ADA la dotazione regionale non sta sullo stesso grafico dei pagamenti dell'area. Lo stato vuoto di RF003 si
 // ricava dalle righe di RF002. Tutte le colonne si vedono, con il motivo di ogni assenza (wireframe dotazione). Clic su
 // un intervento: il suo dettaglio.
@@ -8,7 +8,7 @@ import { CardGrafico, Griglia, PulsantiScarica, Sezione, TabellaInterattiva, Vis
 import type { ColonnaTabella } from '../../../shared/ui';
 import { useDistribuzioneDotazione, useSpesaPerIntervento } from '../api';
 import type { SpesaPerIntervento, SpesaPerInterventoRiga } from '../api';
-import { datiDelReport } from './esportazioni';
+import { NOTA_RICERCA_FILE, datiDelReport } from './esportazioni';
 import { ricercaDaFiltri } from '../lib/filtri';
 import type { Filtri } from '../lib/filtri';
 import { percentualeOpzionale } from '../lib/formato';
@@ -44,31 +44,43 @@ function colonne(p: Perimetro | undefined): ColonnaTabella<Riga>[] {
   ];
 }
 
-function SpesaPerInterventoSezione({ d, filtri }: { d: SpesaPerIntervento; filtri: Filtri }) {
-  const righe = d.righe ?? [];
-  const { apri: onIntervento, dalClic: clic } = useApriIntervento(filtri);
+const senzaRighe = (d: SpesaPerIntervento) => (d.righe ?? []).length === 0;
+
+/** Card della dotazione e dei pagamenti (TX-0002): dichiara lo stato vuoto della pagina, una volta sola. */
+function CardDotazione({ filtri }: { filtri: Filtri }) {
+  const { dalClic } = useApriIntervento(filtri);
   return (
-    <>
-      <Griglia>
+    <VistaQuery stato={useSpesaPerIntervento(filtri)} eVuoto={senzaRighe} vuoto={VUOTO}>
+      {(d) => (
         <CardGrafico
           titolo="Dotazione e pagamenti per intervento"
           sottotitolo="Trascina il cursore sotto il grafico per ingrandire; clic su una barra per il dettaglio"
-          dati={graficoDotazionePagamenti(righe.map((r) => ({ codiceIntervento: r.codiceIntervento, dotazione: r.dotazioneSpesaPubblica, pagato: r.pagamentiTotali })), d.perimetro, 'Pagamenti totali')}
+          dati={graficoDotazionePagamenti((d.righe ?? []).map((r) => ({ codiceIntervento: r.codiceIntervento, dotazione: r.dotazioneSpesaPubblica, pagato: r.pagamentiTotali })), d.perimetro, 'Pagamenti totali')}
           fonte={`Fonte: TX-0002 · Perimetro ${d.perimetro ?? 'non indicato'}`}
           altezza="alto"
-          onClic={clic}
+          onClic={dalClic}
           scaricamenti={datiDelReport('Dotazione e pagamenti per intervento', 'spesaPerIntervento', filtri)}
         />
-        <CardGrafico
-          titolo="Contributo ambientale per intervento"
-          sottotitolo="Clic su una barra per il dettaglio"
-          dati={graficoContributo(righe)}
-          fonte="Fonte: TX-0002"
-          altezza="alto"
-          onClic={clic}
-          scaricamenti={datiDelReport('Contributo ambientale per intervento', 'spesaPerIntervento', filtri)}
-        />
-      </Griglia>
+      )}
+    </VistaQuery>
+  );
+}
+
+/** Contributo ambientale e tabella di RF002, dalla stessa lettura in cache di TX-0002; il vuoto lo dice CardDotazione. */
+function ContributoETabella({ d, filtri }: { d: SpesaPerIntervento; filtri: Filtri }) {
+  const righe = d.righe ?? [];
+  const { apri: onIntervento, dalClic } = useApriIntervento(filtri);
+  return (
+    <>
+      <CardGrafico
+        titolo="Contributo ambientale per intervento"
+        sottotitolo="Clic su una barra per il dettaglio"
+        dati={graficoContributo(righe)}
+        fonte="Fonte: TX-0002"
+        altezza="alto"
+        onClic={dalClic}
+        scaricamenti={datiDelReport('Contributo ambientale per intervento', 'spesaPerIntervento', filtri)}
+      />
       <Sezione titolo={TITOLO_SPESA} strumenti={<PulsantiScarica oggetto={`la tabella ${TITOLO_SPESA}`} scaricamenti={datiDelReport(TITOLO_SPESA, 'spesaPerIntervento', filtri)} />}>
         <PerimetroSezione perimetro={d.perimetro} />
         <NotaPerimetroMisto perimetro={d.perimetro} />
@@ -81,6 +93,7 @@ function SpesaPerInterventoSezione({ d, filtri }: { d: SpesaPerIntervento; filtr
           chiaveRiga={(r) => r.codiceIntervento ?? ''}
           testoRicerca={(r) => r.codiceIntervento ?? ''}
           segnapostoRicerca="Cerca per codice dell'intervento"
+          notaRicerca={NOTA_RICERCA_FILE}
           etichettaRiga={(r) => `Apri il dettaglio dell'intervento ${r.codiceIntervento ?? ''}`}
           onRiga={(r) => r.codiceIntervento && onIntervento(r.codiceIntervento)}
           ordineIniziale={{ chiave: 'dotazioneSpesaPubblica', verso: 'decrescente' }}
@@ -91,12 +104,7 @@ function SpesaPerInterventoSezione({ d, filtri }: { d: SpesaPerIntervento; filtr
 }
 
 function Spesa({ filtri }: { filtri: Filtri }) {
-  const stato = useSpesaPerIntervento(filtri);
-  return (
-    <VistaQuery stato={stato} eVuoto={(d) => (d.righe ?? []).length === 0} vuoto={VUOTO}>
-      {(d) => <SpesaPerInterventoSezione d={d} filtri={filtri} />}
-    </VistaQuery>
-  );
+  return <VistaQuery stato={useSpesaPerIntervento(filtri)}>{(d) => (senzaRighe(d) ? null : <ContributoETabella d={d} filtri={filtri} />)}</VistaQuery>;
 }
 
 function Distribuzione({ filtri }: { filtri: Filtri }) {
@@ -109,17 +117,22 @@ function Distribuzione({ filtri }: { filtri: Filtri }) {
   );
 }
 
+// ordine del wireframe dotazione approvato (review v3 V-06): dotazione e quota FEASR affiancate, poi il contributo
+// ambientale e la tabella di RF002
 export function DotazioneReport({ filtri }: { filtri: Filtri }) {
   return (
     <>
-      <ConGrant grant={GRANT.spesaPerIntervento} titolo={TITOLO_SPESA}>
-        <Spesa filtri={filtri} />
-      </ConGrant>
       <Griglia>
+        <ConGrant grant={GRANT.spesaPerIntervento} titolo="Dotazione e pagamenti per intervento">
+          <CardDotazione filtri={filtri} />
+        </ConGrant>
         <ConGrant grant={GRANT.distribuzioneDotazione} titolo={TITOLO_QUOTE}>
           <Distribuzione filtri={filtri} />
         </ConGrant>
       </Griglia>
+      <ConGrant grant={GRANT.spesaPerIntervento} titolo={TITOLO_SPESA}>
+        <Spesa filtri={filtri} />
+      </ConGrant>
     </>
   );
 }

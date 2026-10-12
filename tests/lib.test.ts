@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { formatDataOra, formatDate, formatGiorno, formatNumber } from '../src/shared/lib/format';
 import { nomeFile } from '../src/shared/lib/nome-file';
+import { DICITURA_USO, aCapo, righeIntestazione } from '../src/shared/lib/intestazione';
 import { isOpenEnded, isSentinelDate, SENTINEL_DATE_MAX } from '../src/shared/lib/sentinel-dates';
 import { isEditable, makeRolePredicate } from '../src/shared/lib/predicates';
 import type { AuthStatus } from '../src/shared/api/auth/auth-status';
@@ -84,5 +85,27 @@ describe('lib/nome-file — nome del file dal titolo', () => {
   });
   it('un titolo senza lettere ne cifre da un nome comunque valido', () => {
     expect(nomeFile(' — ', 'csv')).toBe('cruscotto.csv');
+  });
+});
+
+describe('lib/intestazione — intestazione dei file generati nel browser (NFR-50, review v3 V-01)', () => {
+  it('testata e titolo, fonte, righe della pagina, data e ora di estrazione (Roma), dicitura come nei file del backend', () => {
+    const righe = righeIntestazione({ titolo: 'Stanziato', fonte: 'Fonte: TX-0004', contesto: ['Filtri applicati: nessuno', 'Profilo: P1'], estrattoIl: new Date('2026-10-12T08:30:00Z') });
+    expect(righe).toEqual([
+      'Cruscotto CSR Lazio - Stanziato',
+      'Fonte: TX-0004',
+      'Filtri applicati: nessuno',
+      'Profilo: P1',
+      'Estratto il 12/10/2026 10:30 (Europe/Rome)',
+      `Uso: ${DICITURA_USO}`,
+    ]);
+    expect(DICITURA_USO).toBe('Documento ad uso interno di ARSIAL e della Regione Lazio: dati riservati, non diffondere');
+  });
+  it('aCapo: linee entro il massimo fra le parole, una parola troppo lunga resta intera', () => {
+    const misura = (t: string) => t.length;
+    expect(aCapo('uno due tre quattro', 7, misura)).toEqual(['uno due', 'tre', 'quattro']);
+    expect(aCapo('brevissimo', 100, misura)).toEqual(['brevissimo']);
+    expect(aCapo('a lunghissimaparola b', 5, misura)).toEqual(['a', 'lunghissimaparola', 'b']);
+    expect(aCapo('  ', 10, misura)).toEqual([]);
   });
 });

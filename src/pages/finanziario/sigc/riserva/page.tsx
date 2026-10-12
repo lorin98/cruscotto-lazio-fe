@@ -6,7 +6,7 @@ import { PaginaFinanziario } from '../../../../widgets/report-finanziario';
 export default function Pagina() {
   const [anno, impostaAnno] = useAnnoNellIndirizzo('anno');
   return (
-    <PaginaFinanziario percorso="/finanziario/sigc/riserva" conBarraFiltri={false}>
+    <PaginaFinanziario percorso="/finanziario/sigc/riserva" conBarraFiltri={false} parametri={anno === undefined ? [] : [`Anno: ${anno}`]}>
       {() => <RiservaReport anno={anno} onCambiaAnno={impostaAnno} />}
     </PaginaFinanziario>
   );

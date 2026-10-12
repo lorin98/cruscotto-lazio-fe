@@ -1,0 +1,66 @@
+[
+  {
+    "id": "H-01",
+    "severity": "MAGGIORE",
+    "file": "src/shared/ui/grafici/CardGrafico.tsx:21",
+    "titolo": "CardGrafico oltre soglia (101 righe, complessita' 16): il PNG e' orchestrato dentro la card del kit",
+    "evidenza": "Misurato con le regole ESLint max-lines-per-function e complexity: 101 righe e complessita' 16, contro 93 e 13 a 9ab380a. Il blocco 49-62 mette nella card presentazionale il ref dell'istanza, il ridisegno canvas (pngDelGrafico), la conversione blobDaDataUrl, il nome del file e il salvataggio, accanto a interruttore di vista, voci omesse e fonte.",
+    "fix": "Estrarre in shared/ui/grafici un hook usePngDelGrafico(titolo, attivo) che possiede il ref e restituisce { onIstanza, png: Scaricamento[] }.\nEstrarre InterruttoreVista e VociOmesse come sottocomponenti.\nCardGrafico resta composizione: sotto 60 righe e complessita' 10."
+  },
+  {
+    "id": "H-02",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/api/index.ts:157",
+    "titolo": "Export di 9 TX su 14 mai esercitati dai test; la mappa ESPORTA non e' verificabile dai tipi",
+    "evidenza": "I test esercitano solo gli export di riepilogo, sigc/domande, sigc/importi, riserva e verifica-smp (tests/finanziario-ui.test.tsx:907, 1552, 1654, 1777): nessuno colpisce gli endpoint TX-0002..TX-0010 ne' i pulsanti di Dotazione, Avanzamento, Domande, Panoramica e Dettaglio. Le funzioni generate in ESPORTA hanno firma e parametri strutturalmente identici, quindi una voce scambiata (o una chiave sbagliata passata a datiDelReport) supera tsc e la suite e scarica, registrandolo in audit, il report sbagliato.",
+    "fix": "Test table-driven in tests/finanziario-api.test.tsx: it.each sulle 12 chiavi col percorso atteso (es. ['stanziato', '/api/finanziario/stanziato/csv']), MSW su */api/finanziario/* che registra pathname e query, await esportaReport(chiave, 'csv', { intervento: ['SRA01'] }).\nPiu' un test per pagina (Dotazione, Avanzamento, Domande) che clicca il CSV di ogni card e verifica il percorso della sua TX."
+  },
+  {
+    "id": "H-03",
+    "severity": "MINORE",
+    "file": "eslint.config.js:293",
+    "titolo": "La purezza di lib/ si aggira con un import relativo di ui/ o api/",
+    "evidenza": "Il blocco vieta solo i pacchetti react/@tanstack: la sonda src/features/finanziario/lib/__sonda__.ts con import { ConGrant } from '../ui/comuni' (o useRiepilogo da '../api') passa ESLint con 0 errori, benche' la riga 281 la dichiari difesa autoritativa. Il buco e' gia' usato: src/shared/lib/predicates.ts:4 importa api/auth/auth-status, che a import carica il mutator (Axios.create e interceptor).",
+    "fix": "Aggiungere ai patterns del blocco un gruppo che vieti **/ui, **/ui/*, il barrel '../api' e '../../api' della feature, **/api/mutator/* e **/api/auth/* (resta ammesso shared/api/problem, puro).\nPrima di armarla spostare hasGrant in un modulo puro che non importi il mutator."
+  },
+  {
+    "id": "H-04",
+    "severity": "MINORE",
+    "file": "eslint.config.js:264",
+    "titolo": "Nessuna regola vieta fetch o un'istanza axios propria fuori dal mutator BFF",
+    "evidenza": "Le sonde in src/features/finanziario/ui con fetch('/api/finanziario/riepilogo') e con import axios from 'axios'; axios.get(...) passano ESLint con 0 errori, mentre le righe 54-55 dichiarano il mutator 'l'unica istanza axios sancita'. Una chiamata cosi' salta X-Requested-With (403 RICHIESTA_NON_AMMESSA sugli export), la coda delle letture (503 CAPACITA_ESAURITA) e il redirect del 401.",
+    "fix": "Nei selettori dei consumatori (righe 264 e 277) aggiungere CallExpression[callee.name='fetch'], CallExpression[callee.property.name='fetch'] e ImportDeclaration[source.value='axios'] > :matches(ImportDefaultSpecifier, ImportNamespaceSpecifier).\nResta ammesso import { isAxiosError } from 'axios'."
+  },
+  {
+    "id": "H-05",
+    "severity": "MINORE",
+    "file": "eslint.config.js:274",
+    "titolo": "Il barrel-only non copre app/: la shell puo' importare dall'interno della feature",
+    "evidenza": "Il blocco barrel-only vale solo per pages e widgets: la sonda src/app/__sonda7__.tsx con import da '../features/finanziario/api' e '../features/finanziario/lib/grafici' passa con 0 errori. Il barrel (src/features/finanziario/index.ts:1) dichiara invece che anche la shell compone solo da li'.",
+    "fix": "Aggiungere 'src/app/**/*.{ts,tsx}' ai files del blocco a riga 274.\nIl blocco di src/app/main.tsx e dei test di app (riga 336) resta dopo e riapre solo i moduli di prova."
+  },
+  {
+    "id": "H-06",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/esportazioni.ts:14",
+    "titolo": "Il nome del file viene dal titolo della card, non dal report: stesso nome per dati diversi",
+    "evidenza": "DotazioneReport.tsx:60 (TX-0002) e RiepilogoReport.tsx:140 (TX-0011) salvano entrambi dotazione-e-pagamenti-per-intervento.csv/.xlsx/.png con contenuti diversi. Viceversa lo stesso export TX-0002 si salva anche come contributo-ambientale-per-intervento (DotazioneReport.tsx:69) e dotazione-per-famiglia-di-intervento (Panoramica.tsx:107), che contiene righe per intervento e non le famiglie del grafico.",
+    "fix": "In scaricamentiDati/datiDelReport comporre il nome anche dal report (es. nomeFile(`${titolo} ${TX[report]}`, 'csv') con TX: Record<ReportEsportabile, string> = { spesaPerIntervento: 'tx0002', ... }).\nIn alternativa distinguere i titoli col codice RF, come gia' 'Domande SIGC (RF012)'."
+  },
+  {
+    "id": "H-07",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/api/index.ts:165",
+    "titolo": "Export di TX-0009 (RF009) cablato ma senza pulsante, contro il README 'ogni report si scarica'",
+    "evidenza": "La voce totaleDomande di ESPORTA non e' usata da nessun datiDelReport (KpiTotali in DomandeReport.tsx:33-44 non ha PulsantiScarica), mentre README.md:70 dichiara CSV e XLSX per ogni report TX-0002..TX-0015. O manca il download di RF009 o la voce e' codice morto e il README e' sbagliato.",
+    "fix": "Aggiungere i download a 'Totale domande presentate (RF009)' con datiDelReport(TITOLI.totale, 'totaleDomande', filtri).\nOppure togliere la chiave da ESPORTA ed escludere RF009 in README.md:70."
+  },
+  {
+    "id": "H-08",
+    "severity": "MINORE",
+    "file": "docs/decisioni/grafici.md:5",
+    "titolo": "La decisione sui grafici descrive ancora SVG propri, senza libreria e non interattivi",
+    "evidenza": "Le righe 5-6 e 11 dicono 'componenti SVG propri, senza libreria ... non interattivi' e rinviano a un ADR futuro, mentre il codice usa ECharts 6 interattivo (ADR 0027, src/shared/ui/grafici/echarts.ts) e ora anche il renderer canvas per il PNG. Il documento fra le decisioni di progetto contraddice l'architettura reale.",
+    "fix": "Aggiornare grafici.md: ECharts 6 con import modulari (ADR 0027), renderer SVG a schermo e canvas solo per il PNG scaricato, interazioni (zoom, drill-down).\nTogliere 'senza libreria'/'non interattivi' e il rinvio della riga 11; le regole di resa restano."
+  }
+]
