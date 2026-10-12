@@ -81,6 +81,40 @@ Finding delle lenti, dell'antagonista e verdetti del Judge in `review/v3-iter1/`
 
 Nessuno.
 
+### Iterazione 2 (12/10/2026): FAIL
+
+Commit verificato: `40ce48e` (correzioni dei 21 finding). Revisore di convergenza: 17 risolti, 4 parziali, 0 non
+risolti; 4 nuovi (1 MAGGIORE, 3 MINORE). Verdetto meccanico sui residui (`review/v3-iter2/residui.json`): **FAIL**,
+0 CRITICO, 1 MAGGIORE, 7 MINORE, score 64 (soglia 80). Esiti per finding in `review/v3-iter2/`.
+
+Verificati anche, sulla build sotto la CSP in Chrome e Firefox: A-01 (nessun errore del sankey all'uscita), A-02 (focus
+sul pulsante durante e dopo il download), V-01 (tutte le voci di NFR-50 nel PNG); H-01 (con le soglie forzate su tutto
+`src` restano solo `Layout`, `useInattivita`, `Home` e l'interceptor del mutator, pre-esistenti e fuori dal perimetro).
+
+#### Residui
+
+##### MAGGIORE
+
+- **N-01** `src/features/finanziario/lib/grafici/spesa.ts:147`: Regressione di X-02: raggruppaFamiglie mette in `mancanti` anche una dotazione presente ma 0,00 o negativa, e la famiglia diventa 'non calcolabile (manca per SRA05)' in tabella (accanto alla riga 'SRA05 0,00 €'), nel nodo e nella descrizione, mentre il KPI della dotazione accanto somma 30.000.000 (sonda CONV/sonda-famiglia-zero.test.ts). Nessun test copre il caso, che il codice dichiara reale (selezione.ts:4).
+  - Fix proposto: In raggruppaFamiglie mettere in mancantiPer solo le righe con `valoreDi(r.dotazioneSpesaPubblica) == null`; per 0 e negativi, fuori dal grafico, sommare il valore in un campo `fuoriGrafico` della famiglia. totaleFamiglia, etichetta e descrizione usano `f.totale + f.fuoriGrafico` quando `mancanti` e' vuoto. Test in finanziario-grafici.test.ts: SRA01 20 M€ e SRA05 0,00 danno 'Totale della famiglia 20.000.000,00 €'.
+
+##### MINORE
+
+- **H-03** `eslint.config.js:327`: Residuo di H-03 (PARZIALE): da src/features/*/lib/ il barrel della feature ('..', '../index', che riesporta ui/ e i wrapper api/) e '../api/' con la barra finale passano ESLint con 0 errori (sonde --stdin), quindi la purezza di lib/ si aggira ancora con un import relativo.
+  - Fix proposto: Estendere la regex della riga 327 a `^(\.\./){1,2}api/?(index(\.tsx?)?)?$` e aggiungere un pattern per il barrel della feature: `^\.\.(/\.\.)?/?(index(\.tsx?)?)?$`. Aggiungere in tests/eslint-regole.test.ts i casi '..', '../index' e '../api/' fra quelli che devono scattare.
+- **H-04** `eslint.config.js:23`: Residuo di H-04 (PARZIALE): `import { default as http } from 'axios'` e `import('axios')` passano ESLint con 0 errori in features/*/ui (sonde --stdin): un'istanza axios propria fuori dal mutator resta possibile con forme d'import standard.
+  - Fix proposto: Aggiungere a httpFuoriDalMutatorSelectors `ImportDeclaration[source.value='axios'] > ImportSpecifier[imported.name='default']`, `ImportExpression[source.value='axios']` e `CallExpression[callee.name='require'][arguments.0.value='axios']`. Aggiungere le due forme alla canary di tests/eslint-regole.test.ts:183.
+- **A-03** `src/shared/ui/grafici/echarts.ts:87`: Residuo di A-03 (PARZIALE): la copia del PNG riapplica la radice di vista ma, disegnata con animation:false, conserva le etichette del livello precedente: dopo il clic su SRA il PNG mostra '▶ SRD' e '▶ SRB' sopra la vista di SRA, che a schermo non ci sono (CONV/treemap-png-scaricato.png, sonda-ghost.mjs). tests/grafici-vista.test.ts:43 confronta due istanze con lo stesso difetto e cerca 'SRD01', che non compare mai.
+  - Fix proposto: In pngDelGrafico usare `animationDuration: 0, animationDurationUpdate: 0` al posto di `animation: false` e, dopo i dispatchAction, attendere l'evento 'finished' della copia prima di renderToCanvas (pngDelGrafico async; scarica di usePngDelGrafico restituisce la Promise). Con la sonda restano solo SRA01, SRA03, SRA14 e la briciola. Nel test, attendere che la copia non contenga '▶ SRD'.
+- **X-04** `src/features/finanziario/ui/VerificaSmpReport.tsx:90`: Residuo di X-04 (PARZIALE): la nota sulla ricerca e' opt-in e la TabellaInterattiva della Verifica SMP, con ricerca per codice o indicatore e i CSV/XLSX di TX-0015 nella stessa sezione, non la riceve: il file resta completo senza che la pagina lo dica.
+  - Fix proposto: Passare alla TabellaInterattiva di VerificaSmpReport.tsx:90 `notaRicerca="I file CSV e XLSX contengono tutti gli interventi dei filtri, non solo quelli trovati dalla ricerca."`, come in Riepilogo e Dotazione. In alternativa rendere la nota predefinita in TabellaInterattiva quando la pagina offre i file.
+- **N-02** `src/features/finanziario/ui/RiservaReport.tsx:89`: Il PNG del grafico della riserva non dice l'anno: la pagina ha conBarraFiltri={false}, quindi l'intestazione scrive 'Filtri applicati: nessuno' (PaginaFinanziario.tsx:93), e titolo e fonte della card non hanno l'anno. Il CSV della stessa card, scritto dal backend, dichiara 'Filtri applicati: anno=2025' (CriterioRiserva); il PNG da solo non dice di quale riserva e'.
+  - Fix proposto: Passare l'anno a UtilizzoProgressivo e scriverlo nella fonte: `fonte={`Fonte: TX-0014, movimenti della riserva dell'anno ${anno}`}`. In alternativa dare a PaginaFinanziario un prop `parametri` (es. ['anno=2025']) che useRigheIntestazione aggiunge ai filtri applicati, come il backend. Test: il PNG della riserva 2025 riceve un'intestazione che contiene 2025.
+- **N-03** `src/features/finanziario/ui/DettaglioIntervento.tsx:24`: Il vuoto aggiunto per X-01 dice 'Nessuna domanda SIGC per questo intervento. Modifica i filtri.', ma nel dettaglio non ci sono filtri da modificare: la barra ha il solo chip fisso dell'intervento e nessun pannello (PaginaFinanziario.tsx:90, ContestoFiltri nullo), per questo vuotoConPerimetro accoda l'invito come testo (comuni.tsx:40). Il test casi-limite.test.tsx:177 fissa la frase.
+  - Fix proposto: In DettaglioIntervento.tsx:24 non usare vuotoConPerimetro: `const SENZA_SIGC = (d: { perimetro?: Perimetro | null }) => <><PerimetroSezione perimetro={d.perimetro} />Nessuna domanda SIGC per questo intervento.</>`. Aggiornare l'attesa di tests/finanziario-casi-limite.test.tsx:177.
+- **N-04** `src/features/finanziario/ui/comuni.tsx:150`: I pulsanti di TX-0009 (V-04) stanno sopra l'intera fila dei KPI con il solo 'CSV' e 'XLSX' visibili: in panoramica la fila ha tre tessere di TX-0002 e una di TX-0009 (nella pagina Domande due di TX-0010), e il file contiene solo le domande (sonda CONV/esito-scarica-kpi.txt, scarica-kpi.png). In panoramica restano anche con la selezione vuota, quando la tessera delle domande non c'e' (Panoramica.tsx:170).
+  - Fix proposto: In ScaricaKpi rendere visibile l'oggetto accanto ai pulsanti (es. `<span className="ui-nota">{titolo}</span>` prima di PulsantiScarica), oppure portare i pulsanti nella tessera di TX-0009. In Panoramica montare ScaricaKpi dentro KpiDomande, cosi' sparisce con il segnale 'vuota'.
+
 ---
 
 ## Review v2: UI v2 (PASS, score 88, 09/10/2026)
