@@ -6,7 +6,7 @@ import { PaginaFinanziario } from '../../../../widgets/report-finanziario';
 export default function Pagina() {
   const [esercizio, impostaEsercizio] = useAnnoNellIndirizzo('esercizio');
   return (
-    <PaginaFinanziario percorso="/finanziario/sigc/verifica-smp">
+    <PaginaFinanziario percorso="/finanziario/sigc/verifica-smp" parametri={esercizio === undefined ? [] : [`Esercizio: ${esercizio}`]}>
       {(filtri) => <VerificaSmpReport filtri={filtri} esercizio={esercizio} onCambiaEsercizio={impostaEsercizio} />}
     </PaginaFinanziario>
   );

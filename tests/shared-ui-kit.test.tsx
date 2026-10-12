@@ -73,6 +73,14 @@ function tabella(props: Partial<Parameters<typeof TabellaInterattiva<Riga>>[0]> 
 const codici = () => within(screen.getByRole('table')).getAllByRole('rowheader').map((c) => c.textContent);
 
 describe('TabellaInterattiva', () => {
+  it('nota della ricerca: compare solo con una ricerca attiva (review v3 X-04)', async () => {
+    tabella({ notaRicerca: 'I file contengono tutte le righe.' });
+    expect(screen.queryByText('I file contengono tutte le righe.')).toBeNull();
+    await userEvent.type(screen.getByRole('searchbox', { name: 'Cerca nella tabella' }), 'X1');
+    expect(screen.getByText('I file contengono tutte le righe.')).toBeTruthy();
+    await userEvent.clear(screen.getByRole('searchbox', { name: 'Cerca nella tabella' }));
+    expect(screen.queryByText('I file contengono tutte le righe.')).toBeNull();
+  });
   it('caption con il conteggio, colonne nascoste di default, paginazione', async () => {
     tabella();
     expect(screen.getByRole('table', { name: 'Righe di prova: 12 righe.' })).toBeTruthy();

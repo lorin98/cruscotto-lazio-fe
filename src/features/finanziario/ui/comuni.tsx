@@ -142,12 +142,15 @@ export function erroreGiaMostrato() {
 
 /**
  * CSV e XLSX dei dati di una fila di KPI, sopra le tessere, solo con il grant della lettura: ogni dato in schermata si
- * scarica (NFR-75, review v3 V-04). Il titolo nomina il report e da' il nome al file.
+ * scarica (NFR-75, review v3 V-04). Il titolo nomina il report, si vede accanto ai pulsanti (la fila puo' avere tessere
+ * di altre letture: review v3 N-04) e da' il nome al file.
  */
 export function ScaricaKpi({ grant, titolo, report, filtri }: { grant: string; titolo: string; report: ReportEsportabile; filtri: Filtri }) {
   if (!hasGrant(useAuthStatus().data, grant)) return null;
   return (
     <div className="ui-strumenti justify-content-end">
+      {/* il nome accessibile del gruppo lo dice gia': per i lettori di schermo il testo sarebbe ripetuto */}
+      <span className="small" aria-hidden="true">{`File di ${titolo}`}</span>
       <PulsantiScarica oggetto={`i dati di ${titolo}`} scaricamenti={datiDelReport(titolo, report, filtri)} />
     </div>
   );

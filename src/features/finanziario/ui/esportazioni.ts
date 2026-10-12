@@ -11,6 +11,9 @@ import type { Filtri } from '../lib/filtri';
 import { transazioneDi } from '../lib/report';
 import type { LetturaConDati } from '../lib/report';
 
+/** Nota delle tabelle con la ricerca: i file del backend non la applicano (review v3 X-04). */
+export const NOTA_RICERCA_FILE = 'I file CSV e XLSX contengono tutti gli interventi dei filtri, non solo quelli trovati dalla ricerca.';
+
 /** CSV e XLSX di un export del backend, salvati come "<titolo>-tx-00nn.csv" e "<titolo>-tx-00nn.xlsx". */
 export function scaricamentiDati(titolo: string, lettura: LetturaConDati, esporta: (formato: FormatoEsportazione) => Promise<Blob>): Scaricamento[] {
   const base = `${titolo} ${transazioneDi(lettura)}`;

@@ -10,6 +10,7 @@ import { DETTAGLIO_INTERVENTO } from '../src/features/finanziario';
 import { PAGINE_FINANZIARIO } from '../src/features/finanziario/lib/report';
 import PaginaDotazione from '../src/pages/finanziario/dotazione/page';
 import PaginaRiepilogo from '../src/pages/finanziario/riepilogo/page';
+import PaginaRiserva from '../src/pages/finanziario/sigc/riserva/page';
 import { pngDelGrafico } from '../src/shared/ui/grafici/echarts';
 import PaginaVerificaSmp from '../src/pages/finanziario/sigc/verifica-smp/page';
 import routeTable from '../src/app/route-table.json';
@@ -114,6 +115,21 @@ describe('pagine del finanziario (step6)', () => {
       'Ultimo dato sincronizzato: DS-12 02/03/2026 10:15; PROSA DS-04 03/03/2026 09:30',
     ]);
     expect((clic.mock.contexts[0] as HTMLAnchorElement).download).toBe('dotazione-e-pagamenti-per-intervento-tx-0002.png');
+    clic.mockRestore();
+  });
+
+  it("PNG della riserva: l'anno della pagina fra i filtri applicati, come nei file del backend (review v3 N-02)", async () => {
+    server.use(
+      http.get('*/auth/status', () => HttpResponse.json({ authenticated: true, user: { username: 'U', profile: 'P1', roles: ['csr.tx-0014.read'] } })),
+      rispondi('/api/finanziario/riserva/2025', F.RISERVA),
+    );
+    const clic = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    const png = vi.mocked(pngDelGrafico);
+    png.mockClear();
+    renderPagina(PaginaRiserva, '/finanziario/sigc/riserva', '/finanziario/sigc/riserva?anno=2025');
+    await userEvent.click(await screen.findByRole('button', { name: 'Scarica il grafico Utilizzo progressivo cumulato della riserva in PNG' }));
+    await waitFor(() => expect(png).toHaveBeenCalledTimes(1));
+    expect(png.mock.calls[0][1].intestazione).toContain('Filtri applicati: Anno: 2025');
     clic.mockRestore();
   });
 

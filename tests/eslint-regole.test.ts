@@ -162,6 +162,10 @@ describe('lib/: niente ui/ ne wrapper api/ con un import relativo (review v3 H-0
     ["import { ConGrant } from '../ui/comuni';", 'src/features/finanziario/lib/__canary__.ts'],
     ["import { useRiepilogo } from '../api';", 'src/features/finanziario/lib/__canary__.ts'],
     ["import { useRiepilogo } from '../../api';", 'src/features/finanziario/lib/grafici/__canary__.ts'],
+    ["import { useRiepilogo } from '../api/';", 'src/features/finanziario/lib/__canary__.ts'],
+    ["import { Panoramica } from '..';", 'src/features/finanziario/lib/__canary__.ts'],
+    ["import { Panoramica } from '../index';", 'src/features/finanziario/lib/__canary__.ts'],
+    ["import { Panoramica } from '../..';", 'src/features/finanziario/lib/grafici/__canary__.ts'],
     ["import { AXIOS_INSTANCE } from '../api/mutator/bff-mutator';", 'src/shared/lib/__canary__.ts'],
     ["import { hasGrant } from '../api/auth/auth-status';", 'src/shared/lib/__canary__.ts'],
     ["import { Kpi } from '../ui';", 'src/shared/lib/__canary__.ts'],
@@ -187,6 +191,8 @@ describe('una sola istanza HTTP, il mutator BFF (review v3 H-04)', () => {
       "import axios from 'axios';\nexport const x = axios.get('/api/finanziario/riepilogo');\n",
       "import * as ax from 'axios';\nexport const x = ax;\n",
       "import { Axios } from 'axios';\nexport const x = new Axios({});\n",
+      "import { default as http } from 'axios';\nexport const x = http.get('/api/finanziario/riepilogo');\n",
+      "export const x = import('axios');\n",
     ]) {
       expect(sintassi(await regole(codice, percorso)).length, codice).toBeGreaterThan(0);
     }

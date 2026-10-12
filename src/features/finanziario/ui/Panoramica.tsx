@@ -77,6 +77,13 @@ function KpiDomande({ filtri }: { filtri: Filtri }) {
   return segnale === 'in-attesa' ? <Caricamento /> : <KpiDomandeDati filtri={filtri} />;
 }
 
+// i file delle domande (TX-0009) solo quando la loro tessera c'e': non con la selezione vuota (review v3 N-04)
+function ScaricaDomande({ filtri }: { filtri: Filtri }) {
+  const segnale = useSelezioneSenzaInterventi(filtri);
+  if (segnale !== 'non-vuota') return null;
+  return <ScaricaKpi grant={GRANT.totaleDomande} titolo="Domande presentate (RF009)" report="totaleDomande" filtri={filtri} />;
+}
+
 // il clic su un intervento (barra o foglia) apre il dettaglio; su una famiglia il treemap entra nel gruppo
 function GraficiSpesa({ filtri, clic }: { filtri: Filtri; clic: (p: ClicGrafico) => void }) {
   const stato = useSpesaPerIntervento(filtri);
@@ -167,7 +174,7 @@ export function Panoramica({ filtri }: { filtri: Filtri }) {
   return (
     <>
       {/* i dati di TX-0002 si scaricano dalle card dei grafici; quelli delle domande (TX-0009) qui (NFR-75, review v3 V-04) */}
-      <ScaricaKpi grant={GRANT.totaleDomande} titolo="Domande presentate (RF009)" report="totaleDomande" filtri={filtri} />
+      <ScaricaDomande filtri={filtri} />
       <Griglia colonne={4}>
         <ConGrant grant={GRANT.spesaPerIntervento} titolo="Dotazione e pagamenti">
           <KpiSpesaSezione filtri={filtri} />

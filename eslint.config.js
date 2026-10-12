@@ -26,6 +26,10 @@ const httpFuoriDalMutatorSelectors = [
   { selector: "CallExpression[callee.property.value='fetch']", message: "fetch (computed) vietato nella SPA: le richieste passano dal mutator BFF. Usa i wrapper api/." },
   { selector: "ImportDeclaration[source.value='axios'] > :matches(ImportDefaultSpecifier, ImportNamespaceSpecifier)", message: "Un'istanza axios propria e' vietata fuori dal mutator BFF (unica istanza sancita): usa i wrapper api/. Ammessi isAxiosError, AxiosError e i tipi." },
   { selector: "ImportDeclaration[source.value='axios'] > ImportSpecifier[imported.name='Axios']", message: "La classe Axios e' vietata fuori dal mutator BFF (unica istanza sancita): usa i wrapper api/." },
+  // le altre forme dello stesso import: { default as x }, import() dinamico, require (review v3 iterazione 2)
+  { selector: "ImportDeclaration[source.value='axios'] > ImportSpecifier[imported.name='default']", message: "Un'istanza axios propria e' vietata fuori dal mutator BFF (unica istanza sancita): usa i wrapper api/." },
+  { selector: "ImportExpression[source.value='axios']", message: "import() di axios vietato fuori dal mutator BFF (unica istanza sancita): usa i wrapper api/." },
+  { selector: "CallExpression[callee.name='require'][arguments.0.value='axios']", message: "require di axios vietato fuori dal mutator BFF (unica istanza sancita): usa i wrapper api/." },
 ];
 
 const credentialRules = {
@@ -321,11 +325,16 @@ export default tseslint.config(
           group: ['**/ui', '**/ui/*', '**/ui/**', '**/api/mutator', '**/api/mutator/*', '**/api/auth/auth-status', '**/api/auth/use-auth-status'],
           message: "Il layer lib/ e' puro: niente ui/, mutator o moduli auth con effetti (passa il dato come parametro; i tipi e i predicati puri stanno in shared/api/auth/stato).",
         },
-        // il barrel api/ della feature (i wrapper React Query): una cartella in gitignore vieterebbe anche i moduli puri
-        // di shared/api, quindi il solo barrel con una regex sullo specificatore
+        // il barrel api/ della feature (i wrapper React Query) e il barrel della feature stessa ('..', '../..', che
+        // riesporta ui/ e api/): una cartella in gitignore vieterebbe anche i moduli puri di shared/api, quindi i soli
+        // barrel con una regex sullo specificatore, anche con la barra finale o /index (review v3 iterazione 2)
         {
-          regex: '^(\\.\\./){1,2}api(/index(\\.tsx?)?)?$',
+          regex: '^(\\.\\./){1,2}api/?(index(\\.tsx?)?)?$',
           message: "Il layer lib/ e' puro: niente wrapper api/ della feature (hook React Query); passa il dato come parametro.",
+        },
+        {
+          regex: '^\\.\\.(/\\.\\.)?/?(index(\\.tsx?)?)?$',
+          message: "Il layer lib/ e' puro: niente barrel della feature (riesporta ui/ e api/); importa il modulo puro che serve.",
         },
         testingImportGroup,
         entityBarrelOnlyImportGroup,

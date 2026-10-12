@@ -369,6 +369,23 @@ describe('graficoFamiglie', () => {
     expect(n(opzioniDi(graficoFamiglie(righeSpesa.filter((r) => r.codiceIntervento !== 'SRA03'))).aria.label.description)).toContain('la famiglia con la dotazione maggiore è SRA (30,0 M€)');
   });
 
+  it('dotazione 0,00 o negativa: fuori dal grafico ma dentro il totale della famiglia, che resta calcolabile (review v3 N-01)', () => {
+    const righe: RigaSpesa[] = [
+      { codiceIntervento: 'SRA01', dotazioneSpesaPubblica: imp(20_000_000) },
+      { codiceIntervento: 'SRA05', dotazioneSpesaPubblica: imp(0) },
+      { codiceIntervento: 'SRA06', dotazioneSpesaPubblica: imp(-1_000_000) },
+    ];
+    const g = graficoFamiglie(righe);
+    expect(righeN(g)).toContainEqual(['SRA', 'Totale della famiglia', '19.000.000,00 €']);
+    const [sra] = (opzioniDi(g).series[0].data ?? []).map(item);
+    // l'area resta quella delle foglie positive; etichetta e dettaglio dicono la dotazione della famiglia
+    expect(sra.value).toBe(20_000_000);
+    expect(n(sra.etichetta ?? '')).toBe('SRA 19,0 M€');
+    expect(n(sra.dettaglio ?? '')).toBe('Famiglia SRA: 1 intervento, dotazione 19,0 M€');
+    expect(n(opzioniDi(g).aria.label.description)).toContain('la famiglia con la dotazione maggiore è SRA (19,0 M€)');
+    expect(g.omessi).toEqual(['SRA05: dotazione pari a zero', 'SRA06: dotazione negativa']);
+  });
+
   it('nessuna dotazione utile: non disegnabile', () => {
     const g = graficoFamiglie([righeSpesa[3]]);
     controllaNonDisegnabile(g, 'nessun intervento con dotazione valorizzata e positiva');

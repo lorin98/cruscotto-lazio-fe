@@ -57,6 +57,8 @@ interface PropsPagina {
   conBarraFiltri?: boolean;
   /** Chip non rimovibili al posto dei filtri dell'indirizzo (es. l'intervento della pagina di dettaglio). */
   chipFissi?: ChipFiltro[];
+  /** Parametri di pagina fuori dalla barra (es. "Anno: 2025"), fra i filtri applicati dell'intestazione dei PNG (N-02). */
+  parametri?: readonly string[];
   /** Voci intermedie del percorso (dopo Home e Finanziario). */
   briciole?: Briciola[];
   /** Testo dell'h1 al posto di quello del catalogo (es. la descrizione dell'intervento). */
@@ -69,7 +71,7 @@ interface PropsPagina {
 }
 
 /** Briciole e titolo dal catalogo dei report, con le sostituzioni della pagina. */
-function Testata({ percorso, briciole, titolo, titoloDocumento, sottotitolo, azioni, filtri }: Omit<PropsPagina, 'children' | 'conBarraFiltri' | 'chipFissi'> & { filtri: Filtri }) {
+function Testata({ percorso, briciole, titolo, titoloDocumento, sottotitolo, azioni, filtri }: Omit<PropsPagina, 'children' | 'conBarraFiltri' | 'chipFissi' | 'parametri'> & { filtri: Filtri }) {
   const voce = voceDi(percorso);
   const catalogo = voce?.titolo ?? 'Finanziario';
   return (
@@ -82,21 +84,22 @@ function Testata({ percorso, briciole, titolo, titoloDocumento, sottotitolo, azi
 
 /**
  * La modalita' della barra si decide una volta: i chip fissi (dettaglio), oppure i filtri dell'indirizzo con il pannello.
- * Restituisce anche le righe della pagina per l'intestazione dei PNG (i filtri della barra, NFR-50, review v3 V-01).
+ * Restituisce anche le righe della pagina per l'intestazione dei PNG: i filtri della barra e i parametri della pagina
+ * (anno della riserva, esercizio della verifica SMP), come i filtri applicati dei file del backend (NFR-50, V-01, N-02).
  */
-function useBarraFiltri(conBarraFiltri: boolean, chipFissi: ChipFiltro[] | undefined) {
+function useBarraFiltri(conBarraFiltri: boolean, chipFissi: ChipFiltro[] | undefined, parametri: readonly string[]) {
   const { filtri, inAttesa, chip, applica, togliTutti, conPannello } = useFiltriNellIndirizzo();
   const [aperto, setAperto] = useState(false);
   const pannelloAttivo = conBarraFiltri && conPannello && !chipFissi;
   const apriPannello = pannelloAttivo ? () => setAperto(true) : undefined;
   const barra = chipFissi ? { chip: chipFissi } : { chip, onApri: apriPannello, onTogliTutti: togliTutti };
-  const righe = useRigheIntestazione((conBarraFiltri ? barra.chip : []).map((c) => `${c.etichetta}: ${c.valore}`));
+  const righe = useRigheIntestazione([...(conBarraFiltri ? barra.chip : []).map((c) => `${c.etichetta}: ${c.valore}`), ...parametri]);
   const pannello = pannelloAttivo ? { aperto, chiudi: () => setAperto(false), applica } : null;
   return { filtri, inAttesa: conBarraFiltri && inAttesa, barra, apriPannello, righe, pannello };
 }
 
-export function PaginaFinanziario({ conBarraFiltri = true, chipFissi, children, ...testata }: PropsPagina) {
-  const { filtri, inAttesa, barra, apriPannello, righe, pannello } = useBarraFiltri(conBarraFiltri, chipFissi);
+export function PaginaFinanziario({ conBarraFiltri = true, chipFissi, parametri = [], children, ...testata }: PropsPagina) {
+  const { filtri, inAttesa, barra, apriPannello, righe, pannello } = useBarraFiltri(conBarraFiltri, chipFissi, parametri);
   return (
     <ContestoFiltri.Provider value={apriPannello ?? null}>
       {conBarraFiltri && <BarraFiltri {...barra} vuoto="Nessun filtro: tutti gli interventi del perimetro" destra={<PillDellaBarra />} />}

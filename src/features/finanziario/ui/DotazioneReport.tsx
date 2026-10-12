@@ -8,7 +8,7 @@ import { CardGrafico, Griglia, PulsantiScarica, Sezione, TabellaInterattiva, Vis
 import type { ColonnaTabella } from '../../../shared/ui';
 import { useDistribuzioneDotazione, useSpesaPerIntervento } from '../api';
 import type { SpesaPerIntervento, SpesaPerInterventoRiga } from '../api';
-import { datiDelReport } from './esportazioni';
+import { NOTA_RICERCA_FILE, datiDelReport } from './esportazioni';
 import { ricercaDaFiltri } from '../lib/filtri';
 import type { Filtri } from '../lib/filtri';
 import { percentualeOpzionale } from '../lib/formato';
@@ -93,7 +93,7 @@ function ContributoETabella({ d, filtri }: { d: SpesaPerIntervento; filtri: Filt
           chiaveRiga={(r) => r.codiceIntervento ?? ''}
           testoRicerca={(r) => r.codiceIntervento ?? ''}
           segnapostoRicerca="Cerca per codice dell'intervento"
-          notaRicerca="I file CSV e XLSX contengono tutti gli interventi dei filtri, non solo quelli trovati dalla ricerca."
+          notaRicerca={NOTA_RICERCA_FILE}
           etichettaRiga={(r) => `Apri il dettaglio dell'intervento ${r.codiceIntervento ?? ''}`}
           onRiga={(r) => r.codiceIntervento && onIntervento(r.codiceIntervento)}
           ordineIniziale={{ chiave: 'dotazioneSpesaPubblica', verso: 'decrescente' }}

@@ -116,12 +116,17 @@ export function graficoAvanzamento(righe: RigaSpesa[], perimetro?: string | null
 
 interface Famiglia {
   nome: string;
-  /** Somma delle foglie: e' il totale della famiglia solo se `mancanti` e' vuoto, altrimenti e' parziale. */
+  /** Somma delle foglie (dotazioni positive): l'area del riquadro. */
   totale: number;
   foglie: Array<{ codice: string; dotazione: number }>;
-  /** Interventi della famiglia senza dotazione utilizzabile (omessi dal grafico). */
+  /** Somma delle dotazioni presenti ma zero o negative: fuori dal grafico, dentro il totale della famiglia. */
+  fuoriGrafico: number;
+  /** Interventi della famiglia senza la dotazione (valore assente): con anche uno solo il totale non e' calcolabile. */
   mancanti: string[];
 }
+
+/** Dotazione della famiglia: foglie piu' dotazioni zero o negative, come il KPI della dotazione (review v3 N-01). */
+const dotazioneFamiglia = (f: Famiglia) => sommaCentesimi([f.totale, f.fuoriGrafico]);
 
 interface NodoAlbero {
   name: string;
@@ -135,6 +140,7 @@ interface NodoAlbero {
 function raggruppaFamiglie(righe: readonly RigaSpesa[]) {
   const perFamiglia = new Map<string, Famiglia['foglie']>();
   const mancantiPer = new Map<string, string[]>();
+  const fuoriPer = new Map<string, number[]>();
   const righeOmesse: string[][] = [];
   const omessi: string[] = [];
   for (const r of righe) {
@@ -144,7 +150,10 @@ function raggruppaFamiglie(righe: readonly RigaSpesa[]) {
     if (problema) {
       omessi.push(`${codice}: ${problema}`);
       righeOmesse.push([famiglia, codice, cellaImporto(r.dotazioneSpesaPubblica)]);
-      mancantiPer.set(famiglia, [...(mancantiPer.get(famiglia) ?? []), codice]);
+      // un valore assente manca al totale; uno zero o un negativo c'e', anche se non si disegna
+      const valore = valoreDi(r.dotazioneSpesaPubblica);
+      if (valore == null) mancantiPer.set(famiglia, [...(mancantiPer.get(famiglia) ?? []), codice]);
+      else fuoriPer.set(famiglia, [...(fuoriPer.get(famiglia) ?? []), valore]);
       continue;
     }
     perFamiglia.set(famiglia, [...(perFamiglia.get(famiglia) ?? []), { codice, dotazione: valoreDi(r.dotazioneSpesaPubblica) as number }]);
@@ -154,15 +163,16 @@ function raggruppaFamiglie(righe: readonly RigaSpesa[]) {
       nome,
       totale: sommaCentesimi(foglie.map((f) => f.dotazione)),
       foglie: [...foglie].sort((a, b) => b.dotazione - a.dotazione || confronta(a.codice, b.codice)),
+      fuoriGrafico: sommaCentesimi(fuoriPer.get(nome) ?? []),
       mancanti: mancantiPer.get(nome) ?? [],
     }))
-    .sort((a, b) => b.totale - a.totale || confronta(a.nome, b.nome));
+    .sort((a, b) => dotazioneFamiglia(b) - dotazioneFamiglia(a) || confronta(a.nome, b.nome));
   return { famiglie, righeOmesse, omessi };
 }
 
 /** Il totale della famiglia, o "non calcolabile" con gli interventi che mancano: mai una somma parziale (review v3 X-02). */
 function totaleFamiglia(f: Famiglia, formato: (v: number) => string): string {
-  return f.mancanti.length === 0 ? formato(f.totale) : `${NON_CALCOLABILE} (manca per ${f.mancanti.join(', ')})`;
+  return f.mancanti.length === 0 ? formato(dotazioneFamiglia(f)) : `${NON_CALCOLABILE} (manca per ${f.mancanti.join(', ')})`;
 }
 
 // con interventi mancanti il valore resta solo come area del riquadro: etichetta e dettaglio non lo chiamano totale
@@ -172,9 +182,9 @@ function nodoFamiglia(f: Famiglia): NodoAlbero {
   return {
     name: f.nome,
     value: f.totale,
-    etichetta: `${f.nome}\n${completa ? importoBreve(f.totale) : NON_CALCOLABILE}`,
+    etichetta: `${f.nome}\n${completa ? importoBreve(dotazioneFamiglia(f)) : NON_CALCOLABILE}`,
     dettaglio: completa
-      ? `Famiglia ${f.nome}: ${conDotazione}, dotazione ${importoBreve(f.totale)}`
+      ? `Famiglia ${f.nome}: ${conDotazione}, dotazione ${importoBreve(dotazioneFamiglia(f))}`
       : `Famiglia ${f.nome}: dotazione ${totaleFamiglia(f, importoBreve)}; ${conDotazione} con dotazione, ${importoBreve(f.totale)}`,
     children: f.foglie.map((x) => ({ name: x.codice, value: x.dotazione, codice: x.codice, etichetta: `${x.codice}\n${importoBreve(x.dotazione)}`, dettaglio: `${x.codice} (famiglia ${f.nome}): dotazione ${importoBreve(x.dotazione)}` })),
   };
@@ -198,7 +208,7 @@ export function graficoFamiglie(righe: RigaSpesa[], forma: 'treemap' | 'sunburst
   const parziali = famiglie.filter((f) => f.mancanti.length > 0);
   const confronto =
     parziali.length === 0
-      ? `la famiglia con la dotazione maggiore è ${famiglie[0].nome} (${importoBreve(famiglie[0].totale)})`
+      ? `la famiglia con la dotazione maggiore è ${famiglie[0].nome} (${importoBreve(dotazioneFamiglia(famiglie[0]))})`
       : `dotazione non calcolabile per ${parziali.map((f) => `${f.nome} (manca per ${f.mancanti.join(', ')})`).join(', ')}`;
   const descrizione =
     `${tipo} della dotazione di spesa pubblica per famiglia di intervento: ${plurale(famiglie.length, 'famiglia', 'famiglie')} e ` +

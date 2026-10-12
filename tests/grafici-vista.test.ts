@@ -1,10 +1,13 @@
 // @vitest-environment node
 // Radice di vista di treemap e raggiera (review v3 A-03) con ECharts VERO, renderer SVG lato server: dopo il drill-down
-// dell'utente la copia del PNG, con le stesse opzioni e le radici lette da radiciDiVista, mostra la stessa vista. Il
-// modello di ECharts non e' nei tipi pubblici: se un aggiornamento della libreria lo cambia, fallisce questo test.
+// dell'utente la copia del PNG (copiaComeSiVede: stesse opzioni, nessuna animazione anche nelle serie, radici lette da
+// radiciDiVista) mostra la stessa vista, senza le etichette del livello precedente. Il modello di ECharts non e' nei
+// tipi pubblici: se un aggiornamento della libreria lo cambia, fallisce questo test.
 import { describe, expect, it } from 'vitest';
 import * as echarts from 'echarts';
 import type { EChartsOption } from 'echarts';
+import { copiaComeSiVede } from '../src/shared/ui/grafici/echarts';
+import type { IstanzaGrafico } from '../src/shared/ui/grafici/echarts';
 import { radiciDiVista } from '../src/shared/ui/grafici/vista';
 
 const ALBERO = [
@@ -28,19 +31,27 @@ describe('radiciDiVista', () => {
   it.each([
     ['treemap', TREEMAP, 'treemapRootToNode'],
     ['raggiera', RAGGIERA, 'sunburstRootToNode'],
-  ] as const)('%s: dopo il drill-down la copia mostra la stessa vista', (_nome, opzioni, azione) => {
+  ] as const)('%s: dopo il drill-down la copia del PNG mostra solo il livello scelto', (_nome, opzioni, azione) => {
     const vista = crea(opzioni);
     expect(radiciDiVista(vista)).toEqual([]);
     // il clic dell'utente su SRA: la stessa azione che ECharts esegue dal grafico
     vista.dispatchAction({ type: azione, seriesIndex: 0, targetNode: 'SRA' });
-    const radici = radiciDiVista(vista);
-    expect(radici).toEqual([{ type: azione, seriesIndex: 0, targetNodeId: expect.any(String) }]);
-    const copia = crea(opzioni);
-    // senza le radici la copia ripartirebbe dalla radice dell'albero
-    expect(testi(copia)).not.toEqual(testi(vista));
-    for (const r of radici) copia.dispatchAction(r);
+    expect(radiciDiVista(vista)).toEqual([{ type: azione, seriesIndex: 0, targetNodeId: expect.any(String) }]);
+    const copia = echarts.init(null, undefined, { renderer: 'svg', ssr: true, width: 600, height: 400 });
+    copiaComeSiVede(vista as unknown as IstanzaGrafico, copia);
+    const visti = testi(copia);
+    expect(visti).toEqual(expect.arrayContaining(['SRA01', 'SRA03']));
+    // niente famiglie del livello precedente (con animation:false solo globale il treemap le lasciava: residuo di A-03)
+    for (const altro of ['SRD', 'SRD01', '▶ SRD', '▶ SRA']) expect(visti).not.toContain(altro);
+    vista.dispose();
+    copia.dispose();
+  });
+
+  it('senza drill-down la copia ha le stesse famiglie della vista', () => {
+    const vista = crea(TREEMAP);
+    const copia = echarts.init(null, undefined, { renderer: 'svg', ssr: true, width: 600, height: 400 });
+    copiaComeSiVede(vista as unknown as IstanzaGrafico, copia);
     expect(testi(copia)).toEqual(testi(vista));
-    expect(testi(copia)).not.toContain('SRD01');
     vista.dispose();
     copia.dispose();
   });

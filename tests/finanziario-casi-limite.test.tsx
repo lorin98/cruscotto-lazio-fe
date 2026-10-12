@@ -174,8 +174,10 @@ describe('DettaglioIntervento: casi limite', () => {
     );
     conRouter(<DettaglioIntervento codice="SRA01" />);
     await userEvent.click(await screen.findByRole('tab', { name: 'SIGC' }));
-    const vuoto = await screen.findByText('Nessuna domanda SIGC per questo intervento. Modifica i filtri.');
+    // filtri fissi nel dettaglio: nessun invito a modificarli (review v3 N-03)
+    const vuoto = await screen.findByText('Nessuna domanda SIGC per questo intervento.', { exact: false });
     expect(ruolo(vuoto)).toBe('status');
+    expect(vuoto.closest('[role="status"]')?.textContent).not.toContain('Modifica i filtri');
     expect(graficiVivi().map(titoloGrafico)).not.toContain('Importi SIGC');
     expect(screen.queryByRole('group', { name: 'Scarica il grafico Importi SIGC' })).toBeNull();
   });

@@ -505,6 +505,8 @@ describe('Panoramica (route /finanziario: TX-0002, TX-0009, TX-0012, TX-0013)', 
     // la tessera delle domande segue il segnale di TX-0002: con la selezione vuota non c'e' e TX-0009 non si legge
     expect(screen.queryByRole('region', { name: 'Domande presentate' })).toBeNull();
     expect(letture(client, '/api/finanziario/totale-domande')).toHaveLength(0);
+    // e senza la tessera niente file delle domande (review v3 N-04)
+    expect(screen.queryByRole('group', { name: 'Scarica i dati di Domande presentate (RF009)' })).toBeNull();
   });
 
   it('senza il grant di TX-0002 la sezione della spesa lo dice e non legge TX-0002 (R-09)', async () => {
@@ -1490,6 +1492,9 @@ describe('DomandeReport (TX-0008..TX-0010)', () => {
     act(() => clicSu(graficoDi(RF008), { name: '2024', dataIndex: 0 }));
     await waitFor(() => expect(anni()).toEqual(['2024']));
     expect(scelta().value).toBe('2024');
+    // il backend non filtra per anno: i file hanno tutti gli anni e la pagina lo dice (review v3 X-04)
+    expect(screen.getByText('I file CSV e XLSX contengono tutti gli anni di raccolta, non solo il 2024.')).toBeTruthy();
+    expect(screen.getByRole('group', { name: 'Scarica la tabella Domande per anno (tutti gli anni, non solo il 2024)' })).toBeTruthy();
     const controllo = scelta();
     await userEvent.selectOptions(controllo, 'Tutti gli anni');
     expect(anni()).toEqual(['2024', 'senza campagna']);
@@ -1811,6 +1816,16 @@ describe('VerificaSmpReport (TX-0015)', () => {
     await waitFor(() => expect(query).toBe('?intervento=SRA01&esercizio=2025'));
     expect((clic.mock.contexts[0] as HTMLAnchorElement).download).toBe('verifica-smp-esercizio-2025-tx-0015.csv');
     clic.mockRestore();
+  });
+
+  it('ricerca nella tabella: nota che i file hanno tutti gli interventi dei filtri (review v3 X-04)', async () => {
+    server.use(rispondi('/api/finanziario/sigc/verifica-smp', F.VERIFICA_SMP));
+    conRouter(<VerificaSmpReport filtri={{}} esercizio={2025} onCambiaEsercizio={nessunaAzione} />);
+    await screen.findByRole('table', { name: TABELLA_SMP });
+    const nota = 'I file CSV e XLSX contengono tutti gli interventi dei filtri, non solo quelli trovati dalla ricerca.';
+    expect(screen.queryByText(nota)).toBeNull();
+    await userEvent.type(ricerca(), 'SRA');
+    expect(screen.getByText(nota)).toBeTruthy();
   });
 
   it("senza esercizio chiede di sceglierlo; l'esercizio 2030 e selezionabile", () => {

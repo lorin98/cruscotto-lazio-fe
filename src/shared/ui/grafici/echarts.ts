@@ -72,20 +72,34 @@ function conIntestazione(grafico: HTMLCanvasElement, righe: readonly string[], {
   return tela;
 }
 
+// Senza animazioni anche su OGNI serie: il treemap ha le sue durate predefinite, che prevalgono su animation:false
+// globale, e dopo il cambio di radice la copia avrebbe ancora le etichette del livello precedente ("▶ SRD" sopra la
+// vista di SRA: review v3 iterazione 2, residuo di A-03). Con le serie senza animazioni il disegno e' subito quello finale.
+function senzaAnimazioni(opzioni: EChartsOption): EChartsOption {
+  const serie = opzioni.series;
+  return { ...opzioni, animation: false, series: Array.isArray(serie) ? serie.map((s) => ({ ...s, animation: false })) : serie };
+}
+
 /**
- * Immagine PNG (data URL) del grafico come si vede, sotto l'intestazione di NFR-50 (`intestazione`, righe gia' composte:
- * review v3 V-01). Le opzioni CORRENTI dell'istanza (serie nascoste dalla legenda, zoom) alle stesse dimensioni, con la
- * radice di vista di treemap e raggiera (drill-down, review v3 A-03), ridisegnate senza animazioni col renderer canvas, che
- * usa i font gia' caricati dalla pagina (un SVG aperto come immagine non li vedrebbe e cambierebbe il testo), a densita'
- * almeno doppia per la nitidezza.
+ * Porta `copia` a com'e' `sorgente` sullo schermo: le opzioni CORRENTI (serie nascoste dalla legenda, zoom) senza
+ * animazioni, poi la radice di vista di treemap e raggiera (il drill-down, review v3 A-03).
+ */
+export function copiaComeSiVede(sorgente: IstanzaGrafico, copia: Pick<EChartsType, 'setOption' | 'dispatchAction'>): void {
+  copia.setOption(senzaAnimazioni(sorgente.getOption() as EChartsOption));
+  for (const radice of radiciDiVista(sorgente)) copia.dispatchAction(radice);
+}
+
+/**
+ * Immagine PNG (data URL) del grafico come si vede (copiaComeSiVede), sotto l'intestazione di NFR-50 (`intestazione`,
+ * righe gia' composte: review v3 V-01), alle stesse dimensioni, col renderer canvas, che usa i font gia' caricati dalla
+ * pagina (un SVG aperto come immagine non li vedrebbe e cambierebbe il testo), a densita' almeno doppia per la nitidezza.
  */
 export function pngDelGrafico(sorgente: IstanzaGrafico, { sfondo, intestazione }: { sfondo: string; intestazione: readonly string[] }): string {
   const larghezza = sorgente.getWidth();
   const densita = Math.max(2, window.devicePixelRatio || 1);
   const copia = echarts.init(document.createElement('div'), TEMA, { renderer: 'canvas', width: larghezza, height: sorgente.getHeight() });
   try {
-    copia.setOption({ ...(sorgente.getOption() as EChartsOption), animation: false });
-    for (const radice of radiciDiVista(sorgente)) copia.dispatchAction(radice);
+    copiaComeSiVede(sorgente, copia);
     const grafico = copia.renderToCanvas({ pixelRatio: densita, backgroundColor: sfondo });
     return conIntestazione(grafico, intestazione, { larghezza, densita, sfondo }).toDataURL('image/png');
   } finally {

@@ -16,12 +16,18 @@ import type { Filtri } from '../lib/filtri';
 import { graficoCascataIntervento, graficoCascataSigc, graficoDomandePerAnno, graficoGauge, graficoImbutoSigc, graficoImportiPerAnno, vociIntervento } from '../lib/grafici';
 import type { Perimetro } from '../lib/perimetro';
 import { GRANT, PERCORSI, conFiltri } from '../lib/report';
-import { ConGrant, KpiImporto, NotaPerimetroMisto, PerimetroSezione, diProgramma, vuotoConPerimetro } from './comuni';
+import { ConGrant, KpiImporto, NotaPerimetroMisto, PerimetroSezione, diProgramma } from './comuni';
 import { useSelezioneSenzaDomandeSigc } from './selezione';
 
 // titolo del wireframe intervento (scheda Domande)
 const IMPORTI_PER_ANNO = 'Importi ammessi e decretati per anno';
-const SENZA_SIGC = vuotoConPerimetro('Nessuna domanda SIGC per questo intervento.');
+// nel dettaglio i filtri sono fissi (il solo intervento): il vuoto non invita a modificarli (review v3 N-03)
+const SENZA_SIGC = (d: { perimetro?: Perimetro | null }) => (
+  <>
+    <PerimetroSezione perimetro={d.perimetro} />
+    Nessuna domanda SIGC per questo intervento.
+  </>
+);
 
 function Testata({ codice, selezione, perimetro, contributo }: { codice: string; selezione: Filtri; perimetro?: Perimetro; contributo?: number | null }) {
   return (
