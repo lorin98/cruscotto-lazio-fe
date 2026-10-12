@@ -45,9 +45,9 @@ export function MenuLaterale({ onNaviga }: { onNaviga?: () => void }) {
           <GruppoArea key={area.chiave} area={area} pagine={pagine} onNaviga={onNaviga} />
         ))}
         {AREE_FUTURE.map((a) => (
-          <li key={a}>
+          <li key={a.chiave}>
             <span className="ui-menu__presto">
-              {a}
+              {a.titolo}
               <span>presto</span>
             </span>
           </li>

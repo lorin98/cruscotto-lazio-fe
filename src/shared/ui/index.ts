@@ -24,3 +24,4 @@ export { TabellaInterattiva } from './tabella/TabellaInterattiva';
 export { PulsantiScarica } from './scarica/PulsantiScarica';
 export type { FormatoScaricabile, Scaricamento } from './scarica/PulsantiScarica';
 export type { ColonnaTabella, RigaPiede } from './tabella/TabellaInterattiva';
+export { NumeroAnimato, movimentoRidotto, useValoreAnimato } from './animazione/NumeroAnimato';

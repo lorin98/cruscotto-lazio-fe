@@ -146,6 +146,22 @@ async function apriTooltip(page: Page, indice: number, atteso: RegExp) {
   throw new Error(`tooltip ${String(atteso)} non comparso`);
 }
 
+// 12/10/2026: la Home con i quattro ambiti, i numeri chiave animati e la barra che si riempie (solo classi e testo)
+test('home: quattro ambiti nella stessa riga, numeri chiave animati, nessuna violazione della CSP', async ({ page }) => {
+  await page.setViewportSize({ width: 1680, height: 1000 });
+  await preparaPagina(page);
+  await page.goto('/');
+  const ambiti = page.getByRole('navigation', { name: 'Aree del cruscotto' }).locator('.ui-ambiti__griglia > li');
+  await expect(ambiti).toHaveCount(4);
+  await expect(page.getByRole('group', { name: 'Il finanziario in cifre' })).toContainText('1200');
+  // griglia bilanciata: con lo schermo largo le quattro card stanno sulla stessa riga
+  const alti = await ambiti.evaluateAll((li) => li.map((el) => Math.round(el.getBoundingClientRect().top)));
+  expect(new Set(alti).size).toBe(1);
+  await expect(page.getByText('Primo pilastro')).toHaveCount(0);
+  await page.getByRole('link', { name: 'Entra in Finanziario' }).hover();
+  expect(await violazioni(page)).toEqual([]);
+});
+
 test('panoramica: grafici, tooltip di un elemento e KPI senza violazioni della CSP', async ({ page }) => {
   await preparaPagina(page);
   await page.goto('/finanziario');

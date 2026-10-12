@@ -319,3 +319,73 @@ h1[tabindex='-1']:focus { outline: none !important; box-shadow: none !important;
 .ui-tabella-contenitore:focus-visible { outline: 3px solid var(--ui-fuoco); outline-offset: 2px; }
 /* AvvisoPagina: il contenitore riceve il focus solo da programma, quando l'avviso sparisce col pulsante (M-02) */
 .ui-avviso-pagina:focus { outline: none; }
+
+/* ---------------------------------------------------------------- home: i quattro ambiti del cruscotto
+   Griglia bilanciata sulla larghezza del contenuto (container query, non dello schermo: il menu laterale ne prende una
+   parte): quattro colonne, poi due su due, poi una; mai tre e una. Ogni ambito ha il suo colore (--c, --c2), con testo
+   bianco sulla fascia a contrasto AA (>= 4,5:1 su entrambi i colori del gradiente, anche dove la filigrana, la luce
+   e le righe delle aree future la schiariscono: al piu' il 25% di bianco). */
+.ui-benvenuto p { margin: 0; color: rgba(255, 255, 255, .88); max-width: 60rem; }
+.ui-ambiti { container-type: inline-size; }
+.ui-ambiti__griglia { display: grid; gap: 1.25rem; grid-template-columns: repeat(4, minmax(0, 1fr)); list-style: none; margin: 0 0 1.5rem; padding: 0; }
+@container (max-width: 1039.98px) { .ui-ambiti__griglia { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@container (max-width: 559.98px) { .ui-ambiti__griglia { grid-template-columns: minmax(0, 1fr); } }
+.ui-ambiti__griglia > li { display: flex; min-width: 0; }
+.ui-ambito { --c: #0066cc; --c2: #0b4f9c; position: relative; display: flex; flex-direction: column; width: 100%; overflow: hidden; background: var(--ui-superficie);
+  border: 1px solid var(--ui-bordo); border-radius: 18px; box-shadow: var(--ui-ombra); transition: transform .25s ease, box-shadow .25s ease;
+  animation: ui-ambito-entra .55s cubic-bezier(.2, .8, .2, 1) both; }
+.ui-ambito--blu { --c: #0066cc; --c2: #0b4f9c; }
+.ui-ambito--verde { --c: #1f7a4d; --c2: #145c39; }
+.ui-ambito--arancio { --c: #b54708; --c2: #8a3606; }
+.ui-ambito--viola { --c: #6941c6; --c2: #4f2d9e; }
+.ui-ambiti__griglia > li:nth-child(2) .ui-ambito { animation-delay: .07s; }
+.ui-ambiti__griglia > li:nth-child(3) .ui-ambito { animation-delay: .14s; }
+.ui-ambiti__griglia > li:nth-child(4) .ui-ambito { animation-delay: .21s; }
+.ui-ambito--attivo:hover { transform: translateY(-6px); box-shadow: 0 22px 44px -18px color-mix(in srgb, var(--c) 70%, transparent), var(--ui-ombra); }
+.ui-ambito--attivo:focus-within { outline: 3px solid var(--ui-fuoco); outline-offset: 3px; }
+.ui-ambito__testa { position: relative; overflow: hidden; padding: 1.2rem 1.25rem 1.15rem; color: #fff; min-height: 168px;
+  background: radial-gradient(90% 80% at 100% 100%, rgba(255, 255, 255, .1), transparent 60%), linear-gradient(140deg, var(--c), var(--c2)); }
+.ui-ambito--presto .ui-ambito__testa { background: repeating-linear-gradient(135deg, rgba(255, 255, 255, .05) 0 12px, transparent 12px 24px),
+  linear-gradient(140deg, var(--c), var(--c2)); }
+.ui-ambito__filigrana.ui-icona { position: absolute; right: -14px; bottom: -18px; width: 120px; height: 120px; opacity: .1; transform: rotate(-12deg);
+  transition: transform .4s ease; }
+.ui-ambito--attivo:hover .ui-ambito__filigrana.ui-icona { transform: rotate(-4deg) scale(1.08); }
+.ui-ambito__icona { display: inline-grid; place-items: center; width: 48px; height: 48px; border-radius: 14px; background: rgba(255, 255, 255, .18);
+  border: 1px solid rgba(255, 255, 255, .35); }
+.ui-ambito__icona .ui-icona { width: 1.6rem; height: 1.6rem; }
+.ui-ambito__stato { position: absolute; top: 1.1rem; right: 1.1rem; display: inline-flex; align-items: center; gap: .4rem; padding: .2rem .65rem; border-radius: 999px;
+  background: rgba(0, 0, 0, .22); border: 1px solid rgba(255, 255, 255, .35); font-size: .72rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+.ui-ambito--attivo .ui-ambito__stato::before { content: ''; width: .5rem; height: .5rem; border-radius: 50%; background: #9dffc8; animation: ui-pulsa 2s ease-in-out infinite; }
+.ui-ambito__testa h2 { margin: .85rem 0 .3rem; color: #fff; font-size: 1.45rem; font-weight: 700; letter-spacing: -.01em; }
+.ui-ambito__testa p { position: relative; margin: 0; color: rgba(255, 255, 255, .92); font-size: .9rem; line-height: 1.4; }
+.ui-ambito__corpo { flex: 1; display: flex; flex-direction: column; gap: .85rem; padding: 1.1rem 1.25rem .9rem; }
+.ui-ambito__contenuti { display: grid; gap: .5rem; margin: 0; padding: 0; list-style: none; font-size: .9rem; color: var(--ui-testo); }
+.ui-ambito__contenuti li { display: flex; align-items: flex-start; gap: .5rem; }
+.ui-ambito__contenuti .ui-icona { margin-top: .15rem; color: var(--c); }
+.ui-ambito__anteprima { display: grid; gap: .85rem; }
+.ui-ambito__numeri { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: .75rem; margin: 0; }
+.ui-ambito__numeri dt { font-size: .75rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--ui-attenuato); }
+.ui-ambito__numeri dd { margin: .1rem 0 0; font-size: 1.45rem; font-weight: 700; line-height: 1.15; color: var(--c); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.ui-ambito__numeri dd.ui-ambito__nota, .ui-ambito__nota { font-size: .78rem; font-weight: 400; color: var(--ui-attenuato); margin: .15rem 0 0; }
+.ui-ambito__avanzamento p { display: flex; justify-content: space-between; gap: .5rem; margin: 0; font-size: .82rem; color: var(--ui-attenuato); }
+.ui-ambito__avanzamento b { color: var(--ui-testo); }
+.ui-ambito .ui-barra > span { background: linear-gradient(90deg, var(--c2), var(--c)); }
+.ui-barra--entra > span { animation: ui-riempi 1.1s cubic-bezier(.2, .8, .2, 1) .3s both; }
+.ui-ambito__attesa { min-height: 64px; border-radius: 10px; }
+.ui-ambito__piede { padding: 0 1.25rem 1.25rem; }
+.ui-ambito__entra { display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding: .65rem .95rem; border-radius: 12px; font-weight: 700;
+  color: var(--c); background: color-mix(in srgb, var(--c) 9%, #fff); text-decoration: none; transition: background .2s, color .2s; }
+.ui-ambito__entra .ui-icona { transition: transform .2s; }
+/* tutta la card e' l'area cliccabile del link (un solo link, un solo punto di tabulazione) */
+a.ui-ambito__entra::after { content: ''; position: absolute; inset: 0; border-radius: inherit; }
+a.ui-ambito__entra:focus-visible { outline: none !important; }
+.ui-ambito--attivo:hover .ui-ambito__entra { background: var(--c); color: #fff; text-decoration: none; }
+.ui-ambito--attivo:hover .ui-ambito__entra .ui-icona { transform: translateX(4px); }
+.ui-ambito__entra--spento { color: var(--ui-attenuato); background: var(--ui-sfondo); font-weight: 600; }
+@keyframes ui-ambito-entra { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: none; } }
+@keyframes ui-pulsa { 0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(157, 255, 200, .6); } 50% { opacity: .75; box-shadow: 0 0 0 5px rgba(157, 255, 200, 0); } }
+@keyframes ui-riempi { from { width: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .ui-ambito, .ui-barra--entra > span, .ui-ambito--attivo .ui-ambito__stato::before { animation: none; }
+  .ui-ambito--attivo:hover, .ui-ambito--attivo:hover .ui-ambito__filigrana.ui-icona, .ui-ambito--attivo:hover .ui-ambito__entra .ui-icona { transform: none; }
+}

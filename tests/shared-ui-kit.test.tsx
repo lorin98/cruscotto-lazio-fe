@@ -1,10 +1,10 @@
 // Kit dell'interfaccia UI v2 (ADR 0027, shared/ui e shared/lib/tabella): componenti generici, dati di prova inventati.
 // Il grafico e' quello finto di src/shared/test/setup.ts (jsdom non disegna).
-import { useState } from 'react';
+import { act, useState } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { BarraFiltri, CardGrafico, ContestoIntestazione, Grafico, Kpi, PannelloLaterale, PulsantiScarica, Sezione, TabellaDati, TabellaInterattiva, TabellaRighe, TabellaVoci, VistaQuery, blobDaDataUrl } from '../src/shared/ui';
+import { BarraFiltri, CardGrafico, ContestoIntestazione, Grafico, Kpi, NumeroAnimato, PannelloLaterale, PulsantiScarica, Sezione, TabellaDati, TabellaInterattiva, TabellaRighe, TabellaVoci, VistaQuery, blobDaDataUrl } from '../src/shared/ui';
 import { pngDelGrafico } from '../src/shared/ui/grafici/echarts';
 import type { StatoQuery } from '../src/shared/ui';
 import type { ColonnaTabella, DatiGrafico } from '../src/shared/ui';
@@ -550,5 +550,36 @@ describe('PulsantiScarica', () => {
     expect(sigle()).toEqual(['PNG', 'CSV']);
     await userEvent.click(screen.getByRole('button', { name: 'Tabella' }));
     expect(sigle()).toEqual(['CSV']);
+  });
+});
+
+describe('NumeroAnimato', () => {
+  afterEach(() => vi.unstubAllGlobals());
+  const formato = (v: number) => `${Math.round(v)} pezzi`;
+
+  it('senza preferenze di movimento dichiarate (jsdom) mostra subito il valore finale, una volta sola', () => {
+    render(<NumeroAnimato valore={42} formato={formato} />);
+    expect(screen.getAllByText('42 pezzi')).toHaveLength(1);
+  });
+
+  it('con il movimento consentito scorre fino al valore; i lettori di schermo leggono solo quello finale', () => {
+    vi.stubGlobal('matchMedia', (q: string) => ({ matches: false, media: q, addEventListener: () => {}, removeEventListener: () => {} }));
+    const frame: FrameRequestCallback[] = [];
+    vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => frame.push(cb));
+    vi.stubGlobal('cancelAnimationFrame', () => {});
+    const { container } = render(<NumeroAnimato valore={100} formato={formato} />);
+    // prima resa: il numero parte da zero, il valore finale e' gia' nel testo per i lettori di schermo
+    expect(container.querySelector('[aria-hidden="true"]')?.textContent).toBe('0 pezzi');
+    expect(container.querySelector('.visually-hidden')?.textContent).toBe('100 pezzi');
+    // a fine animazione resta il solo valore finale
+    act(() => frame.shift()?.(performance.now() + 10_000));
+    expect(container.textContent).toBe('100 pezzi');
+    expect(container.querySelector('[aria-hidden="true"]')).toBeNull();
+  });
+
+  it('con prefers-reduced-motion niente animazione', () => {
+    vi.stubGlobal('matchMedia', (q: string) => ({ matches: q.includes('reduce'), media: q, addEventListener: () => {}, removeEventListener: () => {} }));
+    const { container } = render(<NumeroAnimato valore={7} formato={formato} />);
+    expect(container.textContent).toBe('7 pezzi');
   });
 });

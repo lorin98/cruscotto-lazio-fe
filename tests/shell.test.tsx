@@ -80,8 +80,8 @@ describe('RequireGrant: tre casi distinti', () => {
 describe('Layout e Home', () => {
   it("dopo il login la Home porta alle aree dell'utente; intestazione con utente ed Esci", async () => {
     const { container } = apriApp('/');
-    expect(await screen.findByRole('link', { name: 'Finanziario' })).toBeTruthy();
-    expect(screen.getByRole('link', { name: 'Finanziario' }).getAttribute('href')).toBe('/finanziario');
+    expect(await screen.findByRole('link', { name: 'Entra in Finanziario' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Entra in Finanziario' }).getAttribute('href')).toBe('/finanziario');
     expect(screen.getByRole('link', { name: 'Esci' }).getAttribute('href')).toBe('/auth/logout');
     expect(screen.getByRole('link', { name: 'Salta al contenuto' }).getAttribute('href')).toBe('#contenuto');
     expect(screen.getByRole('banner')).toBeTruthy();
@@ -96,7 +96,7 @@ describe('Layout e Home', () => {
   });
   it('il 403 delle mutation diventa un avviso della shell, chiudibile', async () => {
     apriApp('/');
-    await screen.findByRole('link', { name: 'Finanziario' });
+    await screen.findByRole('link', { name: 'Entra in Finanziario' });
     act(() => segnalaAccessoNegato());
     expect((await screen.findByRole('alert')).textContent).toContain('Non hai i permessi per questa operazione');
     fireEvent.click(screen.getByRole('button', { name: 'Chiudi' }));

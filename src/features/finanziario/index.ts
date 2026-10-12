@@ -5,6 +5,7 @@ export { UltimoAggiornamento } from './ui/UltimoAggiornamento';
 export { PerimetroPill } from './ui/PerimetroPill';
 export { ContestoFiltri } from './ui/comuni';
 export { Panoramica } from './ui/Panoramica';
+export { AnteprimaFinanziario } from './ui/AnteprimaFinanziario';
 export { DettaglioIntervento } from './ui/DettaglioIntervento';
 export { RiepilogoReport } from './ui/RiepilogoReport';
 export { DotazioneReport } from './ui/DotazioneReport';

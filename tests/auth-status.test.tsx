@@ -24,7 +24,7 @@ describe('MSW navigabile — /auth/status senza backend', () => {
     renderApp();
     // la shell mostra l'utente della fixture e la Home le aree visibili per i suoi grant
     await waitFor(() => expect(screen.getByRole('link', { name: 'Esci' })).toBeTruthy());
-    expect(screen.getByRole('link', { name: 'Finanziario' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Entra in Finanziario' })).toBeTruthy();
   });
 
   it('username reso dal claim quando /auth/status e autenticato', async () => {
