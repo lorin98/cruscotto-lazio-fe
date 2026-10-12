@@ -1,6 +1,6 @@
 # Review step9 della feature finanziario (green-fe)
 
-## Review v3: download ed export (in corso)
+## Review v3: download ed export (PASS, score 85, 12/10/2026)
 
 Intensita' **FULL** (obbligatoria: authz e perimetro). Riaperta dopo download per formato, export CSV e XLSX dal
 backend, selettore dell'anno e card nella griglia (commit `dea8e63`, `9a5ed12`). Copre tutta la feature, non solo il
@@ -114,6 +114,38 @@ sul pulsante durante e dopo il download), V-01 (tutte le voci di NFR-50 nel PNG)
   - Fix proposto: In DettaglioIntervento.tsx:24 non usare vuotoConPerimetro: `const SENZA_SIGC = (d: { perimetro?: Perimetro | null }) => <><PerimetroSezione perimetro={d.perimetro} />Nessuna domanda SIGC per questo intervento.</>`. Aggiornare l'attesa di tests/finanziario-casi-limite.test.tsx:177.
 - **N-04** `src/features/finanziario/ui/comuni.tsx:150`: I pulsanti di TX-0009 (V-04) stanno sopra l'intera fila dei KPI con il solo 'CSV' e 'XLSX' visibili: in panoramica la fila ha tre tessere di TX-0002 e una di TX-0009 (nella pagina Domande due di TX-0010), e il file contiene solo le domande (sonda CONV/esito-scarica-kpi.txt, scarica-kpi.png). In panoramica restano anche con la selezione vuota, quando la tessera delle domande non c'e' (Panoramica.tsx:170).
   - Fix proposto: In ScaricaKpi rendere visibile l'oggetto accanto ai pulsanti (es. `<span className="ui-nota">{titolo}</span>` prima di PulsantiScarica), oppure portare i pulsanti nella tessera di TX-0009. In Panoramica montare ScaricaKpi dentro KpiDomande, cosi' sparisce con il segnale 'vuota'.
+
+### Iterazione 3 (12/10/2026): PASS
+
+Commit verificato: `3269d53` (correzioni dei residui dell'iterazione 2). Revisore di convergenza: 6 risolti (N-01, A-03,
+X-04, N-02, N-03, N-04), 2 parziali (H-03, H-04), 0 non risolti; 3 nuovi, tutti MINORE. Verdetto meccanico sui residui
+(`review/v3-iter3/residui.json`): **PASS**, 0 CRITICO, 0 MAGGIORE, 5 MINORE, score **85** (soglia 80). Budget: 3
+iterazioni, usate tutte.
+
+A-03 verificato nel browser vero (build sotto la CSP, canvas su un contenitore staccato, Chrome e Firefox): dopo il
+drill-down il PNG di treemap e raggiera ha solo il livello scelto, come a schermo.
+
+#### Residui al verdetto
+
+- **H-03** [MINORE] `eslint.config.js:336`: Residuo di H-03 (PARZIALE): la regex sul testo dell'import blocca '..', '../index', '../api/' e '../..', ma da src/features/finanziario/lib/ passano con 0 errori '../../finanziario', '../../finanziario/index' e '../../finanziario/api' (e '../../../finanziario/api' da lib/grafici/): sono lo stesso barrel e gli stessi wrapper React Query, quindi la purezza di lib/ si aggira ancora con un import relativo.
+  - Fix proposto: Usare una regola sul file risolto invece della regex sul testo dell'import: in boundaries/dependencies, dopo le regole allow, aggiungere `{ from: { element: { type: 'features', fileInternalPath: 'lib/**' } }, disallow: { to: { element: { type: 'features', fileInternalPath: ['api/**', 'ui/**', 'index.{ts,tsx}'] } } } }`, e una regola analoga per entities. Aggiungere le canary '../../finanziario' e '../../finanziario/api' in tests/eslint-regole.test.ts.
+- **H-04** [MINORE] `eslint.config.js:32`: Residuo di H-04 (PARZIALE): `{ default as x }`, `import()` e `require` di axios ora scattano, ma `export { default as http } from 'axios'` e `export * as ax from 'axios'` passano con 0 errori, anche in shared/lib: un modulo che riesporta l'istanza di default la rende importabile ovunque con un nome locale, fuori dal mutator.
+  - Fix proposto: In ogni blocco aggiungere a no-restricted-imports `paths: [{ name: 'axios', importNames: ['default', 'Axios'] }]`: la regola copre import, export-from ed export *, come verificato con ESLint (1 errore per ogni forma, 0 per isAxiosError). In alternativa aggiungere i selettori `ExportNamedDeclaration[source.value='axios'] > ExportSpecifier[local.name=/^(default|Axios)$/]` e `ExportAllDeclaration[source.value='axios']`. Aggiungere alle canary le due forme e il require.
+- **M-01** [MINORE] `src/features/finanziario/lib/grafici/spesa.ts:185`: Con una dotazione negativa fuori dal grafico, etichetta e dettaglio della famiglia riportano la dotazione della famiglia, ma l'area del riquadro resta la somma delle sole foglie positive. Con SRA01 20 M€, SRA05 -15 M€ e SRB01 10 M€ il riquadro 'SRA 5,0 M€' è il doppio di 'SRB 10,0 M€', contiene 'SRA01 20,0 M€', e il dettaglio dice 'Famiglia SRA: 1 intervento, dotazione 5,0 M€' (CONV3/sonda-famiglie.test.ts); il test in finanziario-grafici.test.ts:384 fissa la frase contraddittoria.
+  - Fix proposto: In nodoFamiglia, quando `f.fuoriGrafico !== 0`, usare un dettaglio esplicito, ad esempio `Famiglia SRA: dotazione 5,0 M€; 1 intervento nel grafico, 20,0 M€; 1 fuori dal grafico (dotazione zero o negativa), -15,0 M€`, e l'etichetta `SRA\n5,0 M€ (nel grafico 20,0 M€)`. Aggiornare l'attesa di finanziario-grafici.test.ts:384 e aggiungere il caso con il negativo grande.
+- **M-02** [MINORE] `src/features/finanziario/lib/grafici/spesa.ts:161`: Le famiglie si costruiscono solo da perFamiglia: una famiglia con soli interventi a dotazione zero, negativa o assente non ha la riga 'Totale della famiglia' e resta fuori dalla descrizione. Con SRD01 a -5 M€ le famiglie sommano 20 M€ mentre il KPI della dotazione dice 15 M€; con SRD01 assente la descrizione afferma 'la famiglia con la dotazione maggiore è SRA (20,0 M€)' mentre il KPI dice 'Non calcolabile: manca per 1 intervento (SRD01)' (CONV3/sonda-famiglie.test.ts).
+  - Fix proposto: Costruire `famiglie` dall'unione delle chiavi di perFamiglia, fuoriPer e mancantiPer, con foglie vuote dove serve: la tabella dà a ogni famiglia la riga 'Totale della famiglia', e `parziali` e il confronto le considerano tutte. A serieFamiglie passare solo le famiglie che hanno foglie. Test: SRA01 20 M€ + SRD01 -5 M€ dà 'SRD | Totale della famiglia | -5.000.000,00 €'; SRA01 20 M€ + SRD01 assente dà 'dotazione non calcolabile per SRD (manca per SRD01)'.
+- **M-03** [MINORE] `eslint.config.js:336`: La nuova regex del barrel vale per ogni src/**/lib/**. Da src/shared/lib/grafici/ blocca quindi anche `import { formatEuro } from '..'` e `'../index'`, che puntano al barrel puro src/shared/lib/index.ts, con il messaggio 'niente barrel della feature (riesporta ui/ e api/)', lì falso (sonde --stdin, CONV3/eslint-h03-h04.txt).
+  - Fix proposto: Applicare la regex del barrel solo a `src/features/*/lib/**` e `src/entities/*/lib/**`, in un blocco che ripete gli altri pattern di no-restricted-imports, oppure eliminarla con la regola di boundaries proposta per il residuo di H-03. Canary in tests/eslint-regole.test.ts: da src/shared/lib/grafici/ l'import '..' non deve scattare.
+
+#### Punti aperti e limiti
+
+- OP-FE-08: il PNG non ha la riga di AUDIT_ESPORTAZIONE (scelta dell'utente del 12/10/2026); serve un endpoint del
+  backend per registrarlo.
+- Fuori dal perimetro della review e non toccate: `Layout`, `useInattivita`, `Home` (src/app) e l'interceptor del
+  mutator superano le soglie della checklist; erano gia' cosi' alla review v2 e restano fuori dal blocco ESLint delle
+  soglie.
+- Restano quelli della review v2: OP-FE-03, OP-FE-05, OP-FE-06, OP-FE-07; profilo WebKit mobile degli e2e mai eseguito.
 
 ---
 

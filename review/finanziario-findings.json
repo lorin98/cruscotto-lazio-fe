@@ -2,57 +2,36 @@
   {
     "id": "H-03",
     "severity": "MINORE",
-    "file": "eslint.config.js:327",
-    "titolo": "Residuo di H-03 (PARZIALE): da src/features/*/lib/ il barrel della feature ('..', '../index', che riesporta ui/ e i wrapper api/) e '../api/' con la barra finale passano ESLint con 0 errori (sonde --stdin), quindi la purezza di lib/ si aggira ancora con un import relativo.",
-    "fix": "Estendere la regex della riga 327 a `^(\\.\\./){1,2}api/?(index(\\.tsx?)?)?$` e aggiungere un pattern per il barrel della feature: `^\\.\\.(/\\.\\.)?/?(index(\\.tsx?)?)?$`.\nAggiungere in tests/eslint-regole.test.ts i casi '..', '../index' e '../api/' fra quelli che devono scattare."
+    "file": "eslint.config.js:336",
+    "titolo": "Residuo di H-03 (PARZIALE): la regex sul testo dell'import blocca '..', '../index', '../api/' e '../..', ma da src/features/finanziario/lib/ passano con 0 errori '../../finanziario', '../../finanziario/index' e '../../finanziario/api' (e '../../../finanziario/api' da lib/grafici/): sono lo stesso barrel e gli stessi wrapper React Query, quindi la purezza di lib/ si aggira ancora con un import relativo.",
+    "fix": "Usare una regola sul file risolto invece della regex sul testo dell'import: in boundaries/dependencies, dopo le regole allow, aggiungere `{ from: { element: { type: 'features', fileInternalPath: 'lib/**' } }, disallow: { to: { element: { type: 'features', fileInternalPath: ['api/**', 'ui/**', 'index.{ts,tsx}'] } } } }`, e una regola analoga per entities.\nAggiungere le canary '../../finanziario' e '../../finanziario/api' in tests/eslint-regole.test.ts."
   },
   {
     "id": "H-04",
     "severity": "MINORE",
-    "file": "eslint.config.js:23",
-    "titolo": "Residuo di H-04 (PARZIALE): `import { default as http } from 'axios'` e `import('axios')` passano ESLint con 0 errori in features/*/ui (sonde --stdin): un'istanza axios propria fuori dal mutator resta possibile con forme d'import standard.",
-    "fix": "Aggiungere a httpFuoriDalMutatorSelectors `ImportDeclaration[source.value='axios'] > ImportSpecifier[imported.name='default']`, `ImportExpression[source.value='axios']` e `CallExpression[callee.name='require'][arguments.0.value='axios']`.\nAggiungere le due forme alla canary di tests/eslint-regole.test.ts:183."
+    "file": "eslint.config.js:32",
+    "titolo": "Residuo di H-04 (PARZIALE): `{ default as x }`, `import()` e `require` di axios ora scattano, ma `export { default as http } from 'axios'` e `export * as ax from 'axios'` passano con 0 errori, anche in shared/lib: un modulo che riesporta l'istanza di default la rende importabile ovunque con un nome locale, fuori dal mutator.",
+    "fix": "In ogni blocco aggiungere a no-restricted-imports `paths: [{ name: 'axios', importNames: ['default', 'Axios'] }]`: la regola copre import, export-from ed export *, come verificato con ESLint (1 errore per ogni forma, 0 per isAxiosError).\nIn alternativa aggiungere i selettori `ExportNamedDeclaration[source.value='axios'] > ExportSpecifier[local.name=/^(default|Axios)$/]` e `ExportAllDeclaration[source.value='axios']`.\nAggiungere alle canary le due forme e il require."
   },
   {
-    "id": "A-03",
+    "id": "M-01",
     "severity": "MINORE",
-    "file": "src/shared/ui/grafici/echarts.ts:87",
-    "titolo": "Residuo di A-03 (PARZIALE): la copia del PNG riapplica la radice di vista ma, disegnata con animation:false, conserva le etichette del livello precedente: dopo il clic su SRA il PNG mostra '▶ SRD' e '▶ SRB' sopra la vista di SRA, che a schermo non ci sono (CONV/treemap-png-scaricato.png, sonda-ghost.mjs). tests/grafici-vista.test.ts:43 confronta due istanze con lo stesso difetto e cerca 'SRD01', che non compare mai.",
-    "fix": "In pngDelGrafico usare `animationDuration: 0, animationDurationUpdate: 0` al posto di `animation: false` e, dopo i dispatchAction, attendere l'evento 'finished' della copia prima di renderToCanvas (pngDelGrafico async; scarica di usePngDelGrafico restituisce la Promise). Con la sonda restano solo SRA01, SRA03, SRA14 e la briciola.\nNel test, attendere che la copia non contenga '▶ SRD'."
+    "file": "src/features/finanziario/lib/grafici/spesa.ts:185",
+    "titolo": "Con una dotazione negativa fuori dal grafico, etichetta e dettaglio della famiglia riportano la dotazione della famiglia, ma l'area del riquadro resta la somma delle sole foglie positive. Con SRA01 20 M€, SRA05 -15 M€ e SRB01 10 M€ il riquadro 'SRA 5,0 M€' è il doppio di 'SRB 10,0 M€', contiene 'SRA01 20,0 M€', e il dettaglio dice 'Famiglia SRA: 1 intervento, dotazione 5,0 M€' (CONV3/sonda-famiglie.test.ts); il test in finanziario-grafici.test.ts:384 fissa la frase contraddittoria.",
+    "fix": "In nodoFamiglia, quando `f.fuoriGrafico !== 0`, usare un dettaglio esplicito, ad esempio `Famiglia SRA: dotazione 5,0 M€; 1 intervento nel grafico, 20,0 M€; 1 fuori dal grafico (dotazione zero o negativa), -15,0 M€`, e l'etichetta `SRA\\n5,0 M€ (nel grafico 20,0 M€)`.\nAggiornare l'attesa di finanziario-grafici.test.ts:384 e aggiungere il caso con il negativo grande."
   },
   {
-    "id": "X-04",
+    "id": "M-02",
     "severity": "MINORE",
-    "file": "src/features/finanziario/ui/VerificaSmpReport.tsx:90",
-    "titolo": "Residuo di X-04 (PARZIALE): la nota sulla ricerca e' opt-in e la TabellaInterattiva della Verifica SMP, con ricerca per codice o indicatore e i CSV/XLSX di TX-0015 nella stessa sezione, non la riceve: il file resta completo senza che la pagina lo dica.",
-    "fix": "Passare alla TabellaInterattiva di VerificaSmpReport.tsx:90 `notaRicerca=\"I file CSV e XLSX contengono tutti gli interventi dei filtri, non solo quelli trovati dalla ricerca.\"`, come in Riepilogo e Dotazione.\nIn alternativa rendere la nota predefinita in TabellaInterattiva quando la pagina offre i file."
+    "file": "src/features/finanziario/lib/grafici/spesa.ts:161",
+    "titolo": "Le famiglie si costruiscono solo da perFamiglia: una famiglia con soli interventi a dotazione zero, negativa o assente non ha la riga 'Totale della famiglia' e resta fuori dalla descrizione. Con SRD01 a -5 M€ le famiglie sommano 20 M€ mentre il KPI della dotazione dice 15 M€; con SRD01 assente la descrizione afferma 'la famiglia con la dotazione maggiore è SRA (20,0 M€)' mentre il KPI dice 'Non calcolabile: manca per 1 intervento (SRD01)' (CONV3/sonda-famiglie.test.ts).",
+    "fix": "Costruire `famiglie` dall'unione delle chiavi di perFamiglia, fuoriPer e mancantiPer, con foglie vuote dove serve: la tabella dà a ogni famiglia la riga 'Totale della famiglia', e `parziali` e il confronto le considerano tutte.\nA serieFamiglie passare solo le famiglie che hanno foglie.\nTest: SRA01 20 M€ + SRD01 -5 M€ dà 'SRD | Totale della famiglia | -5.000.000,00 €'; SRA01 20 M€ + SRD01 assente dà 'dotazione non calcolabile per SRD (manca per SRD01)'."
   },
   {
-    "id": "N-01",
-    "severity": "MAGGIORE",
-    "file": "src/features/finanziario/lib/grafici/spesa.ts:147",
-    "titolo": "Regressione di X-02: raggruppaFamiglie mette in `mancanti` anche una dotazione presente ma 0,00 o negativa, e la famiglia diventa 'non calcolabile (manca per SRA05)' in tabella (accanto alla riga 'SRA05 0,00 €'), nel nodo e nella descrizione, mentre il KPI della dotazione accanto somma 30.000.000 (sonda CONV/sonda-famiglia-zero.test.ts). Nessun test copre il caso, che il codice dichiara reale (selezione.ts:4).",
-    "fix": "In raggruppaFamiglie mettere in mancantiPer solo le righe con `valoreDi(r.dotazioneSpesaPubblica) == null`; per 0 e negativi, fuori dal grafico, sommare il valore in un campo `fuoriGrafico` della famiglia.\ntotaleFamiglia, etichetta e descrizione usano `f.totale + f.fuoriGrafico` quando `mancanti` e' vuoto.\nTest in finanziario-grafici.test.ts: SRA01 20 M€ e SRA05 0,00 danno 'Totale della famiglia 20.000.000,00 €'."
-  },
-  {
-    "id": "N-02",
+    "id": "M-03",
     "severity": "MINORE",
-    "file": "src/features/finanziario/ui/RiservaReport.tsx:89",
-    "titolo": "Il PNG del grafico della riserva non dice l'anno: la pagina ha conBarraFiltri={false}, quindi l'intestazione scrive 'Filtri applicati: nessuno' (PaginaFinanziario.tsx:93), e titolo e fonte della card non hanno l'anno. Il CSV della stessa card, scritto dal backend, dichiara 'Filtri applicati: anno=2025' (CriterioRiserva); il PNG da solo non dice di quale riserva e'.",
-    "fix": "Passare l'anno a UtilizzoProgressivo e scriverlo nella fonte: `fonte={`Fonte: TX-0014, movimenti della riserva dell'anno ${anno}`}`.\nIn alternativa dare a PaginaFinanziario un prop `parametri` (es. ['anno=2025']) che useRigheIntestazione aggiunge ai filtri applicati, come il backend.\nTest: il PNG della riserva 2025 riceve un'intestazione che contiene 2025."
-  },
-  {
-    "id": "N-03",
-    "severity": "MINORE",
-    "file": "src/features/finanziario/ui/DettaglioIntervento.tsx:24",
-    "titolo": "Il vuoto aggiunto per X-01 dice 'Nessuna domanda SIGC per questo intervento. Modifica i filtri.', ma nel dettaglio non ci sono filtri da modificare: la barra ha il solo chip fisso dell'intervento e nessun pannello (PaginaFinanziario.tsx:90, ContestoFiltri nullo), per questo vuotoConPerimetro accoda l'invito come testo (comuni.tsx:40). Il test casi-limite.test.tsx:177 fissa la frase.",
-    "fix": "In DettaglioIntervento.tsx:24 non usare vuotoConPerimetro: `const SENZA_SIGC = (d: { perimetro?: Perimetro | null }) => <><PerimetroSezione perimetro={d.perimetro} />Nessuna domanda SIGC per questo intervento.</>`.\nAggiornare l'attesa di tests/finanziario-casi-limite.test.tsx:177."
-  },
-  {
-    "id": "N-04",
-    "severity": "MINORE",
-    "file": "src/features/finanziario/ui/comuni.tsx:150",
-    "titolo": "I pulsanti di TX-0009 (V-04) stanno sopra l'intera fila dei KPI con il solo 'CSV' e 'XLSX' visibili: in panoramica la fila ha tre tessere di TX-0002 e una di TX-0009 (nella pagina Domande due di TX-0010), e il file contiene solo le domande (sonda CONV/esito-scarica-kpi.txt, scarica-kpi.png). In panoramica restano anche con la selezione vuota, quando la tessera delle domande non c'e' (Panoramica.tsx:170).",
-    "fix": "In ScaricaKpi rendere visibile l'oggetto accanto ai pulsanti (es. `<span className=\"ui-nota\">{titolo}</span>` prima di PulsantiScarica), oppure portare i pulsanti nella tessera di TX-0009.\nIn Panoramica montare ScaricaKpi dentro KpiDomande, cosi' sparisce con il segnale 'vuota'."
+    "file": "eslint.config.js:336",
+    "titolo": "La nuova regex del barrel vale per ogni src/**/lib/**. Da src/shared/lib/grafici/ blocca quindi anche `import { formatEuro } from '..'` e `'../index'`, che puntano al barrel puro src/shared/lib/index.ts, con il messaggio 'niente barrel della feature (riesporta ui/ e api/)', lì falso (sonde --stdin, CONV3/eslint-h03-h04.txt).",
+    "fix": "Applicare la regex del barrel solo a `src/features/*/lib/**` e `src/entities/*/lib/**`, in un blocco che ripete gli altri pattern di no-restricted-imports, oppure eliminarla con la regola di boundaries proposta per il residuo di H-03.\nCanary in tests/eslint-regole.test.ts: da src/shared/lib/grafici/ l'import '..' non deve scattare."
   }
 ]

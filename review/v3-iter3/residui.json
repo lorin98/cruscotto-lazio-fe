@@ -1,0 +1,37 @@
+[
+  {
+    "id": "H-03",
+    "severity": "MINORE",
+    "file": "eslint.config.js:336",
+    "titolo": "Residuo di H-03 (PARZIALE): la regex sul testo dell'import blocca '..', '../index', '../api/' e '../..', ma da src/features/finanziario/lib/ passano con 0 errori '../../finanziario', '../../finanziario/index' e '../../finanziario/api' (e '../../../finanziario/api' da lib/grafici/): sono lo stesso barrel e gli stessi wrapper React Query, quindi la purezza di lib/ si aggira ancora con un import relativo.",
+    "fix": "Usare una regola sul file risolto invece della regex sul testo dell'import: in boundaries/dependencies, dopo le regole allow, aggiungere `{ from: { element: { type: 'features', fileInternalPath: 'lib/**' } }, disallow: { to: { element: { type: 'features', fileInternalPath: ['api/**', 'ui/**', 'index.{ts,tsx}'] } } } }`, e una regola analoga per entities.\nAggiungere le canary '../../finanziario' e '../../finanziario/api' in tests/eslint-regole.test.ts."
+  },
+  {
+    "id": "H-04",
+    "severity": "MINORE",
+    "file": "eslint.config.js:32",
+    "titolo": "Residuo di H-04 (PARZIALE): `{ default as x }`, `import()` e `require` di axios ora scattano, ma `export { default as http } from 'axios'` e `export * as ax from 'axios'` passano con 0 errori, anche in shared/lib: un modulo che riesporta l'istanza di default la rende importabile ovunque con un nome locale, fuori dal mutator.",
+    "fix": "In ogni blocco aggiungere a no-restricted-imports `paths: [{ name: 'axios', importNames: ['default', 'Axios'] }]`: la regola copre import, export-from ed export *, come verificato con ESLint (1 errore per ogni forma, 0 per isAxiosError).\nIn alternativa aggiungere i selettori `ExportNamedDeclaration[source.value='axios'] > ExportSpecifier[local.name=/^(default|Axios)$/]` e `ExportAllDeclaration[source.value='axios']`.\nAggiungere alle canary le due forme e il require."
+  },
+  {
+    "id": "M-01",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici/spesa.ts:185",
+    "titolo": "Con una dotazione negativa fuori dal grafico, etichetta e dettaglio della famiglia riportano la dotazione della famiglia, ma l'area del riquadro resta la somma delle sole foglie positive. Con SRA01 20 M€, SRA05 -15 M€ e SRB01 10 M€ il riquadro 'SRA 5,0 M€' è il doppio di 'SRB 10,0 M€', contiene 'SRA01 20,0 M€', e il dettaglio dice 'Famiglia SRA: 1 intervento, dotazione 5,0 M€' (CONV3/sonda-famiglie.test.ts); il test in finanziario-grafici.test.ts:384 fissa la frase contraddittoria.",
+    "fix": "In nodoFamiglia, quando `f.fuoriGrafico !== 0`, usare un dettaglio esplicito, ad esempio `Famiglia SRA: dotazione 5,0 M€; 1 intervento nel grafico, 20,0 M€; 1 fuori dal grafico (dotazione zero o negativa), -15,0 M€`, e l'etichetta `SRA\\n5,0 M€ (nel grafico 20,0 M€)`.\nAggiornare l'attesa di finanziario-grafici.test.ts:384 e aggiungere il caso con il negativo grande."
+  },
+  {
+    "id": "M-02",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici/spesa.ts:161",
+    "titolo": "Le famiglie si costruiscono solo da perFamiglia: una famiglia con soli interventi a dotazione zero, negativa o assente non ha la riga 'Totale della famiglia' e resta fuori dalla descrizione. Con SRD01 a -5 M€ le famiglie sommano 20 M€ mentre il KPI della dotazione dice 15 M€; con SRD01 assente la descrizione afferma 'la famiglia con la dotazione maggiore è SRA (20,0 M€)' mentre il KPI dice 'Non calcolabile: manca per 1 intervento (SRD01)' (CONV3/sonda-famiglie.test.ts).",
+    "fix": "Costruire `famiglie` dall'unione delle chiavi di perFamiglia, fuoriPer e mancantiPer, con foglie vuote dove serve: la tabella dà a ogni famiglia la riga 'Totale della famiglia', e `parziali` e il confronto le considerano tutte.\nA serieFamiglie passare solo le famiglie che hanno foglie.\nTest: SRA01 20 M€ + SRD01 -5 M€ dà 'SRD | Totale della famiglia | -5.000.000,00 €'; SRA01 20 M€ + SRD01 assente dà 'dotazione non calcolabile per SRD (manca per SRD01)'."
+  },
+  {
+    "id": "M-03",
+    "severity": "MINORE",
+    "file": "eslint.config.js:336",
+    "titolo": "La nuova regex del barrel vale per ogni src/**/lib/**. Da src/shared/lib/grafici/ blocca quindi anche `import { formatEuro } from '..'` e `'../index'`, che puntano al barrel puro src/shared/lib/index.ts, con il messaggio 'niente barrel della feature (riesporta ui/ e api/)', lì falso (sonde --stdin, CONV3/eslint-h03-h04.txt).",
+    "fix": "Applicare la regex del barrel solo a `src/features/*/lib/**` e `src/entities/*/lib/**`, in un blocco che ripete gli altri pattern di no-restricted-imports, oppure eliminarla con la regola di boundaries proposta per il residuo di H-03.\nCanary in tests/eslint-regole.test.ts: da src/shared/lib/grafici/ l'import '..' non deve scattare."
+  }
+]
