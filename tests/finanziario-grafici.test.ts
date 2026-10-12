@@ -380,16 +380,40 @@ describe('graficoFamiglie', () => {
     const [sra] = (opzioniDi(g).series[0].data ?? []).map(item);
     // l'area resta quella delle foglie positive; etichetta e dettaglio dicono la dotazione della famiglia
     expect(sra.value).toBe(20_000_000);
-    expect(n(sra.etichetta ?? '')).toBe('SRA 19,0 M€');
-    expect(n(sra.dettaglio ?? '')).toBe('Famiglia SRA: 1 intervento, dotazione 19,0 M€');
+    // l'area (20 M€) non e' la dotazione della famiglia (19 M€): etichetta e dettaglio dicono le due cose (review v3 M-01)
+    expect(n(sra.etichetta ?? '')).toBe('SRA 19,0 M€ (nel grafico 20,0 M€)');
+    expect(n(sra.dettaglio ?? '')).toBe(
+      'Famiglia SRA: dotazione 19,0 M€; 1 intervento nel grafico, 20,0 M€; 2 interventi fuori dal grafico (dotazione zero o negativa), -1,0 M€',
+    );
     expect(n(opzioniDi(g).aria.label.description)).toContain('la famiglia con la dotazione maggiore è SRA (19,0 M€)');
     expect(g.omessi).toEqual(['SRA05: dotazione pari a zero', 'SRA06: dotazione negativa']);
   });
 
-  it('nessuna dotazione utile: non disegnabile', () => {
+  it('nessuna dotazione utile: non disegnabile, ma la famiglia ha comunque la sua riga di totale (review v3 M-02)', () => {
     const g = graficoFamiglie([righeSpesa[3]]);
     controllaNonDisegnabile(g, 'nessun intervento con dotazione valorizzata e positiva');
-    expect(g.tabella.righe).toHaveLength(1);
+    expect(righeN(g)).toEqual([
+      ['SRA', 'Totale della famiglia', 'non calcolabile (manca per SRA03)'],
+      ['SRA', 'SRA03', 'non disponibile (fonte quadro sinottico non attiva)'],
+    ]);
+  });
+
+  it('famiglia senza interventi disegnati: riga di totale e confronto anche per lei, come il KPI (review v3 M-02)', () => {
+    const negativa = graficoFamiglie([
+      { codiceIntervento: 'SRA01', dotazioneSpesaPubblica: imp(20_000_000) },
+      { codiceIntervento: 'SRD01', dotazioneSpesaPubblica: imp(-5_000_000) },
+    ]);
+    expect(righeN(negativa)).toContainEqual(['SRD', 'Totale della famiglia', '-5.000.000,00 €']);
+    // nel grafico la sola famiglia disegnabile
+    expect((opzioniDi(negativa).series[0].data ?? []).map((f) => item(f).name)).toEqual(['SRA']);
+    const conAssente = graficoFamiglie([
+      { codiceIntervento: 'SRA01', dotazioneSpesaPubblica: imp(20_000_000) },
+      { codiceIntervento: 'SRD01', dotazioneSpesaPubblica: assente('NON_VALORIZZATO', null) },
+    ]);
+    expect(righeN(conAssente)).toContainEqual(['SRD', 'Totale della famiglia', 'non calcolabile (manca per SRD01)']);
+    const descrizione = n(opzioniDi(conAssente).aria.label.description);
+    expect(descrizione).toContain('dotazione non calcolabile per SRD (manca per SRD01)');
+    expect(descrizione).not.toContain('maggiore');
   });
 });
 

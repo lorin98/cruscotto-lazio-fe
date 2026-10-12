@@ -30,6 +30,9 @@ const httpFuoriDalMutatorSelectors = [
   { selector: "ImportDeclaration[source.value='axios'] > ImportSpecifier[imported.name='default']", message: "Un'istanza axios propria e' vietata fuori dal mutator BFF (unica istanza sancita): usa i wrapper api/." },
   { selector: "ImportExpression[source.value='axios']", message: "import() di axios vietato fuori dal mutator BFF (unica istanza sancita): usa i wrapper api/." },
   { selector: "CallExpression[callee.name='require'][arguments.0.value='axios']", message: "require di axios vietato fuori dal mutator BFF (unica istanza sancita): usa i wrapper api/." },
+  // ...e la riesportazione, che renderebbe l'istanza importabile ovunque con un nome locale (residuo di H-04)
+  { selector: "ExportNamedDeclaration[source.value='axios'] > ExportSpecifier[local.name=/^(default|Axios)$/]", message: "Riesportare l'istanza axios e' vietato fuori dal mutator BFF (unica istanza sancita): usa i wrapper api/." },
+  { selector: "ExportAllDeclaration[source.value='axios']", message: "Riesportare axios e' vietato fuori dal mutator BFF (unica istanza sancita): usa i wrapper api/." },
 ];
 
 const credentialRules = {
@@ -163,6 +166,43 @@ const generatedImportGroup = {
   group: ['**/api/generated', '**/api/generated/*', '@generated', '@generated/*'],
   message: 'Il client generato si consuma via i wrapper ../api (step3), mai diretto.',
 };
+
+// Fase 4e e review v3 H-03: il layer lib/ e' PURO. Pattern comuni a ogni lib/ (shared, entities, features).
+const purezzaLibPatterns = [
+  generatedImportGroup,
+  {
+    group: ['react', 'react/*', 'react-*', 'react-*/*', '@react-*/*', '@tanstack/*'],
+    message: "Il layer lib/ e' puro: niente React/React Query/router (sposta la funzione in api/ o ui/).",
+  },
+  // Review v3 H-03: il divieto confronta lo specificatore scritto, quindi un import relativo di ui/ o dei wrapper api/
+  // passava. Vietati ui/ (componenti e hook), il mutator e i moduli auth con effetti (auth-status carica il mutator).
+  // Restano ammessi i moduli puri di shared/api (problem/, auth/stato).
+  {
+    group: ['**/ui', '**/ui/*', '**/ui/**', '**/api/mutator', '**/api/mutator/*', '**/api/auth/auth-status', '**/api/auth/use-auth-status'],
+    message: "Il layer lib/ e' puro: niente ui/, mutator o moduli auth con effetti (passa il dato come parametro; i tipi e i predicati puri stanno in shared/api/auth/stato).",
+  },
+  testingImportGroup,
+  entityBarrelOnlyImportGroup,
+];
+
+// Il barrel dello slice (riesporta ui/ e api/) e i suoi wrapper api/ dai lib/ di feature ed entity: una cartella in
+// gitignore vieterebbe anche i moduli puri di shared/api, quindi regex sullo specificatore, in ogni forma: '..', '../..',
+// '../api/', '../index', e lo slice per nome ('../../finanziario', '../../finanziario/api'); review v3 H-03 e residuo.
+const barrelDelloSliceDaLib = [
+  {
+    regex: '^(\\.\\./){1,2}api/?(index(\\.tsx?)?)?$',
+    message: "Il layer lib/ e' puro: niente wrapper api/ della feature (hook React Query); passa il dato come parametro.",
+  },
+  {
+    regex: '^\\.\\.(/\\.\\.)?/?(index(\\.tsx?)?)?$',
+    message: "Il layer lib/ e' puro: niente barrel dello slice (riesporta ui/ e api/); importa il modulo puro che serve.",
+  },
+  {
+    // il nome dopo i '../' e' uno slice, non un layer (shared/api/problem e' puro)
+    regex: '^(\\.\\./){2,3}(?!(shared|entities|features|pages|widgets|app)(/|$))[^./][^/]*(/(index(\\.tsx?)?|api(/.*)?|ui(/.*)?))?/?$',
+    message: "Il layer lib/ e' puro: niente barrel dello slice ne' i suoi ui/ e api/, nemmeno per nome; importa il modulo puro che serve.",
+  },
+];
 
 export default tseslint.config(
   {
@@ -311,34 +351,15 @@ export default tseslint.config(
     // entities/*/lib, quindi ri-include il barrel-only delle entity (prima qui si spegneva: il difetto era proprio in lib/).
     files: ['src/**/lib/**/*.{ts,tsx}'],
     rules: {
-      'no-restricted-imports': ['error', { patterns: [
-        generatedImportGroup,
-        {
-          group: ['react', 'react/*', 'react-*', 'react-*/*', '@react-*/*', '@tanstack/*'],
-          message: "Il layer lib/ e' puro: niente React/React Query/router (sposta la funzione in api/ o ui/).",
-        },
-        // Review v3 H-03: il divieto confronta lo specificatore scritto, quindi un import relativo di ui/ o dei wrapper api/
-        // passava. Vietati ui/ (componenti e hook), il barrel api/ della feature (wrapper React Query), il mutator e i
-        // moduli auth con effetti (auth-status carica il mutator). Restano ammessi i moduli puri di shared/api
-        // (problem/, auth/stato).
-        {
-          group: ['**/ui', '**/ui/*', '**/ui/**', '**/api/mutator', '**/api/mutator/*', '**/api/auth/auth-status', '**/api/auth/use-auth-status'],
-          message: "Il layer lib/ e' puro: niente ui/, mutator o moduli auth con effetti (passa il dato come parametro; i tipi e i predicati puri stanno in shared/api/auth/stato).",
-        },
-        // il barrel api/ della feature (i wrapper React Query) e il barrel della feature stessa ('..', '../..', che
-        // riesporta ui/ e api/): una cartella in gitignore vieterebbe anche i moduli puri di shared/api, quindi i soli
-        // barrel con una regex sullo specificatore, anche con la barra finale o /index (review v3 iterazione 2)
-        {
-          regex: '^(\\.\\./){1,2}api/?(index(\\.tsx?)?)?$',
-          message: "Il layer lib/ e' puro: niente wrapper api/ della feature (hook React Query); passa il dato come parametro.",
-        },
-        {
-          regex: '^\\.\\.(/\\.\\.)?/?(index(\\.tsx?)?)?$',
-          message: "Il layer lib/ e' puro: niente barrel della feature (riesporta ui/ e api/); importa il modulo puro che serve.",
-        },
-        testingImportGroup,
-        entityBarrelOnlyImportGroup,
-      ] }],
+      'no-restricted-imports': ['error', { patterns: purezzaLibPatterns }],
+    },
+  },
+  {
+    // Review v3 (iterazioni 2 e 3): nei lib/ di feature ed entity anche il barrel dello slice e i suoi wrapper api/, in
+    // ogni forma dello specificatore. Non in shared/lib, dove '..' e' il barrel puro di shared/lib (residuo M-03).
+    files: ['src/features/*/lib/**/*.{ts,tsx}', 'src/entities/*/lib/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': ['error', { patterns: [...purezzaLibPatterns, ...barrelDelloSliceDaLib] }],
     },
   },
   {

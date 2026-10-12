@@ -166,6 +166,11 @@ describe('lib/: niente ui/ ne wrapper api/ con un import relativo (review v3 H-0
     ["import { Panoramica } from '..';", 'src/features/finanziario/lib/__canary__.ts'],
     ["import { Panoramica } from '../index';", 'src/features/finanziario/lib/__canary__.ts'],
     ["import { Panoramica } from '../..';", 'src/features/finanziario/lib/grafici/__canary__.ts'],
+    // residuo di H-03 (iterazione 3): lo slice per nome
+    ["import { Panoramica } from '../../finanziario';", 'src/features/finanziario/lib/__canary__.ts'],
+    ["import { useRiepilogo } from '../../finanziario/api';", 'src/features/finanziario/lib/__canary__.ts'],
+    ["import { useRiepilogo } from '../../../finanziario/api';", 'src/features/finanziario/lib/grafici/__canary__.ts'],
+    ["import { ValoreImporto } from '../../importo';", 'src/entities/importo/lib/__canary__.ts'],
     ["import { AXIOS_INSTANCE } from '../api/mutator/bff-mutator';", 'src/shared/lib/__canary__.ts'],
     ["import { hasGrant } from '../api/auth/auth-status';", 'src/shared/lib/__canary__.ts'],
     ["import { Kpi } from '../ui';", 'src/shared/lib/__canary__.ts'],
@@ -176,6 +181,12 @@ describe('lib/: niente ui/ ne wrapper api/ con un import relativo (review v3 H-0
     ["import { hasGrant } from '../api/auth/stato';", 'src/shared/lib/__canary__.ts'],
     ["import { classifyProblem } from '../api/problem/problem-types';", 'src/shared/lib/__canary__.ts'],
     ["import { testoUltimiDati } from './aggiornamento';", 'src/features/finanziario/lib/__canary__.ts'],
+    // residuo M-03: in shared/lib '..' e '../index' sono il barrel puro di shared/lib
+    ["import { formatEuro } from '..';", 'src/shared/lib/grafici/__canary__.ts'],
+    ["import { formatEuro } from '../index';", 'src/shared/lib/grafici/__canary__.ts'],
+    // i layer per nome non sono slice: shared/api/problem e il barrel di un'entity restano ammessi
+    ["import { classifyProblem } from '../../../shared/api/problem/problem-types';", 'src/features/finanziario/lib/__canary__.ts'],
+    ["import { descriviImporto } from '../../../entities/importo';", 'src/features/finanziario/lib/__canary__.ts'],
   ])('non scatta sui moduli puri: %s', async (riga, percorso) => {
     expect(ristretti(await regole(`${riga}\nexport const x = 1;\n`, percorso))).toEqual([]);
   });
@@ -193,6 +204,10 @@ describe('una sola istanza HTTP, il mutator BFF (review v3 H-04)', () => {
       "import { Axios } from 'axios';\nexport const x = new Axios({});\n",
       "import { default as http } from 'axios';\nexport const x = http.get('/api/finanziario/riepilogo');\n",
       "export const x = import('axios');\n",
+      "export { default as http } from 'axios';\n",
+      "export * as ax from 'axios';\n",
+      "export * from 'axios';\n",
+      "const ax = require('axios');\nexport const x = ax;\n",
     ]) {
       expect(sintassi(await regole(codice, percorso)).length, codice).toBeGreaterThan(0);
     }

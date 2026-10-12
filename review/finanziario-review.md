@@ -138,6 +138,19 @@ drill-down il PNG di treemap e raggiera ha solo il livello scelto, come a scherm
 - **M-03** [MINORE] `eslint.config.js:336`: La nuova regex del barrel vale per ogni src/**/lib/**. Da src/shared/lib/grafici/ blocca quindi anche `import { formatEuro } from '..'` e `'../index'`, che puntano al barrel puro src/shared/lib/index.ts, con il messaggio 'niente barrel della feature (riesporta ui/ e api/)', lì falso (sonde --stdin, CONV3/eslint-h03-h04.txt).
   - Fix proposto: Applicare la regex del barrel solo a `src/features/*/lib/**` e `src/entities/*/lib/**`, in un blocco che ripete gli altri pattern di no-restricted-imports, oppure eliminarla con la regola di boundaries proposta per il residuo di H-03. Canary in tests/eslint-regole.test.ts: da src/shared/lib/grafici/ l'import '..' non deve scattare.
 
+#### Correzioni dopo il verdetto (12/10/2026)
+
+Applicate dopo il PASS, senza cambiare il verdetto (che resta quello di `3269d53`). Gate di step8 rieseguito in sola
+verifica: 11/11, 729 test verdi, 7 e2e verdi.
+
+| Residuo | Esito | Dove |
+|---|---|---|
+| H-03 | Risolto. Nei `lib/` di feature ed entity vietati anche lo slice per nome (`'../../finanziario'`, `'../../finanziario/api'`, da `lib/` e da `lib/<sotto>/`); i nomi dei layer (`shared`, `entities`, ...) restano ammessi. Una regola di `boundaries` sul file risolto non scattava (`fileInternalPath` su `from` non supportato): regex sullo specificatore. Canary. | `eslint.config.js`, `tests/eslint-regole.test.ts` |
+| H-04 | Risolto. Vietate anche le riesportazioni di axios (`export { default as x } from`, `export * from`, `export * as`). Canary, anche per `require`. | `eslint.config.js`, `tests/eslint-regole.test.ts` |
+| M-01 | Risolto. Con dotazioni zero o negative la famiglia dice la sua dotazione e la parte disegnata ("SRA 19,0 M€ (nel grafico 20,0 M€)"); il dettaglio conta gli interventi fuori dal grafico. | `src/features/finanziario/lib/grafici/spesa.ts` |
+| M-02 | Risolto. Ogni famiglia ha la riga "Totale della famiglia", anche senza interventi disegnati, e il confronto della descrizione le considera tutte; nel grafico solo le famiglie con foglie. | `src/features/finanziario/lib/grafici/spesa.ts` |
+| M-03 | Risolto. Le regex del barrel valgono solo per i `lib/` di feature ed entity: in `shared/lib` `'..'` e `'../index'` (il barrel puro) sono ammessi. Canary. | `eslint.config.js` |
+
 #### Punti aperti e limiti
 
 - OP-FE-08: il PNG non ha la riga di AUDIT_ESPORTAZIONE (scelta dell'utente del 12/10/2026); serve un endpoint del
