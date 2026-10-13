@@ -2,9 +2,7 @@
 // delle righe dell'insieme e dimensione dalla risposta. Bottoni con aria-current sulla pagina corrente, una finestra di
 // pagine attorno a quella corrente, prima e ultima sempre raggiungibili; scelta delle righe per pagina.
 import { useId } from 'react';
-import { finestraPagine, formatNumber } from '../../lib';
-
-const DIMENSIONI = [10, 25, 50, 100] as const;
+import { DIMENSIONI_PAGINA, finestraPagine, formatNumber } from '../../lib';
 
 export function Paginazione({
   pagina,
@@ -47,7 +45,7 @@ export function Paginazione({
       </button>
       <label htmlFor={`${id}-dim`}>Righe per pagina</label>
       <select id={`${id}-dim`} className="form-select form-select-sm w-auto" value={dimensione} onChange={(e) => onDimensione(Number(e.target.value))}>
-        {DIMENSIONI.map((d) => (
+        {DIMENSIONI_PAGINA.map((d) => (
           <option key={d} value={d}>
             {d}
           </option>

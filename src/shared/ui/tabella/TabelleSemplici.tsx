@@ -1,11 +1,14 @@
 // TabelleSemplici — tabelle statiche del kit (ADR 0027), sullo stesso markup accessibile: caption, intestazioni di
 // colonna (th scope=col) e di riga (th scope=row), valori allineati a destra. TabellaRighe (una riga per elemento,
-// colonne dichiarate), TabellaVoci (coppie voce/valore), TabellaDati (la tabella equivalente di un grafico). Le celle
-// vanno a capo solo negli spazi (le assenze col motivo); gli importi non si spezzano (spazio indivisibile prima di €).
-// Il contenitore scorre in orizzontale sugli schermi stretti: e' una regione con nome, raggiungibile da tastiera.
-import { useId } from 'react';
+// colonne dichiarate), TabellaVoci (coppie voce/valore), TabellaDati (la tabella equivalente di un grafico),
+// TabellaStatica (una riga per elemento con colonne testuali o numeriche e la scelta delle colonne: review v2 H-03). Le
+// celle vanno a capo solo negli spazi (le assenze col motivo); gli importi non si spezzano (spazio indivisibile prima
+// di €). Il contenitore scorre in orizzontale sugli schermi stretti: e' una regione con nome, raggiungibile da tastiera.
+import { useId, useState } from 'react';
 import type { ReactNode } from 'react';
+import { conColonna } from '../../lib';
 import type { TabellaEquivalente } from '../../lib/grafici';
+import { SceltaColonne } from './SceltaColonne';
 
 /** Colonna di TabellaRighe: intestazione e cella dalla stessa voce, cosi' non si possono disallineare. */
 export type Colonna<T> = [string, (riga: T) => ReactNode];
@@ -71,6 +74,67 @@ export function TabellaVoci({ caption, voci }: { caption: string; voci: readonly
         ))}
       </tbody>
     </Contenitore>
+  );
+}
+
+/** Colonna di TabellaStatica: testuale (allineata a sinistra) o numerica (ui-num), visibile di partenza o a scelta. */
+export interface ColonnaStatica<T> {
+  chiave: string;
+  titolo: string;
+  resa: (riga: T) => ReactNode;
+  numerica?: boolean;
+  /** Colonna a scelta: parte nascosta e si mostra dal bottone "Colonne". Con almeno una colonna a scelta c'e' il bottone. */
+  nascosta?: boolean;
+}
+
+/**
+ * Una riga per elemento, senza ricerca ne' ordinamento: la prima colonna e' l'intestazione di riga (sempre visibile), le
+ * altre sono testi o importi (ui-num). Le colonne a scelta partono nascoste e si mostrano da "Colonne" (SceltaColonne).
+ */
+export function TabellaStatica<T>({ caption, colonne, righe, chiaveRiga }: { caption: string; colonne: readonly ColonnaStatica<T>[]; righe: readonly T[]; chiaveRiga: (riga: T, k: number) => string }) {
+  const [nascoste, setNascoste] = useState<ReadonlySet<string>>(() => new Set(colonne.filter((c) => c.nascosta).map((c) => c.chiave)));
+  const visibili = colonne.filter((c, k) => k === 0 || !nascoste.has(c.chiave));
+  const conScelta = colonne.some((c) => c.nascosta !== undefined);
+  return (
+    <>
+      {conScelta && (
+        <div className="ui-strumenti">
+          <SceltaColonne
+            colonne={colonne.map((c, k) => ({ chiave: c.chiave, titolo: c.titolo, fissa: k === 0 }))}
+            nascoste={nascoste}
+            onCambia={(chiave, visibile) => setNascoste((n) => conColonna(n, chiave, visibile))}
+          />
+        </div>
+      )}
+      <Contenitore caption={caption}>
+        <thead>
+          <tr>
+            {visibili.map((c) => (
+              <th key={c.chiave} scope="col" className={c.numerica ? 'ui-num' : undefined}>
+                {c.titolo}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {righe.map((r, k) => (
+            <tr key={chiaveRiga(r, k)}>
+              {visibili.map((c, j) =>
+                j === 0 ? (
+                  <th key={c.chiave} scope="row" className={c.numerica ? 'ui-num' : undefined}>
+                    {c.resa(r)}
+                  </th>
+                ) : (
+                  <td key={c.chiave} className={c.numerica ? 'ui-num' : undefined}>
+                    {c.resa(r)}
+                  </td>
+                ),
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </Contenitore>
+    </>
   );
 }
 

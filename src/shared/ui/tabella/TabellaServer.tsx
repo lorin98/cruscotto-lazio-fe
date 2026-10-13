@@ -3,6 +3,8 @@
 // sull'intestazione). Tabella HTML nativa come TabellaInterattiva (caption, th scope, intestazione di riga, aria-sort sui
 // soli campi ordinabili), riga apribile con clic o Invio, piede con i totali del DTO di sintesi. Le righe nuove entrano
 // con una dissolvenza (classe CSS, spenta da prefers-reduced-motion); le righe gia' presenti non si rianimano.
+// Le colonne nascoste si possono tenere fuori (`nascoste`/`onNascoste`): la scelta sopravvive allo smontaggio della
+// tabella (risultati vuoti, errore, pagina oltre l'ultima: review v2 V-03); senza, le tiene la tabella.
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { ariaSort, conColonna } from '../../lib/tabella';
@@ -25,6 +27,11 @@ export interface ColonnaServer<T> {
 export interface OrdinamentoServer {
   campo: string;
   verso: 'asc' | 'desc';
+}
+
+/** Le colonne che partono nascoste (la scelta "Colonne" di partenza). */
+export function colonneNascoste(colonne: readonly { chiave: string; nascosta?: boolean }[]): ReadonlySet<string> {
+  return new Set(colonne.filter((c) => c.nascosta).map((c) => c.chiave));
 }
 
 /** aria-sort di una colonna: la funzione pura di shared/lib/tabella, con l'ordinamento del server nella sua forma. */
@@ -106,6 +113,18 @@ function Piede<T>({ colonne, piede }: { colonne: ColonnaServer<T>[]; piede: Part
   );
 }
 
+/** Le colonne nascoste: proprie della tabella, oppure tenute dal chiamante (`fuori` con `onNascoste`). */
+function useNascoste<T>(colonne: readonly ColonnaServer<T>[], fuori: ReadonlySet<string> | undefined, onNascoste: ((n: ReadonlySet<string>) => void) | undefined) {
+  const [proprie, setProprie] = useState<ReadonlySet<string>>(() => colonneNascoste(colonne));
+  const nascoste = fuori ?? proprie;
+  const cambia = (chiave: string, visibile: boolean) => {
+    const n = conColonna(nascoste, chiave, visibile);
+    setProprie(n);
+    onNascoste?.(n);
+  };
+  return [nascoste, cambia] as const;
+}
+
 export function TabellaServer<T>({
   caption,
   colonne,
@@ -117,6 +136,8 @@ export function TabellaServer<T>({
   etichettaRiga,
   piede,
   strumenti,
+  nascoste: nascosteFuori,
+  onNascoste,
 }: {
   caption: string;
   colonne: ColonnaServer<T>[];
@@ -129,8 +150,11 @@ export function TabellaServer<T>({
   /** Riga dei totali dal server: un contenuto per chiave di colonna (la prima colonna e' l'intestazione di riga). */
   piede?: Partial<Record<string, ReactNode>>;
   strumenti?: ReactNode;
+  /** Colonne nascoste tenute dal chiamante (con `onNascoste`); assenti = le colonne con `nascosta` della definizione. */
+  nascoste?: ReadonlySet<string>;
+  onNascoste?: (nascoste: ReadonlySet<string>) => void;
 }) {
-  const [nascoste, setNascoste] = useState<ReadonlySet<string>>(() => new Set(colonne.filter((c) => c.nascosta).map((c) => c.chiave)));
+  const [nascoste, cambia] = useNascoste(colonne, nascosteFuori, onNascoste);
   const visibili = colonne.filter((c) => !nascoste.has(c.chiave));
   const nuove = useRigheNuove(righe.map(chiaveRiga));
   const conScelta = colonne.some((c) => !c.fissa && c.nascosta !== undefined);
@@ -138,7 +162,7 @@ export function TabellaServer<T>({
     <>
       <div className="ui-strumenti">
         {strumenti}
-        {conScelta && <SceltaColonne colonne={colonne} nascoste={nascoste} onCambia={(k, v) => setNascoste((n) => conColonna(n, k, v))} />}
+        {conScelta && <SceltaColonne colonne={colonne} nascoste={nascoste} onCambia={cambia} />}
       </div>
       <div className="ui-tabella-contenitore">
         <table className="ui-tabella">

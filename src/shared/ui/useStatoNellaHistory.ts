@@ -1,8 +1,10 @@
 // useStatoNellaHistory — stato di una pagina da ritrovare tornando indietro (dalla pagina di un'altra feature o da un
 // dettaglio): sta nello state della voce di history corrente (navigazione replace, l'indirizzo non cambia), con una firma
-// (per esempio quella dei filtri): con una firma diversa lo stato salvato si ignora. Generico: oggi lo usa il finanziario,
-// con la firma dei suoi filtri (N-01). Lo state della history e' `unknown` (chiunque nella stessa origine puo' scriverlo):
-// il predicato `valido` e' obbligatorio e un valore che non lo soddisfa vale come assente (review v4 H-05, iter3 A-02).
+// (per esempio quella dei filtri): con una firma diversa lo stato salvato si ignora. Generico: lo usano il finanziario,
+// con la firma dei suoi filtri (N-01), e l'elenco operativo per vista per ambito e colonne scelte, con una firma fissa
+// (i filtri dell'elenco stanno nell'indirizzo; review v2 A-04, V-03). Lo state della history e' `unknown` (chiunque
+// nella stessa origine puo' scriverlo): il predicato `valido` e' obbligatorio e un valore che non lo soddisfa vale come
+// assente (review v4 H-05, iter3 A-02).
 // Le altre chiavi dello state restano (lo stato di un'altra parte della pagina, o quello da riportare indietro).
 import { useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router';

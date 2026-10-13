@@ -68,6 +68,9 @@ export function conColonna(nascoste: ReadonlySet<string>, chiave: string, visibi
   return n;
 }
 
+/** Righe per pagina offerte dalla paginazione lato server: le sole che un indirizzo puo' chiedere (review v2 H-07). */
+export const DIMENSIONI_PAGINA = [10, 25, 50, 100] as const;
+
 /** Pagine da mostrare (da 0): la prima, l'ultima e due per parte attorno alla corrente; null = salto ("…"). */
 export function finestraPagine(corrente: number, pagine: number): Array<number | null> {
   if (pagine <= 7) return Array.from({ length: pagine }, (_, k) => k);

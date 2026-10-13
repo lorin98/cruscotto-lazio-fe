@@ -4,7 +4,7 @@ import { act, useState } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { BarraFiltri, CardGrafico, ContestoIntestazione, Grafico, Kpi, NumeroAnimato, PannelloLaterale, PulsantiScarica, Sezione, TabellaDati, TabellaInterattiva, TabellaRighe, TabellaServer, TabellaVoci, VistaQuery, blobDaDataUrl, statoTabellaValido, useStatoNellaHistory } from '../src/shared/ui';
+import { BarraFiltri, CardGrafico, ContestoIntestazione, Grafico, Kpi, NumeroAnimato, PannelloLaterale, PulsantiScarica, Sezione, TabellaDati, TabellaInterattiva, TabellaRighe, TabellaServer, TabellaStatica, TabellaVoci, VistaQuery, blobDaDataUrl, statoTabellaValido, useStatoNellaHistory } from '../src/shared/ui';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { pngDelGrafico } from '../src/shared/ui/grafici/echarts';
 import type { StatoQuery } from '../src/shared/ui';
@@ -576,6 +576,93 @@ describe('PannelloLaterale', () => {
     await userEvent.click(apri);
     await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Chiudi: Pannello' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+  });
+});
+
+// review v2 H-03 dell'elenco operativo: la tabella statica con le colonne a scelta e gli importi a destra sta nel kit
+describe('TabellaStatica: colonne testuali e numeriche, colonne a scelta', () => {
+  interface Riga {
+    codice: string;
+    data: string;
+    importo: string;
+    nota: string;
+  }
+  const RIGHE: Riga[] = [
+    { codice: 'D1', data: '10/02/2025', importo: '10.000,00\u00a0€', nota: 'prima' },
+    { codice: 'D2', data: '11/02/2025', importo: 'non disponibile (fonte non attiva)', nota: 'seconda' },
+  ];
+  const COLONNE = [
+    { chiave: 'codice', titolo: 'Codice', resa: (r: Riga) => r.codice },
+    { chiave: 'data', titolo: 'Data', resa: (r: Riga) => r.data },
+    { chiave: 'importo', titolo: 'Importo', resa: (r: Riga) => r.importo, numerica: true },
+    { chiave: 'nota', titolo: 'Nota', resa: (r: Riga) => r.nota, nascosta: true },
+  ];
+
+  it('la prima colonna e l intestazione di riga; le numeriche hanno ui-num; la colonna a scelta si mostra da Colonne', async () => {
+    const { container } = render(<TabellaStatica caption="Determine di prova" colonne={COLONNE} righe={RIGHE} chiaveRiga={(r) => r.codice} />);
+    const tabella = () => screen.getByRole('table', { name: 'Determine di prova' });
+    expect(within(tabella()).getAllByRole('columnheader').map((c) => c.textContent)).toEqual(['Codice', 'Data', 'Importo']);
+    expect(within(tabella()).getAllByRole('rowheader').map((c) => c.textContent)).toEqual(['D1', 'D2']);
+    expect(within(tabella()).getByRole('columnheader', { name: 'Importo' }).classList.contains('ui-num')).toBe(true);
+    expect(within(tabella()).getByRole('cell', { name: '10.000,00\u00a0€' }).classList.contains('ui-num')).toBe(true);
+    expect(within(tabella()).getByRole('cell', { name: '10/02/2025' }).classList.contains('ui-num')).toBe(false);
+    await expectNoA11yViolations(container);
+    await userEvent.click(screen.getByText('Colonne'));
+    expect(screen.queryByRole('checkbox', { name: 'Codice' })).toBeNull();
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Nota' }));
+    expect(within(tabella()).getByRole('columnheader', { name: 'Nota' })).toBeTruthy();
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Importo' }));
+    expect(within(tabella()).queryByRole('columnheader', { name: 'Importo' })).toBeNull();
+  });
+
+  it('senza colonne a scelta non c e il bottone Colonne', () => {
+    render(<TabellaStatica caption="Senza scelta" colonne={COLONNE.slice(0, 3)} righe={RIGHE} chiaveRiga={(r) => r.codice} />);
+    expect(screen.queryByText('Colonne')).toBeNull();
+  });
+});
+
+describe('TabellaServer: colonne nascoste tenute dal chiamante', () => {
+  function ConColonne({ onNascoste }: { onNascoste: (n: ReadonlySet<string>) => void }) {
+    const [nascoste, setNascoste] = useState<ReadonlySet<string>>(new Set(['nota']));
+    const [montata, setMontata] = useState(true);
+    return (
+      <>
+        <button type="button" onClick={() => setMontata((m) => !m)}>
+          Smonta
+        </button>
+        {montata && (
+          <TabellaServer<{ codice: string; nota: string }>
+            caption="Righe del server"
+            righe={[{ codice: 'A', nota: 'n' }]}
+            colonne={[
+              { chiave: 'codice', titolo: 'Codice', resa: (r) => r.codice, fissa: true },
+              { chiave: 'nota', titolo: 'Nota', resa: (r) => r.nota, nascosta: true },
+            ]}
+            chiaveRiga={(r) => r.codice}
+            ordinamento={{ campo: 'codice', verso: 'asc' }}
+            onOrdina={() => undefined}
+            nascoste={nascoste}
+            onNascoste={(n) => {
+              setNascoste(n);
+              onNascoste(n);
+            }}
+          />
+        )}
+      </>
+    );
+  }
+
+  it('la scelta passa al chiamante e resta quando la tabella si smonta e si rimonta', async () => {
+    const onNascoste = vi.fn();
+    render(<ConColonne onNascoste={onNascoste} />);
+    await userEvent.click(screen.getByText('Colonne'));
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Nota' }));
+    expect([...(onNascoste.mock.calls.at(-1)?.[0] as ReadonlySet<string>)]).toEqual([]);
+    await userEvent.keyboard('{Escape}');
+    await userEvent.click(screen.getByRole('button', { name: 'Smonta' }));
+    expect(screen.queryByRole('table', { name: 'Righe del server' })).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Smonta' }));
+    expect(within(screen.getByRole('table', { name: 'Righe del server' })).getByRole('columnheader', { name: 'Nota' })).toBeTruthy();
   });
 });
 
