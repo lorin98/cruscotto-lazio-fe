@@ -35,9 +35,27 @@ const DOMANDE: Record<ColonnaDomanda, Def<DomandaElenco>> = {
   superficiePagamento: { titolo: 'Superficie di pagamento', numerica: true, resa: (d) => testoSuperficie(d.superficiePagamento) },
 };
 
-/** Colonne della vista per ambito, nell'ordine della vista; la prima e' l'intestazione di riga. */
+/**
+ * Colonne delle domande per la vista per ambito: quelle della vista, nel suo ordine e visibili (la prima, intestazione di
+ * riga, fissa), poi le altre colonne di DomandaElenco nascoste, che l'utente mostra dal bottone "Colonne" (RA002: scelta
+ * delle colonne visibili; review v1 V-01). La vista e' l'insieme di partenza, non un limite.
+ */
 export function colonneDomande(chiavi: readonly ColonnaDomanda[]): ColonnaServer<DomandaElenco>[] {
-  return chiavi.map((chiave) => ({ chiave, ordinamento: ORDINAMENTO_COLONNA[chiave], ...DOMANDE[chiave] }));
+  const visibili = chiavi.map((chiave, k) => ({ chiave, ordinamento: ORDINAMENTO_COLONNA[chiave], ...DOMANDE[chiave], ...(k === 0 ? { fissa: true } : { nascosta: false }) }));
+  const altre = (Object.keys(DOMANDE) as ColonnaDomanda[])
+    .filter((c) => !chiavi.includes(c))
+    .map((chiave) => ({ chiave, ordinamento: ORDINAMENTO_COLONNA[chiave], ...DOMANDE[chiave], nascosta: true }));
+  return [...visibili, ...altre];
+}
+
+/** Titolo della colonna di un campo dell'ordinamento lato server (l'ordinamento attivo si dichiara col titolo). */
+export function titoloDelCampo(elenco: 'domande' | 'pagamenti', campo: string): string {
+  if (elenco === 'domande') {
+    const c = (Object.keys(ORDINAMENTO_COLONNA) as ColonnaDomanda[]).find((k) => ORDINAMENTO_COLONNA[k] === campo);
+    return c ? DOMANDE[c].titolo : campo;
+  }
+  const c = (Object.keys(ORDINAMENTO_COLONNA_PAGAMENTI) as ColonnaPagamento[]).find((k) => ORDINAMENTO_COLONNA_PAGAMENTI[k] === campo);
+  return c ? PAGAMENTI[c].titolo : campo;
 }
 
 const PAGAMENTI: Record<ColonnaPagamento, Def<PagamentoElenco>> = {

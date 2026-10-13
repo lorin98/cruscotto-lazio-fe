@@ -83,17 +83,10 @@ export const TESTO_MAX = 100;
 export const DIMENSIONE_PREDEFINITA = 25;
 export const DIMENSIONE_MASSIMA = 100;
 
-// caratteri di controllo o di formato: il backend li rifiuta (400, D-02 Rev. 1); dall'indirizzo non arrivano in pagina.
-// Classe costruita dai codici (C0, DEL e C1, spazi a larghezza zero, separatori e controlli bidirezionali, BOM).
-const INTERVALLI_CONTROLLO: ReadonlyArray<readonly [number, number]> = [
-  [0x00, 0x1f],
-  [0x7f, 0x9f],
-  [0x200b, 0x200f],
-  [0x2028, 0x202e],
-  [0x2060, 0x206f],
-  [0xfeff, 0xfeff],
-];
-const CONTROLLO = new RegExp(`[${INTERVALLI_CONTROLLO.map(([a, b]) => `${String.fromCharCode(a)}-${String.fromCharCode(b)}`).join('')}]`, 'u');
+// caratteri di controllo o di formato: il backend li rifiuta (400, D-02 Rev. 1) con la classe [\p{Cc}\p{Cf}]
+// (CriteriElencoValidi): la stessa classe qui, cosi' un testo incollato (trattino morbido, spazio a larghezza zero) non
+// arriva mai al server e non sparisce in silenzio dal filtro (review v1 A-04).
+const CONTROLLO = /[\p{Cc}\p{Cf}]/u;
 
 /** Valore utilizzabile in un parametro: non vuoto dopo il trim, senza caratteri di controllo, al piu' 255 caratteri. */
 export function valoreAccettabile(valore: string): boolean {
@@ -101,14 +94,65 @@ export function valoreAccettabile(valore: string): boolean {
   return v.length > 0 && v.length <= MAX_LUNGHEZZA && !CONTROLLO.test(v);
 }
 
-/** Criteri dalla query string: solo i parametri dell'elenco, valori ripuliti e senza doppioni, al piu' MAX_VALORI. */
+const IMPORTO = /^\d{1,13}(\.\d{1,2})?$/;
+const ESTREMI: ReadonlyArray<readonly [NomeFiltro, NomeFiltro]> = [
+  ['richiestoDa', 'richiestoA'],
+  ['ammessoDa', 'ammessoA'],
+  ['pagatoDa', 'pagatoA'],
+];
+const ESTREMO: ReadonlySet<NomeParametro> = new Set(ESTREMI.flat());
+const VERO_FALSO: ReadonlySet<NomeParametro> = new Set(['sigc', 'concessione', 'anomalie']);
+
+/** Fascia di importo rovesciata (Da maggiore di A): il backend risponde 400, quindi non si manda (review v1 X-03). */
+export function fasciaRovesciata(da: string | undefined, a: string | undefined): boolean {
+  return da !== undefined && a !== undefined && IMPORTO.test(da) && IMPORTO.test(a) && Number(da) > Number(a);
+}
+
+const tra = (valore: string, cifre: RegExp, min: number, max: number) => cifre.test(valore) && Number(valore) >= min && Number(valore) <= max;
+
+/** Ordinamento dell'elenco chiuso del contratto, diverso dal predefinito (che non si scrive). */
+function ordinaAccettato(valore: string, elenco: Elenco): boolean {
+  const o = /^([A-Za-z]+):(asc|desc)$/.exec(valore);
+  return o !== null && CAMPI_ORDINABILI[elenco].includes(o[1]) && !(o[1] === CAMPI_ORDINABILI[elenco][0] && o[2] === 'asc');
+}
+
+/** Controlli per parametro oltre a valoreAccettabile; i parametri senza una voce qui accettano ogni valore accettabile. */
+const VALIDI: Partial<Record<NomeParametro, (valore: string, elenco: Elenco) => boolean>> = {
+  presentata: (v) => v === 'true',
+  testo: (v) => testoInviabile(v),
+  pagina: (v) => tra(v, /^\d{1,9}$/, 1, 999_999_999),
+  dimensione: (v) => tra(v, /^\d{1,3}$/, 1, DIMENSIONE_MASSIMA) && Number(v) !== DIMENSIONE_PREDEFINITA,
+  ordina: ordinaAccettato,
+};
+
+/**
+ * Valore accettato dal server per quel parametro (review v1 H-01: dall'indirizzo arriva solo cio' che il backend accetta,
+ * cosi' la pagina e il server leggono gli stessi criteri): importi nel formato del contratto, presentata solo 'true'
+ * (D-02 Rev. 1: il filtro delle non presentate non esiste), booleani 'true'/'false', testo da 3 a 100 caratteri, pagina
+ * positiva (la prima non si scrive), dimensione fra 1 e 100 diversa dalla predefinita, ordinamento dell'elenco chiuso.
+ */
+function valoreDelParametro(nome: NomeParametro, valore: string, elenco: Elenco): boolean {
+  if (!valoreAccettabile(valore)) return false;
+  if (ESTREMO.has(nome)) return IMPORTO.test(valore);
+  if (VERO_FALSO.has(nome)) return valore === 'true' || valore === 'false';
+  return VALIDI[nome]?.(valore, elenco) ?? true;
+}
+
+/** Criteri dalla query string: solo i parametri dell'elenco con valori che il server accetta (ripuliti, senza doppioni, al
+ *  piu' MAX_VALORI); una fascia di importo rovesciata si scarta tutta. */
 export function criteriDaRicerca(ricerca: string | URLSearchParams, elenco: Elenco): Criteri {
   const p = typeof ricerca === 'string' ? new URLSearchParams(ricerca) : ricerca;
   const criteri: Criteri = {};
   for (const nome of PARAMETRI[elenco]) {
-    const valori = leggiRipetuti(p, nome, valoreAccettabile, SINGOLI.has(nome) ? 1 : MAX_VALORI);
+    const valori = leggiRipetuti(p, nome, (v) => valoreDelParametro(nome, v, elenco), SINGOLI.has(nome) ? 1 : MAX_VALORI);
     if (valori.length === 0) continue;
     criteri[nome] = valori;
+  }
+  for (const [da, a] of ESTREMI) {
+    if (fasciaRovesciata(criteri[da]?.[0], criteri[a]?.[0])) {
+      delete criteri[da];
+      delete criteri[a];
+    }
   }
   return criteri;
 }
@@ -215,6 +259,26 @@ export function ordinaPer(criteri: Criteri, elenco: Elenco, campo: string): Crit
   const out = senza(criteri, ['pagina', 'ordina']);
   if (!(campo === CAMPI_ORDINABILI[elenco][0] && verso === 'asc')) out.ordina = [`${campo}:${verso}`];
   return out;
+}
+
+/** L'ordinamento e' quello predefinito (primo campo dell'elenco chiuso, crescente). */
+export function ordinamentoPredefinito(o: Ordinamento, elenco: Elenco): boolean {
+  return o.campo === CAMPI_ORDINABILI[elenco][0] && o.verso === 'asc';
+}
+
+/** Torna all'ordinamento predefinito, dalla prima pagina. */
+export function senzaOrdinamento(criteri: Criteri): Criteri {
+  return senza(criteri, ['pagina', 'ordina']);
+}
+
+/** "Ordinate per Ancora da pagare, decrescente": l'ordinamento attivo in parole (review v1 X-04). */
+export function testoOrdinamento(titolo: string, o: Ordinamento): string {
+  return `Ordinate per ${titolo}, ${o.verso === 'asc' ? 'crescente' : 'decrescente'}`;
+}
+
+/** Ultima pagina (da 0) per un totale di righe e la dimensione richiesta. */
+export function ultimaPagina(totale: number, dimensione: number): number {
+  return Math.max(0, Math.ceil(totale / Math.max(1, dimensione)) - 1);
 }
 
 /** Criteri del sinottico (TX-0057): gli stessi filtri dell'elenco, senza pagina, dimensione e ordinamento. */

@@ -1,8 +1,11 @@
 // comuni — pezzi comuni delle due pagine dell'interrogazione: barra dei filtri con perimetro e data dell'ultimo dato,
-// avviso di aggiornamento (i dati precedenti restano, ADR 0029), stato vuoto che porta al pannello dei filtri.
+// avviso di aggiornamento (i dati precedenti restano, ADR 0029; regione role=status sempre presente, cosi' i lettori di
+// schermo annunciano il cambio: review v1 X-08), ordinamento attivo dichiarato (X-02, X-04), pagina oltre l'ultima (H-01),
+// stato vuoto che porta al pannello dei filtri, accesso non disponibile senza il grant della lettura (A-06).
 import type { ChipFiltro } from '../../../shared/ui';
 import { BarraFiltri } from '../../../shared/ui';
 import type { UltimoDato } from '../../../shared/lib';
+import { formatNumber } from '../../../shared/lib';
 import { DatiAl, PerimetroElenco } from './pill';
 
 export function BarraInterrogazione({
@@ -12,6 +15,7 @@ export function BarraInterrogazione({
   vuoto,
   perimetro,
   ultimi,
+  ultimiInErrore = false,
 }: {
   chip: ChipFiltro[];
   onApri?: () => void;
@@ -19,6 +23,8 @@ export function BarraInterrogazione({
   vuoto: string;
   perimetro: string | null | undefined;
   ultimi: readonly UltimoDato[] | undefined;
+  /** La risposta che porta l'ultimo dato e' in errore: la pill lo dice "non disponibile". */
+  ultimiInErrore?: boolean;
 }) {
   return (
     <BarraFiltri
@@ -29,19 +35,52 @@ export function BarraInterrogazione({
       destra={
         <>
           <PerimetroElenco perimetro={perimetro} />
-          <DatiAl voci={ultimi} />
+          <DatiAl voci={ultimi} inErrore={ultimiInErrore} />
         </>
       }
     />
   );
 }
 
-export function AvvisoAggiornamento({ attivo }: { attivo: boolean }) {
-  return attivo ? (
-    <p className="ui-aggiornamento" role="status">
-      Aggiornamento dei risultati: restano visibili quelli precedenti finché arrivano i nuovi.
+const TESTO_AGGIORNAMENTO = 'Aggiornamento dei risultati: restano visibili quelli precedenti finché arrivano i nuovi.';
+
+/** Regione role=status sempre montata: cambia solo il testo (una regione live inserita gia' piena non si annuncia). */
+export function AvvisoAggiornamento({ attivo, testo = TESTO_AGGIORNAMENTO }: { attivo: boolean; testo?: string }) {
+  return (
+    <p className={attivo ? 'ui-aggiornamento' : 'visually-hidden'} role="status">
+      {attivo ? testo : ''}
     </p>
-  ) : null;
+  );
+}
+
+/**
+ * L'ordinamento della tabella, sempre detto in testo vicino alla tabella: anche su una colonna che la vista non mostra
+ * (link condiviso, ritorno dalla scheda) si sa come sono ordinate le righe. Il testo e' annunciato (aria-live) quando
+ * cambia, senza spostare il focus dall'intestazione cliccata; "Ordine predefinito" lo riporta all'inizio.
+ */
+export function OrdinamentoAttivo({ testo, predefinito, onPredefinito }: { testo: string; predefinito: boolean; onPredefinito: () => void }) {
+  return (
+    <p className="ui-ordinamento">
+      <span aria-live="polite">{testo}</span>
+      {!predefinito && (
+        <button type="button" className="btn btn-link btn-sm p-0 ms-2" onClick={onPredefinito}>
+          Ordine predefinito
+        </button>
+      )}
+    </p>
+  );
+}
+
+/** Pagina chiesta oltre l'ultima (segnalibro vecchio, filtri cambiati altrove): lo dice e porta all'ultima pagina. */
+export function PaginaOltreLUltima({ pagina, ultima, onUltima }: { pagina: number; ultima: number; onUltima: () => void }) {
+  return (
+    <div className="alert alert-info my-3" role="status">
+      {`La pagina ${formatNumber(pagina + 1)} non c'è: i risultati arrivano a pagina ${formatNumber(ultima + 1)}.`}{' '}
+      <button type="button" className="btn btn-primary btn-sm" onClick={onUltima}>
+        {"Vai all'ultima pagina"}
+      </button>
+    </div>
+  );
 }
 
 export function VuotoFiltri({ testo, onApriFiltri }: { testo: string; onApriFiltri?: () => void }) {
@@ -54,5 +93,14 @@ export function VuotoFiltri({ testo, onApriFiltri }: { testo: string; onApriFilt
         </button>
       )}
     </>
+  );
+}
+
+/** Profilo senza il grant della lettura principale della pagina: niente lettura (sarebbe un 403), lo si dice. */
+export function AccessoNonDisponibile({ cosa }: { cosa: string }) {
+  return (
+    <div className="alert alert-warning my-3" role="alert">
+      {`Il tuo profilo non consulta ${cosa}.`}
+    </div>
   );
 }

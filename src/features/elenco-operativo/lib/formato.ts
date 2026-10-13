@@ -1,7 +1,7 @@
 // formato.ts — resa PURA dei campi dell'elenco operativo (zero React): importi col motivo dell'assenza (mai uno zero),
 // somme del sinottico con le domande senza importo, etichette dei codici del contratto, superfici e responsabile del
 // procedimento col loro motivo.
-import { ANNO_ASSENTE, ANNO_SENZA, ETICHETTE_ANNUALITA, ETICHETTE_ESITO_PAGAMENTO } from '../../../entities/domanda';
+import { ANNO_ASSENTE, ANNO_SENZA, ETICHETTE_ANNUALITA, ETICHETTE_ESITO_PAGAMENTO, ETICHETTE_ESITO_RIGA } from '../../../entities/domanda';
 import { descriviImporto } from '../../../entities/importo';
 import type { ImportoLike } from '../../../entities/importo';
 import { formatDate, formatEuro, formatNumber, formatPercentuale, plurale } from '../../../shared/lib';
@@ -28,6 +28,28 @@ export function testoSomma(somma: Somma | null | undefined, unita: readonly [str
   return senza > 0 ? { valore, nota: `${plurale(senza, unita[0], unita[1])} senza importo` } : { valore };
 }
 
+/** Motivo dell'assenza di un aggregato del sinottico (D-05 Rev. 1 del backend): non e' il "non valorizzato" della domanda. */
+const MOTIVI_AGGREGATO: Readonly<Record<'liquidato' | 'recuperato', string>> = {
+  liquidato: "una riga di liquidazione dell'insieme non ha l'importo",
+  recuperato: "un recupero dell'insieme non ha l'importo",
+};
+
+/**
+ * Liquidato o recuperato del sinottico: la somma, oppure "non calcolabile" col motivo dell'aggregato (un elemento
+ * dell'insieme senza importo rende assente la somma, D-05 Rev. 1), mai zero (review v1 V-10).
+ */
+export function testoAggregato(importo: ImportoLike | null | undefined, campo: 'liquidato' | 'recuperato'): { valore: string; nota?: string } {
+  if (importo?.valore != null) return { valore: formatEuro(importo.valore) };
+  return { valore: 'non calcolabile', nota: MOTIVI_AGGREGATO[campo] };
+}
+
+/** Perimetro della risposta in parole (pill, badge, intestazione dei PNG); null se la risposta non lo porta. */
+export function testoPerimetro(perimetro: string | null | undefined): string | null {
+  if (perimetro === 'ADA') return 'ADA del tuo profilo';
+  if (perimetro === 'REGIONALE') return 'regionale';
+  return null;
+}
+
 /** Quota pagata sull'ammesso (percentuale gia' calcolata dal server), oppure "non calcolabile". */
 export function testoQuotaPagata(quota: number | null | undefined): string {
   return quota == null ? 'non calcolabile' : formatPercentuale(quota);
@@ -39,7 +61,7 @@ export function etichettaTipo(tipo: string | null | undefined): string {
   return tipo ? (TIPI[tipo] ?? tipo) : '';
 }
 
-const ESITI: Record<string, string> = { PAGATA: 'Pagata', ESCLUSA: 'Esclusa' };
+const ESITI: Record<string, string> = ETICHETTE_ESITO_RIGA;
 /** Esito della riga di elenco; per una domanda chiusa lo dice in testo (non solo col colore). */
 export function etichettaEsito(esito: string | null | undefined, domandaCorrente = true): string {
   const e = esito ? (ESITI[esito] ?? esito) : '';
@@ -51,7 +73,7 @@ export const ETICHETTE_VALORI: Partial<Record<string, Record<string, string>>> =
   tipo: TIPI,
   annualita: ETICHETTE_ANNUALITA,
   pagamento: ETICHETTE_ESITO_PAGAMENTO,
-  esito: { PAGATA: 'Pagata', ESCLUSA: 'Esclusa' },
+  esito: ETICHETTE_ESITO_RIGA,
   anno: { [ANNO_SENZA]: ANNO_ASSENTE.breve },
   stato: { SENZA_STATO: 'Senza stato SIAN' },
   statoProgrammazione: { SENZA_STATO: 'Senza stato area programmazione' },
@@ -97,9 +119,14 @@ export function testoAtto(numero: string | null | undefined, data: string | null
   return 'nessun atto';
 }
 
-/** "1 riga", "2.173 righe": conteggi in italiano. */
-export function conteggio(n: number | null | undefined, singolare: string, plur: string): string {
-  return n == null ? '-' : `${formatNumber(n)} ${n === 1 ? singolare : plur}`;
+/**
+ * Conteggio dal vivo del pannello dei filtri (review v1 V-03): mentre arriva la risposta dei criteri nuovi (dati
+ * precedenti come segnaposto) dice "Conteggio in corso", mai il numero vecchio come se fosse di questi filtri.
+ */
+export function testoConteggio(n: number | null | undefined, unita: readonly [string, string], { inAggiornamento, inErrore = false }: { inAggiornamento: boolean; inErrore?: boolean }): string {
+  if (inAggiornamento) return 'Conteggio in corso…';
+  if (n == null) return inErrore ? 'Conteggio non disponibile' : 'Conteggio in corso…';
+  return `${formatNumber(n)} ${n === 1 ? unita[0] : unita[1]} con questi filtri`;
 }
 
 /** Quota di un importo sull'altro della stessa domanda, in centesimi (es. pagato sull'ammesso); null se uno manca o la

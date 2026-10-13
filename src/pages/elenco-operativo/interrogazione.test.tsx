@@ -161,7 +161,7 @@ describe('RA002: elenco operativo dei pagamenti del perimetro (TX-0059)', () => 
     expect(screen.getByRole('region', { name: 'Decretato' }).textContent).toContain('1 riga senza importo');
     const tabella = screen.getByRole('table', { name: /Elenco operativo dei pagamenti/ });
     expect(within(tabella).getByText('Pagata (domanda chiusa)')).toBeTruthy();
-    expect(screen.getByText('Perimetro: la tua area (ADA)')).toBeTruthy();
+    expect(screen.getByText('Perimetro: ADA del tuo profilo')).toBeTruthy();
     await userEvent.click(within(tabella).getByRole('row', { name: /pagamento D84-2/ }));
     const dialogo = await screen.findByRole('dialog');
     expect(within(dialogo).queryByRole('link', { name: 'Apri la domanda' })).toBeNull();
@@ -184,7 +184,7 @@ describe('RA004: scheda completa della domanda (TX-0058)', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'COOPERATIVA VERDI' })).toBeTruthy();
     expect((await screen.findByRole('region', { name: 'Pagato' })).textContent).toContain("quota sull'ammesso: 62,5 %");
     await userEvent.click(screen.getByRole('tab', { name: 'Determine (1)' }));
-    const tabella = await screen.findByRole('table', { name: 'Determine della domanda (righe aperte)' });
+    const tabella = await screen.findByRole('table', { name: /^Determine della domanda \(righe aperte/ });
     expect(within(tabella).getByText("riservato ai profili dell'area procedurale")).toBeTruthy();
     await userEvent.click(screen.getByRole('tab', { name: 'Anomalie (0)' }));
     expect(await screen.findByText('Nessuna anomalia presente per questa domanda.')).toBeTruthy();

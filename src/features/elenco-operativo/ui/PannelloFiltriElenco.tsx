@@ -1,17 +1,21 @@
 // PannelloFiltriElenco — pannello laterale dei filtri dell'interrogazione (wireframe domande e pagamenti, ADR 0029): ogni
-// scelta cambia subito l'indirizzo e quindi risultati, sinottico e totali (nessun "Applica"); il conteggio dal vivo e'
-// annunciato con role="status". Valori dei filtri da TX-0060, solo quelli del perimetro del chiamante. PannelloLaterale
-// (react-aria) da' focus trap, Esc e ritorno del focus; i controlli sono Bootstrap Italia (vedi controlli.tsx).
+// scelta cambia l'indirizzo col debounce dell'interrogazione (useCriteri) e quindi risultati, sinottico e totali (nessun
+// "Applica"); il conteggio dal vivo e' annunciato con role="status" e dice "in corso" finche' non e' dei filtri correnti.
+// Un errore delle letture si legge anche dal pannello aperto (role=alert nel dialogo: il resto della pagina e' nascosto ai
+// lettori di schermo, review v1 X-03). Valori dei filtri da TX-0060 (letti da useInterrogazione col loro grant): senza il
+// grant, o se non arrivano, resta la ricerca per testo (A-06). PannelloLaterale (react-aria) da' focus trap, Esc e
+// ritorno del focus; i controlli sono Bootstrap Italia (vedi controlli.tsx).
 import { useId } from 'react';
 import { ANNO_ASSENTE, ANNO_SENZA } from '../../../entities/domanda';
+import { getErrorMessage } from '../../../shared/lib';
 import { ErroreVista, PannelloLaterale, VistaQuery } from '../../../shared/ui';
-import { useValoriFiltri } from '../api';
+import type { StatoQuery } from '../../../shared/ui';
 import type { ValoriFiltriElenco } from '../api';
 import { ETICHETTE_FILTRI } from '../lib/chip';
-import { conFiltro, importoDaTesto, testoInviabile } from '../lib/criteri';
+import { conFiltro, fasciaRovesciata, importoDaTesto, testoInviabile, valoreAccettabile } from '../lib/criteri';
 import type { Criteri, Elenco, NomeFiltro } from '../lib/criteri';
 import { ETICHETTE_VALORI } from '../lib/formato';
-import { CampoRitardato, Caselle, Gruppo, Scelte } from './controlli';
+import { CampoFiltro, Caselle, Gruppo, Scelte } from './controlli';
 import type { Opzione } from './controlli';
 
 const daCodici = (codici: readonly (string | number)[] | undefined, nome?: NomeFiltro): Opzione[] =>
@@ -30,7 +34,6 @@ const IMPORTI: ReadonlyArray<[string, NomeFiltro, NomeFiltro]> = [
   ['Importo pagato (euro)', 'pagatoDa', 'pagatoA'],
 ];
 
-const importoValido = (s: string) => s.trim() === '' || importoDaTesto(s) !== null;
 
 interface PropsContenuto {
   dati: ValoriFiltriElenco;
@@ -114,6 +117,13 @@ function GruppoImporti({ id, sel, imposta, conta }: Scelta) {
     const importo = importoDaTesto(s);
     imposta(n)(importo ? [importo] : []);
   };
+  // un estremo e' valido se e' un importo e non rovescia la fascia con l'altro estremo gia' scelto (il backend: 400)
+  const valido = (da: NomeFiltro, a: NomeFiltro, n: NomeFiltro) => (s: string) => {
+    if (s.trim() === '') return true;
+    const importo = importoDaTesto(s);
+    if (importo === null) return false;
+    return n === da ? !fasciaRovesciata(importo, sel(a)[0]) : !fasciaRovesciata(sel(da)[0], importo);
+  };
   return (
     <Gruppo titolo="Importi e pagamento" scelti={conta('pagamento', 'richiestoDa', 'richiestoA', 'ammessoDa', 'ammessoA', 'pagatoDa', 'pagatoA')}>
       <Scelte etichetta={ETICHETTE_FILTRI.pagamento} opzioni={fisse('pagamento')} scelti={sel('pagamento')} onCambia={imposta('pagamento')} />
@@ -122,15 +132,15 @@ function GruppoImporti({ id, sel, imposta, conta }: Scelta) {
           <legend>{legenda}</legend>
           <div className="ui-intervallo">
             {[da, a].map((n) => (
-              <CampoRitardato
+              <CampoFiltro
                 key={n}
                 id={`${id}-${n}`}
                 etichetta={n === da ? 'Da' : 'Fino a'}
                 tipo="text"
                 modo="decimal"
-                errore="Scrivi un importo in euro, ad esempio 1.500,50."
+                errore={'Scrivi un importo in euro, ad esempio 1.500,50; "Fino a" non può essere minore di "Da".'}
                 valore={(sel(n)[0] ?? '').replace('.', ',')}
-                valido={importoValido}
+                valido={valido(da, a, n)}
                 onCambia={scrivi(n)}
               />
             ))}
@@ -165,24 +175,40 @@ function Contenuto({ dati, criteri, elenco, applica }: PropsContenuto) {
       <GruppoStati {...scelta} />
       <GruppoTerritorio {...scelta} />
       <GruppoImporti {...scelta} />
-      <p className="ui-nota">Si applica mentre scegli. Valori dello stesso filtro in alternativa (O); filtri diversi insieme (E).</p>
+      <p className="ui-nota">
+        Si applica mentre scegli. Valori dello stesso filtro in alternativa (O); filtri diversi insieme (E), tranne gli stati: lo stato SIAN e gli
+        stati dei report procedurali valgono in alternativa fra loro, come lo stato e la voce dell&apos;area programmazione.
+      </p>
     </>
   );
 }
 
-/** Ricerca libera fuori dai valori di TX-0060: resta disponibile anche se i valori dei filtri non arrivano. */
+/** Il testo libero si manda da 3 a 100 caratteri e senza caratteri di controllo (il backend: 400, review v1 A-04). */
+const testoValido = (s: string) => testoInviabile(s) && (s.trim() === '' || valoreAccettabile(s));
+
+/** Ricerca libera fuori dai valori di TX-0060: resta disponibile anche se i valori dei filtri non arrivano o non si leggono. */
 function CampoTesto({ criteri, applica }: { criteri: Criteri; applica: (c: Criteri) => void }) {
   const id = useId();
   return (
-    <CampoRitardato
+    <CampoFiltro
       id={`${id}-testo`}
       etichetta="Cerca per codice a barre, CUAA o denominazione"
       aiuto="Almeno 3 caratteri: il codice a barre e il CUAA che iniziano così, la denominazione che lo contiene."
-      errore="Scrivi da 3 a 100 caratteri."
+      errore="Scrivi da 3 a 100 caratteri, senza caratteri speciali invisibili."
       valore={criteri.testo?.[0] ?? ''}
-      valido={testoInviabile}
+      valido={testoValido}
       onCambia={(s) => applica(conFiltro(criteri, 'testo', [s]))}
     />
+  );
+}
+
+/** Errori delle letture della pagina (pagina, sinottico) mentre il pannello e' aperto: un solo avviso, il primo. */
+function ErroreLetture({ errori }: { errori: readonly unknown[] }) {
+  if (errori.length === 0) return null;
+  return (
+    <div className="alert alert-danger" role="alert">
+      {`Risultati non disponibili con questi filtri: ${getErrorMessage(errori[0])}`}
+    </div>
   );
 }
 
@@ -192,19 +218,25 @@ export function PannelloFiltriElenco({
   elenco,
   criteri,
   applica,
+  valori,
+  errori,
   conteggio,
   onAzzera,
 }: {
   aperto: boolean;
   onChiudi: () => void;
   elenco: Elenco;
+  /** Criteri visibili (con la bozza in attesa del debounce). */
   criteri: Criteri;
+  /** Applica col debounce dell'interrogazione. */
   applica: (c: Criteri) => void;
+  /** Valori dei filtri (TX-0060); null senza il grant: restano la ricerca per testo e la nota. */
+  valori: StatoQuery<ValoriFiltriElenco> | null;
+  errori: readonly unknown[];
   /** Conteggio dal vivo dell'insieme filtrato (dal server), gia' in parole: "1.284 domande con questi filtri". */
   conteggio: string;
   onAzzera: () => void;
 }) {
-  const stato = useValoriFiltri();
   return (
     <PannelloLaterale
       aperto={aperto}
@@ -217,7 +249,7 @@ export function PannelloFiltriElenco({
             Azzera
           </button>
           <button type="button" className="btn btn-primary" onClick={onChiudi}>
-            Mostra i risultati
+            Chiudi
           </button>
         </>
       }
@@ -225,13 +257,18 @@ export function PannelloFiltriElenco({
       <p className="ui-conteggio" role="status" aria-live="polite">
         {conteggio}
       </p>
+      <ErroreLetture errori={errori} />
       <CampoTesto criteri={criteri} applica={applica} />
-      <VistaQuery
-        stato={stato}
-        errorePersonalizzato={(e) => <ErroreVista errore={e} contesto="Valori dei filtri non disponibili: resta la ricerca per testo." onRiprova={() => void stato.refetch()} />}
-      >
-        {(dati) => <Contenuto dati={dati} criteri={criteri} elenco={elenco} applica={applica} />}
-      </VistaQuery>
+      {valori ? (
+        <VistaQuery
+          stato={valori}
+          errorePersonalizzato={(e) => <ErroreVista errore={e} contesto="Valori dei filtri non disponibili: resta la ricerca per testo." onRiprova={() => void valori.refetch()} />}
+        >
+          {(dati) => <Contenuto dati={dati} criteri={criteri} elenco={elenco} applica={applica} />}
+        </VistaQuery>
+      ) : (
+        <p className="ui-nota">Il tuo profilo non legge i valori dei filtri: resta la ricerca per testo.</p>
+      )}
     </PannelloLaterale>
   );
 }

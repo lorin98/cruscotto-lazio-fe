@@ -1,13 +1,12 @@
 // controlli — controlli del pannello dei filtri dell'interrogazione (ADR 0029: si applicano dal vivo, nessun "Applica").
 // Bootstrap Italia per i campi e le caselle (classi form-*, ui-opzione), chip a pressione (aria-pressed) per le scelte
 // brevi, <details> per i gruppi a scomparsa: nessun comportamento ARIA complesso, quindi niente react-aria qui.
-// I campi di testo aspettano RITARDO_MS dall'ultima battuta prima di cambiare l'indirizzo (debounce) e non mandano un
-// valore che il backend rifiuterebbe (testo sotto i 3 caratteri, importo non leggibile): lo dicono accanto al campo.
-import { useEffect, useRef, useState } from 'react';
+// Il debounce di TUTTI i controlli sta in useCriteri (review v1 V-15): i campi di testo passano subito un valore valido e
+// non mandano mai un valore che il backend rifiuterebbe (testo sotto i 3 caratteri o con caratteri di controllo, importo
+// non leggibile, fascia rovesciata): lo dicono accanto al campo (aria-invalid).
+import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { filtraRighe } from '../../../shared/lib';
-
-export const RITARDO_MS = 300;
 
 export interface Opzione {
   valore: string;
@@ -73,24 +72,19 @@ export function Scelte({ etichetta, opzioni, scelti, esclusive = false, onCambia
   );
 }
 
-/** Bozza del campo: un cambio esterno (chip tolto, "Azzera") la riallinea; un valore valido parte dopo RITARDO_MS. */
-function useBozzaRitardata(valore: string, valido: (s: string) => boolean, onCambia: (s: string) => void) {
+/** Bozza del campo: un cambio esterno (chip tolto, "Azzera") la riallinea; un valore valido e diverso passa subito. */
+function useBozza(valore: string, valido: (s: string) => boolean, onCambia: (s: string) => void) {
   const [bozza, setBozza] = useState(valore);
   const [valorePrima, setValorePrima] = useState(valore);
   if (valore !== valorePrima) {
     setValorePrima(valore);
     setBozza(valore);
   }
-  const cambia = useRef(onCambia);
-  useEffect(() => {
-    cambia.current = onCambia;
-  }, [onCambia]);
-  useEffect(() => {
-    if (bozza === valore || !valido(bozza)) return undefined;
-    const timer = setTimeout(() => cambia.current(bozza), RITARDO_MS);
-    return () => clearTimeout(timer);
-  }, [bozza, valore, valido]);
-  return [bozza, setBozza] as const;
+  const scrivi = (s: string) => {
+    setBozza(s);
+    if (s !== valore && valido(s)) onCambia(s);
+  };
+  return [bozza, scrivi] as const;
 }
 
 function descrittoDa(id: string, conAiuto: boolean, nonValido: boolean): string | undefined {
@@ -99,10 +93,11 @@ function descrittoDa(id: string, conAiuto: boolean, nonValido: boolean): string 
 }
 
 /**
- * Campo di testo che porta il valore nell'indirizzo RITARDO_MS dopo l'ultima battuta, se `valido`; un cambio esterno
- * (chip tolto, "Azzera") riallinea il campo. `aiuto` spiega il formato; un valore non valido lo dice (aria-invalid).
+ * Campo di testo di un filtro: un valore valido passa subito a `onCambia` (che lo applica col debounce dell'interrogazione);
+ * un cambio esterno (chip tolto, "Azzera") riallinea il campo. `aiuto` spiega il formato; un valore non valido lo dice
+ * (aria-invalid) e non parte.
  */
-export function CampoRitardato({
+export function CampoFiltro({
   id,
   etichetta,
   valore,
@@ -123,7 +118,7 @@ export function CampoRitardato({
   tipo?: 'search' | 'text';
   modo?: 'decimal';
 }) {
-  const [bozza, setBozza] = useBozzaRitardata(valore, valido, onCambia);
+  const [bozza, scrivi] = useBozza(valore, valido, onCambia);
   const nonValido = bozza.trim() !== '' && !valido(bozza);
   const descritto = descrittoDa(id, Boolean(aiuto), nonValido);
   return (
@@ -139,7 +134,7 @@ export function CampoRitardato({
         value={bozza}
         aria-invalid={nonValido || undefined}
         aria-describedby={descritto}
-        onChange={(e) => setBozza(e.target.value)}
+        onChange={(e) => scrivi(e.target.value)}
       />
       {aiuto && (
         <p id={`${id}-aiuto`} className="form-text">

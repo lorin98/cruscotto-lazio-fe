@@ -23,7 +23,6 @@ import {
 } from '../src/features/elenco-operativo/lib/criteri';
 import {
   cellaImporto,
-  conteggio,
   etichettaEsito,
   etichettaTipo,
   importoConNota,
@@ -31,6 +30,7 @@ import {
   testoAnnualita,
   testoAnno,
   testoAtto,
+  testoConteggio,
   testoQuotaPagata,
   testoResponsabile,
   testoSomma,
@@ -195,9 +195,13 @@ describe('elenco operativo, formati (mai uno zero per un dato assente)', () => {
     expect(testoAtto('AC-1', null)).toBe('AC-1');
     expect(testoAtto(null, '2025-03-01')).toBe('del 01/03/2025');
     expect(testoAtto(null, null)).toBe('nessun atto');
-    expect(conteggio(1, 'riga', 'righe')).toBe('1 riga');
-    expect(conteggio(21730, 'riga', 'righe')).toBe('21.730 righe');
-    expect(conteggio(null, 'riga', 'righe')).toBe('-');
+    // il conteggio del pannello (review v1 V-03): mai un numero vecchio mentre arriva il nuovo, mai un trattino
+    const unita = ['riga', 'righe'] as const;
+    expect(testoConteggio(1, unita, { inAggiornamento: false })).toBe('1 riga con questi filtri');
+    expect(testoConteggio(21730, unita, { inAggiornamento: false })).toBe('21.730 righe con questi filtri');
+    expect(testoConteggio(21730, unita, { inAggiornamento: true })).toBe('Conteggio in corso…');
+    expect(testoConteggio(null, unita, { inAggiornamento: false })).toBe('Conteggio in corso…');
+    expect(testoConteggio(null, unita, { inAggiornamento: false, inErrore: true })).toBe('Conteggio non disponibile');
   });
 });
 

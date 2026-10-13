@@ -98,12 +98,28 @@ export interface Chip {
   testo: string;
 }
 
+/**
+ * Filtri in alternativa fra loro (O) e non insieme (E), come dice il contratto (D-02 Rev. 1 e Rev. 2 del backend): lo
+ * stato SIAN e gli stati dei report procedurali per tipo di domanda; lo stato area programmazione e la voce del report.
+ */
+export const GRUPPI_IN_ALTERNATIVA: readonly (readonly NomeFiltro[])[] = [
+  ['stato', 'statoSostegno', 'statoPagamento'],
+  ['statoProgrammazione', 'voceProgrammazione'],
+];
+
+/** Con due o piu' filtri dello stesso gruppo attivi, la loro etichetta dice che valgono in alternativa (review v1 V-07). */
+function etichettaNelGruppo(criteri: Criteri, nome: NomeFiltro): string {
+  const gruppo = GRUPPI_IN_ALTERNATIVA.find((g) => g.includes(nome));
+  const attivi = gruppo ? gruppo.filter((n) => (criteri[n]?.length ?? 0) > 0).length : 0;
+  return attivi > 1 ? `${ETICHETTE_FILTRI[nome]} (in alternativa agli altri stati)` : ETICHETTE_FILTRI[nome];
+}
+
 /** Un chip per ogni valore di ogni filtro attivo, nell'ordine dei filtri (pagina e ordinamento non sono chip). */
 export function chipDeiCriteri(criteri: Criteri, valori?: Valori): Chip[] {
   const out: Chip[] = [];
   for (const nome of [...FILTRI_PAGAMENTO, ...FILTRI_DOMANDA]) {
     for (const valore of criteri[nome] ?? []) {
-      out.push({ nome, valore, etichetta: ETICHETTE_FILTRI[nome], testo: valoreLeggibile(nome, valore, valori) });
+      out.push({ nome, valore, etichetta: etichettaNelGruppo(criteri, nome), testo: valoreLeggibile(nome, valore, valori) });
     }
   }
   return out;

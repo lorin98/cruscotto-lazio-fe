@@ -10,6 +10,7 @@ import {
   testoAnnualita,
   testoAnno,
   testoAtto,
+  testoPerimetro,
   testoSuperficie,
 } from './formato';
 
@@ -51,22 +52,32 @@ export function vociAnteprimaPagamento(p: Pagamento): VoceTesto[] {
     ['Domanda', `${etichettaTipo(p.tipoDomanda)} ${p.codiceABarre ?? ''}, intervento ${p.codiceIntervento ?? ''}`],
     ['Esito', etichettaEsito(p.esito, p.domandaCorrente !== false)],
     ['Data di autorizzazione', formatDate(p.dataAutorizzazione) || 'non indicata'],
+    ['Elenco di liquidazione', `${p.decreto ?? ''}, protocollo ${p.protocollo ?? 'non indicato'}, tipologia ${testoTipologia(p)}`],
     ['Decretato', cellaImporto(p.importoDecretato)],
     ['Pagato', cellaImporto(p.importoPagato)],
+    ['Quote FEASR, nazionale, regionale', `${cellaImporto(p.quotaFeasr)} - ${cellaImporto(p.quotaNazionale)} - ${cellaImporto(p.quotaRegionale)}`],
   ];
   const motivi = p.motiviEsclusione ?? [];
   return motivi.length > 0 ? [...voci, ['Motivi di esclusione', motivi.join(', ')]] : voci;
 }
 
-/** Badge della testata della scheda (in testo: il colore non e' mai l'unico canale). */
+/** Tipologia dell'elenco e del pagamento della riga, oppure "non indicata" (wireframe dell'anteprima: "tipologia saldo"). */
+function testoTipologia(p: Pick<Pagamento, 'tipologiaElenco' | 'tipologiaPagamento'>): string {
+  const t = [p.tipologiaElenco, p.tipologiaPagamento].filter(Boolean);
+  return t.length > 0 ? t.join(', ') : 'non indicata';
+}
+
+/** Badge della testata della scheda (in testo: il colore non e' mai l'unico canale). Il perimetro solo se la risposta lo
+ *  porta: mai uno dichiarato per difetto (review v1 A-08). */
 export function badgeDellaDomanda(d: Domanda, perimetro: string | null | undefined): string[] {
+  const p = testoPerimetro(perimetro);
   return [
     d.cuaa ? `CUAA ${d.cuaa}` : 'CUAA non valorizzato',
     `Stato SIAN: ${testoStatoSian(d)}`,
     `Area programmazione: ${testoStatoProgrammazione(d)}`,
     d.sigc ? 'SIGC' : 'non SIGC',
     `Anno ${testoAnno(d.annoRaccolta)}, ${testoAnnualita(d.primaAnnualita)}`,
-    `Perimetro: ${perimetro === 'ADA' ? 'la tua area (ADA)' : 'regionale'}`,
+    ...(p ? [`Perimetro: ${p}`] : []),
   ];
 }
 

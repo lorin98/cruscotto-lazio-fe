@@ -69,7 +69,7 @@ describe('elenco operativo, testi delle schede di sola lettura', () => {
       'Area programmazione: senza stato',
       'SIGC',
       'Anno 2025, prima annualità',
-      'Perimetro: la tua area (ADA)',
+      'Perimetro: ADA del tuo profilo',
     ]);
     expect(badgeDellaDomanda({ ...domanda, cuaa: null, sigc: false }, 'REGIONALE')).toContain('CUAA non valorizzato');
     expect(sopratitoloDomanda(domanda, 'Produzione integrata')).toBe('Domanda di pagamento 54230000001 - SRA01 Produzione integrata');

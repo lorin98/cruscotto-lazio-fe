@@ -7,12 +7,14 @@
 //   NOT_FOUND della scheda (domanda inesistente, chiusa o fuori perimetro: stesso corpo, D-06) e' riconosciuto da
 //   rispostaDomandaAssente.
 // - Criteri: tutti i parametri sono ripetibili e testuali nel contratto (D-02); il mutator li serializza ripetuti e
-//   mette in coda le letture oltre il tetto del backend, come per il finanziario.
+//   mette in coda le letture oltre il tetto del backend, nella STESSA coda del finanziario (app/tetti-letture: il tetto
+//   per utente del backend e' unico per le due aree, review v1 V-04).
 // - Movimento (ADR 0029): elenco, sinottico e pagamenti tengono la risposta precedente mentre arriva quella dei
 //   criteri nuovi (placeholderData), cosi' i numeri si aggiornano senza svuotare la pagina.
 import { keepPreviousData } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
 import { classifyProblem } from '../../../shared/api/problem/problem-types';
+import { riferimentoValido } from '../lib/collegamenti';
 import {
   getApiElencoOperativoDomandeFormato,
   getApiElencoOperativoPagamentiFormato,
@@ -63,21 +65,25 @@ export type CriteriPagamenti = Tx0059Params;
 // grant dei filtri, dove servono solo come descrizioni dei chip).
 export const useValoriFiltri = (abilitato = true) => useTx0060({ query: { enabled: abilitato } });
 
-// TX-0056 (RA002): una pagina dell'elenco delle domande.
-export const useDomande = (criteri: CriteriDomande) =>
-  useTx0056(criteri, { query: { placeholderData: keepPreviousData } });
+// TX-0056 (RA002): una pagina dell'elenco delle domande; `abilitato` falso (profilo senza il grant): nessuna lettura.
+export const useDomande = (criteri: CriteriDomande, { abilitato = true }: { abilitato?: boolean } = {}) =>
+  useTx0056(criteri, { query: { placeholderData: keepPreviousData, enabled: abilitato } });
 
 // TX-0057 (RA006): sinottico dell'intero insieme filtrato (mai una somma della pagina, D-05).
 export const useSinottico = (criteri: CriteriSinottico, { abilitato = true }: { abilitato?: boolean } = {}) =>
   useTx0057(criteri, { query: { placeholderData: keepPreviousData, enabled: abilitato } });
 
-// TX-0058 (RA004): scheda della domanda; tipo e codice a barre obbligatori nel percorso (enabled guard).
-export const useDettaglioDomanda = (tipo: string | undefined, codiceABarre: string | undefined) =>
-  useTx0058(tipo ?? '', codiceABarre ?? '', { query: { enabled: Boolean(tipo) && Boolean(codiceABarre) } });
+// TX-0058 (RA004): scheda della domanda. Tipo e codice a barre arrivano dal percorso della pagina: si legge SOLO con un
+// riferimento valido (lib/collegamenti), e i segmenti entrano nell'URL codificati, cosi' un indirizzo costruito ad arte
+// ('..%2F..%2F') non puo' mandare la richiesta verso un altro endpoint dell'API (review v1 A-01).
+export const useDettaglioDomanda = (tipo: string | undefined, codiceABarre: string | undefined) => {
+  const valido = riferimentoValido(tipo, codiceABarre);
+  return useTx0058(valido ? encodeURIComponent(tipo ?? '') : '', valido ? encodeURIComponent(codiceABarre ?? '') : '', { query: { enabled: valido } });
+};
 
 // TX-0059 (RA002, D-1 di MIN-20261012): una pagina dell'elenco dei pagamenti con i totali dell'insieme filtrato.
-export const usePagamenti = (criteri: CriteriPagamenti) =>
-  useTx0059(criteri, { query: { placeholderData: keepPreviousData } });
+export const usePagamenti = (criteri: CriteriPagamenti, { abilitato = true }: { abilitato?: boolean } = {}) =>
+  useTx0059(criteri, { query: { placeholderData: keepPreviousData, enabled: abilitato } });
 
 /** Vero se l'errore della scheda e' il 404 NOT_FOUND (problem-type, non il solo status): stesso esito per domanda
  *  inesistente, chiusa o fuori perimetro (D-06). */
@@ -85,10 +91,23 @@ export function rispostaDomandaAssente(errore: unknown): boolean {
   return isAxiosError(errore) && classifyProblem(errore.response?.status ?? 0, errore.response?.data).kind === 'not-found';
 }
 
+/** Vero se la risposta e' un 400 (per un'esportazione con l'insieme oltre il limite di NFR-06: D-09 del backend). */
+export function rispostaRichiestaNonValida(errore: unknown): boolean {
+  return isAxiosError(errore) && errore.response?.status === 400;
+}
+
+/** Vero se l'errore della scheda e' il 400 DATO_NON_VALIDO sul tipo o sul codice a barre: la pagina lo dice come un
+ *  riferimento non valido, con il ritorno all'elenco (stato 400 del wireframe approvato). */
+export function rispostaRiferimentoNonValido(errore: unknown): boolean {
+  return isAxiosError(errore) && classifyProblem(errore.response?.status ?? 0, errore.response?.data).kind === 'invalid-data';
+}
+
 // Esportazioni (D-09): il file CSV o XLSX lo scrive il backend, con gli stessi criteri e lo stesso ordinamento della
 // consultazione (senza pagina e dimensione), l'intestazione e la registrazione in AUDIT_ESPORTAZIONE; oltre il limite di
 // NFR-06 risponde 400 (2.173 righe di domande, 2.777 di pagamenti). Funzioni e non mutation, come nel finanziario.
 export type FormatoEsportazione = 'csv' | 'xlsx';
+/** Righe al piu' di un file (NFR-06, 50.000 celle sulle colonne del file: D-09 Rev. 1 del backend, dichiarato nel contratto). */
+export const LIMITE_ESPORTAZIONE = { domande: 2173, pagamenti: 2777 } as const;
 type SenzaPagina<T> = Omit<T, 'pagina' | 'dimensione'>;
 export const esportaDomande = (formato: FormatoEsportazione, criteri: SenzaPagina<CriteriDomande>): Promise<Blob> =>
   getApiElencoOperativoDomandeFormato(formato, criteri);

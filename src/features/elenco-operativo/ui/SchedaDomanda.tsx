@@ -1,50 +1,74 @@
-// SchedaDomanda — pagina /elenco-operativo/domande/:tipo/:codiceABarre (flusso dettaglio-domanda approvato): un solo h1
-// (denominazione, o il codice a barre se manca), testata con i badge, quattro indicatori, schede Sintesi | Domande
-// collegate | Determine | Pagamenti | Recuperi | Anomalie da UNA lettura (TX-0058). Le schede sono Tabs di react-aria
-// (frecce da tastiera, aria-selected); tabelle native con caption e th scope (TabelleScheda). Un 404 ha lo stesso
-// messaggio per domanda inesistente, chiusa o fuori perimetro (D-06). Link dichiarati: domanda collegata, altre domande
-// del beneficiario, torna all'elenco.
+// SchedaDomanda — pagina /elenco-operativo/domande/:tipo/:codiceABarre (flusso dettaglio-domanda approvato): testata con
+// un solo h1 (denominazione, o il codice a barre se manca; sempre presente, anche in caricamento ed errore), i badge e le
+// azioni; quattro indicatori; schede Sintesi | Domande collegate | Determine | Pagamenti | Recuperi | Anomalie da UNA
+// lettura (TX-0058). Le schede sono Tabs di react-aria (frecce da tastiera, aria-selected); tabelle con caption e th scope
+// (TabelleScheda). Tipo e codice del percorso si convalidano prima di leggere: con un riferimento non valido nessuna
+// richiesta (review v1 A-01). Un 404 ha lo stesso messaggio per domanda inesistente, chiusa o fuori perimetro (D-06).
+// Link dichiarati: domanda collegata, altre domande del beneficiario, torna all'elenco (alla ricerca di partenza).
 import { useMemo } from 'react';
-import { Link, useNavigate } from 'react-router';
+import type { Ref } from 'react';
+import { Link, useLocation } from 'react-router';
 import { Tab, TabList, TabPanel, Tabs } from 'react-aria-components';
-import { formatNumber, formatPercentuale } from '../../../shared/lib';
-import { AvvisoPagina, CardGrafico, Griglia, Kpi, Sezione, VistaQuery, useFocusTitolo } from '../../../shared/ui';
-import { rispostaDomandaAssente, useDettaglioDomanda } from '../api';
+import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
+import { formatNumber, formatPercentuale, righeContesto } from '../../../shared/lib';
+import { AvvisoPagina, CardGrafico, ContestoIntestazione, Griglia, Kpi, Sezione, VistaQuery, useFocusTitolo } from '../../../shared/ui';
+import { rispostaDomandaAssente, rispostaRiferimentoNonValido, useDettaglioDomanda } from '../api';
 import type { DettaglioDomanda, DomandaElenco } from '../api';
-import { PERCORSO_DOMANDE, percorsoDettaglio, percorsoDomandeDelBeneficiario } from '../lib/collegamenti';
-import { cellaImporto, quotaSu } from '../lib/formato';
+import { PERCORSO_DOMANDE, PERCORSO_PAGAMENTI, percorsoDettaglio, percorsoDomandeDelBeneficiario, riferimentoValido, ritornoAllElenco, statoDiRitorno } from '../lib/collegamenti';
+import type { StatoScheda } from '../lib/collegamenti';
+import { cellaImporto, etichettaTipo, quotaSu, testoPerimetro } from '../lib/formato';
 import { graficoAmmessoPagato } from '../lib/grafici';
+import { puoLeggere } from '../lib/grant';
 import { badgeDellaDomanda, sopratitoloDomanda, vociSintesi } from '../lib/voci';
 import { ElencoVoci } from './anteprime';
 import { TabellaAnomalie, TabellaCollegate, TabellaDetermine, TabellaPagamentiDomanda, TabellaRecuperi } from './TabelleScheda';
 import { Briciole } from './testata';
 
 const ASSENTE = 'La domanda non è disponibile: non esiste, è chiusa oppure è fuori dal tuo perimetro.';
+const NON_VALIDO = "Tipo o codice a barre non validi: l'indirizzo non indica una domanda.";
 
-function Testata({ d, scheda }: { d: DomandaElenco; scheda: DettaglioDomanda }) {
-  const naviga = useNavigate();
-  const beneficiario = percorsoDomandeDelBeneficiario(d.cuaa);
-  // "torna all'elenco" ritorna alla ricerca di partenza se la scheda e' stata aperta dall'applicazione
-  const torna = () => void (window.history.length > 1 ? naviga(-1) : naviga(PERCORSO_DOMANDE));
+/** Testata (flusso approvato): sopratitolo, h1, badge e azioni; senza dati resta il solo h1. */
+function Testata({
+  h1,
+  titolo,
+  scheda,
+  ritorno,
+  statoRitorno,
+  conBeneficiario,
+}: {
+  h1: Ref<HTMLHeadingElement>;
+  titolo: string;
+  scheda: DettaglioDomanda | undefined;
+  ritorno: string;
+  statoRitorno: { vista: string } | undefined;
+  conBeneficiario: boolean;
+}) {
+  const d = scheda?.domanda;
+  const beneficiario = d && conBeneficiario ? percorsoDomandeDelBeneficiario(d.cuaa) : null;
   return (
-    <section className="ui-hero ui-dissolvenza" aria-label={`Domanda ${d.codiceABarre ?? ''}`}>
-      <span className="ui-eyebrow">{sopratitoloDomanda(d, scheda.descrizioneIntervento)}</span>
-      <ul className="ui-hero__badge-elenco" aria-label="Dati principali">
-        {badgeDellaDomanda(d, scheda.perimetro).map((b) => (
-          <li key={b} className="ui-hero__badge">
-            {b}
-          </li>
-        ))}
-      </ul>
+    <section className="ui-hero ui-dissolvenza" aria-labelledby="t-scheda">
+      {d && <span className="ui-eyebrow">{sopratitoloDomanda(d, scheda?.descrizioneIntervento)}</span>}
+      <h1 id="t-scheda" ref={h1} tabIndex={-1}>
+        {titolo}
+      </h1>
+      {d && (
+        <ul className="ui-hero__badge-elenco" aria-label="Dati principali">
+          {badgeDellaDomanda(d, scheda?.perimetro).map((b) => (
+            <li key={b} className="ui-hero__badge">
+              {b}
+            </li>
+          ))}
+        </ul>
+      )}
       <div className="ui-hero__azioni">
         {beneficiario && (
           <Link className="btn btn-light btn-sm" to={beneficiario}>
             Altre domande del beneficiario
           </Link>
         )}
-        <button type="button" className="btn btn-outline-light btn-sm" onClick={torna}>
+        <Link className="btn btn-outline-light btn-sm" to={ritorno} state={statoRitorno}>
           {"Torna all'elenco"}
-        </button>
+        </Link>
       </div>
     </section>
   );
@@ -64,28 +88,46 @@ function Kpis({ d }: { d: DomandaElenco }) {
   );
 }
 
-function DomandaDiSostegno({ codice }: { codice: string | null | undefined }) {
-  const percorso = codice ? percorsoDettaglio('SOSTEGNO', codice) : null;
+/**
+ * La domanda di sostegno di una domanda di pagamento: testo, come nel wireframe approvato; e' un link alla sua scheda solo
+ * se e' fra le domande collegate della risposta (corrente e nel perimetro: altrimenti la scheda risponderebbe 404).
+ */
+function DomandaDiSostegno({ codice, scheda, ricerca }: { codice: string | null | undefined; scheda: DettaglioDomanda; ricerca: StatoScheda | undefined }) {
+  const collegata = (scheda.collegate ?? []).some((c) => c.tipo === 'SOSTEGNO' && c.codiceABarre === codice);
+  const percorso = collegata ? percorsoDettaglio('SOSTEGNO', codice) : null;
   return (
     <dl className="ui-dl">
       <div>
         <dt>Domanda di sostegno</dt>
-        <dd>{percorso ? <Link to={percorso}>{codice}</Link> : (codice ?? 'non indicata')}</dd>
+        <dd>
+          {percorso ? (
+            <Link to={percorso} state={ricerca}>
+              {codice}
+            </Link>
+          ) : (
+            (codice ?? 'non indicata')
+          )}
+        </dd>
       </div>
     </dl>
   );
 }
 
-function Sintesi({ d, scheda }: { d: DomandaElenco; scheda: DettaglioDomanda }) {
+function Sintesi({ d, scheda, ricerca }: { d: DomandaElenco; scheda: DettaglioDomanda; ricerca: StatoScheda | undefined }) {
   const grafico = useMemo(() => graficoAmmessoPagato(d), [d]);
   return (
     <Griglia colonne={2}>
       <Sezione titolo="Dati della domanda">
         <ElencoVoci voci={vociSintesi(d, scheda)} />
-        {d.tipo === 'PAGAMENTO' && <DomandaDiSostegno codice={scheda.codiceDomandaSostegno} />}
+        {d.tipo === 'PAGAMENTO' && <DomandaDiSostegno codice={scheda.codiceDomandaSostegno} scheda={scheda} ricerca={ricerca} />}
         <p className="ui-fonte">Fonte: TX-0058. Valori assenti: indicato il motivo, mai zero.</p>
       </Sezione>
-      <CardGrafico titolo="Dall'ammesso al pagato" dati={grafico} fonte="Fonte: TX-0058 (ammesso, pagato, ancora da pagare della domanda)." />
+      <CardGrafico
+        titolo="Dall'ammesso al pagato"
+        dati={grafico}
+        fonte="Fonte: TX-0058 (ammesso, pagato, ancora da pagare della domanda)."
+        nomeFile={`Dall'ammesso al pagato ${etichettaTipo(d.tipo).toLowerCase()} ${d.codiceABarre ?? ''}`}
+      />
     </Griglia>
   );
 }
@@ -103,7 +145,7 @@ function listeDi(scheda: DettaglioDomanda) {
   };
 }
 
-function Schede({ d, scheda }: { d: DomandaElenco; scheda: DettaglioDomanda }) {
+function Schede({ d, scheda, ricerca }: { d: DomandaElenco; scheda: DettaglioDomanda; ricerca: StatoScheda | undefined }) {
   const l = listeDi(scheda);
   return (
     <Tabs>
@@ -118,10 +160,10 @@ function Schede({ d, scheda }: { d: DomandaElenco; scheda: DettaglioDomanda }) {
         <Tab id="anomalie" className="ui-tab">{conta('Anomalie', l.anomalie.length)}</Tab>
       </TabList>
       <TabPanel id="sintesi">
-        <Sintesi d={d} scheda={scheda} />
+        <Sintesi d={d} scheda={scheda} ricerca={ricerca} />
       </TabPanel>
       <TabPanel id="collegate">
-        <TabellaCollegate collegate={l.collegate} />
+        <TabellaCollegate collegate={l.collegate} ricerca={ricerca} />
       </TabPanel>
       <TabPanel id="determine">
         <TabellaDetermine determine={l.determine} />
@@ -140,45 +182,90 @@ function Schede({ d, scheda }: { d: DomandaElenco; scheda: DettaglioDomanda }) {
 }
 
 /** Un solo h1, sempre presente (anche in caricamento ed errore): denominazione, oppure il codice a barre se manca. */
-function titoloDi(scheda: DettaglioDomanda | undefined, assente: boolean, codice: string | undefined): string {
-  if (assente) return 'Domanda non disponibile';
+function titoloDi(scheda: DettaglioDomanda | undefined, esito: 'assente' | 'non-valido' | null, codice: string | undefined): string {
+  if (esito === 'non-valido') return 'Domanda non valida';
+  if (esito === 'assente') return 'Domanda non disponibile';
   return scheda?.domanda?.denominazione ?? `Domanda ${codice ?? ''}`;
 }
 
-function Assente() {
+function Avviso({ testo, ritorno }: { testo: string; ritorno: string }) {
   return (
     <div className="alert alert-warning" role="alert">
-      {ASSENTE} <Link to={PERCORSO_DOMANDE}>{"Torna all'elenco"}</Link>
+      {testo} <Link to={ritorno}>{"Torna all'elenco"}</Link>
     </div>
   );
 }
 
-function Contenuto({ scheda }: { scheda: DettaglioDomanda }) {
-  if (!scheda.domanda) return <Assente />;
+function Contenuto({ scheda, ritorno, ricerca }: { scheda: DettaglioDomanda; ritorno: string; ricerca: StatoScheda | undefined }) {
+  if (!scheda.domanda) return <Avviso testo={ASSENTE} ritorno={ritorno} />;
   return (
     <>
-      <Testata d={scheda.domanda} scheda={scheda} />
       <Kpis d={scheda.domanda} />
-      <Schede d={scheda.domanda} scheda={scheda} />
+      <Schede d={scheda.domanda} scheda={scheda} ricerca={ricerca} />
     </>
   );
 }
 
+/** Righe di contesto del PNG della scheda (NFR-50): la domanda, il profilo, il perimetro della risposta. */
+function useContestoScheda(scheda: DettaglioDomanda | undefined, profilo: string | undefined): readonly string[] {
+  const d = scheda?.domanda;
+  const domanda = d ? `Domanda: ${etichettaTipo(d.tipo).toLowerCase()} ${d.codiceABarre ?? ''}` : null;
+  const perimetro = scheda?.perimetro;
+  return useMemo(() => [...(domanda ? [domanda] : []), ...righeContesto({ filtri: [], profilo, ultimi: undefined, perimetro: testoPerimetro(perimetro) })], [domanda, profilo, perimetro]);
+}
+
+type Esito = 'assente' | 'non-valido' | null;
+
+/** L'esito della lettura: riferimento non valido (dal percorso o dal 400 del backend), domanda assente (404) o nessuno. */
+function esitoDi(valido: boolean, stato: ReturnType<typeof useDettaglioDomanda>): Esito {
+  if (!valido || (stato.isError && rispostaRiferimentoNonValido(stato.error))) return 'non-valido';
+  return stato.isError && rispostaDomandaAssente(stato.error) ? 'assente' : null;
+}
+
+/** Ritorno all'elenco: la ricerca di partenza e la vista dallo stato della navigazione (review v1 V-12, X-04). */
+function useRitorno() {
+  const { state } = useLocation();
+  const ritorno = ritornoAllElenco(state);
+  const statoRitorno = statoDiRitorno(state);
+  // la ricerca di partenza (con la vista) passa anche alle domande collegate: "Torna all'elenco" riporta sempre all'elenco
+  const ricerca: StatoScheda | undefined = ritorno === PERCORSO_DOMANDE && !statoRitorno ? undefined : { ricerca: ritorno, ...statoRitorno };
+  return { ritorno, statoRitorno, ricerca, briciola: ritorno.startsWith(PERCORSO_PAGAMENTI) ? 'Pagamenti' : 'Domande' };
+}
+
+function Corpo({ esito, stato, ritorno, ricerca }: { esito: Esito; stato: ReturnType<typeof useDettaglioDomanda>; ritorno: string; ricerca: StatoScheda | undefined }) {
+  if (esito === 'non-valido') return <Avviso testo={NON_VALIDO} ritorno={ritorno} />;
+  return (
+    <VistaQuery stato={stato} errorePersonalizzato={(e) => (rispostaDomandaAssente(e) ? <Avviso testo={ASSENTE} ritorno={ritorno} /> : null)}>
+      {(scheda) => <Contenuto scheda={scheda} ritorno={ritorno} ricerca={ricerca} />}
+    </VistaQuery>
+  );
+}
+
 export function SchedaDomanda({ tipo, codiceABarre }: { tipo: string | undefined; codiceABarre: string | undefined }) {
+  const valido = riferimentoValido(tipo, codiceABarre);
   const stato = useDettaglioDomanda(tipo, codiceABarre);
-  const assente = stato.isError && rispostaDomandaAssente(stato.error);
-  const h1 = useFocusTitolo<HTMLHeadingElement>(`Domanda ${codiceABarre ?? ''}`);
+  const auth = useAuthStatus();
+  const r = useRitorno();
+  const esito = esitoDi(valido, stato);
+  const etichetta = valido ? `Domanda ${codiceABarre ?? ''}` : 'Domanda non valida';
+  const h1 = useFocusTitolo<HTMLHeadingElement>(etichetta);
+  const contesto = useContestoScheda(stato.data, auth.data?.user?.profile);
   return (
     <main className="ui-pagina" id="contenuto">
-      <Briciole voci={[{ etichetta: 'Domande', a: PERCORSO_DOMANDE }, { etichetta: `Domanda ${codiceABarre ?? ''}` }]} />
-      <h1 ref={h1} tabIndex={-1} className="ui-titolo-scheda">
-        {titoloDi(stato.data, assente, codiceABarre)}
-      </h1>
-      <AvvisoPagina>
-        <VistaQuery stato={stato} errorePersonalizzato={(e) => (rispostaDomandaAssente(e) ? <Assente /> : null)}>
-          {(scheda) => <Contenuto scheda={scheda} />}
-        </VistaQuery>
-      </AvvisoPagina>
+      <Briciole voci={[{ etichetta: r.briciola, a: r.ritorno }, { etichetta }]} />
+      <Testata
+        h1={h1}
+        titolo={titoloDi(stato.data, esito, codiceABarre)}
+        scheda={esito ? undefined : stato.data}
+        ritorno={r.ritorno}
+        statoRitorno={r.statoRitorno}
+        conBeneficiario={puoLeggere(auth.data, 'domande')}
+      />
+      <ContestoIntestazione.Provider value={contesto}>
+        <AvvisoPagina>
+          <Corpo esito={esito} stato={stato} ritorno={r.ritorno} ricerca={r.ricerca} />
+        </AvvisoPagina>
+      </ContestoIntestazione.Provider>
     </main>
   );
 }
