@@ -1524,7 +1524,7 @@
     {
       "id": "OP-FE-06",
       "kind": "altro",
-      "detail": "Dopo una sessione scaduta (401) il BFF riporta su / (restore-path-after-redirect=false): pagina, filtri, anno ed esercizio si perdono, contro lo stato 401 dei wireframe approvati. Il ritorno alla pagina richiede una scelta sul BFF (es. /auth/login?da=<percorso> validato lato server contro la route-table, foundation-auth da risigillare): limite noto accettato l 08/10/2026 (review step9 R-01)."
+      "detail": "Risolto in parte il 13/10/2026 (bc02c20, D-11 Rev. 9 e 10 di nfr-conformance): dopo una sessione scaduta (401) o con Accedi la SPA porta a /auth/login?ritorno=<pagina con la query>, il BFF lo convalida e dopo il login riporta li': pagina, filtri, anno della riserva, esercizio della verifica SMP e scheda del dettaglio (nell'indirizzo) si ritrovano. Restano fuori le scelte salvate nello state della history del browser, che il login a pagina intera non conserva: anno della tabella delle domande; ricerca, ordine, pagina e vista del riepilogo; vista delle card del dettaglio. Prima: limite accettato l'08/10/2026 (review step9 R-01)."
     },
     {
       "id": "OP-FE-07",

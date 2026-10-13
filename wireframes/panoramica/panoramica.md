@@ -79,6 +79,8 @@ parte il drill-down.
   domanda (flusso ASR2-20); i pagamenti totali di TX-0002 sono lordi (elenchi di liquidazione), il pagato netto di TX-0011
   ne toglie le rettifiche; il decretato viene dagli elenchi di liquidazione. Resta da confermare con ARSIAL quale fonte fa
   fede per il pagato a regime.
-- OP-FE-06: dopo un 401 il BFF riporta su / (pagina e filtri si perdono).
+- OP-FE-06 (risolto in parte): dopo il login si torna alla pagina con i filtri (/auth/login?ritorno=, D-11 Rev. 9 del
+  backend); si perdono solo le scelte salvate nella cronologia del browser (anno della tabella delle domande, vista
+  delle card del dettaglio).
 - OP-FE-09: profili misti (P4 con un profilo regionale): il report e' ADA, l'elenco aperto dal link e' regionale.
 - OP-FE-07: gerarchia intervento-OS-OG-OP assente dai DTO (raggruppamento per famiglia nel frattempo).

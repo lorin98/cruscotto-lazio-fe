@@ -55,5 +55,6 @@ Dotazione, risorse FEASR, stanziato, impegnato e residui non sono collegati (non
 
 ## Punti aperti che toccano questo flusso
 
-- OP-FE-06: ritorno alla pagina dopo un 401 (limite accettato).
+- OP-FE-06 (risolto in parte): dopo il login si torna al riepilogo con i filtri (/auth/login?ritorno=, D-11 Rev. 9 del
+  backend); ricerca, ordine, pagina e vista della tabella, salvate nella cronologia del browser, ripartono da capo.
 - OP-FE-09: profili misti (P4 con un profilo regionale): il riepilogo e' ADA, l'elenco aperto dai link della riga e' regionale.
