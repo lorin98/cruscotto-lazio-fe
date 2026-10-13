@@ -613,13 +613,18 @@ describe('graficoDomandePerAnno', () => {
       ['bar', 'Altre annualità', 'domande'],
       ['bar', 'Non classificate', 'domande'],
     ]);
-    expect(o.series[0].data).toEqual([200, 300, 10]);
+    // ogni segmento porta il codice dell'annualita' e l'anno (drill-down verso l'elenco operativo, review v4 H-02)
+    expect(o.series[0].data).toEqual([
+      { value: 200, codice: 'PRIMA', anno: 2023 },
+      { value: 300, codice: 'PRIMA', anno: 2024 },
+      { value: 10, codice: 'PRIMA', anno: null },
+    ]);
     expect(o.aria.label.description).toMatch(/720 domande in tutto/);
   });
 
-  it('tabella: Anno, Prima annualità, Altre, Non classificate, Totale', () => {
+  it('tabella: Anno di raccolta, Prima annualità, Altre annualità, Non classificate, Totale (come la tabella con i link, H-05)', () => {
     const g = graficoDomandePerAnno(righe);
-    expect(g.tabella.colonne).toEqual(['Anno', 'Prima annualità', 'Altre', 'Non classificate', 'Totale']);
+    expect(g.tabella.colonne).toEqual(['Anno di raccolta', 'Prima annualità', 'Altre annualità', 'Non classificate', 'Totale']);
     expect(g.tabella.righe).toEqual([
       ['2023', '200', '50', '50', '300'],
       ['2024', '300', '100', '0', '400'],
