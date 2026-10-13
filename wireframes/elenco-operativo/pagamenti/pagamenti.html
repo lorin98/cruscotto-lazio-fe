@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<!-- Wireframe v2 (template interrogazione di green-fe, ADR 0029). Valori di esempio, nessun dato reale. -->
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Elenco dei pagamenti - Cruscotto CSR 2023-2027</title>
+<link rel="stylesheet" href="wireframe.css">
+</head>
+<body>
+<a class="skip-link" href="#contenuto">Salta al contenuto</a>
+<header class="ui-testata">
+  <div class="ui-ente">
+    <span class="ui-logo">Regione Lazio</span>
+    <span class="ui-logo">ARSIAL</span>
+  </div>
+  <div class="ui-appbar">
+    <a class="ui-appbar__nome" href="../../panoramica/panoramica.html">Cruscotto CSR 2023-2027</a>
+    <form class="ui-cerca" action="#" method="get" role="search">
+      <label class="form-label" for="cerca-app">Cerca un intervento</label>
+      <input class="form-control" type="search" id="cerca-app" name="q">
+    </form>
+    <span class="ui-utente">Nome Cognome - <a href="#contenuto">Esci</a></span>
+  </div>
+</header>
+<div class="ui-layout">
+  <nav class="ui-sidebar" aria-label="Navigazione principale">
+    <p class="ui-menu__sezione">Aree del cruscotto</p>
+    <ul class="ui-menu">
+      <li><a class="ui-menu__gruppo" href="../../panoramica/panoramica.html">Finanziario</a></li>
+      <li><a class="ui-menu__gruppo" href="../domande/domande.html">Elenco operativo</a>
+        <ul class="ui-menu__sub">
+          <li><a href="../domande/domande.html">Domande</a></li>
+          <li><a href="pagamenti.html" aria-current="page">Pagamenti</a></li>
+        </ul>
+      </li>
+      <li><span class="ui-menu__presto">Fisico (presto)</span></li>
+      <li><span class="ui-menu__presto">Procedurale (presto)</span></li>
+      <li><span class="ui-menu__presto">Istituzionale (presto)</span></li>
+    </ul>
+  </nav>
+  <main class="ui-main" id="contenuto">
+    <div class="ui-filtri" role="region" aria-label="Filtri attivi">
+      <a class="btn btn-primary" href="pagamenti.html#pannello-filtri">Filtri (2)</a>
+      <span class="ui-chip">Decreto: D84-1 <button class="btn" type="button" aria-label="Togli il filtro Decreto D84-1">x</button></span>
+      <span class="ui-chip">Esito: pagata <button class="btn" type="button" aria-label="Togli il filtro Esito pagata">x</button></span>
+      <span class="ui-pill">Perimetro: regionale (profilo ADA: solo la propria area, non rimovibile)</span>
+      <span class="ui-pill">Ultimo dato sincronizzato: punto aperto OP-EO-01</span>
+    </div>
+    <nav class="breadcrumb-container" aria-label="Percorso">
+      <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="../../panoramica/panoramica.html">Home</a></li>
+      <li class="breadcrumb-item"><a href="../domande/domande.html">Elenco operativo</a></li>
+      <li class="breadcrumb-item" aria-current="page">Pagamenti</li>
+      </ol>
+    </nav>
+    <div class="ui-titolo">
+      <h1>Elenco dei pagamenti</h1>
+      <p>Una riga per ogni riga degli elenchi di liquidazione, pagata o esclusa. Ogni filtro cambia subito risultati e totali; l'indirizzo della pagina conserva la ricerca.</p>
+    </div>
+    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0059.read, csr.tx-0060.read - Transazioni: TX-0059 (righe e totali, RA002 RA005 RA006), TX-0060 (valori dei filtri, RA006). Filtri, ordinamento e pagina sono parametri di query di TX-0059 (url_params); sinottico e totali sono TotaliPagamenti sull'intero insieme filtrato. Contano anche le righe correnti di domande chiuse (D-07). CUAA e denominazione in chiaro a tutti i profili (OP-033).</p>
+    <aside class="ui-pannello" id="pannello-filtri" aria-label="Pannello dei filtri">
+      <h2>Filtri</h2>
+      <p class="ui-conteggio" role="status" aria-live="polite">2.316 righe con questi filtri</p>
+      <label class="form-label" for="f-testo">Cerca per codice a barre, CUAA o denominazione (almeno 3 caratteri)</label>
+      <input class="form-control" type="search" id="f-testo" name="testo">
+      <details class="ui-gruppo-filtro" open>
+        <summary>Elenco di liquidazione</summary>
+        <label class="form-label" for="f-decreto">Decreto</label>
+        <select class="form-select" id="f-decreto" name="decreto"><option>D84-1</option><option>D84-2</option></select>
+        <button class="ui-toggle-chip" type="button" aria-pressed="true">Pagata</button> <button class="ui-toggle-chip" type="button" aria-pressed="false">Esclusa</button>
+      </details>
+      <details class="ui-gruppo-filtro">
+        <summary>Intervento, obiettivi e azioni portanti</summary>
+        <label class="form-label" for="f-cerca-intervento">Cerca tra gli interventi</label>
+        <input class="form-control" type="search" id="f-cerca-intervento" name="cerca-intervento">
+        <label class="ui-opzione" for="f-int-1"><input type="checkbox" id="f-int-1" name="intervento"> SRA01 - Produzione integrata</label>
+        <label class="ui-opzione" for="f-int-2"><input type="checkbox" id="f-int-2" name="intervento"> SRD01 - Investimenti produttivi agricoli</label>
+      </details>
+      <details class="ui-gruppo-filtro">
+        <summary>Domanda (stessi filtri dell'elenco delle domande)</summary>
+        <button class="ui-toggle-chip" type="button" aria-pressed="false">Sostegno</button> <button class="ui-toggle-chip" type="button" aria-pressed="false">Pagamento</button> <button class="ui-toggle-chip" type="button" aria-pressed="false">Solo SIGC</button>
+        <label class="form-label" for="f-provincia">Provincia</label>
+        <select class="form-select" id="f-provincia" name="provincia"><option>LATINA</option></select>
+        <p class="form-text">Anche anno di raccolta, annualita', stati, ente, atto di concessione, anomalie, esito e importi della domanda.</p>
+      </details>
+      <p class="form-text">Si applica mentre scegli (nessun bottone Applica). Voci dello stesso filtro in alternativa (O); filtri diversi insieme (E). Valori dei filtri da TX-0060, solo quelli del tuo perimetro.</p>
+      <button class="btn" type="button">Azzera</button>
+    </aside>
+    <section class="ui-sinottico" aria-labelledby="t-sinottico">
+      <h2 id="t-sinottico">Sinottico dell'insieme filtrato</h2>
+      <div class="ui-griglia ui-griglia--4">
+        <section class="ui-kpi" aria-label="Righe pagate ed escluse">
+          <p>Righe pagate / escluse</p>
+          <p class="ui-kpi__valore">2.201 / 115</p>
+        </section>
+        <section class="ui-kpi" aria-label="Importo decretato">
+          <p>Decretato</p>
+          <p class="ui-kpi__valore">n,n M euro</p>
+          <p class="ui-barra">3 righe senza importo</p>
+        </section>
+        <section class="ui-kpi" aria-label="Importo pagato">
+          <p>Pagato</p>
+          <p class="ui-kpi__valore">n,n M euro</p>
+        </section>
+        <section class="ui-kpi" aria-label="Quote di finanziamento">
+          <p>Quote FEASR / nazionale / regionale</p>
+          <p class="ui-kpi__valore">n,n / n,n / n,n M</p>
+        </section>
+      </div>
+      <p class="ui-fonte">Fonte: TotaliPagamenti di TX-0059 sull'intero insieme filtrato (non sulla pagina).</p>
+    </section>
+    <section class="ui-card" aria-labelledby="t-elenco" aria-busy="false">
+      <div class="ui-card__testa"><h2 id="t-elenco">Pagamenti</h2></div>
+      <div class="ui-strumenti">
+        <button class="btn" type="button">Colonne</button> <button class="btn" type="button">Scarica CSV</button> <button class="btn" type="button">Scarica XLSX</button> <a class="btn" href="../domande/domande.html">Vedi le domande di questi pagamenti</a>
+      </div>
+      <table class="ui-tabella">
+        <caption>Elenco dei pagamenti: ordinabile dal server con un clic sull'intestazione (decreto, data, codice a barre, denominazione, intervento, importi). Clic o Invio su una riga per l'anteprima.</caption>
+        <thead>
+          <tr>
+            <th scope="col"><button class="btn" type="button">Decreto</button></th>
+            <th scope="col"><button class="btn" type="button">Data di autorizzazione</button></th>
+            <th scope="col"><button class="btn" type="button">Codice a barre</button></th>
+            <th scope="col">CUAA</th>
+            <th scope="col"><button class="btn" type="button">Denominazione</button></th>
+            <th scope="col"><button class="btn" type="button">Intervento</button></th>
+            <th scope="col">Esito</th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Decretato</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Pagato</button></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="ui-riga"><th scope="row">D84-1</th><td>15/06/2025</td><td>54230000001</td><td>RSSMRA80A01H501U</td><td>Azienda agricola Rossi</td><td>SRA01</td><td>Pagata</td><td class="ui-num">2.500,00</td><td class="ui-num">2.500,00</td></tr>
+          <tr class="ui-riga"><th scope="row">D84-1</th><td>15/06/2025</td><td>54230000077</td><td>BNCLCU75B02D612X</td><td>Bianchi Luca</td><td>SRA01</td><td>Pagata - domanda chiusa</td><td class="ui-num">700,00</td><td class="ui-num">700,00</td></tr>
+        </tbody>
+        <tfoot>
+          <tr class="ui-totali"><th scope="row">Totale dell'insieme filtrato (dal server)</th><td>2.316 righe</td><td></td><td></td><td></td><td></td><td></td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td></tr>
+        </tfoot>
+      </table>
+      <nav class="ui-paginazione" aria-label="Pagine dei risultati"><button class="btn" type="button" aria-current="page">1</button> <button class="btn" type="button">2</button> <span class="ui-pill">Pagina 1 di 93 - 25 righe per pagina</span></nav>
+    </section>
+    <aside class="ui-drawer" aria-label="Anteprima della riga D84-1 54230000001">
+      <h2>Anteprima: D84-1 - 54230000001</h2>
+      <dl>
+        <dt>Elenco</dt><dd>D84-1, protocollo P-123, tipologia saldo</dd>
+        <dt>Beneficiario</dt><dd>Azienda agricola Rossi (RSSMRA80A01H501U)</dd>
+        <dt>Quote FEASR, nazionale, regionale</dt><dd>1.000,00 - 1.050,00 - 450,00</dd>
+        <dt>Motivi di esclusione</dt><dd>nessuno (riga pagata)</dd>
+      </dl>
+      <a class="btn btn-primary" href="../dettaglio-domanda/dettaglio-domanda.html">Apri la domanda</a>
+      <p class="form-text">Per una domanda chiusa il link non c'e': la domanda non e' piu' consultabile (404 di TX-0058).</p>
+    </aside>
+    <h2>Stato: aggiornamento</h2>
+    <div class="ui-aggiornamento" role="status" aria-live="polite">Aggiornamento dei risultati: restano visibili quelli precedenti finche' arrivano i nuovi.</div>
+    <h2>Stato: caricamento</h2>
+    <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro di sinottico e righe)</div>
+    <h2>Stato: vuoto</h2>
+    <div class="ui-vuoto" role="status">Nessun pagamento per questi filtri. <a class="btn btn-primary" href="pagamenti.html#pannello-filtri">Modifica i filtri</a></div>
+    <h2>Stato: errore</h2>
+    <div class="alert alert-danger" role="alert">Errore nell'interrogazione: criteri non validi (400, il campo e' indicato), troppe letture insieme (503, si riprova da solo), tempo scaduto (504) o sessione scaduta. <a href="#contenuto">Riprova</a></div>
+  </main>
+</div>
+<footer class="ui-footer">
+  <ul>
+    <li><a href="#contenuto">Dichiarazione di accessibilita'</a></li>
+    <li><a href="#contenuto">Privacy</a></li>
+    <li><a href="#contenuto">Note legali</a></li>
+    <li>Regione Lazio - ARSIAL</li>
+  </ul>
+</footer>
+</body>
+</html>

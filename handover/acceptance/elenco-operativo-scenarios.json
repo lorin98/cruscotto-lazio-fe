@@ -1,0 +1,261 @@
+{
+  "schema_version": "1.0",
+  "slice": "elenco-operativo",
+  "scenarios": [
+    {
+      "scenario_id": "SC-EO_FILTRI",
+      "req_uids": [
+        "RU-00000061"
+      ],
+      "given": "SRA01 e SRD01 collegati a OS4 (OG1, OP1), AT001 censito; beneficiari B1 (CUAA RSSMRA80A01H501U, 'AZIENDA AGRICOLA ROSSI'), B2 (CUAA 01234567890, 'COOPERATIVA VERDI'), B3 (CUAA BNCLCU75B02D612X, 'BIANCHI LUCA'); domande correnti: S1 SOSTEGNO 04230000001 di SRD01, B1, ADA Latina (provincia LATINA), anno di rilascio 2024 senza campagna, prima annualita' non valorizzata, stato SIAN RILASCIATO, stato area programmazione AMMESSA, richiesto 10000,00, ammesso 8000,00, pagato e ancora da pagare non valorizzati, atto di concessione AC-1 del 2025-03-01, determina G1 del 2025-02-10 (responsabile 'Funzionario A', contributo richiesto 10000,00, ammesso 8000,00), anomalia AM1 presente; P1 PAGAMENTO SIGC (ASR2-20 aperta) 54230000001 di SRA01, B1, ADA Frosinone (provincia FROSINONE), campagna 2025, prima annualita', stato VALIDO, richiesto 5000,00, ammesso 4000,00, pagato 2500,00, ancora da pagare 1500,00, riga PAGATA del decreto D84-1 (pagato 2500,00, decretato 2500,00, quote FEASR 1000,00, nazionale 1050,00, regionale 450,00), recupero R1 con recuperato 100,00; P2 PAGAMENTO SIGC 54230000002 di SRA01, B2, ADA Latina, campagna 2024, altre annualita', VALIDO, richiesto 3000,00, ammesso 3000,00, pagato 3000,00, ancora da pagare 0,00, riga PAGATA di D84-1 (pagato 3000,00); P3 PAGAMENTO SIGC 54230000003 di SRA01, B3, ADA Latina, campagna 2025, prima annualita', 'CON ANOMALIE BLOCCANTI', importi non valorizzati, riga ESCLUSA del decreto D84-2 con motivo M01; P4 PAGAMENTO CSR-DP (non SIGC) 54230000004 di SRD01, B1, ADA Latina, collegata a S1 (codice domanda di sostegno 04230000001), anno di rilascio 2025, RILASCIATO, importi non valorizzati; A1 PAGAMENTO di AT001 (ADA Latina); C1 PAGAMENTO chiusa (CHIUSA_IL valorizzato) di SRA01, ADA Latina, con una riga PAGATA corrente di D84-1 (pagato 700,00)",
+      "when": "GET /api/elenco-operativo/filtri",
+      "then": "200, perimetro REGIONALE: interventi, OS, OG, OP e azioni portanti come TX-0001 (mai AT001); stati SIAN presenti fra le domande correnti (RILASCIATO, VALIDO, 'CON ANOMALIE BLOCCANTI' con descrizione e tipo); stati area programmazione [AMMESSA]; province [FROSINONE, LATINA]; enti delegati delle due ADA; anni di raccolta [2024, 2025]; decreti [D84-1, D84-2]; nessuna chiave riservata (SENZA, SENZA_STATO) fra i valori (D-08)",
+      "kind": "positive",
+      "test_tag": "SC-EO_FILTRI",
+      "approved": true,
+      "role": "p1-dirigente"
+    },
+    {
+      "scenario_id": "SC-EO_FILTRI_ADA",
+      "req_uids": [
+        "RU-00000061"
+      ],
+      "given": "SRA01 e SRD01 collegati a OS4 (OG1, OP1), AT001 censito; beneficiari B1 (CUAA RSSMRA80A01H501U, 'AZIENDA AGRICOLA ROSSI'), B2 (CUAA 01234567890, 'COOPERATIVA VERDI'), B3 (CUAA BNCLCU75B02D612X, 'BIANCHI LUCA'); domande correnti: S1 SOSTEGNO 04230000001 di SRD01, B1, ADA Latina (provincia LATINA), anno di rilascio 2024 senza campagna, prima annualita' non valorizzata, stato SIAN RILASCIATO, stato area programmazione AMMESSA, richiesto 10000,00, ammesso 8000,00, pagato e ancora da pagare non valorizzati, atto di concessione AC-1 del 2025-03-01, determina G1 del 2025-02-10 (responsabile 'Funzionario A', contributo richiesto 10000,00, ammesso 8000,00), anomalia AM1 presente; P1 PAGAMENTO SIGC (ASR2-20 aperta) 54230000001 di SRA01, B1, ADA Frosinone (provincia FROSINONE), campagna 2025, prima annualita', stato VALIDO, richiesto 5000,00, ammesso 4000,00, pagato 2500,00, ancora da pagare 1500,00, riga PAGATA del decreto D84-1 (pagato 2500,00, decretato 2500,00, quote FEASR 1000,00, nazionale 1050,00, regionale 450,00), recupero R1 con recuperato 100,00; P2 PAGAMENTO SIGC 54230000002 di SRA01, B2, ADA Latina, campagna 2024, altre annualita', VALIDO, richiesto 3000,00, ammesso 3000,00, pagato 3000,00, ancora da pagare 0,00, riga PAGATA di D84-1 (pagato 3000,00); P3 PAGAMENTO SIGC 54230000003 di SRA01, B3, ADA Latina, campagna 2025, prima annualita', 'CON ANOMALIE BLOCCANTI', importi non valorizzati, riga ESCLUSA del decreto D84-2 con motivo M01; P4 PAGAMENTO CSR-DP (non SIGC) 54230000004 di SRD01, B1, ADA Latina, collegata a S1 (codice domanda di sostegno 04230000001), anno di rilascio 2025, RILASCIATO, importi non valorizzati; A1 PAGAMENTO di AT001 (ADA Latina); C1 PAGAMENTO chiusa (CHIUSA_IL valorizzato) di SRA01, ADA Latina, con una riga PAGATA corrente di D84-1 (pagato 700,00); il chiamante e' P4 dell'ADA Latina",
+      "when": "GET /api/elenco-operativo/filtri",
+      "then": "200, perimetro ADA: province [LATINA], il solo ente di Latina, decreti [D84-1, D84-2] (dalle righe di P2, P3 e C1), stati e anni delle sole domande di Latina; mai valori della sola domanda P1 di Frosinone (D-08)",
+      "kind": "positive",
+      "test_tag": "SC-EO_FILTRI_ADA",
+      "approved": true,
+      "role": "p4-responsabile-procedimento-ada"
+    },
+    {
+      "scenario_id": "SC-EO_ELENCO",
+      "req_uids": [
+        "RU-00000057",
+        "RU-00000058",
+        "RU-00000060",
+        "RU-00000061"
+      ],
+      "given": "SRA01 e SRD01 collegati a OS4 (OG1, OP1), AT001 censito; beneficiari B1 (CUAA RSSMRA80A01H501U, 'AZIENDA AGRICOLA ROSSI'), B2 (CUAA 01234567890, 'COOPERATIVA VERDI'), B3 (CUAA BNCLCU75B02D612X, 'BIANCHI LUCA'); domande correnti: S1 SOSTEGNO 04230000001 di SRD01, B1, ADA Latina (provincia LATINA), anno di rilascio 2024 senza campagna, prima annualita' non valorizzata, stato SIAN RILASCIATO, stato area programmazione AMMESSA, richiesto 10000,00, ammesso 8000,00, pagato e ancora da pagare non valorizzati, atto di concessione AC-1 del 2025-03-01, determina G1 del 2025-02-10 (responsabile 'Funzionario A', contributo richiesto 10000,00, ammesso 8000,00), anomalia AM1 presente; P1 PAGAMENTO SIGC (ASR2-20 aperta) 54230000001 di SRA01, B1, ADA Frosinone (provincia FROSINONE), campagna 2025, prima annualita', stato VALIDO, richiesto 5000,00, ammesso 4000,00, pagato 2500,00, ancora da pagare 1500,00, riga PAGATA del decreto D84-1 (pagato 2500,00, decretato 2500,00, quote FEASR 1000,00, nazionale 1050,00, regionale 450,00), recupero R1 con recuperato 100,00; P2 PAGAMENTO SIGC 54230000002 di SRA01, B2, ADA Latina, campagna 2024, altre annualita', VALIDO, richiesto 3000,00, ammesso 3000,00, pagato 3000,00, ancora da pagare 0,00, riga PAGATA di D84-1 (pagato 3000,00); P3 PAGAMENTO SIGC 54230000003 di SRA01, B3, ADA Latina, campagna 2025, prima annualita', 'CON ANOMALIE BLOCCANTI', importi non valorizzati, riga ESCLUSA del decreto D84-2 con motivo M01; P4 PAGAMENTO CSR-DP (non SIGC) 54230000004 di SRD01, B1, ADA Latina, collegata a S1 (codice domanda di sostegno 04230000001), anno di rilascio 2025, RILASCIATO, importi non valorizzati; A1 PAGAMENTO di AT001 (ADA Latina); C1 PAGAMENTO chiusa (CHIUSA_IL valorizzato) di SRA01, ADA Latina, con una riga PAGATA corrente di D84-1 (pagato 700,00)",
+      "when": "GET /api/elenco-operativo/domande",
+      "then": "200, perimetro REGIONALE, totaleRighe 5 (S1, P1, P2, P3, P4: mai A1 di AT001, mai C1 chiusa), pagina 0, dimensione 25, ordinamento codiceABarre:asc (S1 per prima); S1: tipo SOSTEGNO, CUAA e denominazione in chiaro, anno di raccolta 2024, prima annualita' null, sigc falso, stato RILASCIATO con la descrizione, stato area programmazione AMMESSA, richiesto 10000.00, ammesso 8000.00, pagato e ancora da pagare null con motivo NON_VALORIZZATO, liquidato 0.00, recuperato 0.00, atto AC-1 del 2025-03-01, anomalie 1; P1: sigc vero, anno 2025, prima annualita' vera, liquidato 2500.00, recuperato 100.00 (D-03)",
+      "kind": "positive",
+      "test_tag": "SC-EO_ELENCO",
+      "approved": true,
+      "role": "p2-referente-adg"
+    },
+    {
+      "scenario_id": "SC-EO_PAGINA",
+      "req_uids": [
+        "RU-00000057",
+        "RU-00000058",
+        "RU-00000060",
+        "RU-00000061"
+      ],
+      "given": "SRA01 e SRD01 collegati a OS4 (OG1, OP1), AT001 censito; beneficiari B1 (CUAA RSSMRA80A01H501U, 'AZIENDA AGRICOLA ROSSI'), B2 (CUAA 01234567890, 'COOPERATIVA VERDI'), B3 (CUAA BNCLCU75B02D612X, 'BIANCHI LUCA'); domande correnti: S1 SOSTEGNO 04230000001 di SRD01, B1, ADA Latina (provincia LATINA), anno di rilascio 2024 senza campagna, prima annualita' non valorizzata, stato SIAN RILASCIATO, stato area programmazione AMMESSA, richiesto 10000,00, ammesso 8000,00, pagato e ancora da pagare non valorizzati, atto di concessione AC-1 del 2025-03-01, determina G1 del 2025-02-10 (responsabile 'Funzionario A', contributo richiesto 10000,00, ammesso 8000,00), anomalia AM1 presente; P1 PAGAMENTO SIGC (ASR2-20 aperta) 54230000001 di SRA01, B1, ADA Frosinone (provincia FROSINONE), campagna 2025, prima annualita', stato VALIDO, richiesto 5000,00, ammesso 4000,00, pagato 2500,00, ancora da pagare 1500,00, riga PAGATA del decreto D84-1 (pagato 2500,00, decretato 2500,00, quote FEASR 1000,00, nazionale 1050,00, regionale 450,00), recupero R1 con recuperato 100,00; P2 PAGAMENTO SIGC 54230000002 di SRA01, B2, ADA Latina, campagna 2024, altre annualita', VALIDO, richiesto 3000,00, ammesso 3000,00, pagato 3000,00, ancora da pagare 0,00, riga PAGATA di D84-1 (pagato 3000,00); P3 PAGAMENTO SIGC 54230000003 di SRA01, B3, ADA Latina, campagna 2025, prima annualita', 'CON ANOMALIE BLOCCANTI', importi non valorizzati, riga ESCLUSA del decreto D84-2 con motivo M01; P4 PAGAMENTO CSR-DP (non SIGC) 54230000004 di SRD01, B1, ADA Latina, collegata a S1 (codice domanda di sostegno 04230000001), anno di rilascio 2025, RILASCIATO, importi non valorizzati; A1 PAGAMENTO di AT001 (ADA Latina); C1 PAGAMENTO chiusa (CHIUSA_IL valorizzato) di SRA01, ADA Latina, con una riga PAGATA corrente di D84-1 (pagato 700,00)",
+      "when": "GET /api/elenco-operativo/domande?dimensione=2&pagina=1&ordina=denominazione:desc, poi con pagina=9",
+      "then": "200: le due righe dalla terza alla quarta nell'ordine per denominazione decrescente (a parita' per id della domanda), totaleRighe 5, pagina 1, dimensione 2, ordinamento 'denominazione:desc'; con pagina=9 righe vuote e totaleRighe 5 (D-04)",
+      "kind": "positive",
+      "test_tag": "SC-EO_PAGINA",
+      "approved": true,
+      "role": "p2-referente-adg"
+    },
+    {
+      "scenario_id": "SC-EO_FILTRI_LIBERI",
+      "req_uids": [
+        "RU-00000057",
+        "RU-00000058",
+        "RU-00000060",
+        "RU-00000061"
+      ],
+      "given": "SRA01 e SRD01 collegati a OS4 (OG1, OP1), AT001 censito; beneficiari B1 (CUAA RSSMRA80A01H501U, 'AZIENDA AGRICOLA ROSSI'), B2 (CUAA 01234567890, 'COOPERATIVA VERDI'), B3 (CUAA BNCLCU75B02D612X, 'BIANCHI LUCA'); domande correnti: S1 SOSTEGNO 04230000001 di SRD01, B1, ADA Latina (provincia LATINA), anno di rilascio 2024 senza campagna, prima annualita' non valorizzata, stato SIAN RILASCIATO, stato area programmazione AMMESSA, richiesto 10000,00, ammesso 8000,00, pagato e ancora da pagare non valorizzati, atto di concessione AC-1 del 2025-03-01, determina G1 del 2025-02-10 (responsabile 'Funzionario A', contributo richiesto 10000,00, ammesso 8000,00), anomalia AM1 presente; P1 PAGAMENTO SIGC (ASR2-20 aperta) 54230000001 di SRA01, B1, ADA Frosinone (provincia FROSINONE), campagna 2025, prima annualita', stato VALIDO, richiesto 5000,00, ammesso 4000,00, pagato 2500,00, ancora da pagare 1500,00, riga PAGATA del decreto D84-1 (pagato 2500,00, decretato 2500,00, quote FEASR 1000,00, nazionale 1050,00, regionale 450,00), recupero R1 con recuperato 100,00; P2 PAGAMENTO SIGC 54230000002 di SRA01, B2, ADA Latina, campagna 2024, altre annualita', VALIDO, richiesto 3000,00, ammesso 3000,00, pagato 3000,00, ancora da pagare 0,00, riga PAGATA di D84-1 (pagato 3000,00); P3 PAGAMENTO SIGC 54230000003 di SRA01, B3, ADA Latina, campagna 2025, prima annualita', 'CON ANOMALIE BLOCCANTI', importi non valorizzati, riga ESCLUSA del decreto D84-2 con motivo M01; P4 PAGAMENTO CSR-DP (non SIGC) 54230000004 di SRD01, B1, ADA Latina, collegata a S1 (codice domanda di sostegno 04230000001), anno di rilascio 2025, RILASCIATO, importi non valorizzati; A1 PAGAMENTO di AT001 (ADA Latina); C1 PAGAMENTO chiusa (CHIUSA_IL valorizzato) di SRA01, ADA Latina, con una riga PAGATA corrente di D84-1 (pagato 700,00); il chiamante e' P3 dell'area finanziaria (FUNZ-FIN)",
+      "when": "GET /api/elenco-operativo/domande con i filtri dell'interrogazione libera",
+      "then": "200 con le righe dell'insieme: sigc=true&pagamento=DA_PAGARE -> [P1]; sigc=true&pagamento=SENZA_IMPORTI -> [P3]; presentata=true -> [S1, P1, P2, P3] (P4 non e' SIGC); anno=2025&annualita=PRIMA -> [P1, P3]; testo=rossi -> [S1, P1, P4] (denominazione); testo=RSSMRA -> [S1, P1, P4] (CUAA); testo=0423 -> [S1] (codice a barre); ammessoDa=3500&ammessoA=8000 -> [S1, P1]; concessione=true -> [S1]; anomalie=true -> [S1]; statoProgrammazione=SENZA_STATO -> [P1, P2, P3, P4]; provincia=LATINA&tipo=PAGAMENTO -> [P2, P3, P4]; intervento=SRD01 -> [S1, P4] (D-02)",
+      "kind": "positive",
+      "test_tag": "SC-EO_FILTRI_LIBERI",
+      "approved": true,
+      "role": "p3-funzionario-area"
+    },
+    {
+      "scenario_id": "SC-EO_DRILLDOWN",
+      "req_uids": [
+        "RU-00000057",
+        "RU-00000058",
+        "RU-00000060",
+        "RU-00000061"
+      ],
+      "given": "SRA01 e SRD01 collegati a OS4 (OG1, OP1), AT001 censito; beneficiari B1 (CUAA RSSMRA80A01H501U, 'AZIENDA AGRICOLA ROSSI'), B2 (CUAA 01234567890, 'COOPERATIVA VERDI'), B3 (CUAA BNCLCU75B02D612X, 'BIANCHI LUCA'); domande correnti: S1 SOSTEGNO 04230000001 di SRD01, B1, ADA Latina (provincia LATINA), anno di rilascio 2024 senza campagna, prima annualita' non valorizzata, stato SIAN RILASCIATO, stato area programmazione AMMESSA, richiesto 10000,00, ammesso 8000,00, pagato e ancora da pagare non valorizzati, atto di concessione AC-1 del 2025-03-01, determina G1 del 2025-02-10 (responsabile 'Funzionario A', contributo richiesto 10000,00, ammesso 8000,00), anomalia AM1 presente; P1 PAGAMENTO SIGC (ASR2-20 aperta) 54230000001 di SRA01, B1, ADA Frosinone (provincia FROSINONE), campagna 2025, prima annualita', stato VALIDO, richiesto 5000,00, ammesso 4000,00, pagato 2500,00, ancora da pagare 1500,00, riga PAGATA del decreto D84-1 (pagato 2500,00, decretato 2500,00, quote FEASR 1000,00, nazionale 1050,00, regionale 450,00), recupero R1 con recuperato 100,00; P2 PAGAMENTO SIGC 54230000002 di SRA01, B2, ADA Latina, campagna 2024, altre annualita', VALIDO, richiesto 3000,00, ammesso 3000,00, pagato 3000,00, ancora da pagare 0,00, riga PAGATA di D84-1 (pagato 3000,00); P3 PAGAMENTO SIGC 54230000003 di SRA01, B3, ADA Latina, campagna 2025, prima annualita', 'CON ANOMALIE BLOCCANTI', importi non valorizzati, riga ESCLUSA del decreto D84-2 con motivo M01; P4 PAGAMENTO CSR-DP (non SIGC) 54230000004 di SRD01, B1, ADA Latina, collegata a S1 (codice domanda di sostegno 04230000001), anno di rilascio 2025, RILASCIATO, importi non valorizzati; A1 PAGAMENTO di AT001 (ADA Latina); C1 PAGAMENTO chiusa (CHIUSA_IL valorizzato) di SRA01, ADA Latina, con una riga PAGATA corrente di D84-1 (pagato 700,00)",
+      "when": "GET /api/elenco-operativo/domande e /domande/sinottico con i filtri dei report: presentata=true&anno=2025&annualita=PRIMA; sigc=true&pagamento=PAGATA",
+      "then": "il totale delle righe e il numero di domande del sinottico coincidono con TX-0008 (prima annualita' del 2025: 2) e con le pagate di TX-0012 (2) negli stessi filtri: dal livello minimo di un report l'elenco filtrato mostra le stesse domande (D-02)",
+      "kind": "positive",
+      "test_tag": "SC-EO_DRILLDOWN",
+      "approved": true,
+      "role": "p1-dirigente"
+    },
+    {
+      "scenario_id": "SC-EO_SINOTTICO",
+      "req_uids": [
+        "RU-00000057",
+        "RU-00000061"
+      ],
+      "given": "SRA01 e SRD01 collegati a OS4 (OG1, OP1), AT001 censito; beneficiari B1 (CUAA RSSMRA80A01H501U, 'AZIENDA AGRICOLA ROSSI'), B2 (CUAA 01234567890, 'COOPERATIVA VERDI'), B3 (CUAA BNCLCU75B02D612X, 'BIANCHI LUCA'); domande correnti: S1 SOSTEGNO 04230000001 di SRD01, B1, ADA Latina (provincia LATINA), anno di rilascio 2024 senza campagna, prima annualita' non valorizzata, stato SIAN RILASCIATO, stato area programmazione AMMESSA, richiesto 10000,00, ammesso 8000,00, pagato e ancora da pagare non valorizzati, atto di concessione AC-1 del 2025-03-01, determina G1 del 2025-02-10 (responsabile 'Funzionario A', contributo richiesto 10000,00, ammesso 8000,00), anomalia AM1 presente; P1 PAGAMENTO SIGC (ASR2-20 aperta) 54230000001 di SRA01, B1, ADA Frosinone (provincia FROSINONE), campagna 2025, prima annualita', stato VALIDO, richiesto 5000,00, ammesso 4000,00, pagato 2500,00, ancora da pagare 1500,00, riga PAGATA del decreto D84-1 (pagato 2500,00, decretato 2500,00, quote FEASR 1000,00, nazionale 1050,00, regionale 450,00), recupero R1 con recuperato 100,00; P2 PAGAMENTO SIGC 54230000002 di SRA01, B2, ADA Latina, campagna 2024, altre annualita', VALIDO, richiesto 3000,00, ammesso 3000,00, pagato 3000,00, ancora da pagare 0,00, riga PAGATA di D84-1 (pagato 3000,00); P3 PAGAMENTO SIGC 54230000003 di SRA01, B3, ADA Latina, campagna 2025, prima annualita', 'CON ANOMALIE BLOCCANTI', importi non valorizzati, riga ESCLUSA del decreto D84-2 con motivo M01; P4 PAGAMENTO CSR-DP (non SIGC) 54230000004 di SRD01, B1, ADA Latina, collegata a S1 (codice domanda di sostegno 04230000001), anno di rilascio 2025, RILASCIATO, importi non valorizzati; A1 PAGAMENTO di AT001 (ADA Latina); C1 PAGAMENTO chiusa (CHIUSA_IL valorizzato) di SRA01, ADA Latina, con una riga PAGATA corrente di D84-1 (pagato 700,00)",
+      "when": "GET /api/elenco-operativo/domande/sinottico",
+      "then": "200, perimetro REGIONALE: domande 5, sostegno 1, pagamento 4, presentate 4, sigc 3, beneficiari 3; richiesto 18000.00 con 2 domande senza valore; ammesso 15000.00 con 2 senza; pagato 5500.00 con 3 senza; ancora da pagare 1500.00 con 3 senza; liquidato 5500.00 (le righe di C1 chiusa non entrano: l'universo e' delle domande correnti); recuperato 100.00; quota pagata 78.57 (5500 su 7000 delle domande con ammesso e pagato); pagate 2, da pagare 1, senza importi 3; per anno 2024: 2, 2025: 3; per intervento SRA01: 3, SRD01: 2; ogni ripartizione somma a 5 (D-05)",
+      "kind": "positive",
+      "test_tag": "SC-EO_SINOTTICO",
+      "approved": true,
+      "role": "p2-referente-adg"
+    },
+    {
+      "scenario_id": "SC-EO_SINOTTICO_ADA",
+      "req_uids": [
+        "RU-00000057",
+        "RU-00000061"
+      ],
+      "given": "SRA01 e SRD01 collegati a OS4 (OG1, OP1), AT001 censito; beneficiari B1 (CUAA RSSMRA80A01H501U, 'AZIENDA AGRICOLA ROSSI'), B2 (CUAA 01234567890, 'COOPERATIVA VERDI'), B3 (CUAA BNCLCU75B02D612X, 'BIANCHI LUCA'); domande correnti: S1 SOSTEGNO 04230000001 di SRD01, B1, ADA Latina (provincia LATINA), anno di rilascio 2024 senza campagna, prima annualita' non valorizzata, stato SIAN RILASCIATO, stato area programmazione AMMESSA, richiesto 10000,00, ammesso 8000,00, pagato e ancora da pagare non valorizzati, atto di concessione AC-1 del 2025-03-01, determina G1 del 2025-02-10 (responsabile 'Funzionario A', contributo richiesto 10000,00, ammesso 8000,00), anomalia AM1 presente; P1 PAGAMENTO SIGC (ASR2-20 aperta) 54230000001 di SRA01, B1, ADA Frosinone (provincia FROSINONE), campagna 2025, prima annualita', stato VALIDO, richiesto 5000,00, ammesso 4000,00, pagato 2500,00, ancora da pagare 1500,00, riga PAGATA del decreto D84-1 (pagato 2500,00, decretato 2500,00, quote FEASR 1000,00, nazionale 1050,00, regionale 450,00), recupero R1 con recuperato 100,00; P2 PAGAMENTO SIGC 54230000002 di SRA01, B2, ADA Latina, campagna 2024, altre annualita', VALIDO, richiesto 3000,00, ammesso 3000,00, pagato 3000,00, ancora da pagare 0,00, riga PAGATA di D84-1 (pagato 3000,00); P3 PAGAMENTO SIGC 54230000003 di SRA01, B3, ADA Latina, campagna 2025, prima annualita', 'CON ANOMALIE BLOCCANTI', importi non valorizzati, riga ESCLUSA del decreto D84-2 con motivo M01; P4 PAGAMENTO CSR-DP (non SIGC) 54230000004 di SRD01, B1, ADA Latina, collegata a S1 (codice domanda di sostegno 04230000001), anno di rilascio 2025, RILASCIATO, importi non valorizzati; A1 PAGAMENTO di AT001 (ADA Latina); C1 PAGAMENTO chiusa (CHIUSA_IL valorizzato) di SRA01, ADA Latina, con una riga PAGATA corrente di D84-1 (pagato 700,00); il chiamante e' P4 dell'ADA Latina",
+      "when": "GET /api/elenco-operativo/domande/sinottico?sigc=true",
+      "then": "200, perimetro ADA: domande 2 (P2, P3), pagato 3000.00 con 1 senza valore; mai P1 di Frosinone (D-01, D-05)",
+      "kind": "positive",
+      "test_tag": "SC-EO_SINOTTICO_ADA",
+      "approved": true,
+      "role": "p4-responsabile-procedimento-ada"
+    },
+    {
+      "scenario_id": "SC-EO_DETTAGLIO",
+      "req_uids": [
+        "RU-00000059"
+      ],
+      "given": "SRA01 e SRD01 collegati a OS4 (OG1, OP1), AT001 censito; beneficiari B1 (CUAA RSSMRA80A01H501U, 'AZIENDA AGRICOLA ROSSI'), B2 (CUAA 01234567890, 'COOPERATIVA VERDI'), B3 (CUAA BNCLCU75B02D612X, 'BIANCHI LUCA'); domande correnti: S1 SOSTEGNO 04230000001 di SRD01, B1, ADA Latina (provincia LATINA), anno di rilascio 2024 senza campagna, prima annualita' non valorizzata, stato SIAN RILASCIATO, stato area programmazione AMMESSA, richiesto 10000,00, ammesso 8000,00, pagato e ancora da pagare non valorizzati, atto di concessione AC-1 del 2025-03-01, determina G1 del 2025-02-10 (responsabile 'Funzionario A', contributo richiesto 10000,00, ammesso 8000,00), anomalia AM1 presente; P1 PAGAMENTO SIGC (ASR2-20 aperta) 54230000001 di SRA01, B1, ADA Frosinone (provincia FROSINONE), campagna 2025, prima annualita', stato VALIDO, richiesto 5000,00, ammesso 4000,00, pagato 2500,00, ancora da pagare 1500,00, riga PAGATA del decreto D84-1 (pagato 2500,00, decretato 2500,00, quote FEASR 1000,00, nazionale 1050,00, regionale 450,00), recupero R1 con recuperato 100,00; P2 PAGAMENTO SIGC 54230000002 di SRA01, B2, ADA Latina, campagna 2024, altre annualita', VALIDO, richiesto 3000,00, ammesso 3000,00, pagato 3000,00, ancora da pagare 0,00, riga PAGATA di D84-1 (pagato 3000,00); P3 PAGAMENTO SIGC 54230000003 di SRA01, B3, ADA Latina, campagna 2025, prima annualita', 'CON ANOMALIE BLOCCANTI', importi non valorizzati, riga ESCLUSA del decreto D84-2 con motivo M01; P4 PAGAMENTO CSR-DP (non SIGC) 54230000004 di SRD01, B1, ADA Latina, collegata a S1 (codice domanda di sostegno 04230000001), anno di rilascio 2025, RILASCIATO, importi non valorizzati; A1 PAGAMENTO di AT001 (ADA Latina); C1 PAGAMENTO chiusa (CHIUSA_IL valorizzato) di SRA01, ADA Latina, con una riga PAGATA corrente di D84-1 (pagato 700,00)",
+      "when": "GET /api/elenco-operativo/domande/PAGAMENTO/54230000001, poi /domande/SOSTEGNO/04230000001",
+      "then": "200: P1 con la descrizione di SRA01, nessuna domanda collegata, pagamenti [D84-1 PAGATA, pagato 2500.00, decretato 2500.00, quote 1000.00, 1050.00, 450.00], recuperi [R1, recuperato 100.00], anomalie []; S1 con domande collegate [P4], determine [G1 del 2025-02-10, responsabile 'Funzionario A', contributo richiesto 10000.00 e ammesso 8000.00], anomalie [AM1 con la descrizione]; CUAA e denominazione in chiaro (D-06, OP-033)",
+      "kind": "positive",
+      "test_tag": "SC-EO_DETTAGLIO",
+      "approved": true,
+      "role": "p1-dirigente"
+    },
+    {
+      "scenario_id": "SC-EO_DETTAGLIO_NON_TROVATO",
+      "req_uids": [
+        "RU-00000059"
+      ],
+      "given": "SRA01 e SRD01 collegati a OS4 (OG1, OP1), AT001 censito; beneficiari B1 (CUAA RSSMRA80A01H501U, 'AZIENDA AGRICOLA ROSSI'), B2 (CUAA 01234567890, 'COOPERATIVA VERDI'), B3 (CUAA BNCLCU75B02D612X, 'BIANCHI LUCA'); domande correnti: S1 SOSTEGNO 04230000001 di SRD01, B1, ADA Latina (provincia LATINA), anno di rilascio 2024 senza campagna, prima annualita' non valorizzata, stato SIAN RILASCIATO, stato area programmazione AMMESSA, richiesto 10000,00, ammesso 8000,00, pagato e ancora da pagare non valorizzati, atto di concessione AC-1 del 2025-03-01, determina G1 del 2025-02-10 (responsabile 'Funzionario A', contributo richiesto 10000,00, ammesso 8000,00), anomalia AM1 presente; P1 PAGAMENTO SIGC (ASR2-20 aperta) 54230000001 di SRA01, B1, ADA Frosinone (provincia FROSINONE), campagna 2025, prima annualita', stato VALIDO, richiesto 5000,00, ammesso 4000,00, pagato 2500,00, ancora da pagare 1500,00, riga PAGATA del decreto D84-1 (pagato 2500,00, decretato 2500,00, quote FEASR 1000,00, nazionale 1050,00, regionale 450,00), recupero R1 con recuperato 100,00; P2 PAGAMENTO SIGC 54230000002 di SRA01, B2, ADA Latina, campagna 2024, altre annualita', VALIDO, richiesto 3000,00, ammesso 3000,00, pagato 3000,00, ancora da pagare 0,00, riga PAGATA di D84-1 (pagato 3000,00); P3 PAGAMENTO SIGC 54230000003 di SRA01, B3, ADA Latina, campagna 2025, prima annualita', 'CON ANOMALIE BLOCCANTI', importi non valorizzati, riga ESCLUSA del decreto D84-2 con motivo M01; P4 PAGAMENTO CSR-DP (non SIGC) 54230000004 di SRD01, B1, ADA Latina, collegata a S1 (codice domanda di sostegno 04230000001), anno di rilascio 2025, RILASCIATO, importi non valorizzati; A1 PAGAMENTO di AT001 (ADA Latina); C1 PAGAMENTO chiusa (CHIUSA_IL valorizzato) di SRA01, ADA Latina, con una riga PAGATA corrente di D84-1 (pagato 700,00); il chiamante e' P4 dell'ADA Latina",
+      "when": "GET /api/elenco-operativo/domande/PAGAMENTO/54230000001 (Frosinone), /domande/PAGAMENTO/99999999999, /domande/ALTRO/1, /domande/PAGAMENTO/12AB",
+      "then": "404 NOT_FOUND con lo stesso corpo per la domanda fuori perimetro e per quella inesistente (un P4 non scopre l'esistenza di domande di altre aree); 400 DATO_NON_VALIDO per il tipo fuori dominio e per il codice a barre non numerico (D-06)",
+      "kind": "negative",
+      "test_tag": "SC-EO_DETTAGLIO_NON_TROVATO",
+      "approved": true,
+      "role": "p4-responsabile-procedimento-ada"
+    },
+    {
+      "scenario_id": "SC-EO_PAGAMENTI",
+      "req_uids": [
+        "RU-00000057",
+        "RU-00000061"
+      ],
+      "given": "SRA01 e SRD01 collegati a OS4 (OG1, OP1), AT001 censito; beneficiari B1 (CUAA RSSMRA80A01H501U, 'AZIENDA AGRICOLA ROSSI'), B2 (CUAA 01234567890, 'COOPERATIVA VERDI'), B3 (CUAA BNCLCU75B02D612X, 'BIANCHI LUCA'); domande correnti: S1 SOSTEGNO 04230000001 di SRD01, B1, ADA Latina (provincia LATINA), anno di rilascio 2024 senza campagna, prima annualita' non valorizzata, stato SIAN RILASCIATO, stato area programmazione AMMESSA, richiesto 10000,00, ammesso 8000,00, pagato e ancora da pagare non valorizzati, atto di concessione AC-1 del 2025-03-01, determina G1 del 2025-02-10 (responsabile 'Funzionario A', contributo richiesto 10000,00, ammesso 8000,00), anomalia AM1 presente; P1 PAGAMENTO SIGC (ASR2-20 aperta) 54230000001 di SRA01, B1, ADA Frosinone (provincia FROSINONE), campagna 2025, prima annualita', stato VALIDO, richiesto 5000,00, ammesso 4000,00, pagato 2500,00, ancora da pagare 1500,00, riga PAGATA del decreto D84-1 (pagato 2500,00, decretato 2500,00, quote FEASR 1000,00, nazionale 1050,00, regionale 450,00), recupero R1 con recuperato 100,00; P2 PAGAMENTO SIGC 54230000002 di SRA01, B2, ADA Latina, campagna 2024, altre annualita', VALIDO, richiesto 3000,00, ammesso 3000,00, pagato 3000,00, ancora da pagare 0,00, riga PAGATA di D84-1 (pagato 3000,00); P3 PAGAMENTO SIGC 54230000003 di SRA01, B3, ADA Latina, campagna 2025, prima annualita', 'CON ANOMALIE BLOCCANTI', importi non valorizzati, riga ESCLUSA del decreto D84-2 con motivo M01; P4 PAGAMENTO CSR-DP (non SIGC) 54230000004 di SRD01, B1, ADA Latina, collegata a S1 (codice domanda di sostegno 04230000001), anno di rilascio 2025, RILASCIATO, importi non valorizzati; A1 PAGAMENTO di AT001 (ADA Latina); C1 PAGAMENTO chiusa (CHIUSA_IL valorizzato) di SRA01, ADA Latina, con una riga PAGATA corrente di D84-1 (pagato 700,00)",
+      "when": "GET /api/elenco-operativo/pagamenti, poi con esito=ESCLUSA e con decreto=D84-1",
+      "then": "200, perimetro REGIONALE, totaleRighe 4 (D84-1 di P1, P2 e C1, con C1 domanda non corrente; D84-2 di P3 ESCLUSA con motivo M01), ordinamento decreto:asc; totali: pagate 3, escluse 1, importo pagato 6200.00; esito=ESCLUSA -> [P3]; decreto=D84-1 -> 3 righe (D-07)",
+      "kind": "positive",
+      "test_tag": "SC-EO_PAGAMENTI",
+      "approved": true,
+      "role": "p2-referente-adg"
+    },
+    {
+      "scenario_id": "SC-EO_ESPORTA",
+      "req_uids": [
+        "RU-00000057",
+        "RU-00000058",
+        "RU-00000060",
+        "RU-00000061"
+      ],
+      "given": "SRA01 e SRD01 collegati a OS4 (OG1, OP1), AT001 censito; beneficiari B1 (CUAA RSSMRA80A01H501U, 'AZIENDA AGRICOLA ROSSI'), B2 (CUAA 01234567890, 'COOPERATIVA VERDI'), B3 (CUAA BNCLCU75B02D612X, 'BIANCHI LUCA'); domande correnti: S1 SOSTEGNO 04230000001 di SRD01, B1, ADA Latina (provincia LATINA), anno di rilascio 2024 senza campagna, prima annualita' non valorizzata, stato SIAN RILASCIATO, stato area programmazione AMMESSA, richiesto 10000,00, ammesso 8000,00, pagato e ancora da pagare non valorizzati, atto di concessione AC-1 del 2025-03-01, determina G1 del 2025-02-10 (responsabile 'Funzionario A', contributo richiesto 10000,00, ammesso 8000,00), anomalia AM1 presente; P1 PAGAMENTO SIGC (ASR2-20 aperta) 54230000001 di SRA01, B1, ADA Frosinone (provincia FROSINONE), campagna 2025, prima annualita', stato VALIDO, richiesto 5000,00, ammesso 4000,00, pagato 2500,00, ancora da pagare 1500,00, riga PAGATA del decreto D84-1 (pagato 2500,00, decretato 2500,00, quote FEASR 1000,00, nazionale 1050,00, regionale 450,00), recupero R1 con recuperato 100,00; P2 PAGAMENTO SIGC 54230000002 di SRA01, B2, ADA Latina, campagna 2024, altre annualita', VALIDO, richiesto 3000,00, ammesso 3000,00, pagato 3000,00, ancora da pagare 0,00, riga PAGATA di D84-1 (pagato 3000,00); P3 PAGAMENTO SIGC 54230000003 di SRA01, B3, ADA Latina, campagna 2025, prima annualita', 'CON ANOMALIE BLOCCANTI', importi non valorizzati, riga ESCLUSA del decreto D84-2 con motivo M01; P4 PAGAMENTO CSR-DP (non SIGC) 54230000004 di SRD01, B1, ADA Latina, collegata a S1 (codice domanda di sostegno 04230000001), anno di rilascio 2025, RILASCIATO, importi non valorizzati; A1 PAGAMENTO di AT001 (ADA Latina); C1 PAGAMENTO chiusa (CHIUSA_IL valorizzato) di SRA01, ADA Latina, con una riga PAGATA corrente di D84-1 (pagato 700,00)",
+      "when": "GET /api/elenco-operativo/domande/csv?provincia=LATINA, /domande/xlsx?provincia=LATINA e /pagamenti/xlsx",
+      "then": "200 con allegato: CSV (UTF-8 con BOM, punto e virgola) e XLSX con le 4 domande di Latina (S1, P2, P3, P4) nell'ordinamento predefinito, CUAA e denominazione in chiaro, intestazione con i filtri e il perimetro; le 4 righe dei pagamenti; una riga in AUDIT_ESPORTAZIONE per file con il formato (D-09)",
+      "kind": "positive",
+      "test_tag": "SC-EO_ESPORTA",
+      "approved": true,
+      "role": "p2-referente-adg"
+    },
+    {
+      "scenario_id": "SC-EO_ESPORTA_LIMITE",
+      "req_uids": [
+        "RU-00000057",
+        "RU-00000058",
+        "RU-00000060",
+        "RU-00000061"
+      ],
+      "given": "SRA01 e SRD01 collegati a OS4 (OG1, OP1), AT001 censito; beneficiari B1 (CUAA RSSMRA80A01H501U, 'AZIENDA AGRICOLA ROSSI'), B2 (CUAA 01234567890, 'COOPERATIVA VERDI'), B3 (CUAA BNCLCU75B02D612X, 'BIANCHI LUCA'); domande correnti: S1 SOSTEGNO 04230000001 di SRD01, B1, ADA Latina (provincia LATINA), anno di rilascio 2024 senza campagna, prima annualita' non valorizzata, stato SIAN RILASCIATO, stato area programmazione AMMESSA, richiesto 10000,00, ammesso 8000,00, pagato e ancora da pagare non valorizzati, atto di concessione AC-1 del 2025-03-01, determina G1 del 2025-02-10 (responsabile 'Funzionario A', contributo richiesto 10000,00, ammesso 8000,00), anomalia AM1 presente; P1 PAGAMENTO SIGC (ASR2-20 aperta) 54230000001 di SRA01, B1, ADA Frosinone (provincia FROSINONE), campagna 2025, prima annualita', stato VALIDO, richiesto 5000,00, ammesso 4000,00, pagato 2500,00, ancora da pagare 1500,00, riga PAGATA del decreto D84-1 (pagato 2500,00, decretato 2500,00, quote FEASR 1000,00, nazionale 1050,00, regionale 450,00), recupero R1 con recuperato 100,00; P2 PAGAMENTO SIGC 54230000002 di SRA01, B2, ADA Latina, campagna 2024, altre annualita', VALIDO, richiesto 3000,00, ammesso 3000,00, pagato 3000,00, ancora da pagare 0,00, riga PAGATA di D84-1 (pagato 3000,00); P3 PAGAMENTO SIGC 54230000003 di SRA01, B3, ADA Latina, campagna 2025, prima annualita', 'CON ANOMALIE BLOCCANTI', importi non valorizzati, riga ESCLUSA del decreto D84-2 con motivo M01; P4 PAGAMENTO CSR-DP (non SIGC) 54230000004 di SRD01, B1, ADA Latina, collegata a S1 (codice domanda di sostegno 04230000001), anno di rilascio 2025, RILASCIATO, importi non valorizzati; A1 PAGAMENTO di AT001 (ADA Latina); C1 PAGAMENTO chiusa (CHIUSA_IL valorizzato) di SRA01, ADA Latina, con una riga PAGATA corrente di D84-1 (pagato 700,00); 5.001 domande correnti in piu' di SRD01 nell'ADA Latina",
+      "when": "GET /api/elenco-operativo/domande/csv?intervento=SRD01",
+      "then": "400 DATO_NON_VALIDO (oltre il limite dell'export sincrono di 5.000 righe: restringere i filtri), nessun file e nessuna riga in AUDIT_ESPORTAZIONE (D-09, NFR-06)",
+      "kind": "negative",
+      "test_tag": "SC-EO_ESPORTA_LIMITE",
+      "approved": true,
+      "role": "p2-referente-adg"
+    },
+    {
+      "scenario_id": "SC-EO_PERIMETRO_ADA",
+      "req_uids": [
+        "RU-00000057",
+        "RU-00000058",
+        "RU-00000060",
+        "RU-00000061"
+      ],
+      "given": "SRA01 e SRD01 collegati a OS4 (OG1, OP1), AT001 censito; beneficiari B1 (CUAA RSSMRA80A01H501U, 'AZIENDA AGRICOLA ROSSI'), B2 (CUAA 01234567890, 'COOPERATIVA VERDI'), B3 (CUAA BNCLCU75B02D612X, 'BIANCHI LUCA'); domande correnti: S1 SOSTEGNO 04230000001 di SRD01, B1, ADA Latina (provincia LATINA), anno di rilascio 2024 senza campagna, prima annualita' non valorizzata, stato SIAN RILASCIATO, stato area programmazione AMMESSA, richiesto 10000,00, ammesso 8000,00, pagato e ancora da pagare non valorizzati, atto di concessione AC-1 del 2025-03-01, determina G1 del 2025-02-10 (responsabile 'Funzionario A', contributo richiesto 10000,00, ammesso 8000,00), anomalia AM1 presente; P1 PAGAMENTO SIGC (ASR2-20 aperta) 54230000001 di SRA01, B1, ADA Frosinone (provincia FROSINONE), campagna 2025, prima annualita', stato VALIDO, richiesto 5000,00, ammesso 4000,00, pagato 2500,00, ancora da pagare 1500,00, riga PAGATA del decreto D84-1 (pagato 2500,00, decretato 2500,00, quote FEASR 1000,00, nazionale 1050,00, regionale 450,00), recupero R1 con recuperato 100,00; P2 PAGAMENTO SIGC 54230000002 di SRA01, B2, ADA Latina, campagna 2024, altre annualita', VALIDO, richiesto 3000,00, ammesso 3000,00, pagato 3000,00, ancora da pagare 0,00, riga PAGATA di D84-1 (pagato 3000,00); P3 PAGAMENTO SIGC 54230000003 di SRA01, B3, ADA Latina, campagna 2025, prima annualita', 'CON ANOMALIE BLOCCANTI', importi non valorizzati, riga ESCLUSA del decreto D84-2 con motivo M01; P4 PAGAMENTO CSR-DP (non SIGC) 54230000004 di SRD01, B1, ADA Latina, collegata a S1 (codice domanda di sostegno 04230000001), anno di rilascio 2025, RILASCIATO, importi non valorizzati; A1 PAGAMENTO di AT001 (ADA Latina); C1 PAGAMENTO chiusa (CHIUSA_IL valorizzato) di SRA01, ADA Latina, con una riga PAGATA corrente di D84-1 (pagato 700,00); il chiamante e' P4 dell'ADA Latina",
+      "when": "GET /api/elenco-operativo/domande, /domande?provincia=FROSINONE e /pagamenti",
+      "then": "200, perimetro ADA: le domande S1, P2, P3, P4 (mai P1 di Frosinone); con provincia=FROSINONE nessuna riga e totaleRighe 0; pagamenti di P2, P3 e C1 (mai la riga di P1) (D-01)",
+      "kind": "positive",
+      "test_tag": "SC-EO_PERIMETRO_ADA",
+      "approved": true,
+      "role": "p4-responsabile-procedimento-ada"
+    },
+    {
+      "scenario_id": "SC-EO_CRITERI_NON_VALIDI",
+      "req_uids": [
+        "RU-00000057",
+        "RU-00000058",
+        "RU-00000060",
+        "RU-00000061"
+      ],
+      "given": "SRA01 e SRD01 collegati a OS4 (OG1, OP1), AT001 censito; beneficiari B1 (CUAA RSSMRA80A01H501U, 'AZIENDA AGRICOLA ROSSI'), B2 (CUAA 01234567890, 'COOPERATIVA VERDI'), B3 (CUAA BNCLCU75B02D612X, 'BIANCHI LUCA'); domande correnti: S1 SOSTEGNO 04230000001 di SRD01, B1, ADA Latina (provincia LATINA), anno di rilascio 2024 senza campagna, prima annualita' non valorizzata, stato SIAN RILASCIATO, stato area programmazione AMMESSA, richiesto 10000,00, ammesso 8000,00, pagato e ancora da pagare non valorizzati, atto di concessione AC-1 del 2025-03-01, determina G1 del 2025-02-10 (responsabile 'Funzionario A', contributo richiesto 10000,00, ammesso 8000,00), anomalia AM1 presente; P1 PAGAMENTO SIGC (ASR2-20 aperta) 54230000001 di SRA01, B1, ADA Frosinone (provincia FROSINONE), campagna 2025, prima annualita', stato VALIDO, richiesto 5000,00, ammesso 4000,00, pagato 2500,00, ancora da pagare 1500,00, riga PAGATA del decreto D84-1 (pagato 2500,00, decretato 2500,00, quote FEASR 1000,00, nazionale 1050,00, regionale 450,00), recupero R1 con recuperato 100,00; P2 PAGAMENTO SIGC 54230000002 di SRA01, B2, ADA Latina, campagna 2024, altre annualita', VALIDO, richiesto 3000,00, ammesso 3000,00, pagato 3000,00, ancora da pagare 0,00, riga PAGATA di D84-1 (pagato 3000,00); P3 PAGAMENTO SIGC 54230000003 di SRA01, B3, ADA Latina, campagna 2025, prima annualita', 'CON ANOMALIE BLOCCANTI', importi non valorizzati, riga ESCLUSA del decreto D84-2 con motivo M01; P4 PAGAMENTO CSR-DP (non SIGC) 54230000004 di SRD01, B1, ADA Latina, collegata a S1 (codice domanda di sostegno 04230000001), anno di rilascio 2025, RILASCIATO, importi non valorizzati; A1 PAGAMENTO di AT001 (ADA Latina); C1 PAGAMENTO chiusa (CHIUSA_IL valorizzato) di SRA01, ADA Latina, con una riga PAGATA corrente di D84-1 (pagato 700,00)",
+      "when": "GET /api/elenco-operativo/domande con criteri non validi",
+      "then": "400 DATO_NON_VALIDO senza il valore nel messaggio per: tipo=ALTRO, anno=1999, anno=abc, annualita=X, pagamento=X, sigc=forse, sigc ripetuto, richiestoDa=-1, richiestoDa=10.123, richiestoDa=100&richiestoA=50, testo=ab, testo di 101 caratteri, dimensione=101, pagina=-1, ordina=xyz:asc, ordina=cuaa:su, intervento vuoto; ogni 400 e' registrato in AUDIT_CONSULTAZIONE con i criteri come sono arrivati (D-02, D-04, D-10)",
+      "kind": "negative",
+      "test_tag": "SC-EO_CRITERI_NON_VALIDI",
+      "approved": true,
+      "role": "p2-referente-adg"
+    },
+    {
+      "scenario_id": "SC-EO_AUDIT_TESTO",
+      "req_uids": [
+        "RU-00000057",
+        "RU-00000058",
+        "RU-00000060",
+        "RU-00000061"
+      ],
+      "given": "SRA01 e SRD01 collegati a OS4 (OG1, OP1), AT001 censito; beneficiari B1 (CUAA RSSMRA80A01H501U, 'AZIENDA AGRICOLA ROSSI'), B2 (CUAA 01234567890, 'COOPERATIVA VERDI'), B3 (CUAA BNCLCU75B02D612X, 'BIANCHI LUCA'); domande correnti: S1 SOSTEGNO 04230000001 di SRD01, B1, ADA Latina (provincia LATINA), anno di rilascio 2024 senza campagna, prima annualita' non valorizzata, stato SIAN RILASCIATO, stato area programmazione AMMESSA, richiesto 10000,00, ammesso 8000,00, pagato e ancora da pagare non valorizzati, atto di concessione AC-1 del 2025-03-01, determina G1 del 2025-02-10 (responsabile 'Funzionario A', contributo richiesto 10000,00, ammesso 8000,00), anomalia AM1 presente; P1 PAGAMENTO SIGC (ASR2-20 aperta) 54230000001 di SRA01, B1, ADA Frosinone (provincia FROSINONE), campagna 2025, prima annualita', stato VALIDO, richiesto 5000,00, ammesso 4000,00, pagato 2500,00, ancora da pagare 1500,00, riga PAGATA del decreto D84-1 (pagato 2500,00, decretato 2500,00, quote FEASR 1000,00, nazionale 1050,00, regionale 450,00), recupero R1 con recuperato 100,00; P2 PAGAMENTO SIGC 54230000002 di SRA01, B2, ADA Latina, campagna 2024, altre annualita', VALIDO, richiesto 3000,00, ammesso 3000,00, pagato 3000,00, ancora da pagare 0,00, riga PAGATA di D84-1 (pagato 3000,00); P3 PAGAMENTO SIGC 54230000003 di SRA01, B3, ADA Latina, campagna 2025, prima annualita', 'CON ANOMALIE BLOCCANTI', importi non valorizzati, riga ESCLUSA del decreto D84-2 con motivo M01; P4 PAGAMENTO CSR-DP (non SIGC) 54230000004 di SRD01, B1, ADA Latina, collegata a S1 (codice domanda di sostegno 04230000001), anno di rilascio 2025, RILASCIATO, importi non valorizzati; A1 PAGAMENTO di AT001 (ADA Latina); C1 PAGAMENTO chiusa (CHIUSA_IL valorizzato) di SRA01, ADA Latina, con una riga PAGATA corrente di D84-1 (pagato 700,00)",
+      "when": "GET /api/elenco-operativo/domande?testo=RSSMRA80A01H501U",
+      "then": "200 con [S1, P1, P4]; la riga di AUDIT_CONSULTAZIONE registra il parametro testo come '<16 caratteri>', mai il CUAA (D-10)",
+      "kind": "positive",
+      "test_tag": "SC-EO_AUDIT_TESTO",
+      "approved": true,
+      "role": "p2-referente-adg"
+    },
+    {
+      "scenario_id": "SC-EO_ACCESSO",
+      "req_uids": [
+        "RU-00000057",
+        "RU-00000058",
+        "RU-00000059",
+        "RU-00000060",
+        "RU-00000061"
+      ],
+      "given": "SRA01 e SRD01 collegati a OS4 (OG1, OP1), AT001 censito; beneficiari B1 (CUAA RSSMRA80A01H501U, 'AZIENDA AGRICOLA ROSSI'), B2 (CUAA 01234567890, 'COOPERATIVA VERDI'), B3 (CUAA BNCLCU75B02D612X, 'BIANCHI LUCA'); domande correnti: S1 SOSTEGNO 04230000001 di SRD01, B1, ADA Latina (provincia LATINA), anno di rilascio 2024 senza campagna, prima annualita' non valorizzata, stato SIAN RILASCIATO, stato area programmazione AMMESSA, richiesto 10000,00, ammesso 8000,00, pagato e ancora da pagare non valorizzati, atto di concessione AC-1 del 2025-03-01, determina G1 del 2025-02-10 (responsabile 'Funzionario A', contributo richiesto 10000,00, ammesso 8000,00), anomalia AM1 presente; P1 PAGAMENTO SIGC (ASR2-20 aperta) 54230000001 di SRA01, B1, ADA Frosinone (provincia FROSINONE), campagna 2025, prima annualita', stato VALIDO, richiesto 5000,00, ammesso 4000,00, pagato 2500,00, ancora da pagare 1500,00, riga PAGATA del decreto D84-1 (pagato 2500,00, decretato 2500,00, quote FEASR 1000,00, nazionale 1050,00, regionale 450,00), recupero R1 con recuperato 100,00; P2 PAGAMENTO SIGC 54230000002 di SRA01, B2, ADA Latina, campagna 2024, altre annualita', VALIDO, richiesto 3000,00, ammesso 3000,00, pagato 3000,00, ancora da pagare 0,00, riga PAGATA di D84-1 (pagato 3000,00); P3 PAGAMENTO SIGC 54230000003 di SRA01, B3, ADA Latina, campagna 2025, prima annualita', 'CON ANOMALIE BLOCCANTI', importi non valorizzati, riga ESCLUSA del decreto D84-2 con motivo M01; P4 PAGAMENTO CSR-DP (non SIGC) 54230000004 di SRD01, B1, ADA Latina, collegata a S1 (codice domanda di sostegno 04230000001), anno di rilascio 2025, RILASCIATO, importi non valorizzati; A1 PAGAMENTO di AT001 (ADA Latina); C1 PAGAMENTO chiusa (CHIUSA_IL valorizzato) di SRA01, ADA Latina, con una riga PAGATA corrente di D84-1 (pagato 700,00); ogni profilo del catalogo ha i grant csr.tx-0056..0060.read (OP-033)",
+      "when": "GET /api/elenco-operativo/domande da P1, P2, P3 di ogni area, P4, P5, P6 (cookie) e P7 (bearer), da anonimo e da un utente senza profili",
+      "then": "200 per ogni profilo del catalogo; 401 NON_AUTENTICATO da anonimo; 403 ACCESSO_NEGATO per l'utente autenticato senza profili del cruscotto (D-01, OP-033)",
+      "kind": "negative",
+      "test_tag": "SC-EO_ACCESSO",
+      "approved": true,
+      "role": "p6-amministratore-tecnico"
+    }
+  ]
+}

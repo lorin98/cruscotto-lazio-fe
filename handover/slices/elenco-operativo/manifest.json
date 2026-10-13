@@ -1,0 +1,255 @@
+{
+  "artifacts": [
+    {
+      "consumers": [],
+      "ownership": "elenco-operativo",
+      "path": "slice-plan.json",
+      "role": "artifact",
+      "sha256": "sha256:935a43ee226abbe35670bc754707aaa4c3b837a43fae33a64a27db29ee282ccd",
+      "step": "step1-import"
+    },
+    {
+      "consumers": [],
+      "ownership": "elenco-operativo",
+      "path": "authz-catalog.json",
+      "role": "authz-catalog",
+      "sha256": "sha256:fa3d4c0b70016dce6e238dba4e8a4a8607ea35d7104cbead5c74fbdb175e2df8",
+      "step": "authz-catalog"
+    },
+    {
+      "consumers": [],
+      "ownership": "elenco-operativo",
+      "path": "ARSCSR/pom.xml",
+      "role": "artifact",
+      "sha256": "sha256:4c6a6c7cadd6a32fbd600124269e8e47b98479f86c301f26a21737f85557bf72",
+      "step": "step1b-scaffold"
+    },
+    {
+      "consumers": [],
+      "ownership": "elenco-operativo",
+      "path": "datamodel/elenco-operativo-decisions.json",
+      "role": "migration",
+      "sha256": "sha256:82752cf181de9ad38a05389e37a9d8024a2228e5e0d1e1042f31610e40a522ca",
+      "step": "step2-datamodel"
+    },
+    {
+      "consumers": [],
+      "ownership": "elenco-operativo",
+      "path": "ARSCSR/domain/src/main/java/it/arsial/cruscottocsr/domain/elencooperativo/Annualita.java",
+      "role": "domain",
+      "sha256": "sha256:d06182a92f414c530212dd70cda6c1479c30de33bb6b55dadef66a03b9b6d894",
+      "step": "step3-domain"
+    },
+    {
+      "consumers": [],
+      "ownership": "elenco-operativo",
+      "path": "ARSCSR/domain/src/main/java/it/arsial/cruscottocsr/domain/elencooperativo/CampoDomande.java",
+      "role": "domain",
+      "sha256": "sha256:b494d12326e2e9758d893f6673e19ee00f860a426d2f269988e82cfd0cd40b83",
+      "step": "step3-domain"
+    },
+    {
+      "consumers": [],
+      "ownership": "elenco-operativo",
+      "path": "ARSCSR/domain/src/main/java/it/arsial/cruscottocsr/domain/elencooperativo/CampoPagamenti.java",
+      "role": "domain",
+      "sha256": "sha256:778aeb7afe6bf62c18839a5a478b280b63458073d19c9d29abe528f5004658e1",
+      "step": "step3-domain"
+    },
+    {
+      "consumers": [],
+      "ownership": "elenco-operativo",
+      "path": "ARSCSR/domain/src/main/java/it/arsial/cruscottocsr/domain/elencooperativo/DettaglioDomanda.java",
+      "role": "domain",
+      "sha256": "sha256:2e1f29d740951534ae9249db62da9b77f995c037618cce0fb9447b603353596e",
+      "step": "step3-domain"
+    },
+    {
+      "consumers": [],
+      "ownership": "elenco-operativo",
+      "path": "ARSCSR/domain/src/main/java/it/arsial/cruscottocsr/domain/elencooperativo/EsitoPagamentoDomanda.java",
+      "role": "domain",
+      "sha256": "sha256:05ad8500c963df12b128316a5f87a74a3e746bd341d5d9ea240818f594a97378",
+      "step": "step3-domain"
+    },
+    {
+      "consumers": [],
+      "ownership": "elenco-operativo",
+      "path": "ARSCSR/domain/src/main/java/it/arsial/cruscottocsr/domain/elencooperativo/FasciaImporto.java",
+      "role": "domain",
+      "sha256": "sha256:bcf84fe7a401e311f1f5d8f0b30d5e0f1046741b9e9756979206bcd5b7a97ed6",
+      "step": "step3-domain"
+    },
+    {
+      "consumers": [],
+      "ownership": "elenco-operativo",
+      "path": "ARSCSR/domain/src/main/java/it/arsial/cruscottocsr/domain/elencooperativo/FiltroElenco.java",
+      "role": "domain",
+      "sha256": "sha256:7c69b6315f59d1cfe0400ec18b2b0dda2435be05d0d4fa9fdaeea17487fda5d0",
+      "step": "step3-domain"
+    },
+    {
+      "consumers": [],
+      "ownership": "elenco-operativo",
+      "path": "ARSCSR/domain/src/main/java/it/arsial/cruscottocsr/domain/elencooperativo/Ordinamento.java",
+      "role": "domain",
+      "sha256": "sha256:dd68f93d603b56858c827209d0e6d1f4b550e035961596039c5eb44078f41c74",
+      "step": "step3-domain"
+    },
+    {
+      "consumers": [],
+      "ownership": "elenco-operativo",
+      "path": "ARSCSR/domain/src/main/java/it/arsial/cruscottocsr/domain/elencooperativo/PaginaElenco.java",
+      "role": "domain",
+      "sha256": "sha256:030c6c180b38cd74977c037afa43beb594d8b9e7705cffab7076a6f964e49e61",
+      "step": "step3-domain"
+    },
+    {
+      "consumers": [],
+      "ownership": "elenco-operativo",
+      "path": "ARSCSR/domain/src/main/java/it/arsial/cruscottocsr/domain/elencooperativo/RichiestaPagina.java",
+      "role": "domain",
+      "sha256": "sha256:7ebda470d0f8b0ba90b5e9f71b5515e05c49558926ddafe5b0afe0dcd14ee399",
+      "step": "step3-domain"
+    },
+    {
+      "consumers": [],
+      "ownership": "elenco-operativo",
+      "path": "ARSCSR/domain/src/main/java/it/arsial/cruscottocsr/domain/elencooperativo/RigaDomanda.java",
+      "role": "domain",
+      "sha256": "sha256:2df1df760eb97fb7a6f696381d2f29b804d2c9718f9b818ace9c62e0212d4b4a",
+      "step": "step3-domain"
+    },
+    {
+      "consumers": [],
+      "ownership": "elenco-operativo",
+      "path": "ARSCSR/domain/src/main/java/it/arsial/cruscottocsr/domain/elencooperativo/RigaPagamento.java",
+      "role": "domain",
+      "sha256": "sha256:1b101de6228f483e02777678256103d5516dbdb108d4dd9d5b0db06f39e25d67",
+      "step": "step3-domain"
+    },
+    {
+      "consumers": [],
+      "ownership": "elenco-operativo",
+      "path": "ARSCSR/domain/src/main/java/it/arsial/cruscottocsr/domain/elencooperativo/SinotticoElenco.java",
+      "role": "domain",
+      "sha256": "sha256:08dfcd2538770b14908dbf2642b26535c91525d31d63d016bec05184a6ec771d",
+      "step": "step3-domain"
+    },
+    {
+      "consumers": [],
+      "ownership": "elenco-operativo",
+      "path": "ARSCSR/domain/src/main/java/it/arsial/cruscottocsr/domain/elencooperativo/ValoriFiltriElenco.java",
+      "role": "domain",
+      "sha256": "sha256:77d3c17e3e8b211dd49d38ca1e08a81cc5ded52c87f3a43ca3ba87cc96f868ee",
+      "step": "step3-domain"
+    },
+    {
+      "consumers": [],
+      "ownership": "elenco-operativo",
+      "path": "ARSCSR/application/src/main/java/it/arsial/cruscottocsr/application/port/in/ConsultaElencoOperativoUseCase.java",
+      "role": "port",
+      "sha256": "sha256:f4c08bef992e0b91ecf90646d26e7abd50d15e6e531db785c2418092dad1b56b",
+      "step": "step4-ports"
+    },
+    {
+      "consumers": [],
+      "ownership": "elenco-operativo",
+      "path": "ARSCSR/application/src/main/java/it/arsial/cruscottocsr/application/port/out/ElencoOperativoPort.java",
+      "role": "port",
+      "sha256": "sha256:c679684a89777cfba392c839e477afca81d225b7c92e2229c173356405bd1141",
+      "step": "step4-ports"
+    },
+    {
+      "consumers": [],
+      "ownership": "elenco-operativo",
+      "path": "acceptance/elenco-operativo-scenarios.json",
+      "role": "application",
+      "sha256": "sha256:8597a0d6df1993d7f9463923a8af6c45de85f03bc47d5e900b0769f388a78f99",
+      "step": "step5-service"
+    },
+    {
+      "consumers": [],
+      "ownership": "elenco-operativo",
+      "path": "ARSCSR/adapter-out/adapter-out-postgres/src/main/java/it/arsial/cruscottocsr/adapter/out/persistence/elencooperativo/PostgresElencoOperativoAdapter.java",
+      "role": "adapter-out-pg",
+      "sha256": "sha256:250d4b592804c7ac9fa6ea9d8269f4c87889502c8289b18d2b198a6ee06ab79e",
+      "step": "step6-adapter-pg"
+    },
+    {
+      "consumers": [],
+      "ownership": "elenco-operativo",
+      "path": "openapi/openapi-elenco-operativo.json",
+      "role": "adapter-in-rest",
+      "sha256": "sha256:7e638d1cccebe248fcac6bb7bcbc528c1d0aaab65ea985686216ca7403a0a679",
+      "step": "step8-rest"
+    }
+  ],
+  "authz_catalog": {
+    "hash": "sha256:fa3d4c0b70016dce6e238dba4e8a4a8607ea35d7104cbead5c74fbdb175e2df8",
+    "path": "authz-catalog.json"
+  },
+  "gates": {
+    "authz-catalog.authz_approved": {
+      "approved_at": "2026-10-12T15:52:46Z",
+      "approved_hash": "sha256:fa3d4c0b70016dce6e238dba4e8a4a8607ea35d7104cbead5c74fbdb175e2df8",
+      "baseline_ref": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
+    },
+    "step1-import.plan_approved": {
+      "approved_at": "2026-10-12T15:52:43Z",
+      "approved_hash": "sha256:935a43ee226abbe35670bc754707aaa4c3b837a43fae33a64a27db29ee282ccd",
+      "baseline_ref": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
+    },
+    "step10-gate.acceptance": "pass",
+    "step10-gate.assumptions": "pass",
+    "step10-gate.branch_bodies": "pass",
+    "step10-gate.build": "pass",
+    "step10-gate.contract_openapi": "pass",
+    "step10-gate.coverage_matrix": "pass",
+    "step10-gate.endpoints_authz": "pass",
+    "step10-gate.no_template_residue": "pass",
+    "step10-gate.property_scope_history_audit": "pass",
+    "step1b-scaffold.reactor_compiles": "pass",
+    "step2-datamodel.ddl_approved": {
+      "approved_at": "2026-10-13T07:36:51Z",
+      "approved_hash": "sha256:82752cf181de9ad38a05389e37a9d8024a2228e5e0d1e1042f31610e40a522ca",
+      "baseline_ref": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
+    },
+    "step3-domain.domain_compiles": "pass",
+    "step3-domain.domain_pure": "pass",
+    "step4-ports.ports_pure": "pass",
+    "step5-service.acceptance_approved": {
+      "approved_at": "2026-10-13T07:36:51Z",
+      "approved_hash": "sha256:8597a0d6df1993d7f9463923a8af6c45de85f03bc47d5e900b0769f388a78f99",
+      "baseline_ref": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
+    },
+    "step5-service.authz_import_zero": "pass",
+    "step6-adapter-pg.adapter_pg_compiles": "pass",
+    "step7-adapter-oracle.skipped_no_oracle": "pass",
+    "step8-rest.boundary_pure": "pass",
+    "step8-rest.openapi_emitted": "pass",
+    "step9-functions.functions": "pass"
+  },
+  "openapi": {
+    "hash": "sha256:7e638d1cccebe248fcac6bb7bcbc528c1d0aaab65ea985686216ca7403a0a679",
+    "path": "openapi/openapi-elenco-operativo.json"
+  },
+  "pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb",
+  "pack_version": "1.3.0",
+  "reqs": [
+    "RU-00000057",
+    "RU-00000058",
+    "RU-00000059",
+    "RU-00000060",
+    "RU-00000061"
+  ],
+  "slice": "elenco-operativo",
+  "slice_type": "transactional",
+  "transactions": [
+    "TX-0056",
+    "TX-0057",
+    "TX-0058",
+    "TX-0059",
+    "TX-0060"
+  ]
+}

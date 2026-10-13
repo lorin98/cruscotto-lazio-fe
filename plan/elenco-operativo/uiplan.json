@@ -1,0 +1,1540 @@
+{
+  "schema_version": "1.0",
+  "feature": "elenco-operativo",
+  "pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb",
+  "spec_pins": [
+    {
+      "slice": "elenco-operativo",
+      "path": "handover/openapi-elenco-operativo.json",
+      "sha256": "sha256:7e638d1cccebe248fcac6bb7bcbc528c1d0aaab65ea985686216ca7403a0a679",
+      "manifest_hash_match": true
+    }
+  ],
+  "routes": [
+    {
+      "path": "/elenco-operativo/domande",
+      "kind": "interrogazione",
+      "transactions": [
+        "TX-0056",
+        "TX-0057",
+        "TX-0060"
+      ],
+      "reqs": [
+        "RA002",
+        "RA003",
+        "RA005",
+        "RA006"
+      ],
+      "roles": [
+        "csr.tx-0056.read",
+        "csr.tx-0057.read",
+        "csr.tx-0060.read"
+      ],
+      "scope_filters": [
+        "territoriale-ada"
+      ],
+      "flow": "domande",
+      "url_params": [
+        {
+          "name": "ammessoA",
+          "source": "TX-0056.ammessoA"
+        },
+        {
+          "name": "ammessoDa",
+          "source": "TX-0056.ammessoDa"
+        },
+        {
+          "name": "anno",
+          "source": "TX-0056.anno",
+          "multi": true
+        },
+        {
+          "name": "annualita",
+          "source": "TX-0056.annualita",
+          "multi": true
+        },
+        {
+          "name": "anomalie",
+          "source": "TX-0056.anomalie"
+        },
+        {
+          "name": "azione",
+          "source": "TX-0056.azione",
+          "multi": true
+        },
+        {
+          "name": "concessione",
+          "source": "TX-0056.concessione"
+        },
+        {
+          "name": "dimensione",
+          "source": "TX-0056.dimensione"
+        },
+        {
+          "name": "ente",
+          "source": "TX-0056.ente",
+          "multi": true
+        },
+        {
+          "name": "intervento",
+          "source": "TX-0056.intervento",
+          "multi": true
+        },
+        {
+          "name": "og",
+          "source": "TX-0056.og",
+          "multi": true
+        },
+        {
+          "name": "op",
+          "source": "TX-0056.op",
+          "multi": true
+        },
+        {
+          "name": "ordina",
+          "source": "TX-0056.ordina"
+        },
+        {
+          "name": "os",
+          "source": "TX-0056.os",
+          "multi": true
+        },
+        {
+          "name": "pagamento",
+          "source": "TX-0056.pagamento",
+          "multi": true
+        },
+        {
+          "name": "pagatoA",
+          "source": "TX-0056.pagatoA"
+        },
+        {
+          "name": "pagatoDa",
+          "source": "TX-0056.pagatoDa"
+        },
+        {
+          "name": "pagina",
+          "source": "TX-0056.pagina"
+        },
+        {
+          "name": "presentata",
+          "source": "TX-0056.presentata"
+        },
+        {
+          "name": "provincia",
+          "source": "TX-0056.provincia",
+          "multi": true
+        },
+        {
+          "name": "richiestoA",
+          "source": "TX-0056.richiestoA"
+        },
+        {
+          "name": "richiestoDa",
+          "source": "TX-0056.richiestoDa"
+        },
+        {
+          "name": "sigc",
+          "source": "TX-0056.sigc"
+        },
+        {
+          "name": "stato",
+          "source": "TX-0056.stato",
+          "multi": true
+        },
+        {
+          "name": "statoProgrammazione",
+          "source": "TX-0056.statoProgrammazione",
+          "multi": true
+        },
+        {
+          "name": "testo",
+          "source": "TX-0056.testo"
+        },
+        {
+          "name": "tipo",
+          "source": "TX-0056.tipo",
+          "multi": true
+        }
+      ],
+      "links": [
+        {
+          "id": "dettaglio-domanda",
+          "trigger": "Apri il dettaglio dall'anteprima della riga",
+          "target": "/elenco-operativo/domande/:tipo/:codiceABarre",
+          "path_params": [
+            "tipo",
+            "codiceABarre"
+          ],
+          "query": []
+        },
+        {
+          "id": "pagamenti-delle-domande",
+          "trigger": "Vedi i pagamenti di queste domande (stessi filtri)",
+          "target": "/elenco-operativo/pagamenti",
+          "path_params": [],
+          "query": [
+            "ammessoA",
+            "ammessoDa",
+            "anno",
+            "annualita",
+            "anomalie",
+            "azione",
+            "concessione",
+            "ente",
+            "intervento",
+            "og",
+            "op",
+            "os",
+            "pagamento",
+            "pagatoA",
+            "pagatoDa",
+            "presentata",
+            "provincia",
+            "richiestoA",
+            "richiestoDa",
+            "sigc",
+            "stato",
+            "statoProgrammazione",
+            "testo",
+            "tipo"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "kind": "dettaglio",
+      "transactions": [
+        "TX-0058"
+      ],
+      "reqs": [
+        "RA004"
+      ],
+      "roles": [
+        "csr.tx-0058.read"
+      ],
+      "scope_filters": [
+        "territoriale-ada"
+      ],
+      "flow": "dettaglio-domanda",
+      "links": [
+        {
+          "id": "domanda-collegata",
+          "trigger": "Clic sul codice a barre di una domanda collegata",
+          "target": "/elenco-operativo/domande/:tipo/:codiceABarre",
+          "path_params": [
+            "tipo",
+            "codiceABarre"
+          ],
+          "query": []
+        },
+        {
+          "id": "domande-del-beneficiario",
+          "trigger": "Altre domande del beneficiario (testo = CUAA)",
+          "target": "/elenco-operativo/domande",
+          "path_params": [],
+          "query": [
+            "testo"
+          ]
+        },
+        {
+          "id": "torna-all-elenco",
+          "trigger": "Torna all'elenco",
+          "target": "/elenco-operativo/domande",
+          "path_params": [],
+          "query": []
+        }
+      ]
+    },
+    {
+      "path": "/elenco-operativo/pagamenti",
+      "kind": "interrogazione",
+      "transactions": [
+        "TX-0059",
+        "TX-0060"
+      ],
+      "reqs": [
+        "RA002",
+        "RA005",
+        "RA006"
+      ],
+      "roles": [
+        "csr.tx-0059.read",
+        "csr.tx-0060.read"
+      ],
+      "scope_filters": [
+        "territoriale-ada"
+      ],
+      "flow": "pagamenti",
+      "url_params": [
+        {
+          "name": "ammessoA",
+          "source": "TX-0059.ammessoA"
+        },
+        {
+          "name": "ammessoDa",
+          "source": "TX-0059.ammessoDa"
+        },
+        {
+          "name": "anno",
+          "source": "TX-0059.anno",
+          "multi": true
+        },
+        {
+          "name": "annualita",
+          "source": "TX-0059.annualita",
+          "multi": true
+        },
+        {
+          "name": "anomalie",
+          "source": "TX-0059.anomalie"
+        },
+        {
+          "name": "azione",
+          "source": "TX-0059.azione",
+          "multi": true
+        },
+        {
+          "name": "concessione",
+          "source": "TX-0059.concessione"
+        },
+        {
+          "name": "decreto",
+          "source": "TX-0059.decreto",
+          "multi": true
+        },
+        {
+          "name": "dimensione",
+          "source": "TX-0059.dimensione"
+        },
+        {
+          "name": "ente",
+          "source": "TX-0059.ente",
+          "multi": true
+        },
+        {
+          "name": "esito",
+          "source": "TX-0059.esito",
+          "multi": true
+        },
+        {
+          "name": "intervento",
+          "source": "TX-0059.intervento",
+          "multi": true
+        },
+        {
+          "name": "og",
+          "source": "TX-0059.og",
+          "multi": true
+        },
+        {
+          "name": "op",
+          "source": "TX-0059.op",
+          "multi": true
+        },
+        {
+          "name": "ordina",
+          "source": "TX-0059.ordina"
+        },
+        {
+          "name": "os",
+          "source": "TX-0059.os",
+          "multi": true
+        },
+        {
+          "name": "pagamento",
+          "source": "TX-0059.pagamento",
+          "multi": true
+        },
+        {
+          "name": "pagatoA",
+          "source": "TX-0059.pagatoA"
+        },
+        {
+          "name": "pagatoDa",
+          "source": "TX-0059.pagatoDa"
+        },
+        {
+          "name": "pagina",
+          "source": "TX-0059.pagina"
+        },
+        {
+          "name": "presentata",
+          "source": "TX-0059.presentata"
+        },
+        {
+          "name": "provincia",
+          "source": "TX-0059.provincia",
+          "multi": true
+        },
+        {
+          "name": "richiestoA",
+          "source": "TX-0059.richiestoA"
+        },
+        {
+          "name": "richiestoDa",
+          "source": "TX-0059.richiestoDa"
+        },
+        {
+          "name": "sigc",
+          "source": "TX-0059.sigc"
+        },
+        {
+          "name": "stato",
+          "source": "TX-0059.stato",
+          "multi": true
+        },
+        {
+          "name": "statoProgrammazione",
+          "source": "TX-0059.statoProgrammazione",
+          "multi": true
+        },
+        {
+          "name": "testo",
+          "source": "TX-0059.testo"
+        },
+        {
+          "name": "tipo",
+          "source": "TX-0059.tipo",
+          "multi": true
+        }
+      ],
+      "links": [
+        {
+          "id": "dettaglio-domanda-del-pagamento",
+          "trigger": "Apri la domanda dall'anteprima della riga (solo domande correnti: domandaCorrente vero)",
+          "target": "/elenco-operativo/domande/:tipo/:codiceABarre",
+          "path_params": [
+            "tipo",
+            "codiceABarre"
+          ],
+          "query": []
+        },
+        {
+          "id": "domande-dei-pagamenti",
+          "trigger": "Vedi le domande di questi pagamenti (stessi filtri della domanda)",
+          "target": "/elenco-operativo/domande",
+          "path_params": [],
+          "query": [
+            "ammessoA",
+            "ammessoDa",
+            "anno",
+            "annualita",
+            "anomalie",
+            "azione",
+            "concessione",
+            "ente",
+            "intervento",
+            "og",
+            "op",
+            "os",
+            "pagamento",
+            "pagatoA",
+            "pagatoDa",
+            "presentata",
+            "provincia",
+            "richiestoA",
+            "richiestoDa",
+            "sigc",
+            "stato",
+            "statoProgrammazione",
+            "testo",
+            "tipo"
+          ]
+        }
+      ]
+    }
+  ],
+  "fields": [
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "totaleRighe",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PaginaDomande"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "pagina",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PaginaDomande"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "dimensione",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PaginaDomande"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "ordinamento",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PaginaDomande"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "perimetro",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PaginaDomande"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "righe[].codiceABarre",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "righe[].tipo",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "righe[].cuaa",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "righe[].denominazione",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "righe[].codiceIntervento",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "righe[].annoRaccolta",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "righe[].primaAnnualita",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "righe[].sigc",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "righe[].statoCodice",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "righe[].statoDescrizione",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "righe[].statoProgrammazione",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "righe[].provincia",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "righe[].enteDelegato",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "righe[].richiesto",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "righe[].ammesso",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "righe[].pagato",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "righe[].ancoraDaPagare",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "righe[].liquidato",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "righe[].recuperato",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "righe[].attoConcessioneNumero",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "righe[].attoConcessioneData",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "righe[].anomalie",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "righe[].superficieSostegno",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "righe[].superficiePagamento",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "sinottico.domande",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/SinotticoElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "sinottico.sostegno",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/SinotticoElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "sinottico.pagamento",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/SinotticoElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "sinottico.presentate",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/SinotticoElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "sinottico.sigc",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/SinotticoElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "sinottico.beneficiari",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/SinotticoElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "sinottico.richiesto",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/SinotticoElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "sinottico.ammesso",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/SinotticoElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "sinottico.pagato",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/SinotticoElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "sinottico.ancoraDaPagare",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/SinotticoElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "sinottico.liquidato",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/SinotticoElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "sinottico.recuperato",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/SinotticoElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "sinottico.quotaPagata",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/SinotticoElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "sinottico.pagate",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/SinotticoElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "sinottico.daPagare",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/SinotticoElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "sinottico.senzaImporti",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/SinotticoElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "sinottico.perStato",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/SinotticoElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "sinottico.perIntervento",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/SinotticoElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "sinottico.perAnno",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/SinotticoElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "sinottico.perimetro",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/SinotticoElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "filtri.interventi",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "filtri.obiettiviSpecifici",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "filtri.obiettiviGenerali",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "filtri.obiettiviPolicy",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "filtri.azioniPortanti",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "filtri.legameAzioniDisponibile",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "filtri.stati",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "filtri.statiProgrammazione",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "filtri.province",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "filtri.enti",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "filtri.anni",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "name": "filtri.perimetro",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "perimetro",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DettaglioDomanda"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "descrizioneIntervento",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DettaglioDomanda"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "codiceDomandaSostegno",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DettaglioDomanda"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "compartoCodice",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DettaglioDomanda"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "compartoDescrizione",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DettaglioDomanda"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "domanda.codiceABarre",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "domanda.tipo",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "domanda.cuaa",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "domanda.denominazione",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "domanda.codiceIntervento",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "domanda.annoRaccolta",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "domanda.primaAnnualita",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "domanda.sigc",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "domanda.statoCodice",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "domanda.statoDescrizione",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "domanda.statoProgrammazione",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "domanda.provincia",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "domanda.enteDelegato",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "domanda.richiesto",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "domanda.ammesso",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "domanda.pagato",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "domanda.ancoraDaPagare",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "domanda.liquidato",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "domanda.recuperato",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "domanda.attoConcessioneNumero",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "domanda.attoConcessioneData",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "domanda.anomalie",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "domanda.superficieSostegno",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "domanda.superficiePagamento",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "collegate[].codiceABarre",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaCollegata"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "collegate[].tipo",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaCollegata"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "collegate[].statoDescrizione",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaCollegata"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "determine[].codice",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomanda"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "determine[].data",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomanda"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "determine[].statoProgrammazione",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomanda"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "determine[].responsabile",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomanda"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "determine[].ada",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomanda"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "determine[].provincia",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomanda"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "determine[].comparto",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomanda"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "determine[].contributoRichiesto",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomanda"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "determine[].contributoAmmesso",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomanda"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "determine[].deltaRichiestoAmmesso",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomanda"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "determine[].spesaImponibile",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomanda"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "determine[].spesaImponibileAmmessa",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomanda"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "pagamenti[].decreto",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PagamentoElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "pagamenti[].protocollo",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PagamentoElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "pagamenti[].dataAutorizzazione",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PagamentoElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "pagamenti[].tipologiaElenco",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PagamentoElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "pagamenti[].tipologiaPagamento",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PagamentoElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "pagamenti[].esito",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PagamentoElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "pagamenti[].importoDecretato",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PagamentoElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "pagamenti[].importoPagato",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PagamentoElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "pagamenti[].quotaFeasr",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PagamentoElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "pagamenti[].quotaNazionale",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PagamentoElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "pagamenti[].quotaRegionale",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PagamentoElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "pagamenti[].motiviEsclusione",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PagamentoElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "recuperi[].decreto",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/RecuperoDellaDomanda"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "recuperi[].importoLordo",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/RecuperoDellaDomanda"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "recuperi[].importoLiquidato",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/RecuperoDellaDomanda"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "recuperi[].importoRecuperato",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/RecuperoDellaDomanda"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "anomalie[].codice",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/AnomaliaDellaDomanda"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "anomalie[].descrizione",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/AnomaliaDellaDomanda"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "totaleRighe",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PaginaPagamenti"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "pagina",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PaginaPagamenti"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "dimensione",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PaginaPagamenti"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "ordinamento",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PaginaPagamenti"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "perimetro",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PaginaPagamenti"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "righe[].decreto",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PagamentoElenco"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "righe[].protocollo",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PagamentoElenco"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "righe[].dataAutorizzazione",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PagamentoElenco"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "righe[].tipologiaElenco",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PagamentoElenco"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "righe[].tipologiaPagamento",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PagamentoElenco"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "righe[].codiceABarre",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PagamentoElenco"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "righe[].tipoDomanda",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PagamentoElenco"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "righe[].cuaa",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PagamentoElenco"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "righe[].denominazione",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PagamentoElenco"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "righe[].codiceIntervento",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PagamentoElenco"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "righe[].esito",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PagamentoElenco"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "righe[].importoDecretato",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PagamentoElenco"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "righe[].importoPagato",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PagamentoElenco"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "righe[].quotaFeasr",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PagamentoElenco"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "righe[].quotaNazionale",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PagamentoElenco"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "righe[].quotaRegionale",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PagamentoElenco"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "righe[].motiviEsclusione",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PagamentoElenco"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "righe[].domandaCorrente",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PagamentoElenco"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "totali.pagate",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/TotaliPagamenti"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "totali.escluse",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/TotaliPagamenti"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "totali.importoDecretato",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/TotaliPagamenti"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "totali.importoPagato",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/TotaliPagamenti"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "totali.quotaFeasr",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/TotaliPagamenti"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "totali.quotaNazionale",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/TotaliPagamenti"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "totali.quotaRegionale",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/TotaliPagamenti"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "filtri.interventi",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "filtri.obiettiviSpecifici",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "filtri.obiettiviGenerali",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "filtri.obiettiviPolicy",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "filtri.azioniPortanti",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "filtri.legameAzioniDisponibile",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "filtri.stati",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "filtri.statiProgrammazione",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "filtri.province",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "filtri.enti",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "filtri.anni",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "filtri.decreti",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "filtri.perimetro",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    }
+  ],
+  "flows": [
+    {
+      "name": "domande",
+      "routes": [
+        "/elenco-operativo/domande"
+      ],
+      "wireframe_dir": "wireframes/elenco-operativo/domande",
+      "wcag_notes": [
+        "Filtri dal vivo: il conteggio del pannello e' una regione aria-live polite; il cambio dei risultati non sposta il focus",
+        "Durante l'aggiornamento restano i dati precedenti con aria-busy sulla card e un indicatore role=status (mai la tabella vuota)",
+        "Animazioni solo con classi CSS (150-700 ms), spente da prefers-reduced-motion; i numeri che scorrono espongono subito il valore finale al lettore di schermo",
+        "Intestazioni ordinabili come bottoni con lo stato dell'ordinamento annunciato; righe apribili con Invio oltre che col clic",
+        "Residuo manuale: ordine di lettura di sinottico, tabella e totali; contrasto della resa finale; comprensibilita' delle etichette dei filtri",
+        "Grafici del sinottico con la tabella equivalente; il clic su una barra aggiunge il filtro (chip) e lo annuncia"
+      ],
+      "approval": {
+        "approved_hash": "sha256:3f58d668a970e5118afa1dd9591a8cfb0e0cf4e1bdde744bb3994d483ca7f5fa",
+        "baseline_ref": "./wireframes/elenco-operativo/domande",
+        "approved_at": "2026-10-13T08:11:14Z",
+        "time_to_approve_s": 170,
+        "rework_rounds": 0
+      }
+    },
+    {
+      "name": "dettaglio-domanda",
+      "routes": [
+        "/elenco-operativo/domande/:tipo/:codiceABarre"
+      ],
+      "wireframe_dir": "wireframes/elenco-operativo/dettaglio-domanda",
+      "wcag_notes": [
+        "Un solo h1 (denominazione del beneficiario o, se assente, il codice a barre); focus sul titolo dopo il cambio di route",
+        "Schede con role tablist/tab/tabpanel e frecce da tastiera; ogni tabella ha caption e intestazioni con scope",
+        "Grafico a cascata con la tabella equivalente e la didascalia; importi assenti dichiarati col motivo, mai a zero",
+        "Residuo manuale: ordine di lettura della testata, comprensibilita' dei badge di stato, contrasto della resa finale"
+      ],
+      "approval": {
+        "approved_hash": "sha256:b5045686697e751ac366c854ee5f178bfef5d280c7c1d998c77ae4cc716a4dde",
+        "baseline_ref": "./wireframes/elenco-operativo/dettaglio-domanda",
+        "approved_at": "2026-10-13T08:11:14Z",
+        "time_to_approve_s": 170,
+        "rework_rounds": 0
+      }
+    },
+    {
+      "name": "pagamenti",
+      "routes": [
+        "/elenco-operativo/pagamenti"
+      ],
+      "wireframe_dir": "wireframes/elenco-operativo/pagamenti",
+      "wcag_notes": [
+        "Filtri dal vivo: il conteggio del pannello e' una regione aria-live polite; il cambio dei risultati non sposta il focus",
+        "Durante l'aggiornamento restano i dati precedenti con aria-busy sulla card e un indicatore role=status (mai la tabella vuota)",
+        "Animazioni solo con classi CSS (150-700 ms), spente da prefers-reduced-motion; i numeri che scorrono espongono subito il valore finale al lettore di schermo",
+        "Intestazioni ordinabili come bottoni con lo stato dell'ordinamento annunciato; righe apribili con Invio oltre che col clic",
+        "Residuo manuale: ordine di lettura di sinottico, tabella e totali; contrasto della resa finale; comprensibilita' delle etichette dei filtri",
+        "La riga di una domanda chiusa dice in testo 'domanda chiusa' (non solo col colore) e non offre il link al dettaglio"
+      ],
+      "approval": {
+        "approved_hash": "sha256:bbae61b9535806c928b37c17475d647cd6756aa56a1dccc8daab6f71c30f936e",
+        "baseline_ref": "./wireframes/elenco-operativo/pagamenti",
+        "approved_at": "2026-10-13T08:11:14Z",
+        "time_to_approve_s": 170,
+        "rework_rounds": 0
+      }
+    }
+  ],
+  "open_points": [
+    {
+      "id": "OP-EO-01",
+      "kind": "campo-assente-dalla-spec",
+      "detail": "Ultimo dato sincronizzato nella barra dei filtri (come nel finanziario, OP-FE-04 su TX-0001): nessun DTO dell'elenco operativo lo porta. Proposta verso green-be: campo additivo ultimiDatiSincronizzati su SinotticoElenco e PaginaPagamenti (stessa forma di TX-0001). Finche' manca la pillola non si rende."
+    },
+    {
+      "id": "OP-EO-02",
+      "kind": "altro",
+      "detail": "Viste per ambito (D-1 di MIN-20261012: generale, finanziario, procedurale, fisico, istituzionale) rese lato client come insiemi di colonne e di indicatori del sinottico sulle stesse righe. La vista non e' un parametro della spec, quindi non entra negli url_params: un link condiviso apre la vista generale. Alternative: accettare cosi'; oppure un parametro vista nel backend (additivo, ignorato dal calcolo) per portarla nell'indirizzo. Da decidere al gate del flusso domande."
+    },
+    {
+      "id": "OP-EO-03",
+      "kind": "altro",
+      "detail": "Drill-down dai report (RA003, D-3): i link dalle pagine del finanziario verso /elenco-operativo/domande con i filtri della selezione li dichiara la feature finanziario nel suo refresh (target_feature elenco-operativo). Questa feature espone come url_params tutti i filtri di TX-0056 e TX-0059 perche' quei link si possano verificare."
+    },
+    {
+      "id": "OP-EO-04",
+      "kind": "altro",
+      "detail": "Voce 'Elenco operativo' (Domande, Pagamenti) nella Home e nel menu: appartengono al layer app/ del progetto, fuori da ogni feature (uiplan-patterns 7). Da aggiungere a step6 nella shell, con le voci visibili solo con il grant della route."
+    },
+    {
+      "id": "OP-EO-05",
+      "kind": "altro",
+      "detail": "Esportazione (RA005, D-09 del backend): GET /domande/{formato} e /pagamenti/{formato} (csv, xlsx) senza operationId, come gli export del finanziario; un pulsante per formato con la sigla visibile (V-07 del finanziario), con X-Requested-With, gli stessi filtri e ordinamento della pagina. Oltre il limite di NFR-06 il backend risponde con un problem: il messaggio invita a restringere i filtri."
+    }
+  ]
+}
