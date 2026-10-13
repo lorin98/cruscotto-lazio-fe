@@ -6,7 +6,7 @@ import { expectNoA11yViolations } from '../../../shared/testing/axe';
 import { descrizioneDi, graficoDi, tabellaDi, trovaCard } from '../../../shared/testing/card-grafico';
 import { DOMANDE_PER_ANNO, IMPORTI_PER_ANNO, TOTALE_DOMANDE } from '../../../features/finanziario/testing/fixture';
 import { renderPagina } from '../../../shared/testing/render-pagina';
-import { clicSu } from '../../../shared/testing/grafico-finto';
+import { clicSulDato } from '../../../shared/testing/grafico-finto';
 import Pagina from './page';
 
 const servi = () =>
@@ -105,9 +105,21 @@ describe("RA003: drill-down dalla pagina domande all'elenco operativo", () => {
       '/elenco-operativo/domande?presentata=true&anno=2024',
     );
     const grafico = graficoDi(await trovaCard('Domande per anno di raccolta (RF008)'));
-    if (grafico) clicSu(grafico, { name: '2024', dataIndex: 0, seriesName: 'Prima annualità' });
+    expect(grafico).toBeTruthy();
+    clicSulDato(grafico!, 0, 0);
     await waitFor(() => expect(within(t).getAllByRole('rowheader').map((c) => c.textContent)).toEqual(['2024']));
     expect(router.state.location.pathname).toBe('/finanziario/domande');
+  });
+  it("vista Tabella delle card RF008 e RF010: 'Apri nell'elenco' nelle celle della tabella equivalente", async () => {
+    servi();
+    renderPagina(Pagina, '/finanziario/domande');
+    const perAnno = await tabellaDi(await trovaCard('Domande per anno di raccolta (RF008)'));
+    expect(within(perAnno).getByRole('link', { name: "Apri nell'elenco operativo le domande del 2024, altre annualità" }).getAttribute('href')).toBe(
+      '/elenco-operativo/domande?presentata=true&anno=2024&annualita=ALTRE',
+    );
+    const importi = await tabellaDi(await trovaCard('Importi per anno di raccolta (RF010)'));
+    expect(within(importi).getAllByRole('columnheader').map((c) => c.textContent)).toEqual(['Anno', 'Stanziato', 'Ammesso', 'Decretato', 'Domande senza importo ammesso', 'Elenco operativo']);
+    expect(within(importi).getByRole('link', { name: "Apri nell'elenco operativo le domande presentate del 2024" }).getAttribute('href')).toBe('/elenco-operativo/domande?presentata=true&anno=2024');
   });
   it("senza il grant dell'elenco nessun link e nessuna colonna Elenco operativo", async () => {
     servi();
