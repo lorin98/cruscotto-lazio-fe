@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "elenco-operativo",
-  "current_step": 5,
+  "current_step": 6,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -82,6 +82,17 @@
       "gates": {
         "lib_pure_compile": "pass",
         "lib_zero_react": "pass"
+      }
+    },
+    "step5-ui": {
+      "status": "done",
+      "completed_at": "2026-10-13T11:15:37Z",
+      "artifacts": [
+        "./src/features"
+      ],
+      "gates": {
+        "ui_components_compile": "pass",
+        "ui_a11y_axe": "pass"
       }
     }
   },

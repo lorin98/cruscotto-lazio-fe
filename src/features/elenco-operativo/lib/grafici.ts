@@ -60,6 +60,15 @@ export function filtroDellaVoce(r: Ripartizione, v: Voce): string | undefined {
   return chiave && !NON_FILTRABILI[r].has(chiave) ? chiave : undefined;
 }
 
+/** Valore del filtro portato dalla barra cliccata (solo dal codice del dato: una voce senza codice non filtra mai, nemmeno
+ *  col suo nome, a differenza di codiceDalClic del kit). */
+export function filtroDalClic(p: { data?: unknown }): string | undefined {
+  const dato = p.data;
+  if (typeof dato !== 'object' || dato === null) return undefined;
+  const codice: unknown = (dato as { codice?: unknown }).codice;
+  return typeof codice === 'string' && codice !== '' ? codice : undefined;
+}
+
 /** Grafico a barre di una ripartizione del sinottico; la tabella equivalente porta tutte le voci, anche le non filtrabili. */
 export function graficoRipartizione(r: Ripartizione, voci: readonly Voce[] | undefined): DatiGrafico {
   const t = TESTI_RIPARTIZIONE[r];

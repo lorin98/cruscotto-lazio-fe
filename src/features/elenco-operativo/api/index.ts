@@ -59,16 +59,17 @@ export type CriteriSinottico = Tx0057Params;
 /** Criteri dell'elenco dei pagamenti (TX-0059): i filtri delle domande piu' decreto ed esito. */
 export type CriteriPagamenti = Tx0059Params;
 
-// TX-0060 (RA006): valori dei filtri nel perimetro del chiamante.
-export const useValoriFiltri = () => useTx0060();
+// TX-0060 (RA006): valori dei filtri nel perimetro del chiamante. `abilitato` falso: nessuna lettura (profilo senza il
+// grant dei filtri, dove servono solo come descrizioni dei chip).
+export const useValoriFiltri = (abilitato = true) => useTx0060({ query: { enabled: abilitato } });
 
 // TX-0056 (RA002): una pagina dell'elenco delle domande.
 export const useDomande = (criteri: CriteriDomande) =>
   useTx0056(criteri, { query: { placeholderData: keepPreviousData } });
 
 // TX-0057 (RA006): sinottico dell'intero insieme filtrato (mai una somma della pagina, D-05).
-export const useSinottico = (criteri: CriteriSinottico) =>
-  useTx0057(criteri, { query: { placeholderData: keepPreviousData } });
+export const useSinottico = (criteri: CriteriSinottico, { abilitato = true }: { abilitato?: boolean } = {}) =>
+  useTx0057(criteri, { query: { placeholderData: keepPreviousData, enabled: abilitato } });
 
 // TX-0058 (RA004): scheda della domanda; tipo e codice a barre obbligatori nel percorso (enabled guard).
 export const useDettaglioDomanda = (tipo: string | undefined, codiceABarre: string | undefined) =>

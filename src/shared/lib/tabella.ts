@@ -67,3 +67,16 @@ export function conColonna(nascoste: ReadonlySet<string>, chiave: string, visibi
   else n.add(chiave);
   return n;
 }
+
+/** Pagine da mostrare (da 0): la prima, l'ultima e due per parte attorno alla corrente; null = salto ("…"). */
+export function finestraPagine(corrente: number, pagine: number): Array<number | null> {
+  if (pagine <= 7) return Array.from({ length: pagine }, (_, k) => k);
+  const vicine = new Set([0, pagine - 1, corrente - 2, corrente - 1, corrente, corrente + 1, corrente + 2].filter((p) => p >= 0 && p < pagine));
+  const ordinate = [...vicine].sort((a, b) => a - b);
+  const out: Array<number | null> = [];
+  ordinate.forEach((p, k) => {
+    if (k > 0 && p - ordinate[k - 1] > 1) out.push(null);
+    out.push(p);
+  });
+  return out;
+}

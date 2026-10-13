@@ -19,12 +19,12 @@ export function importoConNota(importo: ImportoLike | null | undefined): string 
 
 /**
  * Somma del sinottico o dei totali: il totale delle domande che hanno l'importo e quante non lo hanno (D-05). Il totale e'
- * assente solo se manca su tutte le domande: allora "non valorizzato".
+ * assente solo se manca su tutte le domande: allora "non valorizzato". `unita`: cosa si conta (domande, righe).
  */
-export function testoSomma(somma: Somma | null | undefined): { valore: string; nota?: string } {
+export function testoSomma(somma: Somma | null | undefined, unita: readonly [string, string] = ['domanda', 'domande']): { valore: string; nota?: string } {
   const valore = somma?.totale?.valore != null ? formatEuro(somma.totale.valore) : descriviImporto(somma?.totale).testo;
   const senza = somma?.senzaValore ?? 0;
-  return senza > 0 ? { valore, nota: `${plurale(senza, 'domanda', 'domande')} senza importo` } : { valore };
+  return senza > 0 ? { valore, nota: `${plurale(senza, unita[0], unita[1])} senza importo` } : { valore };
 }
 
 /** Quota pagata sull'ammesso (percentuale gia' calcolata dal server), oppure "non calcolabile". */
@@ -99,4 +99,13 @@ export function testoAtto(numero: string | null | undefined, data: string | null
 /** "1 riga", "2.173 righe": conteggi in italiano. */
 export function conteggio(n: number | null | undefined, singolare: string, plur: string): string {
   return n == null ? '-' : `${formatNumber(n)} ${n === 1 ? singolare : plur}`;
+}
+
+/** Quota di un importo sull'altro della stessa domanda, in centesimi (es. pagato sull'ammesso); null se uno manca o la
+ *  base non e' positiva: non si inventa un rapporto. */
+export function quotaSu(parte: ImportoLike | null | undefined, base: ImportoLike | null | undefined): number | null {
+  const p = parte?.valore;
+  const b = base?.valore;
+  if (p == null || b == null || b <= 0) return null;
+  return Math.round((p / b) * 1000) / 10;
 }

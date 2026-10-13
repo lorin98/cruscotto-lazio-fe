@@ -389,3 +389,19 @@ a.ui-ambito__entra:focus-visible { outline: none !important; }
   .ui-ambito, .ui-barra--entra > span, .ui-ambito--attivo .ui-ambito__stato::before { animation: none; }
   .ui-ambito--attivo:hover, .ui-ambito--attivo:hover .ui-ambito__filigrana.ui-icona, .ui-ambito--attivo:hover .ui-ambito__entra .ui-icona { transform: none; }
 }
+
+/* ---------------------------------------------------------------- interrogazione (ADR 0029, elenco operativo) */
+/* viste per ambito, conteggio dal vivo, sinottico sopra, totali dal server sotto, aggiornamento senza svuotare la tabella */
+.ui-viste { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; margin: .75rem 0; }
+.ui-conteggio { font-weight: 700; color: var(--ui-primario); margin: .25rem 0 .75rem; }
+.ui-sinottico { margin: 1rem 0; }
+.ui-sinottico .ui-griglia--4 { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+.ui-totali th, .ui-totali td { border-top: 2px solid var(--ui-scuro); }
+.ui-aggiornamento { border-left: 4px solid var(--ui-primario); background: #eef4ff; padding: .5rem .75rem; border-radius: var(--ui-raggio-s); margin: .5rem 0; font-size: .9rem; }
+.ui-risultati[aria-busy='true'] .ui-tabella tbody { opacity: .6; transition: opacity .2s ease; }
+.ui-riga--nuova { animation: ui-dissolvenza .3s ease both; }
+.ui-intervallo { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+@media (prefers-reduced-motion: reduce) {
+  .ui-riga--nuova { animation: none; }
+  .ui-risultati[aria-busy='true'] .ui-tabella tbody { transition: none; }
+}

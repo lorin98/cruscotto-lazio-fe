@@ -35,10 +35,11 @@ import {
   testoResponsabile,
   testoSomma,
   testoSuperficie,
+  quotaSu,
 } from '../src/features/elenco-operativo/lib/formato';
 import { chipDeiCriteri, valoreLeggibile } from '../src/features/elenco-operativo/lib/chip';
 import { ORDINAMENTO_COLONNA, ORDINAMENTO_COLONNA_PAGAMENTI, VISTE, vistaDi } from '../src/features/elenco-operativo/lib/viste';
-import { filtroDellaVoce, graficoAmmessoPagato, graficoRipartizione, nomeVoce } from '../src/features/elenco-operativo/lib/grafici';
+import { filtroDalClic, filtroDellaVoce, graficoAmmessoPagato, graficoRipartizione, nomeVoce } from '../src/features/elenco-operativo/lib/grafici';
 import {
   percorsoDettaglio,
   percorsoDomandeDeiPagamenti,
@@ -146,6 +147,11 @@ describe('elenco operativo, formati (mai uno zero per un dato assente)', () => {
     expect(testoSomma({ totale: euro(10000), senzaValore: 2 })).toEqual({ valore: formatEuro(10000), nota: '2 domande senza importo' });
     expect(testoSomma({ totale: euro(10000), senzaValore: 0 })).toEqual({ valore: formatEuro(10000) });
     expect(testoSomma({ totale: euro(null, 'NON_VALORIZZATO'), senzaValore: 1 })).toEqual({ valore: 'non valorizzato', nota: '1 domanda senza importo' });
+    expect(testoSomma({ totale: euro(5), senzaValore: 1 }, ['riga', 'righe']).nota).toBe('1 riga senza importo');
+    expect(quotaSu(euro(2500), euro(4000))).toBe(62.5);
+    expect(quotaSu(euro(1), euro(3))).toBe(33.3);
+    expect(quotaSu(euro(null, 'NON_VALORIZZATO'), euro(4000))).toBeNull();
+    expect(quotaSu(euro(10), euro(0))).toBeNull();
     expect(testoQuotaPagata(null)).toBe('non calcolabile');
     expect(testoQuotaPagata(62.5)).toBe('62,5 %');
   });
@@ -248,6 +254,13 @@ describe('elenco operativo, grafici', () => {
     expect(filtroDellaVoce('perAnno', { chiave: 'SENZA', domande: 1 })).toBe('SENZA');
     const g = graficoRipartizione('perIntervento', [{ chiave: 'SRA01', descrizione: 'Produzione integrata', domande: 3 }]);
     expect(g.tabella.righe).toEqual([['SRA01 Produzione integrata', '3']]);
+  });
+
+  it('il clic filtra solo col codice del dato, mai col nome', () => {
+    expect(filtroDalClic({ data: { codice: 'SRA01' } })).toBe('SRA01');
+    expect(filtroDalClic({ data: { value: 3 } })).toBeUndefined();
+    expect(filtroDalClic({ data: { codice: '' } })).toBeUndefined();
+    expect(filtroDalClic({})).toBeUndefined();
   });
 
   it('senza voci il grafico non si disegna ma la tabella resta', () => {
