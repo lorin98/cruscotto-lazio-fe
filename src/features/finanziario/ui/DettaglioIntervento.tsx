@@ -8,20 +8,22 @@ import { Link } from 'react-router';
 import { Tab, TabList, TabPanel, Tabs } from 'react-aria-components';
 import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { formatNumber, formatPercentuale } from '../../../shared/lib';
-import { CardGrafico, Griglia, Kpi, TabellaDati, VistaQuery, Vuoto } from '../../../shared/ui';
+import { CardGrafico, Griglia, Kpi, TabellaDati, TabellaRighe, VistaQuery, Vuoto } from '../../../shared/ui';
 import { useDomandePerAnno, useImportiPerAnno, useRiepilogo, useSigcDomande, useSigcImporti, useSpesaPerIntervento } from '../api';
 import type { RiepilogoFinanziarioRiga } from '../api';
 import { datiDelReport } from './esportazioni';
 import type { Filtri } from '../lib/filtri';
 import { VOCI_DOMANDE_SIGC, graficoCascataIntervento, graficoCascataSigc, graficoDomandePerAnno, graficoDomandeSigc, graficoImportiPerAnno, graficoPagatoNetto, vociIntervento } from '../lib/grafici';
 import { perAnno } from '../lib/importi';
-import { criteriDomandePerAnno, criteriVoceSigc } from '../lib/link-elenco';
+import { annoDiRaccolta } from '../lib/formato';
+import { criteriAnnoAnnualita, criteriDomandePerAnno, criteriVoceSigc } from '../lib/link-elenco';
 import type { CriteriLink } from '../lib/link-elenco';
 import type { Perimetro } from '../lib/perimetro';
 import { GRANT, PERCORSI, conFiltri } from '../lib/report';
 import { ConGrant, KpiImporto, NotaPerimetroMisto, PerimetroSezione, diProgramma } from './comuni';
 import { useSelezioneSenzaDomandeSigc } from './selezione';
 import { ApriNellElenco, useApriNellElenco, useLinkElenco } from './LinkElenco';
+import { colonneDomandePerAnno } from './colonneAnno';
 
 /** I link verso l'elenco portano la selezione da cui si e' arrivati, con l'intervento del dettaglio al posto del filtro. */
 interface Provenienza {
@@ -101,16 +103,31 @@ function Sintesi({ filtri, r, perimetro }: { filtri: Filtri; r: RiepilogoFinanzi
 
 function DomandePerAnno({ filtri, da }: { filtri: Filtri; da: Provenienza }) {
   const apri = useApriNellElenco(da.selezione);
+  const link = useLinkElenco(da.selezione);
+  // la tabella equivalente del grafico porta in ogni cella lo stesso link del segmento: il percorso da tastiera del clic
+  // (solo col grant dell'elenco; senza, resta la tabella generata dai dati)
+  const conLink = link('elenco-anno-intervento', { presentata: true, intervento: da.codice }) !== null;
   return (
     <VistaQuery stato={useDomandePerAnno(filtri)}>
       {(d) => (
         <CardGrafico
           titolo="Domande per anno di raccolta"
-          sottotitolo="Clic su un segmento: le domande dell'anno e dell'annualità nell'elenco operativo"
+          sottotitolo="Clic su un segmento, o sulla cella della vista Tabella: le domande dell'anno e dell'annualità nell'elenco operativo"
           dati={graficoDomandePerAnno(d.righe ?? [])}
           fonte="Fonte: TX-0008"
           onClic={(p) => apri('elenco-anno-intervento', conIntervento(criteriDomandePerAnno(perAnno(d.righe ?? []), p), da.codice))}
           scaricamenti={datiDelReport('Domande per anno di raccolta', 'domandePerAnno', filtri)}
+          tabella={
+            conLink ? (
+              <TabellaRighe
+                caption="Domande per anno di raccolta"
+                intestazione="Anno di raccolta"
+                chiave={(r) => annoDiRaccolta(r.annoRaccolta)}
+                colonne={colonneDomandePerAnno((r, annualita) => link('elenco-anno-intervento', { ...criteriAnnoAnnualita(r.annoRaccolta, annualita), intervento: da.codice }), ` dell'intervento ${da.codice}`)}
+                righe={perAnno(d.righe ?? [])}
+              />
+            ) : undefined
+          }
         />
       )}
     </VistaQuery>

@@ -142,6 +142,35 @@ describe("RA003: drill-down dal dettaglio dell'intervento all'elenco operativo",
     if (grafico) clicSu(grafico, { name: 'senza anno di raccolta', dataIndex: 1, seriesName: 'Non classificate' });
     await waitFor(() => expect(indirizzoDi(router)).toBe('/elenco-operativo/domande?presentata=true&anno=SENZA&annualita=NON_CLASSIFICATE&intervento=SRA01&os=OS4'));
   });
+  it('Domande per anno da tastiera: la vista Tabella porta in ogni cella anno per annualita (e nel totale) il link del segmento', async () => {
+    servi();
+    const { router } = renderPagina(Pagina, PERCORSO, '/finanziario/interventi/SRA01?intervento=SRA03&os=OS4');
+    await userEvent.click(await screen.findByRole('tab', { name: 'Domande' }));
+    const tabella = await tabellaDi(await trovaCard('Domande per anno di raccolta'));
+    const href = (nome: string) => within(tabella).getByRole('link', { name: `Apri nell'elenco operativo le domande dell'intervento SRA01 ${nome}` }).getAttribute('href');
+    expect(href('del 2024, prima annualità')).toBe('/elenco-operativo/domande?presentata=true&anno=2024&annualita=PRIMA&intervento=SRA01&os=OS4');
+    expect(href('del 2024, altre annualità')).toBe('/elenco-operativo/domande?presentata=true&anno=2024&annualita=ALTRE&intervento=SRA01&os=OS4');
+    expect(href('del 2024')).toBe('/elenco-operativo/domande?presentata=true&anno=2024&intervento=SRA01&os=OS4');
+    expect(href('senza anno di raccolta, non classificate')).toBe('/elenco-operativo/domande?presentata=true&anno=SENZA&annualita=NON_CLASSIFICATE&intervento=SRA01&os=OS4');
+    // 2 anni x (3 annualita + totale): un link per cella, e la cella mostra ancora il numero
+    expect(within(tabella).getAllByRole('link')).toHaveLength(8);
+    expect(within(tabella).getByText('510')).toBeTruthy();
+    // percorso da tastiera: il link della cella si raggiunge e si apre con Invio
+    const cella = within(tabella).getByRole('link', { name: "Apri nell'elenco operativo le domande dell'intervento SRA01 del 2024, prima annualità" });
+    cella.focus();
+    expect(document.activeElement).toBe(cella);
+    await userEvent.keyboard('{Enter}');
+    await waitFor(() => expect(indirizzoDi(router)).toBe('/elenco-operativo/domande?presentata=true&anno=2024&annualita=PRIMA&intervento=SRA01&os=OS4'));
+  });
+  it("Domande per anno senza il grant dell'elenco (TX-0056): la vista Tabella ha i numeri e nessun link", async () => {
+    servi();
+    server.use(http.get('*/auth/status', () => HttpResponse.json({ authenticated: true, user: { username: 'U', roles: ['csr.tx-0002.read', 'csr.tx-0008.read', 'csr.tx-0011.read'] } })));
+    renderPagina(Pagina, PERCORSO, '/finanziario/interventi/SRA01');
+    await userEvent.click(await screen.findByRole('tab', { name: 'Domande' }));
+    const tabella = await tabellaDi(await trovaCard('Domande per anno di raccolta'));
+    expect(within(tabella).queryAllByRole('link')).toHaveLength(0);
+    expect(within(tabella).getByText('510')).toBeTruthy();
+  });
   it('voci SIGC come link (anche da tastiera) e clic sulla cascata degli importi', async () => {
     servi();
     const { router } = renderPagina(Pagina, PERCORSO, '/finanziario/interventi/SRA01');

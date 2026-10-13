@@ -144,7 +144,15 @@ export function criteriDomandePerAnno<T extends { annoRaccolta?: number | null }
   const riga = clic.dataIndex === undefined ? undefined : righeOrdinate[clic.dataIndex];
   if (!riga) return null;
   const annualita = clic.seriesName === undefined ? undefined : ANNUALITA_DELLA_SERIE[clic.seriesName];
-  return { presentata: true, anno: [riga.annoRaccolta ?? null], ...(annualita ? { annualita: [annualita] } : {}) };
+  return criteriAnnoAnnualita(riga.annoRaccolta, annualita);
+}
+
+/**
+ * Criteri di una cella di Domande per anno (barra o cella della tabella): le domande presentate dell'anno (null = senza
+ * anno, SENZA) e, se data, dell'annualita'; senza annualita' tutto l'anno (la cella del totale).
+ */
+export function criteriAnnoAnnualita(anno: number | null | undefined, annualita?: Annualita): CriteriLink {
+  return { presentata: true, anno: [anno ?? null], ...(annualita ? { annualita: [annualita] } : {}) };
 }
 
 /** Criteri di una voce delle domande SIGC (barra o riga della tabella): le SIGC, con l'esito del pagamento della voce. */

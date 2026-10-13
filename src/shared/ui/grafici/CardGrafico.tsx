@@ -53,7 +53,21 @@ function nomePng(titolo: string, scaricamenti: readonly Scaricamento[]): string 
 }
 
 /** Il grafico (vista Grafico) o il motivo dell'assenza, e la tabella equivalente quando serve. */
-function CorpoCard({ dati, vista, altezza, onClic, onIstanza }: { dati: DatiGrafico; vista: Vista; altezza: AltezzaGrafico; onClic?: (p: ClicGrafico) => void; onIstanza: (c: IstanzaGrafico | null) => void }) {
+function CorpoCard({
+  dati,
+  vista,
+  altezza,
+  onClic,
+  onIstanza,
+  tabella,
+}: {
+  dati: DatiGrafico;
+  vista: Vista;
+  altezza: AltezzaGrafico;
+  onClic?: (p: ClicGrafico) => void;
+  onIstanza: (c: IstanzaGrafico | null) => void;
+  tabella?: ReactNode;
+}) {
   const opzioni = dati.opzioni;
   return (
     <>
@@ -67,7 +81,7 @@ function CorpoCard({ dati, vista, altezza, onClic, onIstanza }: { dati: DatiGraf
           <span>{`Grafico non disponibile: ${dati.motivoAssenza ?? 'dati insufficienti'}.`}</span>
         </p>
       )}
-      {(!opzioni || vista === 'tabella') && <TabellaDati tabella={dati.tabella} />}
+      {(!opzioni || vista === 'tabella') && (tabella ?? <TabellaDati tabella={dati.tabella} />)}
     </>
   );
 }
@@ -83,9 +97,14 @@ interface PropsCardGrafico {
   /** File dei dati del grafico (CSV, XLSX), dopo il PNG. */
   scaricamenti?: readonly Scaricamento[];
   livello?: 2 | 3;
+  /**
+   * Tabella equivalente al posto di quella generata da `dati.tabella`, con gli stessi valori: serve quando le celle portano
+   * le azioni del clic sul grafico (es. i link all'elenco operativo), cosi' la vista Tabella e' anche il percorso da tastiera.
+   */
+  tabella?: ReactNode;
 }
 
-export function CardGrafico({ titolo, sottotitolo, dati, fonte, altezza = 'normale', onClic, strumenti, scaricamenti = [], livello = 2 }: PropsCardGrafico) {
+export function CardGrafico({ titolo, sottotitolo, dati, fonte, altezza = 'normale', onClic, strumenti, scaricamenti = [], livello = 2, tabella }: PropsCardGrafico) {
   const id = useId();
   const [vista, setVista] = useState<Vista>('grafico');
   const disegnabile = dati.opzioni !== null;
@@ -102,7 +121,7 @@ export function CardGrafico({ titolo, sottotitolo, dati, fonte, altezza = 'norma
     // data-card-grafico: la card con grafico o con il motivo dell'assenza (i test la distinguono da una Sezione omonima)
     <section className="ui-card ui-dissolvenza" aria-labelledby={id} data-card-grafico={disegnabile ? 'grafico' : 'assente'}>
       <TestaCard id={id} titolo={titolo} sottotitolo={sottotitolo} livello={livello} strumenti={strumentiCard} />
-      <CorpoCard dati={dati} vista={vista} altezza={altezza} onClic={onClic} onIstanza={onIstanza} />
+      <CorpoCard dati={dati} vista={vista} altezza={altezza} onClic={onClic} onIstanza={onIstanza} tabella={tabella} />
       <VociOmesse omessi={dati.omessi} />
       <p className="ui-fonte">
         <Icona nome="it-info-circle" />

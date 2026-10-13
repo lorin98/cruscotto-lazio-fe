@@ -21,7 +21,9 @@ import { graficoDomandePerAnno, graficoImportiPerAnno } from '../lib/grafici';
 import { GRANT } from '../lib/report';
 import { ConGrant, KpiImporto, Numero, PerimetroSezione, ScaricaKpi, colonnaImporto, erroreGiaMostrato, vuotoConPerimetro } from './comuni';
 import { ApriNellElenco, useLinkElenco } from './LinkElenco';
-import type { Annualita, CriteriLink, IdLinkElenco } from '../lib/link-elenco';
+import { colonneDomandePerAnno } from './colonneAnno';
+import { criteriAnnoAnnualita } from '../lib/link-elenco';
+import type { CriteriLink, IdLinkElenco } from '../lib/link-elenco';
 
 const TITOLI = {
   totale: 'Totale domande presentate (RF009)',
@@ -91,28 +93,9 @@ function KpiImporti({ filtri }: { filtri: Filtri }) {
 
 type LinkDelReport = (id: IdLinkElenco, criteri?: CriteriLink) => string | null;
 
-const CELLE_ANNO: { titolo: string; campo: 'primaAnnualita' | 'altreAnnualita' | 'nonClassificate' | 'totali'; annualita?: Annualita }[] = [
-  { titolo: 'Prima annualità', campo: 'primaAnnualita', annualita: 'PRIMA' },
-  { titolo: 'Altre annualità', campo: 'altreAnnualita', annualita: 'ALTRE' },
-  { titolo: 'Non classificate', campo: 'nonClassificate', annualita: 'NON_CLASSIFICATE' },
-  { titolo: 'Totale', campo: 'totali' },
-];
-
 /** Ogni cella (anno per annualita', e il totale dell'anno) apre l'elenco con quell'anno e quell'annualita' (wireframe domande). */
 function colonneAnno(link: LinkDelReport): Colonna<DomandePerAnnoRiga>[] {
-  return CELLE_ANNO.map((c) => [
-    c.titolo,
-    (r) => (
-      <>
-        <Numero valore={r[c.campo]} />
-        <ApriNellElenco
-          variante="testo"
-          indirizzo={link('elenco-anno-annualita', { presentata: true, anno: [r.annoRaccolta ?? null], ...(c.annualita ? { annualita: [c.annualita] } : {}) })}
-          descrizione={`le domande ${r.annoRaccolta == null ? 'senza anno di raccolta' : `del ${r.annoRaccolta}`}${c.annualita ? `, ${c.titolo.toLowerCase()}` : ''}`}
-        />
-      </>
-    ),
-  ]);
+  return colonneDomandePerAnno((r, annualita) => link('elenco-anno-annualita', criteriAnnoAnnualita(r.annoRaccolta, annualita)));
 }
 
 /** Cosa sono l'anno di raccolta e le non classificate (D-09 del backend), accanto alla tabella che le mostra. */
