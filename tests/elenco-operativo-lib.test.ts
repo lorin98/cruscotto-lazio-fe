@@ -486,4 +486,21 @@ describe('elenco operativo, link della scheda e fra elenchi (review v1 A-01, V-0
     expect(parametri(percorsoPagamentiDelleDomande(tutti))).toEqual(query('pagamenti-delle-domande'));
     expect(parametri(percorsoDomandeDeiPagamenti(tutti))).toEqual(query('domande-dei-pagamenti'));
   });
+
+  it("i ritorni all'elenco dalla scheda: verso domande e pagamenti, con tutta la query di partenza (review v2 V-01)", () => {
+    const link = uiplanElenco.routes.flatMap((r) => r.links ?? []);
+    const query = (id: string) => [...(link.find((l) => l.id === id)?.query ?? [])].sort();
+    const urlParams = (percorso: string) => (uiplanElenco.routes.find((r) => r.path === percorso)?.url_params ?? []).map((p) => p.name).sort();
+    const parametri = (percorso: string) => [...new Set(new URLSearchParams(percorso.split('?')[1] ?? '').keys())].sort();
+    for (const [id, percorso] of [
+      ['torna-all-elenco', '/elenco-operativo/domande'],
+      ['torna-all-elenco-dei-pagamenti', '/elenco-operativo/pagamenti'],
+    ] as const) {
+      expect(link.find((l) => l.id === id)?.target).toBe(percorso);
+      expect(query(id)).toEqual(urlParams(percorso));
+      const partenza = `${percorso}?${query(id).map((n) => `${n}=1`).join('&')}`;
+      expect(ritornoAllElenco({ ricerca: partenza })).toBe(partenza);
+      expect(parametri(ritornoAllElenco({ ricerca: partenza }))).toEqual(query(id));
+    }
+  });
 });

@@ -45,7 +45,7 @@
       <span class="ui-chip">Anno di raccolta: 2025 <button class="btn" type="button" aria-label="Togli il filtro Anno di raccolta 2025">x</button></span>
       <span class="ui-chip">Pagamento: da pagare <button class="btn" type="button" aria-label="Togli il filtro Pagamento da pagare">x</button></span>
       <span class="ui-pill">Perimetro: regionale (profilo ADA: solo la propria area, non rimovibile)</span>
-      <span class="ui-pill">Ultimo dato sincronizzato: punto aperto OP-EO-01</span>
+      <button class="ui-pill" type="button" aria-label="Ultimo dato sincronizzato: dati al 12/10/2026 per tutti i flussi. Mostra il dettaglio per flusso">Dati al 12/10/2026</button>
     </div>
     <nav class="breadcrumb-container" aria-label="Percorso">
       <ol class="breadcrumb">
@@ -57,17 +57,22 @@
     <div class="ui-titolo">
       <h1>Elenco operativo delle domande</h1>
       <p>Interroga le domande di sostegno e di pagamento: ogni filtro cambia subito risultati, sinottico e totali. L'indirizzo della pagina conserva la ricerca e si puo' condividere.</p>
+      <a class="btn" href="../pagamenti/pagamenti.html">Vedi i pagamenti di queste domande</a>
     </div>
     <p class="wf-note">Ruoli (grant verbatim): csr.tx-0056.read, csr.tx-0057.read, csr.tx-0060.read - Transazioni: TX-0056 (righe, RA002 RA003 RA005 RA006), TX-0057 (sinottico e totali, RA002 RA006), TX-0060 (valori dei filtri, RA006). Filtri, ordinamento e pagina sono parametri di query di TX-0056 (url_params): li calcola il server. Sinottico e totali sono campi di SinotticoElenco sull'intero insieme filtrato, mai somme delle righe visibili. CUAA e denominazione in chiaro a tutti i profili (OP-033).</p>
     <div class="ui-viste" role="group" aria-label="Viste per ambito">
       <button class="ui-toggle-chip" type="button" aria-pressed="true">Vista: generale</button> <button class="ui-toggle-chip" type="button" aria-pressed="false">Vista: finanziario</button> <button class="ui-toggle-chip" type="button" aria-pressed="false">Vista: procedurale</button> <button class="ui-toggle-chip" type="button" aria-pressed="false">Vista: fisico</button> <button class="ui-toggle-chip" type="button" aria-pressed="false">Vista: istituzionale</button>
     </div>
-    <p class="form-text">La vista cambia colonne e indicatori del sinottico, non le righe (D-1). Resta nella pagina, non nell'indirizzo: punto aperto OP-EO-02.</p>
+    <p class="form-text">La vista cambia le colonne di partenza e gli indicatori, non le domande (D-1).</p>
+    <p class="wf-note">La vista non entra nell'indirizzo (OP-EO-02): un link condiviso apre la vista generale. Tornando dalla scheda della domanda (Torna all'elenco, briciola, avviso) la vista e le colonne scelte restano; una vista nuova riparte dalle sue colonne di partenza.</p>
     <aside class="ui-pannello" id="pannello-filtri" aria-label="Pannello dei filtri">
       <h2>Filtri</h2>
       <p class="ui-conteggio" role="status" aria-live="polite">1.284 domande con questi filtri</p>
-      <label class="form-label" for="f-testo">Cerca per codice a barre, CUAA o denominazione (almeno 3 caratteri)</label>
+      <p class="wf-note">Il conteggio dice "Conteggio in corso..." finche' non e' dei filtri appena scelti (mai il numero precedente). Con un errore delle letture mentre il pannello e' aperto, l'avviso compare qui (role=alert nel dialogo: il resto della pagina e' nascosto ai lettori di schermo):</p>
+      <div class="alert alert-danger" role="alert">Risultati non disponibili con questi filtri: Richiesta non valida: sigc non valido. Correggila e riprova.</div>
+      <label class="form-label" for="f-testo">Cerca per codice a barre, CUAA o denominazione</label>
       <input class="form-control" type="search" id="f-testo" name="testo">
+      <p class="form-text">Almeno 3 caratteri: il codice a barre e il CUAA che iniziano cosi', la denominazione che lo contiene. Un testo tornato troppo corto non parte (e ritira quello scritto prima).</p>
       <details class="ui-gruppo-filtro" open>
         <summary>Intervento</summary>
         <label class="form-label" for="f-cerca-intervento">Cerca tra gli interventi</label>
@@ -117,14 +122,15 @@
         <fieldset>
           <legend>Importo richiesto (euro)</legend>
           <label class="form-label" for="f-rich-da">Da</label>
-          <input class="form-control" type="number" id="f-rich-da" name="richiestoDa">
-          <label class="form-label" for="f-rich-a">A</label>
-          <input class="form-control" type="number" id="f-rich-a" name="richiestoA">
+          <input class="form-control" type="text" inputmode="decimal" id="f-rich-da" name="richiestoDa" value="10.000">
+          <label class="form-label" for="f-rich-a">Fino a</label>
+          <input class="form-control" type="text" inputmode="decimal" id="f-rich-a" name="richiestoA">
         </fieldset>
-        <p class="form-text">Allo stesso modo importo ammesso (ammessoDa, ammessoA) e pagato (pagatoDa, pagatoA).</p>
+        <p class="form-text">Importi scritti all'italiana (10.000 o 1.500,50): il campo resta come scritto mentre si scrive. Un importo non leggibile o "Fino a" minore di "Da" lo dice accanto al campo e non parte; i due estremi partono insieme. Allo stesso modo importo ammesso (ammessoDa, ammessoA) e pagato (pagatoDa, pagatoA).</p>
       </details>
       <p class="form-text">Si applica mentre scegli (nessun bottone Applica). Voci dello stesso filtro in alternativa (O); filtri diversi insieme (E). Valori dei filtri da TX-0060, solo quelli del tuo perimetro.</p>
-      <button class="btn" type="button">Azzera</button>
+      <button class="btn" type="button">Azzera</button> <button class="btn btn-primary" type="button">Chiudi</button>
+      <p class="form-text">Chiudi (o Esc) applica subito la scelta ancora in attesa e riporta il focus al bottone Filtri.</p>
     </aside>
     <section class="ui-sinottico" aria-labelledby="t-sinottico">
       <h2 id="t-sinottico">Sinottico dell'insieme filtrato</h2>
@@ -174,9 +180,20 @@
             <h2 id="g-stato">Domande per stato SIAN</h2>
             <div class="ui-seg" role="group" aria-label="Vista di Domande per stato SIAN"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button></div>
           </div>
+          <p class="form-text">Clic su una barra, o "Filtra" nella vista Tabella: aggiunge il filtro stato SIAN.</p>
           <figure class="ui-grafico ui-grafico--barre">
-            <figcaption>Barre orizzontali: domande per stato SIAN dell'insieme filtrato. Clic su una barra: aggiunge il filtro sullo stato.</figcaption>
+            <figcaption>Barre orizzontali: domande per stato SIAN dell'insieme filtrato, anche la voce senza stato SIAN (stato=SENZA_STATO). Le altre voci (ALTRI) non hanno clic.</figcaption>
           </figure>
+          <table class="ui-tabella">
+            <caption>Domande per stato SIAN (vista Tabella della card)</caption>
+            <thead><tr><th scope="col">Stato SIAN</th><th scope="col" class="ui-num">Domande</th><th scope="col">Filtro</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Rilasciata</th><td class="ui-num">700</td><td><button class="btn" type="button">Filtra per stato SIAN Rilasciata</button></td></tr>
+              <tr><th scope="row">senza stato SIAN</th><td class="ui-num">4</td><td><button class="btn" type="button">Filtra per stato SIAN senza stato SIAN</button></td></tr>
+              <tr><th scope="row">altre voci (3)</th><td class="ui-num">12</td><td></td></tr>
+            </tbody>
+          </table>
+          <p class="wf-note">Il filtro aggiunto si annuncia ("Filtro aggiunto: Stato SIAN Rilasciata.", anche ripetuto) e l'annuncio si spegne quando il chip si toglie; la riga della voce filtrata resta la stessa (il focus resta sul suo comando). Con il filtro sullo stato della domanda di sostegno o di pagamento (statoSostegno, statoPagamento: drill-down dai report procedurali) lo stato SIAN vale in alternativa e un clic allargherebbe l'insieme: barre e "Filtra per" non filtrano e al posto della frase sopra la card dice "Con il filtro sullo stato della domanda di sostegno o di pagamento (report procedurale) lo stato SIAN vale in alternativa: il clic su una barra allargherebbe l'insieme, quindi non filtra. Togli quel filtro per filtrare dal grafico."</p>
           <p class="ui-fonte">Fonte: TX-0057 (perStato). La tabella equivalente mostra gli stessi valori.</p>
         </section>
         <section class="ui-card" aria-labelledby="g-intervento">
@@ -184,8 +201,9 @@
             <h2 id="g-intervento">Domande per intervento</h2>
             <div class="ui-seg" role="group" aria-label="Vista di Domande per intervento"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button></div>
           </div>
+          <p class="form-text">Clic su una barra, o "Filtra" nella vista Tabella: aggiunge il filtro intervento.</p>
           <figure class="ui-grafico ui-grafico--barre">
-            <figcaption>Barre con zoom oltre 12 voci: domande per intervento; la voce Altre raccoglie il resto e non si filtra. Clic su una barra: aggiunge il filtro sull'intervento.</figcaption>
+            <figcaption>Barre con zoom oltre 12 voci: domande per intervento; la voce Altre raccoglie il resto e non si filtra. La vista Tabella ha "Filtra per intervento ..." per voce.</figcaption>
           </figure>
           <p class="ui-fonte">Fonte: TX-0057 (perIntervento). La tabella equivalente mostra gli stessi valori.</p>
         </section>
@@ -193,10 +211,13 @@
       <p class="ui-fonte">Fonte: SinotticoElenco di TX-0057 sull'intero insieme filtrato (non sulla pagina). Domande per anno di raccolta (perAnno) nella vista finanziario.</p>
     </section>
     <section class="ui-card" aria-labelledby="t-elenco" aria-busy="false">
-      <div class="ui-card__testa"><h2 id="t-elenco">Domande</h2></div>
+      <div class="ui-card__testa"><h2 id="t-elenco">Elenco delle domande</h2></div>
+      <p class="form-text">Ordinate per Ammesso, decrescente <button class="btn" type="button">Ordine predefinito</button></p>
+      <p class="wf-note">L'ordinamento attivo e' sempre detto in testo, anche su una colonna che la vista non mostra; "Ordine predefinito" c'e' solo fuori dall'ordine predefinito e, sparendo col proprio clic, porta il focus sul titolo della sezione.</p>
       <div class="ui-strumenti">
-        <button class="btn" type="button">Colonne</button> <button class="btn" type="button">Scarica CSV</button> <button class="btn" type="button">Scarica XLSX</button> <a class="btn" href="../pagamenti/pagamenti.html">Vedi i pagamenti di queste domande</a>
+        <button class="btn" type="button">Scarica CSV</button> <button class="btn" type="button">Scarica XLSX</button> <button class="btn" type="button">Colonne</button>
       </div>
+      <p class="form-text">Colonne: le colonne di partenza della vista e le altre a scelta (il codice a barre e' fisso). La scelta resta quando la tabella sparisce (zero righe, errore, pagina oltre l'ultima) e tornando dalla scheda.</p>
       <table class="ui-tabella">
         <caption>Elenco operativo delle domande, vista generale: ordinabile dal server con un clic sull'intestazione. Clic o Invio su una riga per l'anteprima.</caption>
         <thead>
@@ -222,7 +243,8 @@
           <tr class="ui-totali"><th scope="row">Totale dell'insieme filtrato (dal server)</th><td>1.284 domande</td><td></td><td></td><td></td><td></td><td></td><td></td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td></tr>
         </tfoot>
       </table>
-      <nav class="ui-paginazione" aria-label="Pagine dei risultati"><button class="btn" type="button" aria-current="page">1</button> <button class="btn" type="button">2</button> <span class="ui-pill">Pagina 1 di 52 - 25 righe per pagina</span></nav>
+      <nav class="ui-paginazione" aria-label="Pagine dei risultati"><span class="ui-pill">Pagina 1 di 52 - 1284 domande</span> <button class="btn" type="button" aria-label="Pagina precedente">&lsaquo;</button> <button class="btn" type="button" aria-current="page">1</button> <button class="btn" type="button">2</button> <button class="btn" type="button">3</button> <span>...</span> <button class="btn" type="button">52</button> <button class="btn" type="button" aria-label="Pagina successiva">&rsaquo;</button> <label class="form-label" for="f-dimensione">Righe per pagina</label> <select class="form-select" id="f-dimensione" name="dimensione"><option>10</option><option selected>25</option><option>50</option><option>100</option></select></nav>
+      <p class="form-text">Righe per pagina: 10, 25, 50 o 100 (la scelta resta nell'indirizzo e non sposta il focus dalla select). Un cambio di pagina porta il focus sul titolo della sezione.</p>
     </section>
     <aside class="ui-drawer" aria-label="Anteprima della domanda 54230000001">
       <h2>Anteprima: 54230000001</h2>
@@ -237,12 +259,17 @@
     </aside>
     <h2>Stato: aggiornamento</h2>
     <div class="ui-aggiornamento" role="status" aria-live="polite">Aggiornamento dei risultati: restano visibili quelli precedenti finche' arrivano i nuovi.</div>
+    <p class="form-text">Anche il sinottico e' dichiarato in aggiornamento (aria-busy e "Aggiornamento del sinottico: restano visibili i numeri precedenti finche' arrivano i nuovi."); il piede della tabella dice "in aggiornamento" al posto delle somme dei criteri precedenti.</p>
+    <h2>Stato: pagina oltre l'ultima</h2>
+    <div class="ui-vuoto" role="status">La pagina 99 non c'e': i risultati arrivano a pagina 52. <button class="btn btn-primary" type="button">Vai all'ultima pagina</button></div>
+    <p class="form-text">Da un segnalibro vecchio o da filtri cambiati altrove: al posto della tabella, con il comando che porta all'ultima pagina (il focus va poi sul titolo della sezione).</p>
     <h2>Stato: caricamento</h2>
     <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro di sinottico e righe)</div>
     <h2>Stato: vuoto</h2>
     <div class="ui-vuoto" role="status">Nessuna domanda per questi filtri. <a class="btn btn-primary" href="domande.html#pannello-filtri">Modifica i filtri</a></div>
     <h2>Stato: errore</h2>
     <div class="alert alert-danger" role="alert">Errore nell'interrogazione: criteri non validi (400, il campo e' indicato), troppe letture insieme (503, si riprova da solo), tempo scaduto (504) o sessione scaduta. <a href="#contenuto">Riprova</a></div>
+    <p class="form-text">Un solo avviso per la pagina; i chip restano e si tolgono. Col pannello aperto lo stesso errore si legge nel pannello.</p>
   </main>
 </div>
 <footer class="ui-footer">

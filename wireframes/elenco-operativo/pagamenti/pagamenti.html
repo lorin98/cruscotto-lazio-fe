@@ -44,7 +44,7 @@
       <span class="ui-chip">Decreto: D84-1 <button class="btn" type="button" aria-label="Togli il filtro Decreto D84-1">x</button></span>
       <span class="ui-chip">Esito: pagata <button class="btn" type="button" aria-label="Togli il filtro Esito pagata">x</button></span>
       <span class="ui-pill">Perimetro: regionale (profilo ADA: solo la propria area, non rimovibile)</span>
-      <span class="ui-pill">Ultimo dato sincronizzato: punto aperto OP-EO-01</span>
+      <button class="ui-pill" type="button" aria-label="Ultimo dato sincronizzato: dati al 12/10/2026 per tutti i flussi. Mostra il dettaglio per flusso">Dati al 12/10/2026</button>
     </div>
     <nav class="breadcrumb-container" aria-label="Percorso">
       <ol class="breadcrumb">
@@ -54,15 +54,19 @@
       </ol>
     </nav>
     <div class="ui-titolo">
-      <h1>Elenco dei pagamenti</h1>
-      <p>Una riga per ogni riga degli elenchi di liquidazione, pagata o esclusa. Ogni filtro cambia subito risultati e totali; l'indirizzo della pagina conserva la ricerca.</p>
+      <h1>Elenco operativo dei pagamenti</h1>
+      <p>Le righe correnti degli elenchi di liquidazione (pagate o escluse) delle domande del tuo perimetro: ogni filtro cambia subito righe e totali. L'indirizzo della pagina conserva la ricerca.</p>
+      <a class="btn" href="../domande/domande.html">Vedi le domande di questi pagamenti</a>
     </div>
     <p class="wf-note">Ruoli (grant verbatim): csr.tx-0059.read, csr.tx-0060.read - Transazioni: TX-0059 (righe e totali, RA002 RA005 RA006), TX-0060 (valori dei filtri, RA006). Filtri, ordinamento e pagina sono parametri di query di TX-0059 (url_params); sinottico e totali sono TotaliPagamenti sull'intero insieme filtrato. Contano anche le righe correnti di domande chiuse (D-07). CUAA e denominazione in chiaro a tutti i profili (OP-033).</p>
     <aside class="ui-pannello" id="pannello-filtri" aria-label="Pannello dei filtri">
       <h2>Filtri</h2>
-      <p class="ui-conteggio" role="status" aria-live="polite">2.316 righe con questi filtri</p>
-      <label class="form-label" for="f-testo">Cerca per codice a barre, CUAA o denominazione (almeno 3 caratteri)</label>
+      <p class="ui-conteggio" role="status" aria-live="polite">2.316 righe di pagamento con questi filtri</p>
+      <p class="wf-note">Il conteggio dice "Conteggio in corso..." finche' non e' dei filtri appena scelti (mai il numero precedente). Con un errore delle letture mentre il pannello e' aperto, l'avviso compare qui (role=alert nel dialogo: il resto della pagina e' nascosto ai lettori di schermo):</p>
+      <div class="alert alert-danger" role="alert">Risultati non disponibili con questi filtri: Richiesta non valida: decreto non valido. Correggila e riprova.</div>
+      <label class="form-label" for="f-testo">Cerca per codice a barre, CUAA o denominazione</label>
       <input class="form-control" type="search" id="f-testo" name="testo">
+      <p class="form-text">Almeno 3 caratteri: il codice a barre e il CUAA che iniziano cosi', la denominazione che lo contiene. Un testo tornato troppo corto non parte (e ritira quello scritto prima).</p>
       <details class="ui-gruppo-filtro" open>
         <summary>Elenco di liquidazione</summary>
         <label class="form-label" for="f-decreto">Decreto</label>
@@ -81,12 +85,13 @@
         <button class="ui-toggle-chip" type="button" aria-pressed="false">Sostegno</button> <button class="ui-toggle-chip" type="button" aria-pressed="false">Pagamento</button> <button class="ui-toggle-chip" type="button" aria-pressed="false">Solo SIGC</button>
         <label class="form-label" for="f-provincia">Provincia</label>
         <select class="form-select" id="f-provincia" name="provincia"><option>LATINA</option></select>
-        <p class="form-text">Anche anno di raccolta, annualita', stati, ente, atto di concessione, anomalie, esito e importi della domanda.</p>
+        <p class="form-text">Anche anno di raccolta, annualita', stati, ente, atto di concessione, anomalie, esito del pagamento e importi della domanda (scritti all'italiana, 10.000 o 1.500,50: il campo resta come scritto; "Fino a" minore di "Da" non parte).</p>
       </details>
       <p class="form-text">Si applica mentre scegli (nessun bottone Applica). Voci dello stesso filtro in alternativa (O); filtri diversi insieme (E). Valori dei filtri da TX-0060, solo quelli del tuo perimetro.</p>
-      <button class="btn" type="button">Azzera</button>
+      <button class="btn" type="button">Azzera</button> <button class="btn btn-primary" type="button">Chiudi</button>
+      <p class="form-text">Chiudi (o Esc) applica subito la scelta ancora in attesa e riporta il focus al bottone Filtri.</p>
     </aside>
-    <section class="ui-sinottico" aria-labelledby="t-sinottico">
+    <section class="ui-sinottico" aria-labelledby="t-sinottico" aria-busy="false">
       <h2 id="t-sinottico">Sinottico dell'insieme filtrato</h2>
       <div class="ui-griglia ui-griglia--4">
         <section class="ui-kpi" aria-label="Righe pagate ed escluse">
@@ -108,12 +113,16 @@
         </section>
       </div>
       <p class="ui-fonte">Fonte: TotaliPagamenti di TX-0059 sull'intero insieme filtrato (non sulla pagina).</p>
+      <p class="wf-note">I totali arrivano con le righe (stessa lettura): durante l'aggiornamento anche il sinottico e' dichiarato (aria-busy e "Aggiornamento del sinottico: restano visibili i numeri precedenti finche' arrivano i nuovi.").</p>
     </section>
     <section class="ui-card" aria-labelledby="t-elenco" aria-busy="false">
-      <div class="ui-card__testa"><h2 id="t-elenco">Pagamenti</h2></div>
+      <div class="ui-card__testa"><h2 id="t-elenco">Righe di pagamento</h2></div>
+      <p class="form-text">Ordinate per Pagato, decrescente <button class="btn" type="button">Ordine predefinito</button></p>
+      <p class="wf-note">L'ordinamento attivo e' sempre detto in testo, anche su una colonna che la vista non mostra; "Ordine predefinito" c'e' solo fuori dall'ordine predefinito e, sparendo col proprio clic, porta il focus sul titolo della sezione.</p>
       <div class="ui-strumenti">
-        <button class="btn" type="button">Colonne</button> <button class="btn" type="button">Scarica CSV</button> <button class="btn" type="button">Scarica XLSX</button> <a class="btn" href="../domande/domande.html">Vedi le domande di questi pagamenti</a>
+        <button class="btn" type="button">Scarica CSV</button> <button class="btn" type="button">Scarica XLSX</button> <button class="btn" type="button">Colonne</button>
       </div>
+      <p class="form-text">Colonne: quelle di partenza e le altre a scelta; la scelta resta quando la tabella sparisce (zero righe, errore, pagina oltre l'ultima) e tornando dalla scheda.</p>
       <table class="ui-tabella">
         <caption>Elenco dei pagamenti: ordinabile dal server con un clic sull'intestazione (decreto, data, codice a barre, denominazione, intervento, importi). Clic o Invio su una riga per l'anteprima.</caption>
         <thead>
@@ -137,7 +146,8 @@
           <tr class="ui-totali"><th scope="row">Totale dell'insieme filtrato (dal server)</th><td>2.316 righe</td><td></td><td></td><td></td><td></td><td></td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td></tr>
         </tfoot>
       </table>
-      <nav class="ui-paginazione" aria-label="Pagine dei risultati"><button class="btn" type="button" aria-current="page">1</button> <button class="btn" type="button">2</button> <span class="ui-pill">Pagina 1 di 93 - 25 righe per pagina</span></nav>
+      <nav class="ui-paginazione" aria-label="Pagine dei risultati"><span class="ui-pill">Pagina 1 di 93 - 2316 righe</span> <button class="btn" type="button" aria-label="Pagina precedente">&lsaquo;</button> <button class="btn" type="button" aria-current="page">1</button> <button class="btn" type="button">2</button> <button class="btn" type="button">3</button> <span>...</span> <button class="btn" type="button">93</button> <button class="btn" type="button" aria-label="Pagina successiva">&rsaquo;</button> <label class="form-label" for="f-dimensione">Righe per pagina</label> <select class="form-select" id="f-dimensione" name="dimensione"><option>10</option><option selected>25</option><option>50</option><option>100</option></select></nav>
+      <p class="form-text">Righe per pagina: 10, 25, 50 o 100 (la scelta resta nell'indirizzo e non sposta il focus dalla select). Un cambio di pagina porta il focus sul titolo della sezione.</p>
     </section>
     <aside class="ui-drawer" aria-label="Anteprima della riga D84-1 54230000001">
       <h2>Anteprima: D84-1 - 54230000001</h2>
@@ -152,12 +162,16 @@
     </aside>
     <h2>Stato: aggiornamento</h2>
     <div class="ui-aggiornamento" role="status" aria-live="polite">Aggiornamento dei risultati: restano visibili quelli precedenti finche' arrivano i nuovi.</div>
+    <h2>Stato: pagina oltre l'ultima</h2>
+    <div class="ui-vuoto" role="status">La pagina 99 non c'e': i risultati arrivano a pagina 93. <button class="btn btn-primary" type="button">Vai all'ultima pagina</button></div>
+    <p class="form-text">Da un segnalibro vecchio o da filtri cambiati altrove: al posto della tabella, con il comando che porta all'ultima pagina (il focus va poi sul titolo della sezione).</p>
     <h2>Stato: caricamento</h2>
     <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro di sinottico e righe)</div>
     <h2>Stato: vuoto</h2>
     <div class="ui-vuoto" role="status">Nessun pagamento per questi filtri. <a class="btn btn-primary" href="pagamenti.html#pannello-filtri">Modifica i filtri</a></div>
     <h2>Stato: errore</h2>
     <div class="alert alert-danger" role="alert">Errore nell'interrogazione: criteri non validi (400, il campo e' indicato), troppe letture insieme (503, si riprova da solo), tempo scaduto (504) o sessione scaduta. <a href="#contenuto">Riprova</a></div>
+    <p class="form-text">Un solo avviso per la pagina; i chip restano e si tolgono. Col pannello aperto lo stesso errore si legge nel pannello.</p>
   </main>
 </div>
 <footer class="ui-footer">

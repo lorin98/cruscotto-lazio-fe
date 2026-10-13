@@ -15,7 +15,8 @@ con lo stesso corpo (D-06): la pagina non distingue i tre casi.
 
 ## Component tree (per pagina)
 
-- /elenco-operativo/domande/:tipo/:codiceABarre: Shell > Breadcrumb > Testata di dettaglio (tipo e codice a barre,
+- /elenco-operativo/domande/:tipo/:codiceABarre: Shell > Breadcrumb (Home > Elenco operativo > Domande o Pagamenti,
+  l'elenco di partenza > Domanda) > Testata di dettaglio (tipo e codice a barre,
   intervento, h1 = denominazione o codice a barre se assente, badge CUAA, stato SIAN, area programmazione, SIGC, anno e
   annualita', perimetro) > KPI x4 (richiesto, ammesso, pagato, ancora da pagare) > Schede: Sintesi (dati della domanda +
   Card dall'ammesso al pagato (cascata)) | Domande collegate | Determine | Pagamenti | Recuperi | Anomalie > Stati
@@ -35,10 +36,13 @@ delle liste del DTO.
 |---|---|---|---|---|---|
 | /elenco-operativo/domande/:tipo/:codiceABarre | domanda-collegata | clic sul codice a barre nella scheda "Domande collegate" | elenco-operativo: /elenco-operativo/domande/:tipo/:codiceABarre | tipo, codiceABarre | - |
 | /elenco-operativo/domande/:tipo/:codiceABarre | domande-del-beneficiario | "Altre domande del beneficiario" (testo = CUAA; assente se il CUAA manca) | elenco-operativo: /elenco-operativo/domande | - | testo |
-| /elenco-operativo/domande/:tipo/:codiceABarre | torna-all-elenco | "Torna all'elenco" (ritorna alla ricerca di partenza se c'e' nella cronologia) | elenco-operativo: /elenco-operativo/domande | - | - |
+| /elenco-operativo/domande/:tipo/:codiceABarre | torna-all-elenco | "Torna all'elenco", la briciola "Domande" o il link dell'avviso, con la scheda aperta dall'elenco delle domande (senza ricerca di partenza: l'elenco senza filtri) | elenco-operativo: /elenco-operativo/domande | - | gli url_params dell'elenco delle domande (la ricerca di partenza) |
+| /elenco-operativo/domande/:tipo/:codiceABarre | torna-all-elenco-dei-pagamenti | "Torna all'elenco", la briciola "Pagamenti" o il link dell'avviso, con la scheda aperta dall'elenco dei pagamenti | elenco-operativo: /elenco-operativo/pagamenti | - | gli url_params dell'elenco dei pagamenti (la ricerca di partenza) |
 
 In arrivo: dalle anteprime dell'elenco delle domande (`dettaglio-domanda`) e dell'elenco dei pagamenti
-(`dettaglio-domanda-del-pagamento`, solo per le domande correnti).
+(`dettaglio-domanda-del-pagamento`, solo per le domande correnti). Il ritorno porta all'elenco di partenza con la sua
+query, la vista per ambito e le colonne scelte (state della cronologia, mai la cronologia stessa: solo un indirizzo dei
+due elenchi); una domanda collegata aperta dalla scheda porta con se' la stessa ricerca di partenza.
 
 ## Filtri nell'URL (url_params)
 
@@ -51,14 +55,17 @@ della spec di TX-0058.
 - caricamento: scheletro della testata e delle card, `role="status"` + `aria-live="polite"`
 - errore: `role="alert"`, discriminato sul problem-type `urn:cruscottocsr:problem:*` (404 domanda non disponibile, stesso
   messaggio per inesistente, chiusa e fuori perimetro; 400 tipo o codice a barre non validi; 403; 503 con Retry-After; 504;
-  401/419 sessione)
+  401/419 sessione); il 404 e il riferimento non valido hanno il link "Torna all'elenco" verso l'elenco di partenza. Un
+  riferimento non valido nel percorso (tipo fuori contratto, codice non di sole cifre, separatori codificati anche due
+  volte) non fa nessuna lettura
 
 ## Note WCAG 2.2 (residuo manuale DICHIARATO)
 
 - Meccanizzato a valle (step7/step8): tab-order, focus sul titolo dopo il cambio di route, schede con frecce da tastiera,
   tabella equivalente del grafico, axe (deferito a step8: il lint di step1 e' statico).
 - Un solo h1 (denominazione del beneficiario o, se assente, il codice a barre).
-- Ogni tabella delle schede ha caption e intestazioni con scope; importi assenti dichiarati col motivo, mai a zero.
+- Ogni tabella delle schede ha caption e intestazioni con scope; importi allineati a destra, assenti dichiarati col
+  motivo, mai a zero.
 - RESIDUO umano da verificare qui: ordine di lettura della testata, comprensibilita' dei badge di stato, contrasto della
   resa finale (il low-fi non fa fede sul colore).
 

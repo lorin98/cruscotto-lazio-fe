@@ -43,6 +43,7 @@
       <ol class="breadcrumb">
       <li class="breadcrumb-item"><a href="../../panoramica/panoramica.html">Home</a></li>
       <li class="breadcrumb-item"><a href="../domande/domande.html">Elenco operativo</a></li>
+      <li class="breadcrumb-item"><a href="../domande/domande.html">Domande</a></li>
       <li class="breadcrumb-item" aria-current="page">Domanda 54230000001</li>
       </ol>
     </nav>
@@ -52,6 +53,7 @@
       <p><span class="badge">CUAA RSSMRA80A01H501U</span> <span class="badge">Stato SIAN: Valido</span> <span class="badge">Area programmazione: Ammessa</span> <span class="badge">SIGC</span> <span class="badge">Campagna 2025, prima annualita'</span> <span class="badge">Perimetro: regionale</span></p>
       <a class="btn btn-primary" href="../domande/domande.html">Altre domande del beneficiario</a> <a class="btn" href="../domande/domande.html">Torna all'elenco</a>
     </section>
+    <p class="wf-note">Ritorno all'elenco di partenza: "Torna all'elenco", la briciola e il link dell'avviso riportano all'elenco da cui si e' aperta la scheda, con i suoi filtri (query di partenza), la vista per ambito e le colonne scelte. Aperta dall'elenco dei pagamenti la briciola e' "Pagamenti" e porta a quell'elenco; aperta da un link senza ricerca di partenza: l'elenco delle domande senza filtri. Le domande collegate portano con se' la stessa ricerca di partenza.</p>
     <p class="wf-note">Ruoli (grant verbatim): csr.tx-0058.read - Transazioni: TX-0058 (RA004). Una domanda inesistente, chiusa o fuori dal perimetro risponde 404 NOT_FOUND con lo stesso messaggio. Tutti i dati vengono da DettaglioDomanda in una sola lettura; le schede non fanno altre chiamate.</p>
     <div class="ui-griglia ui-griglia--4">
       <section class="ui-kpi" aria-label="Importo richiesto">
@@ -116,7 +118,7 @@
         <thead><tr><th scope="col">Codice</th><th scope="col">Data</th><th scope="col">Stato area programmazione</th><th scope="col">Responsabile</th><th scope="col" class="ui-num">Contributo richiesto</th><th scope="col" class="ui-num">Contributo ammesso</th><th scope="col" class="ui-num">Differenza</th></tr></thead>
         <tbody><tr class="ui-riga"><th scope="row">G1</th><td>10/02/2025</td><td>Ammessa</td><td>Funzionario A</td><td class="ui-num">10.000,00</td><td class="ui-num">8.000,00</td><td class="ui-num">2.000,00</td></tr></tbody>
       </table>
-      <p class="form-text">Anche ADA, provincia, comparto, spesa imponibile e spesa imponibile ammessa (colonne nascoste a scelta).</p>
+      <p class="form-text">Anche ADA, provincia, comparto, spesa imponibile e spesa imponibile ammessa (colonne nascoste a scelta dal bottone Colonne). Gli importi sono allineati a destra in tutte le tabelle della scheda.</p>
     </section>
     <section role="tabpanel" aria-label="Pagamenti">
       <table class="ui-tabella">
@@ -140,6 +142,7 @@
     <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro della testata e delle card)</div>
     <h2>Stato: errore</h2>
     <div class="alert alert-danger" role="alert">Domanda non disponibile: non esiste, e' chiusa o e' fuori dal tuo perimetro (404). Codice a barre o tipo non validi: 400. <a href="../domande/domande.html">Torna all'elenco</a></div>
+    <p class="form-text">Il link "Torna all'elenco" dell'avviso riporta all'elenco di partenza come quello della testata (filtri, vista e colonne). Un riferimento non valido (tipo fuori contratto, codice non di sole cifre, separatori codificati anche due volte) non fa nessuna lettura.</p>
   </main>
 </div>
 <footer class="ui-footer">
