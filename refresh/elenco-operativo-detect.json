@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0",
+  "from_pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb",
+  "to_pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb",
+  "changed": {
+    "pack": false,
+    "style_guide": false,
+    "specs": [
+      "elenco-operativo"
+    ]
+  },
+  "stale_features": [
+    {
+      "name": "elenco-operativo",
+      "reason": "spec-changed",
+      "reopen_step": 2,
+      "changed_slices": [
+        "elenco-operativo"
+      ]
+    }
+  ]
+}

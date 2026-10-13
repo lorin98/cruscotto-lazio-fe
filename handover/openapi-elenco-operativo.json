@@ -15,8 +15,8 @@
         },
         "type": "object"
       },
-      "DeterminaDellaDomanda": {
-        "description": "Riga aperta di una determina sulla domanda",
+      "DeterminaDellaDomandaElenco": {
+        "description": "Riga aperta di una determina sulla domanda (nome distinto dalla determina della scheda del fisico, TX-0020)",
         "properties": {
           "ada": {
             "type": [
@@ -63,10 +63,7 @@
             ]
           },
           "responsabile": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "$ref": "#/components/schemas/ResponsabileProcedimento"
           },
           "spesaImponibile": {
             "$ref": "#/components/schemas/Importo"
@@ -86,6 +83,13 @@
       "DettaglioDomanda": {
         "description": "TX-0058: scheda completa della domanda (D-06)",
         "properties": {
+          "aggregatoComparti": {
+            "description": "Aggregato dei comparti produttivi del comparto",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "anomalie": {
             "items": {
               "$ref": "#/components/schemas/AnomaliaDellaDomanda"
@@ -125,7 +129,7 @@
           },
           "determine": {
             "items": {
-              "$ref": "#/components/schemas/DeterminaDellaDomanda"
+              "$ref": "#/components/schemas/DeterminaDellaDomandaElenco"
             },
             "type": "array"
           },
@@ -269,7 +273,7 @@
           },
           "recuperato": {
             "$ref": "#/components/schemas/Importo",
-            "description": "Recuperato (recuperi correnti)",
+            "description": "Recuperato (recuperi correnti); NON_VALORIZZATO se un recupero corrente non ha l'importo",
             "type": "object"
           },
           "richiesto": {
@@ -344,6 +348,13 @@
           }
         },
         "type": "object"
+      },
+      "Instant": {
+        "examples": [
+          "2022-03-10T16:15:50Z"
+        ],
+        "format": "date-time",
+        "type": "string"
       },
       "LocalDate": {
         "examples": [
@@ -519,6 +530,13 @@
           },
           "totali": {
             "$ref": "#/components/schemas/TotaliPagamenti"
+          },
+          "ultimiDatiSincronizzati": {
+            "description": "Come TX-0001 (NFR-25 b): per ogni flusso d'import con almeno un'esecuzione conclusa, la conclusione della piu' recente, in ordine di flusso; la stessa data dell'intestazione degli export",
+            "items": {
+              "$ref": "#/components/schemas/UltimoDatoSincronizzato"
+            },
+            "type": "array"
           }
         },
         "type": "object"
@@ -586,6 +604,28 @@
             "$ref": "#/components/schemas/Importo"
           }
         },
+        "type": "object"
+      },
+      "ResponsabileProcedimento": {
+        "description": "Nominativo del responsabile del procedimento, oppure null con il motivo: NON_VALORIZZATO (la determina non lo porta), NON_ESPOSTO (esposto ai soli profili con accesso all'area procedurale, OP-008)",
+        "properties": {
+          "motivo": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "valore": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "valore",
+          "motivo"
+        ],
         "type": "object"
       },
       "SinotticoElenco": {
@@ -677,6 +717,13 @@
           "sostegno": {
             "format": "int64",
             "type": "integer"
+          },
+          "ultimiDatiSincronizzati": {
+            "description": "Come TX-0001 (NFR-25 b): per ogni flusso d'import con almeno un'esecuzione conclusa, la conclusione della piu' recente, in ordine di flusso; la stessa data dell'intestazione degli export",
+            "items": {
+              "$ref": "#/components/schemas/UltimoDatoSincronizzato"
+            },
+            "type": "array"
           }
         },
         "type": "object"
@@ -768,6 +815,21 @@
         },
         "type": "object"
       },
+      "UltimoDatoSincronizzato": {
+        "description": "NFR-25 (b): ultimo dato sincronizzato di un flusso d'import",
+        "properties": {
+          "conclusoIl": {
+            "$ref": "#/components/schemas/Instant",
+            "description": "Conclusione dell'esecuzione SUCCESS o PARTIAL piu' recente del flusso",
+            "type": "string"
+          },
+          "flusso": {
+            "description": "Flusso d'import del registro IMPORT_RUN, es. PROSA_DS04",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "ValoriFiltriElenco": {
         "description": "TX-0060: valori dei filtri nel perimetro del chiamante (D-08)",
         "properties": {
@@ -851,6 +913,13 @@
               "type": "string"
             },
             "type": "array"
+          },
+          "tipi": {
+            "description": "Tipi di domanda presenti nel perimetro (SOSTEGNO, PAGAMENTO)",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
           }
         },
         "type": "object"
@@ -875,7 +944,7 @@
         "description": "Voce di una ripartizione del sinottico",
         "properties": {
           "chiave": {
-            "description": "Codice, anno, SENZA (anno) o ALTRI",
+            "description": "Codice (da rimandare nel filtro), anno, SENZA (anno senza valore), SENZA_STATO (stato SIAN non valorizzato: valore del filtro stato) o ALTRI",
             "type": "string"
           },
           "descrizione": {
@@ -977,7 +1046,7 @@
             }
           },
           {
-            "description": "true: con atto di concessione; false: senza",
+            "description": "true: con atto di concessione (numero o data, come TX-0026); false: senza",
             "in": "query",
             "name": "concessione",
             "schema": {
@@ -1109,7 +1178,7 @@
             }
           },
           {
-            "description": "true: solo le domande presentate (di sostegno oppure SIGC, come TX-0008/TX-0009); false: le altre",
+            "description": "true: solo le domande presentate (di sostegno oppure SIGC, come TX-0008/TX-0009); il valore false non e' ammesso (400)",
             "in": "query",
             "name": "presentata",
             "schema": {
@@ -1164,7 +1233,7 @@
             }
           },
           {
-            "description": "Codice dello stato SIAN (ripetibile): valori di TX-0060",
+            "description": "Codice dello stato SIAN (ripetibile): valori di TX-0060, oppure SENZA_STATO per le domande senza stato",
             "in": "query",
             "name": "stato",
             "schema": {
@@ -1175,9 +1244,31 @@
             }
           },
           {
-            "description": "Stato domanda area programmazione (ripetibile): valori di TX-0060, oppure SENZA_STATO",
+            "description": "Chiave del report TX-0028 (ripetibile): una voce del catalogo degli stati della domanda di pagamento (es. FINANZIATO) o il codice di uno degli altri stati; le domande di pagamento con presenza CSR-DP aperta che il report conta per quella chiave. In OR con stato e statoSostegno",
+            "in": "query",
+            "name": "statoPagamento",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Stato domanda area programmazione (ripetibile): valori di TX-0060, le voci di TX-0025 (es. DECADENZA_TOTALE: il codice della voce e gli stati PROSA censiti che abbina), oppure SENZA_STATO",
             "in": "query",
             "name": "statoProgrammazione",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Chiave del report TX-0027 (ripetibile): una voce del catalogo degli stati della domanda di sostegno (es. RILASCIATO) o il codice di uno degli altri stati; le domande di sostegno che il report conta per quella chiave. In OR con stato e statoPagamento",
+            "in": "query",
+            "name": "statoSostegno",
             "schema": {
               "items": {
                 "type": "string"
@@ -1370,7 +1461,7 @@
             }
           },
           {
-            "description": "true: con atto di concessione; false: senza",
+            "description": "true: con atto di concessione (numero o data, come TX-0026); false: senza",
             "in": "query",
             "name": "concessione",
             "schema": {
@@ -1469,7 +1560,7 @@
             }
           },
           {
-            "description": "true: solo le domande presentate (di sostegno oppure SIGC, come TX-0008/TX-0009); false: le altre",
+            "description": "true: solo le domande presentate (di sostegno oppure SIGC, come TX-0008/TX-0009); il valore false non e' ammesso (400)",
             "in": "query",
             "name": "presentata",
             "schema": {
@@ -1524,7 +1615,7 @@
             }
           },
           {
-            "description": "Codice dello stato SIAN (ripetibile): valori di TX-0060",
+            "description": "Codice dello stato SIAN (ripetibile): valori di TX-0060, oppure SENZA_STATO per le domande senza stato",
             "in": "query",
             "name": "stato",
             "schema": {
@@ -1535,9 +1626,31 @@
             }
           },
           {
-            "description": "Stato domanda area programmazione (ripetibile): valori di TX-0060, oppure SENZA_STATO",
+            "description": "Chiave del report TX-0028 (ripetibile): una voce del catalogo degli stati della domanda di pagamento (es. FINANZIATO) o il codice di uno degli altri stati; le domande di pagamento con presenza CSR-DP aperta che il report conta per quella chiave. In OR con stato e statoSostegno",
+            "in": "query",
+            "name": "statoPagamento",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Stato domanda area programmazione (ripetibile): valori di TX-0060, le voci di TX-0025 (es. DECADENZA_TOTALE: il codice della voce e gli stati PROSA censiti che abbina), oppure SENZA_STATO",
             "in": "query",
             "name": "statoProgrammazione",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Chiave del report TX-0027 (ripetibile): una voce del catalogo degli stati della domanda di sostegno (es. RILASCIATO) o il codice di uno degli altri stati; le domande di sostegno che il report conta per quella chiave. In OR con stato e statoPagamento",
+            "in": "query",
+            "name": "statoSostegno",
             "schema": {
               "items": {
                 "type": "string"
@@ -1741,7 +1854,7 @@
             }
           },
           {
-            "description": "true: con atto di concessione; false: senza",
+            "description": "true: con atto di concessione (numero o data, come TX-0026); false: senza",
             "in": "query",
             "name": "concessione",
             "schema": {
@@ -1851,7 +1964,7 @@
             }
           },
           {
-            "description": "true: solo le domande presentate (di sostegno oppure SIGC, come TX-0008/TX-0009); false: le altre",
+            "description": "true: solo le domande presentate (di sostegno oppure SIGC, come TX-0008/TX-0009); il valore false non e' ammesso (400)",
             "in": "query",
             "name": "presentata",
             "schema": {
@@ -1906,7 +2019,7 @@
             }
           },
           {
-            "description": "Codice dello stato SIAN (ripetibile): valori di TX-0060",
+            "description": "Codice dello stato SIAN (ripetibile): valori di TX-0060, oppure SENZA_STATO per le domande senza stato",
             "in": "query",
             "name": "stato",
             "schema": {
@@ -1917,9 +2030,31 @@
             }
           },
           {
-            "description": "Stato domanda area programmazione (ripetibile): valori di TX-0060, oppure SENZA_STATO",
+            "description": "Chiave del report TX-0028 (ripetibile): una voce del catalogo degli stati della domanda di pagamento (es. FINANZIATO) o il codice di uno degli altri stati; le domande di pagamento con presenza CSR-DP aperta che il report conta per quella chiave. In OR con stato e statoSostegno",
+            "in": "query",
+            "name": "statoPagamento",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Stato domanda area programmazione (ripetibile): valori di TX-0060, le voci di TX-0025 (es. DECADENZA_TOTALE: il codice della voce e gli stati PROSA censiti che abbina), oppure SENZA_STATO",
             "in": "query",
             "name": "statoProgrammazione",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Chiave del report TX-0027 (ripetibile): una voce del catalogo degli stati della domanda di sostegno (es. RILASCIATO) o il codice di uno degli altri stati; le domande di sostegno che il report conta per quella chiave. In OR con stato e statoPagamento",
+            "in": "query",
+            "name": "statoSostegno",
             "schema": {
               "items": {
                 "type": "string"
@@ -2050,7 +2185,7 @@
             ]
           }
         ],
-        "summary": "TX-0056 in CSV o XLSX (esportazione, D-09)",
+        "summary": "TX-0056 in CSV o XLSX (esportazione, D-09): al piu' 2.173 righe (50.000 celle su 23 colonne, NFR-06), oltre 400 DATO_NON_VALIDO",
         "tags": [
           "ElencoOperativo"
         ]
@@ -2345,7 +2480,7 @@
             }
           },
           {
-            "description": "true: con atto di concessione; false: senza",
+            "description": "true: con atto di concessione (numero o data, come TX-0026); false: senza",
             "in": "query",
             "name": "concessione",
             "schema": {
@@ -2499,7 +2634,7 @@
             }
           },
           {
-            "description": "true: solo le domande presentate (di sostegno oppure SIGC, come TX-0008/TX-0009); false: le altre",
+            "description": "true: solo le domande presentate (di sostegno oppure SIGC, come TX-0008/TX-0009); il valore false non e' ammesso (400)",
             "in": "query",
             "name": "presentata",
             "schema": {
@@ -2554,7 +2689,7 @@
             }
           },
           {
-            "description": "Codice dello stato SIAN (ripetibile): valori di TX-0060",
+            "description": "Codice dello stato SIAN (ripetibile): valori di TX-0060, oppure SENZA_STATO per le domande senza stato",
             "in": "query",
             "name": "stato",
             "schema": {
@@ -2565,9 +2700,31 @@
             }
           },
           {
-            "description": "Stato domanda area programmazione (ripetibile): valori di TX-0060, oppure SENZA_STATO",
+            "description": "Chiave del report TX-0028 (ripetibile): una voce del catalogo degli stati della domanda di pagamento (es. FINANZIATO) o il codice di uno degli altri stati; le domande di pagamento con presenza CSR-DP aperta che il report conta per quella chiave. In OR con stato e statoSostegno",
+            "in": "query",
+            "name": "statoPagamento",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Stato domanda area programmazione (ripetibile): valori di TX-0060, le voci di TX-0025 (es. DECADENZA_TOTALE: il codice della voce e gli stati PROSA censiti che abbina), oppure SENZA_STATO",
             "in": "query",
             "name": "statoProgrammazione",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Chiave del report TX-0027 (ripetibile): una voce del catalogo degli stati della domanda di sostegno (es. RILASCIATO) o il codice di uno degli altri stati; le domande di sostegno che il report conta per quella chiave. In OR con stato e statoPagamento",
+            "in": "query",
+            "name": "statoSostegno",
             "schema": {
               "items": {
                 "type": "string"
@@ -2771,7 +2928,7 @@
             }
           },
           {
-            "description": "true: con atto di concessione; false: senza",
+            "description": "true: con atto di concessione (numero o data, come TX-0026); false: senza",
             "in": "query",
             "name": "concessione",
             "schema": {
@@ -2903,7 +3060,7 @@
             }
           },
           {
-            "description": "true: solo le domande presentate (di sostegno oppure SIGC, come TX-0008/TX-0009); false: le altre",
+            "description": "true: solo le domande presentate (di sostegno oppure SIGC, come TX-0008/TX-0009); il valore false non e' ammesso (400)",
             "in": "query",
             "name": "presentata",
             "schema": {
@@ -2958,7 +3115,7 @@
             }
           },
           {
-            "description": "Codice dello stato SIAN (ripetibile): valori di TX-0060",
+            "description": "Codice dello stato SIAN (ripetibile): valori di TX-0060, oppure SENZA_STATO per le domande senza stato",
             "in": "query",
             "name": "stato",
             "schema": {
@@ -2969,9 +3126,31 @@
             }
           },
           {
-            "description": "Stato domanda area programmazione (ripetibile): valori di TX-0060, oppure SENZA_STATO",
+            "description": "Chiave del report TX-0028 (ripetibile): una voce del catalogo degli stati della domanda di pagamento (es. FINANZIATO) o il codice di uno degli altri stati; le domande di pagamento con presenza CSR-DP aperta che il report conta per quella chiave. In OR con stato e statoSostegno",
+            "in": "query",
+            "name": "statoPagamento",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Stato domanda area programmazione (ripetibile): valori di TX-0060, le voci di TX-0025 (es. DECADENZA_TOTALE: il codice della voce e gli stati PROSA censiti che abbina), oppure SENZA_STATO",
             "in": "query",
             "name": "statoProgrammazione",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Chiave del report TX-0027 (ripetibile): una voce del catalogo degli stati della domanda di sostegno (es. RILASCIATO) o il codice di uno degli altri stati; le domande di sostegno che il report conta per quella chiave. In OR con stato e statoPagamento",
+            "in": "query",
+            "name": "statoSostegno",
             "schema": {
               "items": {
                 "type": "string"
@@ -3102,7 +3281,7 @@
             ]
           }
         ],
-        "summary": "TX-0059 in CSV o XLSX (esportazione, D-09)",
+        "summary": "TX-0059 in CSV o XLSX (esportazione, D-09): al piu' 2.777 righe (50.000 celle su 18 colonne, NFR-06), oltre 400 DATO_NON_VALIDO",
         "tags": [
           "ElencoOperativo"
         ]

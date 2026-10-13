@@ -29,7 +29,7 @@
       "ownership": "elenco-operativo",
       "path": "datamodel/elenco-operativo-decisions.json",
       "role": "migration",
-      "sha256": "sha256:82752cf181de9ad38a05389e37a9d8024a2228e5e0d1e1042f31610e40a522ca",
+      "sha256": "sha256:e4ae443b5d96aba9457ce5ad5def8c13ad0874683dcdc3628c39650ded4c4e4f",
       "step": "step2-datamodel"
     },
     {
@@ -61,7 +61,7 @@
       "ownership": "elenco-operativo",
       "path": "ARSCSR/domain/src/main/java/it/arsial/cruscottocsr/domain/elencooperativo/DettaglioDomanda.java",
       "role": "domain",
-      "sha256": "sha256:2e1f29d740951534ae9249db62da9b77f995c037618cce0fb9447b603353596e",
+      "sha256": "sha256:43ebf025892b14e69dfc35b9c9b43b75fdaf738ccd058b246b9b68375972e309",
       "step": "step3-domain"
     },
     {
@@ -85,7 +85,7 @@
       "ownership": "elenco-operativo",
       "path": "ARSCSR/domain/src/main/java/it/arsial/cruscottocsr/domain/elencooperativo/FiltroElenco.java",
       "role": "domain",
-      "sha256": "sha256:7c69b6315f59d1cfe0400ec18b2b0dda2435be05d0d4fa9fdaeea17487fda5d0",
+      "sha256": "sha256:d389886947b090aeef3149e1892c19772dfab1cfcaded3af2c7a66d058dee63a",
       "step": "step3-domain"
     },
     {
@@ -117,7 +117,7 @@
       "ownership": "elenco-operativo",
       "path": "ARSCSR/domain/src/main/java/it/arsial/cruscottocsr/domain/elencooperativo/RigaDomanda.java",
       "role": "domain",
-      "sha256": "sha256:2df1df760eb97fb7a6f696381d2f29b804d2c9718f9b818ace9c62e0212d4b4a",
+      "sha256": "sha256:f5e9e22eb4c18f694cf0503e40bc5032756495a5e7feeecc51331944b2f664f2",
       "step": "step3-domain"
     },
     {
@@ -133,7 +133,7 @@
       "ownership": "elenco-operativo",
       "path": "ARSCSR/domain/src/main/java/it/arsial/cruscottocsr/domain/elencooperativo/SinotticoElenco.java",
       "role": "domain",
-      "sha256": "sha256:08dfcd2538770b14908dbf2642b26535c91525d31d63d016bec05184a6ec771d",
+      "sha256": "sha256:1b37499918db2fe410db61f80dbe43639af7b844d8f9994794a5a9c28922cd8d",
       "step": "step3-domain"
     },
     {
@@ -141,7 +141,7 @@
       "ownership": "elenco-operativo",
       "path": "ARSCSR/domain/src/main/java/it/arsial/cruscottocsr/domain/elencooperativo/ValoriFiltriElenco.java",
       "role": "domain",
-      "sha256": "sha256:77d3c17e3e8b211dd49d38ca1e08a81cc5ded52c87f3a43ca3ba87cc96f868ee",
+      "sha256": "sha256:8da1a2359219b4198714ba3d186eeb8d7d7f2fbf2ad58eb8b28e9753f5cc51d2",
       "step": "step3-domain"
     },
     {
@@ -149,7 +149,7 @@
       "ownership": "elenco-operativo",
       "path": "ARSCSR/application/src/main/java/it/arsial/cruscottocsr/application/port/in/ConsultaElencoOperativoUseCase.java",
       "role": "port",
-      "sha256": "sha256:f4c08bef992e0b91ecf90646d26e7abd50d15e6e531db785c2418092dad1b56b",
+      "sha256": "sha256:7780436b6aeb07a13ca5fcde84c7d32b27aca70f88ab5027df1ec0162b037d53",
       "step": "step4-ports"
     },
     {
@@ -157,7 +157,7 @@
       "ownership": "elenco-operativo",
       "path": "ARSCSR/application/src/main/java/it/arsial/cruscottocsr/application/port/out/ElencoOperativoPort.java",
       "role": "port",
-      "sha256": "sha256:c679684a89777cfba392c839e477afca81d225b7c92e2229c173356405bd1141",
+      "sha256": "sha256:51da9a8d4ac833dde69806f60afdab0b570861d649fff58023c08fc729d01439",
       "step": "step4-ports"
     },
     {
@@ -165,7 +165,7 @@
       "ownership": "elenco-operativo",
       "path": "acceptance/elenco-operativo-scenarios.json",
       "role": "application",
-      "sha256": "sha256:8597a0d6df1993d7f9463923a8af6c45de85f03bc47d5e900b0769f388a78f99",
+      "sha256": "sha256:70467cf6e4b3cff654528d53eacfbf035f6545c62c0c692137c005cd4818fe40",
       "step": "step5-service"
     },
     {
@@ -173,7 +173,7 @@
       "ownership": "elenco-operativo",
       "path": "ARSCSR/adapter-out/adapter-out-postgres/src/main/java/it/arsial/cruscottocsr/adapter/out/persistence/elencooperativo/PostgresElencoOperativoAdapter.java",
       "role": "adapter-out-pg",
-      "sha256": "sha256:250d4b592804c7ac9fa6ea9d8269f4c87889502c8289b18d2b198a6ee06ab79e",
+      "sha256": "sha256:3b99ad7377a749931ee32903080d093b489f056a4cea64b293d1bb9e7e3aa73f",
       "step": "step6-adapter-pg"
     },
     {
@@ -181,7 +181,7 @@
       "ownership": "elenco-operativo",
       "path": "openapi/openapi-elenco-operativo.json",
       "role": "adapter-in-rest",
-      "sha256": "sha256:7e638d1cccebe248fcac6bb7bcbc528c1d0aaab65ea985686216ca7403a0a679",
+      "sha256": "sha256:f1fab18306d09d2f4348418af5dd036318c4b4312916365eca8fcf95f6c4d28b",
       "step": "step8-rest"
     }
   ],
@@ -211,16 +211,16 @@
     "step10-gate.property_scope_history_audit": "pass",
     "step1b-scaffold.reactor_compiles": "pass",
     "step2-datamodel.ddl_approved": {
-      "approved_at": "2026-10-13T07:36:51Z",
-      "approved_hash": "sha256:82752cf181de9ad38a05389e37a9d8024a2228e5e0d1e1042f31610e40a522ca",
+      "approved_at": "2026-10-13T09:41:44Z",
+      "approved_hash": "sha256:e4ae443b5d96aba9457ce5ad5def8c13ad0874683dcdc3628c39650ded4c4e4f",
       "baseline_ref": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
     },
     "step3-domain.domain_compiles": "pass",
     "step3-domain.domain_pure": "pass",
     "step4-ports.ports_pure": "pass",
     "step5-service.acceptance_approved": {
-      "approved_at": "2026-10-13T07:36:51Z",
-      "approved_hash": "sha256:8597a0d6df1993d7f9463923a8af6c45de85f03bc47d5e900b0769f388a78f99",
+      "approved_at": "2026-10-13T09:41:44Z",
+      "approved_hash": "sha256:70467cf6e4b3cff654528d53eacfbf035f6545c62c0c692137c005cd4818fe40",
       "baseline_ref": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
     },
     "step5-service.authz_import_zero": "pass",
@@ -231,7 +231,7 @@
     "step9-functions.functions": "pass"
   },
   "openapi": {
-    "hash": "sha256:7e638d1cccebe248fcac6bb7bcbc528c1d0aaab65ea985686216ca7403a0a679",
+    "hash": "sha256:f1fab18306d09d2f4348418af5dd036318c4b4312916365eca8fcf95f6c4d28b",
     "path": "openapi/openapi-elenco-operativo.json"
   },
   "pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb",

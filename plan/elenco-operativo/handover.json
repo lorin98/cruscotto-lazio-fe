@@ -15,9 +15,9 @@
     {
       "slice": "elenco-operativo",
       "spec_path": "handover/openapi-elenco-operativo.json",
-      "spec_sha256": "sha256:7e638d1cccebe248fcac6bb7bcbc528c1d0aaab65ea985686216ca7403a0a679",
+      "spec_sha256": "sha256:f1fab18306d09d2f4348418af5dd036318c4b4312916365eca8fcf95f6c4d28b",
       "manifest_path": "handover/slices/elenco-operativo/manifest.json",
-      "manifest_openapi_hash": "sha256:7e638d1cccebe248fcac6bb7bcbc528c1d0aaab65ea985686216ca7403a0a679",
+      "manifest_openapi_hash": "sha256:f1fab18306d09d2f4348418af5dd036318c4b4312916365eca8fcf95f6c4d28b",
       "manifest_hash_match": true,
       "backend_gates_ok": true
     }

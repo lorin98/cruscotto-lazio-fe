@@ -6,7 +6,7 @@
     {
       "slice": "elenco-operativo",
       "path": "handover/openapi-elenco-operativo.json",
-      "sha256": "sha256:7e638d1cccebe248fcac6bb7bcbc528c1d0aaab65ea985686216ca7403a0a679",
+      "sha256": "sha256:f1fab18306d09d2f4348418af5dd036318c4b4312916365eca8fcf95f6c4d28b",
       "manifest_hash_match": true
     }
   ],
@@ -1009,73 +1009,73 @@
       "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
       "name": "determine[].codice",
       "provenance": "spec",
-      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomanda"
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomandaElenco"
     },
     {
       "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
       "name": "determine[].data",
       "provenance": "spec",
-      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomanda"
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomandaElenco"
     },
     {
       "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
       "name": "determine[].statoProgrammazione",
       "provenance": "spec",
-      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomanda"
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomandaElenco"
     },
     {
       "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
       "name": "determine[].responsabile",
       "provenance": "spec",
-      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomanda"
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomandaElenco"
     },
     {
       "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
       "name": "determine[].ada",
       "provenance": "spec",
-      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomanda"
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomandaElenco"
     },
     {
       "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
       "name": "determine[].provincia",
       "provenance": "spec",
-      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomanda"
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomandaElenco"
     },
     {
       "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
       "name": "determine[].comparto",
       "provenance": "spec",
-      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomanda"
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomandaElenco"
     },
     {
       "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
       "name": "determine[].contributoRichiesto",
       "provenance": "spec",
-      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomanda"
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomandaElenco"
     },
     {
       "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
       "name": "determine[].contributoAmmesso",
       "provenance": "spec",
-      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomanda"
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomandaElenco"
     },
     {
       "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
       "name": "determine[].deltaRichiestoAmmesso",
       "provenance": "spec",
-      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomanda"
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomandaElenco"
     },
     {
       "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
       "name": "determine[].spesaImponibile",
       "provenance": "spec",
-      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomanda"
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomandaElenco"
     },
     {
       "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
       "name": "determine[].spesaImponibileAmmessa",
       "provenance": "spec",
-      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomanda"
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DeterminaDellaDomandaElenco"
     },
     {
       "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
@@ -1442,6 +1442,36 @@
       "name": "filtri.perimetro",
       "provenance": "spec",
       "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "provenance": "spec",
+      "name": "sinottico.ultimiDatiSincronizzati",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/SinotticoElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
+      "provenance": "spec",
+      "name": "filtri.tipi",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "provenance": "spec",
+      "name": "ultimiDatiSincronizzati",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/PaginaPagamenti"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "provenance": "spec",
+      "name": "filtri.tipi",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "provenance": "spec",
+      "name": "aggregatoComparti",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/DettaglioDomanda"
     }
   ],
   "flows": [
@@ -1511,11 +1541,6 @@
     }
   ],
   "open_points": [
-    {
-      "id": "OP-EO-01",
-      "kind": "campo-assente-dalla-spec",
-      "detail": "Ultimo dato sincronizzato nella barra dei filtri (come nel finanziario, OP-FE-04 su TX-0001): nessun DTO dell'elenco operativo lo porta. Proposta verso green-be: campo additivo ultimiDatiSincronizzati su SinotticoElenco e PaginaPagamenti (stessa forma di TX-0001). Finche' manca la pillola non si rende."
-    },
     {
       "id": "OP-EO-02",
       "kind": "altro",
