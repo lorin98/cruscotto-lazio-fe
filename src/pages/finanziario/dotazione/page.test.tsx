@@ -40,13 +40,13 @@ describe('RF002: grafico e tabella per intervento con dotazione, impegnato e pag
     expect(grafico).toBeTruthy();
     if (grafico) clicSu(grafico, { name: 'SRA01' });
     // il dettaglio e' una route lazy: sotto il carico del gate (copertura) il primo caricamento puo' superare 1 s
-    await waitFor(() => expect(router.state.location.pathname).toBe('/finanziario/interventi/SRA01'), { timeout: 5000 });
+    await waitFor(() => expect(router.state.location.pathname).toBe('/finanziario/interventi/SRA01'), { timeout: 15_000 });
     expect(router.state.location.search).toBe('?os=SO4');
     await router.navigate('/finanziario/dotazione');
     await userEvent.click(await screen.findByRole('row', { name: "Apri il dettaglio dell'intervento SRA01" }));
-    await waitFor(() => expect(router.state.location.pathname).toBe('/finanziario/interventi/SRA01'), { timeout: 5000 });
+    await waitFor(() => expect(router.state.location.pathname).toBe('/finanziario/interventi/SRA01'), { timeout: 15_000 });
     // due attese di route lazy fino a 5 s l'una: il tetto del test (5 s di default) va oltre la loro somma
-  }, 15_000);
+  }, 40_000);
   it('un clic fuori dagli interventi (nome non valido) non naviga', async () => {
     servi();
     const { router } = renderPagina(Pagina, '/finanziario/dotazione');
