@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "elenco-operativo",
-  "current_step": 2,
+  "current_step": 3,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -48,6 +48,19 @@
       "artifacts": [
         "./plan/elenco-operativo/uiplan.json"
       ]
+    },
+    "step2-codegen": {
+      "status": "done",
+      "completed_at": "2026-10-13T10:43:01Z",
+      "artifacts": [
+        "./specs/.spec-lock.json",
+        "./src/shared/api/generated"
+      ],
+      "gates": {
+        "codegen_compiles": "pass",
+        "orval_types": "pass",
+        "csrf_static": "pass"
+      }
     }
   },
   "open_blockers": [],
