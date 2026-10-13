@@ -14,6 +14,8 @@ import type { ChipFiltro } from '../../../shared/ui';
 interface Briciola {
   etichetta: string;
   a?: string;
+  /** State della navigazione del link (es. lo stato del riepilogo da ritrovare tornando dal dettaglio, review v4 X-04). */
+  stato?: unknown;
 }
 
 /** Home > Finanziario > voci della pagina: i link conservano la selezione dell'indirizzo, anche dal dettaglio (N-03). */
@@ -27,7 +29,13 @@ function Briciole({ voci, filtri }: { voci: Briciola[]; filtri: Filtri }) {
         <li aria-current={voci.length === 0 ? 'page' : undefined}>{voci.length === 0 ? 'Finanziario' : <Link to={conFiltri(PANORAMICA.percorso, filtri)}>Finanziario</Link>}</li>
         {voci.map((v, i) => (
           <li key={v.etichetta} aria-current={i === voci.length - 1 ? 'page' : undefined}>
-            {v.a ? <Link to={conFiltri(v.a, filtri)}>{v.etichetta}</Link> : v.etichetta}
+            {v.a ? (
+              <Link to={conFiltri(v.a, filtri)} state={v.stato}>
+                {v.etichetta}
+              </Link>
+            ) : (
+              v.etichetta
+            )}
           </li>
         ))}
       </ol>

@@ -235,6 +235,33 @@ describe("RA003: drill-down dal dettaglio dell'intervento all'elenco operativo",
     await waitFor(() => expect(screen.getByRole('tab', { name: 'SIGC' }).getAttribute('aria-selected')).toBe('true'));
     expect(screen.getByRole('tab', { name: 'Sintesi' }).getAttribute('aria-selected')).toBe('false');
   });
+  // review v4 A-01: la scheda scelta e' subito quella selezionata; il clic nativo, fuori da act() come nel browser (act()
+  // scaricherebbe anche la navigazione e il test non distinguerebbe lo stato locale dal solo indirizzo)
+  it('la scheda scelta e subito quella selezionata, prima che l indirizzo la segua', async () => {
+    servi();
+    const { router } = renderPagina(Pagina, PERCORSO, '/finanziario/interventi/SRA01');
+    const sigc = await screen.findByRole('tab', { name: 'SIGC' });
+    sigc.click();
+    // un solo giro di microtask: React applica lo stato dell'evento discreto, la navigazione (transizione) arriva dopo
+    await Promise.resolve();
+    expect(sigc.getAttribute('aria-selected')).toBe('true');
+    await waitFor(() => expect(router.state.location.search).toBe('?scheda=sigc'));
+  });
+  // review v4 V-05: la vista Tabella di Domande per anno (il percorso da tastiera del clic) si ritrova tornando dall'elenco
+  it("tornando indietro dall'elenco operativo la vista Tabella di Domande per anno e' ancora quella", async () => {
+    servi();
+    const { router } = renderPagina(Pagina, PERCORSO, '/finanziario/interventi/SRA01');
+    await userEvent.click(await screen.findByRole('tab', { name: 'Domande' }));
+    const card = await trovaCard('Domande per anno di raccolta');
+    await userEvent.click(within(within(card).getByRole('group', { name: 'Vista di Domande per anno di raccolta' })).getByRole('button', { name: 'Tabella' }));
+    const tabella = await tabellaDi(card);
+    await userEvent.click(within(tabella).getByRole('link', { name: "Apri nell'elenco operativo le domande dell'intervento SRA01 del 2024, prima annualità" }));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/elenco-operativo/domande'));
+    await act(() => router.navigate(-1));
+    const dopo = await trovaCard('Domande per anno di raccolta');
+    expect(within(within(dopo).getByRole('group', { name: 'Vista di Domande per anno di raccolta' })).getByRole('button', { name: 'Tabella' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('tab', { name: 'Domande' }).getAttribute('aria-selected')).toBe('true');
+  });
   it("senza il grant dell'elenco i clic non portano altrove e i link non ci sono", async () => {
     servi();
     server.use(http.get('*/auth/status', () => HttpResponse.json({ authenticated: true, user: { username: 'U', roles: ['csr.tx-0001.read', 'csr.tx-0002.read', 'csr.tx-0008.read', 'csr.tx-0009.read', 'csr.tx-0010.read', 'csr.tx-0011.read', 'csr.tx-0012.read', 'csr.tx-0013.read'] } })));

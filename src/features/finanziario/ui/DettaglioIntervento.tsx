@@ -4,13 +4,15 @@
 // (gauge, cascata), Domande (TX-0008, TX-0010), SIGC (TX-0012, TX-0013), Tutte le voci (con il motivo dei valori
 // assenti). Le schede leggono solo quando si aprono e solo con il grant (letture nei figli di ConGrant, R-09). I dati
 // sono del solo intervento; i link di ritorno conservano la selezione della pagina (filtri dell'indirizzo, N-03).
-import { Link, useSearchParams } from 'react-router';
+import { useState } from 'react';
+import { Link, useLocation, useSearchParams } from 'react-router';
 import { Tab, TabList, TabPanel, Tabs } from 'react-aria-components';
 import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { codiceDalClic, formatNumber, formatPercentuale } from '../../../shared/lib';
-import { CardGrafico, Griglia, Kpi, TabellaDati, TabellaRighe, VistaQuery, Vuoto } from '../../../shared/ui';
+import { CardGrafico, Griglia, Kpi, TabellaDati, TabellaRighe, VistaQuery, Vuoto, eVistaGrafico } from '../../../shared/ui';
+import type { ClicGrafico, VistaGrafico } from '../../../shared/ui';
 import { useDomandePerAnno, useImportiPerAnno, useRiepilogo, useSigcDomande, useSigcImporti, useSpesaPerIntervento } from '../api';
-import type { RiepilogoFinanziarioRiga } from '../api';
+import type { DomandePerAnno as DomandePerAnnoDto, RiepilogoFinanziarioRiga } from '../api';
 import { datiDelReport } from './esportazioni';
 import { conParametroDiPagina } from '../lib/filtri';
 import type { Filtri } from '../lib/filtri';
@@ -25,6 +27,8 @@ import { ConGrant, KpiImporto, NotaPerimetroMisto, PerimetroSezione, diProgramma
 import { useSelezioneSenzaDomandeSigc } from './selezione';
 import { ApriNellElenco, useApriNellElenco, useLinkElenco } from './LinkElenco';
 import { colonneDomandePerAnno } from './colonneAnno';
+import { useStatoDelRiepilogo } from './ritornoAlRiepilogo';
+import { useStatoNellaHistory } from './useStatoNellaHistory';
 
 /** I link verso l'elenco portano la selezione da cui si e' arrivati, con l'intervento del dettaglio al posto del filtro. */
 interface Provenienza {
@@ -46,6 +50,15 @@ const SENZA_SIGC = (d: { perimetro?: Perimetro | null }) => (
   </>
 );
 
+/** "Torna al riepilogo": con lo stato del riepilogo da cui si e' arrivati ritrova ricerca, ordine e pagina (review v4 X-04). */
+function TornaAlRiepilogo({ selezione, className }: { selezione: Filtri; className?: string }) {
+  return (
+    <Link className={className} to={conFiltri(PERCORSI.riepilogo, selezione)} state={useStatoDelRiepilogo()}>
+      Torna al riepilogo
+    </Link>
+  );
+}
+
 function Testata({ codice, selezione, perimetro, contributo }: { codice: string; selezione: Filtri; perimetro?: Perimetro; contributo?: number | null }) {
   return (
     <section className="ui-hero ui-dissolvenza" aria-label={`Intervento ${codice}`}>
@@ -56,9 +69,7 @@ function Testata({ codice, selezione, perimetro, contributo }: { codice: string;
         <Link className="btn btn-light btn-sm" to={conFiltri(PERCORSI.panoramica, { intervento: [codice] })}>
           Filtra i report su questo intervento
         </Link>
-        <Link className="btn btn-outline-light btn-sm" to={conFiltri(PERCORSI.riepilogo, selezione)}>
-          Torna al riepilogo
-        </Link>
+        <TornaAlRiepilogo className="btn btn-outline-light btn-sm" selezione={selezione} />
       </div>
     </section>
   );
@@ -105,35 +116,41 @@ function Sintesi({ filtri, r, perimetro }: { filtri: Filtri; r: RiepilogoFinanzi
 }
 
 function DomandePerAnno({ filtri, da }: { filtri: Filtri; da: Provenienza }) {
+  // la vista scelta (la Tabella e' il percorso da tastiera del clic) si ritrova tornando dall'elenco (review v4 V-05)
+  const [vista, conservaVista] = useStatoNellaHistory<VistaGrafico>('vistaDomandePerAnno', da.selezione, eVistaGrafico);
+  return <VistaQuery stato={useDomandePerAnno(filtri)}>{(d) => <CardDomandePerAnno d={d} filtri={filtri} da={da} vista={vista} onVista={conservaVista} />}</VistaQuery>;
+}
+
+function CardDomandePerAnno({ d, filtri, da, vista, onVista }: { d: DomandePerAnnoDto; filtri: Filtri; da: Provenienza; vista?: VistaGrafico; onVista: (v: VistaGrafico) => void }) {
   const apri = useApriNellElenco(da.selezione);
   const link = useLinkElenco(da.selezione);
   // la tabella equivalente del grafico porta in ogni cella lo stesso link del segmento: il percorso da tastiera del clic
   // (solo col grant dell'elenco; senza, resta la tabella generata dai dati)
   const conLink = link('elenco-anno-intervento', { presentata: true, intervento: da.codice }) !== null;
+  const dati = graficoDomandePerAnno(d.righe ?? []);
   return (
-    <VistaQuery stato={useDomandePerAnno(filtri)}>
-      {(d) => (
-        <CardGrafico
-          titolo="Domande per anno di raccolta"
-          sottotitolo={conLink ? "Clic su un segmento, o sulla cella della vista Tabella: le domande dell'anno e dell'annualità nell'elenco operativo" : undefined}
-          dati={graficoDomandePerAnno(d.righe ?? [])}
-          fonte="Fonte: TX-0008"
-          onClic={(p) => apri('elenco-anno-intervento', conIntervento(criteriDomandePerAnno(p), da.codice))}
-          scaricamenti={datiDelReport('Domande per anno di raccolta', 'domandePerAnno', filtri)}
-          tabella={
-            conLink ? (
-              <TabellaRighe
-                caption="Domande per anno di raccolta"
-                intestazione="Anno di raccolta"
-                chiave={(r) => annoDiRaccolta(r.annoRaccolta)}
-                colonne={colonneDomandePerAnno((r, annualita) => link('elenco-anno-intervento', { ...criteriAnnoAnnualita(r.annoRaccolta, annualita), intervento: da.codice }), ` dell'intervento ${da.codice}`)}
-                righe={perAnno(d.righe ?? [])}
-              />
-            ) : undefined
-          }
-        />
-      )}
-    </VistaQuery>
+    <CardGrafico
+      titolo="Domande per anno di raccolta"
+      // il clic si promette solo su un grafico disegnato (review v4 V-04)
+      sottotitolo={conLink && dati.opzioni !== null ? "Clic su un segmento, o sulla cella della vista Tabella: le domande dell'anno e dell'annualità nell'elenco operativo" : undefined}
+      dati={dati}
+      vistaIniziale={vista}
+      onVista={onVista}
+      fonte="Fonte: TX-0008"
+      onClic={(p) => apri('elenco-anno-intervento', conIntervento(criteriDomandePerAnno(p), da.codice))}
+      scaricamenti={datiDelReport('Domande per anno di raccolta', 'domandePerAnno', filtri)}
+      tabella={
+        conLink ? (
+          <TabellaRighe
+            caption="Domande per anno di raccolta"
+            intestazione="Anno di raccolta"
+            chiave={(r) => annoDiRaccolta(r.annoRaccolta)}
+            colonne={colonneDomandePerAnno((r, annualita) => link('elenco-anno-intervento', { ...criteriAnnoAnnualita(r.annoRaccolta, annualita), intervento: da.codice }), ` dell'intervento ${da.codice}`)}
+            righe={perAnno(d.righe ?? [])}
+          />
+        ) : undefined
+      }
+    />
   );
 }
 
@@ -160,21 +177,30 @@ function DomandeSigc({ filtri, da }: { filtri: Filtri; da: Provenienza }) {
   const apri = useApriNellElenco(da.selezione);
   const conLink = useLinkElenco(da.selezione)('elenco-sigc-intervento', { sigc: true, intervento: da.codice }) !== null;
   return (
-    <VistaQuery stato={useSigcDomande(filtri)}>
+    // senza domande SIGC il vuoto si dichiara, come per gli importi: ne' grafico ne' link verso un elenco vuoto (review v4 V-04)
+    <VistaQuery stato={useSigcDomande(filtri)} eVuoto={(d) => d.presentate === 0} vuoto={SENZA_SIGC}>
       {(d) => (
         <div>
-          <CardGrafico
-            titolo="Domande SIGC"
-            sottotitolo={SOTTOTITOLO_DOMANDE_SIGC + (conLink ? CLIC_BARRA : '')}
-            dati={graficoDomandeSigc(d)}
-            fonte="Fonte: TX-0012 · pagate e da pagare dagli importi della domanda (flusso ASR2-20), come l'importo pagato"
-            onClic={(p) => apri('elenco-sigc-intervento', conIntervento(criteriVoceSigc(codiceDalClic(p)), da.codice))}
-            scaricamenti={datiDelReport('Domande SIGC', 'sigcDomande', filtri)}
-          />
+          <CardDomandeSigc d={d} filtri={filtri} conLink={conLink} onClic={(p) => apri('elenco-sigc-intervento', conIntervento(criteriVoceSigc(codiceDalClic(p)), da.codice))} />
           <VociSigcNellElenco da={da} />
         </div>
       )}
     </VistaQuery>
+  );
+}
+
+/** Il grafico delle domande SIGC dell'intervento; il clic si promette solo su un grafico disegnato (review v4 V-04). */
+function CardDomandeSigc({ d, filtri, conLink, onClic }: { d: Parameters<typeof graficoDomandeSigc>[0]; filtri: Filtri; conLink: boolean; onClic: (p: ClicGrafico) => void }) {
+  const dati = graficoDomandeSigc(d);
+  return (
+    <CardGrafico
+      titolo="Domande SIGC"
+      sottotitolo={SOTTOTITOLO_DOMANDE_SIGC + (conLink && dati.opzioni !== null ? CLIC_BARRA : '')}
+      dati={dati}
+      fonte="Fonte: TX-0012 · pagate e da pagare dagli importi della domanda (flusso ASR2-20), come l'importo pagato"
+      onClic={onClic}
+      scaricamenti={datiDelReport('Domande SIGC', 'sigcDomande', filtri)}
+    />
   );
 }
 
@@ -216,13 +242,24 @@ const SCHEDE = ['sintesi', 'domande', 'sigc', 'voci'] as const;
 type Scheda = (typeof SCHEDE)[number];
 const eScheda = (v: string | null): v is Scheda => v !== null && (SCHEDE as readonly string[]).includes(v);
 
-/** Scheda selezionata nell'indirizzo (?scheda=), con replace: tornando indietro dall'elenco operativo si ritrova. */
+/**
+ * Scheda selezionata nell'indirizzo (?scheda=), con replace: tornando indietro dall'elenco operativo si ritrova. La scelta e'
+ * subito quella mostrata (stato locale) e l'indirizzo la segue: la navigazione e' asincrona e la scheda selezionata non torna
+ * per un istante a quella di prima (review v4 A-01). Lo state della navigazione (lo stato del riepilogo, X-04) resta.
+ */
 function useScheda(): [Scheda, (s: Scheda) => void] {
   const [ricerca, setRicerca] = useSearchParams();
+  const { state } = useLocation();
   const valore = ricerca.get('scheda');
-  const scheda: Scheda = eScheda(valore) ? valore : 'sintesi';
-  const scegli = (s: Scheda) => setRicerca((p) => conParametroDiPagina(p, 'scheda', s === 'sintesi' ? null : s), { replace: true });
-  return [scheda, scegli];
+  const dallIndirizzo: Scheda = eScheda(valore) ? valore : 'sintesi';
+  const [inAttesa, setInAttesa] = useState<Scheda | null>(null);
+  // l'indirizzo ha raggiunto la scelta: da qui vale di nuovo l'indirizzo (anche se poi cambia da fuori)
+  if (inAttesa !== null && inAttesa === dallIndirizzo) setInAttesa(null);
+  const scegli = (s: Scheda) => {
+    setInAttesa(s);
+    setRicerca((p) => conParametroDiPagina(p, 'scheda', s === 'sintesi' ? null : s), { replace: true, state });
+  };
+  return [inAttesa ?? dallIndirizzo, scegli];
 }
 
 function Schede({ filtri, r, perimetro, da }: { filtri: Filtri; r: RiepilogoFinanziarioRiga; perimetro?: Perimetro; da: Provenienza }) {
@@ -288,7 +325,7 @@ function Contenuto({ codice, selezione }: { codice: string; selezione: Filtri })
               <Testata codice={codice} selezione={selezione} perimetro={d.perimetro} />
               <Vuoto>
                 {'Nessun dato per questo intervento nel riepilogo. '}
-                <Link to={conFiltri(PERCORSI.riepilogo, selezione)}>Torna al riepilogo</Link>
+                <TornaAlRiepilogo selezione={selezione} />
               </Vuoto>
             </>
           );

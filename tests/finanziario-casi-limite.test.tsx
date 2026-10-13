@@ -176,12 +176,20 @@ describe('DettaglioIntervento: casi limite', () => {
     );
     conRouter(<DettaglioIntervento codice="SRA01" />);
     await userEvent.click(await screen.findByRole('tab', { name: 'SIGC' }));
-    // filtri fissi nel dettaglio: nessun invito a modificarli (review v3 N-03)
-    const vuoto = await screen.findByText('Nessuna domanda SIGC per questo intervento.', { exact: false });
-    expect(ruolo(vuoto)).toBe('status');
-    expect(vuoto.closest('[role="status"]')?.textContent).not.toContain('Modifica i filtri');
+    // filtri fissi nel dettaglio: nessun invito a modificarli (review v3 N-03); il vuoto lo dichiarano le due card (domande e
+    // importi): ne' grafico ne' link verso un elenco vuoto, nessun clic promesso (review v4 V-04)
+    const vuoti = await screen.findAllByText('Nessuna domanda SIGC per questo intervento.', { exact: false });
+    expect(vuoti).toHaveLength(2);
+    for (const vuoto of vuoti) {
+      expect(ruolo(vuoto)).toBe('status');
+      expect(vuoto.closest('[role="status"]')?.textContent).not.toContain('Modifica i filtri');
+    }
     expect(graficiVivi().map(titoloGrafico)).not.toContain('Importi SIGC');
+    expect(graficiVivi().map(titoloGrafico)).not.toContain('Domande SIGC');
     expect(screen.queryByRole('group', { name: 'Scarica il grafico Importi SIGC' })).toBeNull();
+    const scheda = screen.getByRole('tabpanel', { name: 'SIGC' });
+    expect(scheda.textContent).not.toContain('Clic su una barra');
+    expect(within(scheda).queryAllByRole('link').filter((a) => a.getAttribute('href')?.startsWith('/elenco-operativo'))).toEqual([]);
   });
 
   // il titolo (h1) e' della pagina (H-04): il componente porta il codice nella testata, anche fuori da TX-0001

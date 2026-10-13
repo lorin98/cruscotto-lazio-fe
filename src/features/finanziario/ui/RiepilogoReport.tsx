@@ -8,6 +8,7 @@ import { Link } from 'react-router';
 import { ValoreImporto } from '../../../entities/importo';
 import { formatNumber } from '../../../shared/lib';
 import { CardGrafico, PannelloLaterale, PulsantiScarica, Sezione, TabellaInterattiva, VistaQuery } from '../../../shared/ui';
+import { statoTabellaValido } from '../../../shared/ui';
 import type { ColonnaTabella, RigaPiede, StatoTabella } from '../../../shared/ui';
 import { useRiepilogo } from '../api';
 import type { RiepilogoFinanziario, RiepilogoFinanziarioRiga } from '../api';
@@ -21,6 +22,7 @@ import { NotaPerimetroMisto, PerimetroSezione, colonneImporti, diProgramma, vuot
 import { NOTA_RICERCA_FILE, datiDelReport } from './esportazioni';
 import { useApriIntervento } from './useApriIntervento';
 import { useStatoNellaHistory } from './useStatoNellaHistory';
+import { STATO_RIEPILOGO, useStatoDelRiepilogo } from './ritornoAlRiepilogo';
 import { ApriNellElenco, useLinkElenco } from './LinkElenco';
 import type { CriteriLink, IdLinkElenco } from '../lib/link-elenco';
 import type { CampoImporto } from './comuni';
@@ -120,6 +122,7 @@ function NellElencoAnteprima({ riga, filtri }: { riga: Riga; filtri: Filtri }) {
 }
 
 function Anteprima({ riga, perimetro, filtri, onChiudi }: { riga: Riga | null; perimetro?: Perimetro; filtri: Filtri; onChiudi: () => void }) {
+  const ritorno = useStatoDelRiepilogo();
   return (
     <PannelloLaterale aperto={riga !== null} onChiudi={onChiudi} titolo={riga?.codiceIntervento ?? ''} sopratitolo="Anteprima dell'intervento" stretto>
       {riga && (
@@ -139,7 +142,7 @@ function Anteprima({ riga, perimetro, filtri, onChiudi }: { riga: Riga | null; p
             ))}
           </dl>
           {riga.codiceIntervento && (
-            <Link className="btn btn-primary mt-3 w-100" to={conFiltri(percorsoIntervento(riga.codiceIntervento), filtri)}>
+            <Link className="btn btn-primary mt-3 w-100" to={conFiltri(percorsoIntervento(riga.codiceIntervento), filtri)} state={ritorno}>
               {"Apri il dettaglio dell'intervento"}
             </Link>
           )}
@@ -151,10 +154,14 @@ function Anteprima({ riga, perimetro, filtri, onChiudi }: { riga: Riga | null; p
 }
 
 function Contenuto({ d, filtri }: { d: RiepilogoFinanziario; filtri: Filtri }) {
-  const { dalClic } = useApriIntervento(filtri);
+  // aprendo il dettaglio (anteprima o grafico) lo stato del riepilogo viaggia con la navigazione: "Torna al riepilogo" lo
+  // riporta (review v4 X-04)
+  const { dalClic } = useApriIntervento(filtri, useStatoDelRiepilogo());
   const link = useLinkElenco(filtri);
-  // ordine e pagina da ritrovare tornando indietro dall'elenco operativo o dal dettaglio (stessi filtri)
-  const [statoTabella, conservaStato] = useStatoNellaHistory<StatoTabella>('riepilogo', filtri);
+  const colonneTabella = colonne(d.perimetro, link);
+  // ricerca, ordine e pagina da ritrovare tornando indietro dall'elenco operativo o dal dettaglio (stessi filtri); uno stato
+  // salvato fuori forma vale come assente (review v4 V-03, H-05)
+  const [statoTabella, conservaStato] = useStatoNellaHistory<StatoTabella>(STATO_RIEPILOGO, filtri, statoTabellaValido(colonneTabella.map((c) => c.chiave)));
   const righe = d.righe ?? [];
   const [aperta, setAperta] = useState<Riga | null>(null);
   const [vista, setVista] = useState<'tabella' | 'grafico'>('tabella');
@@ -176,7 +183,7 @@ function Contenuto({ d, filtri }: { d: RiepilogoFinanziario; filtri: Filtri }) {
         <TabellaInterattiva
           caption="Riepilogo per intervento (RF011)"
           righe={righe}
-          colonne={colonne(d.perimetro, link)}
+          colonne={colonneTabella}
           chiaveRiga={(r) => r.codiceIntervento ?? ''}
           testoRicerca={(r) => r.codiceIntervento ?? ''}
           segnapostoRicerca="Cerca per codice dell'intervento"

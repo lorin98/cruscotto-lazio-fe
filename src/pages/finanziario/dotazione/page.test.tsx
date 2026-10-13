@@ -45,7 +45,8 @@ describe('RF002: grafico e tabella per intervento con dotazione, impegnato e pag
     await router.navigate('/finanziario/dotazione');
     await userEvent.click(await screen.findByRole('row', { name: "Apri il dettaglio dell'intervento SRA01" }));
     await waitFor(() => expect(router.state.location.pathname).toBe('/finanziario/interventi/SRA01'), { timeout: 5000 });
-  });
+    // due attese di route lazy fino a 5 s l'una: il tetto del test (5 s di default) va oltre la loro somma
+  }, 15_000);
   it('un clic fuori dagli interventi (nome non valido) non naviga', async () => {
     servi();
     const { router } = renderPagina(Pagina, '/finanziario/dotazione');

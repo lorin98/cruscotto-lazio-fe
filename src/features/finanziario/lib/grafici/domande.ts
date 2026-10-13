@@ -92,14 +92,26 @@ function lineaImporti(def: (typeof IMPORTI)[number], righe: readonly RigaImporti
   return { type: 'line', name: def.nome, connectNulls: false, data: valori };
 }
 
+/**
+ * Colonne della tabella equivalente di Importi per anno (dopo quella dell'anno): titolo e testo della cella. Una sola
+ * definizione per la tabella generata dal grafico e per quella con i link all'elenco operativo (review v4 V-06): con o senza
+ * il grant la vista Tabella ha le stesse intestazioni e gli stessi testi.
+ */
+export const COLONNE_IMPORTI_PER_ANNO: readonly { titolo: string; cella: (r: RigaImportiAnno) => string }[] = [
+  { titolo: 'Stanziato', cella: (r) => cellaImporto(r.importoStanziato, true) },
+  { titolo: 'Ammesso', cella: (r) => cellaImporto(r.importoAmmesso) },
+  { titolo: 'Decretato', cella: (r) => cellaImporto(r.importoDecretato, true) },
+  { titolo: 'Domande senza importo ammesso', cella: (r) => numeroOpzionale(r.domandeSenzaAmmesso) },
+];
+
 /** Linee degli importi per anno di raccolta; i punti assenti sono vuoti (mai zero) e dichiarati, come le domande senza ammesso. */
 export function graficoImportiPerAnno(righe: RigaImportiAnno[]): DatiGrafico {
   const ordinate = perAnno(righe);
   const categorie = ordinate.map((r) => annoDiRaccolta(r.annoRaccolta));
   const tabella = {
     caption: 'Importi per anno di raccolta: stanziato, ammesso e decretato',
-    colonne: ['Anno', 'Stanziato', 'Ammesso', 'Decretato', 'Domande senza importo ammesso'],
-    righe: ordinate.map((r, k) => [categorie[k], cellaImporto(r.importoStanziato, true), cellaImporto(r.importoAmmesso), cellaImporto(r.importoDecretato, true), numeroOpzionale(r.domandeSenzaAmmesso)]),
+    colonne: ['Anno', ...COLONNE_IMPORTI_PER_ANNO.map((c) => c.titolo)],
+    righe: ordinate.map((r, k) => [categorie[k], ...COLONNE_IMPORTI_PER_ANNO.map((c) => c.cella(r))]),
   };
   if (ordinate.length === 0) return nonDisegnabile('nessun importo per anno di raccolta', tabella, []);
   const omessi: string[] = [];

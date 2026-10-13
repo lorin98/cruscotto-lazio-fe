@@ -136,6 +136,49 @@ describe("RA003: drill-down dalla pagina domande all'elenco operativo", () => {
     await waitFor(() => expect((within(dopo).getByRole('combobox', { name: 'Anno di raccolta' }) as HTMLSelectElement).value).toBe('2024'));
     expect(within(within(dopo).getByRole('table', { name: 'Domande per anno di raccolta' })).getAllByRole('rowheader').map((c) => c.textContent)).toEqual(['2024']);
   });
+  // review v4 A-01: la scelta e' subito quella mostrata, senza aspettare l'aggiornamento (asincrono) della history
+  it("la scelta dell'anno e' subito quella mostrata dalla select", async () => {
+    servi();
+    renderPagina(Pagina, '/finanziario/domande');
+    const dettaglio = await screen.findByRole('region', { name: 'Domande per anno: dettaglio' });
+    const select = within(dettaglio).getByRole('combobox', { name: 'Anno di raccolta' }) as HTMLSelectElement;
+    // l'evento nativo, fuori da act() come nel browser: act() scaricherebbe anche la navigazione e il test non distinguerebbe
+    // la scelta locale dalla sola history (che si aggiorna in una transizione)
+    const scegli = (valore: string) => {
+      select.value = valore;
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+    scegli('2024');
+    expect(select.value).toBe('2024');
+    await waitFor(() => expect(within(within(dettaglio).getByRole('table', { name: 'Domande per anno di raccolta' })).getAllByRole('rowheader').map((c) => c.textContent)).toEqual(['2024']));
+    scegli('');
+    expect(select.value).toBe('');
+  });
+  // review v4 V-06: le tabelle equivalenti con i link vengono dalle stesse colonne dei grafici
+  it('vista Tabella di RF008 e RF010: con e senza il grant dell elenco stesse intestazioni e stessi testi di cella, link a parte', async () => {
+    const leggi = async (titolo: string) => {
+      const tabella = await tabellaDi(await trovaCard(titolo));
+      const copia = tabella.cloneNode(true) as HTMLElement;
+      copia.querySelectorAll('a').forEach((a) => a.remove());
+      // la colonna del solo link (Elenco operativo) e' un'aggiunta, non un testo diverso
+      const intestazioni = Array.from(copia.querySelectorAll('thead th')).map((c) => c.textContent?.trim());
+      const celle = Array.from(copia.querySelectorAll('tbody tr')).map((r) => Array.from(r.querySelectorAll('th, td')).map((c) => c.textContent?.trim()));
+      return { caption: copia.querySelector('caption')?.textContent, intestazioni, celle };
+    };
+    const senzaColonnaElenco = (t: Awaited<ReturnType<typeof leggi>>) => {
+      const k = t.intestazioni.indexOf('Elenco operativo');
+      return k < 0 ? t : { ...t, intestazioni: t.intestazioni.filter((_, i) => i !== k), celle: t.celle.map((r) => r.filter((_, i) => i !== k)) };
+    };
+    servi();
+    const conGrant = renderPagina(Pagina, '/finanziario/domande');
+    const perAnnoConGrant = await leggi('Domande per anno di raccolta (RF008)');
+    const importiConGrant = senzaColonnaElenco(await leggi('Importi per anno di raccolta (RF010)'));
+    conGrant.unmount();
+    server.use(http.get('*/auth/status', () => HttpResponse.json({ authenticated: true, user: { username: 'U', roles: ['csr.tx-0001.read', 'csr.tx-0008.read', 'csr.tx-0009.read', 'csr.tx-0010.read'] } })));
+    renderPagina(Pagina, '/finanziario/domande');
+    expect(await leggi('Domande per anno di raccolta (RF008)')).toEqual(perAnnoConGrant);
+    expect(await leggi('Importi per anno di raccolta (RF010)')).toEqual(importiConGrant);
+  });
   it("senza il grant dell'elenco nessun link e nessuna colonna Elenco operativo", async () => {
     servi();
     server.use(http.get('*/auth/status', () => HttpResponse.json({ authenticated: true, user: { username: 'U', roles: ['csr.tx-0001.read', 'csr.tx-0002.read', 'csr.tx-0008.read', 'csr.tx-0009.read', 'csr.tx-0010.read', 'csr.tx-0011.read', 'csr.tx-0012.read', 'csr.tx-0013.read'] } })));
