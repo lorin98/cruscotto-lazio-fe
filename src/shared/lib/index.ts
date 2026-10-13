@@ -5,3 +5,4 @@ export * from './tabella';
 export * from './grafici';
 export * from './nome-file';
 export * from './intestazione';
+export * from './aggiornamento';
