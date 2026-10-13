@@ -20,10 +20,29 @@ Vocabolario del kit UI v2 (ADR 0027 di green-fe), resa approvata nel prototipo `
 
 | pagina | grafico | tipo | dati (transazione) | clic | valori assenti |
 |---|---|---|---|---|---|
-| /finanziario/domande | Domande per anno di raccolta | barre | TX-0008 | filtra la tabella sull'anno | riga senza anno: barra a parte |
-| /finanziario/domande | Importi ammessi e decretati per anno | linea | TX-0010 | nessuno | stanziato: fonte non attiva |
+| /finanziario/domande | Domande per anno di raccolta | barre | TX-0008 | filtra la tabella sull'anno; nella tabella equivalente "Apri nell'elenco" su ogni cella = link:elenco-anno-annualita (elenco-operativo: /elenco-operativo/domande) | riga senza anno: barra a parte |
+| /finanziario/domande | Importi ammessi e decretati per anno | linea | TX-0010 | nessuno; nella tabella equivalente "Apri nell'elenco" su ogni riga = link:elenco-anno (elenco-operativo: /elenco-operativo/domande) | stanziato: fonte non attiva |
 
 Il decretato e' calcolato dai pagamenti totali (OP-FE-05).
+
+## Link del flusso (drill-down dichiarati)
+
+Drill-down verso l'elenco operativo (decisione D-2 dell'utente del 12/10/2026): dal livello minimo di un report si apre
+l'elenco gia' filtrato, con i filtri correnti del finanziario (intervento, os, og, op, azione), e il numero di domande
+coincide con quello del report (D-02 e SC-EO_DRILLDOWN dell'elenco operativo: presentata=true&anno=2025&annualita=PRIMA
+riproduce la prima annualita' del 2025 di TX-0008).
+
+| pagina | link (id) | innesco | arrivo (feature: route) | parametri di path | query |
+|---|---|---|---|---|---|
+| /finanziario/domande | elenco-presentate-domande | azione "Apri nell'elenco" del KPI Domande presentate | elenco-operativo: /elenco-operativo/domande | - | presentata=true + filtri correnti |
+| /finanziario/domande | elenco-prima-annualita | azione "Apri nell'elenco" del KPI Di cui prima annualita' | elenco-operativo: /elenco-operativo/domande | - | presentata=true, annualita=PRIMA + filtri correnti |
+| /finanziario/domande | elenco-anno-annualita | azione "Apri nell'elenco" su una cella (anno per annualita') della tabella equivalente di Domande per anno di raccolta | elenco-operativo: /elenco-operativo/domande | - | presentata=true, anno (SENZA per la riga senza anno), annualita della colonna (PRIMA, ALTRE, NON_CLASSIFICATE) + filtri correnti |
+| /finanziario/domande | elenco-anno | azione "Apri nell'elenco" su una riga (anno) della tabella equivalente di Importi ammessi e decretati per anno | elenco-operativo: /elenco-operativo/domande | - | presentata=true, anno + filtri correnti |
+
+Il clic sulle barre resta quello approvato (filtra la tabella in pagina): l'apertura nell'elenco e' un'azione esplicita
+"Apri nell'elenco" sulle celle delle tabelle equivalenti e sui due KPI di conteggio (decisione dell'utente del 13/10/2026).
+L'elenco riporta richiesto, ammesso e pagato delle domande dell'anno; stanziato e decretato non sono campi dell'elenco. I KPI
+Importo ammesso e Importo stanziato non hanno l'azione (il secondo ha fonte non attiva).
 
 ## Stati resi (obbligatori)
 

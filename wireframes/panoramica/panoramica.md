@@ -28,11 +28,30 @@ Vocabolario del kit UI v2 (ADR 0027 di green-fe), resa approvata nel prototipo `
 | /finanziario | Importi SIGC | cascata | TX-0013 | nessuno | importo assente: passo omesso e dichiarato |
 | /finanziario/interventi/:codice | Pagato sulla dotazione | gauge | TX-0002, TX-0011 | nessuno | non disegnato se manca un termine |
 | /finanziario/interventi/:codice | Dalla dotazione al residuo | cascata | TX-0011 | nessuno | impegnato: fonte non attiva, dichiarato |
-| /finanziario/interventi/:codice | Domande per anno | barre | TX-0008 | nessuno | riga senza anno: barra a parte |
+| /finanziario/interventi/:codice | Domande per anno | barre | TX-0008 | link:elenco-anno-intervento (elenco-operativo: /elenco-operativo/domande) | riga senza anno: barra a parte |
 | /finanziario/interventi/:codice | Importi ammessi e decretati | linea | TX-0010 | nessuno | stanziato: fonte non attiva, dichiarato |
-| /finanziario/interventi/:codice | Domande e importi SIGC | imbuto, cascata | TX-0012, TX-0013 | nessuno | come nella panoramica |
+| /finanziario/interventi/:codice | Domande e importi SIGC | imbuto, cascata | TX-0012, TX-0013 | link:elenco-sigc-intervento (elenco-operativo: /elenco-operativo/domande) | come nella panoramica |
 
 Il pannello dei filtri (TX-0001) si apre da ogni pagina; la panoramica lo ospita nel wireframe. Il dettaglio usa le stesse transazioni dei report filtrate sull'intervento: nessuna transazione nuova. Raggruppamento per obiettivo in attesa della gerarchia dal backend (OP-FE-07).
+
+## Link del flusso (drill-down dichiarati)
+
+Drill-down verso l'elenco operativo (decisione D-2 dell'utente del 12/10/2026): dal livello minimo di un report si apre
+l'elenco gia' filtrato, con i filtri correnti del finanziario (intervento, os, og, op, azione), e il numero di domande
+coincide con quello del report (D-02 dell'elenco operativo). Solo dove l'insieme di domande del report si riproduce con i
+parametri dell'elenco.
+
+| pagina | link (id) | innesco | arrivo (feature: route) | parametri di path | query |
+|---|---|---|---|---|---|
+| /finanziario | elenco-presentate-panoramica | KPI Domande presentate | elenco-operativo: /elenco-operativo/domande | - | presentata=true + filtri correnti |
+| /finanziario/interventi/:codice | elenco-presentate-intervento | KPI Domande presentate | elenco-operativo: /elenco-operativo/domande | - | presentata=true, intervento=:codice + filtri correnti |
+| /finanziario/interventi/:codice | elenco-anno-intervento | barra di Domande per anno | elenco-operativo: /elenco-operativo/domande | - | presentata=true, intervento=:codice, anno (SENZA per la barra senza anno), annualita del segmento (PRIMA, ALTRE, NON_CLASSIFICATE) + filtri correnti |
+| /finanziario/interventi/:codice | elenco-sigc-intervento | passo di Domande SIGC o di Importi SIGC | elenco-operativo: /elenco-operativo/domande | - | sigc=true, intervento=:codice e, per pagate, da pagare e senza importi, pagamento=PAGATA, DA_PAGARE, SENZA_IMPORTI + filtri correnti |
+
+Non collegati, perche' l'insieme non e' di domande: Avanzamento per intervento e Dotazione per famiglia (TX-0002, dotazione e
+pagamenti per intervento), Pagato sulla dotazione e Dalla dotazione al residuo (TX-0002, TX-0011), Importi ammessi e decretati
+(stanziato e decretato non sono campi dell'elenco). Sulla panoramica le card SIGC restano il passaggio alla pagina SIGC, da cui
+parte il drill-down.
 
 ## Stati resi (obbligatori)
 

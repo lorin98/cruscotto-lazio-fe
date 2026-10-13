@@ -24,12 +24,27 @@ Vocabolario del kit UI v2 (ADR 0027 di green-fe), resa approvata nel prototipo `
 
 | pagina | grafico | tipo | dati (transazione) | clic | valori assenti |
 |---|---|---|---|---|---|
-| /finanziario/sigc | Domande SIGC | imbuto | TX-0012 | nessuno | nessuno (conteggi) |
-| /finanziario/sigc | Importi SIGC | cascata | TX-0013 | nessuno | importo assente: passo omesso |
+| /finanziario/sigc | Domande SIGC | imbuto | TX-0012 | link:elenco-sigc (elenco-operativo: /elenco-operativo/domande) | nessuno (conteggi) |
+| /finanziario/sigc | Importi SIGC | cascata | TX-0013 | link:elenco-sigc-importi (elenco-operativo: /elenco-operativo/domande) | importo assente: passo omesso |
 | /finanziario/sigc/riserva | Utilizzo progressivo della riserva | linea | TX-0014 | nessuno | punti assenti omessi e dichiarati |
 | /finanziario/sigc/verifica-smp | Previsione di pagamento e spesa erogata | barre | TX-0015 | dettaglio dell'intervento | 'non disponibile' in tabella |
 
 La riserva e' un dato regionale: i filtri non si applicano (OP-FE-03).
+
+## Link del flusso (drill-down dichiarati)
+
+Drill-down verso l'elenco operativo (decisione D-2 dell'utente del 12/10/2026): dal livello minimo di un report si apre
+l'elenco gia' filtrato, con i filtri correnti del finanziario (intervento, os, og, op, azione), e il numero di domande
+coincide con quello del report (D-02 e SC-EO_DRILLDOWN dell'elenco operativo: sigc=true&pagamento=PAGATA riproduce le pagate
+di TX-0012).
+
+| pagina | link (id) | innesco | arrivo (feature: route) | parametri di path | query |
+|---|---|---|---|---|---|
+| /finanziario/sigc | elenco-sigc | passo di Domande SIGC | elenco-operativo: /elenco-operativo/domande | - | sigc=true e, per pagate, da pagare e senza importi, pagamento=PAGATA, DA_PAGARE, SENZA_IMPORTI + filtri correnti |
+| /finanziario/sigc | elenco-sigc-importi | Importi SIGC | elenco-operativo: /elenco-operativo/domande | - | sigc=true + filtri correnti (il sinottico dell'elenco riporta richiesto, ammesso, pagato e ancora da pagare) |
+
+Non collegati: Utilizzo progressivo della riserva (TX-0014, dato regionale, non e' un insieme di domande) e Previsione di
+pagamento e spesa erogata (TX-0015, per intervento ed esercizio).
 
 ## Stati resi (obbligatori)
 

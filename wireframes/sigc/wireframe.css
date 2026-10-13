@@ -106,6 +106,15 @@ h2 { font-size: 1.1rem; margin: 18px 0 8px; }
 .ui-tabs .btn { border: 0; border-bottom: 3px solid transparent; border-radius: 0; background: transparent; }
 .ui-tabs .btn[aria-selected="true"] { border-bottom-color: var(--wf-primario); color: var(--wf-primario); font-weight: 600; }
 
+/* interrogazione (ADR 0029): viste salvate, conteggio dal vivo, sinottico sopra, totali dal server sotto */
+.ui-viste { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0; }
+.ui-conteggio { font-weight: 700; color: var(--wf-primario); margin: 4px 0 8px; }
+.ui-sinottico { margin: 12px 0; }
+.ui-sinottico h2 { margin-top: 4px; }
+.ui-sinottico .ui-griglia--4 { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.ui-totali th, .ui-totali td { border-top: 2px solid var(--wf-scuro); font-weight: 700; }
+.ui-aggiornamento { border-left: 4px solid var(--wf-primario); background: #eef4ff; padding: 8px 12px; border-radius: 6px; }
+
 /* stati */
 .ui-skeleton { border-radius: 10px; padding: 18px; color: var(--wf-tenue); background: repeating-linear-gradient(90deg, #e9eef4, #e9eef4 40px, #f4f7fa 40px, #f4f7fa 80px); }
 .ui-vuoto { background: #fff; border: 1px dashed var(--wf-bordo); border-radius: 10px; padding: 18px; text-align: center; }

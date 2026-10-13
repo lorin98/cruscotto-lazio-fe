@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "feature": "finanziario",
-  "pack_hash": "sha256:1ef3a90c51c555441a3a3e3fb203dfdaa0f2f7d1861a5664982f33cb828de4c4",
+  "pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb",
   "spec_pins": [
     {
       "slice": "finanziario",
@@ -38,7 +38,24 @@
       "scope_filters": [
         "territoriale-ada"
       ],
-      "flow": "panoramica"
+      "flow": "panoramica",
+      "links": [
+        {
+          "id": "elenco-presentate-panoramica",
+          "trigger": "KPI Domande presentate: elenco delle domande presentate (presentata=true) con i filtri correnti",
+          "target_feature": "elenco-operativo",
+          "target": "/elenco-operativo/domande",
+          "path_params": [],
+          "query": [
+            "presentata",
+            "intervento",
+            "os",
+            "og",
+            "op",
+            "azione"
+          ]
+        }
+      ]
     },
     {
       "path": "/finanziario/interventi/:codice",
@@ -70,7 +87,57 @@
       "scope_filters": [
         "territoriale-ada"
       ],
-      "flow": "panoramica"
+      "flow": "panoramica",
+      "links": [
+        {
+          "id": "elenco-presentate-intervento",
+          "trigger": "KPI Domande presentate dell'intervento: presentata=true, intervento=:codice, con i filtri correnti",
+          "target_feature": "elenco-operativo",
+          "target": "/elenco-operativo/domande",
+          "path_params": [],
+          "query": [
+            "presentata",
+            "intervento",
+            "os",
+            "og",
+            "op",
+            "azione"
+          ]
+        },
+        {
+          "id": "elenco-anno-intervento",
+          "trigger": "Clic su una barra di Domande per anno: presentata=true, intervento=:codice, anno (SENZA per la barra senza anno), annualita (PRIMA, ALTRE, NON_CLASSIFICATE per il segmento)",
+          "target_feature": "elenco-operativo",
+          "target": "/elenco-operativo/domande",
+          "path_params": [],
+          "query": [
+            "presentata",
+            "anno",
+            "annualita",
+            "intervento",
+            "os",
+            "og",
+            "op",
+            "azione"
+          ]
+        },
+        {
+          "id": "elenco-sigc-intervento",
+          "trigger": "Clic su un passo di Domande SIGC o di Importi SIGC: sigc=true, intervento=:codice e, per pagate, da pagare e senza importi, pagamento=PAGATA, DA_PAGARE, SENZA_IMPORTI",
+          "target_feature": "elenco-operativo",
+          "target": "/elenco-operativo/domande",
+          "path_params": [],
+          "query": [
+            "sigc",
+            "pagamento",
+            "intervento",
+            "os",
+            "og",
+            "op",
+            "azione"
+          ]
+        }
+      ]
     },
     {
       "path": "/finanziario/riepilogo",
@@ -87,7 +154,31 @@
       "scope_filters": [
         "territoriale-ada"
       ],
-      "flow": "riepilogo"
+      "flow": "riepilogo",
+      "links": [
+        {
+          "id": "elenco-presentate-riga",
+          "trigger": "Cella Domande presentate di una riga (o del drawer): presentata=true, intervento della riga; nessun link sulla riga dell'Assistenza tecnica",
+          "target_feature": "elenco-operativo",
+          "target": "/elenco-operativo/domande",
+          "path_params": [],
+          "query": [
+            "presentata",
+            "intervento"
+          ]
+        },
+        {
+          "id": "elenco-pagamenti-riga",
+          "trigger": "Cella Pagamenti al netto delle rettifiche di una riga (o del drawer), etichetta 'righe di pagamento, importi lordi': righe PAGATA degli elenchi di liquidazione dell'intervento (esito=PAGATA, intervento della riga); i recuperi stanno nella scheda della domanda",
+          "target_feature": "elenco-operativo",
+          "target": "/elenco-operativo/pagamenti",
+          "path_params": [],
+          "query": [
+            "esito",
+            "intervento"
+          ]
+        }
+      ]
     },
     {
       "path": "/finanziario/dotazione",
@@ -156,7 +247,73 @@
       "scope_filters": [
         "territoriale-ada"
       ],
-      "flow": "domande"
+      "flow": "domande",
+      "links": [
+        {
+          "id": "elenco-presentate-domande",
+          "trigger": "Azione 'Apri nell'elenco' del KPI Domande presentate: presentata=true con i filtri correnti",
+          "target_feature": "elenco-operativo",
+          "target": "/elenco-operativo/domande",
+          "path_params": [],
+          "query": [
+            "presentata",
+            "intervento",
+            "os",
+            "og",
+            "op",
+            "azione"
+          ]
+        },
+        {
+          "id": "elenco-prima-annualita",
+          "trigger": "Azione 'Apri nell'elenco' del KPI Di cui prima annualita': presentata=true, annualita=PRIMA, con i filtri correnti",
+          "target_feature": "elenco-operativo",
+          "target": "/elenco-operativo/domande",
+          "path_params": [],
+          "query": [
+            "presentata",
+            "annualita",
+            "intervento",
+            "os",
+            "og",
+            "op",
+            "azione"
+          ]
+        },
+        {
+          "id": "elenco-anno-annualita",
+          "trigger": "Azione 'Apri nell'elenco' su una cella (anno per annualita') della tabella equivalente di Domande per anno di raccolta (il clic sulle barre filtra la tabella in pagina): presentata=true, anno (SENZA per la riga senza anno), annualita della colonna, con i filtri correnti",
+          "target_feature": "elenco-operativo",
+          "target": "/elenco-operativo/domande",
+          "path_params": [],
+          "query": [
+            "presentata",
+            "anno",
+            "annualita",
+            "intervento",
+            "os",
+            "og",
+            "op",
+            "azione"
+          ]
+        },
+        {
+          "id": "elenco-anno",
+          "trigger": "Azione 'Apri nell'elenco' su una riga (anno) della tabella equivalente di Importi ammessi e decretati per anno: le domande presentate dell'anno (presentata=true, anno), con i filtri correnti",
+          "target_feature": "elenco-operativo",
+          "target": "/elenco-operativo/domande",
+          "path_params": [],
+          "query": [
+            "presentata",
+            "anno",
+            "intervento",
+            "os",
+            "og",
+            "op",
+            "azione"
+          ]
+        }
+      ]
     },
     {
       "path": "/finanziario/sigc",
@@ -176,7 +333,40 @@
       "scope_filters": [
         "territoriale-ada"
       ],
-      "flow": "sigc"
+      "flow": "sigc",
+      "links": [
+        {
+          "id": "elenco-sigc",
+          "trigger": "Clic su un passo di Domande SIGC: sigc=true e, per pagate, da pagare e senza importi, pagamento=PAGATA, DA_PAGARE, SENZA_IMPORTI, con i filtri correnti",
+          "target_feature": "elenco-operativo",
+          "target": "/elenco-operativo/domande",
+          "path_params": [],
+          "query": [
+            "sigc",
+            "pagamento",
+            "intervento",
+            "os",
+            "og",
+            "op",
+            "azione"
+          ]
+        },
+        {
+          "id": "elenco-sigc-importi",
+          "trigger": "Clic su Importi SIGC: le domande SIGC (sigc=true) con i filtri correnti; il sinottico dell'elenco ne riporta richiesto, ammesso, pagato e ancora da pagare",
+          "target_feature": "elenco-operativo",
+          "target": "/elenco-operativo/domande",
+          "path_params": [],
+          "query": [
+            "sigc",
+            "intervento",
+            "os",
+            "og",
+            "op",
+            "azione"
+          ]
+        }
+      ]
     },
     {
       "path": "/finanziario/sigc/riserva",
@@ -1206,10 +1396,11 @@
         "Download per formato (PNG, CSV, XLSX): un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo. Deviazione rivista V-07."
       ],
       "approval": {
-        "approved_hash": "sha256:ecffce8c1dc73d87475d4fc338c8e5702f68ca81cf14fbe267d683caab2133ff",
+        "approved_hash": "sha256:c95ce5486fe1633a14c053c03f7f538b87508753c6ee49bd90ebdfbbddca82a9",
         "baseline_ref": "./wireframes/panoramica",
-        "approved_at": "2026-10-08T19:40:06Z",
-        "rework_rounds": 0
+        "approved_at": "2026-10-13T09:29:35Z",
+        "time_to_approve_s": 423,
+        "rework_rounds": 1
       }
     },
     {
@@ -1226,10 +1417,11 @@
         "Download per formato (PNG, CSV, XLSX): un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo. Deviazione rivista V-07."
       ],
       "approval": {
-        "approved_hash": "sha256:cfd3e79a08917ad2d73050d7a06a0e147c175736725e890be9afc0a95083d946",
+        "approved_hash": "sha256:dd4f72bd5ac49ee6b2242911ede34fab604828107734d1412cb011bb6eed7d25",
         "baseline_ref": "./wireframes/riepilogo",
-        "approved_at": "2026-10-08T19:40:06Z",
-        "rework_rounds": 0
+        "approved_at": "2026-10-13T09:29:35Z",
+        "time_to_approve_s": 423,
+        "rework_rounds": 1
       }
     },
     {
@@ -1246,10 +1438,11 @@
         "Download per formato (PNG, CSV, XLSX): un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo. Deviazione rivista V-07."
       ],
       "approval": {
-        "approved_hash": "sha256:cacbae46568ade77e42d1fd7d473d609220181ff561a584e6a7fa0884d357e2e",
+        "approved_hash": "sha256:0c638823f8b941f469abe39fefb091a0d16ce658c197ee75ecaf815c2bc82f04",
         "baseline_ref": "./wireframes/dotazione-avanzamento",
-        "approved_at": "2026-10-08T19:40:06Z",
-        "rework_rounds": 0
+        "approved_at": "2026-10-13T09:29:35Z",
+        "time_to_approve_s": 423,
+        "rework_rounds": 1
       }
     },
     {
@@ -1265,10 +1458,11 @@
         "Download per formato (PNG, CSV, XLSX): un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo. Deviazione rivista V-07."
       ],
       "approval": {
-        "approved_hash": "sha256:8add28975911489fb65d33091ab17123599f9210f2dc0e6a4b831fd74cdd0a2e",
+        "approved_hash": "sha256:df361046ae5873e950f285637b70d445aad5a12b27e49a371edf4d8fb1612c60",
         "baseline_ref": "./wireframes/domande",
-        "approved_at": "2026-10-08T19:40:06Z",
-        "rework_rounds": 0
+        "approved_at": "2026-10-13T09:29:35Z",
+        "time_to_approve_s": 423,
+        "rework_rounds": 1
       }
     },
     {
@@ -1288,10 +1482,11 @@
         "Download per formato (PNG, CSV, XLSX): un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo. Deviazione rivista V-07."
       ],
       "approval": {
-        "approved_hash": "sha256:c8ff776b8fb0cf997092f0aaa66c8550b84cd74453015978fcc94837ab3f98f7",
+        "approved_hash": "sha256:fcf46020975c719ca129e4ad44695d55621514eda3d4e8ab36cd8f8828bc7c19",
         "baseline_ref": "./wireframes/sigc",
-        "approved_at": "2026-10-08T19:40:06Z",
-        "rework_rounds": 0
+        "approved_at": "2026-10-13T09:29:35Z",
+        "time_to_approve_s": 423,
+        "rework_rounds": 1
       }
     }
   ],

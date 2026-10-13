@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "finanziario",
-  "current_step": 9,
+  "current_step": 2,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -13,9 +13,9 @@
       ],
       "gates": {
         "handover_verified": {
-          "approved_hash": "sha256:8e89fd508b0b947fc3a3eb1243953d18b7a9e3f30dc689f1dcab18ae1dfa42e8",
+          "approved_hash": "sha256:f22ea4ff3a4d6c0d2bd245bea98d850617ee062bece281f159a7459311098de6",
           "baseline_ref": "./handover.json",
-          "approved_at": "2026-10-08T19:28:18Z"
+          "approved_at": "2026-10-13T08:44:22Z"
         }
       }
     },
@@ -23,149 +23,121 @@
       "status": "done",
       "gates": {
         "wireframe_panoramica": {
-          "approved_hash": "sha256:ecffce8c1dc73d87475d4fc338c8e5702f68ca81cf14fbe267d683caab2133ff",
+          "approved_hash": "sha256:c95ce5486fe1633a14c053c03f7f538b87508753c6ee49bd90ebdfbbddca82a9",
           "baseline_ref": "./wireframes/panoramica",
-          "approved_at": "2026-10-08T19:40:11Z",
+          "approved_at": "2026-10-13T09:29:35Z",
+          "time_to_approve_s": 423,
           "deviations_reviewed": [
             "V-22 (review step9 v2, scelta dell utente del 09/10/2026): il pulsante del pannello dei filtri resta Applica i filtri e non Mostra n interventi; il conteggio richiede il legame intervento-OS-OG-OP (OP-FE-07), che TX-0001 non espone",
             "V-07 (review step9 v3, download per formato chiesto dall utente il 09/10/2026, deviazione confermata il 12/10/2026): al posto del solo Scarica per card e di Esporta CSV per le tabelle, un pulsante per formato con la sigla visibile; PNG del grafico come si vede con l intestazione di NFR-50 (V-01), CSV e XLSX scritti dal backend (D-08). Il PNG non e registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08, scelta dell utente del 12/10/2026"
           ]
         },
         "wireframe_riepilogo": {
-          "approved_hash": "sha256:cfd3e79a08917ad2d73050d7a06a0e147c175736725e890be9afc0a95083d946",
+          "approved_hash": "sha256:dd4f72bd5ac49ee6b2242911ede34fab604828107734d1412cb011bb6eed7d25",
           "baseline_ref": "./wireframes/riepilogo",
-          "approved_at": "2026-10-08T19:40:11Z",
+          "approved_at": "2026-10-13T09:29:35Z",
+          "time_to_approve_s": 423,
           "deviations_reviewed": [
             "V-07 (review step9 v3, download per formato chiesto dall utente il 09/10/2026, deviazione confermata il 12/10/2026): al posto del solo Scarica per card e di Esporta CSV per le tabelle, un pulsante per formato con la sigla visibile; PNG del grafico come si vede con l intestazione di NFR-50 (V-01), CSV e XLSX scritti dal backend (D-08). Il PNG non e registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08, scelta dell utente del 12/10/2026"
           ]
         },
         "wireframe_dotazione-avanzamento": {
-          "approved_hash": "sha256:cacbae46568ade77e42d1fd7d473d609220181ff561a584e6a7fa0884d357e2e",
+          "approved_hash": "sha256:0c638823f8b941f469abe39fefb091a0d16ce658c197ee75ecaf815c2bc82f04",
           "baseline_ref": "./wireframes/dotazione-avanzamento",
-          "approved_at": "2026-10-08T19:40:11Z",
+          "approved_at": "2026-10-13T09:29:35Z",
+          "time_to_approve_s": 423,
           "deviations_reviewed": [
             "V-07 (review step9 v3, download per formato chiesto dall utente il 09/10/2026, deviazione confermata il 12/10/2026): al posto del solo Scarica per card e di Esporta CSV per le tabelle, un pulsante per formato con la sigla visibile; PNG del grafico come si vede con l intestazione di NFR-50 (V-01), CSV e XLSX scritti dal backend (D-08). Il PNG non e registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08, scelta dell utente del 12/10/2026"
           ]
         },
         "wireframe_domande": {
-          "approved_hash": "sha256:8add28975911489fb65d33091ab17123599f9210f2dc0e6a4b831fd74cdd0a2e",
+          "approved_hash": "sha256:df361046ae5873e950f285637b70d445aad5a12b27e49a371edf4d8fb1612c60",
           "baseline_ref": "./wireframes/domande",
-          "approved_at": "2026-10-08T19:40:11Z",
+          "approved_at": "2026-10-13T09:29:35Z",
+          "time_to_approve_s": 423,
           "deviations_reviewed": [
             "V-07 (review step9 v3, download per formato chiesto dall utente il 09/10/2026, deviazione confermata il 12/10/2026): al posto del solo Scarica per card e di Esporta CSV per le tabelle, un pulsante per formato con la sigla visibile; PNG del grafico come si vede con l intestazione di NFR-50 (V-01), CSV e XLSX scritti dal backend (D-08). Il PNG non e registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08, scelta dell utente del 12/10/2026"
           ]
         },
         "wireframe_sigc": {
-          "approved_hash": "sha256:c8ff776b8fb0cf997092f0aaa66c8550b84cd74453015978fcc94837ab3f98f7",
+          "approved_hash": "sha256:fcf46020975c719ca129e4ad44695d55621514eda3d4e8ab36cd8f8828bc7c19",
           "baseline_ref": "./wireframes/sigc",
-          "approved_at": "2026-10-08T19:40:11Z",
+          "approved_at": "2026-10-13T09:29:35Z",
+          "time_to_approve_s": 423,
           "deviations_reviewed": [
             "V-07 (review step9 v3, download per formato chiesto dall utente il 09/10/2026, deviazione confermata il 12/10/2026): al posto del solo Scarica per card e di Esporta CSV per le tabelle, un pulsante per formato con la sigla visibile; PNG del grafico come si vede con l intestazione di NFR-50 (V-01), CSV e XLSX scritti dal backend (D-08). Il PNG non e registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08, scelta dell utente del 12/10/2026"
           ]
         }
       },
-      "completed_at": "2026-10-08T19:40:23Z",
+      "completed_at": "2026-10-13T09:30:04Z",
       "artifacts": [
         "./uiplan.json"
       ]
     },
     "step2-codegen": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-09T13:45:12Z",
       "artifacts": [
         "./specs/.spec-lock.json",
         "./src/shared/api/generated"
       ],
-      "gates": {
-        "codegen_compiles": "pass",
-        "orval_types": "pass",
-        "csrf_static": "pass"
-      }
+      "gates": {}
     },
     "step3-api": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-09T13:45:48Z",
       "artifacts": [
         "./src/features"
       ],
-      "gates": {
-        "api_wrappers_compile": "pass",
-        "querykey_from_factory": "pass"
-      }
+      "gates": {}
     },
     "step4-lib": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-09T13:46:24Z",
       "artifacts": [
         "./src/shared/lib"
       ],
-      "gates": {
-        "lib_pure_compile": "pass",
-        "lib_zero_react": "pass"
-      }
+      "gates": {}
     },
     "step5-ui": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-09T13:47:29Z",
       "artifacts": [
         "./src/features"
       ],
-      "gates": {
-        "ui_components_compile": "pass",
-        "ui_a11y_axe": "pass"
-      }
+      "gates": {}
     },
     "step6-page": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-09T13:48:10Z",
       "artifacts": [
         "./src/pages",
         "./route-manifest.json"
       ],
-      "gates": {
-        "pages_compile": "pass",
-        "route_manifest_valid": "pass"
-      }
+      "gates": {}
     },
     "step7-test": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-09T13:48:17Z",
       "artifacts": [
         "./src/shared/test",
         "./src/shared/api/mock",
         "./src/shared/testing/axe.ts"
       ],
-      "gates": {
-        "tests_generated": "pass",
-        "msw_fail_closed": "pass"
-      }
+      "gates": {}
     },
     "step8-gate": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-09T13:53:23Z",
       "artifacts": [
         "./fe-gate-report.json"
       ],
-      "gates": {
-        "lint": "pass",
-        "typecheck": "pass",
-        "test": "pass",
-        "a11y": "pass",
-        "build": "pass",
-        "fsd_import": "pass",
-        "orval_types": "pass",
-        "security": "pass",
-        "authz": "pass",
-        "wireframe_approved": "pass",
-        "req_coverage_ui": "pass"
-      }
+      "gates": {}
     },
     "step9-review": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-12T10:23:02Z",
-      "gates": {
-        "review": "pass"
-      }
+      "gates": {}
     }
   },
   "open_blockers": [],
@@ -186,6 +158,6 @@
     "gate_budget": 8
   },
   "didactic_level": "standard",
-  "pack_version": "1.0.0",
-  "pack_hash": "sha256:1ef3a90c51c555441a3a3e3fb203dfdaa0f2f7d1861a5664982f33cb828de4c4"
+  "pack_version": "1.3.0",
+  "pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
 }

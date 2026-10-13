@@ -24,6 +24,20 @@ Vocabolario del kit UI v2 (ADR 0027 di green-fe), resa approvata nel prototipo `
 
 La riga apre il drawer di anteprima; dal drawer si passa al dettaglio dell'intervento. Export CSV con gli stessi filtri e X-Requested-With.
 
+## Link del flusso (drill-down dichiarati)
+
+Drill-down verso l'elenco operativo (decisione D-2 dell'utente del 12/10/2026) dalle celle della tabella e dal drawer.
+
+| pagina | link (id) | innesco | arrivo (feature: route) | parametri di path | query |
+|---|---|---|---|---|---|
+| /finanziario/riepilogo | elenco-presentate-riga | cella Domande presentate di una riga, o del drawer | elenco-operativo: /elenco-operativo/domande | - | presentata=true, intervento della riga |
+| /finanziario/riepilogo | elenco-pagamenti-riga | cella Pagamenti al netto delle rettifiche di una riga, o del drawer, con l'etichetta "righe di pagamento, importi lordi" | elenco-operativo: /elenco-operativo/pagamenti | - | esito=PAGATA, intervento della riga |
+
+La riga dell'Assistenza tecnica non ha link (AT001 non e' selezionabile nell'elenco). Il link dei pagamenti porta l'etichetta
+"righe di pagamento, importi lordi": l'elenco dei pagamenti mostra il pagato lordo delle righe PAGATA, il report il netto delle
+rettifiche; la differenza sono i recuperi, che stanno nella scheda della domanda (decisione dell'utente del 13/10/2026).
+Dotazione, risorse FEASR, stanziato, impegnato e residui non sono collegati (non sono insiemi di domande).
+
 ## Stati resi (obbligatori)
 
 - vuoto: messaggio azionabile con "Modifica i filtri" (mai schermo bianco)
