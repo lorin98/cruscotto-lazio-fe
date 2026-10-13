@@ -1,0 +1,34 @@
+[
+  {
+    "id": "X-01",
+    "severity": "MAGGIORE",
+    "file": "src/pages/finanziario/riepilogo/page.test.tsx:146",
+    "titolo": "I due test che dichiarano 'il link nella riga non apre l'anteprima' non possono fallire sul clic: guardano l'anteprima dopo che la navigazione ha smontato la pagina",
+    "evidenza": "Il clic su un link dentro la riga non apre l'anteprima solo grazie al ramo onClick di gestoriRigaApribile (rigaApribile.ts:18-20, daControlloInterno). I due test che lo dichiarano controllano l'anteprima solo a navigazione completata: riga 145 (waitFor del pathname /elenco-operativo/domande) e poi 146, righe 190-192 nel test dell'Invio. In renderPagina (shared/testing/render-pagina.tsx) la route '*' sostituisce la pagina, che si smonta insieme al PannelloLaterale, quindi `queryByRole('dialog')` vale null anche se la riga ha aperto l'anteprima. Mutazione verificata leggendo il codice: con `onClick: apri` il Link naviga (useLinkClickHandler), la riga apre l'anteprima nello stesso clic e i test restano verdi. Il test dell'Invio prova solo il ramo onKeyDown: senza il controllo del target il preventDefault sul keydown impedisce il clic sul link e la navigazione. Restano senza prova due casi che si vedono: Ctrl/Cmd+clic o clic centrale sul link (il Link non naviga, la riga aprirebbe l'anteprima nella pagina), e il primo drill-down, durante il caricamento lazy del modulo dell'elenco (routes.tsx, lazy), quando l'anteprima modale si aprirebbe e prenderebbe il focus. Non e' H-04 (lente H): H-04 chiede i test del kit e considera il contratto 'provato da un caso della pagina riepilogo', ma per il clic non lo e'. E' lo stesso schema di V-01 dell'iterazione 1 (test negativo che non puo' fallire, MAGGIORE).",
+    "fix": "In riepilogo/page.test.tsx:140 e :179 provare l'assenza dell'anteprima restando sulla pagina. Prima del clic: `link.addEventListener('click', (e) => e.preventDefault(), { capture: true })`, cosi' il Link non naviga perche' l'evento e' gia' prevenuto. Poi clic e Invio sul link: pathname ancora /finanziario/riepilogo e `queryByRole('dialog')` null. Il clic su una cella senza link apre ancora l'anteprima.\nNel kit, insieme al fix di H-04: riga con <a> e <button>, onRiga non chiamato.\nProva di mutazione: con `onClick: apri` in rigaApribile.ts:18 i test devono fallire."
+  },
+  {
+    "id": "X-02",
+    "severity": "MINORE",
+    "file": "tests/finanziario-link-elenco.test.ts:102",
+    "titolo": "V-02 risolto in parte: il test dei grant di destinazione usa toContain sulla visibility e accetta csr.tx-0060.read come grant dei pagamenti",
+    "evidenza": "Il fix di V-02 confronta GRANT_DESTINAZIONE con la route-table con toContain (riga 102) e con un not.toBe fra le due destinazioni (riga 104). Le route dell'elenco pero' hanno piu' grant in OR: route-table, domande [tx-0056, tx-0057, tx-0060] e pagamenti [tx-0059, tx-0060]; RequireGrant usa some. Con `'/elenco-operativo/pagamenti': 'csr.tx-0060.read'` passa tutto: il test dello uiplan (il grant e' contenuto ed e' diverso da tx-0056); il caso del riepilogo 'TX-0056 senza TX-0059' (page.test.tsx:194), perche' quel profilo non ha nemmeno tx-0060; i test negativi (nessuno ha tx-0060); i test positivi, perche' il profilo di fixture ha 0059 e 0060. Nessun test del finanziario usa tx-0060 senza tx-0059. Per le domande la stessa mutazione la prende il test di riga 194. Oggi non ha effetti visibili: nel catalogo (role_transaction_matrix) ogni profilo ha 0056, 0059 e 0060 insieme. Pero' il blocco che si dichiara 'copie verbatim verificate' (riga 93) non fissa il grant, che era il punto di V-02.",
+    "fix": "Fissare il grant alla lettura che apre la lista, dal catalogo: `expect(GRANT_DESTINAZIONE).toEqual({ '/elenco-operativo/domande': <grant di TX-0056 in handover/authz-catalog.json>, '/elenco-operativo/pagamenti': <grant di TX-0059> })`, al posto del toContain sulla visibility. In alternativa un caso del riepilogo con tx-0060 e senza tx-0059: nessun link 'righe di pagamento, importi lordi' e nessuna nota sui lordi."
+  },
+  {
+    "id": "X-03",
+    "severity": "COSMETICO",
+    "file": "src/shared/ui/tema.css:194",
+    "titolo": "Il fix del bersaglio da 24 px (X-04) sposta a sinistra i link 'Apri nell'elenco' delle celle numeriche, sotto numeri allineati a destra",
+    "evidenza": "bb154f3 cambia `.ui-link-elenco` da `display: block` a `display: flex; width: fit-content` (riga 194). Le celle che contengono il link sono numeriche, allineate a destra con text-align (`.ui-num`, riga 224): nel riepilogo le colonne Domande presentate e Pagamenti al netto (RiepilogoReport.tsx:69 e :81, td.ui-num di TabellaInterattiva.tsx:86); poi TabellaRighe e TabellaVoci, dove ogni td e' ui-num (TabelleSemplici.tsx), con colonneAnno.tsx:28, DomandeReport.tsx:221 e SigcReport.tsx:71. text-align non sposta un box a livello di blocco: con larghezza fit-content il link sta sul bordo sinistro della cella, sotto un numero allineato a destra. Prima, come blocco a tutta larghezza, il testo del link era a destra come il numero. Nessun test lo vede: jsdom non fa layout.",
+    "fix": "In tema.css `.ui-num .ui-link-elenco { margin-left: auto; }`: il box a larghezza fit-content va a destra, il bersaglio resta di 24 px. Aggiungere 'allineamento del link nelle celle numeriche' al residuo umano gia' aperto per 2.5.8."
+  },
+  {
+    "id": "X-04",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/ui/RiepilogoReport.tsx:156",
+    "titolo": "Ordine e pagina del riepilogo si ritrovano 'tornando dal dettaglio' solo con il Back del browser: 'Torna al riepilogo' e la briciola ripartono dallo stato iniziale",
+    "evidenza": "Il commento della riga 156 promette 'ordine e pagina da ritrovare tornando indietro dall'elenco operativo o dal dettaglio', ma lo stato sta solo nella voce di history del riepilogo (useStatoNellaHistory.ts:24-27). Dal dettaglio si torna con 'Torna al riepilogo' (DettaglioIntervento.tsx:59 e :291) e con la briciola 'Riepilogo per intervento' (AL_RIEPILOGO in pages/finanziario/interventi/page.tsx, Briciole di PaginaFinanziario). Sono navigazioni push verso una voce nuova senza state: il riepilogo riparte da dotazione decrescente, prima pagina, e la cronologia diventa riepilogo > dettaglio > riepilogo. Solo il Back del browser ritrova ordine e pagina. Chi usa tastiera o lettore di schermo segue il link visibile, quindi riattraversa la tabella come descriveva X-03. Nessun test copre il ritorno dal dettaglio.",
+    "fix": "Correggere il commento ('con il Back del browser'). Se si vuole il ritorno: aprendo il dettaglio dal riepilogo (Link dell'anteprima, RiepilogoReport.tsx:142, e dalClic di useApriIntervento) mettere nello state una marca con la firma dei filtri. Con quella marca 'Torna al riepilogo' fa navigate(-1), come SchedaDomanda.tsx:28; senza, resta il link di oggi."
+  }
+]

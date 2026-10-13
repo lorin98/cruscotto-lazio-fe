@@ -1,0 +1,146 @@
+[
+  {
+    "id": "X-01",
+    "severity": "MAGGIORE",
+    "file": "src/pages/finanziario/riepilogo/page.test.tsx:146",
+    "titolo": "I test che dichiarano 'il link nella riga non apre l'anteprima' non possono fallire sul clic: guardano il dialogo dopo che la navigazione ha smontato la pagina; il kit non prova gestoriRigaApribile",
+    "evidenza": "Il clic sul link non apre l'anteprima solo per il ramo onClick di gestoriRigaApribile (rigaApribile.ts:18-20), ma il test 140-147 cerca il dialogo dopo il waitFor del pathname /elenco-operativo/domande, quando la route '*' di renderPagina (shared/testing/render-pagina.tsx:15) ha gia' smontato la pagina col PannelloLaterale: con `onClick: apri` il Link naviga, la riga apre l'anteprima nello stesso clic e il test resta verde (cosi' anche 190-192 e il test di ritorno 205-217); il test dell'Invio prova solo il ramo onKeyDown. tests/shared-ui-kit.test.tsx:131 non ha righe con un link o un pulsante e TabellaServer, che ora usa gli stessi gestori, non ha test diretti.",
+    "fix": "In riepilogo/page.test.tsx:140 e :179 restare sulla pagina: prima del clic `link.addEventListener('click', (e) => e.preventDefault(), { capture: true })`, poi clic e Ctrl+clic sul link: pathname ancora /finanziario/riepilogo e queryByRole('dialog') null; il clic su una cella senza link apre ancora l'anteprima.\nIn tests/shared-ui-kit.test.tsx, per TabellaInterattiva e TabellaServer: riga con un <a> e un <button>; clic e Invio sul controllo non chiamano onRiga, clic e Invio sulla riga si'.\nProva di mutazione: con `onClick: apri` in rigaApribile.ts:18 i test falliscono.",
+    "fonti": ["X-01", "H-04"]
+  },
+  {
+    "id": "V-04",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/DettaglioIntervento.tsx:168",
+    "titolo": "Residuo di A-05: nel dettaglio di un intervento senza domande SIGC (o senza righe per anno) i sottotitoli promettono il clic su un grafico non disegnato e quattro link aprono un elenco vuoto",
+    "evidenza": "La VistaQuery di DomandeSigc (riga 163) non ha eVuoto: con presentate 0 graficoDomandeSigc e' non disegnabile (grafici/sigc.ts:73), ma il sottotitolo aggiunge CLIC_BARRA col solo grant (riga 168) e VociSigcNellElenco (riga 174) rende i link presentate, pagate, da pagare e senza importi, mentre la card accanto dice 'Nessuna domanda SIGC per questo intervento.' (riga 190) e la pagina SIGC dichiara il vuoto (SigcReport.tsx:51). Lo stesso in Domande per anno (riga 118): senza righe il grafico non si disegna (grafici/domande.ts:50) e la tabella non ha celle, ma il sottotitolo promette segmento e cella. Caso di ogni intervento non SIGC: il fix di A-05 ha condizionato su opzioni !== null solo la cascata (riga 204) e finanziario-casi-limite.test.tsx:168 guarda solo Importi SIGC.",
+    "fix": "DomandeSigc: `eVuoto={(d) => d.presentate === 0} vuoto={SENZA_SIGC}` come ImportiSigc (ne' grafico ne' VociSigcNellElenco).\nCLIC_BARRA (riga 168) e il sottotitolo della riga 118 solo con `conLink && dati.opzioni !== null`, calcolando il grafico una volta.\nNel test di finanziario-casi-limite.test.tsx:168: nella scheda SIGC nessun 'Clic su una barra' e nessun link verso /elenco-operativo.",
+    "fonti": ["V-04", "A-02"]
+  },
+  {
+    "id": "V-06",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/DomandeReport.tsx:238",
+    "titolo": "La tabella equivalente di RF010 con i link (fix di V-05) ricopia a mano caption, intestazioni e formattatori di graficoImportiPerAnno, senza un test con e senza grant: ritorna lo schema di H-05",
+    "evidenza": "colonneImportiEquivalente (righe 238-246) e la TabellaRighe della riga 263 riscrivono caption, 'Anno', 'Stanziato', 'Ammesso', 'Decretato', 'Domande senza importo ammesso', cellaImporto e numeroOpzionale che graficoImportiPerAnno costruisce in lib/grafici/domande.ts:99-102; 'stesse intestazioni e celle' resta un commento (righe 234-236). Oggi coincidono, ma cambiando una colonna del builder la vista Tabella di RF010 diverge secondo il profilo e i test restano verdi: domande/page.test.tsx:122 guarda le intestazioni solo col grant, il caso senza grant (139-147) solo l'assenza della colonna. Caption e prima intestazione di Domande per anno sono anch'esse ripetute a mano (DomandeReport.tsx:151 e 177, DettaglioIntervento.tsx:126-127).",
+    "fix": "Esportare da lib/grafici/domande.ts la definizione delle colonne di Importi per anno (titolo e cella), usata da graficoImportiPerAnno e da colonneImportiEquivalente piu' la sola colonna 'Elenco operativo'; caption e prima intestazione da dati.tabella, anche per Domande per anno (in alternativa la prop additiva azioneCella di CardGrafico/TabellaDati, seconda strada di H-05).\nIn domande/page.test.tsx, come interventi/page.test.tsx:166: con e senza TX-0056 la vista Tabella di RF008 e RF010 ha le stesse intestazioni e gli stessi testi di cella, link a parte.",
+    "fonti": ["V-06", "H-02"]
+  },
+  {
+    "id": "V-03",
+    "severity": "MINORE",
+    "file": "src/shared/ui/tabella/TabellaInterattiva.tsx:195",
+    "titolo": "Residuo di X-03: tornando dall'elenco il riepilogo ripristina la pagina ma non la ricerca, e mostra la pagina N dell'intero elenco; ripristino della pagina e contratto statoIniziale/onStato senza test",
+    "evidenza": "StatoTabella contiene solo { ordine, pagina } (righe 195-198) e `cercato` resta useState('') (riga 203), mentre la pagina e' un indice nelle righe filtrate (righe 220-222): con la ricerca 'SRA' attiva, pagina 2, link verso l'elenco e Indietro, la casella e' vuota e la tabella mostra la seconda pagina di tutto il riepilogo, con righe e totali diversi da quelli lasciati (X-03 chiedeva 'ricerca, ordinamento e pagina'). Il test di ritorno (riepilogo/page.test.tsx:205) prova solo aria-sort su una fixture di 2 righe, senza paginazione, e tests/shared-ui-kit.test.tsx non prova statoIniziale e onStato (vince su ordineIniziale, nessuna notifica al montaggio, pagina 0 dopo una ricerca).",
+    "fix": "Aggiungere `cercato: string` a StatoTabella: useState(props.statoIniziale?.cercato ?? '') e notifica insieme a ordine e pagina (in alternativa, con una ricerca attiva notificare pagina 0).\nTest L2 in riepilogo/page.test.tsx con piu' di 10 righe: ricerca, pagina 2, link, router.navigate(-1): stessa ricerca e stesse intestazioni di riga.\nIn tests/shared-ui-kit.test.tsx: statoIniziale vince su ordineIniziale e apre la pagina indicata; onStato non chiamato al montaggio, chiamato a ordinamento, cambio di pagina e ricerca.",
+    "fonti": ["V-03", "H-03", "H-04"]
+  },
+  {
+    "id": "A-01",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/DomandeReport.tsx:189",
+    "titolo": "Anno della pagina domande e scheda del dettaglio hanno come unica fonte la history, aggiornata in modo asincrono: la select controllata torna per un istante all'anno precedente",
+    "evidenza": "Da fc8a130 `anno` deriva da location.state (riga 189, useStatoNellaHistory.ts:19-21) e cambia solo con il navigate replace (useStatoNellaHistory.ts:24), che aggiorna lo stato del router dopo `await handleLoaders` (react-router lib/router/router.js:557) e dentro React.startTransition (RouterProvider senza useTransitions=false). Alla fine dell'evento change React riporta la select controllata (`value={anno ?? ''}`, riga 121) al valore delle props, cioe' all'anno precedente, finche' la transizione non arriva al commit; lo stesso per aria-selected delle schede del dettaglio (useScheda, DettaglioIntervento.tsx:224). domande/page.test.tsx:136 usa waitFor e non lo vede, mentre TabellaInterattiva tiene ordine e pagina in uno stato locale e rispecchia la history.",
+    "fix": "In DomandePerAnnoSezione stato locale come fonte (`useState(annoSalvato)`, con la validazione sugli anni gia' presente) e la history come specchio: onAnno = (a) => { setAnnoLocale(a); setAnno(a); }. Stesso schema in useScheda (useState inizializzato da ?scheda=, setRicerca come specchio).\nTest: `fireEvent.change(select, { target: { value: '2024' } }); expect(select.value).toBe('2024')`, sincrono e senza waitFor (oggi fallisce).",
+    "fonti": ["A-01"]
+  },
+  {
+    "id": "X-02",
+    "severity": "MINORE",
+    "file": "tests/finanziario-link-elenco.test.ts:102",
+    "titolo": "Residuo di V-02: il test dei grant di destinazione usa toContain sulla visibility della route e accetta csr.tx-0060.read come grant dei pagamenti",
+    "evidenza": "Le route dell'elenco hanno piu' grant in OR (route-table: domande tx-0056, tx-0057, tx-0060; pagamenti tx-0059, tx-0060) e il test controlla solo che il grant sia contenuto (riga 102) e diverso fra le due destinazioni (riga 104). Con 'csr.tx-0060.read' per '/elenco-operativo/pagamenti' (link-elenco.ts:101) passano questo test, il caso TX-0056 senza TX-0059 (riepilogo/page.test.tsx:194, profilo senza tx-0060), i negativi e i positivi (fixture con 0059 e 0060): il blocco 'copie verbatim verificate' (riga 93) non fissa il grant, che era il punto di V-02. Oggi senza effetto: nel catalogo ogni profilo ha 0056, 0059 e 0060 insieme.",
+    "fix": "Al posto del toContain: `expect(GRANT_DESTINAZIONE).toEqual({ '/elenco-operativo/domande': <grant di TX-0056>, '/elenco-operativo/pagamenti': <grant di TX-0059> })`, con i due grant letti da handover/authz-catalog.json (grants).\nIn alternativa un caso del riepilogo con tx-0060 e senza tx-0059: nessun link 'righe di pagamento, importi lordi' e nessuna nota sui lordi.",
+    "fonti": ["X-02"]
+  },
+  {
+    "id": "H-01",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/testing/tabelle.ts:2",
+    "titolo": "L'helper unico dei test (fix di H-12 e H-13) sta in features/finanziario e importa src/app/route-table.json: dipendenza features -> app invisibile al lint",
+    "evidenza": "tabelle.ts importa '../../../app/route-table.json' (riga 2) e '../../../../uiplan.json' (riga 3): e' l'unico modulo sotto src/features che importa dal layer app, vietato dalla policy features -> entities/shared di boundaries/dependencies (eslint.config.js:285), che non lo vede perche' 'boundaries/include' classifica solo src/**/*.{ts,tsx} (riga 254). Il progetto tiene apposta fuori da src gli helper che leggono app (tests/app-client.ts:2) e tutti i consumatori di ROTTE_FINANZIARIO sono sotto tests/; inoltre interventi/page.test.tsx:171 toglie ancora i link a mano (`querySelectorAll('a')`) invece di usare senzaLinkElenco.",
+    "fix": "Spostare ROTTE_FINANZIARIO in tests/ (es. tests/rotte-finanziario.ts, come tests/app-client.ts); in features/finanziario/testing/tabelle.ts resta solo senzaLinkElenco, senza import da app ne' dalla radice; usarlo in interventi/page.test.tsx:171.\nFacoltativo: pattern '**/app/*.json' in no-restricted-imports dei blocchi di features, entities e shared.",
+    "fonti": ["H-01"]
+  },
+  {
+    "id": "V-01",
+    "severity": "MINORE",
+    "file": "wireframes/panoramica/intervento.html:102",
+    "titolo": "Residuo di V-03: nel flusso panoramica riapprovato il gauge del dettaglio si chiama 'Pagato netto', ma didascalia e fonte parlano ancora dei pagamenti totali di TX-0002",
+    "evidenza": "15ed959 ha cambiato solo il titolo (riga 98): la didascalia (riga 102) dice 'Gauge: pagamenti totali (TX-0002) sulla dotazione (TX-0011)' e la fonte (riga 104) 'Fonte: TX-0002, TX-0011', mentre panoramica.md:29 dice 'TX-0011 (pagamenti al netto delle rettifiche)' e il codice disegna graficoPagatoNetto(r.pagamentiNettoRettifiche, ...) con 'Fonte: TX-0011, riepilogo per intervento' (DettaglioIntervento.tsx:85-95). L'hash approvato il 13/10/2026 alle 13:27:56 (sha256:4371821e...) e' quello della cartella: la baseline approvata 'com'e' costruita' contraddice il codice e la propria tabella dei grafici.",
+    "fix": "DECISIONE dell'utente (judge.json, decisioni_utente). Raccomandata: intervento.html:102 'Gauge: pagamenti al netto delle rettifiche sulla dotazione (TX-0011). Non disegnato se uno dei due manca.'; riga 104 'Fonte: TX-0011. ...'; nuovo hash, riapprovazione del flusso panoramica (uiplan.json e stato) e gate step8.\nIn alternativa la voce in deviations_reviewed di wireframe_panoramica.",
+    "fonti": ["V-01"]
+  },
+  {
+    "id": "V-02",
+    "severity": "MINORE",
+    "file": "wireframes/dotazione-avanzamento/avanzamento.html:105",
+    "titolo": "Il flusso dotazione-avanzamento, rimasto fuori dalle correzioni di V-03, approva il KPI 'Importo pagato' e il gauge sul pagato di TX-0007; il codice distingue lordo e netto",
+    "evidenza": "avanzamento.html ha il KPI 'Importo pagato' (righe 77-78) e il gauge 'Pagato sulla dotazione' con 'importo pagato sulla dotazione spesa pubblica (TX-0007)' (righe 101 e 105; dotazione-avanzamento.md:19 e :29); il codice mostra il KPI 'Importo pagato (lordo, elenchi di liquidazione)' su d.importoPagato (AvanzamentoReport.tsx:26 e :47) e il gauge 'Pagato netto sulla dotazione' su d.pagamentiNettoRettifiche (AvanzamentoReport.tsx:107-110). Il flusso e' approvato il 13/10/2026 alle 09:29:35 (hash 0c638823..., quello della cartella) con il solo V-07 in deviations_reviewed: e' lo scarto di V-03 (a3e9579, lordo e netto distinti), sfuggito all'elenco dei file dell'iterazione 1.",
+    "fix": "DECISIONE dell'utente (judge.json, decisioni_utente). Raccomandata: aggiornare com'e' costruito avanzamento.html (KPI 'Importo pagato (lordo, elenchi di liquidazione)', gauge 'Pagato netto sulla dotazione': pagamenti al netto delle rettifiche sulla dotazione, TX-0007) e dotazione-avanzamento.md:19 e :29, poi riapprovare il flusso.\nIn alternativa la voce 'a3e9579, richiesta dell'utente del 12/10/2026: lordo e netto distinti' in deviations_reviewed di wireframe_dotazione-avanzamento.",
+    "fonti": ["V-02"]
+  },
+  {
+    "id": "V-05",
+    "severity": "COSMETICO",
+    "file": "src/shared/ui/grafici/CardGrafico.tsx:109",
+    "titolo": "Tornando dall'elenco la vista Tabella di 'Domande per anno di raccolta' del dettaglio, unico percorso da tastiera verso elenco-anno-intervento, riparte da Grafico",
+    "evidenza": "La vista e' useState('grafico') in CardGrafico (riga 109): dopo l'Indietro la scheda Domande torna (?scheda=domande) ma la card riparte dal grafico, mentre DettaglioIntervento.tsx:110-111 dichiara la vista Tabella 'il percorso da tastiera del clic'. Chi usa la tastiera riattiva 'Tabella' a ogni drill-down.",
+    "fix": "Prop opzionali `vistaIniziale` e `onVista` di CardGrafico, come statoIniziale e onStato di TabellaInterattiva; nel dettaglio la vista in useStatoNellaHistory('vistaDomandePerAnno', da.selezione). In alternativa dichiararlo nel residuo WCAG del flusso panoramica.",
+    "fonti": ["V-05"]
+  },
+  {
+    "id": "X-03",
+    "severity": "COSMETICO",
+    "file": "src/shared/ui/tema.css:194",
+    "titolo": "Il fix del bersaglio da 24 px (X-04) porta a sinistra i link 'Apri nell'elenco' delle celle numeriche, sotto numeri allineati a destra",
+    "evidenza": "`.ui-link-elenco` passa da display: block a `display: flex; width: fit-content` (riga 194): il text-align: right di `.ui-num` (riga 224) non sposta un box a livello di blocco, quindi nelle celle numeriche (RiepilogoReport.tsx:69 e :81, colonneAnno.tsx:28, DomandeReport.tsx:221, SigcReport.tsx:71) il link sta sul bordo sinistro sotto un numero a destra. jsdom non fa layout: nessun test lo vede.",
+    "fix": "In tema.css `.ui-num .ui-link-elenco { margin-left: auto; }`; aggiungere 'allineamento del link nelle celle numeriche' al residuo umano gia' aperto per 2.5.8.",
+    "fonti": ["X-03"]
+  },
+  {
+    "id": "X-04",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/ui/RiepilogoReport.tsx:156",
+    "titolo": "Il commento promette ordine e pagina del riepilogo 'tornando dal dettaglio', ma 'Torna al riepilogo' e la briciola ripartono dallo stato iniziale: li ritrova solo l'Indietro del browser",
+    "evidenza": "Lo stato sta nella sola voce di history del riepilogo (useStatoNellaHistory.ts:24-27); dal dettaglio 'Torna al riepilogo' (DettaglioIntervento.tsx:59 e :291) e la briciola (AL_RIEPILOGO) sono navigazioni push senza state, quindi il riepilogo riparte da dotazione decrescente e prima pagina. La stessa promessa e' nell'intestazione di useStatoNellaHistory.ts:1.",
+    "fix": "Correggere i due commenti ('tornando indietro con il Back del browser'). Se si vuole il ritorno anche dal link (DECISIONE, judge.json): aprendo il dettaglio dal riepilogo mettere nello state una marca con la firma dei filtri; con la marca 'Torna al riepilogo' fa navigate(-1), come SchedaDomanda.tsx:28.",
+    "fonti": ["X-04"]
+  },
+  {
+    "id": "V-07",
+    "severity": "COSMETICO",
+    "file": "wireframes/riepilogo/riepilogo.md:56",
+    "titolo": "OP-FE-09 (profili misti) manca dai punti aperti del flusso riepilogo, che ha due link soggetti allo stesso limite",
+    "evidenza": "1680b4c ha registrato OP-FE-09 in uiplan.json:1520 e nei flussi panoramica, domande e sigc; il riepilogo (misure per domanda col perimetro ADA) apre elenco-presentate-riga ed elenco-pagamenti-riga (TX-0056/TX-0059, regionali per un profilo misto), ma i punti aperti di riepilogo.md (righe 56-58) citano solo OP-FE-06. Solo documentazione.",
+    "fix": "Alla prossima riapprovazione del flusso riepilogo aggiungere ai punti aperti: '- OP-FE-09: profili misti (P4 con un profilo regionale): il riepilogo e' ADA, l'elenco aperto dai link della riga e' regionale.'",
+    "fonti": ["V-07"]
+  },
+  {
+    "id": "H-05",
+    "severity": "COSMETICO",
+    "file": "src/shared/ui/tabella/TabellaInterattiva.tsx:206",
+    "titolo": "onStato notificato da un effetto con ref scritti durante il render: in StrictMode (sviluppo) notifica anche al montaggio; useStatoNellaHistory legge lo state della history con un cast",
+    "evidenza": "notifica.current e' assegnato nel render (righe 206-207) e la guardia `primo` (208-216) salta il montaggio, ma con <StrictMode> (src/app/main.tsx:31) l'effetto riparte con primo gia' false e il riepilogo fa un navigate replace a ogni montaggio in sviluppo, contro il commento della riga 210; cerca, ordina e onPagina (224-231, 258) sono gia' i soli punti in cui ordine e pagina cambiano. useStatoNellaHistory.ts:20 restituisce `stato?.[chiave] as Salvato<T>` senza controllarne la forma (difensivo: oggi quello state lo scrive solo l'app).",
+    "fix": "In TabellaInterattiva una funzione cambia(ordine, pagina) chiamata da cerca, ordina e onPagina, che aggiorna lo stato e chiama props.onStato; togliere effetto e ref.\nuseStatoNellaHistory riceve un predicato `valido: (v: unknown) => v is T` e restituisce undefined se non e' soddisfatto (riepilogo: pagina intera >= 0, ordine su una chiave delle colonne).",
+    "fonti": ["H-05"]
+  },
+  {
+    "id": "H-06",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/lib/link-elenco.ts:126",
+    "titolo": "Residui di H-06: codici del vocabolario ancora riscritti nella feature, 'senza anno di raccolta' letterale nei nomi dei link, tipi dell'entity riesportati da link-elenco",
+    "evidenza": "ANNUALITA_VALIDE (riga 126) e PAGAMENTO_DELLA_VOCE (129-134, mappa identita') riscrivono i codici di entities/domanda e i `codice` di VOCI_DOMANDE_SIGC (grafici/sigc.ts:42-45) non sono tipizzati su EsitoPagamentoDomanda; 'senza anno di raccolta' e' scritto a mano in colonneAnno.tsx:31 e DomandeReport.tsx:223 invece di annoDiRaccolta/ANNO_ASSENTE.esteso; link-elenco.ts:12 riesporta Annualita ed EsitoPagamentoDomanda, importati da li' in colonneAnno.tsx:10 (la facciata che H-15 ha tolto altrove), e DatoSegmentoAnno, prodotto da grafici/domande.ts, e' definito nel modulo che lo consuma.",
+    "fix": "ANNUALITA_VALIDE da Object.keys(ETICHETTE_ANNUALITA); VOCI_DOMANDE_SIGC `satisfies readonly { codice: EsitoPagamentoDomanda | 'PRESENTATE' }[]` e PAGAMENTO_DELLA_VOCE derivato dai codici; nei due nomi accessibili annoDiRaccolta(r.annoRaccolta); colonneAnno.tsx importa i tipi dal barrel di entities/domanda e si toglie link-elenco.ts:12; DatoSegmentoAnno in lib/grafici/domande.ts.",
+    "fonti": ["H-06"]
+  },
+  {
+    "id": "H-07",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/ui/AnteprimaFinanziario.tsx:22",
+    "titolo": "Regole e calcoli rimasti nei componenti: etichetta 'della tua area', cascata SIGC calcolata due volte, anni ricalcolati in tre componenti",
+    "evidenza": "dellArea (riga 22, fix di X-05) e' la gemella di etichettaDiProgramma, pura e testata in lib/perimetro.ts:30, ma vive nel componente senza test unitario; SigcReport.tsx:100-101 chiama graficoCascataSigc(d) due volte nello stesso render; `(d.righe ?? []).map((r) => annoDiRaccolta(r.annoRaccolta))` e' ripetuto in DomandeReport.tsx:139, 160 e 194.",
+    "fix": "etichettaDellArea(etichetta, perimetro) in lib/perimetro.ts accanto a etichettaDiProgramma, con il suo test; in SigcReport `const dati = graficoCascataSigc(d)` per sottotitolo e CardGrafico; in DomandePerAnnoSezione gli anni calcolati una volta e passati ai figli.",
+    "fonti": ["H-07"]
+  }
+]

@@ -1,0 +1,113 @@
+{
+  "review": "finanziario, step9 FULL v4 iterazione 2 (budget 3)",
+  "commit_verificato": "1680b4c, letto con git archive in una copia fuori dal repo (il working tree sta cambiando per l'elenco operativo). Dopo 1680b4c: fa48cac tocca solo fe-gate-report.json, 8258688 la review, b2dea89 solo file dell'elenco operativo: nessun file del finanziario o del codice condiviso.",
+  "gate_non_declassabili": "check-ui-authz e fe-project-check --built --catalog verdi al gate step8 11/11 (865 test), nessun FAIL_AUTHZ. git diff b19ac02 1680b4c su src e tests non tocca contextProjection, CSRF o XSRF e nessun finding li riguarda: nessun CRITICO non declassabile della FE. Regola data-access type-safe del judge-brief: backend, non applicabile.",
+  "criteri": "Ogni finding verificato sul codice di 1680b4c (file e riga), poi succintezza, accuratezza, azionabilita' e anti-inflation del brief: MAGGIORE solo con un comportamento sbagliato concreto rispetto a pack, wireframe approvati o decisioni, un rischio reale o un test che non prova cio' che dichiara. Severita' allineate all'iterazione 1: test negativo che non puo' fallire MAGGIORE (V-01); testi dei wireframe approvati diversi dal codice MINORE (V-03); deriva possibile fra copie non confrontate da un test MINORE (V-02, H-05); stato non ritrovato al ritorno MINORE (X-03); stile e duplicazioni sotto soglia COSMETICO.",
+  "verifica_iterazione_1": [
+    {"id": "H-01", "esito": "RISOLTO", "nota": "ApriNellElenco non ferma piu' la propagazione (LinkElenco.tsx:43-50), la riga ignora i controlli interni (rigaApribile.ts), test di Esc, Tab e Invio in riepilogo/page.test.tsx:159-193. Il test del clic (140-147) non prova il ramo onClick: X-01."},
+    {"id": "V-01", "esito": "RISOLTO", "nota": "expect sul grafico e attesa prima della location (interventi/page.test.tsx:238-260), caso senza TX-0056 nella pagina SIGC (sigc/page.test.tsx:73)."},
+    {"id": "V-02", "esito": "RISOLTO IN PARTE", "nota": "LINK_ELENCO confrontato con lo uiplan (finanziario-link-elenco.test.ts:93-98), caso TX-0056 senza TX-0059 (riepilogo/page.test.tsx:194), clic su 'Da pagare' nel dettaglio (interventi/page.test.tsx:206). Il grant e' confrontato con toContain: X-02."},
+    {"id": "V-06", "esito": "RISOLTO", "nota": "indirizzoDelLink fail-closed, useLinkElenco accetta criteri null, Map al posto degli oggetti letterali, test della voce e della serie sconosciute."},
+    {"id": "H-02", "esito": "RISOLTO", "nota": "Codice e anno nel dato dei segmenti e delle barre (ANNUALITA_DOMANDE, VOCI_DOMANDE_SIGC, codiceDalClic), test unitari dei tre criteri."},
+    {"id": "V-03", "esito": "RISOLTO IN PARTE", "nota": "Quattro flussi aggiornati e riapprovati, OP-FE-05 riscritto. Restano la didascalia e la fonte del gauge in intervento.html:102-104 (V-01) e il flusso dotazione-avanzamento, mai aggiornato (V-02)."},
+    {"id": "V-04", "esito": "RISOLTO", "nota": "PAGAMENTI_LORDI_BREVE e PAGATO_LORDO_SULLA_DOTAZIONE condivisi con la panoramica (AnteprimaFinanziario.tsx:14, 48, 67)."},
+    {"id": "X-05", "esito": "RISOLTO", "nota": "Etichette 'della tua area' e motivo della quota al posto della barra, test a perimetro ADA (tests/app-aree.test.tsx:99). La regola nel componente e' H-07 (COSMETICO)."},
+    {"id": "V-05", "esito": "RISOLTO", "nota": "Le due CardGrafico passano `tabella` con i link (DomandeReport.tsx:149-152 e 261-265). La copia a mano della tabella di RF010 e' V-06."},
+    {"id": "H-05", "esito": "RISOLTO IN PARTE", "nota": "Per Domande per anno una sola definizione (ANNUALITA_DOMANDE, numeroOpzionale) e test con e senza grant (interventi/page.test.tsx:166). Lo stesso schema si ripete per RF010: V-06."},
+    {"id": "H-06", "esito": "RISOLTO", "nota": "src/entities/domanda con codici, etichette e ANNO_ASSENTE, importato dal barrel; testi visibili dell'elenco invariati. Residui cosmetici: H-06 di questa iterazione."},
+    {"id": "H-07", "esito": "RISOLTO", "nota": "shared/lib/parametri-ripetuti.ts usato da filtri.ts, link-elenco.ts e criteri.ts. Comportamento dell'elenco: lettura identica (leggiRipetuti con lo stesso filtro e lo stesso tetto), scrittura ora senza doppioni e con tetto su criteri gia' normalizzati dalla lettura."},
+    {"id": "A-05", "esito": "RISOLTO IN PARTE", "nota": "Sottotitoli condizionati al grant e, per la cascata, al grafico disegnato; link esplicito sotto Importi SIGC del dettaglio (DettaglioIntervento.tsx:210). Le barre non disegnate promettono ancora il clic: V-04."},
+    {"id": "X-01", "esito": "RISOLTO", "nota": "Decisione dell'utente del 13/10/2026: OP-FE-09 in uiplan.json:1520 e note in panoramica, domande e sigc. Il riepilogo non lo cita: V-07 (COSMETICO)."},
+    {"id": "X-03", "esito": "RISOLTO IN PARTE", "nota": "Scheda del dettaglio nell'indirizzo, anno della pagina domande e ordinamento del riepilogo nello state della history, con test. Restano la ricerca (V-03), la vista della card (V-05), il commento sul ritorno dal dettaglio (X-04); la nuova fonte asincrona dell'anno introduce A-01."},
+    {"id": "X-04", "esito": "RISOLTO", "nota": "min-height 24px per .ui-link-elenco e per i link di .ui-link-elenco--riga, residuo 2.5.8 nei flussi. Il nuovo display sposta i link delle celle numeriche: X-03 (COSMETICO)."},
+    {"id": "X-06", "esito": "RISOLTO", "nota": "animation: ui-pulsa 2s ease-in-out 2 (tema.css), reduced-motion invariato."},
+    {"id": "H-10", "esito": "RISOLTO", "nota": "Una sola movimentoRidotto (NumeroAnimato.tsx:12) usata da Grafico.tsx:8 e 76, test senza matchMedia nel kit."},
+    {"id": "H-12", "esito": "RISOLTO", "nota": "senzaLinkElenco unico, per destinazione. Collocazione nel layer sbagliato e uso mancato in interventi/page.test.tsx:171: H-01."},
+    {"id": "H-13", "esito": "RISOLTO", "nota": "ROTTE_FINANZIARIO dai path dello uiplan. Stessa collocazione: H-01."},
+    {"id": "H-14", "esito": "RISOLTO", "nota": ".ui-kpi__azione:empty { display: none; } (tema.css:193)."},
+    {"id": "H-15", "esito": "RISOLTO", "nota": "Facciate lib/aggiornamento.ts e lib/intestazione.ts tolte, consumatori da shared/lib, test di etichettaFlusso, testoUltimiDati, menoRecente e righeContesto in tests/lib.test.ts."}
+  ],
+  "codice_condiviso": "Verificato che le correzioni non cambino il comportamento dell'elenco operativo: TabellaServer usa gestoriRigaApribile, neutro perche' le colonne dell'elenco rendono solo testo (colonne.tsx); testoAnno e nomeVoce danno ancora 'senza anno' (ANNO_ASSENTE.breve in minuscolo); ETICHETTE_VALORI con le stesse etichette dall'entity; criteriDaRicerca identico. La sola copertura mancante (TabellaServer e i gestori della riga senza test nel kit) entra in X-01. Le replace di useStatoNellaHistory non spostano il focus: useFocusTitolo dipende dal titolo, non dalla location.",
+  "valutazioni": [
+    {"id": "X-01", "verdetto": "ACCETTATO", "severita_originale": "MAGGIORE", "severita_finale": "MAGGIORE", "accettato_come": "X-01", "motivo": "Verificato: riepilogo/page.test.tsx:145-146 cerca il dialogo dopo il waitFor del pathname, quando la route '*' di renderPagina ha smontato la pagina; con `onClick: apri` (mutazione di rigaApribile.ts:18) il Link naviga comunque e i test 140, 179 e 205 restano verdi. Test che non prova cio' che dichiara: MAGGIORE come V-01 dell'iterazione 1. Il test dell'Invio prova davvero il ramo onKeyDown. Unita la parte di H-04 sui gestori della riga senza test nel kit (TabellaServer senza test diretti, verificato)."},
+    {"id": "V-04", "verdetto": "ACCETTATO", "severita_originale": "MINORE", "severita_finale": "MINORE", "accettato_come": "V-04", "motivo": "Verificato: DettaglioIntervento.tsx:163 senza eVuoto, CLIC_BARRA col solo grant (168), VociSigcNellElenco senza condizioni (174), graficoDomandeSigc non disegnabile con presentate 0 (sigc.ts:73); Domande per anno con righe vuote non disegnabile (domande.ts:50) e sottotitolo alla riga 118. Il fix di A-05 aveva chiesto il controllo su opzioni solo per la cascata: e' un residuo della stessa promessa, MINORE come A-05. Unito A-02."},
+    {"id": "A-02", "verdetto": "UNITO", "severita_originale": "COSMETICO", "severita_finale": "MINORE", "accettato_come": "V-04", "motivo": "Stesso difetto di V-04 (dettaglio, Domande SIGC e Domande per anno). Esclusa la parte sulla pagina SIGC con presentate null (SigcReport.tsx:56): presentate e' int64 non nullable in openapi-finanziario.json (DomandeSigc), caso teorico come X-09 dell'iterazione 1."},
+    {"id": "V-06", "verdetto": "ACCETTATO", "severita_originale": "COSMETICO", "severita_finale": "MINORE", "accettato_come": "V-06", "motivo": "Verificato: colonneImportiEquivalente (DomandeReport.tsx:238-246) e la caption della riga 263 ricopiano graficoImportiPerAnno (lib/grafici/domande.ts:99-102); domande/page.test.tsx:122 e 139-147 non confrontano le due viste. Unito H-02 con la sua severita': stesso schema di H-05 (MINORE) reintrodotto da una correzione, con la deriva possibile e il test mancante come V-02 dell'iterazione 1."},
+    {"id": "H-02", "verdetto": "UNITO", "severita_originale": "MINORE", "severita_finale": "MINORE", "accettato_come": "V-06", "motivo": "Duplicato di V-06 (stesse righe, stesso fix); la parte su caption e prima intestazione di Domande per anno (DomandeReport.tsx:151 e 177, DettaglioIntervento.tsx:126-127) entra nell'evidenza e nel fix."},
+    {"id": "V-03", "verdetto": "ACCETTATO", "severita_originale": "MINORE", "severita_finale": "MINORE", "accettato_come": "V-03", "motivo": "Verificato: StatoTabella { ordine, pagina } (TabellaInterattiva.tsx:195-198), cercato useState('') (203), paginaDi sulle righe filtrate (220-222); il test di ritorno prova solo aria-sort su 2 righe. Residuo di X-03, che citava la ricerca: MINORE. Uniti H-03 (stesso difetto) e la parte di H-04 su statoIniziale e onStato senza test nel kit."},
+    {"id": "H-03", "verdetto": "UNITO", "severita_originale": "MINORE", "severita_finale": "MINORE", "accettato_come": "V-03", "motivo": "Duplicato di V-03; il file:riga della StatoTabella e' quello adottato. Corretta l'evidenza: la fixture RIEPILOGO ha 2 righe (riepilogo/page.test.tsx:11), non 4."},
+    {"id": "H-04", "verdetto": "UNITO", "severita_originale": "MINORE", "severita_finale": "MAGGIORE (parte in X-01) e MINORE (parte in V-03)", "accettato_come": "X-01, V-03", "motivo": "Verificato: tests/shared-ui-kit.test.tsx:131 senza controlli nella riga, nessun test di TabellaServer, nessun test di statoIniziale e onStato. I test dei gestori della riga sono il fix di X-01 (il contratto non e' provato nemmeno dalla pagina, come sostiene H-04); quelli di statoIniziale e onStato il fix di V-03. Comportamento dell'elenco operativo neutro oggi (verificato su colonne.tsx)."},
+    {"id": "A-01", "verdetto": "ACCETTATO", "severita_originale": "MINORE", "severita_finale": "MINORE", "accettato_come": "A-01", "motivo": "Verificato sul codice di react-router 8.3.0: startNavigation attende getContext e handleLoaders (router.js:526 e 557) e RouterProvider applica lo stato in React.startTransition (components.js, setState); la select di DomandeReport.tsx:121 e' controllata dal valore della history, quindi React la riporta all'anno precedente alla fine dell'evento. Difetto nuovo introdotto dalla correzione di X-03 (fc8a130), con un test deterministico che oggi fallirebbe: MINORE, non COSMETICO, perche' riguarda il valore mostrato da un controllo di form e la selezione delle schede."},
+    {"id": "X-02", "verdetto": "ACCETTATO", "severita_originale": "MINORE", "severita_finale": "MINORE", "accettato_come": "X-02", "motivo": "Verificato: visibility delle route dell'elenco con tx-0060 in OR (route-table.json), toContain alla riga 102, nessun test del finanziario con tx-0060 senza tx-0059. Il fix di V-02 diceva 'uguale al grant della route' su route con piu' grant: residuo di V-02, MINORE (rischio di deriva, nessun effetto oggi)."},
+    {"id": "H-01", "verdetto": "ACCETTATO", "severita_originale": "MINORE", "severita_finale": "MINORE", "accettato_come": "H-01", "motivo": "Verificato: tabelle.ts:2-3, eslint.config.js:254 (include solo ts/tsx) e 285 (features verso entities e shared), tests/app-client.ts:2, interventi/page.test.tsx:171. Confine FSD violato in un modulo di supporto ai test, invisibile al guard: MINORE (nessun effetto a runtime, ma la regola dichiarata dal progetto non e' rispettata)."},
+    {"id": "V-01", "verdetto": "ACCETTATO", "severita_originale": "MINORE", "severita_finale": "MINORE", "accettato_come": "V-01", "motivo": "Verificato: intervento.html:102 e 104 contro panoramica.md:29 e DettaglioIntervento.tsx:85-95; ricalcolato l'hash con wireframe-hash.sh: 4371821e... uguale a quello approvato alle 13:27:56. Residuo di V-03 (MINORE). Richiede una decisione (decisioni_utente)."},
+    {"id": "V-02", "verdetto": "ACCETTATO", "severita_originale": "MINORE", "severita_finale": "MINORE", "accettato_come": "V-02", "motivo": "Verificato: avanzamento.html:77-78, 101, 105, dotazione-avanzamento.md:19 e 29 contro AvanzamentoReport.tsx:26, 47, 107-110; hash ricalcolato 0c638823... uguale a quello approvato alle 09:29:35, deviations_reviewed col solo V-07. Stesso scarto di V-03, sfuggito all'elenco dei file dell'iterazione 1: MINORE. Richiede una decisione (decisioni_utente)."},
+    {"id": "V-05", "verdetto": "ACCETTATO", "severita_originale": "COSMETICO", "severita_finale": "COSMETICO", "accettato_come": "V-05", "motivo": "Verificato: CardGrafico.tsx:109, DettaglioIntervento.tsx:110-111. Estensione di X-03 a uno stato che X-03 non elencava; il percorso resta raggiungibile con un clic in piu'."},
+    {"id": "X-03", "verdetto": "ACCETTATO", "severita_originale": "COSMETICO", "severita_finale": "COSMETICO", "accettato_come": "X-03", "motivo": "Verificato: tema.css:194 (flex, width fit-content) e :224 (.ui-num text-align right); box di blocco non spostato da text-align. Resa visiva introdotta dal fix di X-04, nessun effetto funzionale."},
+    {"id": "X-04", "verdetto": "ACCETTATO", "severita_originale": "COSMETICO", "severita_finale": "COSMETICO", "accettato_come": "X-04", "motivo": "Verificato: commento di RiepilogoReport.tsx:156 e useStatoNellaHistory.ts:1 contro i Link push di DettaglioIntervento.tsx:59 e 291 e la briciola AL_RIEPILOGO. Il ritorno col link non era nel perimetro di X-03: il difetto e' il commento; il comportamento in piu' e' una scelta (decisioni_utente)."},
+    {"id": "V-07", "verdetto": "ACCETTATO", "severita_originale": "COSMETICO", "severita_finale": "COSMETICO", "accettato_come": "V-07", "motivo": "Verificato: OP-FE-09 in panoramica.md, domande.md, sigc.md e uiplan.json:1520, assente in riepilogo.md:56-58. La decisione X-01 dell'utente elencava i tre flussi che promettono 'il numero coincide': non la contraddice, la completa; solo documentazione, da fare alla prossima riapprovazione."},
+    {"id": "H-05", "verdetto": "ACCETTATO", "severita_originale": "COSMETICO", "severita_finale": "COSMETICO", "accettato_come": "H-05", "motivo": "Verificato: TabellaInterattiva.tsx:206-216 e <StrictMode> in main.tsx:31 (i ref sopravvivono al doppio effetto di sviluppo); la replace in piu' e' innocua. La parte sulla validazione dello state e' difensiva: oggi lo scrive solo l'app (paginaDi limita gli indici fuori intervallo, non NaN)."},
+    {"id": "H-06", "verdetto": "ACCETTATO", "severita_originale": "COSMETICO", "severita_finale": "COSMETICO", "accettato_come": "H-06", "motivo": "Verificato: link-elenco.ts:12, 126, 129-134; sigc.ts:41-46 senza satisfies; colonneAnno.tsx:10 e 31; DomandeReport.tsx:223. Residui sotto soglia di H-06, risolto nella sostanza."},
+    {"id": "H-07", "verdetto": "ACCETTATO", "severita_originale": "COSMETICO", "severita_finale": "COSMETICO", "accettato_come": "H-07", "motivo": "Verificato: AnteprimaFinanziario.tsx:19-22, SigcReport.tsx:100-101, DomandeReport.tsx:139, 160, 194. Stile e calcoli ripetuti, nessun effetto."}
+  ],
+  "contestati": [
+    {"id": "A-02", "esito": "UNITO in V-04 e ALZATO a MINORE", "motivo": "Stesso difetto di V-04; esclusa la parte sulla pagina SIGC con presentate null (contratto int64 non nullable)."},
+    {"id": "V-06", "esito": "ALZATO a MINORE (unito con H-02)", "motivo": "Coerenza con H-05 e V-02 dell'iterazione 1: copia non confrontata da un test, con divergenza possibile secondo il profilo."},
+    {"id": "H-04", "esito": "UNITO in X-01 (gestori della riga) e in V-03 (statoIniziale e onStato)", "motivo": "I test del kit sono il fix dei due finding; non e' un difetto a se'."},
+    {"id": "H-03", "esito": "UNITO in V-03, evidenza corretta", "motivo": "La fixture del riepilogo ha 2 righe, non 4."}
+  ],
+  "finding_contestati_critico_rigettati": "Nessuno: nessun finding in input era CRITICO e nessuno e' stato rigettato.",
+  "decisioni_utente": [
+    {
+      "id": "V-01",
+      "tema": "Flusso panoramica, riapprovato il 13/10 alle 13:27 'com'e' costruito': la didascalia e la fonte del gauge del dettaglio (intervento.html:102 e 104) dicono ancora 'pagamenti totali (TX-0002) sulla dotazione (TX-0011)', mentre il titolo, panoramica.md:29 e il codice dicono pagato netto di TX-0011.",
+      "opzioni": [
+        "(a) Correggere le due righe come costruito ('Gauge: pagamenti al netto delle rettifiche sulla dotazione (TX-0011)...', 'Fonte: TX-0011...'), nuovo hash, riapprovare il flusso panoramica e rieseguire il gate step8.",
+        "(b) Lasciare il testo e registrare la voce in deviations_reviewed di wireframe_panoramica."
+      ],
+      "raccomandazione": "(a). E' una riga sfuggita alla riscrittura che l'utente ha gia' scelto per V-03 (opzione a dell'iterazione 1): una deviazione registrata su un flusso approvato come costruito poche ore prima sarebbe incoerente e la prossima review la rileverebbe di nuovo. Conviene farla insieme a V-02 (e, se si vuole, V-07) in una sola passata di riapprovazioni."
+    },
+    {
+      "id": "V-02",
+      "tema": "Flusso dotazione-avanzamento (approvato il 13/10 alle 09:29, mai aggiornato dopo a3e9579): KPI 'Importo pagato' e gauge 'Pagato sulla dotazione' sull'importo pagato di TX-0007; il codice mostra il KPI 'Importo pagato (lordo, elenchi di liquidazione)' e il gauge 'Pagato netto sulla dotazione' sui pagamenti al netto delle rettifiche.",
+      "opzioni": [
+        "(a) Aggiornare come costruito avanzamento.html (KPI lordo, gauge netto con la sua didascalia e fonte) e dotazione-avanzamento.md:19 e 29, poi riapprovare il flusso (cambia l'hash del gate).",
+        "(b) Registrare in deviations_reviewed di wireframe_dotazione-avanzamento la voce 'a3e9579, richiesta dell'utente del 12/10/2026: lordo e netto distinti'."
+      ],
+      "raccomandazione": "(a), per la stessa ragione di V-03 nell'iterazione 1: la baseline approvata fa da riferimento per refresh, gate e review e con (b) continuerebbe a descrivere un gauge sul pagato lordo. Il costo e' una passata su un solo flusso e una riapprovazione."
+    },
+    {
+      "id": "V-07",
+      "tema": "OP-FE-09 (profili misti) non e' fra i punti aperti del flusso riepilogo, che ha due link soggetti allo stesso limite.",
+      "opzioni": [
+        "(a) Aggiungerlo ora e riapprovare anche il flusso riepilogo, nella stessa passata di V-01 e V-02.",
+        "(b) Aggiungerlo alla prossima riapprovazione del riepilogo che servira' per altre ragioni."
+      ],
+      "raccomandazione": "(a) se si riapprovano comunque panoramica e dotazione-avanzamento (costo marginale); altrimenti (b): e' solo documentazione."
+    },
+    {
+      "id": "X-04",
+      "tema": "Ordine e pagina del riepilogo si ritrovano tornando dal dettaglio solo con l'Indietro del browser; 'Torna al riepilogo' e la briciola aprono un riepilogo nuovo.",
+      "opzioni": [
+        "(a) Correggere solo i commenti; il comportamento resta (ritorno con l'Indietro).",
+        "(b) 'Torna al riepilogo' fa navigate(-1) quando il dettaglio e' stato aperto dal riepilogo con gli stessi filtri (marca nello state), come la scheda della domanda dell'elenco."
+      ],
+      "raccomandazione": "(a) in questa iterazione: il ritorno col link non era in X-03 ne' nei flussi approvati; (b) e' un miglioramento da decidere a parte."
+    }
+  ],
+  "riepilogo": {
+    "finding_in_input": 20,
+    "accettati": 16,
+    "per_severita": {"CRITICO": 0, "MAGGIORE": 1, "MINORE": 8, "COSMETICO": 7},
+    "score": 54,
+    "formula_score": "100 - (CRITICO*40 + MAGGIORE*15 + MINORE*3 + COSMETICO*1), review-score.sh",
+    "verdetto": "FAIL (1 MAGGIORE; FULL con score 54 < 80)",
+    "uniti_in_altri": ["A-02 in V-04", "H-02 in V-06", "H-03 in V-03", "H-04 in X-01 e V-03"],
+    "rigettati": [],
+    "declassati": [],
+    "alzati": ["A-02 (COSMETICO -> MINORE, in V-04)", "V-06 (COSMETICO -> MINORE, con H-02)"],
+    "parti_escluse": ["A-02: pagina SIGC con presentate null (contratto int64, caso teorico)"],
+    "evidenze_corrette": ["H-03: la fixture RIEPILOGO ha 2 righe, non 4"],
+    "iterazione_1": "22 finding: 17 risolti (in quattro casi il fix ha introdotto un difetto nuovo: H-01 -> X-01, V-05 -> V-06, X-04 -> X-03, H-12/H-13 -> H-01), 5 risolti in parte (V-02 -> X-02, V-03 -> V-01 e V-02, H-05 -> V-06, A-05 -> V-04, X-03 -> V-03, V-05, X-04 e A-01); nessuno ripresentato tale e quale."
+  }
+}
