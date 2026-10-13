@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   CAMPI_ORDINABILI,
+  FILTRI_DOMANDA,
+  FILTRI_PAGAMENTO,
   conDimensione,
   conFiltro,
   conPagina,
@@ -9,16 +11,21 @@ import {
   criteriEsportazione,
   criteriSinottico,
   dimensioneDi,
+  fasciaRovesciata,
   filtriDellaDomanda,
   importoDaTesto,
   numeroFiltri,
   ordinaPer,
   ordinamentoDi,
+  ordinamentoPredefinito,
   paginaDi,
   ricercaDaCriteri,
   senzaFiltri,
+  senzaOrdinamento,
   senzaValore,
   testoInviabile,
+  testoOrdinamento,
+  ultimaPagina,
   valoreAccettabile,
 } from '../src/features/elenco-operativo/lib/criteri';
 import {
@@ -29,8 +36,10 @@ import {
   siNo,
   testoAnnualita,
   testoAnno,
+  testoAggregato,
   testoAtto,
   testoConteggio,
+  testoPerimetro,
   testoQuotaPagata,
   testoResponsabile,
   testoSomma,
@@ -45,8 +54,13 @@ import {
   percorsoDomandeDeiPagamenti,
   percorsoDomandeDelBeneficiario,
   percorsoPagamentiDelleDomande,
+  riferimentoValido,
+  ritornoAllElenco,
+  statoDiRitorno,
 } from '../src/features/elenco-operativo/lib/collegamenti';
 import { menoRecente, testoUltimiDati } from '../src/shared/lib/aggiornamento';
+import { righeContesto } from '../src/shared/lib';
+import uiplanElenco from '../plan/elenco-operativo/uiplan.json';
 import { formatEuro } from '../src/shared/lib/format';
 
 const euro = (valore: number | null, motivo: string | null = null) => ({ valore, motivo, fonte: null });
@@ -339,5 +353,110 @@ describe('ultimo dato sincronizzato (condiviso, NFR-25 b)', () => {
     expect(menoRecente(voci)).toBe('2026-03-02T09:15:00.123456Z');
     expect(testoUltimiDati([])).toBe('nessuna acquisizione conclusa');
     expect(menoRecente([])).toBeUndefined();
+  });
+});
+
+describe("elenco operativo, l'indirizzo dice solo cio' che il backend accetta (review v1 H-01, A-04, X-03)", () => {
+  it('valori fuori contratto scartati: pagina, dimensione, ordinamento, testo corto', () => {
+    expect(criteriDaRicerca('?dimensione=500&ordina=x:asc&pagina=abc&testo=ab', 'domande')).toEqual({});
+    // i predefiniti non si scrivono, presentata=false non esiste (D-02 Rev. 1), booleani e importi nel formato del contratto
+    expect(criteriDaRicerca('?pagina=0&dimensione=25&ordina=codiceABarre:asc&presentata=false&sigc=forse&richiestoDa=1,5', 'domande')).toEqual({});
+    expect(criteriDaRicerca('?pagina=3&dimensione=50&ordina=liquidato:desc&presentata=true&sigc=false&richiestoDa=1500.5', 'domande')).toEqual({
+      pagina: ['3'],
+      dimensione: ['50'],
+      ordina: ['liquidato:desc'],
+      presentata: ['true'],
+      sigc: ['false'],
+      richiestoDa: ['1500.5'],
+    });
+    // il campo di un elenco non ordina l'altro
+    expect(criteriDaRicerca('?ordina=liquidato:desc', 'pagamenti')).toEqual({});
+  });
+
+  it('fascia di importo rovesciata: i due estremi si scartano, gli altri filtri restano', () => {
+    expect(fasciaRovesciata('100', '50')).toBe(true);
+    expect(fasciaRovesciata('50', '100')).toBe(false);
+    expect(fasciaRovesciata(undefined, '5')).toBe(false);
+    expect(criteriDaRicerca('?richiestoDa=100&richiestoA=50&ammessoDa=10', 'domande')).toEqual({ ammessoDa: ['10'] });
+  });
+
+  it('caratteri di controllo e di formato come nel backend ([\\p{Cc}\\p{Cf}]): trattino morbido e spazio a larghezza zero', () => {
+    expect(valoreAccettabile('ros\u00ADsi')).toBe(false);
+    expect(valoreAccettabile('ros\u200Bsi')).toBe(false);
+    expect(criteriDaRicerca('?testo=ros%C2%ADsi', 'domande')).toEqual({});
+    expect(criteriDaRicerca('?testo=ros%E2%80%8Bsi', 'domande')).toEqual({});
+    expect(valoreAccettabile('rossi è')).toBe(true);
+  });
+
+  it("ordinamento attivo in parole, ritorno al predefinito, ultima pagina (review v1 X-04)", () => {
+    expect(testoOrdinamento('Liquidato', { campo: 'liquidato', verso: 'desc' })).toBe('Ordinate per Liquidato, decrescente');
+    expect(ordinamentoPredefinito({ campo: 'codiceABarre', verso: 'asc' }, 'domande')).toBe(true);
+    expect(ordinamentoPredefinito({ campo: 'codiceABarre', verso: 'desc' }, 'domande')).toBe(false);
+    expect(senzaOrdinamento({ intervento: ['SRA01'], ordina: ['liquidato:desc'], pagina: ['2'] })).toEqual({ intervento: ['SRA01'] });
+    expect(ultimaPagina(1284, 25)).toBe(51);
+    expect(ultimaPagina(0, 25)).toBe(0);
+  });
+});
+
+describe('elenco operativo, testi rivisti di chip, aggregati e contesto (review v1 V-07, V-10, X-07)', () => {
+  it("gli stati in alternativa fra loro lo dicono nell'etichetta del chip", () => {
+    const chip = chipDeiCriteri({ stato: ['RILASCIATO'], statoPagamento: ['RILASCIATO'], voceProgrammazione: ['AMMESSA'] });
+    expect(chip.map((c) => `${c.etichetta}: ${c.testo}`)).toEqual([
+      'Stato SIAN (in alternativa agli altri stati): RILASCIATO',
+      'Stato della domanda di pagamento (report procedurale) (in alternativa agli altri stati): RILASCIATO',
+      'Stato area programmazione (report procedurale): AMMESSA',
+    ]);
+    // uno stato solo non e' in alternativa a nulla
+    expect(chipDeiCriteri({ stato: ['RILASCIATO'] })[0].etichetta).toBe('Stato SIAN');
+  });
+
+  it("liquidato e recuperato dell'insieme: l'importo, o il motivo per cui non si calcola (mai 'non valorizzato')", () => {
+    expect(testoAggregato(euro(5000), 'liquidato')).toEqual({ valore: formatEuro(5000) });
+    expect(testoAggregato(euro(null, 'NON_VALORIZZATO'), 'recuperato')).toEqual({ valore: 'non calcolabile', nota: "un recupero dell'insieme non ha l'importo" });
+    expect(testoAggregato(undefined, 'liquidato').nota).toBe("una riga di liquidazione dell'insieme non ha l'importo");
+  });
+
+  it("righe di contesto dei PNG col perimetro della risposta", () => {
+    expect(testoPerimetro('ADA')).toBe('ADA del tuo profilo');
+    expect(testoPerimetro('REGIONALE')).toBe('regionale');
+    expect(testoPerimetro(null)).toBeNull();
+    expect(righeContesto({ filtri: ['Intervento: SRA01'], profilo: 'p1-dirigente', ultimi: undefined, perimetro: testoPerimetro('REGIONALE') })).toEqual([
+      'Filtri applicati: Intervento: SRA01',
+      'Perimetro: regionale',
+      'Profilo: p1-dirigente',
+      'Ultimo dato sincronizzato: non disponibile',
+    ]);
+    expect(righeContesto({ filtri: [], profilo: undefined, ultimi: undefined }).some((r) => r.startsWith('Perimetro'))).toBe(false);
+  });
+});
+
+describe('elenco operativo, link della scheda e fra elenchi (review v1 A-01, V-06, V-12)', () => {
+  it('riferimento della scheda: tipo del contratto e codice di sole cifre, niente separatori di percorso', () => {
+    expect(riferimentoValido('SOSTEGNO', '04230000001')).toBe(true);
+    for (const codice of ['../../domande/csv?x=1', '..', '0423\\0001', '0423ABC', '0423%2F1', '']) expect(riferimentoValido('SOSTEGNO', codice), codice).toBe(false);
+    expect(riferimentoValido('ALTRO', '04230000001')).toBe(false);
+    expect(riferimentoValido(undefined, '04230000001')).toBe(false);
+  });
+
+  it("ritorno all'elenco: solo un indirizzo dei due elenchi dallo stato della navigazione, mai la cronologia", () => {
+    expect(ritornoAllElenco({ ricerca: '/elenco-operativo/domande?intervento=SRA01' })).toBe('/elenco-operativo/domande?intervento=SRA01');
+    expect(ritornoAllElenco({ ricerca: '/elenco-operativo/pagamenti' })).toBe('/elenco-operativo/pagamenti');
+    for (const ricerca of ['https://altrove.example/', '//altrove.example', '/finanziario/riepilogo', '/elenco-operativo/domandex', '/elenco-operativo/domande#x', 42]) {
+      expect(ritornoAllElenco({ ricerca }), String(ricerca)).toBe('/elenco-operativo/domande');
+    }
+    expect(ritornoAllElenco(null)).toBe('/elenco-operativo/domande');
+    expect(statoDiRitorno({ vista: 'fisico' })).toEqual({ vista: 'fisico' });
+    expect(statoDiRitorno({ vista: '<script>' })).toBeUndefined();
+    expect(statoDiRitorno(undefined)).toBeUndefined();
+  });
+
+  it('i link fra i due elenchi portano tutti e soli i parametri della loro query nello uiplan', () => {
+    const tutti = Object.fromEntries([...FILTRI_DOMANDA, ...FILTRI_PAGAMENTO, 'pagina', 'dimensione', 'ordina'].map((n) => [n, ['1']]));
+    const link = uiplanElenco.routes.flatMap((r) => r.links ?? []);
+    const query = (id: string) => [...(link.find((l) => l.id === id)?.query ?? [])].sort();
+    const parametri = (percorso: string) => [...new Set(new URLSearchParams(percorso.split('?')[1] ?? '').keys())].sort();
+    expect(query('pagamenti-delle-domande')).toHaveLength(27);
+    expect(parametri(percorsoPagamentiDelleDomande(tutti))).toEqual(query('pagamenti-delle-domande'));
+    expect(parametri(percorsoDomandeDeiPagamenti(tutti))).toEqual(query('domande-dei-pagamenti'));
   });
 });

@@ -129,7 +129,7 @@ function useLetturaPagamenti(i: Interrogazione) {
 }
 
 function Contenuto({ i, l }: { i: Interrogazione; l: ReturnType<typeof useLetturaPagamenti> }) {
-  if (!l.conPagamenti) return <AccessoNonDisponibile cosa="l'elenco dei pagamenti" />;
+  if (!l.conPagamenti) return <AccessoNonDisponibile cosa="l'elenco dei pagamenti" profiloLetto={i.auth !== undefined} />;
   return (
     <VistaQuery stato={l.stato} eVuoto={(d) => (d.totaleRighe ?? 0) === 0} vuoto={<VuotoFiltri testo="Nessuna riga di pagamento per questi filtri." onApriFiltri={i.pannello.apri} />}>
       {(pagina) => (

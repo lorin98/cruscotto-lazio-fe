@@ -3,7 +3,7 @@
 // schermo annunciano il cambio: review v1 X-08), ordinamento attivo dichiarato (X-02, X-04), pagina oltre l'ultima (H-01),
 // stato vuoto che porta al pannello dei filtri, accesso non disponibile senza il grant della lettura (A-06).
 import type { ChipFiltro } from '../../../shared/ui';
-import { BarraFiltri } from '../../../shared/ui';
+import { BarraFiltri, Caricamento } from '../../../shared/ui';
 import type { UltimoDato } from '../../../shared/lib';
 import { formatNumber } from '../../../shared/lib';
 import { DatiAl, PerimetroElenco } from './pill';
@@ -96,8 +96,12 @@ export function VuotoFiltri({ testo, onApriFiltri }: { testo: string; onApriFilt
   );
 }
 
-/** Profilo senza il grant della lettura principale della pagina: niente lettura (sarebbe un 403), lo si dice. */
-export function AccessoNonDisponibile({ cosa }: { cosa: string }) {
+/**
+ * Profilo senza il grant della lettura principale della pagina: niente lettura (sarebbe un 403), lo si dice. Finche' il
+ * profilo non e' letto non si sa ancora: caricamento, non un avviso che sparirebbe un attimo dopo.
+ */
+export function AccessoNonDisponibile({ cosa, profiloLetto }: { cosa: string; profiloLetto: boolean }) {
+  if (!profiloLetto) return <Caricamento />;
   return (
     <div className="alert alert-warning my-3" role="alert">
       {`Il tuo profilo non consulta ${cosa}.`}

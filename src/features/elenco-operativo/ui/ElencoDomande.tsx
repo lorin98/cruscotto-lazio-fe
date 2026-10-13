@@ -212,7 +212,7 @@ function Contenuto({ i, l, vista, onFiltra }: { i: ReturnType<typeof useInterrog
           )}
         </VistaQuery>
       ) : (
-        <AccessoNonDisponibile cosa="l'elenco delle domande" />
+        <AccessoNonDisponibile cosa="l'elenco delle domande" profiloLetto={i.auth !== undefined} />
       )}
     </AvvisoPagina>
   );
