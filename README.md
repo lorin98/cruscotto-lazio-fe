@@ -223,6 +223,20 @@ installato sulle postazioni di sviluppo.
 Peso: il chunk del finanziario e' di circa 1,2 MB (380 kB gzip), in gran parte ECharts; se servisse, ECharts si puo'
 caricare a parte con un import dinamico nel wrapper `Grafico`.
 
+### Deploy: percorsi della SPA con separatori codificati
+
+Il contenitore serve `index.html` per i percorsi della SPA (fallback del router), ma NON per un percorso che contiene un
+separatore codificato, `%2F` o `%5C` (anche minuscoli, `%2f` e `%5c`): a quelli risponde 404, senza `index.html`. Una
+pagina come la scheda della domanda (`/elenco-operativo/domande/:tipo/:codiceABarre`) legge i parametri dal percorso:
+`/elenco-operativo/domande/SOSTEGNO/..%2F..%2Fdomande%2Fcsv` decodificato diventa un percorso diverso da quello
+richiesto. La SPA non fa comunque letture con riferimenti che non sono un tipo del contratto e un codice di sole cifre
+(review v1 A-01, test in `src/pages/elenco-operativo/scheda-domanda.test.tsx`); il 404 del contenitore e' la seconda
+difesa, che non dipende dal codice della pagina. Un esempio per nginx, prima del `try_files` del fallback:
+
+```
+if ($request_uri ~* "%(2f|5c)") { return 404; }
+```
+
 ### Convenzioni del codice e test
 
 - **Apostrofi nel testo JSX.** Il testo JSX con un apostrofo va scritto come stringa (`{"l'anno"}`). I detector a
@@ -235,6 +249,11 @@ caricare a parte con un import dinamico nel wrapper `Grafico`.
   dati di prova e d'esempio di un'area stanno nella sua feature (`testing/` e `api/mock/esempio.ts`); i test delle
   pagine importano dalla feature solo il barrel e `testing/`. Le canary sono in
   `tests/eslint-regole.test.ts`.
+
+- **Mock generati nei test.** Il server MSW dei test (`src/shared/api/mock/server.ts`) non monta gli handler generati
+  dell'elenco operativo: ogni suo test dichiara gli endpoint che usa, e una lettura non dichiarata e' un errore
+  (`onUnhandledRequest: 'error'`) invece di dati inventati che farebbero passare il test (review v1 H-16). Il worker del
+  dev server li monta tutti.
 
 Test e gate: `npm run test` esegue i test dei componenti (`tests/`) e delle pagine (`src/pages/**/page.test.tsx`,
 con i `describe` etichettati sui requisiti RF001-RF015). L'helper axe e' `src/shared/testing/axe.ts` e i dati di

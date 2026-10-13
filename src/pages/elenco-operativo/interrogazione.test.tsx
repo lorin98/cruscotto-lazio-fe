@@ -94,7 +94,8 @@ describe('RA006: interrogazione libera delle domande con il sinottico sopra e i 
     expect(within(dialogo).getByRole('link', { name: 'Apri il dettaglio' }).getAttribute('href')).toBe('/elenco-operativo/domande/SOSTEGNO/04230000001');
   });
 
-  it('stato vuoto con "Modifica i filtri"; errore dal problem-type', async () => {
+  // gli errori dal problem-type hanno i loro test in interrogazione-stati.test.tsx (review v1 V-05)
+  it('stato vuoto con "Modifica i filtri"', async () => {
     servi();
     server.use(http.get('*/api/elenco-operativo/domande', () => HttpResponse.json({ ...PAGINA_DOMANDE, righe: [], totaleRighe: 0 })));
     renderPagina(ElencoDomande, '/elenco-operativo/domande');
@@ -111,7 +112,7 @@ describe('RA006: interrogazione libera delle domande con il sinottico sopra e i 
 });
 
 describe('RA006: filtri dal vivo nel pannello, senza Applica', () => {
-  it('una scelta cambia subito l indirizzo; il conteggio e annunciato', async () => {
+  it('una scelta cambia l indirizzo dopo il ritardo, senza Applica; il conteggio e annunciato', async () => {
     servi();
     const { router } = renderPagina(ElencoDomande, '/elenco-operativo/domande');
     await screen.findByRole('table', { name: /Elenco operativo delle domande/ });
@@ -119,21 +120,12 @@ describe('RA006: filtri dal vivo nel pannello, senza Applica', () => {
     const dialogo = await screen.findByRole('dialog');
     expect(within(dialogo).getByRole('status').textContent).toBe('1284 domande con questi filtri');
     await userEvent.click(await within(dialogo).findByRole('button', { name: 'Solo SIGC' }));
+    // dopo il ritardo del debounce (RITARDO_MS)
     await waitFor(() => expect(router.state.location.search).toBe('?sigc=true'));
     await expectNoA11yViolations(dialogo);
   });
 
-  it('il testo libero parte dopo il ritardo e solo da 3 caratteri', async () => {
-    servi();
-    const { router } = renderPagina(ElencoDomande, '/elenco-operativo/domande');
-    await screen.findByRole('table', { name: /Elenco operativo delle domande/ });
-    await userEvent.click(screen.getByRole('button', { name: /Filtri/ }));
-    const campo = await screen.findByRole('searchbox', { name: 'Cerca per codice a barre, CUAA o denominazione' });
-    await userEvent.type(campo, 'ro');
-    expect(campo.getAttribute('aria-invalid')).toBe('true');
-    await userEvent.type(campo, 's');
-    await waitFor(() => expect(router.state.location.search).toBe('?testo=ros'));
-  });
+  // il ritardo del testo libero (300 ms, da 3 caratteri) si misura coi timer finti in interrogazione-comandi.test.tsx
 });
 
 describe('RA002: elenco delle domande ordinato e paginato dal server (TX-0056)', () => {

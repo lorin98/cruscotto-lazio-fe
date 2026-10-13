@@ -17,6 +17,7 @@ import { Layout } from '../src/app/layout';
 import { AUTH_STATUS_QUERY_KEY } from '../src/shared/api/auth/auth-status';
 import PaginaRiepilogo from '../src/pages/finanziario/riepilogo/page';
 import { FILTRI, RIEPILOGO } from '../src/features/finanziario/testing/fixture';
+import { PAGINA_DOMANDE, SINOTTICO, VALORI } from '../src/features/elenco-operativo/testing/fixture';
 import { rispondi } from '../src/shared/testing/msw';
 import { PAGINE_FINANZIARIO } from '../src/features/finanziario/lib/report';
 import { SITO_ARSIAL, SITO_REGIONE } from '../src/app/collegamenti';
@@ -382,6 +383,21 @@ describe('shell UI v2: intestazione degli enti, menu laterale, ricerca, piede', 
     expect(within(sottomenu).queryAllByRole('link')).toHaveLength(0);
     // la sezione Strumenti porta l'elenco operativo (il profilo di prova ha i grant di TX-0056 e TX-0059)
     expect(within(menu).getByRole('link', { name: 'Domande' }).getAttribute('href')).toBe('/elenco-operativo/domande');
+  });
+
+  it("menu laterale: da una pagina dell'elenco operativo i suoi filtri non entrano nei link del finanziario (review v1 H-10)", async () => {
+    server.use(
+      rispondi('/api/elenco-operativo/filtri', VALORI),
+      rispondi('/api/elenco-operativo/domande/sinottico', SINOTTICO),
+      rispondi('/api/elenco-operativo/domande', PAGINA_DOMANDE),
+    );
+    apriApp('/elenco-operativo/domande?intervento=SRA01');
+    const menu = await screen.findByRole('navigation', { name: 'Navigazione principale' });
+    const gruppo = within(menu).getByRole('button', { name: 'Finanziario' });
+    const sottomenu = document.getElementById(gruppo.getAttribute('aria-controls') ?? '') as HTMLElement;
+    const voci = await within(sottomenu).findAllByRole('link');
+    expect(voci.map((v) => v.getAttribute('href'))).toEqual(PAGINE_FINANZIARIO.map((p) => p.percorso));
+    await screen.findByRole('heading', { level: 1, name: 'Elenco operativo delle domande' });
   });
 
   it('menu laterale: solo le pagine visibili per i grant dell utente (gate di UX)', async () => {

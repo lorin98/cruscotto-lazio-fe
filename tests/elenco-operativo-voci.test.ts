@@ -62,6 +62,32 @@ describe('elenco operativo, testi delle schede di sola lettura', () => {
     expect(Object.fromEntries(vociAnteprimaPagamento({ ...base, domandaCorrente: true }))['Motivi di esclusione']).toBeUndefined();
   });
 
+  it("anteprima del pagamento: elenco di liquidazione, protocollo, tipologia e quote come nel wireframe (review v1 V-11)", () => {
+    const riga = {
+      decreto: 'D84-1',
+      protocollo: 'P-1',
+      tipologiaElenco: 'ANTICIPO',
+      tipologiaPagamento: null,
+      codiceABarre: '54230000001',
+      tipoDomanda: 'PAGAMENTO',
+      esito: 'PAGATA',
+      importoDecretato: euro(2500),
+      importoPagato: euro(2500),
+      quotaFeasr: euro(1000),
+      quotaNazionale: euro(1050),
+      quotaRegionale: euro(null, 'NON_VALORIZZATO'),
+    };
+    const voci = Object.fromEntries(vociAnteprimaPagamento(riga));
+    expect(voci['Elenco di liquidazione']).toBe('D84-1, protocollo P-1, tipologia ANTICIPO');
+    expect(voci['Quote FEASR, nazionale, regionale']).toBe(`${formatEuro(1000)} - ${formatEuro(1050)} - non valorizzato`);
+    expect(Object.fromEntries(vociAnteprimaPagamento({ ...riga, protocollo: null, tipologiaElenco: null }))['Elenco di liquidazione']).toBe('D84-1, protocollo non indicato, tipologia non indicata');
+  });
+
+  it('badge del perimetro solo se la risposta lo porta (review v1 A-08)', () => {
+    expect(badgeDellaDomanda(domanda, 'REGIONALE')).toContain('Perimetro: regionale');
+    expect(badgeDellaDomanda(domanda, undefined).some((b) => b.startsWith('Perimetro'))).toBe(false);
+  });
+
   it('testata della scheda: badge in testo e sopratitolo', () => {
     expect(badgeDellaDomanda(domanda, 'ADA')).toEqual([
       'CUAA 01234567890',

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
@@ -6,6 +6,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router';
 import { server } from '../../shared/api/mock/server';
 import { problema } from '../../shared/testing/msw';
 import { renderConQuery } from '../../shared/testing/render';
+import { pngDelGrafico } from '../../shared/ui/grafici/echarts';
 import { DETTAGLIO, PAGINA_DOMANDE, PAGINA_PAGAMENTI, SINOTTICO, VALORI } from '../../features/elenco-operativo/testing/fixture';
 import PaginaDomande from './domande/page';
 import PaginaPagamenti from './pagamenti/page';
@@ -229,5 +230,23 @@ describe('RA004: i link verso la scheda e verso le domande si mostrano solo col 
     apri('/elenco-operativo/domande/PAGAMENTO/54230000001');
     await screen.findByRole('heading', { level: 1, name: 'COOPERATIVA VERDI' });
     expect((await screen.findByRole('link', { name: 'Altre domande del beneficiario' })).getAttribute('href')).toBe('/elenco-operativo/domande?testo=01234567890');
+  });
+});
+
+describe("RA004: PNG del grafico della scheda con domanda, perimetro e profilo nell'intestazione (review v1 X-07)", () => {
+  it("l'intestazione dice di quale domanda e' il grafico; il nome del file porta il codice", async () => {
+    servi();
+    const clic = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    const png = vi.mocked(pngDelGrafico);
+    png.mockClear();
+    apri('/elenco-operativo/domande/PAGAMENTO/54230000001');
+    await screen.findByRole('heading', { level: 1, name: 'COOPERATIVA VERDI' });
+    await userEvent.click(await screen.findByRole('button', { name: "Scarica il grafico Dall'ammesso al pagato in PNG" }));
+    const intestazione = png.mock.calls[0][1].intestazione;
+    expect(intestazione).toContain('Domanda: pagamento 54230000001');
+    expect(intestazione).toContain('Perimetro: regionale');
+    expect(intestazione).toContain('Profilo: p1-dirigente');
+    expect((clic.mock.contexts[0] as HTMLAnchorElement).download).toMatch(/54230000001/);
+    clic.mockRestore();
   });
 });
