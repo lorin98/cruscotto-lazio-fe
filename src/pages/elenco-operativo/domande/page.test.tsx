@@ -7,7 +7,7 @@ import { renderPagina } from '../../../shared/testing/render-pagina';
 import { PAGINA_DOMANDE, SINOTTICO, VALORI } from '../../../features/elenco-operativo/testing/fixture';
 import Pagina from './page';
 
-describe('pagina /elenco-operativo/domande (TX-0056, TX-0057, TX-0060)', () => {
+describe('RA002: pagina /elenco-operativo/domande (TX-0056, TX-0057, TX-0060)', () => {
   it("compone l'interrogazione delle domande dal barrel: h1, sinottico, tabella", async () => {
     server.use(
       http.get('*/api/elenco-operativo/filtri', () => HttpResponse.json(VALORI)),

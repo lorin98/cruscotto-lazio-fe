@@ -6,7 +6,7 @@ import { renderPagina } from '../../../shared/testing/render-pagina';
 import { PAGINA_PAGAMENTI, VALORI } from '../../../features/elenco-operativo/testing/fixture';
 import Pagina from './page';
 
-describe('pagina /elenco-operativo/pagamenti (TX-0059, TX-0060)', () => {
+describe('RA002: pagina /elenco-operativo/pagamenti (TX-0059, TX-0060)', () => {
   it("compone l'interrogazione dei pagamenti dal barrel", async () => {
     server.use(
       http.get('*/api/elenco-operativo/filtri', () => HttpResponse.json(VALORI)),

@@ -1,13 +1,13 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
-import { server } from '../src/shared/api/mock/server';
-import { expectNoA11yViolations } from '../src/shared/testing/axe';
-import { problema } from '../src/shared/testing/msw';
-import { renderPagina } from '../src/shared/testing/render-pagina';
-import { ElencoDomande, ElencoPagamenti, SchedaDomanda } from '../src/features/elenco-operativo';
-import { DETTAGLIO, PAGINA_DOMANDE, PAGINA_PAGAMENTI, SINOTTICO, VALORI } from '../src/features/elenco-operativo/testing/fixture';
+import { server } from '../../shared/api/mock/server';
+import { expectNoA11yViolations } from '../../shared/testing/axe';
+import { problema } from '../../shared/testing/msw';
+import { renderPagina } from '../../shared/testing/render-pagina';
+import { ElencoDomande, ElencoPagamenti, SchedaDomanda } from '../../features/elenco-operativo';
+import { DETTAGLIO, PAGINA_DOMANDE, PAGINA_PAGAMENTI, SINOTTICO, VALORI } from '../../features/elenco-operativo/testing/fixture';
 import { useParams } from 'react-router';
 
 // Test dei componenti dell'elenco operativo (pattern interrogazione, ADR 0029) sui wireframe approvati: dati dal server,
@@ -43,7 +43,7 @@ function PaginaScheda() {
   return <SchedaDomanda tipo={tipo} codiceABarre={codiceABarre} />;
 }
 
-describe('elenco operativo, domande (TX-0056, TX-0057, TX-0060)', () => {
+describe('RA006: interrogazione libera delle domande con il sinottico sopra e i totali sotto (TX-0056, TX-0057, TX-0060)', () => {
   it('sinottico sopra e totali sotto dal server, non dalle righe della pagina', async () => {
     servi();
     renderPagina(ElencoDomande, '/elenco-operativo/domande');
@@ -71,20 +71,6 @@ describe('elenco operativo, domande (TX-0056, TX-0057, TX-0060)', () => {
     expect(richieste).toContain('sinottico?intervento=SRA01&sigc=true');
     await userEvent.click(within(barra).getByRole('button', { name: 'Togli il filtro SIGC solo SIGC' }));
     await waitFor(() => expect(router.state.location.search).toBe('?intervento=SRA01'));
-  });
-
-  it("ordinamento dal server col clic sull'intestazione; paginazione", async () => {
-    servi();
-    const { router } = renderPagina(ElencoDomande, '/elenco-operativo/domande');
-    const tabella = await screen.findByRole('table', { name: /Elenco operativo delle domande/ });
-    const intestazione = within(tabella).getByRole('columnheader', { name: /Ammesso/ });
-    expect(intestazione.getAttribute('aria-sort')).toBe('none');
-    await userEvent.click(within(intestazione).getByRole('button'));
-    await waitFor(() => expect(router.state.location.search).toBe('?ordina=ammesso%3Aasc'));
-    const pagine = screen.getByRole('navigation', { name: 'Pagine dei risultati' });
-    expect(pagine.textContent).toContain('Pagina 1 di 52');
-    await userEvent.click(within(pagine).getByRole('button', { name: 'Pagina successiva' }));
-    await waitFor(() => expect(router.state.location.search).toBe('?pagina=1&ordina=ammesso%3Aasc'));
   });
 
   it('vista per ambito: cambiano colonne e indicatori, non le righe', async () => {
@@ -124,7 +110,7 @@ describe('elenco operativo, domande (TX-0056, TX-0057, TX-0060)', () => {
   });
 });
 
-describe('elenco operativo, pannello dei filtri dal vivo', () => {
+describe('RA006: filtri dal vivo nel pannello, senza Applica', () => {
   it('una scelta cambia subito l indirizzo; il conteggio e annunciato', async () => {
     servi();
     const { router } = renderPagina(ElencoDomande, '/elenco-operativo/domande');
@@ -150,7 +136,23 @@ describe('elenco operativo, pannello dei filtri dal vivo', () => {
   });
 });
 
-describe('elenco operativo, pagamenti (TX-0059)', () => {
+describe('RA002: elenco delle domande ordinato e paginato dal server (TX-0056)', () => {
+  it("ordinamento dal server col clic sull'intestazione; paginazione", async () => {
+    servi();
+    const { router } = renderPagina(ElencoDomande, '/elenco-operativo/domande');
+    const tabella = await screen.findByRole('table', { name: /Elenco operativo delle domande/ });
+    const intestazione = within(tabella).getByRole('columnheader', { name: /Ammesso/ });
+    expect(intestazione.getAttribute('aria-sort')).toBe('none');
+    await userEvent.click(within(intestazione).getByRole('button'));
+    await waitFor(() => expect(router.state.location.search).toBe('?ordina=ammesso%3Aasc'));
+    const pagine = screen.getByRole('navigation', { name: 'Pagine dei risultati' });
+    expect(pagine.textContent).toContain('Pagina 1 di 52');
+    await userEvent.click(within(pagine).getByRole('button', { name: 'Pagina successiva' }));
+    await waitFor(() => expect(router.state.location.search).toBe('?pagina=1&ordina=ammesso%3Aasc'));
+  });
+});
+
+describe('RA002: elenco operativo dei pagamenti del perimetro (TX-0059)', () => {
   it('totali del server, domanda chiusa detta in testo e senza link alla scheda', async () => {
     servi();
     renderPagina(ElencoPagamenti, '/elenco-operativo/pagamenti');
@@ -174,7 +176,7 @@ describe('elenco operativo, pagamenti (TX-0059)', () => {
   });
 });
 
-describe('elenco operativo, scheda della domanda (TX-0058)', () => {
+describe('RA004: scheda completa della domanda (TX-0058)', () => {
   it('h1 dalla denominazione, schede, responsabile non esposto (OP-008)', async () => {
     servi();
     server.use(http.get('*/api/elenco-operativo/domande/:tipo/:codice', () => HttpResponse.json(DETTAGLIO)));
@@ -202,5 +204,49 @@ describe('elenco operativo, scheda della domanda (TX-0058)', () => {
     const { container } = renderPagina(PaginaScheda, '/elenco-operativo/domande/:tipo/:codiceABarre', '/elenco-operativo/domande/PAGAMENTO/54230000001');
     await screen.findByRole('heading', { level: 1, name: 'COOPERATIVA VERDI' });
     await expectNoA11yViolations(container);
+  });
+});
+
+describe('RA003: dai report del finanziario all elenco gia filtrato sulla selezione', () => {
+  it("l'indirizzo dei link del finanziario arriva al server cosi' com'e', coi chip della selezione", async () => {
+    const richieste = servi();
+    renderPagina(ElencoDomande, '/elenco-operativo/domande', '/elenco-operativo/domande?anno=2025&annualita=PRIMA&intervento=SRA01&presentata=true');
+    const barra = await screen.findByRole('region', { name: 'Filtri attivi' });
+    expect(await within(barra).findByText(/SRA01 Produzione integrata/)).toBeTruthy();
+    expect(within(barra).getByText(/Prima annualità/)).toBeTruthy();
+    expect(within(barra).getByText(/solo le presentate/)).toBeTruthy();
+    await waitFor(() => expect(richieste).toContain('domande?anno=2025&annualita=PRIMA&intervento=SRA01&presentata=true'));
+    expect(richieste).toContain('sinottico?anno=2025&annualita=PRIMA&intervento=SRA01&presentata=true');
+  });
+
+  it('i parametri non dichiarati dello uiplan non passano al server', async () => {
+    const richieste = servi();
+    renderPagina(ElencoDomande, '/elenco-operativo/domande', '/elenco-operativo/domande?intervento=SRA01&inventato=1&decreto=D84');
+    await waitFor(() => expect(richieste).toContain('domande?intervento=SRA01'));
+    expect(richieste.some((r) => r.includes('inventato') || r.includes('decreto'))).toBe(false);
+  });
+});
+
+describe("RA005: esportazione dell'elenco filtrato (CSV e XLSX dal backend)", () => {
+  it("il file ha i filtri e l'ordinamento della pagina, senza pagina e dimensione, e il nome della transazione", async () => {
+    servi();
+    const esportazioni: Array<{ percorso: string; xrw: string | null }> = [];
+    server.use(
+      http.get('*/api/elenco-operativo/domande/:formato', ({ request, params }) => {
+        if (params.formato !== 'csv' && params.formato !== 'xlsx') return undefined;
+        const u = new URL(request.url);
+        esportazioni.push({ percorso: `${u.pathname}${u.search}`, xrw: request.headers.get('X-Requested-With') });
+        return new HttpResponse('a;b', { headers: { 'Content-Type': 'text/csv' } });
+      }),
+    );
+    URL.createObjectURL = vi.fn(() => 'blob:prova');
+    URL.revokeObjectURL = vi.fn();
+    const clic = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    renderPagina(ElencoDomande, '/elenco-operativo/domande', '/elenco-operativo/domande?intervento=SRA01&pagina=2&dimensione=50&ordina=cuaa%3Adesc');
+    await userEvent.click(await screen.findByRole('button', { name: "Scarica l'elenco delle domande in CSV" }));
+    await waitFor(() => expect(clic).toHaveBeenCalled());
+    expect(esportazioni).toEqual([{ percorso: '/api/elenco-operativo/domande/csv?intervento=SRA01&ordina=cuaa:desc', xrw: 'XMLHttpRequest' }]);
+    expect((clic.mock.contexts.at(-1) as HTMLAnchorElement).download).toMatch(/tx-0056\.csv$/);
+    clic.mockRestore();
   });
 });

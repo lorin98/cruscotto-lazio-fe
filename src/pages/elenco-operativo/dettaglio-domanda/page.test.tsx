@@ -6,7 +6,7 @@ import { renderPagina } from '../../../shared/testing/render-pagina';
 import { DETTAGLIO } from '../../../features/elenco-operativo/testing/fixture';
 import Pagina from './page';
 
-describe('pagina /elenco-operativo/domande/:tipo/:codiceABarre (TX-0058)', () => {
+describe('RA004: pagina /elenco-operativo/domande/:tipo/:codiceABarre (TX-0058)', () => {
   it('legge la domanda dei parametri del percorso', async () => {
     let letto = '';
     server.use(
