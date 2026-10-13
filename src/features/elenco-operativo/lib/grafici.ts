@@ -27,6 +27,8 @@ interface TestiRipartizione {
   titolo: string;
   caption: string;
   colonna: string;
+  /** La colonna dentro una frase ("Filtra per stato SIAN ...": la sigla resta maiuscola, review v2 V-06). */
+  nellaFrase: string;
   unita: [string, string];
   /** Filtro che il clic aggiunge. */
   filtro: NomeFiltro;
@@ -34,9 +36,9 @@ interface TestiRipartizione {
 }
 
 export const TESTI_RIPARTIZIONE: Record<Ripartizione, TestiRipartizione> = {
-  perStato: { titolo: 'Domande per stato SIAN', caption: 'Domande per stato SIAN', colonna: 'Stato SIAN', unita: ['stato', 'stati'], filtro: 'stato', orizzontale: true },
-  perIntervento: { titolo: 'Domande per intervento', caption: 'Domande per intervento', colonna: 'Intervento', unita: ['intervento', 'interventi'], filtro: 'intervento', orizzontale: false },
-  perAnno: { titolo: 'Domande per anno di raccolta', caption: 'Domande per anno di raccolta', colonna: 'Anno di raccolta', unita: ['anno', 'anni'], filtro: 'anno', orizzontale: false },
+  perStato: { titolo: 'Domande per stato SIAN', caption: 'Domande per stato SIAN', colonna: 'Stato SIAN', nellaFrase: 'stato SIAN', unita: ['stato', 'stati'], filtro: 'stato', orizzontale: true },
+  perIntervento: { titolo: 'Domande per intervento', caption: 'Domande per intervento', colonna: 'Intervento', nellaFrase: 'intervento', unita: ['intervento', 'interventi'], filtro: 'intervento', orizzontale: false },
+  perAnno: { titolo: 'Domande per anno di raccolta', caption: 'Domande per anno di raccolta', colonna: 'Anno di raccolta', nellaFrase: 'anno di raccolta', unita: ['anno', 'anni'], filtro: 'anno', orizzontale: false },
 };
 
 /** Voci che il filtro del grafico non accetta: si mostrano, ma il clic non filtra. */

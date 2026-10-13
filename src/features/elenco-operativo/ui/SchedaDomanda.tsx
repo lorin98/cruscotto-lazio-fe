@@ -15,7 +15,7 @@ import { AvvisoPagina, CardGrafico, ContestoIntestazione, Griglia, Kpi, Sezione,
 import { rispostaDomandaAssente, rispostaRiferimentoNonValido, useDettaglioDomanda } from '../api';
 import type { DettaglioDomanda, DomandaElenco } from '../api';
 import { PERCORSO_DOMANDE, PERCORSO_PAGAMENTI, percorsoDettaglio, percorsoDomandeDelBeneficiario, riferimentoValido, ritornoAllElenco, statoDiRitorno } from '../lib/collegamenti';
-import type { StatoScheda } from '../lib/collegamenti';
+import type { StatoRitorno, StatoScheda } from '../lib/collegamenti';
 import { cellaImporto, etichettaTipo, quotaSu, testoPerimetro } from '../lib/formato';
 import { graficoAmmessoPagato } from '../lib/grafici';
 import { puoLeggere } from '../lib/grant';
@@ -40,7 +40,7 @@ function Testata({
   titolo: string;
   scheda: DettaglioDomanda | undefined;
   ritorno: string;
-  statoRitorno: { vista: string } | undefined;
+  statoRitorno: StatoRitorno | undefined;
   conBeneficiario: boolean;
 }) {
   const d = scheda?.domanda;
@@ -188,16 +188,25 @@ function titoloDi(scheda: DettaglioDomanda | undefined, esito: 'assente' | 'non-
   return scheda?.domanda?.denominazione ?? `Domanda ${codice ?? ''}`;
 }
 
-function Avviso({ testo, ritorno }: { testo: string; ritorno: string }) {
+/** Il ritorno all'elenco di partenza: indirizzo con i filtri e scelte della pagina (vista, colonne: review v2 V-02). */
+interface Ritorno {
+  ritorno: string;
+  statoRitorno: StatoRitorno | undefined;
+}
+
+function Avviso({ testo, r }: { testo: string; r: Ritorno }) {
   return (
     <div className="alert alert-warning" role="alert">
-      {testo} <Link to={ritorno}>{"Torna all'elenco"}</Link>
+      {testo}{' '}
+      <Link to={r.ritorno} state={r.statoRitorno}>
+        {"Torna all'elenco"}
+      </Link>
     </div>
   );
 }
 
-function Contenuto({ scheda, ritorno, ricerca }: { scheda: DettaglioDomanda; ritorno: string; ricerca: StatoScheda | undefined }) {
-  if (!scheda.domanda) return <Avviso testo={ASSENTE} ritorno={ritorno} />;
+function Contenuto({ scheda, r, ricerca }: { scheda: DettaglioDomanda; r: Ritorno; ricerca: StatoScheda | undefined }) {
+  if (!scheda.domanda) return <Avviso testo={ASSENTE} r={r} />;
   return (
     <>
       <Kpis d={scheda.domanda} />
@@ -222,21 +231,21 @@ function esitoDi(valido: boolean, stato: ReturnType<typeof useDettaglioDomanda>)
   return stato.isError && rispostaDomandaAssente(stato.error) ? 'assente' : null;
 }
 
-/** Ritorno all'elenco: la ricerca di partenza e la vista dallo stato della navigazione (review v1 V-12, X-04). */
+/** Ritorno all'elenco: la ricerca di partenza e le scelte della pagina dallo stato della navigazione (review v1 V-12, X-04). */
 function useRitorno() {
   const { state } = useLocation();
   const ritorno = ritornoAllElenco(state);
   const statoRitorno = statoDiRitorno(state);
-  // la ricerca di partenza (con la vista) passa anche alle domande collegate: "Torna all'elenco" riporta sempre all'elenco
+  // la ricerca di partenza (con le scelte) passa anche alle domande collegate: "Torna all'elenco" riporta sempre all'elenco
   const ricerca: StatoScheda | undefined = ritorno === PERCORSO_DOMANDE && !statoRitorno ? undefined : { ricerca: ritorno, ...statoRitorno };
   return { ritorno, statoRitorno, ricerca, briciola: ritorno.startsWith(PERCORSO_PAGAMENTI) ? 'Pagamenti' : 'Domande' };
 }
 
-function Corpo({ esito, stato, ritorno, ricerca }: { esito: Esito; stato: ReturnType<typeof useDettaglioDomanda>; ritorno: string; ricerca: StatoScheda | undefined }) {
-  if (esito === 'non-valido') return <Avviso testo={NON_VALIDO} ritorno={ritorno} />;
+function Corpo({ esito, stato, r, ricerca }: { esito: Esito; stato: ReturnType<typeof useDettaglioDomanda>; r: Ritorno; ricerca: StatoScheda | undefined }) {
+  if (esito === 'non-valido') return <Avviso testo={NON_VALIDO} r={r} />;
   return (
-    <VistaQuery stato={stato} errorePersonalizzato={(e) => (rispostaDomandaAssente(e) ? <Avviso testo={ASSENTE} ritorno={ritorno} /> : null)}>
-      {(scheda) => <Contenuto scheda={scheda} ritorno={ritorno} ricerca={ricerca} />}
+    <VistaQuery stato={stato} errorePersonalizzato={(e) => (rispostaDomandaAssente(e) ? <Avviso testo={ASSENTE} r={r} /> : null)}>
+      {(scheda) => <Contenuto scheda={scheda} r={r} ricerca={ricerca} />}
     </VistaQuery>
   );
 }
@@ -252,7 +261,7 @@ export function SchedaDomanda({ tipo, codiceABarre }: { tipo: string | undefined
   const contesto = useContestoScheda(stato.data, auth.data?.user?.profile);
   return (
     <main className="ui-pagina" id="contenuto">
-      <Briciole voci={[{ etichetta: r.briciola, a: r.ritorno }, { etichetta }]} />
+      <Briciole voci={[{ etichetta: r.briciola, a: r.ritorno, stato: r.statoRitorno }, { etichetta }]} />
       <Testata
         h1={h1}
         titolo={titoloDi(stato.data, esito, codiceABarre)}
@@ -263,7 +272,7 @@ export function SchedaDomanda({ tipo, codiceABarre }: { tipo: string | undefined
       />
       <ContestoIntestazione.Provider value={contesto}>
         <AvvisoPagina>
-          <Corpo esito={esito} stato={stato} ritorno={r.ritorno} ricerca={r.ricerca} />
+          <Corpo esito={esito} stato={stato} r={r} ricerca={r.ricerca} />
         </AvvisoPagina>
       </ContestoIntestazione.Provider>
     </main>

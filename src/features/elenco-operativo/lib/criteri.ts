@@ -2,7 +2,7 @@
 // della pagina (url_params dello uiplan, D-02 del backend), pagina, dimensione e ordinamento lato server (D-04), i criteri
 // che passano da un elenco all'altro e quelli del sinottico e dell'esportazione.
 // Nel contratto ogni parametro e' testuale e ripetibile: i criteri hanno la stessa forma (Record<nome, string[]>).
-import { MAX_VALORI_PARAMETRO, leggiRipetuti, scriviRipetuti } from '../../../shared/lib';
+import { DIMENSIONI_PAGINA, MAX_VALORI_PARAMETRO, leggiRipetuti, scriviRipetuti } from '../../../shared/lib';
 
 /** Filtri della domanda comuni ai due elenchi (i link "pagamenti di queste domande" e ritorno li portano tutti). */
 export const FILTRI_DOMANDA = [
@@ -121,7 +121,8 @@ const VALIDI: Partial<Record<NomeParametro, (valore: string, elenco: Elenco) => 
   presentata: (v) => v === 'true',
   testo: (v) => testoInviabile(v),
   pagina: (v) => tra(v, /^\d{1,9}$/, 1, 999_999_999),
-  dimensione: (v) => tra(v, /^\d{1,3}$/, 1, DIMENSIONE_MASSIMA) && Number(v) !== DIMENSIONE_PREDEFINITA,
+  // solo le dimensioni che la paginazione offre (review v2 H-07): un indirizzo ritoccato non mostra una select diversa
+  dimensione: (v) => (DIMENSIONI_PAGINA as readonly number[]).includes(Number(v)) && /^\d{2,3}$/.test(v) && Number(v) !== DIMENSIONE_PREDEFINITA,
   ordina: ordinaAccettato,
 };
 
@@ -213,10 +214,10 @@ export function paginaDi(criteri: Criteri): number {
   return intero(criteri.pagina?.[0]) ?? 0;
 }
 
-/** Righe per pagina, fra 1 e 100 (assente o fuori dai limiti = 25). */
+/** Righe per pagina: una delle dimensioni offerte dalla paginazione (assente o diversa = 25). */
 export function dimensioneDi(criteri: Criteri): number {
   const d = intero(criteri.dimensione?.[0]);
-  return d !== null && d >= 1 && d <= DIMENSIONE_MASSIMA ? d : DIMENSIONE_PREDEFINITA;
+  return d !== null && (DIMENSIONI_PAGINA as readonly number[]).includes(d) ? d : DIMENSIONE_PREDEFINITA;
 }
 
 export function conPagina(criteri: Criteri, pagina: number): Criteri {
@@ -302,6 +303,31 @@ export function filtriDellaDomanda(criteri: Criteri): Criteri {
 export function testoInviabile(testo: string): boolean {
   const t = testo.trim();
   return t.length === 0 || (t.length >= TESTO_MIN && t.length <= TESTO_MAX);
+}
+
+/** Esito della lettura dei due campi di una fascia di importo (review v2 A-02). */
+export type EsitoFascia =
+  | { valida: true; da: string | null; a: string | null }
+  | { valida: false; motivo: 'importo'; campi: Array<'da' | 'a'> }
+  | { valida: false; motivo: 'rovesciata' };
+
+/**
+ * I due campi di una fascia, letti insieme: un campo vuoto e' un estremo assente, uno non leggibile rende la fascia non
+ * valida (motivo 'importo', coi campi da correggere), due estremi con Da maggiore di A la rendono rovesciata (il backend:
+ * 400). Valida: gli estremi nel formato del contratto (null = assente).
+ */
+export function leggiFascia(testoDa: string, testoA: string): EsitoFascia {
+  const da = estremoDaTesto(testoDa);
+  const a = estremoDaTesto(testoA);
+  const errati = (['da', 'a'] as const).filter((c) => (c === 'da' ? da : a) === undefined);
+  if (errati.length > 0) return { valida: false, motivo: 'importo', campi: errati };
+  if (fasciaRovesciata(da ?? undefined, a ?? undefined)) return { valida: false, motivo: 'rovesciata' };
+  return { valida: true, da: da ?? null, a: a ?? null };
+}
+
+/** Un estremo della fascia: null se il campo e' vuoto (estremo assente), undefined se non e' un importo. */
+function estremoDaTesto(testo: string): string | null | undefined {
+  return testo.trim() === '' ? null : (importoDaTesto(testo) ?? undefined);
 }
 
 /**

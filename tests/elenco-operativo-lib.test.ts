@@ -14,6 +14,7 @@ import {
   fasciaRovesciata,
   filtriDellaDomanda,
   importoDaTesto,
+  leggiFascia,
   numeroFiltri,
   ordinaPer,
   ordinamentoDi,
@@ -57,6 +58,7 @@ import {
   riferimentoValido,
   ritornoAllElenco,
   statoDiRitorno,
+  statoElencoValido,
 } from '../src/features/elenco-operativo/lib/collegamenti';
 import { menoRecente, testoUltimiDati } from '../src/shared/lib/aggiornamento';
 import { righeContesto } from '../src/shared/lib';
@@ -112,6 +114,10 @@ describe('elenco operativo, criteri nell indirizzo (D-02, D-04)', () => {
     expect(dimensioneDi({ dimensione: ['100'] })).toBe(100);
     expect(dimensioneDi({ dimensione: ['101'] })).toBe(25);
     expect(dimensioneDi({ dimensione: ['0'] })).toBe(25);
+    // solo le dimensioni che la select offre (review v2 H-07)
+    expect(dimensioneDi({ dimensione: ['7'] })).toBe(25);
+    expect(criteriDaRicerca('?dimensione=7', 'domande')).toEqual({});
+    expect(criteriDaRicerca('?dimensione=10', 'pagamenti')).toEqual({ dimensione: ['10'] });
     expect(conPagina({ pagina: ['2'] }, 0)).toEqual({});
     expect(conPagina({}, 3)).toEqual({ pagina: ['3'] });
     expect(conDimensione({ pagina: ['2'] }, 50)).toEqual({ dimensione: ['50'] });
@@ -162,6 +168,15 @@ describe('elenco operativo, criteri nell indirizzo (D-02, D-04)', () => {
     expect(importoDaTesto('dieci')).toBeNull();
     expect(importoDaTesto('-5')).toBeNull();
     expect(importoDaTesto('')).toBeNull();
+  });
+
+  it('fascia di importo letta coi due campi insieme (review v2 A-02)', () => {
+    expect(leggiFascia('', '')).toEqual({ valida: true, da: null, a: null });
+    expect(leggiFascia('1.000', '5.000')).toEqual({ valida: true, da: '1000', a: '5000' });
+    expect(leggiFascia('10.000', '5.000')).toEqual({ valida: false, motivo: 'rovesciata' });
+    expect(leggiFascia('dieci', '5')).toEqual({ valida: false, motivo: 'importo', campi: ['da'] });
+    expect(leggiFascia('x', 'y')).toEqual({ valida: false, motivo: 'importo', campi: ['da', 'a'] });
+    expect(leggiFascia('', '1.500,50')).toEqual({ valida: true, da: null, a: '1500.50' });
   });
 });
 
@@ -445,9 +460,21 @@ describe('elenco operativo, link della scheda e fra elenchi (review v1 A-01, V-0
       expect(ritornoAllElenco({ ricerca }), String(ricerca)).toBe('/elenco-operativo/domande');
     }
     expect(ritornoAllElenco(null)).toBe('/elenco-operativo/domande');
-    expect(statoDiRitorno({ vista: 'fisico' })).toEqual({ vista: 'fisico' });
-    expect(statoDiRitorno({ vista: '<script>' })).toBeUndefined();
+    // le scelte della pagina dell'elenco nella forma di useStatoNellaHistory (review v2 V-02, V-03, A-04)
+    const elenco = { firma: 'elenco-operativo', valore: { vista: 'fisico', nascoste: ['ammesso'] } };
+    expect(statoDiRitorno({ ricerca: '/elenco-operativo/domande', elenco })).toEqual({ elenco });
+    expect(statoDiRitorno({ elenco: { ...elenco, firma: 'altro' } })).toBeUndefined();
+    expect(statoDiRitorno({ elenco: { firma: 'elenco-operativo', valore: { vista: '<script>' } } })).toBeUndefined();
+    expect(statoDiRitorno({ vista: 'fisico' })).toBeUndefined();
     expect(statoDiRitorno(undefined)).toBeUndefined();
+  });
+
+  it('scelte della pagina dello state della history: vista e colonne come identificativi brevi, mai altro', () => {
+    expect(statoElencoValido({})).toBe(true);
+    expect(statoElencoValido({ vista: 'economico', nascoste: ['liquidato', 'ammesso'] })).toBe(true);
+    for (const v of [null, 'fisico', [], { vista: 'Fisico1' }, { nascoste: 'ammesso' }, { nascoste: ['a b'] }, { nascoste: Array.from({ length: 51 }, () => 'x') }]) {
+      expect(statoElencoValido(v), JSON.stringify(v)).toBe(false);
+    }
   });
 
   it('i link fra i due elenchi portano tutti e soli i parametri della loro query nello uiplan', () => {

@@ -17,6 +17,15 @@ const TUTTI = ['csr.tx-0056.read', 'csr.tx-0057.read', 'csr.tx-0058.read', 'csr.
 const profilo = (roles: string[]) =>
   server.use(http.get('*/auth/status', () => HttpResponse.json({ authenticated: true, user: { username: 'U', profile: 'p1-dirigente', roles } })));
 
+/** Una risposta trattenuta finche' il test non la libera (lettura in corso). */
+function trattenuta() {
+  let libera = () => {};
+  const attesa = new Promise<void>((r) => {
+    libera = r;
+  });
+  return { attesa, libera: () => libera() };
+}
+
 function servi() {
   const richieste: string[] = [];
   profilo(TUTTI);
@@ -112,7 +121,7 @@ describe('RA006: interrogazione libera delle domande con il sinottico sopra e i 
 });
 
 describe('RA006: filtri dal vivo nel pannello, senza Applica', () => {
-  it('una scelta cambia l indirizzo dopo il ritardo, senza Applica; il conteggio e annunciato', async () => {
+  it('una scelta cambia l indirizzo dopo il ritardo, senza Applica; il conteggio e una regione di stato', async () => {
     servi();
     const { router } = renderPagina(ElencoDomande, '/elenco-operativo/domande');
     await screen.findByRole('table', { name: /Elenco operativo delle domande/ });
@@ -126,6 +135,35 @@ describe('RA006: filtri dal vivo nel pannello, senza Applica', () => {
   });
 
   // il ritardo del testo libero (300 ms, da 3 caratteri) si misura coi timer finti in interrogazione-comandi.test.tsx
+
+  // review v2 X-05: il conteggio dal vivo non dice mai il numero vecchio come se fosse dei filtri nuovi
+  it.each([
+    [ElencoDomande, '/elenco-operativo/domande', '*/api/elenco-operativo/domande', PAGINA_DOMANDE, '1284 domande con questi filtri', '17 domande con questi filtri'],
+    [ElencoPagamenti, '/elenco-operativo/pagamenti', '*/api/elenco-operativo/pagamenti', PAGINA_PAGAMENTI, '3 righe di pagamento con questi filtri', '17 righe di pagamento con questi filtri'],
+  ])("%#: dopo una scelta il pannello dice 'Conteggio in corso…' finche' arriva il numero nuovo", async (Pagina, percorso, api, pagina, prima, dopo) => {
+    servi();
+    const r = trattenuta();
+    server.use(
+      http.get(api, async ({ request }) => {
+        if (new URL(request.url).searchParams.get('sigc') !== 'true') return HttpResponse.json(pagina);
+        await r.attesa;
+        return HttpResponse.json({ ...pagina, totaleRighe: 17 });
+      }),
+    );
+    const { router } = renderPagina(Pagina, percorso);
+    await screen.findByRole('table', { name: /Elenco operativo/ });
+    await userEvent.click(screen.getByRole('button', { name: /Filtri/ }));
+    const dialogo = await screen.findByRole('dialog');
+    const conteggio = within(dialogo).getByRole('status');
+    expect(conteggio.textContent).toBe(prima);
+    await userEvent.click(await within(dialogo).findByRole('button', { name: 'Solo SIGC' }));
+    expect(conteggio.textContent).toBe('Conteggio in corso…');
+    await waitFor(() => expect(router.state.location.search).toBe('?sigc=true'));
+    // l'indirizzo e' cambiato ma la lettura e' trattenuta: il conteggio resta in corso
+    expect(conteggio.textContent).toBe('Conteggio in corso…');
+    r.libera();
+    await waitFor(() => expect(conteggio.textContent).toBe(dopo));
+  });
 });
 
 describe('RA002: elenco delle domande ordinato e paginato dal server (TX-0056)', () => {

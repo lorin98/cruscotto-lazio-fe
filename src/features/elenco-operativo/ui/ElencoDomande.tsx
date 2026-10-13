@@ -1,46 +1,33 @@
 // ElencoDomande — pagina /elenco-operativo/domande (flusso domande approvato, pattern interrogazione ADR 0029): barra dei
 // filtri a chip con perimetro e data dell'ultimo dato, viste per ambito (colonne di partenza e indicatori, mai le righe:
-// D-1, OP-EO-02; la vista resta tornando dalla scheda), sinottico sopra (TX-0057), tabella paginata e ordinata dal server
-// (TX-0056) con la scelta delle colonne e i totali del sinottico nel piede, anteprima della riga e link alla scheda, file
-// CSV e XLSX, link ai pagamenti delle stesse domande. I filtri si applicano dal vivo (debounce in useCriteri); durante
-// l'aggiornamento restano i dati precedenti, dichiarati (aria-busy, avviso). Ordinamento e righe per pagina non spostano
-// il focus; l'ordinamento attivo e' sempre detto in testo. Stati: caricamento, vuoto con "Modifica i filtri", pagina
-// oltre l'ultima, errore dal problem-type (VistaQuery), accesso non disponibile senza il grant di TX-0056.
-import { useRef, useState } from 'react';
+// D-1, OP-EO-02; vista e colonne scelte restano tornando dalla scheda), sinottico sopra (TX-0057), tabella paginata e
+// ordinata dal server (TX-0056) con la scelta delle colonne e i totali del sinottico nel piede, anteprima della riga e
+// link alla scheda, file CSV e XLSX, link ai pagamenti delle stesse domande. I filtri si applicano dal vivo (debounce in
+// useCriteri); durante l'aggiornamento restano i dati precedenti, dichiarati (aria-busy, avviso). Lo scheletro dei
+// risultati e del pannello e' comune ai pagamenti (interrogazione.tsx). Stati: caricamento, vuoto con "Modifica i
+// filtri", pagina oltre l'ultima, errore dal problem-type (VistaQuery), accesso non disponibile senza il grant di TX-0056.
+import { useState } from 'react';
 import type { ReactNode } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router';
+import { Link } from 'react-router';
 import { plurale } from '../../../shared/lib';
-import { AvvisoPagina, ContestoIntestazione, Paginazione, PulsantiScarica, TabellaServer, VistaQuery } from '../../../shared/ui';
+import { AvvisoPagina, ContestoIntestazione, VistaQuery } from '../../../shared/ui';
 import { useDomande, useSinottico } from '../api';
-import type { DomandaElenco, PaginaDomande, SinotticoElenco } from '../api';
+import type { SinotticoElenco } from '../api';
 import { ETICHETTE_FILTRI, valoreLeggibile } from '../lib/chip';
 import { percorsoPagamentiDelleDomande } from '../lib/collegamenti';
-import {
-  conDimensione,
-  conPagina,
-  conValore,
-  criteriSinottico,
-  dimensioneDi,
-  ordinaPer,
-  ordinamentoDi,
-  ordinamentoPredefinito,
-  paginaDi,
-  senzaOrdinamento,
-  testoOrdinamento,
-  ultimaPagina,
-} from '../lib/criteri';
-import type { Criteri } from '../lib/criteri';
-import { testoAggregato, testoConteggio, testoSomma } from '../lib/formato';
+import { conValore, criteriSinottico } from '../lib/criteri';
+import type { Criteri, NomeFiltro } from '../lib/criteri';
+import { testoAggregato, testoSomma } from '../lib/formato';
 import { TESTI_RIPARTIZIONE } from '../lib/grafici';
 import type { Ripartizione } from '../lib/grafici';
 import { puoLeggere } from '../lib/grant';
 import { VISTE, vistaDi } from '../lib/viste';
 import type { IdVista, Vista } from '../lib/viste';
 import { AnteprimaDomanda } from './anteprime';
-import { colonneDomande, titoloDelCampo } from './colonne';
-import { AccessoNonDisponibile, AvvisoAggiornamento, BarraInterrogazione, OrdinamentoAttivo, PaginaOltreLUltima, VuotoFiltri } from './comuni';
-import { avvisoLimite, scaricamentiElenco } from './esportazioni';
-import { PannelloFiltriElenco } from './PannelloFiltriElenco';
+import { colonneDomande } from './colonne';
+import { AccessoNonDisponibile, BarraInterrogazione, VuotoFiltri } from './comuni';
+import { PannelloInterrogazione, RisultatiInterrogazione, useScelteElenco } from './interrogazione';
+import type { Interrogazione } from './interrogazione';
 import { SinotticoDomande } from './SinotticoDomande';
 import { Briciole, TestaPagina } from './testata';
 import { useInterrogazione, useRigheContesto } from './useInterrogazione';
@@ -58,17 +45,6 @@ function SceltaVista({ vista, onVista }: { vista: Vista; onVista: (v: IdVista) =
       <p className="form-text">La vista cambia le colonne di partenza e gli indicatori, non le domande.</p>
     </>
   );
-}
-
-/** La vista per ambito nello state della voce di history: resta cambiando i filtri e tornando dalla scheda (review v1
- *  X-04); non sta nell'indirizzo (OP-EO-02: un link condiviso apre la vista generale). */
-function useVista(): [Vista, (v: IdVista) => void] {
-  const { pathname, search, state } = useLocation();
-  const naviga = useNavigate();
-  const salvata = typeof state === 'object' && state !== null ? (state as { vista?: unknown }).vista : undefined;
-  const vista = vistaDi(typeof salvata === 'string' ? salvata : null);
-  const scegli = (v: IdVista) => void naviga({ pathname, search }, { replace: true, state: { ...((state ?? {}) as object), vista: v } });
-  return [vista, scegli];
 }
 
 /**
@@ -90,79 +66,8 @@ function piedeDomande(s: SinotticoElenco | undefined, totaleRighe: number, sinot
   };
 }
 
-interface PropsRisultati {
-  pagina: PaginaDomande;
-  criteri: Criteri;
-  applica: (c: Criteri) => void;
-  vista: Vista;
-  sinottico: SinotticoElenco | undefined;
-  sinotticoAttuale: boolean;
-  aggiornando: boolean;
-  conScheda: boolean;
-}
-
-function Risultati({ pagina, criteri, applica, vista, sinottico, sinotticoAttuale, aggiornando, conScheda }: PropsRisultati) {
-  const [anteprima, setAnteprima] = useState<DomandaElenco | null>(null);
-  const titolo = useRef<HTMLHeadingElement>(null);
-  const ordinamento = ordinamentoDi(criteri, 'domande');
-  const totale = pagina.totaleRighe ?? 0;
-  const ultima = ultimaPagina(totale, dimensioneDi(criteri));
-  const limite = avvisoLimite('domande', totale);
-  return (
-    <section className="ui-card ui-risultati" aria-labelledby="t-elenco" aria-busy={aggiornando}>
-      <div className="ui-card__testa">
-        <h2 id="t-elenco" ref={titolo} tabIndex={-1}>
-          Elenco delle domande
-        </h2>
-      </div>
-      <AvvisoAggiornamento attivo={aggiornando} />
-      <OrdinamentoAttivo
-        testo={testoOrdinamento(titoloDelCampo('domande', ordinamento.campo), ordinamento)}
-        predefinito={ordinamentoPredefinito(ordinamento, 'domande')}
-        onPredefinito={() => applica(senzaOrdinamento(criteri))}
-      />
-      {paginaDi(criteri) > ultima && totale > 0 ? (
-        <PaginaOltreLUltima pagina={paginaDi(criteri)} ultima={ultima} onUltima={() => applica(conPagina(criteri, ultima))} />
-      ) : (
-        <TabellaServer
-          key={vista.id}
-          caption={`Elenco operativo delle domande, vista ${vista.etichetta.toLowerCase()}: ordinabile dal server con un clic sull'intestazione. Clic o Invio su una riga per l'anteprima.`}
-          colonne={colonneDomande(vista.colonne)}
-          righe={pagina.righe ?? []}
-          chiaveRiga={(d) => `${d.tipo ?? ''}-${d.codiceABarre ?? ''}`}
-          ordinamento={ordinamento}
-          // ordinare non sposta il focus: resta sull'intestazione, e il nuovo ordinamento lo dice OrdinamentoAttivo (X-02)
-          onOrdina={(campo) => applica(ordinaPer(criteri, 'domande', campo))}
-          onRiga={setAnteprima}
-          etichettaRiga={(d) => `Apri l'anteprima della domanda ${d.codiceABarre ?? ''}`}
-          piede={piedeDomande(sinottico, totale, sinotticoAttuale)}
-          strumenti={
-            <>
-              <PulsantiScarica oggetto="l'elenco delle domande" scaricamenti={scaricamentiElenco('domande', criteri, totale)} />
-              {limite && <p className="ui-nota w-100 mb-0">{limite}</p>}
-            </>
-          }
-        />
-      )}
-      <Paginazione
-        pagina={paginaDi(criteri)}
-        dimensione={dimensioneDi(criteri)}
-        totale={totale}
-        oggetto="domande"
-        onPagina={(p) => {
-          applica(conPagina(criteri, p));
-          titolo.current?.focus();
-        }}
-        // la dimensione cambia senza spostare il focus dalla select (WCAG 3.2.2)
-        onDimensione={(d) => applica(conDimensione(criteri, d))}
-      />
-      <AnteprimaDomanda domanda={anteprima} onChiudi={() => setAnteprima(null)} conScheda={conScheda} />
-    </section>
-  );
-}
-
 /** Le letture della pagina, ognuna col suo grant (review v1 A-06): elenco (TX-0056) e sinottico (TX-0057). */
-function useLettureDomande(criteri: Criteri, auth: ReturnType<typeof useInterrogazione>['auth']) {
+function useLettureDomande(criteri: Criteri, auth: Interrogazione['auth']) {
   const conDomande = puoLeggere(auth, 'domande');
   const conSinottico = puoLeggere(auth, 'sinottico');
   const stato = useDomande(criteri, { abilitato: conDomande });
@@ -179,35 +84,65 @@ function useLettureDomande(criteri: Criteri, auth: ReturnType<typeof useInterrog
   };
 }
 
-/** Il filtro aggiunto dal grafico, detto in una regione role=status sempre presente (review v1 V-18). */
-function useFiltroDalGrafico(i: ReturnType<typeof useInterrogazione>) {
-  const [annuncio, setAnnuncio] = useState('');
+/**
+ * Il filtro aggiunto dal grafico, detto in una regione role=status sempre presente (review v1 V-18). L'annuncio si
+ * rimonta a ogni filtro (anche lo stesso di prima: si ripete, review v2 X-03) e si spegne quando il filtro si toglie.
+ */
+function useFiltroDalGrafico(i: Interrogazione) {
+  const [annuncio, setAnnuncio] = useState<{ n: number; nome: NomeFiltro; valore: string; testo: string } | null>(null);
   const filtra = (r: Ripartizione, valore: string) => {
     const nome = TESTI_RIPARTIZIONE[r].filtro;
     i.applicaRitardato(conValore(i.criteriVisti, nome, valore));
-    setAnnuncio(`Filtro aggiunto: ${ETICHETTE_FILTRI[nome]} ${valoreLeggibile(nome, valore, i.valori?.data)}.`);
+    setAnnuncio((a) => ({ n: (a?.n ?? 0) + 1, nome, valore, testo: `Filtro aggiunto: ${ETICHETTE_FILTRI[nome]} ${valoreLeggibile(nome, valore, i.valori?.data)}.` }));
   };
-  return { annuncio, filtra };
+  const attivo = annuncio !== null && (i.criteriVisti[annuncio.nome] ?? []).includes(annuncio.valore);
+  const regione = (
+    <p className="visually-hidden" role="status">
+      {attivo && <span key={annuncio.n}>{annuncio.testo}</span>}
+    </p>
+  );
+  return { regione, filtra };
 }
 
-function Contenuto({ i, l, vista, onFiltra }: { i: ReturnType<typeof useInterrogazione>; l: ReturnType<typeof useLettureDomande>; vista: Vista; onFiltra: (r: Ripartizione, valore: string) => void }) {
+/**
+ * Con le chiavi dei report procedurali (statoSostegno, statoPagamento) lo stato SIAN vale in alternativa (OR, D-02 del
+ * backend): un clic sul grafico per stato allargherebbe l'insieme. Il clic si spegne e lo si dice (review v2 X-04).
+ */
+const conChiaviDeiReport = (c: Criteri) => (c.statoSostegno?.length ?? 0) + (c.statoPagamento?.length ?? 0) > 0;
+
+function Contenuto({ i, l, vista, nascoste, onNascoste, onFiltra }: { i: Interrogazione; l: ReturnType<typeof useLettureDomande>; vista: Vista; nascoste: string[] | undefined; onNascoste: (n: string[]) => void; onFiltra: (r: Ripartizione, valore: string) => void }) {
   return (
     <AvvisoPagina>
       {l.conSinottico && (
-        <VistaQuery stato={l.sinottico}>{(s) => <SinotticoDomande sinottico={s} vista={vista} inAggiornamento={l.sinotticoInAggiornamento} onFiltra={onFiltra} />}</VistaQuery>
+        <VistaQuery stato={l.sinottico}>
+          {(s) => <SinotticoDomande sinottico={s} vista={vista} inAggiornamento={l.sinotticoInAggiornamento} onFiltra={onFiltra} statoSenzaClic={conChiaviDeiReport(i.criteriVisti)} />}
+        </VistaQuery>
       )}
       {l.conDomande ? (
         <VistaQuery stato={l.stato} eVuoto={(d) => (d.totaleRighe ?? 0) === 0} vuoto={<VuotoFiltri testo="Nessuna domanda per questi filtri." onApriFiltri={i.pannello.apri} />}>
           {(pagina) => (
-            <Risultati
-              pagina={pagina}
-              criteri={i.criteri}
+            <RisultatiInterrogazione
+              elenco="domande"
+              idTitolo="t-elenco"
+              titolo="Elenco delle domande"
+              oggetto="domande"
+              oggettoFile="l'elenco delle domande"
+              totale={pagina.totaleRighe ?? 0}
+              righe={pagina.righe ?? []}
+              criteri={i.criteriScritti}
               applica={i.applica}
-              vista={vista}
-              sinottico={l.sinottico.data}
-              sinotticoAttuale={!l.sinotticoInAggiornamento}
               aggiornando={l.aggiornando}
-              conScheda={puoLeggere(i.auth, 'dettaglio')}
+              tabella={{
+                chiave: vista.id,
+                caption: `Elenco operativo delle domande, vista ${vista.etichetta.toLowerCase()}: ordinabile dal server con un clic sull'intestazione. Clic o Invio su una riga per l'anteprima.`,
+                colonne: colonneDomande(vista.colonne),
+                chiaveRiga: (d) => `${d.tipo ?? ''}-${d.codiceABarre ?? ''}`,
+                etichettaRiga: (d) => `Apri l'anteprima della domanda ${d.codiceABarre ?? ''}`,
+                piede: piedeDomande(l.sinottico.data, pagina.totaleRighe ?? 0, !l.sinotticoInAggiornamento),
+              }}
+              nascoste={nascoste}
+              onNascoste={onNascoste}
+              anteprima={(d, chiudi) => <AnteprimaDomanda domanda={d} onChiudi={chiudi} conScheda={puoLeggere(i.auth, 'dettaglio')} />}
             />
           )}
         </VistaQuery>
@@ -218,28 +153,9 @@ function Contenuto({ i, l, vista, onFiltra }: { i: ReturnType<typeof useInterrog
   );
 }
 
-function Pannello({ i, l }: { i: ReturnType<typeof useInterrogazione>; l: ReturnType<typeof useLettureDomande> }) {
-  const { stato } = l;
-  return (
-    <PannelloFiltriElenco
-      aperto={i.pannello.aperto}
-      onChiudi={i.pannello.chiudi}
-      elenco="domande"
-      criteri={i.criteriVisti}
-      applica={i.applicaRitardato}
-      valori={i.valori}
-      errori={[l.sinottico.error, stato.error].filter((e) => e != null)}
-      conteggio={testoConteggio(stato.data?.totaleRighe, ['domanda', 'domande'], {
-        inAggiornamento: i.inAttesa || l.aggiornando || (stato.isFetching && !stato.data),
-        inErrore: stato.isError,
-      })}
-      onAzzera={i.togliTutti}
-    />
-  );
-}
-
 export function ElencoDomande() {
-  const [vista, setVista] = useVista();
+  const [scelte, setScelte] = useScelteElenco();
+  const vista = vistaDi(scelte.vista);
   const i = useInterrogazione('domande');
   const l = useLettureDomande(i.criteri, i.auth);
   const righe = useRigheContesto(i.filtriApplicati, i.auth?.user?.profile, l.sinottico.data?.ultimiDatiSincronizzati, l.perimetro);
@@ -269,15 +185,14 @@ export function ElencoDomande() {
             ) : undefined
           }
         />
-        <SceltaVista vista={vista} onVista={setVista} />
-        <p className="visually-hidden" role="status">
-          {grafico.annuncio}
-        </p>
+        {/* una vista nuova riparte dalle sue colonne di partenza */}
+        <SceltaVista vista={vista} onVista={(v) => setScelte({ vista: v })} />
+        {grafico.regione}
         <ContestoIntestazione.Provider value={righe}>
-          <Contenuto i={i} l={l} vista={vista} onFiltra={grafico.filtra} />
+          <Contenuto i={i} l={l} vista={vista} nascoste={scelte.nascoste} onNascoste={(n) => setScelte({ ...scelte, nascoste: n })} onFiltra={grafico.filtra} />
         </ContestoIntestazione.Provider>
       </main>
-      <Pannello i={i} l={l} />
+      <PannelloInterrogazione i={i} elenco="domande" lettura={l.stato} aggiornando={l.aggiornando} altriErrori={[l.sinottico.error]} unita={['domanda', 'domande']} />
     </>
   );
 }

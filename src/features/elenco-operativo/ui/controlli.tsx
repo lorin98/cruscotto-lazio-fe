@@ -3,10 +3,13 @@
 // brevi, <details> per i gruppi a scomparsa: nessun comportamento ARIA complesso, quindi niente react-aria qui.
 // Il debounce di TUTTI i controlli sta in useCriteri (review v1 V-15): i campi di testo passano subito un valore valido e
 // non mandano mai un valore che il backend rifiuterebbe (testo sotto i 3 caratteri o con caratteri di controllo, importo
-// non leggibile, fascia rovesciata): lo dicono accanto al campo (aria-invalid).
+// non leggibile, fascia rovesciata): lo dicono accanto al campo (aria-invalid). Il campo non riscrive mai cio' che l'utente
+// sta scrivendo (review v2 X-01: "10.000" resta "10.000", non diventa "10,0" a meta'); un valore tornato non valido ritira
+// la sua parte di bozza (H-01). I due estremi di una fascia di importo sono una bozza sola (A-02): la coppia parte insieme.
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { filtraRighe } from '../../../shared/lib';
+import { leggiFascia } from '../lib/criteri';
 
 export interface Opzione {
   valore: string;
@@ -72,17 +75,20 @@ export function Scelte({ etichetta, opzioni, scelti, esclusive = false, onCambia
   );
 }
 
-/** Bozza del campo: un cambio esterno (chip tolto, "Azzera") la riallinea; un valore valido e diverso passa subito. */
-function useBozza(valore: string, valido: (s: string) => boolean, onCambia: (s: string) => void) {
+/** Bozza del campo (review v2 X-01, H-01): un cambio esterno (chip tolto) la riallinea, ma non se vale gia' quel valore
+ *  (`equivale`) ne' se e' un valore non valido in corso; un valore valido e diverso passa subito, uno non valido si ritira. */
+function useBozza(valore: string, valido: (s: string) => boolean, equivale: (bozza: string, valore: string) => boolean, onCambia: (s: string) => void, onNonValido?: () => void) {
   const [bozza, setBozza] = useState(valore);
   const [valorePrima, setValorePrima] = useState(valore);
   if (valore !== valorePrima) {
     setValorePrima(valore);
-    setBozza(valore);
+    const inCorso = bozza.trim() !== '' && !valido(bozza);
+    if (!inCorso && !equivale(bozza, valore)) setBozza(valore);
   }
   const scrivi = (s: string) => {
     setBozza(s);
-    if (s !== valore && valido(s)) onCambia(s);
+    if (!valido(s)) onNonValido?.();
+    else if (!equivale(s, valore)) onCambia(s);
   };
   return [bozza, scrivi] as const;
 }
@@ -92,34 +98,17 @@ function descrittoDa(id: string, conAiuto: boolean, nonValido: boolean): string 
   return ids.length > 0 ? ids.join(' ') : undefined;
 }
 
-/**
- * Campo di testo di un filtro: un valore valido passa subito a `onCambia` (che lo applica col debounce dell'interrogazione);
- * un cambio esterno (chip tolto, "Azzera") riallinea il campo. `aiuto` spiega il formato; un valore non valido lo dice
- * (aria-invalid) e non parte.
- */
-export function CampoFiltro({
-  id,
-  etichetta,
-  valore,
-  valido,
-  onCambia,
-  aiuto,
-  errore,
-  tipo = 'search',
-  modo,
-}: {
+interface PropsCampo {
   id: string;
   etichetta: string;
-  valore: string;
-  valido: (s: string) => boolean;
-  onCambia: (s: string) => void;
   aiuto?: string;
   errore: string;
   tipo?: 'search' | 'text';
   modo?: 'decimal';
-}) {
-  const [bozza, scrivi] = useBozza(valore, valido, onCambia);
-  const nonValido = bozza.trim() !== '' && !valido(bozza);
+}
+
+/** Il campo come si vede: etichetta, input, aiuto e, se non valido, l'errore (aria-invalid, aria-describedby). */
+function Campo({ id, etichetta, aiuto, errore, tipo = 'search', modo, valore, nonValido, onScrivi }: PropsCampo & { valore: string; nonValido: boolean; onScrivi: (s: string) => void }) {
   const descritto = descrittoDa(id, Boolean(aiuto), nonValido);
   return (
     <div className="ui-campo">
@@ -131,10 +120,10 @@ export function CampoFiltro({
         className={nonValido ? 'form-control is-invalid' : 'form-control'}
         type={tipo}
         inputMode={modo}
-        value={bozza}
+        value={valore}
         aria-invalid={nonValido || undefined}
         aria-describedby={descritto}
-        onChange={(e) => scrivi(e.target.value)}
+        onChange={(e) => onScrivi(e.target.value)}
       />
       {aiuto && (
         <p id={`${id}-aiuto`} className="form-text">
@@ -147,5 +136,86 @@ export function CampoFiltro({
         </p>
       )}
     </div>
+  );
+}
+
+const stessoTesto = (a: string, b: string) => a.trim() === b.trim();
+
+/**
+ * Campo di testo di un filtro: un valore valido passa subito a `onCambia` (che lo applica col debounce dell'interrogazione);
+ * un cambio esterno (chip tolto) riallinea il campo. `aiuto` spiega il formato; un valore non valido lo dice (aria-invalid),
+ * non parte e chiama `onNonValido` (ritira la bozza del filtro, review v2 H-01).
+ */
+export function CampoFiltro({
+  valore,
+  valido,
+  onCambia,
+  onNonValido,
+  equivale = stessoTesto,
+  ...campo
+}: PropsCampo & {
+  valore: string;
+  valido: (s: string) => boolean;
+  onCambia: (s: string) => void;
+  onNonValido?: () => void;
+  equivale?: (bozza: string, valore: string) => boolean;
+}) {
+  const [bozza, scrivi] = useBozza(valore, valido, equivale, onCambia, onNonValido);
+  return <Campo {...campo} valore={bozza} nonValido={bozza.trim() !== '' && !valido(bozza)} onScrivi={scrivi} />;
+}
+
+/** Estremo del contratto (punto decimale) come si scrive nel campo (virgola decimale). */
+const inCampo = (v: string | undefined) => (v ? v.replace('.', ',') : '');
+
+/**
+ * Fascia di importo (review v2 A-02): i due estremi sono una bozza sola. Ogni tasto rilegge la coppia: valida e diversa da
+ * quella applicata parte insieme (un estremo scartato perche' rovesciava la fascia parte quando l'altro la raddrizza), non
+ * valida non parte e ritira la fascia dalla bozza (`onNonValida`). Un cambio esterno riallinea i campi, ma non una coppia
+ * che vale gia' quei valori (X-01) ne' una non valida in corso. Rovesciata: l'errore e' sul campo appena scritto.
+ */
+export function CampiFascia({
+  id,
+  legenda,
+  da,
+  a,
+  errore,
+  onCambia,
+  onNonValida,
+}: {
+  id: string;
+  legenda: string;
+  /** Estremi nel formato del contratto (applicati o in bozza). */
+  da: string | undefined;
+  a: string | undefined;
+  errore: string;
+  onCambia: (da: string | null, a: string | null) => void;
+  onNonValida: () => void;
+}) {
+  const [testi, setTesti] = useState(() => ({ da: inCampo(da), a: inCampo(a) }));
+  const [ultimo, setUltimo] = useState<'da' | 'a'>('a');
+  const [prima, setPrima] = useState({ da, a });
+  if (prima.da !== da || prima.a !== a) {
+    setPrima({ da, a });
+    const e = leggiFascia(testi.da, testi.a);
+    if (e.valida && (e.da !== (da ?? null) || e.a !== (a ?? null))) setTesti({ da: inCampo(da), a: inCampo(a) });
+  }
+  const esito = leggiFascia(testi.da, testi.a);
+  const nonValido = (campo: 'da' | 'a') => !esito.valida && (esito.motivo === 'rovesciata' ? campo === ultimo : esito.campi.includes(campo));
+  const scrivi = (campo: 'da' | 'a') => (s: string) => {
+    const t = { ...testi, [campo]: s };
+    setTesti(t);
+    setUltimo(campo);
+    const e = leggiFascia(t.da, t.a);
+    if (!e.valida) onNonValida();
+    else if (e.da !== (da ?? null) || e.a !== (a ?? null)) onCambia(e.da, e.a);
+  };
+  return (
+    <fieldset>
+      <legend>{legenda}</legend>
+      <div className="ui-intervallo">
+        <Campo id={`${id}-da`} etichetta="Da" tipo="text" modo="decimal" errore={errore} valore={testi.da} nonValido={nonValido('da')} onScrivi={scrivi('da')} />
+        <Campo id={`${id}-a`} etichetta="Fino a" tipo="text" modo="decimal" errore={errore} valore={testi.a} nonValido={nonValido('a')} onScrivi={scrivi('a')} />
+      </div>
+    </fieldset>
   );
 }

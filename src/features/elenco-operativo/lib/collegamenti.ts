@@ -45,17 +45,51 @@ export function percorsoDomandeDelBeneficiario(cuaa: string | null | undefined):
   return `${PERCORSO_DOMANDE}${ricercaDaCriteri({ testo: [c] }, 'domande')}`;
 }
 
-/** Stato di navigazione dei link verso la scheda: la ricerca da cui si e' partiti (link torna-all-elenco) e la vista per
- *  ambito dell'elenco delle domande, da ritrovare al ritorno (review v1 X-04). */
-export interface StatoScheda {
-  ricerca: string;
+/**
+ * Scelte della pagina dell'elenco da ritrovare tornando dalla scheda (review v1 X-04, v2 V-03): la vista per ambito (solo
+ * le domande) e le colonne nascoste dalla scelta "Colonne". Stanno nello state della voce di history sotto
+ * CHIAVE_STATO_ELENCO, nella forma di useStatoNellaHistory del kit ({ firma, valore }), con una firma fissa: vista e
+ * colonne non dipendono dai filtri (cambiare i filtri non le cambia; un link condiviso apre la vista generale, OP-EO-02).
+ */
+export const CHIAVE_STATO_ELENCO = 'elenco';
+export const FIRMA_STATO_ELENCO = 'elenco-operativo';
+
+export interface StatoElenco {
   vista?: string;
+  nascoste?: string[];
 }
 
-/** Lo stato da dare al link di ritorno all'elenco: la sola vista per ambito, se c'era (l'elenco la rilegge). */
-export function statoDiRitorno(stato: unknown): { vista: string } | undefined {
-  const vista = typeof stato === 'object' && stato !== null ? (stato as Partial<StatoScheda>).vista : undefined;
-  return typeof vista === 'string' && /^[a-z]{1,20}$/.test(vista) ? { vista } : undefined;
+interface StatoElencoSalvato {
+  firma: string;
+  valore: StatoElenco;
+}
+
+/** Convalida dello state (che e' `unknown`): vista e chiavi delle colonne come identificativi brevi, al piu' 50 colonne. */
+export function statoElencoValido(v: unknown): v is StatoElenco {
+  if (typeof v !== 'object' || v === null || Array.isArray(v)) return false;
+  const { vista, nascoste } = v as Record<string, unknown>;
+  const vistaOk = vista === undefined || (typeof vista === 'string' && /^[a-z]{1,20}$/.test(vista));
+  const nascosteOk = nascoste === undefined || (Array.isArray(nascoste) && nascoste.length <= 50 && nascoste.every((c) => typeof c === 'string' && /^[A-Za-z]{1,40}$/.test(c)));
+  return vistaOk && nascosteOk;
+}
+
+/** Stato di navigazione dei link verso la scheda: la ricerca da cui si e' partiti (link torna-all-elenco) e le scelte
+ *  della pagina dell'elenco, da riportare indietro. */
+export interface StatoScheda {
+  ricerca: string;
+  [CHIAVE_STATO_ELENCO]?: StatoElencoSalvato;
+}
+
+/** Lo state del link di ritorno all'elenco: le sole scelte della pagina (l'elenco le rilegge con useStatoNellaHistory). */
+export type StatoRitorno = { [CHIAVE_STATO_ELENCO]: StatoElencoSalvato };
+
+/** Le scelte dell'elenco dallo state di una voce di history (se valide): da portare alla scheda e da riportare all'elenco. */
+export function statoDiRitorno(stato: unknown): StatoRitorno | undefined {
+  if (typeof stato !== 'object' || stato === null) return undefined;
+  const salvato = (stato as Record<string, unknown>)[CHIAVE_STATO_ELENCO];
+  if (typeof salvato !== 'object' || salvato === null) return undefined;
+  const { firma, valore } = salvato as Record<string, unknown>;
+  return firma === FIRMA_STATO_ELENCO && statoElencoValido(valore) ? { [CHIAVE_STATO_ELENCO]: { firma, valore } } : undefined;
 }
 
 /**

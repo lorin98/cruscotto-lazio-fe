@@ -3,16 +3,19 @@
 // somme della pagina. Un importo assente non e' mai zero (il motivo lo dice la tessera). Mentre arriva il sinottico dei
 // criteri nuovi restano i numeri precedenti, dichiarati in aggiornamento (aria-busy e avviso: review v1 V-03). Il clic su
 // una barra aggiunge il filtro della voce; la vista Tabella della card ha lo stesso comando per voce, il percorso da
-// tastiera (V-18). Le voci che il filtro non accetta non hanno clic (vedi lib/grafici). Kit UI v2: Kpi, CardGrafico.
+// tastiera (V-18). Le voci che il filtro non accetta non hanno clic (vedi lib/grafici); con le chiavi dei report
+// procedurali il grafico per stato non ha clic e lo dice (review v2 X-04). Kit UI v2: Kpi, CardGrafico, TabellaStatica.
 import { Fragment, useMemo } from 'react';
 import type { ReactNode } from 'react';
-import { formatNumber, plurale } from '../../../shared/lib';
-import { CardGrafico, Griglia, Kpi } from '../../../shared/ui';
-import type { ClicGrafico } from '../../../shared/ui';
+import { formatNumber } from '../../../shared/lib';
+import type { TabellaEquivalente } from '../../../shared/lib';
+import { CardGrafico, Griglia, Kpi, TabellaStatica } from '../../../shared/ui';
+import type { ClicGrafico, ColonnaStatica } from '../../../shared/ui';
 import type { SinotticoElenco } from '../api';
+import type { Voce } from '../lib/dto';
 import { TESTI_RIPARTIZIONE, filtroDalClic, filtroDellaVoce, graficoRipartizione, nomeVoce } from '../lib/grafici';
 import type { Ripartizione } from '../lib/grafici';
-import { testoAggregato, testoQuotaPagata, testoSomma } from '../lib/formato';
+import { testoAggregato, testoConteggio, testoQuotaPagata, testoSomma } from '../lib/formato';
 import type { Indicatore, Vista } from '../lib/viste';
 import { AvvisoAggiornamento } from './comuni';
 
@@ -57,56 +60,49 @@ const INDICATORI: Record<Indicatore, (s: SinotticoElenco, vista: Vista) => React
   ),
 };
 
-/** Tabella equivalente della card con il comando "Filtra" per voce: gli stessi valori della tabella del grafico. */
-function TabellaRipartizione({ r, sinottico, onFiltra }: { r: Ripartizione; sinottico: SinotticoElenco; onFiltra: (r: Ripartizione, valore: string) => void }) {
-  const t = TESTI_RIPARTIZIONE[r];
-  const voci = sinottico[r] ?? [];
-  const tabella = graficoRipartizione(r, voci).tabella;
-  return (
-    <div className="ui-tabella-contenitore">
-      <table className="ui-tabella">
-        <caption>{tabella.caption}</caption>
-        <thead>
-          <tr>
-            {tabella.colonne.map((c, i) => (
-              <th key={c} scope="col" className={i ? 'ui-num' : undefined}>
-                {c}
-              </th>
-            ))}
-            <th scope="col">Filtro</th>
-          </tr>
-        </thead>
-        <tbody>
-          {tabella.righe.map((riga, k) => {
-            const voce = voci[k];
-            const valore = voce ? filtroDellaVoce(r, voce) : undefined;
-            return (
-              <tr key={`${k}-${riga[0]}`}>
-                <th scope="row">{riga[0]}</th>
-                {riga.slice(1).map((v, i) => (
-                  <td key={i} className="ui-num">
-                    {v}
-                  </td>
-                ))}
-                <td>
-                  {valore && voce ? (
-                    <button type="button" className="btn btn-link btn-sm p-0" onClick={() => onFiltra(r, valore)}>
-                      {`Filtra per ${t.colonna.toLowerCase()} ${nomeVoce(r, voce)}`}
-                    </button>
-                  ) : (
-                    ''
-                  )}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
-  );
+interface RigaRipartizione {
+  voce: Voce;
+  /** La riga della tabella equivalente del grafico per la stessa voce: voce e numero. */
+  dati: readonly string[];
 }
 
-function GraficoRipartizione({ r, sinottico, onFiltra }: { r: Ripartizione; sinottico: SinotticoElenco; onFiltra: (r: Ripartizione, valore: string) => void }) {
+/**
+ * Tabella equivalente della card con il comando "Filtra" per voce (tabella del kit, review v2 H-03): gli stessi valori
+ * della tabella del grafico, calcolati una volta. La riga ha la chiave della voce, mai la posizione: una voce che sale in
+ * cima dopo il filtro resta la stessa riga e il focus resta sul suo comando (review v2 X-03). Senza clic (statoSenzaClic)
+ * la colonna Filtro non c'e'.
+ */
+function TabellaRipartizione({ r, voci, tabella, onFiltra }: { r: Ripartizione; voci: readonly Voce[]; tabella: TabellaEquivalente; onFiltra?: (r: Ripartizione, valore: string) => void }) {
+  const t = TESTI_RIPARTIZIONE[r];
+  const righe: RigaRipartizione[] = voci.map((voce, k) => ({ voce, dati: tabella.righe[k] ?? [] }));
+  const colonne: ColonnaStatica<RigaRipartizione>[] = [
+    { chiave: 'voce', titolo: tabella.colonne[0] ?? t.colonna, resa: (x) => x.dati[0] },
+    { chiave: 'domande', titolo: tabella.colonne[1] ?? 'Domande', resa: (x) => x.dati[1], numerica: true },
+  ];
+  if (onFiltra) {
+    colonne.push({
+      chiave: 'filtro',
+      titolo: 'Filtro',
+      resa: ({ voce }) => {
+        const valore = filtroDellaVoce(r, voce);
+        return valore ? (
+          <button type="button" className="btn btn-link btn-sm p-0" onClick={() => onFiltra(r, valore)}>
+            {`Filtra per ${t.nellaFrase} ${nomeVoce(r, voce)}`}
+          </button>
+        ) : (
+          ''
+        );
+      },
+    });
+  }
+  return <TabellaStatica caption={tabella.caption} colonne={colonne} righe={righe} chiaveRiga={({ voce }, k) => voce.chiave ?? `voce-${k}`} />;
+}
+
+/** Perche' il grafico per stato non filtra con le chiavi dei report procedurali (review v2 X-04). */
+const NOTA_SENZA_CLIC =
+  "Con il filtro sullo stato della domanda di sostegno o di pagamento (report procedurale) lo stato SIAN vale in alternativa: il clic su una barra allargherebbe l'insieme, quindi non filtra. Togli quel filtro per filtrare dal grafico.";
+
+function GraficoRipartizione({ r, sinottico, onFiltra, senzaClic }: { r: Ripartizione; sinottico: SinotticoElenco; onFiltra: (r: Ripartizione, valore: string) => void; senzaClic: boolean }) {
   const voci = sinottico[r];
   const dati = useMemo(() => graficoRipartizione(r, voci), [r, voci]);
   const testi = TESTI_RIPARTIZIONE[r];
@@ -117,12 +113,12 @@ function GraficoRipartizione({ r, sinottico, onFiltra }: { r: Ripartizione; sino
   return (
     <CardGrafico
       titolo={testi.titolo}
-      sottotitolo={`Clic su una barra, o "Filtra" nella vista Tabella: aggiunge il filtro ${testi.colonna.toLowerCase()}.`}
+      sottotitolo={senzaClic ? NOTA_SENZA_CLIC : `Clic su una barra, o "Filtra" nella vista Tabella: aggiunge il filtro ${testi.nellaFrase}.`}
       dati={dati}
       fonte={`Fonte: TX-0057 (${r}).`}
       altezza={r === 'perStato' ? 'alto' : 'normale'}
-      onClic={onClic}
-      tabella={<TabellaRipartizione r={r} sinottico={sinottico} onFiltra={onFiltra} />}
+      onClic={senzaClic ? undefined : onClic}
+      tabella={<TabellaRipartizione r={r} voci={voci ?? []} tabella={dati.tabella} onFiltra={senzaClic ? undefined : onFiltra} />}
     />
   );
 }
@@ -132,17 +128,21 @@ export function SinotticoDomande({
   vista,
   inAggiornamento,
   onFiltra,
+  statoSenzaClic = false,
 }: {
   sinottico: SinotticoElenco;
   vista: Vista;
   inAggiornamento: boolean;
   onFiltra: (r: Ripartizione, valore: string) => void;
+  /** Il grafico per stato senza clic (chiavi dei report procedurali attive: review v2 X-04). */
+  statoSenzaClic?: boolean;
 }) {
   return (
     <section className="ui-sinottico ui-risultati" aria-labelledby="t-sinottico" aria-busy={inAggiornamento}>
       <h2 id="t-sinottico">Sinottico dell’insieme filtrato</h2>
       <AvvisoAggiornamento attivo={inAggiornamento} testo="Aggiornamento del sinottico: restano visibili i numeri precedenti finché arrivano i nuovi." />
-      <p className="visually-hidden">{`${plurale(sinottico.domande ?? 0, 'domanda', 'domande')} con questi filtri.`}</p>
+      {/* mai il numero precedente detto "con questi filtri" mentre arriva il nuovo (review v2 V-04) */}
+      <p className="visually-hidden">{testoConteggio(sinottico.domande ?? 0, ['domanda', 'domande'], { inAggiornamento })}</p>
       <Griglia colonne={4}>
         {vista.indicatori.map((id) => (
           <Fragment key={id}>{INDICATORI[id](sinottico, vista)}</Fragment>
@@ -151,7 +151,7 @@ export function SinotticoDomande({
       {vista.grafici.length > 0 && (
         <Griglia colonne={2}>
           {vista.grafici.map((r) => (
-            <GraficoRipartizione key={r} r={r} sinottico={sinottico} onFiltra={onFiltra} />
+            <GraficoRipartizione key={r} r={r} sinottico={sinottico} onFiltra={onFiltra} senzaClic={statoSenzaClic && r === 'perStato'} />
           ))}
         </Griglia>
       )}

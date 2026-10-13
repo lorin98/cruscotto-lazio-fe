@@ -3,10 +3,10 @@
 // schermo annunciano il cambio: review v1 X-08), ordinamento attivo dichiarato (X-02, X-04), pagina oltre l'ultima (H-01),
 // stato vuoto che porta al pannello dei filtri, accesso non disponibile senza il grant della lettura (A-06).
 import type { ChipFiltro } from '../../../shared/ui';
-import { BarraFiltri, Caricamento } from '../../../shared/ui';
+import { BarraFiltri, Caricamento, PillDatiAl } from '../../../shared/ui';
 import type { UltimoDato } from '../../../shared/lib';
 import { formatNumber } from '../../../shared/lib';
-import { DatiAl, PerimetroElenco } from './pill';
+import { PerimetroElenco } from './pill';
 
 export function BarraInterrogazione({
   chip,
@@ -35,7 +35,8 @@ export function BarraInterrogazione({
       destra={
         <>
           <PerimetroElenco perimetro={perimetro} />
-          <DatiAl voci={ultimi} inErrore={ultimiInErrore} />
+          {/* "Dati al gg/mm/aaaa" (OP-EO-01): le voci del sinottico o della pagina dei pagamenti */}
+          <PillDatiAl voci={ultimi} inErrore={ultimiInErrore} />
         </>
       }
     />

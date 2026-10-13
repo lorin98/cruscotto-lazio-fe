@@ -8,6 +8,8 @@ import { PERCORSO_DOMANDE } from '../lib/collegamenti';
 export interface Briciola {
   etichetta: string;
   a?: string;
+  /** State del link (le scelte della pagina dell'elenco da ritrovare: review v2 V-02). */
+  stato?: unknown;
 }
 
 export function Briciole({ voci }: { voci: Briciola[] }) {
@@ -22,7 +24,13 @@ export function Briciole({ voci }: { voci: Briciola[] }) {
         </li>
         {voci.map((v, i) => (
           <li key={v.etichetta} aria-current={i === voci.length - 1 ? 'page' : undefined}>
-            {v.a ? <Link to={v.a}>{v.etichetta}</Link> : v.etichetta}
+            {v.a ? (
+              <Link to={v.a} state={v.stato}>
+                {v.etichetta}
+              </Link>
+            ) : (
+              v.etichetta
+            )}
           </li>
         ))}
       </ol>

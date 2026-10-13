@@ -60,7 +60,16 @@ function apri(indirizzo: string) {
 const indirizzo = (r: { state: { location: { pathname: string; search: string } } }) => `${r.state.location.pathname}${r.state.location.search}`;
 
 describe('RA004: riferimento della scheda convalidato prima della lettura (review v1 A-01)', () => {
-  it.each(['SOSTEGNO/..%2F..%2Fdomande%2Fcsv%3Fx%3D1', 'SOSTEGNO/%2E%2E', 'SOSTEGNO/0423%5C0001', 'SOSTEGNO/0423ABC', 'ALTRO/04230000001'])(
+  // review v2 A-01: anche la doppia codifica (%252F) e un tipo costruito per uscire dalle API
+  it.each([
+    'SOSTEGNO/..%2F..%2Fdomande%2Fcsv%3Fx%3D1',
+    'SOSTEGNO/%2E%2E',
+    'SOSTEGNO/0423%5C0001',
+    'SOSTEGNO/0423ABC',
+    'ALTRO/04230000001',
+    'SOSTEGNO/..%252F..%252Fdomande%252Fcsv',
+    '..%2F..%2Fauth%2Flogout%3F/04230000001',
+  ])(
     '%s: nessuna richiesta alle API, il riferimento non valido e detto',
     async (riferimento) => {
       profilo(TUTTI);
@@ -176,6 +185,30 @@ describe("RA004: ritorno alla ricerca di partenza e domande collegate (review v1
     await userEvent.click(screen.getByRole('link', { name: "Torna all'elenco" }));
     await waitFor(() => expect(indirizzo(router)).toBe('/elenco-operativo/domande?intervento=SRA01'));
     expect(await screen.findByRole('table', { name: /vista fisico/ })).toBeTruthy();
+  });
+
+  // review v2 V-02, V-03: la briciola e l'avviso riportano come la testata la vista e le colonne scelte
+  it.each([
+    ['la briciola', DETTAGLIO, () => within(screen.getByRole('navigation', { name: 'Percorso' })).getByRole('link', { name: 'Domande' })],
+    ["l'avviso della domanda non disponibile", null, () => within(screen.getByRole('alert')).getByRole('link', { name: "Torna all'elenco" })],
+  ])("%s riporta all'elenco con la ricerca, la vista e le colonne scelte", async (_, dettaglio, ritorno) => {
+    servi();
+    if (!dettaglio) server.use(http.get('*/api/elenco-operativo/domande/:tipo/:codice', () => HttpResponse.json(problema(404, 'NOT_FOUND'), { status: 404 })));
+    const { router } = apri('/elenco-operativo/domande?intervento=SRA01');
+    await screen.findByRole('table', { name: /vista generale/ });
+    await userEvent.click(screen.getByRole('button', { name: 'Vista: fisico' }));
+    await userEvent.click(await screen.findByText('Colonne'));
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Liquidato' }));
+    await userEvent.keyboard('{Escape}');
+    await userEvent.click(await screen.findByRole('row', { name: "Apri l'anteprima della domanda 54230000001" }));
+    await userEvent.click(within(await screen.findByRole('dialog')).getByRole('link', { name: 'Apri il dettaglio' }));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/elenco-operativo/domande/PAGAMENTO/54230000001'));
+    if (!dettaglio) await screen.findByRole('alert');
+    else await screen.findByRole('heading', { level: 1, name: 'COOPERATIVA VERDI' });
+    await userEvent.click(ritorno());
+    await waitFor(() => expect(indirizzo(router)).toBe('/elenco-operativo/domande?intervento=SRA01'));
+    const tabella = await screen.findByRole('table', { name: /vista fisico/ });
+    expect(within(tabella).getByRole('columnheader', { name: /^Liquidato/ })).toBeTruthy();
   });
 
   it("aperta da un link (senza ricerca di partenza) torna all'elenco senza filtri, mai fuori dall'applicazione", async () => {

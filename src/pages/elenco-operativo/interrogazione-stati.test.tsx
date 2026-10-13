@@ -11,6 +11,8 @@ import { PAGINA_DOMANDE, PAGINA_PAGAMENTI, SINOTTICO, VALORI } from '../../featu
 // Stati delle due interrogazioni dopo la review v1: errori dal problem-type in un solo avviso, coi chip ancora rimovibili
 // (V-05), aggiornamento dichiarato con i dati precedenti visibili (V-05, V-03), fascia di importo rovesciata ed errori
 // delle letture dentro il pannello (X-03), letture solo coi grant del profilo (A-06), limite dell'esportazione (V-16).
+// Dalla review v2: gli stati anche per i pagamenti (V-05), mai il numero precedente detto "con questi filtri" (V-04),
+// l'estremo di una fascia che torna valido parte con l'altro (A-02).
 // Ogni test dichiara gli endpoint che usa: i mock generati dell'elenco non sono montati nei test (H-16).
 
 const TUTTI = ['csr.tx-0056.read', 'csr.tx-0057.read', 'csr.tx-0058.read', 'csr.tx-0059.read', 'csr.tx-0060.read'];
@@ -63,26 +65,26 @@ describe('RA006: errori delle letture dal problem-type, un solo avviso per pagin
     await waitFor(() => expect(router.state.location.search).toBe(''));
   });
 
-  it('503 CAPACITA_ESAURITA: il messaggio della capacita, una sola lettura', async () => {
+  // review v2 V-05: gli stessi stati anche per l'elenco dei pagamenti
+  const PAGINE = [
+    ['domande', ElencoDomande, '/elenco-operativo/domande', '*/api/elenco-operativo/domande', /Elenco operativo delle domande/],
+    ['pagamenti', ElencoPagamenti, '/elenco-operativo/pagamenti', '*/api/elenco-operativo/pagamenti', /Elenco operativo dei pagamenti/],
+  ] as const;
+
+  it.each(PAGINE)('%s, 503 CAPACITA_ESAURITA: il messaggio della capacita, senza tabella', async (_, Pagina, percorso, api, tabella) => {
     servi();
-    let letture = 0;
-    server.use(
-      http.get('*/api/elenco-operativo/domande', () => {
-        letture += 1;
-        return HttpResponse.json(problema(503, 'CAPACITA_ESAURITA'), { status: 503 });
-      }),
-    );
-    renderPagina(ElencoDomande, '/elenco-operativo/domande');
+    server.use(http.get(api, errore(503, 'CAPACITA_ESAURITA')));
+    renderPagina(Pagina, percorso);
     expect((await screen.findByRole('alert')).textContent).toContain('Il servizio è occupato da altre letture: riprova tra qualche secondo.');
-    expect(letture).toBe(1);
+    expect(screen.queryByRole('table', { name: tabella })).toBeNull();
   });
 
-  it('403 ACCESSO_NEGATO: accesso negato, senza dati', async () => {
+  it.each(PAGINE)('%s, 403 ACCESSO_NEGATO: accesso negato, senza dati', async (_, Pagina, percorso, api, tabella) => {
     servi();
-    server.use(http.get('*/api/elenco-operativo/domande', errore(403, 'ACCESSO_NEGATO')));
-    renderPagina(ElencoDomande, '/elenco-operativo/domande');
+    server.use(http.get(api, errore(403, 'ACCESSO_NEGATO')));
+    renderPagina(Pagina, percorso);
     expect((await screen.findByRole('alert')).textContent).toContain('Non hai i permessi per consultare questi dati.');
-    expect(screen.queryByRole('table', { name: /Elenco operativo delle domande/ })).toBeNull();
+    expect(screen.queryByRole('table', { name: tabella })).toBeNull();
   });
 
   it('pagamenti: il 400 diventa un solo avviso, la barra dei filtri resta', async () => {
@@ -144,11 +146,40 @@ describe('RA006: aggiornamento dichiarato, i dati precedenti restano visibili (r
     const sinottico = screen.getByRole('region', { name: /^Sinottico dell/ });
     await waitFor(() => expect(sinottico.getAttribute('aria-busy')).toBe('true'));
     expect(within(sinottico).getByText(/^Aggiornamento del sinottico/)).toBeTruthy();
+    // mai il numero precedente detto "con questi filtri" (review v2 V-04)
+    expect(within(sinottico).queryByText(/con questi filtri/)).toBeNull();
+    expect(within(sinottico).getByText('Conteggio in corso…')).toBeTruthy();
     const piede = screen.getByRole('table', { name: /Elenco operativo delle domande/ }).querySelector('tfoot');
     expect(piede?.textContent).toContain('in aggiornamento');
     expect(piede?.textContent).not.toMatch(/12\.345\.678,90/);
     r.libera();
     await waitFor(() => expect(sinottico.getAttribute('aria-busy')).toBe('false'));
+    expect(within(sinottico).getByText('1284 domande con questi filtri')).toBeTruthy();
+  });
+
+  it("pagamenti: righe e totali precedenti, aria-busy e avviso sulla card e sul sinottico finche' arrivano i nuovi (review v2 V-05)", async () => {
+    servi();
+    const r = trattenuta();
+    server.use(
+      http.get('*/api/elenco-operativo/pagamenti', async ({ request }) => {
+        if (!new URL(request.url).searchParams.has('esito')) await r.attesa;
+        return HttpResponse.json(PAGINA_PAGAMENTI);
+      }),
+    );
+    renderPagina(ElencoPagamenti, '/elenco-operativo/pagamenti', '/elenco-operativo/pagamenti?esito=PAGATA');
+    await screen.findByRole('table', { name: /Elenco operativo dei pagamenti/ });
+    await userEvent.click(within(screen.getByRole('region', { name: 'Filtri attivi' })).getByRole('button', { name: /^Togli il filtro Esito/ }));
+    const sezione = screen.getByRole('region', { name: 'Righe di pagamento' });
+    const sinottico = screen.getByRole('region', { name: /^Sinottico dell/ });
+    await waitFor(() => expect(sezione.getAttribute('aria-busy')).toBe('true'));
+    expect(sinottico.getAttribute('aria-busy')).toBe('true');
+    expect(within(sezione).getByText(/^Aggiornamento dei risultati/)).toBeTruthy();
+    expect(within(sinottico).getByText(/^Aggiornamento del sinottico/)).toBeTruthy();
+    expect(within(sezione).getAllByRole('rowheader').length).toBeGreaterThan(0);
+    r.libera();
+    await waitFor(() => expect(sezione.getAttribute('aria-busy')).toBe('false'));
+    expect(sinottico.getAttribute('aria-busy')).toBe('false');
+    expect(within(sezione).queryByText(/^Aggiornamento dei risultati/)).toBeNull();
   });
 });
 
@@ -169,6 +200,27 @@ describe('RA006: fascia di importo ed errori delle letture nel pannello (review 
     await new Promise((r) => setTimeout(r, 400));
     expect(router.state.location.search).toBe('?richiestoDa=100');
     expect(richieste.some((q) => q.includes('richiestoA'))).toBe(false);
+  });
+
+  it("l'estremo scartato perche' rovesciava la fascia parte quando l'altro la raddrizza (review v2 A-02)", async () => {
+    servi();
+    const { router } = renderPagina(ElencoDomande, '/elenco-operativo/domande', '/elenco-operativo/domande?richiestoDa=10000');
+    await screen.findByRole('table', { name: /Elenco operativo delle domande/ });
+    const dialogo = await apriPannello();
+    const fascia = await within(dialogo).findByRole('group', { name: 'Importo richiesto (euro)' });
+    const da = within(fascia).getByRole('textbox', { name: 'Da' });
+    const a = within(fascia).getByRole('textbox', { name: 'Fino a' });
+    await userEvent.type(a, '5000');
+    expect(a.getAttribute('aria-invalid')).toBe('true');
+    await new Promise((r) => setTimeout(r, 400));
+    expect(router.state.location.search).toBe('?richiestoDa=10000');
+    await userEvent.clear(da);
+    await userEvent.type(da, '1000');
+    await waitFor(() => expect(router.state.location.search).toBe('?richiestoDa=1000&richiestoA=5000'));
+    expect(a.getAttribute('aria-invalid')).toBeNull();
+    expect(a).toHaveProperty('value', '5000');
+    const barra = screen.getByRole('region', { name: 'Filtri attivi', hidden: true });
+    expect(within(barra).getByRole('button', { name: /^Togli il filtro Richiesto fino a 5000,00/, hidden: true })).toBeTruthy();
   });
 
   it('un 400 del sinottico col pannello aperto si legge nel pannello (role=alert nel dialogo)', async () => {

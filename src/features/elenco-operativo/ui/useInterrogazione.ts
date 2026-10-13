@@ -17,7 +17,7 @@ import { puoLeggere } from '../lib/grant';
 import { useCriteri } from './useCriteri';
 
 export function useInterrogazione(elenco: Elenco) {
-  const { criteri, criteriVisti, inAttesa, applica, applicaRitardato, scarica } = useCriteri(elenco);
+  const { criteri, criteriScritti, criteriVisti, inAttesa, applica, applicaRitardato, ritira, scarica } = useCriteri(elenco);
   const auth = useAuthStatus();
   const conFiltri = puoLeggere(auth.data, 'filtri');
   const valori = useValoriFiltri(conFiltri);
@@ -31,10 +31,12 @@ export function useInterrogazione(elenco: Elenco) {
   }));
   return {
     criteri,
+    criteriScritti,
     criteriVisti,
     inAttesa,
     applica,
     applicaRitardato,
+    ritira,
     auth: auth.data,
     chip,
     filtriApplicati: chipDeiCriteri(criteri, valori.data).map((c) => `${c.etichetta}: ${c.testo}`),

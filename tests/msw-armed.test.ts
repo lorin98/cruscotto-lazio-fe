@@ -9,6 +9,7 @@
 // msw-listen-safety.js), che ispeziona la sola FORMA del literal al call-site: qui si prova il COMPORTAMENTO a
 // runtime, indipendente dalla forma sintattica con cui listen() e' invocato.
 import { expect, test } from 'vitest';
+import { handlers } from '../src/shared/api/mock/handlers';
 
 test("MSW armato: una richiesta non mockata e' rifiutata dall'interceptor, non esce in rete (H7)", async () => {
   // host .invalid (RFC 2606: mai risolvibile) => nessuna dipendenza da rete esterna.
@@ -18,4 +19,14 @@ test("MSW armato: una richiesta non mockata e' rifiutata dall'interceptor, non e
   await expect(fetch('http://msw-armed-probe.invalid/never-mocked')).rejects.toThrow(
     /\[MSW\]|Cannot bypass|error.{0,24}strateg/i,
   );
+});
+
+// review v2 H-06 (canarino del fail-closed dei test dell'elenco, H-16): i mock generati dell'elenco operativo ci sono
+// nel worker di sviluppo ma non nel server dei test. Se l'esclusione per percorso smettesse di funzionare (forma del path
+// degli handler cambiata), una lettura dell'elenco non dichiarata riceverebbe dati inventati: qui sarebbe rossa.
+test("MSW dei test: una lettura dell'elenco operativo non dichiarata dal test e' rifiutata (H-16)", async () => {
+  expect(handlers.some((h) => JSON.stringify(h.info).includes('/api/elenco-operativo'))).toBe(true);
+  for (const percorso of ['/api/elenco-operativo/domande', '/api/elenco-operativo/domande/sinottico', '/api/elenco-operativo/pagamenti', '/api/elenco-operativo/filtri']) {
+    await expect(fetch(`http://localhost${percorso}`), percorso).rejects.toThrow(/\[MSW\]|Cannot bypass|error.{0,24}strateg/i);
+  }
 });
