@@ -18,6 +18,9 @@ export const ETICHETTE_FILTRI: Record<NomeFiltro, string> = {
   azione: 'Azione portante',
   stato: 'Stato SIAN',
   statoProgrammazione: 'Stato area programmazione',
+  statoSostegno: 'Stato della domanda di sostegno (report procedurale)',
+  statoPagamento: 'Stato della domanda di pagamento (report procedurale)',
+  voceProgrammazione: 'Stato area programmazione (report procedurale)',
   provincia: 'Provincia',
   ente: 'Ente delegato',
   pagamento: 'Pagamento',
@@ -67,7 +70,15 @@ const DESCRITTI: Partial<Record<NomeFiltro, (valore: string, valori?: Valori) =>
   },
   stato: (valore, valori) => valori?.stati?.find((s) => s.codice === valore)?.descrizione ?? valore,
   azione: (valore, valori) => descrizioneDa(valori?.azioniPortanti, valore) ?? valore,
+  // chiavi dei report procedurali (DECADENZA_TOTALE, IN_ISTRUTTORIA_ENTE_COMPETENTE): leggibili senza i trattini bassi
+  statoSostegno: (valore) => chiaveDelReport(valore),
+  statoPagamento: (valore) => chiaveDelReport(valore),
+  voceProgrammazione: (valore) => chiaveDelReport(valore),
 };
+
+function chiaveDelReport(valore: string): string {
+  return valore.replaceAll('_', ' ');
+}
 
 /** Valore del chip: "SRA01 Produzione integrata", "1.000,00 €", "solo SIGC", "Prima annualità". */
 export function valoreLeggibile(nome: NomeFiltro, valore: string, valori?: Valori): string {

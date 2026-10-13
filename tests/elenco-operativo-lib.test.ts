@@ -123,6 +123,19 @@ describe('elenco operativo, criteri nell indirizzo (D-02, D-04)', () => {
     expect(filtriDellaDomanda(c)).toEqual({ intervento: ['SRA01'] });
   });
 
+  it('drill-down dai report procedurali: le chiavi dei report restano nell indirizzo e passano al sinottico e fra elenchi', () => {
+    const ricerca = '?voceProgrammazione=AMMESSA&statoSostegno=DECADENZA_TOTALE&statoPagamento=RILASCIATO&intervento=SRD01';
+    const c = criteriDaRicerca(ricerca, 'domande');
+    expect(c).toEqual({ intervento: ['SRD01'], statoSostegno: ['DECADENZA_TOTALE'], statoPagamento: ['RILASCIATO'], voceProgrammazione: ['AMMESSA'] });
+    expect(criteriDaRicerca(ricerca, 'pagamenti')).toEqual(c);
+    expect(ricercaDaCriteri(c, 'domande')).toBe(
+      '?intervento=SRD01&statoSostegno=DECADENZA_TOTALE&statoPagamento=RILASCIATO&voceProgrammazione=AMMESSA',
+    );
+    expect(criteriSinottico(c)).toEqual(c);
+    expect(filtriDellaDomanda(c)).toEqual(c);
+    expect(numeroFiltri(c)).toBe(4);
+  });
+
   it('testo libero e importi', () => {
     expect(testoInviabile('')).toBe(true);
     expect(testoInviabile('ro')).toBe(false);
@@ -207,6 +220,14 @@ describe('elenco operativo, chip dei filtri', () => {
     expect(valoreLeggibile('richiestoDa', '10000')).toBe(formatEuro(10000));
     expect(valoreLeggibile('testo', 'rossi')).toBe('“rossi”');
     expect(valoreLeggibile('pagamento', 'DA_PAGARE')).toBe('Da pagare');
+  });
+
+  it('le chiavi dei report procedurali hanno un chip leggibile, separato dai filtri del pannello', () => {
+    const chip = chipDeiCriteri({ voceProgrammazione: ['AMMESSA'], statoSostegno: ['DECADENZA_TOTALE'] });
+    expect(chip.map((c) => `${c.etichetta}: ${c.testo}`)).toEqual([
+      'Stato della domanda di sostegno (report procedurale): DECADENZA TOTALE',
+      'Stato area programmazione (report procedurale): AMMESSA',
+    ]);
   });
 
   it('un chip per valore, pagina e ordinamento esclusi', () => {

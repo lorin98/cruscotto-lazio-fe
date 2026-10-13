@@ -15,6 +15,10 @@ export const FILTRI_DOMANDA = [
   'azione',
   'stato',
   'statoProgrammazione',
+  // drill-down dai report procedurali per stato (D-02 Rev. 2 del backend): chiavi dei report, non controlli del pannello
+  'statoSostegno',
+  'statoPagamento',
+  'voceProgrammazione',
   'provincia',
   'ente',
   'pagamento',
