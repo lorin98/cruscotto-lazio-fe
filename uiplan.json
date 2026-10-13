@@ -1514,7 +1514,12 @@
     {
       "id": "OP-FE-05",
       "kind": "altro",
-      "detail": "Due fonti diverse per pagato: RF012 conta le domande SIGC pagate dagli elenchi di liquidazione, RF013 somma l importo pagato dal flusso ASR2-20; RF010 importo decretato e calcolato come i pagamenti totali di RF005 (elenchi di liquidazione). La UI dichiara la fonte accanto ai dati e avverte che pagate e importo pagato possono non coincidere; da confermare con ARSIAL quale fonte fa fede per ciascun requisito."
+      "detail": "Fonti del pagato (riscritto il 13/10/2026 dopo l'allineamento ai dati reali a3e9579, D-09 del backend): RF012 (pagate, da pagare) e RF013 (importo pagato) hanno la stessa fonte, gli importi della domanda del flusso ASR2-20; i pagamenti totali di RF005/TX-0002 sono lordi (elenchi di liquidazione) e il pagato netto di TX-0011 ne toglie le rettifiche; l'importo decretato di RF010 viene dagli elenchi di liquidazione. La UI dichiara la fonte accanto ai dati; resta da confermare con ARSIAL quale fonte fa fede per il pagato a regime."
+    },
+    {
+      "id": "OP-FE-09",
+      "kind": "altro",
+      "detail": "Profili misti e drill-down (review v4 X-01, scelta dell'utente del 13/10/2026: limite noto): il backend risolve il perimetro grant per grant, quindi per un utente P4 che ha anche un profilo regionale (P3 di un'altra area, P6 o P7) i report del finanziario sono ADA mentre l'elenco operativo aperto dal link (TX-0056/TX-0059) e' regionale, e il numero non coincide. Da chiedere ad ARSIAL se questi profili misti esistono; se si', un parametro del backend che restringe il perimetro di TX-0056/TX-0059 a quello del report (mai un allargamento)."
     },
     {
       "id": "OP-FE-06",

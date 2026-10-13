@@ -23,7 +23,7 @@ Vocabolario del kit UI v2 (ADR 0027 di green-fe), resa approvata nel prototipo `
 | /finanziario/domande | Domande per anno di raccolta | barre | TX-0008 | filtra la tabella sull'anno; nella tabella equivalente "Apri nell'elenco" su ogni cella = link:elenco-anno-annualita (elenco-operativo: /elenco-operativo/domande) | riga senza anno: barra a parte |
 | /finanziario/domande | Importi ammessi e decretati per anno | linea | TX-0010 | nessuno; nella tabella equivalente "Apri nell'elenco" su ogni riga = link:elenco-anno (elenco-operativo: /elenco-operativo/domande) | stanziato: fonte non attiva |
 
-Il decretato e' calcolato dai pagamenti totali (OP-FE-05).
+Il decretato viene dagli elenchi di liquidazione, come dice la fonte della card (OP-FE-05).
 
 ## Link del flusso (drill-down dichiarati)
 
@@ -31,6 +31,10 @@ Drill-down verso l'elenco operativo (decisione D-2 dell'utente del 12/10/2026): 
 l'elenco gia' filtrato, con i filtri correnti del finanziario (intervento, os, og, op, azione), e il numero di domande
 coincide con quello del report (D-02 e SC-EO_DRILLDOWN dell'elenco operativo: presentata=true&anno=2025&annualita=PRIMA
 riproduce la prima annualita' del 2025 di TX-0008).
+
+Limite noto (OP-FE-09): per un utente P4 che ha anche un profilo regionale (P3 di un'altra area, P6 o P7) il report e'
+limitato alla sua ADA, mentre l'elenco aperto dal link e' regionale: li' il numero non coincide. Da chiedere ad ARSIAL se
+questi profili misti esistono; se si', un parametro del backend restringera' l'elenco al perimetro del report.
 
 | pagina | link (id) | innesco | arrivo (feature: route) | parametri di path | query |
 |---|---|---|---|---|---|
@@ -57,7 +61,12 @@ Importo ammesso e Importo stanziato non hanno l'azione (il secondo ha fonte non 
   drawer, tabella equivalente di ogni grafico, axe.
 - RESIDUO umano da verificare qui: ordine di lettura, didascalie dei grafici, etichette comprensibili, contrasto della
   resa finale (il low-fi non fa fede sul colore; fa fede il prototipo approvato).
+- RESIDUO umano: dimensione dei bersagli (WCAG 2.5.8) dei link "Apri nell'elenco" nelle celle (minimo 24 px nel kit).
 
 ## Punti aperti che toccano questo flusso
 
-- OP-FE-05: significato del decretato da confermare con ARSIAL.
+- OP-FE-05 (riscritto il 13/10/2026): pagate, da pagare e importo pagato SIGC hanno la stessa fonte, gli importi della
+  domanda (flusso ASR2-20); i pagamenti totali di TX-0002 sono lordi (elenchi di liquidazione), il pagato netto di TX-0011
+  ne toglie le rettifiche; il decretato viene dagli elenchi di liquidazione. Resta da confermare con ARSIAL quale fonte fa
+  fede per il pagato a regime.
+- OP-FE-09: profili misti (P4 con un profilo regionale): il report e' ADA, l'elenco aperto dal link e' regionale.

@@ -62,15 +62,15 @@
       <h1>Finanziario: domande e importi SIGC</h1>
       <p>Domande dalla presentazione al pagamento e importi SIGC.</p>
     </div>
-    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0012.read, csr.tx-0013.read - Transazioni: TX-0012 (RF012), TX-0013 (RF013). Fonti diverse per il pagato (OP-FE-05): lo dicono entrambe le card.</p>
+    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0012.read, csr.tx-0013.read - Transazioni: TX-0012 (RF012), TX-0013 (RF013). Pagate, da pagare e importo pagato hanno la stessa fonte, gli importi della domanda (flusso ASR2-20): le note lo dicono accanto ai dati (OP-FE-05).</p>
     <div class="ui-griglia ui-griglia--2">
       <section class="ui-card" aria-labelledby="g-sigc-d">
         <div class="ui-card__testa">
           <h2 id="g-sigc-d">Domande SIGC</h2>
           <div class="ui-seg" role="group" aria-label="Vista di Domande SIGC"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
         </div>
-        <figure class="ui-grafico ui-grafico--imbuto">
-          <figcaption>Imbuto: presentate, pagate (elenchi di liquidazione), da pagare.</figcaption>
+        <figure class="ui-grafico ui-grafico--barre">
+          <figcaption>Barre orizzontali: presentate, pagate, da pagare e senza importi, dagli importi della domanda (flusso ASR2-20); pagate e da pagare si sovrappongono (domande pagate in parte).</figcaption>
         </figure>
         <p class="ui-fonte">Fonte: TX-0012. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati.</p>
       </section>

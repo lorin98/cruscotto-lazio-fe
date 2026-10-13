@@ -16,7 +16,7 @@
 
 Vocabolario del kit UI v2 (ADR 0027 di green-fe), resa approvata nel prototipo `prototipo/finanziario/`.
 
-- /finanziario/sigc: Shell > Barra filtri > Breadcrumb > Titolo > Card domande SIGC (imbuto) + Card importi SIGC (cascata) > Stati
+- /finanziario/sigc: Shell > Barra filtri > Breadcrumb > Titolo > Card domande SIGC (barre orizzontali) + Card importi SIGC (cascata) > Stati
 - /finanziario/sigc/riserva: Shell (senza barra filtri: dato regionale) > Breadcrumb > Titolo > Selettore anno > KPI x4 > Card utilizzo progressivo (linea con zoom) > Stati
 - /finanziario/sigc/verifica-smp: Shell > Barra filtri > Breadcrumb > Titolo > Selettore esercizio > Card previsione e spesa (barre) > Card tabella 20 dati (cerca, colonne) > Stati
 
@@ -24,7 +24,7 @@ Vocabolario del kit UI v2 (ADR 0027 di green-fe), resa approvata nel prototipo `
 
 | pagina | grafico | tipo | dati (transazione) | clic | valori assenti |
 |---|---|---|---|---|---|
-| /finanziario/sigc | Domande SIGC | imbuto | TX-0012 | link:elenco-sigc (elenco-operativo: /elenco-operativo/domande) | nessuno (conteggi) |
+| /finanziario/sigc | Domande SIGC | barre orizzontali (pagate e da pagare si sovrappongono) | TX-0012 | link:elenco-sigc (elenco-operativo: /elenco-operativo/domande) | nessuno (conteggi) |
 | /finanziario/sigc | Importi SIGC | cascata | TX-0013 | link:elenco-sigc-importi (elenco-operativo: /elenco-operativo/domande) | importo assente: passo omesso |
 | /finanziario/sigc/riserva | Utilizzo progressivo della riserva | linea | TX-0014 | nessuno | punti assenti omessi e dichiarati |
 | /finanziario/sigc/verifica-smp | Previsione di pagamento e spesa erogata | barre | TX-0015 | dettaglio dell'intervento | 'non disponibile' in tabella |
@@ -37,6 +37,10 @@ Drill-down verso l'elenco operativo (decisione D-2 dell'utente del 12/10/2026): 
 l'elenco gia' filtrato, con i filtri correnti del finanziario (intervento, os, og, op, azione), e il numero di domande
 coincide con quello del report (D-02 e SC-EO_DRILLDOWN dell'elenco operativo: sigc=true&pagamento=PAGATA riproduce le pagate
 di TX-0012).
+
+Limite noto (OP-FE-09): per un utente P4 che ha anche un profilo regionale (P3 di un'altra area, P6 o P7) il report e'
+limitato alla sua ADA, mentre l'elenco aperto dal link e' regionale: li' il numero non coincide. Da chiedere ad ARSIAL se
+questi profili misti esistono; se si', un parametro del backend restringera' l'elenco al perimetro del report.
 
 | pagina | link (id) | innesco | arrivo (feature: route) | parametri di path | query |
 |---|---|---|---|---|---|
@@ -59,8 +63,13 @@ pagamento e spesa erogata (TX-0015, per intervento ed esercizio).
   drawer, tabella equivalente di ogni grafico, axe.
 - RESIDUO umano da verificare qui: ordine di lettura, didascalie dei grafici, etichette comprensibili, contrasto della
   resa finale (il low-fi non fa fede sul colore; fa fede il prototipo approvato).
+- RESIDUO umano: dimensione dei bersagli (WCAG 2.5.8) dei link "Apri nell'elenco" nelle celle (minimo 24 px nel kit).
 
 ## Punti aperti che toccano questo flusso
 
 - OP-FE-03: filtri non applicabili alla riserva.
-- OP-FE-05: fonti diverse per il pagato SIGC.
+- OP-FE-05 (riscritto il 13/10/2026): pagate, da pagare e importo pagato SIGC hanno la stessa fonte, gli importi della
+  domanda (flusso ASR2-20); i pagamenti totali di TX-0002 sono lordi (elenchi di liquidazione), il pagato netto di TX-0011
+  ne toglie le rettifiche; il decretato viene dagli elenchi di liquidazione. Resta da confermare con ARSIAL quale fonte fa
+  fede per il pagato a regime.
+- OP-FE-09: profili misti (P4 con un profilo regionale): il report e' ADA, l'elenco aperto dal link e' regionale.

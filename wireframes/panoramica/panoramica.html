@@ -68,13 +68,13 @@
         <p class="ui-kpi__valore">n,n M euro</p>
         <p class="ui-barra">somma delle righe di TX-0002</p>
       </section>
-      <section class="ui-kpi" aria-label="Pagamenti totali">
-        <p>Pagamenti totali</p>
+      <section class="ui-kpi" aria-label="Pagamenti totali (lordi, elenchi di liquidazione)">
+        <p>Pagamenti totali (lordi, elenchi di liquidazione)</p>
         <p class="ui-kpi__valore">n,n M euro</p>
         <p class="ui-barra">somma delle righe di TX-0002</p>
       </section>
-      <section class="ui-kpi" aria-label="Pagato sulla dotazione">
-        <p>Pagato sulla dotazione</p>
+      <section class="ui-kpi" aria-label="Pagato lordo sulla dotazione">
+        <p>Pagato lordo sulla dotazione</p>
         <p class="ui-kpi__valore">nn%</p>
         <p class="ui-barra">solo se entrambi i totali sono valorizzati</p>
       </section>
@@ -109,11 +109,11 @@
     <div class="ui-griglia ui-griglia--2">
       <section class="ui-card" aria-labelledby="g-sigc-dom">
         <div class="ui-card__testa">
-          <h2 id="g-sigc-dom">Domande SIGC: dalla presentazione al pagamento</h2>
-          <div class="ui-seg" role="group" aria-label="Vista di Domande SIGC: dalla presentazione al pagamento"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+          <h2 id="g-sigc-dom">Domande SIGC: presentate, pagate e da pagare</h2>
+          <div class="ui-seg" role="group" aria-label="Vista di Domande SIGC: presentate, pagate e da pagare"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
         </div>
-        <figure class="ui-grafico ui-grafico--imbuto">
-          <figcaption>Imbuto: presentate, pagate (con pagamento in un elenco di liquidazione), da pagare. Clic su una fase: pagina SIGC.</figcaption>
+        <figure class="ui-grafico ui-grafico--barre">
+          <figcaption>Barre orizzontali: presentate, pagate, da pagare e senza importi, dagli importi della domanda (flusso ASR2-20); pagate e da pagare si sovrappongono (domande pagate in parte). Clic su una barra: pagina SIGC.</figcaption>
         </figure>
         <p class="ui-fonte">Fonte: TX-0012. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati.</p>
       </section>

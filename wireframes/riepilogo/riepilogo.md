@@ -51,6 +51,7 @@ Dotazione, risorse FEASR, stanziato, impegnato e residui non sono collegati (non
   drawer, tabella equivalente di ogni grafico, axe.
 - RESIDUO umano da verificare qui: ordine di lettura, didascalie dei grafici, etichette comprensibili, contrasto della
   resa finale (il low-fi non fa fede sul colore; fa fede il prototipo approvato).
+- RESIDUO umano: dimensione dei bersagli (WCAG 2.5.8) dei link "Apri nell'elenco" nelle celle (minimo 24 px nel kit).
 
 ## Punti aperti che toccano questo flusso
 
