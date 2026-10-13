@@ -273,7 +273,7 @@ describe('elenco operativo, viste per ambito (D-1, OP-EO-02)', () => {
 });
 
 describe('elenco operativo, grafici', () => {
-  it('ripartizione per stato: voci filtrabili col codice, ALTRI e SENZA_STATO a parte', () => {
+  it('ripartizione per stato: voci filtrabili col codice, SENZA_STATO compresa (V-08); ALTRI a parte', () => {
     const voci = [
       { chiave: 'RILASCIATO', descrizione: 'Rilasciata', domande: 10 },
       { chiave: 'SENZA_STATO', descrizione: null, domande: 2 },
@@ -283,7 +283,7 @@ describe('elenco operativo, grafici', () => {
     expect(g.opzioni).not.toBeNull();
     expect(g.tabella.righe).toEqual([['Rilasciata', '10'], ['senza stato SIAN', '2'], ['Altre voci (8)', '5']]);
     expect(filtroDellaVoce('perStato', voci[0])).toBe('RILASCIATO');
-    expect(filtroDellaVoce('perStato', voci[1])).toBeUndefined();
+    expect(filtroDellaVoce('perStato', voci[1])).toBe('SENZA_STATO');
     expect(filtroDellaVoce('perStato', voci[2])).toBeUndefined();
     expect(String((g.opzioni?.aria as { label?: { description?: string } })?.label?.description)).toContain('17 domande in tutto');
   });

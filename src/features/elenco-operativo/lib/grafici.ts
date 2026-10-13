@@ -1,7 +1,8 @@
 // grafici.ts — builder PURI dei grafici dell'elenco operativo (contratto DatiGrafico del kit): ripartizioni del sinottico
 // (domande per stato SIAN, per intervento, per anno di raccolta: TX-0057) e la cascata dall'ammesso al pagato della scheda
 // (TX-0058). Il clic su una barra aggiunge il filtro corrispondente: la barra porta il valore del filtro come codice, e le
-// voci che il filtro non accetta (ALTRI, e SENZA_STATO come nel wireframe approvato) non hanno codice e restano a parte.
+// voci che il filtro non accetta (ALTRI) non hanno codice e restano a parte. SENZA_STATO si filtra come le altre (stato=
+// SENZA_STATO, D-02 Rev. 1 del backend; review v1 V-08, OP-EO-06 chiuso).
 import { ANNO_ASSENTE, ANNO_SENZA } from '../../../entities/domanda';
 import type { BarSeriesOption, EChartsOption } from 'echarts';
 import {
@@ -40,7 +41,7 @@ export const TESTI_RIPARTIZIONE: Record<Ripartizione, TestiRipartizione> = {
 
 /** Voci che il filtro del grafico non accetta: si mostrano, ma il clic non filtra. */
 const NON_FILTRABILI: Record<Ripartizione, ReadonlySet<string>> = {
-  perStato: new Set(['ALTRI', 'SENZA_STATO']),
+  perStato: new Set(['ALTRI']),
   perIntervento: new Set(['ALTRI']),
   perAnno: new Set(['ALTRI']),
 };

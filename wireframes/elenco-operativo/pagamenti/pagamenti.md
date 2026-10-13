@@ -38,7 +38,7 @@ pagato, quote di finanziamento).
 | pagina | link (id) | innesco | arrivo (feature: route) | parametri di path | query |
 |---|---|---|---|---|---|
 | /elenco-operativo/pagamenti | dettaglio-domanda-del-pagamento | "Apri la domanda" nell'anteprima, solo se `domandaCorrente` e' vero | elenco-operativo: /elenco-operativo/domande/:tipo/:codiceABarre | tipo (= tipoDomanda), codiceABarre | - |
-| /elenco-operativo/pagamenti | domande-dei-pagamenti | "Vedi le domande di questi pagamenti" | elenco-operativo: /elenco-operativo/domande | - | i 24 filtri della domanda comuni ai due elenchi |
+| /elenco-operativo/pagamenti | domande-dei-pagamenti | "Vedi le domande di questi pagamenti" | elenco-operativo: /elenco-operativo/domande | - | i 27 filtri della domanda comuni ai due elenchi |
 
 ## Filtri nell'URL (url_params)
 

@@ -39,7 +39,7 @@ provincia, ente, richiesto, ammesso, pagato, ancora da pagare, liquidato. Le alt
 
 | pagina | grafico | tipo | dati (transazione) | clic | valori assenti |
 |---|---|---|---|---|---|
-| /elenco-operativo/domande | Domande per stato SIAN | barre orizzontali | TX-0057 (perStato) | filtra l'elenco (aggiunge `stato`) | voci SENZA_STATO (domande senza stato SIAN) e ALTRI: barre a parte, nessun clic (il filtro `stato` non le accetta) |
+| /elenco-operativo/domande | Domande per stato SIAN | barre orizzontali | TX-0057 (perStato) | filtra l'elenco (aggiunge `stato`), anche la voce SENZA_STATO (domande senza stato SIAN: `stato=SENZA_STATO`) | ALTRI: barra a parte, nessun clic (il filtro `stato` non la accetta) |
 | /elenco-operativo/domande | Domande per intervento | barre (zoom oltre 12 voci) | TX-0057 (perIntervento) | filtra l'elenco (aggiunge `intervento`) | voce ALTRI: non cliccabile |
 | /elenco-operativo/domande | Domande per anno di raccolta (vista finanziario) | barre | TX-0057 (perAnno) | filtra l'elenco (aggiunge `anno`, SENZA compreso) | voce SENZA: "senza anno" |
 
@@ -48,7 +48,7 @@ provincia, ente, richiesto, ammesso, pagato, ancora da pagare, liquidato. Le alt
 | pagina | link (id) | innesco | arrivo (feature: route) | parametri di path | query |
 |---|---|---|---|---|---|
 | /elenco-operativo/domande | dettaglio-domanda | "Apri il dettaglio" nell'anteprima della riga | elenco-operativo: /elenco-operativo/domande/:tipo/:codiceABarre | tipo, codiceABarre | - |
-| /elenco-operativo/domande | pagamenti-delle-domande | "Vedi i pagamenti di queste domande" | elenco-operativo: /elenco-operativo/pagamenti | - | i 24 filtri della domanda comuni ai due elenchi (tutti tranne pagina, dimensione, ordina) |
+| /elenco-operativo/domande | pagamenti-delle-domande | "Vedi i pagamenti di queste domande" | elenco-operativo: /elenco-operativo/pagamenti | - | i 27 filtri della domanda comuni ai due elenchi (tutti tranne pagina, dimensione, ordina) |
 
 In arrivo da altre feature (RA003, D-3): i report del finanziario apriranno questa pagina con i loro filtri (OP-EO-03).
 

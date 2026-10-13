@@ -216,13 +216,30 @@ describe('RA003: chip e grafici dei report procedurali (review v1 V-17, V-18)', 
     await waitFor(() => expect(router.state.location.search).toBe('?stato=RILASCIATO'));
   });
 
-  it('tabella del grafico: "Filtra per" aggiunge lo stesso filtro; le voci non filtrabili non hanno il comando', async () => {
+  it('clic sulla barra "senza stato SIAN": filtra stato=SENZA_STATO come le altre voci (review v1 V-08)', async () => {
+    servi();
+    const { router } = renderPagina(ElencoDomande, '/elenco-operativo/domande');
+    const grafico = graficoDi(await trovaCard('Domande per stato SIAN'));
+    expect(grafico).toBeDefined();
+    act(() => {
+      if (grafico) clicSulDato(grafico, 0, 1);
+    });
+    expect(await screen.findByText('Filtro aggiunto: Stato SIAN Senza stato SIAN.')).toBeTruthy();
+    await waitFor(() => expect(router.state.location.search).toBe('?stato=SENZA_STATO'));
+  });
+
+  it('tabella del grafico: "Filtra per" aggiunge lo stesso filtro, anche per la voce senza stato; ALTRI non ha il comando', async () => {
     servi();
     const { router } = renderPagina(ElencoDomande, '/elenco-operativo/domande');
     const tabella = await tabellaDi(await trovaCard('Domande per stato SIAN'));
-    expect(within(tabella).getAllByRole('button').map((b) => b.textContent)).toEqual(['Filtra per stato sian Rilasciata']);
-    await userEvent.click(within(tabella).getByRole('button', { name: 'Filtra per stato sian Rilasciata' }));
-    await waitFor(() => expect(router.state.location.search).toBe('?stato=RILASCIATO'));
+    expect(within(tabella).getAllByRole('button').map((b) => b.textContent)).toEqual([
+      'Filtra per stato sian Rilasciata',
+      'Filtra per stato sian senza stato SIAN',
+    ]);
+    await userEvent.click(within(tabella).getByRole('button', { name: 'Filtra per stato sian senza stato SIAN' }));
+    await waitFor(() => expect(router.state.location.search).toBe('?stato=SENZA_STATO'));
+    const perIntervento = await tabellaDi(await trovaCard('Domande per intervento'));
+    expect(within(perIntervento).queryByRole('button', { name: /Altre voci/ })).toBeNull();
   });
 });
 

@@ -1596,12 +1596,6 @@
       "id": "OP-EO-05",
       "kind": "altro",
       "detail": "Esportazione (RA005, D-09 del backend): GET /domande/{formato} e /pagamenti/{formato} (csv, xlsx) senza operationId, come gli export del finanziario; un pulsante per formato con la sigla visibile (V-07 del finanziario), con X-Requested-With, gli stessi filtri e ordinamento della pagina. Oltre il limite di NFR-06 il backend risponde con un problem: il messaggio invita a restringere i filtri."
-    },
-    {
-      "id": "OP-EO-06",
-      "kind": "altro",
-      "detail": "Barra SENZA_STATO del grafico per stato SIAN: il flusso approvato (domande.md) la dichiara non cliccabile perche al momento il filtro stato non la accettava; dal contratto finale (D-02 Rev. 1) stato=SENZA_STATO e accettato e il pannello lo offre. Al prossimo rework del flusso domande renderla cliccabile e togliere SENZA_STATO da NON_FILTRABILI.perStato (review step9 v1 V-08). Lo stesso rework aggiorna i 24 filtri citati in domande.md e pagamenti.md (ora 27, V-06).",
-      "blocks": []
     }
   ]
 }
