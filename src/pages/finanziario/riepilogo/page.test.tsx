@@ -121,3 +121,48 @@ describe('RF001: i filtri valgono per il riepilogo e per gli altri report', () =
     expect(screen.getByRole('link', { name: 'Finanziario' }).getAttribute('href')).toBe('/finanziario?intervento=SRA01');
   });
 });
+
+describe("RA003: drill-down dal riepilogo all'elenco operativo", () => {
+  it("celle Domande presentate e Pagamenti al netto: elenco delle domande e righe di pagamento (lordi) dell'intervento", async () => {
+    server.use(http.get('*/api/finanziario/riepilogo', () => HttpResponse.json(RIEPILOGO)));
+    renderPagina(Pagina, '/finanziario/riepilogo', '/finanziario/riepilogo?os=OS4');
+    const tabella = await screen.findByRole('table', { name: TABELLA });
+    expect(within(tabella).getByRole('link', { name: "Apri nell'elenco operativo le domande presentate dell'intervento SRA01" }).getAttribute('href')).toBe(
+      '/elenco-operativo/domande?presentata=true&intervento=SRA01',
+    );
+    const pagamenti = within(tabella).getByRole('link', { name: "righe di pagamento, importi lordi: apri nell'elenco operativo le righe di pagamento dell'intervento SRA01" });
+    expect(pagamenti.getAttribute('href')).toBe('/elenco-operativo/pagamenti?esito=PAGATA&intervento=SRA01');
+    expect(screen.getByText(/i recuperi sono nella scheda di ogni domanda\.$/)).toBeTruthy();
+    // la riga dell'Assistenza tecnica (piede) non ha link
+    const piede = within(tabella).getByRole('rowheader', { name: /Dotazione assistenza tecnica/ }).closest('tr');
+    expect(piede && within(piede).queryByRole('link')).toBeNull();
+  });
+  it("il link dentro la riga non apre l'anteprima; dall'anteprima i due link dell'intervento", async () => {
+    server.use(http.get('*/api/finanziario/riepilogo', () => HttpResponse.json(RIEPILOGO)));
+    const { router } = renderPagina(Pagina, '/finanziario/riepilogo');
+    const tabella = await screen.findByRole('table', { name: TABELLA });
+    await userEvent.click(within(tabella).getByRole('link', { name: "Apri nell'elenco operativo le domande presentate dell'intervento SRA01" }));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/elenco-operativo/domande'));
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+  it("dall'anteprima: domande presentate e righe di pagamento dell'intervento", async () => {
+    server.use(http.get('*/api/finanziario/riepilogo', () => HttpResponse.json(RIEPILOGO)));
+    renderPagina(Pagina, '/finanziario/riepilogo');
+    const tabella = await screen.findByRole('table', { name: TABELLA });
+    await userEvent.click(within(tabella).getByRole('row', { name: "Apri l'anteprima dell'intervento SRA01" }));
+    const anteprima = await screen.findByRole('dialog');
+    expect(within(anteprima).getByRole('link', { name: "domande presentate: apri nell'elenco operativo dell'intervento SRA01" }).getAttribute('href')).toBe(
+      '/elenco-operativo/domande?presentata=true&intervento=SRA01',
+    );
+    expect(within(anteprima).getByRole('link', { name: /^righe di pagamento, importi lordi: / }).getAttribute('href')).toBe('/elenco-operativo/pagamenti?esito=PAGATA&intervento=SRA01');
+  });
+  it("senza i grant dell'elenco nessun link", async () => {
+    server.use(
+      http.get('*/api/finanziario/riepilogo', () => HttpResponse.json(RIEPILOGO)),
+      http.get('*/auth/status', () => HttpResponse.json({ authenticated: true, user: { username: 'U', roles: ['csr.tx-0001.read', 'csr.tx-0002.read', 'csr.tx-0008.read', 'csr.tx-0009.read', 'csr.tx-0010.read', 'csr.tx-0011.read', 'csr.tx-0012.read', 'csr.tx-0013.read'] } })),
+    );
+    renderPagina(Pagina, '/finanziario/riepilogo');
+    const tabella = await screen.findByRole('table', { name: TABELLA });
+    expect(within(tabella).queryByRole('link')).toBeNull();
+  });
+});

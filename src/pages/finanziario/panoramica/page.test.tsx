@@ -162,3 +162,19 @@ describe('panoramica: indicatori, grafici e drill-down', () => {
     await expectNoA11yViolations(pannello);
   });
 });
+
+describe("RA003: drill-down dalla panoramica all'elenco operativo", () => {
+  it('il KPI Domande presentate apre le domande presentate con i filtri correnti', async () => {
+    servi();
+    renderPagina(Pagina, '/finanziario', '/finanziario?intervento=SRA01&og=OG2');
+    const link = await screen.findByRole('link', { name: "Apri nell'elenco operativo le domande presentate" });
+    expect(link.getAttribute('href')).toBe('/elenco-operativo/domande?presentata=true&intervento=SRA01&og=OG2');
+  });
+  it("senza il grant dell'elenco delle domande (TX-0056) il link non c'e', il KPI si'", async () => {
+    servi();
+    conRuoli(['csr.tx-0001.read', 'csr.tx-0002.read', 'csr.tx-0008.read', 'csr.tx-0009.read', 'csr.tx-0010.read', 'csr.tx-0011.read', 'csr.tx-0012.read', 'csr.tx-0013.read']);
+    renderPagina(Pagina, '/finanziario');
+    expect(await screen.findByRole('region', { name: 'Domande presentate' })).toBeTruthy();
+    expect(screen.queryByRole('link', { name: /Apri nell.elenco operativo/ })).toBeNull();
+  });
+});

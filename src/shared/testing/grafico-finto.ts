@@ -67,6 +67,6 @@ export function azzeraGraficiFinti(): void {
 export const graficiVivi = (): GraficoFinto[] => graficiFinti.filter((g) => !g.dismesso);
 
 /** Simula il clic su un elemento del grafico (parametro come quello di ECharts). */
-export function clicSu(g: GraficoFinto, p: { name?: string; dataIndex?: number; data?: unknown }): void {
+export function clicSu(g: GraficoFinto, p: { name?: string; dataIndex?: number; data?: unknown; seriesName?: string }): void {
   g.clic.forEach((f) => f(p));
 }

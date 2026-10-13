@@ -8,6 +8,7 @@ import { expectNoA11yViolations } from '../../../shared/testing/axe';
 import { graficoDi, tabellaDi, trovaCard } from '../../../shared/testing/card-grafico';
 import { DOMANDE_PER_ANNO, FILTRI, IMPORTI_PER_ANNO, RIEPILOGO, SIGC_DOMANDE, SIGC_IMPORTI, SPESA } from '../../../features/finanziario/testing/fixture';
 import { renderPagina } from '../../../shared/testing/render-pagina';
+import { clicSu } from '../../../shared/testing/grafico-finto';
 import Pagina from './page';
 
 const PERCORSO = '/finanziario/interventi/:codice';
@@ -124,5 +125,45 @@ describe("dettaglio dell'intervento (flusso panoramica)", () => {
     const { container } = renderPagina(Pagina, PERCORSO, '/finanziario/interventi/SRA01');
     await trovaCard('Dalla dotazione al residuo');
     await expectNoA11yViolations(container);
+  });
+});
+
+const indirizzoDi = (router: { state: { location: { pathname: string; search: string } } }) => `${router.state.location.pathname}${router.state.location.search}`;
+
+describe("RA003: drill-down dal dettaglio dell'intervento all'elenco operativo", () => {
+  it("KPI Domande presentate e clic su un segmento di Domande per anno: l'intervento del dettaglio con la selezione di provenienza", async () => {
+    servi();
+    const { router } = renderPagina(Pagina, PERCORSO, '/finanziario/interventi/SRA01?intervento=SRA03&os=OS4');
+    const kpi = await screen.findByRole('link', { name: "Apri nell'elenco operativo le domande presentate dell'intervento SRA01" });
+    expect(kpi.getAttribute('href')).toBe('/elenco-operativo/domande?presentata=true&intervento=SRA01&os=OS4');
+    await userEvent.click(screen.getByRole('tab', { name: 'Domande' }));
+    const grafico = graficoDi(await trovaCard('Domande per anno di raccolta'));
+    expect(grafico).toBeTruthy();
+    if (grafico) clicSu(grafico, { name: 'senza anno di raccolta', dataIndex: 1, seriesName: 'Non classificate' });
+    await waitFor(() => expect(indirizzoDi(router)).toBe('/elenco-operativo/domande?presentata=true&anno=SENZA&annualita=NON_CLASSIFICATE&intervento=SRA01&os=OS4'));
+  });
+  it('voci SIGC come link (anche da tastiera) e clic sulla cascata degli importi', async () => {
+    servi();
+    const { router } = renderPagina(Pagina, PERCORSO, '/finanziario/interventi/SRA01');
+    await userEvent.click(await screen.findByRole('tab', { name: 'SIGC' }));
+    const pagate = await screen.findByRole('link', { name: "pagate: apri nell'elenco operativo le domande SIGC pagate dell'intervento SRA01" });
+    expect(pagate.getAttribute('href')).toBe('/elenco-operativo/domande?sigc=true&pagamento=PAGATA&intervento=SRA01');
+    expect(screen.getByRole('link', { name: "presentate: apri nell'elenco operativo le domande SIGC presentate dell'intervento SRA01" }).getAttribute('href')).toBe(
+      '/elenco-operativo/domande?sigc=true&intervento=SRA01',
+    );
+    const cascata = graficoDi(await trovaCard('Importi SIGC'));
+    if (cascata) clicSu(cascata, { name: 'Ammesso', dataIndex: 0 });
+    await waitFor(() => expect(indirizzoDi(router)).toBe('/elenco-operativo/domande?sigc=true&intervento=SRA01'));
+  });
+  it("senza il grant dell'elenco i clic non portano altrove e i link non ci sono", async () => {
+    servi();
+    server.use(http.get('*/auth/status', () => HttpResponse.json({ authenticated: true, user: { username: 'U', roles: ['csr.tx-0001.read', 'csr.tx-0002.read', 'csr.tx-0008.read', 'csr.tx-0009.read', 'csr.tx-0010.read', 'csr.tx-0011.read', 'csr.tx-0012.read', 'csr.tx-0013.read'] } })));
+    const { router } = renderPagina(Pagina, PERCORSO, '/finanziario/interventi/SRA01');
+    await screen.findByRole('region', { name: 'Domande presentate' });
+    expect(screen.queryByRole('link', { name: /apri nell.elenco operativo/i })).toBeNull();
+    await userEvent.click(screen.getByRole('tab', { name: 'Domande' }));
+    const grafico = graficoDi(await trovaCard('Domande per anno di raccolta'));
+    if (grafico) clicSu(grafico, { name: '2024', dataIndex: 0, seriesName: 'Prima annualità' });
+    expect(router.state.location.pathname).toBe('/finanziario/interventi/SRA01');
   });
 });
