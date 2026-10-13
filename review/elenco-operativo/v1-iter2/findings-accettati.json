@@ -1,0 +1,218 @@
+[
+  {
+    "id": "X-01",
+    "severity": "MAGGIORE",
+    "file": "src/features/elenco-operativo/ui/PannelloFiltriElenco.tsx:142",
+    "titolo": "Importi scritti col punto delle migliaia: il campo si riscrive mentre si digita ('10.0' diventa '10,0') e parte un filtro mille volte piu' basso di quello scritto",
+    "evidenza": "Il campo riceve valore={(sel(n)[0] ?? '').replace('.', ',')} dalla bozza del debounce, gia' nei controlli (criteriVisti, useCriteri.ts:84), e useBozza lo riallinea a ogni cambio di quel valore (controlli.tsx:79-82); importoDaTesto legge '10.0' come decimale (criteri.ts:316). Digitando '10.000' (il formato che il messaggio del campo suggerisce, :141) il campo diventa '10,0', poi '10,00' e infine '10,000', non valido: chip 'Richiesto da 10,00 €' e dopo 300 ms richiestoDa=10.00 a TX-0056 e TX-0057 ('1.500,50' finisce in 1.50). In b74b7a2 la riscrittura avveniva solo dopo una pausa di 300 ms (regressione del fix di V-15) e nessun test scrive un importo col punto (interrogazione-stati.test.tsx:162-165; l'helper scrivi di interrogazione-comandi.test.tsx:58-59 non legge il valore riscritto).",
+    "fix": "useBozza riallinea il campo solo se il valore esterno non corrisponde gia' alla bozza (importi: importoDaTesto(bozza) uguale al valore del contratto; testo: bozza.trim() uguale al valore), cosi' il chip tolto e 'Azzera' continuano a riallinearlo. Test L2 con userEvent.type (non fireEvent): '10.000' in 'Da' -> richiestoDa=10000, il campo dice ancora '10.000' e nessun errore; '1.500,50' -> richiestoDa=1500.50.",
+    "fonti": ["X-01"]
+  },
+  {
+    "id": "H-01",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/controlli.tsx:85",
+    "titolo": "Bozza del debounce mai ritirata: un valore valido resta in coda e parte dopo che il campo e' tornato non valido; il timer riscrive lo state del render in cui e' partito",
+    "evidenza": "CampoFiltro chiama onCambia solo con un valore valido (controlli.tsx:83-86) e la bozza vive in useCriteri (useCriteri.ts:65-73): 'ros' e poi 'ro' entro 300 ms portano ?testo=ros nell'indirizzo con il campo 'ro' in errore e il chip 'ros' (il test interrogazione-comandi.test.tsx:66-81 scrive solo in avanti). Il timer chiama la scarica del render in cui e' partito e vai usa pathname e state di quella closure (useCriteri.ts:43-52): un cambio di vista entro 300 ms da un clic sul grafico (applicaRitardato, ElencoDomande.tsx:187) viene annullato; il commento di scarica (:58) cita un 'Invio in un campo' che nessun campo gestisce.",
+    "fix": "Un valore non valido ritira la parte di bozza del suo filtro (CampoFiltro segnala l'uscita non valida, oppure useCriteri espone ritira(nome) che rimette il valore applicato); in vai leggere pathname e state da un ref aggiornato a ogni render; allineare il commento di scarica. Test coi timer finti: 'ros', poi 'ro', avanza(1000) -> indirizzo ''; clic su una barra e cambio di vista entro 300 ms -> la vista resta quella scelta.",
+    "fonti": ["H-01"]
+  },
+  {
+    "id": "V-01",
+    "severity": "MINORE",
+    "file": "plan/elenco-operativo/uiplan.json:260",
+    "titolo": "'Torna all'elenco' e la briciola della scheda tornano anche all'elenco dei pagamenti e con la query di partenza; lo uiplan e il flusso approvato dichiarano solo le domande, senza query",
+    "evidenza": "ritornoAllElenco accetta i due elenchi con la query intera (lib/collegamenti.ts:66-71, test tests/elenco-operativo-lib.test.ts:443) e SchedaDomanda lo usa nella testata, nella briciola 'Pagamenti' e nell'avviso (SchedaDomanda.tsx:69, :232, :255, :194). Lo uiplan dichiara torna-all-elenco con target /elenco-operativo/domande e query [] (uiplan.json:260-264), il flusso dettaglio-domanda 'arrivo /elenco-operativo/domande', query '-' (dettaglio-domanda.md:38): il controllo meccanico dei link verifica un link diverso da quello reso, come V-06 dell'iterazione 1.",
+    "fix": "Secondo la decisione dell'utente (judge.json): in torna-all-elenco dichiarare come query gli url_params della destinazione e aggiungere un link dichiarato verso /elenco-operativo/pagamenti (stesso innesco); aggiornare la riga del link in dettaglio-domanda.md, riapprovare il flusso e rieseguire uiplan-validate.",
+    "fonti": ["V-01"]
+  },
+  {
+    "id": "V-02",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/SchedaDomanda.tsx:255",
+    "titolo": "Decisione X-04 (c) applicata solo al link della testata: la briciola e il 'Torna all'elenco' dell'avviso riportano l'elenco alla vista generale",
+    "evidenza": "La testata passa lo state della vista (Link to={ritorno} state={statoRitorno}, SchedaDomanda.tsx:69); la briciola riceve lo stesso indirizzo senza state (Briciola non ha il campo, testata.tsx:8-11 e :25), e cosi' l'Avviso del 404 e del riferimento non valido (:191-197): useVista non trova la vista (ElencoDomande.tsx:65-71) e una colonna ordinata della vista lasciata sparisce dalla tabella. Il test del ritorno (scheda-domanda.test.tsx:163-179) prova solo la testata.",
+    "fix": "Briciola { etichetta, a?, stato? } con <Link to={v.a} state={v.stato}>; SchedaDomanda passa r.statoRitorno alla briciola e all'Avviso. Test L2: vista 'fisico' -> anteprima -> scheda -> clic sulla briciola 'Domande' -> tabella 'vista fisico'.",
+    "fonti": ["V-02", "H-05 (prima parte)"]
+  },
+  {
+    "id": "V-03",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/ElencoDomande.tsx:124",
+    "titolo": "La scelta delle colonne (V-01) si perde ogni volta che la tabella si smonta (risultati vuoti, errore, pagina oltre l'ultima), mentre la vista resta",
+    "evidenza": "TabellaServer tiene le colonne nascoste in uno useState inizializzato al montaggio (TabellaServer.tsx:133); Risultati la smonta per la pagina oltre l'ultima (ElencoDomande.tsx:124-125) e VistaQuery al vuoto e all'errore (:200), lo stesso nei pagamenti (ElencoPagamenti.tsx:85-90, :134): chi mostra 'Liquidato', prova un filtro senza righe e lo toglie ritrova le colonne di partenza della vista. Al ritorno dalla scheda la perdita e' come nel finanziario (StatoTabella non porta le colonne): rientra nel fix solo per decisione dell'utente.",
+    "fix": "Props controllate nascoste/onNascoste in TabellaServer (lo stato interno resta il predefinito) e colonne scelte tenute in ElencoDomande ed ElencoPagamenti per vista, che ripartono solo al cambio di vista; secondo la decisione dell'utente anche nello state della history accanto alla vista. Test L2: mostrare 'Liquidato', filtro con zero righe, toglierlo -> 'Liquidato' resta visibile.",
+    "fonti": ["V-03"]
+  },
+  {
+    "id": "V-04",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/SinotticoDomande.tsx:145",
+    "titolo": "Residuo di V-03: durante l'aggiornamento il testo nascosto del sinottico dice ancora il numero precedente 'con questi filtri'",
+    "evidenza": "Il paragrafo visually-hidden `${plurale(sinottico.domande ?? 0, ...)} con questi filtri.` (SinotticoDomande.tsx:145) resta con il sinottico segnaposto, subito dopo l'avviso 'restano visibili i numeri precedenti' (:144): e' la frase che il fix di V-03 ha tolto dal conteggio del pannello (testoConteggio, lib/formato.ts:125-129: mai il numero vecchio come se fosse di questi filtri). Il test del sinottico in aggiornamento (interrogazione-stati.test.tsx:131-152) non lo guarda.",
+    "fix": "Con inAggiornamento usare testoConteggio(sinottico.domande, ['domanda', 'domande'], { inAggiornamento }) oppure omettere il paragrafo finche' il sinottico non e' dei criteri correnti; aggiungere l'asserzione al test esistente.",
+    "fonti": ["V-04"]
+  },
+  {
+    "id": "V-05",
+    "severity": "MINORE",
+    "file": "src/pages/elenco-operativo/interrogazione-stati.test.tsx:109",
+    "titolo": "Residuo di V-05: l'elenco dei pagamenti ha solo il test del 400; aggiornamento, 503 e 403 sono provati solo sulle domande, e il sinottico dei pagamenti non e' dichiarato in aggiornamento",
+    "evidenza": "Il fix accettato chiedeva gli L2 'per domande e pagamenti'; per i pagamenti c'e' il solo 400 (interrogazione-stati.test.tsx:88-95), mentre aggiornamento (:110-152), 503 (:66) e 403 (:80) usano ElencoDomande. ElencoPagamenti compone lo stato a modo suo: aria-busy e avviso nella sola card delle righe (ElencoPagamenti.tsx:73, :79), SinotticoPagamenti con i totali segnaposto fuori dalla sezione occupata (:137); lo stato 'aggiornamento' del flusso approvato (pagamenti.md:62) non ha test.",
+    "fix": "In interrogazione-stati.test.tsx un L2 sui pagamenti con l'handler trattenuto (righe precedenti, aria-busy e avviso sulla card, poi false) e un caso 503 e 403; dichiarare in aggiornamento anche SinotticoPagamenti (aria-busy, oppure dentro la sezione occupata).",
+    "fonti": ["V-05"]
+  },
+  {
+    "id": "H-03",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/TabelleScheda.tsx:24",
+    "titolo": "Tabella della scheda con 'Colonne' riscritta nella feature e tabella del grafico scritta a mano: fuori dal kit, con gli importi allineati a sinistra contro il wireframe approvato",
+    "evidenza": "La Tabella locale (TabelleScheda.tsx:24-72) ripete di TabellaServer (TabellaServer.tsx:133-141) lo stato iniziale delle nascoste, il filtro delle visibili, conScelta e il cablaggio di SceltaColonne: dopo H-08 le tabelle con 'Colonne' tornano tre. Non conosce le colonne numeriche: contributi, Differenza, decretato, pagato, quote e recuperi escono senza ui-num (:46, :58-62) mentre il wireframe approvato li ha class='ui-num' (dettaglio-domanda.html:116-117, :124-125, :132-133); TabellaRipartizione (SinotticoDomande.tsx:61-107) riscrive il markup di TabellaRighe senza il contenitore del kit e ricalcola graficoRipartizione (:64, gia' in useMemo a :111).",
+    "fix": "Portare nel kit la tabella statica con nascosta e numerica (TabellaRighe/TabelleSemplici) e usarla nella scheda con numerica sulle colonne degli importi; la tabella del grafico come TabellaRighe con una colonna 'Filtro' resa dalla voce della stessa riga, con i dati calcolati una volta. Test L1 del kit: colonna a scelta e cella numerica con ui-num.",
+    "fonti": ["H-03", "V-08"]
+  },
+  {
+    "id": "H-04",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/ElencoPagamenti.tsx:65",
+    "titolo": "Lo scheletro dei risultati e del pannello e' copiato fra le due pagine dell'interrogazione: ogni correzione della review va fatta due volte",
+    "evidenza": "Risultati (ElencoDomande.tsx:104-162) e Righe (ElencoPagamenti.tsx:65-120) ripetono circa 40 righe della stessa struttura (section con aria-busy, h2 con ref, AvvisoAggiornamento, OrdinamentoAttivo, PaginaOltreLUltima o TabellaServer, strumenti di esportazione, Paginazione con lo stesso onPagina e onDimensione); i due Pannello (ElencoDomande.tsx:221-239, ElencoPagamenti.tsx:145-163) differiscono solo per gli errori e le unita' del conteggio. In questa iterazione X-02, X-04, H-01 e V-16 sono stati applicati in entrambe le copie.",
+    "fix": "Un componente RisultatiInterrogazione<T> in ui/ (elenco, titolo, caption, colonne, chiaveRiga, etichettaRiga, piede, anteprima come render prop, criteri, applica, aggiornando) e un PannelloInterrogazione che riceve la lettura principale, gli errori aggiuntivi e le unita'; le due pagine tengono solo sinottico, colonne e piede.",
+    "fonti": ["H-04"]
+  },
+  {
+    "id": "A-01",
+    "severity": "MINORE",
+    "file": "README.md:237",
+    "titolo": "Requisito del contenitore di A-01: la regola nginx d'esempio guarda anche la query (404 sui link condivisi con '/' in un filtro) e non ferma la doppia codifica %252F",
+    "evidenza": "La difesa lato client regge (riferimentoValido in api/index.ts:79-82 e SchedaDomanda.tsx:245, segmenti codificati, cinque casi negativi in scheda-domanda.test.tsx:63). La regola `if ($request_uri ~* \"%(2f|5c)\")` (README.md:237) usa $request_uri, che in nginx comprende la query: un filtro con '/' (URLSearchParams lo codifica %2F, shared/lib/parametri-ripetuti.ts:22-24) da' 404 al ricaricamento o da un link condiviso (D-3), e a livello di server colpirebbe /auth/login?ritorno=%2F... (base-path.ts:17). %252F non la fa scattare ma react-router 8.3.0 la porta comunque a '/' (decodePath e matchPath, lib/router/utils.js:532-534 e :502), contro la frase 'seconda difesa, che non dipende dal codice della pagina' (:233).",
+    "fix": "README: `if ($request_uri ~* \"^[^?]*%(2f|5c|25)\") { return 404; }` solo nella location del fallback della SPA (mai a livello di server, mai su /auth o /api), con accanto l'esempio che deve restare servito (/elenco-operativo/domande?testo=a%2Fb). In scheda-domanda.test.tsx:63 aggiungere 'SOSTEGNO/..%252F..%252Fdomande%252Fcsv' e un tipo costruito ('..%2F..%2Fauth%2Flogout%3F/04230000001').",
+    "fonti": ["A-01", "H-02"]
+  },
+  {
+    "id": "A-02",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/PannelloFiltriElenco.tsx:121",
+    "titolo": "Fascia di importo: l'estremo scartato perche' rovesciava la fascia torna valido quando cambia l'altro estremo, ma non viene mai applicato",
+    "evidenza": "Un estremo che rovescia la fascia e' non valido (valido(da, a, n), PannelloFiltriElenco.tsx:121-126) e useBozza manda solo battendo un tasto (controlli.tsx:83-86): con Da=10.000 applicato e 5.000 scritto in 'Fino a' (rifiutato), portando Da a 1.000 l'errore sparisce e 'Fino a' mostra 5.000 come accettato, ma richiestoA non parte e indirizzo, chip e risultati restano senza tetto. Il test di X-03 (interrogazione-stati.test.tsx:156-172) prova solo il primo passo.",
+    "fix": "In GruppoImporti, al cambio di un estremo, rivalutare la bozza dell'altro: se ora e' valida e diversa dal valore applicato mandarla (meglio: tenere le due bozze nel gruppo e applicare la coppia), altrimenti riportare il campo al valore applicato. Test L2: Da=10000, A=5000 (rifiutato), Da=1000 -> richiestoDa=1000&richiestoA=5000 e chip 'Fino a'.",
+    "fonti": ["A-02"]
+  },
+  {
+    "id": "X-02",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/ElencoDomande.tsx:149",
+    "titolo": "'Righe per pagina' torna per un istante alla dimensione precedente: la select legge i criteri dell'indirizzo, aggiornati solo al commit della transizione del router",
+    "evidenza": "Paginazione riceve dimensione={dimensioneDi(criteri)} con i criteri dell'indirizzo (ElencoDomande.tsx:149 e :204; ElencoPagamenti.tsx:108 e :138); RouterProvider applica la navigazione in startTransition (react-router 8.3.0, lib/components.js:146; App.tsx senza flushSync), quindi dopo il change React riporta la select controllata (Paginazione.tsx:49) al valore vecchio fino al commit, e una seconda freccia sulla select chiusa riparte da li'. E' il difetto della select dell'anno del finanziario (v4 iter2 A-01, MINORE) che useCriteri risolve solo per chip e pannello (useCriteri.ts:9-11); il test (interrogazione-comandi.test.tsx:112-123) usa fireEvent dentro act e non puo' vederlo.",
+    "fix": "useCriteri espone anche i criteri appena scritti (inScrittura ?? criteri, senza la bozza) e Risultati e Righe li usano per pagina, dimensione e ordinamento; in alternativa navigate con flushSync (RouterProvider da react-router/dom). Test come quelli del finanziario (af606b4): change nativo fuori da act e select.value subito '50'.",
+    "fonti": ["X-02"]
+  },
+  {
+    "id": "X-03",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/comuni.tsx:65",
+    "titolo": "Il focus finisce sul body dopo 'Ordine predefinito', 'Vai all'ultima pagina' e 'Filtra per' (righe della tabella del grafico con chiave dall'indice); l'annuncio del filtro non si ripete",
+    "evidenza": "'Ordine predefinito' e PaginaOltreLUltima spariscono col proprio clic (comuni.tsx:65-69, :75-83); nella tabella del grafico la chiave `${k}-${riga[0]}` (SinotticoDomande.tsx:84) cambia quando la voce filtrata sale in posizione 0 e la riga si rimonta: in tutti e tre i casi il focus va sul body (WCAG 2.4.3, lo stesso difetto corretto per i chip con X-02 dell'iterazione 1). L'annuncio 'Filtro aggiunto' (ElencoDomande.tsx:188, regione :273) resta dopo che il chip si toglie e non si ripete per lo stesso filtro (stesso testo, nessuna mutazione); i test (interrogazione-comandi.test.tsx:138-147, :231-245) non guardano il focus.",
+    "fix": "Chiave della riga dalla voce (voce.chiave), mai dall'indice; dopo 'Ordine predefinito' e 'Vai all'ultima pagina' il focus sull'h2 della sezione (gia' tabIndex -1); svuotare la regione dell'annuncio prima di riscriverla e quando il chip si toglie. Test L2: dopo ciascun comando document.activeElement non e' il body.",
+    "fonti": ["X-03"]
+  },
+  {
+    "id": "X-04",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/ElencoDomande.tsx:187",
+    "titolo": "Drill-down dal grafico per stato con statoSostegno o statoPagamento attivi: il clic su una barra allarga l'insieme invece di restringerlo",
+    "evidenza": "Il clic su una barra (e 'Filtra per') aggiunge stato con conValore(i.criteriVisti, 'stato', valore) (ElencoDomande.tsx:187), ma il contratto mette statoSostegno e statoPagamento 'In OR con stato' (openapi di TX-0056 e TX-0057): con ?statoSostegno=RILASCIATO il clic su 'Rilasciata' manda stato=RILASCIATO OR statoSostegno=RILASCIATO, l'elenco cresce oltre il numero della barra e l'annuncio dice 'Filtro aggiunto' (RA003: dal punto cliccato le domande di quel punto); lo stesso per la barra 'senza stato SIAN'. Latente: oggi le chiavi dei report arrivano solo da link condivisi o scritti a mano (area procedurale futura), e nessun test le unisce al clic.",
+    "fix": "Secondo la decisione dell'utente (judge.json): con statoSostegno o statoPagamento attivi barre e 'Filtra per' senza azione e una nota accanto al grafico, oppure un clic che sostituisce le chiavi del report e lo dice. Test L2: ?statoSostegno=RILASCIATO e clic sulla barra -> indirizzo e annuncio secondo la regola scelta.",
+    "fonti": ["X-04"]
+  },
+  {
+    "id": "X-05",
+    "severity": "MINORE",
+    "file": "src/pages/elenco-operativo/interrogazione.test.tsx:115",
+    "titolo": "Il conteggio dal vivo del pannello (fix di V-03) non ha un test di pagina: il test che lo dice 'annunciato' lo legge solo prima della scelta, con un mock che risponde sempre 1284",
+    "evidenza": "Il test (interrogazione.test.tsx:115-125) controlla il role=status del dialogo prima del clic su 'Solo SIGC' e servi() risponde 1284 a ogni filtro: passerebbe anche col numero vecchio annunciato come attuale. Il cablaggio di V-03 (inAggiornamento: i.inAttesa || l.aggiornando || ..., ElencoDomande.tsx:232-235 e ElencoPagamenti.tsx:156-159) e' provato solo come funzione pura (testoConteggio in tests/elenco-operativo-lib.test.ts).",
+    "fix": "Test L2 col pannello aperto, l'handler di TX-0056 trattenuto e un totale diverso per sigc=true: dopo la scelta il role=status dice 'Conteggio in corso…', poi il nuovo numero; lo stesso per i pagamenti. Altrimenti togliere 'il conteggio e annunciato' dal titolo.",
+    "fonti": ["X-05"]
+  },
+  {
+    "id": "V-06",
+    "severity": "COSMETICO",
+    "file": "src/features/elenco-operativo/ui/SinotticoDomande.tsx:94",
+    "titolo": "'Filtra per stato sian Rilasciata': la sigla SIAN in minuscolo nei comandi della tabella del grafico e nel sottotitolo della card",
+    "evidenza": "`Filtra per ${t.colonna.toLowerCase()} ...` (SinotticoDomande.tsx:94) e `aggiunge il filtro ${testi.colonna.toLowerCase()}.` (:120), con colonna 'Stato SIAN' (lib/grafici.ts:37), danno 'stato sian'; altrove la stessa voce e' 'Stato SIAN' e il test fissa il testo sbagliato (interrogazione-comandi.test.tsx:236-239).",
+    "fix": "Aggiungere a TestiRipartizione un testo per la frase (es. nellaFrase: 'stato SIAN', 'intervento', 'anno di raccolta') e usarlo nei due punti; aggiornare il test.",
+    "fonti": ["V-06"]
+  },
+  {
+    "id": "V-07",
+    "severity": "COSMETICO",
+    "file": "wireframes/elenco-operativo/domande/domande.md:62",
+    "titolo": "Flussi domande e pagamenti riapprovati con testi non allineati: url_params senza le tre chiavi dei report (ma '27 filtri' nei link) e OP-EO-01 ancora aperto",
+    "evidenza": "I link dicono 'i 27 filtri della domanda' (domande.md:51, pagamenti.md:41) ma la tabella url_params elenca 24 nomi, senza statoSostegno, statoPagamento e voceProgrammazione (domande.md:62, pagamenti.md:51); OP-EO-01 e' ancora fra i punti aperti (domande.md:92, pagamenti.md:78) e la pill dei wireframe dice 'punto aperto OP-EO-01' (domande.html:48, pagamenti.html:47), mentre e' chiuso e la pagina mostra 'Dati al'. Residuo testuale di V-06 dell'iterazione 1.",
+    "fix": "Nel rework dei due flussi (decisione dell'utente, con X-06): una riga url_params per le tre chiavi ('drill-down dai report procedurali, solo chip, nessun controllo nel pannello'), OP-EO-01 tolto dai punti aperti, pill 'Dati al gg/mm/aaaa'; riapprovare.",
+    "fonti": ["V-07"]
+  },
+  {
+    "id": "X-06",
+    "severity": "COSMETICO",
+    "file": "wireframes/elenco-operativo/domande/domande.html:197",
+    "titolo": "Gli html dei flussi domande e pagamenti, riapprovati senza modifiche, non mostrano i comandi e lo stato nati dalle correzioni dell'iterazione 1",
+    "evidenza": "b835b40 ha riapprovato i due flussi toccando solo uiplan e stato (i .md in 5a8e6bc); gli html non hanno 'Ordine predefinito' (decisione X-04, ElencoDomande.tsx:119-123), la colonna 'Filtra per' della vista Tabella dei grafici (V-18), 'Chiudi' e l'avviso d'errore nel pannello (V-19, X-03), la select 'Righe per pagina' (domande.html:225 e pagamenti.html:140 hanno una pill) ne' lo stato 'pagina oltre l'ultima' (H-01). Il finanziario, per lo stesso passaggio, ha allineato gli html prima di riapprovare (b11e770).",
+    "fix": "Nello stesso rework di V-07 portare negli html i comandi e lo stato elencati (oppure registrarli come deviazioni as-built nello uiplan) e riapprovare i due flussi.",
+    "fonti": ["X-06"]
+  },
+  {
+    "id": "H-06",
+    "severity": "COSMETICO",
+    "file": "src/shared/api/mock/server.ts:15",
+    "titolo": "Il fail-closed dei test dell'elenco (H-16) non ha un test di guardia: l'esclusione dipende dalla forma del path degli handler generati",
+    "evidenza": "server.ts:8-15 esclude gli handler generati confrontando '/api/elenco-operativo' con h.info.path e rende '' per un path non stringa: se la forma cambiasse (RegExp, URL con base) l'esclusione smetterebbe in silenzio, e i test che dichiarano i loro endpoint non lo vedrebbero; msw-armed.test.ts prova solo un host .invalid. Oggi l'esclusione funziona (orval genera stringhe '*/api/...').",
+    "fix": "Un test canarino accanto a msw-armed.test.ts: server.listHandlers() non contiene handler dell'elenco, oppure una GET a /api/elenco-operativo/domande senza server.use viene rifiutata da MSW.",
+    "fonti": ["H-06"]
+  },
+  {
+    "id": "H-07",
+    "severity": "COSMETICO",
+    "file": "src/features/elenco-operativo/lib/criteri.ts:124",
+    "titolo": "Residuo di H-01 (parte di V-14): una dimensione accettata dall'indirizzo che la select non offre si mostra come un'altra",
+    "evidenza": "criteriDaRicerca accetta ogni dimensione da 1 a 100 diversa da 25 (criteri.ts:124), come diceva il fix accettato di H-01, ma Paginazione offre solo 10, 25, 50 e 100 (Paginazione.tsx:7, :49-55): con ?dimensione=7 le righe sono 7 e la select dice 10. Raggiungibile solo con un indirizzo ritoccato: l'app scrive solo le quattro dimensioni.",
+    "fix": "Una sola lista delle dimensioni esportata dal kit e usata in criteriDaRicerca (test: criteriDaRicerca('?dimensione=7', 'domande') da' {}), oppure Paginazione aggiunge la dimensione corrente fra le opzioni.",
+    "fonti": ["H-07"]
+  },
+  {
+    "id": "H-08",
+    "severity": "COSMETICO",
+    "file": "src/pages/elenco-operativo/interrogazione-stati.test.tsx:77",
+    "titolo": "Il test del 503 dichiara 'una sola lettura', vera per costruzione col client di test senza retry",
+    "evidenza": "renderPagina usa un QueryClient con retry: false (shared/testing/render.tsx:8), mentre il client dell'app riprova CAPACITA_ESAURITA rispettando Retry-After (app/query-client.ts:34-35): expect(letture).toBe(1) (interrogazione-stati.test.tsx:66-78) prova la configurazione del test, non un comportamento della pagina.",
+    "fix": "Togliere l'asserzione e 'una sola lettura' dal titolo, oppure provarlo con createQueryClient e un retryDelay nullo: due 503 e poi 200 -> i risultati, il messaggio di capacita' solo a tentativi esauriti.",
+    "fonti": ["H-08"]
+  },
+  {
+    "id": "H-09",
+    "severity": "COSMETICO",
+    "file": "src/features/elenco-operativo/ui/pill.tsx:15",
+    "titolo": "Residuo di H-07: DatiAl e' una facciata vuota di PillDatiAl",
+    "evidenza": "DatiAl (pill.tsx:15-17) passa le stesse due props a PillDatiAl senza aggiungere nulla ed e' usata solo da comuni.tsx:38; il fix di H-07 chiedeva di togliere le riesportazioni e il finanziario ha tolto le sue facciate di 'Dati al' (6173e77).",
+    "fix": "Usare PillDatiAl direttamente in BarraInterrogazione e togliere DatiAl.",
+    "fonti": ["H-09"]
+  },
+  {
+    "id": "A-03",
+    "severity": "COSMETICO",
+    "file": "README.md:81",
+    "titolo": "README: la coda delle letture e' descritta ancora solo per /api/finanziario/ dopo V-04",
+    "evidenza": "README.md:81-84 dice che il backend ammette 2 letture 'dei report del finanziario' e che il mutator mette in coda le GET verso /api/finanziario/, 'le altre GET non vanno in coda'; dopo eb89f21 elenco e finanziario condividono il gruppo 'letture-limitate' (app/tetti-letture.ts:10), come le conta il backend.",
+    "fix": "Riscrivere il punto: un solo tetto per utente (2) per finanziario ed elenco operativo, una coda e un insieme di lock condivisi (gruppo 'letture-limitate' di tetti-letture.ts).",
+    "fonti": ["A-03"]
+  },
+  {
+    "id": "A-04",
+    "severity": "COSMETICO",
+    "file": "src/shared/ui/useStatoNellaHistory.ts:4",
+    "titolo": "Il commento del hook condiviso dice che l'elenco lo usa per la vista per ambito, ma l'elenco ha una sua convenzione",
+    "evidenza": "useStatoNellaHistory.ts:3-4 cita 'l'elenco operativo per la vista per ambito, senza firma', ma l'elenco non lo importa: useVista (ElencoDomande.tsx:65-72), LinkScheda (anteprime.tsx:28-36) e statoDiRitorno (lib/collegamenti.ts:55-59) leggono e scrivono state.vista al primo livello con convalide proprie (vistaDi, /^[a-z]{1,20}$/: nessun rischio). Stesso commento di A-02 del finanziario v4 iter3: una correzione chiude entrambi.",
+    "fix": "Correggere il commento del hook (oggi lo usa solo il finanziario), oppure portare useVista su useStatoNellaHistory('vista', '', predicato della vista) e adeguare statoDiRitorno e LinkScheda.",
+    "fonti": ["A-04", "H-05 (seconda parte)"]
+  }
+]

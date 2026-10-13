@@ -1,0 +1,34 @@
+[
+  {
+    "id": "A-01",
+    "severity": "MINORE",
+    "file": "README.md:237",
+    "titolo": "La regola del contenitore per A-01 e' insieme troppo larga (404 sui link condivisi con '/' in un filtro) e troppo stretta (non ferma la doppia codifica %252F, che React Router trasforma comunque in '/')",
+    "evidenza": "La correzione lato client di A-01 regge: riferimentoValido (lib/collegamenti.ts:20-22, allow-list SOSTEGNO|PAGAMENTO e /^\\d{1,30}$/) sta in useDettaglioDomanda (api/index.ts:79-82, enabled solo se valido, segmenti in encodeURIComponent) e in SchedaDomanda (:245, :236 senza VistaQuery e senza 'Riprova'); provati %2F, %2E%2E, %5C, %252F, cifre Unicode, lettere, tipo malevolo: nessuna richiesta. La seconda difesa del README invece non fa quello che dice. (1) Troppo stretta: con react-router 8.3.0 decodePath decodifica ogni segmento una volta (lib/router/utils.js:560) e matchPath rimette '/' al posto di %2F nei parametri (:528), quindi /elenco-operativo/domande/SOSTEGNO/..%252F..%252Fdomande%252Fcsv da' codiceABarre='../../domande/csv' come %2F. La regola `$request_uri ~* \"%(2f|5c)\"` non vede %252F e serve index.html; anche PercorsoDiRitorno del BFF (aac4579, decodifica una volta e conta le '/') e ritornoDellaPagina (app/ritorno-login.ts:26, matchPath sul percorso grezzo) lo lasciano passare come ritorno dopo il login. Oggi lo ferma solo l'allow-list della pagina, contro la frase del README (:233) 'la seconda difesa, che non dipende dal codice della pagina'. (2) Troppo larga: $request_uri comprende la query, e la SPA scrive i filtri con URLSearchParams, che codifica '/' in %2F e '\\' in %5C: un link condiviso (D-3) come /elenco-operativo/domande?testo=S.S.%2FA, o il ritorno dopo il login dello stesso indirizzo (X-06, redirect a pagina intera), riceve 404 dal contenitore. Messa al livello del server invece che nella location della SPA ('prima del try_files', ambiguo) colpirebbe anche ogni /auth/login?ritorno=%2F... e le letture /api con '/' nei parametri. I test di A-01 (scheda-domanda.test.tsx:63) non hanno il caso %252F ne' un tipo malevolo.",
+    "fix": "README: regola solo sul percorso e solo nella location della SPA, con la doppia codifica: `if ($request_uri ~* \"^[^?]*%(2f|5c|25)\") { return 404; }` (nessuna route dell'app ha '%' nel percorso: codici di sole cifre, codice intervento convalidato), con la nota che /auth e /api restano fuori. Aggiungere a scheda-domanda.test.tsx:63 i casi 'SOSTEGNO/..%252F..%252Fdomande%252Fcsv' e '..%2F..%2Fauth%2Flogout%3F/04230000001'."
+  },
+  {
+    "id": "A-02",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/PannelloFiltriElenco.tsx:121",
+    "titolo": "Fascia di importo: un estremo scartato perche' rovesciato resta nel campo come valido ma non applicato quando cambia l'altro estremo",
+    "evidenza": "La correzione di X-03 rende non valido un estremo che rovescia la fascia (valido(da, a, n), :121-126) e useBozza lo trattiene (controlli.tsx:83-86: onCambia parte solo battendo un tasto). Con Da=10.000 applicato, chi scrive 5.000 in 'Fino a' vede l'errore e nulla parte (giusto); se poi porta Da a 1.000, Da parte, il campo 'Fino a' non si rimonta (key stabile, valore esterno invariato: '') e il suo valido ora e' vero: l'errore sparisce e il campo mostra 5.000 come un valore accettato, ma richiestoA non e' mai stato mandato. Risultati, conteggio e chip sono senza il tetto che il pannello mostra. Lo stesso con Da=100 e A=500 applicati, A riscritto a 50 (scartato) e poi Da svuotato: il campo dice 50, il filtro applicato e' 500. Il test di X-03 (interrogazione-stati.test.tsx:156) prova solo il primo passo.",
+    "fix": "In GruppoImporti, quando cambia un estremo, rivalutare la bozza dell'altro: se ora e' valida e diversa dal valore applicato mandarla (meglio: tenere le due bozze nel gruppo e applicare la coppia), altrimenti riportare il campo al valore applicato. Test L2: Da=10000, A=5000 (rifiutato), Da=1000 -> nell'indirizzo richiestoDa=1000&richiestoA=5000 e chip 'Fino a'."
+  },
+  {
+    "id": "A-03",
+    "severity": "COSMETICO",
+    "file": "README.md:81",
+    "titolo": "README: la coda delle letture e' descritta ancora solo per /api/finanziario/ dopo V-04",
+    "evidenza": "README.md:81-83 dice che il backend ammette 2 letture 'dei report del finanziario' e che il mutator mette in coda le GET verso `/api/finanziario/`, 'le altre GET non vanno in coda'. Dopo eb89f21 (V-04) le letture e gli export dell'elenco stanno nella stessa coda (app/tetti-letture.ts:10, gruppo 'letture-limitate', lock 'cruscotto-csr-letture:letture-limitate:<i>'), perche' LettureLimitate del backend conta insieme le due aree. Il codice e i test (tests/bff-mutator.test.ts) sono giusti, la documentazione per chi esercisce no.",
+    "fix": "Riscrivere il punto: un solo tetto per utente (2) per finanziario ed elenco operativo, una coda e un insieme di lock condivisi (gruppo 'letture-limitate' di tetti-letture.ts)."
+  },
+  {
+    "id": "A-04",
+    "severity": "COSMETICO",
+    "file": "src/shared/ui/useStatoNellaHistory.ts:4",
+    "titolo": "Stato nella history: il commento del hook condiviso dice che l'elenco lo usa per la vista, ma l'elenco ha una sua convenzione",
+    "evidenza": "useStatoNellaHistory (shared/ui, :3-4) dichiara 'l'elenco operativo per la vista per ambito, senza firma', con lo stato sotto {[chiave]: {firma, valore}} e il predicato di convalida. L'elenco invece non lo usa: ElencoDomande.tsx:65-72 ha un suo useVista che legge e scrive state.vista al primo livello, e SchedaDomanda/anteprime portano {ricerca, vista} (lib/collegamenti.ts:50-59). Le letture sono comunque convalidate (vistaDi allow-list, statoDiRitorno /^[a-z]{1,20}$/, ritornoAllElenco solo i due elenchi senza '#'), quindi nessun rischio: e' una seconda convenzione per lo stesso meccanismo, con un commento che indica quella sbagliata.",
+    "fix": "Correggere il commento del hook condiviso (oggi lo usa solo il finanziario) oppure portare useVista su useStatoNellaHistory('vista', '', (v): v is IdVista => VISTE.some((x) => x.id === v))."
+  }
+]

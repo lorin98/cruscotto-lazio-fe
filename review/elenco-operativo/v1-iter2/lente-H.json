@@ -1,0 +1,74 @@
+[
+  {
+    "id": "H-01",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/controlli.tsx:85",
+    "titolo": "Debounce spostato in useCriteri (V-15, H-12): una bozza valida resta in coda anche dopo che il campo e' tornato non valido, e parte un filtro che il campo non mostra piu'",
+    "evidenza": "CampoFiltro chiama onCambia solo con un valore valido (controlli.tsx:83-86) e la bozza del debounce vive in useCriteri (useCriteri.ts:65-73): nessuno la ritira quando il campo diventa non valido. Scrivendo 'ros' (bozza testo=ros, timer di 300 ms) e cancellando fino a 'ro', dopo 300 ms l'indirizzo diventa ?testo=ros e partono TX-0056 e TX-0057; il campo resta 'ro' con aria-invalid e 'Scrivi da 3 a 100 caratteri', il chip dice Ricerca 'ros', e poiche' il valore passato al campo non cambia (resta 'ros' da criteriVisti) useBozza non lo riallinea. Lo stesso per gli importi ('1000' e poi '1000,' mentre si scrive '1000,50'). Con CampoRitardato di b74b7a2 il timer era del campo e la pulizia dell'effetto lo annullava: e' una regressione del nuovo meccanismo. Il test 'il testo parte 300 ms dopo l'ultimo tasto' (interrogazione-comandi.test.tsx:66-81) scrive solo in avanti e non lo vede. Nello stesso hook: vai legge pathname e state dalla closure del render in cui il timer e' partito (useCriteri.ts:43-52), quindi cambiando vista entro 300 ms da un clic su una barra (applicaRitardato, ElencoDomande.tsx:187) la scrittura della bozza rimette lo state precedente e la vista torna indietro; il commento di scarica (useCriteri.ts:58) dice che la bozza la scrive anche 'Invio in un campo', ma nessun campo lo fa.",
+    "fix": "Un valore non valido ritira la parte di bozza del suo filtro: CampoFiltro segnala anche l'uscita non valida (es. onNonValido) e il pannello rimette nella bozza il valore applicato di quel filtro (applicaRitardato(conFiltro(criteriVisti, nome, criteri[nome] ?? []))), oppure useCriteri espone ritira(nome). In vai leggere pathname e state da un ref aggiornato a ogni render, come attuali. Allineare il commento di scarica (o aggiungere Invio a CampoFiltro). Test coi timer finti: 'ros', poi 'ro', avanza(1000) -> l'indirizzo resta ''; clic su una barra e cambio di vista entro 300 ms -> dopo la scrittura la vista resta quella scelta."
+  },
+  {
+    "id": "H-02",
+    "severity": "MINORE",
+    "file": "README.md:237",
+    "titolo": "Requisito del contenitore di A-01: la regola nginx d'esempio guarda anche la query, quindi rifiuta con 404 i link condivisi con un '/' in un filtro e, a livello di server, il login con il ritorno",
+    "evidenza": "README.md:226-238 propone if ($request_uri ~* \"%(2f|5c)\") { return 404; }. In nginx $request_uri e' l'URI originale con gli argomenti. La SPA scrive i criteri con URLSearchParams (scriviRipetuti, shared/lib/parametri-ripetuti.ts:17-25), che codifica '/' come %2F: un testo libero, un ente delegato o un numero di decreto (valori di TX-0060) con '/' danno /elenco-operativo/domande?testo=...%2F..., che funziona nella navigazione interna ma riceve 404 al ricaricamento, aperto da un link condiviso (D-3) o come ritorno dopo il login (X-06). Se la regola finisse a livello di server colpirebbe anche /auth/login?ritorno=%2Felenco-operativo%2F..., perche' resolveLoginPath codifica sempre il percorso (shared/config/base-path.ts:17): nessun 'Accedi' con ritorno funzionerebbe. La difesa cercata riguarda solo il percorso (i segmenti :tipo/:codiceABarre).",
+    "fix": "Restringere la regola alla parte prima di '?': if ($request_uri ~* \"^[^?]*%(2f|5c)\") { return 404; }, e dire nel README che va solo nel location del fallback della SPA (mai a livello di server, mai su /auth o /api); accanto all'esempio rifiutato mettere quello che deve restare servito (/elenco-operativo/domande?testo=a%2Fb)."
+  },
+  {
+    "id": "H-03",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/TabelleScheda.tsx:24",
+    "titolo": "Terza tabella con 'Colonne' scritta nella feature (scheda) e tabella equivalente del sinottico a mano: fuori dal kit, con gli importi non allineati come nel wireframe approvato",
+    "evidenza": "Per V-02 la Tabella locale (TabelleScheda.tsx:24-72) ripete di TabellaServer (TabellaServer.tsx:133-161) lo stato delle colonne nascoste inizializzato da nascosta, il filtro delle visibili, conScelta, il cablaggio di SceltaColonne e la prima colonna come intestazione di riga: dopo H-08 le tabelle con 'Colonne' tornano tre (TabellaInterattiva, TabellaServer e questa), invece della strada (a) del judge per V-02 (TabellaInterattiva del kit). La copia non conosce le colonne numeriche: Contributo richiesto e ammesso, Differenza, Decretato, Pagato, le tre quote e gli importi dei Recuperi escono senza ui-num (a sinistra, senza cifre tabulari), mentre il wireframe approvato li ha class='ui-num' (dettaglio-domanda.html:116, :124, :132). Nel sinottico TabellaRipartizione (SinotticoDomande.tsx:61-107) riscrive il markup della tabella equivalente invece di usare TabellaRighe del kit, come fa il finanziario per lo stesso scopo (DettaglioIntervento.tsx:144, DomandeReport.tsx:151): manca il contenitore del kit (role=region, tabIndex=0, TabelleSemplici.tsx:13-22), graficoRipartizione si ricalcola (:64, gia' in useMemo a :111) e la voce si associa alla riga per indice (voci[k] con tabella.righe[k], :80-82), un invariante del builder che nessun tipo garantisce.",
+    "fix": "Portare nel kit la tabella statica con 'Colonne' (TabellaRighe/TabelleSemplici con nascosta e numerica, oppure TabellaInterattiva come indicato dal judge) e usarla nelle schede con numerica sulle colonne degli importi. La tabella del sinottico come TabellaRighe con una colonna 'Filtro' che rende il bottone dalla voce della stessa riga (righe = voci, mai indici), con i dati del grafico calcolati una volta. Test L1 del kit: colonna a scelta e cella numerica con ui-num."
+  },
+  {
+    "id": "H-04",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/ElencoPagamenti.tsx:65",
+    "titolo": "Lo scheletro dei risultati e del pannello e' copiato fra le due pagine dell'interrogazione: ogni correzione della review e' stata fatta due volte",
+    "evidenza": "Risultati (ElencoDomande.tsx:104-162) e Righe (ElencoPagamenti.tsx:65-120) ripetono circa 40 righe della stessa struttura: section ui-risultati con aria-busy, h2 con ref, AvvisoAggiornamento, OrdinamentoAttivo con testoOrdinamento, titoloDelCampo e senzaOrdinamento, il ramo PaginaOltreLUltima/TabellaServer con ultimaPagina e dimensioneDi, strumenti con PulsantiScarica e avvisoLimite, Paginazione con lo stesso onPagina (focus sull'h2) e onDimensione (senza focus, X-02). I due Pannello (ElencoDomande.tsx:221-239, ElencoPagamenti.tsx:145-163) differiscono solo per gli errori e le unita' del conteggio. In questa iterazione X-02, X-04, H-01 (pagina oltre l'ultima) e V-16 sono stati applicati in entrambe le copie: la prossima correzione dello stesso tipo puo' finire in una sola.",
+    "fix": "Un componente RisultatiInterrogazione<T> in ui/ (props: elenco, titolo, caption, colonne, chiaveRiga, etichettaRiga, piede, anteprima come render prop, criteri, applica, aggiornando) e un PannelloInterrogazione che riceve la lettura principale, gli errori aggiuntivi e le unita'; le due pagine tengono solo sinottico, colonne e piede."
+  },
+  {
+    "id": "H-05",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/SchedaDomanda.tsx:255",
+    "titolo": "La vista per ambito torna solo da 'Torna all'elenco' della testata: la briciola e l'avviso della scheda la perdono, e lo state della history e' gestito a mano invece che col hook del kit",
+    "evidenza": "Decisione X-04: vista conservata al ritorno. La testata passa statoRitorno al suo Link (SchedaDomanda.tsx:69), ma la briciola 'Domande'/'Pagamenti' punta allo stesso ritorno senza state (SchedaDomanda.tsx:255: Briciola non ha un campo per lo state, testata.tsx:8-11 e :25), e cosi' il 'Torna all'elenco' dell'avviso di domanda non disponibile o non valida (Avviso, SchedaDomanda.tsx:191-197): tornando da li' l'elenco riapre i filtri giusti nella vista generale. Il test di V-12/X-04 (scheda-domanda.test.tsx:163-179) prova solo il link della testata. La causa e' di struttura: la vista nella history si scrive e si legge a mano in tre punti con due convalide diverse (useVista in ElencoDomande.tsx:65-72 con navigate replace e spread dello state e vistaDi; LinkScheda in anteprime.tsx:28-36; statoDiRitorno in lib/collegamenti.ts:55-59 con /^[a-z]{1,20}$/), mentre shared/ui/useStatoNellaHistory.ts dichiara nel commento (righe 3-5) di essere usato dall'elenco operativo 'per la vista per ambito, senza firma', e non lo e'.",
+    "fix": "Una sola fonte per lo state di ritorno: un helper di lib (statoDiRitorno) costruisce lo state di ogni link verso l'elenco, Briciola accetta uno state facoltativo e SchedaDomanda lo passa alla briciola e all'Avviso; ElencoDomande legge e scrive la vista con useStatoNellaHistory del kit (con un predicato della vista), oppure si corregge il commento del kit. Test L2: scheda aperta dalla vista fisico, ritorno dalla briciola -> tabella 'vista fisico'."
+  },
+  {
+    "id": "H-06",
+    "severity": "MINORE",
+    "file": "src/shared/api/mock/server.ts:15",
+    "titolo": "Il fail-closed dei test dell'elenco (H-16) non ha un test che lo protegga: l'esclusione dipende dalla forma interna degli handler generati",
+    "evidenza": "server.ts:8-15 esclude gli handler generati confrontando la sottostringa '/api/elenco-operativo' con h.info.path, e percorsoDi rende '' quando il path non e' una stringa: se orval o MSW cambiano la forma del path (RegExp, URL con base) l'esclusione smette in silenzio e i test dell'elenco tornano a passare su dati faker. Nessun test lo verifica: msw-armed.test.ts prova solo una richiesta verso un host .invalid, e i test dell'elenco dichiarano i loro endpoint, quindi non vedrebbero la regressione.",
+    "fix": "Un test canarino accanto a msw-armed.test.ts: una GET a /api/elenco-operativo/domande senza server.use viene rifiutata con l'errore di MSW (stessa firma), oppure server.listHandlers() non contiene handler dell'elenco."
+  },
+  {
+    "id": "H-07",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/lib/criteri.ts:124",
+    "titolo": "H-01 (parte di V-14) ancora aperto: una dimensione accettata dall'indirizzo che la select non offre viene mostrata come un'altra",
+    "evidenza": "criteriDaRicerca accetta ogni dimensione da 1 a 100 diversa da 25 (criteri.ts:124) e la manda al server, ma Paginazione offre solo 10, 25, 50 e 100 (Paginazione.tsx:7 e :49-55): con ?dimensione=7 le righe sono 7, la select controllata senza un'opzione corrispondente seleziona la prima ('10', React marca la prima opzione abilitata), quindi la pagina dichiara 10 righe per pagina e scegliere 10 non emette change. E' il caso 'select senza il valore non standard' che il judge ha fuso nel fix di H-01; raggiungibile solo con un indirizzo ritoccato o un segnalibro vecchio.",
+    "fix": "Una sola lista delle dimensioni: esportarla dal kit (o passarla a Paginazione) e accettare in criteriDaRicerca solo quei valori; in alternativa Paginazione aggiunge la dimensione corrente fra le opzioni. Test in lib: criteriDaRicerca('?dimensione=7', 'domande') da' {}."
+  },
+  {
+    "id": "H-08",
+    "severity": "COSMETICO",
+    "file": "src/pages/elenco-operativo/interrogazione-stati.test.tsx:77",
+    "titolo": "Il test del 503 dichiara 'una sola lettura', vera per costruzione col client di test senza retry",
+    "evidenza": "renderPagina usa un QueryClient con retry: false (shared/testing/render.tsx:8), mentre il client dell'app riprova proprio CAPACITA_ESAURITA rispettando Retry-After (app/query-client.ts:34-36, soloTransitori). expect(letture).toBe(1) (interrogazione-stati.test.tsx:66-78) prova la configurazione del test, non un comportamento della pagina, e il titolo lo presenta come tale.",
+    "fix": "Togliere l'asserzione e 'una sola lettura' dal titolo, oppure provarlo col createQueryClient dell'app e un retryDelay nullo: due 503 e poi 200 -> i risultati, il messaggio di capacita' solo a tentativi esauriti."
+  },
+  {
+    "id": "H-09",
+    "severity": "COSMETICO",
+    "file": "src/features/elenco-operativo/ui/pill.tsx:15",
+    "titolo": "DatiAl e' una facciata vuota della pill del kit",
+    "evidenza": "DatiAl (pill.tsx:15-17) passa le stesse due props a PillDatiAl senza aggiungere nulla ed e' usata solo da comuni.tsx:38; il finanziario ha tolto le facciate analoghe di 'Dati al' (6173e77) dopo H-07.",
+    "fix": "Usare PillDatiAl direttamente in BarraInterrogazione e togliere DatiAl."
+  }
+]

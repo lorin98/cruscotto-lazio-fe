@@ -1597,11 +1597,11 @@
         "Grafici del sinottico con la tabella equivalente; il clic su una barra aggiunge il filtro (chip) e lo annuncia"
       ],
       "approval": {
-        "approved_hash": "sha256:3b979236362d2edee91ef233ab8344cebcf02dae340040c6dddbf96c9e018628",
+        "approved_hash": "sha256:c8a117471712ad00e67e456b346e6eda3f752b0f373c014cca4105b8d3d52fcd",
         "baseline_ref": "./wireframes/elenco-operativo/domande",
-        "approved_at": "2026-10-13T16:11:17Z",
-        "time_to_approve_s": 89,
-        "rework_rounds": 1
+        "approved_at": "2026-10-13T18:18:09Z",
+        "time_to_approve_s": 761,
+        "rework_rounds": 2
       }
     },
     {
@@ -1617,11 +1617,11 @@
         "Residuo manuale: ordine di lettura della testata, comprensibilita' dei badge di stato, contrasto della resa finale"
       ],
       "approval": {
-        "approved_hash": "sha256:b5045686697e751ac366c854ee5f178bfef5d280c7c1d998c77ae4cc716a4dde",
+        "approved_hash": "sha256:563cfad178758ac266d88972435957233494418368e98a1da7ec73d41a343376",
         "baseline_ref": "./wireframes/elenco-operativo/dettaglio-domanda",
-        "approved_at": "2026-10-13T08:11:14Z",
-        "time_to_approve_s": 170,
-        "rework_rounds": 0
+        "approved_at": "2026-10-13T18:18:09Z",
+        "time_to_approve_s": 761,
+        "rework_rounds": 1
       }
     },
     {
@@ -1639,11 +1639,11 @@
         "La riga di una domanda chiusa dice in testo 'domanda chiusa' (non solo col colore) e non offre il link al dettaglio"
       ],
       "approval": {
-        "approved_hash": "sha256:547ab529299b7b9bbea9f0fac515f9ee72f2d7a40b6905113b176ada938a4ce6",
+        "approved_hash": "sha256:e9639ac808de662d2456e707d8d2a0872bcd41328ae4f3133a2ac8f6afdc1f55",
         "baseline_ref": "./wireframes/elenco-operativo/pagamenti",
-        "approved_at": "2026-10-13T16:11:17Z",
-        "time_to_approve_s": 89,
-        "rework_rounds": 1
+        "approved_at": "2026-10-13T18:18:09Z",
+        "time_to_approve_s": 761,
+        "rework_rounds": 2
       }
     }
   ],

@@ -1,0 +1,66 @@
+[
+  {
+    "id": "V-01",
+    "severity": "MINORE",
+    "file": "plan/elenco-operativo/uiplan.json:260",
+    "titolo": "'Torna all'elenco' e la briciola della scheda portano anche all'elenco dei pagamenti e con tutta la query della ricerca di partenza, ma lo uiplan e il flusso approvato dichiarano torna-all-elenco solo verso le domande e senza query",
+    "evidenza": "Dopo la correzione di V-12 il ritorno viene dallo state della navigazione: ritornoAllElenco (lib/collegamenti.ts:66-71) accetta '/elenco-operativo/domande?...' e '/elenco-operativo/pagamenti?...' con la query intera (filtri, pagina, dimensione, ordina) e il test lo vuole (tests/elenco-operativo-lib.test.ts:438: ritornoAllElenco({ ricerca: '/elenco-operativo/pagamenti' }) -> '/elenco-operativo/pagamenti'); SchedaDomanda rende quel valore nel link della testata (SchedaDomanda.tsx:69), nella briciola con l'etichetta 'Pagamenti' (:232, :255) e nell'avviso d'errore (:194). Lo uiplan dichiara invece torna-all-elenco con target '/elenco-operativo/domande' e query [] (uiplan.json:260-264), e il flusso dettaglio-domanda, non rilavorato in questa iterazione, dice 'arrivo: /elenco-operativo/domande', query '-' (dettaglio-domanda.md:38). Nessun link dichiarato porta dalla scheda all'elenco dei pagamenti: il controllo meccanico dei link (uiplan-patterns par. 8) verifica un link diverso da quello reso, come era per V-06 dell'iterazione 1.",
+    "fix": "Allineare il piano al codice: in torna-all-elenco dichiarare come query gli url_params della destinazione (o i filtri piu' pagina, dimensione e ordina) e aggiungere un link dichiarato verso /elenco-operativo/pagamenti (es. 'torna-ai-pagamenti', stesso trigger, query = url_params dei pagamenti); aggiornare la riga del link in dettaglio-domanda.md ('arrivo: l'elenco da cui si e' aperta la scheda, domande o pagamenti, con la sua ricerca') e far riapprovare il flusso; rieseguire uiplan-validate."
+  },
+  {
+    "id": "V-02",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/SchedaDomanda.tsx:255",
+    "titolo": "X-04 (c) solo in parte: tornando dalla scheda con la briciola o con il link dell'avviso d'errore la vista per ambito torna 'generale'",
+    "evidenza": "La decisione dell'utente su X-04 (judge.json, opzione c) chiede che la vista resti 'tornando dalla scheda'. Il solo link della testata porta lo state della vista (Link to={ritorno} state={statoRitorno}, SchedaDomanda.tsx:69). La briciola 'Domande'/'Pagamenti' riceve lo stesso indirizzo (voci={[{ etichetta: r.briciola, a: r.ritorno }, ...]}, :255) ma Briciole rende <Link to={v.a}> senza state (testata.tsx:25), e cosi' il 'Torna all'elenco' dell'avviso (Avviso, :194) usato per il 404 e per il riferimento non valido: da li' useVista (ElencoDomande.tsx:65-71) non trova la vista e riparte dalla generale, mentre filtri e ordinamento tornano. Con un ordinamento su una colonna della vista lasciata (es. ancoraDaPagare dalla vista finanziario) la tabella riappare senza quella colonna (resta solo la frase di OrdinamentoAttivo). Il test di ritorno (scheda-domanda.test.tsx:164-179) prova solo il link della testata.",
+    "fix": "Dare alla Briciola uno state facoltativo (Briciola { etichetta, a?, stato? } e <Link to={v.a} state={v.stato}>) e passare r.statoRitorno sia alla briciola sia ad Avviso. Test L2: vista 'fisico' -> anteprima -> scheda -> clic sulla briciola 'Domande' -> tabella 'vista fisico'."
+  },
+  {
+    "id": "V-03",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/ElencoDomande.tsx:124",
+    "titolo": "La scelta delle colonne (V-01) si perde ogni volta che la tabella si smonta: risultati vuoti, pagina oltre l'ultima, errore, ritorno dalla scheda; la vista invece resta",
+    "evidenza": "TabellaServer tiene le colonne nascoste in uno useState inizializzato una volta dalle colonne ricevute (TabellaServer.tsx:133), e Risultati la smonta quando la pagina e' oltre l'ultima (ElencoDomande.tsx:124-125) e quando VistaQuery rende il vuoto o l'errore al posto dei figli (:200); tornando dalla scheda l'intera pagina si rimonta. La vista per ambito sopravvive a tutti questi casi (state della history, X-04 c), le colonne scelte su di essa no: chi aggiunge 'Liquidato' dalla vista generale, prova un filtro che non da' righe e lo toglie dal chip ritrova le colonne di partenza della vista; lo stesso dopo un 503 o dopo 'Apri il dettaglio' -> 'Torna all'elenco'. Stesso comportamento sull'elenco dei pagamenti (ElencoPagamenti.tsx:85-90). RA002 chiede la scelta delle colonne visibili; la decisione su V-01 fa ripartire la scelta solo al cambio di vista.",
+    "fix": "Portare le colonne nascoste fuori dalla tabella: TabellaServer con le props controllate nascoste/onNascoste (lasciando l'attuale stato interno come predefinito), e in ElencoDomande ed ElencoPagamenti tenerle nello state della history accanto alla vista (stesso meccanismo di useVista, che cambia solo al cambio di vista). Test L2: mostrare 'Liquidato', applicare un filtro con zero righe, toglierlo: 'Liquidato' resta visibile; idem dopo il ritorno dalla scheda."
+  },
+  {
+    "id": "V-04",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/SinotticoDomande.tsx:145",
+    "titolo": "V-03, residuo: durante l'aggiornamento il testo nascosto del sinottico dice ancora il numero precedente 'con questi filtri'",
+    "evidenza": "Il paragrafo visually-hidden `${plurale(sinottico.domande ?? 0, ...)} con questi filtri.` (SinotticoDomande.tsx:145) si rende anche con il sinottico segnaposto (inAggiornamento vero, keepPreviousData): subito dopo l'avviso 'Aggiornamento del sinottico: restano visibili i numeri precedenti' (:144) il lettore di schermo legge '1.284 domande con questi filtri.' riferito ai criteri vecchi. E' proprio cio' che la correzione di V-03 ha tolto dal conteggio del pannello (testoConteggio, lib/formato.ts:126-130: 'mai il numero vecchio come se fosse di questi filtri'); il test del sinottico in aggiornamento (interrogazione-stati.test.tsx:131-152) controlla aria-busy, avviso e piede ma non questo testo.",
+    "fix": "Con inAggiornamento non dire il numero come dei filtri correnti: usare testoConteggio(sinottico.domande, ['domanda','domande'], { inAggiornamento }) oppure omettere il paragrafo finche' il sinottico non e' dei criteri correnti; aggiungere l'asserzione al test esistente."
+  },
+  {
+    "id": "V-05",
+    "severity": "MINORE",
+    "file": "src/pages/elenco-operativo/interrogazione-stati.test.tsx:109",
+    "titolo": "V-05 solo per le domande: l'elenco dei pagamenti ha il test del 400 ma non quello dello stato di aggiornamento ne' del 503 e del 403",
+    "evidenza": "La correzione accettata di V-05 chiedeva i test L2 'per domande e pagamenti' (400, 503 senza retry, 403, TX-0060 in errore, cambio di filtro con handler ritardato -> righe precedenti, aria-busy e avviso). Per i pagamenti c'e' solo il 400 (interrogazione-stati.test.tsx:88-95); i due test dell'aggiornamento (:110-152), il 503 (:66) e il 403 (:80) usano solo ElencoDomande. ElencoPagamenti compone lo stato in modo proprio: aria-busy e AvvisoAggiornamento stanno nella sola card delle righe (ElencoPagamenti.tsx:73, :79) mentre SinotticoPagamenti, che mostra i totali segnaposto, sta fuori (:137). Lo stato 'aggiornamento' dichiarato dal flusso approvato (pagamenti.md:62) non ha alcun test.",
+    "fix": "Aggiungere in interrogazione-stati.test.tsx un L2 sui pagamenti con l'handler trattenuto: togliendo un chip restano le righe precedenti, la sezione 'Righe di pagamento' ha aria-busy=true e l'avviso 'Aggiornamento dei risultati', poi torna false; e un caso 503/403 sui pagamenti (stesso VistaQuery, una riga ciascuno)."
+  },
+  {
+    "id": "V-06",
+    "severity": "COSMETICO",
+    "file": "src/features/elenco-operativo/ui/SinotticoDomande.tsx:94",
+    "titolo": "'Filtra per stato sian Rilasciata': la sigla SIAN in minuscolo nei comandi della tabella del grafico e nel sottotitolo della card",
+    "evidenza": "Il testo del comando e del sottotitolo abbassa l'intera etichetta della colonna: `Filtra per ${t.colonna.toLowerCase()} ...` (SinotticoDomande.tsx:94) e `aggiunge il filtro ${testi.colonna.toLowerCase()}.` (:120), con colonna 'Stato SIAN' (lib/grafici.ts:37): ne escono 'Filtra per stato sian Rilasciata' e 'aggiunge il filtro stato sian.', mentre la stessa voce altrove e' 'Stato SIAN' (chip, annuncio 'Filtro aggiunto: Stato SIAN ...'). Il test fissa il testo sbagliato (interrogazione-comandi.test.tsx:236-239).",
+    "fix": "Aggiungere a TestiRipartizione un testo per la frase (es. nellaFrase: 'stato SIAN', 'intervento', 'anno di raccolta') e usarlo nei due punti; aggiornare il test."
+  },
+  {
+    "id": "V-07",
+    "severity": "COSMETICO",
+    "file": "wireframes/elenco-operativo/domande/domande.md:62",
+    "titolo": "Flussi domande e pagamenti riapprovati con testi non allineati: url_params senza le tre chiavi dei report (ma '27 filtri' nei link) e OP-EO-01 ancora aperto",
+    "evidenza": "Il rework di b835b40 ha portato i link a 'i 27 filtri della domanda' (domande.md:51, pagamenti.md:41), ma la tabella url_params degli stessi documenti elenca ancora i soli 24 nomi, senza statoSostegno, statoPagamento e voceProgrammazione (domande.md:62, pagamenti.md:51), che lo uiplan ha fra gli url_params delle due route e che le pagine accettano come chip. I punti aperti dicono ancora OP-EO-01 'ultimo dato sincronizzato assente dai DTO' (domande.md:92, pagamenti.md:78) e la pill dei wireframe 'Ultimo dato sincronizzato: punto aperto OP-EO-01' (domande.html:48, pagamenti.html:47), mentre OP-EO-01 e' chiuso (non e' piu' negli open_points dello uiplan) e la pagina mostra 'Dati al'. Correzione incompleta del punto testuale di V-06 dell'iterazione 1.",
+    "fix": "Al prossimo rework dei due flussi: aggiungere alla tabella url_params una riga per statoSostegno, statoPagamento e voceProgrammazione ('drill-down dai report procedurali, solo chip, nessun controllo nel pannello'), togliere OP-EO-01 dai punti aperti e scrivere nella pill 'Dati al gg/mm/aaaa'; riapprovare."
+  },
+  {
+    "id": "V-08",
+    "severity": "COSMETICO",
+    "file": "src/features/elenco-operativo/ui/TabelleScheda.tsx:46",
+    "titolo": "Tabelle della scheda: importi allineati a sinistra, il wireframe approvato li allinea a destra",
+    "evidenza": "Nel wireframe approvato le colonne degli importi di Determine, Pagamenti e Recuperi hanno class=\"ui-num\" su intestazione e celle (dettaglio-domanda.html:116-117, :124-125, :132-133), come le tabelle dell'interrogazione (TabellaServer con numerica). La Tabella della scheda rende th e td senza classe (TabelleScheda.tsx:46, :58-62), quindi contributi, quote, decretato e recuperi restano allineati a sinistra e senza cifre tabulari; ColonnaScheda non ha un modo di dichiarare una colonna numerica.",
+    "fix": "Aggiungere numerica?: boolean a ColonnaScheda e rendere className='ui-num' su th e td delle colonne di importo (contributo richiesto e ammesso, differenza, spese, decretato, pagato, quote, importi dei recuperi)."
+  }
+]
