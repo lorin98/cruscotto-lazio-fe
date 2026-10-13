@@ -6,6 +6,9 @@
 // l'ultima scelta: sei province scelte di fila fanno una lettura sola. La bozza e' gia' visibile nei controlli e nei chip
 // (`criteriVisti`); chiudere il pannello la scrive subito (`scarica`, H-12: niente testo perso). Togliere un chip o
 // azzerare (`applica`) e' immediato. Le letture usano solo i criteri dell'indirizzo (`criteri`).
+// La navigazione e' una transizione di React: fra la scrittura e il render col nuovo indirizzo i criteri scritti restano
+// visibili (`inScrittura`), cosi' campi e chip non tornano per un attimo ai criteri vecchi (e un tasto battuto in quel
+// momento non viene controllato contro di loro).
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { criteriDaRicerca, ricercaDaCriteri } from '../lib/criteri';
@@ -13,11 +16,23 @@ import type { Criteri, Elenco } from '../lib/criteri';
 
 export const RITARDO_MS = 300;
 
+/** I criteri scritti nell'indirizzo finche' il render non li legge dall'indirizzo stesso. */
+function useInScrittura(criteri: Criteri) {
+  const [inScrittura, setInScrittura] = useState<Criteri | null>(null);
+  const [criteriPrima, setCriteriPrima] = useState(criteri);
+  if (criteri !== criteriPrima) {
+    setCriteriPrima(criteri);
+    setInScrittura(null);
+  }
+  return [inScrittura, setInScrittura] as const;
+}
+
 export function useCriteri(elenco: Elenco) {
   const { pathname, search, state } = useLocation();
   const naviga = useNavigate();
   const criteri = useMemo(() => criteriDaRicerca(search, elenco), [search, elenco]);
   const [bozza, setBozza] = useState<Criteri | null>(null);
+  const [inScrittura, setInScrittura] = useInScrittura(criteri);
   const bozzaCorrente = useRef<Criteri | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const attuali = useRef(criteri);
@@ -28,10 +43,12 @@ export function useCriteri(elenco: Elenco) {
   const vai = useCallback(
     (nuovi: Criteri) => {
       const ricerca = ricercaDaCriteri(nuovi, elenco);
+      if (ricerca === ricercaDaCriteri(attuali.current, elenco)) return;
       // lo state della voce (la vista per ambito) resta: cambiare i filtri non cambia la vista
-      if (ricerca !== ricercaDaCriteri(attuali.current, elenco)) void naviga(`${pathname}${ricerca}`, { replace: true, state });
+      void naviga(`${pathname}${ricerca}`, { replace: true, state });
+      setInScrittura(nuovi);
     },
-    [elenco, naviga, pathname, state],
+    [elenco, naviga, pathname, state, setInScrittura],
   );
   const lascia = useCallback(() => {
     clearTimeout(timer.current);
@@ -64,5 +81,5 @@ export function useCriteri(elenco: Elenco) {
   );
   // uscendo dalla pagina la bozza si perde: scriverla riporterebbe all'elenco chi ha appena aperto un altro indirizzo
   useEffect(() => () => clearTimeout(timer.current), []);
-  return { criteri, criteriVisti: bozza ?? criteri, inAttesa: bozza !== null, applica, applicaRitardato, scarica };
+  return { criteri, criteriVisti: bozza ?? inScrittura ?? criteri, inAttesa: bozza !== null || inScrittura !== null, applica, applicaRitardato, scarica };
 }
