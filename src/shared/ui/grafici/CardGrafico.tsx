@@ -102,14 +102,16 @@ interface PropsCardGrafico {
    * le azioni del clic sul grafico (es. i link all'elenco operativo), cosi' la vista Tabella e' anche il percorso da tastiera.
    */
   tabella?: ReactNode;
+  /** Base del nome del PNG quando la card non ha file dei dati (es. il grafico di una scheda: con il suo identificativo). */
+  nomeFile?: string;
 }
 
-export function CardGrafico({ titolo, sottotitolo, dati, fonte, altezza = 'normale', onClic, strumenti, scaricamenti = [], livello = 2, tabella }: PropsCardGrafico) {
+export function CardGrafico({ titolo, sottotitolo, dati, fonte, altezza = 'normale', onClic, strumenti, scaricamenti = [], livello = 2, tabella, nomeFile: base }: PropsCardGrafico) {
   const id = useId();
   const [vista, setVista] = useState<Vista>('grafico');
   const disegnabile = dati.opzioni !== null;
   // il PNG solo nella vista Grafico: nella vista Tabella il grafico e' nascosto e non ha dimensioni
-  const { onIstanza, png } = usePngDelGrafico({ titolo, fonte, file: nomePng(titolo, scaricamenti), attivo: disegnabile && vista === 'grafico' });
+  const { onIstanza, png } = usePngDelGrafico({ titolo, fonte, file: nomePng(base ?? titolo, scaricamenti), attivo: disegnabile && vista === 'grafico' });
   const strumentiCard = (
     <>
       {strumenti}

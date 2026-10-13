@@ -18,6 +18,8 @@ export interface Scaricamento {
   scarica: () => void | Promise<void>;
   /** Nome del file salvato: la card del grafico ne prende la base per il PNG (stesso nome dei dati, review v3 H-06). */
   file?: string;
+  /** Messaggio d'errore proprio di questo file (es. oltre il limite di righe); null o assente = quello del problem-type. */
+  messaggioErrore?: (errore: unknown) => string | null;
 }
 
 const ICONA: Record<FormatoScaricabile, NomeIcona> = { PNG: 'it-file-image', CSV: 'it-file-csv', XLSX: 'it-file-xlsx' };
@@ -28,7 +30,7 @@ const FILE: Record<FormatoScaricabile, { nome: string; fatto: string; mancato: s
   XLSX: { nome: 'File XLSX', fatto: 'File XLSX scaricato.', mancato: 'File XLSX non scaricato.' },
 };
 
-type Stato = { formato: FormatoScaricabile; esito: 'in-corso' | 'fatto' } | { formato: FormatoScaricabile; esito: 'errore'; errore: unknown };
+type Stato = { formato: FormatoScaricabile; esito: 'in-corso' | 'fatto' } | { formato: FormatoScaricabile; esito: 'errore'; messaggio: string };
 
 function testoStato(stato: Stato | null): string {
   if (stato?.esito === 'in-corso') return `${FILE[stato.formato].nome} in preparazione…`;
@@ -47,7 +49,7 @@ export function PulsantiScarica({ oggetto, scaricamenti }: { oggetto: string; sc
       await s.scarica();
       setStato({ formato: s.formato, esito: 'fatto' });
     } catch (errore) {
-      setStato({ formato: s.formato, esito: 'errore', errore });
+      setStato({ formato: s.formato, esito: 'errore', messaggio: s.messaggioErrore?.(errore) ?? getErrorMessage(errore) });
     }
   };
   return (
@@ -75,7 +77,7 @@ export function PulsantiScarica({ oggetto, scaricamenti }: { oggetto: string; sc
       </div>
       {stato?.esito === 'errore' && (
         <div className="alert alert-danger w-100 mb-0 py-2 small" role="alert">
-          {`${FILE[stato.formato].mancato} ${getErrorMessage(stato.errore)}`}
+          {`${FILE[stato.formato].mancato} ${stato.messaggio}`}
         </div>
       )}
     </>

@@ -1,6 +1,7 @@
 // menu.tsx — menu laterale dell'applicazione (UI v2): aree del cruscotto con gruppi e sottomenu, dal catalogo unico delle
 // aree (aree.ts, review step9 H-22). Le voci di un'area sono le sue pagine visibili per i grant dell'utente (solo UX);
-// passando da una pagina all'altra della stessa area la sua parte dell'indirizzo (i filtri) resta.
+// passando da una pagina all'altra della stessa area la sua parte dell'indirizzo (i filtri) resta. Solo dalla stessa
+// area: i filtri di un'altra area non entrano nei suoi link (review v1 H-10, una navigazione che nessun link dichiara).
 // Le aree non ancora realizzate sono dichiarate "presto", senza link. Gli strumenti trasversali (elenco operativo) hanno
 // una sezione propria, con le sole pagine visibili.
 import { useId, useState } from 'react';
@@ -12,9 +13,10 @@ import type { Area, PaginaArea } from './aree';
 
 function GruppoArea({ area, pagine, onNaviga }: { area: Area; pagine: PaginaArea[]; onNaviga?: () => void }) {
   const id = useId();
-  const { search } = useLocation();
+  const { pathname, search } = useLocation();
   const [aperto, setAperto] = useState(true);
-  const query = area.ricercaConservata?.(search) ?? '';
+  const dellArea = pagine.some((p) => pathname === p.percorso || pathname.startsWith(`${p.percorso}/`));
+  const query = dellArea ? (area.ricercaConservata?.(search) ?? '') : '';
   return (
     <li>
       <button type="button" className="ui-menu__gruppo" aria-expanded={aperto} aria-controls={`${id}-${area.chiave}`} onClick={() => setAperto((a) => !a)}>

@@ -39,9 +39,21 @@ export function aCapo(testo: string, massimo: number, misura: (t: string) => num
  * applicati come nella barra, il profilo, l'ultimo dato sincronizzato per flusso con lo stesso testo dei file del backend.
  * `filtri`: "Etichetta: valore" di ogni filtro applicato; `ultimi` assente = non letto (grant mancante, errore, attesa).
  */
-export function righeContesto({ filtri, profilo, ultimi }: { filtri: readonly string[]; profilo: string | undefined; ultimi: readonly UltimoDato[] | undefined }): string[] {
+export function righeContesto({
+  filtri,
+  profilo,
+  ultimi,
+  perimetro,
+}: {
+  filtri: readonly string[];
+  profilo: string | undefined;
+  ultimi: readonly UltimoDato[] | undefined;
+  /** Perimetro dei dati della pagina gia' in parole (es. "regionale"), come nell'intestazione dei file del backend. */
+  perimetro?: string | null;
+}): string[] {
   return [
     `Filtri applicati: ${filtri.length > 0 ? filtri.join('; ') : 'nessuno'}`,
+    ...(perimetro ? [`Perimetro: ${perimetro}`] : []),
     `Profilo: ${profilo ?? 'non indicato'}`,
     `Ultimo dato sincronizzato: ${ultimi ? testoUltimiDati(ultimi) : 'non disponibile'}`,
   ];

@@ -7,6 +7,7 @@ import type { ReactNode } from 'react';
 import { ariaSort, conColonna, didascalia, filtraRighe, ordinaRighe, paginaDi, versoSuccessivo } from '../../lib/tabella';
 import type { Ordine, ValoreOrdinabile } from '../../lib/tabella';
 import { gestoriRigaApribile } from './rigaApribile';
+import { GLIFO_ORDINE, SceltaColonne } from './SceltaColonne';
 
 export interface ColonnaTabella<T> {
   chiave: string;
@@ -25,27 +26,6 @@ export interface ColonnaTabella<T> {
 /** Riga di piede: un contenuto per chiave di colonna (la prima colonna e' l'intestazione di riga). */
 export type RigaPiede = Partial<Record<string, ReactNode>>;
 
-const GLIFO = { ascending: '▲', descending: '▼', none: '↕' } as const;
-
-function SceltaColonne<T>({ colonne, nascoste, onCambia }: { colonne: ColonnaTabella<T>[]; nascoste: ReadonlySet<string>; onCambia: (chiave: string, visibile: boolean) => void }) {
-  return (
-    <details className="ui-colonne">
-      <summary className="btn btn-outline-secondary btn-sm">Colonne</summary>
-      <fieldset className="ui-colonne__elenco">
-        <legend className="visually-hidden">Colonne visibili</legend>
-        {colonne
-          .filter((c) => !c.fissa)
-          .map((c) => (
-            <label key={c.chiave} className="ui-opzione">
-              <input type="checkbox" checked={!nascoste.has(c.chiave)} onChange={(e) => onCambia(c.chiave, e.target.checked)} />
-              {c.titolo}
-            </label>
-          ))}
-      </fieldset>
-    </details>
-  );
-}
-
 function Intestazioni<T>({ colonne, ordine, onOrdina }: { colonne: ColonnaTabella<T>[]; ordine: Ordine; onOrdina: (chiave: string) => void }) {
   return (
     <thead>
@@ -56,7 +36,7 @@ function Intestazioni<T>({ colonne, ordine, onOrdina }: { colonne: ColonnaTabell
             <th key={c.chiave} scope="col" className={c.numerica ? 'ui-num' : undefined} aria-sort={sort}>
               <button type="button" onClick={() => onOrdina(c.chiave)}>
                 {c.titolo}
-                <span aria-hidden="true">{GLIFO[sort]}</span>
+                <span aria-hidden="true">{GLIFO_ORDINE[sort]}</span>
               </button>
             </th>
           );

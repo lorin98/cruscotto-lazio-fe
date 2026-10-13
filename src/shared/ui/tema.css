@@ -405,7 +405,13 @@ a.ui-ambito__entra:focus-visible { outline: none !important; }
 .ui-sinottico .ui-griglia--4 { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
 .ui-totali th, .ui-totali td { border-top: 2px solid var(--ui-scuro); }
 .ui-aggiornamento { border-left: 4px solid var(--ui-primario); background: #eef4ff; padding: .5rem .75rem; border-radius: var(--ui-raggio-s); margin: .5rem 0; font-size: .9rem; }
-.ui-risultati[aria-busy='true'] .ui-tabella tbody { opacity: .6; transition: opacity .2s ease; }
+/* durante l'aggiornamento le righe restano leggibili (contrasto almeno 4,5:1: review v1 X-08); il bordo dice lo stato */
+.ui-risultati[aria-busy='true'] .ui-tabella tbody { opacity: .78; transition: opacity .2s ease; }
+.ui-risultati[aria-busy='true'] .ui-tabella-contenitore, .ui-sinottico[aria-busy='true'] .ui-griglia { outline: 2px dashed var(--ui-primario); outline-offset: 4px; }
+.ui-ordinamento { font-size: .85rem; color: var(--ui-attenuato); margin: .25rem 0 .5rem; }
+.ui-campo { margin-bottom: .6rem; }
+.ui-hero__badge-elenco { display: flex; flex-wrap: wrap; gap: .35rem; list-style: none; margin: .4rem 0 0; padding: 0; }
+.ui-hero__badge-elenco .ui-hero__badge { margin-right: 0; }
 .ui-riga--nuova { animation: ui-dissolvenza .3s ease both; }
 .ui-intervallo { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
 @media (prefers-reduced-motion: reduce) {
@@ -418,5 +424,6 @@ a.ui-ambito__entra:focus-visible { outline: none !important; }
 .ui-strumento { display: flex; flex-wrap: wrap; gap: 1rem 2rem; align-items: center; justify-content: space-between; border-left: 6px solid var(--ui-primario); }
 .ui-strumento h2 { display: flex; gap: .5rem; align-items: center; margin: 0 0 .3rem; font-size: 1.3rem; }
 .ui-strumento p { margin: 0; color: var(--ui-attenuato); max-width: 60ch; }
+.ui-strumento__testo { flex: 1 1 20rem; }
 .ui-strumento__link { display: flex; flex-wrap: wrap; gap: .5rem; list-style: none; margin: 0; padding: 0; }
 .ui-strumento__link .btn { display: inline-flex; gap: .4rem; align-items: center; }

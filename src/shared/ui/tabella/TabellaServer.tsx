@@ -5,8 +5,9 @@
 // con una dissolvenza (classe CSS, spenta da prefers-reduced-motion); le righe gia' presenti non si rianimano.
 import { useState } from 'react';
 import type { ReactNode } from 'react';
-import { conColonna } from '../../lib/tabella';
+import { ariaSort, conColonna } from '../../lib/tabella';
 import { gestoriRigaApribile } from './rigaApribile';
+import { GLIFO_ORDINE, SceltaColonne } from './SceltaColonne';
 
 export interface ColonnaServer<T> {
   chiave: string;
@@ -26,12 +27,10 @@ export interface OrdinamentoServer {
   verso: 'asc' | 'desc';
 }
 
-const GLIFO = { ascending: '▲', descending: '▼', none: '↕' } as const;
-
-function ariaSort(ordinamento: OrdinamentoServer, campo: string | undefined): 'ascending' | 'descending' | 'none' | undefined {
+/** aria-sort di una colonna: la funzione pura di shared/lib/tabella, con l'ordinamento del server nella sua forma. */
+function ariaSortServer(ordinamento: OrdinamentoServer, campo: string | undefined): 'ascending' | 'descending' | 'none' | undefined {
   if (!campo) return undefined;
-  if (ordinamento.campo !== campo) return 'none';
-  return ordinamento.verso === 'asc' ? 'ascending' : 'descending';
+  return ariaSort({ chiave: ordinamento.campo, verso: ordinamento.verso === 'asc' ? 'crescente' : 'decrescente' }, campo);
 }
 
 /** Chiavi delle righe nuove rispetto alla pagina precedente (vuoto alla prima pagina: entra tutta la sezione). */
@@ -45,34 +44,15 @@ function useRigheNuove(chiavi: readonly string[]): ReadonlySet<string> {
   return stato.nuove;
 }
 
-function SceltaColonne<T>({ colonne, nascoste, onCambia }: { colonne: ColonnaServer<T>[]; nascoste: ReadonlySet<string>; onCambia: (chiave: string, visibile: boolean) => void }) {
-  return (
-    <details className="ui-colonne">
-      <summary className="btn btn-outline-secondary btn-sm">Colonne</summary>
-      <fieldset className="ui-colonne__elenco">
-        <legend className="visually-hidden">Colonne visibili</legend>
-        {colonne
-          .filter((c) => !c.fissa)
-          .map((c) => (
-            <label key={c.chiave} className="ui-opzione">
-              <input type="checkbox" checked={!nascoste.has(c.chiave)} onChange={(e) => onCambia(c.chiave, e.target.checked)} />
-              {c.titolo}
-            </label>
-          ))}
-      </fieldset>
-    </details>
-  );
-}
-
 function Intestazione<T>({ c, ordinamento, onOrdina }: { c: ColonnaServer<T>; ordinamento: OrdinamentoServer; onOrdina: (campo: string) => void }) {
-  const sort = ariaSort(ordinamento, c.ordinamento);
+  const sort = ariaSortServer(ordinamento, c.ordinamento);
   const campo = c.ordinamento;
   return (
     <th scope="col" className={c.numerica ? 'ui-num' : undefined} aria-sort={sort}>
       {campo && sort ? (
         <button type="button" onClick={() => onOrdina(campo)}>
           {c.titolo}
-          <span aria-hidden="true">{GLIFO[sort]}</span>
+          <span aria-hidden="true">{GLIFO_ORDINE[sort]}</span>
         </button>
       ) : (
         c.titolo

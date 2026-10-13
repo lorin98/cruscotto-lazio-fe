@@ -4,14 +4,13 @@
 // dichiara nello uiplan (`query`, sottoinsieme degli url_params della route dell'elenco): un parametro non dichiarato
 // non esce mai, anche se il chiamante lo passa.
 
-import { ANNO_SENZA } from '../../../entities/domanda';
-import type { Annualita, EsitoPagamentoDomanda } from '../../../entities/domanda';
+import { ANNO_SENZA, GRANT_DELLA_PAGINA, PERCORSO_ELENCO_DOMANDE, PERCORSO_ELENCO_PAGAMENTI } from '../../../entities/domanda';
+import type { Annualita, DestinazioneElenco, EsitoPagamentoDomanda, EsitoRigaElenco } from '../../../entities/domanda';
 import { scriviRipetuti } from '../../../shared/lib';
 import { valoreFiltroValido, type Filtri } from './filtri';
 
 export type { Annualita, EsitoPagamentoDomanda } from '../../../entities/domanda';
-export type DestinazioneElenco = '/elenco-operativo/domande' | '/elenco-operativo/pagamenti';
-export type EsitoRigaElenco = 'PAGATA' | 'ESCLUSA';
+export type { DestinazioneElenco, EsitoRigaElenco } from '../../../entities/domanda';
 
 /** Criteri del punto cliccato, nei valori dei parametri di TX-0056/TX-0059 (descrizioni della spec dell'elenco). */
 export interface CriteriLink {
@@ -72,7 +71,7 @@ interface DefinizioneLink {
 }
 
 const FILTRI_CORRENTI = ['intervento', 'os', 'og', 'op', 'azione'] as const;
-const DOMANDE: DestinazioneElenco = '/elenco-operativo/domande';
+const DOMANDE: DestinazioneElenco = PERCORSO_ELENCO_DOMANDE;
 
 /** I link dello uiplan del finanziario verso l'elenco operativo: destinazione e `query` copiati da `links[]`. */
 export const LINK_ELENCO = {
@@ -81,7 +80,7 @@ export const LINK_ELENCO = {
   'elenco-anno-intervento': { destinazione: DOMANDE, query: ['presentata', 'anno', 'annualita', ...FILTRI_CORRENTI] },
   'elenco-sigc-intervento': { destinazione: DOMANDE, query: ['sigc', 'pagamento', ...FILTRI_CORRENTI] },
   'elenco-presentate-riga': { destinazione: DOMANDE, query: ['presentata', 'intervento'] },
-  'elenco-pagamenti-riga': { destinazione: '/elenco-operativo/pagamenti', query: ['esito', 'intervento'] },
+  'elenco-pagamenti-riga': { destinazione: PERCORSO_ELENCO_PAGAMENTI, query: ['esito', 'intervento'] },
   'elenco-presentate-domande': { destinazione: DOMANDE, query: ['presentata', ...FILTRI_CORRENTI] },
   'elenco-prima-annualita': { destinazione: DOMANDE, query: ['presentata', 'annualita', ...FILTRI_CORRENTI] },
   'elenco-anno-annualita': { destinazione: DOMANDE, query: ['presentata', 'anno', 'annualita', ...FILTRI_CORRENTI] },
@@ -96,10 +95,7 @@ export type IdLinkElenco = keyof typeof LINK_ELENCO;
  * Grant VERBATIM della lettura che apre ogni destinazione (authz-catalog: TX-0056 l'elenco delle domande, TX-0059 quello
  * dei pagamenti): il link si mostra solo a chi lo ha, come la voce del menu. Gate di UX: il backend ridecide (403).
  */
-export const GRANT_DESTINAZIONE: Record<DestinazioneElenco, string> = {
-  '/elenco-operativo/domande': 'csr.tx-0056.read',
-  '/elenco-operativo/pagamenti': 'csr.tx-0059.read',
-};
+export const GRANT_DESTINAZIONE: Readonly<Record<DestinazioneElenco, string>> = GRANT_DELLA_PAGINA;
 
 /** Grant richiesto dal link. */
 export function grantDelLink(id: IdLinkElenco): string {
