@@ -1,0 +1,122 @@
+[
+  {
+    "id": "H-01",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/ui/LinkElenco.tsx:43",
+    "titolo": "ApriNellElenco ferma la propagazione di OGNI tasto: nell'anteprima del riepilogo Esc non chiude piu' il pannello quando il focus e' sul link",
+    "evidenza": "Il componente presentazionale applica a tutti i contesti una regola nata per uno solo (la riga apribile della tabella): onKeyDown={ferma} con ferma = e => e.stopPropagation() (riga 32), su qualsiasi tasto. NellElencoAnteprima (RiepilogoReport.tsx:105-117) rende due ApriNellElenco dentro PannelloLaterale (RiepilogoReport.tsx:123, 145), che e' un Modal di react-aria-components: la chiusura con Esc e' un onKeyDown React sull'elemento del Modal (node_modules/react-aria/dist/private/overlays/useOverlay.mjs:58-63 e 88-89, spalmato da Modal.cjs:201). Il keydown del link non arriva al Modal: con il focus su 'domande presentate' o 'righe di pagamento, importi lordi' Esc non fa nulla, mentre il kit garantisce e testa la chiusura con Esc (tests/shared-ui-kit.test.tsx:459). Nessun test apre l'anteprima, porta il focus sul link e preme Esc.",
+    "fix": "Togliere la politica di propagazione dal componente generico: in ApriNellElenco nessun stopPropagation sui tasti (al piu' su Enter e spazio). La riga apribile ignora gli eventi nati da un discendente interattivo: in Riga di TabellaInterattiva (e di TabellaServer) `if (e.target !== e.currentTarget) return;` in onKeyDown, e in onClick `if ((e.target as Element).closest('a, button')) return;` (la riga e' un tr, mai un a o un button).\nTest in riepilogo/page.test.tsx: aprire l'anteprima, focus sul link 'domande presentate', {Escape}: il dialog si chiude e la route resta /finanziario/riepilogo; Invio sul link della riga naviga senza aprire l'anteprima (gia' coperto, da tenere)."
+  },
+  {
+    "id": "H-02",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/link-elenco.ts:121",
+    "titolo": "Il clic sui grafici diventa criterio dell'elenco tramite le etichette visibili delle serie e l'ordine delle righe replicato dal chiamante; un nome sconosciuto allarga l'insieme",
+    "evidenza": "ANNUALITA_DELLA_SERIE e PAGAMENTO_DELLA_VOCE (121-133) mappano i testi 'Prima annualità', 'Da pagare', ... che vivono anche in grafici/domande.ts:28-32, grafici/sigc.ts:39-44 e colonneAnno.tsx:10-15 (tre copie, nessuna fonte unica). criteriDomandePerAnno (140-148) con seriesName non mappato restituisce i criteri dell'anno intero (146-147: annualita undefined), cioe' un insieme piu' largo del segmento cliccato invece di null; criteriVoceSigc invece restituisce null: due politiche diverse nello stesso modulo. dataIndex vale solo se il chiamante ripete l'ordinamento interno del builder: DettaglioIntervento.tsx:118 passa perAnno(d.righe) come fa graficoDomandePerAnno. Il kit ha gia' il pattern giusto, il codice nel dato (codiceDalClic, shared/lib/grafici/primitive.ts:145; grafici/spesa.ts:53), e l'elenco lo usa ('la barra porta il valore del filtro come codice', elenco-operativo/lib/grafici.ts:3). I test di pagina cliccano con seriesName letterale (interventi/page.test.tsx:142, domande/page.test.tsx:108) e nessun test unitario copre criteriDomandePerAnno, criteriVoceSigc e criteriAnnoAnnualita: rinominando una serie in domande.ts (e il suo test in finanziario-grafici.test.ts:612) i test di pagina restano verdi mentre il drill-down perde l'annualita'.",
+    "fix": "Una sola tabella per voce con il codice del contratto: ANNUALITA di domande.ts con { nome, campo, codice: 'PRIMA' | 'ALTRE' | 'NON_CLASSIFICATE' } e VOCI_DOMANDE_SIGC con pagamento: 'PAGATA' | 'DA_PAGARE' | 'SENZA_IMPORTI' | null; i builder mettono codice (e anno) nel dato ({ value, codice, anno }) e i criteri si leggono dal dato del clic (p.data, codiceDalClic), non dal nome ne' da dataIndex. colonneAnno.tsx riusa la stessa tabella. Codice assente o sconosciuto = null (nessuna navigazione).\nIn finanziario-link-elenco.test.ts: test dei tre criteri, compresi serie sconosciuta -> null e anno null -> SENZA; nei test di pagina il seriesName (o il dato) letto dalle opzioni ricevute dal grafico finto, non scritto a mano."
+  },
+  {
+    "id": "H-03",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/LinkElenco.tsx:14",
+    "titolo": "useLinkElenco non accetta criteri nulli e non espone la visibilita': i chiamanti convertono null in 'nessun criterio' (link fail-open) e sondano il grant con indirizzi fittizi",
+    "evidenza": "La firma (id, criteri?: CriteriLink) tratta l'assenza di criteri come 'solo i filtri correnti'. SigcReport.tsx:69 passa criteriVoceSigc(v.nome) ?? undefined e DettaglioIntervento.tsx:144 conIntervento(...) ?? undefined: con una voce non mappata il link diventa l'elenco di TUTTE le domande (senza sigc=true) e, nel dettaglio, anche senza l'intervento del dettaglio, solo con la selezione di provenienza. useApriNellElenco (20-30) per lo stesso caso non naviga: stessa feature, due esiti opposti. La visibilita' si ricava costruendo un indirizzo di comodo in tre punti (DettaglioIntervento.tsx:109, DomandeReport.tsx:187, RiepilogoReport.tsx:204) e il tipo della funzione e' ridichiarato due volte come LinkDelReport (DomandeReport.tsx:94, RiepilogoReport.tsx:42).",
+    "fix": "useLinkElenco restituisce { indirizzo: (id, criteri: CriteriLink | null) => string | null, visibile: (id) => boolean }: criteri null -> null, come useApriNellElenco; esportare il tipo da LinkElenco.tsx. Togliere i `?? undefined` (SigcReport.tsx:69, DettaglioIntervento.tsx:144) e i sondaggi con indirizzi fittizi (usare visibile(id)). Test: una voce senza criteri non rende il link."
+  },
+  {
+    "id": "H-04",
+    "severity": "MINORE",
+    "file": "tests/finanziario-link-elenco.test.ts:71",
+    "titolo": "LINK_ELENCO e GRANT_DESTINAZIONE 'copiati verbatim' da uiplan e catalogo senza alcun test di allineamento; nessun test distingue i grant delle due destinazioni",
+    "evidenza": "link-elenco.ts:81-94 dichiara i 12 link 'copiati da links[]' e 102-105 i grant di TX-0056/TX-0059. Oggi coincidono (verificato su uiplan.json), ma l'unico test sullo uiplan (71-79) controlla solo che i parametri di ogni link siano 'producibili': un id aggiunto o una query cambiata nello uiplan (i flussi sono stati riapprovati il 13/10 e lo saranno ancora) non fa fallire nulla, e i gate verificano lo uiplan (fe-project-check), non il codice. I test negativi tolgono insieme TX-0056 e TX-0059 (riepilogo/page.test.tsx:165-172, domande/page.test.tsx:112-119, interventi/page.test.tsx:187-197, panoramica/page.test.tsx:175-181): scambiando i due valori di GRANT_DESTINAZIONE tutti i test restano verdi. Il catalogo oggi da' entrambi i grant a ogni profilo, quindi il rischio e' di deriva, non attuale.",
+    "fix": "In finanziario-link-elenco.test.ts: per ogni link di uiplan.json con target_feature elenco-operativo, LINK_ELENCO[l.id] uguale a { destinazione: l.target, query: l.query } e stesso insieme di id; per ogni destinazione, GRANT_DESTINAZIONE[d] e' il grant dell'azione TX-0056/TX-0059 della stessa path in src/app/route-table.json. Nel riepilogo un test con TX-0056 senza TX-0059: resta il link delle domande, spariscono quello delle righe di pagamento e la nota sugli importi lordi."
+  },
+  {
+    "id": "H-05",
+    "severity": "MINORE",
+    "file": "src/shared/ui/grafici/CardGrafico.tsx:100",
+    "titolo": "La prop tabella: ReactNode del kit scavalca l'invariante 'tabella equivalente = stessi valori': il primo consumatore ha gia' intestazioni e assenze diverse, e cambiano col profilo",
+    "evidenza": "CorpoCard (84) rende `tabella ?? <TabellaDati tabella={dati.tabella} />`: qualunque nodo sostituisce la tabella generata dal builder, e il vincolo 'con gli stessi valori' resta un commento (100-104). In DettaglioIntervento.tsx:120-130 la tabella sostitutiva (colonneDomandePerAnno) ha 'Anno di raccolta' e 'Altre annualità' dove la tabella del builder ha 'Anno' e 'Altre' (grafici/domande.ts:41), e un conteggio assente reso '-' (Numero -> formatNumber, comuni.tsx:94-96) dove il builder scrive 'non disponibile' (numeroOpzionale, formato.ts:16-18). La scelta dipende dal grant dell'elenco (conLink, DettaglioIntervento.tsx:109): la stessa card ha due tabelle equivalenti diverse secondo il profilo.",
+    "fix": "Valori e intestazioni sempre da dati.tabella; il chiamante inietta solo l'azione: in CardGrafico e TabellaDati una prop additiva `azioneCella?: (riga: number, colonna: number) => ReactNode` resa accanto al valore, al posto di `tabella`. In alternativa colonneDomandePerAnno e la tabella di graficoDomandePerAnno derivano dalla stessa definizione di colonna (titolo e formattatore). Test: con e senza grant dell'elenco la tabella equivalente ha le stesse intestazioni e gli stessi testi di cella (a parte i link)."
+  },
+  {
+    "id": "H-06",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/lib/formato.ts:49",
+    "titolo": "Il vocabolario della domanda (annualita', esito del pagamento, anno senza raccolta) e' duplicato fra le due feature con testi diversi: e' il contratto dei link ma non ha una fonte unica",
+    "evidenza": "Codici ed etichette di annualita' e pagamento stanno in ETICHETTE_VALORI dell'elenco (formato.ts:51-52) e, nel finanziario, in grafici/domande.ts:28-32, grafici/sigc.ts:39-44, link-elenco.ts:121-133 e colonneAnno.tsx:10-15. Lo stesso concetto D-09 ha due testi: 'senza anno di raccolta' (finanziario formato.ts:29-31, descrizione del link) e 'senza anno' (elenco formato.ts:60-62 e nomeVoce in elenco-operativo/lib/grafici.ts:48-56): chi apre 'le domande senza anno di raccolta' arriva a un chip 'Senza anno'. siNo esiste nelle due feature con semantica diversa per null ('' nell'elenco, formato.ts:70-73; 'non disponibile' nel finanziario, formato.ts:11-14). I codici PRIMA, ALTRE, NON_CLASSIFICATE, PAGATA, DA_PAGARE, SENZA_IMPORTI e SENZA sono l'interfaccia fra le due feature e oggi si tengono allineati a mano.",
+    "fix": "Un'entity del dominio (src/entities/domanda, come entities/importo) con i codici di annualita', esito del pagamento ed esito della riga, le loro etichette e testoAnnoDiRaccolta; finanziario ed elenco li importano dal barrel dell'entity (ammesso dalle regole FSD e dal lint). link-elenco.ts tipizza Annualita ed EsitoPagamentoDomanda da li'. Un solo testo per l'anno assente."
+  },
+  {
+    "id": "H-07",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/link-elenco.ts:56",
+    "titolo": "Tre serializzazioni dei parametri ripetibili e due copie del tetto del backend (100 valori) fra finanziario ed elenco",
+    "evidenza": "indirizzoLink (56-68), ricercaDaFiltri/filtriDaRicerca (filtri.ts:28-46) e ricercaDaCriteri/criteriDaRicerca (elenco-operativo/lib/criteri.ts:100-117) fanno la stessa cosa (chiavi in un ordine dato, chiave ripetuta per valore, senza doppioni, al piu' N valori). Il tetto ParametriGrezzi.MAX_VALORI del backend e' MAX_VALORI_FILTRO in filtri.ts:21 e MAX_VALORI in criteri.ts:73: se cambia nel backend vanno aggiornati due punti, e il link del finanziario puo' produrre un indirizzo che l'elenco tronca diversamente.",
+    "fix": "Un modulo puro in shared/lib (es. parametri-ripetuti.ts) con MAX_VALORI_PARAMETRO, leggiRipetuti(ricerca, chiavi, valido?) e scriviRipetuti(chiavi, valori): lo usano filtri.ts, link-elenco.ts e criteri.ts (ognuno con le proprie chiavi e la propria validazione)."
+  },
+  {
+    "id": "H-08",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/AnteprimaFinanziario.tsx:61",
+    "titolo": "Anteprima della Home: etichette scritte a mano che perdono 'lordo' sugli stessi aggregati della panoramica, costante e componenti duplicati",
+    "evidenza": "La card della Home mostra kpiSpesa con 'Pagamenti totali' (61) e 'Pagato sulla dotazione' (42), mentre la panoramica, dopo l'allineamento lordo/netto di a3e9579, usa PAGAMENTI_LORDI e 'Pagato lordo sulla dotazione' (Panoramica.tsx:42-44; costante in grafici/spesa.ts:37) e il dettaglio mostra 'Pagato netto sulla dotazione' con un valore diverso: l'ambiguita' tolta nei report torna nella Home. Nello stesso file NON_DISPONIBILE e' ridichiarato (16) invece di venire da shared/lib, un componente locale Numero (18) ha lo stesso nome e un contratto diverso da comuni.Numero, e la barra a passi del 5% (38) ripete quella di Kpi.tsx:54.",
+    "fix": "Riusare PAGAMENTI_LORDI e una costante per 'Pagato lordo sulla dotazione' esportata dal lib (la stessa della panoramica); NON_DISPONIBILE da shared/lib; rinominare il Numero locale (es. VoceNumero); estrarre in shared/ui una BarraQuota usata da Kpi e dall'anteprima. Aggiornare l'attesa di tests/app-aree.test.tsx."
+  },
+  {
+    "id": "H-09",
+    "severity": "MINORE",
+    "file": "src/shared/ui/tabella/TabellaServer.tsx:47",
+    "titolo": "TabellaServer copia nel kit scelta delle colonne, riga apribile, glifi e ariaSort di TabellaInterattiva invece di condividerli",
+    "evidenza": "SceltaColonne (47-64) e' identica a TabellaInterattiva.tsx:29-45; la Riga apribile con Invio e spazio (83-116) ripete TabellaInterattiva.tsx:68-100; GLIFO (28) e' duplicato; ariaSort locale (30-34) ombreggia shared/lib/tabella.ariaSort con un altro vocabolario (asc/desc invece di crescente/decrescente). Circa 45 righe duplicate nello stesso modulo del kit: una correzione a una tabella (es. la regola sugli eventi dei discendenti di H-01, o l'accessibilita' della scelta delle colonne) non raggiunge l'altra.",
+    "fix": "Estrarre in shared/ui/tabella un modulo di parti comuni (SceltaColonne generica su { chiave, titolo, fissa }, GLIFO, RigaApribile con la gestione di clic e tasti) usato da entrambe le tabelle; un ariaSort unico in shared/lib/tabella che riceve campo e verso gia' normalizzati."
+  },
+  {
+    "id": "H-10",
+    "severity": "MINORE",
+    "file": "src/shared/ui/animazione/NumeroAnimato.tsx:9",
+    "titolo": "Due movimentoRidotto nel kit con ripieghi opposti; quello esportato non ha consumatori",
+    "evidenza": "NumeroAnimato.tsx:9-11 (esportato da shared/ui/index.ts:30) vale true quando matchMedia manca; Grafico.tsx:20 ne ha una copia privata che nello stesso caso vale false (animazione accesa). La versione esportata non e' usata fuori dal suo modulo (grep su src). Stessa regola di accessibilita' (prefers-reduced-motion, ADR 0029 §3) con due implementazioni divergenti.",
+    "fix": "Una sola movimentoRidotto (shared/lib o shared/ui/animazione) usata da Grafico e da useValoreAnimato, con un solo ripiego deciso e documentato; togliere la copia privata di Grafico.tsx e, se resta senza consumatori esterni, l'export dal barrel."
+  },
+  {
+    "id": "H-11",
+    "severity": "MINORE",
+    "file": "src/pages/finanziario/interventi/page.test.tsx:195",
+    "titolo": "Test negativo del clic senza grant che puo' passare senza cliccare",
+    "evidenza": "'senza il grant dell'elenco i clic non portano altrove' fa `if (grafico) clicSu(...)` senza verificare prima che il grafico esista (graficoDi restituisce undefined se la card non ha grafico, shared/testing/card-grafico.ts:22-24): se il grafico non e' disegnabile o non e' ancora montato il clic non avviene e l'asserzione sulla route (196) passa comunque. Il test positivo dello stesso describe ha `expect(grafico).toBeTruthy()` (141); questo no. Inoltre seriesName e' scritto a mano (vedi H-02).",
+    "fix": "`expect(grafico).toBeTruthy()` prima del clic e `clicSu(grafico!, ...)` senza if; asserire anche che il gestore e' registrato (grafico.clic.length > 0), cosi' il test prova che il clic c'e' e non porta altrove."
+  },
+  {
+    "id": "H-12",
+    "severity": "COSMETICO",
+    "file": "tests/finanziario-ui.test.tsx:125",
+    "titolo": "Helper che ignora il testo del link agganciato a una classe di stile e duplicato in due file",
+    "evidenza": "senzaLinkElenco toglie i nodi '.ui-link-elenco' (finanziario-ui.test.tsx:125-129, copia identica in finanziario-casi-limite.test.tsx:47-51): copre solo la variante 'testo' di ApriNellElenco (la variante 'pulsante' ha classi bootstrap) e lega i test a una classe CSS invece che al ruolo.",
+    "fix": "Un solo helper (es. in features/finanziario/testing) che toglie i link verso l'elenco per destinazione, `a[href^=\"/elenco-operativo\"]`, usato dai due file."
+  },
+  {
+    "id": "H-13",
+    "severity": "COSMETICO",
+    "file": "tests/finanziario-pagine.test.tsx:19",
+    "titolo": "Le route del finanziario nei test si scelgono per prefisso del path, in due copie, invece che dai path dello uiplan",
+    "evidenza": "ROTTE_FINANZIARIO = routeTable.routes.filter(r => r.path.startsWith('/finanziario')) e' ripetuto in finanziario-pagine.test.tsx:19 (dichiarato fra gli import) e finanziario-lib.test.ts:5. ADR 0028 §7: la proprieta' di una route e' il path dichiarato nello uiplan, non un prefisso; il filtro per prefisso non vede una voce della route-table del finanziario fuori da /finanziario.",
+    "fix": "Un helper di test che filtra la route-table con i path di uiplan.json (e uno per plan/elenco-operativo/uiplan.json), piu' un test che ogni voce della route-table appartiene a esattamente uno dei due uiplan."
+  },
+  {
+    "id": "H-14",
+    "severity": "COSMETICO",
+    "file": "src/shared/ui/kpi/Kpi.tsx:57",
+    "titolo": "Lo slot azione del KPI rende un contenitore vuoto quando l'azione non rende nulla",
+    "evidenza": "`{azione && <div className=\"ui-kpi__azione\">{azione}</div>}`: i chiamanti passano sempre un elemento <ApriNellElenco> (Panoramica.tsx:76, DomandeReport.tsx:50 e 57, DettaglioIntervento.tsx:76), che senza il grant dell'elenco restituisce null; il div con margine (tema.css, .ui-kpi__azione) resta vuoto nel DOM.",
+    "fix": "Nei chiamanti `azione={indirizzo ? <ApriNellElenco ... /> : undefined}` (con H-03, visibile(id)), oppure in tema.css `.ui-kpi__azione:empty { display: none; }`."
+  },
+  {
+    "id": "H-15",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/lib/aggiornamento.ts:3",
+    "titolo": "'Dati al' spostato in shared/lib ma tenuto dietro facciate di riesportazione: due percorsi per lo stesso simbolo e test del codice condiviso solo dalle feature",
+    "evidenza": "lib/aggiornamento.ts e lib/intestazione.ts del finanziario riesportano shared/lib con un import profondo (non dal barrel shared/lib usato altrove nella feature), per un consumatore ciascuno (UltimoAggiornamento.tsx:11, useRigheIntestazione.ts:7). Il codice condiviso e' testato due volte dalle feature, una attraverso la facciata (finanziario-lib.test.ts:47-48) e una direttamente (elenco-operativo-lib.test.ts:49), nessun test a livello shared.",
+    "fix": "Consumatori del finanziario da '../../../shared/lib'; spostare i test di etichettaFlusso, testoUltimiDati, menoRecente e righeContesto in un test di shared/lib; togliere le facciate, aggiornando le canary di eslint-regole.test.ts (40, 183) su un altro modulo dello slice."
+  }
+]

@@ -1,0 +1,42 @@
+[
+  {
+    "id": "A-01",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/LinkElenco.tsx:43",
+    "titolo": "ApriNellElenco ferma TUTTI i tasti (onKeyDown={ferma}): nell'anteprima del riepilogo Esc non chiude il drawer e Tab dall'ultimo link esce dal focus trap",
+    "evidenza": "`const ferma = (e) => e.stopPropagation()` (LinkElenco.tsx:32) e' messo su onClick e su onKeyDown senza filtro sul tasto. Serve solo a non far arrivare Enter/Spazio alla riga cliccabile di TabellaInterattiva (TabellaInterattiva.tsx:76-83), ma lo stesso componente sta dentro il PannelloLaterale dell'anteprima (RiepilogoReport.tsx:105-119, montato in :123). Il contratto del pannello e' 'focus trap, Esc per chiudere' (PannelloLaterale.tsx:1-2) e il flusso approvato dichiara 'focus-trap di pannello e drawer' (wireframes/riepilogo/riepilogo.md:50). In react-aria Esc e' gestito da un onKeyDown React sul Modal (react-aria/dist/private/overlays/useOverlay.mjs:58-63, spalmato sul Modal in react-aria-components Modal.mjs:189): con il focus su 'domande presentate' o su 'righe di pagamento, importi lordi' la keydown si ferma al link e Esc non fa nulla. Il Tab del focus trap e' un listener nativo su document (react-aria/dist/private/focus/FocusScope.mjs:252, :307): con React 19 lo stopPropagation sintetico ferma anche l'evento nativo al contenitore radice/portale, quindi Tab dall'ultimo link (pagamenti) non ricicla nel dialogo e il focus esce verso il browser (il resto della pagina e' inert). Regressione introdotta dai link nell'anteprima; nessun test copre Esc o Tab con il focus su questi link (l'unico test di Esc e' sul pannello dei filtri, tests/finanziario-ui.test.tsx:269).",
+    "fix": "Fermare solo i tasti che la riga gestisce: `onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') e.stopPropagation(); }}`; meglio ancora far ignorare alla riga gli eventi nati da un controllo annidato (in Riga di TabellaInterattiva: `if (e.target !== e.currentTarget) return;` nel keydown e `(e.target as Element).closest('a,button')` nel click) e togliere `ferma`. Aggiungere il test: anteprima aperta, focus sul link 'righe di pagamento', Esc chiude il dialogo e il focus torna alla riga; Tab dall'ultimo link torna al pulsante Chiudi."
+  },
+  {
+    "id": "A-02",
+    "severity": "MINORE",
+    "file": "src/pages/finanziario/riepilogo/page.test.tsx:139",
+    "titolo": "Il percorso da tastiera del link annidato nella riga cliccabile (Enter sul link) non e' testato: provato solo il clic del mouse",
+    "evidenza": "Il test 'il link dentro la riga non apre l'anteprima' usa userEvent.click (:144). Da tastiera il rischio e' diverso e piu' grave: la riga fa preventDefault su Enter/Spazio (TabellaInterattiva.tsx:79-81), quindi se la keydown del link arrivasse alla riga il link NON navigherebbe affatto (preventDefault annulla il click sintetizzato) e si aprirebbe l'anteprima. Oggi lo impedisce solo lo stopPropagation di LinkElenco.tsx:43, che A-01 chiede di restringere: senza un test di Enter sul link annidato una correzione sbagliata non verrebbe vista. Il test da tastiera esistente (interventi/page.test.tsx:159-163) e' su TabellaRighe, che non ha righe cliccabili.",
+    "fix": "Nel describe RA003 del riepilogo: focus sul link 'Apri nell'elenco operativo le domande presentate dell'intervento SRA01' dentro la riga, `userEvent.keyboard('{Enter}')`, attendere pathname /elenco-operativo/domande e nessun dialog; poi focus sulla riga e Enter apre ancora l'anteprima."
+  },
+  {
+    "id": "A-03",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/link-elenco.ts:43",
+    "titolo": "Costruzione dei link fail-open: un intervento fuori formato o criteri nulli producono un link piu' largo con la stessa etichetta 'dell'intervento X'",
+    "evidenza": "parametriLink toglie l'intervento corrente e scarta quello della riga se fuori formato (:43-47), ma il link resta: nel riepilogo una riga con codiceIntervento fuori dalla regex (/^[A-Z]{2,4}[0-9]{2,3}$/, filtri.ts:14) darebbe 'Apri nell'elenco operativo le domande presentate dell'intervento X' -> /elenco-operativo/domande?presentata=true (tutto il perimetro) e 'righe di pagamento ... dell'intervento X' -> /elenco-operativo/pagamenti?esito=PAGATA (RiepilogoReport.tsx:49-55, query del link ['presentata','intervento'] senza altri filtri). Lo stesso schema in SigcReport.tsx:69 e DettaglioIntervento.tsx:144: `criteriVoceSigc(v.nome) ?? undefined` trasforma criteri nulli in {} e il link 'le domande SIGC ...' perde sigc=true. Le ricerche per nome usano `in` e indicizzazione su oggetti letterali (link-elenco.ts:146, :160), che accettano le chiavi ereditate (es. 'toString'). Oggi non si manifesta: il backend normalizza i codici a SR[A-H]nn|ATnnn (cruscotto-lazio-be Valori.java:81) e i nomi delle voci sono costanti; il test tests/finanziario-link-elenco.test.ts:23-27 pero' fissa proprio il comportamento largo.",
+    "fix": "Fail-closed: indirizzoDelLink/useLinkElenco restituiscono null se criteri.intervento e' presente ma non valido o se i criteri del punto sono null (togliere i `?? undefined` e rendere `criteri` obbligatorio quando il link lo richiede); Object.hasOwn (o Map) per ANNUALITA_DELLA_SERIE e PAGAMENTO_DELLA_VOCE; aggiornare il test :23-27 (nessun link) e aggiungerne uno per la riga del riepilogo con codice fuori formato."
+  },
+  {
+    "id": "A-04",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/link-elenco.ts:81",
+    "titolo": "La tabella LINK_ELENCO e i grant di destinazione sono copiati a mano dallo uiplan e nessun test o gate li confronta: un widening della query nel codice passerebbe",
+    "evidenza": "LINK_ELENCO (:81-94) e GRANT_DESTINAZIONE (:102-105) sono dichiarati 'verbatim' ma scritti a mano. Il test 'ogni link del finanziario verso l elenco dichiara parametri che parametriLink sa produrre' (tests/finanziario-link-elenco.test.ts:71-79) legge solo uiplan.json, mai LINK_ELENCO; fe-project-check verifica lo uiplan contro gli url_params dell'elenco (fe-project-check.sh:17-24, link_query_unknown), non il codice. Aggiungere 'testo' o 'ente' alla query di un link, cambiare una destinazione da domande a pagamenti lasciando il grant di TX-0056, o un id in piu' non dichiarato nello uiplan, lascia verdi test e gate. La proprieta' dichiarata in testa al file ('un parametro non dichiarato non esce mai') dipende interamente da questa copia.",
+    "fix": "Test di coerenza: per ogni link dello uiplan con target_feature elenco-operativo, LINK_ELENCO[id] esiste con la stessa destinazione e lo stesso insieme di query, e le chiavi di LINK_ELENCO sono esattamente quegli id; GRANT_DESTINAZIONE[target] e' il grant dell'azione TX-0056/TX-0059 della route di destinazione in src/app/route-table.json (e appartiene alla sua visibility)."
+  },
+  {
+    "id": "A-05",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/SigcReport.tsx:54",
+    "titolo": "Le istruzioni 'Clic su una barra/sulla cascata: ... nell'elenco operativo' restano anche senza il grant di TX-0056, quando il clic non fa nulla; manca il test senza grant sulla pagina SIGC",
+    "evidenza": "Il clic e' correttamente gated (useApriNellElenco -> useLinkElenco, LinkElenco.tsx:14-29), ma i sottotitoli che lo promettono sono fissi: SigcReport.tsx:54 e :94, DettaglioIntervento.tsx:115, :164 e :189, DomandeReport.tsx:146 ('dalle sue celle si apre l'elenco operativo'). Con il profilo senza TX-0056 simulato in interventi/page.test.tsx:187-197 il testo invita a un clic che non produce effetto (hide-by-role a meta': funzione nascosta ma pubblicizzata). Oggi nel catalogo ogni profilo con TX-0008/0012/0013 ha anche TX-0056, quindi il caso e' latente. La pagina SIGC non ha alcun test negativo (sigc/page.test.tsx:52-79): i clic sulle barre (elenco-sigc) e sulla cascata (elenco-sigc-importi) senza grant non sono verificati; il negativo del dettaglio prova solo Domande per anno e il suo clic e' dentro `if (grafico)` (:195), che passerebbe a vuoto se il grafico mancasse.",
+    "fix": "Comporre la parte del sottotitolo sull'elenco solo se link(...) !== null (stesso predicato del link). Aggiungere a sigc/page.test.tsx un caso senza TX-0056: nessun link nelle tabelle, clicSu sulle barre e sulla cascata lascia pathname /finanziario/sigc; nei negativi sostituire `if (grafico)` con `expect(grafico).toBeTruthy()`."
+  }
+]

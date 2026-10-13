@@ -1,0 +1,82 @@
+[
+  {
+    "id": "X-01",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/LinkElenco.tsx:16",
+    "titolo": "Il backend decide il perimetro grant per grant. Un utente P4 che ha anche un profilo non scoped sull'elenco (P3 di un'altra area, P6, P7) vede il report limitato all'area, ma il link apre l'elenco regionale e non lo dice",
+    "evidenza": "Il backend calcola il perimetro per ogni singolo grant (PerimetroResolver.java:26-40): e' regionale se almeno un profilo del chiamante ha quel grant non scoped. Nel catalogo p3-funzionario-area-ist, -fis, -pro, -pil, p6 e p7 hanno csr.tx-0056.read e csr.tx-0059.read non scoped, ma non hanno TX-0008, 0009, 0011, 0012 e 0013; P4 ha tutti questi grant scoped. Per un utente con P4 e uno di quei profili il report si legge con perimetroPer(CSR_TX_0009_READ), che vale ADA (ConsultaFinanziarioService.java:167), e l'elenco con perimetroPer(CSR_TX_0056_READ), che e' illimitato (ConsultaElencoOperativoService.java:104). Il KPI 'Domande presentate 120 · Perimetro ADA' apre quindi un elenco con tutte le domande della regione, e cosi' i pagamenti del riepilogo. I flussi approvati promettono il contrario: 'il numero di domande coincide con quello del report' (panoramica.md:41, domande.md:32, sigc.md:38). Il frontend ha entrambi i dati: il perimetro di ogni sezione e' nel DTO e gia' a video (nota del KPI in DomandeReport.tsx:49, PerimetroSezione); quello dell'elenco e' in ValoriFiltriElenco.perimetro di TX-0060 (shared/api/generated/elenco-operativo/aRSCSRBootstrapPostgresAPI.schemas.ts:460). PerimetroPill.tsx:3-4 ammette gia' che le sezioni possano avere perimetri diversi, ma useLinkElenco guarda solo il grant. Nessun test del drill-down usa il perimetro ADA: le risposte di prova dei link sono REGIONALE.",
+    "fix": "useLinkElenco riceve il perimetro della sezione. Se e' ADA, legge il perimetro dell'elenco (TX-0060 dal client generato in shared/api, gia' in cache quando l'utente e' passato dall'elenco). Se l'elenco e' REGIONALE, il link non si rende, oppure si rende con la nota 'il tuo elenco operativo e' regionale: i numeri non coincidono con quelli dell'area'. Aprire un open point verso il backend: allineare il perimetro fra le letture del report e quelle aperte dal suo drill-down. Test L2: sezione con perimetro ADA e TX-0060 REGIONALE, il link non c'e' (oppure c'e' con la nota)."
+  },
+  {
+    "id": "X-02",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/DettaglioIntervento.tsx:65",
+    "titolo": "Nel dettaglio i link aggiungono os, og, op e azione della selezione di provenienza, che la pagina non mostra e le sue letture non usano: l'insieme e' diverso per costruzione",
+    "evidenza": "Le letture del dettaglio usano solo l'intervento: riga 248 `const filtri: Filtri = { intervento: [codice] }`, commento alla riga 38 'nel dettaglio i filtri sono fissi (il solo intervento)'. La barra mostra solo il chip fisso 'Intervento' (interventi/page.tsx:25). Tutti i link pero' partono da da.selezione (righe 65, 105-106, 143, 157, 183). Il KPI 'Domande presentate' conta le presentate di SRA01; il link apre le presentate di SRA01 ristrette agli interventi della selezione, perche' os, og, op e azione selezionano interventi (PredicatiReport.interventi). I due insiemi coincidono solo se l'intervento rientra nella selezione. Basta un indirizzo con una selezione che non lo contiene perche' il KPI dica N e l'elenco 0: un link salvato o condiviso, oppure una gerarchia degli obiettivi o un legame con le azioni reimportati. I test stessi aprono /finanziario/interventi/SRA01?intervento=SRA03&os=OS4 (interventi/page.test.tsx:136). In ogni caso l'elenco mostra chip OS, OG, OP e Azione che nel dettaglio non si vedevano. I test fissano questo comportamento (interventi/page.test.tsx:138, 143, 154: '&os=OS4').",
+    "fix": "Costruire i link del dettaglio sui filtri delle letture: `useLinkElenco(filtri)` con filtri = { intervento: [codice] }. La query dello uiplan elenca i parametri ammessi, non quelli obbligatori. da.selezione resta ai soli link di ritorno (Torna al riepilogo, briciole). Aggiornare le attese dei test alle righe 138, 143 e 154 a '...&intervento=SRA01' senza os. In alternativa, mostrare nel dettaglio i chip della selezione che il link porta con se'."
+  },
+  {
+    "id": "X-03",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/DettaglioIntervento.tsx:202",
+    "titolo": "Tornando indietro dall'elenco il report ha perso il punto di partenza: la scheda del dettaglio, l'anno scelto, ordinamento, ricerca e pagina del riepilogo e la sua anteprima",
+    "evidenza": "I link portano fuori dalla route. Al ritorno con Indietro la pagina si rimonta dallo stato iniziale. Nel dettaglio <Tabs> non ha ne' selectedKey ne' defaultSelectedKey (riga 202) e riapre 'Sintesi', mentre i link stanno nelle schede Domande e SIGC. In DomandeReport.tsx:136 `useState<string | null>(null)` perde l'anno che filtrava la tabella da cui si era aperta la cella. In RiepilogoReport.tsx:156-157, insieme allo stato interno di TabellaInterattiva, si perdono ricerca, ordinamento, pagina e l'anteprima da cui si era cliccato il link. Il focus va al titolo per il cambio di route: chi usa tastiera o lettore di schermo deve riattraversare KPI, schede e tabella per tornare al punto, a ogni drill-down. D-3 di MIN-20261012 chiede un percorso fluido dal report all'elenco alla domanda; nessun test copre il ritorno.",
+    "fix": "Tenere nell'indirizzo cio' che individua il punto di partenza. La scheda del dettaglio diventa un parametro di pagina (es. `scheda=domande|sigc`: Tabs controllato da useSearchParams, chiave aggiunta a PARAMETRI_DI_PAGINA). Per l'anno scelto nella pagina domande serve una chiave diversa da `anno` della riserva (es. `annoRaccolta`). Per il riepilogo bastano ordinamento, pagina e riga aperta nello state della history (replace prima di uscire) o in sessionStorage per location.key. Test L2: dalla scheda SIGC clic sul link, poi router.navigate(-1): la scheda SIGC e' di nuovo selezionata."
+  },
+  {
+    "id": "X-04",
+    "severity": "MINORE",
+    "file": "src/shared/ui/tema.css:192",
+    "titolo": "Il link 'Apri nell'elenco' in variante testo e' alto circa 19 px dentro la riga cliccabile del riepilogo: bersaglio sotto i 24 px (WCAG 2.2, 2.5.8), e un tocco impreciso apre l'anteprima",
+    "evidenza": "`.ui-link-elenco { display: block; margin-top: .15rem; font-size: .78rem; }` non ha padding: con l'interlinea 1,5 del tema il bersaglio e' alto circa 18,7 px. Nel riepilogo il link sta in celle (RiepilogoReport.tsx:68 e 81) di righe che sono a loro volta bersagli: la Riga di TabellaInterattiva ha onClick su tutto il tr, e la cella ha padding .65rem (tema.css:216). Il cerchio di 24 px centrato sul link tocca il bersaglio della riga, quindi l'eccezione di spaziatura di 2.5.8 non vale: un tocco 3 px fuori dal testo apre l'anteprima invece dell'elenco. axe gira in jsdom, dove le regole di layout restano `incomplete` (shared/testing/axe.ts:3-4), e l'unico e2e e' csp.spec.ts: la dimensione dei bersagli non la verifica nessuno. Il residuo umano dei flusso.md cita contrasto e ordine di lettura, non i bersagli.",
+    "fix": "In tema.css: `.ui-link-elenco { display: inline-flex; align-items: center; min-height: 24px; padding: .15rem 0; }`, e min-height 24px anche per i link di .ui-link-elenco--riga. Nella riga apribile, ignorare anche il clic che parte dalla cella del link, non solo dal link (stessa regola su e.target proposta in H-01). Aggiungere 'dimensione dei bersagli (2.5.8) nelle celle con link' al residuo WCAG dei flussi riepilogo, domande e panoramica, oppure un run axe in Playwright sul riepilogo."
+  },
+  {
+    "id": "X-05",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/AnteprimaFinanziario.tsx:61",
+    "titolo": "Card del finanziario nella Home per un P4: pagamenti e domande dell'area stanno accanto alla dotazione regionale senza dirlo, e la quota sparisce senza spiegazione",
+    "evidenza": "e19d25f non ha casi ADA: tests/app-aree.test.tsx non cita mai il perimetro. Con perimetro ADA la card mostra 'Dotazione (regionale)' (riga 60, etichettaDiProgramma) e subito accanto 'Pagamenti totali' (riga 61) e 'Domande presentate' (riga 73) dell'area, senza etichetta ne' nota. Nella panoramica gli stessi numeri hanno PerimetroSezione, la pill 'la tua area (ADA)' e NotaPerimetroMisto ('i due valori non sono confrontabili', comuni.tsx:68-74). Per ADA la quota vale null con il motivo 'Non confrontabile...' (aggregati.ts:38), ma la card fa solo `k.quota.valore !== null && <Avanzamento/>` (riga 63): la barra sparisce senza dire perche', mentre per un profilo regionale c'e'. Chi entra dalla Home legge 12,3 M pagati su 300 M di dotazione come se i due numeri avessero lo stesso perimetro.",
+    "fix": "Con data.perimetro === 'ADA': etichette 'Pagamenti totali della tua area' e 'Domande presentate della tua area', oppure un `<dd className=\"ui-ambito__nota\">` con il perimetro (perimetroBreve). Al posto della barra, il motivo di k.quota ('Non confrontabile: dotazione regionale e pagamenti dell'area'). Test in tests/app-aree.test.tsx con risposte di TX-0002 e TX-0009 a perimetro ADA."
+  },
+  {
+    "id": "X-06",
+    "severity": "MINORE",
+    "file": "src/shared/ui/tema.css:361",
+    "titolo": "Home: il pallino 'Disponibile' pulsa senza fine e non si puo' fermare (WCAG 2.2.2, livello A)",
+    "evidenza": "`.ui-ambito--attivo .ui-ambito__stato::before { ... animation: ui-pulsa 2s ease-in-out infinite; }` (riga 361, keyframes alla riga 389) e' un'animazione che parte da sola, dura piu' di 5 secondi e sta accanto ad altro contenuto. Compare su ogni card attiva della Home (app/home.tsx:37 e 51), quindi anche su quella del finanziario. L'unica attenuazione e' prefers-reduced-motion (riga 392), un'impostazione del sistema e non il meccanismo di pausa che 2.2.2 richiede nella pagina; axe non la rileva. L'ha introdotta e19d25f, mai passato da una step9.",
+    "fix": "Tenere l'animazione sotto i 5 secondi (`animation: ui-pulsa 2s ease-in-out 2`) oppure renderla statica, lasciando la regola reduced-motion."
+  },
+  {
+    "id": "X-07",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/DettaglioIntervento.tsx:187",
+    "titolo": "Importi SIGC nel dettaglio: il drill-down esiste solo come clic sulla cascata. Manca il link da tastiera, e quando la cascata non si disegna (importi assenti) non c'e' nulla, diversamente dalla pagina SIGC",
+    "evidenza": "Nella pagina SIGC la card degli importi ha il clic sulla cascata e anche il link esplicito 'Le domande SIGC nell'elenco operativo' (SigcReport.tsx:117). Il link resta anche quando la cascata non si disegna: graficoCascataSigc passa a nonDisegnabile se ammesso, pagato o ancora da pagare mancano (grafici/sigc.ts:111-120). Nel dettaglio la card Importi SIGC (righe 181-198) ha solo onClic. Con importi assenti (campagne senza ASR2-20) l'innesco 'passo di Importi SIGC' del link elenco-sigc-intervento (uiplan, tabella dei link di panoramica.md) sparisce per tutti. Da tastiera l'unico equivalente e' il link 'presentate' di un'altra card (VociSigcNellElenco, riga 150), con un'altra etichetta. Il sottotitolo (riga 189) continua a promettere 'Clic sulla cascata'.",
+    "fix": "Sotto la card Importi SIGC del dettaglio, lo stesso link della pagina SIGC: `<ApriNellElenco variante=\"testo\" indirizzo={link('elenco-sigc-intervento', { sigc: true, intervento: da.codice })} testo=\"Le domande SIGC dell'intervento nell'elenco operativo\" descrizione=\"(sinottico con richiesto, ammesso, pagato e ancora da pagare)\" />`, presente anche quando la cascata non si disegna. Test L2 con importi NON_VALORIZZATO: il link c'e' e porta a ?sigc=true&intervento=SRA01."
+  },
+  {
+    "id": "X-08",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/ui/LinkElenco.tsx:43",
+    "titolo": "A-01 sottostima la severita' (MINORE): e' lo stesso difetto di H-01 (MAGGIORE), in piu' con il Tab che esce dal focus trap. Va unificato come MAGGIORE",
+    "evidenza": "A-01 e H-01 descrivono lo stesso stopPropagation applicato a ogni tasto. Verificato in node_modules/react-aria/dist/private/focus/FocusScope.mjs:250 e :307: il Tab resta nel pannello grazie a un listener keydown su document in fase di bubbling, e l'arresto sintetico di React 19.2.7 ferma lo stesso evento nativo prima che ci arrivi. ariaHideOutside usa inert dove e' supportato (overlays/ariaHideOutside.mjs:20 e 41): il Tab dall'ultimo link del pannello esce verso il browser invece di tornare a 'Chiudi'. Il flusso approvato dichiara meccanizzato il 'focus-trap di pannello e drawer' (riepilogo.md:50) e il kit lo garantisce. E' quindi un comportamento concreto contrario a un wireframe approvato, cioe' la soglia del MAGGIORE nella regola anti-inflation. Se resta MINORE in A-01, il giudice rischia di unificare i due finding al ribasso.",
+    "fix": "Unificare A-01 in H-01 come MAGGIORE. Il test di regressione deve coprire, con il focus sui link dell'anteprima, sia Esc sia Tab (dall'ultimo link al pulsante Chiudi, e Shift+Tab all'indietro)."
+  },
+  {
+    "id": "X-09",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/ui/colonneAnno.tsx:26",
+    "titolo": "V-07 sovrastima la severita' (MINORE): per contratto il conteggio non puo' mancare, il caso e' solo teorico",
+    "evidenza": "In handover/openapi-finanziario.json, DomandePerAnnoRiga ha primaAnnualita, altreAnnualita, nonClassificate e totali come int64 non nullable; solo annoRaccolta e' ['integer','null']. Nel backend ReportFinanziarioPort.DomandeAnno(Integer annoCampagna, long totali, long primaAnnualita, long altreAnnualita, long nonClassificate) (ReportFinanziarioPort.java:49) usa tipi primitivi, e count() non restituisce mai null. Il '-' di <Numero> al posto di 'non disponibile' puo' comparire solo se nel JSON manca la proprieta', cioe' con un backend fuori contratto. Lo stesso vale per la parte 'assenze diverse' di H-05. Resta un'incoerenza di resa: COSMETICO.",
+    "fix": "Declassare V-07 a COSMETICO; la correzione proposta resta facoltativa, senza test dedicati."
+  },
+  {
+    "id": "X-10",
+    "severity": "MAGGIORE",
+    "file": "src/pages/finanziario/interventi/page.test.tsx:195",
+    "titolo": "H-11 sottostima la severita' (MINORE): e' lo stesso test di V-01 (MAGGIORE), che non puo' fallire nemmeno quando il clic avviene",
+    "evidenza": "H-11 vede solo l'`if (grafico)` senza asserzione. V-01 mostra che anche con il grafico presente l'asserzione sincrona sulla location (riga 196) arriva prima della navigazione, che nel data router e' asincrona. Messi insieme: l'unico test del vincolo 'nessuna navigazione senza il grant' (e6fbe26) passa con o senza il controllo in LinkElenco.tsx:16. Rientra quindi nel MAGGIORE della checklist ('test che non prova cio' che dichiara'). Nella pagina SIGC lo stesso test non esiste proprio (A-05).",
+    "fix": "Unificare H-11 in V-01 come MAGGIORE. Applicare il fix di V-01 (expect(grafico).toBeTruthy(), attesa prima dell'asserzione negativa, prova di mutazione su LinkElenco.tsx:16) anche ai clic della pagina SIGC."
+  }
+]

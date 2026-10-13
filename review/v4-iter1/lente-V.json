@@ -1,0 +1,58 @@
+[
+  {
+    "id": "V-01",
+    "severity": "MAGGIORE",
+    "file": "src/pages/finanziario/interventi/page.test.tsx:196",
+    "titolo": "Il test 'senza il grant dell'elenco i clic non portano altrove' non puo' fallire: controlla la location in modo sincrono dopo una navigazione che e' asincrona",
+    "evidenza": "Righe 194-196: `if (grafico) clicSu(grafico, {...}); expect(router.state.location.pathname).toBe('/finanziario/interventi/SRA01')`. clicSu (grafico-finto.ts:71) chiama il gestore in modo sincrono; se useApriNellElenco navigasse anche senza grant, `void naviga(indirizzo)` (LinkElenco.tsx:26) passa da router.navigate, che aggiorna state.location solo in completeNavigation dopo `await handleLoaders(...)` (node_modules/react-router/dist/development/lib/router/router.js, startNavigation): al momento dell'expect la location e' sempre quella di partenza. In piu' `if (grafico)` senza `expect(grafico).toBeTruthy()` lascia passare il test anche senza clic. E' l'unico test del comportamento dichiarato nel commit e6fbe26 ('nessuna navigazione senza il grant dell'elenco'): togliendo il controllo del grant da useLinkElenco (LinkElenco.tsx:16) il test resta verde.",
+    "fix": "Nel test: `expect(grafico).toBeTruthy()`, poi dopo il clic dare tempo alla navigazione prima dell'asserzione negativa, ad esempio `await act(() => new Promise((r) => setTimeout(r, 50)))` e solo dopo `expect(router.state.location.pathname).toBe('/finanziario/interventi/SRA01')`. Estendere il caso ai clic sulle barre di Domande SIGC e sulla cascata Importi SIGC della scheda SIGC (DettaglioIntervento.tsx:167, 192). Prova di mutazione: con `hasGrant(...) ? ... : null` sostituito da `indirizzoDelLink(...)` in LinkElenco.tsx:16 il test deve fallire."
+  },
+  {
+    "id": "V-02",
+    "severity": "MINORE",
+    "file": "tests/finanziario-link-elenco.test.ts:71",
+    "titolo": "Nessun test lega LINK_ELENCO a links[] dello uiplan: una deriva di destinazione o di query non viene rilevata",
+    "evidenza": "link-elenco.ts:80-94 dichiara i 12 link 'destinazione e query copiati da links[]', ma il solo test sullo uiplan (finanziario-link-elenco.test.ts:71-79) verifica che i parametri dichiarati nello uiplan siano producibili da parametriLink e che `link.length > 0`: non confronta id, target e query con LINK_ELENCO. Oggi coincidono (verificato a mano sui 12), ma un parametro tolto o aggiunto in LINK_ELENCO (es. 'azione' che sparisce da elenco-anno-intervento) o una destinazione sbagliata passa i test L1; i test L2 di pagina coprono solo alcune combinazioni di filtri. Non e' coperto nemmeno il clic sulle barre di Domande SIGC del dettaglio (DettaglioIntervento.tsx:167): il dettaglio verifica le voci come link e la cascata, non le barre.",
+    "fix": "In tests/finanziario-link-elenco.test.ts: `const daUiplan = Object.fromEntries(uiplan.routes.flatMap((r) => r.links ?? []).map((l) => [l.id, { destinazione: l.target, query: l.query }]))` e `expect(LINK_ELENCO).toEqual(daUiplan)` (12 voci, stesso ordine di query). Esportare LINK_ELENCO se serve. In src/pages/finanziario/interventi/page.test.tsx aggiungere il clic sulla barra 'Da pagare' di Domande SIGC con l'attesa '/elenco-operativo/domande?sigc=true&pagamento=DA_PAGARE&intervento=SRA01'."
+  },
+  {
+    "id": "V-03",
+    "severity": "MINORE",
+    "file": "wireframes/sigc/sigc.html:65",
+    "titolo": "I wireframe riapprovati il 13/10 e OP-FE-05 descrivono ancora la UI prima di a3e9579, senza una deviazione registrata",
+    "evidenza": "a3e9579 (D-09 del backend) ha cambiato il comportamento, ma i flussi approvati dicono il contrario: sigc.html:65 'Fonti diverse per il pagato (OP-FE-05): lo dicono entrambe le card', mentre il codice le ha tolte e finanziario-ui.test.tsx:1607 vieta 'Fonti diverse' ed 'elenchi di liquidazione'; sigc.html:72-73 e panoramica.html:115-116 'Imbuto: presentate, pagate (elenchi di liquidazione), da pagare', mentre il codice disegna barre di quattro voci sovrapposte con le pagate da IMPORTO_PAGATO > 0 (ASR2-20, sigc.ts:39-44); panoramica.md:18, 27, 33 e sigc.md:19, 27 'imbuto'; intervento.html:98 e panoramica.md:29 'Pagato sulla dotazione' da TX-0002 e TX-0011, mentre il gauge e' 'Pagato netto sulla dotazione' dalla sola TX-0011 (DettaglioIntervento.tsx:88); panoramica.html:76-77 KPI 'Pagato sulla dotazione' contro 'Pagato lordo sulla dotazione' (Panoramica.tsx:44); domande.html:107 e domande.md:26 'il decretato e' calcolato dai pagamenti totali', che a3e9579 dichiara una falsa equivalenza (DomandeReport.tsx:7-8). uiplan.json:1515 (OP-FE-05) dice ancora che RF012 conta le pagate dagli elenchi di liquidazione e che la UI avverte che pagate e importo pagato possono non coincidere. In deviations_reviewed dei cinque flussi ci sono solo V-22 e V-07.",
+    "fix": "Aggiornare i testi dei wireframe panoramica (panoramica.html, intervento.html, panoramica.md), sigc (sigc.html, sigc.md) e domande (domande.html, domande.md): barre di presentate, pagate, da pagare e senza importi, che si sovrappongono, con le pagate dall'importo pagato della domanda (ASR2-20); niente 'fonti diverse'; gauge 'Pagato netto sulla dotazione' (TX-0011); KPI 'Pagato lordo sulla dotazione'; decretato dalle righe PAGATA degli elenchi di liquidazione, distinto dai pagamenti. Riscrivere OP-FE-05 in uiplan.json: fonte unica per pagate e pagato (D-09 a), resta aperto solo il significato del decretato. Poi far riapprovare i flussi. In alternativa, registrare in deviations_reviewed dei flussi panoramica, sigc e domande una voce 'a3e9579, D-09 del backend, richiesta dell'utente del 12/10/2026', come per V-07."
+  },
+  {
+    "id": "V-04",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/AnteprimaFinanziario.tsx:42",
+    "titolo": "La card del finanziario nella Home torna alle etichette ambigue 'Pagamenti totali' e 'Pagato sulla dotazione', che a3e9579 aveva separato in lordo e netto",
+    "evidenza": "AnteprimaFinanziario (e19d25f, scritto dopo a3e9579) mostra kpiSpesa di TX-0002 con 'Pagamenti totali' (riga 61) e 'Pagato sulla dotazione' (riga 42). Sono gli stessi numeri che la panoramica chiama PAGAMENTI_LORDI = 'Pagamenti totali (lordi, elenchi di liquidazione)' (Panoramica.tsx:42, spesa.ts:37) e 'Pagato lordo sulla dotazione' (Panoramica.tsx:44), mentre Avanzamento e Dettaglio mostrano un altro rapporto, 'Pagato netto sulla dotazione' (AvanzamentoReport.tsx:107, DettaglioIntervento.tsx:88). a3e9579 ha introdotto queste etichette su richiesta dell'utente del 12/10 per non confondere lordo e netto. Dalla Home l'utente vede una percentuale senza qualificazione che non coincide con quella netta del dettaglio.",
+    "fix": "AnteprimaFinanziario.tsx:61: `etichetta={PAGAMENTI_LORDI}` (o 'Pagamenti totali (lordi)' se lo spazio della card non basta), riga 42: 'Pagato lordo sulla dotazione'. Aggiornare l'attesa del test della Home (tests/app-aree.test.tsx) e l'e2e della Home in e2e/csp.spec.ts se cita l'etichetta."
+  },
+  {
+    "id": "V-05",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/DomandeReport.tsx:144",
+    "titolo": "Pagina domande: la vista Tabella delle card RF008 e RF010 non ha 'Apri nell'elenco', che il wireframe approvato mette nella tabella equivalente",
+    "evidenza": "domande.html:99 'La tabella equivalente [...] ogni cella (anno per annualita') ha l'azione Apri nell'elenco' e domande.html:109 'ogni riga (anno) ha l'azione Apri nell'elenco'; domande.md:23-24 'nella tabella equivalente \"Apri nell'elenco\"'. In DomandeReport la CardGrafico di Domande per anno (riga 144) e quella degli importi (riga 209) non passano la prop `tabella`: la vista Tabella della card rende TabellaDati(dati.tabella), senza link. I link stanno solo nelle Sezioni separate 'Domande per anno: dettaglio' (riga 166) e 'Importi per anno: dettaglio' (riga 212). Nel dettaglio dell'intervento lo stesso grafico porta invece i link proprio nella vista Tabella della card (b19ac02, DettaglioIntervento.tsx:120-130): due rese diverse dello stesso link.",
+    "fix": "In DomandeReport passare alle due CardGrafico, con il grant dell'elenco, `tabella={<TabellaRighe caption=\"Domande per anno di raccolta\" intestazione=\"Anno di raccolta\" chiave={(r) => annoDiRaccolta(r.annoRaccolta)} colonne={colonneAnno(link)} righe={perAnno(d.righe ?? [])} />}` e l'analoga con colonneImporti(link), come in DettaglioIntervento.tsx:120-130. Test L2: nella vista Tabella della card RF008 il link della cella 2024 prima annualita' ha l'indirizzo atteso. In alternativa, correggere domande.html e domande.md ('i link stanno nelle tabelle di dettaglio sotto le card') e far riapprovare il flusso."
+  },
+  {
+    "id": "V-06",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/link-elenco.ts:43",
+    "titolo": "Quando il criterio del punto cliccato non si puo' esprimere, il link si rende lo stesso su un insieme piu' largo di quello che dichiara",
+    "evidenza": "parametriLink (righe 43-47): con un intervento fuori formato il filtro decade e il criterio non entra, ma indirizzoDelLink restituisce comunque un indirizzo. Nel riepilogo (RiepilogoReport.tsx:53) il link 'le domande presentate dell'intervento X' diventa '/elenco-operativo/domande?presentata=true', cioe' tutte le presentate del perimetro, e quello dei pagamenti diventa '?esito=PAGATA', cioe' tutte le righe pagate. Il codice viene dal backend (r.codiceIntervento) e il formato e' validato solo lato client (filtri.ts:14). Stesso schema in SigcReport.tsx:69 e DettaglioIntervento.tsx:144: `criteriVoceSigc(v.nome) ?? undefined` produce, per una voce senza esito associato, un link senza sigc, quindi tutte le domande dei filtri. Il clic sul grafico invece si ferma su null (LinkElenco.tsx:25). Il test finanziario-link-elenco.test.ts:23-27 fissa il caso come voluto. Oggi nessun dato reale lo provoca (codici SRA01 e simili, voci tutte mappate), quindi il rischio e' latente.",
+    "fix": "Fallire in modo chiuso: indirizzoDelLink restituisce `string | null` e vale null quando `criteri.intervento !== undefined && !valoreFiltroValido('intervento', criteri.intervento)`; useLinkElenco lo propaga, e ApriNellElenco non rende nulla. In SigcReport.tsx:69 e DettaglioIntervento.tsx:144: `const c = criteriVoceSigc(v.nome); indirizzo: c ? link(id, c) : null`. Aggiornare il test alle righe 23-27 (atteso null) e aggiungere il caso della voce sconosciuta."
+  },
+  {
+    "id": "V-07",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/colonneAnno.tsx:26",
+    "titolo": "Nel dettaglio dell'intervento la nuova tabella equivalente di Domande per anno scrive '-' dove la tabella generata scriveva 'non disponibile'",
+    "evidenza": "b19ac02 sostituisce nella vista Tabella della card (DettaglioIntervento.tsx:120-130) la tabella generata da graficoDomandePerAnno, che rende un conteggio assente come numeroOpzionale -> 'non disponibile' (domande.ts:42, formato.ts:17), con colonneDomandePerAnno, che usa <Numero> -> formatNumber(null) = '-' (comuni.tsx:95, format.ts:5). Il commit e la prop di CardGrafico (CardGrafico.tsx:101) dichiarano 'stessi valori'; il wireframe intervento.html:128 chiede 'la tabella equivalente [...] con i valori assenti dichiarati'. La lista dei valori omessi sotto la card attenua il problema, ma la cella non lo dichiara.",
+    "fix": "In colonneAnno.tsx:26 rendere l'assenza come la tabella generata: `{r[c.campo] == null ? 'non disponibile' : <Numero valore={r[c.campo]} />}` (oppure un componente NumeroOpzionale in comuni.tsx basato su numeroOpzionale). Test L2 nel dettaglio: con primaAnnualita null la cella mostra 'non disponibile' e porta ancora il link."
+  }
+]
