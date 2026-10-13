@@ -16,7 +16,7 @@
 Vocabolario del kit UI v2 (ADR 0027 di green-fe), resa approvata nel prototipo `prototipo/finanziario/`.
 
 - /finanziario/dotazione: Shell > Barra filtri > Breadcrumb > Titolo > Card dotazione e pagamenti (barre) + Card quota FEASR (ciambella) > Card contributo ambientale (barre) > Stati
-- /finanziario/avanzamento: Shell > Barra filtri > Breadcrumb > Titolo > KPI x4 (con fonte non attiva dichiarata) > Card dove va la dotazione (sankey) + Card pagato sulla dotazione (gauge) > Stati
+- /finanziario/avanzamento: Shell > Barra filtri > Breadcrumb > Titolo > KPI x4 (con fonte non attiva dichiarata; importo pagato lordo, elenchi di liquidazione) > Card dove va la dotazione (sankey) + Card pagato netto sulla dotazione (gauge) > Stati
 
 ## Grafici del flusso
 
@@ -26,7 +26,7 @@ Vocabolario del kit UI v2 (ADR 0027 di green-fe), resa approvata nel prototipo `
 | /finanziario/dotazione | Quota FEASR e non FEASR | ciambella | TX-0003 | nessuno | 'grafico non disponibile' con il motivo |
 | /finanziario/dotazione | Contributo ambientale | barre | TX-0002 | dettaglio dell'intervento | percentuale assente: omessa |
 | /finanziario/avanzamento | Dove va la dotazione | sankey | TX-0005, TX-0006, TX-0007 | nessuno | ramo impegnato non disegnato (fonte non attiva), dichiarato |
-| /finanziario/avanzamento | Pagato sulla dotazione | gauge | TX-0007 | nessuno | non disegnato se manca un termine |
+| /finanziario/avanzamento | Pagato netto sulla dotazione | gauge | TX-0007 (pagamenti al netto delle rettifiche) | nessuno | non disegnato se manca un termine |
 
 Stanziato, impegnato, quote Stato e Regione e vincolo LEADER hanno fonte non attiva nel backend: le card lo dicono con il motivo, mai uno zero.
 
