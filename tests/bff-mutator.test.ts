@@ -103,10 +103,24 @@ describe('coda delle letture: tetto per prefisso del percorso (review step9 H-21
   const insieme = (url: string, method = 'GET', n = 5) =>
     Promise.all(Array.from({ length: n }, () => customInstance<{ ok: boolean }>({ url, method })));
 
-  it(`con i tetti dell'app solo il finanziario ha un tetto: al piu' ${LETTURE_IN_PARALLELO} GET insieme, le altre in coda`, async () => {
-    expect(TETTI_LETTURE).toEqual({ '/api/finanziario/': 2 });
+  it(`con i tetti dell'app finanziario ed elenco operativo hanno un tetto: al piu' ${LETTURE_IN_PARALLELO} GET insieme, le altre in coda`, async () => {
+    expect(TETTI_LETTURE).toEqual({ 'letture-limitate': { tetto: 2, prefissi: ['/api/finanziario/', '/api/elenco-operativo/'] } });
     const misura = misuraParallelo('/api/finanziario/lenta');
     expect((await insieme('/api/finanziario/lenta')).every((e) => e.ok)).toBe(true);
+    expect(misura.massimo).toBe(LETTURE_IN_PARALLELO);
+  });
+
+  it('finanziario ed elenco operativo condividono la coda: il tetto del backend e unico per utente (review v1 V-04)', async () => {
+    const misura = { inCorso: 0, massimo: 0 };
+    const lenta = async () => {
+      misura.inCorso++;
+      misura.massimo = Math.max(misura.massimo, misura.inCorso);
+      await delay(20);
+      misura.inCorso--;
+      return HttpResponse.json({ ok: true });
+    };
+    server.use(http.get('*/api/finanziario/lenta', lenta), http.get('*/api/elenco-operativo/domande', lenta));
+    await Promise.all([insieme('/api/finanziario/lenta', 'GET', 3), insieme('/api/elenco-operativo/domande', 'GET', 3)]);
     expect(misura.massimo).toBe(LETTURE_IN_PARALLELO);
   });
 
@@ -265,7 +279,7 @@ describe("coda delle letture: tetto dell'utente, non della scheda (review X-02)"
     const locks = installaLocksFinti();
     // l'altra scheda tiene il posto 0 del finanziario
     let rilasciaAltraScheda = () => {};
-    void locks.request(`${NOME_LOCK_LETTURE}:/api/finanziario/:0`, {}, () => new Promise<void>((r) => (rilasciaAltraScheda = r)));
+    void locks.request(`${NOME_LOCK_LETTURE}:letture-limitate:0`, {}, () => new Promise<void>((r) => (rilasciaAltraScheda = r)));
     const stato = backend(10);
     const letture = Promise.all([leggi(), leggi(), leggi(), leggi()]);
     await finche(() => stato.servite >= 2);
@@ -281,13 +295,13 @@ describe("coda delle letture: tetto dell'utente, non della scheda (review X-02)"
 
   it("posto 0 tenuto da un'altra scheda e una sola lettura qui: parte subito, sul primo lock libero (N-11)", async () => {
     const locks = installaLocksFinti();
-    const altraScheda = `${NOME_LOCK_LETTURE}:/api/finanziario/:0`;
+    const altraScheda = `${NOME_LOCK_LETTURE}:letture-limitate:0`;
     void locks.request(altraScheda, {}, () => new Promise<void>(() => {}));
     const stato = backend(30);
     const lettura = leggi();
     await finche(() => stato.arrivate === 1);
     // la lettura tiene il posto 1, l'altra scheda il suo
-    expect([...locks.tenuti].sort()).toEqual([altraScheda, `${NOME_LOCK_LETTURE}:/api/finanziario/:1`]);
+    expect([...locks.tenuti].sort()).toEqual([altraScheda, `${NOME_LOCK_LETTURE}:letture-limitate:1`]);
     expect(await lettura).toEqual({ ok: true });
     expect([...locks.tenuti]).toEqual([altraScheda]);
   });

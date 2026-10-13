@@ -71,10 +71,12 @@ AXIOS_INSTANCE.interceptors.response.use(
 // (cruscottocsr.finanziario.letture-per-utente): oltre risponde 503 CAPACITA_ESAURITA. Le pagine con piu' sezioni ne
 // lanciano 3-4 insieme: le GET verso un prefisso con un tetto si mettono in coda qui, cosi' il tetto non viene superato.
 // Il tetto e' per prefisso del percorso (review step9 H-21): ogni prefisso ha la sua coda, le GET senza un tetto non
-// aspettano. Vale il prefisso piu' lungo che combacia. Il posto liberato passa direttamente al primo in coda. Il mutator
-// condiviso non ha tetti predefiniti: li configura l'app all'avvio (app/tetti-letture.ts, chiamato da main.tsx).
+// aspettano. Vale il prefisso piu' lungo che combacia. Piu' prefissi possono condividere UNA coda (un gruppo con nome:
+// { tetto, prefissi }) quando il backend conta le loro letture insieme, come finanziario ed elenco operativo (review v1
+// V-04). Il posto liberato passa direttamente al primo in coda. Il mutator condiviso non ha tetti predefiniti: li
+// configura l'app all'avvio (app/tetti-letture.ts, chiamato da main.tsx).
 // Il tetto e' dell'utente, non della scheda (review X-02):
-//  - fra le schede: ogni lettura in corso tiene uno dei lock "cruscotto-csr-letture:<prefisso>:<i>" della Web Locks API
+//  - fra le schede: ogni lettura in corso tiene uno dei lock "cruscotto-csr-letture:<coda>:<i>" della Web Locks API
 //    (i da 0 al tetto escluso), quindi con piu' schede aperte le letture in corso restano al piu' quante il tetto. Prende
 //    il primo lock libero e, solo se li tengono tutti, aspetta quello del proprio posto nella scheda (review N-11): un
 //    posto tenuto da un'altra scheda non ferma questa se ce n'e' un altro libero. Senza Web Locks (contesto non sicuro,
@@ -90,7 +92,11 @@ export const NOME_LOCK_LETTURE = 'cruscotto-csr-letture';
 // oltre la durata massima di un report sul backend: fino a sette letture SQL da 15 s (cruscottocsr.finanziario.query-timeout)
 export const GUARDIA_LETTURA_MS = 120_000;
 
+/** Tetto di un prefisso, oppure di un gruppo di prefissi che condividono la coda (chiave = nome del gruppo). */
+export type TettoLetture = number | { tetto: number; prefissi: readonly string[] };
+
 interface Coda {
+  /** Prefisso o nome del gruppo: identifica la coda e i suoi lock. */
   prefisso: string;
   tetto: number;
   /** Posti liberi della scheda: indici da 0 al tetto escluso; il posto dice quale lock aspettare se sono tutti tenuti. */
@@ -98,11 +104,14 @@ interface Coda {
   inAttesa: ((indice: number) => void)[];
 }
 let code = new Map<string, Coda>();
-let tetti: Record<string, number> = {};
+/** Per ogni prefisso: la coda (il prefisso stesso o il nome del gruppo) e il suo tetto. */
+let prefissi: { prefisso: string; coda: string; tetto: number }[] = [];
 
-/** Sostituisce i tetti di letture per prefisso (l'app all'avvio, i test). Le code in corso finiscono. */
-export function configuraTettiLetture(nuovi: Record<string, number>): void {
-  tetti = { ...nuovi };
+/** Sostituisce i tetti di letture per prefisso o per gruppo di prefissi (l'app all'avvio, i test). Le code in corso finiscono. */
+export function configuraTettiLetture(nuovi: Record<string, TettoLetture>): void {
+  prefissi = Object.entries(nuovi).flatMap(([chiave, t]) =>
+    typeof t === 'number' ? [{ prefisso: chiave, coda: chiave, tetto: t }] : t.prefissi.map((prefisso) => ({ prefisso, coda: chiave, tetto: t.tetto })),
+  );
   code = new Map();
 }
 
@@ -112,16 +121,14 @@ export function azzeraCodeLetture(): void {
 }
 
 function codaPer(url: string): Coda | undefined {
-  const prefisso = Object.keys(tetti)
-    .filter((p) => url.startsWith(p))
-    .sort((a, b) => b.length - a.length)[0];
-  if (prefisso === undefined) return undefined;
-  let coda = code.get(prefisso);
+  const scelto = prefissi.filter((p) => url.startsWith(p.prefisso)).sort((a, b) => b.prefisso.length - a.prefisso.length)[0];
+  if (scelto === undefined) return undefined;
+  let coda = code.get(scelto.coda);
   if (!coda) {
     // almeno una lettura alla volta: un tetto a zero bloccherebbe per sempre le letture del prefisso
-    const tetto = Math.max(1, tetti[prefisso]);
-    coda = { prefisso, tetto, liberi: Array.from({ length: tetto }, (_, i) => i), inAttesa: [] };
-    code.set(prefisso, coda);
+    const tetto = Math.max(1, scelto.tetto);
+    coda = { prefisso: scelto.coda, tetto, liberi: Array.from({ length: tetto }, (_, i) => i), inAttesa: [] };
+    code.set(scelto.coda, coda);
   }
   return coda;
 }
