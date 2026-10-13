@@ -1,0 +1,154 @@
+[
+  {
+    "id": "V-01",
+    "severity": "MAGGIORE",
+    "file": "src/features/elenco-operativo/ui/colonne.tsx:39",
+    "titolo": "Elenco delle domande senza la scelta delle colonne ('Colonne') del wireframe approvato e di RA002",
+    "evidenza": "colonneDomande (colonne.tsx:39-41) restituisce le colonne della vista senza 'nascosta' ne' 'fissa', quindi in TabellaServer (b74b7a2, TabellaServer.tsx:165) conScelta = colonne.some(c => !c.fissa && c.nascosta !== undefined) e' falso e il bottone 'Colonne' non si rende mai sulle domande (sui pagamenti si', colonne.tsx:65-66). Il wireframe approvato lo prevede nella barra della tabella delle domande accanto agli export (wireframes/elenco-operativo/domande/domande.html:198: 'Colonne', 'Scarica CSV', 'Scarica XLSX'), in aggiunta alle viste per ambito; RA002 chiede 'la scelta delle colonne visibili' (fonte C-09: 'selezione e riordino delle colonne visibili'). Le viste (D-1) sono insiemi predefiniti, non la scelta dell'utente. Nessun test lo copre.",
+    "fix": "Dare alle colonne della vista nascosta:false (la prima fissa) e aggiungere le altre colonne di DomandaElenco come nascosta:true, cosi' TabellaServer rende 'Colonne'; poiche' TabellaServer inizializza 'nascoste' una sola volta (useState), rimontare la tabella al cambio di vista (key = id della vista). Test L2: sulle domande c'e' 'Colonne' e una colonna si nasconde e si mostra."
+  },
+  {
+    "id": "V-02",
+    "severity": "MAGGIORE",
+    "file": "src/features/elenco-operativo/ui/TabelleScheda.tsx:78",
+    "titolo": "Scheda della domanda: schede Pagamenti e Determine senza quote nazionale e regionale, Differenza e le colonne a scelta del wireframe",
+    "evidenza": "TabellaPagamentiDomanda ha le intestazioni ['Decreto','Data di autorizzazione','Esito','Decretato','Pagato','Quota FEASR','Motivi di esclusione'] (TabelleScheda.tsx:78): mancano Quota nazionale e Quota regionale, visibili nel wireframe approvato (dettaglio-domanda.html:124) ed esplicite in RA004 ('elenchi di liquidazione e decreti con le quote FEASR, nazionale e regionale') e in SC-EO_DETTAGLIO ('quote 1000.00, 1050.00, 450.00'); protocollo e tipologie di elenco e pagamento (wireframe :127) non si rendono. TabellaDetermine (TabelleScheda.tsx:58) non ha la colonna 'Differenza' (deltaRichiestoAmmesso) visibile nel wireframe (:116), ne' comparto e spesa imponibile (wireframe :119, colonne a scelta). Lo uiplan dichiara per la route di dettaglio pagamenti[].quotaNazionale, quotaRegionale, protocollo, tipologiaElenco, tipologiaPagamento e determine[].deltaRichiestoAmmesso, spesaImponibile, comparto, ma nessun file della scheda li legge (grep). Il test RA004 (interrogazione.test.tsx:180) non apre la scheda Pagamenti.",
+    "fix": "Aggiungere Quota nazionale, Quota regionale (cellaImporto) e Differenza (cellaImporto(deltaRichiestoAmmesso)) come colonne visibili; rendere protocollo, tipologie, comparto e spesa imponibile come colonne a scelta (stesso meccanismo 'Colonne') o voci della riga; per la riga ESCLUSA i motivi al posto degli importi come nel wireframe. Test L2 sulla scheda Pagamenti con le tre quote e su Determine con la Differenza."
+  },
+  {
+    "id": "V-03",
+    "severity": "MAGGIORE",
+    "file": "src/features/elenco-operativo/ui/ElencoDomande.tsx:47",
+    "titolo": "Durante l'aggiornamento sinottico, totali del piede e conteggio dal vivo restano dei criteri precedenti senza indicatore, mescolati al totale nuovo",
+    "evidenza": "useSinottico usa keepPreviousData (api/index.ts:72) ma l'indicatore di aggiornamento esiste solo per TX-0056 (ElencoDomande.tsx:64, aria-busy sulla sola sezione dei risultati :70): la VistaQuery del sinottico (:153) rende i dati segnaposto senza aria-busy ne' AvvisoAggiornamento. piedeDomande (:47-57) compone nella stessa riga del tfoot 'Totale dell'insieme filtrato: N domande' da pagina.totaleRighe (TX-0056, gia' nuova) e richiesto/ammesso/pagato/liquidato dal sinottico ancora dei filtri precedenti; conteggioDal (:112-114) mostra il vecchio conteggio finche' isFetching perche' dice 'Conteggio in corso' solo con data assente. TX-0057 aggrega l'intero insieme ed e' di norma piu' lento di una pagina (e con V-04 viene rifiutato e ritentato). Contrario ad ADR 0029 par. 2 ('restano i dati precedenti con un indicatore di aggiornamento aria-busy'), alla nota WCAG dello uiplan ('aria-busy sulla card') e a RA006 (totali sotto 'calcolati sull'intero insieme filtrato').",
+    "fix": "Calcolare l'aggiornamento del sinottico (sinottico.isPlaceholderData && sinottico.isFetching): aria-busy e AvvisoAggiornamento sulla sezione del sinottico; nel piede non mostrare somme segnaposto (vuote o 'in aggiornamento') finche' il sinottico non e' dei criteri correnti; il conteggio del pannello dice 'Conteggio in corso' anche con dati segnaposto. Test L2 con un handler del sinottico ritardato."
+  },
+  {
+    "id": "V-04",
+    "severity": "MAGGIORE",
+    "file": "src/features/elenco-operativo/api/index.ts:9",
+    "titolo": "Le letture dell'elenco non passano dalla coda del tetto del backend: la pagina delle domande supera a ogni apertura il tetto di 2 letture per utente",
+    "evidenza": "Il commento dichiara che il mutator 'mette in coda le letture oltre il tetto del backend, come per il finanziario' (api/index.ts:9-10), ma src/app/tetti-letture.ts:7 configura la coda solo per '/api/finanziario/' (fissato anche da tests/bff-mutator.test.ts:107). Nel backend ConsultaElencoOperativoService e' @LetturaLimitata a livello di classe (../cruscotto-lazio-be/ARSCSR/application/src/main/java/it/arsial/cruscottocsr/application/service/elencooperativo/ConsultaElencoOperativoService.java:60) e LettureLimitate e' un singleton condiviso col finanziario: 2 letture per utente, 4 in tutto (D-10). All'apertura di /elenco-operativo/domande partono insieme TX-0060 (useInterrogazione.ts:20), TX-0057 (ElencoDomande.tsx:122) e TX-0056 (ElencoDomande.tsx:61): la terza riceve 503 CAPACITA_ESAURITA (registrato in audit) ed e' ritentata dopo Retry-After, quindi sinottico, righe o valori dei filtri arrivano in ritardo; lo stesso a ogni cambio rapido dei filtri (V-15) o con un report del finanziario aperto in un'altra scheda.",
+    "fix": "Mettere il prefisso '/api/elenco-operativo/' nella stessa coda (stesso tetto e stesso lock) del finanziario, poiche' il tetto del backend e' unico per utente (es. gruppi di prefissi che condividono una Coda in tetti-letture/bff-mutator), aggiornare tests/bff-mutator.test.ts e aggiungere un test che con tre letture contemporanee dell'elenco al piu' due siano in corso."
+  },
+  {
+    "id": "V-05",
+    "severity": "MAGGIORE",
+    "file": "src/pages/elenco-operativo/interrogazione.test.tsx:97",
+    "titolo": "Il test 'errore dal problem-type' non prova l'errore; stati errore e aggiornamento delle due interrogazioni senza test",
+    "evidenza": "Il test 'stato vuoto con \"Modifica i filtri\"; errore dal problem-type' (interrogazione.test.tsx:97-103) simula solo una pagina vuota e verifica il messaggio vuoto e il bottone: nessuna risposta problem. Nei test della feature l'unico problem simulato e' il 404 della scheda (:195; tests/elenco-operativo-api.test.tsx:77). I flussi approvati domande e pagamenti dichiarano obbligatori lo stato errore (role=alert discriminato sul problem-type: 400 criteri non validi col campo, 403, 503 con Retry-After, 504, 401/419) e lo stato aggiornamento (dati precedenti, indicatore role=status, mai la tabella vuota: ADR 0029); nessun test ne' sulle domande ne' sui pagamenti li esercita (nessun riferimento a 'Aggiornamento dei risultati' o aria-busy nei test).",
+    "fix": "Separare il test vuoto da quello d'errore; aggiungere L2 per domande e pagamenti: 400 DATO_NON_VALIDO con detail -> role=alert col messaggio; 403 -> messaggio di accesso negato; aggiornamento: cambio di un filtro con handler ritardato -> righe precedenti ancora presenti, aria-busy=true e role=status 'Aggiornamento dei risultati'."
+  },
+  {
+    "id": "V-06",
+    "severity": "MINORE",
+    "file": "plan/elenco-operativo/uiplan.json:187",
+    "titolo": "Link pagamenti-delle-domande e domande-dei-pagamenti: lo uiplan dichiara 24 parametri, il codice ne porta 27",
+    "evidenza": "Il refresh feb32b6 ha aggiunto statoSostegno, statoPagamento e voceProgrammazione agli url_params delle due route ma non alla 'query' dei link pagamenti-delle-domande (uiplan.json:187) e domande-dei-pagamenti (:445), che restano i 24 filtri; filtriDellaDomanda (criteri.ts:232-236, su FILTRI_DOMANDA che li comprende) li porta comunque, e collegamenti.ts:2 dichiara 'Solo i parametri dichiarati dal link'. Il comportamento e' quello giusto (nessuna perdita, test elenco-operativo-lib.test.ts:135), ma il link dichiarato non corrisponde al link reso: uiplan-validate/fe-project-check verificano un link diverso da quello in produzione.",
+    "fix": "Aggiungere i tre parametri alla 'query' dei due link nello uiplan (e rivalidare); allineare il testo 'i 24 filtri' di domande.md/pagamenti.md al prossimo rework dei flussi; correggere il commento di collegamenti.ts."
+  },
+  {
+    "id": "V-07",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/PannelloFiltriElenco.tsx:167",
+    "titolo": "La nota 'filtri diversi insieme (E)' e' falsa per gli stati: stato/statoSostegno/statoPagamento e statoProgrammazione/voceProgrammazione sono in OR",
+    "evidenza": "Il contratto dice di statoSostegno e statoPagamento 'In OR con stato' e di voceProgrammazione 'In OR con statoProgrammazione' (D-02 Rev. 1 e Rev. 2: stessa dimensione). Arrivando da un report procedurale con statoSostegno=X e aggiungendo dal pannello uno 'Stato SIAN' (PannelloFiltriElenco.tsx:88) l'insieme si allarga (unione) mentre la nota del pannello (:167) e la barra dei chip, con due etichette distinte (chip.ts:19-23), lasciano intendere un AND.",
+    "fix": "Quando e' presente una chiave di drill-down per stato, dichiarare l'OR (nota del pannello e chip raggruppati, es. 'Stato (uno qualsiasi): ...'); test L1 sul testo dei chip."
+  },
+  {
+    "id": "V-08",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/lib/grafici.ts:42",
+    "titolo": "Barra SENZA_STATO del grafico per stato non cliccabile, mentre contratto e pannello accettano stato=SENZA_STATO",
+    "evidenza": "NON_FILTRABILI.perStato contiene SENZA_STATO (grafici.ts:42) seguendo la premessa del wireframe 'il filtro stato non le accetta' (domande.md, tabella dei grafici); ma il contratto ora la accetta (TX-0056 stato: 'oppure SENZA_STATO per le domande senza stato', D-02 Rev. 1 H7) e il pannello la offre come casella (PannelloFiltriElenco.tsx:88): lo stesso filtro e' raggiungibile dal pannello ma non dal drill-down del grafico.",
+    "fix": "Al prossimo rework del flusso domande rendere SENZA_STATO cliccabile (togliere da NON_FILTRABILI.perStato, aggiornare elenco-operativo-lib.test.ts:268 e la riga del grafico in domande.md); fino ad allora registrare la divergenza come punto aperto."
+  },
+  {
+    "id": "V-09",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/SinotticoDomande.tsx:33",
+    "titolo": "Vista generale: le tessere Pagato e Ancora da pagare non portano quota pagata e liquidato/recuperato del wireframe",
+    "evidenza": "Nel wireframe approvato la tessera Pagato dice 'quota pagata sull'ammesso: nn%' e Ancora da pagare 'liquidato n,n M - recuperato n,n k' (domande.html:163, :168). Nella vista generale (viste.ts:63) il codice usa KpiSomma (SinotticoDomande.tsx:33-34) con la sola nota 'n domande senza importo': quota pagata, liquidato e recuperato, gia' nel DTO di sintesi, nella vista generale non compaiono.",
+    "fix": "Nella vista generale aggiungere alle due tessere la quota (testoQuotaPagata/quota) e la nota liquidato - recuperato, tenendo la nota delle domande senza importo."
+  },
+  {
+    "id": "V-10",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/SinotticoDomande.tsx:35",
+    "titolo": "Liquidato e recuperato aggregati resi come 'non valorizzato' senza il motivo dell'aggregato",
+    "evidenza": "liquidato e recuperato del sinottico passano da testoSomma({ totale }) (SinotticoDomande.tsx:35-36; piede ElencoDomande.tsx:55-56), cioe' descriviImporto non aggregato: con NON_VALORIZZATO il testo e' 'non valorizzato' (nota 'il dato non e' presente nella fonte') e la nota non si mostra. Per il sinottico il recuperato NON_VALORIZZATO significa che almeno un recupero corrente dell'insieme non ha l'importo (D-05 Rev. 1 X1): il motivo reso e' fuorviante e non spiega perche' manca il totale.",
+    "fix": "Per gli aggregati del sinottico usare un testo di aggregato ('non calcolabile: un recupero dell'insieme non ha l'importo') e mostrarlo come nota della tessera e nel piede; test L1."
+  },
+  {
+    "id": "V-11",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/lib/voci.ts:48",
+    "titolo": "Anteprima del pagamento senza protocollo, tipologia e quote del wireframe",
+    "evidenza": "Il wireframe approvato dell'anteprima mostra 'Elenco D84-1, protocollo P-123, tipologia saldo' e 'Quote FEASR, nazionale, regionale' (pagamenti.html:145, :147); vociAnteprimaPagamento (voci.ts:48-59) rende beneficiario, domanda, esito, data, decretato, pagato e i motivi solo se presenti: protocollo, tipologie e quote non ci sono.",
+    "fix": "Aggiungere alle voci protocollo e tipologie (con l'assenza dichiarata) e le tre quote (cellaImporto); aggiornare tests/elenco-operativo-voci.test.ts."
+  },
+  {
+    "id": "V-12",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/SchedaDomanda.tsx:28",
+    "titolo": "'Torna all'elenco' torna indietro di un passo: dopo una domanda collegata riapre la scheda precedente, da un link condiviso puo' uscire dall'app",
+    "evidenza": "torna = window.history.length > 1 ? naviga(-1) : naviga(PERCORSO_DOMANDE) (SchedaDomanda.tsx:28). Dopo il link domanda-collegata (o 'Domanda di sostegno') il ritorno porta alla scheda precedente, non all'elenco; aperta in una scheda del browser con cronologia (es. da un link in una mail web) history.length > 1 e il bottone esce dal cruscotto. Il link dichiarato torna-all-elenco ha target /elenco-operativo/domande (uiplan.json:257) e il flusso ammette solo il ritorno 'alla ricerca di partenza'.",
+    "fix": "Portare la ricerca di partenza nello state dei link dell'anteprima (es. state { da: pathname+search }) e navigare li', altrimenti a PERCORSO_DOMANDE; mai history(-1) alla cieca. Test L2 del ritorno dopo una domanda collegata."
+  },
+  {
+    "id": "V-13",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/SchedaDomanda.tsx:67",
+    "titolo": "'Domanda di sostegno' della Sintesi e' un link non dichiarato e non filtrato sul perimetro",
+    "evidenza": "DomandaDiSostegno (SchedaDomanda.tsx:67-73, usata a :85) rende codiceDomandaSostegno come link alla scheda SOSTEGNO; nel wireframe approvato e' testo (dettaglio-domanda.html:87) e lo uiplan dichiara il passaggio alla domanda collegata solo dalla scheda 'Domande collegate' (link domanda-collegata). Il campo non e' filtrato come 'collegate' (perimetro e domande correnti, SC-EO_PERIMETRO_ADA): per un P4 o per una domanda di sostegno chiusa il link porta al 404 'Domanda non disponibile'.",
+    "fix": "Rendere il codice come testo (come il wireframe) oppure come link solo se e' fra scheda.collegate."
+  },
+  {
+    "id": "V-14",
+    "severity": "MINORE",
+    "file": "src/shared/ui/tabella/Paginazione.tsx:49",
+    "titolo": "Criteri dell'indirizzo normalizzati per la resa ma inviati grezzi: paginazione e ordinamento possono mentire",
+    "evidenza": "criteriDaRicerca (criteri.ts:104) inoltra pagina, dimensione e ordina cosi' come sono, mentre la resa usa paginaDi/dimensioneDi/ordinamentoDi: con dimensione=30 (valida per il contratto) il server da' 30 righe ma la select (Paginazione.tsx:49, opzioni 10/25/50/100) mostra 10; con ordina=xyz:asc o dimensione=500 la pagina va in errore 400 mentre l'intestazione direbbe codiceABarre crescente; con una pagina oltre l'ultima (D-04: righe vuote col totale) la tabella e' vuota senza stato vuoto (eVuoto guarda totaleRighe, ElencoDomande.tsx:79) e la paginazione dice 'Pagina N di N' (corrente limitata, Paginazione.tsx:27).",
+    "fix": "Normalizzare in criteriDaRicerca (scartare o riscrivere nell'indirizzo pagina/dimensione/ordina non validi), rendere pagina/dimensione/ordinamento dalla risposta, aggiungere alla select il valore non standard, e per la pagina oltre l'ultima un avviso con 'Vai all'ultima pagina'."
+  },
+  {
+    "id": "V-15",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/controlli.tsx:45",
+    "titolo": "Caselle, chip e clic sul grafico applicano il filtro senza debounce (ADR 0029 par. 2)",
+    "evidenza": "Solo i campi di testo passano da CampoRitardato (useCriteri.ts:3-4: 'Il debounce dei campi di testo sta nei campi'); Caselle (controlli.tsx:45), Scelte (:67) e il clic sul grafico (ElencoDomande.tsx:154) chiamano subito applica, che cambia indirizzo e chiave delle query: ogni clic avvia TX-0056 e TX-0057. ADR 0029 e uiplan-patterns par. 9: 'il cambio aggiorna URL e risultati con un debounce'. Con il tetto di V-04 piu' clic ravvicinati producono 503 e nuovi tentativi.",
+    "fix": "Applicare un debounce (es. 300 ms) ai criteri usati dalle query, lasciando immediati chip e indirizzo, oppure all'applica delle scelte multiple; test con fake timers."
+  },
+  {
+    "id": "V-16",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/esportazioni.ts:18",
+    "titolo": "Export oltre il limite di NFR-06: nessun avviso preventivo e messaggio generico; export dei pagamenti e limite senza test",
+    "evidenza": "La pagina conosce totaleRighe e i limiti dichiarati dal contratto (2.173 righe di domande, 2.777 di pagamenti: api/index.ts:88-90) ma scaricamentiElenco (esportazioni.ts:18) non li usa; il 400 diventa 'Richiesta non valida: ... Correggila e riprova.' (errori.ts:37), che invita a restringere i filtri solo se il detail del backend lo dice (flussi domande/pagamenti e OP-EO-05: 'il messaggio invita a restringere i filtri'). Il test RA005 (interrogazione.test.tsx:248) copre solo il CSV delle domande: ne' l'export dei pagamenti ne' SC-EO_ESPORTA_LIMITE hanno un test.",
+    "fix": "Con totaleRighe oltre il limite dire accanto ai pulsanti che il file non si puo' produrre e di restringere i filtri; mappare il 400 dell'export a un messaggio 'troppe righe: restringi i filtri'; test per l'export dei pagamenti e per il limite."
+  },
+  {
+    "id": "V-17",
+    "severity": "MINORE",
+    "file": "src/pages/elenco-operativo/interrogazione.test.tsx:222",
+    "titolo": "Test RA003 'un chip ciascuna' verifica due chip su tre; drill-down dal grafico non verificato in pagina",
+    "evidenza": "Con statoSostegno, statoPagamento e voceProgrammazione nell'indirizzo il test (interrogazione.test.tsx:222-231) cerca solo /DECADENZA TOTALE/ e /AMMESSA/: il chip di statoPagamento=RILASCIATO non e' verificato, e le etichette (che distinguono i tre parametri) non sono controllate. Il clic su una barra del sinottico che aggiunge il filtro (onFiltra, ElencoDomande.tsx:154) e' coperto solo da test L1 di filtroDalClic, non dal wiring in pagina.",
+    "fix": "Verificare i tre chip per etichetta e valore ('Stato della domanda di pagamento (report procedurale): RILASCIATO'); aggiungere un L2 che simuli il clic su una barra (grafico finto) e verifichi l'indirizzo con stato o intervento."
+  },
+  {
+    "id": "V-18",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/SinotticoDomande.tsx:46",
+    "titolo": "Il filtro aggiunto dal clic su una barra non si annuncia e la tabella equivalente non ha l'azione",
+    "evidenza": "La nota WCAG del flusso domande nello uiplan chiede che 'il clic su una barra aggiunge il filtro (chip) e lo annuncia'; onClic (SinotticoDomande.tsx:46-49) applica il filtro senza alcuna regione live (la barra dei chip non e' aria-live, BarraFiltri.tsx). La CardGrafico non riceve la prop 'tabella' con le azioni (:51), quindi dalla vista Tabella, il percorso da tastiera, il drill-down non e' possibile.",
+    "fix": "Annunciare in una regione role=status il filtro aggiunto (es. 'Filtro aggiunto: Stato SIAN Rilasciata'); passare a CardGrafico una tabella equivalente con un bottone per voce filtrabile."
+  },
+  {
+    "id": "V-19",
+    "severity": "COSMETICO",
+    "file": "src/features/elenco-operativo/ui/PannelloFiltriElenco.tsx:219",
+    "titolo": "Bottone 'Mostra i risultati' nel pannello dell'interrogazione",
+    "evidenza": "Il pannello dei flussi approvati ha solo 'Azzera' (domande.html:127, pagamenti.html:87) e ADR 0029 esclude il passo 'Applica'; il bottone primario 'Mostra i risultati' (PannelloFiltriElenco.tsx:219) chiude soltanto, ma ricalca il 'Mostra n risultati' del pattern lista e suggerisce un'applicazione che non c'e'.",
+    "fix": "Etichettarlo 'Chiudi' (o toglierlo: il pannello si chiude con la X e con Esc)."
+  }
+]

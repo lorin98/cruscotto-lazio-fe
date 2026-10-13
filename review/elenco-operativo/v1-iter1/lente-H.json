@@ -1,0 +1,130 @@
+[
+  {
+    "id": "H-01",
+    "severity": "MAGGIORE",
+    "file": "src/features/elenco-operativo/lib/criteri.ts:104",
+    "titolo": "Due letture dello stesso indirizzo: al server vanno pagina, dimensione e ordina grezzi, la pagina mostra quelli normalizzati (vicolo cieco su un link non valido)",
+    "evidenza": "criteriDaRicerca (criteri.ts:104-113) controlla pagina, dimensione e ordina solo con valoreAccettabile (niente controlli, al massimo 255 caratteri), e gli stessi criteri grezzi vanno a useDomande (ElencoDomande.tsx:61), a usePagamenti e all'esportazione (criteriEsportazione tiene ordina). Invece Paginazione e aria-sort leggono paginaDi/dimensioneDi/ordinamentoDi (criteri.ts:169/174/205), che normalizzano a 0, 25 e codiceABarre:asc. Per D-04 del backend un valore non valido e' un 400 DATO_NON_VALIDO e una pagina oltre l'ultima risponde vuota con il totale. Esempi: /elenco-operativo/domande?dimensione=500, oppure un segnalibro con un campo di ordina tolto dall'elenco chiuso. TX-0056 risponde 400 e VistaQuery nasconde tabella, intestazioni ordinabili e Paginazione; questi parametri non hanno un chip. 'Togli tutti' e 'Azzera' passano per senzaFiltri (criteri.ts:149-154), che CONSERVA dimensione e ordina: la pagina resta in 400 e si esce solo correggendo a mano l'indirizzo. Con ?pagina=9999 le righe sono vuote mentre Paginazione dice 'Pagina 52 di 52' (Paginazione.tsx:27 limita la pagina). I campi pagina, dimensione e ordinamento applicati dal server (risposta di D-04) sono ignorati: l'indirizzo non e' piu' una sola fonte di verita'.",
+    "fix": "Normalizzare in criteriDaRicerca: tenere pagina solo se intero >= 0, dimensione solo tra 1 e 100 (e diversa da 25), ordina solo se ordinamentoDi la riconosce per quell'elenco, altrimenti scartarli. Cosi' richiesta, esportazione, Paginazione e aria-sort leggono gli stessi criteri. Facoltativo: useCriteri riscrive l'indirizzo (replace) quando la query normalizzata e' diversa da quella grezza. Test in lib: criteriDaRicerca('?dimensione=500&ordina=x:asc&pagina=abc','domande') deve dare {}."
+  },
+  {
+    "id": "H-02",
+    "severity": "MAGGIORE",
+    "file": "src/pages/elenco-operativo/interrogazione.test.tsx:97",
+    "titolo": "Il test 'errore dal problem-type' non prova alcun errore: i 400 e 503 delle interrogazioni e la ricaduta del pannello sono scoperti",
+    "evidenza": "Il titolo dice 'stato vuoto con Modifica i filtri; errore dal problem-type', ma il corpo simula solo una pagina vuota (righe [], totaleRighe 0). Nessun test della feature simula su TX-0056, TX-0057, TX-0059 o TX-0060 un 400 DATO_NON_VALIDO, un 503 CAPACITA_ESAURITA o TEMPO_SCADUTO, oppure un 403. Ho guardato interrogazione.test.tsx, tests/elenco-operativo-*.test.ts* e pages/elenco-operativo/*/page.test.tsx: l'unico errore provato e' il 404 di TX-0058. Restano senza test tre cose: gli stati d'errore dei wireframe approvati (domande.md:76-77 e pagamenti.md:63-64: 400 con il campo, 503 con Retry-After), l'avviso unico di AvvisoPagina quando sinottico ed elenco falliscono insieme, e la ricaduta del pannello quando TX-0060 fallisce (PannelloFiltriElenco, errorePersonalizzato 'resta la ricerca per testo').",
+    "fix": "Separare il test: (a) solo lo stato vuoto; (b) TX-0056 che risponde problema(400,'DATO_NON_VALIDO','campo anno: valore non ammesso'): un solo role=alert con 'Richiesta non valida: campo anno...' e i chip ancora rimovibili; (c) TX-0057 503 CAPACITA_ESAURITA, con un client senza retry: compare il messaggio di capacita' e la tabella resta; (d) TX-0060 in errore: il pannello mostra il contesto e il campo della ricerca per testo resta utilizzabile."
+  },
+  {
+    "id": "H-03",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/PannelloFiltriElenco.tsx:206",
+    "titolo": "Gate di TX-0060 in due posti: il pannello sempre montato legge i valori dei filtri senza guardare il grant",
+    "evidenza": "useInterrogazione.ts:20 legge i valori solo con il grant: useValoriFiltri(conFiltri), con conFiltri = csr.tx-0060.read. PannelloFiltriElenco, che ElencoDomande.tsx:161 ed ElencoPagamenti.tsx:152 montano sempre, chiama invece useValoriFiltri() con enabled a true. La chiave della query e' la stessa, e React Query legge se almeno un osservatore e' abilitato: il gate e' quindi inefficace, e la lettura parte anche mentre lo stato di autenticazione sta ancora arrivando. Al contrario, senza il grant pannello.apri e' undefined (useInterrogazione.ts:36), e cosi' non si raggiunge nemmeno la ricerca per testo, che per il commento di PannelloFiltriElenco.tsx:172 non dipende da TX-0060. Oggi tutti gli 11 profili del catalogo hanno csr.tx-0060.read, quindi il difetto e' latente, ma la stessa regola vive in due posti che non concordano.",
+    "fix": "Leggere i valori una volta sola, in useInterrogazione (con il grant), e passarne lo stato al pannello come prop, togliendo la sua useValoriFiltri(). Rendere il pannello sempre apribile: la ricerca per testo resta disponibile, mentre i gruppi che dipendono da TX-0060 si nascondono senza il grant."
+  },
+  {
+    "id": "H-04",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/SchedaDomanda.tsx:168",
+    "titolo": "La scheda non convalida tipo e codice del percorso, come invece dice la pagina; il 400 diventa un 'Correggila e riprova' senza uscita",
+    "evidenza": "Il commento di pages/elenco-operativo/dettaglio-domanda/page.tsx:2 dice 'la scheda valida tipo e codice prima di leggere'. In realta' useDettaglioDomanda (api/index.ts:76) controlla solo che non siano vuoti, e SchedaDomanda non usa percorsoDettaglio (lib/collegamenti.ts), che pure sa convalidare SOSTEGNO/PAGAMENTO e le sole cifre. Con /elenco-operativo/domande/FOO/abc parte TX-0058 e il server risponde 400 DATO_NON_VALIDO. errorePersonalizzato (SchedaDomanda.tsx:178) gestisce solo il 404, quindi AvvisoPagina mostra 'Richiesta non valida: ... Correggila e riprova.' con un 'Riprova' che ripete lo stesso 400; l'h1 e' 'Domanda abc' e manca il link per tornare all'elenco. Il wireframe approvato (dettaglio-domanda.html:142) ha per il 400 lo stato 'Codice a barre o tipo non validi' con 'Torna all'elenco'.",
+    "fix": "In SchedaDomanda, se percorsoDettaglio(tipo, codiceABarre) e' null, non leggere (enabled false) e mostrare lo stato 'tipo o codice a barre non validi' con il link a PERCORSO_DOMANDE. Portare allo stesso stato anche il kind 'invalid-data' di TX-0058 in errorePersonalizzato. Allineare il commento di page.tsx."
+  },
+  {
+    "id": "H-05",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/SchedaDomanda.tsx:28",
+    "titolo": "'Torna all'elenco' si basa su window.history.length: puo' tornare a un'altra scheda o uscire dall'applicazione",
+    "evidenza": "Il codice e' torna = window.history.length > 1 ? naviga(-1) : naviga(PERCORSO_DOMANDE). history.length conta tutte le voci della scheda del browser, anche quelle di altri siti e delle altre schede della domanda. Due casi sbagliati. Primo: dalla scheda A, il link domanda-collegata (CodiceCollegato in TabelleScheda) porta alla scheda B, e da li' 'Torna all'elenco' riporta alla scheda A. Secondo: chi apre il link di una scheda in una scheda del browser che ha gia' una cronologia esce dall'applicazione. Il link approvato torna-all-elenco (uiplan.json:257, dettaglio-domanda.md:38) dice invece 'ritorna alla ricerca di partenza se c'e' nella cronologia', con destinazione /elenco-operativo/domande.",
+    "fix": "Far portare la ricerca di partenza ai link che aprono la scheda come stato della navigazione (LinkScheda di anteprime.tsx: state={{ ricerca: pathname + search }}). Nella Testata, rendere un Link verso location.state?.ricerca ?? PERCORSO_DOMANDE al posto del pulsante con navigate(-1)."
+  },
+  {
+    "id": "H-06",
+    "severity": "MINORE",
+    "file": "plan/elenco-operativo/uiplan.json:187",
+    "titolo": "Nei due link fra domande e pagamenti, il codice porta tre parametri che lo uiplan non dichiara",
+    "evidenza": "I link pagamenti-delle-domande (uiplan.json:187) e domande-dei-pagamenti (uiplan.json:445) dichiarano una query di 24 parametri, senza statoSostegno, statoPagamento e voceProgrammazione. Invece percorsoPagamentiDelleDomande e percorsoDomandeDeiPagamenti (collegamenti.ts:20 e 25) usano filtriDellaDomanda, cioe' FILTRI_DOMANDA, che li comprende (criteri.ts:19-21); il test elenco-operativo-lib.test.ts:126 verifica proprio che passino da un elenco all'altro. Il codice e' corretto: toglierli allargherebbe l'insieme delle domande. E' lo uiplan a essere rimasto indietro: il refresh feb32b6 ha aggiunto gli url_params ma non links[].query. Cosi' il controllo meccanico dei link (§8: la query fa parte del link dichiarato) verifica un link diverso da quello che il codice costruisce.",
+    "fix": "Aggiungere statoSostegno, statoPagamento e voceProgrammazione a links[].query dei due link e rieseguire uiplan-validate; il testo del wireframe ('tutti tranne pagina, dimensione, ordina') li comprende gia'. Meglio ancora: derivare la lista di filtriDellaDomanda da una costante allineata allo uiplan."
+  },
+  {
+    "id": "H-07",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/pill.tsx:16",
+    "titolo": "La pill 'Dati al' e' duplicata fra le due feature: e' passata in shared solo la logica, e le due copie gia' si comportano in modo diverso sull'errore",
+    "evidenza": "DatiAl (pill.tsx:16-43) copia UltimoAggiornamento (finanziario/ui/UltimoAggiornamento.tsx:19-45): stessi DialogTrigger, Button, Popover e Dialog, stessa aria-label, stesso elenco dei flussi, circa 25 righe. In shared/lib/aggiornamento.ts e' passata solo la logica. Sull'errore le due copie divergono gia': il finanziario mostra 'Ultimo dato sincronizzato: non disponibile', l'elenco non mostra nulla quando la lettura fallisce (voci undefined). Restano inoltre finanziario/lib/aggiornamento.ts e finanziario/lib/intestazione.ts come semplici riesportazioni: lo stesso simbolo si importa da due percorsi.",
+    "fix": "Spostare la pill in shared/ui (es. shared/ui/filtri/PillDatiAl.tsx, props voci e nonDisponibile?), usata sia da UltimoAggiornamento (che continua a fare la sua lettura) sia da BarraInterrogazione, con lo stesso stato d'errore. Importare da shared/lib e togliere le riesportazioni."
+  },
+  {
+    "id": "H-08",
+    "severity": "MINORE",
+    "file": "src/shared/ui/tabella/TabellaServer.tsx:47",
+    "titolo": "TabellaServer copia parti di TabellaInterattiva (scelta delle colonne, riga apribile, glifi) e introduce un secondo vocabolario dell'ordinamento",
+    "evidenza": "SceltaColonne (TabellaServer.tsx:47-64) e' identica riga per riga a TabellaInterattiva.tsx:29-46. Riga (TabellaServer.tsx:83-116 contro TabellaInterattiva.tsx:68-101) ripete la gestione di clic, Invio e Spazio della riga apribile (circa 20 righe uguali). GLIFO e' duplicato (riga 28 contro 27). TabellaServer ha una sua ariaSort (riga 30) mentre shared/lib/tabella ne esporta gia' una, e lo stesso concetto ha due forme: Ordine {chiave, crescente|decrescente} e OrdinamentoServer {campo, asc|desc}. In tutto circa 45 righe duplicate nel kit: una correzione della riga apribile, per esempio sugli eventi che nascono da un link dentro una cella, va fatta due volte.",
+    "fix": "Estrarre in shared/ui/tabella le parti comuni (SceltaColonne, GLIFO, gestione della riga apribile con la classe facoltativa ui-riga--nuova) e usarle da tutte e due le tabelle. Tenere una sola ariaSort pura in shared/lib/tabella, parametrica su campo attivo, verso e campo."
+  },
+  {
+    "id": "H-09",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/link-elenco.ts:9",
+    "titolo": "Il contratto dell'indirizzo dell'elenco (percorsi, grant, codici, serializzazione e convalida dei parametri ripetibili) e' scritto due volte, una per feature, e le due versioni divergono",
+    "evidenza": "link-elenco.ts riscrive per conto suo: i percorsi (righe 9 e 78), i grant csr.tx-0056 e csr.tx-0059 (102-105), i codici PRIMA/ALTRE/NON_CLASSIFICATE, PAGATA/DA_PAGARE/SENZA_IMPORTI, PAGATA/ESCLUSA e SENZA (10-12 e 32), e un proprio serializzatore dei parametri ripetuti (indirizzoLink 56-68, MAX_VALORI_FILTRO). Sono le stesse cose che l'elenco ha in lib/collegamenti.ts (PERCORSO_*), lib/grant.ts (GRANT), lib/formato.ts:50-57 (ETICHETTE_VALORI) e lib/criteri.ts (ricercaDaCriteri, MAX_VALORI). La convalida degli stessi parametri diverge: finanziario/lib/filtri.ts:13 ha una regex per chiave (A-11), criteri.ts:98 guarda solo caratteri di controllo e lunghezza. Il barrel dell'elenco esporta PERCORSO_DOMANDE/PAGAMENTI, GRANT_ELENCO_OPERATIVO, puoLeggereElencoOperativo e PaginaElenco, che nessuno usa perche' FSD vieta al finanziario di importarli. Se il contratto rinomina un codice (per esempio un valore di 'pagamento') bisogna toccare due feature, e i test non vedono la divergenza perche' ognuno prova la sua copia.",
+    "fix": "Portare il contratto dell'indirizzo dell'elenco in un layer piu' basso che tutte e due le feature possono importare (src/entities/domanda/ oppure shared/lib/parametri-ripetibili.ts): percorsi, nomi e codici dei parametri della domanda, convalida per chiave e serializzazione ripetuta con il tetto di 100. Farlo usare da link-elenco.ts e da lib/criteri.ts e togliere dal barrel le esportazioni inutilizzate."
+  },
+  {
+    "id": "H-10",
+    "severity": "MINORE",
+    "file": "src/app/menu.tsx:17",
+    "titolo": "Il menu porta i filtri dell'elenco operativo nei link del finanziario: una navigazione fra feature che nessun link dichiara",
+    "evidenza": "GruppoArea applica area.ricercaConservata(search) alla posizione corrente qualunque sia l'area della pagina (menu.tsx:15-17; aree.ts:53: ricercaDaFiltri(filtriDaRicerca(search))). Dopo l'aggiunta di STRUMENTI, su /elenco-operativo/domande?intervento=SRA01&os=OS1 le voci del gruppo Finanziario puntano a /finanziario/...?intervento=SRA01&os=OS1. I filtri dell'elenco passano cosi' all'altra feature senza un link dichiarato in uno uiplan (§7: tra feature solo link dichiarati); il passaggio inverso non avviene, perche' STRUMENTI non ha ricercaConservata. Il commento in testa a menu.tsx parla di filtri che restano 'da una pagina all'altra della stessa area'.",
+    "fix": "Applicare ricercaConservata solo se pathname appartiene a una pagina dell'area (es. pagine.some((p) => pathname.startsWith(p.percorso)), oppure un campo prefisso in Area). Aggiungere in shell.test.tsx un caso che parte da una pagina dell'elenco."
+  },
+  {
+    "id": "H-11",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/SchedaDomanda.tsx:174",
+    "titolo": "Classi del kit usate ma non definite in tema.css; l'h1 della scheda sta fuori dalla testata",
+    "evidenza": "Al commit b74b7a2, shared/ui/tema.css non definisce ui-titolo-scheda (SchedaDomanda.tsx:174), ui-hero__badge-elenco (SchedaDomanda.tsx:32), ui-campo (controlli.tsx:130) e ui-strumento__testo (app/home.tsx:112). L'h1 della scheda sta fuori dalla section .ui-hero (riga 30). Il kit ha un solo stile per l'h1 di un dettaglio, .ui-hero h1 (tema.css:233), quello che usa DettaglioIntervento del finanziario: qui l'h1 resta con lo stile predefinito sopra la testata, e la ul dei badge conserva il rientro del browser. Il wireframe approvato mette l'h1 nella testata.",
+    "fix": "Spostare l'h1 dentro la section .ui-hero, come in DettaglioIntervento, tenendo il ref del focus, e togliere la classe non definita; definire in tema.css le altre (reset della lista per .ui-hero__badge-elenco) oppure toglierle. Facoltativo: un controllo nel lint o in un test che ogni classe ui-* usata esista in tema.css."
+  },
+  {
+    "id": "H-12",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/controlli.tsx:91",
+    "titolo": "Debounce del testo: chiudere il pannello entro 300 ms butta via il testo scritto",
+    "evidenza": "useBozzaRitardata annulla il timer nella pulizia dell'effetto (controlli.tsx:90-91). CampoTesto e i campi degli importi stanno dentro PannelloLaterale, il cui ModalOverlay (PannelloLaterale.tsx:27) smonta il contenuto alla chiusura. Chi scrive 'rossi' e preme Esc o 'Mostra i risultati' entro 300 ms non porta il valore nell'indirizzo, e lo perde senza avviso: riaprendo, il campo e' vuoto. Nessun tasto (Invio) e nessuna uscita dal campo applicano subito il testo.",
+    "fix": "Svuotare il debounce allo smontaggio (nella pulizia, tramite ref di bozza, valore e valido) e su blur o Invio: applicare la bozza se e' valida e diversa dal valore. Test con fake timers: scrittura ed Esc prima di 300 ms, poi l'indirizzo contiene testo."
+  },
+  {
+    "id": "H-13",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/controlli.tsx:45",
+    "titolo": "Caselle e chip del pannello applicano subito, senza il debounce dichiarato da wireframe e ADR 0029",
+    "evidenza": "Caselle (controlli.tsx:45) e Scelte (controlli.tsx:67) chiamano a ogni clic onCambia, poi applica e navigate; il ritardo di RITARDO_MS vale solo per i campi di testo. I wireframe approvati (domande.md:57, pagamenti.md:45) dicono 'Si applicano dal vivo (debounce, nessun Applica)' e ADR 0029 dice 'il cambio aggiorna l'URL e la query con un debounce'. Scegliere 6 province di fila produce 6 indirizzi e 12 letture TX-0056 + TX-0057, ognuna registrata nell'audit del backend; 10 di queste sono gia' superate quando arrivano, e annullarle sul client non ferma quelle gia' partite sul server.",
+    "fix": "Spostare il debounce in useCriteri con un applica funzionale (c => conFiltro(c, n, v)) su uno stato in attesa, scritto dopo RITARDO_MS e svuotato alla chiusura del pannello o allo smontaggio: caselle, chip e campi usano cosi' lo stesso meccanismo. Il chip tolto dalla barra puo' restare immediato."
+  },
+  {
+    "id": "H-14",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/ElencoDomande.tsx:112",
+    "titolo": "I conteggi sono formattati nei componenti: logica duplicata, conteggio di lib inutilizzato, valore precedente spacciato per attuale, assenza resa con zero",
+    "evidenza": "conteggioDal e' duplicata in ElencoDomande.tsx:112-115 ed ElencoPagamenti.tsx:100-103, con il plurale scritto sul posto. Intanto lib/formato.ts:100 conteggio() (null diventa '-') e' testata ma non la usa nessuno. Entrambe leggono data anche quando e' placeholderData: durante l'aggiornamento il conteggio dal vivo del pannello (role=status) mostra il numero precedente con 'con questi filtri', come se valesse per i filtri nuovi. I conteggi assenti diventano 0 nei componenti: SinotticoDomande.tsx:23 n = formatNumber(v ?? 0) ed ElencoPagamenti.tsx:32 totali?.pagate ?? 0, mentre nel contratto tutti i campi di SinotticoElenco e TotaliPagamenti sono facoltativi. E' il contrario della regola 'un dato assente non e' mai zero', che lib/formato applica agli importi.",
+    "fix": "Una funzione pura in lib (es. testoConteggio(n, unita, { inAggiornamento })) per le due pagine, che con isPlaceholderData risponda 'Aggiornamento del conteggio...' e con un valore assente '-' o 'non disponibile'. Usare conteggio() per i conteggi dei KPI oppure eliminarla."
+  },
+  {
+    "id": "H-15",
+    "severity": "MINORE",
+    "file": "src/pages/elenco-operativo/interrogazione.test.tsx:126",
+    "titolo": "Il test del debounce non prova ne' il ritardo ne' l'assenza di scritture intermedie",
+    "evidenza": "Il titolo dice 'il testo libero parte dopo il ritardo e solo da 3 caratteri'. Il test usa timer reali: dopo 'ro' controlla aria-invalid, poi aspetta con waitFor che l'indirizzo sia '?testo=ros'. Passerebbe anche senza debounce (applica immediato) e anche se nel frattempo fosse stato scritto '?testo=ro', perche' controlla solo lo stato finale. Il ritardo di 300 ms (RITARDO_MS) e la soglia dei 3 caratteri sull'indirizzo non sono provati.",
+    "fix": "Usare vi.useFakeTimers({ shouldAdvanceTime: true }) con userEvent.setup({ advanceTimers: vi.advanceTimersByTime }). Dopo 'ros' verificare che la ricerca sia ancora '' a 299 ms e diventi '?testo=ros' a 300 ms; registrare le posizioni del router per verificare che '?testo=ro' non sia mai comparso."
+  },
+  {
+    "id": "H-16",
+    "severity": "MINORE",
+    "file": "src/shared/api/mock/handlers.ts:77",
+    "titolo": "MSW nei test non e' fail-closed per l'elenco: i mock faker generati rispondono a ogni lettura non prevista dal test",
+    "evidenza": "Il server MSW dei test (server.ts) monta handlers, cioe' authHandler piu' tutti i mock generati da orval (collectGeneratedHandlers raccoglie ../generated/**/*.msw.ts), compresi i 7 endpoint di elenco-operativo con dati faker. Per questo onUnhandledRequest: 'error' (shared/test/setup.ts:18) non scatta mai sulle letture dell'elenco: un test che dimentica un server.use, per esempio TX-0057 in un test di pagina, passa su dati casuali invece di fallire. Quei dati poi cambiano con l'ordine delle chiamate faker nel file, quindi non sono deterministici se si filtrano i test. Oggi i test dell'elenco sovrascrivono ogni lettura (verificato), ma la garanzia fail-closed non c'e'.",
+    "fix": "Nel server dei test montare solo authHandler e lasciare i mock generati al solo worker di sviluppo (browser.ts), oppure avvolgerli in un handler che fa fallire il test. Ogni test dichiara i suoi endpoint, come fa gia' servi()."
+  }
+]

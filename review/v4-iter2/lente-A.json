@@ -1,0 +1,18 @@
+[
+  {
+    "id": "A-01",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/DomandeReport.tsx:189",
+    "titolo": "Pagina domande: la scelta dell'anno ha come unica fonte lo state della history, aggiornato in modo asincrono, quindi la select controllata torna per un istante all'anno precedente",
+    "evidenza": "Prima di fc8a130 l'anno era useState. Ora `anno` deriva da location.state (riga 189, useStatoNellaHistory.ts:19-21) e cambia solo con naviga(..., { replace: true }) (useStatoNellaHistory.ts:24). router.navigate aggiorna la location dopo `await handleLoaders` (node_modules/react-router/dist/development/lib/router/router.js:557; isHashChangeOnly e' falso con lo stesso hash) e dentro React.startTransition (lib/components.js:146: RouterProvider di App.tsx:10, da 'react-router', senza useTransitions=false e senza flushSync). Alla fine dell'evento change React riporta la select controllata `value={anno ?? ''}` (riga 121) al valore delle props, cioe' all'anno precedente (restoreControlledSelectState), e mostra l'anno scelto solo quando la transizione arriva al commit. Chi guarda vede la scelta tornare indietro per un frame; un lettore di schermo puo' annunciare il valore ripristinato. Le schede del dettaglio hanno lo stesso ritardo (useScheda, DettaglioIntervento.tsx:224: aria-selected resta sulla scheda precedente finche' l'indirizzo non si aggiorna). TabellaInterattiva invece tiene ordine e pagina in uno stato locale e li rispecchia nella history (TabellaInterattiva.tsx:205-216), senza ritardo. Il test di domande/page.test.tsx usa waitFor, quindi non vede il ritardo.",
+    "fix": "In DomandePerAnnoSezione usare uno stato locale come fonte: `const [anno, setAnnoLocale] = useState(annoSalvato)`, con la validazione sugli anni gia' presente, e onAnno = (a) => { setAnnoLocale(a); setAnno(a); }, dove la history fa solo da specchio, come onStato di TabellaInterattiva. Stesso schema in useScheda: useState inizializzato da ?scheda=, con setRicerca come specchio, e sincronizzato quando l'indirizzo cambia per un 'indietro'.\nTest: `fireEvent.change(select, { target: { value: '2024' } }); expect(select.value).toBe('2024')`, sincrono e senza waitFor: oggi fallisce."
+  },
+  {
+    "id": "A-02",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/ui/DettaglioIntervento.tsx:168",
+    "titolo": "Residuo di A-05: i sottotitoli promettono il clic sulle barre verso l'elenco anche quando il grafico delle barre non si disegna",
+    "evidenza": "Il fix di A-05 controlla `dati.opzioni !== null` solo per la cascata (riga 204, SigcReport.tsx:100). Per le barre il clic resta promesso in tre casi. Domande SIGC del dettaglio: CLIC_BARRA dipende solo dal grant (riga 168), la VistaQuery non ha eVuoto e con presentate 0 o null graficoDomandeSigc e' non disegnabile (grafici/sigc.ts:72-73). Pagina SIGC: eVuoto copre solo presentate === 0, quindi con presentate null il sottotitolo di SigcReport.tsx:56 dice ancora 'Clic su una barra'. Domande per anno del dettaglio: senza righe il grafico e' non disegnabile (grafici/domande.ts:50) e la vista Tabella non ha celle, ma il sottotitolo della riga 118 promette segmento e cella.",
+    "fix": "Comporre la parte sul clic solo se `conLink && dati.opzioni !== null`, calcolando il grafico una volta (es. `const g = graficoDomandeSigc(d)`), in DettaglioIntervento.tsx:168 e :118 e in SigcReport.tsx:56.\nTest L2 nel dettaglio con TX-0012 a presentate 0: il sottotitolo non contiene 'Clic su una barra'."
+  }
+]

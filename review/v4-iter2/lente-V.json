@@ -1,0 +1,58 @@
+[
+  {
+    "id": "V-01",
+    "severity": "MINORE",
+    "file": "wireframes/panoramica/intervento.html:102",
+    "titolo": "V-03 risolto solo in parte: nel flusso panoramica riapprovato il gauge del dettaglio si chiama 'Pagato netto', ma didascalia e fonte parlano ancora dei pagamenti totali di TX-0002",
+    "evidenza": "15ed959 ha cambiato solo il titolo (intervento.html:98-99, 'Pagato netto sulla dotazione'). La didascalia (riga 102) dice ancora 'Gauge: pagamenti totali (TX-0002) sulla dotazione (TX-0011)' e la fonte (riga 104) 'Fonte: TX-0002, TX-0011'. Lo stesso flusso, in panoramica.md:29, dice 'TX-0011 (pagamenti al netto delle rettifiche)'. Il codice disegna graficoPagatoNetto(r.pagamentiNettoRettifiche, r.dotazioneSpesaPubblica) con 'Fonte: TX-0011, riepilogo per intervento' (DettaglioIntervento.tsx:85-95). L'hash approvato alle 13:27:56 (sha256:4371821e...) coincide con quello che wireframe-hash.sh calcola oggi sulla cartella: la baseline approvata contiene quindi un numeratore (lordo, TX-0002) diverso da quello costruito (netto, TX-0011) e contraddice la propria tabella dei grafici.",
+    "fix": "intervento.html:102: 'Gauge: pagamenti al netto delle rettifiche sulla dotazione (TX-0011). Non disegnato se uno dei due manca.'; riga 104: 'Fonte: TX-0011. ...'. Poi nuovo hash e riapprovazione del flusso panoramica (approval in uiplan.json e nello stato)."
+  },
+  {
+    "id": "V-02",
+    "severity": "MINORE",
+    "file": "wireframes/dotazione-avanzamento/avanzamento.html:105",
+    "titolo": "V-03 non risolto per il flusso dotazione-avanzamento: il gauge approvato e' l'importo pagato (lordo) di TX-0007, il codice disegna il netto",
+    "evidenza": "Il flusso descrive ancora la UI di prima di a3e9579, come i quattro riscritti: KPI 'Importo pagato' (avanzamento.html:77-78) e gauge 'Pagato sulla dotazione' con 'importo pagato sulla dotazione spesa pubblica (TX-0007)' (righe 101 e 105; dotazione-avanzamento.md:19 e :29). Il codice mostra il KPI PAGATO_LORDO 'Importo pagato (lordo, elenchi di liquidazione)' su d.importoPagato (AvanzamentoReport.tsx:26 e :47) e il gauge 'Pagato netto sulla dotazione' su d.pagamentiNettoRettifiche (AvanzamentoReport.tsx:107-110). Quindi il numeratore del gauge non e' quello approvato, e il KPI accanto mostra il lordo. Il flusso e' approvato il 2026-10-13T09:29:35Z (hash 0c638823..., che coincide con la cartella) e deviations_reviewed contiene solo V-07. 15ed959 e 1680b4c non l'hanno toccato.",
+    "fix": "Aggiornare avanzamento.html e dotazione-avanzamento.md:19 e :29 com'e' costruito: KPI 'Importo pagato (lordo, elenchi di liquidazione)', gauge 'Pagato netto sulla dotazione' (pagamenti al netto delle rettifiche sulla dotazione, TX-0007). Poi riapprovare il flusso. In alternativa aggiungere a deviations_reviewed di wireframe_dotazione-avanzamento la voce 'a3e9579, richiesta dell'utente del 12/10/2026: lordo e netto distinti'."
+  },
+  {
+    "id": "V-03",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/RiepilogoReport.tsx:157",
+    "titolo": "X-03 risolto solo in parte: tornando dall'elenco il riepilogo ripristina la pagina ma non la ricerca, e mostra la pagina di un altro insieme di righe",
+    "evidenza": "StatoTabella vale solo { ordine, pagina } (TabellaInterattiva.tsx:195-198). La ricerca resta useState('') (riga 203), mentre la pagina riparte da statoIniziale (riga 205). Il riepilogo cerca per codice dell'intervento (RiepilogoReport.tsx:181-182). Esempio: con la ricerca 'SRA' attiva (piu' di 10 righe) e la seconda pagina dei risultati, si apre 'Apri nell'elenco' e si torna indietro. La casella di ricerca e' vuota e la tabella mostra la seconda pagina dell'intero riepilogo, con righe e riga dei totali diverse da quelle di partenza. X-03 citava 'ricerca, ordinamento e pagina'. Il test di ritorno (riepilogo/page.test.tsx:205) controlla solo aria-sort, non la pagina ne' la ricerca.",
+    "fix": "Aggiungere `cercato: string` a StatoTabella, inizializzare useState(props.statoIniziale?.cercato ?? '') e includerlo nella notifica di onStato (facoltativo: le colonne nascoste). Se non lo si conserva, almeno non ripristinare la pagina. Test L2 in riepilogo/page.test.tsx: ricerca, pagina 2, clic sul link, router.navigate(-1); stessa ricerca e stesse intestazioni di riga."
+  },
+  {
+    "id": "V-04",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/DettaglioIntervento.tsx:168",
+    "titolo": "A-05 risolto solo in parte: nel dettaglio di un intervento senza domande SIGC il sottotitolo promette ancora il clic sulle barre di un grafico non disegnato, e quattro link aprono un elenco vuoto",
+    "evidenza": "La VistaQuery di DomandeSigc (riga 163) non ha eVuoto. Con presentate = 0, graficoDomandeSigc restituisce nonDisegnabile('nessuna domanda presentata...') (grafici/sigc.ts:73), ma CardGrafico rende comunque il sottotitolo (CardGrafico.tsx:123), che con TX-0056 termina con CLIC_BARRA ('Clic su una barra: le domande nell'elenco operativo'). VociSigcNellElenco (riga 174) rende i link presentate, pagate, da pagare e senza importi, mentre la card accanto dice 'Nessuna domanda SIGC per questo intervento.' (SENZA_SIGC, ImportiSigc riga 188). La pagina SIGC e la panoramica dichiarano invece il vuoto (eVuoto presentate === 0: SigcReport.tsx:51, Panoramica.tsx:148). Lo stesso accade in Domande per anno (riga 118): con righe vuote il grafico non e' disegnato ma il sottotitolo dice 'Clic su un segmento, o sulla cella della vista Tabella'. Il caso e' reale (ogni intervento non SIGC). Il fix di A-05 ha condizionato su opzioni !== null solo la cascata (riga 204). finanziario-casi-limite.test.tsx:168 controlla solo Importi SIGC.",
+    "fix": "In DomandeSigc: `eVuoto={(d) => d.presentate === 0} vuoto={SENZA_SIGC}` come ImportiSigc. CLIC_BARRA e il sottotitolo di Domande per anno solo se conLink && dati.opzioni !== null, come per la cascata. Estendere il test 'scheda SIGC di un intervento senza domande SIGC': nessun 'Clic su una barra' e nessun link verso /elenco-operativo nella scheda."
+  },
+  {
+    "id": "V-05",
+    "severity": "COSMETICO",
+    "file": "src/shared/ui/grafici/CardGrafico.tsx:109",
+    "titolo": "Ritorno dall'elenco: nel dettaglio la vista Tabella di 'Domande per anno di raccolta', unico percorso da tastiera verso elenco-anno-intervento, torna su Grafico",
+    "evidenza": "DettaglioIntervento.tsx:110-111 dichiara la vista Tabella della card 'il percorso da tastiera del clic' sui segmenti: e' l'unico punto della scheda Domande con i link elenco-anno-intervento. La vista e' useState('grafico') in CardGrafico (riga 109). Dopo router.navigate(-1) la scheda Domande torna selezionata (?scheda=domande) ma la card riparte dal grafico. Chi usa la tastiera deve quindi riattivare 'Tabella' a ogni drill-down, mentre il riepilogo (ordinamento) e la pagina domande (anno) ritrovano il proprio stato.",
+    "fix": "Prop opzionali `vistaIniziale` e `onVista` di CardGrafico, come statoIniziale e onStato di TabellaInterattiva; nel dettaglio salvare la vista con useStatoNellaHistory('vistaDomandePerAnno', da.selezione). In alternativa dichiararlo nel residuo WCAG del flusso panoramica."
+  },
+  {
+    "id": "V-06",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/ui/DomandeReport.tsx:238",
+    "titolo": "La tabella equivalente di Importi per anno con i link (correzione di V-05) ricopia a mano intestazioni e celle di graficoImportiPerAnno: si ripete lo schema di H-05",
+    "evidenza": "colonneImportiEquivalente (righe 238-246) riscrive i titoli 'Stanziato', 'Ammesso', 'Decretato' e 'Domande senza importo ammesso' e i formattatori (cellaImporto, numeroOpzionale) della tabella generata in lib/grafici/domande.ts (graficoImportiPerAnno). Anche caption e intestazione 'Anno' sono scritte a mano (riga 263). 'Stesse intestazioni e celle della tabella generata' resta un commento (righe 234-236), il caso che H-05 ha corretto per Domande per anno con ANNUALITA_DOMANDE. Oggi le due tabelle coincidono. Pero' nessun test della pagina domande confronta la vista Tabella con e senza il grant: page.test.tsx:122 controlla le intestazioni solo col grant, il caso senza grant (righe 139-147) guarda solo l'assenza della colonna.",
+    "fix": "Esportare da lib/grafici/domande.ts la definizione delle colonne di Importi per anno (titolo e cella), usata sia da graficoImportiPerAnno sia da colonneImportiEquivalente. In domande/page.test.tsx, come in interventi/page.test.tsx, aggiungere il test 'con e senza il grant la vista Tabella ha le stesse intestazioni e gli stessi testi di cella, link a parte' per le card RF008 e RF010."
+  },
+  {
+    "id": "V-07",
+    "severity": "COSMETICO",
+    "file": "wireframes/riepilogo/riepilogo.md:56",
+    "titolo": "Il limite noto OP-FE-09 (profili misti) manca dai punti aperti del flusso riepilogo, che ha due link soggetti allo stesso limite",
+    "evidenza": "1680b4c ha registrato OP-FE-09 in uiplan.json e nei flussi panoramica, domande e sigc. Il riepilogo (TX-0011, che segue il perimetro ADA) apre elenco-presentate-riga ed elenco-pagamenti-riga (TX-0056 e TX-0059). Per un P4 con un profilo regionale il conteggio della riga e' dell'area, mentre l'elenco aperto e' regionale, lo stesso caso descritto da OP-FE-09. I punti aperti di riepilogo.md (righe 56-58) elencano solo OP-FE-06. Solo documentazione: nessun effetto sul codice.",
+    "fix": "Alla prossima riapprovazione del flusso riepilogo aggiungere ai punti aperti: '- OP-FE-09: profili misti (P4 con un profilo regionale): il riepilogo e' ADA, l'elenco aperto dai link della riga e' regionale.'"
+  }
+]
