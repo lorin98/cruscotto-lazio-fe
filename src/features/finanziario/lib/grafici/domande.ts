@@ -24,9 +24,17 @@ import { annoDiRaccolta, numeroOpzionale } from '../formato';
 import { assenzaImporto, cellaImporto, perAnno, valoreDi } from '../importi';
 import { ETICHETTE_ANNUALITA } from '../../../../entities/domanda';
 import type { Annualita } from '../../../../entities/domanda';
-import type { DatoSegmentoAnno } from '../link-elenco';
 
 // ---------------------------------------------------------------- 1. domande per anno di raccolta
+
+/** Dato di un segmento di Domande per anno di raccolta: il valore e i codici del drill-down (lib/link-elenco li legge). */
+export interface DatoSegmentoAnno {
+  value: number;
+  /** Annualita' della serie. */
+  codice: Annualita;
+  /** Anno di raccolta; null = le domande senza anno (SENZA). */
+  anno: number | null;
+}
 
 /**
  * Le annualita' di TX-0008, unica tabella per le serie del grafico e per le colonne della tabella (ui/colonneAnno): il

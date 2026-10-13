@@ -5,6 +5,7 @@
 // selezione (D-09 del backend), quindi si rende come il dato assente nella fonte, non come un totale per intervento.
 import type { EChartsOption } from 'echarts';
 import { ETICHETTE_ESITO_PAGAMENTO } from '../../../../entities/domanda';
+import type { EsitoPagamentoDomanda } from '../../../../entities/domanda';
 import {
   COLORI,
   NON_CALCOLABILE,
@@ -43,7 +44,8 @@ export const VOCI_DOMANDE_SIGC = [
   { codice: 'PAGATA', nome: ETICHETTE_ESITO_PAGAMENTO.PAGATA, campo: 'pagate', etichetta: 'Pagate (importo pagato maggiore di zero)', colore: COLORI.positivo },
   { codice: 'DA_PAGARE', nome: ETICHETTE_ESITO_PAGAMENTO.DA_PAGARE, campo: 'daPagare', etichetta: 'Da pagare (ammesse con importo ancora da pagare, anche se pagate in parte)', colore: COLORI.attenzione },
   { codice: 'SENZA_IMPORTI', nome: ETICHETTE_ESITO_PAGAMENTO.SENZA_IMPORTI, campo: 'senzaImporti', etichetta: 'Senza importi (non classificabili: campagne senza ASR2-20)', colore: COLORI.attenuato },
-] as const;
+  // i codici sono quelli del vocabolario della domanda (esiti del pagamento) piu' le presentate: il tipo lo verifica (review v4 H-06)
+] as const satisfies readonly { codice: EsitoPagamentoDomanda | 'PRESENTATE'; nome: string; campo: string; etichetta: string; colore: string }[];
 
 function quotaSulle(presentate: number | null) {
   return (v: number): string => (presentate != null && presentate > 0 ? formatPercentuale(percentuale(v, presentate)) : NON_CALCOLABILE);

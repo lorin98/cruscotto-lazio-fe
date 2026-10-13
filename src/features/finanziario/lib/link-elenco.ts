@@ -4,13 +4,10 @@
 // dichiara nello uiplan (`query`, sottoinsieme degli url_params della route dell'elenco): un parametro non dichiarato
 // non esce mai, anche se il chiamante lo passa.
 
-import { ANNO_SENZA, GRANT_DELLA_PAGINA, PERCORSO_ELENCO_DOMANDE, PERCORSO_ELENCO_PAGAMENTI } from '../../../entities/domanda';
+import { ANNO_SENZA, ETICHETTE_ANNUALITA, ETICHETTE_ESITO_PAGAMENTO, GRANT_DELLA_PAGINA, PERCORSO_ELENCO_DOMANDE, PERCORSO_ELENCO_PAGAMENTI } from '../../../entities/domanda';
 import type { Annualita, DestinazioneElenco, EsitoPagamentoDomanda, EsitoRigaElenco } from '../../../entities/domanda';
 import { scriviRipetuti } from '../../../shared/lib';
 import { valoreFiltroValido, type Filtri } from './filtri';
-
-export type { Annualita, EsitoPagamentoDomanda } from '../../../entities/domanda';
-export type { DestinazioneElenco, EsitoRigaElenco } from '../../../entities/domanda';
 
 /** Criteri del punto cliccato, nei valori dei parametri di TX-0056/TX-0059 (descrizioni della spec dell'elenco). */
 export interface CriteriLink {
@@ -119,24 +116,19 @@ export function indirizzoDelLink(id: IdLinkElenco, filtri: Filtri, criteri: Crit
  * dell'annualita' (e l'anno) o della voce SIGC, e il clic si legge da li', mai dall'etichetta visibile della serie ne'
  * dall'ordine delle righe.
  */
-const ANNUALITA_VALIDE: ReadonlySet<string> = new Set<Annualita>(['PRIMA', 'ALTRE', 'NON_CLASSIFICATE']);
+const ANNUALITA_VALIDE: ReadonlySet<string> = new Set(Object.keys(ETICHETTE_ANNUALITA));
 
-/** Esito del pagamento di una voce delle domande SIGC (codici di VOCI_DOMANDE_SIGC); le presentate non ne hanno. */
-const PAGAMENTO_DELLA_VOCE: ReadonlyMap<string, EsitoPagamentoDomanda | null> = new Map([
-  ['PRESENTATE', null],
-  ['PAGATA', 'PAGATA'],
-  ['DA_PAGARE', 'DA_PAGARE'],
-  ['SENZA_IMPORTI', 'SENZA_IMPORTI'],
+/** Codice della voce delle presentate fra le voci delle domande SIGC (le altre voci sono gli esiti del pagamento). */
+export const VOCE_PRESENTATE = 'PRESENTATE';
+
+/**
+ * Esito del pagamento di una voce delle domande SIGC (codici di VOCI_DOMANDE_SIGC): i codici degli esiti dell'entity,
+ * piu' le presentate, che non ne hanno. Derivato dal vocabolario: nessun codice riscritto qui (review v4 H-06).
+ */
+const PAGAMENTO_DELLA_VOCE: ReadonlyMap<string, EsitoPagamentoDomanda | null> = new Map<string, EsitoPagamentoDomanda | null>([
+  [VOCE_PRESENTATE, null],
+  ...(Object.keys(ETICHETTE_ESITO_PAGAMENTO) as EsitoPagamentoDomanda[]).map((e): [string, EsitoPagamentoDomanda] => [e, e]),
 ]);
-
-/** Dato di un segmento di Domande per anno di raccolta, come lo scrive graficoDomandePerAnno. */
-export interface DatoSegmentoAnno {
-  value: number;
-  /** Annualita' della serie. */
-  codice: Annualita;
-  /** Anno di raccolta; null = le domande senza anno (SENZA). */
-  anno: number | null;
-}
 
 /**
  * Criteri del clic su un segmento di Domande per anno di raccolta: le domande presentate dell'anno e dell'annualita' del

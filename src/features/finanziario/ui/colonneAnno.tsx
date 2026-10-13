@@ -5,9 +5,9 @@
 // senza il grant la vista Tabella ha le stesse intestazioni e gli stessi testi, link a parte.
 import type { Colonna } from '../../../shared/ui';
 import type { DomandePerAnnoRiga } from '../api';
-import { numeroOpzionale } from '../lib/formato';
+import { annoDiRaccolta, numeroOpzionale } from '../lib/formato';
 import { ANNUALITA_DOMANDE } from '../lib/grafici';
-import type { Annualita } from '../lib/link-elenco';
+import type { Annualita } from '../../../entities/domanda';
 import { ApriNellElenco } from './LinkElenco';
 
 const CELLE_ANNO: { titolo: string; campo: 'primaAnnualita' | 'altreAnnualita' | 'nonClassificate' | 'totali'; annualita?: Annualita }[] = [
@@ -28,7 +28,7 @@ export function colonneDomandePerAnno(indirizzo: IndirizzoCellaAnno, oggetto = '
         <ApriNellElenco
           variante="testo"
           indirizzo={indirizzo(r, c.annualita)}
-          descrizione={`le domande${oggetto} ${r.annoRaccolta == null ? 'senza anno di raccolta' : `del ${r.annoRaccolta}`}${c.annualita ? `, ${c.titolo.toLowerCase()}` : ''}`}
+          descrizione={`le domande${oggetto} ${r.annoRaccolta == null ? annoDiRaccolta(null) : `del ${r.annoRaccolta}`}${c.annualita ? `, ${c.titolo.toLowerCase()}` : ''}`}
         />
       </>
     ),

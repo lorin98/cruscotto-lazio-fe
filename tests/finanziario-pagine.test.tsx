@@ -15,7 +15,7 @@ import { pngDelGrafico } from '../src/shared/ui/grafici/echarts';
 import PaginaVerificaSmp from '../src/pages/finanziario/sigc/verifica-smp/page';
 
 // la route-table e' del progetto (piu' feature, ADR 0028): qui solo le route del finanziario, dai path del suo uiplan
-import { ROTTE_FINANZIARIO } from '../src/features/finanziario/testing/tabelle';
+import { ROTTE_FINANZIARIO } from './rotte-finanziario';
 import * as F from '../src/features/finanziario/testing/fixture';
 
 // Impaginazione comune delle pagine (widget PaginaFinanziario, UI v2) e coerenza del catalogo delle pagine con la

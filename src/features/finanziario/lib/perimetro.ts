@@ -26,6 +26,11 @@ export function perimetroCombinato(perimetri: ReadonlyArray<string | null | unde
   return perimetri.includes('REGIONALE') ? 'REGIONALE' : undefined;
 }
 
+/** Etichetta di una misura per domanda (pagamenti, domande): con il perimetro ADA e' dell'area del profilo. */
+export function etichettaDellArea(etichetta: string, perimetro: string | null | undefined): string {
+  return perimetro === PERIMETRO_ADA ? `${etichetta} della tua area` : etichetta;
+}
+
 /** Etichetta di un dato di programma (dotazione, quote): con il perimetro ADA resta regionale e lo si dichiara. */
 export function etichettaDiProgramma(etichetta: string, perimetro: string | null | undefined): string {
   return perimetro === PERIMETRO_ADA ? `${etichetta} (regionale)` : etichetta;

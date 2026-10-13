@@ -229,7 +229,7 @@ function colonnaElenco(link: LinkDelReport): Colonna<ImportiPerAnnoRiga> {
     (r) => (
       <ApriNellElenco
         indirizzo={link('elenco-anno', { presentata: true, anno: [r.annoRaccolta ?? null] })}
-        descrizione={`le domande presentate ${r.annoRaccolta == null ? 'senza anno di raccolta' : `del ${r.annoRaccolta}`}`}
+        descrizione={`le domande presentate ${r.annoRaccolta == null ? annoDiRaccolta(null) : `del ${r.annoRaccolta}`}`}
       />
     ),
   ];

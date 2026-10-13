@@ -12,14 +12,10 @@ import { useSpesaPerIntervento, useTotaleDomande } from '../api';
 import { kpiSpesa } from '../lib/aggregati';
 import type { Aggregato } from '../lib/aggregati';
 import { PAGAMENTI_LORDI_BREVE, PAGATO_LORDO_SULLA_DOTAZIONE } from '../lib/grafici';
-import { PERIMETRO_ADA, etichettaDiProgramma } from '../lib/perimetro';
+import { etichettaDellArea, etichettaDiProgramma } from '../lib/perimetro';
 import { GRANT } from '../lib/report';
 
 const NON_DISPONIBILE = 'non disponibile';
-const DELLA_TUA_AREA = ' della tua area';
-
-/** Etichetta di una misura per domanda: con il perimetro ADA e' dell'area del profilo. */
-const dellArea = (etichetta: string, perimetro: string | null | undefined) => (perimetro === PERIMETRO_ADA ? `${etichetta}${DELLA_TUA_AREA}` : etichetta);
 
 function Numero({ etichetta, children, nota }: { etichetta: string; children: ReactNode; nota?: string }) {
   return (
@@ -64,7 +60,7 @@ function Spesa() {
     <>
       <dl className="ui-ambito__numeri">
         <Importo etichetta={etichettaDiProgramma('Dotazione', data.perimetro)} a={k.dotazione} />
-        <Importo etichetta={dellArea(PAGAMENTI_LORDI_BREVE, data.perimetro)} a={k.pagato} />
+        <Importo etichetta={etichettaDellArea(PAGAMENTI_LORDI_BREVE, data.perimetro)} a={k.pagato} />
       </dl>
       {k.quota.valore !== null ? <Avanzamento quota={k.quota.valore} /> : k.quota.motivo && <p className="ui-ambito__nota">{`${PAGATO_LORDO_SULLA_DOTAZIONE}: ${k.quota.motivo}`}</p>}
     </>
@@ -76,7 +72,7 @@ function Domande() {
   if (isPending) return <div className="ui-skeleton ui-ambito__attesa" aria-hidden="true" />;
   return (
     <dl className="ui-ambito__numeri">
-      <Numero etichetta={dellArea('Domande presentate', data?.perimetro)} nota={isError || data?.presentate == null ? 'Conteggio non disponibile in questo momento.' : undefined}>
+      <Numero etichetta={etichettaDellArea('Domande presentate', data?.perimetro)} nota={isError || data?.presentate == null ? 'Conteggio non disponibile in questo momento.' : undefined}>
         {data?.presentate == null ? NON_DISPONIBILE : <NumeroAnimato valore={data.presentate} formato={(v) => formatNumber(Math.round(v))} />}
       </Numero>
     </dl>

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import uiplan from '../uiplan.json';
 import routeTable from '../src/app/route-table.json';
+import catalogo from '../handover/authz-catalog.json';
 import { MAX_VALORI_FILTRO } from '../src/features/finanziario/lib/filtri';
 import {
   GRANT_DESTINAZIONE,
@@ -96,12 +97,17 @@ describe('i link del codice sono quelli dello uiplan (copie verbatim verificate)
     expect(new Set(Object.keys(LINK_ELENCO))).toEqual(new Set(link.map((l) => l.id)));
     for (const l of link) expect(LINK_ELENCO[l.id as keyof typeof LINK_ELENCO], l.id).toEqual({ destinazione: l.target, query: l.query });
   });
-  it("il grant di ogni destinazione e' fra quelli della sua route nella route-table", () => {
+  // review v4 X-02: il grant esatto della lettura principale di ogni destinazione (TX-0056, TX-0059), dal catalogo; la
+  // visibility della route ne ha piu' d'uno in OR e un toContain accetterebbe anche quello dei valori dei filtri (TX-0060)
+  it("il grant di ogni destinazione e' quello della sua transazione nel catalogo, e sta nella visibility della route", () => {
+    const grantDi = (tx: string) => [...new Set(catalogo.role_transaction_matrix.filter((r) => r.transaction === tx && r.access === 'allow').map((r) => r.grant))];
+    expect(grantDi('TX-0056')).toHaveLength(1);
+    expect(grantDi('TX-0059')).toHaveLength(1);
+    expect(GRANT_DESTINAZIONE).toEqual({ '/elenco-operativo/domande': grantDi('TX-0056')[0], '/elenco-operativo/pagamenti': grantDi('TX-0059')[0] });
     for (const [destinazione, grant] of Object.entries(GRANT_DESTINAZIONE)) {
       const route = routeTable.routes.find((r) => r.path === destinazione);
       expect(route?.visibility, destinazione).toContain(grant);
     }
-    expect(GRANT_DESTINAZIONE['/elenco-operativo/domande']).not.toBe(GRANT_DESTINAZIONE['/elenco-operativo/pagamenti']);
   });
 });
 

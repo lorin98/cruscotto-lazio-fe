@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 // la route-table e' del progetto (piu' feature, ADR 0028): qui solo le route del finanziario, dai path del suo uiplan
-import { ROTTE_FINANZIARIO } from '../src/features/finanziario/testing/tabelle';
+import { ROTTE_FINANZIARIO } from './rotte-finanziario';
 import { ariaSort, conColonna, didascalia, formatDate, formatEuro, formatPercentuale, versoSuccessivo } from '../src/shared/lib';
 import { descriviImporto, etichettaFonte } from '../src/entities/importo';
 import {
