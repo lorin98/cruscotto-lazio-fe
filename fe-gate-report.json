@@ -16,12 +16,12 @@
     {
       "name": "test",
       "status": "pass",
-      "evidence": "vitest.json verde (total=944) + coverage>=soglie (L87.5 S87.4 F86.22 B77.94 vs L80 S80 F80 B70)"
+      "evidence": "vitest.json verde (total=977) + coverage>=soglie (L87.99 S87.82 F86.94 B78.82 vs L80 S80 F80 B70)"
     },
     {
       "name": "a11y",
       "status": "pass",
-      "evidence": "axe.json: 0 violations su 49 run (wcag2a/2aa/22aa); incomplete=43 dichiarato"
+      "evidence": "axe.json: 0 violations su 50 run (wcag2a/2aa/22aa); incomplete=44 dichiarato"
     },
     {
       "name": "build",
@@ -67,7 +67,7 @@
   "total": 11,
   "verdict": "pass",
   "a11y_residual": {
-    "incomplete": 43,
+    "incomplete": 44,
     "manual_checklist_ref": "wireframes/<flusso>.md note WCAG + review FULL"
   }
 }
