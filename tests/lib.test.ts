@@ -4,6 +4,7 @@ import { nomeFile } from '../src/shared/lib/nome-file';
 import { DICITURA_USO, aCapo, righeContesto, righeIntestazione } from '../src/shared/lib/intestazione';
 import { etichettaFlusso, menoRecente, testoUltimiDati } from '../src/shared/lib/aggiornamento';
 import { MAX_VALORI_PARAMETRO, leggiRipetuti, scriviRipetuti } from '../src/shared/lib/parametri-ripetuti';
+import { conStatoSalvato, leggiStatoSalvato } from '../src/shared/lib/stato-history';
 import { isOpenEnded, isSentinelDate, SENTINEL_DATE_MAX } from '../src/shared/lib/sentinel-dates';
 import { isEditable, makeRolePredicate } from '../src/shared/lib/predicates';
 import type { AuthStatus } from '../src/shared/api/auth/auth-status';
@@ -188,5 +189,24 @@ describe('parametri ripetuti (unica regola di filtri, link e criteri, H-07 revie
     expect(scriviRipetuti(['b', 'a', 'b'], (k) => ({ a: ['1', '1', '2'], b: ['x&y=1'] })[k])).toBe('b=x%26y%3D1&a=1&a=2');
     expect(scriviRipetuti(['a'], () => ['1', '2', '3'], () => 2)).toBe('a=1&a=2');
     expect(scriviRipetuti(['a'], () => undefined)).toBe('');
+  });
+});
+
+describe("lib/stato-history — l'involucro { firma, valore } dello state della history (review v1 iter3 H-02)", () => {
+  const eTesto = (v: unknown): v is string => typeof v === 'string';
+  it('conStatoSalvato scrive sotto la chiave e lascia le altre chiavi dello state', () => {
+    expect(conStatoSalvato({ altro: 1 }, 'k', 'f', 'v')).toEqual({ altro: 1, k: { firma: 'f', valore: 'v' } });
+    expect(conStatoSalvato(undefined, 'k', 'f', 'v')).toEqual({ k: { firma: 'f', valore: 'v' } });
+    expect(conStatoSalvato('non un oggetto', 'k', 'f', 'v')).toEqual({ k: { firma: 'f', valore: 'v' } });
+  });
+  it('leggiStatoSalvato rilegge cio che conStatoSalvato scrive, solo con la stessa firma e un valore valido', () => {
+    const stato = conStatoSalvato({ altro: 1 }, 'k', 'f', 'v');
+    expect(leggiStatoSalvato(stato, 'k', 'f', eTesto)).toBe('v');
+    expect(leggiStatoSalvato(stato, 'k', 'altra firma', eTesto)).toBeUndefined();
+    expect(leggiStatoSalvato(stato, 'altra chiave', 'f', eTesto)).toBeUndefined();
+    expect(leggiStatoSalvato({ k: { firma: 'f', valore: 3 } }, 'k', 'f', eTesto)).toBeUndefined();
+    expect(leggiStatoSalvato({ k: 'manomesso' }, 'k', 'f', eTesto)).toBeUndefined();
+    expect(leggiStatoSalvato(null, 'k', 'f', eTesto)).toBeUndefined();
+    expect(leggiStatoSalvato(undefined, 'k', 'f', eTesto)).toBeUndefined();
   });
 });

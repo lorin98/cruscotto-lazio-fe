@@ -7,3 +7,4 @@ export * from './nome-file';
 export * from './intestazione';
 export * from './aggiornamento';
 export * from './parametri-ripetuti';
+export * from './stato-history';

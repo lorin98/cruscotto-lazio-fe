@@ -6,27 +6,19 @@
 // nella stessa origine puo' scriverlo): il predicato `valido` e' obbligatorio e un valore che non lo soddisfa vale come
 // assente (review v4 H-05, iter3 A-02).
 // Le altre chiavi dello state restano (lo stato di un'altra parte della pagina, o quello da riportare indietro).
+// L'involucro { firma, valore } e la sua lettura stanno in shared/lib (stato-history), condivisi con chi porta lo stato
+// in un link (review v1 iter3 H-02).
 import { useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router';
-
-interface Salvato<T> {
-  firma: string;
-  valore: T;
-}
+import { conStatoSalvato, leggiStatoSalvato } from '../lib';
 
 export function useStatoNellaHistory<T>(chiave: string, firma: string, valido: (v: unknown) => v is T): [T | undefined, (valore: T) => void] {
   const posizione = useLocation();
   const naviga = useNavigate();
-  const stato = (posizione.state ?? null) as Record<string, unknown> | null;
-  const salvato = stato?.[chiave] as Salvato<unknown> | undefined;
-  const grezzo: unknown = salvato && salvato.firma === firma ? salvato.valore : undefined;
-  const valore = grezzo !== undefined && valido(grezzo) ? grezzo : undefined;
+  const valore = leggiStatoSalvato(posizione.state, chiave, firma, valido);
   const salva = useCallback(
     (v: T) => {
-      void naviga(
-        { pathname: posizione.pathname, search: posizione.search, hash: posizione.hash },
-        { replace: true, state: { ...((posizione.state ?? {}) as object), [chiave]: { firma, valore: v } satisfies Salvato<T> } },
-      );
+      void naviga({ pathname: posizione.pathname, search: posizione.search, hash: posizione.hash }, { replace: true, state: conStatoSalvato(posizione.state, chiave, firma, v) });
     },
     [naviga, posizione, chiave, firma],
   );
