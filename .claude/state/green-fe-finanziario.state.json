@@ -23,29 +23,29 @@
       "status": "done",
       "gates": {
         "wireframe_panoramica": {
-          "approved_hash": "sha256:4371821eeb9bf4bbaacb6fc48edb871262dd7cd224e90102a73009c22d321de8",
+          "approved_hash": "sha256:1bdd9437b9ab4e9bd5da4042177d825130eacaa8fc72cbd15d476f0def8c86d3",
           "baseline_ref": "./wireframes/panoramica",
-          "approved_at": "2026-10-13T13:27:56Z",
-          "time_to_approve_s": 82,
+          "approved_at": "2026-10-13T16:01:07Z",
+          "time_to_approve_s": 189,
           "deviations_reviewed": [
             "V-22 (review step9 v2, scelta dell utente del 09/10/2026): il pulsante del pannello dei filtri resta Applica i filtri e non Mostra n interventi; il conteggio richiede il legame intervento-OS-OG-OP (OP-FE-07), che TX-0001 non espone",
             "V-07 (review step9 v3, download per formato chiesto dall utente il 09/10/2026, deviazione confermata il 12/10/2026): al posto del solo Scarica per card e di Esporta CSV per le tabelle, un pulsante per formato con la sigla visibile; PNG del grafico come si vede con l intestazione di NFR-50 (V-01), CSV e XLSX scritti dal backend (D-08). Il PNG non e registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08, scelta dell utente del 12/10/2026"
           ]
         },
         "wireframe_riepilogo": {
-          "approved_hash": "sha256:205a88ce13b1f062f060563b2680a53b1466ab10a81c7f35b4156f6cfbf4987d",
+          "approved_hash": "sha256:35b90258b135b67a1c56ac47c747d37d74aa67743504b3a86a20b16429e34fce",
           "baseline_ref": "./wireframes/riepilogo",
-          "approved_at": "2026-10-13T13:27:56Z",
-          "time_to_approve_s": 82,
+          "approved_at": "2026-10-13T16:01:07Z",
+          "time_to_approve_s": 189,
           "deviations_reviewed": [
             "V-07 (review step9 v3, download per formato chiesto dall utente il 09/10/2026, deviazione confermata il 12/10/2026): al posto del solo Scarica per card e di Esporta CSV per le tabelle, un pulsante per formato con la sigla visibile; PNG del grafico come si vede con l intestazione di NFR-50 (V-01), CSV e XLSX scritti dal backend (D-08). Il PNG non e registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08, scelta dell utente del 12/10/2026"
           ]
         },
         "wireframe_dotazione-avanzamento": {
-          "approved_hash": "sha256:0c638823f8b941f469abe39fefb091a0d16ce658c197ee75ecaf815c2bc82f04",
+          "approved_hash": "sha256:ead559227a1e9ae2ffc680cd48943ee02bf23af206b3918efc799feb6092636c",
           "baseline_ref": "./wireframes/dotazione-avanzamento",
-          "approved_at": "2026-10-13T09:29:35Z",
-          "time_to_approve_s": 423,
+          "approved_at": "2026-10-13T16:01:07Z",
+          "time_to_approve_s": 189,
           "deviations_reviewed": [
             "V-07 (review step9 v3, download per formato chiesto dall utente il 09/10/2026, deviazione confermata il 12/10/2026): al posto del solo Scarica per card e di Esporta CSV per le tabelle, un pulsante per formato con la sigla visibile; PNG del grafico come si vede con l intestazione di NFR-50 (V-01), CSV e XLSX scritti dal backend (D-08). Il PNG non e registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08, scelta dell utente del 12/10/2026"
           ]

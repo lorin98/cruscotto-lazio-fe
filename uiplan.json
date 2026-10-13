@@ -1396,11 +1396,11 @@
         "Download per formato (PNG, CSV, XLSX): un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo. Deviazione rivista V-07."
       ],
       "approval": {
-        "approved_hash": "sha256:4371821eeb9bf4bbaacb6fc48edb871262dd7cd224e90102a73009c22d321de8",
+        "approved_hash": "sha256:1bdd9437b9ab4e9bd5da4042177d825130eacaa8fc72cbd15d476f0def8c86d3",
         "baseline_ref": "./wireframes/panoramica",
-        "approved_at": "2026-10-13T13:27:56Z",
-        "time_to_approve_s": 82,
-        "rework_rounds": 2
+        "approved_at": "2026-10-13T16:01:07Z",
+        "time_to_approve_s": 189,
+        "rework_rounds": 3
       }
     },
     {
@@ -1417,11 +1417,11 @@
         "Download per formato (PNG, CSV, XLSX): un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo. Deviazione rivista V-07."
       ],
       "approval": {
-        "approved_hash": "sha256:205a88ce13b1f062f060563b2680a53b1466ab10a81c7f35b4156f6cfbf4987d",
+        "approved_hash": "sha256:35b90258b135b67a1c56ac47c747d37d74aa67743504b3a86a20b16429e34fce",
         "baseline_ref": "./wireframes/riepilogo",
-        "approved_at": "2026-10-13T13:27:56Z",
-        "time_to_approve_s": 82,
-        "rework_rounds": 2
+        "approved_at": "2026-10-13T16:01:07Z",
+        "time_to_approve_s": 189,
+        "rework_rounds": 3
       }
     },
     {
@@ -1438,11 +1438,11 @@
         "Download per formato (PNG, CSV, XLSX): un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo. Deviazione rivista V-07."
       ],
       "approval": {
-        "approved_hash": "sha256:0c638823f8b941f469abe39fefb091a0d16ce658c197ee75ecaf815c2bc82f04",
+        "approved_hash": "sha256:ead559227a1e9ae2ffc680cd48943ee02bf23af206b3918efc799feb6092636c",
         "baseline_ref": "./wireframes/dotazione-avanzamento",
-        "approved_at": "2026-10-13T09:29:35Z",
-        "time_to_approve_s": 423,
-        "rework_rounds": 1
+        "approved_at": "2026-10-13T16:01:07Z",
+        "time_to_approve_s": 189,
+        "rework_rounds": 2
       }
     },
     {
