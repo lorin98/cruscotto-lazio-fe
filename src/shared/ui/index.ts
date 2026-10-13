@@ -23,7 +23,7 @@ export { PannelloLaterale } from './laterale/PannelloLaterale';
 export { TabellaInterattiva } from './tabella/TabellaInterattiva';
 export { PulsantiScarica } from './scarica/PulsantiScarica';
 export type { FormatoScaricabile, Scaricamento } from './scarica/PulsantiScarica';
-export type { ColonnaTabella, RigaPiede } from './tabella/TabellaInterattiva';
+export type { ColonnaTabella, RigaPiede, StatoTabella } from './tabella/TabellaInterattiva';
 export { TabellaServer } from './tabella/TabellaServer';
 export type { ColonnaServer, OrdinamentoServer } from './tabella/TabellaServer';
 export { Paginazione } from './tabella/Paginazione';

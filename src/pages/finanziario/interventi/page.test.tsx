@@ -224,6 +224,17 @@ describe("RA003: drill-down dal dettaglio dell'intervento all'elenco operativo",
       screen.getByRole('link', { name: "Le domande SIGC dell'intervento nell'elenco operativo: apri nell'elenco operativo (sinottico con richiesto, ammesso, pagato e ancora da pagare)" }).getAttribute('href'),
     ).toBe('/elenco-operativo/domande?sigc=true&intervento=SRA01');
   });
+  it("tornando indietro dall'elenco operativo la scheda del dettaglio e' quella da cui si era partiti", async () => {
+    servi();
+    const { router } = renderPagina(Pagina, PERCORSO, '/finanziario/interventi/SRA01');
+    await userEvent.click(await screen.findByRole('tab', { name: 'SIGC' }));
+    expect(router.state.location.search).toBe('?scheda=sigc');
+    await userEvent.click(await screen.findByRole('link', { name: "pagate: apri nell'elenco operativo le domande SIGC pagate dell'intervento SRA01" }));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/elenco-operativo/domande'));
+    await act(() => router.navigate(-1));
+    await waitFor(() => expect(screen.getByRole('tab', { name: 'SIGC' }).getAttribute('aria-selected')).toBe('true'));
+    expect(screen.getByRole('tab', { name: 'Sintesi' }).getAttribute('aria-selected')).toBe('false');
+  });
   it("senza il grant dell'elenco i clic non portano altrove e i link non ci sono", async () => {
     servi();
     server.use(http.get('*/auth/status', () => HttpResponse.json({ authenticated: true, user: { username: 'U', roles: ['csr.tx-0001.read', 'csr.tx-0002.read', 'csr.tx-0008.read', 'csr.tx-0009.read', 'csr.tx-0010.read', 'csr.tx-0011.read', 'csr.tx-0012.read', 'csr.tx-0013.read'] } })));

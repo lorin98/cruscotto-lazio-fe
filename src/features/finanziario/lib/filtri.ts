@@ -101,8 +101,19 @@ export function senzaValore(filtri: Filtri, chiave: ChiaveFiltro, valore: string
   return nuovi;
 }
 
-/** Parametri di pagina (non filtri) che restano nell'indirizzo quando i filtri cambiano. */
-export const PARAMETRI_DI_PAGINA = ['anno', 'esercizio'] as const;
+/**
+ * Parametri di pagina (non filtri) che restano nell'indirizzo quando i filtri cambiano: anno della riserva, esercizio SMP,
+ * scheda del dettaglio dell'intervento (cosi' tornando indietro dall'elenco operativo la scheda si ritrova).
+ */
+export const PARAMETRI_DI_PAGINA = ['anno', 'esercizio', 'scheda'] as const;
+
+/** Imposta (o toglie, con null) un parametro di pagina, lasciando gli altri. */
+export function conParametroDiPagina(ricerca: URLSearchParams, chiave: (typeof PARAMETRI_DI_PAGINA)[number], valore: string | null): URLSearchParams {
+  const nuova = new URLSearchParams(ricerca);
+  if (valore === null) nuova.delete(chiave);
+  else nuova.set(chiave, valore);
+  return nuova;
+}
 
 /** Query string con i filtri dati e i parametri di pagina della ricerca corrente (anno della riserva, esercizio SMP). */
 export function ricercaConParametri(ricercaCorrente: string, filtri: Filtri): string {

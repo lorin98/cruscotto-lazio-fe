@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { screen, waitFor, within } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { server } from '../../../shared/api/mock/server';
@@ -201,6 +201,19 @@ describe("RA003: drill-down dal riepilogo all'elenco operativo", () => {
     expect(within(tabella).getByRole('link', { name: "Apri nell'elenco operativo le domande presentate dell'intervento SRA01" })).toBeTruthy();
     expect(within(tabella).queryByRole('link', { name: /^righe di pagamento, importi lordi: / })).toBeNull();
     expect(screen.queryByText(/i recuperi sono nella scheda di ogni domanda\.$/)).toBeNull();
+  });
+  it("tornando indietro dall'elenco operativo l'ordinamento della tabella e' quello scelto", async () => {
+    server.use(http.get('*/api/finanziario/riepilogo', () => HttpResponse.json(RIEPILOGO)));
+    const { router } = renderPagina(Pagina, '/finanziario/riepilogo');
+    let tabella = await screen.findByRole('table', { name: TABELLA });
+    await userEvent.click(within(within(tabella).getByRole('columnheader', { name: /^Intervento/ })).getByRole('button'));
+    const verso = within(tabella).getByRole('columnheader', { name: /^Intervento/ }).getAttribute('aria-sort');
+    expect(verso).not.toBe('none');
+    await userEvent.click(within(tabella).getByRole('link', { name: "Apri nell'elenco operativo le domande presentate dell'intervento SRA01" }));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/elenco-operativo/domande'));
+    await act(() => router.navigate(-1));
+    tabella = await screen.findByRole('table', { name: TABELLA });
+    expect(within(tabella).getByRole('columnheader', { name: /^Intervento/ }).getAttribute('aria-sort')).toBe(verso);
   });
   it("senza i grant dell'elenco nessun link", async () => {
     server.use(

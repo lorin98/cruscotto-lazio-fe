@@ -8,7 +8,7 @@ import { Link } from 'react-router';
 import { ValoreImporto } from '../../../entities/importo';
 import { formatNumber } from '../../../shared/lib';
 import { CardGrafico, PannelloLaterale, PulsantiScarica, Sezione, TabellaInterattiva, VistaQuery } from '../../../shared/ui';
-import type { ColonnaTabella, RigaPiede } from '../../../shared/ui';
+import type { ColonnaTabella, RigaPiede, StatoTabella } from '../../../shared/ui';
 import { useRiepilogo } from '../api';
 import type { RiepilogoFinanziario, RiepilogoFinanziarioRiga } from '../api';
 import { cellaTotale, sommaSeCompleta } from '../lib/aggregati';
@@ -20,6 +20,7 @@ import { conFiltri, percorsoIntervento } from '../lib/report';
 import { NotaPerimetroMisto, PerimetroSezione, colonneImporti, diProgramma, vuotoConPerimetro } from './comuni';
 import { NOTA_RICERCA_FILE, datiDelReport } from './esportazioni';
 import { useApriIntervento } from './useApriIntervento';
+import { useStatoNellaHistory } from './useStatoNellaHistory';
 import { ApriNellElenco, useLinkElenco } from './LinkElenco';
 import type { CriteriLink, IdLinkElenco } from '../lib/link-elenco';
 import type { CampoImporto } from './comuni';
@@ -152,6 +153,8 @@ function Anteprima({ riga, perimetro, filtri, onChiudi }: { riga: Riga | null; p
 function Contenuto({ d, filtri }: { d: RiepilogoFinanziario; filtri: Filtri }) {
   const { dalClic } = useApriIntervento(filtri);
   const link = useLinkElenco(filtri);
+  // ordine e pagina da ritrovare tornando indietro dall'elenco operativo o dal dettaglio (stessi filtri)
+  const [statoTabella, conservaStato] = useStatoNellaHistory<StatoTabella>('riepilogo', filtri);
   const righe = d.righe ?? [];
   const [aperta, setAperta] = useState<Riga | null>(null);
   const [vista, setVista] = useState<'tabella' | 'grafico'>('tabella');
@@ -181,6 +184,8 @@ function Contenuto({ d, filtri }: { d: RiepilogoFinanziario; filtri: Filtri }) {
           etichettaRiga={(r) => `Apri l'anteprima dell'intervento ${r.codiceIntervento ?? ''}`}
           onRiga={setAperta}
           ordineIniziale={{ chiave: 'dotazioneSpesaPubblica', verso: 'decrescente' }}
+          statoIniziale={statoTabella}
+          onStato={conservaStato}
           totali={totali}
           righePiede={[assistenzaTecnica]}
           strumenti={<Esporta filtri={filtri} />}

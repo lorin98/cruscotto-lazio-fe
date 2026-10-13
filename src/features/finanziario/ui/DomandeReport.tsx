@@ -6,7 +6,7 @@
 // (D-09 del backend); le domande senza nessuno dei due sono la riga "senza anno di raccolta". Ogni sezione ha il suo
 // grant e il suo perimetro. L'importo decretato viene dagli elenchi di liquidazione: e' la colonna del decretato, non
 // quella del pagato dei pagamenti totali di RF005 (OP-FE-05).
-import { useId, useState } from 'react';
+import { useId } from 'react';
 import { formatNumber, importoBreve } from '../../../shared/lib';
 import { CardGrafico, Griglia, Kpi, PulsantiScarica, Sezione, TabellaRighe, VistaQuery } from '../../../shared/ui';
 import type { ClicGrafico, Colonna } from '../../../shared/ui';
@@ -23,6 +23,7 @@ import { GRANT } from '../lib/report';
 import { ConGrant, KpiImporto, Numero, PerimetroSezione, ScaricaKpi, colonnaImporto, erroreGiaMostrato, vuotoConPerimetro } from './comuni';
 import { ApriNellElenco, useLinkElenco } from './LinkElenco';
 import { colonneDomandePerAnno } from './colonneAnno';
+import { useStatoNellaHistory } from './useStatoNellaHistory';
 import { criteriAnnoAnnualita } from '../lib/link-elenco';
 import type { CriteriLink, IdLinkElenco } from '../lib/link-elenco';
 
@@ -134,12 +135,17 @@ function DomandePerAnno({ filtri }: { filtri: Filtri }) {
   const link = useLinkElenco(filtri);
   const conLink = link('elenco-anno-annualita', { presentata: true }) !== null;
   const id = useId();
-  // clic su un anno del grafico, o la scelta sopra la tabella: il dettaglio mostra solo quell'anno (wireframe domande)
-  const [anno, setAnno] = useState<string | null>(null);
+  // clic su un anno del grafico, o la scelta sopra la tabella: il dettaglio mostra solo quell'anno (wireframe domande).
+  // L'anno sta nello state della history con i filtri: tornando indietro dall'elenco operativo si ritrova; con filtri
+  // nuovi decade (una selezione nuova e' un dettaglio nuovo, N-01).
+  const [annoSalvato, setAnno] = useStatoNellaHistory<string | null>('domandePerAnno', filtri);
+  const annoNellIndirizzo = annoSalvato ?? null;
   return (
     <VistaQuery stato={stato} eVuoto={(d) => (d.righe ?? []).length === 0} vuoto={VUOTO}>
       {(d) => {
         const anni = (d.righe ?? []).map((r) => annoDiRaccolta(r.annoRaccolta));
+        // un anno che non c'e' piu' fra i dati (filtri cambiati) vale "tutti gli anni"
+        const anno = annoNellIndirizzo !== null && anni.includes(annoNellIndirizzo) ? annoNellIndirizzo : null;
         const righe = (d.righe ?? []).filter((r) => anno === null || annoDiRaccolta(r.annoRaccolta) === anno);
         return (
           <div>

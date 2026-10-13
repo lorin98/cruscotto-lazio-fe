@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { screen, waitFor, within } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { server } from '../../../shared/api/mock/server';
 import { expectNoA11yViolations } from '../../../shared/testing/axe';
@@ -120,6 +121,20 @@ describe("RA003: drill-down dalla pagina domande all'elenco operativo", () => {
     const importi = await tabellaDi(await trovaCard('Importi per anno di raccolta (RF010)'));
     expect(within(importi).getAllByRole('columnheader').map((c) => c.textContent)).toEqual(['Anno', 'Stanziato', 'Ammesso', 'Decretato', 'Domande senza importo ammesso', 'Elenco operativo']);
     expect(within(importi).getByRole('link', { name: "Apri nell'elenco operativo le domande presentate del 2024" }).getAttribute('href')).toBe('/elenco-operativo/domande?presentata=true&anno=2024');
+  });
+  it("tornando indietro dall'elenco operativo l'anno scelto e' ancora quello", async () => {
+    servi();
+    const { router } = renderPagina(Pagina, '/finanziario/domande');
+    const dettaglio = await screen.findByRole('region', { name: 'Domande per anno: dettaglio' });
+    await userEvent.selectOptions(within(dettaglio).getByRole('combobox', { name: 'Anno di raccolta' }), '2024');
+    const t = within(dettaglio).getByRole('table', { name: 'Domande per anno di raccolta' });
+    await waitFor(() => expect(within(t).getAllByRole('rowheader').map((c) => c.textContent)).toEqual(['2024']));
+    await userEvent.click(within(t).getByRole('link', { name: "Apri nell'elenco operativo le domande del 2024, prima annualità" }));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/elenco-operativo/domande'));
+    await act(() => router.navigate(-1));
+    const dopo = await screen.findByRole('region', { name: 'Domande per anno: dettaglio' });
+    await waitFor(() => expect((within(dopo).getByRole('combobox', { name: 'Anno di raccolta' }) as HTMLSelectElement).value).toBe('2024'));
+    expect(within(within(dopo).getByRole('table', { name: 'Domande per anno di raccolta' })).getAllByRole('rowheader').map((c) => c.textContent)).toEqual(['2024']);
   });
   it("senza il grant dell'elenco nessun link e nessuna colonna Elenco operativo", async () => {
     servi();

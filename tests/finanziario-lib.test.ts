@@ -207,7 +207,8 @@ describe('chip dei filtri e parametri di pagina', () => {
     expect(filtri).toEqual({ intervento: ['SRA01', 'SRA03'], os: ['OS4'] });
   });
   it('ricercaConParametri: i filtri nuovi e i parametri di pagina della ricerca corrente (anno, esercizio)', () => {
-    expect(PARAMETRI_DI_PAGINA).toEqual(['anno', 'esercizio']);
+    expect(PARAMETRI_DI_PAGINA).toEqual(['anno', 'esercizio', 'scheda']);
+    expect(ricercaConParametri('scheda=sigc&x=1', {})).toBe('scheda=sigc');
     expect(ricercaConParametri('anno=2025&intervento=SRA01&x=1', { os: ['OS4'] })).toBe('os=OS4&anno=2025');
     expect(ricercaConParametri('?esercizio=2026&anno=2025', { intervento: ['SRA01'] })).toBe('intervento=SRA01&anno=2025&esercizio=2026');
     expect(ricercaConParametri('intervento=SRA01', {})).toBe('');

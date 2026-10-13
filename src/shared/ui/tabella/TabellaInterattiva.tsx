@@ -2,7 +2,7 @@
 // colonne, paginazione, riga dei totali e righe di piede, riga apribile con clic o Invio. Tabella HTML NATIVA (caption,
 // th scope, intestazioni di riga) invece della Table di react-aria: stessa semantica senza la griglia ARIA, che qui non
 // serve (nessuna selezione ne' modifica di celle). La logica sta nelle funzioni pure di shared/lib/tabella.
-import { useId, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { ariaSort, conColonna, didascalia, filtraRighe, ordinaRighe, paginaDi, versoSuccessivo } from '../../lib/tabella';
 import type { Ordine, ValoreOrdinabile } from '../../lib/tabella';
@@ -183,16 +183,37 @@ interface PropsTabellaInterattiva<T> {
   /** Righe di piede indipendenti dalla ricerca (es. un valore fuori tabella). */
   righePiede?: RigaPiede[];
   ordineIniziale?: Ordine;
+  /** Ordine e pagina da cui ripartire (es. tornando indietro alla pagina): vince su ordineIniziale. */
+  statoIniziale?: StatoTabella;
+  /** Notifica di ordine e pagina a ogni loro cambio (es. per conservarli nello state della history). */
+  onStato?: (stato: StatoTabella) => void;
   perPagina?: number;
   strumenti?: ReactNode;
+}
+
+/** Ordine e pagina della tabella: cio' che vale la pena ritrovare tornando alla pagina. */
+export interface StatoTabella {
+  ordine: Ordine;
+  pagina: number;
 }
 
 export function TabellaInterattiva<T>(props: PropsTabellaInterattiva<T>) {
   const { caption, righe, colonne, chiaveRiga, testoRicerca, onRiga, etichettaRiga, totali, righePiede = [], perPagina = 10 } = props;
   const id = useId();
   const [cercato, setCercato] = useState('');
-  const [ordine, setOrdine] = useState<Ordine>(props.ordineIniziale ?? { chiave: colonne[0].chiave, verso: 'crescente' });
-  const [pagina, setPagina] = useState(0);
+  const [ordine, setOrdine] = useState<Ordine>(props.statoIniziale?.ordine ?? props.ordineIniziale ?? { chiave: colonne[0].chiave, verso: 'crescente' });
+  const [pagina, setPagina] = useState(props.statoIniziale?.pagina ?? 0);
+  const notifica = useRef(props.onStato);
+  notifica.current = props.onStato;
+  const primo = useRef(true);
+  useEffect(() => {
+    // al montaggio non c'e' nulla da notificare: lo stato e' quello ricevuto
+    if (primo.current) {
+      primo.current = false;
+      return;
+    }
+    notifica.current?.({ ordine, pagina });
+  }, [ordine, pagina]);
   const [nascoste, setNascoste] = useState<Set<string>>(() => new Set(colonne.filter((c) => c.nascosta).map((c) => c.chiave)));
 
   const visibili = colonne.filter((c) => c.fissa || !nascoste.has(c.chiave));

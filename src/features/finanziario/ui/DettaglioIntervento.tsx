@@ -4,7 +4,7 @@
 // (gauge, cascata), Domande (TX-0008, TX-0010), SIGC (TX-0012, TX-0013), Tutte le voci (con il motivo dei valori
 // assenti). Le schede leggono solo quando si aprono e solo con il grant (letture nei figli di ConGrant, R-09). I dati
 // sono del solo intervento; i link di ritorno conservano la selezione della pagina (filtri dell'indirizzo, N-03).
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 import { Tab, TabList, TabPanel, Tabs } from 'react-aria-components';
 import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { codiceDalClic, formatNumber, formatPercentuale } from '../../../shared/lib';
@@ -12,6 +12,7 @@ import { CardGrafico, Griglia, Kpi, TabellaDati, TabellaRighe, VistaQuery, Vuoto
 import { useDomandePerAnno, useImportiPerAnno, useRiepilogo, useSigcDomande, useSigcImporti, useSpesaPerIntervento } from '../api';
 import type { RiepilogoFinanziarioRiga } from '../api';
 import { datiDelReport } from './esportazioni';
+import { conParametroDiPagina } from '../lib/filtri';
 import type { Filtri } from '../lib/filtri';
 import { VOCI_DOMANDE_SIGC, graficoCascataIntervento, graficoCascataSigc, graficoDomandePerAnno, graficoDomandeSigc, graficoImportiPerAnno, graficoPagatoNetto, vociIntervento } from '../lib/grafici';
 import { perAnno } from '../lib/importi';
@@ -211,9 +212,23 @@ function CascataImportiSigc({ dati, indirizzo, filtri, onClic }: { dati: ReturnT
   );
 }
 
+const SCHEDE = ['sintesi', 'domande', 'sigc', 'voci'] as const;
+type Scheda = (typeof SCHEDE)[number];
+const eScheda = (v: string | null): v is Scheda => v !== null && (SCHEDE as readonly string[]).includes(v);
+
+/** Scheda selezionata nell'indirizzo (?scheda=), con replace: tornando indietro dall'elenco operativo si ritrova. */
+function useScheda(): [Scheda, (s: Scheda) => void] {
+  const [ricerca, setRicerca] = useSearchParams();
+  const valore = ricerca.get('scheda');
+  const scheda: Scheda = eScheda(valore) ? valore : 'sintesi';
+  const scegli = (s: Scheda) => setRicerca((p) => conParametroDiPagina(p, 'scheda', s === 'sintesi' ? null : s), { replace: true });
+  return [scheda, scegli];
+}
+
 function Schede({ filtri, r, perimetro, da }: { filtri: Filtri; r: RiepilogoFinanziarioRiga; perimetro?: Perimetro; da: Provenienza }) {
+  const [scheda, scegli] = useScheda();
   return (
-    <Tabs>
+    <Tabs selectedKey={scheda} onSelectionChange={(k) => eScheda(String(k)) && scegli(String(k) as Scheda)}>
       <TabList aria-label="Sezioni dell'intervento" className="ui-tabs">
         <Tab id="sintesi" className="ui-tab">
           Sintesi
