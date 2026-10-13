@@ -1,0 +1,78 @@
+{
+  "feature": "elenco-operativo",
+  "pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb",
+  "routes": [
+    {
+      "actions": [
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0056.read",
+          "operationId": "TX-0056"
+        },
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0057.read",
+          "operationId": "TX-0057"
+        },
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0060.read",
+          "operationId": "TX-0060"
+        }
+      ],
+      "component": "src/pages/elenco-operativo/domande/page.tsx",
+      "flow": "domande",
+      "path": "/elenco-operativo/domande",
+      "visibility": [
+        "csr.tx-0056.read",
+        "csr.tx-0057.read",
+        "csr.tx-0060.read"
+      ]
+    },
+    {
+      "actions": [
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0058.read",
+          "operationId": "TX-0058"
+        }
+      ],
+      "component": "src/pages/elenco-operativo/dettaglio-domanda/page.tsx",
+      "flow": "dettaglio-domanda",
+      "path": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "visibility": [
+        "csr.tx-0058.read"
+      ]
+    },
+    {
+      "actions": [
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0059.read",
+          "operationId": "TX-0059"
+        },
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0060.read",
+          "operationId": "TX-0060"
+        }
+      ],
+      "component": "src/pages/elenco-operativo/pagamenti/page.tsx",
+      "flow": "pagamenti",
+      "path": "/elenco-operativo/pagamenti",
+      "visibility": [
+        "csr.tx-0059.read",
+        "csr.tx-0060.read"
+      ]
+    }
+  ],
+  "schema_version": "1.0",
+  "spec_pins": [
+    {
+      "manifest_hash_match": true,
+      "path": "handover/openapi-elenco-operativo.json",
+      "sha256": "sha256:f1fab18306d09d2f4348418af5dd036318c4b4312916365eca8fcf95f6c4d28b",
+      "slice": "elenco-operativo"
+    }
+  ]
+}

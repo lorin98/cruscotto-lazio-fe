@@ -405,3 +405,11 @@ a.ui-ambito__entra:focus-visible { outline: none !important; }
   .ui-riga--nuova { animation: none; }
   .ui-risultati[aria-busy='true'] .ui-tabella tbody { transition: none; }
 }
+
+/* ---------------------------------------------------------------- strumenti trasversali nella Home (elenco operativo) */
+.ui-strumenti-home { display: grid; gap: 1rem; margin: 0 0 1.5rem; }
+.ui-strumento { display: flex; flex-wrap: wrap; gap: 1rem 2rem; align-items: center; justify-content: space-between; border-left: 6px solid var(--ui-primario); }
+.ui-strumento h2 { display: flex; gap: .5rem; align-items: center; margin: 0 0 .3rem; font-size: 1.3rem; }
+.ui-strumento p { margin: 0; color: var(--ui-attenuato); max-width: 60ch; }
+.ui-strumento__link { display: flex; flex-wrap: wrap; gap: .5rem; list-style: none; margin: 0; padding: 0; }
+.ui-strumento__link .btn { display: inline-flex; gap: .4rem; align-items: center; }

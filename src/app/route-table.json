@@ -230,6 +230,69 @@
           "grant": "csr.tx-0015.read"
         }
       ]
+    },
+    {
+      "path": "/elenco-operativo/domande",
+      "flow": "domande",
+      "component": "src/pages/elenco-operativo/domande/page.tsx",
+      "visibility": [
+        "csr.tx-0056.read",
+        "csr.tx-0057.read",
+        "csr.tx-0060.read"
+      ],
+      "actions": [
+        {
+          "operationId": "TX-0056",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0056.read"
+        },
+        {
+          "operationId": "TX-0057",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0057.read"
+        },
+        {
+          "operationId": "TX-0060",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0060.read"
+        }
+      ]
+    },
+    {
+      "path": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "flow": "dettaglio-domanda",
+      "component": "src/pages/elenco-operativo/dettaglio-domanda/page.tsx",
+      "visibility": [
+        "csr.tx-0058.read"
+      ],
+      "actions": [
+        {
+          "operationId": "TX-0058",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0058.read"
+        }
+      ]
+    },
+    {
+      "path": "/elenco-operativo/pagamenti",
+      "flow": "pagamenti",
+      "component": "src/pages/elenco-operativo/pagamenti/page.tsx",
+      "visibility": [
+        "csr.tx-0059.read",
+        "csr.tx-0060.read"
+      ],
+      "actions": [
+        {
+          "operationId": "TX-0059",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0059.read"
+        },
+        {
+          "operationId": "TX-0060",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0060.read"
+        }
+      ]
     }
   ]
 }

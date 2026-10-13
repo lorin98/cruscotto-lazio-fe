@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import routeTable from '../src/app/route-table.json';
+
+// la route-table e' del progetto (piu' feature, ADR 0028): qui solo le route del finanziario
+const ROTTE_FINANZIARIO = routeTable.routes.filter((r) => r.path.startsWith('/finanziario'));
 import { ariaSort, conColonna, didascalia, formatDate, formatEuro, formatPercentuale, versoSuccessivo } from '../src/shared/lib';
 import { descriviImporto, etichettaFonte } from '../src/entities/importo';
 import {
@@ -364,14 +367,14 @@ describe('catalogo delle pagine (UI v2)', () => {
     expect(DETTAGLIO_INTERVENTO.sottotitolo).toBeUndefined();
   });
   it('GRANT: gli stessi grant della route-table, uno per transazione da TX-0001 a TX-0015', () => {
-    const daTabella = new Set(routeTable.routes.flatMap((r) => r.actions.map((a) => a.grant)));
+    const daTabella = new Set(ROTTE_FINANZIARIO.flatMap((r) => r.actions.map((a) => a.grant)));
     expect([...daTabella].sort()).toEqual(Object.values(GRANT).sort());
     expect(Object.values(GRANT)).toEqual(Array.from({ length: 15 }, (_, k) => `csr.tx-${String(k + 1).padStart(4, '0')}.read`));
     // ogni azione della route-table usa il grant della sua transazione
-    for (const a of routeTable.routes.flatMap((r) => r.actions)) expect(a.grant).toBe(`csr.${a.operationId.toLowerCase()}.read`);
+    for (const a of ROTTE_FINANZIARIO.flatMap((r) => r.actions)) expect(a.grant).toBe(`csr.${a.operationId.toLowerCase()}.read`);
   });
   it('PERCORSI: le route della route-table', () => {
-    expect(Object.values(PERCORSI).sort()).toEqual(routeTable.routes.map((r) => r.path).sort());
+    expect(Object.values(PERCORSI).sort()).toEqual(ROTTE_FINANZIARIO.map((r) => r.path).sort());
   });
   it('pagineVisibili: basta uno dei grant della pagina', () => {
     expect(pagineVisibili((g) => g === GRANT.distribuzioneDotazione).map((r) => r.percorso)).toEqual(['/finanziario/dotazione']);

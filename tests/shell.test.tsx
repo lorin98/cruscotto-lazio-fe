@@ -368,7 +368,9 @@ describe('shell UI v2: intestazione degli enti, menu laterale, ricerca, piede', 
     const menu = await screen.findByRole('navigation', { name: 'Navigazione principale' });
     const gruppo = within(menu).getByRole('button', { name: 'Finanziario' });
     expect(gruppo.getAttribute('aria-expanded')).toBe('true');
-    const voci = await within(menu).findAllByRole('link');
+    // le voci del gruppo Finanziario (il menu ha anche la sezione Strumenti con l'elenco operativo)
+    const sottomenu = document.getElementById(gruppo.getAttribute('aria-controls') ?? '') as HTMLElement;
+    const voci = await within(sottomenu).findAllByRole('link');
     expect(voci.map((v) => v.textContent)).toEqual(PAGINE_FINANZIARIO.map((p) => p.voceMenu));
     for (const v of voci) expect(v.getAttribute('href')).toMatch(/\?intervento=SRA01$/);
     const corrente = within(menu).getByRole('link', { name: 'Riepilogo per intervento' });
@@ -377,7 +379,9 @@ describe('shell UI v2: intestazione degli enti, menu laterale, ricerca, piede', 
     expect(menu.textContent).toContain('Fisicopresto');
     await userEvent.click(gruppo);
     expect(gruppo.getAttribute('aria-expanded')).toBe('false');
-    expect(within(menu).queryAllByRole('link')).toHaveLength(0);
+    expect(within(sottomenu).queryAllByRole('link')).toHaveLength(0);
+    // la sezione Strumenti porta l'elenco operativo (il profilo di prova ha i grant di TX-0056 e TX-0059)
+    expect(within(menu).getByRole('link', { name: 'Domande' }).getAttribute('href')).toBe('/elenco-operativo/domande');
   });
 
   it('menu laterale: solo le pagine visibili per i grant dell utente (gate di UX)', async () => {

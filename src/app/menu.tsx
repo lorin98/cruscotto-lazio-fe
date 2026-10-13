@@ -1,12 +1,13 @@
 // menu.tsx — menu laterale dell'applicazione (UI v2): aree del cruscotto con gruppi e sottomenu, dal catalogo unico delle
 // aree (aree.ts, review step9 H-22). Le voci di un'area sono le sue pagine visibili per i grant dell'utente (solo UX);
 // passando da una pagina all'altra della stessa area la sua parte dell'indirizzo (i filtri) resta.
-// Le aree non ancora realizzate sono dichiarate "presto", senza link.
+// Le aree non ancora realizzate sono dichiarate "presto", senza link. Gli strumenti trasversali (elenco operativo) hanno
+// una sezione propria, con le sole pagine visibili.
 import { useId, useState } from 'react';
 import { NavLink, useLocation } from 'react-router';
 import { hasGrant, useAuthStatus } from '../shared/api/auth/use-auth-status';
 import { Icona } from '../shared/ui';
-import { AREE_FUTURE, areeVisibili } from './aree';
+import { AREE_FUTURE, STRUMENTI, areeVisibili } from './aree';
 import type { Area, PaginaArea } from './aree';
 
 function GruppoArea({ area, pagine, onNaviga }: { area: Area; pagine: PaginaArea[]; onNaviga?: () => void }) {
@@ -37,6 +38,7 @@ function GruppoArea({ area, pagine, onNaviga }: { area: Area; pagine: PaginaArea
 export function MenuLaterale({ onNaviga }: { onNaviga?: () => void }) {
   const { data: auth } = useAuthStatus();
   const aree = areeVisibili((g) => hasGrant(auth, g));
+  const strumenti = areeVisibili((g) => hasGrant(auth, g), STRUMENTI);
   return (
     <>
       <p className="ui-menu__sezione">Aree del cruscotto</p>
@@ -53,6 +55,16 @@ export function MenuLaterale({ onNaviga }: { onNaviga?: () => void }) {
           </li>
         ))}
       </ul>
+      {strumenti.length > 0 && (
+        <>
+          <p className="ui-menu__sezione">Strumenti</p>
+          <ul className="ui-menu">
+            {strumenti.map(({ area, pagine }) => (
+              <GruppoArea key={area.chiave} area={area} pagine={pagine} onNaviga={onNaviga} />
+            ))}
+          </ul>
+        </>
+      )}
     </>
   );
 }

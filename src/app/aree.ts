@@ -5,6 +5,7 @@
 // Gli ambiti sono quattro (finanziario, fisico, procedurale, istituzionale), ognuno col suo colore; i dati del primo
 // pilastro (Extra CSR) non hanno un ambito nel frontend (scelta dell'utente del 12/10/2026).
 import type { ComponentType, ReactNode } from 'react';
+import { pagineVisibili as pagineElenco } from '../features/elenco-operativo';
 import { AnteprimaFinanziario, filtriDaRicerca, pagineVisibili as pagineFinanziario, ricercaDaFiltri } from '../features/finanziario';
 import type { NomeIcona } from '../shared/ui';
 
@@ -82,7 +83,23 @@ export const AREE_FUTURE: readonly SchedaArea[] = [
   },
 ];
 
-/** Le aree con almeno una pagina visibile per i grant dell'utente, ognuna con le sue pagine visibili. */
-export function areeVisibili(haGrant: (grant: string) => boolean): { area: Area; pagine: PaginaArea[] }[] {
-  return AREE.map((area) => ({ area, pagine: area.pagineVisibili(haGrant) })).filter((a) => a.pagine.length > 0);
+/**
+ * Strumenti trasversali agli ambiti (OP-EO-04): l'elenco operativo delle domande e dei pagamenti. Non sono un ambito
+ * (la griglia della Home resta di quattro): menu e Home li mostrano in una sezione propria.
+ */
+export const STRUMENTI: readonly Area[] = [
+  {
+    chiave: 'elenco-operativo',
+    titolo: 'Elenco operativo',
+    descrizione: 'Tutte le domande e i pagamenti del tuo perimetro: filtri liberi, sinottico e totali sempre aggiornati, scheda di ogni domanda.',
+    icona: 'it-list',
+    tono: 'blu',
+    contenuti: ['Domande di sostegno e di pagamento con il beneficiario', 'Righe degli elenchi di liquidazione', 'Scheda della domanda con determine, pagamenti e recuperi'],
+    pagineVisibili: pagineElenco,
+  },
+];
+
+/** Le aree (o gli strumenti) con almeno una pagina visibile per i grant dell'utente, ognuna con le sue pagine visibili. */
+export function areeVisibili(haGrant: (grant: string) => boolean, aree: readonly Area[] = AREE): { area: Area; pagine: PaginaArea[] }[] {
+  return aree.map((area) => ({ area, pagine: area.pagineVisibili(haGrant) })).filter((a) => a.pagine.length > 0);
 }

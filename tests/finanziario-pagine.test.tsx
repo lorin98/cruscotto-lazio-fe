@@ -14,6 +14,9 @@ import PaginaRiserva from '../src/pages/finanziario/sigc/riserva/page';
 import { pngDelGrafico } from '../src/shared/ui/grafici/echarts';
 import PaginaVerificaSmp from '../src/pages/finanziario/sigc/verifica-smp/page';
 import routeTable from '../src/app/route-table.json';
+
+// la route-table e' del progetto (piu' feature, ADR 0028): qui solo le route del finanziario
+const ROTTE_FINANZIARIO = routeTable.routes.filter((r) => r.path.startsWith('/finanziario'));
 import * as F from '../src/features/finanziario/testing/fixture';
 
 // Impaginazione comune delle pagine (widget PaginaFinanziario, UI v2) e coerenza del catalogo delle pagine con la
@@ -21,7 +24,7 @@ import * as F from '../src/features/finanziario/testing/fixture';
 // della shell.
 describe('pagine del finanziario (step6)', () => {
   it('route-table: le 9 route dello uiplan v2, ognuna col suo modulo pagina', () => {
-    expect(routeTable.routes.map((r) => [r.path, r.component])).toEqual([
+    expect(ROTTE_FINANZIARIO.map((r) => [r.path, r.component])).toEqual([
       ['/finanziario', 'src/pages/finanziario/panoramica/page.tsx'],
       ['/finanziario/interventi/:codice', 'src/pages/finanziario/interventi/page.tsx'],
       ['/finanziario/riepilogo', 'src/pages/finanziario/riepilogo/page.tsx'],
@@ -37,7 +40,7 @@ describe('pagine del finanziario (step6)', () => {
   it('catalogo delle pagine = route-table: stessi percorsi e stessi grant di visibilita', () => {
     const perPercorso = (a: { path: string }, b: { path: string }) => a.path.localeCompare(b.path);
     const catalogo = [...PAGINE_FINANZIARIO, DETTAGLIO_INTERVENTO].map((r) => ({ path: r.percorso, grant: [...r.grant].sort() })).sort(perPercorso);
-    const rotte = routeTable.routes.map((r) => ({ path: r.path, grant: [...r.visibility].sort() })).sort(perPercorso);
+    const rotte = ROTTE_FINANZIARIO.map((r) => ({ path: r.path, grant: [...r.visibility].sort() })).sort(perPercorso);
     expect(catalogo).toEqual(rotte);
   });
 

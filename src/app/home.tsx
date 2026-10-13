@@ -9,7 +9,7 @@ import { hasGrant, useAuthStatus } from '../shared/api/auth/use-auth-status';
 import { NOME_APPLICAZIONE } from '../shared/config/applicazione';
 import { resolveLoginPath } from '../shared/config/base-path';
 import { Icona, useFocusTitolo } from '../shared/ui';
-import { AREE, AREE_FUTURE, areeVisibili } from './aree';
+import { AREE, AREE_FUTURE, STRUMENTI, areeVisibili } from './aree';
 import type { Area, PaginaArea, SchedaArea } from './aree';
 import { SessioneNonVerificabile } from './sessione-non-verificabile';
 
@@ -104,6 +104,44 @@ function Ambiti({ haGrant }: { haGrant: (grant: string) => boolean }) {
   );
 }
 
+/** Strumento trasversale (elenco operativo): una card larga sotto gli ambiti, con un link per pagina visibile. */
+function CardStrumento({ area, pagine }: { area: Area; pagine: PaginaArea[] }) {
+  const id = `strumento-${area.chiave}`;
+  return (
+    <section className="ui-card ui-strumento ui-dissolvenza" aria-labelledby={id}>
+      <div className="ui-strumento__testo">
+        <h2 id={id}>
+          <Icona nome={area.icona} />
+          {area.titolo}
+        </h2>
+        <p>{area.descrizione}</p>
+      </div>
+      <ul className="ui-strumento__link">
+        {pagine.map((p) => (
+          <li key={p.percorso}>
+            <Link className="btn btn-primary" to={p.percorso}>
+              {p.voceMenu}
+              <Icona nome="it-arrow-right" />
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function Strumenti({ haGrant }: { haGrant: (grant: string) => boolean }) {
+  const visibili = areeVisibili(haGrant, STRUMENTI);
+  if (visibili.length === 0) return null;
+  return (
+    <nav className="ui-strumenti-home" aria-label="Strumenti del cruscotto">
+      {visibili.map(({ area, pagine }) => (
+        <CardStrumento key={area.chiave} area={area} pagine={pagine} />
+      ))}
+    </nav>
+  );
+}
+
 function Benvenuto() {
   const h1 = useFocusTitolo<HTMLHeadingElement>('Home');
   return (
@@ -140,7 +178,10 @@ export function Home() {
           </a>
         </section>
       ) : (
-        <Ambiti haGrant={(g) => hasGrant(auth, g)} />
+        <>
+          <Ambiti haGrant={(g) => hasGrant(auth, g)} />
+          <Strumenti haGrant={(g) => hasGrant(auth, g)} />
+        </>
       )}
     </main>
   );
