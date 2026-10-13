@@ -219,6 +219,23 @@ describe('RA003: dai report del finanziario all elenco gia filtrato sulla selezi
     expect(richieste).toContain('sinottico?anno=2025&annualita=PRIMA&intervento=SRA01&presentata=true');
   });
 
+  it('dai report procedurali per stato: le chiavi dei report arrivano al server, con un chip ciascuna (D-02 Rev. 2)', async () => {
+    const richieste = servi();
+    const ricerca = 'intervento=SRD01&statoSostegno=DECADENZA_TOTALE&statoPagamento=RILASCIATO&voceProgrammazione=AMMESSA';
+    renderPagina(ElencoDomande, '/elenco-operativo/domande', `/elenco-operativo/domande?${ricerca}`);
+    const barra = await screen.findByRole('region', { name: 'Filtri attivi' });
+    expect(await within(barra).findByText(/DECADENZA TOTALE/)).toBeTruthy();
+    expect(within(barra).getByText(/AMMESSA/)).toBeTruthy();
+    await waitFor(() => expect(richieste).toContain(`domande?${ricerca}`));
+    expect(richieste).toContain(`sinottico?${ricerca}`);
+  });
+
+  it("le chiavi dei report procedurali arrivano anche all'elenco dei pagamenti", async () => {
+    const richieste = servi();
+    renderPagina(ElencoPagamenti, '/elenco-operativo/pagamenti', '/elenco-operativo/pagamenti?voceProgrammazione=AMMESSA&esito=PAGATA');
+    await waitFor(() => expect(richieste).toContain('pagamenti?esito=PAGATA&voceProgrammazione=AMMESSA'));
+  });
+
   it('i parametri non dichiarati dello uiplan non passano al server', async () => {
     const richieste = servi();
     renderPagina(ElencoDomande, '/elenco-operativo/domande', '/elenco-operativo/domande?intervento=SRA01&inventato=1&decreto=D84');
