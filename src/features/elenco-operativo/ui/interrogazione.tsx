@@ -2,7 +2,8 @@
 // sezione dei risultati (h2, aggiornamento dichiarato, ordinamento attivo, pagina oltre l'ultima o tabella del server con
 // i file e la scelta delle colonne, paginazione, anteprima della riga) e il pannello dei filtri col conteggio dal vivo.
 // Le pagine tengono solo sinottico, colonne e piede. Le scelte della pagina da ritrovare tornando dalla scheda (vista e
-// colonne) sono subito quelle mostrate (stato locale) e la history ne tiene la copia (useScelteElenco, review v2 V-03).
+// colonne) stanno nella history della voce corrente; la scelta appena fatta e' subito visibile come copia temporanea
+// finche' la history non la contiene (useScelteElenco, review v2 V-03, iter3 V-01).
 // I comandi che spariscono col proprio clic ("Ordine predefinito", "Vai all'ultima pagina") portano il focus sull'h2
 // della sezione, mai sul body (review v2 X-03, WCAG 2.4.3).
 import { useRef, useState } from 'react';
@@ -22,18 +23,30 @@ import type { useInterrogazione } from './useInterrogazione';
 
 export type Interrogazione = ReturnType<typeof useInterrogazione>;
 
+/** Confronto per contenuto delle scelte salvate (lo state della history si clona a ogni navigazione). */
+const impronta = (s: StatoElenco | undefined) => (s === undefined ? '' : JSON.stringify([s.vista ?? null, s.nascoste ?? null]));
+
 /**
- * Vista e colonne della pagina: stato locale (la scelta e' subito quella mostrata: la history si aggiorna in una
- * transizione del router) con la copia nello state della voce di history, da cui riparte tornando dalla scheda.
+ * Vista e colonne della pagina: le legge la history a ogni render (lo schermo coincide sempre con la voce corrente,
+ * review v1 iter3 V-01). La scelta appena fatta resta visibile come copia temporanea finche' la history non la contiene
+ * (la history si aggiorna in una transizione del router, come i criteri di useCriteri): quando cambia il valore salvato
+ * della voce corrente la copia cade. Un link senza state verso la stessa pagina (briciola, menu) vale quindi come un
+ * link condiviso (vista generale, colonne di partenza: decisione dell'utente del 13/10/2026), e Indietro/Avanti fra due
+ * voci della stessa route ritrovano la scelta salvata in ciascuna.
  */
 export function useScelteElenco(): [StatoElenco, (s: StatoElenco) => void] {
   const [salvate, salva] = useStatoNellaHistory<StatoElenco>(CHIAVE_STATO_ELENCO, FIRMA_STATO_ELENCO, statoElencoValido);
-  const [scelte, setScelte] = useState<StatoElenco>(() => salvate ?? {});
+  const [inScrittura, setInScrittura] = useState<StatoElenco | null>(null);
+  const [salvatePrima, setSalvatePrima] = useState(() => impronta(salvate));
+  if (impronta(salvate) !== salvatePrima) {
+    setSalvatePrima(impronta(salvate));
+    setInScrittura(null);
+  }
   const cambia = (s: StatoElenco) => {
-    setScelte(s);
+    setInScrittura(s);
     salva(s);
   };
-  return [scelte, cambia];
+  return [inScrittura ?? salvate ?? {}, cambia];
 }
 
 interface PropsRisultati<T> {

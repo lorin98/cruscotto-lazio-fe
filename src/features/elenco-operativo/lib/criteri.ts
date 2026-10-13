@@ -130,7 +130,8 @@ const VALIDI: Partial<Record<NomeParametro, (valore: string, elenco: Elenco) => 
  * Valore accettato dal server per quel parametro (review v1 H-01: dall'indirizzo arriva solo cio' che il backend accetta,
  * cosi' la pagina e il server leggono gli stessi criteri): importi nel formato del contratto, presentata solo 'true'
  * (D-02 Rev. 1: il filtro delle non presentate non esiste), booleani 'true'/'false', testo da 3 a 100 caratteri, pagina
- * positiva (la prima non si scrive), dimensione fra 1 e 100 diversa dalla predefinita, ordinamento dell'elenco chiuso.
+ * positiva (la prima non si scrive), dimensione fra quelle della select (10, 25, 50, 100: DIMENSIONI_PAGINA) diversa dalla
+ * predefinita, ordinamento dell'elenco chiuso.
  */
 function valoreDelParametro(nome: NomeParametro, valore: string, elenco: Elenco): boolean {
   if (!valoreAccettabile(valore)) return false;

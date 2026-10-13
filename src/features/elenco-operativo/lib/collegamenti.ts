@@ -2,6 +2,8 @@
 // pagamenti delle domande filtrate e ritorno, altre domande del beneficiario, ricerca di partenza della scheda. Ogni link
 // porta i parametri della sua `query` nello uiplan (i filtri della domanda, drill-down procedurale compreso).
 import { PERCORSO_ELENCO_DOMANDE, PERCORSO_ELENCO_PAGAMENTI } from '../../../entities/domanda';
+import { conStatoSalvato, leggiStatoSalvato } from '../../../shared/lib';
+import type { StatoSalvato } from '../../../shared/lib';
 import type { Criteri } from './criteri';
 import { filtriDellaDomanda, ricercaDaCriteri } from './criteri';
 
@@ -59,10 +61,7 @@ export interface StatoElenco {
   nascoste?: string[];
 }
 
-interface StatoElencoSalvato {
-  firma: string;
-  valore: StatoElenco;
-}
+type StatoElencoSalvato = StatoSalvato<StatoElenco>;
 
 /** Convalida dello state (che e' `unknown`): vista e chiavi delle colonne come identificativi brevi, al piu' 50 colonne. */
 export function statoElencoValido(v: unknown): v is StatoElenco {
@@ -83,13 +82,11 @@ export interface StatoScheda {
 /** Lo state del link di ritorno all'elenco: le sole scelte della pagina (l'elenco le rilegge con useStatoNellaHistory). */
 export type StatoRitorno = { [CHIAVE_STATO_ELENCO]: StatoElencoSalvato };
 
-/** Le scelte dell'elenco dallo state di una voce di history (se valide): da portare alla scheda e da riportare all'elenco. */
+/** Le scelte dell'elenco dallo state di una voce di history (se valide): da portare alla scheda e da riportare all'elenco.
+ *  Lettura e involucro sono quelli del kit (shared/lib stato-history), gli stessi di useStatoNellaHistory. */
 export function statoDiRitorno(stato: unknown): StatoRitorno | undefined {
-  if (typeof stato !== 'object' || stato === null) return undefined;
-  const salvato = (stato as Record<string, unknown>)[CHIAVE_STATO_ELENCO];
-  if (typeof salvato !== 'object' || salvato === null) return undefined;
-  const { firma, valore } = salvato as Record<string, unknown>;
-  return firma === FIRMA_STATO_ELENCO && statoElencoValido(valore) ? { [CHIAVE_STATO_ELENCO]: { firma, valore } } : undefined;
+  const valore = leggiStatoSalvato(stato, CHIAVE_STATO_ELENCO, FIRMA_STATO_ELENCO, statoElencoValido);
+  return valore === undefined ? undefined : (conStatoSalvato(undefined, CHIAVE_STATO_ELENCO, FIRMA_STATO_ELENCO, valore) as StatoRitorno);
 }
 
 /**

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { screen, waitFor, within } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { createMemoryRouter, RouterProvider } from 'react-router';
@@ -209,6 +209,71 @@ describe("RA004: ritorno alla ricerca di partenza e domande collegate (review v1
     await waitFor(() => expect(indirizzo(router)).toBe('/elenco-operativo/domande?intervento=SRA01'));
     const tabella = await screen.findByRole('table', { name: /vista fisico/ });
     expect(within(tabella).getByRole('columnheader', { name: /^Liquidato/ })).toBeTruthy();
+  });
+
+  // review v1 iter3 V-03: lo stesso ritorno dall'elenco dei pagamenti (link torna-all-elenco-dei-pagamenti dello uiplan)
+  it.each([
+    ['la briciola', () => within(screen.getByRole('navigation', { name: 'Percorso' })).getByRole('link', { name: 'Pagamenti' })],
+    ["Torna all'elenco", () => screen.getByRole('link', { name: "Torna all'elenco" })],
+  ])("dai pagamenti, %s riporta all'elenco dei pagamenti con la ricerca e le colonne scelte", async (_, ritorno) => {
+    servi();
+    const { router } = apri('/elenco-operativo/pagamenti?esito=PAGATA');
+    await screen.findByRole('table', { name: /Elenco operativo dei pagamenti/ });
+    await userEvent.click(screen.getByText('Colonne'));
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Protocollo' }));
+    await userEvent.keyboard('{Escape}');
+    const tabella = screen.getByRole('table', { name: /Elenco operativo dei pagamenti/ });
+    expect(within(tabella).getByRole('columnheader', { name: /^Protocollo/ })).toBeTruthy();
+    await userEvent.click(within(tabella).getByRole('row', { name: /pagamento D84-1/ }));
+    await userEvent.click(within(await screen.findByRole('dialog')).getByRole('link', { name: 'Apri la domanda' }));
+    await screen.findByRole('heading', { level: 1, name: 'COOPERATIVA VERDI' });
+    await userEvent.click(ritorno());
+    await waitFor(() => expect(indirizzo(router)).toBe('/elenco-operativo/pagamenti?esito=PAGATA'));
+    const dopo = await screen.findByRole('table', { name: /Elenco operativo dei pagamenti/ });
+    expect(within(dopo).getByRole('columnheader', { name: /^Protocollo/ })).toBeTruthy();
+  });
+
+  // review v1 iter3 V-01 (decisione dell'utente del 13/10/2026): lo schermo coincide sempre con la history della voce
+  it("la briciola 'Elenco operativo' dalla lista vale come un link condiviso: vista generale e colonne di partenza", async () => {
+    servi();
+    const { router } = apri('/elenco-operativo/domande?intervento=SRA01');
+    await screen.findByRole('table', { name: /vista generale/ });
+    await userEvent.click(screen.getByRole('button', { name: 'Vista: fisico' }));
+    await userEvent.click(await screen.findByText('Colonne'));
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Liquidato' }));
+    await userEvent.keyboard('{Escape}');
+    await screen.findByRole('table', { name: /vista fisico/ });
+    await userEvent.click(within(screen.getByRole('navigation', { name: 'Percorso' })).getByRole('link', { name: 'Elenco operativo' }));
+    await waitFor(() => expect(indirizzo(router)).toBe('/elenco-operativo/domande'));
+    expect(await screen.findByRole('table', { name: /vista generale/ })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Vista: generale' }).getAttribute('aria-pressed')).toBe('true');
+    expect((router.state.location.state as { elenco?: unknown } | null)?.elenco).toBeUndefined();
+  });
+
+  it('Indietro e Avanti fra due voci della stessa pagina ritrovano la scelta di ciascuna, e la scheda riporta quella mostrata', async () => {
+    servi();
+    const { router } = apri('/elenco-operativo/domande?intervento=SRA01');
+    await screen.findByRole('table', { name: /vista generale/ });
+    await userEvent.click(screen.getByRole('button', { name: 'Vista: fisico' }));
+    await screen.findByRole('table', { name: /vista fisico/ });
+    await userEvent.click(within(screen.getByRole('navigation', { name: 'Percorso' })).getByRole('link', { name: 'Elenco operativo' }));
+    await screen.findByRole('table', { name: /vista generale/ });
+    await userEvent.click(screen.getByRole('button', { name: 'Vista: procedurale' }));
+    await screen.findByRole('table', { name: /vista procedurale/ });
+    await act(() => router.navigate(-1));
+    await waitFor(() => expect(indirizzo(router)).toBe('/elenco-operativo/domande?intervento=SRA01'));
+    expect(await screen.findByRole('table', { name: /vista fisico/ })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Vista: fisico' }).getAttribute('aria-pressed')).toBe('true');
+    await act(() => router.navigate(1));
+    expect(await screen.findByRole('table', { name: /vista procedurale/ })).toBeTruthy();
+    await act(() => router.navigate(-1));
+    await screen.findByRole('table', { name: /vista fisico/ });
+    await userEvent.click(await screen.findByRole('row', { name: "Apri l'anteprima della domanda 54230000001" }));
+    await userEvent.click(within(await screen.findByRole('dialog')).getByRole('link', { name: 'Apri il dettaglio' }));
+    await screen.findByRole('heading', { level: 1, name: 'COOPERATIVA VERDI' });
+    await userEvent.click(screen.getByRole('link', { name: "Torna all'elenco" }));
+    await waitFor(() => expect(indirizzo(router)).toBe('/elenco-operativo/domande?intervento=SRA01'));
+    expect(await screen.findByRole('table', { name: /vista fisico/ })).toBeTruthy();
   });
 
   it("aperta da un link (senza ricerca di partenza) torna all'elenco senza filtri, mai fuori dall'applicazione", async () => {

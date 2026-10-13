@@ -135,6 +135,8 @@ describe('RA006: filtri dal vivo nel pannello, col ritardo dichiarato e senza Ap
     expect(router.state.location.search).toBe('?stato=RILASCIATO');
     expect(screen.getByRole('button', { name: 'Vista: procedurale' }).getAttribute('aria-pressed')).toBe('true');
     expect(screen.getByRole('table', { name: /vista procedurale/ })).toBeTruthy();
+    // la vista e' anche nella history (non solo a schermo): da qui riparte tornando dalla scheda (review v1 iter3 V-01)
+    expect(router.state.location.state).toMatchObject({ elenco: { valore: { vista: 'procedurale' } } });
   });
 });
 
@@ -222,6 +224,20 @@ describe('RA002: tastiera, ordinamento e colonne della tabella (review v1 X-02, 
     await waitFor(() => expect(router.state.location.search).toBe('?pagina=51'));
     expect(document.activeElement).not.toBe(document.body);
     expect(document.activeElement).toBe(screen.getByRole('heading', { level: 2, name: 'Elenco delle domande' }));
+  });
+
+  it("un clic sulla vista gia' scelta non cambia le colonne scelte (review v1 iter3 V-02)", async () => {
+    servi();
+    renderPagina(ElencoDomande, '/elenco-operativo/domande');
+    await tabellaDomande();
+    await userEvent.click(screen.getByText('Colonne'));
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Liquidato' }));
+    await userEvent.keyboard('{Escape}');
+    expect(within(await tabellaDomande()).getByRole('columnheader', { name: /^Liquidato/ })).toBeTruthy();
+    const generale = screen.getByRole('button', { name: 'Vista: generale' });
+    expect(generale.getAttribute('aria-pressed')).toBe('true');
+    await userEvent.click(generale);
+    expect(within(await tabellaDomande()).getByRole('columnheader', { name: /^Liquidato/ })).toBeTruthy();
   });
 
   it('le colonne scelte restano quando la tabella si smonta (zero righe) e torna (review v2 V-03)', async () => {
@@ -357,7 +373,14 @@ describe('RA003: chip e grafici dei report procedurali (review v1 V-17, V-18)', 
     await waitFor(() => expect(within(dopo()).getAllByRole('rowheader')).toHaveLength(1));
     expect(document.activeElement).not.toBe(document.body);
     expect(document.activeElement).toBe(within(dopo()).getByRole('button', { name: 'Filtra per stato SIAN senza stato SIAN' }));
-    expect(screen.getByText('Filtro aggiunto: Stato SIAN Senza stato SIAN.')).toBeTruthy();
+    const annuncio = screen.getByText('Filtro aggiunto: Stato SIAN Senza stato SIAN.');
+    // un secondo Invio sullo stesso comando non aggiunge nulla e non si riannuncia (review v1 iter3 A-02)
+    const navigazioni: string[] = [];
+    router.subscribe((s) => navigazioni.push(s.location.search));
+    await userEvent.keyboard('{Enter}');
+    await new Promise((r) => setTimeout(r, 350));
+    expect(navigazioni).toEqual([]);
+    expect(screen.getByText('Filtro aggiunto: Stato SIAN Senza stato SIAN.')).toBe(annuncio);
     await userEvent.click(within(screen.getByRole('region', { name: 'Filtri attivi' })).getByRole('button', { name: /^Togli il filtro Stato SIAN/ }));
     await waitFor(() => expect(screen.queryByText(/^Filtro aggiunto/)).toBeNull());
   });

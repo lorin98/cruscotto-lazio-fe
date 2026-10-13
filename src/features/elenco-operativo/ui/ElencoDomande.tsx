@@ -86,12 +86,14 @@ function useLettureDomande(criteri: Criteri, auth: Interrogazione['auth']) {
 
 /**
  * Il filtro aggiunto dal grafico, detto in una regione role=status sempre presente (review v1 V-18). L'annuncio si
- * rimonta a ogni filtro (anche lo stesso di prima: si ripete, review v2 X-03) e si spegne quando il filtro si toglie.
+ * rimonta a ogni filtro aggiunto (anche lo stesso di prima, se nel frattempo era stato tolto: si ripete, review v2 X-03)
+ * e si spegne quando il filtro si toglie. Un valore gia' nel filtro non si riapplica e non si riannuncia (iter3 A-02).
  */
 function useFiltroDalGrafico(i: Interrogazione) {
   const [annuncio, setAnnuncio] = useState<{ n: number; nome: NomeFiltro; valore: string; testo: string } | null>(null);
   const filtra = (r: Ripartizione, valore: string) => {
     const nome = TESTI_RIPARTIZIONE[r].filtro;
+    if ((i.criteriVisti[nome] ?? []).includes(valore)) return;
     i.applicaRitardato(conValore(i.criteriVisti, nome, valore));
     setAnnuncio((a) => ({ n: (a?.n ?? 0) + 1, nome, valore, testo: `Filtro aggiunto: ${ETICHETTE_FILTRI[nome]} ${valoreLeggibile(nome, valore, i.valori?.data)}.` }));
   };
@@ -185,8 +187,13 @@ export function ElencoDomande() {
             ) : undefined
           }
         />
-        {/* una vista nuova riparte dalle sue colonne di partenza */}
-        <SceltaVista vista={vista} onVista={(v) => setScelte({ vista: v })} />
+        {/* una vista nuova riparte dalle sue colonne di partenza; la vista gia' scelta non cambia nulla (iter3 V-02) */}
+        <SceltaVista
+          vista={vista}
+          onVista={(v) => {
+            if (v !== vista.id) setScelte({ vista: v });
+          }}
+        />
         {grafico.regione}
         <ContestoIntestazione.Provider value={righe}>
           <Contenuto i={i} l={l} vista={vista} nascoste={scelte.nascoste} onNascoste={(n) => setScelte({ ...scelte, nascoste: n })} onFiltra={grafico.filtra} />
