@@ -6,6 +6,7 @@ import { useId, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { ariaSort, conColonna, didascalia, filtraRighe, ordinaRighe, paginaDi, versoSuccessivo } from '../../lib/tabella';
 import type { Ordine, ValoreOrdinabile } from '../../lib/tabella';
+import { gestoriRigaApribile } from './rigaApribile';
 
 export interface ColonnaTabella<T> {
   chiave: string;
@@ -72,17 +73,7 @@ function Riga<T>({ riga, colonne, onRiga, etichetta }: { riga: T; colonne: Colon
       className={apri ? 'ui-riga' : undefined}
       tabIndex={apri ? 0 : undefined}
       aria-label={apri ? etichetta : undefined}
-      onClick={apri}
-      onKeyDown={
-        apri
-          ? (e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                apri();
-              }
-            }
-          : undefined
-      }
+      {...gestoriRigaApribile(apri)}
     >
       {colonne.map((c, i) => {
         const contenuto = c.resa ? c.resa(riga) : String(c.valore(riga) ?? '');

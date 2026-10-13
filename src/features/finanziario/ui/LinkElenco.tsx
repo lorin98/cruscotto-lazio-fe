@@ -1,9 +1,9 @@
 // LinkElenco — drill-down dai report del finanziario all'elenco operativo (uiplan links[] con target_feature
 // elenco-operativo, D-2 di MIN-20261012): il link porta i filtri correnti e i criteri del punto cliccato e si mostra solo a
 // chi ha il grant della lettura di destinazione (gate di UX come il menu: il backend ridecide). Dentro una riga
-// cliccabile (anteprima) il link non deve aprire anche la riga: clic e tasti si fermano qui.
+// apribile e' la riga a ignorare i clic e i tasti nati dal link (shared/ui/tabella/rigaApribile): il link non ferma la
+// propagazione, cosi' Esc e il focus trap del pannello che lo contiene continuano a funzionare.
 import { useCallback } from 'react';
-import type { SyntheticEvent } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import type { Filtri } from '../lib/filtri';
@@ -29,8 +29,6 @@ export function useApriNellElenco(filtri: Filtri): (id: IdLinkElenco, criteri: C
   );
 }
 
-const ferma = (e: SyntheticEvent) => e.stopPropagation();
-
 /**
  * Link "Apri nell'elenco": `descrizione` completa il nome accessibile ("Apri nell'elenco operativo le domande ...");
  * `testo` sostituisce l'etichetta visibile (es. "righe di pagamento, importi lordi") e apre il nome accessibile, che
@@ -40,7 +38,7 @@ export function ApriNellElenco({ indirizzo, descrizione, testo, variante = 'puls
   if (!indirizzo) return null;
   const nome = testo ? `${testo}: apri nell'elenco operativo ${descrizione}` : `Apri nell'elenco operativo ${descrizione}`;
   return (
-    <Link className={variante === 'pulsante' ? 'btn btn-outline-primary btn-sm' : 'ui-link-elenco'} to={indirizzo} aria-label={nome} onClick={ferma} onKeyDown={ferma}>
+    <Link className={variante === 'pulsante' ? 'btn btn-outline-primary btn-sm' : 'ui-link-elenco'} to={indirizzo} aria-label={nome}>
       {testo ?? "Apri nell'elenco"}
     </Link>
   );

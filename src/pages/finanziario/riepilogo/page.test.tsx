@@ -156,6 +156,52 @@ describe("RA003: drill-down dal riepilogo all'elenco operativo", () => {
     );
     expect(within(anteprima).getByRole('link', { name: /^righe di pagamento, importi lordi: / }).getAttribute('href')).toBe('/elenco-operativo/pagamenti?esito=PAGATA&intervento=SRA01');
   });
+  it("anteprima: con il focus su un link Esc chiude il pannello e Tab resta nel pannello (focus trap)", async () => {
+    server.use(http.get('*/api/finanziario/riepilogo', () => HttpResponse.json(RIEPILOGO)));
+    renderPagina(Pagina, '/finanziario/riepilogo');
+    const tabella = await screen.findByRole('table', { name: TABELLA });
+    await userEvent.click(within(tabella).getByRole('row', { name: "Apri l'anteprima dell'intervento SRA01" }));
+    let anteprima = await screen.findByRole('dialog');
+    const ultimo = within(anteprima).getByRole('link', { name: /^righe di pagamento, importi lordi: / });
+    ultimo.focus();
+    await userEvent.tab();
+    expect(anteprima.contains(document.activeElement)).toBe(true);
+    within(anteprima).getByRole('link', { name: "domande presentate: apri nell'elenco operativo dell'intervento SRA01" }).focus();
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    // riaperta: Esc funziona anche dall'ultimo link
+    await userEvent.click(within(tabella).getByRole('row', { name: "Apri l'anteprima dell'intervento SRA01" }));
+    anteprima = await screen.findByRole('dialog');
+    within(anteprima).getByRole('link', { name: /^righe di pagamento, importi lordi: / }).focus();
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+  });
+  it("Invio sul link annidato nella riga naviga senza aprire l'anteprima; Invio sulla riga la apre ancora", async () => {
+    server.use(http.get('*/api/finanziario/riepilogo', () => HttpResponse.json(RIEPILOGO)));
+    const { router } = renderPagina(Pagina, '/finanziario/riepilogo');
+    const tabella = await screen.findByRole('table', { name: TABELLA });
+    within(tabella).getByRole('row', { name: "Apri l'anteprima dell'intervento SRA01" }).focus();
+    await userEvent.keyboard('{Enter}');
+    expect(await screen.findByRole('dialog')).toBeTruthy();
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    within(tabella).getByRole('link', { name: "Apri nell'elenco operativo le domande presentate dell'intervento SRA01" }).focus();
+    await userEvent.keyboard('{Enter}');
+    await waitFor(() => expect(router.state.location.pathname).toBe('/elenco-operativo/domande'));
+    expect(router.state.location.search).toBe('?presentata=true&intervento=SRA01');
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+  it('col solo grant delle domande (TX-0056 senza TX-0059): resta il link delle domande, spariscono quello dei pagamenti e la nota sui lordi', async () => {
+    server.use(
+      http.get('*/api/finanziario/riepilogo', () => HttpResponse.json(RIEPILOGO)),
+      http.get('*/auth/status', () => HttpResponse.json({ authenticated: true, user: { username: 'U', roles: ['csr.tx-0001.read', 'csr.tx-0002.read', 'csr.tx-0008.read', 'csr.tx-0009.read', 'csr.tx-0010.read', 'csr.tx-0011.read', 'csr.tx-0012.read', 'csr.tx-0013.read', 'csr.tx-0056.read'] } })),
+    );
+    renderPagina(Pagina, '/finanziario/riepilogo');
+    const tabella = await screen.findByRole('table', { name: TABELLA });
+    expect(within(tabella).getByRole('link', { name: "Apri nell'elenco operativo le domande presentate dell'intervento SRA01" })).toBeTruthy();
+    expect(within(tabella).queryByRole('link', { name: /^righe di pagamento, importi lordi: / })).toBeNull();
+    expect(screen.queryByText(/i recuperi sono nella scheda di ogni domanda\.$/)).toBeNull();
+  });
   it("senza i grant dell'elenco nessun link", async () => {
     server.use(
       http.get('*/api/finanziario/riepilogo', () => HttpResponse.json(RIEPILOGO)),

@@ -6,6 +6,7 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { conColonna } from '../../lib/tabella';
+import { gestoriRigaApribile } from './rigaApribile';
 
 export interface ColonnaServer<T> {
   chiave: string;
@@ -88,17 +89,7 @@ function Riga<T>({ riga, colonne, nuova, onRiga, etichetta }: { riga: T; colonne
       className={classi}
       tabIndex={apri ? 0 : undefined}
       aria-label={apri ? etichetta : undefined}
-      onClick={apri}
-      onKeyDown={
-        apri
-          ? (e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                apri();
-              }
-            }
-          : undefined
-      }
+      {...gestoriRigaApribile(apri)}
     >
       {colonne.map((c, k) =>
         k === 0 ? (
