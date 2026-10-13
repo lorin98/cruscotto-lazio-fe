@@ -121,7 +121,13 @@ const sezioneNonDisponibile = (nome: string) => regioneContiene(nome, NON_DISPON
 // Mostra la tabella equivalente di una card con il grafico disegnato.
 const vediTabella = (titolo: string) => userEvent.click(within(screen.getByRole('group', { name: `Vista di ${titolo}` })).getByRole('button', { name: 'Tabella' }));
 // Valore accanto all'intestazione di riga di una tabella voce/valore.
-const valoreDi = (tabella: HTMLElement, voce: string) => testo(within(tabella).getByRole('rowheader', { name: voce }).nextElementSibling?.textContent);
+// il valore della voce, senza il link di drill-down verso l'elenco operativo che la cella puo' portare
+const senzaLinkElenco = (cella: Element | null | undefined) => {
+  const copia = cella?.cloneNode(true) as Element | undefined;
+  copia?.querySelectorAll('.ui-link-elenco').forEach((a) => a.remove());
+  return copia?.textContent;
+};
+const valoreDi = (tabella: HTMLElement, voce: string) => testo(senzaLinkElenco(within(tabella).getByRole('rowheader', { name: voce }).nextElementSibling));
 // Codici delle righe del corpo di una tabella (senza la riga dei totali).
 const righeCorpo = (tabella: HTMLElement) => Array.from((tabella as HTMLTableElement).tBodies[0].rows, (r) => r.cells[0].textContent);
 // Intestazioni di colonna di una tabella, senza il glifo dell'ordinamento.
@@ -1479,7 +1485,7 @@ describe('DomandeReport (TX-0008..TX-0010)', () => {
 
   it('KPI dei totali, due card con il grafico e le tabelle di dettaglio con la riga senza anno di raccolta', async () => {
     servi();
-    renderConQuery(<DomandeReport filtri={{}} />);
+    conRouter(<DomandeReport filtri={{}} />);
     // it-IT non raggruppa le migliaia nei numeri di quattro cifre
     await regioneContiene('Domande presentate', '1200');
     expect(testo(screen.getByRole('region', { name: 'di cui prima annualità' }).textContent)).toContain('400');
@@ -1498,7 +1504,7 @@ describe('DomandeReport (TX-0008..TX-0010)', () => {
   // V-15: le quattro tessere del wireframe domande
   it("quattro KPI: domande presentate e di prima annualita (TX-0009), importo ammesso somma degli anni con le domande senza ammesso, importo stanziato con il motivo", async () => {
     servi();
-    renderConQuery(<DomandeReport filtri={{}} />);
+    conRouter(<DomandeReport filtri={{}} />);
     await waitFor(() => expect(valoreKpi('Importo ammesso')).toBe('910.000,00 €'));
     expect(notaKpi('Importo ammesso')).toBe('90 domande senza importo ammesso: non entrano nella somma');
     expect(valoreKpi('Importo stanziato')).toBe('Non disponibile: fonte quadro sinottico non attiva');
@@ -1509,7 +1515,7 @@ describe('DomandeReport (TX-0008..TX-0010)', () => {
   // N-14: l'anno si sceglie anche da tastiera; il controllo resta montato, il focus non si perde togliendo la scelta
   it("anno del dettaglio dal clic sul grafico o dalla scelta sopra la tabella; 'Tutti gli anni' la riporta intera", async () => {
     servi();
-    renderConQuery(<DomandeReport filtri={{}} />);
+    conRouter(<DomandeReport filtri={{}} />);
     await waitFor(() => expect(graficoDi(RF008).opzioni.length).toBeGreaterThan(0));
     const anni = () => within(screen.getByRole('table', { name: 'Domande per anno di raccolta' })).getAllByRole('rowheader').map((c) => c.textContent);
     const scelta = () => screen.getByRole('combobox', { name: 'Anno di raccolta' }) as HTMLSelectElement;
@@ -1551,7 +1557,7 @@ describe('DomandeReport (TX-0008..TX-0010)', () => {
   it('perimetro ADA senza domande: lo stato vuoto (status) nomina la propria area', async () => {
     servi();
     server.use(rispondi('/api/finanziario/domande-per-anno', { perimetro: 'ADA', righe: [] }));
-    renderConQuery(<DomandeReport filtri={{}} />);
+    conRouter(<DomandeReport filtri={{}} />);
     const vuoto = await screen.findByText(/Nessun dato nella tua area \(perimetro ADA\)/);
     const stato = vuoto.closest('[role]') as HTMLElement;
     expect(stato.getAttribute('role')).toBe('status');
@@ -1563,7 +1569,7 @@ describe('DomandeReport (TX-0008..TX-0010)', () => {
     servi();
     profilo('csr.tx-0008.read', 'csr.tx-0010.read');
     const client = clientDiTest();
-    renderConQuery(<DomandeReport filtri={{}} />, client);
+    conRouter(<DomandeReport filtri={{}} />, '/prova', client);
     await sezioneNonDisponibile('Totale domande presentate (RF009)');
     await waitFor(() => expect(graficiVivi()).toHaveLength(2));
     expect(letture(client, '/api/finanziario/totale-domande')).toHaveLength(0);
@@ -1571,7 +1577,7 @@ describe('DomandeReport (TX-0008..TX-0010)', () => {
 
   it('a11y: zero violazioni axe', async () => {
     servi();
-    const { container } = renderConQuery(<DomandeReport filtri={{}} />);
+    const { container } = conRouter(<DomandeReport filtri={{}} />);
     await waitFor(() => expect(graficiVivi()).toHaveLength(2));
     await screen.findByRole('region', { name: 'Domande presentate' });
     await expectNoA11yViolations(container);
@@ -1586,7 +1592,7 @@ describe('SigcReport (TX-0012, TX-0013)', () => {
 
   it('barre delle domande e cascata montate, voci in tabella con le definizioni (D-09), nessuna nota di fonti diverse', async () => {
     servi();
-    renderConQuery(<SigcReport filtri={{}} />);
+    conRouter(<SigcReport filtri={{}} />);
     const domande = await screen.findByRole('table', { name: 'Domande SIGC' });
     expect(valoreDi(domande, 'Presentate')).toBe('800');
     expect(valoreDi(domande, 'Pagate (importo pagato maggiore di zero)')).toBe('500');
@@ -1619,7 +1625,7 @@ describe('SigcReport (TX-0012, TX-0013)', () => {
     URL.createObjectURL = vi.fn(() => 'blob:prova');
     URL.revokeObjectURL = vi.fn();
     const clic = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
-    renderConQuery(<SigcReport filtri={{ intervento: ['SRA01'] }} />);
+    conRouter(<SigcReport filtri={{ intervento: ['SRA01'] }} />);
     const gruppo = await screen.findByRole('group', { name: `Scarica il grafico ${RF012}` });
     expect(within(gruppo).getAllByRole('button').map((b) => b.textContent)).toEqual(['PNG', 'CSV', 'XLSX']);
     await userEvent.click(screen.getByRole('button', { name: `Scarica il grafico ${RF012} in XLSX` }));
@@ -1643,7 +1649,7 @@ describe('SigcReport (TX-0012, TX-0013)', () => {
         domandeSenza: { richiesto: 0, ammesso: 0, pagato: 0 },
       }),
     );
-    renderConQuery(<SigcReport filtri={{}} />);
+    conRouter(<SigcReport filtri={{}} />);
     expect(valoreDi(await screen.findByRole('table', { name: 'Importi SIGC' }), 'Importo richiesto')).toBe('0,00 €');
     expect(screen.queryByText(VUOTO_SIGC)).toBeNull();
   });
@@ -1653,7 +1659,7 @@ describe('SigcReport (TX-0012, TX-0013)', () => {
       rispondi('/api/finanziario/sigc/domande', { perimetro: 'REGIONALE', presentate: 0, pagate: 0, daPagare: 0 }),
       rispondi('/api/finanziario/sigc/importi', { perimetro: 'REGIONALE', richiesto: ZERO, ammesso: ZERO, pagato: ZERO, ancoraDaPagare: ZERO, domandeSenza: { richiesto: 0, ammesso: 0, pagato: 0 } }),
     );
-    renderConQuery(<SigcReport filtri={{ intervento: ['SRA99'] }} />);
+    conRouter(<SigcReport filtri={{ intervento: ['SRA99'] }} />);
     await waitFor(() => expect(screen.getAllByText(VUOTO_SIGC)).toHaveLength(2));
     expect(screen.queryAllByText(/0,00.€/)).toHaveLength(0);
     expect(graficiVivi()).toHaveLength(0);
@@ -1663,7 +1669,7 @@ describe('SigcReport (TX-0012, TX-0013)', () => {
     servi();
     profilo('csr.tx-0013.read');
     const client = clientDiTest();
-    renderConQuery(<SigcReport filtri={{}} />, client);
+    conRouter(<SigcReport filtri={{}} />, '/prova', client);
     expect(valoreDi(await screen.findByRole('table', { name: 'Importi SIGC' }), 'Importo ammesso')).toBe('4.500.000,00 €');
     await sezioneNonDisponibile(RF012);
     expect(letture(client, '/api/finanziario/sigc/domande')).toHaveLength(0);
@@ -1673,7 +1679,7 @@ describe('SigcReport (TX-0012, TX-0013)', () => {
     servi();
     const rilascia = trattenuta('/api/finanziario/sigc/domande', F.SIGC_DOMANDE);
     const client = clientDiTest();
-    renderConQuery(<SigcReport filtri={{}} />, client);
+    conRouter(<SigcReport filtri={{}} />, '/prova', client);
     await waitFor(() => expect(lettaConSuccesso(client, '/api/finanziario/sigc/importi')).toBe(true));
     await notifiche();
     expect(screen.queryByRole('table', { name: 'Importi SIGC' })).toBeNull();
@@ -1685,7 +1691,7 @@ describe('SigcReport (TX-0012, TX-0013)', () => {
 
   it('a11y: zero violazioni axe', async () => {
     servi();
-    const { container } = renderConQuery(<SigcReport filtri={{}} />);
+    const { container } = conRouter(<SigcReport filtri={{}} />);
     await screen.findByRole('table', { name: 'Importi SIGC' });
     await waitFor(() => expect(graficiVivi()).toHaveLength(2));
     await expectNoA11yViolations(container);
@@ -1964,7 +1970,7 @@ describe('Stato vuoto azionabile (V-21) e perimetro del vuoto (X-04)', () => {
       rispondi('/api/finanziario/sigc/importi', { perimetro: 'REGIONALE', ...SIGC_IMPORTI_ZERO }),
     );
     const apriFiltri = vi.fn();
-    renderConQuery(
+    conRouter(
       <ContestoFiltri.Provider value={apriFiltri}>
         <SigcReport filtri={{ intervento: ['SRA99'] }} />
       </ContestoFiltri.Provider>,

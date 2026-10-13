@@ -11,6 +11,8 @@ export interface ClicGrafico {
   name?: string;
   dataIndex?: number;
   data?: unknown;
+  /** Serie dell'elemento (es. il segmento di una barra impilata). */
+  seriesName?: string;
 }
 
 export type AltezzaGrafico = 'normale' | 'alto' | 'basso' | 'mini';

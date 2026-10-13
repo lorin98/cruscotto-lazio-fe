@@ -43,7 +43,13 @@ function conRouter(ui: ReactElement) {
 const titoloGrafico = (g: { el: HTMLElement }) => g.el.closest('section')?.querySelector('h2, h3')?.textContent;
 const valoreKpi = (nome: string) => testo(screen.getByRole('region', { name: nome }).querySelector('.ui-kpi__valore')?.textContent);
 const notaKpi = (nome: string) => testo(screen.getByRole('region', { name: nome }).querySelector('.ui-kpi__nota')?.textContent);
-const valoreDi = (tabella: HTMLElement, voce: string) => testo(within(tabella).getByRole('rowheader', { name: voce }).nextElementSibling?.textContent);
+// il valore della voce, senza il link di drill-down verso l'elenco operativo che la cella puo' portare
+const senzaLinkElenco = (cella: Element | null | undefined) => {
+  const copia = cella?.cloneNode(true) as Element | undefined;
+  copia?.querySelectorAll('.ui-link-elenco').forEach((a) => a.remove());
+  return copia?.textContent;
+};
+const valoreDi = (tabella: HTMLElement, voce: string) => testo(senzaLinkElenco(within(tabella).getByRole('rowheader', { name: voce }).nextElementSibling));
 const intestazioni = (tabella: HTMLElement) => within(tabella).getAllByRole('columnheader').map((c) => c.textContent?.replace(/[▲▼↕]/g, ''));
 // Cella di una tabella interattiva: la riga per nome (l'etichetta della riga apribile), la colonna per intestazione.
 function cella(tabella: HTMLElement, riga: string, colonna: string) {
@@ -384,7 +390,7 @@ describe('DomandeReport: casi limite', () => {
       rispondi('/api/finanziario/domande-per-anno', { perimetro: 'REGIONALE' }),
       rispondi('/api/finanziario/importi-per-anno', { perimetro: 'REGIONALE', righe: [] }),
     );
-    renderConQuery(<DomandeReport filtri={{}} />);
+    conRouter(<DomandeReport filtri={{}} />);
     await waitFor(() => expect(screen.getAllByText('Nessuna domanda per i filtri scelti. Modifica i filtri.')).toHaveLength(2));
     screen.getAllByText('Nessuna domanda per i filtri scelti. Modifica i filtri.').forEach((v) => expect(ruolo(v)).toBe('status'));
     expect(screen.queryByRole('alert')).toBeNull();
@@ -399,7 +405,7 @@ describe('DomandeReport: casi limite', () => {
       rispondi('/api/finanziario/domande-per-anno', { righe: [{ annoRaccolta: 2025 }] }),
       rispondi('/api/finanziario/importi-per-anno', { righe: [{ annoRaccolta: null }] }),
     );
-    renderConQuery(<DomandeReport filtri={{}} />);
+    conRouter(<DomandeReport filtri={{}} />);
     const t = await screen.findByRole('table', { name: 'Importi per anno di raccolta' });
     expect(within(t).getByRole('rowheader').textContent).toBe('senza anno di raccolta');
     expect(t.textContent).toContain('non disponibile');
@@ -417,7 +423,7 @@ describe('DomandeReport: casi limite', () => {
       rispondi('/api/finanziario/domande-per-anno', F.DOMANDE_PER_ANNO),
       rispondi('/api/finanziario/importi-per-anno', { perimetro: 'REGIONALE', righe: [primo, { ...senzaCampagna, importoAmmesso: NON_VALORIZZATO, domandeSenzaAmmesso: null }] }),
     );
-    renderConQuery(<DomandeReport filtri={{}} />);
+    conRouter(<DomandeReport filtri={{}} />);
     await waitFor(() => expect(valoreKpi('Importo ammesso')).toBe('Non calcolabile: manca per almeno un anno di raccolta'));
     // con un conteggio assente il totale delle domande senza ammesso non si dichiara: la nota dice che manca
     expect(notaKpi('Importo ammesso')).toBe('domande senza importo ammesso: conteggio non disponibile per almeno un anno');
@@ -430,7 +436,7 @@ describe('DomandeReport: casi limite', () => {
 describe('SigcReport: casi limite', () => {
   it('domande senza conteggi: non e uno stato vuoto, barre non disegnate con il motivo, importi mostrati', async () => {
     server.use(rispondi('/api/finanziario/sigc/domande', { perimetro: 'REGIONALE' }), rispondi('/api/finanziario/sigc/importi', F.SIGC_IMPORTI));
-    renderConQuery(<SigcReport filtri={{}} />);
+    conRouter(<SigcReport filtri={{}} />);
     const domande = await trovaCard('Domande SIGC (RF012)');
     expect(within(domande).getByText('Grafico non disponibile: domande presentate non disponibili: il grafico non si può disegnare.')).toBeTruthy();
     expect(valoreDi(screen.getByRole('table', { name: 'Domande SIGC' }), 'Presentate')).toBe('-');
@@ -441,7 +447,7 @@ describe('SigcReport: casi limite', () => {
   // D-09: un importo vuoto su tutte le domande selezionate e' NON_VALORIZZATO, il dato assente nella fonte (non 0,00)
   it('importi senza valori: "non disponibile" o "non valorizzato" (mai zero) e cascata non disegnata', async () => {
     server.use(rispondi('/api/finanziario/sigc/domande', F.SIGC_DOMANDE), rispondi('/api/finanziario/sigc/importi', { perimetro: 'REGIONALE', pagato: { valore: null, motivo: 'NON_VALORIZZATO', fonte: null } }));
-    renderConQuery(<SigcReport filtri={{}} />);
+    conRouter(<SigcReport filtri={{}} />);
     const voci = await screen.findByRole('table', { name: 'Importi SIGC' });
     expect(valoreDi(voci, 'Importo richiesto')).toBe('non disponibile');
     expect(valoreDi(voci, 'Importo pagato (flusso ASR2-20)')).toBe('non valorizzatoil dato non è presente nella fonte');

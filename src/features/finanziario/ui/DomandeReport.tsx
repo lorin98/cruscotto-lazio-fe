@@ -20,6 +20,8 @@ import { annoDiRaccolta } from '../lib/formato';
 import { graficoDomandePerAnno, graficoImportiPerAnno } from '../lib/grafici';
 import { GRANT } from '../lib/report';
 import { ConGrant, KpiImporto, Numero, PerimetroSezione, ScaricaKpi, colonnaImporto, erroreGiaMostrato, vuotoConPerimetro } from './comuni';
+import { ApriNellElenco, useLinkElenco } from './LinkElenco';
+import type { Annualita, CriteriLink, IdLinkElenco } from '../lib/link-elenco';
 
 const TITOLI = {
   totale: 'Totale domande presentate (RF009)',
@@ -32,12 +34,26 @@ const DECRETATO = 'Importo decretato (elenchi di liquidazione)';
 // ---------------------------------------------------------------- KPI
 
 function KpiTotali({ filtri }: { filtri: Filtri }) {
+  const link = useLinkElenco(filtri);
   return (
     <VistaQuery stato={useTotaleDomande(filtri)}>
       {(d) => (
         <>
-          <Kpi etichetta="Domande presentate" icona="it-files" tono="ambra" valore={formatNumber(d.presentate)} nota={`${TITOLI.totale} · Perimetro ${d.perimetro ?? 'non indicato'}`} />
-          <Kpi etichetta="di cui prima annualità" icona="it-calendar" tono="blu" valore={formatNumber(d.primaAnnualita)} />
+          <Kpi
+            etichetta="Domande presentate"
+            icona="it-files"
+            tono="ambra"
+            valore={formatNumber(d.presentate)}
+            nota={`${TITOLI.totale} · Perimetro ${d.perimetro ?? 'non indicato'}`}
+            azione={<ApriNellElenco indirizzo={link('elenco-presentate-domande', { presentata: true })} descrizione="le domande presentate" />}
+          />
+          <Kpi
+            etichetta="di cui prima annualità"
+            icona="it-calendar"
+            tono="blu"
+            valore={formatNumber(d.primaAnnualita)}
+            azione={<ApriNellElenco indirizzo={link('elenco-prima-annualita', { presentata: true, annualita: ['PRIMA'] })} descrizione="le domande di prima annualità" />}
+          />
         </>
       )}
     </VistaQuery>
@@ -73,12 +89,31 @@ function KpiImporti({ filtri }: { filtri: Filtri }) {
 
 // ---------------------------------------------------------------- domande per anno
 
-const COLONNE_ANNO: Colonna<DomandePerAnnoRiga>[] = [
-  ['Prima annualità', (r) => <Numero valore={r.primaAnnualita} />],
-  ['Altre annualità', (r) => <Numero valore={r.altreAnnualita} />],
-  ['Non classificate', (r) => <Numero valore={r.nonClassificate} />],
-  ['Totale', (r) => <Numero valore={r.totali} />],
+type LinkDelReport = (id: IdLinkElenco, criteri?: CriteriLink) => string | null;
+
+const CELLE_ANNO: { titolo: string; campo: 'primaAnnualita' | 'altreAnnualita' | 'nonClassificate' | 'totali'; annualita?: Annualita }[] = [
+  { titolo: 'Prima annualità', campo: 'primaAnnualita', annualita: 'PRIMA' },
+  { titolo: 'Altre annualità', campo: 'altreAnnualita', annualita: 'ALTRE' },
+  { titolo: 'Non classificate', campo: 'nonClassificate', annualita: 'NON_CLASSIFICATE' },
+  { titolo: 'Totale', campo: 'totali' },
 ];
+
+/** Ogni cella (anno per annualita', e il totale dell'anno) apre l'elenco con quell'anno e quell'annualita' (wireframe domande). */
+function colonneAnno(link: LinkDelReport): Colonna<DomandePerAnnoRiga>[] {
+  return CELLE_ANNO.map((c) => [
+    c.titolo,
+    (r) => (
+      <>
+        <Numero valore={r[c.campo]} />
+        <ApriNellElenco
+          variante="testo"
+          indirizzo={link('elenco-anno-annualita', { presentata: true, anno: [r.annoRaccolta ?? null], ...(c.annualita ? { annualita: [c.annualita] } : {}) })}
+          descrizione={`le domande ${r.annoRaccolta == null ? 'senza anno di raccolta' : `del ${r.annoRaccolta}`}${c.annualita ? `, ${c.titolo.toLowerCase()}` : ''}`}
+        />
+      </>
+    ),
+  ]);
+}
 
 /** Cosa sono l'anno di raccolta e le non classificate (D-09 del backend), accanto alla tabella che le mostra. */
 function NotaAnnualita() {
@@ -112,6 +147,7 @@ function SceltaAnno({ id, anni, anno, onCambia }: { id: string; anni: string[]; 
 
 function DomandePerAnno({ filtri }: { filtri: Filtri }) {
   const stato = useDomandePerAnno(filtri);
+  const link = useLinkElenco(filtri);
   const id = useId();
   // clic su un anno del grafico, o la scelta sopra la tabella: il dettaglio mostra solo quell'anno (wireframe domande)
   const [anno, setAnno] = useState<string | null>(null);
@@ -124,7 +160,7 @@ function DomandePerAnno({ filtri }: { filtri: Filtri }) {
           <div>
             <CardGrafico
               titolo={TITOLI.perAnno}
-              sottotitolo="Prima annualità, altre annualità e non classificate. Clic su un anno (o scelta sopra la tabella): la tabella mostra quell'anno."
+              sottotitolo="Prima annualità, altre annualità e non classificate. Clic su un anno (o scelta sopra la tabella): la tabella mostra quell'anno; dalle sue celle si apre l'elenco operativo."
               dati={graficoDomandePerAnno(d.righe ?? [])}
               fonte={`Fonte: TX-0008 · Perimetro ${d.perimetro ?? 'non indicato'}`}
               onClic={(p: ClicGrafico) => setAnno(p.name && anni.includes(p.name) ? p.name : null)}
@@ -144,7 +180,7 @@ function DomandePerAnno({ filtri }: { filtri: Filtri }) {
             >
               {/* il backend non filtra per anno: il file ha sempre tutti gli anni (review v3 X-04) */}
               {anno !== null && <p className="ui-nota">{`I file CSV e XLSX contengono tutti gli anni di raccolta, non solo il ${anno}.`}</p>}
-              <TabellaRighe caption="Domande per anno di raccolta" intestazione="Anno di raccolta" chiave={(r) => annoDiRaccolta(r.annoRaccolta)} colonne={COLONNE_ANNO} righe={righe} />
+              <TabellaRighe caption="Domande per anno di raccolta" intestazione="Anno di raccolta" chiave={(r) => annoDiRaccolta(r.annoRaccolta)} colonne={colonneAnno(link)} righe={righe} />
               <NotaAnnualita />
             </Sezione>
           </div>
@@ -163,8 +199,26 @@ const COLONNE_IMPORTI: Colonna<ImportiPerAnnoRiga>[] = [
   ['Domande senza importo ammesso', (r) => <Numero valore={r.domandeSenzaAmmesso} />],
 ];
 
+/** Con il grant dell'elenco, una colonna per riga (anno) che apre le domande presentate dell'anno (stanziato e decretato non ci sono). */
+function colonneImporti(link: LinkDelReport): Colonna<ImportiPerAnnoRiga>[] {
+  if (link('elenco-anno', { presentata: true }) === null) return COLONNE_IMPORTI;
+  return [
+    ...COLONNE_IMPORTI,
+    [
+      'Elenco operativo',
+      (r) => (
+        <ApriNellElenco
+          indirizzo={link('elenco-anno', { presentata: true, anno: [r.annoRaccolta ?? null] })}
+          descrizione={`le domande presentate ${r.annoRaccolta == null ? 'senza anno di raccolta' : `del ${r.annoRaccolta}`}`}
+        />
+      ),
+    ],
+  ];
+}
+
 function ImportiPerAnnoSezione({ filtri }: { filtri: Filtri }) {
   const stato = useImportiPerAnno(filtri);
+  const link = useLinkElenco(filtri);
   return (
     <VistaQuery stato={stato} eVuoto={(d) => (d.righe ?? []).length === 0} vuoto={VUOTO}>
       {(d) => (
@@ -172,7 +226,7 @@ function ImportiPerAnnoSezione({ filtri }: { filtri: Filtri }) {
           <CardGrafico titolo={TITOLI.importi} sottotitolo="Importo ammesso e decretato; trascina per ingrandire" dati={graficoImportiPerAnno(d.righe ?? [])} fonte={`Fonte: TX-0010 · ${DECRETATO}`} scaricamenti={datiDelReport(TITOLI.importi, 'importiPerAnno', filtri)} />
           <Sezione titolo="Importi per anno: dettaglio" strumenti={<PulsantiScarica oggetto="la tabella Importi per anno" scaricamenti={datiDelReport('Importi per anno', 'importiPerAnno', filtri)} />}>
             <PerimetroSezione perimetro={d.perimetro} />
-            <TabellaRighe caption="Importi per anno di raccolta" intestazione="Anno di raccolta" chiave={(r) => annoDiRaccolta(r.annoRaccolta)} colonne={COLONNE_IMPORTI} righe={d.righe ?? []} />
+            <TabellaRighe caption="Importi per anno di raccolta" intestazione="Anno di raccolta" chiave={(r) => annoDiRaccolta(r.annoRaccolta)} colonne={colonneImporti(link)} righe={d.righe ?? []} />
           </Sezione>
         </div>
       )}

@@ -14,6 +14,8 @@ import type { Filtri } from '../lib/filtri';
 import { VOCI_DOMANDE_SIGC, graficoCascataSigc, graficoDomandeSigc } from '../lib/grafici';
 import { GRANT } from '../lib/report';
 import { ConGrant, Numero, PerimetroSezione, vuotoConPerimetro } from './comuni';
+import { criteriVoceSigc } from '../lib/link-elenco';
+import { ApriNellElenco, useApriNellElenco, useLinkElenco } from './LinkElenco';
 
 const TITOLO_DOMANDE = 'Domande SIGC (RF012)';
 const TITOLO_IMPORTI = 'Importi SIGC (RF013)';
@@ -41,20 +43,34 @@ function NotaImporti() {
 
 function DomandeSigc({ filtri }: { filtri: Filtri }) {
   const stato = useSigcDomande(filtri);
+  const link = useLinkElenco(filtri);
+  const apri = useApriNellElenco(filtri);
   return (
     <VistaQuery stato={stato} eVuoto={(d) => d.presentate === 0} vuoto={VUOTO}>
       {(d) => (
         <div>
           <CardGrafico
             titolo={TITOLO_DOMANDE}
-            sottotitolo="Presentate, pagate, da pagare e senza importi: pagate e da pagare si sovrappongono"
+            sottotitolo="Presentate, pagate, da pagare e senza importi: pagate e da pagare si sovrappongono. Clic su una barra: le domande nell'elenco operativo"
             dati={graficoDomandeSigc(d)}
             fonte="Fonte: TX-0012, importi della domanda (flusso ASR2-20)"
+            onClic={(p) => apri('elenco-sigc', criteriVoceSigc(p.name))}
             scaricamenti={datiDelReport(TITOLO_DOMANDE, 'sigcDomande', filtri)}
           />
           <section className="ui-card mt-3" aria-label="Voci delle domande SIGC">
             <PerimetroSezione perimetro={d.perimetro} />
-            <TabellaVoci caption="Domande SIGC" voci={VOCI_DOMANDE_SIGC.map((v) => ({ etichetta: v.etichetta, valore: <Numero valore={d[v.campo]} /> }))} />
+            <TabellaVoci
+              caption="Domande SIGC"
+              voci={VOCI_DOMANDE_SIGC.map((v) => ({
+                etichetta: v.etichetta,
+                valore: (
+                  <>
+                    <Numero valore={d[v.campo]} />
+                    <ApriNellElenco variante="testo" indirizzo={link('elenco-sigc', criteriVoceSigc(v.nome) ?? undefined)} descrizione={`le domande SIGC ${v.nome.toLowerCase()}`} />
+                  </>
+                ),
+              }))}
+            />
             <NotaDomande />
           </section>
         </div>
@@ -65,13 +81,22 @@ function DomandeSigc({ filtri }: { filtri: Filtri }) {
 
 function ImportiSigc({ filtri }: { filtri: Filtri }) {
   const stato = useSigcImporti(filtri);
+  const link = useLinkElenco(filtri);
+  const apri = useApriNellElenco(filtri);
   // segnale positivo: il conteggio delle domande SIGC presentate per gli stessi filtri (cache condivisa con RF012)
   const segnale = useSelezioneSenzaDomandeSigc(filtri);
   return (
     <VistaQuery stato={stato} inAttesa={segnale === 'in-attesa'} eVuoto={() => segnale === 'vuota'} vuoto={VUOTO}>
       {(d) => (
         <div>
-          <CardGrafico titolo={TITOLO_IMPORTI} sottotitolo="Dal richiesto all'ancora da pagare" dati={graficoCascataSigc(d)} fonte="Fonte: TX-0013, importi della domanda (flusso ASR2-20)" scaricamenti={datiDelReport(TITOLO_IMPORTI, 'sigcImporti', filtri)} />
+          <CardGrafico
+            titolo={TITOLO_IMPORTI}
+            sottotitolo="Dal richiesto all'ancora da pagare. Clic sulla cascata: le domande SIGC nell'elenco operativo, con gli stessi importi nel sinottico"
+            dati={graficoCascataSigc(d)}
+            fonte="Fonte: TX-0013, importi della domanda (flusso ASR2-20)"
+            onClic={() => apri('elenco-sigc-importi', { sigc: true })}
+            scaricamenti={datiDelReport(TITOLO_IMPORTI, 'sigcImporti', filtri)}
+          />
           <section className="ui-card mt-3" aria-label="Voci degli importi SIGC">
             <PerimetroSezione perimetro={d.perimetro} />
             {/* somme per domanda: un importo assente su tutte le domande e' il dato assente nella fonte (non aggregato) */}
@@ -89,6 +114,7 @@ function ImportiSigc({ filtri }: { filtri: Filtri }) {
               ]}
             />
             <NotaImporti />
+            <ApriNellElenco variante="testo" indirizzo={link('elenco-sigc-importi', { sigc: true })} testo="Le domande SIGC nell'elenco operativo" descrizione="(sinottico con richiesto, ammesso, pagato e ancora da pagare)" />
           </section>
         </div>
       )}

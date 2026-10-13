@@ -1,6 +1,6 @@
 {
   "feature": "finanziario",
-  "pack_hash": "sha256:1ef3a90c51c555441a3a3e3fb203dfdaa0f2f7d1861a5664982f33cb828de4c4",
+  "pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb",
   "routes": [
     {
       "actions": [

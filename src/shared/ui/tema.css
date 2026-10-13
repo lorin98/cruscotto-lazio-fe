@@ -188,6 +188,9 @@ body { background: var(--ui-sfondo); color: var(--ui-testo); font-family: 'Titil
 .ui-kpi__valore small { margin-left: .2rem; font-size: .95rem; font-weight: 600; color: var(--ui-attenuato); }
 .ui-kpi__valore--assente { font-size: 1.05rem; color: var(--ui-attenuato); font-weight: 600; }
 .ui-kpi__nota { margin: .25rem 0 0; font-size: .82rem; color: var(--ui-attenuato); }
+.ui-kpi__azione { margin: .6rem 0 0; }
+.ui-link-elenco { display: block; margin-top: .15rem; font-size: .78rem; }
+.ui-link-elenco--riga { display: flex; flex-wrap: wrap; gap: .25rem .75rem; margin: .5rem 0 0; font-size: .85rem; }
 .ui-barra { height: 8px; margin-top: .6rem; border-radius: 999px; background: var(--ui-sfondo); overflow: hidden; }
 .ui-barra > span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--ui-primario), #3a8ee6); }
 .ui-tono-blu { background: var(--ui-primario-chiaro); color: var(--ui-primario); }

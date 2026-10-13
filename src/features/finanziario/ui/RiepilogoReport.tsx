@@ -20,6 +20,8 @@ import { conFiltri, percorsoIntervento } from '../lib/report';
 import { NotaPerimetroMisto, PerimetroSezione, colonneImporti, diProgramma, vuotoConPerimetro } from './comuni';
 import { NOTA_RICERCA_FILE, datiDelReport } from './esportazioni';
 import { useApriIntervento } from './useApriIntervento';
+import { ApriNellElenco, useLinkElenco } from './LinkElenco';
+import type { CriteriLink, IdLinkElenco } from '../lib/link-elenco';
 import type { CampoImporto } from './comuni';
 
 type Riga = RiepilogoFinanziarioRiga;
@@ -37,11 +39,50 @@ const CAMPI: CampoImporto<Riga>[] = [
 
 const VUOTO = vuotoConPerimetro('Nessun intervento per i filtri scelti.', { programma: true });
 
-function colonne(perimetro: Perimetro | undefined): ColonnaTabella<Riga>[] {
+type LinkDelReport = (id: IdLinkElenco, criteri?: CriteriLink) => string | null;
+
+/** Nota del link dei pagamenti: l'elenco ha il pagato lordo delle righe PAGATA, il report il netto delle rettifiche. */
+const PAGAMENTI_LORDI_ELENCO = 'righe di pagamento, importi lordi';
+const NOTA_PAGAMENTI_LORDI = "L'elenco dei pagamenti mostra le righe pagate degli elenchi di liquidazione con gli importi lordi; i recuperi sono nella scheda di ogni domanda.";
+
+/** Link della riga verso l'elenco: nessuno senza il codice dell'intervento (la dotazione AT001 sta nel piede, senza link). */
+function linkDellaRiga(link: LinkDelReport, r: Riga) {
+  const codice = r.codiceIntervento;
+  if (!codice) return { domande: null, pagamenti: null };
+  return {
+    domande: link('elenco-presentate-riga', { presentata: true, intervento: codice }),
+    pagamenti: link('elenco-pagamenti-riga', { esito: ['PAGATA'], intervento: codice }),
+  };
+}
+
+function colonne(perimetro: Perimetro | undefined, link: LinkDelReport): ColonnaTabella<Riga>[] {
   return [
     { chiave: 'codice', titolo: 'Intervento', valore: (r) => r.codiceIntervento ?? null, fissa: true },
-    { chiave: 'domande', titolo: 'Domande presentate', valore: (r) => r.domandePresentate ?? null, resa: (r) => formatNumber(r.domandePresentate), numerica: true },
-    ...colonneImporti(CAMPI, perimetro),
+    {
+      chiave: 'domande',
+      titolo: 'Domande presentate',
+      valore: (r) => r.domandePresentate ?? null,
+      resa: (r) => (
+        <>
+          {formatNumber(r.domandePresentate)}
+          <ApriNellElenco variante="testo" indirizzo={linkDellaRiga(link, r).domande} descrizione={`le domande presentate dell'intervento ${r.codiceIntervento ?? ''}`} />
+        </>
+      ),
+      numerica: true,
+    },
+    ...colonneImporti(CAMPI, perimetro).map((c) =>
+      c.chiave !== 'pagamentiNettoRettifiche'
+        ? c
+        : {
+            ...c,
+            resa: (r: Riga) => (
+              <>
+                {c.resa?.(r)}
+                <ApriNellElenco variante="testo" indirizzo={linkDellaRiga(link, r).pagamenti} testo={PAGAMENTI_LORDI_ELENCO} descrizione={`le righe di pagamento dell'intervento ${r.codiceIntervento ?? ''}`} />
+              </>
+            ),
+          },
+    ),
   ];
 }
 
@@ -58,6 +99,23 @@ function totali(righe: readonly Riga[]): RigaPiede {
 
 function Esporta({ filtri }: { filtri: Filtri }) {
   return <PulsantiScarica oggetto="la tabella Riepilogo per intervento" scaricamenti={datiDelReport('Riepilogo per intervento', 'riepilogo', filtri)} />;
+}
+
+/** I due link della riga nell'anteprima, con la nota sugli importi lordi; niente senza il grant dell'elenco. */
+function NellElencoAnteprima({ riga, filtri }: { riga: Riga; filtri: Filtri }) {
+  const nellElenco = linkDellaRiga(useLinkElenco(filtri), riga);
+  if (!nellElenco.domande && !nellElenco.pagamenti) return null;
+  const codice = riga.codiceIntervento ?? '';
+  return (
+    <div className="mt-3">
+      <p className="ui-link-elenco--riga">
+        <span>Nell&apos;elenco operativo:</span>
+        <ApriNellElenco variante="testo" indirizzo={nellElenco.domande} testo="domande presentate" descrizione={`dell'intervento ${codice}`} />
+        <ApriNellElenco variante="testo" indirizzo={nellElenco.pagamenti} testo={PAGAMENTI_LORDI_ELENCO} descrizione={`le righe di pagamento dell'intervento ${codice}`} />
+      </p>
+      {nellElenco.pagamenti && <p className="small mb-0">{NOTA_PAGAMENTI_LORDI}</p>}
+    </div>
+  );
 }
 
 function Anteprima({ riga, perimetro, filtri, onChiudi }: { riga: Riga | null; perimetro?: Perimetro; filtri: Filtri; onChiudi: () => void }) {
@@ -84,6 +142,7 @@ function Anteprima({ riga, perimetro, filtri, onChiudi }: { riga: Riga | null; p
               {"Apri il dettaglio dell'intervento"}
             </Link>
           )}
+          <NellElencoAnteprima riga={riga} filtri={filtri} />
         </>
       )}
     </PannelloLaterale>
@@ -92,6 +151,7 @@ function Anteprima({ riga, perimetro, filtri, onChiudi }: { riga: Riga | null; p
 
 function Contenuto({ d, filtri }: { d: RiepilogoFinanziario; filtri: Filtri }) {
   const { dalClic } = useApriIntervento(filtri);
+  const link = useLinkElenco(filtri);
   const righe = d.righe ?? [];
   const [aperta, setAperta] = useState<Riga | null>(null);
   const [vista, setVista] = useState<'tabella' | 'grafico'>('tabella');
@@ -113,7 +173,7 @@ function Contenuto({ d, filtri }: { d: RiepilogoFinanziario; filtri: Filtri }) {
         <TabellaInterattiva
           caption="Riepilogo per intervento (RF011)"
           righe={righe}
-          colonne={colonne(d.perimetro)}
+          colonne={colonne(d.perimetro, link)}
           chiaveRiga={(r) => r.codiceIntervento ?? ''}
           testoRicerca={(r) => r.codiceIntervento ?? ''}
           segnapostoRicerca="Cerca per codice dell'intervento"
@@ -141,6 +201,7 @@ function Contenuto({ d, filtri }: { d: RiepilogoFinanziario; filtri: Filtri }) {
           scaricamenti={datiDelReport('Dotazione e pagamenti per intervento', 'riepilogo', filtri)}
         />
       )}
+      {vista === 'tabella' && link('elenco-pagamenti-riga', { esito: ['PAGATA'] }) !== null && <p className="small mt-2 mb-0">{NOTA_PAGAMENTI_LORDI}</p>}
       <Anteprima riga={aperta} perimetro={d.perimetro} filtri={filtri} onChiudi={() => setAperta(null)} />
     </>
   );

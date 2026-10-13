@@ -13,11 +13,23 @@ import { useDomandePerAnno, useImportiPerAnno, useRiepilogo, useSigcDomande, use
 import type { RiepilogoFinanziarioRiga } from '../api';
 import { datiDelReport } from './esportazioni';
 import type { Filtri } from '../lib/filtri';
-import { graficoCascataIntervento, graficoCascataSigc, graficoDomandePerAnno, graficoDomandeSigc, graficoImportiPerAnno, graficoPagatoNetto, vociIntervento } from '../lib/grafici';
+import { VOCI_DOMANDE_SIGC, graficoCascataIntervento, graficoCascataSigc, graficoDomandePerAnno, graficoDomandeSigc, graficoImportiPerAnno, graficoPagatoNetto, vociIntervento } from '../lib/grafici';
+import { perAnno } from '../lib/importi';
+import { criteriDomandePerAnno, criteriVoceSigc } from '../lib/link-elenco';
+import type { CriteriLink } from '../lib/link-elenco';
 import type { Perimetro } from '../lib/perimetro';
 import { GRANT, PERCORSI, conFiltri } from '../lib/report';
 import { ConGrant, KpiImporto, NotaPerimetroMisto, PerimetroSezione, diProgramma } from './comuni';
 import { useSelezioneSenzaDomandeSigc } from './selezione';
+import { ApriNellElenco, useApriNellElenco, useLinkElenco } from './LinkElenco';
+
+/** I link verso l'elenco portano la selezione da cui si e' arrivati, con l'intervento del dettaglio al posto del filtro. */
+interface Provenienza {
+  codice: string;
+  selezione: Filtri;
+}
+
+const conIntervento = (criteri: CriteriLink | null, codice: string): CriteriLink | null => (criteri === null ? null : { ...criteri, intervento: codice });
 
 // titolo del wireframe intervento (scheda Domande)
 const IMPORTI_PER_ANNO = 'Importi ammessi e decretati per anno';
@@ -47,13 +59,20 @@ function Testata({ codice, selezione, perimetro, contributo }: { codice: string;
   );
 }
 
-function Kpis({ r, perimetro }: { r: RiepilogoFinanziarioRiga; perimetro?: Perimetro }) {
+function Kpis({ r, perimetro, da }: { r: RiepilogoFinanziarioRiga; perimetro?: Perimetro; da: Provenienza }) {
+  const link = useLinkElenco(da.selezione);
   return (
     <Griglia colonne={4}>
       <KpiImporto etichetta={diProgramma('Dotazione spesa pubblica', perimetro)} importo={r.dotazioneSpesaPubblica} icona="it-card" tono="scuro" aggregato={false} />
       <KpiImporto etichetta={diProgramma('Risorse quota FEASR', perimetro)} importo={r.risorseQuotaFeasr} icona="it-presentation" tono="blu" aggregato={false} />
       <KpiImporto etichetta="Pagamenti al netto delle rettifiche" importo={r.pagamentiNettoRettifiche} icona="it-chart-line" tono="verde" aggregato={false} />
-      <Kpi etichetta="Domande presentate" icona="it-files" tono="ambra" valore={formatNumber(r.domandePresentate)} />
+      <Kpi
+        etichetta="Domande presentate"
+        icona="it-files"
+        tono="ambra"
+        valore={formatNumber(r.domandePresentate)}
+        azione={<ApriNellElenco indirizzo={link('elenco-presentate-intervento', { presentata: true, intervento: da.codice })} descrizione={`le domande presentate dell'intervento ${da.codice}`} />}
+      />
     </Griglia>
   );
 }
@@ -80,25 +99,59 @@ function Sintesi({ filtri, r, perimetro }: { filtri: Filtri; r: RiepilogoFinanzi
   );
 }
 
-function DomandePerAnno({ filtri }: { filtri: Filtri }) {
-  return <VistaQuery stato={useDomandePerAnno(filtri)}>{(d) => <CardGrafico titolo="Domande per anno di raccolta" dati={graficoDomandePerAnno(d.righe ?? [])} fonte="Fonte: TX-0008" scaricamenti={datiDelReport('Domande per anno di raccolta', 'domandePerAnno', filtri)} />}</VistaQuery>;
+function DomandePerAnno({ filtri, da }: { filtri: Filtri; da: Provenienza }) {
+  const apri = useApriNellElenco(da.selezione);
+  return (
+    <VistaQuery stato={useDomandePerAnno(filtri)}>
+      {(d) => (
+        <CardGrafico
+          titolo="Domande per anno di raccolta"
+          sottotitolo="Clic su un segmento: le domande dell'anno e dell'annualità nell'elenco operativo"
+          dati={graficoDomandePerAnno(d.righe ?? [])}
+          fonte="Fonte: TX-0008"
+          onClic={(p) => apri('elenco-anno-intervento', conIntervento(criteriDomandePerAnno(perAnno(d.righe ?? []), p), da.codice))}
+          scaricamenti={datiDelReport('Domande per anno di raccolta', 'domandePerAnno', filtri)}
+        />
+      )}
+    </VistaQuery>
+  );
 }
 
 function ImportiPerAnno({ filtri }: { filtri: Filtri }) {
   return <VistaQuery stato={useImportiPerAnno(filtri)}>{(d) => <CardGrafico titolo={IMPORTI_PER_ANNO} dati={graficoImportiPerAnno(d.righe ?? [])} fonte="Fonte: TX-0010" scaricamenti={datiDelReport(IMPORTI_PER_ANNO, 'importiPerAnno', filtri)} />}</VistaQuery>;
 }
 
-function DomandeSigc({ filtri }: { filtri: Filtri }) {
+/** Le voci delle domande SIGC nell'elenco operativo, anche da tastiera (il clic sul grafico porta agli stessi indirizzi). */
+function VociSigcNellElenco({ da }: { da: Provenienza }) {
+  const link = useLinkElenco(da.selezione);
+  const voci = VOCI_DOMANDE_SIGC.map((v) => ({ nome: v.nome, indirizzo: link('elenco-sigc-intervento', conIntervento(criteriVoceSigc(v.nome), da.codice) ?? undefined) }));
+  if (voci.every((x) => x.indirizzo === null)) return null;
+  return (
+    <p className="ui-link-elenco--riga">
+      <span>Nell&apos;elenco operativo:</span>
+      {voci.map(({ nome, indirizzo }) => (
+        <ApriNellElenco key={nome} variante="testo" indirizzo={indirizzo} testo={nome.toLowerCase()} descrizione={`le domande SIGC ${nome.toLowerCase()} dell'intervento ${da.codice}`} />
+      ))}
+    </p>
+  );
+}
+
+function DomandeSigc({ filtri, da }: { filtri: Filtri; da: Provenienza }) {
+  const apri = useApriNellElenco(da.selezione);
   return (
     <VistaQuery stato={useSigcDomande(filtri)}>
       {(d) => (
-        <CardGrafico
-          titolo="Domande SIGC"
-          sottotitolo="Pagate e da pagare si sovrappongono (domande pagate in parte); senza importi: non classificabili"
-          dati={graficoDomandeSigc(d)}
-          fonte="Fonte: TX-0012 · pagate e da pagare dagli importi della domanda (flusso ASR2-20), come l'importo pagato"
-          scaricamenti={datiDelReport('Domande SIGC', 'sigcDomande', filtri)}
-        />
+        <div>
+          <CardGrafico
+            titolo="Domande SIGC"
+            sottotitolo="Pagate e da pagare si sovrappongono (domande pagate in parte); senza importi: non classificabili. Clic su una barra: le domande nell'elenco operativo"
+            dati={graficoDomandeSigc(d)}
+            fonte="Fonte: TX-0012 · pagate e da pagare dagli importi della domanda (flusso ASR2-20), come l'importo pagato"
+            onClic={(p) => apri('elenco-sigc-intervento', conIntervento(criteriVoceSigc(p.name), da.codice))}
+            scaricamenti={datiDelReport('Domande SIGC', 'sigcDomande', filtri)}
+          />
+          <VociSigcNellElenco da={da} />
+        </div>
       )}
     </VistaQuery>
   );
@@ -108,16 +161,26 @@ function DomandeSigc({ filtri }: { filtri: Filtri }) {
  * Per un intervento senza domande SIGC il backend restituisce importi a zero: come in SigcReport, il segnale delle domande
  * presentate (stessa lettura in cache di RF012) dichiara il vuoto invece di una cascata di zeri (NFR-15 e, review v3 X-01).
  */
-function ImportiSigc({ filtri }: { filtri: Filtri }) {
+function ImportiSigc({ filtri, da }: { filtri: Filtri; da: Provenienza }) {
   const segnale = useSelezioneSenzaDomandeSigc(filtri);
+  const apri = useApriNellElenco(da.selezione);
   return (
     <VistaQuery stato={useSigcImporti(filtri)} inAttesa={segnale === 'in-attesa'} eVuoto={() => segnale === 'vuota'} vuoto={SENZA_SIGC}>
-      {(d) => <CardGrafico titolo="Importi SIGC" dati={graficoCascataSigc(d)} fonte="Fonte: TX-0013 · importi della domanda (flusso ASR2-20)" scaricamenti={datiDelReport('Importi SIGC', 'sigcImporti', filtri)} />}
+      {(d) => (
+        <CardGrafico
+          titolo="Importi SIGC"
+          sottotitolo="Clic sulla cascata: le domande SIGC dell'intervento nell'elenco operativo"
+          dati={graficoCascataSigc(d)}
+          fonte="Fonte: TX-0013 · importi della domanda (flusso ASR2-20)"
+          onClic={() => apri('elenco-sigc-intervento', { sigc: true, intervento: da.codice })}
+          scaricamenti={datiDelReport('Importi SIGC', 'sigcImporti', filtri)}
+        />
+      )}
     </VistaQuery>
   );
 }
 
-function Schede({ filtri, r, perimetro }: { filtri: Filtri; r: RiepilogoFinanziarioRiga; perimetro?: Perimetro }) {
+function Schede({ filtri, r, perimetro, da }: { filtri: Filtri; r: RiepilogoFinanziarioRiga; perimetro?: Perimetro; da: Provenienza }) {
   return (
     <Tabs>
       <TabList aria-label="Sezioni dell'intervento" className="ui-tabs">
@@ -140,7 +203,7 @@ function Schede({ filtri, r, perimetro }: { filtri: Filtri; r: RiepilogoFinanzia
       <TabPanel id="domande">
         <Griglia>
           <ConGrant grant={GRANT.domandePerAnno} titolo="Domande per anno di raccolta">
-            <DomandePerAnno filtri={filtri} />
+            <DomandePerAnno filtri={filtri} da={da} />
           </ConGrant>
           <ConGrant grant={GRANT.importiPerAnno} titolo={IMPORTI_PER_ANNO}>
             <ImportiPerAnno filtri={filtri} />
@@ -150,10 +213,10 @@ function Schede({ filtri, r, perimetro }: { filtri: Filtri; r: RiepilogoFinanzia
       <TabPanel id="sigc">
         <Griglia>
           <ConGrant grant={GRANT.sigcDomande} titolo="Domande SIGC">
-            <DomandeSigc filtri={filtri} />
+            <DomandeSigc filtri={filtri} da={da} />
           </ConGrant>
           <ConGrant grant={GRANT.sigcImporti} titolo="Importi SIGC">
-            <ImportiSigc filtri={filtri} />
+            <ImportiSigc filtri={filtri} da={da} />
           </ConGrant>
         </Griglia>
       </TabPanel>
@@ -189,8 +252,8 @@ function Contenuto({ codice, selezione }: { codice: string; selezione: Filtri })
             <Testata codice={codice} selezione={selezione} perimetro={d.perimetro} contributo={spesa.data?.righe?.[0]?.percentualeContributoAmbientale} />
             <PerimetroSezione perimetro={d.perimetro} />
             <NotaPerimetroMisto perimetro={d.perimetro} />
-            <Kpis r={r} perimetro={d.perimetro} />
-            <Schede filtri={filtri} r={r} perimetro={d.perimetro} />
+            <Kpis r={r} perimetro={d.perimetro} da={{ codice, selezione }} />
+            <Schede filtri={filtri} r={r} perimetro={d.perimetro} da={{ codice, selezione }} />
           </>
         );
       }}

@@ -1,5 +1,6 @@
 // Kpi — tessera di un indicatore (ADR 0027): etichetta con icona, valore, nota, quota opzionale. Un valore assente non
 // diventa mai zero: la tessera dice "non disponibile" con il motivo.
+import type { ReactNode } from 'react';
 import type { NomeIcona } from '../icona';
 import { Icona } from '../icona';
 
@@ -14,6 +15,7 @@ export function Kpi({
   icona,
   tono = 'blu',
   assente,
+  azione,
 }: {
   etichetta: string;
   valore?: string;
@@ -25,6 +27,8 @@ export function Kpi({
   tono?: TonoKpi;
   /** Testo completo dell'assenza (es. "Non disponibile: fonte impegni non attiva"): se presente il valore non si mostra. */
   assente?: string;
+  /** Azione della tessera sotto il valore (es. il link che apre l'elenco delle domande contate). */
+  azione?: ReactNode;
 }) {
   // la barra si ferma al pieno, il testo accessibile dice il valore vero (oltre il 100%: review v3 X-05, WCAG 1.1.1)
   const percentuale = quota != null && quota >= 0 ? quota * 100 : null;
@@ -50,6 +54,7 @@ export function Kpi({
           <span className={`ui-barra__${Math.round(Math.min(100, percentuale) / 5) * 5}`} />
         </div>
       )}
+      {azione && <div className="ui-kpi__azione">{azione}</div>}
     </section>
   );
 }
