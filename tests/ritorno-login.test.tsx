@@ -19,14 +19,25 @@ const pos = (pathname: string, search = '') => ({ pathname, search });
 
 afterEach(() => {
   window.history.pushState({}, '', '/');
-  configuraLoginDaSessioneScaduta(() => resolveLoginPath());
+  configuraLoginDaSessioneScaduta(() => null);
 });
 
 describe('resolveLoginPath e percorsoDiRitorno (shared): solo percorsi relativi della SPA', () => {
   it('senza ritorno il login di sempre; con il ritorno la query codificata', () => {
     expect(resolveLoginPath()).toBe('/auth/login');
     expect(resolveLoginPath(null)).toBe('/auth/login');
-    expect(resolveLoginPath(`${DOMANDE}?anno=2024`)).toBe(LOGIN_DOMANDE_2024);
+    expect(resolveLoginPath(percorsoDiRitorno(DOMANDE, '?anno=2024')?.completo)).toBe(LOGIN_DOMANDE_2024);
+  });
+
+  it('il limite vale sulla forma codificata (D-11 Rev. 10 c): corto in chiaro ma lungo codificato, niente ritorno', () => {
+    // 600 caratteri accentati: 600 in chiaro, oltre 3.600 codificati (la riga della richiesta supererebbe 4096: 414)
+    const accentati = `?testo=${'à'.repeat(600)}`;
+    expect(`${DOMANDE}${accentati}`.length).toBeLessThan(RITORNO_MAX);
+    expect(percorsoDiRitorno(DOMANDE, accentati)).toBeNull();
+    // al limite: la forma codificata di esattamente RITORNO_MAX caratteri passa, uno in piu' no
+    const base = encodeURIComponent(`${DOMANDE}?testo=`).length;
+    expect(percorsoDiRitorno(DOMANDE, `?testo=${'a'.repeat(RITORNO_MAX - base)}`)).not.toBeNull();
+    expect(percorsoDiRitorno(DOMANDE, `?testo=${'a'.repeat(RITORNO_MAX - base + 1)}`)).toBeNull();
   });
 
   it('rifiuta Home, percorsi del BFF, percorsi assoluti o di protocollo, barre rovesciate, controlli, troppo lunghi', () => {

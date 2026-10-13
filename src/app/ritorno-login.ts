@@ -5,6 +5,7 @@
 import { matchPath } from 'react-router';
 import { configuraLoginDaSessioneScaduta } from '../shared/api/mutator/bff-mutator';
 import { percorsoDiRitorno, resolveLoginPath } from '../shared/config/base-path';
+import type { RitornoAmmesso } from '../shared/config/base-path';
 import routeTable from './route-table.json';
 
 const ROTTE: readonly string[] = routeTable.routes.map((r) => r.path);
@@ -19,7 +20,7 @@ function posizioneCorrente(): Posizione | null {
 }
 
 /** Percorso (con la query) della pagina a cui tornare dopo il login, oppure null se non e' una route dell'app. */
-export function ritornoDellaPagina(posizione: Posizione | null = posizioneCorrente()): string | null {
+export function ritornoDellaPagina(posizione: Posizione | null = posizioneCorrente()): RitornoAmmesso | null {
   if (!posizione) return null;
   const ritorno = percorsoDiRitorno(posizione.pathname, posizione.search);
   if (!ritorno) return null;
@@ -33,5 +34,5 @@ export function linkDiLogin(posizione?: Posizione | null): string {
 
 /** All'avvio (main.tsx): anche la sessione scaduta durante una lettura riporta alla pagina dopo il login. */
 export function configuraRitornoDopoLogin(): void {
-  configuraLoginDaSessioneScaduta(() => linkDiLogin());
+  configuraLoginDaSessioneScaduta(() => ritornoDellaPagina());
 }

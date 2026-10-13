@@ -7,14 +7,16 @@
 import Axios, { AxiosError } from 'axios';
 import type { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { basePath, resolveLoginPath } from '../../config/base-path';
+import type { RitornoAmmesso } from '../../config/base-path';
 
-// URL del login all'evento di sessione scaduta. Il mutator condiviso non conosce le route: di default porta al login
-// senza ritorno; l'app (main.tsx) lo configura all'avvio per tornare alla pagina corrente se e' una sua route
-// (configuraLoginDaSessioneScaduta, app/ritorno-login.ts).
-let urlDelLogin: () => string = () => resolveLoginPath();
+// Ritorno al login all'evento di sessione scaduta. Il mutator condiviso non conosce le route: di default porta al login
+// senza ritorno; l'app (main.tsx) gli fornisce il ritorno alla pagina corrente se e' una sua route
+// (configuraLoginDaSessioneScaduta, app/ritorno-login.ts). L'URL lo compone sempre il mutator (base path + /auth/login),
+// e il ritorno e' un RitornoAmmesso: solo percorsoDiRitorno lo produce (review finanziario v4 iter3 H-02).
+let ritornoDelLogin: () => RitornoAmmesso | null = () => null;
 
-export function configuraLoginDaSessioneScaduta(url: () => string): void {
-  urlDelLogin = url;
+export function configuraLoginDaSessioneScaduta(ritorno: () => RitornoAmmesso | null): void {
+  ritornoDelLogin = ritorno;
 }
 
 // Evento di sessione scaduta, sostituibile nei test (evita navigazione reale sotto jsdom).
@@ -25,8 +27,8 @@ export const authEvents = {
   },
   onSessionExpired(): void {
     // Anti open-redirect: SOLO base path noto + /auth/login, mai un returnTo del server; l'unico ritorno e' la pagina
-    // corrente convalidata (resolveLoginPath), che il BFF riconvalida.
-    authEvents.vai(urlDelLogin());
+    // corrente convalidata da percorsoDiRitorno (tipo RitornoAmmesso), che il BFF riconvalida.
+    authEvents.vai(resolveLoginPath(ritornoDelLogin()));
   },
 };
 
