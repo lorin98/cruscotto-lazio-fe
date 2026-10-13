@@ -23,10 +23,10 @@
       "status": "done",
       "gates": {
         "wireframe_domande": {
-          "approved_hash": "sha256:3f58d668a970e5118afa1dd9591a8cfb0e0cf4e1bdde744bb3994d483ca7f5fa",
+          "approved_hash": "sha256:3b979236362d2edee91ef233ab8344cebcf02dae340040c6dddbf96c9e018628",
           "baseline_ref": "./wireframes/elenco-operativo/domande",
-          "approved_at": "2026-10-13T08:11:14Z",
-          "time_to_approve_s": 170,
+          "approved_at": "2026-10-13T16:11:17Z",
+          "time_to_approve_s": 89,
           "deviations_reviewed": []
         },
         "wireframe_dettaglio-domanda": {
@@ -37,10 +37,10 @@
           "deviations_reviewed": []
         },
         "wireframe_pagamenti": {
-          "approved_hash": "sha256:bbae61b9535806c928b37c17475d647cd6756aa56a1dccc8daab6f71c30f936e",
+          "approved_hash": "sha256:547ab529299b7b9bbea9f0fac515f9ee72f2d7a40b6905113b176ada938a4ce6",
           "baseline_ref": "./wireframes/elenco-operativo/pagamenti",
-          "approved_at": "2026-10-13T08:11:14Z",
-          "time_to_approve_s": 170,
+          "approved_at": "2026-10-13T16:11:17Z",
+          "time_to_approve_s": 89,
           "deviations_reviewed": []
         }
       },
