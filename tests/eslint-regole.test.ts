@@ -37,7 +37,7 @@ describe('confini fra slice delle feature (Z-02)', () => {
     expect(confini(await regole(codice, DA_ALTRA))).toEqual([]);
   });
   it('non scatta dentro lo stesso slice', async () => {
-    const codice = "import { testoUltimiDati } from '../lib/aggiornamento';\nexport const x = testoUltimiDati;\n";
+    const codice = "import { annoDiRaccolta } from '../lib/formato';\nexport const x = annoDiRaccolta;\n";
     expect(confini(await regole(codice, 'src/features/finanziario/ui/__canary__.ts'))).toEqual([]);
   });
 });
@@ -180,7 +180,7 @@ describe('lib/: niente ui/ ne wrapper api/ con un import relativo (review v3 H-0
   it.each([
     ["import { hasGrant } from '../api/auth/stato';", 'src/shared/lib/__canary__.ts'],
     ["import { classifyProblem } from '../api/problem/problem-types';", 'src/shared/lib/__canary__.ts'],
-    ["import { testoUltimiDati } from './aggiornamento';", 'src/features/finanziario/lib/__canary__.ts'],
+    ["import { annoDiRaccolta } from './formato';", 'src/features/finanziario/lib/__canary__.ts'],
     // residuo M-03: in shared/lib '..' e '../index' sono il barrel puro di shared/lib
     ["import { formatEuro } from '..';", 'src/shared/lib/grafici/__canary__.ts'],
     ["import { formatEuro } from '../index';", 'src/shared/lib/grafici/__canary__.ts'],

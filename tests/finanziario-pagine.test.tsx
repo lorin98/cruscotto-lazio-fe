@@ -13,10 +13,9 @@ import PaginaRiepilogo from '../src/pages/finanziario/riepilogo/page';
 import PaginaRiserva from '../src/pages/finanziario/sigc/riserva/page';
 import { pngDelGrafico } from '../src/shared/ui/grafici/echarts';
 import PaginaVerificaSmp from '../src/pages/finanziario/sigc/verifica-smp/page';
-import routeTable from '../src/app/route-table.json';
 
-// la route-table e' del progetto (piu' feature, ADR 0028): qui solo le route del finanziario
-const ROTTE_FINANZIARIO = routeTable.routes.filter((r) => r.path.startsWith('/finanziario'));
+// la route-table e' del progetto (piu' feature, ADR 0028): qui solo le route del finanziario, dai path del suo uiplan
+import { ROTTE_FINANZIARIO } from '../src/features/finanziario/testing/tabelle';
 import * as F from '../src/features/finanziario/testing/fixture';
 
 // Impaginazione comune delle pagine (widget PaginaFinanziario, UI v2) e coerenza del catalogo delle pagine con la

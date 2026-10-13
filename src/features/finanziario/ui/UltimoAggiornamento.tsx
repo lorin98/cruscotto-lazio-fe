@@ -8,7 +8,7 @@ import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-statu
 import { formatDataOra, formatGiorno } from '../../../shared/lib';
 import { Icona } from '../../../shared/ui';
 import { useFiltri } from '../api';
-import { etichettaFlusso, menoRecente, testoUltimiDati } from '../lib/aggiornamento';
+import { etichettaFlusso, menoRecente, testoUltimiDati } from '../../../shared/lib';
 import { GRANT } from '../lib/report';
 
 export function UltimoAggiornamento() {

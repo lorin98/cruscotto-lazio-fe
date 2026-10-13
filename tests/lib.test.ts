@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { formatDataOra, formatDate, formatGiorno, formatNumber } from '../src/shared/lib/format';
 import { nomeFile } from '../src/shared/lib/nome-file';
-import { DICITURA_USO, aCapo, righeIntestazione } from '../src/shared/lib/intestazione';
+import { DICITURA_USO, aCapo, righeContesto, righeIntestazione } from '../src/shared/lib/intestazione';
+import { etichettaFlusso, menoRecente, testoUltimiDati } from '../src/shared/lib/aggiornamento';
 import { isOpenEnded, isSentinelDate, SENTINEL_DATE_MAX } from '../src/shared/lib/sentinel-dates';
 import { isEditable, makeRolePredicate } from '../src/shared/lib/predicates';
 import type { AuthStatus } from '../src/shared/api/auth/auth-status';
@@ -107,5 +108,69 @@ describe('lib/intestazione — intestazione dei file generati nel browser (NFR-5
     expect(aCapo('brevissimo', 100, misura)).toEqual(['brevissimo']);
     expect(aCapo('a lunghissimaparola b', 5, misura)).toEqual(['a', 'lunghissimaparola', 'b']);
     expect(aCapo('  ', 10, misura)).toEqual([]);
+  });
+});
+
+describe('ultimo dato sincronizzato (NFR-25 b, OP-FE-04)', () => {
+  it('etichetta leggibile del flusso: PROSA_DS04 -> PROSA DS-04, gli altri codici restano', () => {
+    expect(etichettaFlusso('PROSA_DS04')).toBe('PROSA DS-04');
+    expect(etichettaFlusso('SIAN_DS01')).toBe('SIAN DS-01');
+    expect(etichettaFlusso('DS-12')).toBe('DS-12');
+    expect(etichettaFlusso('ALTRO')).toBe('ALTRO');
+  });
+  it('una voce per flusso con data e ora italiane, nell ordine del backend', () => {
+    expect(
+      testoUltimiDati([
+        { flusso: 'DS-12', conclusoIl: '2026-03-02T09:15:00Z' },
+        { flusso: 'PROSA_DS04', conclusoIl: '2026-03-03T08:30:00Z' },
+      ]),
+    ).toBe('DS-12 02/03/2026 10:15; PROSA DS-04 03/03/2026 09:30');
+  });
+  it('senza acquisizioni concluse lo dice come l intestazione degli export; le voci incomplete non contano', () => {
+    expect(testoUltimiDati([])).toBe('nessuna acquisizione conclusa');
+    expect(testoUltimiDati([{ flusso: 'DS-12' }, { conclusoIl: '2026-03-02T09:15:00Z' }])).toBe('nessuna acquisizione conclusa');
+  });
+  it('righe di contesto del PNG (NFR-50, review v3 V-01): filtri della barra, profilo, ultimo dato come negli export', () => {
+    expect(righeContesto({ filtri: ['Intervento: SRA01', 'Anno: 2024'], profilo: 'P4', ultimi: [{ flusso: 'DS-12', conclusoIl: '2026-03-02T09:15:00Z' }] })).toEqual([
+      'Filtri applicati: Intervento: SRA01; Anno: 2024',
+      'Profilo: P4',
+      'Ultimo dato sincronizzato: DS-12 02/03/2026 10:15',
+    ]);
+    expect(righeContesto({ filtri: [], profilo: undefined, ultimi: undefined })).toEqual([
+      'Filtri applicati: nessuno',
+      'Profilo: non indicato',
+      'Ultimo dato sincronizzato: non disponibile',
+    ]);
+    expect(righeContesto({ filtri: [], profilo: 'P1', ultimi: [] })[2]).toBe('Ultimo dato sincronizzato: nessuna acquisizione conclusa');
+  });
+  it('menoRecente (X-07): l istante meno recente fra le voci complete, la data fino a cui tutti i flussi sono aggiornati, indipendente dall ordine', () => {
+    const voci = [
+      { flusso: 'PROSA_DS04', conclusoIl: '2026-03-03T08:30:00Z' },
+      { flusso: 'DS-12', conclusoIl: '2026-03-02T09:15:00Z' },
+      // senza flusso non conta, anche se e' la piu' vecchia
+      { conclusoIl: '2020-01-01T00:00:00Z' },
+    ];
+    expect(menoRecente(voci)).toBe('2026-03-02T09:15:00Z');
+    expect(menoRecente([...voci].reverse())).toBe('2026-03-02T09:15:00Z');
+    expect(menoRecente([{ flusso: 'DS-12', conclusoIl: '2026-03-02T09:15:00Z' }])).toBe('2026-03-02T09:15:00Z');
+    expect(menoRecente([])).toBeUndefined();
+    expect(menoRecente([{ flusso: 'DS-12' }])).toBeUndefined();
+  });
+  it('menoRecente: microsecondi del backend troncati nel confronto, date illeggibili scartate, la voce resta com e', () => {
+    expect(
+      menoRecente([
+        { flusso: 'DS-12', conclusoIl: '2026-03-02T09:15:00.000999Z' },
+        { flusso: 'PROSA_DS04', conclusoIl: '2026-03-02T09:14:59.999999Z' },
+      ]),
+    ).toBe('2026-03-02T09:14:59.999999Z');
+    // stesso millisecondo dopo il troncamento: vale la prima voce
+    expect(
+      menoRecente([
+        { flusso: 'DS-12', conclusoIl: '2026-03-02T09:15:00.123999Z' },
+        { flusso: 'PROSA_DS04', conclusoIl: '2026-03-02T09:15:00.123001Z' },
+      ]),
+    ).toBe('2026-03-02T09:15:00.123999Z');
+    expect(menoRecente([{ flusso: 'DS-12', conclusoIl: 'ieri' }, { flusso: 'PROSA_DS04', conclusoIl: '2026-03-03T08:30:00Z' }])).toBe('2026-03-03T08:30:00Z');
+    expect(menoRecente([{ flusso: 'DS-12', conclusoIl: 'ieri' }])).toBeUndefined();
   });
 });

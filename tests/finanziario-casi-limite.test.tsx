@@ -24,6 +24,7 @@ import {
 } from '../src/features/finanziario';
 import type { Filtri } from '../src/features/finanziario';
 import * as F from '../src/features/finanziario/testing/fixture';
+import { senzaLinkElenco } from '../src/features/finanziario/testing/tabelle';
 
 // Casi limite dei DTO (tutti i campi sono opzionali nella spec): liste vuote, campi assenti o null, voci incomplete,
 // legame delle azioni attivo. Regola trasversale: un dato assente non diventa mai uno zero ne' una cella vuota.
@@ -43,12 +44,7 @@ function conRouter(ui: ReactElement) {
 const titoloGrafico = (g: { el: HTMLElement }) => g.el.closest('section')?.querySelector('h2, h3')?.textContent;
 const valoreKpi = (nome: string) => testo(screen.getByRole('region', { name: nome }).querySelector('.ui-kpi__valore')?.textContent);
 const notaKpi = (nome: string) => testo(screen.getByRole('region', { name: nome }).querySelector('.ui-kpi__nota')?.textContent);
-// il valore della voce, senza il link di drill-down verso l'elenco operativo che la cella puo' portare
-const senzaLinkElenco = (cella: Element | null | undefined) => {
-  const copia = cella?.cloneNode(true) as Element | undefined;
-  copia?.querySelectorAll('.ui-link-elenco').forEach((a) => a.remove());
-  return copia?.textContent;
-};
+// il valore della voce, senza il link di drill-down verso l'elenco operativo che la cella puo' portare (senzaLinkElenco)
 const valoreDi = (tabella: HTMLElement, voce: string) => testo(senzaLinkElenco(within(tabella).getByRole('rowheader', { name: voce }).nextElementSibling));
 const intestazioni = (tabella: HTMLElement) => within(tabella).getAllByRole('columnheader').map((c) => c.textContent?.replace(/[▲▼↕]/g, ''));
 // Cella di una tabella interattiva: la riga per nome (l'etichetta della riga apribile), la colonna per intestazione.

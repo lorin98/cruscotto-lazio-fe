@@ -4,7 +4,7 @@
 import { useMemo } from 'react';
 import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { useFiltri } from '../api';
-import { righeContesto } from '../lib/intestazione';
+import { righeContesto } from '../../../shared/lib';
 import { GRANT } from '../lib/report';
 
 /** `filtri`: "Etichetta: valore" di ogni filtro applicato alla pagina. */

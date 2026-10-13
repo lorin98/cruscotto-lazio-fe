@@ -34,6 +34,7 @@ import {
 import type { Filtri } from '../src/features/finanziario';
 import { graficoQuotaFeasr } from '../src/features/finanziario/lib/grafici';
 import * as F from '../src/features/finanziario/testing/fixture';
+import { senzaLinkElenco } from '../src/features/finanziario/testing/tabelle';
 
 // Test dei componenti del finanziario nella UI v2 (ADR 0027): card con grafico ECharts (sostituito nei test dal grafico
 // finto di shared/testing) e tabella equivalente, KPI, pannelli laterali react-aria, tabella interattiva.
@@ -121,12 +122,7 @@ const sezioneNonDisponibile = (nome: string) => regioneContiene(nome, NON_DISPON
 // Mostra la tabella equivalente di una card con il grafico disegnato.
 const vediTabella = (titolo: string) => userEvent.click(within(screen.getByRole('group', { name: `Vista di ${titolo}` })).getByRole('button', { name: 'Tabella' }));
 // Valore accanto all'intestazione di riga di una tabella voce/valore.
-// il valore della voce, senza il link di drill-down verso l'elenco operativo che la cella puo' portare
-const senzaLinkElenco = (cella: Element | null | undefined) => {
-  const copia = cella?.cloneNode(true) as Element | undefined;
-  copia?.querySelectorAll('.ui-link-elenco').forEach((a) => a.remove());
-  return copia?.textContent;
-};
+// il valore della voce, senza il link di drill-down verso l'elenco operativo che la cella puo' portare (senzaLinkElenco)
 const valoreDi = (tabella: HTMLElement, voce: string) => testo(senzaLinkElenco(within(tabella).getByRole('rowheader', { name: voce }).nextElementSibling));
 // Codici delle righe del corpo di una tabella (senza la riga dei totali).
 const righeCorpo = (tabella: HTMLElement) => Array.from((tabella as HTMLTableElement).tBodies[0].rows, (r) => r.cells[0].textContent);
