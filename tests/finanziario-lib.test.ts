@@ -19,7 +19,7 @@ import {
   valoreFiltroValido,
 } from '../src/features/finanziario/lib/filtri';
 import type { Filtri } from '../src/features/finanziario/lib/filtri';
-import { PERIMETRO_ADA, etichettaDiProgramma, etichettaPerimetro, perimetroBreve, perimetroCombinato } from '../src/features/finanziario/lib/perimetro';
+import { PERIMETRO_ADA, etichettaDellArea, etichettaDiProgramma, etichettaPerimetro, perimetroBreve, perimetroCombinato } from '../src/features/finanziario/lib/perimetro';
 import {
   annoDiRaccolta,
   annoOpzionale,
@@ -419,6 +419,11 @@ describe('perimetro: regole uniche (N-20)', () => {
     expect(etichettaDiProgramma('Dotazione', 'ADA')).toBe('Dotazione (regionale)');
     expect(etichettaDiProgramma('Dotazione', 'REGIONALE')).toBe('Dotazione');
     expect(etichettaDiProgramma('Dotazione', undefined)).toBe('Dotazione');
+  });
+  it("etichettaDellArea: con il perimetro ADA la misura per domanda e' dell'area del profilo", () => {
+    expect(etichettaDellArea('Domande presentate', 'ADA')).toBe('Domande presentate della tua area');
+    expect(etichettaDellArea('Domande presentate', 'REGIONALE')).toBe('Domande presentate');
+    expect(etichettaDellArea('Domande presentate', null)).toBe('Domande presentate');
   });
 });
 
