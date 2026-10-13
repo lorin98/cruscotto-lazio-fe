@@ -4,7 +4,7 @@ import { act, useState } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { BarraFiltri, CardGrafico, ContestoIntestazione, Grafico, Kpi, NumeroAnimato, PannelloLaterale, PulsantiScarica, Sezione, TabellaDati, TabellaInterattiva, TabellaRighe, TabellaVoci, VistaQuery, blobDaDataUrl } from '../src/shared/ui';
+import { BarraFiltri, CardGrafico, ContestoIntestazione, Grafico, Kpi, NumeroAnimato, PannelloLaterale, PulsantiScarica, Sezione, TabellaDati, TabellaInterattiva, TabellaRighe, TabellaServer, TabellaVoci, VistaQuery, blobDaDataUrl, statoTabellaValido } from '../src/shared/ui';
 import { pngDelGrafico } from '../src/shared/ui/grafici/echarts';
 import type { StatoQuery } from '../src/shared/ui';
 import type { ColonnaTabella, DatiGrafico } from '../src/shared/ui';
@@ -164,6 +164,111 @@ describe('TabellaInterattiva', () => {
     const { container } = tabella({ onRiga: () => undefined, etichettaRiga: (r) => `Apri ${r.codice}`, totali: () => ({}) });
     await expectNoA11yViolations(container);
   });
+
+  // review v4 V-03 e H-05: ricerca, ordine e pagina si ritrovano insieme; la notifica parte solo dai cambi dell'utente
+  it('statoIniziale vince su ordineIniziale e riapre ricerca e pagina; onStato mai al montaggio', () => {
+    const notifiche: unknown[] = [];
+    tabella({
+      ordineIniziale: { chiave: 'importo', verso: 'decrescente' },
+      statoIniziale: { ordine: { chiave: 'codice', verso: 'decrescente' }, pagina: 1, cercato: 'X' },
+      onStato: (s) => notifiche.push(s),
+    });
+    expect((screen.getByRole('searchbox', { name: 'Cerca nella tabella' }) as HTMLInputElement).value).toBe('X');
+    expect(screen.getAllByRole('columnheader')[0].getAttribute('aria-sort')).toBe('descending');
+    expect(codici()).toEqual(['X02', 'X01']);
+    expect(notifiche).toEqual([]);
+  });
+  it('onStato a ordinamento, cambio di pagina e ricerca, con lo stato completo', async () => {
+    const notifiche: unknown[] = [];
+    tabella({ onStato: (s) => notifiche.push(s) });
+    await userEvent.click(screen.getByRole('button', { name: 'Pagina 2' }));
+    expect(notifiche.at(-1)).toEqual({ ordine: { chiave: 'codice', verso: 'crescente' }, pagina: 1, cercato: '' });
+    await userEvent.click(within(screen.getAllByRole('columnheader')[1]).getByRole('button'));
+    expect(notifiche.at(-1)).toEqual({ ordine: { chiave: 'importo', verso: 'decrescente' }, pagina: 0, cercato: '' });
+    await userEvent.type(screen.getByRole('searchbox', { name: 'Cerca nella tabella' }), 'x1');
+    expect(notifiche.at(-1)).toEqual({ ordine: { chiave: 'importo', verso: 'decrescente' }, pagina: 0, cercato: 'x1' });
+  });
+  it('statoTabellaValido: uno stato salvato fuori forma vale come assente', () => {
+    const valido = statoTabellaValido(['codice', 'importo']);
+    expect(valido({ ordine: { chiave: 'codice', verso: 'crescente' }, pagina: 2, cercato: 'X' })).toBe(true);
+    expect(valido({ ordine: { chiave: 'codice', verso: 'crescente' }, pagina: 0 })).toBe(true);
+    expect(valido({ ordine: { chiave: 'altro', verso: 'crescente' }, pagina: 0 })).toBe(false);
+    expect(valido({ ordine: { chiave: 'codice', verso: 'su' }, pagina: 0 })).toBe(false);
+    expect(valido({ ordine: { chiave: 'codice', verso: 'crescente' }, pagina: -1 })).toBe(false);
+    expect(valido({ ordine: { chiave: 'codice', verso: 'crescente' }, pagina: 1.5 })).toBe(false);
+    expect(valido({ ordine: { chiave: 'codice', verso: 'crescente' }, pagina: 0, cercato: 3 })).toBe(false);
+    expect(valido('x')).toBe(false);
+    expect(valido(null)).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------- riga apribile con controlli interni (review v4 X-01)
+
+/** Una riga con un link e un pulsante interni: i loro clic e tasti non aprono la riga, quelli della riga si'. */
+interface RigaConControlli {
+  codice: string;
+}
+const RIGHE_CONTROLLI: RigaConControlli[] = [{ codice: 'R1' }];
+const resaControlli = (r: RigaConControlli) => (
+  <>
+    <a href={`#${r.codice}`} onClick={(e) => e.preventDefault()}>{`Link ${r.codice}`}</a>
+    <button type="button">{`Pulsante ${r.codice}`}</button>
+  </>
+);
+
+function provaRigaApribile(nome: string, renderTabella: (onRiga: (r: RigaConControlli) => void) => void) {
+  it(`${nome}: clic e Invio su un link o un pulsante interno non aprono la riga; clic e Invio sulla riga si'`, async () => {
+    const aperte: string[] = [];
+    renderTabella((r) => aperte.push(r.codice));
+    const riga = screen.getByRole('row', { name: 'Apri R1' });
+    await userEvent.click(within(riga).getByRole('link', { name: 'Link R1' }));
+    await userEvent.click(within(riga).getByRole('button', { name: 'Pulsante R1' }));
+    within(riga).getByRole('link', { name: 'Link R1' }).focus();
+    await userEvent.keyboard('{Enter}');
+    within(riga).getByRole('button', { name: 'Pulsante R1' }).focus();
+    await userEvent.keyboard('{Enter}');
+    expect(aperte).toEqual([]);
+    await userEvent.click(riga);
+    riga.focus();
+    await userEvent.keyboard('{Enter}');
+    expect(aperte).toEqual(['R1', 'R1']);
+  });
+}
+
+describe('riga apribile con controlli interni', () => {
+  provaRigaApribile('TabellaInterattiva', (onRiga) =>
+    render(
+      <TabellaInterattiva<RigaConControlli>
+        caption="Righe con controlli"
+        righe={RIGHE_CONTROLLI}
+        colonne={[
+          { chiave: 'codice', titolo: 'Codice', valore: (r) => r.codice, fissa: true },
+          { chiave: 'azioni', titolo: 'Azioni', valore: () => null, resa: resaControlli },
+        ]}
+        chiaveRiga={(r) => r.codice}
+        testoRicerca={(r) => r.codice}
+        onRiga={onRiga}
+        etichettaRiga={(r) => `Apri ${r.codice}`}
+      />,
+    ),
+  );
+  provaRigaApribile('TabellaServer', (onRiga) =>
+    render(
+      <TabellaServer<RigaConControlli>
+        caption="Righe con controlli"
+        righe={RIGHE_CONTROLLI}
+        colonne={[
+          { chiave: 'codice', titolo: 'Codice', resa: (r) => r.codice },
+          { chiave: 'azioni', titolo: 'Azioni', resa: resaControlli },
+        ]}
+        chiaveRiga={(r) => r.codice}
+        ordinamento={{ campo: 'codice', verso: 'asc' }}
+        onOrdina={() => undefined}
+        onRiga={onRiga}
+        etichettaRiga={(r) => `Apri ${r.codice}`}
+      />,
+    ),
+  );
 });
 
 // ---------------------------------------------------------------- Grafico e CardGrafico

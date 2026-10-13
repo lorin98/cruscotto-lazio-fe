@@ -194,6 +194,8 @@ body { background: var(--ui-sfondo); color: var(--ui-testo); font-family: 'Titil
 .ui-link-elenco { display: flex; align-items: center; width: fit-content; min-height: 24px; margin-top: .15rem; font-size: .78rem; }
 .ui-link-elenco--riga { display: flex; flex-wrap: wrap; gap: .25rem .75rem; margin: .5rem 0 0; font-size: .85rem; }
 .ui-link-elenco--riga a { display: inline-flex; align-items: center; min-height: 24px; }
+/* nelle celle numeriche (allineate a destra) il link sta sotto il numero, a destra (review v4 X-03) */
+.ui-num .ui-link-elenco { margin-left: auto; }
 .ui-barra { height: 8px; margin-top: .6rem; border-radius: 999px; background: var(--ui-sfondo); overflow: hidden; }
 .ui-barra > span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--ui-primario), #3a8ee6); }
 .ui-tono-blu { background: var(--ui-primario-chiaro); color: var(--ui-primario); }

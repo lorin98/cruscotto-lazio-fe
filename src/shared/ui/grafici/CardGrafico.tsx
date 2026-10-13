@@ -17,7 +17,12 @@ import type { AltezzaGrafico, ClicGrafico } from './Grafico';
 import type { IstanzaGrafico } from './echarts';
 import { usePngDelGrafico } from './usePngDelGrafico';
 
-type Vista = 'grafico' | 'tabella';
+/** Vista della card: il grafico o la tabella equivalente. */
+export type VistaGrafico = 'grafico' | 'tabella';
+type Vista = VistaGrafico;
+
+/** Convalida di una vista salvata fuori dal componente (es. nello state della history, che e' `unknown`). */
+export const eVistaGrafico = (v: unknown): v is VistaGrafico => v === 'grafico' || v === 'tabella';
 
 function InterruttoreVista({ titolo, vista, onVista }: { titolo: string; vista: Vista; onVista: (v: Vista) => void }) {
   return (
@@ -104,11 +109,19 @@ interface PropsCardGrafico {
   tabella?: ReactNode;
   /** Base del nome del PNG quando la card non ha file dei dati (es. il grafico di una scheda: con il suo identificativo). */
   nomeFile?: string;
+  /** Vista da cui ripartire (es. tornando indietro alla pagina: la vista Tabella e' il percorso da tastiera del clic). */
+  vistaIniziale?: Vista;
+  /** Notifica della vista scelta dall'utente (es. per conservarla nello state della history). */
+  onVista?: (vista: Vista) => void;
 }
 
-export function CardGrafico({ titolo, sottotitolo, dati, fonte, altezza = 'normale', onClic, strumenti, scaricamenti = [], livello = 2, tabella, nomeFile: base }: PropsCardGrafico) {
+export function CardGrafico({ titolo, sottotitolo, dati, fonte, altezza = 'normale', onClic, strumenti, scaricamenti = [], livello = 2, tabella, nomeFile: base, vistaIniziale, onVista }: PropsCardGrafico) {
   const id = useId();
-  const [vista, setVista] = useState<Vista>('grafico');
+  const [vista, setVistaLocale] = useState<Vista>(vistaIniziale ?? 'grafico');
+  const setVista = (v: Vista) => {
+    setVistaLocale(v);
+    onVista?.(v);
+  };
   const disegnabile = dati.opzioni !== null;
   // il PNG solo nella vista Grafico: nella vista Tabella il grafico e' nascosto e non ha dimensioni
   const { onIstanza, png } = usePngDelGrafico({ titolo, fonte, file: nomePng(base ?? titolo, scaricamenti), attivo: disegnabile && vista === 'grafico' });

@@ -2,7 +2,7 @@
 // colonne, paginazione, riga dei totali e righe di piede, riga apribile con clic o Invio. Tabella HTML NATIVA (caption,
 // th scope, intestazioni di riga) invece della Table di react-aria: stessa semantica senza la griglia ARIA, che qui non
 // serve (nessuna selezione ne' modifica di celle). La logica sta nelle funzioni pure di shared/lib/tabella.
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { ariaSort, conColonna, didascalia, filtraRighe, ordinaRighe, paginaDi, versoSuccessivo } from '../../lib/tabella';
 import type { Ordine, ValoreOrdinabile } from '../../lib/tabella';
@@ -163,37 +163,58 @@ interface PropsTabellaInterattiva<T> {
   /** Righe di piede indipendenti dalla ricerca (es. un valore fuori tabella). */
   righePiede?: RigaPiede[];
   ordineIniziale?: Ordine;
-  /** Ordine e pagina da cui ripartire (es. tornando indietro alla pagina): vince su ordineIniziale. */
+  /** Ricerca, ordine e pagina da cui ripartire (es. tornando indietro alla pagina): vince su ordineIniziale. */
   statoIniziale?: StatoTabella;
-  /** Notifica di ordine e pagina a ogni loro cambio (es. per conservarli nello state della history). */
+  /** Notifica di ricerca, ordine e pagina a ogni loro cambio fatto dall'utente (mai al montaggio). */
   onStato?: (stato: StatoTabella) => void;
   perPagina?: number;
   strumenti?: ReactNode;
 }
 
-/** Ordine e pagina della tabella: cio' che vale la pena ritrovare tornando alla pagina. */
+/**
+ * Ricerca, ordine e pagina della tabella: cio' che vale la pena ritrovare tornando alla pagina. La pagina vale per la sua
+ * ricerca: ritrovarla senza la ricerca mostrerebbe altre righe (review v4 V-03).
+ */
 export interface StatoTabella {
   ordine: Ordine;
   pagina: number;
+  /** Testo della ricerca (assente in uno stato salvato prima della ricerca: nessuna ricerca). */
+  cercato?: string;
+}
+
+/**
+ * Convalida di uno stato salvato fuori dal componente (es. nello state della history, che e' `unknown`): pagina intera non
+ * negativa, ordine su una delle colonne `chiavi` con un verso noto, ricerca testuale se presente.
+ */
+export function statoTabellaValido(chiavi: readonly string[]): (v: unknown) => v is StatoTabella {
+  return (v: unknown): v is StatoTabella => {
+    if (typeof v !== 'object' || v === null) return false;
+    const { ordine, pagina, cercato } = v as Record<string, unknown>;
+    return paginaValida(pagina) && (cercato === undefined || typeof cercato === 'string') && ordineValido(ordine, chiavi);
+  };
+}
+
+const paginaValida = (p: unknown) => typeof p === 'number' && Number.isInteger(p) && p >= 0;
+
+function ordineValido(o: unknown, chiavi: readonly string[]): boolean {
+  if (typeof o !== 'object' || o === null) return false;
+  const { chiave, verso } = o as Record<string, unknown>;
+  return typeof chiave === 'string' && chiavi.includes(chiave) && (verso === 'crescente' || verso === 'decrescente');
+}
+
+/** Ricerca, ordine e pagina di partenza: lo stato ricevuto, altrimenti l'ordine iniziale sulla prima colonna. */
+function partenza<T>(props: PropsTabellaInterattiva<T>): Required<StatoTabella> {
+  const s = props.statoIniziale;
+  return { cercato: s?.cercato ?? '', ordine: s?.ordine ?? props.ordineIniziale ?? { chiave: props.colonne[0].chiave, verso: 'crescente' }, pagina: s?.pagina ?? 0 };
 }
 
 export function TabellaInterattiva<T>(props: PropsTabellaInterattiva<T>) {
-  const { caption, righe, colonne, chiaveRiga, testoRicerca, onRiga, etichettaRiga, totali, righePiede = [], perPagina = 10 } = props;
+  const { caption, righe, colonne, chiaveRiga, testoRicerca, onRiga, etichettaRiga, totali, righePiede = [], perPagina = 10, onStato } = props;
   const id = useId();
-  const [cercato, setCercato] = useState('');
-  const [ordine, setOrdine] = useState<Ordine>(props.statoIniziale?.ordine ?? props.ordineIniziale ?? { chiave: colonne[0].chiave, verso: 'crescente' });
-  const [pagina, setPagina] = useState(props.statoIniziale?.pagina ?? 0);
-  const notifica = useRef(props.onStato);
-  notifica.current = props.onStato;
-  const primo = useRef(true);
-  useEffect(() => {
-    // al montaggio non c'e' nulla da notificare: lo stato e' quello ricevuto
-    if (primo.current) {
-      primo.current = false;
-      return;
-    }
-    notifica.current?.({ ordine, pagina });
-  }, [ordine, pagina]);
+  const [iniziale] = useState(() => partenza(props));
+  const [cercato, setCercato] = useState(iniziale.cercato);
+  const [ordine, setOrdine] = useState<Ordine>(iniziale.ordine);
+  const [pagina, setPagina] = useState(iniziale.pagina);
   const [nascoste, setNascoste] = useState<Set<string>>(() => new Set(colonne.filter((c) => c.nascosta).map((c) => c.chiave)));
 
   const visibili = colonne.filter((c) => c.fissa || !nascoste.has(c.chiave));
@@ -201,14 +222,16 @@ export function TabellaInterattiva<T>(props: PropsTabellaInterattiva<T>) {
   const ordinate = useMemo(() => ordinaRighe(filtrate, (colonne.find((c) => c.chiave === ordine.chiave) ?? colonne[0]).valore, ordine.verso), [filtrate, colonne, ordine]);
   const corrente = paginaDi(ordinate, pagina, perPagina);
   const piede = [...(totali ? [totali(filtrate)] : []), ...righePiede];
-  const cerca = (testo: string) => {
-    setCercato(testo);
-    setPagina(0);
+  // un solo punto per i cambi dell'utente: aggiorna lo stato e lo notifica (review v4 H-05: niente effetto al montaggio)
+  const cambia = (prossimo: StatoTabella) => {
+    setCercato(prossimo.cercato ?? '');
+    setOrdine(prossimo.ordine);
+    setPagina(prossimo.pagina);
+    onStato?.(prossimo);
   };
-  const ordina = (chiave: string) => {
-    setOrdine((o) => versoSuccessivo(o, chiave));
-    setPagina(0);
-  };
+  const cerca = (testo: string) => cambia({ ordine, pagina: 0, cercato: testo });
+  const ordina = (chiave: string) => cambia({ ordine: versoSuccessivo(ordine, chiave), pagina: 0, cercato });
+  const vaiAllaPagina = (p: number) => cambia({ ordine, pagina: p, cercato });
 
   return (
     <div>
@@ -235,7 +258,7 @@ export function TabellaInterattiva<T>(props: PropsTabellaInterattiva<T>) {
           <Piede colonne={visibili} righe={piede} />
         </table>
       </div>
-      <Paginazione pagina={corrente.pagina} pagine={corrente.pagine} onPagina={setPagina} />
+      <Paginazione pagina={corrente.pagina} pagine={corrente.pagine} onPagina={vaiAllaPagina} />
     </div>
   );
 }
