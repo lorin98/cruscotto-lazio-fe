@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { screen, waitFor, within } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import type { JsonBodyType } from 'msw';
@@ -8,7 +8,7 @@ import { expectNoA11yViolations } from '../../../shared/testing/axe';
 import { graficoDi, tabellaDi, trovaCard } from '../../../shared/testing/card-grafico';
 import { DOMANDE_PER_ANNO, FILTRI, IMPORTI_PER_ANNO, RIEPILOGO, SIGC_DOMANDE, SIGC_IMPORTI, SPESA } from '../../../features/finanziario/testing/fixture';
 import { renderPagina } from '../../../shared/testing/render-pagina';
-import { clicSu } from '../../../shared/testing/grafico-finto';
+import { clicSu, clicSulDato } from '../../../shared/testing/grafico-finto';
 import Pagina from './page';
 
 const PERCORSO = '/finanziario/interventi/:codice';
@@ -139,7 +139,8 @@ describe("RA003: drill-down dal dettaglio dell'intervento all'elenco operativo",
     await userEvent.click(screen.getByRole('tab', { name: 'Domande' }));
     const grafico = graficoDi(await trovaCard('Domande per anno di raccolta'));
     expect(grafico).toBeTruthy();
-    if (grafico) clicSu(grafico, { name: 'senza anno di raccolta', dataIndex: 1, seriesName: 'Non classificate' });
+    // il segmento disegnato: serie delle non classificate, seconda categoria (senza anno, in coda)
+    clicSulDato(grafico!, 2, 1);
     await waitFor(() => expect(indirizzoDi(router)).toBe('/elenco-operativo/domande?presentata=true&anno=SENZA&annualita=NON_CLASSIFICATE&intervento=SRA01&os=OS4'));
   });
   it('Domande per anno da tastiera: la vista Tabella porta in ogni cella anno per annualita (e nel totale) il link del segmento', async () => {
@@ -162,6 +163,23 @@ describe("RA003: drill-down dal dettaglio dell'intervento all'elenco operativo",
     await userEvent.keyboard('{Enter}');
     await waitFor(() => expect(indirizzoDi(router)).toBe('/elenco-operativo/domande?presentata=true&anno=2024&annualita=PRIMA&intervento=SRA01&os=OS4'));
   });
+  it('Domande per anno: con e senza il grant la vista Tabella ha le stesse intestazioni e gli stessi testi di cella, link a parte', async () => {
+    const leggi = async () => {
+      await userEvent.click(await screen.findByRole('tab', { name: 'Domande' }));
+      const tabella = await tabellaDi(await trovaCard('Domande per anno di raccolta'));
+      const copia = tabella.cloneNode(true) as HTMLElement;
+      copia.querySelectorAll('a').forEach((a) => a.remove());
+      const testi = Array.from(copia.querySelectorAll('th, td')).map((c) => c.textContent?.trim());
+      return testi;
+    };
+    servi();
+    const conGrant = renderPagina(Pagina, PERCORSO, '/finanziario/interventi/SRA01');
+    const testiConGrant = await leggi();
+    conGrant.unmount();
+    server.use(http.get('*/auth/status', () => HttpResponse.json({ authenticated: true, user: { username: 'U', roles: ['csr.tx-0002.read', 'csr.tx-0008.read', 'csr.tx-0011.read'] } })));
+    renderPagina(Pagina, PERCORSO, '/finanziario/interventi/SRA01');
+    expect(await leggi()).toEqual(testiConGrant);
+  });
   it("Domande per anno senza il grant dell'elenco (TX-0056): la vista Tabella ha i numeri e nessun link", async () => {
     servi();
     server.use(http.get('*/auth/status', () => HttpResponse.json({ authenticated: true, user: { username: 'U', roles: ['csr.tx-0002.read', 'csr.tx-0008.read', 'csr.tx-0011.read'] } })));
@@ -181,8 +199,30 @@ describe("RA003: drill-down dal dettaglio dell'intervento all'elenco operativo",
       '/elenco-operativo/domande?sigc=true&intervento=SRA01',
     );
     const cascata = graficoDi(await trovaCard('Importi SIGC'));
-    if (cascata) clicSu(cascata, { name: 'Ammesso', dataIndex: 0 });
+    expect(cascata).toBeTruthy();
+    clicSu(cascata!, { name: 'Ammesso', dataIndex: 0 });
     await waitFor(() => expect(indirizzoDi(router)).toBe('/elenco-operativo/domande?sigc=true&intervento=SRA01'));
+  });
+  it("clic sulla barra 'Da pagare' delle domande SIGC: le SIGC da pagare dell'intervento", async () => {
+    servi();
+    const { router } = renderPagina(Pagina, PERCORSO, '/finanziario/interventi/SRA01');
+    await userEvent.click(await screen.findByRole('tab', { name: 'SIGC' }));
+    const grafico = graficoDi(await trovaCard('Domande SIGC'));
+    expect(grafico).toBeTruthy();
+    clicSulDato(grafico!, 0, 2);
+    await waitFor(() => expect(indirizzoDi(router)).toBe('/elenco-operativo/domande?sigc=true&pagamento=DA_PAGARE&intervento=SRA01'));
+  });
+  it('importi SIGC senza cascata (importi non valorizzati): il link da tastiera resta, il sottotitolo non promette il clic', async () => {
+    servi();
+    const nv = { valore: null, motivo: 'NON_VALORIZZATO', fonte: null };
+    server.use(http.get('*/api/finanziario/sigc/importi', () => HttpResponse.json({ ...SIGC_IMPORTI, richiesto: nv, ammesso: nv, pagato: nv, ancoraDaPagare: nv, pagatoOltreAmmesso: nv })));
+    renderPagina(Pagina, PERCORSO, '/finanziario/interventi/SRA01');
+    await userEvent.click(await screen.findByRole('tab', { name: 'SIGC' }));
+    const card = await trovaCard('Importi SIGC');
+    expect(card.textContent).not.toContain('Clic sulla cascata');
+    expect(
+      screen.getByRole('link', { name: "Le domande SIGC dell'intervento nell'elenco operativo: apri nell'elenco operativo (sinottico con richiesto, ammesso, pagato e ancora da pagare)" }).getAttribute('href'),
+    ).toBe('/elenco-operativo/domande?sigc=true&intervento=SRA01');
   });
   it("senza il grant dell'elenco i clic non portano altrove e i link non ci sono", async () => {
     servi();
@@ -192,7 +232,21 @@ describe("RA003: drill-down dal dettaglio dell'intervento all'elenco operativo",
     expect(screen.queryByRole('link', { name: /apri nell.elenco operativo/i })).toBeNull();
     await userEvent.click(screen.getByRole('tab', { name: 'Domande' }));
     const grafico = graficoDi(await trovaCard('Domande per anno di raccolta'));
-    if (grafico) clicSu(grafico, { name: '2024', dataIndex: 0, seriesName: 'Prima annualità' });
+    expect(grafico).toBeTruthy();
+    expect(screen.getByRole('region', { name: 'Domande per anno di raccolta' }).textContent).not.toContain('Clic su un segmento');
+    clicSulDato(grafico!, 0, 0);
+    // la navigazione di react-router e' asincrona: si lascia il tempo a un'eventuale navigazione prima di guardare
+    await act(() => new Promise((r) => setTimeout(r, 0)));
     expect(router.state.location.pathname).toBe('/finanziario/interventi/SRA01');
+    await userEvent.click(screen.getByRole('tab', { name: 'SIGC' }));
+    const sigc = graficoDi(await trovaCard('Domande SIGC'));
+    expect(sigc).toBeTruthy();
+    clicSulDato(sigc!, 0, 1);
+    const cascata = graficoDi(await trovaCard('Importi SIGC'));
+    expect(cascata).toBeTruthy();
+    clicSu(cascata!, { name: 'Ammesso', dataIndex: 0 });
+    await act(() => new Promise((r) => setTimeout(r, 0)));
+    expect(router.state.location.pathname).toBe('/finanziario/interventi/SRA01');
+    expect(screen.queryByRole('link', { name: /apri nell.elenco operativo/i })).toBeNull();
   });
 });

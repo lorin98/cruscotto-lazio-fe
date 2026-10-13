@@ -36,21 +36,22 @@ import { assenzaImporto, cellaImporto, codiceDi, valoreDi } from '../importi';
  * domanda (flusso ASR2-20), come l'importo pagato di TX-0013. Una domanda pagata in parte e' sia pagata sia da pagare;
  * quelle senza importi non sono ne' l'una ne' l'altra; le presentate fuori da tutte e tre non sono ammesse ne' pagate.
  */
+// `codice`: la voce nel contratto dei link verso l'elenco operativo (lib/link-elenco), nel dato di ogni barra.
 export const VOCI_DOMANDE_SIGC = [
-  { nome: 'Presentate', campo: 'presentate', etichetta: 'Presentate', colore: COLORI.scuro },
-  { nome: 'Pagate', campo: 'pagate', etichetta: 'Pagate (importo pagato maggiore di zero)', colore: COLORI.positivo },
-  { nome: 'Da pagare', campo: 'daPagare', etichetta: 'Da pagare (ammesse con importo ancora da pagare, anche se pagate in parte)', colore: COLORI.attenzione },
-  { nome: 'Senza importi', campo: 'senzaImporti', etichetta: 'Senza importi (non classificabili: campagne senza ASR2-20)', colore: COLORI.attenuato },
+  { codice: 'PRESENTATE', nome: 'Presentate', campo: 'presentate', etichetta: 'Presentate', colore: COLORI.scuro },
+  { codice: 'PAGATA', nome: 'Pagate', campo: 'pagate', etichetta: 'Pagate (importo pagato maggiore di zero)', colore: COLORI.positivo },
+  { codice: 'DA_PAGARE', nome: 'Da pagare', campo: 'daPagare', etichetta: 'Da pagare (ammesse con importo ancora da pagare, anche se pagate in parte)', colore: COLORI.attenzione },
+  { codice: 'SENZA_IMPORTI', nome: 'Senza importi', campo: 'senzaImporti', etichetta: 'Senza importi (non classificabili: campagne senza ASR2-20)', colore: COLORI.attenuato },
 ] as const;
 
 function quotaSulle(presentate: number | null) {
   return (v: number): string => (presentate != null && presentate > 0 ? formatPercentuale(percentuale(v, presentate)) : NON_CALCOLABILE);
 }
 
-function datoDomande(nome: string, valore: number, colore: string, quota: (v: number) => string): DatoSerie {
+function datoDomande(codice: string, nome: string, valore: number, colore: string, quota: (v: number) => string): DatoSerie {
   const domande = plurale(valore, 'domanda', 'domande');
-  if (nome === 'Presentate') return { value: valore, name: nome, etichetta: formatNumber(valore), dettaglio: `${nome}: ${domande}`, itemStyle: { color: colore } };
-  return { value: valore, name: nome, etichetta: `${formatNumber(valore)} (${quota(valore)})`, dettaglio: `${nome}: ${domande} (${quota(valore)} delle presentate)`, itemStyle: { color: colore } };
+  if (codice === 'PRESENTATE') return { value: valore, name: nome, codice, etichetta: formatNumber(valore), dettaglio: `${nome}: ${domande}`, itemStyle: { color: colore } };
+  return { value: valore, name: nome, codice, etichetta: `${formatNumber(valore)} (${quota(valore)})`, dettaglio: `${nome}: ${domande} (${quota(valore)} delle presentate)`, itemStyle: { color: colore } };
 }
 
 /**
@@ -69,7 +70,7 @@ export function graficoDomandeSigc(d: DomandeSigcLike): DatiGrafico {
   const omessi = voci.filter((v) => v.valore == null).map((v) => `${v.nome}: numero di domande ${NON_DISPONIBILE}`);
   if (presentate == null) return nonDisegnabile('domande presentate non disponibili: il grafico non si può disegnare', tabella, omessi);
   if (presentate <= 0) return nonDisegnabile('nessuna domanda presentata: il grafico non si può disegnare', tabella, omessi);
-  const dati = voci.flatMap((v): DatoSerie[] => (v.valore == null ? [] : [datoDomande(v.nome, v.valore, v.colore, quota)]));
+  const dati = voci.flatMap((v): DatoSerie[] => (v.valore == null ? [] : [datoDomande(v.codice, v.nome, v.valore, v.colore, quota)]));
   const descrizione =
     `Barre delle domande SIGC: ${dati.map((x) => `${x.name.toLowerCase()} ${x.etichetta ?? formatNumber(x.value)}`).join(', ')}. ` +
     `Pagate e da pagare si sovrappongono (domande pagate in parte): le voci non sommano alle presentate.${notaOmessi(omessi)}`;

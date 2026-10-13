@@ -22,15 +22,19 @@ import { sommaSeCompleta, testoSenzaAmmesso } from '../aggregati';
 import type { RigaDomandeAnno, RigaImportiAnno } from '../dto';
 import { annoDiRaccolta, numeroOpzionale } from '../formato';
 import { assenzaImporto, cellaImporto, perAnno, valoreDi } from '../importi';
+import type { Annualita, DatoSegmentoAnno } from '../link-elenco';
 
 // ---------------------------------------------------------------- 1. domande per anno di raccolta
 
-const ANNUALITA = [
-  { nome: 'Prima annualità', campo: 'primaAnnualita' },
-  { nome: 'Altre annualità', campo: 'altreAnnualita' },
-  { nome: 'Non classificate', campo: 'nonClassificate' },
-] as const;
-
+/**
+ * Le annualita' di TX-0008, unica tabella per le serie del grafico e per le colonne della tabella (ui/colonneAnno): il
+ * `codice` e' il valore del parametro annualita' dell'elenco operativo e va nel dato di ogni segmento (drill-down).
+ */
+export const ANNUALITA_DOMANDE = [
+  { codice: 'PRIMA', nome: 'Prima annualità', campo: 'primaAnnualita' },
+  { codice: 'ALTRE', nome: 'Altre annualità', campo: 'altreAnnualita' },
+  { codice: 'NON_CLASSIFICATE', nome: 'Non classificate', campo: 'nonClassificate' },
+] as const satisfies readonly { codice: Annualita; nome: string; campo: string }[];
 
 /** Barre impilate delle domande per anno di raccolta (senza anno in coda): prima annualita', altre, non classificate. */
 export function graficoDomandePerAnno(righe: RigaDomandeAnno[]): DatiGrafico {
@@ -38,20 +42,20 @@ export function graficoDomandePerAnno(righe: RigaDomandeAnno[]): DatiGrafico {
   const categorie = ordinate.map((r) => annoDiRaccolta(r.annoRaccolta));
   const tabella = {
     caption: 'Domande per anno di raccolta',
-    colonne: ['Anno', 'Prima annualità', 'Altre', 'Non classificate', 'Totale'],
+    colonne: ['Anno di raccolta', ...ANNUALITA_DOMANDE.map((a) => a.nome), 'Totale'],
     righe: ordinate.map((r, k) => [categorie[k], numeroOpzionale(r.primaAnnualita), numeroOpzionale(r.altreAnnualita), numeroOpzionale(r.nonClassificate), numeroOpzionale(r.totali)]),
   };
   if (ordinate.length === 0) return nonDisegnabile('nessuna domanda per anno di raccolta', tabella, []);
   const omessi: string[] = [];
-  const serie: BarSeriesOption[] = ANNUALITA.map((def) => ({
+  const serie: BarSeriesOption[] = ANNUALITA_DOMANDE.map((def) => ({
     type: 'bar',
     name: def.nome,
     stack: 'domande',
-    data: ordinate.map((r, k) => {
+    data: ordinate.map((r, k): DatoSegmentoAnno | null => {
       const v = numeroDi(r[def.campo]);
       if (v == null) omessi.push(`${categorie[k]}, ${def.nome.toLowerCase()}: numero di domande ${NON_DISPONIBILE}`);
-      return v;
-    }),
+      return v == null ? null : { value: v, codice: def.codice, anno: r.annoRaccolta ?? null };
+    }) as BarSeriesOption['data'],
   }));
   if (!serie.some((s) => (s.data ?? []).some((v) => v != null))) return nonDisegnabile('nessun numero di domande valorizzato', tabella, omessi);
   const totale = sommaSeCompleta(ordinate.map((r) => r.totali));

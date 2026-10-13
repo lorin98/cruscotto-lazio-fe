@@ -6,7 +6,7 @@ export type * from '../dto';
 export { PAGAMENTI_LORDI, graficoAvanzamento, graficoContributo, graficoDotazionePagamenti, graficoFamiglie } from './spesa';
 export type { RigaDotazionePagato } from './spesa';
 export { VOCI_DOMANDE_SIGC, graficoCascataSigc, graficoDomandeSigc, graficoSmp } from './sigc';
-export { graficoDomandePerAnno, graficoImportiPerAnno } from './domande';
+export { ANNUALITA_DOMANDE, graficoDomandePerAnno, graficoImportiPerAnno } from './domande';
 export { graficoGauge, graficoPagatoNetto, graficoPartiImporto, graficoQuotaFeasr, graficoSankey, sottotitoloFlusso } from './avanzamento';
 export { graficoCascataIntervento, vociIntervento } from './intervento';
 export { graficoUtilizzoRiserva } from './riserva';

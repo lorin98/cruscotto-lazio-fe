@@ -70,3 +70,21 @@ export const graficiVivi = (): GraficoFinto[] => graficiFinti.filter((g) => !g.d
 export function clicSu(g: GraficoFinto, p: { name?: string; dataIndex?: number; data?: unknown; seriesName?: string }): void {
   g.clic.forEach((f) => f(p));
 }
+
+/**
+ * Clic su un dato come lo manda ECharts: il dato `indice` della serie `serie` letto dalle ultime opzioni ricevute dal
+ * grafico (con il nome della serie e, per gli oggetti, il nome del dato). Il test clicca cio' che il grafico disegna, non
+ * un parametro scritto a mano. Errore se il dato non esiste.
+ */
+export function clicSulDato(g: GraficoFinto, serie: number, indice: number): void {
+  type Asse = { data?: unknown[] } | undefined;
+  const opzioni = g.opzioni.at(-1) as { series?: Array<{ name?: string; data?: unknown[] }>; xAxis?: Asse; yAxis?: Asse } | undefined;
+  const s = opzioni?.series?.[serie];
+  const dato = s?.data?.[indice];
+  if (s === undefined || dato === undefined || dato === null) throw new Error(`nessun dato ${indice} nella serie ${serie} del grafico`);
+  // come ECharts: il nome del dato, altrimenti la categoria dell'asse
+  const categoria = opzioni?.xAxis?.data?.[indice] ?? opzioni?.yAxis?.data?.[indice];
+  const proprio = typeof dato === 'object' ? (dato as { name?: unknown }).name : undefined;
+  const nome = typeof proprio === 'string' ? proprio : typeof categoria === 'string' ? categoria : undefined;
+  clicSu(g, { name: nome, dataIndex: indice, data: dato, seriesName: s.name });
+}

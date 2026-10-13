@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { screen, waitFor, within } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { server } from '../../../shared/api/mock/server';
 import { expectNoA11yViolations } from '../../../shared/testing/axe';
 import { SIGC_DOMANDE, SIGC_IMPORTI } from '../../../features/finanziario/testing/fixture';
 import { renderPagina } from '../../../shared/testing/render-pagina';
 import { graficoDi, trovaCard } from '../../../shared/testing/card-grafico';
-import { clicSu } from '../../../shared/testing/grafico-finto';
+import { clicSu, clicSulDato } from '../../../shared/testing/grafico-finto';
 import Pagina from './page';
 
 const servi = () =>
@@ -66,8 +66,27 @@ describe("RA003: drill-down dalla pagina SIGC all'elenco operativo", () => {
     servi();
     const { router } = renderPagina(Pagina, '/finanziario/sigc');
     const grafico = graficoDi(await trovaCard('Domande SIGC (RF012)'));
-    if (grafico) clicSu(grafico, { name: 'Senza importi', dataIndex: 3 });
+    expect(grafico).toBeTruthy();
+    clicSulDato(grafico!, 0, 3);
     await waitFor(() => expect(`${router.state.location.pathname}${router.state.location.search}`).toBe('/elenco-operativo/domande?sigc=true&pagamento=SENZA_IMPORTI'));
+  });
+  it("senza il grant dell'elenco (TX-0056): nessun link nelle voci, i clic su barre e cascata non portano altrove, i sottotitoli non promettono il clic", async () => {
+    servi();
+    server.use(http.get('*/auth/status', () => HttpResponse.json({ authenticated: true, user: { username: 'U', roles: ['csr.tx-0001.read', 'csr.tx-0012.read', 'csr.tx-0013.read'] } })));
+    const { router } = renderPagina(Pagina, '/finanziario/sigc');
+    const t = await screen.findByRole('table', { name: 'Domande SIGC' });
+    expect(within(t).queryAllByRole('link')).toHaveLength(0);
+    const barre = graficoDi(await trovaCard('Domande SIGC (RF012)'));
+    const cascata = graficoDi(await trovaCard('Importi SIGC (RF013)'));
+    expect(barre).toBeTruthy();
+    expect(cascata).toBeTruthy();
+    clicSulDato(barre!, 0, 1);
+    clicSu(cascata!, { name: 'Ammesso', dataIndex: 0 });
+    await act(() => new Promise((r) => setTimeout(r, 0)));
+    expect(router.state.location.pathname).toBe('/finanziario/sigc');
+    expect(screen.queryByRole('link', { name: /apri nell.elenco operativo/i })).toBeNull();
+    expect(document.body.textContent).not.toContain('Clic su una barra');
+    expect(document.body.textContent).not.toContain('Clic sulla cascata');
   });
   it('nessuna violazione axe con i link', async () => {
     servi();

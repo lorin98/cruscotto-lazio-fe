@@ -6,6 +6,7 @@
 // pagare si sovrappongono (domande pagate in parte): la nota lo dice accanto ai dati.
 // UI v2 (wireframe sigc v2): barre delle domande e cascata degli importi, con le voci in tabella sotto ogni grafico.
 import { ValoreImporto } from '../../../entities/importo';
+import { codiceDalClic } from '../../../shared/lib';
 import { CardGrafico, Griglia, TabellaVoci, VistaQuery } from '../../../shared/ui';
 import { useSigcDomande, useSigcImporti } from '../api';
 import { datiDelReport } from './esportazioni';
@@ -45,16 +46,17 @@ function DomandeSigc({ filtri }: { filtri: Filtri }) {
   const stato = useSigcDomande(filtri);
   const link = useLinkElenco(filtri);
   const apri = useApriNellElenco(filtri);
+  const conLink = link('elenco-sigc', { sigc: true }) !== null;
   return (
     <VistaQuery stato={stato} eVuoto={(d) => d.presentate === 0} vuoto={VUOTO}>
       {(d) => (
         <div>
           <CardGrafico
             titolo={TITOLO_DOMANDE}
-            sottotitolo="Presentate, pagate, da pagare e senza importi: pagate e da pagare si sovrappongono. Clic su una barra: le domande nell'elenco operativo"
+            sottotitolo={'Presentate, pagate, da pagare e senza importi: pagate e da pagare si sovrappongono.' + (conLink ? " Clic su una barra: le domande nell'elenco operativo" : '')}
             dati={graficoDomandeSigc(d)}
             fonte="Fonte: TX-0012, importi della domanda (flusso ASR2-20)"
-            onClic={(p) => apri('elenco-sigc', criteriVoceSigc(p.name))}
+            onClic={(p) => apri('elenco-sigc', criteriVoceSigc(codiceDalClic(p)))}
             scaricamenti={datiDelReport(TITOLO_DOMANDE, 'sigcDomande', filtri)}
           />
           <section className="ui-card mt-3" aria-label="Voci delle domande SIGC">
@@ -66,7 +68,7 @@ function DomandeSigc({ filtri }: { filtri: Filtri }) {
                 valore: (
                   <>
                     <Numero valore={d[v.campo]} />
-                    <ApriNellElenco variante="testo" indirizzo={link('elenco-sigc', criteriVoceSigc(v.nome) ?? undefined)} descrizione={`le domande SIGC ${v.nome.toLowerCase()}`} />
+                    <ApriNellElenco variante="testo" indirizzo={link('elenco-sigc', criteriVoceSigc(v.codice))} descrizione={`le domande SIGC ${v.nome.toLowerCase()}`} />
                   </>
                 ),
               }))}
@@ -79,9 +81,13 @@ function DomandeSigc({ filtri }: { filtri: Filtri }) {
   );
 }
 
+function sottotitoloImporti(conClic: boolean): string {
+  return "Dal richiesto all'ancora da pagare." + (conClic ? " Clic sulla cascata: le domande SIGC nell'elenco operativo, con gli stessi importi nel sinottico" : '');
+}
+
 function ImportiSigc({ filtri }: { filtri: Filtri }) {
   const stato = useSigcImporti(filtri);
-  const link = useLinkElenco(filtri);
+  const indirizzo = useLinkElenco(filtri)('elenco-sigc-importi', { sigc: true });
   const apri = useApriNellElenco(filtri);
   // segnale positivo: il conteggio delle domande SIGC presentate per gli stessi filtri (cache condivisa con RF012)
   const segnale = useSelezioneSenzaDomandeSigc(filtri);
@@ -91,7 +97,7 @@ function ImportiSigc({ filtri }: { filtri: Filtri }) {
         <div>
           <CardGrafico
             titolo={TITOLO_IMPORTI}
-            sottotitolo="Dal richiesto all'ancora da pagare. Clic sulla cascata: le domande SIGC nell'elenco operativo, con gli stessi importi nel sinottico"
+            sottotitolo={sottotitoloImporti(indirizzo !== null && graficoCascataSigc(d).opzioni !== null)}
             dati={graficoCascataSigc(d)}
             fonte="Fonte: TX-0013, importi della domanda (flusso ASR2-20)"
             onClic={() => apri('elenco-sigc-importi', { sigc: true })}
@@ -114,7 +120,7 @@ function ImportiSigc({ filtri }: { filtri: Filtri }) {
               ]}
             />
             <NotaImporti />
-            <ApriNellElenco variante="testo" indirizzo={link('elenco-sigc-importi', { sigc: true })} testo="Le domande SIGC nell'elenco operativo" descrizione="(sinottico con richiesto, ammesso, pagato e ancora da pagare)" />
+            <ApriNellElenco variante="testo" indirizzo={indirizzo} testo="Le domande SIGC nell'elenco operativo" descrizione="(sinottico con richiesto, ammesso, pagato e ancora da pagare)" />
           </section>
         </div>
       )}

@@ -109,42 +109,53 @@ export function grantDelLink(id: IdLinkElenco): string {
   return GRANT_DESTINAZIONE[LINK_ELENCO[id].destinazione];
 }
 
-/** Indirizzo del link `id` con i filtri correnti e i criteri del punto cliccato. */
-export function indirizzoDelLink(id: IdLinkElenco, filtri: Filtri, criteri: CriteriLink = {}): string {
+/**
+ * Indirizzo del link `id` con i filtri correnti e i criteri del punto cliccato. Fail-closed: null se un criterio non si
+ * puo' esprimere (un intervento fuori formato), mai un link verso un insieme piu' largo di quello che dichiara.
+ */
+export function indirizzoDelLink(id: IdLinkElenco, filtri: Filtri, criteri: CriteriLink = {}): string | null {
+  if (criteri.intervento !== undefined && !valoreFiltroValido('intervento', criteri.intervento)) return null;
   const l: DefinizioneLink = LINK_ELENCO[id];
   return indirizzoLink(l.destinazione, l.query, parametriLink(filtri, criteri));
 }
 
 // ---------------------------------------------------------------- clic sui grafici
 
-/** Annualita' della serie del grafico Domande per anno di raccolta (nomi delle serie di graficoDomandePerAnno). */
-const ANNUALITA_DELLA_SERIE: Record<string, Annualita> = {
-  'Prima annualità': 'PRIMA',
-  'Altre annualità': 'ALTRE',
-  'Non classificate': 'NON_CLASSIFICATE',
-};
+/**
+ * Codici del contratto dei link nei dati dei grafici: i builder (lib/grafici) mettono nel dato del punto il codice
+ * dell'annualita' (e l'anno) o della voce SIGC, e il clic si legge da li', mai dall'etichetta visibile della serie ne'
+ * dall'ordine delle righe.
+ */
+const ANNUALITA_VALIDE: ReadonlySet<string> = new Set<Annualita>(['PRIMA', 'ALTRE', 'NON_CLASSIFICATE']);
 
-/** Esito del pagamento di una voce delle domande SIGC (nomi di VOCI_DOMANDE_SIGC); le presentate non ne hanno. */
-const PAGAMENTO_DELLA_VOCE: Record<string, EsitoPagamentoDomanda | null> = {
-  Presentate: null,
-  Pagate: 'PAGATA',
-  'Da pagare': 'DA_PAGARE',
-  'Senza importi': 'SENZA_IMPORTI',
-};
+/** Esito del pagamento di una voce delle domande SIGC (codici di VOCI_DOMANDE_SIGC); le presentate non ne hanno. */
+const PAGAMENTO_DELLA_VOCE: ReadonlyMap<string, EsitoPagamentoDomanda | null> = new Map([
+  ['PRESENTATE', null],
+  ['PAGATA', 'PAGATA'],
+  ['DA_PAGARE', 'DA_PAGARE'],
+  ['SENZA_IMPORTI', 'SENZA_IMPORTI'],
+]);
+
+/** Dato di un segmento di Domande per anno di raccolta, come lo scrive graficoDomandePerAnno. */
+export interface DatoSegmentoAnno {
+  value: number;
+  /** Annualita' della serie. */
+  codice: Annualita;
+  /** Anno di raccolta; null = le domande senza anno (SENZA). */
+  anno: number | null;
+}
 
 /**
- * Criteri del clic su un segmento di Domande per anno di raccolta: le domande presentate dell'anno (null = senza anno,
- * SENZA) e dell'annualita' della serie. `righe` nell'ordine del grafico (anni crescenti, senza anno in coda); un clic
- * fuori dai dati non porta da nessuna parte.
+ * Criteri del clic su un segmento di Domande per anno di raccolta: le domande presentate dell'anno e dell'annualita' del
+ * dato cliccato. Null (nessun link) per un clic fuori dai dati o su un dato senza codici riconosciuti.
  */
-export function criteriDomandePerAnno<T extends { annoRaccolta?: number | null }>(
-  righeOrdinate: readonly T[],
-  clic: { dataIndex?: number; seriesName?: string },
-): CriteriLink | null {
-  const riga = clic.dataIndex === undefined ? undefined : righeOrdinate[clic.dataIndex];
-  if (!riga) return null;
-  const annualita = clic.seriesName === undefined ? undefined : ANNUALITA_DELLA_SERIE[clic.seriesName];
-  return criteriAnnoAnnualita(riga.annoRaccolta, annualita);
+export function criteriDomandePerAnno(clic: { data?: unknown }): CriteriLink | null {
+  const d = clic.data;
+  if (typeof d !== 'object' || d === null) return null;
+  const { codice, anno } = d as { codice?: unknown; anno?: unknown };
+  if (typeof codice !== 'string' || !ANNUALITA_VALIDE.has(codice)) return null;
+  if (anno !== null && !(typeof anno === 'number' && Number.isInteger(anno))) return null;
+  return criteriAnnoAnnualita(anno, codice as Annualita);
 }
 
 /**
@@ -155,9 +166,12 @@ export function criteriAnnoAnnualita(anno: number | null | undefined, annualita?
   return { presentata: true, anno: [anno ?? null], ...(annualita ? { annualita: [annualita] } : {}) };
 }
 
-/** Criteri di una voce delle domande SIGC (barra o riga della tabella): le SIGC, con l'esito del pagamento della voce. */
-export function criteriVoceSigc(voce: string | undefined): CriteriLink | null {
-  if (voce === undefined || !(voce in PAGAMENTO_DELLA_VOCE)) return null;
-  const pagamento = PAGAMENTO_DELLA_VOCE[voce];
+/**
+ * Criteri di una voce delle domande SIGC (barra o riga della tabella), dal codice della voce: le SIGC, con l'esito del
+ * pagamento della voce. Null per un codice sconosciuto (nessun link, mai tutte le domande).
+ */
+export function criteriVoceSigc(codice: string | undefined): CriteriLink | null {
+  if (codice === undefined || !PAGAMENTO_DELLA_VOCE.has(codice)) return null;
+  const pagamento = PAGAMENTO_DELLA_VOCE.get(codice);
   return { sigc: true, ...(pagamento ? { pagamento: [pagamento] } : {}) };
 }

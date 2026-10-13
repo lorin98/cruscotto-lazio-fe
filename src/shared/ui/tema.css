@@ -189,6 +189,8 @@ body { background: var(--ui-sfondo); color: var(--ui-testo); font-family: 'Titil
 .ui-kpi__valore--assente { font-size: 1.05rem; color: var(--ui-attenuato); font-weight: 600; }
 .ui-kpi__nota { margin: .25rem 0 0; font-size: .82rem; color: var(--ui-attenuato); }
 .ui-kpi__azione { margin: .6rem 0 0; }
+/* lo slot resta vuoto quando l'azione non si rende (es. il link senza il grant della destinazione) */
+.ui-kpi__azione:empty { display: none; }
 .ui-link-elenco { display: flex; align-items: center; width: fit-content; min-height: 24px; margin-top: .15rem; font-size: .78rem; }
 .ui-link-elenco--riga { display: flex; flex-wrap: wrap; gap: .25rem .75rem; margin: .5rem 0 0; font-size: .85rem; }
 .ui-link-elenco--riga a { display: inline-flex; align-items: center; min-height: 24px; }

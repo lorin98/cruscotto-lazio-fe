@@ -1,16 +1,17 @@
 // Colonne della tabella Domande per anno di raccolta (TX-0008): ogni cella, anno per annualita' e totale dell'anno, porta
 // il link all'elenco operativo con quell'anno e quell'annualita' (wireframe domande; nel dettaglio dell'intervento e' la
 // tabella equivalente del grafico, percorso da tastiera del clic sui segmenti). Senza il grant dell'elenco restano i numeri.
+// Titoli e formato delle celle sono quelli della tabella equivalente del grafico (ANNUALITA_DOMANDE, numeroOpzionale): con o
+// senza il grant la vista Tabella ha le stesse intestazioni e gli stessi testi, link a parte.
 import type { Colonna } from '../../../shared/ui';
 import type { DomandePerAnnoRiga } from '../api';
+import { numeroOpzionale } from '../lib/formato';
+import { ANNUALITA_DOMANDE } from '../lib/grafici';
 import type { Annualita } from '../lib/link-elenco';
-import { Numero } from './comuni';
 import { ApriNellElenco } from './LinkElenco';
 
 const CELLE_ANNO: { titolo: string; campo: 'primaAnnualita' | 'altreAnnualita' | 'nonClassificate' | 'totali'; annualita?: Annualita }[] = [
-  { titolo: 'Prima annualità', campo: 'primaAnnualita', annualita: 'PRIMA' },
-  { titolo: 'Altre annualità', campo: 'altreAnnualita', annualita: 'ALTRE' },
-  { titolo: 'Non classificate', campo: 'nonClassificate', annualita: 'NON_CLASSIFICATE' },
+  ...ANNUALITA_DOMANDE.map((a) => ({ titolo: a.nome, campo: a.campo, annualita: a.codice })),
   { titolo: 'Totale', campo: 'totali' },
 ];
 
@@ -23,7 +24,7 @@ export function colonneDomandePerAnno(indirizzo: IndirizzoCellaAnno, oggetto = '
     c.titolo,
     (r) => (
       <>
-        <Numero valore={r[c.campo]} />
+        <span className="font-monospace">{numeroOpzionale(r[c.campo])}</span>
         <ApriNellElenco
           variante="testo"
           indirizzo={indirizzo(r, c.annualita)}

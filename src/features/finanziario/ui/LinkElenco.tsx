@@ -10,10 +10,16 @@ import type { Filtri } from '../lib/filtri';
 import { grantDelLink, indirizzoDelLink } from '../lib/link-elenco';
 import type { CriteriLink, IdLinkElenco } from '../lib/link-elenco';
 
-/** Indirizzo del link per il profilo corrente: null senza il grant della destinazione (o con l'autenticazione in corso). */
-export function useLinkElenco(filtri: Filtri): (id: IdLinkElenco, criteri?: CriteriLink) => string | null {
+/**
+ * Indirizzo del link per il profilo corrente: null senza il grant della destinazione (o con l'autenticazione in corso), con
+ * criteri null (il punto cliccato non si puo' esprimere nei parametri dell'elenco) o con un criterio fuori formato.
+ */
+export function useLinkElenco(filtri: Filtri): (id: IdLinkElenco, criteri?: CriteriLink | null) => string | null {
   const auth = useAuthStatus().data;
-  return useCallback((id, criteri) => (hasGrant(auth, grantDelLink(id)) ? indirizzoDelLink(id, filtri, criteri) : null), [auth, filtri]);
+  return useCallback(
+    (id, criteri) => (criteri === null || !hasGrant(auth, grantDelLink(id)) ? null : indirizzoDelLink(id, filtri, criteri)),
+    [auth, filtri],
+  );
 }
 
 /** Navigazione dal clic su un grafico: nessun effetto senza il grant o senza criteri (clic fuori dai dati). */
@@ -22,7 +28,7 @@ export function useApriNellElenco(filtri: Filtri): (id: IdLinkElenco, criteri: C
   const naviga = useNavigate();
   return useCallback(
     (id, criteri) => {
-      const indirizzo = criteri === null ? null : link(id, criteri);
+      const indirizzo = link(id, criteri);
       if (indirizzo) void naviga(indirizzo);
     },
     [link, naviga],
