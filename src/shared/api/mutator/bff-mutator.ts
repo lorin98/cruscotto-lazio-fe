@@ -8,13 +8,25 @@ import Axios, { AxiosError } from 'axios';
 import type { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { basePath, resolveLoginPath } from '../../config/base-path';
 
+// URL del login all'evento di sessione scaduta. Il mutator condiviso non conosce le route: di default porta al login
+// senza ritorno; l'app (main.tsx) lo configura all'avvio per tornare alla pagina corrente se e' una sua route
+// (configuraLoginDaSessioneScaduta, app/ritorno-login.ts).
+let urlDelLogin: () => string = () => resolveLoginPath();
+
+export function configuraLoginDaSessioneScaduta(url: () => string): void {
+  urlDelLogin = url;
+}
+
 // Evento di sessione scaduta, sostituibile nei test (evita navigazione reale sotto jsdom).
 export const authEvents = {
+  /** Navigazione a pagina intera (il login del BFF non e' una XHR); sostituibile nei test. */
+  vai(url: string): void {
+    if (typeof window !== 'undefined' && window.location) window.location.assign(url);
+  },
   onSessionExpired(): void {
-    if (typeof window !== 'undefined' && window.location) {
-      // Anti open-redirect: SOLO base path noto + /auth/login, mai un returnTo del server.
-      window.location.assign(resolveLoginPath());
-    }
+    // Anti open-redirect: SOLO base path noto + /auth/login, mai un returnTo del server; l'unico ritorno e' la pagina
+    // corrente convalidata (resolveLoginPath), che il BFF riconvalida.
+    authEvents.vai(urlDelLogin());
   },
 };
 

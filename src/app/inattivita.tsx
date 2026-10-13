@@ -14,7 +14,8 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Dialog, Heading, Modal, ModalOverlay } from 'react-aria-components';
 import { useQueryClient } from '@tanstack/react-query';
 import { AUTH_STATUS_QUERY_KEY } from '../shared/api/auth/auth-status';
-import { resolveLoginPath, resolveLogoutPath } from '../shared/config/base-path';
+import { resolveLogoutPath } from '../shared/config/base-path';
+import { linkDiLogin } from './ritorno-login';
 
 export const LIMITE_INATTIVITA_MS = 30 * 60 * 1000;
 export const PREAVVISO_MS = 2 * 60 * 1000;
@@ -169,7 +170,7 @@ function Scaduta({ idDescrizione }: { idDescrizione: string }) {
         Sessione scaduta
       </Heading>
       <p id={idDescrizione}>La sessione è scaduta per inattività ed è stata chiusa: accedi di nuovo per continuare.</p>
-      <a className="btn btn-primary" href={resolveLoginPath()} autoFocus>
+      <a className="btn btn-primary" href={linkDiLogin()} autoFocus>
         Accedi
       </a>
     </>

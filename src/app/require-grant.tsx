@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { useAuthStatus, hasGrant } from '../shared/api/auth/use-auth-status';
-import { resolveLoginPath } from '../shared/config/base-path';
 import { Esito } from './esito';
+import { linkDiLogin } from './ritorno-login';
 import { SessioneNonVerificabile } from './sessione-non-verificabile';
 
 // RequireGrant — route-guard di UX (hide-by-role). DOTTRINA (auth-runtime-pattern.md): e' SOLO UX,
@@ -10,7 +10,8 @@ import { SessioneNonVerificabile } from './sessione-non-verificabile';
 // puo' usare. Visibile se l'utente ha ALMENO uno dei grant (roles additivi fine||coarse, hasGrant).
 // I grant sono VERBATIM dall'authz-catalog (via route-table.json), mai nomi di ruolo inventati.
 // Tre casi distinti (review step9 V-04/A-01): /auth/status non raggiungibile o 401 (sessione non valida),
-// utente non collegato (invito ad accedere, navigazione verso /auth/login del BFF), utente senza il grant.
+// utente non collegato (invito ad accedere, navigazione verso /auth/login del BFF con il ritorno a questa pagina: un link
+// condiviso aperto senza sessione ci riporta qui dopo il login, review elenco v1 X-06), utente senza il grant.
 // Nessun redirect automatico: un'identita' rifiutata dal backend non deve finire in un ciclo di login (A-04).
 
 export function RequireGrant({
@@ -35,7 +36,7 @@ export function RequireGrant({
       <Esito titolo="Accesso richiesto">
         <p role="alert">Per consultare il cruscotto devi accedere con le tue credenziali.</p>
         <p>
-          <a className="btn btn-primary" href={resolveLoginPath()}>
+          <a className="btn btn-primary" href={linkDiLogin()}>
             Accedi
           </a>
         </p>
