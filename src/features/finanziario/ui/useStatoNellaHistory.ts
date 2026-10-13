@@ -5,6 +5,6 @@ import { useStatoNellaHistory as useStatoGenerico } from '../../../shared/ui';
 import { ricercaDaFiltri } from '../lib/filtri';
 import type { Filtri } from '../lib/filtri';
 
-export function useStatoNellaHistory<T>(chiave: string, filtri: Filtri, valido?: (v: unknown) => v is T): [T | undefined, (valore: T) => void] {
+export function useStatoNellaHistory<T>(chiave: string, filtri: Filtri, valido: (v: unknown) => v is T): [T | undefined, (valore: T) => void] {
   return useStatoGenerico<T>(chiave, ricercaDaFiltri(filtri), valido);
 }

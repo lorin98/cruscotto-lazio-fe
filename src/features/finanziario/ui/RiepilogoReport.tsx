@@ -22,7 +22,8 @@ import { NotaPerimetroMisto, PerimetroSezione, colonneImporti, diProgramma, vuot
 import { NOTA_RICERCA_FILE, datiDelReport } from './esportazioni';
 import { useApriIntervento } from './useApriIntervento';
 import { useStatoNellaHistory } from './useStatoNellaHistory';
-import { STATO_RIEPILOGO, useStatoDelRiepilogo } from './ritornoAlRiepilogo';
+import { STATO_RIEPILOGO, VISTA_RIEPILOGO, eVistaRiepilogo, useStatoDelRiepilogo } from './ritornoAlRiepilogo';
+import type { VistaRiepilogo } from './ritornoAlRiepilogo';
 import { ApriNellElenco, useLinkElenco } from './LinkElenco';
 import type { CriteriLink, IdLinkElenco } from '../lib/link-elenco';
 import type { CampoImporto } from './comuni';
@@ -153,9 +154,22 @@ function Anteprima({ riga, perimetro, filtri, onChiudi }: { riga: Riga | null; p
   );
 }
 
+/** Vista Tabella o Grafico: subito quella scelta (stato locale), e la history la segue per il ritorno dal dettaglio (review v4 iter3 X-01). */
+function useVistaRiepilogo(filtri: Filtri): [VistaRiepilogo, (v: VistaRiepilogo) => void] {
+  const [salvata, salva] = useStatoNellaHistory<VistaRiepilogo>(VISTA_RIEPILOGO, filtri, eVistaRiepilogo);
+  const [vista, setVista] = useState<VistaRiepilogo>(salvata ?? 'tabella');
+  return [
+    vista,
+    (v) => {
+      setVista(v);
+      salva(v);
+    },
+  ];
+}
+
 function Contenuto({ d, filtri }: { d: RiepilogoFinanziario; filtri: Filtri }) {
-  // aprendo il dettaglio (anteprima o grafico) lo stato del riepilogo viaggia con la navigazione: "Torna al riepilogo" lo
-  // riporta (review v4 X-04)
+  // aprendo il dettaglio (anteprima o grafico) lo stato del riepilogo (tabella e vista) viaggia con la navigazione: "Torna
+  // al riepilogo" lo riporta (review v4 X-04, iter3 X-01)
   const { dalClic } = useApriIntervento(filtri, useStatoDelRiepilogo());
   const link = useLinkElenco(filtri);
   const colonneTabella = colonne(d.perimetro, link);
@@ -164,7 +178,7 @@ function Contenuto({ d, filtri }: { d: RiepilogoFinanziario; filtri: Filtri }) {
   const [statoTabella, conservaStato] = useStatoNellaHistory<StatoTabella>(STATO_RIEPILOGO, filtri, statoTabellaValido(colonneTabella.map((c) => c.chiave)));
   const righe = d.righe ?? [];
   const [aperta, setAperta] = useState<Riga | null>(null);
-  const [vista, setVista] = useState<'tabella' | 'grafico'>('tabella');
+  const [vista, scegliVista] = useVistaRiepilogo(filtri);
   // valore fuori tabella, indipendente dai filtri: nel piede, come nel wireframe
   const assistenzaTecnica: RigaPiede = { codice: 'Dotazione assistenza tecnica (AT001, intero programma: non dipende dai filtri)', dotazioneSpesaPubblica: <ValoreImporto importo={d.dotazioneAssistenzaTecnica} /> };
   return (
@@ -172,10 +186,10 @@ function Contenuto({ d, filtri }: { d: RiepilogoFinanziario; filtri: Filtri }) {
       <PerimetroSezione perimetro={d.perimetro} />
       <NotaPerimetroMisto perimetro={d.perimetro} />
       <div className="ui-seg mb-3" role="group" aria-label="Vista del riepilogo">
-        <button type="button" aria-pressed={vista === 'tabella'} onClick={() => setVista('tabella')}>
+        <button type="button" aria-pressed={vista === 'tabella'} onClick={() => scegliVista('tabella')}>
           Tabella
         </button>
-        <button type="button" aria-pressed={vista === 'grafico'} onClick={() => setVista('grafico')}>
+        <button type="button" aria-pressed={vista === 'grafico'} onClick={() => scegliVista('grafico')}>
           Grafico
         </button>
       </div>

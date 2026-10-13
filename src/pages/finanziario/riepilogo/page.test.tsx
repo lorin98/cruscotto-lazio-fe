@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { act, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { server } from '../../../shared/api/mock/server';
 import { expectNoA11yViolations } from '../../../shared/testing/axe';
-import { FILTRI, RIEPILOGO } from '../../../features/finanziario/testing/fixture';
+import { DOMANDE_PER_ANNO, FILTRI, RIEPILOGO } from '../../../features/finanziario/testing/fixture';
+import { graficoDi, trovaCard } from '../../../shared/testing/card-grafico';
+import { clicSulDato } from '../../../shared/testing/grafico-finto';
 import { renderPagina } from '../../../shared/testing/render-pagina';
 import { renderConQuery } from '../../../shared/testing/render';
 import PaginaDettaglio from '../interventi/page';
@@ -176,9 +178,11 @@ describe("RA003: drill-down dal riepilogo all'elenco operativo", () => {
     const nessunaAnteprima = () => expect(screen.findByRole('dialog', {}, { timeout: 200 })).rejects.toThrow();
     await userEvent.click(link);
     await nessunaAnteprima();
-    await userEvent.keyboard('{Control>}');
-    await userEvent.click(link);
-    await userEvent.keyboard('{/Control}');
+    // Ctrl+clic vero (review v4 iter3 A-01): con le API dirette di user-event Ctrl non resta premuto fra due chiamate
+    let conCtrl = false;
+    link.addEventListener('click', (e) => (conCtrl = e.ctrlKey), { capture: true });
+    fireEvent.click(link, { ctrlKey: true });
+    expect(conCtrl).toBe(true);
     await nessunaAnteprima();
     link.focus();
     await userEvent.keyboard('{Enter}');
@@ -273,27 +277,46 @@ describe("RA003: drill-down dal riepilogo all'elenco operativo", () => {
     expect((screen.getByRole('searchbox', { name: 'Cerca nella tabella' }) as HTMLInputElement).value).toBe('SRB');
     expect(righeDi(tabella)).toEqual(righe);
   });
-  // review v4 X-04: "Torna al riepilogo" e la briciola ritrovano ricerca, ordine e pagina, anche da tastiera
+  // review v4 X-04: "Torna al riepilogo" e la briciola ritrovano ricerca, ordine e pagina, anche da tastiera; nel dettaglio
+  // si cambiano scheda e vista prima di tornare, perche' lo stato del riepilogo deve sopravvivere alle navigazioni interne
+  // (review v4 iter3 H-01)
   it('dal dettaglio "Torna al riepilogo" e la briciola ritrovano ricerca, ordine e pagina del riepilogo (da tastiera)', async () => {
-    server.use(http.get('*/api/finanziario/riepilogo', () => HttpResponse.json(RIEPILOGO_LUNGO)), http.get('*/api/finanziario/filtri', () => HttpResponse.json(FILTRI)));
+    server.use(
+      http.get('*/api/finanziario/riepilogo', () => HttpResponse.json(RIEPILOGO_LUNGO)),
+      http.get('*/api/finanziario/filtri', () => HttpResponse.json(FILTRI)),
+      http.get('*/api/finanziario/domande-per-anno', () => HttpResponse.json(DOMANDE_PER_ANNO)),
+    );
     const { router } = renderRiepilogoEDettaglio('/finanziario/riepilogo?os=OS4');
     await screen.findByRole('table', { name: /^Riepilogo per intervento \(RF011\): 13 righe\./ });
     await userEvent.type(screen.getByRole('searchbox', { name: 'Cerca nella tabella' }), 'SRB');
+    const ordina = () => within(screen.getByRole('columnheader', { name: /^Intervento/ })).getByRole('button');
+    // decrescente sul codice, cosi' l'ordine non e' quello iniziale (per dotazione)
+    await userEvent.click(ordina());
+    if (screen.getByRole('columnheader', { name: /^Intervento/ }).getAttribute('aria-sort') !== 'descending') await userEvent.click(ordina());
+    const verso = screen.getByRole('columnheader', { name: /^Intervento/ }).getAttribute('aria-sort');
+    expect(verso).toBe('descending');
     screen.getByRole('button', { name: 'Pagina 2' }).focus();
     await userEvent.keyboard('{Enter}');
     const prima = righeDi(screen.getByRole('table', { name: /12 righe per «SRB»/ }));
+    expect(prima).toEqual(['SRB02', 'SRB01']);
     const apriDettaglio = async () => {
-      screen.getByRole('row', { name: "Apri l'anteprima dell'intervento SRB11" }).focus();
+      screen.getByRole('row', { name: "Apri l'anteprima dell'intervento SRB02" }).focus();
       await userEvent.keyboard('{Enter}');
-      within(await screen.findByRole('dialog', { name: 'SRB11' })).getByRole('link', { name: "Apri il dettaglio dell'intervento" }).focus();
+      within(await screen.findByRole('dialog', { name: 'SRB02' })).getByRole('link', { name: "Apri il dettaglio dell'intervento" }).focus();
       await userEvent.keyboard('{Enter}');
-      await waitFor(() => expect(router.state.location.pathname).toBe('/finanziario/interventi/SRB11'));
+      await waitFor(() => expect(router.state.location.pathname).toBe('/finanziario/interventi/SRB02'));
+      // navigazioni interne del dettaglio: scheda Domande e vista Tabella di Domande per anno
+      await userEvent.click(await screen.findByRole('tab', { name: 'Domande' }));
+      const card = await trovaCard('Domande per anno di raccolta');
+      await userEvent.click(within(within(card).getByRole('group', { name: 'Vista di Domande per anno di raccolta' })).getByRole('button', { name: 'Tabella' }));
+      await waitFor(() => expect(router.state.location.search).toContain('scheda=domande'));
     };
     const ritrovato = async () => {
       await waitFor(() => expect(router.state.location.pathname).toBe('/finanziario/riepilogo'));
       expect(router.state.location.search).toBe('?os=OS4');
       const tabella = await screen.findByRole('table', { name: /12 righe per «SRB»/ });
       expect((screen.getByRole('searchbox', { name: 'Cerca nella tabella' }) as HTMLInputElement).value).toBe('SRB');
+      expect(within(tabella).getByRole('columnheader', { name: /^Intervento/ }).getAttribute('aria-sort')).toBe(verso);
       expect(righeDi(tabella)).toEqual(prima);
     };
     await apriDettaglio();
@@ -304,6 +327,24 @@ describe("RA003: drill-down dal riepilogo all'elenco operativo", () => {
     within(screen.getByRole('navigation', { name: 'Percorso' })).getByRole('link', { name: 'Riepilogo per intervento' }).focus();
     await userEvent.keyboard('{Enter}');
     await ritrovato();
+  });
+  // review v4 iter3 X-01: aprendo il dettaglio dal grafico si torna sulla vista Grafico
+  it('dal dettaglio aperto dal grafico "Torna al riepilogo" ritrova la vista Grafico', async () => {
+    server.use(http.get('*/api/finanziario/riepilogo', () => HttpResponse.json(RIEPILOGO)), http.get('*/api/finanziario/filtri', () => HttpResponse.json(FILTRI)));
+    const { router } = renderRiepilogoEDettaglio('/finanziario/riepilogo');
+    await screen.findByRole('table', { name: TABELLA });
+    const vistaRiepilogo = () => within(screen.getByRole('group', { name: 'Vista del riepilogo' }));
+    await userEvent.click(vistaRiepilogo().getByRole('button', { name: 'Grafico' }));
+    const grafico = graficoDi(await trovaCard('Dotazione e pagamenti per intervento'));
+    expect(grafico).toBeTruthy();
+    clicSulDato(grafico!, 0, 0);
+    await waitFor(() => expect(router.state.location.pathname).toBe('/finanziario/interventi/SRA01'));
+    (await screen.findAllByRole('link', { name: 'Torna al riepilogo' }))[0].focus();
+    await userEvent.keyboard('{Enter}');
+    await waitFor(() => expect(router.state.location.pathname).toBe('/finanziario/riepilogo'));
+    await screen.findByRole('group', { name: 'Vista del riepilogo' });
+    expect(vistaRiepilogo().getByRole('button', { name: 'Grafico' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.queryByRole('table', { name: TABELLA })).toBeNull();
   });
   it("senza i grant dell'elenco nessun link", async () => {
     server.use(

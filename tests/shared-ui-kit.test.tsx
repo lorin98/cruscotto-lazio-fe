@@ -4,7 +4,8 @@ import { act, useState } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { BarraFiltri, CardGrafico, ContestoIntestazione, Grafico, Kpi, NumeroAnimato, PannelloLaterale, PulsantiScarica, Sezione, TabellaDati, TabellaInterattiva, TabellaRighe, TabellaServer, TabellaVoci, VistaQuery, blobDaDataUrl, statoTabellaValido } from '../src/shared/ui';
+import { BarraFiltri, CardGrafico, ContestoIntestazione, Grafico, Kpi, NumeroAnimato, PannelloLaterale, PulsantiScarica, Sezione, TabellaDati, TabellaInterattiva, TabellaRighe, TabellaServer, TabellaVoci, VistaQuery, blobDaDataUrl, statoTabellaValido, useStatoNellaHistory } from '../src/shared/ui';
+import { createMemoryRouter, RouterProvider } from 'react-router';
 import { pngDelGrafico } from '../src/shared/ui/grafici/echarts';
 import type { StatoQuery } from '../src/shared/ui';
 import type { ColonnaTabella, DatiGrafico } from '../src/shared/ui';
@@ -694,5 +695,52 @@ describe('NumeroAnimato', () => {
     vi.stubGlobal('matchMedia', (q: string) => ({ matches: q.includes('reduce'), media: q, addEventListener: () => {}, removeEventListener: () => {} }));
     const { container } = render(<NumeroAnimato valore={7} formato={formato} />);
     expect(container.textContent).toBe('7 pezzi');
+  });
+});
+
+// review v4 iter3 H-01: il hook del kit (firma, `valido` obbligatorio, altre chiavi dello state conservate)
+describe('useStatoNellaHistory: stato della pagina nello state della history', () => {
+  const eNumero = (v: unknown): v is number => typeof v === 'number';
+  function Sonda({ firma, valido = eNumero }: { firma: string; valido?: (v: unknown) => v is number }) {
+    const [valore, salva] = useStatoNellaHistory<number>('k', firma, valido);
+    return (
+      <>
+        <output>{valore === undefined ? 'assente' : String(valore)}</output>
+        <button type="button" onClick={() => salva(3)}>
+          salva
+        </button>
+      </>
+    );
+  }
+  function monta(firma: string, valido?: (v: unknown) => v is number) {
+    const router = createMemoryRouter([{ path: '/p', element: <Sonda firma={firma} valido={valido} /> }], {
+      initialEntries: [{ pathname: '/p', search: '?a=1', state: { altra: 1, k: { firma: 'f', valore: 2 } } }],
+    });
+    render(<RouterProvider router={router} />);
+    return router;
+  }
+  it('con la stessa firma ritrova il valore; con un\'altra firma o un valore rifiutato da `valido` vale come assente', () => {
+    monta('f');
+    expect(screen.getByRole('status').textContent).toBe('2');
+  });
+  it('firma diversa: assente', () => {
+    monta('g');
+    expect(screen.getByRole('status').textContent).toBe('assente');
+  });
+  it('valore che `valido` rifiuta: assente', () => {
+    monta('f', (v: unknown): v is number => typeof v === 'number' && v > 10);
+    expect(screen.getByRole('status').textContent).toBe('assente');
+  });
+  it('salva con replace: stesso indirizzo, le altre chiavi dello state restano', async () => {
+    const router = monta('f');
+    const voci = router.state.historyAction;
+    await userEvent.click(screen.getByRole('button', { name: 'salva' }));
+    await waitFor(() => expect(screen.getByRole('status').textContent).toBe('3'));
+    expect(router.state.location.pathname).toBe('/p');
+    expect(router.state.location.search).toBe('?a=1');
+    expect(router.state.historyAction).toBe('REPLACE');
+    expect(voci).toBe('POP');
+    expect((router.state.location.state as Record<string, unknown>).altra).toBe(1);
+    expect((router.state.location.state as Record<string, unknown>).k).toEqual({ firma: 'f', valore: 3 });
   });
 });
