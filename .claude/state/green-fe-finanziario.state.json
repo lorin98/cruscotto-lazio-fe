@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "finanziario",
-  "current_step": 8,
+  "current_step": 9,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -15,7 +15,7 @@
         "handover_verified": {
           "approved_hash": "sha256:f22ea4ff3a4d6c0d2bd245bea98d850617ee062bece281f159a7459311098de6",
           "baseline_ref": "./handover.json",
-          "approved_at": "2026-10-13T08:44:22Z"
+          "approved_at": "2026-10-13T11:46:28Z"
         }
       }
     },
@@ -146,12 +146,24 @@
       }
     },
     "step8-gate": {
-      "status": "in_progress",
-      "completed_at": "2026-10-09T13:53:23Z",
+      "status": "done",
+      "completed_at": "2026-10-13T11:48:26Z",
       "artifacts": [
         "./fe-gate-report.json"
       ],
-      "gates": {}
+      "gates": {
+        "lint": "pass",
+        "typecheck": "pass",
+        "test": "pass",
+        "a11y": "pass",
+        "build": "pass",
+        "fsd_import": "pass",
+        "orval_types": "pass",
+        "security": "pass",
+        "authz": "pass",
+        "wireframe_approved": "pass",
+        "req_coverage_ui": "pass"
+      }
     },
     "step9-review": {
       "status": "in_progress",

@@ -16,12 +16,12 @@
     {
       "name": "test",
       "status": "pass",
-      "evidence": "vitest.json verde (total=729) + coverage>=soglie (L86.58 S86.63 F86.14 B77.85 vs L80 S80 F80 B70)"
+      "evidence": "vitest.json verde (total=837) + coverage>=soglie (L85.68 S85.69 F83.92 B75.06 vs L80 S80 F80 B70)"
     },
     {
       "name": "a11y",
       "status": "pass",
-      "evidence": "axe.json: 0 violations su 42 run (wcag2a/2aa/22aa); incomplete=37 dichiarato"
+      "evidence": "axe.json: 0 violations su 49 run (wcag2a/2aa/22aa); incomplete=43 dichiarato"
     },
     {
       "name": "build",
@@ -47,7 +47,7 @@
     {
       "name": "authz",
       "status": "pass",
-      "evidence": "check-ui-authz: deny-by-default + anti-widening OK (9 route)",
+      "evidence": "check-ui-authz: deny-by-default + anti-widening OK (9 route); fe-project-check --built: proprieta' delle route e coerenza cross-feature OK",
       "exit_code": 0
     },
     {
@@ -67,7 +67,7 @@
   "total": 11,
   "verdict": "pass",
   "a11y_residual": {
-    "incomplete": 37,
+    "incomplete": 43,
     "manual_checklist_ref": "wireframes/<flusso>.md note WCAG + review FULL"
   }
 }

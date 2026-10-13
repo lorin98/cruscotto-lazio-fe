@@ -59,7 +59,7 @@
   ],
   "authz_catalog": {
     "hash": "sha256:fa3d4c0b70016dce6e238dba4e8a4a8607ea35d7104cbead5c74fbdb175e2df8",
-    "path": "./authz-catalog.json"
+    "path": "authz-catalog.json"
   },
   "gates": {
     "authz-catalog.authz_approved": {
@@ -105,7 +105,7 @@
   },
   "openapi": {
     "hash": "sha256:60a1dfe0a67ad15ed53b37850af0dd90af5a24463a365491eab5d44666be8023",
-    "path": "./openapi/openapi-finanziario.json"
+    "path": "openapi/openapi-finanziario.json"
   },
   "pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb",
   "pack_version": "1.3.0",
