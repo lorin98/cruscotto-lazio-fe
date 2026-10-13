@@ -62,6 +62,11 @@
           "csr.tx-0053.read",
           "csr.tx-0054.read",
           "csr.tx-0055.read",
+          "csr.tx-0056.read",
+          "csr.tx-0057.read",
+          "csr.tx-0058.read",
+          "csr.tx-0059.read",
+          "csr.tx-0060.read",
           "p1-dirigente"
         ],
         "username": "user-p1-dirigente"
@@ -125,6 +130,11 @@
           "csr.tx-0053.read",
           "csr.tx-0054.read",
           "csr.tx-0055.read",
+          "csr.tx-0056.read",
+          "csr.tx-0057.read",
+          "csr.tx-0058.read",
+          "csr.tx-0059.read",
+          "csr.tx-0060.read",
           "p2-referente-adg"
         ],
         "username": "user-p2-referente-adg"
@@ -152,6 +162,11 @@
           "csr.tx-0013.read",
           "csr.tx-0014.read",
           "csr.tx-0015.read",
+          "csr.tx-0056.read",
+          "csr.tx-0057.read",
+          "csr.tx-0058.read",
+          "csr.tx-0059.read",
+          "csr.tx-0060.read",
           "p3-funzionario-area-fin"
         ],
         "username": "user-p3-funzionario-area-fin"
@@ -166,6 +181,11 @@
         "roles": [
           "csr.tx-0016.read",
           "csr.tx-0017.read",
+          "csr.tx-0056.read",
+          "csr.tx-0057.read",
+          "csr.tx-0058.read",
+          "csr.tx-0059.read",
+          "csr.tx-0060.read",
           "p3-funzionario-area-ist"
         ],
         "username": "user-p3-funzionario-area-ist"
@@ -180,6 +200,11 @@
         "roles": [
           "csr.tx-0018.read",
           "csr.tx-0020.read",
+          "csr.tx-0056.read",
+          "csr.tx-0057.read",
+          "csr.tx-0058.read",
+          "csr.tx-0059.read",
+          "csr.tx-0060.read",
           "p3-funzionario-area-fis"
         ],
         "username": "user-p3-funzionario-area-fis"
@@ -201,6 +226,11 @@
           "csr.tx-0030.read",
           "csr.tx-0031.read",
           "csr.tx-0032.read",
+          "csr.tx-0056.read",
+          "csr.tx-0057.read",
+          "csr.tx-0058.read",
+          "csr.tx-0059.read",
+          "csr.tx-0060.read",
           "p3-funzionario-area-pro"
         ],
         "username": "user-p3-funzionario-area-pro"
@@ -236,6 +266,11 @@
           "csr.tx-0053.read",
           "csr.tx-0054.read",
           "csr.tx-0055.read",
+          "csr.tx-0056.read",
+          "csr.tx-0057.read",
+          "csr.tx-0058.read",
+          "csr.tx-0059.read",
+          "csr.tx-0060.read",
           "p3-funzionario-area-pil"
         ],
         "username": "user-p3-funzionario-area-pil"
@@ -272,6 +307,11 @@
           "csr.tx-0030.read",
           "csr.tx-0031.read",
           "csr.tx-0032.read",
+          "csr.tx-0056.read",
+          "csr.tx-0057.read",
+          "csr.tx-0058.read",
+          "csr.tx-0059.read",
+          "csr.tx-0060.read",
           "p4-responsabile-procedimento-ada"
         ],
         "username": "user-p4-responsabile-procedimento-ada"
@@ -301,6 +341,11 @@
           "csr.tx-0015.read",
           "csr.tx-0018.read",
           "csr.tx-0020.read",
+          "csr.tx-0056.read",
+          "csr.tx-0057.read",
+          "csr.tx-0058.read",
+          "csr.tx-0059.read",
+          "csr.tx-0060.read",
           "csr.tx-1008.write",
           "csr.tx-1009.write",
           "p5-amministratore-funzionale"
@@ -315,6 +360,11 @@
         "contextProjection": {},
         "profile": "p6-amministratore-tecnico",
         "roles": [
+          "csr.tx-0056.read",
+          "csr.tx-0057.read",
+          "csr.tx-0058.read",
+          "csr.tx-0059.read",
+          "csr.tx-0060.read",
           "csr.tx-1001.write",
           "csr.tx-1002.write",
           "csr.tx-1003.write",
@@ -338,6 +388,11 @@
           "csr.tx-0021.write",
           "csr.tx-0022.write",
           "csr.tx-0023.write",
+          "csr.tx-0056.read",
+          "csr.tx-0057.read",
+          "csr.tx-0058.read",
+          "csr.tx-0059.read",
+          "csr.tx-0060.read",
           "csr.tx-1001.write",
           "csr.tx-1002.write",
           "csr.tx-1003.write",
@@ -351,6 +406,6 @@
       }
     }
   ],
-  "pack_hash": "sha256:1ef3a90c51c555441a3a3e3fb203dfdaa0f2f7d1861a5664982f33cb828de4c4",
+  "pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb",
   "schema_version": "1.0"
 }
