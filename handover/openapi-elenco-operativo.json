@@ -1178,7 +1178,7 @@
             }
           },
           {
-            "description": "true: solo le domande presentate (di sostegno oppure SIGC, come TX-0008/TX-0009); il valore false non e' ammesso (400)",
+            "description": "true: solo le domande presentate (di sostegno oppure SIGC, come TX-0008/TX-0009); il valore false non e' ammesso (400). Sulle righe dei pagamenti (TX-0059 e il suo export) vale la regola dei pagamenti: una domanda SIGC chiusa conta anche con la presenza chiusa (D-07 Rev. 1)",
             "in": "query",
             "name": "presentata",
             "schema": {
@@ -1222,7 +1222,7 @@
             }
           },
           {
-            "description": "true: solo le domande SIGC (presenza aperta ASR2-08 o ASR2-20); false: le altre",
+            "description": "true: solo le domande SIGC (presenza aperta ASR2-08 o ASR2-20); false: le altre. Sulle righe dei pagamenti (TX-0059 e il suo export) vale la regola dei pagamenti: per una domanda chiusa conta anche la presenza chiusa (D-07 Rev. 1)",
             "in": "query",
             "name": "sigc",
             "schema": {
@@ -1255,7 +1255,7 @@
             }
           },
           {
-            "description": "Stato domanda area programmazione (ripetibile): valori di TX-0060, le voci di TX-0025 (es. DECADENZA_TOTALE: il codice della voce e gli stati PROSA censiti che abbina), oppure SENZA_STATO",
+            "description": "Stato domanda area programmazione (ripetibile): i codici letterali di TX-0060 (un codice vale solo se stesso), oppure SENZA_STATO per le domande senza stato. In OR con voceProgrammazione",
             "in": "query",
             "name": "statoProgrammazione",
             "schema": {
@@ -1291,6 +1291,17 @@
             "description": "Tipo di domanda (ripetibile): SOSTEGNO, PAGAMENTO",
             "in": "query",
             "name": "tipo",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Chiave del report TX-0025 (ripetibile): una voce del catalogo degli stati area programmazione (es. DECADENZA_TOTALE: il codice della voce e gli stati PROSA censiti che abbina), il codice di uno stato osservato fuori catalogo, oppure SENZA_STATO; le domande che il report conta per quella chiave. In OR con statoProgrammazione",
+            "in": "query",
+            "name": "voceProgrammazione",
             "schema": {
               "items": {
                 "type": "string"
@@ -1560,7 +1571,7 @@
             }
           },
           {
-            "description": "true: solo le domande presentate (di sostegno oppure SIGC, come TX-0008/TX-0009); il valore false non e' ammesso (400)",
+            "description": "true: solo le domande presentate (di sostegno oppure SIGC, come TX-0008/TX-0009); il valore false non e' ammesso (400). Sulle righe dei pagamenti (TX-0059 e il suo export) vale la regola dei pagamenti: una domanda SIGC chiusa conta anche con la presenza chiusa (D-07 Rev. 1)",
             "in": "query",
             "name": "presentata",
             "schema": {
@@ -1604,7 +1615,7 @@
             }
           },
           {
-            "description": "true: solo le domande SIGC (presenza aperta ASR2-08 o ASR2-20); false: le altre",
+            "description": "true: solo le domande SIGC (presenza aperta ASR2-08 o ASR2-20); false: le altre. Sulle righe dei pagamenti (TX-0059 e il suo export) vale la regola dei pagamenti: per una domanda chiusa conta anche la presenza chiusa (D-07 Rev. 1)",
             "in": "query",
             "name": "sigc",
             "schema": {
@@ -1637,7 +1648,7 @@
             }
           },
           {
-            "description": "Stato domanda area programmazione (ripetibile): valori di TX-0060, le voci di TX-0025 (es. DECADENZA_TOTALE: il codice della voce e gli stati PROSA censiti che abbina), oppure SENZA_STATO",
+            "description": "Stato domanda area programmazione (ripetibile): i codici letterali di TX-0060 (un codice vale solo se stesso), oppure SENZA_STATO per le domande senza stato. In OR con voceProgrammazione",
             "in": "query",
             "name": "statoProgrammazione",
             "schema": {
@@ -1673,6 +1684,17 @@
             "description": "Tipo di domanda (ripetibile): SOSTEGNO, PAGAMENTO",
             "in": "query",
             "name": "tipo",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Chiave del report TX-0025 (ripetibile): una voce del catalogo degli stati area programmazione (es. DECADENZA_TOTALE: il codice della voce e gli stati PROSA censiti che abbina), il codice di uno stato osservato fuori catalogo, oppure SENZA_STATO; le domande che il report conta per quella chiave. In OR con statoProgrammazione",
+            "in": "query",
+            "name": "voceProgrammazione",
             "schema": {
               "items": {
                 "type": "string"
@@ -1964,7 +1986,7 @@
             }
           },
           {
-            "description": "true: solo le domande presentate (di sostegno oppure SIGC, come TX-0008/TX-0009); il valore false non e' ammesso (400)",
+            "description": "true: solo le domande presentate (di sostegno oppure SIGC, come TX-0008/TX-0009); il valore false non e' ammesso (400). Sulle righe dei pagamenti (TX-0059 e il suo export) vale la regola dei pagamenti: una domanda SIGC chiusa conta anche con la presenza chiusa (D-07 Rev. 1)",
             "in": "query",
             "name": "presentata",
             "schema": {
@@ -2008,7 +2030,7 @@
             }
           },
           {
-            "description": "true: solo le domande SIGC (presenza aperta ASR2-08 o ASR2-20); false: le altre",
+            "description": "true: solo le domande SIGC (presenza aperta ASR2-08 o ASR2-20); false: le altre. Sulle righe dei pagamenti (TX-0059 e il suo export) vale la regola dei pagamenti: per una domanda chiusa conta anche la presenza chiusa (D-07 Rev. 1)",
             "in": "query",
             "name": "sigc",
             "schema": {
@@ -2041,7 +2063,7 @@
             }
           },
           {
-            "description": "Stato domanda area programmazione (ripetibile): valori di TX-0060, le voci di TX-0025 (es. DECADENZA_TOTALE: il codice della voce e gli stati PROSA censiti che abbina), oppure SENZA_STATO",
+            "description": "Stato domanda area programmazione (ripetibile): i codici letterali di TX-0060 (un codice vale solo se stesso), oppure SENZA_STATO per le domande senza stato. In OR con voceProgrammazione",
             "in": "query",
             "name": "statoProgrammazione",
             "schema": {
@@ -2077,6 +2099,17 @@
             "description": "Tipo di domanda (ripetibile): SOSTEGNO, PAGAMENTO",
             "in": "query",
             "name": "tipo",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Chiave del report TX-0025 (ripetibile): una voce del catalogo degli stati area programmazione (es. DECADENZA_TOTALE: il codice della voce e gli stati PROSA censiti che abbina), il codice di uno stato osservato fuori catalogo, oppure SENZA_STATO; le domande che il report conta per quella chiave. In OR con statoProgrammazione",
+            "in": "query",
+            "name": "voceProgrammazione",
             "schema": {
               "items": {
                 "type": "string"
@@ -2634,7 +2667,7 @@
             }
           },
           {
-            "description": "true: solo le domande presentate (di sostegno oppure SIGC, come TX-0008/TX-0009); il valore false non e' ammesso (400)",
+            "description": "true: solo le domande presentate (di sostegno oppure SIGC, come TX-0008/TX-0009); il valore false non e' ammesso (400). Sulle righe dei pagamenti (TX-0059 e il suo export) vale la regola dei pagamenti: una domanda SIGC chiusa conta anche con la presenza chiusa (D-07 Rev. 1)",
             "in": "query",
             "name": "presentata",
             "schema": {
@@ -2678,7 +2711,7 @@
             }
           },
           {
-            "description": "true: solo le domande SIGC (presenza aperta ASR2-08 o ASR2-20); false: le altre",
+            "description": "true: solo le domande SIGC (presenza aperta ASR2-08 o ASR2-20); false: le altre. Sulle righe dei pagamenti (TX-0059 e il suo export) vale la regola dei pagamenti: per una domanda chiusa conta anche la presenza chiusa (D-07 Rev. 1)",
             "in": "query",
             "name": "sigc",
             "schema": {
@@ -2711,7 +2744,7 @@
             }
           },
           {
-            "description": "Stato domanda area programmazione (ripetibile): valori di TX-0060, le voci di TX-0025 (es. DECADENZA_TOTALE: il codice della voce e gli stati PROSA censiti che abbina), oppure SENZA_STATO",
+            "description": "Stato domanda area programmazione (ripetibile): i codici letterali di TX-0060 (un codice vale solo se stesso), oppure SENZA_STATO per le domande senza stato. In OR con voceProgrammazione",
             "in": "query",
             "name": "statoProgrammazione",
             "schema": {
@@ -2747,6 +2780,17 @@
             "description": "Tipo di domanda (ripetibile): SOSTEGNO, PAGAMENTO",
             "in": "query",
             "name": "tipo",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Chiave del report TX-0025 (ripetibile): una voce del catalogo degli stati area programmazione (es. DECADENZA_TOTALE: il codice della voce e gli stati PROSA censiti che abbina), il codice di uno stato osservato fuori catalogo, oppure SENZA_STATO; le domande che il report conta per quella chiave. In OR con statoProgrammazione",
+            "in": "query",
+            "name": "voceProgrammazione",
             "schema": {
               "items": {
                 "type": "string"
@@ -3060,7 +3104,7 @@
             }
           },
           {
-            "description": "true: solo le domande presentate (di sostegno oppure SIGC, come TX-0008/TX-0009); il valore false non e' ammesso (400)",
+            "description": "true: solo le domande presentate (di sostegno oppure SIGC, come TX-0008/TX-0009); il valore false non e' ammesso (400). Sulle righe dei pagamenti (TX-0059 e il suo export) vale la regola dei pagamenti: una domanda SIGC chiusa conta anche con la presenza chiusa (D-07 Rev. 1)",
             "in": "query",
             "name": "presentata",
             "schema": {
@@ -3104,7 +3148,7 @@
             }
           },
           {
-            "description": "true: solo le domande SIGC (presenza aperta ASR2-08 o ASR2-20); false: le altre",
+            "description": "true: solo le domande SIGC (presenza aperta ASR2-08 o ASR2-20); false: le altre. Sulle righe dei pagamenti (TX-0059 e il suo export) vale la regola dei pagamenti: per una domanda chiusa conta anche la presenza chiusa (D-07 Rev. 1)",
             "in": "query",
             "name": "sigc",
             "schema": {
@@ -3137,7 +3181,7 @@
             }
           },
           {
-            "description": "Stato domanda area programmazione (ripetibile): valori di TX-0060, le voci di TX-0025 (es. DECADENZA_TOTALE: il codice della voce e gli stati PROSA censiti che abbina), oppure SENZA_STATO",
+            "description": "Stato domanda area programmazione (ripetibile): i codici letterali di TX-0060 (un codice vale solo se stesso), oppure SENZA_STATO per le domande senza stato. In OR con voceProgrammazione",
             "in": "query",
             "name": "statoProgrammazione",
             "schema": {
@@ -3173,6 +3217,17 @@
             "description": "Tipo di domanda (ripetibile): SOSTEGNO, PAGAMENTO",
             "in": "query",
             "name": "tipo",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Chiave del report TX-0025 (ripetibile): una voce del catalogo degli stati area programmazione (es. DECADENZA_TOTALE: il codice della voce e gli stati PROSA censiti che abbina), il codice di uno stato osservato fuori catalogo, oppure SENZA_STATO; le domande che il report conta per quella chiave. In OR con statoProgrammazione",
+            "in": "query",
+            "name": "voceProgrammazione",
             "schema": {
               "items": {
                 "type": "string"
