@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "elenco-operativo",
-  "current_step": 8,
+  "current_step": 9,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -118,6 +118,26 @@
       "gates": {
         "tests_generated": "pass",
         "msw_fail_closed": "pass"
+      }
+    },
+    "step8-gate": {
+      "status": "done",
+      "completed_at": "2026-10-13T12:42:23Z",
+      "artifacts": [
+        "./plan/elenco-operativo/fe-gate-report.json"
+      ],
+      "gates": {
+        "lint": "pass",
+        "typecheck": "pass",
+        "test": "pass",
+        "a11y": "pass",
+        "build": "pass",
+        "fsd_import": "pass",
+        "orval_types": "pass",
+        "security": "pass",
+        "authz": "pass",
+        "wireframe_approved": "pass",
+        "req_coverage_ui": "pass"
       }
     }
   },
