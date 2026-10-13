@@ -11,7 +11,7 @@ import { formatNumber, importoBreve } from '../../../shared/lib';
 import { CardGrafico, Griglia, Kpi, PulsantiScarica, Sezione, TabellaRighe, VistaQuery } from '../../../shared/ui';
 import type { ClicGrafico, Colonna } from '../../../shared/ui';
 import { useDomandePerAnno, useImportiPerAnno, useTotaleDomande } from '../api';
-import type { DomandePerAnnoRiga, ImportiPerAnno, ImportiPerAnnoRiga } from '../api';
+import type { DomandePerAnno, DomandePerAnnoRiga, ImportiPerAnno, ImportiPerAnnoRiga } from '../api';
 import { datiDelReport } from './esportazioni';
 import { kpiImportiPerAnno } from '../lib/aggregati';
 import { ricercaDaFiltri } from '../lib/filtri';
@@ -130,59 +130,73 @@ function SceltaAnno({ id, anni, anno, onCambia }: { id: string; anni: string[]; 
   );
 }
 
-function DomandePerAnno({ filtri }: { filtri: Filtri }) {
+const SOTTOTITOLO_PER_ANNO = "Prima annualità, altre annualità e non classificate. Clic su un anno (o scelta sopra la tabella): la tabella mostra quell'anno.";
+const ELENCO_DALLE_CELLE = " Dalle celle della vista Tabella e della tabella di dettaglio si apre l'elenco operativo.";
+
+/** Il grafico (RF008) con la sua tabella equivalente: con il grant dell'elenco, "Apri nell'elenco" su ogni cella. */
+function CardDomandePerAnno({ d, filtri, link, onAnno }: { d: DomandePerAnno; filtri: Filtri; link: LinkDelReport; onAnno: (anno: string | null) => void }) {
+  const righe = d.righe ?? [];
+  const anni = righe.map((r) => annoDiRaccolta(r.annoRaccolta));
+  const conLink = link('elenco-anno-annualita', { presentata: true }) !== null;
+  return (
+    <CardGrafico
+      titolo={TITOLI.perAnno}
+      sottotitolo={SOTTOTITOLO_PER_ANNO + (conLink ? ELENCO_DALLE_CELLE : '')}
+      dati={graficoDomandePerAnno(righe)}
+      fonte={`Fonte: TX-0008 · Perimetro ${d.perimetro ?? 'non indicato'}`}
+      onClic={(p: ClicGrafico) => onAnno(p.name && anni.includes(p.name) ? p.name : null)}
+      scaricamenti={datiDelReport(TITOLI.perAnno, 'domandePerAnno', filtri)}
+      tabella={
+        // la tabella equivalente con "Apri nell'elenco" su ogni cella (wireframe domande, link:elenco-anno-annualita)
+        conLink ? <TabellaRighe caption="Domande per anno di raccolta" intestazione="Anno di raccolta" chiave={(r) => annoDiRaccolta(r.annoRaccolta)} colonne={colonneAnno(link)} righe={perAnno(righe)} /> : undefined
+      }
+    />
+  );
+}
+
+/** La tabella di dettaglio per anno, con la scelta dell'anno e i file (che contengono sempre tutti gli anni). */
+function DettaglioPerAnno({ d, filtri, link, anno, onAnno }: { d: DomandePerAnno; filtri: Filtri; link: LinkDelReport; anno: string | null; onAnno: (anno: string | null) => void }) {
+  const id = useId();
+  const anni = (d.righe ?? []).map((r) => annoDiRaccolta(r.annoRaccolta));
+  const righe = (d.righe ?? []).filter((r) => anno === null || annoDiRaccolta(r.annoRaccolta) === anno);
+  return (
+    <Sezione
+      titolo="Domande per anno: dettaglio"
+      strumenti={
+        <>
+          <SceltaAnno id={`${id}-anno`} anni={anni} anno={anno} onCambia={onAnno} />
+          <PulsantiScarica
+            oggetto={anno === null ? 'la tabella Domande per anno' : `la tabella Domande per anno (tutti gli anni, non solo il ${anno})`}
+            scaricamenti={datiDelReport('Domande per anno', 'domandePerAnno', filtri)}
+          />
+        </>
+      }
+    >
+      {/* il backend non filtra per anno: il file ha sempre tutti gli anni (review v3 X-04) */}
+      {anno !== null && <p className="ui-nota">{`I file CSV e XLSX contengono tutti gli anni di raccolta, non solo il ${anno}.`}</p>}
+      <TabellaRighe caption="Domande per anno di raccolta" intestazione="Anno di raccolta" chiave={(r) => annoDiRaccolta(r.annoRaccolta)} colonne={colonneAnno(link)} righe={righe} />
+      <NotaAnnualita />
+    </Sezione>
+  );
+}
+
+function DomandePerAnnoSezione({ filtri }: { filtri: Filtri }) {
   const stato = useDomandePerAnno(filtri);
   const link = useLinkElenco(filtri);
-  const conLink = link('elenco-anno-annualita', { presentata: true }) !== null;
-  const id = useId();
   // clic su un anno del grafico, o la scelta sopra la tabella: il dettaglio mostra solo quell'anno (wireframe domande).
   // L'anno sta nello state della history con i filtri: tornando indietro dall'elenco operativo si ritrova; con filtri
   // nuovi decade (una selezione nuova e' un dettaglio nuovo, N-01).
   const [annoSalvato, setAnno] = useStatoNellaHistory<string | null>('domandePerAnno', filtri);
-  const annoNellIndirizzo = annoSalvato ?? null;
   return (
     <VistaQuery stato={stato} eVuoto={(d) => (d.righe ?? []).length === 0} vuoto={VUOTO}>
       {(d) => {
+        // un anno che non c'e' piu' fra i dati vale "tutti gli anni"
         const anni = (d.righe ?? []).map((r) => annoDiRaccolta(r.annoRaccolta));
-        // un anno che non c'e' piu' fra i dati (filtri cambiati) vale "tutti gli anni"
-        const anno = annoNellIndirizzo !== null && anni.includes(annoNellIndirizzo) ? annoNellIndirizzo : null;
-        const righe = (d.righe ?? []).filter((r) => anno === null || annoDiRaccolta(r.annoRaccolta) === anno);
+        const anno = annoSalvato != null && anni.includes(annoSalvato) ? annoSalvato : null;
         return (
           <div>
-            <CardGrafico
-              titolo={TITOLI.perAnno}
-              sottotitolo={
-                "Prima annualità, altre annualità e non classificate. Clic su un anno (o scelta sopra la tabella): la tabella mostra quell'anno." +
-                (conLink ? " Dalle celle della vista Tabella e della tabella di dettaglio si apre l'elenco operativo." : '')
-              }
-              dati={graficoDomandePerAnno(d.righe ?? [])}
-              fonte={`Fonte: TX-0008 · Perimetro ${d.perimetro ?? 'non indicato'}`}
-              onClic={(p: ClicGrafico) => setAnno(p.name && anni.includes(p.name) ? p.name : null)}
-              scaricamenti={datiDelReport(TITOLI.perAnno, 'domandePerAnno', filtri)}
-              tabella={
-                // la tabella equivalente con "Apri nell'elenco" su ogni cella (wireframe domande, link:elenco-anno-annualita)
-                conLink ? (
-                  <TabellaRighe caption="Domande per anno di raccolta" intestazione="Anno di raccolta" chiave={(r) => annoDiRaccolta(r.annoRaccolta)} colonne={colonneAnno(link)} righe={perAnno(d.righe ?? [])} />
-                ) : undefined
-              }
-            />
-            <Sezione
-              titolo="Domande per anno: dettaglio"
-              strumenti={
-                <>
-                  <SceltaAnno id={`${id}-anno`} anni={anni} anno={anno} onCambia={setAnno} />
-                  <PulsantiScarica
-                    oggetto={anno === null ? 'la tabella Domande per anno' : `la tabella Domande per anno (tutti gli anni, non solo il ${anno})`}
-                    scaricamenti={datiDelReport('Domande per anno', 'domandePerAnno', filtri)}
-                  />
-                </>
-              }
-            >
-              {/* il backend non filtra per anno: il file ha sempre tutti gli anni (review v3 X-04) */}
-              {anno !== null && <p className="ui-nota">{`I file CSV e XLSX contengono tutti gli anni di raccolta, non solo il ${anno}.`}</p>}
-              <TabellaRighe caption="Domande per anno di raccolta" intestazione="Anno di raccolta" chiave={(r) => annoDiRaccolta(r.annoRaccolta)} colonne={colonneAnno(link)} righe={righe} />
-              <NotaAnnualita />
-            </Sezione>
+            <CardDomandePerAnno d={d} filtri={filtri} link={link} onAnno={setAnno} />
+            <DettaglioPerAnno d={d} filtri={filtri} link={link} anno={anno} onAnno={setAnno} />
           </div>
         );
       }}
@@ -275,7 +289,7 @@ export function DomandeReport({ filtri }: { filtri: Filtri }) {
       <Griglia>
         <ConGrant grant={GRANT.domandePerAnno} titolo={TITOLI.perAnno}>
           {/* una selezione nuova e' un dettaglio nuovo: l'anno scelto prima non resta (N-01) */}
-          <DomandePerAnno key={ricercaDaFiltri(filtri)} filtri={filtri} />
+          <DomandePerAnnoSezione key={ricercaDaFiltri(filtri)} filtri={filtri} />
         </ConGrant>
         <ConGrant grant={GRANT.importiPerAnno} titolo={TITOLI.importi}>
           <ImportiPerAnnoSezione filtri={filtri} />
