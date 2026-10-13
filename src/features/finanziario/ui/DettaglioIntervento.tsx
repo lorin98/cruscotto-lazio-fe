@@ -142,8 +142,8 @@ function CardDomandePerAnno({ d, filtri, da, vista, onVista }: { d: DomandePerAn
       tabella={
         conLink ? (
           <TabellaRighe
-            caption="Domande per anno di raccolta"
-            intestazione="Anno di raccolta"
+            caption={dati.tabella.caption}
+            intestazione={dati.tabella.colonne[0]}
             chiave={(r) => annoDiRaccolta(r.annoRaccolta)}
             colonne={colonneDomandePerAnno((r, annualita) => link('elenco-anno-intervento', { ...criteriAnnoAnnualita(r.annoRaccolta, annualita), intervento: da.codice }), ` dell'intervento ${da.codice}`)}
             righe={perAnno(d.righe ?? [])}

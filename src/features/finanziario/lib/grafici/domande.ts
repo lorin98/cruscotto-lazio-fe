@@ -53,7 +53,7 @@ export function graficoDomandePerAnno(righe: RigaDomandeAnno[]): DatiGrafico {
   const tabella = {
     caption: 'Domande per anno di raccolta',
     colonne: ['Anno di raccolta', ...ANNUALITA_DOMANDE.map((a) => a.nome), 'Totale'],
-    righe: ordinate.map((r, k) => [categorie[k], numeroOpzionale(r.primaAnnualita), numeroOpzionale(r.altreAnnualita), numeroOpzionale(r.nonClassificate), numeroOpzionale(r.totali)]),
+    righe: ordinate.map((r, k) => [categorie[k], ...ANNUALITA_DOMANDE.map((a) => numeroOpzionale(r[a.campo])), numeroOpzionale(r.totali)]),
   };
   if (ordinate.length === 0) return nonDisegnabile('nessuna domanda per anno di raccolta', tabella, []);
   const omessi: string[] = [];

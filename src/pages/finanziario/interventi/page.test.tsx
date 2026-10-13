@@ -8,6 +8,7 @@ import { expectNoA11yViolations } from '../../../shared/testing/axe';
 import { graficoDi, tabellaDi, trovaCard } from '../../../shared/testing/card-grafico';
 import { DOMANDE_PER_ANNO, FILTRI, IMPORTI_PER_ANNO, RIEPILOGO, SIGC_DOMANDE, SIGC_IMPORTI, SPESA } from '../../../features/finanziario/testing/fixture';
 import { renderPagina } from '../../../shared/testing/render-pagina';
+import { senzaLinkElenco } from '../../../features/finanziario/testing/tabelle';
 import { clicSu, clicSulDato } from '../../../shared/testing/grafico-finto';
 import Pagina from './page';
 
@@ -167,10 +168,8 @@ describe("RA003: drill-down dal dettaglio dell'intervento all'elenco operativo",
     const leggi = async () => {
       await userEvent.click(await screen.findByRole('tab', { name: 'Domande' }));
       const tabella = await tabellaDi(await trovaCard('Domande per anno di raccolta'));
-      const copia = tabella.cloneNode(true) as HTMLElement;
-      copia.querySelectorAll('a').forEach((a) => a.remove());
-      const testi = Array.from(copia.querySelectorAll('th, td')).map((c) => c.textContent?.trim());
-      return testi;
+      // si tolgono solo i link verso l'elenco operativo (review v4 iter3 H-05)
+      return [senzaLinkElenco(tabella.querySelector('caption')), ...Array.from(tabella.querySelectorAll('th, td')).map((c) => senzaLinkElenco(c)?.trim())];
     };
     servi();
     const conGrant = renderPagina(Pagina, PERCORSO, '/finanziario/interventi/SRA01');

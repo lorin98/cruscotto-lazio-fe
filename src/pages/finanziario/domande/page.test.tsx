@@ -7,6 +7,7 @@ import { expectNoA11yViolations } from '../../../shared/testing/axe';
 import { descrizioneDi, graficoDi, tabellaDi, trovaCard } from '../../../shared/testing/card-grafico';
 import { DOMANDE_PER_ANNO, IMPORTI_PER_ANNO, TOTALE_DOMANDE } from '../../../features/finanziario/testing/fixture';
 import { renderPagina } from '../../../shared/testing/render-pagina';
+import { senzaLinkElenco } from '../../../features/finanziario/testing/tabelle';
 import { clicSulDato } from '../../../shared/testing/grafico-finto';
 import Pagina from './page';
 
@@ -158,12 +159,11 @@ describe("RA003: drill-down dalla pagina domande all'elenco operativo", () => {
   it('vista Tabella di RF008 e RF010: con e senza il grant dell elenco stesse intestazioni e stessi testi di cella, link a parte', async () => {
     const leggi = async (titolo: string) => {
       const tabella = await tabellaDi(await trovaCard(titolo));
-      const copia = tabella.cloneNode(true) as HTMLElement;
-      copia.querySelectorAll('a').forEach((a) => a.remove());
+      // si tolgono solo i link verso l'elenco operativo (review v4 iter3 H-05): un'altra differenza fra i profili resta
       // la colonna del solo link (Elenco operativo) e' un'aggiunta, non un testo diverso
-      const intestazioni = Array.from(copia.querySelectorAll('thead th')).map((c) => c.textContent?.trim());
-      const celle = Array.from(copia.querySelectorAll('tbody tr')).map((r) => Array.from(r.querySelectorAll('th, td')).map((c) => c.textContent?.trim()));
-      return { caption: copia.querySelector('caption')?.textContent, intestazioni, celle };
+      const intestazioni = Array.from(tabella.querySelectorAll('thead th')).map((c) => senzaLinkElenco(c)?.trim());
+      const celle = Array.from(tabella.querySelectorAll('tbody tr')).map((r) => Array.from(r.querySelectorAll('th, td')).map((c) => senzaLinkElenco(c)?.trim()));
+      return { caption: senzaLinkElenco(tabella.querySelector('caption')), intestazioni, celle };
     };
     const senzaColonnaElenco = (t: Awaited<ReturnType<typeof leggi>>) => {
       const k = t.intestazioni.indexOf('Elenco operativo');
