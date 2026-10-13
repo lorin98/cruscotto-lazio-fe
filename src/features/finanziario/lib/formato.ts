@@ -1,5 +1,6 @@
 // formato.ts — resa PURA dei campi dei report del finanziario (zero React). Un dato assente non e' mai uno zero ne' una
 // cella vuota: e' "non disponibile" come per gli Importo (ValoreImporto), salvo dove la spec ne dice il motivo.
+import { ANNO_ASSENTE } from '../../../entities/domanda';
 import { NON_DISPONIBILE, formatEuro, formatNumber, formatPercentuale } from '../../../shared/lib';
 
 export { NON_DISPONIBILE };
@@ -27,7 +28,7 @@ export function percentualeOpzionale(v: number | null | undefined): string {
 
 /** Anno di raccolta: la campagna, altrimenti l'anno di rilascio della domanda di sostegno; null senza nessuno dei due (spec DomandePerAnno). */
 export function annoDiRaccolta(anno: number | null | undefined): string {
-  return anno == null ? 'senza anno di raccolta' : String(anno);
+  return anno == null ? ANNO_ASSENTE.esteso : String(anno);
 }
 
 /** Anno come testo (senza separatore delle migliaia), "non disponibile" se assente. */

@@ -1,6 +1,7 @@
 // filtri.ts — funzioni PURE della feature finanziario (zero React): filtri di RF001 nell'indirizzo della pagina, le loro
 // etichette e i chip, anni consultabili.
 // I filtri vivono nella query string (uiplan: la pagina dei filtri li applica, ogni report li legge e li mostra).
+import { MAX_VALORI_PARAMETRO, leggiRipetuti, scriviRipetuti } from '../../../shared/lib';
 
 export const CHIAVI_FILTRO = ['intervento', 'os', 'og', 'op', 'azione'] as const;
 export type ChiaveFiltro = (typeof CHIAVI_FILTRO)[number];
@@ -18,7 +19,7 @@ const FORMATI: Record<ChiaveFiltro, RegExp> = {
   op: /^OP[0-9A-Z-]{1,10}$/,
   azione: /^[0-9]{1,6}$/,
 };
-export const MAX_VALORI_FILTRO = 100;
+export const MAX_VALORI_FILTRO = MAX_VALORI_PARAMETRO;
 
 export function valoreFiltroValido(chiave: ChiaveFiltro, valore: string): boolean {
   return FORMATI[chiave].test(valore);
@@ -29,20 +30,15 @@ export function filtriDaRicerca(ricerca: string | URLSearchParams): Filtri {
   const p = typeof ricerca === 'string' ? new URLSearchParams(ricerca) : ricerca;
   const filtri: Filtri = {};
   for (const chiave of CHIAVI_FILTRO) {
-    const valori = p
-      .getAll(chiave)
-      .map((v) => v.trim())
-      .filter((v) => valoreFiltroValido(chiave, v));
-    if (valori.length > 0) filtri[chiave] = Array.from(new Set(valori)).slice(0, MAX_VALORI_FILTRO);
+    const valori = leggiRipetuti(p, chiave, (v) => valoreFiltroValido(chiave, v));
+    if (valori.length > 0) filtri[chiave] = valori;
   }
   return filtri;
 }
 
 /** Query string dei filtri (senza "?"), nel formato atteso dal backend: chiave ripetuta per ogni valore. */
 export function ricercaDaFiltri(filtri: Filtri): string {
-  const p = new URLSearchParams();
-  for (const chiave of CHIAVI_FILTRO) for (const v of filtri[chiave] ?? []) p.append(chiave, v);
-  return p.toString();
+  return scriviRipetuti(CHIAVI_FILTRO, (chiave) => filtri[chiave as ChiaveFiltro]);
 }
 
 /** Toglie il filtro per azione portante quando il backend dichiara che il legame non c'e' (OP-002). */

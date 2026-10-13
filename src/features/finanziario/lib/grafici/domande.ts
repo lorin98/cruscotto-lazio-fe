@@ -22,7 +22,9 @@ import { sommaSeCompleta, testoSenzaAmmesso } from '../aggregati';
 import type { RigaDomandeAnno, RigaImportiAnno } from '../dto';
 import { annoDiRaccolta, numeroOpzionale } from '../formato';
 import { assenzaImporto, cellaImporto, perAnno, valoreDi } from '../importi';
-import type { Annualita, DatoSegmentoAnno } from '../link-elenco';
+import { ETICHETTE_ANNUALITA } from '../../../../entities/domanda';
+import type { Annualita } from '../../../../entities/domanda';
+import type { DatoSegmentoAnno } from '../link-elenco';
 
 // ---------------------------------------------------------------- 1. domande per anno di raccolta
 
@@ -31,9 +33,9 @@ import type { Annualita, DatoSegmentoAnno } from '../link-elenco';
  * `codice` e' il valore del parametro annualita' dell'elenco operativo e va nel dato di ogni segmento (drill-down).
  */
 export const ANNUALITA_DOMANDE = [
-  { codice: 'PRIMA', nome: 'Prima annualità', campo: 'primaAnnualita' },
-  { codice: 'ALTRE', nome: 'Altre annualità', campo: 'altreAnnualita' },
-  { codice: 'NON_CLASSIFICATE', nome: 'Non classificate', campo: 'nonClassificate' },
+  { codice: 'PRIMA', nome: ETICHETTE_ANNUALITA.PRIMA, campo: 'primaAnnualita' },
+  { codice: 'ALTRE', nome: ETICHETTE_ANNUALITA.ALTRE, campo: 'altreAnnualita' },
+  { codice: 'NON_CLASSIFICATE', nome: ETICHETTE_ANNUALITA.NON_CLASSIFICATE, campo: 'nonClassificate' },
 ] as const satisfies readonly { codice: Annualita; nome: string; campo: string }[];
 
 /** Barre impilate delle domande per anno di raccolta (senza anno in coda): prima annualita', altre, non classificate. */

@@ -1,6 +1,7 @@
 // formato.ts — resa PURA dei campi dell'elenco operativo (zero React): importi col motivo dell'assenza (mai uno zero),
 // somme del sinottico con le domande senza importo, etichette dei codici del contratto, superfici e responsabile del
 // procedimento col loro motivo.
+import { ANNO_ASSENTE, ANNO_SENZA, ETICHETTE_ANNUALITA, ETICHETTE_ESITO_PAGAMENTO } from '../../../entities/domanda';
 import { descriviImporto } from '../../../entities/importo';
 import type { ImportoLike } from '../../../entities/importo';
 import { formatDate, formatEuro, formatNumber, formatPercentuale, plurale } from '../../../shared/lib';
@@ -48,17 +49,17 @@ export function etichettaEsito(esito: string | null | undefined, domandaCorrente
 /** Valori dei filtri codificati del contratto, con l'etichetta da mostrare. */
 export const ETICHETTE_VALORI: Partial<Record<string, Record<string, string>>> = {
   tipo: TIPI,
-  annualita: { PRIMA: 'Prima annualità', ALTRE: 'Altre annualità', NON_CLASSIFICATE: 'Non classificate' },
-  pagamento: { PAGATA: 'Pagate', DA_PAGARE: 'Da pagare', SENZA_IMPORTI: 'Senza importi' },
+  annualita: ETICHETTE_ANNUALITA,
+  pagamento: ETICHETTE_ESITO_PAGAMENTO,
   esito: { PAGATA: 'Pagata', ESCLUSA: 'Esclusa' },
-  anno: { SENZA: 'Senza anno' },
+  anno: { [ANNO_SENZA]: ANNO_ASSENTE.breve },
   stato: { SENZA_STATO: 'Senza stato SIAN' },
   statoProgrammazione: { SENZA_STATO: 'Senza stato area programmazione' },
 };
 
 /** Anno di raccolta, oppure "senza anno" (D-09 di finanziario: campagna, altrimenti anno di rilascio). */
 export function testoAnno(anno: number | null | undefined): string {
-  return anno == null ? 'senza anno' : String(anno);
+  return anno == null ? ANNO_ASSENTE.breve.toLowerCase() : String(anno);
 }
 
 /** Prima annualita': si', no (altre annualita'), oppure non classificata. */

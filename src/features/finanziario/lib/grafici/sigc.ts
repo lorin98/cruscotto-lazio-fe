@@ -4,6 +4,7 @@
 // Gli importi SIGC sono somme per domanda: NON_VALORIZZATO vuol dire che l'importo manca su tutte le domande della
 // selezione (D-09 del backend), quindi si rende come il dato assente nella fonte, non come un totale per intervento.
 import type { EChartsOption } from 'echarts';
+import { ETICHETTE_ESITO_PAGAMENTO } from '../../../../entities/domanda';
 import {
   COLORI,
   NON_CALCOLABILE,
@@ -39,9 +40,9 @@ import { assenzaImporto, cellaImporto, codiceDi, valoreDi } from '../importi';
 // `codice`: la voce nel contratto dei link verso l'elenco operativo (lib/link-elenco), nel dato di ogni barra.
 export const VOCI_DOMANDE_SIGC = [
   { codice: 'PRESENTATE', nome: 'Presentate', campo: 'presentate', etichetta: 'Presentate', colore: COLORI.scuro },
-  { codice: 'PAGATA', nome: 'Pagate', campo: 'pagate', etichetta: 'Pagate (importo pagato maggiore di zero)', colore: COLORI.positivo },
-  { codice: 'DA_PAGARE', nome: 'Da pagare', campo: 'daPagare', etichetta: 'Da pagare (ammesse con importo ancora da pagare, anche se pagate in parte)', colore: COLORI.attenzione },
-  { codice: 'SENZA_IMPORTI', nome: 'Senza importi', campo: 'senzaImporti', etichetta: 'Senza importi (non classificabili: campagne senza ASR2-20)', colore: COLORI.attenuato },
+  { codice: 'PAGATA', nome: ETICHETTE_ESITO_PAGAMENTO.PAGATA, campo: 'pagate', etichetta: 'Pagate (importo pagato maggiore di zero)', colore: COLORI.positivo },
+  { codice: 'DA_PAGARE', nome: ETICHETTE_ESITO_PAGAMENTO.DA_PAGARE, campo: 'daPagare', etichetta: 'Da pagare (ammesse con importo ancora da pagare, anche se pagate in parte)', colore: COLORI.attenzione },
+  { codice: 'SENZA_IMPORTI', nome: ETICHETTE_ESITO_PAGAMENTO.SENZA_IMPORTI, campo: 'senzaImporti', etichetta: 'Senza importi (non classificabili: campagne senza ASR2-20)', colore: COLORI.attenuato },
 ] as const;
 
 function quotaSulle(presentate: number | null) {

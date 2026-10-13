@@ -2,6 +2,7 @@
 // della pagina (url_params dello uiplan, D-02 del backend), pagina, dimensione e ordinamento lato server (D-04), i criteri
 // che passano da un elenco all'altro e quelli del sinottico e dell'esportazione.
 // Nel contratto ogni parametro e' testuale e ripetibile: i criteri hanno la stessa forma (Record<nome, string[]>).
+import { MAX_VALORI_PARAMETRO, leggiRipetuti, scriviRipetuti } from '../../../shared/lib';
 
 /** Filtri della domanda comuni ai due elenchi (i link "pagamenti di queste domande" e ritorno li portano tutti). */
 export const FILTRI_DOMANDA = [
@@ -73,8 +74,8 @@ const SINGOLI: ReadonlySet<NomeParametro> = new Set([
   'ordina',
 ]);
 
-/** Tetto dei valori ripetuti e della lunghezza di un valore (ParametriGrezzi del backend). */
-export const MAX_VALORI = 100;
+/** Tetto dei valori ripetuti (shared/lib, ParametriGrezzi del backend) e della lunghezza di un valore. */
+export const MAX_VALORI = MAX_VALORI_PARAMETRO;
 export const MAX_LUNGHEZZA = 255;
 /** Testo libero: da 3 a 100 caratteri (D-02); sotto i 3 non si manda (il backend risponderebbe 400). */
 export const TESTO_MIN = 3;
@@ -105,18 +106,16 @@ export function criteriDaRicerca(ricerca: string | URLSearchParams, elenco: Elen
   const p = typeof ricerca === 'string' ? new URLSearchParams(ricerca) : ricerca;
   const criteri: Criteri = {};
   for (const nome of PARAMETRI[elenco]) {
-    const valori = [...new Set(p.getAll(nome).map((v) => v.trim()).filter(valoreAccettabile))];
+    const valori = leggiRipetuti(p, nome, valoreAccettabile, SINGOLI.has(nome) ? 1 : MAX_VALORI);
     if (valori.length === 0) continue;
-    criteri[nome] = SINGOLI.has(nome) ? valori.slice(0, 1) : valori.slice(0, MAX_VALORI);
+    criteri[nome] = valori;
   }
   return criteri;
 }
 
 /** Query string dei criteri, nell'ordine del contratto (stabile: lo stesso insieme da' lo stesso indirizzo). */
 export function ricercaDaCriteri(criteri: Criteri, elenco: Elenco): string {
-  const p = new URLSearchParams();
-  for (const nome of PARAMETRI[elenco]) for (const v of criteri[nome] ?? []) p.append(nome, v);
-  const s = p.toString();
+  const s = scriviRipetuti(PARAMETRI[elenco], (nome) => criteri[nome as NomeParametro]);
   return s ? `?${s}` : '';
 }
 

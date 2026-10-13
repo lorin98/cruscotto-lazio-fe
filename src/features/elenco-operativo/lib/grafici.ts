@@ -2,6 +2,7 @@
 // (domande per stato SIAN, per intervento, per anno di raccolta: TX-0057) e la cascata dall'ammesso al pagato della scheda
 // (TX-0058). Il clic su una barra aggiunge il filtro corrispondente: la barra porta il valore del filtro come codice, e le
 // voci che il filtro non accetta (ALTRI, e SENZA_STATO come nel wireframe approvato) non hanno codice e restano a parte.
+import { ANNO_ASSENTE, ANNO_SENZA } from '../../../entities/domanda';
 import type { BarSeriesOption, EChartsOption } from 'echarts';
 import {
   COLORI,
@@ -47,7 +48,7 @@ const NON_FILTRABILI: Record<Ripartizione, ReadonlySet<string>> = {
 /** Nome della voce sul grafico e nella tabella: "SRA01", "Rilasciato", "2025", "senza anno", "altre voci (8)". */
 export function nomeVoce(r: Ripartizione, v: Voce): string {
   const chiave = v.chiave ?? '';
-  if (chiave === 'SENZA') return 'senza anno';
+  if (chiave === ANNO_SENZA) return ANNO_ASSENTE.breve.toLowerCase();
   if (chiave === 'SENZA_STATO') return 'senza stato SIAN';
   if (chiave === 'ALTRI') return v.descrizione ?? 'altre voci';
   if (r === 'perStato') return v.descrizione ?? chiave;

@@ -3,6 +3,7 @@
 // annunciato con role="status". Valori dei filtri da TX-0060, solo quelli del perimetro del chiamante. PannelloLaterale
 // (react-aria) da' focus trap, Esc e ritorno del focus; i controlli sono Bootstrap Italia (vedi controlli.tsx).
 import { useId } from 'react';
+import { ANNO_ASSENTE, ANNO_SENZA } from '../../../entities/domanda';
 import { ErroreVista, PannelloLaterale, VistaQuery } from '../../../shared/ui';
 import { useValoriFiltri } from '../api';
 import type { ValoriFiltriElenco } from '../api';
@@ -159,7 +160,7 @@ function Contenuto({ dati, criteri, elenco, applica }: PropsContenuto) {
       <GruppoProgramma {...scelta} />
       <GruppoDomanda {...scelta} aperto={elenco === 'domande'} />
       <Gruppo titolo={ETICHETTE_FILTRI.anno} scelti={scelta.conta('anno')}>
-        <Scelte etichetta={ETICHETTE_FILTRI.anno} opzioni={conSenza(daCodici(dati.anni), 'SENZA', 'Senza anno')} scelti={sel('anno')} onCambia={scelta.imposta('anno')} />
+        <Scelte etichetta={ETICHETTE_FILTRI.anno} opzioni={conSenza(daCodici(dati.anni), ANNO_SENZA, ANNO_ASSENTE.breve)} scelti={sel('anno')} onCambia={scelta.imposta('anno')} />
       </Gruppo>
       <GruppoStati {...scelta} />
       <GruppoTerritorio {...scelta} />

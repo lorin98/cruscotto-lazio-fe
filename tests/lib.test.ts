@@ -3,6 +3,7 @@ import { formatDataOra, formatDate, formatGiorno, formatNumber } from '../src/sh
 import { nomeFile } from '../src/shared/lib/nome-file';
 import { DICITURA_USO, aCapo, righeContesto, righeIntestazione } from '../src/shared/lib/intestazione';
 import { etichettaFlusso, menoRecente, testoUltimiDati } from '../src/shared/lib/aggiornamento';
+import { MAX_VALORI_PARAMETRO, leggiRipetuti, scriviRipetuti } from '../src/shared/lib/parametri-ripetuti';
 import { isOpenEnded, isSentinelDate, SENTINEL_DATE_MAX } from '../src/shared/lib/sentinel-dates';
 import { isEditable, makeRolePredicate } from '../src/shared/lib/predicates';
 import type { AuthStatus } from '../src/shared/api/auth/auth-status';
@@ -172,5 +173,20 @@ describe('ultimo dato sincronizzato (NFR-25 b, OP-FE-04)', () => {
     ).toBe('2026-03-02T09:15:00.123999Z');
     expect(menoRecente([{ flusso: 'DS-12', conclusoIl: 'ieri' }, { flusso: 'PROSA_DS04', conclusoIl: '2026-03-03T08:30:00Z' }])).toBe('2026-03-03T08:30:00Z');
     expect(menoRecente([{ flusso: 'DS-12', conclusoIl: 'ieri' }])).toBeUndefined();
+  });
+});
+
+describe('parametri ripetuti (unica regola di filtri, link e criteri, H-07 review v4)', () => {
+  it('lettura: valori ripuliti, validi, senza doppioni, al piu il tetto', () => {
+    const p = new URLSearchParams('a=1&a= 2 &a=1&a=x&b=9');
+    expect(leggiRipetuti(p, 'a', (v) => /^[0-9]+$/.test(v))).toEqual(['1', '2']);
+    expect(leggiRipetuti(p, 'a', undefined, 1)).toEqual(['1']);
+    const molti = new URLSearchParams(Array.from({ length: MAX_VALORI_PARAMETRO + 3 }, (_, i) => ['k', String(i)]));
+    expect(leggiRipetuti(molti, 'k')).toHaveLength(MAX_VALORI_PARAMETRO);
+  });
+  it('scrittura: chiavi nell ordine dato, chiave ripetuta per valore, senza doppioni, tetto per chiave, valori codificati', () => {
+    expect(scriviRipetuti(['b', 'a', 'b'], (k) => ({ a: ['1', '1', '2'], b: ['x&y=1'] })[k])).toBe('b=x%26y%3D1&a=1&a=2');
+    expect(scriviRipetuti(['a'], () => ['1', '2', '3'], () => 2)).toBe('a=1&a=2');
+    expect(scriviRipetuti(['a'], () => undefined)).toBe('');
   });
 });
