@@ -1,37 +1,103 @@
 [
   {
-    "id": "H-03",
+    "id": "V-01",
     "severity": "MINORE",
-    "file": "eslint.config.js:336",
-    "titolo": "Residuo di H-03 (PARZIALE): la regex sul testo dell'import blocca '..', '../index', '../api/' e '../..', ma da src/features/finanziario/lib/ passano con 0 errori '../../finanziario', '../../finanziario/index' e '../../finanziario/api' (e '../../../finanziario/api' da lib/grafici/): sono lo stesso barrel e gli stessi wrapper React Query, quindi la purezza di lib/ si aggira ancora con un import relativo.",
-    "fix": "Usare una regola sul file risolto invece della regex sul testo dell'import: in boundaries/dependencies, dopo le regole allow, aggiungere `{ from: { element: { type: 'features', fileInternalPath: 'lib/**' } }, disallow: { to: { element: { type: 'features', fileInternalPath: ['api/**', 'ui/**', 'index.{ts,tsx}'] } } } }`, e una regola analoga per entities.\nAggiungere le canary '../../finanziario' e '../../finanziario/api' in tests/eslint-regole.test.ts."
+    "file": "uiplan.json:1527",
+    "titolo": "OP-FE-06 e i flussi panoramica e riepilogo, riapprovati alle 18:01 del 13/10, dicono ancora che dopo un 401 il BFF riporta su / e che pagina e filtri si perdono; da bc02c20 (18:08) si torna al link con la query",
+    "evidenza": "uiplan.json:1527 ('il BFF riporta su / ... pagina, filtri, anno ed esercizio si perdono ... limite noto accettato'), panoramica.md:82 e riepilogo.md:58 contro main.tsx:15 (configuraRitornoDopoLogin), ritorno-login.ts:22-36 e bff-mutator.ts:29: Accedi e la sessione scaduta portano a /auth/login?ritorno=<percorso e query> per ogni route della route-table, comprese le nove del finanziario (tests/ritorno-login.test.tsx:53 su /finanziario/interventi/SRA01?scheda=sigc). Pagina, filtri, anno della riserva, esercizio SMP e scheda stanno nell'indirizzo e si ritrovano; si perdono solo le scelte nello state della history (anno della tabella delle domande DomandeReport.tsx:191, ricerca, ordine, pagina e vista del riepilogo RiepilogoReport.tsx:164 e :167, vista della card del dettaglio DettaglioIntervento.tsx:120), che il testo non nomina. b835b40 ha riapprovato per bc02c20 solo i flussi dell'elenco.",
+    "fix": "DECISIONE dell'utente (judge.json, decisioni_utente). In ogni caso riscrivere il detail di OP-FE-06 in uiplan.json (fuori dall'hash dei flussi): 'Parzialmente risolto il 13/10/2026 (bc02c20, D-11 Rev. 9): dopo il login si torna alla pagina con la query; restano fuori le scelte nello state della history (anno della tabella delle domande; ricerca, ordine, pagina e vista del riepilogo; vista della card del dettaglio)'.\n(a) Allineare panoramica.md:82 e riepilogo.md:58, nuovo hash, riapprovazione dei due flussi e gate step8; oppure (b) voce 'bc02c20: ritorno al link dopo il login' in deviations_reviewed di wireframe_panoramica e wireframe_riepilogo.",
+    "fonti": [
+      "lente-V V-01"
+    ]
+  },
+  {
+    "id": "H-01",
+    "severity": "MINORE",
+    "file": "src/pages/finanziario/riepilogo/page.test.tsx:277",
+    "titolo": "Il ritorno al riepilogo dal dettaglio (scelta X-04) e' provato solo senza navigazioni interne del dettaglio e senza cambiare l'ordine; il hook del kit non ha test",
+    "evidenza": "Lo stato del riepilogo sopravvive nel dettaglio solo grazie a `state` passato da useScheda (DettaglioIntervento.tsx:260) e allo spread di shared/ui/useStatoNellaHistory.ts:26, ma il test delle righe 277-307 apre il dettaglio e torna subito, e il titolo dichiara l'ordine che le righe 281-283 non cambiano mai. Nessun altro test combina lo stato del riepilogo con un cambio di scheda o di vista, quindi togliere `state` alla riga 260 o lo spread alla riga 26 lascia verdi i test, mentre il percorso tipico (scheda Domande, poi 'Torna al riepilogo') ripartirebbe da ordine, pagina e ricerca iniziali. Nessun test sotto tests/ prova il hook (firma diversa, `valido` rifiutato, conservazione delle altre chiavi).",
+    "fix": "riepilogo/page.test.tsx:277: ordinare per una colonna prima di aprire il dettaglio; nel dettaglio scegliere la scheda Domande e la vista Tabella di 'Domande per anno di raccolta' prima di 'Torna al riepilogo' e della briciola; ritrovato() controlla anche aria-sort.\ntests/shared-ui-kit.test.tsx: test del hook con createMemoryRouter e state { altra: 1, k: { firma: 'f', valore: 2 } }: 2 con firma 'f', undefined con firma 'g' o con un `valido` che lo rifiuta, `altra: 1` ancora presente dopo salva(3). Le due mutazioni devono far fallire i test.",
+    "fonti": [
+      "lente-H H-01"
+    ]
+  },
+  {
+    "id": "X-01",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/ui/RiepilogoReport.tsx:167",
+    "titolo": "Chi apre il dettaglio dalla vista Grafico del riepilogo torna sulla vista Tabella, mentre il commento promette il ritorno anche 'dal grafico'",
+    "evidenza": "La vista e' useState('tabella') (riga 167), fuori dallo state della history, e statoDelRiepilogo copia la sola chiave 'riepilogo' (ritornoAlRiepilogo.ts:11-14): con 'Torna al riepilogo', con la briciola e con l'Indietro la pagina riparte dalla Tabella e lo zoom del grafico e' perso. Il commento delle righe 157-158 dice 'aprendo il dettaglio (anteprima o grafico) lo stato del riepilogo viaggia con la navigazione: Torna al riepilogo lo riporta'. Stesso schema di V-05 dell'iterazione 2 (COSMETICO); nessun test parte dalla vista Grafico.",
+    "fix": "Vista in useStatoNellaHistory('vistaRiepilogo', filtri, v => v === 'tabella' || v === 'grafico') con lo stato locale inizializzato dal valore salvato e i due pulsanti che chiamano anche il salvataggio; statoDelRiepilogo copia anche 'vistaRiepilogo'; test con renderRiepilogoEDettaglio: Grafico, clic su una barra, 'Torna al riepilogo', 'Grafico' con aria-pressed true.\nIn alternativa correggere il commento delle righe 157-158 (si ritrova lo stato della tabella, non la vista).",
+    "fonti": [
+      "antagonista X-01"
+    ]
+  },
+  {
+    "id": "A-01",
+    "severity": "COSMETICO",
+    "file": "src/pages/finanziario/riepilogo/page.test.tsx:179",
+    "titolo": "Il 'Ctrl+clic' del test sul link nella riga e' un clic semplice: le API dirette di user-event non tengono premuto Ctrl fra una chiamata e l'altra",
+    "evidenza": "Righe 179-181: userEvent.keyboard('{Control>}'), userEvent.click(link), userEvent.keyboard('{/Control}'); in user-event 14.6.3 setupDirect crea un new System() a ogni chiamata diretta (dist/esm/setup/setup.js), quindi il clic arriva con ctrlKey falso. Nessun ramo resta scoperto: gestoriRigaApribile non legge i modificatori (rigaApribile.ts:18-20) e il ramo di daControlloInterno e' provato dal clic semplice e dall'Invio dello stesso test e da provaRigaApribile nel kit; il difetto e' il caso dichiarato nel titolo (riga 170) e non eseguito.",
+    "fix": "Al posto delle righe 179-181 `fireEvent.click(link, { ctrlKey: true })` (oppure una sola sessione `const user = userEvent.setup()` per keyboard e click); in alternativa togliere 'Ctrl+clic' dal titolo della riga 170.",
+    "fonti": [
+      "lente-A A-01",
+      "antagonista X-02"
+    ]
+  },
+  {
+    "id": "A-02",
+    "severity": "COSMETICO",
+    "file": "src/shared/ui/useStatoNellaHistory.ts:15",
+    "titolo": "Il hook del kit dichiara la convalida dello state della history ma `valido` e' facoltativo, e il commento cita come utente l'elenco operativo, che ne ha una copia a mano",
+    "evidenza": "Senza `valido` la riga 21 restituisce `grezzo as T` senza controllo, contro l'intestazione (righe 5-6) e il fix di H-05 dell'iterazione 2; oggi i tre chiamanti lo passano (RiepilogoReport.tsx:164, DomandeReport.tsx:191, DettaglioIntervento.tsx:120). Le righe 3-4 dicono che l'elenco lo usa 'per la vista per ambito, senza firma', ma ElencoDomande.tsx:65-71 (useVista) riscrive lettura e replace a mano. Il valore restituito segue la history asincrona: DomandeReport.tsx:193-198 aggiunge a mano lo stato locale `scelto`, useScheda (DettaglioIntervento.tsx:255-257) risolve lo stesso ritardo in un altro modo.",
+    "fix": "`valido` obbligatorio nella firma del kit (riga 15) e del wrapper (features/finanziario/ui/useStatoNellaHistory.ts:8); righe 3-4 del commento senza l'elenco operativo (oppure useVista sul hook del kit).\nFacoltativo: nel hook il valore appena salvato finche' la history non lo riflette (come useScheda), togliendo `scelto` da DomandeReport.tsx:193-198.",
+    "fonti": [
+      "lente-A A-02",
+      "lente-H H-03"
+    ]
+  },
+  {
+    "id": "H-02",
+    "severity": "COSMETICO",
+    "file": "src/shared/api/mutator/bff-mutator.ts:14",
+    "titolo": "Il mutator naviga all'URL di una funzione iniettata qualsiasi e il suo commento attribuisce a resolveLoginPath una convalida che non fa: la proprieta' anti open-redirect non e' piu' incapsulata in shared",
+    "evidenza": "Da bc02c20 onSessionExpired va a urlDelLogin() (riga 29), una `() => string` impostata da configuraLoginDaSessioneScaduta (righe 16-18); resolveLoginPath(ritorno) (shared/config/base-path.ts:15-17) codifica qualunque stringa e la convalida sta in percorsoDiRitorno (righe 31-44), composta solo in app/ritorno-login.ts:22-31. Il commento delle righe 27-28 ('la pagina corrente convalidata (resolveLoginPath)') descrive l'iniettore di oggi, non il mutator. Nessun effetto oggi: un solo iniettore, nessun input esterno, il BFF riconvalida (D-11 Rev. 9); CSRF e contextProjection non toccati.",
+    "fix": "configuraLoginDaSessioneScaduta riceve il ritorno (`() => string | null`, da ritornoDellaPagina) e il mutator compone lui `resolveLoginPath(ritorno())`; commento delle righe 27-28 riallineato.\nFacoltativo: tipo marcato `RitornoAmmesso` prodotto solo da percorsoDiRitorno e unico argomento accettato da resolveLoginPath.",
+    "fonti": [
+      "lente-H H-02"
+    ]
   },
   {
     "id": "H-04",
-    "severity": "MINORE",
-    "file": "eslint.config.js:32",
-    "titolo": "Residuo di H-04 (PARZIALE): `{ default as x }`, `import()` e `require` di axios ora scattano, ma `export { default as http } from 'axios'` e `export * as ax from 'axios'` passano con 0 errori, anche in shared/lib: un modulo che riesporta l'istanza di default la rende importabile ovunque con un nome locale, fuori dal mutator.",
-    "fix": "In ogni blocco aggiungere a no-restricted-imports `paths: [{ name: 'axios', importNames: ['default', 'Axios'] }]`: la regola copre import, export-from ed export *, come verificato con ESLint (1 errore per ogni forma, 0 per isAxiosError).\nIn alternativa aggiungere i selettori `ExportNamedDeclaration[source.value='axios'] > ExportSpecifier[local.name=/^(default|Axios)$/]` e `ExportAllDeclaration[source.value='axios']`.\nAggiungere alle canary le due forme e il require."
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/ui/DettaglioIntervento.tsx:145",
+    "titolo": "Residuo di V-06: nel dettaglio caption e prima intestazione della tabella con i link di 'Domande per anno' sono ancora letterali, e le celle della tabella generata non derivano da ANNUALITA_DOMANDE",
+    "evidenza": "Righe 145-146 'Domande per anno di raccolta' e 'Anno di raccolta' scritte a mano con `dati = graficoDomandePerAnno(...)` gia' in scope (riga 130), mentre DomandeReport.tsx:151 le prende da dati.tabella come chiedeva il fix di V-06. In lib/grafici/domande.ts:56 le celle elencano a mano i quattro campi, mentre intestazioni (riga 55) e colonne con i link (colonneAnno.tsx:13-16) derivano da ANNUALITA_DOMANDE. Oggi coincidono e i confronti con e senza grant (interventi/page.test.tsx:166, domande/page.test.tsx:158) lo verificano.",
+    "fix": "DettaglioIntervento.tsx:145-146: `caption={dati.tabella.caption} intestazione={dati.tabella.colonne[0]}`.\ndomande.ts:56: `[categorie[k], ...ANNUALITA_DOMANDE.map((a) => numeroOpzionale(r[a.campo])), numeroOpzionale(r.totali)]`.",
+    "fonti": [
+      "lente-H H-04"
+    ]
   },
   {
-    "id": "M-01",
-    "severity": "MINORE",
-    "file": "src/features/finanziario/lib/grafici/spesa.ts:185",
-    "titolo": "Con una dotazione negativa fuori dal grafico, etichetta e dettaglio della famiglia riportano la dotazione della famiglia, ma l'area del riquadro resta la somma delle sole foglie positive. Con SRA01 20 M€, SRA05 -15 M€ e SRB01 10 M€ il riquadro 'SRA 5,0 M€' è il doppio di 'SRB 10,0 M€', contiene 'SRA01 20,0 M€', e il dettaglio dice 'Famiglia SRA: 1 intervento, dotazione 5,0 M€' (CONV3/sonda-famiglie.test.ts); il test in finanziario-grafici.test.ts:384 fissa la frase contraddittoria.",
-    "fix": "In nodoFamiglia, quando `f.fuoriGrafico !== 0`, usare un dettaglio esplicito, ad esempio `Famiglia SRA: dotazione 5,0 M€; 1 intervento nel grafico, 20,0 M€; 1 fuori dal grafico (dotazione zero o negativa), -15,0 M€`, e l'etichetta `SRA\\n5,0 M€ (nel grafico 20,0 M€)`.\nAggiornare l'attesa di finanziario-grafici.test.ts:384 e aggiungere il caso con il negativo grande."
+    "id": "H-05",
+    "severity": "COSMETICO",
+    "file": "src/pages/finanziario/interventi/page.test.tsx:171",
+    "titolo": "Residuo di H-01: i confronti con e senza grant tolgono ancora tutti i link a mano invece di usare senzaLinkElenco",
+    "evidenza": "interventi/page.test.tsx:170-172 e il nuovo test di V-06 in domande/page.test.tsx:160-162 clonano la tabella e tolgono ogni <a>, mentre senzaLinkElenco (features/finanziario/testing/tabelle.ts:5-9) toglie solo i link verso /elenco-operativo, come chiedeva il fix di H-01 dell'iterazione 2. Togliere ogni link nasconderebbe una differenza in un altro link fra i due profili.",
+    "fix": "Nei due test i testi delle celle con `Array.from(tabella.querySelectorAll('th, td')).map((c) => senzaLinkElenco(c)?.trim())` e la caption con senzaLinkElenco, senza clonare e svuotare la tabella a mano.",
+    "fonti": [
+      "lente-H H-05"
+    ]
   },
   {
-    "id": "M-02",
-    "severity": "MINORE",
-    "file": "src/features/finanziario/lib/grafici/spesa.ts:161",
-    "titolo": "Le famiglie si costruiscono solo da perFamiglia: una famiglia con soli interventi a dotazione zero, negativa o assente non ha la riga 'Totale della famiglia' e resta fuori dalla descrizione. Con SRD01 a -5 M€ le famiglie sommano 20 M€ mentre il KPI della dotazione dice 15 M€; con SRD01 assente la descrizione afferma 'la famiglia con la dotazione maggiore è SRA (20,0 M€)' mentre il KPI dice 'Non calcolabile: manca per 1 intervento (SRD01)' (CONV3/sonda-famiglie.test.ts).",
-    "fix": "Costruire `famiglie` dall'unione delle chiavi di perFamiglia, fuoriPer e mancantiPer, con foglie vuote dove serve: la tabella dà a ogni famiglia la riga 'Totale della famiglia', e `parziali` e il confronto le considerano tutte.\nA serieFamiglie passare solo le famiglie che hanno foglie.\nTest: SRA01 20 M€ + SRD01 -5 M€ dà 'SRD | Totale della famiglia | -5.000.000,00 €'; SRA01 20 M€ + SRD01 assente dà 'dotazione non calcolabile per SRD (manca per SRD01)'."
-  },
-  {
-    "id": "M-03",
-    "severity": "MINORE",
-    "file": "eslint.config.js:336",
-    "titolo": "La nuova regex del barrel vale per ogni src/**/lib/**. Da src/shared/lib/grafici/ blocca quindi anche `import { formatEuro } from '..'` e `'../index'`, che puntano al barrel puro src/shared/lib/index.ts, con il messaggio 'niente barrel della feature (riesporta ui/ e api/)', lì falso (sonde --stdin, CONV3/eslint-h03-h04.txt).",
-    "fix": "Applicare la regex del barrel solo a `src/features/*/lib/**` e `src/entities/*/lib/**`, in un blocco che ripete gli altri pattern di no-restricted-imports, oppure eliminarla con la regola di boundaries proposta per il residuo di H-03.\nCanary in tests/eslint-regole.test.ts: da src/shared/lib/grafici/ l'import '..' non deve scattare."
+    "id": "V-02",
+    "severity": "COSMETICO",
+    "file": "wireframes/domande/domande.md:64",
+    "titolo": "Residuo di X-03: l'allineamento a destra dei link 'Apri nell'elenco' nelle celle numeriche e' nel residuo umano di panoramica e riepilogo, non in quello di domande e SIGC, che hanno gli stessi link",
+    "evidenza": "b11e770 ha aggiunto 'e loro allineamento a destra nelle celle numeriche' a panoramica.md:73 e riepilogo.md:54; domande.md:64 e sigc.md:66 hanno ancora la sola 'dimensione dei bersagli', ma le celle di Domande per anno (colonneAnno.tsx in TabellaRighe) e le voci SIGC (SigcReport.tsx:65-75 in TabellaVoci, td.ui-num) mettono il link sotto un numero spostato a destra da tema.css:198. Il CSS e' corretto: manca solo la verifica umana dichiarata.",
+    "fix": "Alla prossima riapprovazione dei flussi domande e sigc (anche nella stessa passata di V-01) aggiungere a domande.md:64 e sigc.md:66 'e loro allineamento a destra nelle celle numeriche'.",
+    "fonti": [
+      "lente-V V-02"
+    ]
   }
 ]

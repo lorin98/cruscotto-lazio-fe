@@ -1,0 +1,42 @@
+[
+  {
+    "id": "H-01",
+    "severity": "MINORE",
+    "file": "src/pages/finanziario/riepilogo/page.test.tsx:277",
+    "titolo": "Il ritorno al riepilogo dal dettaglio (X-04) regge solo se ogni navigazione replace del dettaglio conserva lo state: nessun test cambia scheda o vista prima di 'Torna al riepilogo', e il hook spostato nel kit non ha test",
+    "evidenza": "Lo stato del riepilogo viaggia nello state della voce di history del dettaglio (ritornoAlRiepilogo.ts:11-19) e sopravvive alle navigazioni interne del dettaglio solo grazie a `state` passato da useScheda (DettaglioIntervento.tsx:260) e allo spread `...posizione.state` di useStatoNellaHistory (shared/ui/useStatoNellaHistory.ts:26, usato per la vista di Domande per anno, DettaglioIntervento.tsx:120). Il test di X-04 (riepilogo/page.test.tsx:277-307) apre il dettaglio e torna subito, senza cambiare scheda ne' vista; i test del dettaglio (interventi/page.test.tsx:227-263) guardano scheda e vista ma mai lo stato del riepilogo. Prove di mutazione: togliere `state` alla riga 260 di DettaglioIntervento.tsx, oppure lo spread alla riga 26 del hook, lascia verdi tutti i test, mentre il percorso tipico (dettaglio, scheda Domande, 'Torna al riepilogo' o briciola) riparte da dotazione decrescente, prima pagina e ricerca vuota. Nessun test sotto tests/ nomina useStatoNellaHistory: firma diversa, predicato `valido` non soddisfatto e conservazione delle altre chiavi dello state non sono provati nel kit. Il titolo del test dichiara anche l'ordine, che il test non cambia mai (righe 282-284: solo ricerca e pagina).",
+    "fix": "In riepilogo/page.test.tsx:277: ordinare per una colonna prima di aprire il dettaglio; nel dettaglio, prima di 'Torna al riepilogo' e della briciola, scegliere la scheda Domande e la vista Tabella di 'Domande per anno di raccolta'; ritrovato() controlla anche aria-sort.\nIn tests/shared-ui-kit.test.tsx un test del hook con createMemoryRouter e initialEntries [{ pathname: '/p', state: { altra: 1, k: { firma: 'f', valore: 2 } } }]: valore 2 con firma 'f'; undefined con firma 'g' e con un `valido` che lo rifiuta; dopo salva(3) lo state ha ancora `altra: 1`.\nLe due mutazioni sopra devono far fallire i test."
+  },
+  {
+    "id": "H-02",
+    "severity": "COSMETICO",
+    "file": "src/shared/api/mutator/bff-mutator.ts:14",
+    "titolo": "Il mutator non garantisce piu' da se' il login 'solo base path + /auth/login': naviga all'URL di una funzione iniettata, e resolveLoginPath accetta un ritorno non convalidato",
+    "evidenza": "Fino a 1680b4c onSessionExpired faceva window.location.assign(resolveLoginPath()). Da bc02c20 naviga a urlDelLogin() (riga 29), una `() => string` qualsiasi impostata con configuraLoginDaSessioneScaduta (righe 16-18): il commento delle righe 27-28 ('SOLO base path noto + /auth/login ... (resolveLoginPath)') descrive cio' che fa l'iniettore di oggi (app/ritorno-login.ts:35-36), non il mutator. Allo stesso modo resolveLoginPath(ritorno) (shared/config/base-path.ts:15-17) codifica qualunque stringa: la convalida sta in percorsoDiRitorno (righe 31-44) e i due passi si compongono solo in app/ritorno-login.ts:22-31. Nessun effetto oggi (un solo iniettore, e il BFF riconvalida, base-path.ts:29), ma la proprieta' anti open-redirect dichiarata da shared non e' piu' incapsulata in shared.",
+    "fix": "Iniettare il ritorno, non l'URL: il mutator riceve `() => RitornoAmmesso | null` e compone lui `resolveLoginPath(ritorno())`; ritorno-login.ts passa `() => ritornoDellaPagina()`. RitornoAmmesso e' un tipo marcato (`string & { readonly __ritorno: true }`) che solo percorsoDiRitorno produce, ed e' l'unico argomento accettato da resolveLoginPath. Commento delle righe 27-28 riallineato."
+  },
+  {
+    "id": "H-03",
+    "severity": "COSMETICO",
+    "file": "src/shared/ui/useStatoNellaHistory.ts:3",
+    "titolo": "Il hook spostato nel kit dichiara un secondo consumatore che non c'e' (l'elenco ne ha una copia a mano) e lascia ai chiamanti la scelta 'subito visibile' di A-01",
+    "evidenza": "Il commento (righe 3-4) dice che l'elenco operativo usa il hook 'per la vista per ambito, senza firma', ma l'unico chiamante e' il wrapper del finanziario (features/finanziario/ui/useStatoNellaHistory.ts:4): ElencoDomande.tsx:65-71 (useVista) riscrive la stessa lettura dello state con un cast e lo stesso navigate replace con lo spread. Il hook restituisce il valore della history, che si aggiorna in una transizione: chi lo usa per un controllo aggiunge a mano uno stato locale (DomandeReport.tsx:192-198, `scelto`, fix di A-01), mentre useScheda risolve lo stesso ritardo con un'altra logica (DettaglioIntervento.tsx:255-257: valore in attesa finche' l'indirizzo non lo raggiunge).",
+    "fix": "Nel hook del kit restituire il valore appena salvato finche' la history non lo riflette (stato locale azzerato quando `valore` lo raggiunge, come useScheda) e togliere `scelto` da DomandeReport.tsx:193-198. useVista di ElencoDomande passa al hook del kit, oppure il commento delle righe 3-4 cita il solo finanziario."
+  },
+  {
+    "id": "H-04",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/ui/DettaglioIntervento.tsx:145",
+    "titolo": "Residuo di V-06: nel dettaglio caption e intestazione della tabella con i link di 'Domande per anno' sono ancora scritte a mano, e le celle della tabella generata non derivano da ANNUALITA_DOMANDE",
+    "evidenza": "La TabellaRighe del dettaglio ha caption 'Domande per anno di raccolta' e intestazione 'Anno di raccolta' letterali (righe 145-146), con `dati = graficoDomandePerAnno(...)` gia' in scope (riga 130), mentre DomandeReport.tsx:151 le prende da dati.tabella come chiedeva il fix. In lib/grafici/domande.ts:56 le righe della tabella equivalente elencano a mano primaAnnualita, altreAnnualita, nonClassificate e totali, mentre le intestazioni (riga 55) e le colonne con i link (colonneAnno.tsx:13-16) derivano da ANNUALITA_DOMANDE, dichiarata 'unica tabella' (righe 39-41): un'annualita' in piu' aggiungerebbe un'intestazione senza cella. Oggi coincidono e i test con e senza grant (interventi/page.test.tsx:166, domande/page.test.tsx:158) lo verificano.",
+    "fix": "DettaglioIntervento.tsx:145-146: `caption={dati.tabella.caption} intestazione={dati.tabella.colonne[0]}`.\ndomande.ts:56: `[categorie[k], ...ANNUALITA_DOMANDE.map((a) => numeroOpzionale(r[a.campo])), numeroOpzionale(r.totali)]`."
+  },
+  {
+    "id": "H-05",
+    "severity": "COSMETICO",
+    "file": "src/pages/finanziario/interventi/page.test.tsx:171",
+    "titolo": "Residuo di H-01: senzaLinkElenco resta inusato nei confronti con e senza grant; il nuovo test di V-06 toglie di nuovo tutti i link a mano",
+    "evidenza": "Il fix di H-01 chiedeva di usare l'helper in interventi/page.test.tsx:171, che toglie ancora `querySelectorAll('a')`; lo stesso codice e' stato aggiunto in domande/page.test.tsx:162. A differenza di senzaLinkElenco (features/finanziario/testing/tabelle.ts:5-9, solo i link verso /elenco-operativo), togliere ogni <a> nasconderebbe anche una differenza in un altro link fra il profilo con il grant e quello senza.",
+    "fix": "Nei due test i testi delle celle con `Array.from(tabella.querySelectorAll('th, td')).map((c) => senzaLinkElenco(c)?.trim())` (e la caption con senzaLinkElenco), senza clonare e svuotare la tabella a mano."
+  }
+]

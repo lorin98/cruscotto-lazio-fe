@@ -1,0 +1,18 @@
+[
+  {
+    "id": "A-01",
+    "severity": "MINORE",
+    "file": "src/pages/finanziario/riepilogo/page.test.tsx:179",
+    "titolo": "Residuo di X-01: il 'Ctrl+clic' del test sul link nella riga è un clic semplice, perché le API dirette di user-event non tengono il tasto premuto fra una chiamata e l'altra",
+    "evidenza": "Il test dichiara '(clic, Ctrl+clic, Invio)' (riga 170) e simula il Ctrl+clic con `await userEvent.keyboard('{Control>}'); await userEvent.click(link); await userEvent.keyboard('{/Control}')` (righe 179-181). Con user-event 14.6.3 ogni API diretta crea un proprio `new System()` (node_modules/@testing-library/user-event/dist/esm/setup/setup.js, setupDirect), a meno che non riceva keyboardState. Quindi il click della riga 180 arriva con ctrlKey=false ed è uguale a quello della riga 177: la parte 'Ctrl+clic' chiesta dal fix di X-01 non viene mai eseguita. In più il listener in cattura della riga 175 annulla ogni clic, quindi un errore che riguardi solo il Ctrl+clic non lo scoprirebbe nemmeno un Ctrl vero: per esempio una riga che ignora i clic dei link solo quando defaultPrevented è vero, mentre il Link di react-router non chiama preventDefault con Ctrl. Impatto oggi basso: gestoriRigaApribile (rigaApribile.ts:18-20) non guarda i modificatori, quindi clic e Ctrl+clic seguono lo stesso ramo, già provato dal clic semplice e dall'Invio. Il test però dichiara una copertura che non ha.",
+    "fix": "Nel test usare un'unica sessione: `const user = userEvent.setup(); await user.keyboard('{Control>}'); await user.click(link); await user.keyboard('{/Control}')`, oppure `fireEvent.click(link, { ctrlKey: true })`. Nel listener in cattura salvare `e.ctrlKey` e verificare che il secondo clic l'abbia vero. In alternativa togliere 'Ctrl+clic' dal titolo, perché non aggiunge un ramo."
+  },
+  {
+    "id": "A-02",
+    "severity": "COSMETICO",
+    "file": "src/shared/ui/useStatoNellaHistory.ts:15",
+    "titolo": "Il hook del kit dichiara la convalida dello state della history (H-05), ma il predicato `valido` è facoltativo; il commento cita come utente l'elenco operativo, che non lo usa",
+    "evidenza": "L'intestazione (righe 3-6) dice che lo state è `unknown` e che con `valido` un valore fuori forma vale come assente. Però `valido` è un parametro facoltativo (riga 15), e senza di esso la riga 21 restituisce `grezzo as T` senza alcun controllo: un nuovo chiamante del kit che lo dimentica legge lo state non convalidato. Oggi tutti i chiamanti del finanziario lo passano (RiepilogoReport.tsx:164 statoTabellaValido, DomandeReport.tsx:191 eAnnoSalvato, DettaglioIntervento.tsx:120 eVistaGrafico), quindi nessun difetto concreto. Il commento (righe 3-4) dice che 'l'elenco operativo [lo usa] per la vista per ambito, senza firma', ma l'elenco ha una sua copia, useVista (features/elenco-operativo/ui/ElencoDomande.tsx:65-71), e non importa il hook. Solo documentazione e irrobustimento.",
+    "fix": "Rendere `valido` obbligatorio nella firma del hook del kit e del wrapper del finanziario (ui/useStatoNellaHistory.ts:8), così il tipo impone la convalida di H-05. Correggere le righe 3-4 del commento, togliendo l'elenco operativo dagli utenti oppure facendo usare il hook anche a useVista."
+  }
+]

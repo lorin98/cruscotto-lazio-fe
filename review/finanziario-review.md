@@ -1,3 +1,22 @@
+# Review step9 v4 FULL (13/10/2026): PASS all'iterazione 3, score 87
+
+Perimetro: link di drill-down verso l'elenco operativo (D-2 di MIN-20261012), refresh sul pack 1.3.0, allineamento ai dati reali
+(a3e9579) e Home (e19d25f) mai rivisti prima, codice condiviso con l'elenco operativo.
+- Iterazione 1 (b19ac02): FAIL, 0 C, 2 M, 15 m, 5 c, score 20 (review/v4-iter1). Decisioni dell'utente: wireframe allineati
+  all'interfaccia e riapprovati; profili misti = OP-FE-09 (da chiedere ad ARSIAL); link nella vista Tabella delle card.
+- Iterazione 2 (1680b4c): FAIL, 0 C, 1 M, 8 m, 7 c, score 54 (review/v4-iter2). Decisioni: testi come costruito riapprovati;
+  "Torna al riepilogo" ritrova ordine e pagina.
+- Iterazione 3 (bb877d4): PASS, 0 C, 0 M, 2 m, 7 c, score 87 (review/v4-iter3). Residui da correggere dopo il verdetto:
+  - **V-01** (MINORE) OP-FE-06 e i flussi panoramica e riepilogo, riapprovati alle 18:01 del 13/10, dicono ancora che dopo un 401 il BFF riporta su / e che pagina e filtri si perdono; da bc02c20 (18:08) si torna al link con la query — `uiplan.json:1527`.
+  - **H-01** (MINORE) Il ritorno al riepilogo dal dettaglio (scelta X-04) e' provato solo senza navigazioni interne del dettaglio e senza cambiare l'ordine; il hook del kit non ha test — `src/pages/finanziario/riepilogo/page.test.tsx:277`.
+  - **X-01** (COSMETICO) Chi apre il dettaglio dalla vista Grafico del riepilogo torna sulla vista Tabella, mentre il commento promette il ritorno anche 'dal grafico' — `src/features/finanziario/ui/RiepilogoReport.tsx:167`.
+  - **A-01** (COSMETICO) Il 'Ctrl+clic' del test sul link nella riga e' un clic semplice: le API dirette di user-event non tengono premuto Ctrl fra una chiamata e l'altra — `src/pages/finanziario/riepilogo/page.test.tsx:179`.
+  - **A-02** (COSMETICO) Il hook del kit dichiara la convalida dello state della history ma `valido` e' facoltativo, e il commento cita come utente l'elenco operativo, che ne ha una copia a mano — `src/shared/ui/useStatoNellaHistory.ts:15`.
+  - **H-02** (COSMETICO) Il mutator naviga all'URL di una funzione iniettata qualsiasi e il suo commento attribuisce a resolveLoginPath una convalida che non fa: la proprieta' anti open-redirect non e' piu' incapsulata in shared — `src/shared/api/mutator/bff-mutator.ts:14`.
+  - **H-04** (COSMETICO) Residuo di V-06: nel dettaglio caption e prima intestazione della tabella con i link di 'Domande per anno' sono ancora letterali, e le celle della tabella generata non derivano da ANNUALITA_DOMANDE — `src/features/finanziario/ui/DettaglioIntervento.tsx:145`.
+  - **H-05** (COSMETICO) Residuo di H-01: i confronti con e senza grant tolgono ancora tutti i link a mano invece di usare senzaLinkElenco — `src/pages/finanziario/interventi/page.test.tsx:171`.
+  - **V-02** (COSMETICO) Residuo di X-03: l'allineamento a destra dei link 'Apri nell'elenco' nelle celle numeriche e' nel residuo umano di panoramica e riepilogo, non in quello di domande e SIGC, che hanno gli stessi link — `wireframes/domande/domande.md:64`.
+
 # Review step9 della feature finanziario (green-fe)
 
 ## Review v3: download ed export (PASS, score 85, 12/10/2026)
