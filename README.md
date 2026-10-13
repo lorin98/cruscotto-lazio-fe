@@ -78,11 +78,13 @@ aperta.
   file e' titolo e transazione (`stanziato-tx-0004.csv`), lo stesso per il PNG della card. Un file ha tutte le righe dei
   filtri della pagina: la ricerca nella tabella e l'anno scelto sopra la tabella delle domande non si applicano, e la
   pagina lo dice.
-- **Letture in coda.** Il backend ammette 2 letture dei report del finanziario in corso per utente (oltre: 503
-  CAPACITA_ESAURITA): il mutator mette in coda le GET verso `/api/finanziario/` oltre la seconda. Il mutator condiviso
-  non ha tetti predefiniti: li sceglie l'app per prefisso (`src/app/tetti-letture.ts`, configurati all'avvio da
-  `main.tsx`); le altre GET non vanno in coda. Le schede aperte si coordinano con la Web Locks API, cosi' il tetto vale
-  per l'utente e non per la scheda: una lettura prende il primo posto libero fra quelli del tetto. Ogni lettura in coda
+- **Letture in coda.** Il backend ammette 2 letture in corso per utente, contate insieme per i report del finanziario
+  e per l'elenco operativo: un solo tetto per utente (oltre: 503 CAPACITA_ESAURITA). Il mutator mette in coda le GET
+  verso `/api/finanziario/` e `/api/elenco-operativo/` oltre la seconda, con una coda e un insieme di lock condivisi
+  dalle due aree (gruppo `letture-limitate` di `src/app/tetti-letture.ts`). Il mutator condiviso non ha tetti
+  predefiniti: li sceglie l'app per prefisso (configurati all'avvio da `main.tsx`); le altre GET non vanno in coda. Le
+  schede aperte si coordinano con la Web Locks API, cosi' il tetto vale per l'utente e non per la scheda: una lettura
+  prende il primo posto libero fra quelli del tetto. Ogni lettura in coda
   ha un tempo di guardia dall'invio: senza risposta entro la guardia libera il posto e finisce con l'errore "Il server
   non risponde"; una lettura annullata tiene il posto finche' la risposta arriva (il backend la lavora comunque), al
   piu' fino alla guardia. I nuovi tentativi (solo i transitori, con `Retry-After`) sono la politica del QueryClient
@@ -226,16 +228,29 @@ caricare a parte con un import dinamico nel wrapper `Grafico`.
 ### Deploy: percorsi della SPA con separatori codificati
 
 Il contenitore serve `index.html` per i percorsi della SPA (fallback del router), ma NON per un percorso che contiene un
-separatore codificato, `%2F` o `%5C` (anche minuscoli, `%2f` e `%5c`): a quelli risponde 404, senza `index.html`. Una
-pagina come la scheda della domanda (`/elenco-operativo/domande/:tipo/:codiceABarre`) legge i parametri dal percorso:
+separatore codificato, `%2F` o `%5C`, o un `%` a sua volta codificato (`%25`: la doppia codifica, `%252F`), anche in
+minuscolo: a quelli risponde 404, senza `index.html`. Una pagina come la scheda della domanda
+(`/elenco-operativo/domande/:tipo/:codiceABarre`) legge i parametri dal percorso:
 `/elenco-operativo/domande/SOSTEGNO/..%2F..%2Fdomande%2Fcsv` decodificato diventa un percorso diverso da quello
-richiesto. La SPA non fa comunque letture con riferimenti che non sono un tipo del contratto e un codice di sole cifre
-(review v1 A-01, test in `src/pages/elenco-operativo/scheda-domanda.test.tsx`); il 404 del contenitore e' la seconda
-difesa, che non dipende dal codice della pagina. Un esempio per nginx, prima del `try_files` del fallback:
+richiesto, e il router porta a `/` anche la doppia codifica. La SPA non fa comunque letture con riferimenti che non sono
+un tipo del contratto e un codice di sole cifre (review v1 A-01 e v2 A-01, test in
+`src/pages/elenco-operativo/scheda-domanda.test.tsx`, anche con `%252F` e con un tipo costruito); il 404 del
+contenitore e' la seconda difesa, che non dipende dal codice della pagina.
+
+La regola guarda il SOLO percorso, mai la query (`$request_uri` comprende la query, da qui `^[^?]*`): i filtri
+dell'elenco stanno nella query e un valore con `/` vi arriva codificato `%2F` (URLSearchParams), da un link condiviso o
+al ricaricamento. Va SOLO nella location del fallback della SPA, prima del `try_files`: mai a livello di `server`, mai
+nelle location di `/auth` e `/api` (`/auth/login?ritorno=%2F...` deve passare). Un esempio per nginx:
 
 ```
-if ($request_uri ~* "%(2f|5c)") { return 404; }
+location / {
+    if ($request_uri ~* "^[^?]*%(2f|5c|25)") { return 404; }
+    try_files $uri /index.html;
+}
 ```
+
+Resta servito, per esempio, `/elenco-operativo/domande?testo=a%2Fb`; rispondono 404
+`/elenco-operativo/domande/SOSTEGNO/..%2F..%2Fdomande%2Fcsv` e `/elenco-operativo/domande/SOSTEGNO/..%252F..%252Fdomande%252Fcsv`.
 
 ### Convenzioni del codice e test
 
