@@ -3,7 +3,7 @@
 // tabella equivalente (sempre) e le voci omesse: un importo assente non diventa mai uno zero, si omette e si dichiara.
 // Deterministici: niente orologio ne' casualita'. Per il drill-down i dati per intervento portano il codice.
 export type * from '../dto';
-export { PAGAMENTI_LORDI, graficoAvanzamento, graficoContributo, graficoDotazionePagamenti, graficoFamiglie } from './spesa';
+export { PAGAMENTI_LORDI, PAGAMENTI_LORDI_BREVE, PAGATO_LORDO_SULLA_DOTAZIONE, graficoAvanzamento, graficoContributo, graficoDotazionePagamenti, graficoFamiglie } from './spesa';
 export type { RigaDotazionePagato } from './spesa';
 export { VOCI_DOMANDE_SIGC, graficoCascataSigc, graficoDomandeSigc, graficoSmp } from './sigc';
 export { ANNUALITA_DOMANDE, graficoDomandePerAnno, graficoImportiPerAnno } from './domande';

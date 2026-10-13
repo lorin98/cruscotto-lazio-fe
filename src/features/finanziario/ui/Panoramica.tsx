@@ -14,7 +14,7 @@ import type { SpesaPerIntervento } from '../api';
 import { kpiSpesa } from '../lib/aggregati';
 import type { Aggregato } from '../lib/aggregati';
 import type { Filtri } from '../lib/filtri';
-import { PAGAMENTI_LORDI, graficoAvanzamento, graficoCascataSigc, graficoDomandeSigc, graficoFamiglie } from '../lib/grafici';
+import { PAGAMENTI_LORDI, PAGATO_LORDO_SULLA_DOTAZIONE, graficoAvanzamento, graficoCascataSigc, graficoDomandeSigc, graficoFamiglie } from '../lib/grafici';
 import { GRANT, PERCORSI, conFiltri } from '../lib/report';
 import { ConGrant, NotaPerimetroMisto, PerimetroSezione, ScaricaKpi, diProgramma, erroreGiaMostrato, vuotoConPerimetro } from './comuni';
 import { useSelezioneSenzaDomandeSigc, useSelezioneSenzaInterventi } from './selezione';
@@ -41,7 +41,7 @@ function KpiSpesa({ d }: { d: SpesaPerIntervento }) {
       />
       <Kpi etichetta={PAGAMENTI_LORDI} icona="it-chart-line" tono="verde" valore={k.pagato.valore === null ? undefined : importoBreve(k.pagato.valore)} assente={assente(k.pagato)} />
       <Kpi
-        etichetta="Pagato lordo sulla dotazione"
+        etichetta={PAGATO_LORDO_SULLA_DOTAZIONE}
         icona="it-presentation"
         tono="blu"
         valore={k.quota.valore === null ? undefined : formatPercentuale(k.quota.valore)}

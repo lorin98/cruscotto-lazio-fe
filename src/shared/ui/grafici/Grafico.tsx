@@ -5,6 +5,7 @@ import type { EChartsOption } from 'echarts';
 import { firmaOpzioni, opzioniSicure } from '../../lib/grafici';
 import { creaGrafico } from './echarts';
 import type { IstanzaGrafico } from './echarts';
+import { movimentoRidotto } from '../animazione/NumeroAnimato';
 
 /** Parametro del clic su un elemento del grafico (sottoinsieme di quello di ECharts usato per il drill-down). */
 export interface ClicGrafico {
@@ -16,8 +17,6 @@ export interface ClicGrafico {
 }
 
 export type AltezzaGrafico = 'normale' | 'alto' | 'basso' | 'mini';
-
-const movimentoRidotto = () => typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 interface PropsGrafico {
   opzioni: EChartsOption;

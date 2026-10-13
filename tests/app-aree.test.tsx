@@ -91,6 +91,21 @@ describe('Home e menu dallo stesso catalogo', () => {
     expect(await within(cifre).findByText(formatNumber(1200))).toBeTruthy();
     expect(within(cifre).getByText('20 %')).toBeTruthy();
     expect(within(card).getByRole('link', { name: 'Entra in Finanziario' }).getAttribute('href')).toBe('/finanziario');
+    // pagamenti lordi, come nella panoramica (a3e9579: lordo e netto distinti)
+    expect(within(cifre).getByText('Pagamenti totali (lordi)')).toBeTruthy();
+    expect(within(cifre).getByText('Pagato lordo sulla dotazione')).toBeTruthy();
+  });
+
+  it("con il perimetro ADA pagamenti e domande sono dell'area e al posto della quota c'e' il suo motivo", async () => {
+    server.use(rispondi('/api/finanziario/spesa-per-intervento', { ...F.SPESA, perimetro: 'ADA' }), rispondi('/api/finanziario/totale-domande', { ...F.TOTALE_DOMANDE, perimetro: 'ADA' }));
+    apriHomeCon(['csr.tx-0002.read', 'csr.tx-0009.read']);
+    const card = await screen.findByRole('region', { name: 'Finanziario' });
+    const cifre = await within(card).findByRole('group', { name: 'Il finanziario in cifre' });
+    expect(await within(cifre).findByText('Pagamenti totali (lordi) della tua area')).toBeTruthy();
+    expect(await within(cifre).findByText('Domande presentate della tua area')).toBeTruthy();
+    expect(within(cifre).getByText('Dotazione (regionale)')).toBeTruthy();
+    expect(within(cifre).getByText("Pagato lordo sulla dotazione: Non confrontabile: dotazione regionale e pagamenti dell'area (perimetro ADA)")).toBeTruthy();
+    expect(within(cifre).queryByText('20 %')).toBeNull();
   });
 
   it('profilo senza pagine in nessuna area: la Home lo dice, il menu ha solo le aree future', async () => {

@@ -179,6 +179,8 @@ describe('Grafico: ciclo di vita del wrapper ECharts', () => {
 
   it('crea il grafico, passa le opzioni, rilancia il clic, lo dismette allo smontaggio', async () => {
     const clic = vi.fn();
+    // il browser dichiara di non chiedere meno movimento: il grafico si anima
+    vi.stubGlobal('matchMedia', (q: string) => ({ matches: false, media: q }));
     const { rerender, unmount } = render(<Grafico opzioni={{ series: [] }} onClic={clic} />);
     const [g] = graficiVivi();
     expect(g.opzioni).toHaveLength(1);
@@ -236,6 +238,12 @@ describe('Grafico: ciclo di vita del wrapper ECharts', () => {
     osserva(voce(g.el, 0, 320), {} as ResizeObserver);
     osserva(voce(document.createElement('div'), 800, 320), {} as ResizeObserver);
     expect(g.ridimensionamenti).toBe(1);
+  });
+
+  it('senza matchMedia (il browser non sa dirlo) niente animazioni: la stessa regola dei numeri animati', () => {
+    vi.stubGlobal('matchMedia', undefined);
+    render(<Grafico opzioni={{ series: [] }} />);
+    expect(graficiVivi()[0].opzioni[0]).toMatchObject({ animation: false });
   });
 
   it('con prefers-reduced-motion niente animazioni', () => {

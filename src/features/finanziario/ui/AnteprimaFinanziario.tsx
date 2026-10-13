@@ -1,6 +1,7 @@
 // AnteprimaFinanziario — i numeri chiave del finanziario nella card dell'area della Home: dotazione e pagamenti totali
-// con la quota pagata (TX-0002) e domande presentate (TX-0009), senza filtri: sono le stesse letture in cache della
-// panoramica senza filtri. Ogni numero si legge solo con il grant della sua transazione (letture nei figli, R-09) e
+// (lordi) con la quota del pagato lordo sulla dotazione (TX-0002) e domande presentate (TX-0009), senza filtri: sono le
+// stesse letture in cache della panoramica senza filtri. Con il perimetro ADA pagamenti e domande sono dell'area del
+// profilo, accanto a una dotazione regionale: le etichette lo dicono e al posto della quota c'e' il suo motivo. Ogni numero si legge solo con il grant della sua transazione (letture nei figli, R-09) e
 // segue le regole dei KPI (lib/aggregati: mai somme parziali, un'assenza dice il suo motivo). Un errore non ferma la
 // Home: la card resta l'ingresso all'area e dice che il numero non e' disponibile.
 import type { ReactNode } from 'react';
@@ -10,10 +11,15 @@ import { NumeroAnimato } from '../../../shared/ui';
 import { useSpesaPerIntervento, useTotaleDomande } from '../api';
 import { kpiSpesa } from '../lib/aggregati';
 import type { Aggregato } from '../lib/aggregati';
-import { etichettaDiProgramma } from '../lib/perimetro';
+import { PAGAMENTI_LORDI_BREVE, PAGATO_LORDO_SULLA_DOTAZIONE } from '../lib/grafici';
+import { PERIMETRO_ADA, etichettaDiProgramma } from '../lib/perimetro';
 import { GRANT } from '../lib/report';
 
 const NON_DISPONIBILE = 'non disponibile';
+const DELLA_TUA_AREA = ' della tua area';
+
+/** Etichetta di una misura per domanda: con il perimetro ADA e' dell'area del profilo. */
+const dellArea = (etichetta: string, perimetro: string | null | undefined) => (perimetro === PERIMETRO_ADA ? `${etichetta}${DELLA_TUA_AREA}` : etichetta);
 
 function Numero({ etichetta, children, nota }: { etichetta: string; children: ReactNode; nota?: string }) {
   return (
@@ -39,7 +45,7 @@ function Avanzamento({ quota }: { quota: number }) {
   return (
     <div className="ui-ambito__avanzamento">
       <p>
-        <span>Pagato sulla dotazione</span>
+        <span>{PAGATO_LORDO_SULLA_DOTAZIONE}</span>
         <b>{formatPercentuale(quota)}</b>
       </p>
       <div className="ui-barra ui-barra--entra" aria-hidden="true">
@@ -58,9 +64,9 @@ function Spesa() {
     <>
       <dl className="ui-ambito__numeri">
         <Importo etichetta={etichettaDiProgramma('Dotazione', data.perimetro)} a={k.dotazione} />
-        <Importo etichetta="Pagamenti totali" a={k.pagato} />
+        <Importo etichetta={dellArea(PAGAMENTI_LORDI_BREVE, data.perimetro)} a={k.pagato} />
       </dl>
-      {k.quota.valore !== null && <Avanzamento quota={k.quota.valore} />}
+      {k.quota.valore !== null ? <Avanzamento quota={k.quota.valore} /> : k.quota.motivo && <p className="ui-ambito__nota">{`${PAGATO_LORDO_SULLA_DOTAZIONE}: ${k.quota.motivo}`}</p>}
     </>
   );
 }
@@ -70,7 +76,7 @@ function Domande() {
   if (isPending) return <div className="ui-skeleton ui-ambito__attesa" aria-hidden="true" />;
   return (
     <dl className="ui-ambito__numeri">
-      <Numero etichetta="Domande presentate" nota={isError || data?.presentate == null ? 'Conteggio non disponibile in questo momento.' : undefined}>
+      <Numero etichetta={dellArea('Domande presentate', data?.perimetro)} nota={isError || data?.presentate == null ? 'Conteggio non disponibile in questo momento.' : undefined}>
         {data?.presentate == null ? NON_DISPONIBILE : <NumeroAnimato valore={data.presentate} formato={(v) => formatNumber(Math.round(v))} />}
       </Numero>
     </dl>

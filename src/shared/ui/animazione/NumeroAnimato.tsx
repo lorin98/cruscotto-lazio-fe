@@ -5,7 +5,10 @@ import { useEffect, useRef, useState } from 'react';
 
 const DURATA_MS = 700;
 
-/** Vero se l'utente chiede meno movimento, o se il browser non sa dirlo: allora niente animazioni. */
+/**
+ * Vero se l'utente chiede meno movimento, o se il browser non sa dirlo: allora niente animazioni. Unica regola del kit
+ * (numeri animati e grafici): nel dubbio si sceglie il movimento ridotto, mai il contrario.
+ */
 export function movimentoRidotto(): boolean {
   return typeof window === 'undefined' || typeof window.matchMedia !== 'function' || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }

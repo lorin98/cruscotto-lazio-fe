@@ -35,6 +35,10 @@ import { PERIMETRO_ADA } from '../perimetro';
 export const MOTIVO_ADA_RAPPORTO = "perimetro ADA: la dotazione è regionale, i pagamenti sono dell'area: il rapporto non è confrontabile";
 /** I pagamenti totali di TX-0002 e TX-0005: lordi, dagli elenchi di liquidazione dei decreti (il netto e' di TX-0007 e TX-0011). */
 export const PAGAMENTI_LORDI = 'Pagamenti totali (lordi, elenchi di liquidazione)';
+/** Etichetta breve dei pagamenti totali (Home), sempre con "lordi" come nella panoramica. */
+export const PAGAMENTI_LORDI_BREVE = 'Pagamenti totali (lordi)';
+/** Quota del pagato lordo (TX-0002) sulla dotazione: KPI della panoramica e card della Home. */
+export const PAGATO_LORDO_SULLA_DOTAZIONE = 'Pagato lordo sulla dotazione';
 
 // ---------------------------------------------------------------- 1. avanzamento per intervento
 
