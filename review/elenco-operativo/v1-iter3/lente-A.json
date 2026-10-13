@@ -1,0 +1,18 @@
+[
+  {
+    "id": "A-01",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/interrogazione.tsx:31",
+    "titolo": "Vista e colonne restano a schermo ma spariscono dalla history dopo un link alla stessa pagina (menu 'Domande' o briciola 'Elenco operativo'): tornando dalla scheda l'elenco riparte dalla vista generale",
+    "evidenza": "useScelteElenco legge la history una volta sola, al montaggio (useState(() => salvate ?? {}), interrogazione.tsx:31), e dopo scrive soltanto. Un link alla pagina in cui si e' non rimonta ElencoDomande (stessa route) e non porta state: la briciola 'Elenco operativo' (testata.tsx:23, Link to=PERCORSO_DOMANDE) e la voce 'Domande' del menu (menu.tsx:30, NavLink) fanno una push senza state, oppure una replace con state undefined se l'indirizzo e' lo stesso (react-router 8.3.0, lib/dom/lib.js:628). La tabella resta 'vista fisico' con le colonne scelte (stato locale), ma la voce di history non ha piu' la chiave 'elenco': LinkScheda la rilegge da li' (statoDiRitorno(state), anteprime.tsx:29-30), quindi riga -> 'Apri il dettaglio' -> 'Torna all'elenco' riapre la vista generale con le colonne di partenza, contro la decisione dell'utente (vista e colonne conservate al ritorno dalla scheda, X-04 iter1 e V-03 iter2). Lo stesso per le colonne di ElencoPagamenti (stesso hook). Nessun test naviga sulla stessa route prima di aprire la scheda (scheda-domanda.test.tsx:190-212 parte sempre da una pagina appena montata).",
+    "fix": "In useScelteElenco tenere la scelta locale solo finche' la history non l'ha (come useInScrittura di useCriteri): scelte = inScrittura ?? salvate ?? {}, con inScrittura azzerata quando cambia il valore salvato della voce corrente; cosi' un link senza state apre la vista generale (come un link condiviso, OP-EO-02) e schermo e history non divergono. In alternativa, a ogni cambio di location.key senza valore salvato, riscrivere nella history la scelta mostrata. Test L2: 'Vista: fisico' -> clic sulla briciola 'Elenco operativo' -> riga -> 'Apri il dettaglio' -> 'Torna all'elenco': la vista e' quella mostrata prima di lasciare l'elenco."
+  },
+  {
+    "id": "A-02",
+    "severity": "COSMETICO",
+    "file": "src/features/elenco-operativo/ui/ElencoDomande.tsx:96",
+    "titolo": "'Filtro aggiunto' annunciato di nuovo per un valore gia' nel filtro: il fix di X-03 tiene il focus proprio su quel comando, che non cambia nulla",
+    "evidenza": "filtra (ElencoDomande.tsx:93-97) incrementa n e riscrive l'annuncio a ogni clic; conValore toglie il doppione (criteri.ts:176-178) e vai non naviga con la stessa ricerca (useCriteri.ts:59). Dopo 'Filtra per stato SIAN senza stato SIAN' la riga della voce resta e il focus resta sul suo bottone (SinotticoDomande.tsx:94, provato da interrogazione-comandi.test.tsx:344-361): un secondo Invio fa dire di nuovo al lettore di schermo 'Filtro aggiunto: Stato SIAN Senza stato SIAN.' senza alcun filtro aggiunto (lo stesso per il clic sulla barra gia' filtrata).",
+    "fix": "In filtra, se il valore e' gia' in i.criteriVisti[nome] non applicare e non annunciare 'Filtro aggiunto' (oppure annunciare 'Filtro gia' attivo'); assert nel test X-03 esistente: secondo clic sullo stesso bottone -> nessun nuovo 'Filtro aggiunto'."
+  }
+]

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "V-01",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/interrogazione.tsx:31",
+    "titolo": "Vista e colonne lette dalla history solo al montaggio: dopo un link alla stessa pagina (briciola 'Elenco operativo', menu 'Domande' o 'Pagamenti') o un Indietro fra due voci della stessa route, schermo e history divergono e la scheda riporta a una vista diversa da quella mostrata",
+    "evidenza": "useScelteElenco inizializza lo stato locale una volta sola (useState(() => salvate ?? {}), interrogazione.tsx:31) e poi scrive soltanto, mentre la stessa route non si rimonta (Outlet senza chiave, app/layout.tsx:118; Component stabile della route lazy, app/routes.tsx:31-45). La briciola 'Elenco operativo' (testata.tsx:23) e le voci del menu (app/menu.tsx:30) sono link senza state (push, oppure replace con state vuoto verso lo stesso indirizzo: react-router 8.3.0, dist/development/lib/dom/lib.js:628): la pagina mostra ancora 'Vista: fisico' e le colonne scelte, la voce di history non ha piu' la chiave 'elenco' e LinkScheda (anteprime.tsx:29-30) porta alla scheda lo state della voce, quindi 'Torna all'elenco', la briciola e l'avviso (SchedaDomanda.tsx:236-241) riaprono la vista generale con le colonne di partenza, contro la decisione dell'utente e il testo approvato (domande.md:32, pagamenti.md:27, domande.html:67); con Indietro fra due voci della stessa route lo schermo resta sulla scelta della voce lasciata. Regressione di de2184e (in bb877d4 useVista leggeva lo state a ogni render); per la stessa causa il test della seconda parte di H-01 dell'iterazione 2 (interrogazione-comandi.test.tsx:124-138) guarda solo lo schermo e resterebbe verde se vai (useCriteri.ts:56-63) tornasse a scrivere lo state vecchio.",
+    "fix": "In useScelteElenco le scelte locali valgono solo per la voce di history in cui sono state fatte ({ chiave: location.key, scelte }); su ogni altra voce scelte = salvate ?? {} (equivalente: stato locale azzerato quando cambia il valore salvato della voce corrente). Non usare la variante 'riscrivere la scelta mostrata nella voce senza valore': non copre Indietro e Avanti.\nTest L2: (1) 'Vista: fisico' e 'Liquidato', clic sulla briciola 'Elenco operativo' -> 'Vista: generale' premuta; (2) '?intervento=SRA01', 'Vista: fisico', briciola, 'Vista: procedurale', router.navigate(-1) -> 'Vista: fisico' premuta, poi anteprima, scheda, 'Torna all'elenco' -> tabella 'vista fisico'; (3) in interrogazione-comandi.test.tsx dopo avanza(300): expect(router.state.location.state).toMatchObject({ elenco: { valore: { vista: 'procedurale' } } }).",
+    "fonti": [
+      "lente-V V-01",
+      "lente-A A-01",
+      "antagonista X-01",
+      "lente-H H-01",
+      "antagonista X-02"
+    ]
+  },
+  {
+    "id": "V-02",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/ElencoDomande.tsx:189",
+    "titolo": "Un clic sulla vista gia' scelta azzera le colonne scelte",
+    "evidenza": "I bottoni delle viste chiamano onVista anche quando sono gia' premuti (ElencoDomande.tsx:40) e onVista scrive { vista: v } senza le nascoste (:189): RisultatiInterrogazione passa allora colonneNascoste(tabella.colonne) come colonne controllate (interrogazione.tsx:108), e la tabella, non rimontata (stessa key vista.id), torna alle colonne di partenza; la scelta azzerata va anche nella history. Il wireframe approvato fa ripartire dalle colonne di partenza solo 'una vista nuova' (domande.html:67, ripreso dal commento di ElencoDomande.tsx:188). Regressione di de2184e: in bb877d4 la tabella teneva le sue colonne.",
+    "fix": "onVista={(v) => { if (v !== vista.id) setScelte({ vista: v }); }}. Test L2: 'Colonne' -> 'Liquidato', clic su 'Vista: generale' gia' premuta -> la colonna 'Liquidato' resta.",
+    "fonti": [
+      "lente-V V-02"
+    ]
+  },
+  {
+    "id": "V-03",
+    "severity": "MINORE",
+    "file": "src/pages/elenco-operativo/scheda-domanda.test.tsx:191",
+    "titolo": "Il ritorno all'elenco dei pagamenti con le colonne scelte (decisioni V-01 e V-03 dell'iterazione 2) non ha un test di pagina",
+    "evidenza": "I test del ritorno aprono la scheda solo dall'elenco delle domande (scheda-domanda.test.tsx:172-212) e le colonne conservate sono provate solo su ElencoDomande (interrogazione-comandi.test.tsx:227-246); 'Apri la domanda' compare solo in test negativi (interrogazione.test.tsx:197, scheda-domanda.test.tsx:250) e ritornoAllElenco verso i pagamenti e' provato come funzione pura (tests/elenco-operativo-lib.test.ts:458). Restano senza prova la briciola 'Pagamenti' (SchedaDomanda.tsx:241), il cablaggio delle colonne di ElencoPagamenti (ElencoPagamenti.tsx:108 e :139) e l'arrivo che pagamenti.md:52 e dettaglio-domanda.md:42-45 promettono (link torna-all-elenco-dei-pagamenti dello uiplan): romperne uno lascia verdi i test.",
+    "fix": "In scheda-domanda.test.tsx (PaginaPagamenti e' gia' nel router di prova, :52) un L2: '/elenco-operativo/pagamenti?esito=PAGATA', 'Colonne' -> 'Protocollo', anteprima della riga D84-1, 'Apri la domanda', clic sulla briciola 'Pagamenti' (e in un secondo caso su 'Torna all'elenco') -> indirizzo '/elenco-operativo/pagamenti?esito=PAGATA' e colonna 'Protocollo' visibile.",
+    "fonti": [
+      "lente-V V-03"
+    ]
+  },
+  {
+    "id": "H-02",
+    "severity": "COSMETICO",
+    "file": "src/features/elenco-operativo/lib/collegamenti.ts:87",
+    "titolo": "La feature ricostruisce a mano l'involucro dello state del hook del kit ({ firma, valore }), che il kit non esporta",
+    "evidenza": "useStatoNellaHistory scrive e legge state[chiave] = { firma, valore } col tipo Salvato<T> non esportato (shared/ui/useStatoNellaHistory.ts:12-15, :20-23, :28); la feature ne ripete la forma (StatoElencoSalvato, collegamenti.ts:62-65) e statoDiRitorno rifa' la lettura e ricompone l'involucro per i link verso la scheda e di ritorno (collegamenti.ts:87-93, anteprime.tsx:30, SchedaDomanda.tsx:238). Nessun effetto oggi: un cambio dell'involucro nel kit non darebbe errori di tipo e lo vedrebbe solo il test L2 del ritorno (scheda-domanda.test.tsx:191).",
+    "fix": "Esportare dal kit, accanto al hook, il tipo dell'involucro e una lettura pura (per esempio statoSalvato(state, chiave, firma, valido)) usata anche dentro useStatoNellaHistory; statoDiRitorno e StatoRitorno la usano. Non bloccante: si puo' fare col prossimo intervento sul kit.",
+    "fonti": [
+      "lente-H H-02",
+      "antagonista X-03 (contestazione respinta)"
+    ]
+  },
+  {
+    "id": "A-02",
+    "severity": "COSMETICO",
+    "file": "src/features/elenco-operativo/ui/ElencoDomande.tsx:96",
+    "titolo": "'Filtro aggiunto' annunciato di nuovo per un valore gia' nel filtro, sul comando che dopo il fix di X-03 conserva il focus",
+    "evidenza": "filtra (ElencoDomande.tsx:93-97) incrementa n e riscrive l'annuncio a ogni clic, anche quando conValore non cambia il filtro (il doppione si toglie in conFiltro, criteri.ts:176) e vai non naviga (useCriteri.ts:59). Dopo 'Filtra per stato SIAN senza stato SIAN' la riga resta e il focus resta sul suo bottone (SinotticoDomande.tsx:89, provato da interrogazione-comandi.test.tsx:344-361): un secondo Invio fa dire di nuovo 'Filtro aggiunto: Stato SIAN Senza stato SIAN.' senza alcun filtro aggiunto (lo stesso per il clic su una barra gia' filtrata).",
+    "fix": "In filtra, se il valore e' gia' in i.criteriVisti[nome], non applicare e annunciare 'Filtro gia' attivo' (o nulla); nel test X-03 esistente un secondo clic sullo stesso bottone -> nessun nuovo 'Filtro aggiunto'.",
+    "fonti": [
+      "lente-A A-02"
+    ]
+  }
+]

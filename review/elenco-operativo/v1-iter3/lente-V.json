@@ -1,0 +1,26 @@
+[
+  {
+    "id": "V-01",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/interrogazione.tsx:31",
+    "titolo": "Vista e colonne scelte lette dalla history solo al montaggio: dopo la briciola 'Elenco operativo' o la voce del menu la pagina le mostra ancora, ma la scheda riporta alla vista generale con le colonne di partenza",
+    "evidenza": "useScelteElenco prende le scelte dallo state una volta sola (useState(() => salvate ?? {}), interrogazione.tsx:30-31) e poi non segue piu' la history. Una navigazione verso la stessa route non rimonta la pagina (Outlet senza chiave, app/layout.tsx:118; route lazy con lo stesso Component, app/routes.tsx:31-45) e porta uno state vuoto: la briciola 'Elenco operativo' della pagina delle domande (testata.tsx:23) e le voci 'Domande' e 'Pagamenti' del menu (app/menu.tsx:30) sono Link senza state, e verso lo stesso indirizzo react-router 8.3.0 fa replace (lib/dom/lib.js:628) cancellando anche la copia salvata. Risultato: filtri azzerati, 'Vista: fisico' e la colonna 'Liquidato' ancora a schermo, voce di history senza scelte; LinkScheda copia le scelte dallo state (anteprime.tsx:29-30), quindi 'Torna all'elenco', la briciola e l'avviso della scheda (SchedaDomanda.tsx:236-241) riportano alla vista generale con le colonne di partenza, contro 'Vista e colonne scelte restano tornando dalla scheda' (domande.md:32, pagamenti.md:27, domande.html:67). In bb877d4 useVista leggeva la vista dallo state a ogni render e la pagina restava coerente: regressione di de2184e. Nessun test naviga verso la stessa route.",
+    "fix": "In useScelteElenco tenere le scelte locali solo per la voce di history in cui sono state fatte ({ key: location.key, scelte }) e su ogni altra voce usare quelle salvate (salvate ?? {}): le navigazioni della pagina (filtri, salva) portano lo state e le ritrovano, un Link senza state riparte dalla vista generale come un link condiviso (OP-EO-02). Test L2: vista 'fisico' e 'Liquidato', clic sulla briciola 'Elenco operativo' -> 'Vista: generale' premuta; di nuovo 'fisico', anteprima, scheda, 'Torna all'elenco' -> tabella 'vista fisico'."
+  },
+  {
+    "id": "V-02",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/ElencoDomande.tsx:189",
+    "titolo": "Un clic sulla vista gia' scelta azzera le colonne scelte",
+    "evidenza": "I bottoni delle viste chiamano onVista anche quando sono gia' premuti (ElencoDomande.tsx:40) e onVista scrive { vista: v } senza le nascoste (:189): con 'Liquidato' mostrato, un clic su 'Vista: generale' gia' attiva riporta la tabella alle colonne di partenza (nascoste assenti -> colonneNascoste, interrogazione.tsx:108) e salva nella history la scelta azzerata. Il wireframe approvato fa ripartire dalle colonne di partenza solo 'una vista nuova' (domande.html:67, ripreso dal commento di ElencoDomande.tsx:188). In bb877d4 lo stesso clic lasciava montata la tabella (key = vista.id) con le sue colonne.",
+    "fix": "onVista={(v) => { if (v !== vista.id) setScelte({ vista: v }); }}. Test L2: 'Colonne' -> 'Liquidato', clic su 'Vista: generale' gia' premuta -> la colonna 'Liquidato' resta."
+  },
+  {
+    "id": "V-03",
+    "severity": "MINORE",
+    "file": "src/pages/elenco-operativo/scheda-domanda.test.tsx:191",
+    "titolo": "Il ritorno all'elenco dei pagamenti (link torna-all-elenco-dei-pagamenti, dichiarato in questa iterazione) e le colonne scelte dei pagamenti non hanno un test di pagina",
+    "evidenza": "I test delle decisioni V-01 e V-03 aprono la scheda solo dall'elenco delle domande: testata, briciola 'Domande' e avviso (scheda-domanda.test.tsx:172-212); le colonne che restano a tabella smontata solo su ElencoDomande (interrogazione-comandi.test.tsx:227-246); 'Apri la domanda' compare solo in test negativi (interrogazione.test.tsx:197, scheda-domanda.test.tsx:250) e ritornoAllElenco coi pagamenti e' provato come funzione pura (tests/elenco-operativo-lib.test.ts:458). Restano senza prova il ramo della briciola 'Pagamenti' (SchedaDomanda.tsx:241), il cablaggio delle scelte di ElencoPagamenti (ElencoPagamenti.tsx:108, :140) e l'arrivo che pagamenti.md:50-52 e dettaglio-domanda.md:40 promettono (uiplan.json:298).",
+    "fix": "In scheda-domanda.test.tsx (PaginaPagamenti e' gia' nel router di prova, :52) un L2: '/elenco-operativo/pagamenti?esito=PAGATA', 'Colonne' -> 'Protocollo', anteprima della riga, 'Apri la domanda', clic sulla briciola 'Pagamenti' (e, in un secondo caso, su 'Torna all'elenco' della testata) -> indirizzo '/elenco-operativo/pagamenti?esito=PAGATA' e colonna 'Protocollo' visibile."
+  }
+]

@@ -1,0 +1,18 @@
+[
+  {
+    "id": "H-01",
+    "severity": "MINORE",
+    "file": "src/pages/elenco-operativo/interrogazione-comandi.test.tsx:124",
+    "titolo": "Il test indicato per la seconda parte di H-01 (vai che usa indirizzo e state correnti) passa anche senza la correzione: dopo V-03 la vista visibile non dipende più dallo state della history",
+    "evidenza": "Il test fa clic su una barra, poi su 'Vista: procedurale', avanza di 300 ms e controlla solo l'indirizzo, aria-pressed e il nome della tabella (:124-138). Dopo V-03 la vista mostrata viene dallo stato locale di useScelteElenco (interrogazione.tsx:29-37, useState inizializzato al montaggio), mentre la correzione di H-01 riguarda la copia nella history: vai legge pathname e state da corrente.current (useCriteri.ts:51-62). Se vai tornasse a usare la posizione catturata quando parte il timer, la navigazione del debounce riscriverebbe lo state senza la chiave 'elenco'. La vista sullo schermo resterebbe 'procedurale' e il test passerebbe lo stesso. Il difetto si vedrebbe solo dopo, tornando dalla scheda: LinkScheda passa statoDiRitorno(state) (anteprime.tsx:29-30) e l'elenco si riaprirebbe nella vista generale. Nessun altro test unisce il debounce, il cambio di vista e il ritorno (scheda-domanda.test.tsx:191-212 cambia la vista senza un filtro in attesa).",
+    "fix": "Nel test, dopo avanza(300), aggiungere expect(router.state.location.state).toMatchObject({ elenco: { firma: 'elenco-operativo', valore: { vista: 'procedurale' } } }); in alternativa proseguire con anteprima, scheda e 'Torna all'elenco' e verificare la tabella 'vista procedurale'."
+  },
+  {
+    "id": "H-02",
+    "severity": "COSMETICO",
+    "file": "src/features/elenco-operativo/lib/collegamenti.ts:87",
+    "titolo": "La feature ricostruisce a mano il formato interno dello state del hook del kit ({ firma, valore }), che il kit non esporta",
+    "evidenza": "useStatoNellaHistory scrive e legge state[chiave] = { firma, valore } con l'interfaccia Salvato<T>, che il kit non esporta (useStatoNellaHistory.ts:12-15, :20-23, :28). La feature ne ripete la forma in StatoElencoSalvato (collegamenti.ts:62-65). statoDiRitorno rifà la stessa lettura (firma, poi valido) e ricompone l'involucro per il link verso la scheda e per il ritorno (collegamenti.ts:87-93, anteprime.tsx:30, SchedaDomanda.tsx:238). Il commento lo dichiara: 'nella forma di useStatoNellaHistory del kit' (:51). Un cambio dell'involucro nel kit non darebbe errori di tipo nella feature; lo segnalerebbe solo il test L2 del ritorno (scheda-domanda.test.tsx:191).",
+    "fix": "Esportare dal kit due funzioni pure accanto al hook, per esempio statoSalvato(state, chiave, firma, valido) e conStatoSalvato(chiave, firma, valore), da usare dentro useStatoNellaHistory e in statoDiRitorno (StatoRitorno diventa il loro tipo di ritorno). Così la forma dello state sta in un solo posto."
+  }
+]

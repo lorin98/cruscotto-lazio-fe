@@ -1,0 +1,26 @@
+[
+  {
+    "id": "X-01",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/interrogazione.tsx:31",
+    "titolo": "Doppione: V-01 (lente V) e A-01 (lente A) sono lo stesso difetto di useScelteElenco, da contare una volta sola. Il fix 'in alternativa' di A-01 va scartato: con Indietro/Avanti lo schermo e la history restano diversi",
+    "evidenza": "I due finding citano la stessa riga (useState(() => salvate ?? {}), interrogazione.tsx:31). Hanno gli stessi inneschi: la briciola 'Elenco operativo' (testata.tsx:23), la voce del menu (menu.tsx:30) e il replace di react-router 8.3.0 verso lo stesso indirizzo (dist/development/lib/dom/lib.js:628). Hanno anche la stessa conseguenza (LinkScheda copia le scelte da location.state, anteprime.tsx:29-30), lo stesso test mancante e due fix equivalenti. Contati due volte gonfiano i MINORE, come H-05/V-02 nell'iterazione 2 (X-07). Nessuna delle due lenti cita un terzo innesco: Indietro/Avanti fra due voci della stessa route, cioe' proprio le voci che quei link creano con una push (da '?intervento=SRA01' a '/elenco-operativo/domande'). ElencoDomande non si rimonta, quindi lo schermo resta sulla scelta fatta nella voce B mentre la voce A raggiunta ne ha un'altra salvata. Il fix 'in alternativa' di A-01 riscrive la scelta mostrata solo quando la voce nuova non ha un valore salvato: qui la voce raggiunta ce l'ha, quel fix non fa nulla e la divergenza resta. Inoltre conserverebbe la vista dopo un link che azzera i filtri, mentre V-01 la riporta a quella generale come un link condiviso (OP-EO-02). Il fix di V-01 (scelte locali solo per la voce di history in cui sono nate, location.key) e quello principale di A-01 (stato locale azzerato quando cambia il valore salvato) coprono anche Indietro/Avanti. MINORE come V-02 dell'iterazione 2, stessa classe di difetto (ritorno alla vista generale).",
+    "fix": "Un solo finding (V-01, MINORE), col fix di V-01 o con quello principale di A-01; l'alternativa di A-01 va scartata. Al test L2 di V-01 aggiungere un caso con Indietro: '/elenco-operativo/domande?intervento=SRA01', 'Vista: fisico', clic sulla briciola 'Elenco operativo', 'Vista: procedurale', router.navigate(-1). L'indirizzo torna '?intervento=SRA01' con 'Vista: fisico' premuta; poi anteprima, scheda, 'Torna all'elenco' e la tabella e' 'vista fisico'."
+  },
+  {
+    "id": "X-02",
+    "severity": "COSMETICO",
+    "file": "src/pages/elenco-operativo/interrogazione-comandi.test.tsx:124",
+    "titolo": "Contestazione di H-01 (lente H): non e' un difetto a se', e' un effetto di V-01/A-01 e si chiude col loro fix. Va fuso in V-01, non contato a parte",
+    "evidenza": "Secondo H-01 il test (:124-138) passerebbe anche se vai (useCriteri.ts:56-62) scrivesse uno state vecchio, perche' la vista a schermo viene dallo stato locale di useScelteElenco e non dalla history. E' lo stesso difetto di V-01/A-01: lo schermo non segue la history (interrogazione.tsx:29-37). Con il fix di V-01, o con quello principale di A-01, dopo il commit la vista a schermo si legge da location.state. Se il timer scrivesse uno state senza la chiave 'elenco', dopo avanza(300) la pagina mostrerebbe 'Vista: generale', e le asserzioni gia' presenti (aria-pressed di 'Vista: procedurale', tabella 'vista procedurale', :136-137) fallirebbero. Il test torna quindi a provare cio' che dichiara senza un intervento separato. Contarlo a parte vuol dire contare due volte la stessa causa.",
+    "fix": "Fondere in V-01: nel test di V-01 (o in quello di :124) aggiungere l'asserzione proposta da H-01, router.state.location.state con elenco.valore.vista 'procedurale', come controllo in piu'. Nessuna correzione separata. Se il giudice lo tiene distinto, al piu' COSMETICO."
+  },
+  {
+    "id": "X-03",
+    "severity": "COSMETICO",
+    "file": "src/features/elenco-operativo/lib/collegamenti.ts:87",
+    "titolo": "Contestazione di H-02 (lente H): da non accettare all'ultima iterazione. Nessun effetto osservabile, e il rischio dichiarato e' gia' coperto dal test L2 che la lente stessa cita",
+    "evidenza": "H-02 non descrive un comportamento sbagliato: oggi la forma { firma, valore } scritta da useStatoNellaHistory (useStatoNellaHistory.ts:28) e quella letta da statoDiRitorno (collegamenti.ts:87-93) coincidono. Il rischio e' un cambio futuro dell'involucro nel kit. In quel caso statoDiRitorno renderebbe undefined, LinkScheda (anteprime.tsx:30) non porterebbe le scelte e il test di scheda-domanda.test.tsx:191-212 fallirebbe sulla tabella 'vista fisico' e sulla colonna 'Liquidato'. La lente lo riconosce. Il fix proposto aggiunge due funzioni esportate al kit e cambia useStatoNellaHistory, che e' anche del finanziario (appena chiuso alla v4 iter3): e' un costo, su codice condiviso e gia' approvato, senza effetto per l'utente. Il brief dell'iterazione chiede di segnalare solo cio' che ha un effetto osservabile o un costo reale.",
+    "fix": "Non accettare, oppure registrarlo come nota non bloccante per un intervento futuro sul kit. Il test L2 del ritorno resta il guardiano dell'involucro."
+  }
+]
