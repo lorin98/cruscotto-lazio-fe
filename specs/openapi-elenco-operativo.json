@@ -1299,7 +1299,7 @@
             }
           },
           {
-            "description": "Chiave del report TX-0025 (ripetibile): una voce del catalogo degli stati area programmazione (es. DECADENZA_TOTALE: il codice della voce e gli stati PROSA censiti che abbina), il codice di uno stato osservato fuori catalogo, oppure SENZA_STATO; le domande che il report conta per quella chiave. In OR con statoProgrammazione",
+            "description": "Chiave di TX-0025, i valori del filtro per stato domanda area programmazione dei report procedurali (ripetibile): una voce del catalogo (es. DECADENZA_TOTALE: il codice della voce e gli stati PROSA censiti che abbina), il codice di uno stato osservato fuori catalogo, oppure SENZA_STATO. Vale per le domande di ogni tipo con quello stato, come TX-0026; per ritrovare TX-0027 filtrato per stato serve anche tipo=SOSTEGNO (una voce di TX-0027 si apre con statoSostegno, una di TX-0028 con statoPagamento). In OR con statoProgrammazione",
             "in": "query",
             "name": "voceProgrammazione",
             "schema": {
@@ -1692,7 +1692,7 @@
             }
           },
           {
-            "description": "Chiave del report TX-0025 (ripetibile): una voce del catalogo degli stati area programmazione (es. DECADENZA_TOTALE: il codice della voce e gli stati PROSA censiti che abbina), il codice di uno stato osservato fuori catalogo, oppure SENZA_STATO; le domande che il report conta per quella chiave. In OR con statoProgrammazione",
+            "description": "Chiave di TX-0025, i valori del filtro per stato domanda area programmazione dei report procedurali (ripetibile): una voce del catalogo (es. DECADENZA_TOTALE: il codice della voce e gli stati PROSA censiti che abbina), il codice di uno stato osservato fuori catalogo, oppure SENZA_STATO. Vale per le domande di ogni tipo con quello stato, come TX-0026; per ritrovare TX-0027 filtrato per stato serve anche tipo=SOSTEGNO (una voce di TX-0027 si apre con statoSostegno, una di TX-0028 con statoPagamento). In OR con statoProgrammazione",
             "in": "query",
             "name": "voceProgrammazione",
             "schema": {
@@ -2107,7 +2107,7 @@
             }
           },
           {
-            "description": "Chiave del report TX-0025 (ripetibile): una voce del catalogo degli stati area programmazione (es. DECADENZA_TOTALE: il codice della voce e gli stati PROSA censiti che abbina), il codice di uno stato osservato fuori catalogo, oppure SENZA_STATO; le domande che il report conta per quella chiave. In OR con statoProgrammazione",
+            "description": "Chiave di TX-0025, i valori del filtro per stato domanda area programmazione dei report procedurali (ripetibile): una voce del catalogo (es. DECADENZA_TOTALE: il codice della voce e gli stati PROSA censiti che abbina), il codice di uno stato osservato fuori catalogo, oppure SENZA_STATO. Vale per le domande di ogni tipo con quello stato, come TX-0026; per ritrovare TX-0027 filtrato per stato serve anche tipo=SOSTEGNO (una voce di TX-0027 si apre con statoSostegno, una di TX-0028 con statoPagamento). In OR con statoProgrammazione",
             "in": "query",
             "name": "voceProgrammazione",
             "schema": {
@@ -2788,7 +2788,7 @@
             }
           },
           {
-            "description": "Chiave del report TX-0025 (ripetibile): una voce del catalogo degli stati area programmazione (es. DECADENZA_TOTALE: il codice della voce e gli stati PROSA censiti che abbina), il codice di uno stato osservato fuori catalogo, oppure SENZA_STATO; le domande che il report conta per quella chiave. In OR con statoProgrammazione",
+            "description": "Chiave di TX-0025, i valori del filtro per stato domanda area programmazione dei report procedurali (ripetibile): una voce del catalogo (es. DECADENZA_TOTALE: il codice della voce e gli stati PROSA censiti che abbina), il codice di uno stato osservato fuori catalogo, oppure SENZA_STATO. Vale per le domande di ogni tipo con quello stato, come TX-0026; per ritrovare TX-0027 filtrato per stato serve anche tipo=SOSTEGNO (una voce di TX-0027 si apre con statoSostegno, una di TX-0028 con statoPagamento). In OR con statoProgrammazione",
             "in": "query",
             "name": "voceProgrammazione",
             "schema": {
@@ -3225,7 +3225,7 @@
             }
           },
           {
-            "description": "Chiave del report TX-0025 (ripetibile): una voce del catalogo degli stati area programmazione (es. DECADENZA_TOTALE: il codice della voce e gli stati PROSA censiti che abbina), il codice di uno stato osservato fuori catalogo, oppure SENZA_STATO; le domande che il report conta per quella chiave. In OR con statoProgrammazione",
+            "description": "Chiave di TX-0025, i valori del filtro per stato domanda area programmazione dei report procedurali (ripetibile): una voce del catalogo (es. DECADENZA_TOTALE: il codice della voce e gli stati PROSA censiti che abbina), il codice di uno stato osservato fuori catalogo, oppure SENZA_STATO. Vale per le domande di ogni tipo con quello stato, come TX-0026; per ritrovare TX-0027 filtrato per stato serve anche tipo=SOSTEGNO (una voce di TX-0027 si apre con statoSostegno, una di TX-0028 con statoPagamento). In OR con statoProgrammazione",
             "in": "query",
             "name": "voceProgrammazione",
             "schema": {

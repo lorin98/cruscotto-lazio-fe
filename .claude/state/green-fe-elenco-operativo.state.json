@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "elenco-operativo",
-  "current_step": 9,
+  "current_step": 2,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -13,9 +13,9 @@
       ],
       "gates": {
         "handover_verified": {
-          "approved_hash": "sha256:75b7376f8cbbf6b9bde3f27aefca58f46bc1e5aa50e7e64b8a9a889a9ce3de43",
+          "approved_hash": "sha256:0c8f416400e139806303345acbd312a014cd6b5a536b01f5d6cb9e8a96f27d56",
           "baseline_ref": "./plan/elenco-operativo/handover.json",
-          "approved_at": "2026-10-13T12:31:26Z"
+          "approved_at": "2026-10-13T13:58:20Z"
         }
       }
     },
@@ -50,95 +50,64 @@
       ]
     },
     "step2-codegen": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-13T12:34:17Z",
       "artifacts": [
         "./specs/.spec-lock.json",
         "./src/shared/api/generated"
       ],
-      "gates": {
-        "codegen_compiles": "pass",
-        "orval_types": "pass",
-        "csrf_static": "pass"
-      }
+      "gates": {}
     },
     "step3-api": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-13T12:35:15Z",
       "artifacts": [
         "./src/features"
       ],
-      "gates": {
-        "api_wrappers_compile": "pass",
-        "querykey_from_factory": "pass"
-      }
+      "gates": {}
     },
     "step4-lib": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-13T12:36:57Z",
       "artifacts": [
         "./src/shared/lib"
       ],
-      "gates": {
-        "lib_pure_compile": "pass",
-        "lib_zero_react": "pass"
-      }
+      "gates": {}
     },
     "step5-ui": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-13T12:38:21Z",
       "artifacts": [
         "./src/features"
       ],
-      "gates": {
-        "ui_components_compile": "pass",
-        "ui_a11y_axe": "pass"
-      }
+      "gates": {}
     },
     "step6-page": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-13T12:39:34Z",
       "artifacts": [
         "./src/pages",
         "./plan/elenco-operativo/route-manifest.json"
       ],
-      "gates": {
-        "pages_compile": "pass",
-        "route_manifest_valid": "pass"
-      }
+      "gates": {}
     },
     "step7-test": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-13T12:40:38Z",
       "artifacts": [
         "./src/shared/test",
         "./src/shared/api/mock",
         "./src/shared/testing/axe.ts"
       ],
-      "gates": {
-        "tests_generated": "pass",
-        "msw_fail_closed": "pass"
-      }
+      "gates": {}
     },
     "step8-gate": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-13T12:42:23Z",
       "artifacts": [
         "./plan/elenco-operativo/fe-gate-report.json"
       ],
-      "gates": {
-        "lint": "pass",
-        "typecheck": "pass",
-        "test": "pass",
-        "a11y": "pass",
-        "build": "pass",
-        "fsd_import": "pass",
-        "orval_types": "pass",
-        "security": "pass",
-        "authz": "pass",
-        "wireframe_approved": "pass",
-        "req_coverage_ui": "pass"
-      }
+      "gates": {}
     }
   },
   "open_blockers": [],

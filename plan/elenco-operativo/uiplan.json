@@ -6,7 +6,7 @@
     {
       "slice": "elenco-operativo",
       "path": "handover/openapi-elenco-operativo.json",
-      "sha256": "sha256:0e5e315ccc543c9f2a58c654cfdd203cda918de02d34f8e6fcbe564afd754ab1",
+      "sha256": "sha256:2f97612e0740f9135ff1725de313d15f15540112761e99a5db3d0ddd2c9ac861",
       "manifest_hash_match": true
     }
   ],
@@ -210,9 +210,12 @@
             "richiestoDa",
             "sigc",
             "stato",
+            "statoPagamento",
             "statoProgrammazione",
+            "statoSostegno",
             "testo",
-            "tipo"
+            "tipo",
+            "voceProgrammazione"
           ]
         }
       ]
@@ -468,9 +471,12 @@
             "richiestoDa",
             "sigc",
             "stato",
+            "statoPagamento",
             "statoProgrammazione",
+            "statoSostegno",
             "testo",
-            "tipo"
+            "tipo",
+            "voceProgrammazione"
           ]
         }
       ]
@@ -1590,6 +1596,12 @@
       "id": "OP-EO-05",
       "kind": "altro",
       "detail": "Esportazione (RA005, D-09 del backend): GET /domande/{formato} e /pagamenti/{formato} (csv, xlsx) senza operationId, come gli export del finanziario; un pulsante per formato con la sigla visibile (V-07 del finanziario), con X-Requested-With, gli stessi filtri e ordinamento della pagina. Oltre il limite di NFR-06 il backend risponde con un problem: il messaggio invita a restringere i filtri."
+    },
+    {
+      "id": "OP-EO-06",
+      "kind": "altro",
+      "detail": "Barra SENZA_STATO del grafico per stato SIAN: il flusso approvato (domande.md) la dichiara non cliccabile perche al momento il filtro stato non la accettava; dal contratto finale (D-02 Rev. 1) stato=SENZA_STATO e accettato e il pannello lo offre. Al prossimo rework del flusso domande renderla cliccabile e togliere SENZA_STATO da NON_FILTRABILI.perStato (review step9 v1 V-08). Lo stesso rework aggiorna i 24 filtri citati in domande.md e pagamenti.md (ora 27, V-06).",
+      "blocks": []
     }
   ]
 }
