@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "elenco-operativo",
-  "current_step": 5,
+  "current_step": 7,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -85,21 +85,27 @@
       }
     },
     "step5-ui": {
-      "status": "in_progress",
-      "completed_at": "2026-10-13T11:15:37Z",
+      "status": "done",
+      "completed_at": "2026-10-13T12:38:21Z",
       "artifacts": [
         "./src/features"
       ],
-      "gates": {}
+      "gates": {
+        "ui_components_compile": "pass",
+        "ui_a11y_axe": "pass"
+      }
     },
     "step6-page": {
-      "status": "in_progress",
-      "completed_at": "2026-10-13T11:19:38Z",
+      "status": "done",
+      "completed_at": "2026-10-13T12:39:34Z",
       "artifacts": [
         "./src/pages",
         "./plan/elenco-operativo/route-manifest.json"
       ],
-      "gates": {}
+      "gates": {
+        "pages_compile": "pass",
+        "route_manifest_valid": "pass"
+      }
     },
     "step7-test": {
       "status": "in_progress",

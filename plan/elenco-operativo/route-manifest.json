@@ -71,7 +71,7 @@
     {
       "manifest_hash_match": true,
       "path": "handover/openapi-elenco-operativo.json",
-      "sha256": "sha256:f1fab18306d09d2f4348418af5dd036318c4b4312916365eca8fcf95f6c4d28b",
+      "sha256": "sha256:0e5e315ccc543c9f2a58c654cfdd203cda918de02d34f8e6fcbe564afd754ab1",
       "slice": "elenco-operativo"
     }
   ]
