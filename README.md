@@ -187,6 +187,28 @@ trova una card, il suo grafico e la sua tabella.
 Il service worker di MSW sta in `public-dev/` ed e' servito solo dal dev server: la build di produzione non lo
 contiene.
 
+### Deploy: immagine Docker
+
+`Dockerfile` alla radice del repository, costruibile con un `docker build` senza argomenti:
+
+```
+docker build -t cruscotto-csr-fe .
+docker run --rm --network csr-rete -p 127.0.0.1:8088:8080 -e CSR_BE_UPSTREAM=http://csr-be:8080 cruscotto-csr-fe
+```
+
+- Build con Node 24 (`npm ci`, `npm run api:generate`, `npm run build`), servizio con `nginx-unprivileged` (utente 101,
+  porta 8080).
+- Il nginx (`docker/nginx.conf.template`) serve la SPA e inoltra `/api` e `/auth` al backend, come `npm run dev:be`:
+  una sola origine per cookie di sessione, redirect OIDC e controllo dell'origine. `CSR_BE_UPSTREAM` sceglie il backend
+  a runtime; nginx lo risolve all'avvio, quindi il backend deve essere gia' raggiungibile.
+- Applica gli header e la regola dei separatori codificati descritti nelle due sezioni seguenti
+  (`docker/intestazioni-sicurezza.conf`). Salute del container su `/healthz`.
+- L'URL dell'app deve essere fra i redirect URI del client Keycloak e fra le origini ammesse del backend
+  (`CSR_HTTP_ALLOWED_ORIGINS`).
+
+Avvio completo in locale (rete, PostgreSQL, Keycloak, backend, frontend): `ambiente-prova/script/container.sh` del
+progetto ARSIAL, con l'app su http://localhost:8088.
+
 ### Deploy: header di sicurezza
 
 La SPA non ha `<script>` inline ne' stili inline di terze parti. Il contenitore che la serve, sulla stessa origine del

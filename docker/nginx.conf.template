@@ -1,0 +1,94 @@
+# =============================================================================
+# nginx del frontend del Cruscotto CSR: SPA statica + proxy same-origin verso il BFF.
+# Template: all'avvio ${CSR_BE_UPSTREAM} diventa l'indirizzo del backend (vedi Dockerfile).
+# =============================================================================
+
+# Se davanti c'e' gia' un proxy (ingress con TLS) le sue intestazioni X-Forwarded-* passano
+# invariate; altrimenti si dichiarano qui. Sovrascriverle con i valori di questo nginx
+# (http, porta interna) farebbe costruire al backend redirect OIDC sbagliati.
+map $http_x_forwarded_proto $csr_fwd_proto {
+    default $http_x_forwarded_proto;
+    ""      $scheme;
+}
+map $http_x_forwarded_host $csr_fwd_host {
+    default $http_x_forwarded_host;
+    ""      $http_host;
+}
+
+server {
+    listen 8080;
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    server_tokens off;
+    # I redirect di nginx non devono contenere la porta interna (8080) del container.
+    absolute_redirect off;
+
+    charset utf-8;
+    charset_types text/css text/plain text/xml image/svg+xml application/javascript text/javascript application/json;
+
+    gzip on;
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_min_length 1024;
+    gzip_types text/plain text/css application/javascript application/json image/svg+xml;
+
+    # --- BFF: /api e /auth al backend, sulla stessa origine della SPA --------------------
+    # Host del browser invariato (come il dev server, changeOrigin false): il backend
+    # costruisce redirect_uri e controllo dell'origine sull'indirizzo che vede l'utente.
+    # Nessun add_header qui: le risposte del backend portano le loro intestazioni di
+    # sicurezza (CSP 'none', no-store) e non vanno duplicate.
+    location ~ ^/(api|auth)(/|$) {
+        proxy_pass ${CSR_BE_UPSTREAM};
+        proxy_http_version 1.1;
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $csr_fwd_proto;
+        proxy_set_header X-Forwarded-Host $csr_fwd_host;
+        # Cookie della sessione (token divisi) e risposte OIDC sono grandi: con i buffer
+        # predefiniti il ritorno da Keycloak da' 502.
+        proxy_buffer_size 128k;
+        proxy_buffers 4 256k;
+        proxy_busy_buffers_size 256k;
+        # Caricamenti dei file d'acquisizione: il backend accetta fino a 90 MB.
+        client_max_body_size 90m;
+        # Report ed esportazioni pesanti.
+        proxy_read_timeout 300s;
+        proxy_redirect off;
+    }
+
+    # Asset con l'impronta nel nome: immutabili, cache lunga. Un solo Cache-Control
+    # (niente `expires`, che ne aggiungerebbe un secondo).
+    location /assets/ {
+        include /etc/nginx/snippets/intestazioni-sicurezza.conf;
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+        try_files $uri =404;
+    }
+
+    # index.html nomina gli asset della build: mai in cache, o dopo un rilascio il browser
+    # chiederebbe file che non esistono piu'.
+    location = /index.html {
+        include /etc/nginx/snippets/intestazioni-sicurezza.conf;
+        add_header Cache-Control "no-store, must-revalidate" always;
+    }
+
+    # Sonda di salute del container: nessun file, nessun log.
+    location = /healthz {
+        access_log off;
+        default_type text/plain;
+        return 200 "ok\n";
+    }
+
+    # Fallback del router della SPA. Un percorso con un separatore codificato (%2F, %5C) o
+    # una doppia codifica (%25) risponde 404 senza index.html (README, "Deploy: percorsi
+    # della SPA con separatori codificati"). La regola guarda solo il percorso, mai la query,
+    # e sta solo qui: /auth/login?ritorno=%2F... deve passare.
+    location / {
+        include /etc/nginx/snippets/intestazioni-sicurezza.conf;
+        add_header Cache-Control "no-store, must-revalidate" always;
+        if ($request_uri ~* "^[^?]*%(2f|5c|25)") { return 404; }
+        try_files $uri /index.html;
+    }
+}

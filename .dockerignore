@@ -1,0 +1,21 @@
+# Contesto di build minimo per l'immagine del frontend.
+# Le dipendenze si installano nell'immagine con npm ci; dist e il client generato si
+# rifanno li'. Restano fuori anche i materiali di processo (review, wireframe, prototipi).
+node_modules
+dist
+coverage
+test-results
+playwright-report
+src/shared/api/generated
+.git
+.claude
+.gate-inbox
+review
+wireframes
+prototipo
+*.log
+.env
+.env.*
+!.env.example
+Dockerfile
+.dockerignore
