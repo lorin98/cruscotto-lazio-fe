@@ -21,6 +21,7 @@ import { PAGINA_DOMANDE, SINOTTICO, VALORI } from '../src/features/elenco-operat
 import { rispondi } from '../src/shared/testing/msw';
 import { PAGINE_FINANZIARIO } from '../src/features/finanziario/lib/report';
 import { SITO_ARSIAL, SITO_REGIONE } from '../src/app/collegamenti';
+import { tabellaDelRiepilogo } from '../src/features/finanziario/testing/riepilogo';
 import { clientApp } from './app-client';
 
 // Shell dell'app (review step9: V-03, V-04, V-05, V-17, A-01, A-04, A-10, A-12/NFR-41; v2: A-04, A-05), sempre sul
@@ -206,6 +207,7 @@ describe('NFR-41: avviso di scadenza per inattivita', () => {
     const client = clientApp();
     const router = createMemoryRouter(appRoutes(), { initialEntries: ['/finanziario/riepilogo'] });
     conQuery(<RouterProvider router={router} />, client);
+    await tabellaDelRiepilogo();
     await waitFor(() => expect(document.body.textContent).toContain('SRA03'));
     const letturePrima = lettureStato;
     const altraScheda = new BroadcastChannel(CANALE_INATTIVITA);
@@ -304,6 +306,7 @@ describe('QueryClient di produzione montato con la shell (R-05, R-07, R-08, R-16
       ),
     );
     apriConClientReale('/finanziario/riepilogo');
+    await tabellaDelRiepilogo();
     fireEvent.click(await screen.findByRole('button', { name: 'Scarica la tabella Riepilogo per intervento in CSV' }));
     await waitFor(() => expect(screen.getAllByRole('alert')).toHaveLength(1));
     expect(screen.getByRole('alert').textContent).toContain('Non hai i permessi per consultare questi dati');

@@ -154,10 +154,13 @@ function Anteprima({ riga, perimetro, filtri, onChiudi }: { riga: Riga | null; p
   );
 }
 
-/** Vista Tabella o Grafico: subito quella scelta (stato locale), e la history la segue per il ritorno dal dettaglio (review v4 iter3 X-01). */
+/**
+ * Vista Tabella o Grafico: subito quella scelta (stato locale), e la history la segue per il ritorno dal dettaglio (review v4 iter3
+ * X-01). Senza una scelta salvata si parte dal grafico, come ogni card (richiesta dell'utente del 19/10/2026).
+ */
 function useVistaRiepilogo(filtri: Filtri): [VistaRiepilogo, (v: VistaRiepilogo) => void] {
   const [salvata, salva] = useStatoNellaHistory<VistaRiepilogo>(VISTA_RIEPILOGO, filtri, eVistaRiepilogo);
-  const [vista, setVista] = useState<VistaRiepilogo>(salvata ?? 'tabella');
+  const [vista, setVista] = useState<VistaRiepilogo>(salvata ?? 'grafico');
   return [
     vista,
     (v) => {

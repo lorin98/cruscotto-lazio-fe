@@ -25,6 +25,7 @@ import {
 import type { Filtri } from '../src/features/finanziario';
 import * as F from '../src/features/finanziario/testing/fixture';
 import { senzaLinkElenco } from '../src/features/finanziario/testing/tabelle';
+import { tabellaDelRiepilogo } from '../src/features/finanziario/testing/riepilogo';
 
 // Casi limite dei DTO (tutti i campi sono opzionali nella spec): liste vuote, campi assenti o null, voci incomplete,
 // legame delle azioni attivo. Regola trasversale: un dato assente non diventa mai uno zero ne' una cella vuota.
@@ -219,7 +220,7 @@ describe('DettaglioIntervento: casi limite', () => {
 });
 
 describe('RiepilogoReport: casi limite', () => {
-  const tabella = () => screen.findByRole('table', { name: /^Riepilogo per intervento \(RF011\)/ });
+  const tabella = () => tabellaDelRiepilogo();
 
   it('tutte le colonne valorizzate: nessuna colonna nascosta e nessuna nota', async () => {
     const piena = {

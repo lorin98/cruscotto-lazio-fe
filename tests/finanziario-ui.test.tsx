@@ -35,6 +35,7 @@ import type { Filtri } from '../src/features/finanziario';
 import { graficoQuotaFeasr } from '../src/features/finanziario/lib/grafici';
 import * as F from '../src/features/finanziario/testing/fixture';
 import { senzaLinkElenco } from '../src/features/finanziario/testing/tabelle';
+import { tabellaDelRiepilogo } from '../src/features/finanziario/testing/riepilogo';
 
 // Test dei componenti del finanziario nella UI v2 (ADR 0027): card con grafico ECharts (sostituito nei test dal grafico
 // finto di shared/testing) e tabella equivalente, KPI, pannelli laterali react-aria, tabella interattiva.
@@ -775,7 +776,7 @@ describe('DettaglioIntervento (route /finanziario/interventi/:codice)', () => {
 
 describe('RiepilogoReport (TX-0011, tabella interattiva)', () => {
   const NOME_TABELLA = /^Riepilogo per intervento \(RF011\)/;
-  const tabella = () => screen.findByRole('table', { name: NOME_TABELLA });
+  const tabella = () => tabellaDelRiepilogo(NOME_TABELLA);
 
   // V-05: tutte le colonne del wireframe si vedono, l'assenza la dice ogni cella; V-18: la dotazione AT sta nel piede
   it('righe per intervento con tutte le colonne visibili e le assenze dichiarate, totali, perimetro, dotazione AT nel piede', async () => {
@@ -932,6 +933,7 @@ describe('RiepilogoReport (TX-0011, tabella interattiva)', () => {
     URL.revokeObjectURL = vi.fn();
     const clic = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
     conRouter(<RiepilogoReport filtri={{ intervento: ['SRA01'] }} />);
+    await tabella();
     await userEvent.click(await screen.findByRole('button', { name: 'Scarica la tabella Riepilogo per intervento in CSV' }));
     expect(await screen.findByText('File CSV scaricato.')).toBeTruthy();
     expect(new URL(richiesta?.url ?? 'http://x').search).toBe('?intervento=SRA01');
@@ -953,6 +955,7 @@ describe('RiepilogoReport (TX-0011, tabella interattiva)', () => {
     URL.revokeObjectURL = vi.fn();
     const clic = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
     conRouter(<RiepilogoReport filtri={{ intervento: ['SRA01'], os: ['OS4'] }} />);
+    await tabella();
     await userEvent.click(await screen.findByRole('button', { name: 'Scarica la tabella Riepilogo per intervento in XLSX' }));
     expect(await screen.findByText('File XLSX scaricato.')).toBeTruthy();
     expect(new URL(richiesta?.url ?? 'http://x').search).toBe('?intervento=SRA01&os=OS4');
@@ -969,6 +972,7 @@ describe('RiepilogoReport (TX-0011, tabella interattiva)', () => {
       ),
     );
     conRouter(<RiepilogoReport filtri={{}} />);
+    await tabella();
     await userEvent.click(await screen.findByRole('button', { name: 'Scarica la tabella Riepilogo per intervento in CSV' }));
     const avviso = await screen.findByRole('alert');
     expect(avviso.textContent).toBe('File CSV non scaricato. Non hai i permessi per consultare questi dati.');
@@ -1020,9 +1024,9 @@ describe('RiepilogoReport (TX-0011, tabella interattiva)', () => {
     await userEvent.type(ricerca(), 'srb');
     await userEvent.click(within(screen.getByRole('navigation', { name: 'Pagine della tabella' })).getByRole('button', { name: 'Pagina 2' }));
     expect(righeCorpo(t)).toEqual(['SRB20', 'SRB21']);
-    // i filtri di prima sono in cache: la tabella c'e' subito, ma e' un'altra
+    // i filtri di prima sono in cache: la tabella c'e' subito, ma e' un'altra (la vista riparte dal grafico)
     cambiaFiltri({});
-    t = screen.getByRole('table', { name: NOME_TABELLA });
+    t = await tabella();
     expect(ricerca().value).toBe('');
     expect(righeCorpo(t)).toHaveLength(10);
     expect(righeCorpo(t)[0]).toBe('SRB10');

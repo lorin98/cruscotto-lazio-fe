@@ -17,6 +17,7 @@ import PaginaVerificaSmp from '../src/pages/finanziario/sigc/verifica-smp/page';
 // la route-table e' del progetto (piu' feature, ADR 0028): qui solo le route del finanziario, dai path del suo uiplan
 import { ROTTE_FINANZIARIO } from './rotte-finanziario';
 import * as F from '../src/features/finanziario/testing/fixture';
+import { tabellaDelRiepilogo } from '../src/features/finanziario/testing/riepilogo';
 
 // Impaginazione comune delle pagine (widget PaginaFinanziario, UI v2) e coerenza del catalogo delle pagine con la
 // route-table. I comportamenti di ogni pagina sono nei page.test.tsx accanto alle pagine; menu e intestazione nei test
@@ -56,7 +57,7 @@ describe('pagine del finanziario (step6)', () => {
     const h1 = screen.getByRole('heading', { level: 1, name: 'Finanziario: riepilogo per intervento' });
     await waitFor(() => expect(document.activeElement).toBe(h1));
     expect(document.title).toBe('Riepilogo per intervento - Finanziario - Cruscotto CSR 2023-2027');
-    await screen.findByRole('table', { name: /^Riepilogo per intervento \(RF011\)/ });
+    await tabellaDelRiepilogo();
     expect(query).toBe('?intervento=SRA01&os=SO4');
     const barra = screen.getByRole('region', { name: 'Filtri attivi' });
     expect(within(barra).getAllByRole('button', { name: /^Togli il filtro/ }).map((b) => b.getAttribute('aria-label'))).toEqual([
@@ -138,7 +139,7 @@ describe('pagine del finanziario (step6)', () => {
   it('a11y della pagina completa: zero violazioni axe', async () => {
     server.use(rispondi('/api/finanziario/riepilogo', F.RIEPILOGO), rispondi('/api/finanziario/filtri', F.FILTRI));
     const { container } = renderPagina(PaginaRiepilogo, '/finanziario/riepilogo', '/finanziario/riepilogo?intervento=SRA01');
-    await screen.findByRole('table', { name: /^Riepilogo per intervento \(RF011\)/ });
+    await tabellaDelRiepilogo();
     await screen.findByRole('button', { name: /^Ultimo dato sincronizzato/ });
     await expectNoA11yViolations(container);
   });
