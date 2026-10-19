@@ -571,6 +571,33 @@
         },
         "type": "object"
       },
+      "SiNoFinanziario": {
+        "description": "Si'/no, oppure null con il motivo dell'assenza",
+        "properties": {
+          "fonte": {
+            "description": "Fonte attesa, solo con FONTE_NON_ATTIVA (es. PREVISIONE_PAGAMENTO)",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "motivo": {
+            "description": "Motivo dell'assenza, null se c'e' il valore: FONTE_NON_ATTIVA, NON_VALORIZZATO",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "valore": {
+            "description": "Valore si'/no; null se il dato non e' disponibile",
+            "type": [
+              "boolean",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      },
       "SpesaPerIntervento": {
         "description": "TX-0002",
         "properties": {
@@ -789,7 +816,9 @@
             ]
           },
           "previsionePagamentoEsercizio": {
-            "$ref": "#/components/schemas/Importo"
+            "$ref": "#/components/schemas/SiNoFinanziario",
+            "description": "Si prevede di pagare importi entro l'esercizio n (monitoraggio SMP, D-11)",
+            "type": "object"
           },
           "spesaErogataCampagnaPrecedente": {
             "$ref": "#/components/schemas/Importo"
