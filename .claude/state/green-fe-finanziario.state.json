@@ -60,12 +60,13 @@
           ]
         },
         "wireframe_sigc": {
-          "approved_hash": "sha256:bee2568befdd07289f428f5ad23fb2f8a45cf23617ed045d5d6b63a972643b6f",
+          "approved_hash": "sha256:d2dae230d84d984f27b5e0413adfe8d08343adf1de3c12334b36759b071eb5d9",
           "baseline_ref": "./wireframes/sigc",
-          "approved_at": "2026-10-13T17:26:04Z",
+          "approved_at": "2026-10-19T14:52:01Z",
           "time_to_approve_s": 418,
           "deviations_reviewed": [
-            "V-07 (review step9 v3, download per formato chiesto dall utente il 09/10/2026, deviazione confermata il 12/10/2026): al posto del solo Scarica per card e di Esporta CSV per le tabelle, un pulsante per formato con la sigla visibile; PNG del grafico come si vede con l intestazione di NFR-50 (V-01), CSV e XLSX scritti dal backend (D-08). Il PNG non e registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08, scelta dell utente del 12/10/2026"
+            "V-07 (review step9 v3, download per formato chiesto dall utente il 09/10/2026, deviazione confermata il 12/10/2026): al posto del solo Scarica per card e di Esporta CSV per le tabelle, un pulsante per formato con la sigla visibile; PNG del grafico come si vede con l intestazione di NFR-50 (V-01), CSV e XLSX scritti dal backend (D-08). Il PNG non e registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08, scelta dell utente del 12/10/2026",
+            "D-11 del backend (19/10/2026): previsione di pagamento si'/no in tabella, grafico della sola spesa erogata; riapprovato dall'utente il 19/10/2026"
           ]
         }
       },
