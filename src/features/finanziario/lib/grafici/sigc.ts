@@ -1,6 +1,7 @@
 // sigc.ts — grafici SIGC: barre delle domande (TX-0012: presentate, pagate, da pagare e senza importi, insiemi che si
 // sovrappongono), cascata degli importi (TX-0013: dall'ammesso all'ancora da pagare con i valori del contratto, con le
-// domande senza uno degli importi dichiarate: le somme sono parziali), barre della verifica SMP per intervento (TX-0015).
+// domande senza uno degli importi dichiarate: le somme sono parziali), barre della spesa erogata della verifica SMP per
+// intervento (TX-0015; la previsione di pagamento e' un si'/no, D-11 del backend: sta nella tabella, non nel grafico).
 // Gli importi SIGC sono somme per domanda: NON_VALORIZZATO vuol dire che l'importo manca su tutte le domande della
 // selezione (D-09 del backend), quindi si rende come il dato assente nella fonte, non come un totale per intervento.
 import type { EChartsOption } from 'echarts';
@@ -207,24 +208,21 @@ export function graficoCascataSigc(i: ImportiSigcLike): DatiGrafico {
 
 // ---------------------------------------------------------------- 3. verifica SMP
 
-/** Barre raggruppate per intervento: previsione di pagamento dell'esercizio e spesa erogata nella campagna precedente. */
+/** Barre per intervento della spesa erogata nella campagna precedente (la previsione di pagamento e' un si'/no: D-11). */
 export function graficoSmp(righe: RigaSmp[]): DatiGrafico {
   const voci = righe.map((r) => {
-    const importi = [r.previsionePagamentoEsercizio, r.spesaErogataCampagnaPrecedente];
+    const importi = [r.spesaErogataCampagnaPrecedente];
     const codice = codiceDi(r);
     return { categoria: codice, codice, valori: importi.map(valoreDi), celle: importi.map((x) => cellaImporto(x)) };
   });
   return barreRaggruppate(
     voci,
-    [
-      { nome: 'Previsione di pagamento', soggetto: 'previsione di pagamento' },
-      { nome: 'Spesa erogata nella campagna precedente', soggetto: 'spesa erogata nella campagna precedente' },
-    ],
+    [{ nome: 'Spesa erogata nella campagna precedente', soggetto: 'spesa erogata nella campagna precedente' }],
     {
-      caption: 'Previsione di pagamento e spesa erogata nella campagna precedente per intervento',
-      colonne: ['Intervento', 'Previsione di pagamento', 'Spesa erogata nella campagna precedente'],
-      titolo: 'Barre raggruppate della previsione di pagamento e della spesa erogata nella campagna precedente',
-      vuoto: 'nessun intervento con previsione di pagamento o spesa erogata valorizzate',
+      caption: 'Spesa erogata nella campagna precedente per intervento',
+      colonne: ['Intervento', 'Spesa erogata nella campagna precedente'],
+      titolo: 'Barre della spesa erogata nella campagna precedente',
+      vuoto: 'nessun intervento con spesa erogata valorizzata',
       unita: ['intervento', 'interventi'],
     },
   );

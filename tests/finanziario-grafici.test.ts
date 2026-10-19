@@ -1270,38 +1270,32 @@ describe('graficoUtilizzoRiserva', () => {
 
 describe('graficoSmp', () => {
   const righe = [
-    { codiceIntervento: 'SRA01', previsionePagamentoEsercizio: imp(3_000_000), spesaErogataCampagnaPrecedente: imp(2_000_000) },
-    { codiceIntervento: 'SRA02', previsionePagamentoEsercizio: assente('FONTE_NON_ATTIVA', 'PREVISIONE_PAGAMENTO'), spesaErogataCampagnaPrecedente: imp(1_000_000) },
+    { codiceIntervento: 'SRA01', spesaErogataCampagnaPrecedente: imp(2_000_000) },
+    { codiceIntervento: 'SRA02', spesaErogataCampagnaPrecedente: assente('NON_VALORIZZATO') },
   ];
 
-  it('barre raggruppate per intervento con il codice nel dato, assenti vuoti e dichiarati', () => {
+  it('barre della spesa erogata per intervento con il codice nel dato, assenti vuoti e dichiarati (D-11: niente previsione)', () => {
     const g = graficoSmp(righe);
     const o = opzioniDi(g);
     controllaAria(o);
-    expect(o.series.map((s) => [s.type, s.name])).toEqual([
-      ['bar', 'Previsione di pagamento'],
-      ['bar', 'Spesa erogata nella campagna precedente'],
-    ]);
-    expect(o.xAxis?.data).toEqual(['SRA01', 'SRA02']);
-    expect(o.series[0].data?.[1]).toBeNull();
-    expect(item(o.series[1].data?.[1]).codice).toBe('SRA02');
-    expect(g.omessi).toEqual(['SRA02, previsione di pagamento: non disponibile (fonte previsione di pagamento non attiva)']);
-    expect(g.tabella.colonne).toEqual(['Intervento', 'Previsione di pagamento', 'Spesa erogata nella campagna precedente']);
-    expect(righeN(g)[1]).toEqual(['SRA02', 'non disponibile (fonte previsione di pagamento non attiva)', '1.000.000,00 €']);
+    expect(o.series.map((s) => [s.type, s.name])).toEqual([['bar', 'Spesa erogata nella campagna precedente']]);
+    // l'intervento senza spesa non ha barre: resta fuori dall'asse e si dichiara tra gli omessi
+    expect(o.xAxis?.data).toEqual(['SRA01']);
+    expect(item(o.series[0].data?.[0]).codice).toBe('SRA01');
+    expect(g.omessi).toEqual(['SRA02, spesa erogata nella campagna precedente: non valorizzato (il dato non è presente nella fonte)']);
+    expect(g.tabella.colonne).toEqual(['Intervento', 'Spesa erogata nella campagna precedente']);
+    expect(righeN(g)[0]).toEqual(['SRA01', '2.000.000,00 €']);
   });
 
   it('oltre 12 interventi: zoom interno e cursore', () => {
-    const molte = Array.from({ length: 13 }, (_, k) => ({ codiceIntervento: `SRC${k + 10}`, previsionePagamentoEsercizio: imp(1_000_000) }));
+    const molte = Array.from({ length: 13 }, (_, k) => ({ codiceIntervento: `SRC${k + 10}`, spesaErogataCampagnaPrecedente: imp(1_000_000) }));
     expect(opzioniDi(graficoSmp(molte)).dataZoom?.map((z) => z.type)).toEqual(['inside', 'slider']);
   });
 
   it('nessun valore: non disegnabile', () => {
     const g = graficoSmp([{ codiceIntervento: 'SRA09' }]);
-    controllaNonDisegnabile(g, 'nessun intervento con previsione di pagamento o spesa erogata valorizzate');
-    expect(g.omessi).toEqual([
-      'SRA09, previsione di pagamento: non disponibile',
-      'SRA09, spesa erogata nella campagna precedente: non disponibile',
-    ]);
+    controllaNonDisegnabile(g, 'nessun intervento con spesa erogata valorizzata');
+    expect(g.omessi).toEqual(['SRA09, spesa erogata nella campagna precedente: non disponibile']);
   });
 });
 

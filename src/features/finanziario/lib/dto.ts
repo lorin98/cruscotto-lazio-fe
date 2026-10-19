@@ -97,9 +97,8 @@ export interface RiservaLike {
   utilizzoProgressivo?: Array<{ data?: string | null; importo?: number | null; cumulato?: number | null }> | null;
 }
 
-/** Riga di VerificaSmp (TX-0015). */
+/** Riga di VerificaSmp (TX-0015) per il grafico: la previsione di pagamento e' un si'/no (D-11 del backend), non un importo. */
 export interface RigaSmp {
   codiceIntervento?: string;
-  previsionePagamentoEsercizio?: Importo;
   spesaErogataCampagnaPrecedente?: Importo;
 }

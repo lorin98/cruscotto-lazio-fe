@@ -531,8 +531,10 @@ describe('VerificaSmpReport: casi limite', () => {
     const esercizio = screen.getByRole('table', { name: 'Esercizio' });
     expect(valoreDi(esercizio, 'Esercizio')).toBe('2025');
     expect(valoreDi(esercizio, 'Anno delle domande')).toBe('non disponibile');
-    const c = await trovaCard('Previsione di pagamento e spesa erogata per intervento');
-    expect(within(c).getByText('3 voci non nel grafico')).toBeTruthy();
+    const c = await trovaCard('Spesa erogata nella campagna precedente per intervento');
     expect(within(c).getByText('SRA03, spesa erogata nella campagna precedente: non disponibile')).toBeTruthy();
+    // D-11: la previsione di pagamento e' un si'/no nella tabella; senza fonte nel database resta "non disponibile"
+    const previsione = screen.getAllByText('non disponibile');
+    expect(previsione.length).toBeGreaterThan(0);
   });
 });

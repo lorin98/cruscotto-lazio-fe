@@ -70,11 +70,11 @@
     </form>
       <section class="ui-card" aria-labelledby="g-smp">
         <div class="ui-card__testa">
-          <h2 id="g-smp">Previsione di pagamento e spesa erogata per intervento</h2>
-          <div class="ui-seg" role="group" aria-label="Vista di Previsione di pagamento e spesa erogata per intervento"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+          <h2 id="g-smp">Spesa erogata nella campagna precedente per intervento</h2>
+          <div class="ui-seg" role="group" aria-label="Vista di Spesa erogata nella campagna precedente per intervento"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
         </div>
         <figure class="ui-grafico ui-grafico--barre">
-          <figcaption>Barre raggruppate con zoom: previsione di pagamento dell'esercizio e spesa erogata nella campagna precedente. Clic: dettaglio dell'intervento.</figcaption>
+          <figcaption>Barre con zoom: spesa erogata nella campagna precedente per intervento. La previsione di pagamento e' un si'/no del monitoraggio SMP (D-11 del backend): sta nella tabella. Clic: dettaglio dell'intervento.</figcaption>
         </figure>
         <p class="ui-fonte">Fonte: TX-0015. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati.</p>
       </section>
@@ -92,11 +92,11 @@
             <th scope="col"><button class="btn" type="button">Intervento</button></th>
             <th scope="col" class="ui-num"><button class="btn" type="button">Domande ricevute</button></th>
             <th scope="col" class="ui-num"><button class="btn" type="button">Domande finanziate</button></th>
-            <th scope="col" class="ui-num"><button class="btn" type="button">Previsione di pagamento</button></th>
+            <th scope="col"><button class="btn" type="button">Si prevede di pagare nell'esercizio</button></th>
           </tr>
         </thead>
         <tbody>
-          <tr class="ui-riga"><th scope="row">SRA01</th><td class="ui-num">n</td><td class="ui-num">n</td><td class="ui-num">n,nn</td></tr>
+          <tr class="ui-riga"><th scope="row">SRA01</th><td class="ui-num">n</td><td class="ui-num">n</td><td>si'/no</td></tr>
         </tbody>
       </table>
       <nav class="ui-paginazione" aria-label="Pagine della tabella"><button class="btn" type="button" aria-current="page">1</button></nav>

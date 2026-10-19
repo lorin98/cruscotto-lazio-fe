@@ -1,8 +1,9 @@
 // VerificaSmpReport — pattern DS "report" (route /finanziario/sigc/verifica-smp, TX-0015/RF015, wireframe
 // verifica-smp.html): i dati SIGC per intervento da confrontare con SMP - Data Platform, per l'esercizio scelto
 // (obbligatorio). Tabella interattiva dei venti dati (cerca, ordina, scegli le colonne), intestazione di riga sul codice
-// intervento; i dati ASR mancanti sono "non disponibile" (decisione di OP-004). UI v2: barre della previsione e della
-// spesa erogata con zoom; clic su una barra: il dettaglio dell'intervento.
+// intervento; i dati ASR mancanti sono "non disponibile" (decisione di OP-004). UI v2: barre della spesa erogata con zoom
+// (la previsione di pagamento e' un si'/no del monitoraggio SMP, D-11 del backend: sta nella tabella); clic su una barra:
+// il dettaglio dell'intervento.
 import type { ReactNode } from 'react';
 import { ValoreImporto } from '../../../entities/importo';
 import type { ImportoLike } from '../../../entities/importo';
@@ -20,6 +21,7 @@ import { SelettoreAnno } from './SelettoreAnno';
 import { useApriIntervento } from './useApriIntervento';
 
 type Riga = VerificaSmpRiga;
+type SiNoLike = { valore?: boolean | null; motivo?: string | null; fonte?: string | null };
 type Ordinabile = string | number | null | undefined;
 
 function colonna(chiave: string, titolo: string, valore: (r: Riga) => Ordinabile, resa: (r: Riga) => ReactNode): ColonnaTabella<Riga> {
@@ -28,6 +30,12 @@ function colonna(chiave: string, titolo: string, valore: (r: Riga) => Ordinabile
 const conteggio = (chiave: string, titolo: string, leggi: (r: Riga) => number | null | undefined) => colonna(chiave, titolo, leggi, (r) => <Numero valore={leggi(r)} />);
 const importo = (chiave: string, titolo: string, leggi: (r: Riga) => ImportoLike | undefined) => colonna(chiave, titolo, (r) => leggi(r)?.valore, (r) => <ValoreImporto importo={leggi(r)} />);
 const opzionale = (chiave: string, titolo: string, leggi: (r: Riga) => number | null | undefined) => colonna(chiave, titolo, leggi, (r) => numeroOpzionale(leggi(r)));
+/** Si'/no del backend con il motivo dell'assenza (stessa resa dell'importo assente, mai un "no" inventato). */
+const siNoMotivato = (chiave: string, titolo: string, leggi: (r: Riga) => SiNoLike | undefined) =>
+  colonna(chiave, titolo, (r) => (leggi(r)?.valore == null ? null : siNo(leggi(r)?.valore)), (r) => {
+    const v = leggi(r);
+    return v?.valore != null ? siNo(v.valore) : <ValoreImporto importo={{ valore: null, motivo: v?.motivo, fonte: v?.fonte }} />;
+  });
 
 const COLONNE: ColonnaTabella<Riga>[] = [
   { chiave: 'codice', titolo: 'Intervento', valore: (r) => r.codiceIntervento ?? null, fissa: true },
@@ -43,7 +51,7 @@ const COLONNE: ColonnaTabella<Riga>[] = [
   conteggio('pagate', "Domande pagate nell'esercizio", (r) => r.domandePagateEsercizio),
   importo('spesaPrecedente', 'Spesa erogata campagna precedente', (r) => r.spesaErogataCampagnaPrecedente),
   importo('spesaAnteriori', 'Spesa erogata campagne anteriori', (r) => r.spesaErogataCampagneAnteriori),
-  importo('previsione', "Previsione di pagamento nell'esercizio", (r) => r.previsionePagamentoEsercizio),
+  siNoMotivato('previsione', "Si prevede di pagare nell'esercizio", (r) => r.previsionePagamentoEsercizio),
   importo('topUp', 'Importo top-up', (r) => r.importoTopUp),
   colonna('includeTopUp', 'Include top-up', (r) => siNo(r.includeTopUp), (r) => siNo(r.includeTopUp)),
   opzionale('ettari', 'Ettari o UBA richiesti', (r) => r.ettariUbaRichiesti),
@@ -78,7 +86,7 @@ function DatiSmp({ filtri, esercizio }: { filtri: Filtri; esercizio: number }) {
               ]}
             />
             <CardGrafico
-              titolo="Previsione di pagamento e spesa erogata per intervento"
+              titolo="Spesa erogata nella campagna precedente per intervento"
               sottotitolo="Trascina il cursore sotto il grafico per ingrandire; clic su una barra per il dettaglio dell'intervento"
               dati={graficoSmp(d.righe ?? [])}
               fonte={`Fonte: TX-0015, esercizio ${d.esercizio ?? esercizio}`}

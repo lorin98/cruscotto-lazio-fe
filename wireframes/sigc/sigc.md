@@ -27,7 +27,7 @@ Vocabolario del kit UI v2 (ADR 0027 di green-fe), resa approvata nel prototipo `
 | /finanziario/sigc | Domande SIGC | barre orizzontali (pagate e da pagare si sovrappongono) | TX-0012 | link:elenco-sigc (elenco-operativo: /elenco-operativo/domande) | nessuno (conteggi) |
 | /finanziario/sigc | Importi SIGC | cascata | TX-0013 | link:elenco-sigc-importi (elenco-operativo: /elenco-operativo/domande) | importo assente: passo omesso |
 | /finanziario/sigc/riserva | Utilizzo progressivo della riserva | linea | TX-0014 | nessuno | punti assenti omessi e dichiarati |
-| /finanziario/sigc/verifica-smp | Previsione di pagamento e spesa erogata | barre | TX-0015 | dettaglio dell'intervento | 'non disponibile' in tabella |
+| /finanziario/sigc/verifica-smp | Spesa erogata nella campagna precedente (la previsione di pagamento si'/no sta in tabella, D-11) | barre | TX-0015 | dettaglio dell'intervento | 'non disponibile' in tabella |
 
 La riserva e' un dato regionale: i filtri non si applicano (OP-FE-03).
 

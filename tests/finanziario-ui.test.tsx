@@ -1839,7 +1839,7 @@ describe('RiservaReport (TX-0014)', () => {
 
 describe('VerificaSmpReport (TX-0015)', () => {
   const TABELLA_SMP = /^I dati ASR per intervento da confrontare con SMP/;
-  const GRAFICO_SMP = 'Previsione di pagamento e spesa erogata per intervento';
+  const GRAFICO_SMP = 'Spesa erogata nella campagna precedente per intervento';
 
   it("CSV e XLSX dal backend coi filtri e l'esercizio", async () => {
     let query = '';
@@ -1937,15 +1937,16 @@ describe('VerificaSmpReport (TX-0015)', () => {
     await waitFor(() => expect(indirizzo(router)).toBe('/finanziario/interventi/SRA01?og=OG2'));
   });
 
-  it('grafico della previsione e della spesa erogata montato, con la previsione assente dichiarata fra le voci omesse', async () => {
+  it("grafico della spesa erogata montato; la previsione (sì/no, D-11) è nella tabella, assente con la sua fonte", async () => {
     server.use(rispondi('/api/finanziario/sigc/verifica-smp', F.VERIFICA_SMP));
     conRouter(<VerificaSmpReport filtri={{}} esercizio={2025} onCambiaEsercizio={nessunaAzione} />);
-    const titolo = 'Previsione di pagamento e spesa erogata per intervento';
+    const titolo = 'Spesa erogata nella campagna precedente per intervento';
     await waitFor(() => expect(graficoDi(titolo).opzioni.length).toBeGreaterThan(0));
     const c = card(titolo);
-    expect(within(c).getByText('1 voce non nel grafico')).toBeTruthy();
-    expect(within(c).getByText('SRA01, previsione di pagamento: non disponibile (fonte previsione di pagamento non attiva)')).toBeTruthy();
+    expect(within(c).queryByText(/previsione di pagamento/)).toBeNull();
     expect(within(c).getByText('Fonte: TX-0015, esercizio 2025')).toBeTruthy();
+    const t = screen.getByRole('table', { name: TABELLA_SMP });
+    expect(t.textContent).toContain('fonte previsione di pagamento non attiva');
   });
 
   it('a11y: zero violazioni axe', async () => {
