@@ -4,8 +4,9 @@
 // (Z-02, eslint.config.js).
 import type { VerificaSmp, VerificaSmpRiga } from '../api';
 
-// Dati col motivo dell'assenza (Importo, ConteggioFinanziario, SiNoFinanziario: stessa forma), un solo insieme di
-// costruttori per fixture e test (review delta 21/10 H4): il valore, la fonte non attiva, il dato non valorizzato.
+// Dati col motivo dell'assenza (Importo, ConteggioFinanziario, SiNoFinanziario: stessa forma): il valore, la fonte non
+// attiva, il dato non valorizzato. Li usano queste fixture e i test della verifica SMP e dei casi limite della previsione
+// (review delta 21/10 H4); i test anteriori tengono ancora i propri costruttori (euro, nv, NON_VALORIZZATO; passata 2 H4).
 export const dato = <T>(valore: T) => ({ valore, motivo: null, fonte: null });
 export const nd = (fonte: string) => ({ valore: null, motivo: 'FONTE_NON_ATTIVA', fonte });
 export const nv = () => ({ valore: null, motivo: 'NON_VALORIZZATO', fonte: null });
