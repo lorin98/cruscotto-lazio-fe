@@ -1,0 +1,114 @@
+{
+  "artifacts": [
+    {
+      "consumers": [],
+      "ownership": "istituzionale",
+      "path": "slice-plan.json",
+      "role": "artifact",
+      "sha256": "sha256:935a43ee226abbe35670bc754707aaa4c3b837a43fae33a64a27db29ee282ccd",
+      "step": "step1-import"
+    },
+    {
+      "consumers": [],
+      "ownership": "istituzionale",
+      "path": "authz-catalog.json",
+      "role": "authz-catalog",
+      "sha256": "sha256:fa3d4c0b70016dce6e238dba4e8a4a8607ea35d7104cbead5c74fbdb175e2df8",
+      "step": "authz-catalog"
+    },
+    {
+      "consumers": [],
+      "ownership": "istituzionale",
+      "path": "ARSCSR/pom.xml",
+      "role": "artifact",
+      "sha256": "sha256:4c6a6c7cadd6a32fbd600124269e8e47b98479f86c301f26a21737f85557bf72",
+      "step": "step1b-scaffold"
+    },
+    {
+      "consumers": [],
+      "ownership": "istituzionale",
+      "path": "./datamodel/istituzionale-decisions.json",
+      "role": "migration",
+      "sha256": "sha256:853fb6651afcd7b730dd149c2a9be63921cf6a87e2e6d8ef9ba4396ec2e73f3e",
+      "step": "step2-datamodel"
+    },
+    {
+      "consumers": [],
+      "ownership": "istituzionale",
+      "path": "./acceptance/istituzionale-scenarios.json",
+      "role": "application",
+      "sha256": "sha256:ce20e21a22e86456cb08f3d59099e43e3ed0aeb8fcef42dd95e2590a2918a12b",
+      "step": "step5-service"
+    },
+    {
+      "consumers": [],
+      "ownership": "istituzionale",
+      "path": "./openapi/openapi-istituzionale.json",
+      "role": "adapter-in-rest",
+      "sha256": "sha256:061d52efa18cdbe14bf06f6e9d0d6e33699803637224b3f91b2f85bf25dec70d",
+      "step": "step8-rest"
+    }
+  ],
+  "authz_catalog": {
+    "hash": "sha256:fa3d4c0b70016dce6e238dba4e8a4a8607ea35d7104cbead5c74fbdb175e2df8",
+    "path": "authz-catalog.json"
+  },
+  "gates": {
+    "authz-catalog.authz_approved": {
+      "approved_at": "2026-10-12T15:52:46Z",
+      "approved_hash": "sha256:fa3d4c0b70016dce6e238dba4e8a4a8607ea35d7104cbead5c74fbdb175e2df8",
+      "baseline_ref": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
+    },
+    "step1-import.plan_approved": {
+      "approved_at": "2026-10-12T15:52:43Z",
+      "approved_hash": "sha256:935a43ee226abbe35670bc754707aaa4c3b837a43fae33a64a27db29ee282ccd",
+      "baseline_ref": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
+    },
+    "step10-gate.acceptance": "pass",
+    "step10-gate.assumptions": "pass",
+    "step10-gate.branch_bodies": "pass",
+    "step10-gate.build": "pass",
+    "step10-gate.contract_openapi": "pass",
+    "step10-gate.coverage_matrix": "pass",
+    "step10-gate.endpoints_authz": "pass",
+    "step10-gate.no_template_residue": "pass",
+    "step10-gate.property_scope_history_audit": "pass",
+    "step11-review.review": "pass",
+    "step1b-scaffold.reactor_compiles": "pass",
+    "step2-datamodel.ddl_approved": {
+      "approved_at": "2026-10-19T13:47:44Z",
+      "approved_hash": "sha256:853fb6651afcd7b730dd149c2a9be63921cf6a87e2e6d8ef9ba4396ec2e73f3e",
+      "baseline_ref": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
+    },
+    "step3-domain.domain_compiles": "pass",
+    "step3-domain.domain_pure": "pass",
+    "step4-ports.ports_pure": "pass",
+    "step5-service.acceptance_approved": {
+      "approved_at": "2026-10-19T13:47:44Z",
+      "approved_hash": "sha256:ce20e21a22e86456cb08f3d59099e43e3ed0aeb8fcef42dd95e2590a2918a12b",
+      "baseline_ref": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
+    },
+    "step5-service.authz_import_zero": "pass",
+    "step6-adapter-pg.adapter_pg_compiles": "pass",
+    "step7-adapter-oracle.skipped_no_oracle": "pass",
+    "step8-rest.boundary_pure": "pass",
+    "step8-rest.openapi_emitted": "pass",
+    "step9-functions.functions": "pass"
+  },
+  "openapi": {
+    "hash": "sha256:061d52efa18cdbe14bf06f6e9d0d6e33699803637224b3f91b2f85bf25dec70d",
+    "path": "./openapi/openapi-istituzionale.json"
+  },
+  "pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb",
+  "pack_version": "1.3.0",
+  "reqs": [
+    "RU-00000016",
+    "RU-00000017"
+  ],
+  "slice": "istituzionale",
+  "slice_type": "transactional",
+  "transactions": [
+    "TX-0016",
+    "TX-0017"
+  ]
+}

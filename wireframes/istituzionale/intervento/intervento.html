@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<!-- Wireframe v2 (template dettaglio di green-fe, ADR 0027): dettaglio dell'intervento dell'area istituzionale, composto
+     dai due report filtrati sull'intervento (nessuna transazione nuova). Valori di esempio, nessun dato reale. -->
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Intervento SRA01 - Istituzionale - Cruscotto CSR 2023-2027</title>
+<link rel="stylesheet" href="wireframe.css">
+</head>
+<body>
+<a class="skip-link" href="#contenuto">Salta al contenuto</a>
+<header class="ui-testata">
+  <div class="ui-ente">
+    <span class="ui-logo">Regione Lazio</span>
+    <span class="ui-logo">ARSIAL</span>
+  </div>
+  <div class="ui-appbar">
+    <a class="ui-appbar__nome" href="../../panoramica/panoramica.html">Cruscotto CSR 2023-2027</a>
+    <form class="ui-cerca" action="#" method="get" role="search">
+      <label class="form-label" for="cerca-app">Cerca un intervento</label>
+      <input class="form-control" type="search" id="cerca-app" name="q">
+    </form>
+    <span class="ui-utente">Nome Cognome - <a href="#contenuto">Esci</a></span>
+  </div>
+</header>
+<div class="ui-layout">
+  <nav class="ui-sidebar" aria-label="Navigazione principale">
+    <p class="ui-menu__sezione">Aree del cruscotto</p>
+    <ul class="ui-menu">
+      <li><a class="ui-menu__gruppo" href="../../panoramica/panoramica.html">Finanziario</a></li>
+      <li><span class="ui-menu__presto">Fisico (presto)</span></li>
+      <li><span class="ui-menu__presto">Procedurale (presto)</span></li>
+      <li><a class="ui-menu__gruppo" href="../verifica-smp-non-sigc/verifica-smp-non-sigc.html">Istituzionale</a>
+        <ul class="ui-menu__sub">
+          <li><a href="../verifica-smp-non-sigc/verifica-smp-non-sigc.html">Verifica SMP non SIGC</a></li>
+          <li><a href="../output-regionale/output-regionale.html">Output regionale</a></li>
+        </ul>
+      </li>
+    </ul>
+    <p class="ui-menu__sezione">Strumenti</p>
+    <ul class="ui-menu">
+      <li><a class="ui-menu__gruppo" href="../../elenco-operativo/domande/domande.html">Elenco operativo</a></li>
+    </ul>
+  </nav>
+  <main class="ui-main" id="contenuto">
+    <nav class="breadcrumb-container" aria-label="Percorso">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="../../panoramica/panoramica.html">Home</a></li>
+        <li class="breadcrumb-item"><a href="../verifica-smp-non-sigc/verifica-smp-non-sigc.html">Istituzionale</a></li>
+        <li class="breadcrumb-item" aria-current="page">SRA01</li>
+      </ol>
+    </nav>
+    <section class="ui-hero">
+      <p class="ui-eyebrow">Istituzionale - intervento</p>
+      <h1>Intervento SRA01</h1>
+      <p><span class="badge">Perimetro regionale</span> <span class="badge">Indicatore di output O.14 (ettari)</span> <span class="badge">Indicatore di risultato R.n</span></p>
+      <a class="btn btn-primary" href="../verifica-smp-non-sigc/verifica-smp-non-sigc.html">Verifica SMP non SIGC filtrata su questo intervento</a> <a class="btn" href="../output-regionale/output-regionale.html">Output regionale filtrato su questo intervento</a>
+    </section>
+    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0016.read, csr.tx-0017.read - Transazioni: TX-0016 e TX-0017 filtrate su intervento = codice della route (nessuna transazione nuova). Ogni scheda compare solo col grant della sua transazione e legge i dati solo quando si apre. La descrizione dell'intervento non e' nella spec istituzionale (OP-IS-01): la testata mostra il codice. Esempio composito: le schede mostrano insieme casi che in un intervento reale non convivono (un intervento SIGC come SRA01 non ha domande non SIGC).</p>
+    <div class="ui-griglia ui-griglia--4">
+      <section class="ui-kpi" aria-label="Target di fine periodo">
+        <p>Target di fine periodo</p>
+        <p class="ui-kpi__valore">n ettari al 2029</p>
+        <p class="ui-barra">TX-0017</p>
+      </section>
+      <section class="ui-kpi" aria-label="Domande ricevute non SIGC">
+        <p>Domande ricevute non SIGC</p>
+        <p class="ui-kpi__valore">n</p>
+        <p class="ui-barra">TX-0016</p>
+      </section>
+      <section class="ui-kpi" aria-label="Domande finanziate non SIGC">
+        <p>Domande finanziate non SIGC</p>
+        <p class="ui-kpi__valore">n</p>
+        <p class="ui-barra">TX-0016</p>
+      </section>
+      <section class="ui-kpi" aria-label="Spesa pubblica erogata non SIGC">
+        <p>Spesa pubblica erogata non SIGC</p>
+        <p class="ui-kpi__valore">n,n M euro</p>
+        <p class="ui-barra">TX-0016, anticipi inclusi</p>
+      </section>
+    </div>
+    <div class="ui-tabs" role="tablist" aria-label="Sezioni dell'intervento">
+      <button class="btn" type="button" role="tab" aria-selected="true">Output per anno</button> <button class="btn" type="button" role="tab" aria-selected="false">Verifica SMP non SIGC</button> <button class="btn" type="button" role="tab" aria-selected="false">Importi unitari</button>
+    </div>
+    <section role="tabpanel" aria-label="Output per anno">
+      <section class="ui-card" aria-labelledby="g-anni">
+        <div class="ui-card__testa">
+          <h2 id="g-anni">Output programmato e realizzato per anno (ettari)</h2>
+          <div class="ui-seg" role="group" aria-label="Vista di Output programmato e realizzato per anno"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica PNG</button></div>
+        </div>
+        <figure class="ui-grafico ui-grafico--barre">
+          <figcaption>Barre raggruppate per anno: programmato, realizzato SIGC, realizzato non SIGC (cumulativo), nell'unita' dell'indicatore; il target di fine periodo e' la linea di riferimento. Gli anni senza valore sono omessi e dichiarati sotto il grafico col motivo. Nessun clic: i valori e la tabella bastano.</figcaption>
+        </figure>
+        <p class="ui-fonte">Fonte: TX-0017. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati.</p>
+        <table class="ui-tabella">
+          <caption>Tabella equivalente: output dell'intervento SRA01 per anno, in ettari</caption>
+          <thead>
+            <tr>
+              <th scope="col">Anno</th>
+              <th scope="col" class="ui-num">Programmato</th>
+              <th scope="col" class="ui-num">Realizzato SIGC</th>
+              <th scope="col" class="ui-num">Realizzato non SIGC (cumulativo)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">2023</th><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td><td class="ui-num">n</td><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td></tr>
+            <tr><th scope="row">2024</th><td class="ui-num">n</td><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td></tr>
+            <tr><th scope="row">2027</th><td class="ui-num">n</td><td class="ui-num"><span class="badge">non attribuibile</span> riga presente sia nel monitoraggio SIGC sia nel non SIGC</td><td class="ui-num"><span class="badge">non attribuibile</span> riga presente sia nel monitoraggio SIGC sia nel non SIGC</td></tr>
+          </tbody>
+          <tfoot>
+            <tr><th scope="row">Target di fine periodo</th><td class="ui-num">n (anno 2029)</td><td></td><td></td></tr>
+          </tfoot>
+        </table>
+      </section>
+    </section>
+    <section role="tabpanel" aria-label="Verifica SMP non SIGC">
+      <form action="#" method="get">
+        <label class="form-label" for="anno">Anno di riferimento del monitoraggio SMP non SIGC</label>
+        <select class="form-select" id="anno" name="anno" aria-describedby="anno-aiuto"><option>Ultimo anno con un file (predefinito)</option><option>aaaa</option></select>
+        <p class="form-text" id="anno-aiuto">Facoltativo. Vale per indicatori, output e dati dell'avviso; domande e spesa sono cumulative.</p>
+        <button class="btn btn-primary" type="submit">Mostra</button>
+      </form>
+      <table class="ui-tabella">
+        <caption>I dati ASR non SIGC dell'intervento da confrontare con SMP (anno di riferimento aaaa), con i valori assenti e il loro motivo</caption>
+        <tbody>
+          <tr><th scope="row">Avvisi attivati</th><td class="ui-num">n</td></tr>
+          <tr><th scope="row">Avvisi chiusi</th><td class="ui-num">n</td></tr>
+          <tr><th scope="row">Azioni attivate</th><td class="ui-num"><span class="badge">non disponibile per l'anno scelto</span> l'avviso porta i dati del file piu' recente</td></tr>
+          <tr><th scope="row">Dotazione degli avvisi</th><td class="ui-num">n,nn euro</td></tr>
+          <tr><th scope="row">Chiusura dell'ultimo avviso aperto</th><td class="ui-num">gg/mm/aaaa</td></tr>
+          <tr><th scope="row">Domande ricevute</th><td class="ui-num">n <a href="../../elenco-operativo/domande/domande.html">Apri nell'elenco</a></td></tr>
+          <tr><th scope="row">Domande ricevute senza importo richiesto (escluse dal valore)</th><td class="ui-num">n</td></tr>
+          <tr><th scope="row">Valore delle domande ricevute</th><td class="ui-num">n,nn euro</td></tr>
+          <tr><th scope="row">Domande finanziate</th><td class="ui-num">n</td></tr>
+          <tr><th scope="row">Valore delle domande finanziate</th><td class="ui-num">n,nn euro</td></tr>
+          <tr><th scope="row">Domande pagate (solo saldate al 100%, definizione da confermare con ARSIAL)</th><td class="ui-num">n</td></tr>
+          <tr><th scope="row">Anticipi erogati</th><td class="ui-num">n,nn euro</td></tr>
+          <tr><th scope="row">Spesa pubblica erogata (anticipi inclusi, al lordo dei recuperi)</th><td class="ui-num">n,nn euro <a href="../../elenco-operativo/pagamenti/pagamenti.html">Apri nei pagamenti</a></td></tr>
+          <tr><th scope="row">In assenza di importi impegnati, sono previste concessioni</th><td>no</td></tr>
+          <tr><th scope="row">La dotazione include top-up</th><td>si'</td></tr>
+          <tr><th scope="row">Importo top-up</th><td class="ui-num">n,nn euro</td></tr>
+          <tr><th scope="row">Output atteso delle domande finanziate</th><td class="ui-num">n ettari</td></tr>
+          <tr><th scope="row">Output erogato (valore del file, cumulativo)</th><td class="ui-num">n ettari</td></tr>
+          <tr><th scope="row">Indicatore comune di output</th><td>O.14</td></tr>
+          <tr><th scope="row">Indicatore di risultato</th><td><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td></tr>
+        </tbody>
+      </table>
+    </section>
+    <section role="tabpanel" aria-label="Importi unitari">
+      <table class="ui-tabella">
+        <caption>Importo unitario per Unit Amount ed esercizio finanziario (dal CSR), in ordine di esercizio e di codice</caption>
+        <thead>
+          <tr>
+            <th scope="col">Unit Amount</th>
+            <th scope="col">Gruppo colturale</th>
+            <th scope="col" class="ui-num">Esercizio</th>
+            <th scope="col" class="ui-num">Importo unitario</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">UA01</th><td>gruppo colturale</td><td class="ui-num">2024</td><td class="ui-num">n,nn euro</td></tr>
+          <tr><th scope="row">UA02</th><td>gruppo colturale</td><td class="ui-num">2024</td><td class="ui-num">n,nn euro</td></tr>
+          <tr><th scope="row">UA01</th><td>gruppo colturale</td><td class="ui-num">2025</td><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td></tr>
+        </tbody>
+      </table>
+      <div class="ui-vuoto" role="status">Intervento senza Unit Amount (per esempio un intervento strutturale): nessun importo unitario; il programmato per anno e' non valorizzato e vale il solo target.</div>
+    </section>
+    <h2>Stato: caricamento</h2>
+    <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro della testata e delle card)</div>
+    <h2>Stato: intervento senza dati</h2>
+    <div class="ui-vuoto" role="status">Nessun dato per questo intervento nei report istituzionali (l'Assistenza tecnica AT001 non e' nei report). <a class="btn btn-primary" href="../output-regionale/output-regionale.html">Torna all'output regionale</a></div>
+    <h2>Stato: errore</h2>
+    <div class="alert alert-danger" role="alert">Intervento non disponibile (codice non valido: 400 dato non valido; accesso negato: 403; 503 capacita' esaurita o tempo scaduto, con Riprova).</div>
+  </main>
+</div>
+<footer class="ui-footer">
+  <ul>
+    <li><a href="#contenuto">Dichiarazione di accessibilita' (indirizzo da definire)</a></li>
+    <li><a href="#contenuto">Privacy (indirizzo da definire)</a></li>
+    <li><a href="#contenuto">Note legali (indirizzo da definire)</a></li>
+    <li>Regione Lazio - ARSIAL</li>
+  </ul>
+</footer>
+</body>
+</html>

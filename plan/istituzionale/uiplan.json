@@ -1,0 +1,776 @@
+{
+  "schema_version": "1.0",
+  "feature": "istituzionale",
+  "pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb",
+  "spec_pins": [
+    {
+      "slice": "istituzionale",
+      "path": "handover/openapi-istituzionale.json",
+      "sha256": "sha256:061d52efa18cdbe14bf06f6e9d0d6e33699803637224b3f91b2f85bf25dec70d",
+      "manifest_hash_match": true
+    }
+  ],
+  "routes": [
+    {
+      "path": "/istituzionale/verifica-smp-non-sigc",
+      "kind": "report",
+      "transactions": [
+        "TX-0016"
+      ],
+      "reqs": [
+        "RF016"
+      ],
+      "roles": [
+        "csr.tx-0016.read"
+      ],
+      "flow": "verifica-smp-non-sigc",
+      "url_params": [
+        {
+          "name": "anno",
+          "source": "TX-0016.anno"
+        },
+        {
+          "name": "intervento",
+          "source": "TX-0016.intervento",
+          "multi": true
+        },
+        {
+          "name": "os",
+          "source": "TX-0016.os",
+          "multi": true
+        },
+        {
+          "name": "og",
+          "source": "TX-0016.og",
+          "multi": true
+        },
+        {
+          "name": "op",
+          "source": "TX-0016.op",
+          "multi": true
+        },
+        {
+          "name": "azione",
+          "source": "TX-0016.azione",
+          "multi": true
+        }
+      ],
+      "links": [
+        {
+          "id": "dettaglio-intervento-smp",
+          "trigger": "Clic su una barra di Spesa pubblica erogata per intervento, oppure clic o Invio su una riga della tabella: il dettaglio dell'intervento, con l'anno di riferimento scelto",
+          "target": "/istituzionale/interventi/:codice",
+          "path_params": [
+            "codice"
+          ],
+          "query": [
+            "anno"
+          ]
+        },
+        {
+          "id": "elenco-ricevute-riga",
+          "trigger": "Cella Domande ricevute di una riga, azione 'Apri nell'elenco' (solo con un valore maggiore di 0): le domande di sostegno correnti dell'intervento (tipo=SOSTEGNO, intervento della riga; D-05 del backend: le ricevute sono le domande correnti di sostegno, non SIGC per costruzione)",
+          "target_feature": "elenco-operativo",
+          "target": "/elenco-operativo/domande",
+          "path_params": [],
+          "query": [
+            "tipo",
+            "intervento"
+          ]
+        },
+        {
+          "id": "elenco-spesa-riga",
+          "trigger": "Cella Spesa erogata di una riga, azione 'Apri nei pagamenti' (solo con un valore maggiore di 0): le righe PAGATA non SIGC degli elenchi di liquidazione dell'intervento (esito=PAGATA, sigc=false, intervento della riga; D-05 del backend: negazione esatta del predicato SIGC dei pagamenti, anticipi inclusi, importi lordi)",
+          "target_feature": "elenco-operativo",
+          "target": "/elenco-operativo/pagamenti",
+          "path_params": [],
+          "query": [
+            "esito",
+            "sigc",
+            "intervento"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/istituzionale/output-regionale",
+      "kind": "report",
+      "transactions": [
+        "TX-0017"
+      ],
+      "reqs": [
+        "RF017"
+      ],
+      "roles": [
+        "csr.tx-0017.read"
+      ],
+      "flow": "output-regionale",
+      "url_params": [
+        {
+          "name": "intervento",
+          "source": "TX-0017.intervento",
+          "multi": true
+        },
+        {
+          "name": "os",
+          "source": "TX-0017.os",
+          "multi": true
+        },
+        {
+          "name": "og",
+          "source": "TX-0017.og",
+          "multi": true
+        },
+        {
+          "name": "op",
+          "source": "TX-0017.op",
+          "multi": true
+        },
+        {
+          "name": "azione",
+          "source": "TX-0017.azione",
+          "multi": true
+        }
+      ],
+      "links": [
+        {
+          "id": "dettaglio-intervento-output",
+          "trigger": "Pulsante 'Apri il dettaglio' del drawer di anteprima di una riga (clic o Invio sulla riga apre il drawer)",
+          "target": "/istituzionale/interventi/:codice",
+          "path_params": [
+            "codice"
+          ],
+          "query": []
+        }
+      ]
+    },
+    {
+      "path": "/istituzionale/interventi/:codice",
+      "kind": "dettaglio",
+      "transactions": [
+        "TX-0016",
+        "TX-0017"
+      ],
+      "reqs": [
+        "RF016",
+        "RF017"
+      ],
+      "roles": [
+        "csr.tx-0016.read",
+        "csr.tx-0017.read"
+      ],
+      "flow": "intervento",
+      "url_params": [
+        {
+          "name": "anno",
+          "source": "TX-0016.anno"
+        }
+      ],
+      "links": [
+        {
+          "id": "verifica-smp-intervento",
+          "trigger": "Pulsante della testata 'Verifica SMP non SIGC filtrata su questo intervento' (intervento = codice della route, con l'anno di riferimento scelto)",
+          "target": "/istituzionale/verifica-smp-non-sigc",
+          "path_params": [],
+          "query": [
+            "intervento",
+            "anno"
+          ]
+        },
+        {
+          "id": "output-regionale-intervento",
+          "trigger": "Pulsante della testata 'Output regionale filtrato su questo intervento' (intervento = codice della route)",
+          "target": "/istituzionale/output-regionale",
+          "path_params": [],
+          "query": [
+            "intervento"
+          ]
+        },
+        {
+          "id": "elenco-ricevute-intervento",
+          "trigger": "Voce Domande ricevute della scheda Verifica SMP non SIGC, azione 'Apri nell'elenco': tipo=SOSTEGNO, intervento = codice della route",
+          "target_feature": "elenco-operativo",
+          "target": "/elenco-operativo/domande",
+          "path_params": [],
+          "query": [
+            "tipo",
+            "intervento"
+          ]
+        },
+        {
+          "id": "elenco-spesa-intervento",
+          "trigger": "Voce Spesa erogata della scheda Verifica SMP non SIGC, azione 'Apri nei pagamenti': esito=PAGATA, sigc=false, intervento = codice della route",
+          "target_feature": "elenco-operativo",
+          "target": "/elenco-operativo/pagamenti",
+          "path_params": [],
+          "query": [
+            "esito",
+            "sigc",
+            "intervento"
+          ]
+        }
+      ]
+    }
+  ],
+  "fields": [
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "annoRiferimento",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "perimetro",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "outputCumulativo",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "righe[].codiceIntervento",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "righe[].avvisiAttivati",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "righe[].avvisiChiusi",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "righe[].azioniAttivate",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "righe[].dotazioneAvvisi",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "righe[].chiusuraUltimoAvvisoAperto",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "righe[].domandeRicevute",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "righe[].domandeRicevuteSenzaRichiesto",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "righe[].valoreDomandeRicevute",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "righe[].domandeFinanziate",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "righe[].valoreDomandeFinanziate",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "righe[].domandeSaldate",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "righe[].anticipiErogati",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "righe[].spesaErogata",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "righe[].concessioniPreviste",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "righe[].includeTopUp",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "righe[].importoTopUp",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "righe[].outputAttesoFinanziate",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "righe[].outputErogato",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "righe[].indicatoreOutput",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "righe[].indicatoreRisultato",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/output-regionale",
+      "name": "annoInizio",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/istituzionale/output-regionale",
+      "name": "annoFine",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/istituzionale/output-regionale",
+      "name": "perimetro",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/istituzionale/output-regionale",
+      "name": "realizzatoNonSigcCumulativo",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/istituzionale/output-regionale",
+      "name": "righe[].codiceIntervento",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/istituzionale/output-regionale",
+      "name": "righe[].indicatoreOutput",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/istituzionale/output-regionale",
+      "name": "righe[].unitaMisura",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/istituzionale/output-regionale",
+      "name": "righe[].targetFinePeriodo",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/istituzionale/output-regionale",
+      "name": "righe[].annoTarget",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/istituzionale/output-regionale",
+      "name": "righe[].anni[].anno",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/istituzionale/output-regionale",
+      "name": "righe[].anni[].programmato",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/istituzionale/output-regionale",
+      "name": "righe[].anni[].realizzatoSigc",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/istituzionale/output-regionale",
+      "name": "righe[].anni[].realizzatoNonSigc",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "annoRiferimento",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "perimetro",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "outputCumulativo",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].codiceIntervento",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].avvisiAttivati",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].avvisiChiusi",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].azioniAttivate",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].dotazioneAvvisi",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].chiusuraUltimoAvvisoAperto",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].domandeRicevute",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].domandeRicevuteSenzaRichiesto",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].valoreDomandeRicevute",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].domandeFinanziate",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].valoreDomandeFinanziate",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].domandeSaldate",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].anticipiErogati",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].spesaErogata",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].concessioniPreviste",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].includeTopUp",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].importoTopUp",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].outputAttesoFinanziate",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].outputErogato",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].indicatoreOutput",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].indicatoreRisultato",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "annoInizio",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "annoFine",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "perimetro",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "realizzatoNonSigcCumulativo",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].codiceIntervento",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].indicatoreOutput",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].unitaMisura",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].targetFinePeriodo",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].annoTarget",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].anni[].anno",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].anni[].programmato",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].anni[].realizzatoSigc",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].anni[].realizzatoNonSigc",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].importiUnitari[].codiceUnitAmount",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].importiUnitari[].gruppoColturale",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].importiUnitari[].esercizio",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].importiUnitari[].importoUnitario",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    }
+  ],
+  "flows": [
+    {
+      "name": "verifica-smp-non-sigc",
+      "routes": [
+        "/istituzionale/verifica-smp-non-sigc"
+      ],
+      "wireframe_dir": "wireframes/istituzionale/verifica-smp-non-sigc",
+      "wcag_notes": [
+        "Tabella equivalente del grafico a un clic (Grafico | Tabella), stessi valori; i valori assenti sono omessi dal grafico ed elencati sotto col motivo",
+        "Ogni dato mancante e' un testo col motivo (non valorizzato, non disponibile per l'anno, non attribuibile), mai uno 0 o un 'no' inventati e mai il solo colore",
+        "Righe apribili con Invio oltre che col clic; intestazioni ordinabili come bottoni con lo stato annunciato; l'intervento e' l'intestazione di riga",
+        "Selettore dell'anno con etichetta e testo d'aiuto collegati (aria-describedby); la scelta si applica col pulsante Mostra, non scorrendo le voci",
+        "Link 'Apri nell'elenco' e 'Apri nei pagamenti' nelle celle: bersaglio minimo 24 px (WCAG 2.5.8) e testo che dice dove portano",
+        "Residuo manuale: ordine di lettura (filtri, anno, grafico, tabella), comprensibilita delle note sulle definizioni, contrasto della resa finale; axe rinviato allo step8"
+      ]
+    },
+    {
+      "name": "output-regionale",
+      "routes": [
+        "/istituzionale/output-regionale"
+      ],
+      "wireframe_dir": "wireframes/istituzionale/output-regionale",
+      "wcag_notes": [
+        "Interruttore della misura (Programmato | Realizzato SIGC | Realizzato non SIGC) come gruppo di bottoni con aria-pressed; il cambio non sposta il focus e la didascalia della tabella dice quale misura e' mostrata",
+        "Colonne degli anni dalla risposta (annoInizio..annoFine), intestazioni di colonna con scope; l'intervento e' l'intestazione di riga",
+        "Drawer di anteprima con focus-trap e ritorno del focus alla riga; il mini grafico ha la tabella equivalente per i lettori di schermo",
+        "Unita' di misura sempre accanto al valore (mai un numero senza unita')",
+        "Residuo manuale: leggibilita della tabella larga con scorrimento orizzontale (WCAG 1.4.10 reflow), ordine di lettura, contrasto della resa finale; axe rinviato allo step8"
+      ]
+    },
+    {
+      "name": "intervento",
+      "routes": [
+        "/istituzionale/interventi/:codice"
+      ],
+      "wireframe_dir": "wireframes/istituzionale/intervento",
+      "wcag_notes": [
+        "Schede come tablist con frecce da tastiera; il focus va al titolo dopo il cambio di route",
+        "Grafico per anno con la tabella equivalente (anno per anno, valori assenti col motivo); il target di fine periodo e' anche una voce di testo, non solo la linea di riferimento",
+        "Voci della verifica SMP come tabella a due colonne con intestazione di riga",
+        "Residuo manuale: ordine di lettura di testata, KPI e schede; comprensibilita delle note sulle definizioni; contrasto della resa finale; axe rinviato allo step8"
+      ]
+    }
+  ],
+  "open_points": [
+    {
+      "id": "OP-IS-01",
+      "kind": "campo-assente-dalla-spec",
+      "detail": "Voci dei filtri e descrizione degli interventi: TX-0016 e TX-0017 accettano i filtri intervento, os, og, op, azione (e anno per TX-0016), ma la spec istituzionale non espone le voci selezionabili (interventi con descrizione, obiettivi specifici, generali e di policy, azioni portanti, legame con le azioni disponibile) ne' la descrizione dell'intervento per la testata del dettaglio. Nel finanziario vengono da TX-0001 (csr.tx-0001.read), che il profilo p3-funzionario-area-ist non detiene; TX-0060 e' dell'elenco operativo, un'altra feature (fra feature si comunica solo via URL). Richiesta a green-be: campo ADDITIVO su una risposta esistente della slice (es. valoriFiltri e descrizione su VerificaSmpNonSigc e MonitoraggioOutput), stessa transazione e stesso grant, risigillo della sola slice istituzionale. Finche' manca (proposta da approvare col wireframe): i filtri arrivati con l'indirizzo sono chip rimovibili; il pannello propone come voci di Intervento i codici delle righe della risposta (righe[].codiceIntervento, provenance spec) e la tabella ha la ricerca; obiettivi e azioni portanti non hanno voci da proporre; la testata del dettaglio mostra il solo codice."
+    },
+    {
+      "id": "OP-IS-02",
+      "kind": "campo-assente-dalla-spec",
+      "detail": "Ultimo dato sincronizzato (NFR-25 b): nessun DTO della slice istituzionale porta ultimiDatiSincronizzati (nel finanziario lo porta TX-0001, nell'elenco TX-0057 e TX-0059). La barra dei filtri dichiara l'anno di riferimento del file SMP NOSIGC (annoRiferimento di TX-0016) e il periodo (annoInizio-annoFine di TX-0017), non la data dell'ultima acquisizione. Richiesta a green-be: campo additivo ultimiDatiSincronizzati (stessa forma di UltimoDatoSincronizzato) su TX-0016 e TX-0017, risigillo della slice. Restano fuori, come nel finanziario (OP-FE-04), il marcatore 'dato non aggiornato da N giorni' di NFR-25 (c)."
+    },
+    {
+      "id": "OP-IS-03",
+      "kind": "altro",
+      "detail": "Esportazione: la spec istituzionale non ha le esportazioni CSV e XLSX ({formato}) che il finanziario ha per ogni report (TX-0015 compresa), registrate in AUDIT_ESPORTAZIONE (NFR-34) con l'intestazione di NFR-50. Per la coerenza col finanziario (un pulsante per formato) servono a green-be GET /api/istituzionale/verifica-smp-non-sigc/{formato} e /api/istituzionale/output-regionale/{formato}, risigillo della slice. Finche' mancano: nessun pulsante CSV o XLSX; i wireframe propongono il solo PNG del grafico generato nel browser, con lo stesso limite di OP-FE-08 (non registrato in audit) e senza l'ultimo dato sincronizzato nell'intestazione (OP-IS-02). Da decidere: PNG nel frattempo, oppure nessuno scaricamento fino agli endpoint."
+    },
+    {
+      "id": "OP-IS-04",
+      "kind": "altro",
+      "detail": "Collegamento con la verifica SMP SIGC del finanziario (TX-0015, /finanziario/sigc/verifica-smp, flusso sigc approvato): NON dichiarato come link, da far decidere all'utente. RF015 (SIGC) e RF016 (non SIGC) sono la stessa verifica APR su due ambiti e la card dell'ambito Istituzionale li elenca insieme. Raggiungibilita': csr.tx-0015.read e' di p1, p2, p3-fin, p4, p5; csr.tx-0016.read di p1, p2, p3-ist: il link servirebbe solo a p1 e p2 e va nascosto agli altri (gate di UX). I parametri non si traducono: TX-0015 vuole l'esercizio finanziario (obbligatorio), TX-0016 l'anno di riferimento del file (facoltativo); la route del finanziario non dichiara url_params, quindi il link porterebbe query vuota (i filtri non passano senza un refresh del finanziario). Opzioni: (A) link solo da qui verso il finanziario, visibile con csr.tx-0015.read, query vuota; (B) link nei due sensi: serve un refresh della feature finanziario (route verifica-smp con il link e, se si vogliono i filtri, i suoi url_params) e la riapprovazione del flusso sigc; (C) nessun link, solo una frase che dice dove sono i dati SIGC."
+    },
+    {
+      "id": "OP-IS-05",
+      "kind": "altro",
+      "detail": "Card dell'ambito in src/app/aree.ts (la tocca lo step6, non questa feature): (1) Istituzionale 'Dati ASR SIGC e non SIGC da confrontare con SMP': qui si rende solo il non SIGC (TX-0016); il SIGC (TX-0015, RF015, area 'I - Istituzionale' nel pack) e' nella slice e nella feature finanziario, e la card del Finanziario lo elenca gia' ('SIGC, riserva di efficacia e verifica SMP'); (2) Istituzionale 'Output regionale per intervento' = TX-0017, reso qui, ma RF017 nel pack e' dell'area 'F2 - Fisico' e la card del Fisico dichiara 'Output programmato e realizzato dal 2023 al 2029' (e 'Pagamenti per Unit Amount'), che non sono nella slice fisico (TX-0018, TX-0020); (3) 'Avvisi attivati e chiusi, concessioni previste' e' coperto da TX-0016. Da decidere con l'utente: testi delle due card e, se serve, il rimando fra le aree."
+    },
+    {
+      "id": "OP-IS-06",
+      "kind": "altro",
+      "detail": "Grafico dell'output regionale fra interventi: ogni intervento ha il suo indicatore e la sua unita' di misura (ettari, UBA, numero di beneficiari, operazioni...), quindi un grafico che metta a confronto le quantita' di interventi diversi mescolerebbe unita' diverse. La pagina del report e' tabellare (pattern lista-filtri, uiplan-patterns 1: report tabellare) con un mini grafico per anno nel drawer della riga; il grafico per anno sta nel dettaglio dell'intervento (una sola unita'). Per un grafico fra interventi servirebbe una grandezza senza unita' calcolata dal backend (es. quota del target di fine periodo gia' realizzata, campo additivo su MonitoraggioOutputRiga, green-be): il frontend non la calcola, perche' il realizzato SIGC e' annuale e quello non SIGC cumulativo (D-04) e la loro somma non e' definita."
+    },
+    {
+      "id": "OP-IS-07",
+      "kind": "altro",
+      "detail": "Valori da consolidare (NFR-25 d) e definizioni da confermare: NFR-25 (d) chiede di marcare 'da consolidare' i valori dell'area Istituzionale il cui tracciamento fuori dalla piattaforma nazionale non e' definito (flussi alternativi di UC016 e UC017), ma la spec non ha un marcatore del genere (motivi: FONTE_NON_ATTIVA, NON_VALORIZZATO, ANNO_NON_CONSERVATO, FONTE_AMBIGUA). Il backend dichiara da confermare: domande pagate 'solo saldate al 100%' (D-02, definizione DUBBIA nella MTX-01, con ARSIAL), realizzato non SIGC come valore del file cumulativo per anno di riferimento (D-04, con ARSIAL e AGEA), programmato per anno come somma dell'output previsto delle Unit Amount (D-03). La UI le dichiara come note fisse accanto alle colonne (testo dalle decisioni del backend, non un dato). Da chiarire con green-spec e green-be se NFR-25 (d) chiede un campo della risposta."
+    },
+    {
+      "id": "OP-IS-08",
+      "kind": "altro",
+      "detail": "Resa dei due motivi nuovi della slice: il kit (descriviAssenza in entities/importo) conosce FONTE_NON_ATTIVA, NON_VALORIZZATO e FUORI_PERIMETRO; ANNO_NON_CONSERVATO e FONTE_AMBIGUA cadrebbero nel generico 'non disponibile' senza nota. Proposta per lo step4-lib (estensione additiva, stessa forma testoConNota): ANNO_NON_CONSERVATO -> 'non disponibile per l'anno scelto (l'avviso porta i dati del file piu' recente)'; FONTE_AMBIGUA -> 'non attribuibile (riga presente sia nel monitoraggio SIGC sia nel non SIGC)'. I testi si approvano coi wireframe."
+    },
+    {
+      "id": "OP-IS-09",
+      "kind": "altro",
+      "detail": "Drill-down verso l'elenco operativo (link elenco-ricevute-riga, elenco-spesa-riga, elenco-ricevute-intervento, elenco-spesa-intervento): la coincidenza dei numeri vale per definizione (D-05 del backend: ricevute = domande correnti di SOSTEGNO, cioe' TX-0056 con tipo=SOSTEGNO; spesa erogata non SIGC = righe PAGATA la cui domanda non soddisfa il predicato SIGC dei pagamenti, cioe' TX-0059 con esito=PAGATA e sigc=false, regola dei pagamenti D-07 Rev. 1), ma nessuno scenario del backend la verifica, a differenza di SC-EO_DRILLDOWN per i link del finanziario. Non collegati perche' l'elenco non li riproduce: domande finanziate (servirebbe ammessoDa=0.01, soglia artificiosa), domande pagate solo saldate (nessun parametro per il saldo), anticipi erogati (TX-0059 non filtra per tipologia di pagamento). Da decidere: tenere i quattro link, oppure chiedere a green-be di estendere SC-EO_DRILLDOWN a tipo=SOSTEGNO e a sigc=false sui pagamenti e rendere i link solo dopo (open point che li blocca)."
+    }
+  ]
+}
