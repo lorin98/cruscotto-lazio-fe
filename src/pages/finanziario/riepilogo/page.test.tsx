@@ -135,6 +135,16 @@ describe('RF011: tabella di riepilogo per intervento con i nove campi finanziari
     expect((await screen.findByRole('alert')).textContent).toContain('Non hai i permessi');
   });
 
+  // review delta 21/10 V5: la pagina com'e' all'apertura (vista Grafico, interruttore di pagina e card del grafico)
+  it('nessuna violazione axe sulla pagina appena aperta, nella vista Grafico', async () => {
+    server.use(http.get('*/api/finanziario/riepilogo', () => HttpResponse.json(RIEPILOGO)));
+    const { container } = renderPagina(Pagina, '/finanziario/riepilogo');
+    const card = await trovaCard('Dotazione e pagamenti per intervento');
+    expect(graficoDi(card)).toBeTruthy();
+    expect(within(screen.getByRole('group', { name: 'Vista del riepilogo' })).getByRole('button', { name: 'Grafico' }).getAttribute('aria-pressed')).toBe('true');
+    await expectNoA11yViolations(container);
+  });
+
   it('nessuna violazione axe, anche con l anteprima aperta', async () => {
     server.use(http.get('*/api/finanziario/riepilogo', () => HttpResponse.json(RIEPILOGO)));
     const { container } = renderPagina(Pagina, '/finanziario/riepilogo');
