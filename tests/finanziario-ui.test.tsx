@@ -1941,7 +1941,8 @@ describe('VerificaSmpReport (TX-0015)', () => {
     await waitFor(() => expect(indirizzo(router)).toBe('/finanziario/interventi/SRA01?og=OG2'));
   });
 
-  it("grafico della spesa erogata montato; la previsione (sì/no, D-11) è nella tabella, assente con la sua fonte", async () => {
+  // i valori si'/no della previsione li prova il test della pagina verifica-smp (review delta 21/10 V1)
+  it("grafico della spesa erogata montato; la previsione di pagamento (D-11) non è nel grafico ma nella tabella, assente con la sua fonte", async () => {
     server.use(rispondi('/api/finanziario/sigc/verifica-smp', F.VERIFICA_SMP));
     conRouter(<VerificaSmpReport filtri={{}} esercizio={2025} onCambiaEsercizio={nessunaAzione} />);
     const titolo = 'Spesa erogata nella campagna precedente per intervento';

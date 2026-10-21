@@ -32,10 +32,13 @@ describe('RF015: i dati ASR dell ambito SIGC per il confronto con SMP - Data Pla
     expect(within(t).getAllByRole('columnheader')).toHaveLength(21);
     expect(t.textContent).toContain('fonte previsione di pagamento non attiva');
   });
-  it("avvisi e azioni attivate e top-up incluso: il valore, oppure il motivo dell'assenza (D3, D15 del backend), mai uno 0 o un no inventati", async () => {
+  // review delta 21/10 V1: la previsione di pagamento (D-11) e' provata con un valore, non solo quando la fonte manca
+  it("avvisi e azioni attivate, top-up incluso e previsione di pagamento: il valore, oppure il motivo dell'assenza (D3, D15, D-11 del backend), mai uno 0 o un no inventati", async () => {
     const righe = [
-      rigaSmp({ avvisiAttivati: nv(), azioniAttivate: nd('AVVISI_SMP'), includeTopUp: nv() }),
-      rigaSmp({ codiceIntervento: 'SRA03', avvisiAttivati: dato(3), azioniAttivate: dato(0), includeTopUp: dato(true) }),
+      rigaSmp({ avvisiAttivati: nv(), azioniAttivate: nd('AVVISI_SMP'), includeTopUp: nv(), previsionePagamentoEsercizio: nv() }),
+      rigaSmp({ codiceIntervento: 'SRA03', avvisiAttivati: dato(3), azioniAttivate: dato(0), includeTopUp: dato(true), previsionePagamentoEsercizio: dato(true) }),
+      rigaSmp({ codiceIntervento: 'SRA29', includeTopUp: dato(false), previsionePagamentoEsercizio: dato(false) }),
+      rigaSmp({ codiceIntervento: 'SRD01', previsionePagamentoEsercizio: nd('PREVISIONE_PAGAMENTO') }),
     ];
     server.use(http.get('*/api/finanziario/sigc/verifica-smp', () => HttpResponse.json({ ...VERIFICA_SMP, righe })));
     renderPagina(Pagina, '/finanziario/sigc/verifica-smp', '/finanziario/sigc/verifica-smp?esercizio=2025');
@@ -51,6 +54,13 @@ describe('RF015: i dati ASR dell ambito SIGC per il confronto con SMP - Data Pla
     expect(cella('SRA03', 'Avvisi attivati')).toBe('3');
     expect(cella('SRA03', 'Azioni attivate')).toBe('0');
     expect(cella('SRA03', 'Include top-up')).toBe('sì');
+    expect(cella('SRA29', 'Include top-up')).toBe('no');
+    // la previsione di pagamento: si', no, non valorizzata con la fonte attiva, non disponibile senza la fonte
+    const previsione = "Si prevede di pagare nell'esercizio";
+    expect(cella('SRA03', previsione)).toBe('sì');
+    expect(cella('SRA29', previsione)).toBe('no');
+    expect(cella('SRA01', previsione)).toBe('non valorizzatoil dato non è presente nella fonte');
+    expect(cella('SRD01', previsione)).toBe('non disponibilefonte previsione di pagamento non attiva');
   });
   // review delta 21/10 V2: nel wireframe verifica-smp riapprovato il 19/10 la previsione e' una colonna di testo, non un numero
   it("previsione di pagamento e top-up incluso sono colonne di testo; i conteggi restano allineati come numeri", async () => {

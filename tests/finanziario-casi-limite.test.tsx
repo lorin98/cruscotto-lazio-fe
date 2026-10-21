@@ -534,8 +534,11 @@ describe('VerificaSmpReport: casi limite', () => {
     expect(valoreDi(esercizio, 'Anno delle domande')).toBe('non disponibile');
     const c = await trovaCard('Spesa erogata nella campagna precedente per intervento');
     expect(within(c).getByText('SRA03, spesa erogata nella campagna precedente: non disponibile')).toBeTruthy();
-    // D-11: la previsione di pagamento e' un si'/no nella tabella; senza fonte nel database resta "non disponibile"
-    const previsione = screen.getAllByText('non disponibile');
-    expect(previsione.length).toBeGreaterThan(0);
+    // D-11: la previsione di pagamento e' un si'/no nella tabella; con la fonte non attiva lo dice, senza il campo resta
+    // "non disponibile", mai un "no" (review delta 21/10 V1: la cella, non un "non disponibile" qualunque della pagina)
+    const previsione = "Si prevede di pagare nell'esercizio";
+    expect(cella(t, "Apri il dettaglio dell'intervento SRA01", previsione)).toBe('non disponibilefonte previsione di pagamento non attiva');
+    expect(cella(t, "Apri il dettaglio dell'intervento SRA03", previsione)).toBe('non disponibile');
+    expect(cella(t, "Apri il dettaglio dell'intervento SRA01", 'Include top-up')).toBe('sì');
   });
 });
