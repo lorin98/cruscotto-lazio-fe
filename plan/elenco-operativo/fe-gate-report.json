@@ -16,12 +16,12 @@
     {
       "name": "test",
       "status": "pass",
-      "evidence": "vitest.json verde (total=984) + coverage>=soglie (L88.07 S87.89 F87.05 B78.97 vs L80 S80 F80 B70)"
+      "evidence": "vitest.json verde (total=991) + coverage>=soglie (L87.95 S87.75 F86.83 B78.67 vs L80 S80 F80 B70)"
     },
     {
       "name": "a11y",
       "status": "pass",
-      "evidence": "axe.json: 0 violations su 50 run (wcag2a/2aa/22aa); incomplete=44 dichiarato"
+      "evidence": "axe.json: 0 violations su 52 run (wcag2a/2aa/22aa); incomplete=44 dichiarato"
     },
     {
       "name": "build",
