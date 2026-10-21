@@ -27,7 +27,9 @@
           "baseline_ref": "./wireframes/elenco-operativo/domande",
           "approved_at": "2026-10-13T18:18:09Z",
           "time_to_approve_s": 761,
-          "deviations_reviewed": []
+          "deviations_reviewed": [
+            "F3 della review FULL sul delta FE (21/10/2026, decisione dell'utente): stato 'atto di concessione non disponibile' non disegnato nel wireframe, come la nota delle azioni portanti; registrato come OP-EO-06 nello uiplan"
+          ]
         },
         "wireframe_dettaglio-domanda": {
           "approved_hash": "sha256:563cfad178758ac266d88972435957233494418368e98a1da7ec73d41a343376",
@@ -41,7 +43,9 @@
           "baseline_ref": "./wireframes/elenco-operativo/pagamenti",
           "approved_at": "2026-10-13T18:18:09Z",
           "time_to_approve_s": 761,
-          "deviations_reviewed": []
+          "deviations_reviewed": [
+            "F3 della review FULL sul delta FE (21/10/2026, decisione dell'utente): stato 'atto di concessione non disponibile' non disegnato nel wireframe, come la nota delle azioni portanti; registrato come OP-EO-06 nello uiplan"
+          ]
         }
       },
       "completed_at": "2026-10-13T08:11:38Z",

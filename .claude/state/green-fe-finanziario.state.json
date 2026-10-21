@@ -33,12 +33,13 @@
           ]
         },
         "wireframe_riepilogo": {
-          "approved_hash": "sha256:f81df70706715d6fd6de378a4b7044e09c0572c0be85e590676fa92141ca3102",
+          "approved_hash": "sha256:8d3e3739ae6f988cf64e6a6cd38a05299388742a85ffe1a6d8b0596d7bdfe2d1",
           "baseline_ref": "./wireframes/riepilogo",
-          "approved_at": "2026-10-13T17:26:04Z",
+          "approved_at": "2026-10-21T10:57:26Z",
           "time_to_approve_s": 418,
           "deviations_reviewed": [
-            "V-07 (review step9 v3, download per formato chiesto dall utente il 09/10/2026, deviazione confermata il 12/10/2026): al posto del solo Scarica per card e di Esporta CSV per le tabelle, un pulsante per formato con la sigla visibile; PNG del grafico come si vede con l intestazione di NFR-50 (V-01), CSV e XLSX scritti dal backend (D-08). Il PNG non e registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08, scelta dell utente del 12/10/2026"
+            "V-07 (review step9 v3, download per formato chiesto dall utente il 09/10/2026, deviazione confermata il 12/10/2026): al posto del solo Scarica per card e di Esporta CSV per le tabelle, un pulsante per formato con la sigla visibile; PNG del grafico come si vede con l intestazione di NFR-50 (V-01), CSV e XLSX scritti dal backend (D-08). Il PNG non e registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08, scelta dell utente del 12/10/2026",
+            "F2 della review FULL sul delta FE (21/10/2026): vista iniziale a grafico con interruttore di pagina Grafico | Tabella, tabella approvata invariata nella vista Tabella; due interruttori nella vista Grafico nello stesso ordine; riapprovato dall'utente il 21/10/2026"
           ]
         },
         "wireframe_dotazione-avanzamento": {
@@ -60,13 +61,14 @@
           ]
         },
         "wireframe_sigc": {
-          "approved_hash": "sha256:d2dae230d84d984f27b5e0413adfe8d08343adf1de3c12334b36759b071eb5d9",
+          "approved_hash": "sha256:bff0fa0c53ba29b2431992ad0b611e270261a750e6bd9f253b6b754dc1744db5",
           "baseline_ref": "./wireframes/sigc",
-          "approved_at": "2026-10-19T14:52:01Z",
+          "approved_at": "2026-10-21T10:57:26Z",
           "time_to_approve_s": 418,
           "deviations_reviewed": [
             "V-07 (review step9 v3, download per formato chiesto dall utente il 09/10/2026, deviazione confermata il 12/10/2026): al posto del solo Scarica per card e di Esporta CSV per le tabelle, un pulsante per formato con la sigla visibile; PNG del grafico come si vede con l intestazione di NFR-50 (V-01), CSV e XLSX scritti dal backend (D-08). Il PNG non e registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08, scelta dell utente del 12/10/2026",
-            "D-11 del backend (19/10/2026): previsione di pagamento si'/no in tabella, grafico della sola spesa erogata; riapprovato dall'utente il 19/10/2026"
+            "D-11 del backend (19/10/2026): previsione di pagamento si'/no in tabella, grafico della sola spesa erogata; riapprovato dall'utente il 19/10/2026",
+            "V8 della review FULL sul delta FE (21/10/2026): testi di sigc.md allineati alla card della sola spesa erogata; riapprovato dall'utente il 21/10/2026"
           ]
         }
       },

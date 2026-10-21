@@ -1417,11 +1417,11 @@
         "Download per formato (PNG, CSV, XLSX): un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo. Deviazione rivista V-07."
       ],
       "approval": {
-        "approved_hash": "sha256:f81df70706715d6fd6de378a4b7044e09c0572c0be85e590676fa92141ca3102",
+        "approved_hash": "sha256:8d3e3739ae6f988cf64e6a6cd38a05299388742a85ffe1a6d8b0596d7bdfe2d1",
         "baseline_ref": "./wireframes/riepilogo",
-        "approved_at": "2026-10-13T17:26:04Z",
+        "approved_at": "2026-10-21T10:57:26Z",
         "time_to_approve_s": 418,
-        "rework_rounds": 4
+        "rework_rounds": 5
       }
     },
     {
@@ -1482,11 +1482,11 @@
         "Download per formato (PNG, CSV, XLSX): un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo. Deviazione rivista V-07."
       ],
       "approval": {
-        "approved_hash": "sha256:d2dae230d84d984f27b5e0413adfe8d08343adf1de3c12334b36759b071eb5d9",
+        "approved_hash": "sha256:bff0fa0c53ba29b2431992ad0b611e270261a750e6bd9f253b6b754dc1744db5",
         "baseline_ref": "./wireframes/sigc",
-        "approved_at": "2026-10-19T14:52:01Z",
+        "approved_at": "2026-10-21T10:57:26Z",
         "time_to_approve_s": 418,
-        "rework_rounds": 4
+        "rework_rounds": 5
       }
     }
   ],
