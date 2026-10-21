@@ -1,7 +1,7 @@
 // importi.ts — regole PURE sugli Importo dei report del finanziario (zero React), condivise da builder dei grafici e
 // aggregati: valore, codice dell'intervento, resa dell'assenza come in tutto il resto dell'applicazione (descriviImporto
 // di entities/importo, con il motivo e la fonte attesa, mai uno zero), problemi della dotazione come base di un rapporto.
-import { descriviImporto } from '../../../entities/importo';
+import { descriviImporto, testoConNota } from '../../../entities/importo';
 import type { ImportoLike } from '../../../entities/importo';
 import { formatEuro, numeroDi } from '../../../shared/lib';
 
@@ -13,8 +13,7 @@ export function valoreDi(importo: ImportoLike | null | undefined): number | null
 
 /** "non disponibile (fonte impegni non attiva)", "non calcolabile (manca ...)": l'assenza con il suo motivo. */
 export function assenzaImporto(importo: ImportoLike | null | undefined, aggregato = false): string {
-  const r = descriviImporto(importo, aggregato);
-  return r.nota ? `${r.testo} (${r.nota})` : r.testo;
+  return testoConNota(descriviImporto(importo, aggregato));
 }
 
 /** Cella di tabella di un Importo: euro pieni, oppure l'assenza con il motivo (mai uno zero). */

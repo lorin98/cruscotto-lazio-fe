@@ -2,22 +2,19 @@
 // somme del sinottico con le domande senza importo, etichette dei codici del contratto, superfici e responsabile del
 // procedimento col loro motivo, atto di concessione ("nessun atto" solo con la fonte attiva, altrimenti l'assenza).
 import { ANNO_ASSENTE, ANNO_SENZA, ETICHETTE_ANNUALITA, ETICHETTE_ESITO_PAGAMENTO, ETICHETTE_ESITO_RIGA } from '../../../entities/domanda';
-import { descriviAssenza, descriviImporto } from '../../../entities/importo';
-import type { ImportoLike, ImportoResa } from '../../../entities/importo';
+import { descriviAssenza, descriviImporto, testoConNota } from '../../../entities/importo';
+import type { ImportoLike } from '../../../entities/importo';
 import { formatDate, formatEuro, formatNumber, formatPercentuale, plurale } from '../../../shared/lib';
-import type { Somma, ValoreMotivato } from './dto';
+import type { DatoSenzaFonte, Somma } from './dto';
 
 /** Cella di un Importo di una domanda: euro, oppure l'assenza con il motivo ("non valorizzato"). */
 export function cellaImporto(importo: ImportoLike | null | undefined): string {
   return descriviImporto(importo).testo;
 }
 
-/** La resa con la sua nota fra parentesi, per le voci di testo: "non valorizzato (il dato non è presente nella fonte)". */
-const conNota = (r: ImportoResa): string => (r.nota ? `${r.testo} (${r.nota})` : r.testo);
-
 /** Importo con la nota dell'assenza, per la scheda e l'anteprima: "non valorizzato (il dato non è presente nella fonte)". */
 export function importoConNota(importo: ImportoLike | null | undefined): string {
-  return conNota(descriviImporto(importo));
+  return testoConNota(descriviImporto(importo));
 }
 
 /**
@@ -98,7 +95,7 @@ export function siNo(v: boolean | null | undefined): string {
 }
 
 /** Superficie in ettari, oppure l'assenza col motivo (mai zero). */
-export function testoSuperficie(s: ValoreMotivato<number> | null | undefined): string {
+export function testoSuperficie(s: DatoSenzaFonte<number> | null | undefined): string {
   if (s?.valore != null) return `${formatNumber(s.valore)} ha`;
   return 'non valorizzata';
 }
@@ -107,7 +104,7 @@ export function testoSuperficie(s: ValoreMotivato<number> | null | undefined): s
  * Nominativo del responsabile del procedimento (OP-008): ai profili senza l'area procedurale il backend lo manda null con
  * NON_ESPOSTO; senza nominativo nella determina, NON_VALORIZZATO.
  */
-export function testoResponsabile(r: ValoreMotivato<string> | null | undefined): string {
+export function testoResponsabile(r: DatoSenzaFonte<string> | null | undefined): string {
   if (r?.valore) return r.valore;
   if (r?.motivo === 'NON_ESPOSTO') return "riservato ai profili dell'area procedurale";
   return 'non indicato nella determina';
@@ -129,7 +126,7 @@ const ATTO_FONTE_NON_ATTIVA = { motivo: 'FONTE_NON_ATTIVA', fonte: 'ATTO_CONCESS
  */
 function senzaAtto(fonteAttiva: boolean | undefined): string {
   if (fonteAttiva === true) return 'nessun atto';
-  return conNota(descriviAssenza(fonteAttiva === false ? ATTO_FONTE_NON_ATTIVA : undefined));
+  return testoConNota(descriviAssenza(fonteAttiva === false ? ATTO_FONTE_NON_ATTIVA : undefined));
 }
 
 /** Atto di concessione: "AC-1 del 01/03/2025", solo il numero, solo la data; senza l'atto vedi senzaAtto. */

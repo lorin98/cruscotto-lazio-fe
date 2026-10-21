@@ -13,7 +13,7 @@ import type {
   VoceFiltro,
   VoceRipartizione,
 } from '../api';
-import type { Domanda, Pagamento, Sinottico, Somma, Totali, Valori, ValoreMotivato, Voce, VoceValore } from '../lib/dto';
+import type { DatoSenzaFonte, Domanda, Pagamento, Sinottico, Somma, Totali, Valori, Voce, VoceValore } from '../lib/dto';
 
 type Uguali<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
 /** Ogni campo della forma scritta a mano esiste nel DTO (la forma puo' leggerne solo una parte). */
@@ -27,5 +27,5 @@ export const CONTRATTO_TOTALI: Contenuta<Totali, TotaliPagamenti> = true;
 export const CONTRATTO_VOCE: Contenuta<Voce, VoceRipartizione> = true;
 export const CONTRATTO_VALORI: Contenuta<Valori, ValoriFiltriElenco> = true;
 export const CONTRATTO_VOCE_FILTRO: Contenuta<VoceFiltro, VoceValore> = true;
-export const CONTRATTO_SUPERFICIE: Uguali<keyof SuperficieElenco, keyof ValoreMotivato<number>> = true;
-export const CONTRATTO_RESPONSABILE: Uguali<keyof ResponsabileProcedimento, keyof ValoreMotivato<string>> = true;
+export const CONTRATTO_SUPERFICIE: Uguali<keyof SuperficieElenco, keyof DatoSenzaFonte<number>> = true;
+export const CONTRATTO_RESPONSABILE: Uguali<keyof ResponsabileProcedimento, keyof DatoSenzaFonte<string>> = true;

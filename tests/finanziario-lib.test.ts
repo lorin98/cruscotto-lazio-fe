@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 // la route-table e' del progetto (piu' feature, ADR 0028): qui solo le route del finanziario, dai path del suo uiplan
 import { ROTTE_FINANZIARIO } from './rotte-finanziario';
 import { ariaSort, conColonna, didascalia, formatDate, formatEuro, formatPercentuale, versoSuccessivo } from '../src/shared/lib';
-import { descriviAssenza, descriviImporto, etichettaFonte } from '../src/entities/importo';
+import { descriviAssenza, descriviImporto, etichettaFonte, testoConNota } from '../src/entities/importo';
 import {
   CHIAVI_FILTRO,
   ETICHETTE_FILTRO,
@@ -138,6 +138,12 @@ describe('resa dell Importo (mai uno zero al posto di un dato assente)', () => {
     expect(descriviAssenza({ motivo: 'FONTE_NON_ATTIVA', fonte: null })).toEqual(descriviImporto({ valore: null, motivo: 'FONTE_NON_ATTIVA' }));
     expect(descriviAssenza({ motivo: 'NON_VALORIZZATO' }, true)).toEqual(descriviImporto({ valore: null, motivo: 'NON_VALORIZZATO' }, true));
     expect(descriviAssenza(undefined)).toEqual({ disponibile: false, testo: 'non disponibile' });
+  });
+  it('testoConNota: la forma testuale unica di una resa, con la nota fra parentesi (review delta 21/10 passata 2 H3)', () => {
+    expect(testoConNota(descriviAssenza({ motivo: 'FONTE_NON_ATTIVA', fonte: 'ATTO_CONCESSIONE' }))).toBe('non disponibile (fonte atto di concessione non attiva)');
+    expect(testoConNota(descriviImporto({ valore: null, motivo: 'NON_VALORIZZATO' }))).toBe('non valorizzato (il dato non è presente nella fonte)');
+    expect(testoConNota(descriviAssenza(undefined))).toBe('non disponibile');
+    expect(testoConNota(descriviImporto({ valore: 1221000 }))).toBe(descriviImporto({ valore: 1221000 }).testo);
   });
   it('etichettaFonte: tutti i codici FonteAttesa del backend, sconosciuta, assente', () => {
     expect(etichettaFonte('QUADRO_SINOTTICO')).toBe('quadro sinottico');

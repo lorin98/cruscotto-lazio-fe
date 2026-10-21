@@ -1,15 +1,16 @@
 // dto.ts — forme minime dei DTO letti dalle funzioni pure, con i nomi dei campi del contratto (TX-0056..TX-0060). Sono
 // strutturali (i layer puri non importano dal confine api/): ui/contratto.ts verifica a compilazione che ogni campo
 // esista nel DTO generato.
-import type { ImportoLike } from '../../../entities/importo';
+import type { DatoMotivatoLike, ImportoLike } from '../../../entities/importo';
 
 type Importo = ImportoLike | null;
 
-/** Valore con il motivo dell'assenza: superfici (NON_VALORIZZATO) e responsabile del procedimento (NON_ESPOSTO). */
-export interface ValoreMotivato<T> {
-  valore: T | null;
-  motivo: string | null;
-}
+/**
+ * Dato col motivo dell'assenza ma senza la fonte: superfici (NON_VALORIZZATO) e responsabile del procedimento (NON_ESPOSTO).
+ * E' il DatoMotivatoLike dell'entity con valore e motivo obbligatori (review delta 21/10 passata 2 H3: non piu' omonimo del
+ * componente ValoreMotivato di entities/importo).
+ */
+export type DatoSenzaFonte<T> = Required<Pick<DatoMotivatoLike<T>, 'valore' | 'motivo'>>;
 
 /** Somma di un importo sulle domande che lo hanno, col numero di quelle che non lo hanno (SommaElenco). */
 export interface Somma {
@@ -41,8 +42,8 @@ export interface Domanda {
   attoConcessioneNumero?: string | null;
   attoConcessioneData?: string | null;
   anomalie?: number;
-  superficieSostegno?: ValoreMotivato<number>;
-  superficiePagamento?: ValoreMotivato<number>;
+  superficieSostegno?: DatoSenzaFonte<number>;
+  superficiePagamento?: DatoSenzaFonte<number>;
 }
 
 /** PagamentoElenco (D-07): una riga corrente degli elenchi di liquidazione. */

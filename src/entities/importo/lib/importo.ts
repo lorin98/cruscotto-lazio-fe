@@ -77,6 +77,15 @@ export function descriviAssenza(dato: Pick<DatoMotivatoLike<unknown>, 'motivo' |
   }
 }
 
+/**
+ * La resa in testo con la nota fra parentesi, per le voci, i testi e i motivi dei grafici: "non disponibile (fonte impegni
+ * non attiva)"; senza nota il solo testo. Una sola forma testuale dell'assenza per tutte le feature (review delta 21/10
+ * passata 2 H3); la forma a badge e' AssenzaMotivata.
+ */
+export function testoConNota(r: ImportoResa): string {
+  return r.nota ? `${r.testo} (${r.nota})` : r.testo;
+}
+
 /** Resa di un Importo: l'euro formattato, oppure la sua assenza (descriviAssenza; `aggregato` come li'). */
 export function descriviImporto(importo: ImportoLike | null | undefined, aggregato = false): ImportoResa {
   if (importo?.valore != null) return { disponibile: true, testo: formatEuro(importo.valore) };
