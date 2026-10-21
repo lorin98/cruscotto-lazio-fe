@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "elenco-operativo",
-  "current_step": 2,
+  "current_step": 8,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -50,56 +50,75 @@
       ]
     },
     "step2-codegen": {
-      "status": "in_progress",
-      "completed_at": "2026-10-13T15:12:34Z",
+      "status": "done",
+      "completed_at": "2026-10-21T09:18:33Z",
       "artifacts": [
-        "/c/Users/lorin/Desktop/Lorenzo/sian-ng/progetti/arsial/arsial-cruscotto/cruscotto-lazio-fe/specs/.spec-lock.json",
-        "/c/Users/lorin/Desktop/Lorenzo/sian-ng/progetti/arsial/arsial-cruscotto/cruscotto-lazio-fe/src/shared/api/generated"
+        "./specs/.spec-lock.json",
+        "./src/shared/api/generated"
       ],
-      "gates": {}
+      "gates": {
+        "codegen_compiles": "pass",
+        "orval_types": "pass",
+        "csrf_static": "pass"
+      }
     },
     "step3-api": {
-      "status": "in_progress",
-      "completed_at": "2026-10-13T15:13:06Z",
-      "artifacts": [
-        "/c/Users/lorin/Desktop/Lorenzo/sian-ng/progetti/arsial/arsial-cruscotto/cruscotto-lazio-fe/src/features"
-      ],
-      "gates": {}
-    },
-    "step4-lib": {
-      "status": "in_progress",
-      "completed_at": "2026-10-13T15:13:38Z",
-      "artifacts": [
-        "/c/Users/lorin/Desktop/Lorenzo/sian-ng/progetti/arsial/arsial-cruscotto/cruscotto-lazio-fe/src/shared/lib"
-      ],
-      "gates": {}
-    },
-    "step5-ui": {
-      "status": "in_progress",
-      "completed_at": "2026-10-13T15:14:40Z",
+      "status": "done",
+      "completed_at": "2026-10-21T09:20:42Z",
       "artifacts": [
         "./src/features"
       ],
-      "gates": {}
+      "gates": {
+        "api_wrappers_compile": "pass",
+        "querykey_from_factory": "pass"
+      }
+    },
+    "step4-lib": {
+      "status": "done",
+      "completed_at": "2026-10-21T09:21:30Z",
+      "artifacts": [
+        "./src/shared/lib"
+      ],
+      "gates": {
+        "lib_pure_compile": "pass",
+        "lib_zero_react": "pass"
+      }
+    },
+    "step5-ui": {
+      "status": "done",
+      "completed_at": "2026-10-21T09:25:24Z",
+      "artifacts": [
+        "./src/features"
+      ],
+      "gates": {
+        "ui_components_compile": "pass",
+        "ui_a11y_axe": "pass"
+      }
     },
     "step6-page": {
-      "status": "in_progress",
-      "completed_at": "2026-10-13T15:15:22Z",
+      "status": "done",
+      "completed_at": "2026-10-21T09:26:42Z",
       "artifacts": [
         "./src/pages",
         "./plan/elenco-operativo/route-manifest.json"
       ],
-      "gates": {}
+      "gates": {
+        "pages_compile": "pass",
+        "route_manifest_valid": "pass"
+      }
     },
     "step7-test": {
-      "status": "in_progress",
-      "completed_at": "2026-10-13T15:15:28Z",
+      "status": "done",
+      "completed_at": "2026-10-21T09:27:12Z",
       "artifacts": [
         "./src/shared/test",
         "./src/shared/api/mock",
         "./src/shared/testing/axe.ts"
       ],
-      "gates": {}
+      "gates": {
+        "tests_generated": "pass",
+        "msw_fail_closed": "pass"
+      }
     },
     "step8-gate": {
       "status": "in_progress",
