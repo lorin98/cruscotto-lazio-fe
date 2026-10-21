@@ -4,7 +4,7 @@ Deviazione dichiarata dalla procedura green-fe, come per il backend (scelta dell
 sulle modifiche fatte dopo l'ultima review step9 delle due feature (13/10), invece di una review per feature. Brief e perimetro
 in `review/delta-2026-10-21/`.
 
-## Passata 2 (22/10/2026): PASS, score 84
+## Passata 2 (21/10/2026): PASS, score 84
 
 Esito meccanico (review-score.sh): 0 CRITICO, 0 MAGGIORE, 4 MINORE, 4 COSMETICO, score 84/80 (FULL), su 0693448 (correzioni
 78ea08e..253790d, wireframe del riepilogo e di sigc riapprovati in 8d69122, gate step8 11/11). Tutti i 16 finding della passata 1

@@ -1,7 +1,7 @@
-# Correzioni della passata 2 (review step9 FULL sul delta FE, 22/10/2026)
+# Correzioni della passata 2 (review step9 FULL sul delta FE, 21/10/2026)
 
 Correzioni degli 8 residui accettati dal Judge della passata 2 (`judge-passata2.md`, accettati in
-`../delta-2026-10-21-findings-passata2.json`: 4 MINORE, 4 COSMETICO), con le decisioni dell'utente del 22/10/2026
+`../delta-2026-10-21-findings-passata2.json`: 4 MINORE, 4 COSMETICO), con le decisioni dell'utente del 21/10/2026
 (V1, V5; gli altri come da fix del Judge). Base: 4b94555. Commit su `main`, uno per sottoargomento, nessun push. Lo stato
 `.claude/state/*.state.json` non e' stato toccato, ne' il backend o il plugin. Nessun file dentro `wireframes/` e'
 cambiato: le approvazioni dei flussi restano valide.
@@ -36,7 +36,7 @@ Prove che i test nuovi non sono vacui (mutazioni temporanee, poi ripristinate):
 
 - `fields`: aggiunto `filtri.attoConcessioneDisponibile` per la route della scheda. `routes`, `roles`, `flows[].approval`
   invariati.
-- OP-EO-06: aggiunta in coda la decisione V1 del 22/10/2026 ("nessun atto" solo con il flag vero, "non disponibile" senza
+- OP-EO-06: aggiunta in coda la decisione V1 del 21/10/2026 ("nessun atto" solo con il flag vero, "non disponibile" senza
   nota finche' TX-0060 non e' letto, nella scheda TX-0060 parte con TX-0058).
 - `uiplan-validate.sh plan/elenco-operativo/uiplan.json handover/slices handover/authz-catalog.json` col plugin in
   sviluppo (`marangi-lab/sian-green`, branch `feat/green-fe-ui-v2`): rc 0, pass. La copia del plugin in cache

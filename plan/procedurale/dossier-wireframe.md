@@ -6,7 +6,7 @@ presentato alle 13:24 UTC (ora da usare per `time_to_approve_s`). **Nessuna appr
 
 ## In breve
 
-- **Step0**: configurazione confermata dall'utente il 22/10/2026 (identica a elenco-operativo; style-guide
+- **Step0**: configurazione confermata dall'utente il 21/10/2026 (identica a elenco-operativo; style-guide
   `docs/decisioni/style-guide.md` con sha256 `56d70fc3...5e29` verificato). Handover della slice copiato dal backend
   (`handover/openapi-procedurale.json` sha256 `461d222b...a492` = `manifest.openapi.hash`;
   `handover/slices/procedurale/manifest.json`; `handover/acceptance/procedurale-scenarios.json`); `handover/authz-catalog.json`

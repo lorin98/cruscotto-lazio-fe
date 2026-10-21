@@ -16,7 +16,7 @@ Scelta dell'utente del 19/10: prima il push, poi la messa in regola secondo la p
 2. Refresh del finanziario, riapprovazione del wireframe `sigc`, `step8-gate`.
 3. Review FULL sul delta del 19/10.
 
-## Esito (22/10/2026): frontend in regola
+## Esito (21/10/2026): frontend in regola
 
 1. Handover di finanziario ed elenco-operativo dal backend in regola (f2cfa7d), fe-handover-check pass, refresh con riapertura
    da step2 (8c50643); step2-7 rifatti con gli script del plugin (5cb6380..aee92a0).
