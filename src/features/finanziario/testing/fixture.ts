@@ -2,11 +2,14 @@
 // importo preso dall'ambiente con i dati reali). I codici di intervento e obiettivo sono quelli pubblici del CSR.
 // Stanno nella feature (review v2 H-20): li importano i test (tests/ e i test delle pagine), mai il codice di produzione
 // (Z-02, eslint.config.js).
-const nd = (fonte: string) => ({ valore: null, motivo: 'FONTE_NON_ATTIVA', fonte });
-const euro = (valore: number) => ({ valore, motivo: null, fonte: null });
-// conteggi e si'/no col motivo dell'assenza (ConteggioFinanziario, SiNoFinanziario): stessa forma dell'Importo
-const dato = <T>(valore: T) => ({ valore, motivo: null, fonte: null });
-const nv = () => ({ valore: null, motivo: 'NON_VALORIZZATO', fonte: null });
+import type { VerificaSmp, VerificaSmpRiga } from '../api';
+
+// Dati col motivo dell'assenza (Importo, ConteggioFinanziario, SiNoFinanziario: stessa forma), un solo insieme di
+// costruttori per fixture e test (review delta 21/10 H4): il valore, la fonte non attiva, il dato non valorizzato.
+export const dato = <T>(valore: T) => ({ valore, motivo: null, fonte: null });
+export const nd = (fonte: string) => ({ valore: null, motivo: 'FONTE_NON_ATTIVA', fonte });
+export const nv = () => ({ valore: null, motivo: 'NON_VALORIZZATO', fonte: null });
+const euro = (valore: number) => dato(valore);
 
 export const FILTRI = {
   interventi: [
@@ -163,4 +166,8 @@ export const VERIFICA_SMP = {
       indicatoreRisultato: null,
     },
   ],
-};
+} satisfies VerificaSmp;
+
+/** Una riga della verifica SMP (la prima di VERIFICA_SMP) con i campi dati: tipizzata sul DTO, cosi' un campo rinominato
+ *  nella spec fa fallire la compilazione dei test (review delta 21/10 V1). */
+export const rigaSmp = (campi: Partial<VerificaSmpRiga>): VerificaSmpRiga => ({ ...VERIFICA_SMP.righe[0], ...campi });

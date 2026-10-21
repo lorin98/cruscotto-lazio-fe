@@ -18,11 +18,12 @@ function generatore(seme: number) {
 
 const caso = generatore(2023);
 const ANNI = [2023, 2024, 2025];
-const euro = (v: number | null, motivo: string | null = null, fonte: string | null = null) => ({ valore: v, motivo: v === null ? motivo : null, fonte: v === null ? fonte : null });
-const fna = (fonte: string) => euro(null, 'FONTE_NON_ATTIVA', fonte);
-const nv = () => euro(null, 'NON_VALORIZZATO');
-// conteggi e si'/no col motivo dell'assenza (ConteggioFinanziario, SiNoFinanziario: D3, D15 del backend)
-const dato = <T>(v: T | null, motivo: string | null = null) => ({ valore: v, motivo: v === null ? motivo : null, fonte: null });
+// Un solo costruttore dei dati col motivo dell'assenza (Importo, ConteggioFinanziario, SiNoFinanziario: D3, D15 del
+// backend; review delta 21/10 H4): il valore, oppure null col motivo e la fonte attesa. Importi e assenze ne derivano.
+const dato = <T>(v: T | null, motivo: string | null = null, fonte: string | null = null) => ({ valore: v, motivo: v === null ? motivo : null, fonte: v === null ? fonte : null });
+const euro = (v: number | null) => dato(v);
+const fna = (fonte: string) => dato(null, 'FONTE_NON_ATTIVA', fonte);
+const nv = () => dato(null, 'NON_VALORIZZATO');
 const tondo = (v: number) => Math.round(v * 100) / 100;
 
 const BASE: Array<[string, string, string, string, string, number]> = [

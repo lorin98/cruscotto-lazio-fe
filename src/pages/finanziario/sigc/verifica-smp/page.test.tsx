@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { server } from '../../../../shared/api/mock/server';
 import { expectNoA11yViolations } from '../../../../shared/testing/axe';
-import { VERIFICA_SMP } from '../../../../features/finanziario/testing/fixture';
+import { VERIFICA_SMP, dato, nd, nv, rigaSmp } from '../../../../features/finanziario/testing/fixture';
 import { renderPagina } from '../../../../shared/testing/render-pagina';
 import Pagina from './page';
 
@@ -33,11 +33,9 @@ describe('RF015: i dati ASR dell ambito SIGC per il confronto con SMP - Data Pla
     expect(t.textContent).toContain('fonte previsione di pagamento non attiva');
   });
   it("avvisi e azioni attivate e top-up incluso: il valore, oppure il motivo dell'assenza (D3, D15 del backend), mai uno 0 o un no inventati", async () => {
-    const dato = <T,>(valore: T) => ({ valore, motivo: null, fonte: null });
-    const nv = { valore: null, motivo: 'NON_VALORIZZATO', fonte: null };
     const righe = [
-      { ...VERIFICA_SMP.righe[0], avvisiAttivati: nv, azioniAttivate: { valore: null, motivo: 'FONTE_NON_ATTIVA', fonte: 'AVVISI_SMP' }, includeTopUp: nv },
-      { ...VERIFICA_SMP.righe[0], codiceIntervento: 'SRA03', avvisiAttivati: dato(3), azioniAttivate: dato(0), includeTopUp: dato(true) },
+      rigaSmp({ avvisiAttivati: nv(), azioniAttivate: nd('AVVISI_SMP'), includeTopUp: nv() }),
+      rigaSmp({ codiceIntervento: 'SRA03', avvisiAttivati: dato(3), azioniAttivate: dato(0), includeTopUp: dato(true) }),
     ];
     server.use(http.get('*/api/finanziario/sigc/verifica-smp', () => HttpResponse.json({ ...VERIFICA_SMP, righe })));
     renderPagina(Pagina, '/finanziario/sigc/verifica-smp', '/finanziario/sigc/verifica-smp?esercizio=2025');
