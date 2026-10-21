@@ -102,9 +102,17 @@ function GruppoStati({ id, dati, sel, imposta, conta }: Scelta) {
         onCambia={imposta('statoProgrammazione')}
       />
       {/* senza alcun atto di concessione nel database il backend rifiuta il filtro (400 DATO_NON_VALIDO, D-02 Rev. 5-6):
-          il controllo non si mostra, come le azioni portanti senza legame, e il pannello non manda mai `concessione` */}
+          il controllo non si mostra, come le azioni portanti senza legame, e il pannello non aggiunge mai `concessione`.
+          Se arriva gia' dall'indirizzo (link condiviso o scritto a mano) si toglie anche da qui (review delta 21/10 V3) */}
       {dati.attoConcessioneDisponibile === false ? (
-        <p className="ui-nota">Atto di concessione non disponibile finché nessuna domanda ha un atto di concessione.</p>
+        <>
+          <p className="ui-nota">Atto di concessione non disponibile finché nessuna domanda ha un atto di concessione.</p>
+          {sel('concessione').length > 0 && (
+            <button type="button" className="btn btn-outline-primary btn-sm" onClick={() => imposta('concessione')([])}>
+              Togli il filtro Atto di concessione
+            </button>
+          )}
+        </>
       ) : (
         <Scelte etichetta={ETICHETTE_FILTRI.concessione} opzioni={booleano("Con l'atto di concessione", "Senza l'atto")} scelti={sel('concessione')} esclusive onCambia={imposta('concessione')} />
       )}

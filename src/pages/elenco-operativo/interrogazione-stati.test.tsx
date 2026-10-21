@@ -292,6 +292,33 @@ describe("RA006: filtro dell'atto di concessione solo se TX-0060 lo dichiara dis
     await waitFor(() => expect(router.state.location.search).toBe(''));
   });
 
+  // review delta 21/10 V3: il pannello conta la concessione arrivata dall'indirizzo e la rimanderebbe a ogni scelta
+  it("domande: con la concessione nell'indirizzo e la fonte non attiva il pannello aperto la toglie, e le altre scelte non la rimandano", async () => {
+    servi();
+    senzaAtto();
+    // come il backend: 400 sul campo concessione, altrimenti la risposta
+    const domande: string[] = [];
+    const rifiuta = (corpo: object) => ({ request }: { request: Request }) => {
+      const query = new URL(request.url).search;
+      domande.push(query);
+      return query.includes('concessione') ? errore(400, 'DATO_NON_VALIDO', RIFIUTO)() : HttpResponse.json(corpo);
+    };
+    server.use(http.get('*/api/elenco-operativo/domande/sinottico', rifiuta(SINOTTICO)), http.get('*/api/elenco-operativo/domande', rifiuta(PAGINA_DOMANDE)));
+    const { router } = renderPagina(ElencoDomande, '/elenco-operativo/domande', '/elenco-operativo/domande?concessione=true');
+    await screen.findByText('2 sezioni della pagina non si sono caricate.');
+    const dialogo = await apriPannello();
+    expect(await within(dialogo).findByText(NON_DISPONIBILE)).toBeTruthy();
+    await expectNoA11yViolations(dialogo);
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Togli il filtro Atto di concessione' }));
+    await waitFor(() => expect(router.state.location.search).toBe(''));
+    expect(within(dialogo).queryByRole('button', { name: 'Togli il filtro Atto di concessione' })).toBeNull();
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Con anomalie' }));
+    await waitFor(() => expect(router.state.location.search).toBe('?anomalie=true'));
+    await waitFor(() => expect(domande).toContain('?anomalie=true'));
+    expect(domande.filter((q) => q.includes('concessione') && q.includes('anomalie'))).toEqual([]);
+    await waitFor(() => expect(within(dialogo).queryByRole('alert')).toBeNull());
+  });
+
   it("pagamenti: l'indirizzo con concessione=false e il 400 sul campo: un solo avviso, la barra dei filtri resta", async () => {
     servi();
     senzaAtto();
