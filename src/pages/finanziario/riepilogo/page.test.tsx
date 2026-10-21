@@ -53,6 +53,8 @@ describe('RF011: tabella di riepilogo per intervento con i nove campi finanziari
     const ordine = (g: HTMLElement) => within(g).getAllByRole('button').map((b) => b.textContent);
     expect(ordine(gruppo)).toEqual(['Grafico', 'Tabella']);
     expect(ordine(within(card).getByRole('group', { name: 'Vista di Dotazione e pagamenti per intervento' }))).toEqual(['Grafico', 'Tabella']);
+    // review delta 21/10 V6: il sottotitolo descrive la vista iniziale, non la tabella
+    expect(screen.getByText("Grafico per intervento: clic su una barra per il dettaglio; nella vista Tabella cerca, ordina, scegli le colonne e apri l'anteprima.")).toBeTruthy();
   });
 
   it('una riga per intervento con i nove campi, le assenze spiegate, totali e Assistenza tecnica nel piede', async () => {

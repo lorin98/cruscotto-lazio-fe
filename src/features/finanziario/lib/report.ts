@@ -80,7 +80,8 @@ export const REPORT_FINANZIARIO: VoceReport[] = [
     percorso: PERCORSI.riepilogo,
     titolo: 'Riepilogo per intervento',
     voceMenu: 'Riepilogo per intervento',
-    sottotitolo: "Cerca, ordina, scegli le colonne; clic su una riga per l'anteprima, poi il dettaglio.",
+    // la pagina si apre sul grafico (19/10/2026): il sottotitolo descrive la vista iniziale (review delta 21/10 V6)
+    sottotitolo: "Grafico per intervento: clic su una barra per il dettaglio; nella vista Tabella cerca, ordina, scegli le colonne e apri l'anteprima.",
     grant: [G.riepilogo],
   },
   {
