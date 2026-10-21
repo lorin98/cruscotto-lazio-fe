@@ -46,3 +46,22 @@ Intensita' FULL (obbligatoria: feature con authz/scoping). Gate step8 rifatto il
 - Output: array JSON in `review/delta-2026-10-21/<file della consegna>` con oggetti `{"id","severity","file":"<path>:<riga>",
   "titolo","evidenza","fix"}`. E' l'unico file che puoi scrivere.
 - Alla fine rispondi con un riassunto di poche righe (conteggio per severita').
+
+## Passata 2
+
+Dalla passata 1 (21/10/2026): 16 finding accettati (`review/delta-2026-10-21-findings-passata1.json`, Judge
+`review/delta-2026-10-21/judge-passata1.md`: 3 MAGGIORE, 10 MINORE, 3 COSMETICO), corretti nei commit da 78ea08e a 253790d
+(resoconto per finding in `review/delta-2026-10-21/correzioni-passata1.md`). Decisioni dell'utente F1-F3 (report
+`review/delta-2026-10-21-review.md`) e wireframe del riepilogo (F2, vista iniziale a grafico) e di sigc (V8, testi)
+RIAPPROVATI dall'utente il 21/10/2026 (8d69122, entrambi i canali): NON sono finding, segnala solo se il codice li tradisce.
+Scelta dell'utente sul riepilogo: due interruttori nella vista Grafico (pagina e card), nello stesso ordine Grafico | Tabella.
+F3 registrata come OP-EO-06 nello uiplan dell'elenco (lo schema non ha un campo per le deviazioni). Parti contestate dal Judge
+e NON applicate: X3 senza spostare dotazione AT, totali e link fuori dal piede della tabella; X1 senza cambi di processo.
+
+Compito della passata 2: (a) verifica che ogni finding della passata 1 sia risolto (se no, ripresentalo citando l'id); (b) cerca
+difetti NUOVI introdotti dalle correzioni: resa unica dei dati motivati in `entities/importo` (DatoMotivatoLike, descriviAssenza,
+ValoreMotivato, AssenzaMotivata) e i suoi usi nelle due feature, controllo statico DatoMotivatoDi in `contratto.ts`, lettura di
+TX-0060 dalla scheda della domanda (grant, stato di caricamento, ripiego "nessun atto" quando TX-0060 non e' letto), pulsante
+"Togli il filtro Atto di concessione", mock di /pagamenti, interruttore di pagina del riepilogo, test nuovi della previsione
+si'/no, e2e della CSP. Perimetro: `git diff 2f73d85 8d69122`. Anti-inflation: non riproporre cio' che la passata 1 ha verificato
+come corretto. Output: `review/delta-2026-10-21/<lente>-passata2.json`.
