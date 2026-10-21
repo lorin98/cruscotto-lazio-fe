@@ -239,7 +239,7 @@
     {
       "manifest_hash_match": true,
       "path": "handover/openapi-finanziario.json",
-      "sha256": "sha256:10cad19ac0226fc044826ef39707e2fb82985032dbb59c200d91326a02e39eae",
+      "sha256": "sha256:e65fc85f2168bfeab95480909afb72a557537cded2355c0bce6500170c42dbbb",
       "slice": "finanziario"
     }
   ]
