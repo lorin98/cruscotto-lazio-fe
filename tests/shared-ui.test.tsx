@@ -5,7 +5,7 @@ import { AxiosError, AxiosHeaders } from 'axios';
 import type { AxiosResponse } from 'axios';
 import { AvvisoPagina, VistaQuery } from '../src/shared/ui';
 import type { StatoQuery } from '../src/shared/ui';
-import { ValoreImporto } from '../src/entities/importo';
+import { AssenzaMotivata, ValoreImporto, ValoreMotivato } from '../src/entities/importo';
 import { expectNoA11yViolations } from '../src/shared/testing/axe';
 
 function erroreHttp(status: number, data?: unknown): AxiosError {
@@ -65,6 +65,29 @@ describe('ValoreImporto', () => {
     expect(screen.getByText('non disponibile')).toBeTruthy();
     expect(screen.getByText('fonte impegni non attiva')).toBeTruthy();
     await expectNoA11yViolations(container);
+  });
+});
+
+// review delta 21/10 H1: conteggi e si'/no col motivo dell'assenza hanno la resa dell'importo assente, mai uno 0 o un "no"
+describe('ValoreMotivato', () => {
+  const siNo = (v: boolean) => (v ? 'sì' : 'no');
+  it('il valore reso dal chiamante, anche zero o falso; altrimenti l assenza come quella di un importo', async () => {
+    const { container, rerender } = render(<ValoreMotivato dato={{ valore: false, motivo: null, fonte: null }} resa={siNo} />);
+    expect(container.textContent).toBe('no');
+    rerender(<ValoreMotivato dato={{ valore: 0 }} resa={(v: number) => String(v)} />);
+    expect(container.textContent).toBe('0');
+    rerender(<ValoreMotivato dato={{ valore: null, motivo: 'NON_VALORIZZATO', fonte: null }} resa={siNo} />);
+    expect(container.textContent).toBe('non valorizzatoil dato non è presente nella fonte');
+    rerender(<ValoreMotivato dato={{ valore: null, motivo: 'FONTE_NON_ATTIVA', fonte: 'PREVISIONE_PAGAMENTO' }} resa={siNo} />);
+    expect(screen.getByText('non disponibile').className).toContain('badge');
+    expect(screen.getByText('fonte previsione di pagamento non attiva')).toBeTruthy();
+    rerender(<ValoreMotivato dato={undefined} resa={siNo} />);
+    expect(container.textContent).toBe('non disponibile');
+    await expectNoA11yViolations(container);
+  });
+  it("AssenzaMotivata: un dato senza valore (l'atto di concessione con la fonte non attiva)", () => {
+    const { container } = render(<AssenzaMotivata dato={{ motivo: 'FONTE_NON_ATTIVA', fonte: 'ATTO_CONCESSIONE' }} />);
+    expect(container.textContent).toBe('non disponibilefonte atto di concessione non attiva');
   });
 });
 

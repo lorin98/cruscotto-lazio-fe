@@ -1,18 +1,26 @@
-// importo.ts — funzioni PURE sull'Importo dei report (zero React). L'Importo del backend porta il valore al centesimo
-// oppure null con il motivo dell'assenza (schema Importo delle spec: FONTE_NON_ATTIVA con la fonte attesa,
-// NON_VALORIZZATO, FUORI_PERIMETRO). Regola di resa: un importo assente non e' mai uno zero.
+// importo.ts — funzioni PURE sull'Importo dei report e sugli altri dati col motivo dell'assenza (zero React). Il backend
+// porta il valore (l'importo al centesimo, un conteggio, un si'/no) oppure null con il motivo dell'assenza (schemi Importo,
+// ConteggioFinanziario, SiNoFinanziario delle spec: FONTE_NON_ATTIVA con la fonte attesa, NON_VALORIZZATO,
+// FUORI_PERIMETRO). Regola di resa: un dato assente non e' mai uno zero ne' un "no"; l'assenza si dice sempre allo stesso
+// modo, qualunque sia il tipo del valore (review delta 21/10 H1).
 import { formatEuro } from '../../../shared/lib';
 
-/** Forma strutturale dell'Importo della spec (il client generato si importa solo dai wrapper api/). */
-export interface ImportoLike {
-  valore?: number | null;
+/**
+ * Forma strutturale di un dato col motivo dell'assenza (Importo, ConteggioFinanziario, SiNoFinanziario della spec; il
+ * client generato si importa solo dai wrapper api/): il valore, oppure null col motivo e, con FONTE_NON_ATTIVA, la fonte.
+ */
+export interface DatoMotivatoLike<T> {
+  valore?: T | null;
   motivo?: string | null;
   fonte?: string | null;
 }
 
+/** Forma strutturale dell'Importo della spec: un dato motivato in euro. */
+export type ImportoLike = DatoMotivatoLike<number>;
+
 export interface ImportoResa {
   disponibile: boolean;
-  /** Testo della cella: l'importo formattato, oppure lo stato dell'assenza. */
+  /** Testo della cella: l'importo formattato, oppure lo stato dell'assenza (anche di un dato motivato non in euro). */
   testo: string;
   /** Spiegazione dell'assenza (fonte attesa, perimetro), da mostrare accanto o come descrizione. */
   nota?: string;
@@ -49,16 +57,15 @@ export function etichettaFonte(codice: string | null | undefined): string {
 }
 
 /**
- * Resa di un Importo. `aggregato`: l'importo e' un totale su piu' interventi o domande. Per il backend un totale e'
- * NON_VALORIZZATO quando manca anche per un solo intervento o una sola domanda (niente somme parziali): non e' "assente
- * nella fonte", e' non calcolabile.
+ * Resa dell'assenza di un dato motivato, qualunque sia il tipo del valore: lo stato col motivo e la fonte attesa.
+ * `aggregato`: il dato e' un totale su piu' interventi o domande. Per il backend un totale e' NON_VALORIZZATO quando manca
+ * anche per un solo intervento o una sola domanda (niente somme parziali): non e' "assente nella fonte", e' non calcolabile.
  */
-export function descriviImporto(importo: ImportoLike | null | undefined, aggregato = false): ImportoResa {
-  if (importo?.valore != null) return { disponibile: true, testo: formatEuro(importo.valore) };
-  switch (importo?.motivo) {
+export function descriviAssenza(dato: Pick<DatoMotivatoLike<unknown>, 'motivo' | 'fonte'> | null | undefined, aggregato = false): ImportoResa {
+  switch (dato?.motivo) {
     case 'FONTE_NON_ATTIVA':
       // la fonte attesa, se il backend la dichiara ("fonte impegni non attiva")
-      return { disponibile: false, testo: 'non disponibile', nota: importo.fonte ? `fonte ${etichettaFonte(importo.fonte)} non attiva` : 'fonte non attiva' };
+      return { disponibile: false, testo: 'non disponibile', nota: dato.fonte ? `fonte ${etichettaFonte(dato.fonte)} non attiva` : 'fonte non attiva' };
     case 'NON_VALORIZZATO':
       return aggregato
         ? { disponibile: false, testo: 'non calcolabile', nota: 'manca per almeno un intervento della selezione: vedi il riepilogo per intervento' }
@@ -68,4 +75,10 @@ export function descriviImporto(importo: ImportoLike | null | undefined, aggrega
     default:
       return { disponibile: false, testo: 'non disponibile' };
   }
+}
+
+/** Resa di un Importo: l'euro formattato, oppure la sua assenza (descriviAssenza; `aggregato` come li'). */
+export function descriviImporto(importo: ImportoLike | null | undefined, aggregato = false): ImportoResa {
+  if (importo?.valore != null) return { disponibile: true, testo: formatEuro(importo.valore) };
+  return descriviAssenza(importo, aggregato);
 }

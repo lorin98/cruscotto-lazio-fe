@@ -7,8 +7,8 @@
 // pagamento e' un si'/no del monitoraggio SMP, D-11 del backend: sta nella tabella); clic su una barra: il dettaglio
 // dell'intervento.
 import type { ReactNode } from 'react';
-import { ValoreImporto } from '../../../entities/importo';
-import type { ImportoLike } from '../../../entities/importo';
+import { ValoreImporto, ValoreMotivato } from '../../../entities/importo';
+import type { DatoMotivatoLike, ImportoLike } from '../../../entities/importo';
 import { CardGrafico, PulsantiScarica, Sezione, TabellaInterattiva, TabellaVoci, VistaQuery, Vuoto } from '../../../shared/ui';
 import type { ColonnaTabella } from '../../../shared/ui';
 import { esportaVerificaSmp, useVerificaSmp } from '../api';
@@ -23,8 +23,6 @@ import { SelettoreAnno } from './SelettoreAnno';
 import { useApriIntervento } from './useApriIntervento';
 
 type Riga = VerificaSmpRiga;
-/** Dato del backend col motivo dell'assenza (ConteggioFinanziario, SiNoFinanziario): il valore, oppure null col motivo. */
-type Motivato<T> = { valore?: T | null; motivo?: string | null; fonte?: string | null };
 type Ordinabile = string | number | null | undefined;
 
 function colonna(chiave: string, titolo: string, valore: (r: Riga) => Ordinabile, resa: (r: Riga) => ReactNode): ColonnaTabella<Riga> {
@@ -33,25 +31,21 @@ function colonna(chiave: string, titolo: string, valore: (r: Riga) => Ordinabile
 const conteggio = (chiave: string, titolo: string, leggi: (r: Riga) => number | null | undefined) => colonna(chiave, titolo, leggi, (r) => <Numero valore={leggi(r)} />);
 const importo = (chiave: string, titolo: string, leggi: (r: Riga) => ImportoLike | undefined) => colonna(chiave, titolo, (r) => leggi(r)?.valore, (r) => <ValoreImporto importo={leggi(r)} />);
 const opzionale = (chiave: string, titolo: string, leggi: (r: Riga) => number | null | undefined) => colonna(chiave, titolo, leggi, (r) => numeroOpzionale(leggi(r)));
-/** L'assenza di un dato motivato: la stessa resa dell'importo assente (motivo e fonte attesa). */
-const assenza = (v: Motivato<unknown> | undefined) => <ValoreImporto importo={{ valore: null, motivo: v?.motivo, fonte: v?.fonte }} />;
-/** Conteggio del backend con il motivo dell'assenza (mai uno 0 inventato). */
-const conteggioMotivato = (chiave: string, titolo: string, leggi: (r: Riga) => Motivato<number> | undefined) =>
-  colonna(chiave, titolo, (r) => leggi(r)?.valore, (r) => {
-    const v = leggi(r);
-    return v?.valore != null ? <Numero valore={v.valore} /> : assenza(v);
-  });
-/** Si'/no del backend con il motivo dell'assenza (stessa resa dell'importo assente, mai un "no" inventato). */
-const siNoMotivato = (chiave: string, titolo: string, leggi: (r: Riga) => Motivato<boolean> | undefined) =>
-  colonna(chiave, titolo, (r) => (leggi(r)?.valore == null ? null : siNo(leggi(r)?.valore)), (r) => {
-    const v = leggi(r);
-    return v?.valore != null ? siNo(v.valore) : assenza(v);
-  });
+/**
+ * Dato del backend col motivo dell'assenza (ConteggioFinanziario, SiNoFinanziario: D3, D15 del backend): il valore reso da
+ * `resaValore`, oppure l'assenza come quella di un importo (ValoreMotivato), mai uno 0 o un "no" inventati. Un si'/no si
+ * ordina per il suo testo.
+ */
+function colonnaMotivata<T extends number | boolean>(chiave: string, titolo: string, leggi: (r: Riga) => DatoMotivatoLike<T> | undefined, resaValore: (v: T) => ReactNode): ColonnaTabella<Riga> {
+  const ordinabile = (v: T | null | undefined): Ordinabile => (typeof v === 'boolean' ? siNo(v) : v);
+  return colonna(chiave, titolo, (r) => ordinabile(leggi(r)?.valore), (r) => <ValoreMotivato dato={leggi(r)} resa={resaValore} />);
+}
+const numero = (v: number) => <Numero valore={v} />;
 
 const COLONNE: ColonnaTabella<Riga>[] = [
   { chiave: 'codice', titolo: 'Intervento', valore: (r) => r.codiceIntervento ?? null, fissa: true },
-  conteggioMotivato('avvisi', 'Avvisi attivati', (r) => r.avvisiAttivati),
-  conteggioMotivato('azioni', 'Azioni attivate', (r) => r.azioniAttivate),
+  colonnaMotivata<number>('avvisi', 'Avvisi attivati', (r) => r.avvisiAttivati, numero),
+  colonnaMotivata<number>('azioni', 'Azioni attivate', (r) => r.azioniAttivate, numero),
   conteggio('ricevute', 'Domande ricevute', (r) => r.domandeRicevute),
   conteggio('senzaRichiesto', 'Domande ricevute senza richiesto', (r) => r.domandeRicevuteSenzaRichiesto),
   importo('valoreRicevute', 'Valore domande ricevute', (r) => r.valoreDomandeRicevute),
@@ -62,9 +56,9 @@ const COLONNE: ColonnaTabella<Riga>[] = [
   conteggio('pagate', "Domande pagate nell'esercizio", (r) => r.domandePagateEsercizio),
   importo('spesaPrecedente', 'Spesa erogata campagna precedente', (r) => r.spesaErogataCampagnaPrecedente),
   importo('spesaAnteriori', 'Spesa erogata campagne anteriori', (r) => r.spesaErogataCampagneAnteriori),
-  siNoMotivato('previsione', "Si prevede di pagare nell'esercizio", (r) => r.previsionePagamentoEsercizio),
+  colonnaMotivata<boolean>('previsione', "Si prevede di pagare nell'esercizio", (r) => r.previsionePagamentoEsercizio, siNo),
   importo('topUp', 'Importo top-up', (r) => r.importoTopUp),
-  siNoMotivato('includeTopUp', 'Include top-up', (r) => r.includeTopUp),
+  colonnaMotivata<boolean>('includeTopUp', 'Include top-up', (r) => r.includeTopUp, siNo),
   opzionale('ettari', 'Ettari o UBA richiesti', (r) => r.ettariUbaRichiesti),
   opzionale('outputAtteso', 'Output atteso delle finanziate', (r) => r.outputAttesoFinanziate),
   opzionale('outputErogato', "Output erogato nell'esercizio", (r) => r.outputErogatoEsercizio),
