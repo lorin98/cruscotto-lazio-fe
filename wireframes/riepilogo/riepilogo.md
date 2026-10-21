@@ -3,6 +3,9 @@
 > Doc del gate umano PER FLUSSO. L'approvazione e' content-addressed sull'INTERA dir
 > `wireframes/riepilogo/` (hash da `wireframe-hash.sh`): modificare un file qui invalida
 > l'approvazione del flusso (e solo di questo flusso).
+>
+> Aggiornamento del 21/10/2026 (decisione F2 dell'utente, review sul delta FE X3, X3-b e V6): la pagina si apre sulla
+> vista Grafico, con l'interruttore di pagina Grafico | Tabella e il sottotitolo della vista iniziale.
 
 ## Route del flusso
 
@@ -14,7 +17,7 @@
 
 Vocabolario del kit UI v2 (ADR 0027 di green-fe), resa approvata nel prototipo `prototipo/finanziario/`.
 
-- /finanziario/riepilogo: Shell > Barra filtri > Breadcrumb > Titolo > Card tabella (cerca, colonne, esporta CSV, ordinamento, totali, riga AT, paginazione) > Card vista grafico (barre) > Drawer di anteprima > Stati
+- /finanziario/riepilogo: Shell > Barra filtri > Breadcrumb > Titolo > Card riepilogo per intervento (interruttore di pagina Grafico | Tabella; vista iniziale Grafico: card del grafico a barre, col suo interruttore Grafico | Tabella equivalente e Scarica; vista Tabella: cerca, colonne, esporta CSV, ordinamento, totali, riga AT, paginazione) > Drawer di anteprima > Stati
 
 ## Grafici del flusso
 
@@ -22,11 +25,19 @@ Vocabolario del kit UI v2 (ADR 0027 di green-fe), resa approvata nel prototipo `
 |---|---|---|---|---|---|
 | /finanziario/riepilogo | Dotazione e pagamenti per intervento | barre | TX-0011 | dettaglio dell'intervento | valore assente: barra omessa, dichiarata |
 
-La riga apre il drawer di anteprima; dal drawer si passa al dettaglio dell'intervento. Export CSV con gli stessi filtri e X-Requested-With.
+La pagina si apre sulla vista Grafico, come ogni card (richiesta dell'utente del 19/10/2026). L'interruttore di pagina
+"Vista del riepilogo", Grafico | Tabella nello stesso ordine dell'interruttore delle card, sceglie fra il grafico e la
+tabella del riepilogo; la scelta resta tornando dal dettaglio dell'intervento o dall'elenco operativo (cronologia del
+browser). L'interruttore della card del grafico mostra invece la sua tabella equivalente, con i soli valori del grafico
+(intervento, dotazione, pagamenti netti): e' il canale accessibile del grafico. Totali, dotazione dell'Assistenza tecnica
+(AT001, intero programma: non dipende dai filtri) e link all'elenco operativo stanno nella tabella del riepilogo (vista
+Tabella), come nel flusso approvato il 13/10/2026.
+
+Nella vista Tabella la riga apre il drawer di anteprima; dal drawer si passa al dettaglio dell'intervento. Export CSV con gli stessi filtri e X-Requested-With.
 
 ## Link del flusso (drill-down dichiarati)
 
-Drill-down verso l'elenco operativo (decisione D-2 dell'utente del 12/10/2026) dalle celle della tabella e dal drawer.
+Drill-down verso l'elenco operativo (decisione D-2 dell'utente del 12/10/2026) dalle celle della tabella (vista Tabella) e dal drawer.
 
 | pagina | link (id) | innesco | arrivo (feature: route) | parametri di path | query |
 |---|---|---|---|---|---|

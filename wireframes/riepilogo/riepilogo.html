@@ -60,11 +60,29 @@
     </nav>
     <div class="ui-titolo">
       <h1>Finanziario: riepilogo per intervento</h1>
-      <p>Cerca, ordina, scegli le colonne; clic su una riga per l'anteprima, poi il dettaglio.</p>
+      <p>Grafico per intervento: clic su una barra per il dettaglio; nella vista Tabella cerca, ordina, scegli le colonne e apri l'anteprima.</p>
     </div>
     <p class="wf-note">Ruoli (grant verbatim): csr.tx-0011.read - Transazioni: TX-0011 (RF011), export CSV con X-Requested-With. Perimetro ADA: le colonne di programma sono regionali, segnalate nell'intestazione.</p>
+    <p class="wf-note">Vista iniziale: Grafico, come ogni card (richiesta dell'utente del 19/10/2026). L'interruttore di pagina "Vista del riepilogo" (Grafico | Tabella, nello stesso ordine di quello delle card) sceglie fra il grafico e la tabella del riepilogo; la scelta resta tornando dal dettaglio dell'intervento o dall'elenco operativo. L'interruttore della card del grafico mostra invece la tabella equivalente del grafico (intervento, dotazione, pagamenti netti: il canale accessibile del grafico).</p>
     <section class="ui-card" aria-labelledby="t-riep">
       <div class="ui-card__testa"><h2 id="t-riep">Riepilogo per intervento</h2></div>
+      <div class="ui-seg" role="group" aria-label="Vista del riepilogo"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button></div>
+      <section class="ui-card" aria-labelledby="g-riep">
+        <div class="ui-card__testa">
+          <h2 id="g-riep">Dotazione e pagamenti per intervento</h2>
+          <div class="ui-seg" role="group" aria-label="Vista di Dotazione e pagamenti per intervento"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+        </div>
+        <figure class="ui-grafico ui-grafico--barre">
+          <figcaption>Barre raggruppate con zoom: dotazione e pagamenti netti per intervento. Clic su una barra: dettaglio dell'intervento.</figcaption>
+        </figure>
+        <p class="ui-fonte">Fonte: TX-0011. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati.</p>
+      </section>
+    </section>
+    <h2>Vista: Tabella</h2>
+    <p class="wf-note">Con il bottone Tabella di "Vista del riepilogo" la tabella prende il posto del grafico nella stessa card. Totali, dotazione dell'Assistenza tecnica (AT001, intero programma: non dipende dai filtri) e link all'elenco operativo stanno nella tabella, come nel flusso approvato il 13/10/2026.</p>
+    <section class="ui-card" aria-labelledby="t-riep-tabella">
+      <div class="ui-card__testa"><h2 id="t-riep-tabella">Riepilogo per intervento</h2></div>
+      <div class="ui-seg" role="group" aria-label="Vista del riepilogo"><button class="btn" type="button" aria-pressed="false">Grafico</button> <button class="btn" type="button" aria-pressed="true">Tabella</button></div>
       <div class="ui-strumenti">
         <label class="form-label" for="t-cerca">Cerca nella tabella</label>
         <input class="form-control" type="search" id="t-cerca" name="t">
@@ -93,16 +111,6 @@
       </table>
       <nav class="ui-paginazione" aria-label="Pagine della tabella"><button class="btn" type="button" aria-current="page">1</button> <button class="btn" type="button">2</button></nav>
     </section>
-      <section class="ui-card" aria-labelledby="g-riep">
-        <div class="ui-card__testa">
-          <h2 id="g-riep">Dotazione e pagamenti per intervento (vista grafico)</h2>
-          <div class="ui-seg" role="group" aria-label="Vista di Dotazione e pagamenti per intervento (vista grafico)"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
-        </div>
-        <figure class="ui-grafico ui-grafico--barre">
-          <figcaption>Barre raggruppate con zoom: dotazione e pagamenti netti per intervento. Clic su una barra: dettaglio dell'intervento.</figcaption>
-        </figure>
-        <p class="ui-fonte">Fonte: TX-0011. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati.</p>
-      </section>
     <aside class="ui-drawer" aria-label="Anteprima dell'intervento SRA01">
       <h2>Anteprima: SRA01</h2>
       <dl>
