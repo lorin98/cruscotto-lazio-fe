@@ -348,8 +348,9 @@ describe("RA002: atto di concessione nella vista procedurale, con la fonte non a
     renderPagina(ElencoDomande, '/elenco-operativo/domande');
     await screen.findByRole('table', { name: /Elenco operativo delle domande/ });
     const { senza, con } = await cellaAtto();
-    await waitFor(() => expect(senza.textContent).toBe('non disponibilefonte atto di concessione non attiva'));
-    expect(within(senza).getByText('non disponibile').className).toContain('badge');
+    await waitFor(() => expect(senza.textContent).toBe('non disponibile (fonte atto di concessione non attiva)'));
+    // in testo come le altre assenze della tabella, non in badge (review delta 21/10 passata 2 V4)
+    expect(senza.querySelector('.badge')).toBeNull();
     expect(screen.queryByText('nessun atto')).toBeNull();
     // un atto presente resta l'atto
     expect(con.textContent).toBe('AC-1 del 01/03/2025');

@@ -1,12 +1,11 @@
 // colonne — colonne delle due tabelle dell'interrogazione (wireframe domande e pagamenti): titolo, resa della cella dai
 // formati puri di lib/ (un importo assente dice il motivo, mai zero) e campo dell'ordinamento lato server (D-04). Le viste
 // per ambito scelgono quali colonne mostrare (lib/viste), qui solo come si rendono. L'atto di concessione senza la sua
-// fonte (TX-0060) e' un'assenza con la fonte, resa come quella di un importo dei report (AssenzaMotivata), mai "nessun atto".
-import { AssenzaMotivata } from '../../../entities/importo';
+// fonte (TX-0060) e' un'assenza con la fonte, in testo come le altre assenze della tabella (testoAtto), mai "nessun atto".
 import { formatDate, formatNumber } from '../../../shared/lib';
 import type { ColonnaServer } from '../../../shared/ui';
 import type { DomandaElenco, PagamentoElenco } from '../api';
-import { ATTO_FONTE_NON_ATTIVA, attoSenzaFonte, cellaImporto, etichettaEsito, etichettaTipo, siNo, testoAnno, testoAnnualita, testoAtto, testoSuperficie } from '../lib/formato';
+import { cellaImporto, etichettaEsito, etichettaTipo, siNo, testoAnno, testoAnnualita, testoAtto, testoSuperficie } from '../lib/formato';
 import { COLONNE_PAGAMENTI_A_SCELTA, COLONNE_PAGAMENTI_VISIBILI, ORDINAMENTO_COLONNA, ORDINAMENTO_COLONNA_PAGAMENTI } from '../lib/viste';
 import type { ColonnaDomanda, ColonnaPagamento } from '../lib/viste';
 
@@ -37,9 +36,11 @@ const DOMANDE: Record<ColonnaDomanda, Def<DomandaElenco>> = {
   superficiePagamento: { titolo: 'Superficie di pagamento', numerica: true, resa: (d) => testoSuperficie(d.superficiePagamento) },
 };
 
-/** Cella dell'atto di concessione: senza l'atto e senza la fonte (review delta 21/10 X2, F1) l'assenza con la fonte. */
-const resaAtto = (fonteAttiva: boolean | undefined) => (d: DomandaElenco) =>
-  attoSenzaFonte(d.attoConcessioneNumero, d.attoConcessioneData, fonteAttiva) ? <AssenzaMotivata dato={ATTO_FONTE_NON_ATTIVA} /> : testoAtto(d.attoConcessioneNumero, d.attoConcessioneData);
+/**
+ * Cella dell'atto di concessione: senza l'atto e senza la fonte (review delta 21/10 X2, F1) l'assenza con la fonte, in
+ * testo come le altre assenze della tabella e come la sintesi della scheda (review delta 21/10 passata 2 V4).
+ */
+const resaAtto = (fonteAttiva: boolean | undefined) => (d: DomandaElenco) => testoAtto(d.attoConcessioneNumero, d.attoConcessioneData, fonteAttiva);
 
 /**
  * Colonne delle domande per la vista per ambito: quelle della vista, nel suo ordine e visibili (la prima, intestazione di
