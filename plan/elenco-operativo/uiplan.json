@@ -6,7 +6,7 @@
     {
       "slice": "elenco-operativo",
       "path": "handover/openapi-elenco-operativo.json",
-      "sha256": "sha256:2f97612e0740f9135ff1725de313d15f15540112761e99a5db3d0ddd2c9ac861",
+      "sha256": "sha256:7532fe3b3708398d1448238ef2fe4df9e3d1037b096325bc23435cb9dc39a4ca",
       "manifest_hash_match": true
     }
   ],
@@ -886,6 +886,12 @@
     },
     {
       "route": "/elenco-operativo/domande",
+      "name": "filtri.attoConcessioneDisponibile",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande",
       "name": "filtri.stati",
       "provenance": "spec",
       "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
@@ -1505,6 +1511,12 @@
     {
       "route": "/elenco-operativo/pagamenti",
       "name": "filtri.legameAzioniDisponibile",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/elenco-operativo/pagamenti",
+      "name": "filtri.attoConcessioneDisponibile",
       "provenance": "spec",
       "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
     },
