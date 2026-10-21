@@ -119,7 +119,7 @@ const ATTO_FONTE_NON_ATTIVA = { motivo: 'FONTE_NON_ATTIVA', fonte: 'ATTO_CONCESS
 
 /**
  * Una domanda senza l'atto, secondo `fonteAttiva` (attoConcessioneDisponibile di TX-0060), in tre stati (review delta 21/10
- * passata 2 V1, decisione dell'utente del 22/10/2026). Vero: "nessun atto". Falso: l'assenza con la fonte, "non disponibile
+ * passata 2 V1, decisione dell'utente del 21/10/2026). Vero: "nessun atto". Falso: l'assenza con la fonte, "non disponibile
  * (fonte atto di concessione non attiva)", perche' "nessun atto" sarebbe un "no" inventato (F1). Assente, cioe' TX-0060
  * non letto (in attesa, in errore, senza il grant): l'assenza senza motivo, "non disponibile"; lo stato ignoto non vale
  * mai come fonte attiva.

@@ -325,7 +325,7 @@ describe("RA006: filtro dell'atto di concessione solo se TX-0060 lo dichiara dis
 });
 
 // review delta 21/10 X2, decisione F1 dell'utente: con la fonte non attiva "nessun atto" sarebbe un no inventato. Passata 2
-// V1 (decisione dell'utente del 22/10/2026): "nessun atto" solo dopo la risposta di TX-0060 con la fonte attiva; finche'
+// V1 (decisione dell'utente del 21/10/2026): "nessun atto" solo dopo la risposta di TX-0060 con la fonte attiva; finche'
 // TX-0060 non e' letto (in attesa, in errore, senza il grant) "non disponibile" senza nota
 describe("RA002: atto di concessione nella vista procedurale, con la fonte non attiva l'assenza con la fonte (D4, D-02 Rev. 5-6)", () => {
   const cellaAtto = async () => {

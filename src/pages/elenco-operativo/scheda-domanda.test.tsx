@@ -102,7 +102,7 @@ describe('RA004: riferimento della scheda convalidato prima della lettura (revie
 
 // review delta 21/10 X2, decisione F1 dell'utente: la scheda legge attoConcessioneDisponibile di TX-0060 (la stessa lettura
 // del pannello dei filtri) e con la fonte non attiva non dice "nessun atto". Passata 2 V1 (decisione dell'utente del
-// 22/10/2026): TX-0060 parte con TX-0058; "nessun atto" solo dopo la sua risposta con la fonte attiva, finche' non e' letto
+// 21/10/2026): TX-0060 parte con TX-0058; "nessun atto" solo dopo la sua risposta con la fonte attiva, finche' non e' letto
 // (in attesa, in errore, senza il grant) "non disponibile" senza nota
 describe("RA004: atto di concessione della sintesi, con la fonte non attiva l'assenza con la fonte (D4, D-02 Rev. 5-6)", () => {
   const voceAtto = async () => (await screen.findByText('Atto di concessione', { selector: 'dt' })).nextElementSibling?.textContent;
