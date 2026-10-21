@@ -141,7 +141,7 @@ function Sintesi({ d, scheda, ricerca, attoConcessioneDisponibile }: { d: Domand
       <Sezione titolo="Dati della domanda">
         <ElencoVoci voci={vociSintesi(d, scheda, { attoConcessioneDisponibile })} />
         {d.tipo === 'PAGAMENTO' && <DomandaDiSostegno codice={scheda.codiceDomandaSostegno} scheda={scheda} ricerca={ricerca} />}
-        <p className="ui-fonte">Fonte: TX-0058. Valori assenti: indicato il motivo, mai zero.</p>
+        <p className="ui-fonte">{"Fonte: TX-0058; disponibilità dell'atto di concessione: TX-0060. Valori assenti: indicato il motivo, mai zero."}</p>
       </Sezione>
       <CardGrafico
         titolo="Dall'ammesso al pagato"

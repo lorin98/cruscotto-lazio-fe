@@ -1084,6 +1084,12 @@
     },
     {
       "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
+      "name": "filtri.attoConcessioneDisponibile",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/elenco-operativo/domande/:tipo/:codiceABarre",
       "name": "domanda.anomalie",
       "provenance": "spec",
       "source_ref": "openapi-elenco-operativo.json#/components/schemas/DomandaElenco"

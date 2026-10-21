@@ -134,6 +134,8 @@ describe("RA004: atto di concessione della sintesi, con la fonte non attiva l'as
     apri('/elenco-operativo/domande/PAGAMENTO/54230000001');
     await waitFor(async () => expect(await voceAtto()).toBe('non disponibile (fonte atto di concessione non attiva)'));
     expect(screen.queryByText('nessun atto')).toBeNull();
+    // la nota della fonte cita anche TX-0060, da cui viene la disponibilita' dell'atto (review delta 21/10 passata 2 V3)
+    expect(screen.getByText(/^Fonte: TX-0058; disponibilità dell'atto di concessione: TX-0060\./)).toBeTruthy();
   });
 
   it.each([
