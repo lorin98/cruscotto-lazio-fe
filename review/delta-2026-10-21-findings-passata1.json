@@ -1,0 +1,146 @@
+[
+  {
+    "id": "V1",
+    "severity": "MAGGIORE",
+    "titolo": "D-11: la previsione di pagamento si'/no non e' provata (nessuna fixture con un valore) e l'asserzione dei casi limite sulla previsione e' vacua (assorbe H3, A2)",
+    "file": "tests/finanziario-casi-limite.test.tsx",
+    "riga": 538,
+    "fix": "In src/pages/finanziario/sigc/verifica-smp/page.test.tsx (test D3/D15, riga 35) aggiungere righe con previsionePagamentoEsercizio {valore:true}, {valore:false} e {valore:null, motivo:'NON_VALORIZZATO'} e asserire con cella(intervento, \"Si prevede di pagare nell'esercizio\") 'sì', 'no' e 'non valorizzato...'. Sostituire le righe 537-539 dei casi limite con l'asserzione sulla cella della previsione di SRA03 ('non disponibile'). In tests/finanziario-ui.test.tsx:1944 togliere 'sì/no' dal titolo o asserire anche un valore.",
+    "decisione_utente": false
+  },
+  {
+    "id": "X1",
+    "severity": "MAGGIORE",
+    "titolo": "La verifica e2e della CSP (anteprima del riepilogo) si blocca: cerca la riga della tabella, ma il riepilogo ora si apre sul grafico",
+    "file": "e2e/csp.spec.ts",
+    "riga": 199,
+    "fix": "Prima della riga 199: await page.getByRole('group', { name: 'Vista del riepilogo' }).getByRole('button', { name: 'Tabella' }).click(); poi eseguire npm run test:e2e e registrarne l'esito nel resoconto prima della passata 2.",
+    "decisione_utente": false
+  },
+  {
+    "id": "X2",
+    "severity": "MAGGIORE",
+    "titolo": "Atto di concessione: con la fonte ATTO_CONCESSIONE non attiva la vista procedurale e la scheda dicono 'nessun atto' per ogni domanda (no inventato, contro D4 e D-02 Rev. 5-6)",
+    "file": "src/features/elenco-operativo/lib/formato.ts",
+    "riga": 119,
+    "fix": "Secondo la decisione D1. Con (a), raccomandata: green-be aggiunge a DomandaElenco l'atto col motivo dell'assenza (FONTE_NON_ATTIVA, fonte ATTO_CONCESSIONE); colonne.tsx:24 e voci.ts:99 lo rendono come l'assenza di un importo e 'nessun atto' resta solo con la fonte attiva. Con (b): colonneDomande riceve attoConcessioneDisponibile da useInterrogazione e, se falso, rende 'non disponibile' con la nota della fonte. Test: vista procedurale (e scheda con (a)) con la fonte non attiva senza 'nessun atto'.",
+    "decisione_utente": true
+  },
+  {
+    "id": "V2",
+    "severity": "MINORE",
+    "titolo": "Le colonne si'/no della verifica SMP (previsione, top-up incluso) sono allineate come numeri, contro il wireframe sigc riapprovato il 19/10",
+    "file": "src/features/finanziario/ui/VerificaSmpReport.tsx",
+    "riga": 31,
+    "fix": "In siNoMotivato (righe 45-49) costruire la colonna con numerica: false (un parametro di colonna() o un ColonnaTabella scritto a mano), cosi' 'Si prevede di pagare nell'esercizio' e 'Include top-up' sono colonne di testo come in verifica-smp.html:95,99.",
+    "decisione_utente": false
+  },
+  {
+    "id": "V3",
+    "severity": "MINORE",
+    "titolo": "Concessione arrivata dall'indirizzo con attoConcessioneDisponibile falso: il pannello la conta e la rimanda a ogni scelta, ma non offre un modo per toglierla",
+    "file": "src/features/elenco-operativo/ui/PannelloFiltriElenco.tsx",
+    "riga": 106,
+    "fix": "Nel ramo della nota, se sel('concessione') non e' vuoto, mostrare un pulsante 'Togli il filtro Atto di concessione' che chiama imposta('concessione')([]); correggere il commento delle righe 104-105. Aggiungere un test RA006 con ?concessione=true, flag falso e pannello aperto.",
+    "decisione_utente": false
+  },
+  {
+    "id": "V4",
+    "severity": "MINORE",
+    "titolo": "Il mock di sviluppo risponde 200 a /pagamenti con concessione, mentre il backend e il suo stesso commento danno 400 DATO_NON_VALIDO (assorbe A1, H5)",
+    "file": "src/features/elenco-operativo/api/mock/esempio.ts",
+    "riga": 179,
+    "fix": "Nell'handler di */api/elenco-operativo/pagamenti: ({ request }) => rifiutaConcessione(new URL(request.url).searchParams) ?? HttpResponse.json({...}). In CONCESSIONE_NON_DISPONIBILE (riga 29) usare type: PROBLEM_TYPES.DATO_NON_VALIDO importato da shared/api/problem.",
+    "decisione_utente": false
+  },
+  {
+    "id": "V5",
+    "severity": "MINORE",
+    "titolo": "Riepilogo: tutti i controlli axe passano prima alla vista Tabella, la pagina com'e' all'apertura (vista Grafico) non e' verificata",
+    "file": "src/pages/finanziario/riepilogo/page.test.tsx",
+    "riga": 134,
+    "fix": "Aggiungere expectNoA11yViolations(container) sulla pagina appena aperta, dopo trovaCard('Dotazione e pagamenti per intervento') e senza scegliere la Tabella (in page.test.tsx o in tests/finanziario-pagine.test.tsx); lasciare il controllo sulla vista Tabella.",
+    "decisione_utente": false
+  },
+  {
+    "id": "V6",
+    "severity": "MINORE",
+    "titolo": "Il sottotitolo del riepilogo descrive ricerca, colonne e righe della tabella, ma la pagina si apre sul grafico",
+    "file": "src/features/finanziario/lib/report.ts",
+    "riga": 83,
+    "fix": "Riscrivere il sottotitolo per la vista iniziale, ad esempio 'Grafico per intervento: clic su una barra per il dettaglio; nella vista Tabella cerca, ordina, scegli le colonne e apri l'anteprima.'; allineare il testo di wireframes/riepilogo/riepilogo.html:63 con la decisione D2.",
+    "decisione_utente": false
+  },
+  {
+    "id": "V7",
+    "severity": "MINORE",
+    "titolo": "Lo stato 'Atto di concessione non disponibile' del pannello non e' disegnato nei wireframe approvati di domande e pagamenti, ne' registrato come deviazione",
+    "file": "wireframes/elenco-operativo/domande/domande.html",
+    "riga": 110,
+    "fix": "Secondo la decisione D3. Con (b), raccomandata: registrare in plan/elenco-operativo/uiplan.json la deviazione accettata per le due note condizionali del pannello (azioni portanti e atto di concessione). Con (a): disegnarle in domande.md e pagamenti.md e far riapprovare i due flussi.",
+    "decisione_utente": true
+  },
+  {
+    "id": "H1",
+    "severity": "MINORE",
+    "titolo": "Forma e resa dei dati motivati (ConteggioFinanziario, SiNoFinanziario) nel componente del report, con tipo locale e Importo fittizio: terza forma a mano di {valore, motivo, fonte}",
+    "file": "src/features/finanziario/ui/VerificaSmpReport.tsx",
+    "riga": 27,
+    "fix": "In entities/importo: DatoMotivatoLike<T> (ImportoLike = DatoMotivatoLike<number>), descriviAssenza pura in lib/importo.ts riusata da descriviImporto e un componente ValoreMotivato({ dato, resa }) esportato dal barrel; in VerificaSmpReport una sola factory colonnaMotivata(chiave, titolo, leggi, resaValore) per avvisi, azioni, previsione e top-up.",
+    "decisione_utente": false
+  },
+  {
+    "id": "H2",
+    "severity": "MINORE",
+    "titolo": "Nessun controllo statico fra la forma a mano dei dati motivati e ConteggioFinanziario/SiNoFinanziario della spec (guardia di H-17 e H-24 assente sui campi nuovi)",
+    "file": "src/features/finanziario/ui/contratto.ts",
+    "riga": 60,
+    "fix": "Aggiungere CONTRATTO_CONTEGGIO: Uguali<keyof NonNullable<VerificaSmpRiga['avvisiAttivati']>, keyof DatoMotivatoLike<number>> = true e CONTRATTO_SI_NO analogo su includeTopUp con DatoMotivatoLike<boolean>, piu' il controllo del tipo di valore (number, boolean); la forma e' quella di H1, oppure Motivato<T> spostato in lib/dto.ts.",
+    "decisione_utente": false
+  },
+  {
+    "id": "X3",
+    "severity": "MINORE",
+    "titolo": "Il flusso riepilogo approvato il 13/10 non descrive piu' la pagina all'apertura (vista Grafico, interruttore di pagina, totali e riga AT solo in Tabella): ne' riapprovato ne' deviazione registrata",
+    "file": "wireframes/riepilogo/riepilogo.md",
+    "riga": 17,
+    "fix": "Secondo la decisione D2. Con (a), raccomandata: aggiornare riepilogo.md (albero dei componenti) e riepilogo.html con la vista iniziale Grafico, l'interruttore di pagina, totali e riga AT nella vista Tabella e il sottotitolo di V6, poi far riapprovare il flusso. Con (b): registrare la deviazione in uiplan.json.",
+    "decisione_utente": true
+  },
+  {
+    "id": "X3-b",
+    "severity": "MINORE",
+    "titolo": "Riepilogo all'apertura: l'interruttore di pagina 'Tabella | Grafico' e quello della card 'Grafico | Tabella' compaiono insieme in ordine inverso, con due bottoni 'Tabella' che aprono tabelle diverse",
+    "file": "src/features/finanziario/ui/RiepilogoReport.tsx",
+    "riga": 191,
+    "fix": "Nelle righe 191-198 mettere il bottone Grafico prima di Tabella, nello stesso ordine dell'InterruttoreVista di CardGrafico; adeguare i test che contano sull'ordine dei bottoni del gruppo 'Vista del riepilogo'.",
+    "decisione_utente": false
+  },
+  {
+    "id": "V8",
+    "severity": "COSMETICO",
+    "titolo": "Nel wireframe sigc riapprovato restano due menzioni della 'previsione e spesa' come grafico (albero dei componenti e link non collegati)",
+    "file": "wireframes/sigc/sigc.md",
+    "riga": 21,
+    "fix": "Alla prossima riapprovazione del flusso sigc: riga 21 'Card spesa erogata nella campagna precedente (barre)'; righe 50-51 'Spesa erogata nella campagna precedente (TX-0015, per intervento ed esercizio)'.",
+    "decisione_utente": false
+  },
+  {
+    "id": "H4",
+    "severity": "COSMETICO",
+    "titolo": "Costruttori dei dati motivati (dato, nv) ricopiati fra fixture, test e mock",
+    "file": "src/pages/finanziario/sigc/verifica-smp/page.test.tsx",
+    "riga": 36,
+    "fix": "Esportare dato, nv e nd da src/features/finanziario/testing/fixture.ts e usarli in verifica-smp/page.test.tsx:36-37 e in tests/finanziario-casi-limite.test.tsx:524; nel mock di esempio un solo costruttore generico dato<T>, con euro, fna e nv definiti sopra di esso.",
+    "decisione_utente": false
+  },
+  {
+    "id": "X4",
+    "severity": "COSMETICO",
+    "titolo": "Test di regressione di X-01: titolo e commento promettono il trasporto della vista Grafico, ma col grafico predefinito il test prova solo che Grafico sostituisce la Tabella salvata",
+    "file": "src/pages/finanziario/riepilogo/page.test.tsx",
+    "riga": 340,
+    "fix": "Riscrivere il commento della riga 340 e il titolo della riga 341 (la scelta Grafico sostituisce la Tabella salvata; il trasporto dello state lo prova X-04 con ritrovato()); facoltativo: dopo il ritorno asserire che router.state.location.state porti la vista 'grafico'.",
+    "decisione_utente": false
+  }
+]

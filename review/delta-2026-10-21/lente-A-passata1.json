@@ -1,0 +1,18 @@
+[
+  {
+    "id": "A1",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/api/mock/esempio.ts:179",
+    "titolo": "Mock di esempio dei pagamenti: ignora concessione e risponde 200, mentre il backend risponde 400 (lo dice anche il commento del mock)",
+    "evidenza": "Le righe 26-27 dichiarano che nel dataset di esempio il filtro concessione, si' o no, risponde 400 DATO_NON_VALIDO 'come il backend'. rifiutaConcessione pero' c'e' solo nei handler di domande/sinottico (173) e domande (177). Il handler di */api/elenco-operativo/pagamenti (179-181) risponde sempre 200 con un elenco vuoto, qualunque sia la query. Nel backend ConsultaElencoOperativoService.pagamenti e pagamentiDaEsportare passano da risolto(f, r) (righe 164 e 181), che lancia DatoNonValidoException('concessione', ...) quando la fonte ATTO_CONCESSIONE non e' attiva. Sul dev server con MSW (main.tsx:23, solo DEV) /elenco-operativo/pagamenti?concessione=true mostra quindi 'nessuna riga' invece dell'avviso del 400, cioe' una forma di risposta che il backend non produce. Impatto limitato: il worker gira solo in sviluppo e i test dei pagamenti montano il 400 con server.use (interrogazione-stati.test.tsx:295-302), quindi il gate non e' falsato.",
+    "fix": "Nel handler dei pagamenti del mock di esempio: `({ request }) => rifiutaConcessione(new URL(request.url).searchParams) ?? HttpResponse.json({...})`, cosi' il mock fa quello che dice il commento e quello che fa il backend su tutte le letture."
+  },
+  {
+    "id": "A2",
+    "severity": "MINORE",
+    "file": "tests/finanziario-casi-limite.test.tsx:537",
+    "titolo": "L'asserzione sulla previsione di pagamento (D-11) e' vuota: getAllByText('non disponibile') trova sempre altre celle",
+    "evidenza": "Il commento della riga 537 dice che il test verifica che la previsione di pagamento, senza fonte, resti 'non disponibile'. Le righe 538-539 (`screen.getAllByText('non disponibile')` e `length > 0`) passano pero' con qualunque resa della colonna: la riga 534 ha appena verificato che 'Anno delle domande' vale 'non disponibile', e la riga SRA03 (tutti i campi assenti) ha decine di celle 'non disponibile'. Se la colonna mostrasse un 'no' inventato, il test passerebbe lo stesso: e' un falso positivo rispetto a quello che dichiara. Il caso FONTE_NON_ATTIVA e' comunque coperto altrove (verifica-smp/page.test.tsx:33 e finanziario-ui.test.tsx:1953: textContent contiene 'fonte previsione di pagamento non attiva', che puo' venire solo da quella cella). Nessun test pero' passa una previsionePagamentoEsercizio con un valore (true o false): grep di previsionePagamentoEsercizio sui test non trova nulla, e la fixture ha solo nd('PREVISIONE_PAGAMENTO').",
+    "fix": "Sostituire le righe 538-539 con un'asserzione sulla cella, come fa la funzione `cella(intervento, colonna)` di verifica-smp/page.test.tsx (colonna \"Si prevede di pagare nell'esercizio\" di SRA01 = 'non disponibilefonte previsione di pagamento non attiva'). Aggiungere al test D3/D15 della pagina un caso con previsionePagamentoEsercizio {valore: true} e {valore: false} che si renda 'sì' e 'no'."
+  }
+]

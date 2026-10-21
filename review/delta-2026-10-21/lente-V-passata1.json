@@ -1,0 +1,66 @@
+[
+  {
+    "id": "V1",
+    "severity": "MAGGIORE",
+    "file": "tests/finanziario-casi-limite.test.tsx:538",
+    "titolo": "D-11: nessun test prova che la previsione di pagamento si rende come si'/no; l'asserzione aggiunta per la previsione e' vuota",
+    "evidenza": "Il cambio centrale di 2767efe e' la colonna 'Si prevede di pagare nell'esercizio' resa con siNoMotivato (src/features/finanziario/ui/VerificaSmpReport.tsx:65). Nessun test o fixture del repo valorizza previsionePagamentoEsercizio con true o false: fixture.ts:156 ed esempio.ts:268 la danno solo FONTE_NON_ATTIVA, e il test nuovo di RF015 (src/pages/finanziario/sigc/verifica-smp/page.test.tsx:35) prova si'/no e NON_VALORIZZATO solo su includeTopUp, avvisi e azioni. Il caso di D-11 'con la fonte attiva un intervento senza previsione e' NON_VALORIZZATO' non e' provato, e neanche l'intestazione 'Si prevede di pagare nell'esercizio'. tests/finanziario-ui.test.tsx:1944 si intitola 'la previsione (sì/no, D-11) è nella tabella' ma controlla solo il testo 'fonte previsione di pagamento non attiva', che usciva identico con la vecchia resa a importo. In finanziario-casi-limite.test.tsx:537-539 il commento 'D-11: ... resta non disponibile' e' seguito da getAllByText('non disponibile').length > 0, che passa sempre: lo stesso test, alla riga 534, ha gia' 'non disponibile' per l'anno delle domande, e la riga SRA03 senza dati ne porta altri.",
+    "fix": "Nel test di RF015 (verifica-smp/page.test.tsx:35) aggiungere righe con previsionePagamentoEsercizio {valore:true}, {valore:false} e {valore:null, motivo:'NON_VALORIZZATO'}, e asserire con cella(intervento, 'Si prevede di pagare nell'esercizio') rispettivamente 'sì', 'no' e 'non valorizzato...'. Sostituire le righe 537-539 dei casi limite con un'asserzione sulla cella della previsione di SRA03, che deve dare 'non disponibile' senza fonte."
+  },
+  {
+    "id": "V2",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/VerificaSmpReport.tsx:31",
+    "titolo": "Le colonne si'/no della verifica SMP sono allineate come numeri, mentre il wireframe riapprovato il 19/10 toglie ui-num proprio alla previsione",
+    "evidenza": "colonna() imposta sempre numerica: true, e siNoMotivato la usa per 'Si prevede di pagare nell'esercizio' (riga 65) e per 'Include top-up' (riga 67). TabellaInterattiva mette quindi className 'ui-num' su th e td (src/shared/ui/tabella/TabellaInterattiva.tsx:36, 65), cioe' l'allineamento a destra. Nel wireframe riapprovato (wireframes/sigc/verifica-smp.html:95 e 99) la colonna e' passata da class=\"ui-num\" a una colonna di testo: th e td senza ui-num, valore si'/no.",
+    "fix": "In siNoMotivato costruire la colonna con numerica: false (ad esempio un parametro di colonna() o un oggetto ColonnaTabella scritto a mano), cosi' previsione e top-up incluso sono colonne di testo come nel wireframe."
+  },
+  {
+    "id": "V3",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/PannelloFiltriElenco.tsx:106",
+    "titolo": "Concessione arrivata dall'indirizzo con attoConcessioneDisponibile falso: il pannello la conta e la rimanda, ma non offre un modo per toglierla",
+    "evidenza": "Con il flag falso il controllo 'Atto di concessione' e' sostituito dalla nota (righe 106-110). Il gruppo Stati pero' conta ancora 'concessione' (riga 95), e ogni scelta fatta nel pannello parte da criteri che la contengono (riga 152, conFiltro(criteri, ...)). Aperto da ?concessione=true, il pannello mostra quindi 'Stati' con una scelta che non si vede e, a ogni altro filtro, il 400 'Risultati non disponibili con questi filtri: ... concessione ...' (ErroreLetture). Il commento alla riga 105 dice che il pannello non manda mai concessione, ma qui la manda. Il chip si toglie solo dalla barra 'Filtri attivi', che e' fuori dal dialogo modale (il test in src/pages/elenco-operativo/interrogazione-stati.test.tsx:279 lo toglie a pannello chiuso). Dal pannello resta solo 'Azzera', che toglie tutti i filtri.",
+    "fix": "Nel ramo della nota, se sel('concessione') non e' vuoto, mostrare un pulsante 'Togli il filtro Atto di concessione' che chiama imposta('concessione')([]), oppure togliere concessione dai criteri che il pannello applica quando il flag e' falso. Aggiungere un test RA006 con ?concessione=true, flag falso e pannello aperto."
+  },
+  {
+    "id": "V4",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/api/mock/esempio.ts:179",
+    "titolo": "Il mock di sviluppo rifiuta concessione su domande e sinottico ma non su pagamenti, contro il contratto e contro il suo stesso commento",
+    "evidenza": "Il commento alle righe 26-27 dice che il filtro concessione 'risponde 400 DATO_NON_VALIDO col campo, come il backend', e rifiutaConcessione e' applicata solo a /domande/sinottico e /domande (righe 173 e 177). Nello stesso mock /filtri dichiara attoConcessioneDisponibile: false, ma /api/elenco-operativo/pagamenti (righe 179-181) risponde 200 anche con concessione. Il contratto (handover/openapi-elenco-operativo.json, parametro concessione di GET /api/elenco-operativo/pagamenti) e D-02 Rev. 5 ('su righe, sinottico ed export') prevedono il 400 anche li'. In npm run dev, /elenco-operativo/pagamenti?concessione=true mostra quindi un elenco vuoto, mentre il backend risponde 400.",
+    "fix": "Applicare rifiutaConcessione anche all'handler dei pagamenti: return rifiutaConcessione(p) ?? HttpResponse.json(...)."
+  },
+  {
+    "id": "V5",
+    "severity": "MINORE",
+    "file": "src/pages/finanziario/riepilogo/page.test.tsx:134",
+    "titolo": "Riepilogo: i controlli axe passano tutti alla vista Tabella prima di partire, la vista iniziale Grafico non e' mai verificata",
+    "evidenza": "Dopo cb79f67 la pagina si apre sulla vista Grafico: il gruppo 'Vista del riepilogo' piu' la CardGrafico con il suo interruttore e i suoi download. I tre controlli axe del riepilogo chiamano prima tabellaDelRiepilogo(), che sceglie la Tabella: page.test.tsx:134, tests/finanziario-pagine.test.tsx:142 ('a11y della pagina completa') e tests/finanziario-ui.test.tsx:1039. Prima del cambio la vista controllata era quella iniziale; ora la pagina come si presenta all'apertura non passa da axe. La scansione di tests/shell.test.tsx:419 avviene col menu modale aperto e senza attendere i dati.",
+    "fix": "In page.test.tsx o in finanziario-pagine.test.tsx aggiungere un controllo expectNoA11yViolations sulla pagina appena aperta, dopo trovaCard('Dotazione e pagamenti per intervento'), senza passare alla Tabella, e lasciare quello sulla vista Tabella."
+  },
+  {
+    "id": "V6",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/report.ts:83",
+    "titolo": "Il sottotitolo del riepilogo descrive la tabella, ma la pagina ora si apre sul grafico",
+    "evidenza": "Sotto l'h1 del riepilogo compare 'Cerca, ordina, scegli le colonne; clic su una riga per l'anteprima, poi il dettaglio.' (PaginaFinanziario.tsx:55). Con la vista iniziale Grafico (RiepilogoReport.tsx:163) all'apertura non ci sono ricerca, ordinamento, colonne ne' righe: compaiono solo con 'Tabella'. Nel wireframe (wireframes/riepilogo/riepilogo.html:63) lo stesso testo stava sopra la card della tabella, mostrata insieme al grafico.",
+    "fix": "Riscrivere il sottotitolo per la vista iniziale, ad esempio 'Grafico per intervento (clic su una barra: il dettaglio); nella vista Tabella cerca, ordina, scegli le colonne e apri l'anteprima.', e aggiornare il testo nel wireframe riepilogo alla prossima riapprovazione."
+  },
+  {
+    "id": "V7",
+    "severity": "MINORE",
+    "file": "wireframes/elenco-operativo/domande/domande.html:110",
+    "titolo": "Lo stato 'Atto di concessione non disponibile' del pannello non e' nei wireframe approvati di domande e pagamenti",
+    "evidenza": "a9f127d rende, con attoConcessioneDisponibile falso, una nota al posto del controllo (PannelloFiltriElenco.tsx:107). I wireframe approvati il 13/10 mostrano solo il controllo 'Con atto di concessione' (domande.html:110) o lo citano fra i filtri (pagamenti.html:88). Lo stato non e' disegnato in nessuno dei due flussi, e domande.md e pagamenti.md non lo dichiarano. Il resoconto review/messa-in-regola-step2-7-20261021.md (sezione Wireframe) lo lascia 'da valutare con l'utente', senza una decisione ne' una deviazione registrata nello uiplan.",
+    "fix": "Far decidere l'utente. Se lo stato va nel wireframe, aggiungerlo a domande.md e pagamenti.md, insieme all'analogo delle azioni portanti, e riapprovare i due flussi. Altrimenti registrare la deviazione accettata in plan/elenco-operativo/uiplan.json."
+  },
+  {
+    "id": "V8",
+    "severity": "COSMETICO",
+    "file": "wireframes/sigc/sigc.md:21",
+    "titolo": "Nel wireframe sigc riapprovato restano due menzioni della 'previsione e spesa' come grafico",
+    "evidenza": "La tabella dei grafici e l'HTML sono aggiornati (sigc.md:30, verifica-smp.html:73-77: la card mostra la sola spesa erogata). L'albero dei componenti (riga 21) dice invece ancora 'Card previsione e spesa (barre)', e la riga 50-51 'Non collegati: ... Previsione di pagamento e spesa erogata (TX-0015 ...)'. Il codice segue l'HTML; e' il documento approvato a contraddirsi.",
+    "fix": "Alla prossima riapprovazione del flusso sigc scrivere 'Card spesa erogata nella campagna precedente (barre)' alla riga 21 e 'Spesa erogata nella campagna precedente (TX-0015 ...)' alla riga 50."
+  }
+]

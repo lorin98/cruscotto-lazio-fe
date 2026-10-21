@@ -1,0 +1,42 @@
+[
+  {
+    "id": "H1",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/VerificaSmpReport.tsx:27",
+    "titolo": "La resa di ConteggioFinanziario e SiNoFinanziario sta nel componente del report, con un tipo locale e un Importo finto, invece che nell'entity importo",
+    "evidenza": "Il delta (df5a569) aggiunge in ui/VerificaSmpReport.tsx il tipo `Motivato<T>` (riga 27) e `assenza` (riga 37), che costruisce un Importo fittizio `{ valore: null, motivo, fonte }` per riusare ValoreImporto. Aggiunge anche due factory di colonna (righe 39-43 e 45-49) che ripetono lo stesso ramo `v?.valore != null ? <valore> : assenza(v)`. E' la terza forma scritta a mano dello stesso contratto {valore, motivo, fonte}, dopo ImportoLike (entities/importo/lib/importo.ts:7) e ValoreMotivato<T> (features/elenco-operativo/lib/dto.ts:9). La regola 'l'assenza si rende come l'importo' vive cosi' in un componente di pagina di una sola feature e si regge sul fatto che ValoreImporto, con valore null, non formatti mai un euro. Un conteggio o un si'/no motivato usato altrove (dettaglio intervento, elenco) dovrebbe ricopiare il trucco.",
+    "fix": "Generalizzare forma e resa in entities/importo: `DatoMotivatoLike<T> = { valore?: T | null; motivo?: string | null; fonte?: string | null }` (ImportoLike = DatoMotivatoLike<number>), `descriviAssenza(dato, aggregato)` pura in lib/importo.ts (riusata da descriviImporto) e un componente `ValoreMotivato({ dato, resa })` in entities/importo/ui che rende il valore con `resa` oppure l'assenza; esportarli dal barrel. In VerificaSmpReport tenere una sola factory (`colonnaMotivata(chiave, titolo, leggi, resaValore)`) per avvisi, azioni, previsione e top-up."
+  },
+  {
+    "id": "H2",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/contratto.ts:60",
+    "titolo": "Nessun controllo statico fra la forma scritta a mano dei dati motivati e ConteggioFinanziario/SiNoFinanziario della spec",
+    "evidenza": "contratto.ts esiste perche' 'se la spec rinomina un campo, la compilazione fallisce invece di mostrare non disponibile ovunque' (review H-17 e H-24). L'elenco fa lo stesso controllo per la stessa forma (elenco-operativo/ui/contratto.ts:30-31, CONTRATTO_SUPERFICIE e CONTRATTO_RESPONSABILE con Uguali). Il delta invece legge i quattro campi nuovi con `Motivato<T>` (VerificaSmpReport.tsx:27), un tipo con tutti i campi facoltativi e nessuna voce in contratto.ts. Se la spec rinominasse `motivo` o `valore` di ConteggioFinanziario/SiNoFinanziario, il tipo debole resterebbe assegnabile grazie agli altri campi in comune: la compilazione passerebbe e le celle direbbero 'non disponibile' senza motivo, oppure sempre assenza. Le fixture VERIFICA_SMP (testing/fixture.ts:141-158) non sono tipizzate sul DTO, quindi nemmeno i test lo vedrebbero.",
+    "fix": "Aggiungere in ui/contratto.ts `CONTRATTO_CONTEGGIO: Uguali<keyof NonNullable<VerificaSmpRiga['avvisiAttivati']>, keyof DatoMotivatoLike<number>> = true` e `CONTRATTO_SI_NO: Uguali<keyof NonNullable<VerificaSmpRiga['includeTopUp']>, keyof DatoMotivatoLike<boolean>> = true`, con il controllo del tipo di `valore` (number, boolean). La forma e' quella di H1, oppure Motivato<T> spostato in lib/dto.ts finche' H1 non e' fatto."
+  },
+  {
+    "id": "H3",
+    "severity": "MINORE",
+    "file": "tests/finanziario-casi-limite.test.tsx:538",
+    "titolo": "L'asserzione sulla previsione di pagamento si'/no (D-11) e' vacua, e nessun test prova il ramo con il valore",
+    "evidenza": "Alle righe 537-539 il commento dichiara che la previsione 'resta non disponibile', ma `screen.getAllByText('non disponibile').length > 0` e' gia' vera per la voce 'Anno delle domande' asserita alla riga 534, e per ogni badge di importo assente. Passerebbe anche se la colonna 'Si prevede di pagare nell'esercizio' mostrasse '0,00 €' o 'no'. Nel repo nessuna fixture da' un valore a previsionePagamentoEsercizio (testing/fixture.ts:156 e api/mock/esempio.ts:268 hanno solo FONTE_NON_ATTIVA). La resa si'/no della previsione, cioe' la modifica di D-11 nella tabella, e' quindi provata solo quando il dato manca.",
+    "fix": "Con l'helper `cella(intervento, colonna)` di sigc/verifica-smp/page.test.tsx asserire: SRA01 'Si prevede di pagare nell'esercizio' = 'non disponibilefonte previsione di pagamento non attiva'; SRA03 (riga senza il campo) = 'non disponibile'; una riga con `previsionePagamentoEsercizio: { valore: true, motivo: null, fonte: null }` = 'sì' e una con false = 'no'. Togliere l'asserzione generica."
+  },
+  {
+    "id": "H4",
+    "severity": "COSMETICO",
+    "file": "src/pages/finanziario/sigc/verifica-smp/page.test.tsx:36",
+    "titolo": "Costruttori dei dati motivati ricopiati fra mock, fixture e test",
+    "evidenza": "`dato` e `nv` sono definiti in features/finanziario/testing/fixture.ts:8-9, di nuovo localmente nel test (page.test.tsx:36-37) e scritti in linea in tests/finanziario-casi-limite.test.tsx:524. Nel mock di esempio, `dato` (api/mock/esempio.ts:25) ripete `euro` della riga 21: stessa forma {valore, motivo, fonte}, cambia solo il tipo del valore.",
+    "fix": "Esportare `dato`, `nv` e `nd` da testing/fixture.ts e usarli nei test; nel mock tenere un solo costruttore generico (`dato<T>`), con `euro`, `fna` e `nv` definiti sopra di esso."
+  },
+  {
+    "id": "H5",
+    "severity": "COSMETICO",
+    "file": "src/features/elenco-operativo/api/mock/esempio.ts:28",
+    "titolo": "Il mock di esempio scrive a mano il problem-type del 400 sulla concessione e lo applica solo a domande e sinottico",
+    "evidenza": "CONCESSIONE_NON_DISPONIBILE (righe 28-34) ripete l'URN 'urn:cruscottocsr:problem:dato-non-valido' invece di usare PROBLEM_TYPES.DATO_NON_VALIDO del registro (shared/api/problem/problem-types.ts:23). E' un terzo costruttore del corpo problem+json, accanto a problema() di shared/testing/msw.ts. Il commento (righe 26-27) dice che il filtro concessione risponde 400 'come il backend', ma l'handler di /pagamenti (riga 179) non chiama rifiutaConcessione e risponde 200 con zero righe. D-02 Rev. 5 e la spec danno il 400 anche li'.",
+    "fix": "Usare `type: PROBLEM_TYPES.DATO_NON_VALIDO` importato da shared/api/problem e mettere `rifiutaConcessione(p) ??` anche nell'handler di /api/elenco-operativo/pagamenti."
+  }
+]
