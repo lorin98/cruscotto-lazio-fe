@@ -23,6 +23,17 @@ const ULTIMI = [{ flusso: 'DS-12', conclusoIl: '2026-03-02T09:15:00Z' }];
 
 const euro = (valore: number | null) => ({ valore, motivo: valore === null ? 'NON_VALORIZZATO' : null, fonte: null });
 
+// Nessuna domanda di esempio ha l'atto di concessione: TX-0060 lo dice (attoConcessioneDisponibile false) e il filtro
+// concessione, si' o no, risponde 400 DATO_NON_VALIDO col campo, come il backend (D-02 Rev. 5-6, D11 del backend).
+const CONCESSIONE_NON_DISPONIBILE = {
+  type: 'urn:cruscottocsr:problem:dato-non-valido',
+  title: 'Bad Request',
+  status: 400,
+  errorCode: 'DATO_NON_VALIDO',
+  detail: "concessione: nessuna domanda del database ha l'atto di concessione (fonte ATTO_CONCESSIONE non attiva)",
+};
+const rifiutaConcessione = (p: URLSearchParams) => (p.has('concessione') ? HttpResponse.json(CONCESSIONE_NON_DISPONIBILE, { status: 400 }) : null);
+
 interface DomandaEsempio {
   codiceABarre: string;
   tipo: 'SOSTEGNO' | 'PAGAMENTO';
@@ -147,6 +158,7 @@ export const handlersEsempio: RequestHandler[] = [
       obiettiviPolicy: [],
       azioniPortanti: [],
       legameAzioniDisponibile: false,
+      attoConcessioneDisponibile: false,
       stati: STATI.map(([codice, descrizione]) => ({ codice, descrizione, tipo: null })),
       statiProgrammazione: [],
       province: PROVINCE,
@@ -156,10 +168,13 @@ export const handlersEsempio: RequestHandler[] = [
       tipi: ['PAGAMENTO', 'SOSTEGNO'],
     }),
   ),
-  http.get('*/api/elenco-operativo/domande/sinottico', ({ request }) => HttpResponse.json(sinottico(filtrate(new URL(request.url).searchParams)))),
+  http.get('*/api/elenco-operativo/domande/sinottico', ({ request }) => {
+    const p = new URL(request.url).searchParams;
+    return rifiutaConcessione(p) ?? HttpResponse.json(sinottico(filtrate(p)));
+  }),
   http.get('*/api/elenco-operativo/domande', ({ request }) => {
     const p = new URL(request.url).searchParams;
-    return HttpResponse.json(pagina(p, filtrate(p)));
+    return rifiutaConcessione(p) ?? HttpResponse.json(pagina(p, filtrate(p)));
   }),
   http.get('*/api/elenco-operativo/pagamenti', () =>
     HttpResponse.json({ perimetro: 'REGIONALE', pagina: 0, dimensione: 25, ordinamento: 'decreto:asc', totaleRighe: 0, righe: [], totali: { pagate: 0, escluse: 0 }, ultimiDatiSincronizzati: ULTIMI }),

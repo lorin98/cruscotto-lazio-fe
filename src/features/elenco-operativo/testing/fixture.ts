@@ -22,6 +22,8 @@ export const VALORI: ValoriFiltriElenco = {
   obiettiviPolicy: ['OP1'],
   azioniPortanti: [],
   legameAzioniDisponibile: false,
+  // la domanda di sostegno della pagina ha l'atto AC-1: il filtro concessione si puo' usare (D-02 Rev. 5-6)
+  attoConcessioneDisponibile: true,
   stati: [
     { codice: 'RILASCIATO', descrizione: 'Rilasciata', tipo: null },
     { codice: 'VALIDO', descrizione: 'Valida', tipo: 'PAGAMENTO' },

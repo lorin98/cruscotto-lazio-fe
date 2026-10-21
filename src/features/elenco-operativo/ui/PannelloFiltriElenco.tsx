@@ -3,8 +3,9 @@
 // "Applica"); il conteggio dal vivo e' annunciato con role="status" e dice "in corso" finche' non e' dei filtri correnti.
 // Un errore delle letture si legge anche dal pannello aperto (role=alert nel dialogo: il resto della pagina e' nascosto ai
 // lettori di schermo, review v1 X-03). Valori dei filtri da TX-0060 (letti da useInterrogazione col loro grant): senza il
-// grant, o se non arrivano, resta la ricerca per testo (A-06). PannelloLaterale (react-aria) da' focus trap, Esc e
-// ritorno del focus; i controlli sono Bootstrap Italia (vedi controlli.tsx).
+// grant, o se non arrivano, resta la ricerca per testo (A-06); azioni portanti e atto di concessione si scelgono solo se
+// TX-0060 li dichiara disponibili (legameAzioniDisponibile, attoConcessioneDisponibile). PannelloLaterale (react-aria) da'
+// focus trap, Esc e ritorno del focus; i controlli sono Bootstrap Italia (vedi controlli.tsx).
 import { useId, useState } from 'react';
 import { ANNO_ASSENTE, ANNO_SENZA } from '../../../entities/domanda';
 import { getErrorMessage } from '../../../shared/lib';
@@ -100,7 +101,13 @@ function GruppoStati({ id, dati, sel, imposta, conta }: Scelta) {
         scelti={sel('statoProgrammazione')}
         onCambia={imposta('statoProgrammazione')}
       />
-      <Scelte etichetta={ETICHETTE_FILTRI.concessione} opzioni={booleano("Con l'atto di concessione", "Senza l'atto")} scelti={sel('concessione')} esclusive onCambia={imposta('concessione')} />
+      {/* senza alcun atto di concessione nel database il backend rifiuta il filtro (400 DATO_NON_VALIDO, D-02 Rev. 5-6):
+          il controllo non si mostra, come le azioni portanti senza legame, e il pannello non manda mai `concessione` */}
+      {dati.attoConcessioneDisponibile === false ? (
+        <p className="ui-nota">Atto di concessione non disponibile finché nessuna domanda ha un atto di concessione.</p>
+      ) : (
+        <Scelte etichetta={ETICHETTE_FILTRI.concessione} opzioni={booleano("Con l'atto di concessione", "Senza l'atto")} scelti={sel('concessione')} esclusive onCambia={imposta('concessione')} />
+      )}
       <Scelte etichetta={ETICHETTE_FILTRI.anomalie} opzioni={booleano('Con anomalie', 'Senza anomalie')} scelti={sel('anomalie')} esclusive onCambia={imposta('anomalie')} />
     </Gruppo>
   );

@@ -3,6 +3,7 @@ import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { server } from '../../shared/api/mock/server';
+import { expectNoA11yViolations } from '../../shared/testing/axe';
 import { problema } from '../../shared/testing/msw';
 import { renderPagina } from '../../shared/testing/render-pagina';
 import { ElencoDomande, ElencoPagamenti } from '../../features/elenco-operativo';
@@ -236,6 +237,69 @@ describe('RA006: fascia di importo ed errori delle letture nel pannello (review 
     await userEvent.click(await within(dialogo).findByRole('button', { name: 'Solo SIGC' }));
     const avviso = await within(dialogo).findByRole('alert');
     expect(avviso.textContent).toBe('Risultati non disponibili con questi filtri: Richiesta non valida: sigc non valido. Correggila e riprova.');
+  });
+});
+
+describe("RA006: filtro dell'atto di concessione solo se TX-0060 lo dichiara disponibile (D-02 Rev. 5-6, D11 del backend)", () => {
+  const NON_DISPONIBILE = 'Atto di concessione non disponibile finché nessuna domanda ha un atto di concessione.';
+  const RIFIUTO = "concessione: nessuna domanda del database ha l'atto di concessione (fonte ATTO_CONCESSIONE non attiva)";
+  const senzaAtto = () => server.use(http.get('*/api/elenco-operativo/filtri', () => HttpResponse.json({ ...VALORI, attoConcessioneDisponibile: false })));
+
+  it('con attoConcessioneDisponibile vero il pannello offre il filtro e lo manda', async () => {
+    const richieste = servi();
+    const { router } = renderPagina(ElencoDomande, '/elenco-operativo/domande');
+    await screen.findByRole('table', { name: /Elenco operativo delle domande/ });
+    const dialogo = await apriPannello();
+    expect(within(dialogo).queryByText(NON_DISPONIBILE)).toBeNull();
+    await userEvent.click(await within(dialogo).findByRole('button', { name: "Con l'atto di concessione" }));
+    await waitFor(() => expect(router.state.location.search).toBe('?concessione=true'));
+    await waitFor(() => expect(richieste).toContain('domande?concessione=true'));
+  });
+
+  it.each([
+    ['domande', ElencoDomande, '/elenco-operativo/domande', /Elenco operativo delle domande/],
+    ['pagamenti', ElencoPagamenti, '/elenco-operativo/pagamenti', /Elenco operativo dei pagamenti/],
+  ] as const)('%s, attoConcessioneDisponibile falso: il controllo non si mostra, il pannello lo dice e non manda mai concessione', async (_, Pagina, percorso, tabella) => {
+    const richieste = servi();
+    senzaAtto();
+    const { router } = renderPagina(Pagina, percorso);
+    await screen.findByRole('table', { name: tabella });
+    const dialogo = await apriPannello();
+    expect(await within(dialogo).findByText(NON_DISPONIBILE)).toBeTruthy();
+    expect(within(dialogo).queryByRole('button', { name: "Con l'atto di concessione" })).toBeNull();
+    expect(within(dialogo).queryByRole('button', { name: "Senza l'atto" })).toBeNull();
+    await expectNoA11yViolations(dialogo);
+    // gli altri controlli del gruppo restano
+    expect(within(dialogo).getByRole('button', { name: 'Con anomalie' })).toBeTruthy();
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Con anomalie' }));
+    await waitFor(() => expect(router.state.location.search).toBe('?anomalie=true'));
+    expect(richieste.some((r) => r.includes('concessione'))).toBe(false);
+  });
+
+  it("domande: l'indirizzo con concessione e il 400 DATO_NON_VALIDO sul campo, come gli altri 400 dei filtri: un solo avviso, il chip resta e si toglie", async () => {
+    servi();
+    senzaAtto();
+    server.use(
+      http.get('*/api/elenco-operativo/domande/sinottico', errore(400, 'DATO_NON_VALIDO', RIFIUTO)),
+      http.get('*/api/elenco-operativo/domande', errore(400, 'DATO_NON_VALIDO', RIFIUTO)),
+    );
+    const { router } = renderPagina(ElencoDomande, '/elenco-operativo/domande', '/elenco-operativo/domande?concessione=true');
+    await screen.findByText('2 sezioni della pagina non si sono caricate.');
+    const avvisi = screen.getAllByRole('alert');
+    expect(avvisi).toHaveLength(1);
+    expect(avvisi[0].textContent).toContain(`Richiesta non valida: ${RIFIUTO}. Correggila e riprova.`);
+    await userEvent.click(within(screen.getByRole('region', { name: 'Filtri attivi' })).getByRole('button', { name: "Togli il filtro Atto di concessione con l'atto" }));
+    await waitFor(() => expect(router.state.location.search).toBe(''));
+  });
+
+  it("pagamenti: l'indirizzo con concessione=false e il 400 sul campo: un solo avviso, la barra dei filtri resta", async () => {
+    servi();
+    senzaAtto();
+    server.use(http.get('*/api/elenco-operativo/pagamenti', errore(400, 'DATO_NON_VALIDO', RIFIUTO)));
+    renderPagina(ElencoPagamenti, '/elenco-operativo/pagamenti', '/elenco-operativo/pagamenti?concessione=false');
+    expect((await screen.findByRole('alert')).textContent).toContain(`Richiesta non valida: ${RIFIUTO}.`);
+    expect(screen.getAllByRole('alert')).toHaveLength(1);
+    expect(within(screen.getByRole('region', { name: 'Filtri attivi' })).getByRole('button', { name: "Togli il filtro Atto di concessione senza l'atto" })).toBeTruthy();
   });
 });
 
