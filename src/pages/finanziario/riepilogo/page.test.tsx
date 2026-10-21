@@ -48,6 +48,11 @@ describe('RF011: tabella di riepilogo per intervento con i nove campi finanziari
     const gruppo = await screen.findByRole('group', { name: 'Vista del riepilogo' });
     expect(within(gruppo).getByRole('button', { name: 'Grafico' }).getAttribute('aria-pressed')).toBe('true');
     expect(screen.queryByRole('table', { name: TABELLA })).toBeNull();
+    // review delta 21/10 X3-b: Grafico | Tabella, nello stesso ordine dell'interruttore della card
+    const card = await trovaCard('Dotazione e pagamenti per intervento');
+    const ordine = (g: HTMLElement) => within(g).getAllByRole('button').map((b) => b.textContent);
+    expect(ordine(gruppo)).toEqual(['Grafico', 'Tabella']);
+    expect(ordine(within(card).getByRole('group', { name: 'Vista di Dotazione e pagamenti per intervento' }))).toEqual(['Grafico', 'Tabella']);
   });
 
   it('una riga per intervento con i nove campi, le assenze spiegate, totali e Assistenza tecnica nel piede', async () => {

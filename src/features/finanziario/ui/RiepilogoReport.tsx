@@ -170,6 +170,20 @@ function useVistaRiepilogo(filtri: Filtri): [VistaRiepilogo, (v: VistaRiepilogo)
   ];
 }
 
+/** Interruttore di pagina: Grafico prima di Tabella, nello stesso ordine dell'interruttore di ogni card (review delta 21/10 X3-b). */
+function SceltaVista({ vista, onVista }: { vista: VistaRiepilogo; onVista: (v: VistaRiepilogo) => void }) {
+  return (
+    <div className="ui-seg mb-3" role="group" aria-label="Vista del riepilogo">
+      <button type="button" aria-pressed={vista === 'grafico'} onClick={() => onVista('grafico')}>
+        Grafico
+      </button>
+      <button type="button" aria-pressed={vista === 'tabella'} onClick={() => onVista('tabella')}>
+        Tabella
+      </button>
+    </div>
+  );
+}
+
 function Contenuto({ d, filtri }: { d: RiepilogoFinanziario; filtri: Filtri }) {
   // aprendo il dettaglio (anteprima o grafico) lo stato del riepilogo (tabella e vista) viaggia con la navigazione: "Torna
   // al riepilogo" lo riporta (review v4 X-04, iter3 X-01)
@@ -188,14 +202,7 @@ function Contenuto({ d, filtri }: { d: RiepilogoFinanziario; filtri: Filtri }) {
     <>
       <PerimetroSezione perimetro={d.perimetro} />
       <NotaPerimetroMisto perimetro={d.perimetro} />
-      <div className="ui-seg mb-3" role="group" aria-label="Vista del riepilogo">
-        <button type="button" aria-pressed={vista === 'tabella'} onClick={() => scegliVista('tabella')}>
-          Tabella
-        </button>
-        <button type="button" aria-pressed={vista === 'grafico'} onClick={() => scegliVista('grafico')}>
-          Grafico
-        </button>
-      </div>
+      <SceltaVista vista={vista} onVista={scegliVista} />
       {vista === 'tabella' ? (
         <TabellaInterattiva
           caption="Riepilogo per intervento (RF011)"
