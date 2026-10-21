@@ -1,9 +1,9 @@
 // formato.ts — resa PURA dei campi dell'elenco operativo (zero React): importi col motivo dell'assenza (mai uno zero),
 // somme del sinottico con le domande senza importo, etichette dei codici del contratto, superfici e responsabile del
-// procedimento col loro motivo.
+// procedimento col loro motivo, atto di concessione (senza la fonte: l'assenza con la fonte, mai "nessun atto").
 import { ANNO_ASSENTE, ANNO_SENZA, ETICHETTE_ANNUALITA, ETICHETTE_ESITO_PAGAMENTO, ETICHETTE_ESITO_RIGA } from '../../../entities/domanda';
-import { descriviImporto } from '../../../entities/importo';
-import type { ImportoLike } from '../../../entities/importo';
+import { descriviAssenza, descriviImporto } from '../../../entities/importo';
+import type { ImportoLike, ImportoResa } from '../../../entities/importo';
 import { formatDate, formatEuro, formatNumber, formatPercentuale, plurale } from '../../../shared/lib';
 import type { Somma, ValoreMotivato } from './dto';
 
@@ -12,10 +12,12 @@ export function cellaImporto(importo: ImportoLike | null | undefined): string {
   return descriviImporto(importo).testo;
 }
 
+/** La resa con la sua nota fra parentesi, per le voci di testo: "non valorizzato (il dato non è presente nella fonte)". */
+const conNota = (r: ImportoResa): string => (r.nota ? `${r.testo} (${r.nota})` : r.testo);
+
 /** Importo con la nota dell'assenza, per la scheda e l'anteprima: "non valorizzato (il dato non è presente nella fonte)". */
 export function importoConNota(importo: ImportoLike | null | undefined): string {
-  const r = descriviImporto(importo);
-  return r.nota ? `${r.testo} (${r.nota})` : r.testo;
+  return conNota(descriviImporto(importo));
 }
 
 /**
@@ -111,12 +113,31 @@ export function testoResponsabile(r: ValoreMotivato<string> | null | undefined):
   return 'non indicato nella determina';
 }
 
-/** Atto di concessione: "AC-1 del 01/03/2025", solo il numero, solo la data, oppure "nessun atto". */
-export function testoAtto(numero: string | null | undefined, data: string | null | undefined): string {
+/**
+ * L'atto di concessione quando la sua fonte non e' attiva: nessuna domanda del database ha l'atto (TX-0060
+ * attoConcessioneDisponibile falso; D4 e D-02 Rev. 5-6 del backend). E' un'assenza con la fonte ATTO_CONCESSIONE, resa
+ * come quella di un importo (review delta 21/10 X2, decisione F1 dell'utente).
+ */
+export const ATTO_FONTE_NON_ATTIVA = { motivo: 'FONTE_NON_ATTIVA', fonte: 'ATTO_CONCESSIONE' } as const;
+
+/**
+ * Vero se la domanda non ha l'atto e la fonte non e' attiva: allora non si puo' dire "nessun atto" (sarebbe un "no"
+ * inventato). `fonteAttiva`: attoConcessioneDisponibile di TX-0060; assente (senza il grant di TX-0060 o in attesa della
+ * lettura) vale come attiva.
+ */
+export function attoSenzaFonte(numero: string | null | undefined, data: string | null | undefined, fonteAttiva: boolean | undefined): boolean {
+  return !numero && !data && fonteAttiva === false;
+}
+
+/**
+ * Atto di concessione: "AC-1 del 01/03/2025", solo il numero, solo la data; senza l'atto "nessun atto" con la fonte attiva,
+ * altrimenti l'assenza con la fonte, "non disponibile (fonte atto di concessione non attiva)" (vedi attoSenzaFonte).
+ */
+export function testoAtto(numero: string | null | undefined, data: string | null | undefined, fonteAttiva?: boolean): string {
   if (numero && data) return `${numero} del ${formatDate(data)}`;
   if (numero) return numero;
   if (data) return `del ${formatDate(data)}`;
-  return 'nessun atto';
+  return attoSenzaFonte(numero, data, fonteAttiva) ? conNota(descriviAssenza(ATTO_FONTE_NON_ATTIVA)) : 'nessun atto';
 }
 
 /**

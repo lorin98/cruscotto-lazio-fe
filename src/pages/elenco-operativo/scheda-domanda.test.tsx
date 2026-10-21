@@ -99,6 +99,44 @@ describe('RA004: riferimento della scheda convalidato prima della lettura (revie
   });
 });
 
+// review delta 21/10 X2, decisione F1 dell'utente: la scheda legge attoConcessioneDisponibile di TX-0060 (la stessa lettura
+// del pannello dei filtri) e con la fonte non attiva non dice "nessun atto"
+describe("RA004: atto di concessione della sintesi, con la fonte non attiva l'assenza con la fonte (D4, D-02 Rev. 5-6)", () => {
+  const voceAtto = async () => (await screen.findByText('Atto di concessione', { selector: 'dt' })).nextElementSibling?.textContent;
+
+  it("attoConcessioneDisponibile falso: la domanda senza l'atto dice non disponibile con la fonte, mai nessun atto", async () => {
+    servi();
+    server.use(http.get('*/api/elenco-operativo/filtri', () => HttpResponse.json({ ...VALORI, attoConcessioneDisponibile: false })));
+    apri('/elenco-operativo/domande/PAGAMENTO/54230000001');
+    await waitFor(async () => expect(await voceAtto()).toBe('non disponibile (fonte atto di concessione non attiva)'));
+    expect(screen.queryByText('nessun atto')).toBeNull();
+  });
+
+  it("con la fonte attiva la domanda senza l'atto dice nessun atto; senza il grant di TX-0060 nessuna lettura dei filtri", async () => {
+    const letture: string[] = [];
+    // dopo servi(), che monta i propri handler: le letture dei filtri le conta questo
+    const contaFiltri = () =>
+      server.use(
+        http.get('*/api/elenco-operativo/filtri', () => {
+          letture.push('filtri');
+          return HttpResponse.json(VALORI);
+        }),
+      );
+    servi();
+    contaFiltri();
+    const { unmount } = apri('/elenco-operativo/domande/PAGAMENTO/54230000001');
+    await waitFor(() => expect(letture).toEqual(['filtri']));
+    expect(await voceAtto()).toBe('nessun atto');
+    unmount();
+    letture.length = 0;
+    servi(TUTTI.filter((g) => g !== 'csr.tx-0060.read'));
+    contaFiltri();
+    apri('/elenco-operativo/domande/PAGAMENTO/54230000001');
+    expect(await voceAtto()).toBe('nessun atto');
+    expect(letture).toEqual([]);
+  });
+});
+
 describe('RA004: schede Determine e Pagamenti con le colonne del wireframe approvato (review v1 V-02)', () => {
   it('Pagamenti: quote FEASR, nazionale e regionale; protocollo e tipologie fra le colonne a scelta', async () => {
     servi();

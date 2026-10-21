@@ -109,6 +109,9 @@ describe('elenco operativo, testi delle schede di sola lettura', () => {
     expect(voci['Aggregato dei comparti']).toBe('non indicato');
     expect(voci['Provincia ed ente delegato']).toBe('FROSINONE - non indicato');
     expect(voci['Atto di concessione']).toBe('nessun atto');
+    // review delta 21/10 X2 (F1): con la fonte dell'atto non attiva l'assenza con la fonte, mai "nessun atto"
+    const senzaFonte = Object.fromEntries(vociSintesi(domanda, {}, { attoConcessioneDisponibile: false }));
+    expect(senzaFonte['Atto di concessione']).toBe('non disponibile (fonte atto di concessione non attiva)');
   });
 });
 

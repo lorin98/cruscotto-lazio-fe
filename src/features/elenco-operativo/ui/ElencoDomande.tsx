@@ -137,7 +137,8 @@ function Contenuto({ i, l, vista, nascoste, onNascoste, onFiltra }: { i: Interro
               tabella={{
                 chiave: vista.id,
                 caption: `Elenco operativo delle domande, vista ${vista.etichetta.toLowerCase()}: ordinabile dal server con un clic sull'intestazione. Clic o Invio su una riga per l'anteprima.`,
-                colonne: colonneDomande(vista.colonne),
+                // l'atto di concessione senza la fonte si dice con la fonte, mai "nessun atto" (review delta 21/10 X2, F1)
+                colonne: colonneDomande(vista.colonne, { attoConcessioneDisponibile: i.valori?.data?.attoConcessioneDisponibile }),
                 chiaveRiga: (d) => `${d.tipo ?? ''}-${d.codiceABarre ?? ''}`,
                 etichettaRiga: (d) => `Apri l'anteprima della domanda ${d.codiceABarre ?? ''}`,
                 piede: piedeDomande(l.sinottico.data, pagina.totaleRighe ?? 0, !l.sinotticoInAggiornamento),

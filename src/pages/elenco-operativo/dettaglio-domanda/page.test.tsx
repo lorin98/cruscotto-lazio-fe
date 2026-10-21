@@ -3,13 +3,15 @@ import { screen } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { server } from '../../../shared/api/mock/server';
 import { renderPagina } from '../../../shared/testing/render-pagina';
-import { DETTAGLIO } from '../../../features/elenco-operativo/testing/fixture';
+import { DETTAGLIO, VALORI } from '../../../features/elenco-operativo/testing/fixture';
 import Pagina from './page';
 
 describe('RA004: pagina /elenco-operativo/domande/:tipo/:codiceABarre (TX-0058)', () => {
   it('legge la domanda dei parametri del percorso', async () => {
     let letto = '';
     server.use(
+      // la sintesi legge attoConcessioneDisponibile dai valori dei filtri (TX-0060, review delta 21/10 X2)
+      http.get('*/api/elenco-operativo/filtri', () => HttpResponse.json(VALORI)),
       http.get('*/api/elenco-operativo/domande/:tipo/:codice', ({ params }) => {
         letto = `${String(params.tipo)}/${String(params.codice)}`;
         return HttpResponse.json(DETTAGLIO);

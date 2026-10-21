@@ -5,6 +5,8 @@
 // (TabelleScheda). Tipo e codice del percorso si convalidano prima di leggere: con un riferimento non valido nessuna
 // richiesta (review v1 A-01). Un 404 ha lo stesso messaggio per domanda inesistente, chiusa o fuori perimetro (D-06).
 // Link dichiarati: domanda collegata, altre domande del beneficiario, torna all'elenco (alla ricerca di partenza).
+// L'atto di concessione della sintesi legge attoConcessioneDisponibile di TX-0060 (stessa lettura e cache del pannello dei
+// filtri, col suo grant): senza la fonte una domanda senza l'atto dice l'assenza con la fonte, mai "nessun atto" (F1).
 import { useMemo } from 'react';
 import type { Ref } from 'react';
 import { Link, useLocation } from 'react-router';
@@ -12,7 +14,7 @@ import { Tab, TabList, TabPanel, Tabs } from 'react-aria-components';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { formatNumber, formatPercentuale, righeContesto } from '../../../shared/lib';
 import { AvvisoPagina, CardGrafico, ContestoIntestazione, Griglia, Kpi, Sezione, VistaQuery, useFocusTitolo } from '../../../shared/ui';
-import { rispostaDomandaAssente, rispostaRiferimentoNonValido, useDettaglioDomanda } from '../api';
+import { rispostaDomandaAssente, rispostaRiferimentoNonValido, useDettaglioDomanda, useValoriFiltri } from '../api';
 import type { DettaglioDomanda, DomandaElenco } from '../api';
 import { PERCORSO_DOMANDE, PERCORSO_PAGAMENTI, percorsoDettaglio, percorsoDomandeDelBeneficiario, riferimentoValido, ritornoAllElenco, statoDiRitorno } from '../lib/collegamenti';
 import type { StatoRitorno, StatoScheda } from '../lib/collegamenti';
@@ -113,12 +115,23 @@ function DomandaDiSostegno({ codice, scheda, ricerca }: { codice: string | null 
   );
 }
 
+/**
+ * attoConcessioneDisponibile di TX-0060 (review delta 21/10 X2, decisione F1 dell'utente): la stessa lettura (wrapper e
+ * query-key) del pannello dei filtri, col suo grant (i profili di TX-0058 hanno tutti TX-0060). Senza il grant o in attesa
+ * della lettura resta assente, e l'atto mancante si dice "nessun atto" come con la fonte attiva.
+ */
+function useAttoConcessioneDisponibile(): boolean | undefined {
+  const auth = useAuthStatus();
+  return useValoriFiltri(puoLeggere(auth.data, 'filtri')).data?.attoConcessioneDisponibile;
+}
+
 function Sintesi({ d, scheda, ricerca }: { d: DomandaElenco; scheda: DettaglioDomanda; ricerca: StatoScheda | undefined }) {
   const grafico = useMemo(() => graficoAmmessoPagato(d), [d]);
+  const attoConcessioneDisponibile = useAttoConcessioneDisponibile();
   return (
     <Griglia colonne={2}>
       <Sezione titolo="Dati della domanda">
-        <ElencoVoci voci={vociSintesi(d, scheda)} />
+        <ElencoVoci voci={vociSintesi(d, scheda, { attoConcessioneDisponibile })} />
         {d.tipo === 'PAGAMENTO' && <DomandaDiSostegno codice={scheda.codiceDomandaSostegno} scheda={scheda} ricerca={ricerca} />}
         <p className="ui-fonte">Fonte: TX-0058. Valori assenti: indicato il motivo, mai zero.</p>
       </Sezione>

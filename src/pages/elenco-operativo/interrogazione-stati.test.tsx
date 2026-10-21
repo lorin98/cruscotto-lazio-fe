@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { server } from '../../shared/api/mock/server';
@@ -300,6 +300,40 @@ describe("RA006: filtro dell'atto di concessione solo se TX-0060 lo dichiara dis
     expect((await screen.findByRole('alert')).textContent).toContain(`Richiesta non valida: ${RIFIUTO}.`);
     expect(screen.getAllByRole('alert')).toHaveLength(1);
     expect(within(screen.getByRole('region', { name: 'Filtri attivi' })).getByRole('button', { name: "Togli il filtro Atto di concessione senza l'atto" })).toBeTruthy();
+  });
+});
+
+// review delta 21/10 X2, decisione F1 dell'utente: con la fonte non attiva "nessun atto" sarebbe un no inventato
+describe("RA002: atto di concessione nella vista procedurale, con la fonte non attiva l'assenza con la fonte (D4, D-02 Rev. 5-6)", () => {
+  const cellaAtto = async () => {
+    fireEvent.click(await screen.findByRole('button', { name: 'Vista: procedurale' }));
+    const tabella = await screen.findByRole('table', { name: /vista procedurale/ });
+    const colonna = within(tabella)
+      .getAllByRole('columnheader')
+      .findIndex((h) => (h.textContent ?? '').startsWith('Atto di concessione'));
+    const riga = (codice: string) => (within(tabella).getByRole('row', { name: `Apri l'anteprima della domanda ${codice}` }) as HTMLTableRowElement).cells[colonna];
+    return { senza: riga('54230000001'), con: riga('04230000001') };
+  };
+
+  it("attoConcessioneDisponibile falso: la domanda senza l'atto dice non disponibile con la fonte, mai nessun atto", async () => {
+    servi();
+    server.use(http.get('*/api/elenco-operativo/filtri', () => HttpResponse.json({ ...VALORI, attoConcessioneDisponibile: false })));
+    renderPagina(ElencoDomande, '/elenco-operativo/domande');
+    await screen.findByRole('table', { name: /Elenco operativo delle domande/ });
+    const { senza, con } = await cellaAtto();
+    await waitFor(() => expect(senza.textContent).toBe('non disponibilefonte atto di concessione non attiva'));
+    expect(within(senza).getByText('non disponibile').className).toContain('badge');
+    expect(screen.queryByText('nessun atto')).toBeNull();
+    // un atto presente resta l'atto
+    expect(con.textContent).toBe('AC-1 del 01/03/2025');
+  });
+
+  it("con la fonte attiva la domanda senza l'atto dice nessun atto", async () => {
+    servi();
+    renderPagina(ElencoDomande, '/elenco-operativo/domande');
+    await screen.findByRole('table', { name: /Elenco operativo delle domande/ });
+    const { senza } = await cellaAtto();
+    await waitFor(() => expect(senza.textContent).toBe('nessun atto'));
   });
 });
 

@@ -86,17 +86,21 @@ export function sopratitoloDomanda(d: Domanda, descrizioneIntervento: string | n
   return `Domanda di ${etichettaTipo(d.tipo).toLowerCase()} ${d.codiceABarre ?? ''} - ${d.codiceIntervento ?? ''} ${descrizioneIntervento ?? ''}`.trim();
 }
 
-/** Dati della sintesi della scheda, esclusa la domanda di sostegno (che e' un link). */
+/**
+ * Dati della sintesi della scheda, esclusa la domanda di sostegno (che e' un link). `attoConcessioneDisponibile` di TX-0060:
+ * falso, una domanda senza l'atto dice l'assenza con la fonte, mai "nessun atto" (review delta 21/10 X2, F1).
+ */
 export function vociSintesi(
   d: Domanda,
   scheda: { descrizioneIntervento?: string | null; compartoCodice?: string | null; compartoDescrizione?: string | null; aggregatoComparti?: string | null },
+  { attoConcessioneDisponibile }: { attoConcessioneDisponibile?: boolean } = {},
 ): VoceTesto[] {
   return [
     ['Intervento', `${d.codiceIntervento ?? ''} - ${scheda.descrizioneIntervento ?? 'descrizione non disponibile'}`],
     ['Comparto', scheda.compartoCodice ? `${scheda.compartoCodice} - ${scheda.compartoDescrizione ?? ''}`.trim() : 'non indicato'],
     ['Aggregato dei comparti', scheda.aggregatoComparti ?? 'non indicato'],
     ['Provincia ed ente delegato', `${d.provincia ?? 'non indicata'} - ${d.enteDelegato ?? 'non indicato'}`],
-    ['Atto di concessione', testoAtto(d.attoConcessioneNumero, d.attoConcessioneData)],
+    ['Atto di concessione', testoAtto(d.attoConcessioneNumero, d.attoConcessioneData, attoConcessioneDisponibile)],
     ['Superficie (sostegno / pagamento)', `${testoSuperficie(d.superficieSostegno)} / ${testoSuperficie(d.superficiePagamento)}`],
     ['Importi della domanda', `richiesto ${importoConNota(d.richiesto)}; ammesso ${importoConNota(d.ammesso)}`],
   ];
