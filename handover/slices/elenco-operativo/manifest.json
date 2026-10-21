@@ -29,7 +29,7 @@
       "ownership": "elenco-operativo",
       "path": "datamodel/elenco-operativo-decisions.json",
       "role": "migration",
-      "sha256": "sha256:2bfc18eefa03a1ad27e5f68190bc49c0f812a8b3868559265a2a51a9a0aca53c",
+      "sha256": "sha256:40482f32d150a29efd1ecd2dbe9e53850ede727287a9216e40462dae1b440bfd",
       "step": "step2-datamodel"
     },
     {
@@ -61,7 +61,7 @@
       "ownership": "elenco-operativo",
       "path": "ARSCSR/domain/src/main/java/it/arsial/cruscottocsr/domain/elencooperativo/DettaglioDomanda.java",
       "role": "domain",
-      "sha256": "sha256:75b69faf6bfd20e44749b76dbc914c6ffece93b8268615b559bbdf72a226aead",
+      "sha256": "sha256:c5ad07c8946fff87a3bdebc0160320aac663bae4534ff1c282aee5602f2ecc4e",
       "step": "step3-domain"
     },
     {
@@ -69,7 +69,7 @@
       "ownership": "elenco-operativo",
       "path": "ARSCSR/domain/src/main/java/it/arsial/cruscottocsr/domain/elencooperativo/EsitoPagamentoDomanda.java",
       "role": "domain",
-      "sha256": "sha256:05ad8500c963df12b128316a5f87a74a3e746bd341d5d9ea240818f594a97378",
+      "sha256": "sha256:b01825c963ba105a0617472f53fa93bc315f92eafa85c87ac02ea543a8a5705e",
       "step": "step3-domain"
     },
     {
@@ -117,7 +117,7 @@
       "ownership": "elenco-operativo",
       "path": "ARSCSR/domain/src/main/java/it/arsial/cruscottocsr/domain/elencooperativo/RigaDomanda.java",
       "role": "domain",
-      "sha256": "sha256:f5e9e22eb4c18f694cf0503e40bc5032756495a5e7feeecc51331944b2f664f2",
+      "sha256": "sha256:027981f4d35066d8ac053b4150eedc7674424e20061cbf30b6a63a4bfbc63f85",
       "step": "step3-domain"
     },
     {
@@ -141,7 +141,7 @@
       "ownership": "elenco-operativo",
       "path": "ARSCSR/domain/src/main/java/it/arsial/cruscottocsr/domain/elencooperativo/ValoriFiltriElenco.java",
       "role": "domain",
-      "sha256": "sha256:8da1a2359219b4198714ba3d186eeb8d7d7f2fbf2ad58eb8b28e9753f5cc51d2",
+      "sha256": "sha256:a6c1a5404a0034eb06d34a1d78fb569c0a7874c05798393bfe9daf56826b8586",
       "step": "step3-domain"
     },
     {
@@ -157,7 +157,7 @@
       "ownership": "elenco-operativo",
       "path": "ARSCSR/application/src/main/java/it/arsial/cruscottocsr/application/port/out/ElencoOperativoPort.java",
       "role": "port",
-      "sha256": "sha256:be1bdedaed9f46a11fb728802c1ea6e9415cbbff4d110d684435d898a7a2cac2",
+      "sha256": "sha256:a9bfa2e3495f8f8bce1d55cfd947d5281304bb6e7e16a4bf433ac37322f9524e",
       "step": "step4-ports"
     },
     {
@@ -165,7 +165,7 @@
       "ownership": "elenco-operativo",
       "path": "acceptance/elenco-operativo-scenarios.json",
       "role": "application",
-      "sha256": "sha256:194479aaefb4c05c7a744f73bfc438b53ed878058381ab1eedd197030cdaf2ed",
+      "sha256": "sha256:3dedae35aed569b6ee43e637e29a35878caa875fb7789d6ec13aae06182e7252",
       "step": "step5-service"
     },
     {
@@ -173,7 +173,7 @@
       "ownership": "elenco-operativo",
       "path": "ARSCSR/adapter-out/adapter-out-postgres/src/main/java/it/arsial/cruscottocsr/adapter/out/persistence/elencooperativo/PostgresElencoOperativoAdapter.java",
       "role": "adapter-out-pg",
-      "sha256": "sha256:3982335a3081d12f5ed31e16a04b34a1f2bd3388236c44cb4bdcb0cea4298db6",
+      "sha256": "sha256:c970fd6bd5626ab69a96acb443eb45e360c9d3cc99709188a105336faa7177fe",
       "step": "step6-adapter-pg"
     },
     {
@@ -181,7 +181,7 @@
       "ownership": "elenco-operativo",
       "path": "openapi/openapi-elenco-operativo.json",
       "role": "adapter-in-rest",
-      "sha256": "sha256:2f97612e0740f9135ff1725de313d15f15540112761e99a5db3d0ddd2c9ac861",
+      "sha256": "sha256:7532fe3b3708398d1448238ef2fe4df9e3d1037b096325bc23435cb9dc39a4ca",
       "step": "step8-rest"
     }
   ],
@@ -212,16 +212,16 @@
     "step11-review.review": "pass",
     "step1b-scaffold.reactor_compiles": "pass",
     "step2-datamodel.ddl_approved": {
-      "approved_at": "2026-10-13T13:05:58Z",
-      "approved_hash": "sha256:2bfc18eefa03a1ad27e5f68190bc49c0f812a8b3868559265a2a51a9a0aca53c",
+      "approved_at": "2026-10-20T08:27:25Z",
+      "approved_hash": "sha256:40482f32d150a29efd1ecd2dbe9e53850ede727287a9216e40462dae1b440bfd",
       "baseline_ref": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
     },
     "step3-domain.domain_compiles": "pass",
     "step3-domain.domain_pure": "pass",
     "step4-ports.ports_pure": "pass",
     "step5-service.acceptance_approved": {
-      "approved_at": "2026-10-13T13:05:58Z",
-      "approved_hash": "sha256:194479aaefb4c05c7a744f73bfc438b53ed878058381ab1eedd197030cdaf2ed",
+      "approved_at": "2026-10-20T08:27:25Z",
+      "approved_hash": "sha256:3dedae35aed569b6ee43e637e29a35878caa875fb7789d6ec13aae06182e7252",
       "baseline_ref": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
     },
     "step5-service.authz_import_zero": "pass",
@@ -232,7 +232,7 @@
     "step9-functions.functions": "pass"
   },
   "openapi": {
-    "hash": "sha256:2f97612e0740f9135ff1725de313d15f15540112761e99a5db3d0ddd2c9ac861",
+    "hash": "sha256:7532fe3b3708398d1448238ef2fe4df9e3d1037b096325bc23435cb9dc39a4ca",
     "path": "openapi/openapi-elenco-operativo.json"
   },
   "pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb",
