@@ -21,7 +21,7 @@ describe('RF012: domande SIGC presentate, pagate, da pagare e senza importi', ()
     renderPagina(Pagina, '/finanziario/sigc');
     const t = (await screen.findByRole('table', { name: 'Domande SIGC' })).textContent ?? '';
     expect(t).toContain('Presentate800');
-    expect(t).toContain('Pagate (importo pagato maggiore di zero)500');
+    expect(t).toContain('Pagate (ammesso e pagato valorizzati, pagato maggiore di zero)500');
     expect(t).toContain('Da pagare (ammesse con importo ancora da pagare, anche se pagate in parte)320');
     expect(t).toContain('Senza importi (non classificabili: campagne senza ASR2-20)60');
     expect(t).not.toMatch(/elenchi? di liquidazione|presentate meno pagate/);

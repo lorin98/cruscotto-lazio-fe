@@ -1595,7 +1595,7 @@ describe('SigcReport (TX-0012, TX-0013)', () => {
     conRouter(<SigcReport filtri={{}} />);
     const domande = await screen.findByRole('table', { name: 'Domande SIGC' });
     expect(valoreDi(domande, 'Presentate')).toBe('800');
-    expect(valoreDi(domande, 'Pagate (importo pagato maggiore di zero)')).toBe('500');
+    expect(valoreDi(domande, 'Pagate (ammesso e pagato valorizzati, pagato maggiore di zero)')).toBe('500');
     expect(valoreDi(domande, 'Da pagare (ammesse con importo ancora da pagare, anche se pagate in parte)')).toBe('320');
     expect(valoreDi(domande, 'Senza importi (non classificabili: campagne senza ASR2-20)')).toBe('60');
     expect(screen.getByText(/^Pagate e da pagare vengono dagli importi della domanda \(flusso ASR2-20\), come l'importo pagato\. Una domanda pagata in parte è sia pagata sia da pagare/)).toBeTruthy();

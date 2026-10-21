@@ -464,7 +464,7 @@ describe('graficoDomandeSigc', () => {
     expect(g.tabella.colonne).toEqual(['Voce', 'Domande', 'Quota sulle presentate']);
     expect(righeN(g)).toEqual([
       ['Presentate', '10.000', '100 %'],
-      ['Pagate (importo pagato maggiore di zero)', '6000', '60 %'],
+      ['Pagate (ammesso e pagato valorizzati, pagato maggiore di zero)', '6000', '60 %'],
       ['Da pagare (ammesse con importo ancora da pagare, anche se pagate in parte)', '4500', '45 %'],
       ['Senza importi (non classificabili: campagne senza ASR2-20)', '500', '5 %'],
     ]);

@@ -36,13 +36,15 @@ import { assenzaImporto, cellaImporto, codiceDi, valoreDi } from '../importi';
 
 /**
  * Le voci di TX-0012 (D-09 del backend), con l'etichetta delle tabelle: pagate e da pagare vengono dagli importi della
- * domanda (flusso ASR2-20), come l'importo pagato di TX-0013. Una domanda pagata in parte e' sia pagata sia da pagare;
- * quelle senza importi non sono ne' l'una ne' l'altra; le presentate fuori da tutte e tre non sono ammesse ne' pagate.
+ * domanda (flusso ASR2-20), come l'importo pagato di TX-0013. Pagata = ammesso e pagato valorizzati e pagato maggiore di
+ * zero (D-09 Rev. 2: una domanda senza ammesso e' tra le senza importi, mai tra le pagate). Una domanda pagata in parte e'
+ * sia pagata sia da pagare; quelle senza importi non sono ne' l'una ne' l'altra; le presentate fuori da tutte e tre non
+ * sono ammesse ne' pagate.
  */
 // `codice`: la voce nel contratto dei link verso l'elenco operativo (lib/link-elenco), nel dato di ogni barra.
 export const VOCI_DOMANDE_SIGC = [
   { codice: 'PRESENTATE', nome: 'Presentate', campo: 'presentate', etichetta: 'Presentate', colore: COLORI.scuro },
-  { codice: 'PAGATA', nome: ETICHETTE_ESITO_PAGAMENTO.PAGATA, campo: 'pagate', etichetta: 'Pagate (importo pagato maggiore di zero)', colore: COLORI.positivo },
+  { codice: 'PAGATA', nome: ETICHETTE_ESITO_PAGAMENTO.PAGATA, campo: 'pagate', etichetta: 'Pagate (ammesso e pagato valorizzati, pagato maggiore di zero)', colore: COLORI.positivo },
   { codice: 'DA_PAGARE', nome: ETICHETTE_ESITO_PAGAMENTO.DA_PAGARE, campo: 'daPagare', etichetta: 'Da pagare (ammesse con importo ancora da pagare, anche se pagate in parte)', colore: COLORI.attenzione },
   { codice: 'SENZA_IMPORTI', nome: ETICHETTE_ESITO_PAGAMENTO.SENZA_IMPORTI, campo: 'senzaImporti', etichetta: 'Senza importi (non classificabili: campagne senza ASR2-20)', colore: COLORI.attenuato },
   // i codici sono quelli del vocabolario della domanda (esiti del pagamento) piu' le presentate: il tipo lo verifica (review v4 H-06)
