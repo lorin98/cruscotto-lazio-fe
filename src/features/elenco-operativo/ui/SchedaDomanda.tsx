@@ -6,7 +6,8 @@
 // richiesta (review v1 A-01). Un 404 ha lo stesso messaggio per domanda inesistente, chiusa o fuori perimetro (D-06).
 // Link dichiarati: domanda collegata, altre domande del beneficiario, torna all'elenco (alla ricerca di partenza).
 // L'atto di concessione della sintesi legge attoConcessioneDisponibile di TX-0060 (stessa lettura e cache del pannello dei
-// filtri, col suo grant): senza la fonte una domanda senza l'atto dice l'assenza con la fonte, mai "nessun atto" (F1).
+// filtri, col suo grant), che parte insieme a TX-0058: una domanda senza l'atto dice "nessun atto" solo con la fonte attiva,
+// l'assenza con la fonte senza la fonte (F1), "non disponibile" finche' TX-0060 non e' letto (review delta 21/10 passata 2 V1).
 import { useMemo } from 'react';
 import type { Ref } from 'react';
 import { Link, useLocation } from 'react-router';
@@ -117,17 +118,24 @@ function DomandaDiSostegno({ codice, scheda, ricerca }: { codice: string | null 
 
 /**
  * attoConcessioneDisponibile di TX-0060 (review delta 21/10 X2, decisione F1 dell'utente): la stessa lettura (wrapper e
- * query-key) del pannello dei filtri, col suo grant (i profili di TX-0058 hanno tutti TX-0060). Senza il grant o in attesa
- * della lettura resta assente, e l'atto mancante si dice "nessun atto" come con la fonte attiva.
+ * query-key) del pannello dei filtri, col suo grant (i profili di TX-0058 hanno tutti TX-0060) e solo con un riferimento
+ * valido (nessuna richiesta altrimenti, review v1 A-01). Si legge nella pagina, accanto a TX-0058, e non nella sintesi
+ * montata dopo la scheda: le due letture partono insieme (review delta 21/10 passata 2 V1). Finche' non e' letta (in
+ * attesa, in errore, senza il grant) resta assente, e l'atto mancante dice "non disponibile", mai "nessun atto".
  */
-function useAttoConcessioneDisponibile(): boolean | undefined {
+function useAttoConcessioneDisponibile(valido: boolean): boolean | undefined {
   const auth = useAuthStatus();
-  return useValoriFiltri(puoLeggere(auth.data, 'filtri')).data?.attoConcessioneDisponibile;
+  return useValoriFiltri(valido && puoLeggere(auth.data, 'filtri')).data?.attoConcessioneDisponibile;
 }
 
-function Sintesi({ d, scheda, ricerca }: { d: DomandaElenco; scheda: DettaglioDomanda; ricerca: StatoScheda | undefined }) {
+/** Le parti della scheda che non vengono da TX-0058: la ricerca di partenza e la disponibilita' dell'atto (TX-0060). */
+interface DaFuori {
+  ricerca: StatoScheda | undefined;
+  attoConcessioneDisponibile: boolean | undefined;
+}
+
+function Sintesi({ d, scheda, ricerca, attoConcessioneDisponibile }: { d: DomandaElenco; scheda: DettaglioDomanda } & DaFuori) {
   const grafico = useMemo(() => graficoAmmessoPagato(d), [d]);
-  const attoConcessioneDisponibile = useAttoConcessioneDisponibile();
   return (
     <Griglia colonne={2}>
       <Sezione titolo="Dati della domanda">
@@ -158,7 +166,7 @@ function listeDi(scheda: DettaglioDomanda) {
   };
 }
 
-function Schede({ d, scheda, ricerca }: { d: DomandaElenco; scheda: DettaglioDomanda; ricerca: StatoScheda | undefined }) {
+function Schede({ d, scheda, ricerca, attoConcessioneDisponibile }: { d: DomandaElenco; scheda: DettaglioDomanda } & DaFuori) {
   const l = listeDi(scheda);
   return (
     <Tabs>
@@ -173,7 +181,7 @@ function Schede({ d, scheda, ricerca }: { d: DomandaElenco; scheda: DettaglioDom
         <Tab id="anomalie" className="ui-tab">{conta('Anomalie', l.anomalie.length)}</Tab>
       </TabList>
       <TabPanel id="sintesi">
-        <Sintesi d={d} scheda={scheda} ricerca={ricerca} />
+        <Sintesi d={d} scheda={scheda} ricerca={ricerca} attoConcessioneDisponibile={attoConcessioneDisponibile} />
       </TabPanel>
       <TabPanel id="collegate">
         <TabellaCollegate collegate={l.collegate} ricerca={ricerca} />
@@ -218,12 +226,12 @@ function Avviso({ testo, r }: { testo: string; r: Ritorno }) {
   );
 }
 
-function Contenuto({ scheda, r, ricerca }: { scheda: DettaglioDomanda; r: Ritorno; ricerca: StatoScheda | undefined }) {
+function Contenuto({ scheda, r, ...daFuori }: { scheda: DettaglioDomanda; r: Ritorno } & DaFuori) {
   if (!scheda.domanda) return <Avviso testo={ASSENTE} r={r} />;
   return (
     <>
       <Kpis d={scheda.domanda} />
-      <Schede d={scheda.domanda} scheda={scheda} ricerca={ricerca} />
+      <Schede d={scheda.domanda} scheda={scheda} {...daFuori} />
     </>
   );
 }
@@ -254,11 +262,11 @@ function useRitorno() {
   return { ritorno, statoRitorno, ricerca, briciola: ritorno.startsWith(PERCORSO_PAGAMENTI) ? 'Pagamenti' : 'Domande' };
 }
 
-function Corpo({ esito, stato, r, ricerca }: { esito: Esito; stato: ReturnType<typeof useDettaglioDomanda>; r: Ritorno; ricerca: StatoScheda | undefined }) {
+function Corpo({ esito, stato, r, ...daFuori }: { esito: Esito; stato: ReturnType<typeof useDettaglioDomanda>; r: Ritorno } & DaFuori) {
   if (esito === 'non-valido') return <Avviso testo={NON_VALIDO} r={r} />;
   return (
     <VistaQuery stato={stato} errorePersonalizzato={(e) => (rispostaDomandaAssente(e) ? <Avviso testo={ASSENTE} r={r} /> : null)}>
-      {(scheda) => <Contenuto scheda={scheda} r={r} ricerca={ricerca} />}
+      {(scheda) => <Contenuto scheda={scheda} r={r} {...daFuori} />}
     </VistaQuery>
   );
 }
@@ -266,6 +274,7 @@ function Corpo({ esito, stato, r, ricerca }: { esito: Esito; stato: ReturnType<t
 export function SchedaDomanda({ tipo, codiceABarre }: { tipo: string | undefined; codiceABarre: string | undefined }) {
   const valido = riferimentoValido(tipo, codiceABarre);
   const stato = useDettaglioDomanda(tipo, codiceABarre);
+  const attoConcessioneDisponibile = useAttoConcessioneDisponibile(valido);
   const auth = useAuthStatus();
   const r = useRitorno();
   const esito = esitoDi(valido, stato);
@@ -285,7 +294,7 @@ export function SchedaDomanda({ tipo, codiceABarre }: { tipo: string | undefined
       />
       <ContestoIntestazione.Provider value={contesto}>
         <AvvisoPagina>
-          <Corpo esito={esito} stato={stato} r={r} ricerca={r.ricerca} />
+          <Corpo esito={esito} stato={stato} r={r} ricerca={r.ricerca} attoConcessioneDisponibile={attoConcessioneDisponibile} />
         </AvvisoPagina>
       </ContestoIntestazione.Provider>
     </main>

@@ -88,7 +88,8 @@ export function sopratitoloDomanda(d: Domanda, descrizioneIntervento: string | n
 
 /**
  * Dati della sintesi della scheda, esclusa la domanda di sostegno (che e' un link). `attoConcessioneDisponibile` di TX-0060:
- * falso, una domanda senza l'atto dice l'assenza con la fonte, mai "nessun atto" (review delta 21/10 X2, F1).
+ * "nessun atto" solo se vero; falso, l'assenza con la fonte (review delta 21/10 X2, F1); assente (TX-0060 non letto) "non
+ * disponibile" (passata 2 V1). Vedi testoAtto.
  */
 export function vociSintesi(
   d: Domanda,

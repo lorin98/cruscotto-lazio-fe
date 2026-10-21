@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { server } from '../../shared/api/mock/server';
 import { expectNoA11yViolations } from '../../shared/testing/axe';
-import { problema } from '../../shared/testing/msw';
+import { problema, trattenuta } from '../../shared/testing/msw';
 import { renderPagina } from '../../shared/testing/render-pagina';
 import { ElencoDomande, ElencoPagamenti } from '../../features/elenco-operativo';
 import { PAGINA_DOMANDE, PAGINA_PAGAMENTI, SINOTTICO, VALORI } from '../../features/elenco-operativo/testing/fixture';
@@ -32,15 +32,6 @@ function servi(roles = TUTTI) {
     http.get('*/api/elenco-operativo/pagamenti', registra('pagamenti', PAGINA_PAGAMENTI)),
   );
   return richieste;
-}
-
-/** Una risposta trattenuta finche' il test non la libera (aggiornamento in corso). */
-function trattenuta() {
-  let libera = () => {};
-  const attesa = new Promise<void>((r) => {
-    libera = r;
-  });
-  return { attesa, libera: () => libera() };
 }
 
 const errore = (status: number, codice: string, detail?: string) => () => HttpResponse.json(problema(status, codice, detail), { status });
@@ -330,7 +321,9 @@ describe("RA006: filtro dell'atto di concessione solo se TX-0060 lo dichiara dis
   });
 });
 
-// review delta 21/10 X2, decisione F1 dell'utente: con la fonte non attiva "nessun atto" sarebbe un no inventato
+// review delta 21/10 X2, decisione F1 dell'utente: con la fonte non attiva "nessun atto" sarebbe un no inventato. Passata 2
+// V1 (decisione dell'utente del 22/10/2026): "nessun atto" solo dopo la risposta di TX-0060 con la fonte attiva; finche'
+// TX-0060 non e' letto (in attesa, in errore, senza il grant) "non disponibile" senza nota
 describe("RA002: atto di concessione nella vista procedurale, con la fonte non attiva l'assenza con la fonte (D4, D-02 Rev. 5-6)", () => {
   const cellaAtto = async () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Vista: procedurale' }));
@@ -356,12 +349,47 @@ describe("RA002: atto di concessione nella vista procedurale, con la fonte non a
     expect(con.textContent).toBe('AC-1 del 01/03/2025');
   });
 
-  it("con la fonte attiva la domanda senza l'atto dice nessun atto", async () => {
+  it.each([
+    { fonte: 'attiva', disponibile: true, atteso: 'nessun atto' },
+    { fonte: 'non attiva', disponibile: false, atteso: 'non disponibile (fonte atto di concessione non attiva)' },
+  ])("TX-0060 trattenuto, poi fonte $fonte: in attesa 'non disponibile', mai 'nessun atto'; dopo la risposta $atteso", async ({ disponibile, atteso }) => {
     servi();
+    const r = trattenuta();
+    server.use(
+      http.get('*/api/elenco-operativo/filtri', async () => {
+        await r.attesa;
+        return HttpResponse.json({ ...VALORI, attoConcessioneDisponibile: disponibile });
+      }),
+    );
     renderPagina(ElencoDomande, '/elenco-operativo/domande');
     await screen.findByRole('table', { name: /Elenco operativo delle domande/ });
     const { senza } = await cellaAtto();
-    await waitFor(() => expect(senza.textContent).toBe('nessun atto'));
+    expect(senza.textContent).toBe('non disponibile');
+    r.libera();
+    await waitFor(() => expect(senza.textContent).toBe(atteso));
+  });
+
+  it("TX-0060 in errore (500): la domanda senza l'atto dice 'non disponibile' senza nota, mai 'nessun atto'", async () => {
+    servi();
+    server.use(http.get('*/api/elenco-operativo/filtri', errore(500, 'ERRORE_INTERNO')));
+    renderPagina(ElencoDomande, '/elenco-operativo/domande');
+    await screen.findByRole('table', { name: /Elenco operativo delle domande/ });
+    const { senza, con } = await cellaAtto();
+    // l'errore di TX-0060 e' arrivato: il pannello lo dice
+    const dialogo = await apriPannello();
+    expect(await within(dialogo).findByText('Valori dei filtri non disponibili: resta la ricerca per testo.')).toBeTruthy();
+    expect(senza.textContent).toBe('non disponibile');
+    expect(con.textContent).toBe('AC-1 del 01/03/2025');
+    expect(screen.queryByText('nessun atto')).toBeNull();
+  });
+
+  it("senza il grant di TX-0060: nessuna lettura dei valori, la domanda senza l'atto dice 'non disponibile' senza nota", async () => {
+    const richieste = servi(TUTTI.filter((g) => g !== 'csr.tx-0060.read'));
+    renderPagina(ElencoDomande, '/elenco-operativo/domande');
+    await screen.findByRole('table', { name: /Elenco operativo delle domande/ });
+    const { senza } = await cellaAtto();
+    expect(senza.textContent).toBe('non disponibile');
+    expect(richieste.some((q) => q.startsWith('filtri'))).toBe(false);
   });
 });
 

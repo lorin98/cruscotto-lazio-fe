@@ -1,6 +1,6 @@
 // formato.ts — resa PURA dei campi dell'elenco operativo (zero React): importi col motivo dell'assenza (mai uno zero),
 // somme del sinottico con le domande senza importo, etichette dei codici del contratto, superfici e responsabile del
-// procedimento col loro motivo, atto di concessione (senza la fonte: l'assenza con la fonte, mai "nessun atto").
+// procedimento col loro motivo, atto di concessione ("nessun atto" solo con la fonte attiva, altrimenti l'assenza).
 import { ANNO_ASSENTE, ANNO_SENZA, ETICHETTE_ANNUALITA, ETICHETTE_ESITO_PAGAMENTO, ETICHETTE_ESITO_RIGA } from '../../../entities/domanda';
 import { descriviAssenza, descriviImporto } from '../../../entities/importo';
 import type { ImportoLike, ImportoResa } from '../../../entities/importo';
@@ -118,26 +118,26 @@ export function testoResponsabile(r: ValoreMotivato<string> | null | undefined):
  * attoConcessioneDisponibile falso; D4 e D-02 Rev. 5-6 del backend). E' un'assenza con la fonte ATTO_CONCESSIONE, resa
  * come quella di un importo (review delta 21/10 X2, decisione F1 dell'utente).
  */
-export const ATTO_FONTE_NON_ATTIVA = { motivo: 'FONTE_NON_ATTIVA', fonte: 'ATTO_CONCESSIONE' } as const;
+const ATTO_FONTE_NON_ATTIVA = { motivo: 'FONTE_NON_ATTIVA', fonte: 'ATTO_CONCESSIONE' } as const;
 
 /**
- * Vero se la domanda non ha l'atto e la fonte non e' attiva: allora non si puo' dire "nessun atto" (sarebbe un "no"
- * inventato). `fonteAttiva`: attoConcessioneDisponibile di TX-0060; assente (senza il grant di TX-0060 o in attesa della
- * lettura) vale come attiva.
+ * Una domanda senza l'atto, secondo `fonteAttiva` (attoConcessioneDisponibile di TX-0060), in tre stati (review delta 21/10
+ * passata 2 V1, decisione dell'utente del 22/10/2026). Vero: "nessun atto". Falso: l'assenza con la fonte, "non disponibile
+ * (fonte atto di concessione non attiva)", perche' "nessun atto" sarebbe un "no" inventato (F1). Assente, cioe' TX-0060
+ * non letto (in attesa, in errore, senza il grant): l'assenza senza motivo, "non disponibile"; lo stato ignoto non vale
+ * mai come fonte attiva.
  */
-export function attoSenzaFonte(numero: string | null | undefined, data: string | null | undefined, fonteAttiva: boolean | undefined): boolean {
-  return !numero && !data && fonteAttiva === false;
+function senzaAtto(fonteAttiva: boolean | undefined): string {
+  if (fonteAttiva === true) return 'nessun atto';
+  return conNota(descriviAssenza(fonteAttiva === false ? ATTO_FONTE_NON_ATTIVA : undefined));
 }
 
-/**
- * Atto di concessione: "AC-1 del 01/03/2025", solo il numero, solo la data; senza l'atto "nessun atto" con la fonte attiva,
- * altrimenti l'assenza con la fonte, "non disponibile (fonte atto di concessione non attiva)" (vedi attoSenzaFonte).
- */
+/** Atto di concessione: "AC-1 del 01/03/2025", solo il numero, solo la data; senza l'atto vedi senzaAtto. */
 export function testoAtto(numero: string | null | undefined, data: string | null | undefined, fonteAttiva?: boolean): string {
   if (numero && data) return `${numero} del ${formatDate(data)}`;
   if (numero) return numero;
   if (data) return `del ${formatDate(data)}`;
-  return attoSenzaFonte(numero, data, fonteAttiva) ? conNota(descriviAssenza(ATTO_FONTE_NON_ATTIVA)) : 'nessun atto';
+  return senzaAtto(fonteAttiva);
 }
 
 /**

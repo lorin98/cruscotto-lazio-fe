@@ -30,7 +30,6 @@ import {
   valoreAccettabile,
 } from '../src/features/elenco-operativo/lib/criteri';
 import {
-  attoSenzaFonte,
   cellaImporto,
   etichettaEsito,
   etichettaTipo,
@@ -224,14 +223,14 @@ describe('elenco operativo, formati (mai uno zero per un dato assente)', () => {
     expect(testoAtto('AC-1', '2025-03-01')).toBe('AC-1 del 01/03/2025');
     expect(testoAtto('AC-1', null)).toBe('AC-1');
     expect(testoAtto(null, '2025-03-01')).toBe('del 01/03/2025');
-    expect(testoAtto(null, null)).toBe('nessun atto');
-    // review delta 21/10 X2 (F1): senza la fonte dell'atto (TX-0060 attoConcessioneDisponibile falso) non c'e' un "no"
+    // review delta 21/10 X2 (F1): senza la fonte dell'atto (TX-0060 attoConcessioneDisponibile falso) non c'e' un "no";
+    // passata 2 V1: con TX-0060 non letto (in attesa, in errore, senza il grant) l'assenza senza motivo, mai "nessun atto"
     expect(testoAtto(null, null, true)).toBe('nessun atto');
     expect(testoAtto(null, null, false)).toBe('non disponibile (fonte atto di concessione non attiva)');
+    expect(testoAtto(null, null, undefined)).toBe('non disponibile');
+    expect(testoAtto(null, null)).toBe('non disponibile');
     expect(testoAtto('AC-1', null, false)).toBe('AC-1');
-    expect(attoSenzaFonte(null, null, false)).toBe(true);
-    expect(attoSenzaFonte(null, null, undefined)).toBe(false);
-    expect(attoSenzaFonte(null, '2025-03-01', false)).toBe(false);
+    expect(testoAtto(null, '2025-03-01', undefined)).toBe('del 01/03/2025');
     // il conteggio del pannello (review v1 V-03): mai un numero vecchio mentre arriva il nuovo, mai un trattino
     const unita = ['riga', 'righe'] as const;
     expect(testoConteggio(1, unita, { inAggiornamento: false })).toBe('1 riga con questi filtri');

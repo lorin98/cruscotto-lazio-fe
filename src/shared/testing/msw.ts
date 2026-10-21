@@ -15,3 +15,12 @@ export function problema(status: number, errorCode: string, detail?: string) {
     ...(detail ? { detail } : {}),
   };
 }
+
+/** Una risposta trattenuta finche' il test non la libera (lettura in corso): l'handler fa `await attesa`. */
+export function trattenuta() {
+  let libera = () => {};
+  const attesa = new Promise<void>((r) => {
+    libera = r;
+  });
+  return { attesa, libera: () => libera() };
+}

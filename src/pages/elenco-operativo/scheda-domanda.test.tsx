@@ -4,8 +4,8 @@ import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { server } from '../../shared/api/mock/server';
-import { problema } from '../../shared/testing/msw';
-import { renderConQuery } from '../../shared/testing/render';
+import { problema, trattenuta } from '../../shared/testing/msw';
+import { clientDiTest, renderConQuery } from '../../shared/testing/render';
 import { pngDelGrafico } from '../../shared/ui/grafici/echarts';
 import { DETTAGLIO, PAGINA_DOMANDE, PAGINA_PAGAMENTI, SINOTTICO, VALORI } from '../../features/elenco-operativo/testing/fixture';
 import PaginaDomande from './domande/page';
@@ -54,7 +54,8 @@ function apri(indirizzo: string) {
     ],
     { initialEntries: [indirizzo] },
   );
-  return { ...renderConQuery(<RouterProvider router={router} />), router };
+  const client = clientDiTest();
+  return { ...renderConQuery(<RouterProvider router={router} />, client), router, client };
 }
 
 const indirizzo = (r: { state: { location: { pathname: string; search: string } } }) => `${r.state.location.pathname}${r.state.location.search}`;
@@ -100,9 +101,32 @@ describe('RA004: riferimento della scheda convalidato prima della lettura (revie
 });
 
 // review delta 21/10 X2, decisione F1 dell'utente: la scheda legge attoConcessioneDisponibile di TX-0060 (la stessa lettura
-// del pannello dei filtri) e con la fonte non attiva non dice "nessun atto"
+// del pannello dei filtri) e con la fonte non attiva non dice "nessun atto". Passata 2 V1 (decisione dell'utente del
+// 22/10/2026): TX-0060 parte con TX-0058; "nessun atto" solo dopo la sua risposta con la fonte attiva, finche' non e' letto
+// (in attesa, in errore, senza il grant) "non disponibile" senza nota
 describe("RA004: atto di concessione della sintesi, con la fonte non attiva l'assenza con la fonte (D4, D-02 Rev. 5-6)", () => {
   const voceAtto = async () => (await screen.findByText('Atto di concessione', { selector: 'dt' })).nextElementSibling?.textContent;
+  const SCHEDA = '/elenco-operativo/domande/PAGAMENTO/54230000001';
+
+  /** TX-0058 e TX-0060 trattenuti: le letture arrivate e i due rilasci, con il valore di attoConcessioneDisponibile. */
+  function trattieni(attoConcessioneDisponibile: boolean) {
+    const arrivate: string[] = [];
+    const dettaglio = trattenuta();
+    const filtri = trattenuta();
+    server.use(
+      http.get('*/api/elenco-operativo/filtri', async () => {
+        arrivate.push('filtri');
+        await filtri.attesa;
+        return HttpResponse.json({ ...VALORI, attoConcessioneDisponibile });
+      }),
+      http.get('*/api/elenco-operativo/domande/:tipo/:codice', async () => {
+        arrivate.push('dettaglio');
+        await dettaglio.attesa;
+        return HttpResponse.json(DETTAGLIO);
+      }),
+    );
+    return { arrivate, dettaglio, filtri };
+  }
 
   it("attoConcessioneDisponibile falso: la domanda senza l'atto dice non disponibile con la fonte, mai nessun atto", async () => {
     servi();
@@ -112,27 +136,46 @@ describe("RA004: atto di concessione della sintesi, con la fonte non attiva l'as
     expect(screen.queryByText('nessun atto')).toBeNull();
   });
 
-  it("con la fonte attiva la domanda senza l'atto dice nessun atto; senza il grant di TX-0060 nessuna lettura dei filtri", async () => {
-    const letture: string[] = [];
-    // dopo servi(), che monta i propri handler: le letture dei filtri le conta questo
-    const contaFiltri = () =>
-      server.use(
-        http.get('*/api/elenco-operativo/filtri', () => {
-          letture.push('filtri');
-          return HttpResponse.json(VALORI);
-        }),
-      );
+  it.each([
+    { fonte: 'attiva', disponibile: true, atteso: 'nessun atto' },
+    { fonte: 'non attiva', disponibile: false, atteso: 'non disponibile (fonte atto di concessione non attiva)' },
+  ])("TX-0060 parte con TX-0058; trattenuto, poi fonte $fonte: in attesa 'non disponibile', dopo la risposta $atteso", async ({ disponibile, atteso }) => {
     servi();
-    contaFiltri();
-    const { unmount } = apri('/elenco-operativo/domande/PAGAMENTO/54230000001');
-    await waitFor(() => expect(letture).toEqual(['filtri']));
-    expect(await voceAtto()).toBe('nessun atto');
-    unmount();
-    letture.length = 0;
+    const t = trattieni(disponibile);
+    apri(SCHEDA);
+    // la lettura di TX-0060 parte mentre TX-0058 e' ancora in attesa, non dopo (dalla sintesi)
+    await waitFor(() => expect([...t.arrivate].sort()).toEqual(['dettaglio', 'filtri']));
+    t.dettaglio.libera();
+    expect(await voceAtto()).toBe('non disponibile');
+    expect(screen.queryByText('nessun atto')).toBeNull();
+    t.filtri.libera();
+    await waitFor(async () => expect(await voceAtto()).toBe(atteso));
+  });
+
+  it("TX-0060 in errore (500): la scheda resta senza avvisi e la domanda senza l'atto dice 'non disponibile' senza nota", async () => {
+    servi();
+    server.use(http.get('*/api/elenco-operativo/filtri', () => HttpResponse.json(problema(500, 'ERRORE_INTERNO'), { status: 500 })));
+    const { client } = apri(SCHEDA);
+    await screen.findByRole('heading', { level: 1, name: 'COOPERATIVA VERDI' });
+    // l'errore di TX-0060 e' arrivato
+    await waitFor(() => expect(client.getQueryCache().findAll({ predicate: (q) => q.state.status === 'error' })).toHaveLength(1));
+    expect(await voceAtto()).toBe('non disponibile');
+    expect(screen.queryByText('nessun atto')).toBeNull();
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it("senza il grant di TX-0060 nessuna lettura dei filtri, e la domanda senza l'atto dice 'non disponibile' senza nota", async () => {
+    const letture: string[] = [];
     servi(TUTTI.filter((g) => g !== 'csr.tx-0060.read'));
-    contaFiltri();
-    apri('/elenco-operativo/domande/PAGAMENTO/54230000001');
-    expect(await voceAtto()).toBe('nessun atto');
+    // dopo servi(), che monta i propri handler: le letture dei filtri le conta questo
+    server.use(
+      http.get('*/api/elenco-operativo/filtri', () => {
+        letture.push('filtri');
+        return HttpResponse.json(VALORI);
+      }),
+    );
+    apri(SCHEDA);
+    expect(await voceAtto()).toBe('non disponibile');
     expect(letture).toEqual([]);
   });
 });

@@ -108,7 +108,10 @@ describe('elenco operativo, testi delle schede di sola lettura', () => {
     expect(voci['Comparto']).toBe('C01 - Ortofrutta');
     expect(voci['Aggregato dei comparti']).toBe('non indicato');
     expect(voci['Provincia ed ente delegato']).toBe('FROSINONE - non indicato');
-    expect(voci['Atto di concessione']).toBe('nessun atto');
+    // review delta 21/10 passata 2 V1: senza attoConcessioneDisponibile (TX-0060 non letto) l'assenza senza motivo
+    expect(voci['Atto di concessione']).toBe('non disponibile');
+    const conFonte = Object.fromEntries(vociSintesi(domanda, {}, { attoConcessioneDisponibile: true }));
+    expect(conFonte['Atto di concessione']).toBe('nessun atto');
     // review delta 21/10 X2 (F1): con la fonte dell'atto non attiva l'assenza con la fonte, mai "nessun atto"
     const senzaFonte = Object.fromEntries(vociSintesi(domanda, {}, { attoConcessioneDisponibile: false }));
     expect(senzaFonte['Atto di concessione']).toBe('non disponibile (fonte atto di concessione non attiva)');

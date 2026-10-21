@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { server } from '../../shared/api/mock/server';
 import { expectNoA11yViolations } from '../../shared/testing/axe';
-import { problema } from '../../shared/testing/msw';
+import { problema, trattenuta } from '../../shared/testing/msw';
 import { renderPagina } from '../../shared/testing/render-pagina';
 import { ElencoDomande, ElencoPagamenti, SchedaDomanda } from '../../features/elenco-operativo';
 import { DETTAGLIO, PAGINA_DOMANDE, PAGINA_PAGAMENTI, SINOTTICO, VALORI } from '../../features/elenco-operativo/testing/fixture';
@@ -16,15 +16,6 @@ import { useParams } from 'react-router';
 const TUTTI = ['csr.tx-0056.read', 'csr.tx-0057.read', 'csr.tx-0058.read', 'csr.tx-0059.read', 'csr.tx-0060.read'];
 const profilo = (roles: string[]) =>
   server.use(http.get('*/auth/status', () => HttpResponse.json({ authenticated: true, user: { username: 'U', profile: 'p1-dirigente', roles } })));
-
-/** Una risposta trattenuta finche' il test non la libera (lettura in corso). */
-function trattenuta() {
-  let libera = () => {};
-  const attesa = new Promise<void>((r) => {
-    libera = r;
-  });
-  return { attesa, libera: () => libera() };
-}
 
 function servi() {
   const richieste: string[] = [];

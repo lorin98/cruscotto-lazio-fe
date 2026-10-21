@@ -46,7 +46,8 @@ const resaAtto = (fonteAttiva: boolean | undefined) => (d: DomandaElenco) => tes
  * Colonne delle domande per la vista per ambito: quelle della vista, nel suo ordine e visibili (la prima, intestazione di
  * riga, fissa), poi le altre colonne di DomandaElenco nascoste, che l'utente mostra dal bottone "Colonne" (RA002: scelta
  * delle colonne visibili; review v1 V-01). La vista e' l'insieme di partenza, non un limite. `attoConcessioneDisponibile`:
- * quello di TX-0060, assente senza il suo grant (vedi attoSenzaFonte).
+ * quello di TX-0060, assente finche' non e' letto (in attesa, in errore, senza il grant): allora l'atto mancante dice
+ * "non disponibile", mai "nessun atto" (testoAtto; review delta 21/10 passata 2 V1).
  */
 export function colonneDomande(chiavi: readonly ColonnaDomanda[], { attoConcessioneDisponibile }: { attoConcessioneDisponibile?: boolean } = {}): ColonnaServer<DomandaElenco>[] {
   const def: Record<ColonnaDomanda, Def<DomandaElenco>> = { ...DOMANDE, attoConcessione: { ...DOMANDE.attoConcessione, resa: resaAtto(attoConcessioneDisponibile) } };

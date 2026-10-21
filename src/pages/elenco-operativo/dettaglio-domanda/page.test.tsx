@@ -10,7 +10,7 @@ describe('RA004: pagina /elenco-operativo/domande/:tipo/:codiceABarre (TX-0058)'
   it('legge la domanda dei parametri del percorso', async () => {
     let letto = '';
     server.use(
-      // la sintesi legge attoConcessioneDisponibile dai valori dei filtri (TX-0060, review delta 21/10 X2)
+      // la pagina legge anche attoConcessioneDisponibile dai valori dei filtri (TX-0060, review delta 21/10 X2 e passata 2 V1)
       http.get('*/api/elenco-operativo/filtri', () => HttpResponse.json(VALORI)),
       http.get('*/api/elenco-operativo/domande/:tipo/:codice', ({ params }) => {
         letto = `${String(params.tipo)}/${String(params.codice)}`;
