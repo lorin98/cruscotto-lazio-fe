@@ -54,6 +54,19 @@ describe('RF015: i dati ASR dell ambito SIGC per il confronto con SMP - Data Pla
     expect(cella('SRA03', 'Azioni attivate')).toBe('0');
     expect(cella('SRA03', 'Include top-up')).toBe('sì');
   });
+  // review delta 21/10 V2: nel wireframe verifica-smp riapprovato il 19/10 la previsione e' una colonna di testo, non un numero
+  it("previsione di pagamento e top-up incluso sono colonne di testo; i conteggi restano allineati come numeri", async () => {
+    server.use(http.get('*/api/finanziario/sigc/verifica-smp', () => HttpResponse.json(VERIFICA_SMP)));
+    renderPagina(Pagina, '/finanziario/sigc/verifica-smp', '/finanziario/sigc/verifica-smp?esercizio=2025');
+    const t = await screen.findByRole('table', { name: /dati ASR per intervento/ });
+    const intestazioni = within(t).getAllByRole('columnheader');
+    const colonna = (titolo: string) => intestazioni.findIndex((h) => (h.textContent ?? '').startsWith(titolo));
+    const riga = within(t).getByRole('rowheader', { name: 'SRA01' }).closest('tr');
+    const numerica = (titolo: string) => [intestazioni[colonna(titolo)], riga?.children[colonna(titolo)]].map((c) => c?.classList.contains('ui-num'));
+    expect(numerica("Si prevede di pagare nell'esercizio")).toEqual([false, false]);
+    expect(numerica('Include top-up')).toEqual([false, false]);
+    expect(numerica('Avvisi attivati')).toEqual([true, true]);
+  });
   it('nessuna violazione axe', async () => {
     server.use(http.get('*/api/finanziario/sigc/verifica-smp', () => HttpResponse.json(VERIFICA_SMP)));
     const { container } = renderPagina(Pagina, '/finanziario/sigc/verifica-smp', '/finanziario/sigc/verifica-smp?esercizio=2025');

@@ -25,8 +25,9 @@ import { useApriIntervento } from './useApriIntervento';
 type Riga = VerificaSmpRiga;
 type Ordinabile = string | number | null | undefined;
 
-function colonna(chiave: string, titolo: string, valore: (r: Riga) => Ordinabile, resa: (r: Riga) => ReactNode): ColonnaTabella<Riga> {
-  return { chiave, titolo, valore: (r) => valore(r) ?? null, resa, numerica: true };
+/** `numerica` falso: colonna di testo (allineata a sinistra), come i si'/no nel wireframe verifica-smp riapprovato. */
+function colonna(chiave: string, titolo: string, valore: (r: Riga) => Ordinabile, resa: (r: Riga) => ReactNode, { numerica = true } = {}): ColonnaTabella<Riga> {
+  return { chiave, titolo, valore: (r) => valore(r) ?? null, resa, numerica };
 }
 const conteggio = (chiave: string, titolo: string, leggi: (r: Riga) => number | null | undefined) => colonna(chiave, titolo, leggi, (r) => <Numero valore={leggi(r)} />);
 const importo = (chiave: string, titolo: string, leggi: (r: Riga) => ImportoLike | undefined) => colonna(chiave, titolo, (r) => leggi(r)?.valore, (r) => <ValoreImporto importo={leggi(r)} />);
@@ -34,13 +35,21 @@ const opzionale = (chiave: string, titolo: string, leggi: (r: Riga) => number | 
 /**
  * Dato del backend col motivo dell'assenza (ConteggioFinanziario, SiNoFinanziario: D3, D15 del backend): il valore reso da
  * `resaValore`, oppure l'assenza come quella di un importo (ValoreMotivato), mai uno 0 o un "no" inventati. Un si'/no si
- * ordina per il suo testo.
+ * ordina per il suo testo ed e' una colonna di testo (TESTO).
  */
-function colonnaMotivata<T extends number | boolean>(chiave: string, titolo: string, leggi: (r: Riga) => DatoMotivatoLike<T> | undefined, resaValore: (v: T) => ReactNode): ColonnaTabella<Riga> {
+function colonnaMotivata<T extends number | boolean>(
+  chiave: string,
+  titolo: string,
+  leggi: (r: Riga) => DatoMotivatoLike<T> | undefined,
+  resaValore: (v: T) => ReactNode,
+  opzioni: { numerica?: boolean } = {},
+): ColonnaTabella<Riga> {
   const ordinabile = (v: T | null | undefined): Ordinabile => (typeof v === 'boolean' ? siNo(v) : v);
-  return colonna(chiave, titolo, (r) => ordinabile(leggi(r)?.valore), (r) => <ValoreMotivato dato={leggi(r)} resa={resaValore} />);
+  return colonna(chiave, titolo, (r) => ordinabile(leggi(r)?.valore), (r) => <ValoreMotivato dato={leggi(r)} resa={resaValore} />, opzioni);
 }
 const numero = (v: number) => <Numero valore={v} />;
+/** Colonna di testo: i si'/no non si allineano come numeri (review delta 21/10 V2). */
+const TESTO = { numerica: false };
 
 const COLONNE: ColonnaTabella<Riga>[] = [
   { chiave: 'codice', titolo: 'Intervento', valore: (r) => r.codiceIntervento ?? null, fissa: true },
@@ -56,9 +65,9 @@ const COLONNE: ColonnaTabella<Riga>[] = [
   conteggio('pagate', "Domande pagate nell'esercizio", (r) => r.domandePagateEsercizio),
   importo('spesaPrecedente', 'Spesa erogata campagna precedente', (r) => r.spesaErogataCampagnaPrecedente),
   importo('spesaAnteriori', 'Spesa erogata campagne anteriori', (r) => r.spesaErogataCampagneAnteriori),
-  colonnaMotivata<boolean>('previsione', "Si prevede di pagare nell'esercizio", (r) => r.previsionePagamentoEsercizio, siNo),
+  colonnaMotivata<boolean>('previsione', "Si prevede di pagare nell'esercizio", (r) => r.previsionePagamentoEsercizio, siNo, TESTO),
   importo('topUp', 'Importo top-up', (r) => r.importoTopUp),
-  colonnaMotivata<boolean>('includeTopUp', 'Include top-up', (r) => r.includeTopUp, siNo),
+  colonnaMotivata<boolean>('includeTopUp', 'Include top-up', (r) => r.includeTopUp, siNo, TESTO),
   opzionale('ettari', 'Ettari o UBA richiesti', (r) => r.ettariUbaRichiesti),
   opzionale('outputAtteso', 'Output atteso delle finanziate', (r) => r.outputAttesoFinanziate),
   opzionale('outputErogato', "Output erogato nell'esercizio", (r) => r.outputErogatoEsercizio),
