@@ -1679,6 +1679,11 @@
       "id": "OP-EO-05",
       "kind": "altro",
       "detail": "Esportazione (RA005, D-09 del backend): GET /domande/{formato} e /pagamenti/{formato} (csv, xlsx) senza operationId, come gli export del finanziario; un pulsante per formato con la sigla visibile (V-07 del finanziario), con X-Requested-With, gli stessi filtri e ordinamento della pagina. Oltre il limite di NFR-06 il backend risponde con un problem: il messaggio invita a restringere i filtri."
+    },
+    {
+      "id": "OP-EO-06",
+      "kind": "altro",
+      "detail": "Deviazione accettata (decisione F3 dell'utente del 21/10/2026, review step9 sul delta FE, finding V7): nel pannello dei filtri dei flussi domande e pagamenti, con attoConcessioneDisponibile di TX-0060 falso (nessuna domanda del database ha l'atto: D-02 Rev. 5-6 e D11 del backend) il controllo 'Atto di concessione' e' sostituito dalla nota 'Atto di concessione non disponibile finche' nessuna domanda ha un atto di concessione.', con il pulsante 'Togli il filtro Atto di concessione' se il filtro arriva gia' dall'indirizzo (review V3); e' lo stesso trattamento della nota delle azioni portanti con legameAzioniDisponibile falso. Lo stato non e' disegnato nei wireframe approvati di domande (domande.html) e pagamenti (pagamenti.html), come non lo e' la nota delle azioni portanti: i due flussi restano approvati senza modifiche. Collegato (decisione F1, finding X2): con la stessa fonte non attiva la colonna 'Atto di concessione' della vista procedurale e la sintesi della scheda (flusso dettaglio-domanda) dicono l'assenza con la fonte ('non disponibile', fonte atto di concessione non attiva) secondo la regola comune delle assenze, mai 'nessun atto'; per questo la scheda legge anche TX-0060 col suo grant (stessa lettura del pannello, nessuna lettura senza csr.tx-0060.read), senza cambiare transazioni e grant dichiarati della route."
     }
   ]
 }
