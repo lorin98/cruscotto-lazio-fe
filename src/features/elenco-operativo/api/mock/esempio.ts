@@ -5,6 +5,7 @@
 // raccoglie per convenzione di percorso); i test hanno le loro fixture.
 import { http, HttpResponse } from 'msw';
 import type { RequestHandler } from 'msw';
+import { PROBLEM_TYPES } from '../../../../shared/api/problem/problem-types';
 
 const INTERVENTI: Array<[string, string]> = [
   ['SRA01', 'Produzione integrata (esempio)'],
@@ -24,9 +25,10 @@ const ULTIMI = [{ flusso: 'DS-12', conclusoIl: '2026-03-02T09:15:00Z' }];
 const euro = (valore: number | null) => ({ valore, motivo: valore === null ? 'NON_VALORIZZATO' : null, fonte: null });
 
 // Nessuna domanda di esempio ha l'atto di concessione: TX-0060 lo dice (attoConcessioneDisponibile false) e il filtro
-// concessione, si' o no, risponde 400 DATO_NON_VALIDO col campo, come il backend (D-02 Rev. 5-6, D11 del backend).
+// concessione, si' o no, risponde 400 DATO_NON_VALIDO col campo su domande, sinottico e pagamenti, come il backend
+// (D-02 Rev. 5-6, D11 del backend; review delta 21/10 V4).
 const CONCESSIONE_NON_DISPONIBILE = {
-  type: 'urn:cruscottocsr:problem:dato-non-valido',
+  type: PROBLEM_TYPES.DATO_NON_VALIDO,
   title: 'Bad Request',
   status: 400,
   errorCode: 'DATO_NON_VALIDO',
@@ -176,7 +178,8 @@ export const handlersEsempio: RequestHandler[] = [
     const p = new URL(request.url).searchParams;
     return rifiutaConcessione(p) ?? HttpResponse.json(pagina(p, filtrate(p)));
   }),
-  http.get('*/api/elenco-operativo/pagamenti', () =>
+  http.get('*/api/elenco-operativo/pagamenti', ({ request }) =>
+    rifiutaConcessione(new URL(request.url).searchParams) ??
     HttpResponse.json({ perimetro: 'REGIONALE', pagina: 0, dimensione: 25, ordinamento: 'decreto:asc', totaleRighe: 0, righe: [], totali: { pagate: 0, escluse: 0 }, ultimiDatiSincronizzati: ULTIMI }),
   ),
 ];

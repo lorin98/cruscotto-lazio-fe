@@ -4,6 +4,8 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { http, HttpResponse } from 'msw';
 import { server } from '../src/shared/api/mock/server';
+import { PROBLEM_TYPES } from '../src/shared/api/problem/problem-types';
+import { handlersEsempio } from '../src/features/elenco-operativo/api/mock/esempio';
 import {
   esportaDomande,
   rispostaDomandaAssente,
@@ -109,4 +111,18 @@ describe('feature elenco-operativo, wrapper api (step3) su MSW', () => {
     expect(url).toBe('/api/elenco-operativo/domande/csv?intervento=SRA01&ordina=cuaa:asc');
     expect(file).toBeInstanceOf(Blob);
   });
+});
+
+// review delta 21/10 V4: il mock del dev server fa come il backend su tutte le letture col filtro concessione (D-02 Rev. 5-6)
+describe('mock di esempio del dev server: concessione senza atti nel database', () => {
+  it.each(['/api/elenco-operativo/domande', '/api/elenco-operativo/domande/sinottico', '/api/elenco-operativo/pagamenti'])(
+    '%s?concessione=true risponde 400 DATO_NON_VALIDO col campo; senza il filtro 200',
+    async (percorso) => {
+      server.use(...handlersEsempio);
+      const rifiutata = await fetch(`http://localhost${percorso}?concessione=true`);
+      expect(rifiutata.status).toBe(400);
+      expect(await rifiutata.json()).toMatchObject({ type: PROBLEM_TYPES.DATO_NON_VALIDO, errorCode: 'DATO_NON_VALIDO', detail: expect.stringMatching(/^concessione: /) });
+      expect((await fetch(`http://localhost${percorso}`)).status).toBe(200);
+    },
+  );
 });
