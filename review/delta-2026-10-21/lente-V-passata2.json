@@ -1,0 +1,42 @@
+[
+  {
+    "id": "V1",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/lib/formato.ts:128",
+    "titolo": "Atto di concessione con TX-0060 in caricamento o in errore: la vista procedurale e la scheda dicono 'nessun atto' anche con la fonte non attiva (contro F1), e i test nuovi non lo vedono",
+    "evidenza": "attoSenzaFonte (formato.ts:128-129) vale solo con fonteAttiva === false: con il dato assente (lettura in corso, errore, nessun grant) testoAtto (riga 140) e resaAtto (colonne.tsx:41-42) dicono 'nessun atto'. La scheda passa `useValoriFiltri(...).data?.attoConcessioneDisponibile` (SchedaDomanda.tsx:123-126). La lettura parte solo quando la Sintesi e' montata, quindi una scheda aperta da un indirizzo, senza la cache del pannello, mostra prima 'nessun atto' e poi l'assenza con la fonte. Con un 503 o un 504 di TX-0060, o durante i tentativi di React Query, resta 'nessun atto' e nella scheda non compare nessun messaggio. Nell'elenco l'errore si legge solo dentro il pannello (PannelloFiltriElenco.tsx:267), mentre la colonna (ElencoDomande.tsx:141) dice 'nessun atto'. Oggi la fonte non e' attiva sia nel mock di sviluppo (esempio.ts:163) sia nel database (D4), per cui questo e' proprio il 'no' inventato di X2, sul percorso di attesa e su quello di errore. F1 dice: 'con la fonte non attiva ... mai nessun atto'. I test interrogazione-stati.test.tsx:351 e scheda-domanda.test.tsx:111 aspettano il valore finale con waitFor e quindi accettano il 'nessun atto' iniziale: il 'mai nessun atto' del titolo non e' provato.",
+    "fix": "Rendere a tre stati la disponibilita' passata a testoAtto, resaAtto e vociSintesi (ad esempio 'attiva' | 'non-attiva' | 'ignota', calcolata dallo stato della query). 'nessun atto' solo con attoConcessioneDisponibile === true; con false l'assenza con la fonte, come oggi; con la lettura in corso o in errore l'assenza neutra (descriviAssenza(undefined): 'non disponibile'). Il caso senza grant si decide con l'utente e si scrive in OP-EO-06 (la soluzione piu' sicura e' l'assenza neutra). Test in interrogazione-stati.test.tsx e scheda-domanda.test.tsx con TX-0060 ritardato (handler con delay) e con 500: subito dopo la comparsa della domanda, cella e voce non dicono mai 'nessun atto'."
+  },
+  {
+    "id": "V2",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/PannelloFiltriElenco.tsx:111",
+    "titolo": "'Togli il filtro Atto di concessione' sparisce al clic senza spostare il focus: la regola X-02 (WCAG 2.4.3) vale per i chip ma non per il pulsante nuovo",
+    "evidenza": "Il pulsante si rende solo se sel('concessione').length > 0 (riga 110). onClick chiama imposta('concessione')([]) (riga 111), il criterio si svuota e il pulsante, che ha il focus, viene smontato. Nessun codice sposta il focus: questo finisce sul body o, se FocusScope di react-aria lo recupera, sul primo elemento del dialogo, comunque lontano dal punto della rimozione. Per i chip della barra la regola c'e' gia' (BarraFiltri.tsx:3 e 18-23, review v1 X-02: 'Togliere un chip non lascia il focus sul nulla'). Il test V3 (interrogazione-stati.test.tsx:312-314) prova solo che il pulsante sparisce, e axe gira prima del clic.",
+    "fix": "Dopo la rimozione portare il focus su un elemento vicino. Ad esempio, alla nota 'Atto di concessione non disponibile...' si danno ref e tabIndex={-1} e la si focalizza in un effect quando sel('concessione') diventa vuoto; in alternativa si focalizza il primo controllo di 'Anomalie'. Nel test V3 si asserisce document.activeElement dopo il clic."
+  },
+  {
+    "id": "V3",
+    "severity": "MINORE",
+    "file": "plan/elenco-operativo/uiplan.json:1081",
+    "titolo": "La scheda della domanda rende l'atto con attoConcessioneDisponibile di TX-0060, ma la provenienza del campo non e' tracciata, ne' nello uiplan ne' nella nota della fonte",
+    "evidenza": "Fra i fields della route /elenco-operativo/domande/:tipo/:codiceABarre ci sono solo domanda.attoConcessioneNumero e domanda.attoConcessioneData (DomandaElenco, righe 1078-1084). filtri.attoConcessioneDisponibile (ValoriFiltriElenco) e' tracciato per /domande (riga 889) e /pagamenti (riga 1519), non per la scheda, che da' 09c66af lo legge e lo rende (SchedaDomanda.tsx:123-134). Nella Sintesi la nota della fonte dice ancora solo 'Fonte: TX-0058. Valori assenti: indicato il motivo, mai zero.' (SchedaDomanda.tsx:136), mentre 'fonte atto di concessione non attiva' viene da TX-0060. OP-EO-06 accetta che transazioni e grant della route restino invariati, ma non dice niente della provenienza per campo.",
+    "fix": "Aggiungere in plan/elenco-operativo/uiplan.json il field {route: '/elenco-operativo/domande/:tipo/:codiceABarre', name: 'filtri.attoConcessioneDisponibile', provenance: 'spec', source_ref: 'openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco'}, che non tocca roles ne' visibility, e rilanciare uiplan-validate. Nella Sintesi scrivere 'Fonte: TX-0058; disponibilita' dell'atto di concessione: TX-0060. Valori assenti: indicato il motivo, mai zero.'"
+  },
+  {
+    "id": "V4",
+    "severity": "COSMETICO",
+    "file": "src/features/elenco-operativo/ui/colonne.tsx:42",
+    "titolo": "Vista procedurale: l'atto senza la fonte e' l'unica assenza in badge in una tabella dove le altre assenze sono testo semplice, come nel wireframe approvato",
+    "evidenza": "resaAtto rende <AssenzaMotivata> (badge 'non disponibile' piu' la nota piccola), cioe' la resa dei report del finanziario. Nella stessa tabella dell'elenco le altre assenze sono testo semplice: importi con cellaImporto ('non valorizzato', colonne.tsx:30-35), superfici con testoSuperficie, CUAA 'non valorizzato'. Il wireframe approvato domande.html:240 disegna l'assenza in cella come testo ('non valorizzato'). La scheda rende la stessa assenza come testo con parentesi (testoAtto, formato.ts:140), coerente con importoConNota. Nell'elenco quindi le assenze non si rendono allo stesso modo nemmeno dopo la centralizzazione in entities/importo.",
+    "fix": "Nella cella usare il testo della scheda: resa (d) => testoAtto(d.attoConcessioneNumero, d.attoConcessioneData, fonteAttiva), cioe' 'non disponibile (fonte atto di concessione non attiva)'. Tolta AssenzaMotivata da colonne.tsx, si adegua l'asserzione sul badge in interrogazione-stati.test.tsx:352. In alternativa si decide che tutte le assenze delle tabelle dell'elenco passino al badge, ma e' una modifica piu' ampia, da far approvare."
+  },
+  {
+    "id": "V5",
+    "severity": "COSMETICO",
+    "file": "wireframes/riepilogo/riepilogo.md:18",
+    "titolo": "Il flusso riepilogo riapprovato rimanda al prototipo come resa approvata, ma il prototipo apre ancora il riepilogo sulla tabella (Tabella | Grafico, sottotitolo vecchio)",
+    "evidenza": "riepilogo.md:18 ('resa approvata nel prototipo prototipo/finanziario/') e riepilogo.md:64 ('fa fede il prototipo approvato') puntano al prototipo. Il prototipo (prototipo/finanziario/prototipo.js:568-569) ha il sottotitolo 'Cerca, ordina, scegli le colonne...', l'interruttore 'Tabella' prima di 'Grafico' con la tabella visibile e il grafico nascosto: contraddice la vista iniziale, l'ordine e il sottotitolo che il flusso riapprovato il 21/10 descrive (riepilogo.html:63-69). Il resoconto correzioni-passata1.md lo segnala come 'non toccato', ma senza una decisione.",
+    "fix": "Allineare /riepilogo in prototipo.js: vista iniziale Grafico, interruttore Grafico | Tabella, sottotitolo di V6. Il prototipo e' fuori dall'hash dei wireframe, ma va fatto con l'ok dell'utente perche' e' un artefatto approvato. In alternativa, alla prossima riapprovazione del flusso, scrivere in riepilogo.md che per la vista iniziale fa fede il flusso del 21/10 e il prototipo solo per la resa visiva."
+  }
+]

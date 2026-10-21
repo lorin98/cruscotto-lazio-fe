@@ -1,0 +1,34 @@
+[
+  {
+    "id": "H1",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/lib/formato.ts:128",
+    "titolo": "Atto di concessione: un TX-0060 non letto (in attesa o in errore) conta come fonte attiva, e vista procedurale e scheda dicono 'nessun atto' (il no inventato di X2 nei rami di caricamento ed errore)",
+    "evidenza": "attoSenzaFonte e' vero solo con fonteAttiva === false (formato.ts:128-129). Il valore arriva da i.valori?.data?.attoConcessioneDisponibile (ElencoDomande.tsx:141) e da useValoriFiltri(...).data?.attoConcessioneDisponibile (SchedaDomanda.tsx:122-125). Resta undefined finche' TX-0060 non risponde e anche quando TX-0060 fallisce, e in tutti e due i casi testoAtto (formato.ts:140) e resaAtto (colonne.tsx:41-42) rendono 'nessun atto'. Nella scheda l'errore di TX-0060 non viene nemmeno segnalato. I test nuovi lo confermano: interrogazione-stati.test.tsx:351 e scheda-domanda.test.tsx:111 aspettano il testo con waitFor perche' il primo render dice 'nessun atto', e nessun test fa fallire TX-0060. F1 ('mai \"nessun atto\"' con la fonte non attiva) e OP-EO-06 non registrano questo ripiego; il resoconto lo cita solo per 'nessun grant, in attesa'. In pratica lo stato della lettura (in attesa, errore, senza grant, letta) e' ridotto a boolean | undefined, e il caso ignoto viene trattato come il caso noto 'fonte attiva'.",
+    "fix": "Tenere distinti tre stati: 'nessun atto' solo con attoConcessioneDisponibile === true; con false l'assenza con la fonte, come oggi; con la lettura non arrivata o non riuscita (undefined) l'assenza senza motivo, cioe' descriviAssenza(undefined) = 'non disponibile', mai 'nessun atto'. Nel codice: attoSenzaFonte/testoAtto e resaAtto distinguono === true da undefined (per esempio una costante ATTO_NON_LETTO = {} resa con AssenzaMotivata). Se l'utente vuole un altro testo per i profili senza TX-0060, scriverlo in OP-EO-06. Test: TX-0060 con risposta ritardata (nessun 'nessun atto' prima della risposta) e TX-0060 in 500 (ne' la cella ne' la voce della scheda dicono 'nessun atto'); aggiornare l'attesa del caso senza grant in scheda-domanda.test.tsx."
+  },
+  {
+    "id": "H2",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/RiepilogoReport.tsx:174",
+    "titolo": "L'interruttore di pagina del riepilogo (SceltaVista) copia a mano l'InterruttoreVista del kit: l'ordine uguale chiesto da X3-b dipende solo da una convenzione",
+    "evidenza": "SceltaVista (RiepilogoReport.tsx:174-185) ripete riga per riga InterruttoreVista di shared/ui/grafici/CardGrafico.tsx:27-38: un div ui-seg con role=group e due button aria-pressed, Grafico e Tabella. Cambiano solo aria-label e mb-3, e InterruttoreVista non e' esportato. X3-b nasceva proprio da due copie finite in ordini diversi: la correzione allinea l'ordine ricopiando il componente, e il test dell'ordine (riepilogo/page.test.tsx:51-55) confronta due copie che potrebbero essere una sola. Lo stato della vista non cambia: useVistaRiepilogo e scegliVista funzionano come prima, senza regressioni.",
+    "fix": "Esportare dal kit (shared/ui/grafici) un InterruttoreVista({ etichetta, vista, onVista, className }) che riceve l'aria-label dal chiamante. Usarlo in CardGrafico (etichetta `Vista di ${titolo}`) e in RiepilogoReport ('Vista del riepilogo', className 'mb-3') ed eliminare SceltaVista. I test sull'ordine restano validi."
+  },
+  {
+    "id": "H3",
+    "severity": "COSMETICO",
+    "file": "src/features/elenco-operativo/lib/formato.ts:16",
+    "titolo": "Resa unica dei dati motivati, due residui nelle feature: la forma testuale 'testo (nota)' dell'assenza e' ricopiata, e il tipo ValoreMotivato<T> dell'elenco ha lo stesso nome del nuovo componente dell'entity",
+    "evidenza": "conNota (formato.ts:16) e' stata estratta in questo delta e serve anche per l'atto (riga 140). Ha lo stesso corpo di assenzaImporto in features/finanziario/lib/importi.ts:17 (r.nota ? `${r.testo} (${r.nota})` : r.testo): la resa a badge sta in entities/importo (AssenzaMotivata), quella in testo resta copiata in ogni feature. Inoltre entities/importo ora esporta il componente ValoreMotivato (index.ts:5), mentre features/elenco-operativo/lib/dto.ts:9 definisce il tipo ValoreMotivato<T> {valore, motivo}, importato da formato.ts:8 e da ui/contratto.ts:16. Sono due simboli con lo stesso nome usati dalla stessa feature (colonne.tsx importa gia' AssenzaMotivata dall'entity), e il tipo e' una quarta forma scritta a mano del dato motivato.",
+    "fix": "Esportare da entities/importo una funzione pura testoConNota(r: ImportoResa) e usarla in importi.ts:17 e in formato.ts:16. Nell'elenco rinominare il tipo e derivarlo dall'entity (per esempio DatoSenzaFonte<T> = Required<Pick<DatoMotivatoLike<T>, 'valore' | 'motivo'>>): CONTRATTO_SUPERFICIE e CONTRATTO_RESPONSABILE restano uguali, perche' le chiavi non cambiano."
+  },
+  {
+    "id": "H4",
+    "severity": "COSMETICO",
+    "file": "tests/finanziario-casi-limite.test.tsx:35",
+    "titolo": "Costruttori dei dati di prova unificati solo in parte: lo stesso file che usa F.dato tiene ancora euro e NON_VALORIZZATO propri, anche se il commento della fixture parla di 'un solo insieme'",
+    "evidenza": "H4 della passata 1 e' risolto nei punti indicati: verifica-smp/page.test.tsx:38-41 e casi-limite:524 usano dato, nd, nv e rigaSmp, e il mock ha un solo dato<T>. Pero' testing/fixture.ts:7-8 dichiara 'un solo insieme di costruttori per fixture e test', mentre finanziario-casi-limite.test.tsx:35 (euro) e :56 (NON_VALORIZZATO) ricopiano F.dato e F.nv() nello stesso file che importa F. Lo stesso succede in finanziario-ui.test.tsx:47 (euro) e in interventi/page.test.tsx:216 (nv). Riguarda solo i test.",
+    "fix": "In casi-limite, finanziario-ui e interventi/page.test.tsx sostituire euro e NON_VALORIZZATO locali con F.dato e F.nv(), oppure esportare euro dalla fixture. In alternativa limitare il commento della fixture ai test della verifica SMP."
+  }
+]

@@ -1,0 +1,74 @@
+[
+  {
+    "id": "V1",
+    "severity": "MINORE",
+    "titolo": "Atto di concessione con TX-0060 in attesa, in errore o senza grant: vista procedurale e scheda dicono 'nessun atto' anche con la fonte non attiva (ignoto trattato come attiva, contro F1; assorbe H1, A1)",
+    "file": "src/features/elenco-operativo/lib/formato.ts",
+    "riga": 128,
+    "fix": "In formato.ts (attoSenzaFonte/testoAtto) e colonne.tsx:41-42 (resaAtto) tre stati: 'nessun atto' solo con attoConcessioneDisponibile === true, con false l'assenza con la fonte come ora, con undefined descriviAssenza(undefined) ('non disponibile'). In SchedaDomanda chiamare useValoriFiltri accanto a useDettaglioDomanda e passare il valore a Sintesi; correggere i commenti di formato.ts:124-126, colonne.tsx:47-48 e SchedaDomanda.tsx:118-122. Test: /filtri trattenuto (mai 'nessun atto' in attesa) e /filtri 500 nella scheda e nella vista procedurale; nei test 'con la fonte attiva' (scheda-domanda.test.tsx:128-135, interrogazione-stati.test.tsx:363) asserire 'nessun atto' solo dopo la risposta, e 'non disponibile' senza il grant.",
+    "decisione_utente": false
+  },
+  {
+    "id": "V2",
+    "severity": "MINORE",
+    "titolo": "'Togli il filtro Atto di concessione' si smonta al clic e il fuoco non viene spostato (WCAG 2.4.3, regola X-02 dei chip; assorbe A2)",
+    "file": "src/features/elenco-operativo/ui/PannelloFiltriElenco.tsx",
+    "riga": 111,
+    "fix": "Dare ref e tabIndex={-1} alla nota 'Atto di concessione non disponibile...' (riga 109) e focalizzarla dopo imposta('concessione')([]) (effect sul passaggio da selezionato a vuoto, come useFocusDopoLaRimozione di BarraFiltri). Nel test V3 di interrogazione-stati.test.tsx, dopo il clic della riga 312: expect(document.activeElement).toBe(within(dialogo).getByText(NON_DISPONIBILE)).",
+    "decisione_utente": false
+  },
+  {
+    "id": "V3",
+    "severity": "MINORE",
+    "titolo": "La scheda della domanda rende attoConcessioneDisponibile di TX-0060 senza la provenienza del campo nello uiplan e con la nota 'Fonte: TX-0058'",
+    "file": "plan/elenco-operativo/uiplan.json",
+    "riga": 1075,
+    "fix": "Aggiungere fra i fields il campo {route: '/elenco-operativo/domande/:tipo/:codiceABarre', name: 'filtri.attoConcessioneDisponibile', provenance: 'spec', source_ref: 'openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco'} senza toccare roles e visibility, poi rilanciare uiplan-validate e il gate step8. In SchedaDomanda.tsx:136: 'Fonte: TX-0058; disponibilita' dell'atto di concessione: TX-0060. Valori assenti: indicato il motivo, mai zero.'",
+    "decisione_utente": false
+  },
+  {
+    "id": "H2",
+    "severity": "MINORE",
+    "titolo": "L'interruttore di pagina del riepilogo (SceltaVista) copia a mano InterruttoreVista del kit: l'ordine uguale di X3-b dipende da una convenzione",
+    "file": "src/features/finanziario/ui/RiepilogoReport.tsx",
+    "riga": 174,
+    "fix": "Esportare da shared/ui/grafici un InterruttoreVista({ etichetta, vista, onVista, className }) con l'aria-label dal chiamante; usarlo in CardGrafico (`Vista di ${titolo}`) e in RiepilogoReport ('Vista del riepilogo', 'mb-3'), ed eliminare SceltaVista. I test sull'ordine (riepilogo/page.test.tsx:48-55) restano.",
+    "decisione_utente": false
+  },
+  {
+    "id": "V4",
+    "severity": "COSMETICO",
+    "titolo": "Vista procedurale: l'atto senza la fonte e' l'unica assenza in badge in una tabella dove le altre assenze sono testo, come nel wireframe approvato",
+    "file": "src/features/elenco-operativo/ui/colonne.tsx",
+    "riga": 42,
+    "fix": "In resaAtto rendere il testo della scheda: testoAtto(d.attoConcessioneNumero, d.attoConcessioneData, fonteAttiva), cioe' 'non disponibile (fonte atto di concessione non attiva)', e togliere AssenzaMotivata da colonne.tsx; adeguare le asserzioni di interrogazione-stati.test.tsx:351-352.",
+    "decisione_utente": false
+  },
+  {
+    "id": "V5",
+    "severity": "COSMETICO",
+    "titolo": "Il flusso riepilogo riapprovato rimanda al prototipo per la resa (riepilogo.md:18, :64), ma il prototipo apre ancora il riepilogo sulla tabella col sottotitolo vecchio",
+    "file": "prototipo/finanziario/prototipo.js",
+    "riga": 568,
+    "fix": "Senza toccare wireframes/riepilogo (hash riapprovato il 21/10): in prototipo/finanziario/README.md, riga 'Riepilogo' della tabella 'Cosa mostra', annotare che vista iniziale Grafico, ordine Grafico | Tabella e sottotitolo seguono il flusso riapprovato il 21/10 e che il prototipo fa fede solo per il linguaggio visivo. Riallineare /riepilogo in prototipo.js solo con l'ok dell'utente.",
+    "decisione_utente": false
+  },
+  {
+    "id": "H3",
+    "severity": "COSMETICO",
+    "titolo": "Resa unica dei dati motivati: 'testo (nota)' ricopiata fra conNota e assenzaImporto, e tipo ValoreMotivato<T> dell'elenco omonimo del componente dell'entity",
+    "file": "src/features/elenco-operativo/lib/formato.ts",
+    "riga": 16,
+    "fix": "Esportare da entities/importo una funzione pura testoConNota(r: ImportoResa) e usarla in formato.ts:16 e in finanziario/lib/importi.ts:17-18. Rinominare il tipo di elenco-operativo/lib/dto.ts:9 (es. DatoSenzaFonte<T>) e aggiornare formato.ts:8 e ui/contratto.ts:16,30-31 (le chiavi non cambiano).",
+    "decisione_utente": false
+  },
+  {
+    "id": "H4",
+    "severity": "COSMETICO",
+    "titolo": "Il commento della fixture promette 'un solo insieme di costruttori per fixture e test', ma i test anteriori al delta tengono i propri (euro, NON_VALORIZZATO, nv)",
+    "file": "src/features/finanziario/testing/fixture.ts",
+    "riga": 7,
+    "fix": "Restringere il commento di fixture.ts:7-8 ai test nuovi (verifica SMP, casi limite della previsione), oppure sostituire euro, NON_VALORIZZATO e nv locali di finanziario-casi-limite.test.tsx:35,56, finanziario-ui.test.tsx:47 e interventi/page.test.tsx:216 con F.dato e F.nv().",
+    "decisione_utente": false
+  }
+]
