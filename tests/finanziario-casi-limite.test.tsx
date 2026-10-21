@@ -521,7 +521,7 @@ describe('VerificaSmpReport: casi limite', () => {
   });
 
   it('valori facoltativi valorizzati e assenti nella stessa tabella; intervento senza importi omesso dal grafico', async () => {
-    const riga = { ...F.VERIFICA_SMP.righe[0], azioniAttivate: 2, includeTopUp: true, indicatoreRisultato: 'R.1', outputErogatoEsercizio: 10 };
+    const riga = { ...F.VERIFICA_SMP.righe[0], azioniAttivate: { valore: 2, motivo: null, fonte: null }, includeTopUp: { valore: true, motivo: null, fonte: null }, indicatoreRisultato: 'R.1', outputErogatoEsercizio: 10 };
     server.use(rispondi('/api/finanziario/sigc/verifica-smp', { righe: [riga, { codiceIntervento: 'SRA03' }] }));
     conRouter(<VerificaSmpReport filtri={{}} esercizio={2025} onCambiaEsercizio={nessunaAzione} />);
     const t = await screen.findByRole('table', { name: /^I dati ASR per intervento da confrontare con SMP/ });

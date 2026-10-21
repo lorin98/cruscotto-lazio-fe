@@ -21,6 +21,8 @@ const ANNI = [2023, 2024, 2025];
 const euro = (v: number | null, motivo: string | null = null, fonte: string | null = null) => ({ valore: v, motivo: v === null ? motivo : null, fonte: v === null ? fonte : null });
 const fna = (fonte: string) => euro(null, 'FONTE_NON_ATTIVA', fonte);
 const nv = () => euro(null, 'NON_VALORIZZATO');
+// conteggi e si'/no col motivo dell'assenza (ConteggioFinanziario, SiNoFinanziario: D3, D15 del backend)
+const dato = <T>(v: T | null, motivo: string | null = null) => ({ valore: v, motivo: v === null ? motivo : null, fonte: null });
 const tondo = (v: number) => Math.round(v * 100) / 100;
 
 const BASE: Array<[string, string, string, string, string, number]> = [
@@ -251,8 +253,8 @@ export const handlersEsempio: RequestHandler[] = [
       pagamentiSenzaData: 3,
       righe: selezione(request.url).map((i) => ({
         codiceIntervento: i.codice,
-        avvisiAttivati: 2,
-        azioniAttivate: null,
+        avvisiAttivati: dato(2),
+        azioniAttivate: dato(null, 'NON_VALORIZZATO'),
         domandeRicevute: i.domande[2],
         domandeRicevuteSenzaRichiesto: 4,
         valoreDomandeRicevute: euro(tondo(i.dotazione * 0.3)),
@@ -265,7 +267,7 @@ export const handlersEsempio: RequestHandler[] = [
         spesaErogataCampagneAnteriori: euro(tondo(i.pagato * 0.3)),
         previsionePagamentoEsercizio: fna('PREVISIONE_PAGAMENTO'),
         importoTopUp: euro(0),
-        includeTopUp: false,
+        includeTopUp: dato(false),
         ettariUbaRichiesti: null,
         outputAttesoFinanziate: null,
         outputErogatoEsercizio: null,

@@ -32,6 +32,28 @@ describe('RF015: i dati ASR dell ambito SIGC per il confronto con SMP - Data Pla
     expect(within(t).getAllByRole('columnheader')).toHaveLength(21);
     expect(t.textContent).toContain('fonte previsione di pagamento non attiva');
   });
+  it("avvisi e azioni attivate e top-up incluso: il valore, oppure il motivo dell'assenza (D3, D15 del backend), mai uno 0 o un no inventati", async () => {
+    const dato = <T,>(valore: T) => ({ valore, motivo: null, fonte: null });
+    const nv = { valore: null, motivo: 'NON_VALORIZZATO', fonte: null };
+    const righe = [
+      { ...VERIFICA_SMP.righe[0], avvisiAttivati: nv, azioniAttivate: { valore: null, motivo: 'FONTE_NON_ATTIVA', fonte: 'AVVISI_SMP' }, includeTopUp: nv },
+      { ...VERIFICA_SMP.righe[0], codiceIntervento: 'SRA03', avvisiAttivati: dato(3), azioniAttivate: dato(0), includeTopUp: dato(true) },
+    ];
+    server.use(http.get('*/api/finanziario/sigc/verifica-smp', () => HttpResponse.json({ ...VERIFICA_SMP, righe })));
+    renderPagina(Pagina, '/finanziario/sigc/verifica-smp', '/finanziario/sigc/verifica-smp?esercizio=2025');
+    const t = await screen.findByRole('table', { name: /dati ASR per intervento/ });
+    const intestazioni = within(t).getAllByRole('columnheader').map((h) => h.textContent ?? '');
+    const cella = (intervento: string, colonna: string) => {
+      const riga = within(t).getByRole('rowheader', { name: intervento }).closest('tr');
+      return riga?.children[intestazioni.findIndex((x) => x.startsWith(colonna))]?.textContent ?? '';
+    };
+    expect(cella('SRA01', 'Avvisi attivati')).toBe('non valorizzatoil dato non è presente nella fonte');
+    expect(cella('SRA01', 'Azioni attivate')).toBe('non disponibilefonte avvisi SMP non attiva');
+    expect(cella('SRA01', 'Include top-up')).toBe('non valorizzatoil dato non è presente nella fonte');
+    expect(cella('SRA03', 'Avvisi attivati')).toBe('3');
+    expect(cella('SRA03', 'Azioni attivate')).toBe('0');
+    expect(cella('SRA03', 'Include top-up')).toBe('sì');
+  });
   it('nessuna violazione axe', async () => {
     server.use(http.get('*/api/finanziario/sigc/verifica-smp', () => HttpResponse.json(VERIFICA_SMP)));
     const { container } = renderPagina(Pagina, '/finanziario/sigc/verifica-smp', '/finanziario/sigc/verifica-smp?esercizio=2025');

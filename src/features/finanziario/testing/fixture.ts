@@ -4,6 +4,9 @@
 // (Z-02, eslint.config.js).
 const nd = (fonte: string) => ({ valore: null, motivo: 'FONTE_NON_ATTIVA', fonte });
 const euro = (valore: number) => ({ valore, motivo: null, fonte: null });
+// conteggi e si'/no col motivo dell'assenza (ConteggioFinanziario, SiNoFinanziario): stessa forma dell'Importo
+const dato = <T>(valore: T) => ({ valore, motivo: null, fonte: null });
+const nv = () => ({ valore: null, motivo: 'NON_VALORIZZATO', fonte: null });
 
 export const FILTRI = {
   interventi: [
@@ -138,8 +141,8 @@ export const VERIFICA_SMP = {
   righe: [
     {
       codiceIntervento: 'SRA01',
-      avvisiAttivati: 1,
-      azioniAttivate: null,
+      avvisiAttivati: dato(1),
+      azioniAttivate: nv(),
       domandeRicevute: 120,
       domandeRicevuteSenzaRichiesto: 2,
       valoreDomandeRicevute: euro(1500000),
@@ -152,7 +155,7 @@ export const VERIFICA_SMP = {
       spesaErogataCampagneAnteriori: euro(0),
       previsionePagamentoEsercizio: nd('PREVISIONE_PAGAMENTO'),
       importoTopUp: euro(0),
-      includeTopUp: false,
+      includeTopUp: dato(false),
       ettariUbaRichiesti: 350.5,
       outputAttesoFinanziate: null,
       outputErogatoEsercizio: null,
