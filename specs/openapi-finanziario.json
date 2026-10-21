@@ -44,6 +44,39 @@
         },
         "type": "object"
       },
+      "ConteggioFinanziario": {
+        "description": "Conteggio, oppure null con il motivo dell'assenza",
+        "properties": {
+          "fonte": {
+            "description": "Fonte attesa, solo con FONTE_NON_ATTIVA",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "motivo": {
+            "description": "Motivo dell'assenza, null se c'e' il valore: FONTE_NON_ATTIVA, NON_VALORIZZATO",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "valore": {
+            "description": "Numero; null se il dato non e' disponibile",
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "valore",
+          "motivo",
+          "fonte"
+        ],
+        "type": "object"
+      },
       "DistribuzioneDotazione": {
         "description": "TX-0003",
         "properties": {
@@ -124,7 +157,7 @@
             "type": "integer"
           },
           "pagate": {
-            "description": "Domande con importo pagato maggiore di zero",
+            "description": "Domande con importo ammesso e pagato valorizzati e pagato maggiore di zero; una domanda senza ammesso e' tra le senzaImporti, mai tra le pagate (D-09 Rev. 2)",
             "format": "int64",
             "type": "integer"
           },
@@ -740,15 +773,14 @@
       "VerificaSmpRiga": {
         "properties": {
           "avvisiAttivati": {
-            "format": "int64",
-            "type": "integer"
+            "$ref": "#/components/schemas/ConteggioFinanziario",
+            "description": "Avvisi pubblici attivati del monitoraggio SMP SIGC (numero del report): NON_VALORIZZATO senza il numero, mai ricavato dallo stato (D-09 Rev. 1)",
+            "type": "object"
           },
           "azioniAttivate": {
-            "format": "int32",
-            "type": [
-              "integer",
-              "null"
-            ]
+            "$ref": "#/components/schemas/ConteggioFinanziario",
+            "description": "Azioni attivate dell'avviso SIGC: NON_VALORIZZATO senza il dato o senza l'avviso, come in TX-0016 (D-09 Rev. 3)",
+            "type": "object"
           },
           "codiceIntervento": {
             "type": "string"
@@ -786,10 +818,9 @@
             "$ref": "#/components/schemas/Importo"
           },
           "includeTopUp": {
-            "type": [
-              "boolean",
-              "null"
-            ]
+            "$ref": "#/components/schemas/SiNoFinanziario",
+            "description": "La dotazione dell'avviso SIGC include il top-up: NON_VALORIZZATO senza il dato o senza l'avviso, come in TX-0016 (D-09 Rev. 3)",
+            "type": "object"
           },
           "indicatoreOutput": {
             "type": [

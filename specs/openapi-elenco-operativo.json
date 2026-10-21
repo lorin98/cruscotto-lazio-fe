@@ -841,6 +841,10 @@
             },
             "type": "array"
           },
+          "attoConcessioneDisponibile": {
+            "description": "Il filtro concessione si puo' usare: false se nessuna domanda del database ha l'atto di concessione (TX-0026 FONTE_NON_ATTIVA ATTO_CONCESSIONE); allora concessione=true|false risponde 400 DATO_NON_VALIDO (D-02 Rev. 5-6)",
+            "type": "boolean"
+          },
           "azioniPortanti": {
             "items": {
               "$ref": "#/components/schemas/VoceFiltro"
@@ -1046,7 +1050,7 @@
             }
           },
           {
-            "description": "true: con atto di concessione (numero o data, come TX-0026); false: senza",
+            "description": "true: con atto di concessione (numero o data, come TX-0026); false: senza. 400 DATO_NON_VALIDO se nessuna domanda del database ha l'atto (attoConcessioneDisponibile false in TX-0060, D-02 Rev. 5-6)",
             "in": "query",
             "name": "concessione",
             "schema": {
@@ -1244,7 +1248,7 @@
             }
           },
           {
-            "description": "Chiave del report TX-0028 (ripetibile): una voce del catalogo degli stati della domanda di pagamento (es. FINANZIATO) o il codice di uno degli altri stati; le domande di pagamento con presenza CSR-DP aperta che il report conta per quella chiave. In OR con stato e statoSostegno",
+            "description": "Chiave del report TX-0028 (ripetibile): una voce del catalogo degli stati della domanda di pagamento (es. FINANZIATO) o il codice di uno degli altri stati; le domande di pagamento rilasciate con presenza CSR-DP aperta che il report conta per quella chiave: per una voce con domande non rilasciate e' la parte rilasciata, domande meno domandeNonRilasciate (D-02 Rev. 4). In OR con stato e statoSostegno",
             "in": "query",
             "name": "statoPagamento",
             "schema": {
@@ -1266,7 +1270,7 @@
             }
           },
           {
-            "description": "Chiave del report TX-0027 (ripetibile): una voce del catalogo degli stati della domanda di sostegno (es. RILASCIATO) o il codice di uno degli altri stati; le domande di sostegno che il report conta per quella chiave. In OR con stato e statoPagamento",
+            "description": "Chiave del report TX-0027 (ripetibile): una voce del catalogo degli stati della domanda di sostegno (es. RILASCIATO) o il codice di uno degli altri stati; le domande di sostegno rilasciate che il report conta per quella chiave: per una voce con domande non rilasciate e' la parte rilasciata, domande meno domandeNonRilasciate (D-02 Rev. 4). In OR con stato e statoPagamento",
             "in": "query",
             "name": "statoSostegno",
             "schema": {
@@ -1472,7 +1476,7 @@
             }
           },
           {
-            "description": "true: con atto di concessione (numero o data, come TX-0026); false: senza",
+            "description": "true: con atto di concessione (numero o data, come TX-0026); false: senza. 400 DATO_NON_VALIDO se nessuna domanda del database ha l'atto (attoConcessioneDisponibile false in TX-0060, D-02 Rev. 5-6)",
             "in": "query",
             "name": "concessione",
             "schema": {
@@ -1637,7 +1641,7 @@
             }
           },
           {
-            "description": "Chiave del report TX-0028 (ripetibile): una voce del catalogo degli stati della domanda di pagamento (es. FINANZIATO) o il codice di uno degli altri stati; le domande di pagamento con presenza CSR-DP aperta che il report conta per quella chiave. In OR con stato e statoSostegno",
+            "description": "Chiave del report TX-0028 (ripetibile): una voce del catalogo degli stati della domanda di pagamento (es. FINANZIATO) o il codice di uno degli altri stati; le domande di pagamento rilasciate con presenza CSR-DP aperta che il report conta per quella chiave: per una voce con domande non rilasciate e' la parte rilasciata, domande meno domandeNonRilasciate (D-02 Rev. 4). In OR con stato e statoSostegno",
             "in": "query",
             "name": "statoPagamento",
             "schema": {
@@ -1659,7 +1663,7 @@
             }
           },
           {
-            "description": "Chiave del report TX-0027 (ripetibile): una voce del catalogo degli stati della domanda di sostegno (es. RILASCIATO) o il codice di uno degli altri stati; le domande di sostegno che il report conta per quella chiave. In OR con stato e statoPagamento",
+            "description": "Chiave del report TX-0027 (ripetibile): una voce del catalogo degli stati della domanda di sostegno (es. RILASCIATO) o il codice di uno degli altri stati; le domande di sostegno rilasciate che il report conta per quella chiave: per una voce con domande non rilasciate e' la parte rilasciata, domande meno domandeNonRilasciate (D-02 Rev. 4). In OR con stato e statoPagamento",
             "in": "query",
             "name": "statoSostegno",
             "schema": {
@@ -1876,7 +1880,7 @@
             }
           },
           {
-            "description": "true: con atto di concessione (numero o data, come TX-0026); false: senza",
+            "description": "true: con atto di concessione (numero o data, come TX-0026); false: senza. 400 DATO_NON_VALIDO se nessuna domanda del database ha l'atto (attoConcessioneDisponibile false in TX-0060, D-02 Rev. 5-6)",
             "in": "query",
             "name": "concessione",
             "schema": {
@@ -2052,7 +2056,7 @@
             }
           },
           {
-            "description": "Chiave del report TX-0028 (ripetibile): una voce del catalogo degli stati della domanda di pagamento (es. FINANZIATO) o il codice di uno degli altri stati; le domande di pagamento con presenza CSR-DP aperta che il report conta per quella chiave. In OR con stato e statoSostegno",
+            "description": "Chiave del report TX-0028 (ripetibile): una voce del catalogo degli stati della domanda di pagamento (es. FINANZIATO) o il codice di uno degli altri stati; le domande di pagamento rilasciate con presenza CSR-DP aperta che il report conta per quella chiave: per una voce con domande non rilasciate e' la parte rilasciata, domande meno domandeNonRilasciate (D-02 Rev. 4). In OR con stato e statoSostegno",
             "in": "query",
             "name": "statoPagamento",
             "schema": {
@@ -2074,7 +2078,7 @@
             }
           },
           {
-            "description": "Chiave del report TX-0027 (ripetibile): una voce del catalogo degli stati della domanda di sostegno (es. RILASCIATO) o il codice di uno degli altri stati; le domande di sostegno che il report conta per quella chiave. In OR con stato e statoPagamento",
+            "description": "Chiave del report TX-0027 (ripetibile): una voce del catalogo degli stati della domanda di sostegno (es. RILASCIATO) o il codice di uno degli altri stati; le domande di sostegno rilasciate che il report conta per quella chiave: per una voce con domande non rilasciate e' la parte rilasciata, domande meno domandeNonRilasciate (D-02 Rev. 4). In OR con stato e statoPagamento",
             "in": "query",
             "name": "statoSostegno",
             "schema": {
@@ -2513,7 +2517,7 @@
             }
           },
           {
-            "description": "true: con atto di concessione (numero o data, come TX-0026); false: senza",
+            "description": "true: con atto di concessione (numero o data, come TX-0026); false: senza. 400 DATO_NON_VALIDO se nessuna domanda del database ha l'atto (attoConcessioneDisponibile false in TX-0060, D-02 Rev. 5-6)",
             "in": "query",
             "name": "concessione",
             "schema": {
@@ -2733,7 +2737,7 @@
             }
           },
           {
-            "description": "Chiave del report TX-0028 (ripetibile): una voce del catalogo degli stati della domanda di pagamento (es. FINANZIATO) o il codice di uno degli altri stati; le domande di pagamento con presenza CSR-DP aperta che il report conta per quella chiave. In OR con stato e statoSostegno",
+            "description": "Chiave del report TX-0028 (ripetibile): una voce del catalogo degli stati della domanda di pagamento (es. FINANZIATO) o il codice di uno degli altri stati; le domande di pagamento rilasciate con presenza CSR-DP aperta che il report conta per quella chiave: per una voce con domande non rilasciate e' la parte rilasciata, domande meno domandeNonRilasciate (D-02 Rev. 4). In OR con stato e statoSostegno",
             "in": "query",
             "name": "statoPagamento",
             "schema": {
@@ -2755,7 +2759,7 @@
             }
           },
           {
-            "description": "Chiave del report TX-0027 (ripetibile): una voce del catalogo degli stati della domanda di sostegno (es. RILASCIATO) o il codice di uno degli altri stati; le domande di sostegno che il report conta per quella chiave. In OR con stato e statoPagamento",
+            "description": "Chiave del report TX-0027 (ripetibile): una voce del catalogo degli stati della domanda di sostegno (es. RILASCIATO) o il codice di uno degli altri stati; le domande di sostegno rilasciate che il report conta per quella chiave: per una voce con domande non rilasciate e' la parte rilasciata, domande meno domandeNonRilasciate (D-02 Rev. 4). In OR con stato e statoPagamento",
             "in": "query",
             "name": "statoSostegno",
             "schema": {
@@ -2972,7 +2976,7 @@
             }
           },
           {
-            "description": "true: con atto di concessione (numero o data, come TX-0026); false: senza",
+            "description": "true: con atto di concessione (numero o data, come TX-0026); false: senza. 400 DATO_NON_VALIDO se nessuna domanda del database ha l'atto (attoConcessioneDisponibile false in TX-0060, D-02 Rev. 5-6)",
             "in": "query",
             "name": "concessione",
             "schema": {
@@ -3170,7 +3174,7 @@
             }
           },
           {
-            "description": "Chiave del report TX-0028 (ripetibile): una voce del catalogo degli stati della domanda di pagamento (es. FINANZIATO) o il codice di uno degli altri stati; le domande di pagamento con presenza CSR-DP aperta che il report conta per quella chiave. In OR con stato e statoSostegno",
+            "description": "Chiave del report TX-0028 (ripetibile): una voce del catalogo degli stati della domanda di pagamento (es. FINANZIATO) o il codice di uno degli altri stati; le domande di pagamento rilasciate con presenza CSR-DP aperta che il report conta per quella chiave: per una voce con domande non rilasciate e' la parte rilasciata, domande meno domandeNonRilasciate (D-02 Rev. 4). In OR con stato e statoSostegno",
             "in": "query",
             "name": "statoPagamento",
             "schema": {
@@ -3192,7 +3196,7 @@
             }
           },
           {
-            "description": "Chiave del report TX-0027 (ripetibile): una voce del catalogo degli stati della domanda di sostegno (es. RILASCIATO) o il codice di uno degli altri stati; le domande di sostegno che il report conta per quella chiave. In OR con stato e statoPagamento",
+            "description": "Chiave del report TX-0027 (ripetibile): una voce del catalogo degli stati della domanda di sostegno (es. RILASCIATO) o il codice di uno degli altri stati; le domande di sostegno rilasciate che il report conta per quella chiave: per una voce con domande non rilasciate e' la parte rilasciata, domande meno domandeNonRilasciate (D-02 Rev. 4). In OR con stato e statoPagamento",
             "in": "query",
             "name": "statoSostegno",
             "schema": {
