@@ -24,9 +24,14 @@ type Vista = VistaGrafico;
 /** Convalida di una vista salvata fuori dal componente (es. nello state della history, che e' `unknown`). */
 export const eVistaGrafico = (v: unknown): v is VistaGrafico => v === 'grafico' || v === 'tabella';
 
-function InterruttoreVista({ titolo, vista, onVista }: { titolo: string; vista: Vista; onVista: (v: Vista) => void }) {
+/**
+ * Interruttore Grafico | Tabella, sempre in quest'ordine: quello di ogni card e quello di una pagina con le due viste (es.
+ * il riepilogo), un solo componente (review delta 21/10 X3-b e passata 2 H2). `etichetta`: il nome del gruppo per i
+ * lettori di schermo; `className`: classi in piu' (es. il margine).
+ */
+export function InterruttoreVista({ etichetta, vista, onVista, className }: { etichetta: string; vista: Vista; onVista: (v: Vista) => void; className?: string }) {
   return (
-    <div className="ui-seg" role="group" aria-label={`Vista di ${titolo}`}>
+    <div className={className ? `ui-seg ${className}` : 'ui-seg'} role="group" aria-label={etichetta}>
       <button type="button" aria-pressed={vista === 'grafico'} onClick={() => onVista('grafico')}>
         Grafico
       </button>
@@ -128,7 +133,7 @@ export function CardGrafico({ titolo, sottotitolo, dati, fonte, altezza = 'norma
   const strumentiCard = (
     <>
       {strumenti}
-      {disegnabile && <InterruttoreVista titolo={titolo} vista={vista} onVista={setVista} />}
+      {disegnabile && <InterruttoreVista etichetta={`Vista di ${titolo}`} vista={vista} onVista={setVista} />}
       <PulsantiScarica oggetto={`il grafico ${titolo}`} scaricamenti={[...png, ...scaricamenti]} />
     </>
   );

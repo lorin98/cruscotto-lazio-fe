@@ -10,7 +10,7 @@ export { Icona } from './icona';
 export type { NomeIcona } from './icona';
 export { Grafico } from './grafici/Grafico';
 export type { AltezzaGrafico, ClicGrafico } from './grafici/Grafico';
-export { CardGrafico, eVistaGrafico } from './grafici/CardGrafico';
+export { CardGrafico, InterruttoreVista, eVistaGrafico } from './grafici/CardGrafico';
 export type { VistaGrafico } from './grafici/CardGrafico';
 export { ContestoIntestazione } from './grafici/usePngDelGrafico';
 export type { DatiGrafico, TabellaEquivalente } from '../lib/grafici';

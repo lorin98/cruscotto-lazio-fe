@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { Link } from 'react-router';
 import { ValoreImporto } from '../../../entities/importo';
 import { formatNumber } from '../../../shared/lib';
-import { CardGrafico, PannelloLaterale, PulsantiScarica, Sezione, TabellaInterattiva, VistaQuery } from '../../../shared/ui';
+import { CardGrafico, InterruttoreVista, PannelloLaterale, PulsantiScarica, Sezione, TabellaInterattiva, VistaQuery } from '../../../shared/ui';
 import { statoTabellaValido } from '../../../shared/ui';
 import type { ColonnaTabella, RigaPiede, StatoTabella } from '../../../shared/ui';
 import { useRiepilogo } from '../api';
@@ -170,20 +170,6 @@ function useVistaRiepilogo(filtri: Filtri): [VistaRiepilogo, (v: VistaRiepilogo)
   ];
 }
 
-/** Interruttore di pagina: Grafico prima di Tabella, nello stesso ordine dell'interruttore di ogni card (review delta 21/10 X3-b). */
-function SceltaVista({ vista, onVista }: { vista: VistaRiepilogo; onVista: (v: VistaRiepilogo) => void }) {
-  return (
-    <div className="ui-seg mb-3" role="group" aria-label="Vista del riepilogo">
-      <button type="button" aria-pressed={vista === 'grafico'} onClick={() => onVista('grafico')}>
-        Grafico
-      </button>
-      <button type="button" aria-pressed={vista === 'tabella'} onClick={() => onVista('tabella')}>
-        Tabella
-      </button>
-    </div>
-  );
-}
-
 function Contenuto({ d, filtri }: { d: RiepilogoFinanziario; filtri: Filtri }) {
   // aprendo il dettaglio (anteprima o grafico) lo stato del riepilogo (tabella e vista) viaggia con la navigazione: "Torna
   // al riepilogo" lo riporta (review v4 X-04, iter3 X-01)
@@ -202,7 +188,8 @@ function Contenuto({ d, filtri }: { d: RiepilogoFinanziario; filtri: Filtri }) {
     <>
       <PerimetroSezione perimetro={d.perimetro} />
       <NotaPerimetroMisto perimetro={d.perimetro} />
-      <SceltaVista vista={vista} onVista={scegliVista} />
+      {/* interruttore di pagina: quello del kit, nello stesso ordine Grafico | Tabella di ogni card (X3-b, passata 2 H2) */}
+      <InterruttoreVista etichetta="Vista del riepilogo" vista={vista} onVista={scegliVista} className="mb-3" />
       {vista === 'tabella' ? (
         <TabellaInterattiva
           caption="Riepilogo per intervento (RF011)"
