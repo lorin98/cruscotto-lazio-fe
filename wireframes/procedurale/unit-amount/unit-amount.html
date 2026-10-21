@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<!-- Wireframe v2 (template wireframe-v2 di green-fe, ADR 0027). Valori di esempio, nessun dato reale. -->
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Unit Amount - Procedurale - Cruscotto CSR 2023-2027</title>
+<link rel="stylesheet" href="wireframe.css">
+</head>
+<body>
+<a class="skip-link" href="#contenuto">Salta al contenuto</a>
+<header class="ui-testata">
+  <div class="ui-ente">
+    <span class="ui-logo">Regione Lazio</span>
+    <span class="ui-logo">ARSIAL</span>
+  </div>
+  <div class="ui-appbar">
+    <a class="ui-appbar__nome" href="../../panoramica/panoramica.html">Cruscotto CSR 2023-2027</a>
+    <form class="ui-cerca" action="#" method="get" role="search">
+      <label class="form-label" for="cerca-app">Cerca un intervento</label>
+      <input class="form-control" type="search" id="cerca-app" name="q">
+    </form>
+    <span class="ui-utente">Nome Cognome - <a href="#contenuto">Esci</a></span>
+  </div>
+</header>
+<div class="ui-layout">
+  <nav class="ui-sidebar" aria-label="Navigazione principale">
+    <p class="ui-menu__sezione">Aree del cruscotto</p>
+    <ul class="ui-menu">
+      <li><a class="ui-menu__gruppo" href="../../panoramica/panoramica.html">Finanziario</a></li>
+      <li><a class="ui-menu__gruppo" href="../panoramica/panoramica.html">Procedurale</a>
+        <ul class="ui-menu__sub">
+          <li><a href="../panoramica/panoramica.html">Panoramica</a></li>
+          <li><a href="../stati/stati-sostegno.html">Stati delle domande di sostegno</a></li>
+          <li><a href="../stati/stati-pagamento.html">Stati delle domande di pagamento</a></li>
+          <li><a href="../ammesse/ammesse.html">Domande ammesse</a></li>
+          <li><a href="../sottofasi/sottofasi.html">Sottofasi di ammissibilità</a></li>
+          <li><a href="unit-amount.html" aria-current="page">Unit Amount</a></li>
+          <li><a href="../riepilogo/riepilogo.html">Riepilogo per intervento</a></li>
+        </ul>
+      </li>
+      <li><span class="ui-menu__presto">Fisico (presto)</span></li>
+      <li><span class="ui-menu__presto">Istituzionale (presto)</span></li>
+    </ul>
+    <p class="ui-menu__sezione">Strumenti</p>
+    <ul class="ui-menu">
+      <li><a class="ui-menu__gruppo" href="../../elenco-operativo/domande/domande.html">Elenco operativo</a></li>
+    </ul>
+  </nav>
+  <main class="ui-main" id="contenuto">
+    <div class="ui-filtri" role="region" aria-label="Filtri attivi">
+      <a class="btn btn-primary" href="../panoramica/panoramica.html#pannello-filtri">Filtri (1)</a>
+      <span class="ui-chip">Intervento: SRD01 <button class="btn" type="button" aria-label="Togli il filtro Intervento SRD01">x</button></span>
+      <span class="ui-pill">Perimetro: regionale (dati di programma, uguali per ogni profilo)</span>
+      <span class="ui-pill">Il filtro per stato area programmazione non si applica alle Unit Amount</span>
+    </div>
+    <nav class="breadcrumb-container" aria-label="Percorso">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="../../panoramica/panoramica.html">Home</a></li>
+        <li class="breadcrumb-item"><a href="../panoramica/panoramica.html">Procedurale</a></li>
+        <li class="breadcrumb-item" aria-current="page">Unit Amount</li>
+      </ol>
+    </nav>
+    <div class="ui-titolo">
+      <h1>Procedurale: pagamenti per Unit Amount</h1>
+      <p>Per ogni Unit Amount (gruppo colturale) degli interventi selezionati: importo unitario, output previsto, importo pagato, percentuale pagata sul richiesto e base storica per la previsione.</p>
+    </div>
+    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0024.read, csr.tx-0030.read - Transazioni: TX-0030 (RF030), TX-0024 (valori dei filtri intervento, OS, OG, OP). TX-0030 non accetta lo stato area programmazione: la barra dice sempre in testo che quel filtro non si applica, e uno stato arrivato dall'indirizzo non diventa un chip ne' parte verso il backend (OP-PR-03). Nel pack RF030 e' dell'area fisica: collocazione da decidere (OP-PR-04). Ultimo dato sincronizzato assente dai DTO (OP-PR-01).</p>
+    <section class="ui-card" aria-labelledby="g-ua">
+      <div class="ui-card__testa">
+        <h2 id="g-ua">Percentuale pagata per Unit Amount</h2>
+        <div class="ui-seg" role="group" aria-label="Vista di Percentuale pagata per Unit Amount"><button class="btn" type="button" aria-pressed="false">Grafico</button> <button class="btn" type="button" aria-pressed="true">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+      </div>
+      <p class="wf-note">Grafico non disponibile: nessuna Unit Amount ha ancora l'importo pagato (fonte non attiva: pagato per Unit Amount, arrivera' con la Data Platform). La card lo dice in testo e mostra subito la tabella. Con la fonte attiva la vista iniziale e' il Grafico: barre orizzontali raggruppate per Unit Amount con la percentuale pagata dell'esercizio e la base storica (esercizio precedente); valore non valorizzato omesso e dichiarato; clic su una barra: anteprima della riga nella tabella.</p>
+      <p class="ui-fonte">Fonte: TX-0030. Scarica: immagine PNG del grafico, quando c'e'; nessun export del backend per questo report (OP-PR-05).</p>
+    </section>
+    <section class="ui-card" aria-labelledby="t-ua">
+      <div class="ui-card__testa"><h2 id="t-ua">Unit Amount degli interventi selezionati</h2></div>
+      <div class="ui-strumenti">
+        <label class="form-label" for="t-cerca">Cerca nella tabella</label>
+        <input class="form-control" type="search" id="t-cerca" name="t">
+        <button class="btn" type="button">Colonne (9)</button>
+      </div>
+      <table class="ui-tabella">
+        <caption>Unit Amount per intervento, esercizio e codice: la Unit Amount e' l'intestazione di riga; clic o Invio su una riga per l'anteprima.</caption>
+        <thead>
+          <tr>
+            <th scope="col"><button class="btn" type="button">Intervento</button></th>
+            <th scope="col"><button class="btn" type="button">Unit Amount</button></th>
+            <th scope="col"><button class="btn" type="button">Gruppo colturale</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Esercizio</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Importo unitario</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Output previsto</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Importo pagato</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Pagato sul richiesto</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Base storica</button></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="ui-riga"><td>SRD01</td><th scope="row">UA1</th><td>Seminativi</td><td class="ui-num">2025</td><td class="ui-num">150,00</td><td class="ui-num">10</td><td>non disponibile (fonte non attiva)</td><td>non disponibile (fonte non attiva)</td><td>non disponibile (fonte non attiva)</td></tr>
+          <tr class="ui-riga"><td>SRD01</td><th scope="row">UA2</th><td>Gruppo colturale</td><td class="ui-num">2024</td><td>non valorizzato</td><td class="ui-num">n</td><td>non disponibile (fonte non attiva)</td><td>non disponibile (fonte non attiva)</td><td>non disponibile (fonte non attiva)</td></tr>
+        </tbody>
+      </table>
+      <p class="ui-fonte">Fonte: TX-0030 (righe, ordinate dal backend per intervento, esercizio e codice). Con la fonte attiva: importo pagato e percentuale della riga ("non valorizzato" se mancano nella riga) e base storica = percentuale pagata della stessa Unit Amount dell'intervento nell'esercizio precedente ("non valorizzato" se manca). Nessun totale: il DTO non lo porta e la pagina non somma. Mai l'Assistenza tecnica (AT001).</p>
+      <nav class="ui-paginazione" aria-label="Pagine della tabella"><button class="btn" type="button" aria-current="page">1</button> <button class="btn" type="button">2</button></nav>
+    </section>
+    <aside class="ui-drawer" aria-label="Anteprima della Unit Amount UA1 di SRD01">
+      <h2>Anteprima: UA1 (SRD01, esercizio 2025)</h2>
+      <dl>
+        <dt>Gruppo colturale</dt><dd>Seminativi</dd>
+        <dt>Importo unitario</dt><dd>150,00 euro</dd>
+        <dt>Output previsto</dt><dd>10</dd>
+        <dt>Importo pagato</dt><dd>non disponibile (fonte non attiva: pagato per Unit Amount)</dd>
+        <dt>Base storica</dt><dd>non disponibile (fonte non attiva: pagato per Unit Amount)</dd>
+      </dl>
+      <a class="btn btn-primary" href="../panoramica/intervento.html">Apri il dettaglio dell'intervento</a>
+    </aside>
+    <p class="wf-note">Apri il dettaglio dell'intervento = link dettaglio-intervento-unit-amount (scheda Unit Amount del dettaglio). Le Unit Amount non sono insiemi di domande: nessun link verso l'elenco operativo.</p>
+    <h2>Stato: caricamento</h2>
+    <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro della card e della tabella)</div>
+    <h2>Stato: vuoto</h2>
+    <div class="ui-vuoto" role="status">Nessuna Unit Amount per gli interventi scelti. <a class="btn btn-primary" href="../panoramica/panoramica.html#pannello-filtri">Modifica i filtri</a></div>
+    <h2>Stato: errore</h2>
+    <div class="alert alert-danger" role="alert">Dati non disponibili: messaggio dal problem-type (400 filtro non valido, 403 accesso negato, 503 da riprovare dopo Retry-After). <a href="#contenuto">Riprova</a></div>
+  </main>
+</div>
+<footer class="ui-footer">
+  <ul>
+    <li><a href="#contenuto">Dichiarazione di accessibilita' (indirizzo da definire)</a></li>
+    <li><a href="#contenuto">Privacy (indirizzo da definire)</a></li>
+    <li><a href="#contenuto">Note legali (indirizzo da definire)</a></li>
+    <li>Regione Lazio - ARSIAL</li>
+  </ul>
+</footer>
+</body>
+</html>

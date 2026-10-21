@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<!-- Wireframe v2 (template wireframe-v2 di green-fe, ADR 0027). Valori di esempio, nessun dato reale. -->
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Panoramica - Procedurale - Cruscotto CSR 2023-2027</title>
+<link rel="stylesheet" href="wireframe.css">
+</head>
+<body>
+<a class="skip-link" href="#contenuto">Salta al contenuto</a>
+<header class="ui-testata">
+  <div class="ui-ente">
+    <span class="ui-logo">Regione Lazio</span>
+    <span class="ui-logo">ARSIAL</span>
+  </div>
+  <div class="ui-appbar">
+    <a class="ui-appbar__nome" href="../../panoramica/panoramica.html">Cruscotto CSR 2023-2027</a>
+    <form class="ui-cerca" action="#" method="get" role="search">
+      <label class="form-label" for="cerca-app">Cerca un intervento</label>
+      <input class="form-control" type="search" id="cerca-app" name="q">
+    </form>
+    <span class="ui-utente">Nome Cognome - <a href="#contenuto">Esci</a></span>
+  </div>
+</header>
+<div class="ui-layout">
+  <nav class="ui-sidebar" aria-label="Navigazione principale">
+    <p class="ui-menu__sezione">Aree del cruscotto</p>
+    <ul class="ui-menu">
+      <li><a class="ui-menu__gruppo" href="../../panoramica/panoramica.html">Finanziario</a></li>
+      <li><a class="ui-menu__gruppo" href="panoramica.html">Procedurale</a>
+        <ul class="ui-menu__sub">
+          <li><a href="panoramica.html" aria-current="page">Panoramica</a></li>
+          <li><a href="../stati/stati-sostegno.html">Stati delle domande di sostegno</a></li>
+          <li><a href="../stati/stati-pagamento.html">Stati delle domande di pagamento</a></li>
+          <li><a href="../ammesse/ammesse.html">Domande ammesse</a></li>
+          <li><a href="../sottofasi/sottofasi.html">Sottofasi di ammissibilità</a></li>
+          <li><a href="../unit-amount/unit-amount.html">Unit Amount</a></li>
+          <li><a href="../riepilogo/riepilogo.html">Riepilogo per intervento</a></li>
+        </ul>
+      </li>
+      <li><span class="ui-menu__presto">Fisico (presto)</span></li>
+      <li><span class="ui-menu__presto">Istituzionale (presto)</span></li>
+    </ul>
+    <p class="ui-menu__sezione">Strumenti</p>
+    <ul class="ui-menu">
+      <li><a class="ui-menu__gruppo" href="../../elenco-operativo/domande/domande.html">Elenco operativo</a></li>
+    </ul>
+  </nav>
+  <main class="ui-main" id="contenuto">
+    <div class="ui-filtri" role="region" aria-label="Filtri attivi">
+      <a class="btn btn-primary" href="panoramica.html#pannello-filtri">Filtri (2)</a>
+      <span class="ui-chip">Intervento: SRD01 <button class="btn" type="button" aria-label="Togli il filtro Intervento SRD01">x</button></span>
+      <span class="ui-chip">Stato area programmazione: Ammessa <button class="btn" type="button" aria-label="Togli il filtro Stato area programmazione Ammessa">x</button></span>
+      <span class="ui-pill">Perimetro: regionale (profilo ADA: solo le domande della propria ADA, non rimovibile)</span>
+    </div>
+    <nav class="breadcrumb-container" aria-label="Percorso">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="../../panoramica/panoramica.html">Home</a></li>
+        <li class="breadcrumb-item" aria-current="page">Procedurale</li>
+      </ol>
+    </nav>
+    <div class="ui-titolo">
+      <h1>Procedurale: panoramica</h1>
+      <p>Domande ammesse, stati delle domande di sostegno e di pagamento e stato area programmazione degli interventi selezionati.</p>
+    </div>
+    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0024.read, csr.tx-0025.read, csr.tx-0026.read, csr.tx-0027.read, csr.tx-0028.read, csr.tx-0029.read - Transazioni: TX-0024 e TX-0025 (valori dei filtri), TX-0026 (KPI e importi per intervento), TX-0027, TX-0028 (stati), TX-0029 (stato area programmazione). Ogni card compare solo con il grant della sua transazione (gate di UX).</p>
+    <p class="wf-note">Ultimo dato sincronizzato: nessun DTO procedurale lo espone (OP-PR-01), la pill non c'e' finche' il backend non aggiunge il campo a TX-0024. Il perimetro viene dal campo perimetro di ogni risposta (REGIONALE o ADA).</p>
+    <div class="ui-griglia ui-griglia--4">
+      <section class="ui-kpi" aria-label="Domande ammesse">
+        <p>Domande ammesse</p>
+        <p class="ui-kpi__valore">n</p>
+        <p class="ui-barra">stato area programmazione Ammessa, domande di ogni tipo (TX-0026)</p>
+        <a class="btn" href="../../elenco-operativo/domande/domande.html" aria-label="Apri nell'elenco operativo le domande ammesse">Apri nell'elenco</a>
+      </section>
+      <section class="ui-kpi" aria-label="Domande con atto di concessione">
+        <p>Domande con atto di concessione</p>
+        <p class="ui-kpi__valore">non disponibile</p>
+        <p class="ui-barra">fonte non attiva: atto di concessione (nessuna domanda del database ha numero o data dell'atto)</p>
+      </section>
+      <section class="ui-kpi" aria-label="Contributo ammesso">
+        <p>Contributo ammesso</p>
+        <p class="ui-kpi__valore">n,n M euro</p>
+        <p class="ui-barra">su importo richiesto n,n M euro: nn% (solo se entrambi valorizzati)</p>
+      </section>
+      <section class="ui-kpi" aria-label="Interventi attivati">
+        <p>Interventi attivati</p>
+        <p class="ui-kpi__valore">n su n</p>
+        <p class="ui-barra">con almeno una domanda di sostegno, sul perimetro ufficiale (interventi selezionati, AT001 esclusa)</p>
+      </section>
+    </div>
+    <p class="wf-note">Con la fonte attiva (almeno un atto nel database) il KPI Domande con atto di concessione mostra il numero (domande di sostegno con numero o data dell'atto nel report CSR-DS) e l'azione Apri nell'elenco (link elenco-con-atto-panoramica: concessione=true, tipo=SOSTEGNO). Con la fonte non attiva l'azione non c'e': l'elenco risponderebbe 400. L'azione del KPI Domande ammesse (link elenco-ammesse-panoramica: voceProgrammazione=AMMESSA) c'e' solo se il filtro per stato e' vuoto o comprende Ammessa.</p>
+    <div class="ui-griglia ui-griglia--2">
+      <section class="ui-card" aria-labelledby="g-sostegno">
+        <div class="ui-card__testa">
+          <h2 id="g-sostegno">Domande di sostegno per stato</h2>
+          <div class="ui-seg" role="group" aria-label="Vista di Domande di sostegno per stato"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+        </div>
+        <figure class="ui-grafico ui-grafico--barre">
+          <figcaption>Barre orizzontali impilate: le undici voci di SR-01 nell'ordine del backend, poi gli altri stati per codice; ogni barra divide le domande rilasciate da quelle non ancora rilasciate (di cui non rilasciate). In compilazione con fonte non attiva: voce omessa e dichiarata sotto. Clic sulla card o su una barra: pagina degli stati delle domande di sostegno.</figcaption>
+        </figure>
+        <p class="ui-fonte">Fonte: TX-0027 (totale). La tabella equivalente mostra voce, domande e di cui non rilasciate. Scarica: immagine PNG (il backend non esporta questo report: i dati sono nel CSV del riepilogo, OP-PR-05).</p>
+      </section>
+      <section class="ui-card" aria-labelledby="g-pagamento">
+        <div class="ui-card__testa">
+          <h2 id="g-pagamento">Domande di pagamento per stato</h2>
+          <div class="ui-seg" role="group" aria-label="Vista di Domande di pagamento per stato"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+        </div>
+        <figure class="ui-grafico ui-grafico--barre">
+          <figcaption>Barre orizzontali impilate: i cinque stati di SR-01 della domanda di pagamento (CSR-DP), poi gli altri stati per codice, con il di cui non rilasciate. Le domande SIGC non hanno questi stati e restano fuori. Clic sulla card o su una barra: pagina degli stati delle domande di pagamento.</figcaption>
+        </figure>
+        <p class="ui-fonte">Fonte: TX-0028 (totale). La tabella equivalente mostra voce, domande e di cui non rilasciate. Scarica: immagine PNG.</p>
+      </section>
+    </div>
+    <div class="ui-griglia ui-griglia--2">
+      <section class="ui-card" aria-labelledby="g-area">
+        <div class="ui-card__testa">
+          <h2 id="g-area">Domande per stato area programmazione</h2>
+          <div class="ui-seg" role="group" aria-label="Vista di Domande per stato area programmazione"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+        </div>
+        <figure class="ui-grafico ui-grafico--barre">
+          <figcaption>Barre orizzontali: le dieci voci di RF025 (stato scritto dalle determine PROSA), gli stati osservati fuori catalogo e le domande senza stato (nessuna determina aperta). Clic su una barra: aggiunge il filtro per quello stato alla pagina (chip).</figcaption>
+        </figure>
+        <p class="ui-fonte">Fonte: TX-0029 (totale.statiAreaProgrammazione). La tabella equivalente ha l'azione Apri nell'elenco per ogni voce con domande.</p>
+      </section>
+      <section class="ui-card" aria-labelledby="g-importi">
+        <div class="ui-card__testa">
+          <h2 id="g-importi">Importo richiesto e contributo ammesso per intervento</h2>
+          <div class="ui-seg" role="group" aria-label="Vista di Importo richiesto e contributo ammesso per intervento"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+        </div>
+        <figure class="ui-grafico ui-grafico--barre">
+          <figcaption>Barre raggruppate con zoom oltre 12 interventi: importo richiesto e contributo ammesso delle domande ammesse. Importo non valorizzato: barra omessa e dichiarata. Clic su una barra: dettaglio procedurale dell'intervento.</figcaption>
+        </figure>
+        <p class="ui-fonte">Fonte: TX-0026 (righe). Importi della determina corrente, altrimenti della domanda negli scarichi SIAN (D-03).</p>
+      </section>
+    </div>
+    <h2>Vista: Tabella di Domande per stato area programmazione</h2>
+    <section class="ui-card" aria-labelledby="t-area">
+      <div class="ui-card__testa">
+        <h2 id="t-area">Domande per stato area programmazione</h2>
+        <div class="ui-seg" role="group" aria-label="Vista di Domande per stato area programmazione"><button class="btn" type="button" aria-pressed="false">Grafico</button> <button class="btn" type="button" aria-pressed="true">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+      </div>
+      <table class="ui-tabella">
+        <caption>Domande per stato area programmazione: la voce e' l'intestazione di riga; Apri nell'elenco apre le domande di quello stato con i filtri correnti.</caption>
+        <thead>
+          <tr>
+            <th scope="col">Stato area programmazione</th>
+            <th scope="col" class="ui-num">Domande</th>
+            <th scope="col">Elenco operativo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">Ammessa</th><td class="ui-num">n</td><td><a class="btn" href="../../elenco-operativo/domande/domande.html" aria-label="Apri nell'elenco operativo le n domande con stato area programmazione Ammessa">Apri nell'elenco</a></td></tr>
+          <tr><th scope="row">Non ammissibile</th><td class="ui-num">0</td><td>nessuna domanda</td></tr>
+          <tr><th scope="row">Revocata (stato osservato fuori catalogo)</th><td class="ui-num">n</td><td><a class="btn" href="../../elenco-operativo/domande/domande.html" aria-label="Apri nell'elenco operativo le n domande con stato area programmazione Revocata">Apri nell'elenco</a></td></tr>
+          <tr><th scope="row">Senza stato (nessuna determina aperta)</th><td class="ui-num">n</td><td><a class="btn" href="../../elenco-operativo/domande/domande.html" aria-label="Apri nell'elenco operativo le n domande senza stato area programmazione">Apri nell'elenco</a></td></tr>
+        </tbody>
+        <tfoot>
+          <tr><th scope="row">Totale</th><td class="ui-num">n</td><td></td></tr>
+        </tfoot>
+      </table>
+      <p class="ui-fonte">Fonte: TX-0029. Link elenco-area-programmazione-panoramica: voceProgrammazione = chiave della voce (il codice per uno stato osservato, SENZA_STATO per le domande senza stato), intervento, os, og, op correnti. L'area programmazione non ha domande non rilasciate: il numero coincide con l'elenco.</p>
+    </section>
+    <aside class="ui-pannello" id="pannello-filtri" aria-label="Pannello dei filtri">
+      <h2>Filtri dei report procedurali</h2>
+      <details class="ui-gruppo-filtro" open>
+        <summary>Intervento</summary>
+        <label class="form-label" for="f-cerca">Cerca per codice o descrizione</label>
+        <input class="form-control" type="search" id="f-cerca" name="cerca">
+        <label class="ui-opzione" for="f-1"><input type="checkbox" id="f-1" name="intervento"> SRA01 - descrizione dal backend</label>
+        <label class="ui-opzione" for="f-2"><input type="checkbox" id="f-2" name="intervento"> SRD01 - descrizione dal backend</label>
+      </details>
+      <details class="ui-gruppo-filtro">
+        <summary>Obiettivo generale (OG), specifico (OS), di policy (OP)</summary>
+        <button class="ui-toggle-chip" type="button" aria-pressed="false">OG2</button> <button class="ui-toggle-chip" type="button" aria-pressed="false">OS4</button> <button class="ui-toggle-chip" type="button" aria-pressed="false">OP1</button>
+      </details>
+      <details class="ui-gruppo-filtro" open>
+        <summary>Stato domanda area programmazione</summary>
+        <label class="ui-opzione" for="f-s1"><input type="checkbox" id="f-s1" name="stato"> Presentata</label>
+        <label class="ui-opzione" for="f-s2"><input type="checkbox" id="f-s2" name="stato"> Istruttoria</label>
+        <label class="ui-opzione" for="f-s3"><input type="checkbox" id="f-s3" name="stato"> Ammessa</label>
+        <label class="ui-opzione" for="f-s4"><input type="checkbox" id="f-s4" name="stato"> Revocata (stato osservato fuori catalogo)</label>
+        <label class="ui-opzione" for="f-s5"><input type="checkbox" id="f-s5" name="stato"> Senza stato (nessuna determina aperta)</label>
+        <p class="form-text">Le dieci voci di RF025, poi gli stati osservati e la voce senza stato, con le descrizioni del backend (TX-0025).</p>
+      </details>
+      <p class="form-text">L'azione portante non e' un filtro dell'ambito procedurale (D-01 del backend, OP-PR-02).</p>
+      <p class="form-text">Voci dello stesso filtro in alternativa (O); filtri diversi insieme (E). I filtri restano nell'indirizzo della pagina e valgono per tutte le pagine del procedurale che li accettano.</p>
+      <button class="btn" type="button">Azzera</button> <button class="btn btn-primary" type="button">Applica i filtri</button>
+    </aside>
+    <h2>Stato: caricamento</h2>
+    <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro delle card): le letture partono al piu' due alla volta</div>
+    <h2>Stato: vuoto</h2>
+    <div class="ui-vuoto" role="status">Nessun intervento per i filtri scelti. <a class="btn btn-primary" href="panoramica.html#pannello-filtri">Modifica i filtri</a></div>
+    <h2>Stato: errore</h2>
+    <div class="alert alert-danger" role="alert">Dati non disponibili: messaggio dal problem-type (400 filtro non valido, 403 accesso negato, 503 capacita' esaurita o tempo scaduto con nuovo tentativo dopo Retry-After). <a href="#contenuto">Riprova</a></div>
+  </main>
+</div>
+<footer class="ui-footer">
+  <ul>
+    <li><a href="#contenuto">Dichiarazione di accessibilita' (indirizzo da definire)</a></li>
+    <li><a href="#contenuto">Privacy (indirizzo da definire)</a></li>
+    <li><a href="#contenuto">Note legali (indirizzo da definire)</a></li>
+    <li>Regione Lazio - ARSIAL</li>
+  </ul>
+</footer>
+</body>
+</html>

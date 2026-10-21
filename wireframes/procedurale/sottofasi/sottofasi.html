@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<!-- Wireframe v2 (template wireframe-v2 di green-fe, ADR 0027). Valori di esempio, nessun dato reale. -->
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Sottofasi di ammissibilità - Procedurale - Cruscotto CSR 2023-2027</title>
+<link rel="stylesheet" href="wireframe.css">
+</head>
+<body>
+<a class="skip-link" href="#contenuto">Salta al contenuto</a>
+<header class="ui-testata">
+  <div class="ui-ente">
+    <span class="ui-logo">Regione Lazio</span>
+    <span class="ui-logo">ARSIAL</span>
+  </div>
+  <div class="ui-appbar">
+    <a class="ui-appbar__nome" href="../../panoramica/panoramica.html">Cruscotto CSR 2023-2027</a>
+    <form class="ui-cerca" action="#" method="get" role="search">
+      <label class="form-label" for="cerca-app">Cerca un intervento</label>
+      <input class="form-control" type="search" id="cerca-app" name="q">
+    </form>
+    <span class="ui-utente">Nome Cognome - <a href="#contenuto">Esci</a></span>
+  </div>
+</header>
+<div class="ui-layout">
+  <nav class="ui-sidebar" aria-label="Navigazione principale">
+    <p class="ui-menu__sezione">Aree del cruscotto</p>
+    <ul class="ui-menu">
+      <li><a class="ui-menu__gruppo" href="../../panoramica/panoramica.html">Finanziario</a></li>
+      <li><a class="ui-menu__gruppo" href="../panoramica/panoramica.html">Procedurale</a>
+        <ul class="ui-menu__sub">
+          <li><a href="../panoramica/panoramica.html">Panoramica</a></li>
+          <li><a href="../stati/stati-sostegno.html">Stati delle domande di sostegno</a></li>
+          <li><a href="../stati/stati-pagamento.html">Stati delle domande di pagamento</a></li>
+          <li><a href="../ammesse/ammesse.html">Domande ammesse</a></li>
+          <li><a href="sottofasi.html" aria-current="page">Sottofasi di ammissibilità</a></li>
+          <li><a href="../unit-amount/unit-amount.html">Unit Amount</a></li>
+          <li><a href="../riepilogo/riepilogo.html">Riepilogo per intervento</a></li>
+        </ul>
+      </li>
+      <li><span class="ui-menu__presto">Fisico (presto)</span></li>
+      <li><span class="ui-menu__presto">Istituzionale (presto)</span></li>
+    </ul>
+    <p class="ui-menu__sezione">Strumenti</p>
+    <ul class="ui-menu">
+      <li><a class="ui-menu__gruppo" href="../../elenco-operativo/domande/domande.html">Elenco operativo</a></li>
+    </ul>
+  </nav>
+  <main class="ui-main" id="contenuto">
+    <div class="ui-filtri" role="region" aria-label="Perimetro dei dati">
+      <span class="ui-pill">Perimetro: regionale (profilo ADA: domande per sottofase della propria ADA; anagrafica delle sottofasi regionale)</span>
+      <span class="ui-pill">I filtri dei report procedurali non si applicano alle sottofasi</span>
+    </div>
+    <nav class="breadcrumb-container" aria-label="Percorso">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="../../panoramica/panoramica.html">Home</a></li>
+        <li class="breadcrumb-item"><a href="../panoramica/panoramica.html">Procedurale</a></li>
+        <li class="breadcrumb-item" aria-current="page">Sottofasi di ammissibilità</li>
+      </ol>
+    </nav>
+    <div class="ui-titolo">
+      <h1>Procedurale: sottofasi di ammissibilità</h1>
+      <p>Le sottofasi dello stato di ammissibilita' della domanda di sostegno (sei) e di pagamento (sette) di SR-01, con la sottofase dell'anagrafica che le abbina e le domande che vi si trovano.</p>
+    </div>
+    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0031.read, csr.tx-0032.read - Transazioni: TX-0031 (RF031), TX-0032 (RF032). Gli endpoint non accettano filtri: la barra dichiara il perimetro e che i filtri non si applicano, senza il bottone Filtri (OP-PR-03). Ogni card compare solo con il grant della sua transazione. Ultimo dato sincronizzato assente dai DTO (OP-PR-01).</p>
+    <section class="ui-card" aria-labelledby="g-sostegno">
+      <div class="ui-card__testa">
+        <h2 id="g-sostegno">Domande di sostegno per sottofase di ammissibilita'</h2>
+        <div class="ui-seg" role="group" aria-label="Vista di Domande di sostegno per sottofase di ammissibilita'"><button class="btn" type="button" aria-pressed="false">Grafico</button> <button class="btn" type="button" aria-pressed="true">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+      </div>
+      <p class="wf-note">Grafico non disponibile: nessuna domanda di sostegno e' legata a una sottofase (fonte non attiva: sottofasi della domanda). La card lo dice in testo e si apre sulla tabella con l'anagrafica. Con la fonte attiva la vista iniziale e' il Grafico: barre orizzontali delle sei voci nell'ordine di SR-01 (le voci non censite omesse e dichiarate), senza clic (l'elenco operativo non ha un filtro per sottofase, OP-PR-08).</p>
+      <table class="ui-tabella">
+        <caption>Sottofasi di ammissibilita' della domanda di sostegno: la sottofase di SR-01 e' l'intestazione di riga; la colonna Censita dice quale sottofase dell'anagrafica la abbina.</caption>
+        <thead>
+          <tr>
+            <th scope="col">Sottofase (SR-01)</th>
+            <th scope="col">Censita nell'anagrafica</th>
+            <th scope="col">Esito</th>
+            <th scope="col" class="ui-num">Domande della voce</th>
+            <th scope="col" class="ui-num">Domande della sottofase censita</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">Congruenza e conformita' documenti allegati</th><td>CONGRUENZA - descrizione dell'anagrafica</td><td>non valorizzato</td><td>non disponibile (fonte non attiva: sottofasi della domanda)</td><td>non disponibile</td></tr>
+          <tr><th scope="row">Criteri di ammissibilita'</th><td>non censita</td><td>non censita</td><td>non disponibile (fonte non attiva: sottofasi della domanda)</td><td>non censita</td></tr>
+          <tr><th scope="row">Valutazioni personalizzazioni regionali</th><td>non censita</td><td>non censita</td><td>non disponibile (fonte non attiva: sottofasi della domanda)</td><td>non censita</td></tr>
+        </tbody>
+      </table>
+      <p class="ui-fonte">Fonte: TX-0031 (voci; perimetro della risposta). Con la fonte attiva una voce censita conta le domande correnti nella sua sottofase (0 se nessuna), una voce non censita e' "non valorizzato" (nessuna sottofase a cui legare le domande). Scarica: immagine PNG del grafico, quando c'e'.</p>
+    </section>
+    <section class="ui-card" aria-labelledby="g-pagamento">
+      <div class="ui-card__testa">
+        <h2 id="g-pagamento">Domande di pagamento per sottofase di ammissibilita'</h2>
+        <div class="ui-seg" role="group" aria-label="Vista di Domande di pagamento per sottofase di ammissibilita'"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+      </div>
+      <figure class="ui-grafico ui-grafico--barre">
+        <figcaption>Barre orizzontali: le sette voci di SR-01 della domanda di pagamento (congruenza documenti, criteri di ammissibilita', criteri di selezione, indicatori di risultato, valutazioni regionali, garanzie e pagamenti, antimafia) con le domande della voce; voci non censite omesse e dichiarate sotto il grafico. Nessun clic.</figcaption>
+      </figure>
+      <p class="ui-fonte">Fonte: TX-0032 (voci). La tabella equivalente mostra le stesse voci con la sottofase censita, l'esito e le domande.</p>
+    </section>
+    <h2>Vista: Tabella di Domande di pagamento per sottofase di ammissibilita'</h2>
+    <section class="ui-card" aria-labelledby="t-pagamento">
+      <div class="ui-card__testa">
+        <h2 id="t-pagamento">Domande di pagamento per sottofase di ammissibilita'</h2>
+        <div class="ui-seg" role="group" aria-label="Vista di Domande di pagamento per sottofase di ammissibilita'"><button class="btn" type="button" aria-pressed="false">Grafico</button> <button class="btn" type="button" aria-pressed="true">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+      </div>
+      <table class="ui-tabella">
+        <caption>Sottofasi di ammissibilita' della domanda di pagamento: la voce conta le domande distinte di tutte le sottofasi che la abbinano; la sottofase censita (la prima per codice) mostra le sue sole domande.</caption>
+        <thead>
+          <tr>
+            <th scope="col">Sottofase (SR-01)</th>
+            <th scope="col">Censita nell'anagrafica</th>
+            <th scope="col">Esito</th>
+            <th scope="col" class="ui-num">Domande della voce</th>
+            <th scope="col" class="ui-num">Domande della sottofase censita</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">Garanzie e pagamenti</th><td>non censita</td><td>non censita</td><td>non valorizzato (voce non censita)</td><td>non censita</td></tr>
+          <tr><th scope="row">Antimafia</th><td>ANTIMAFIA - descrizione dell'anagrafica</td><td>OK</td><td class="ui-num">3</td><td class="ui-num">2</td></tr>
+        </tbody>
+      </table>
+      <p class="ui-fonte">Fonte: TX-0032. Con piu' sottofasi sulla stessa voce (es. ANTIMAFIA e DP_ANTIMAFIA) la voce conta le domande distinte (una domanda in due sottofasi una volta, D-06 Rev. 5): puo' essere minore della somma delle sottofasi, e la pagina non somma. Domande di pagamento: solo con presenza CSR-DP aperta, mai l'Assistenza tecnica.</p>
+      <table class="ui-tabella">
+        <caption>Altre sottofasi dell'anagrafica di pagamento: nessuna voce di SR-01 le prende (codice libero), ciascuna con le sue domande.</caption>
+        <thead>
+          <tr>
+            <th scope="col">Codice</th>
+            <th scope="col">Descrizione</th>
+            <th scope="col">Esito</th>
+            <th scope="col" class="ui-num">Domande</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">GAR</th><td>Garanzie e pagamenti (descrizione dell'anagrafica)</td><td>non valorizzato</td><td class="ui-num">1</td></tr>
+          <tr><th scope="row">DURC</th><td>Verifica DURC</td><td>non valorizzato</td><td class="ui-num">0</td></tr>
+        </tbody>
+      </table>
+    </section>
+    <h2>Stato: caricamento</h2>
+    <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro delle due card)</div>
+    <h2>Stato: vuoto</h2>
+    <div class="ui-vuoto" role="status">Anagrafica delle sottofasi vuota: tutte le voci risultano non censite (nessun errore). Le sottofasi si censiscono dall'amministrazione (TX-1008).</div>
+    <h2>Stato: errore</h2>
+    <div class="alert alert-danger" role="alert">Dati non disponibili: messaggio dal problem-type (403 accesso negato, 503 da riprovare dopo Retry-After). <a href="#contenuto">Riprova</a></div>
+  </main>
+</div>
+<footer class="ui-footer">
+  <ul>
+    <li><a href="#contenuto">Dichiarazione di accessibilita' (indirizzo da definire)</a></li>
+    <li><a href="#contenuto">Privacy (indirizzo da definire)</a></li>
+    <li><a href="#contenuto">Note legali (indirizzo da definire)</a></li>
+    <li>Regione Lazio - ARSIAL</li>
+  </ul>
+</footer>
+</body>
+</html>

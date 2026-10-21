@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<!-- Wireframe v2 (template wireframe-v2 di green-fe, ADR 0027). Valori di esempio, nessun dato reale. -->
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Riepilogo per intervento - Procedurale - Cruscotto CSR 2023-2027</title>
+<link rel="stylesheet" href="wireframe.css">
+</head>
+<body>
+<a class="skip-link" href="#contenuto">Salta al contenuto</a>
+<header class="ui-testata">
+  <div class="ui-ente">
+    <span class="ui-logo">Regione Lazio</span>
+    <span class="ui-logo">ARSIAL</span>
+  </div>
+  <div class="ui-appbar">
+    <a class="ui-appbar__nome" href="../../panoramica/panoramica.html">Cruscotto CSR 2023-2027</a>
+    <form class="ui-cerca" action="#" method="get" role="search">
+      <label class="form-label" for="cerca-app">Cerca un intervento</label>
+      <input class="form-control" type="search" id="cerca-app" name="q">
+    </form>
+    <span class="ui-utente">Nome Cognome - <a href="#contenuto">Esci</a></span>
+  </div>
+</header>
+<div class="ui-layout">
+  <nav class="ui-sidebar" aria-label="Navigazione principale">
+    <p class="ui-menu__sezione">Aree del cruscotto</p>
+    <ul class="ui-menu">
+      <li><a class="ui-menu__gruppo" href="../../panoramica/panoramica.html">Finanziario</a></li>
+      <li><a class="ui-menu__gruppo" href="../panoramica/panoramica.html">Procedurale</a>
+        <ul class="ui-menu__sub">
+          <li><a href="../panoramica/panoramica.html">Panoramica</a></li>
+          <li><a href="../stati/stati-sostegno.html">Stati delle domande di sostegno</a></li>
+          <li><a href="../stati/stati-pagamento.html">Stati delle domande di pagamento</a></li>
+          <li><a href="../ammesse/ammesse.html">Domande ammesse</a></li>
+          <li><a href="../sottofasi/sottofasi.html">Sottofasi di ammissibilità</a></li>
+          <li><a href="../unit-amount/unit-amount.html">Unit Amount</a></li>
+          <li><a href="riepilogo.html" aria-current="page">Riepilogo per intervento</a></li>
+        </ul>
+      </li>
+      <li><span class="ui-menu__presto">Fisico (presto)</span></li>
+      <li><span class="ui-menu__presto">Istituzionale (presto)</span></li>
+    </ul>
+    <p class="ui-menu__sezione">Strumenti</p>
+    <ul class="ui-menu">
+      <li><a class="ui-menu__gruppo" href="../../elenco-operativo/domande/domande.html">Elenco operativo</a></li>
+    </ul>
+  </nav>
+  <main class="ui-main" id="contenuto">
+    <div class="ui-filtri" role="region" aria-label="Filtri attivi">
+      <a class="btn btn-primary" href="../panoramica/panoramica.html#pannello-filtri">Filtri (1)</a>
+      <span class="ui-chip">Intervento: SRD01 <button class="btn" type="button" aria-label="Togli il filtro Intervento SRD01">x</button></span>
+      <span class="ui-pill">Perimetro: regionale (profilo ADA: solo le domande della propria ADA, non rimovibile)</span>
+    </div>
+    <nav class="breadcrumb-container" aria-label="Percorso">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="../../panoramica/panoramica.html">Home</a></li>
+        <li class="breadcrumb-item"><a href="../panoramica/panoramica.html">Procedurale</a></li>
+        <li class="breadcrumb-item" aria-current="page">Riepilogo per intervento</li>
+      </ol>
+    </nav>
+    <div class="ui-titolo">
+      <h1>Procedurale: riepilogo per intervento</h1>
+      <p>Grafico per intervento: clic su una barra per il dettaglio; nella vista Tabella tutte le misure procedurali per intervento, da cercare, ordinare, scegliere per sezione ed esportare in CSV.</p>
+    </div>
+    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0024.read, csr.tx-0025.read, csr.tx-0029.read - Transazioni: TX-0029 (RF029) e il suo export CSV (GET /api/procedurale/riepilogo/csv, senza operationId, con X-Requested-With), TX-0024 e TX-0025 (valori dei filtri). Stessi filtri, perimetro e regole dei report dedicati: i numeri coincidono con quelli delle altre pagine (istantanea unica del backend, D-05). Ultimo dato sincronizzato assente dai DTO (OP-PR-01).</p>
+    <p class="wf-note">Vista iniziale: Grafico, come il riepilogo del finanziario. L'interruttore di pagina "Vista del riepilogo" (Grafico | Tabella) sceglie fra il grafico e la tabella; la scelta resta tornando dal dettaglio dell'intervento o dall'elenco operativo. L'interruttore della card del grafico mostra la sua tabella equivalente (intervento, domande di sostegno, di pagamento, ammesse).</p>
+    <section class="ui-card" aria-labelledby="t-riep">
+      <div class="ui-card__testa"><h2 id="t-riep">Riepilogo per intervento</h2></div>
+      <div class="ui-seg" role="group" aria-label="Vista del riepilogo"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button></div>
+      <section class="ui-card" aria-labelledby="g-riep">
+        <div class="ui-card__testa">
+          <h2 id="g-riep">Domande per intervento</h2>
+          <div class="ui-seg" role="group" aria-label="Vista di Domande per intervento"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+        </div>
+        <figure class="ui-grafico ui-grafico--barre">
+          <figcaption>Barre raggruppate con zoom oltre 12 interventi: domande di sostegno, domande di pagamento CSR-DP e domande ammesse per intervento. Clic su una barra: dettaglio procedurale dell'intervento.</figcaption>
+        </figure>
+        <p class="ui-fonte">Fonte: TX-0029 (righe: statiSostegno.totale, statiPagamento.totale, ammesse.domandeAmmesse). Scarica: immagine PNG; i dati completi con Esporta CSV nella vista Tabella.</p>
+      </section>
+    </section>
+    <h2>Vista: Tabella</h2>
+    <p class="wf-note">Con il bottone Tabella di "Vista del riepilogo" la tabella prende il posto del grafico nella stessa card. Sezioni di colonne: Domande ammesse (TX-0026), Stato area programmazione, Stati della domanda di sostegno, Stati della domanda di pagamento; Colonne sceglie le sezioni e le voci (predefinite: i totali di ogni sezione).</p>
+    <section class="ui-card" aria-labelledby="t-riep-tabella">
+      <div class="ui-card__testa"><h2 id="t-riep-tabella">Riepilogo per intervento</h2></div>
+      <div class="ui-seg" role="group" aria-label="Vista del riepilogo"><button class="btn" type="button" aria-pressed="false">Grafico</button> <button class="btn" type="button" aria-pressed="true">Tabella</button></div>
+      <div class="ui-strumenti">
+        <label class="form-label" for="t-cerca">Cerca nella tabella</label>
+        <input class="form-control" type="search" id="t-cerca" name="t">
+        <button class="btn" type="button">Colonne (4 sezioni)</button> <button class="btn" type="button" aria-label="Esporta in CSV la tabella Riepilogo per intervento">Esporta CSV</button>
+      </div>
+      <table class="ui-tabella">
+        <caption>Riepilogo per intervento: tutte le misure procedurali dei grafici (RF029). L'intervento e' l'intestazione di riga; clic o Invio su una riga per l'anteprima.</caption>
+        <thead>
+          <tr>
+            <th scope="col">Intervento</th>
+            <th scope="colgroup" colspan="4">Domande ammesse</th>
+            <th scope="colgroup" colspan="2">Area programmazione</th>
+            <th scope="colgroup" colspan="2">Sostegno</th>
+            <th scope="colgroup" colspan="2">Pagamento</th>
+          </tr>
+          <tr>
+            <th scope="col"><button class="btn" type="button">Codice</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Ammesse</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Con atto</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Richiesto</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Ammesso</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Totale</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Senza stato</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Totale</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Di cui non rilasciate</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Totale</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Di cui non rilasciate</button></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="ui-riga"><th scope="row">SRD01</th><td class="ui-num">n <a class="btn" href="../../elenco-operativo/domande/domande.html" aria-label="Apri nell'elenco operativo le n domande ammesse di SRD01">Apri nell'elenco</a></td><td>non disponibile</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n</td><td class="ui-num">n</td><td class="ui-num">n</td><td class="ui-num">n</td><td class="ui-num">n</td><td class="ui-num">0</td></tr>
+          <tr class="ui-riga"><th scope="row">SRA01</th><td class="ui-num">n <a class="btn" href="../../elenco-operativo/domande/domande.html" aria-label="Apri nell'elenco operativo le n domande ammesse di SRA01">Apri nell'elenco</a></td><td>non disponibile</td><td>non valorizzato</td><td>non valorizzato</td><td class="ui-num">n</td><td class="ui-num">0</td><td class="ui-num">n</td><td class="ui-num">0</td><td class="ui-num">0</td><td class="ui-num">0</td></tr>
+        </tbody>
+        <tfoot>
+          <tr><th scope="row">Totale (dal backend)</th><td class="ui-num">n</td><td>non disponibile</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n</td><td class="ui-num">n</td><td class="ui-num">n</td><td class="ui-num">n</td><td class="ui-num">n</td><td class="ui-num">0</td></tr>
+        </tfoot>
+      </table>
+      <p class="ui-fonte">Fonte: TX-0029 (righe e totale del backend). Con Colonne si aggiungono le voci di ogni sezione (le dieci di RF025 con gli stati osservati, le undici di RF027, le cinque di RF028, gli altri stati, perimetro e attivato dell'intervento); valori assenti in testo col motivo. Esporta CSV: stessi filtri, UTF-8 con BOM e punto e virgola, per sezione la colonna "di cui non rilasciate"; oltre 5.000 righe o 50.000 celle il backend risponde 400 e il messaggio invita a restringere i filtri (OP-PR-05).</p>
+      <nav class="ui-paginazione" aria-label="Pagine della tabella"><button class="btn" type="button" aria-current="page">1</button> <button class="btn" type="button">2</button></nav>
+    </section>
+    <aside class="ui-drawer" aria-label="Anteprima dell'intervento SRD01">
+      <h2>Anteprima: SRD01</h2>
+      <dl>
+        <dt>Domande ammesse</dt><dd>n <a class="btn" href="../../elenco-operativo/domande/domande.html" aria-label="Apri nell'elenco operativo le n domande ammesse di SRD01">Apri nell'elenco</a></dd>
+        <dt>Con atto di concessione</dt><dd>non disponibile (fonte non attiva: atto di concessione)</dd>
+        <dt>Contributo ammesso</dt><dd>n,nn euro su richiesto n,nn euro</dd>
+        <dt>Domande di sostegno</dt><dd>n, di cui non rilasciate n</dd>
+        <dt>Domande di pagamento</dt><dd>n, di cui non rilasciate 0</dd>
+        <dt>Senza stato area programmazione</dt><dd>n</dd>
+      </dl>
+      <a class="btn btn-primary" href="../panoramica/intervento.html">Apri il dettaglio dell'intervento</a>
+    </aside>
+    <p class="wf-note">Link della pagina: elenco-ammesse-riepilogo e elenco-con-atto-riepilogo (celle e drawer; il secondo solo con la fonte attiva), dettaglio-intervento-riepilogo (barre del grafico e drawer). Le celle degli stati non hanno link: il drill-down per stato sta nelle pagine degli stati e nel dettaglio dell'intervento.</p>
+    <h2>Stato: caricamento</h2>
+    <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro della card)</div>
+    <h2>Stato: vuoto</h2>
+    <div class="ui-vuoto" role="status">Nessun intervento per i filtri scelti. <a class="btn btn-primary" href="../panoramica/panoramica.html#pannello-filtri">Modifica i filtri</a></div>
+    <h2>Stato: errore</h2>
+    <div class="alert alert-danger" role="alert">Dati non disponibili: messaggio dal problem-type (400 filtro non valido o export oltre il limite, 403 accesso negato, 503 da riprovare dopo Retry-After). <a href="#contenuto">Riprova</a></div>
+  </main>
+</div>
+<footer class="ui-footer">
+  <ul>
+    <li><a href="#contenuto">Dichiarazione di accessibilita' (indirizzo da definire)</a></li>
+    <li><a href="#contenuto">Privacy (indirizzo da definire)</a></li>
+    <li><a href="#contenuto">Note legali (indirizzo da definire)</a></li>
+    <li>Regione Lazio - ARSIAL</li>
+  </ul>
+</footer>
+</body>
+</html>

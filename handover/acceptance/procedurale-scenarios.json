@@ -1,0 +1,252 @@
+{
+  "schema_version": "1.0",
+  "slice": "procedurale",
+  "scenarios": [
+    {
+      "scenario_id": "SC-PC_FILTRI",
+      "req_uids": [
+        "RU-00000024"
+      ],
+      "given": "SRD01 (perimetro 'SIGC no') e SRA01 collegati a OS4, SRD02 collegato a OS5 senza domande; domande correnti di SRD01: S1 SOSTEGNO RILASCIATO ADA Latina, stato area programmazione AMMESSA, determina corrente G2 del 2025-06-30 con contributo richiesto 1000,00 e ammesso 800,00 (riga piu' vecchia G1 del 2025-01-10 con 900,00 e 700,00); S2 SOSTEGNO 'ISTRUITA CON ESITO POSITIVO SU TUTTE LE MISURE' ADA Frosinone, AMMESSA, determina G3 con richiesto 500,00 e ammesso non valorizzato; S3 SOSTEGNO RILASCIATO ADA Latina senza determina; P1 PAGAMENTO CSR-DP 'PROPOSTO AL PAGAMENTO - DA REVISIONARE' ADA Latina, stato area programmazione REVOCATA (codice PROSA fuori catalogo); domande di SRA01: S4 SOSTEGNO 'SOSPESA' (stato SIAN fuori catalogo) ADA Latina, AMMESSA, determina G4 senza contributi; AT001 censito con domande",
+      "when": "chiama GET /api/procedurale/filtri",
+      "then": "200 con interventi, OS, OG e OP selezionabili come in TX-0001 (stessa fonte), mai AT001 (D-08 di finanziario), senza le azioni portanti (D-01)",
+      "kind": "positive",
+      "test_tag": "SC-PC_FILTRI",
+      "approved": true,
+      "role": "p1-dirigente"
+    },
+    {
+      "scenario_id": "SC-PC_STATI_AREA",
+      "req_uids": [
+        "RU-00000025"
+      ],
+      "given": "SRD01 (perimetro 'SIGC no') e SRA01 collegati a OS4, SRD02 collegato a OS5 senza domande; domande correnti di SRD01: S1 SOSTEGNO RILASCIATO ADA Latina, stato area programmazione AMMESSA, determina corrente G2 del 2025-06-30 con contributo richiesto 1000,00 e ammesso 800,00 (riga piu' vecchia G1 del 2025-01-10 con 900,00 e 700,00); S2 SOSTEGNO 'ISTRUITA CON ESITO POSITIVO SU TUTTE LE MISURE' ADA Frosinone, AMMESSA, determina G3 con richiesto 500,00 e ammesso non valorizzato; S3 SOSTEGNO RILASCIATO ADA Latina senza determina; P1 PAGAMENTO CSR-DP 'PROPOSTO AL PAGAMENTO - DA REVISIONARE' ADA Latina, stato area programmazione REVOCATA (codice PROSA fuori catalogo); domande di SRA01: S4 SOSTEGNO 'SOSPESA' (stato SIAN fuori catalogo) ADA Latina, AMMESSA, determina G4 senza contributi; in STATODOMANDA con ambito PROSA i codici AMMESSA, REVOCATA e 'RETTIFICATA - SOSTITUITA', uno stato senza ambito NUL (censito da TX-1008) e uno stato solo SIAN SIA",
+      "when": "chiama GET /api/procedurale/filtri/stati-area-programmazione",
+      "then": "200, perimetro REGIONALE: le 10 voci di RF025 nell'ordine di SR-01 (PRESENTATA ... RETTIFICATA_SOSTITUITA, 'presentata' compresa), poi REVOCATA (origine OSSERVATO: il catalogo non la abbina), poi SENZA_STATO; AMMESSA e 'RETTIFICATA - SOSTITUITA' non compaiono come valori a se': le abbinano per codice le voci AMMESSA e RETTIFICATA_SOSTITUITA; le chiavi sono uniche; il dominio viene dall'anagrafica STATODOMANDA (ambito PROSA o nessuno: NUL e' un valore OSSERVATO, SIA no), mai dalle domande (D-02 Rev. 1)",
+      "kind": "positive",
+      "test_tag": "SC-PC_STATI_AREA",
+      "approved": true,
+      "role": "p2-referente-adg"
+    },
+    {
+      "scenario_id": "SC-PC_AMMESSE",
+      "req_uids": [
+        "RU-00000026"
+      ],
+      "given": "SRD01 (perimetro 'SIGC no') e SRA01 collegati a OS4, SRD02 collegato a OS5 senza domande; domande correnti di SRD01: S1 SOSTEGNO RILASCIATO ADA Latina con atto di concessione (numero e data), stato area programmazione AMMESSA, determina corrente G2 del 2025-06-30 con contributo richiesto 1000,00 e ammesso 800,00 (riga piu' vecchia G1 del 2025-01-10 con 900,00 e 700,00); S2 SOSTEGNO 'ISTRUITA CON ESITO POSITIVO SU TUTTE LE MISURE' ADA Frosinone, AMMESSA, determina G3 con richiesto 500,00 e ammesso non valorizzato; S3 SOSTEGNO RILASCIATO ADA Latina senza determina; P1 PAGAMENTO CSR-DP 'PROPOSTO AL PAGAMENTO - DA REVISIONARE' ADA Latina, stato area programmazione REVOCATA (codice PROSA fuori catalogo); domande di SRA01: S4 SOSTEGNO 'SOSPESA' (stato SIAN fuori catalogo) ADA Latina, AMMESSA, determina G4 senza contributi; inoltre S1 ha una riga aperta della determina G6 del 2025-08-01, piu' recente di G2, senza contributi; per i casi limite: S4 con importo richiesto 300,00 e ammesso 250,00 negli scarichi SIAN; nessun atto di concessione nel database",
+      "when": "chiama GET /api/procedurale/domande-ammesse",
+      "then": "200, perimetro REGIONALE, una riga per intervento selezionato in ordine di codice (SRA01, SRD01, SRD02): SRD01 attivato, domande ammesse 2 (S1, S2), importo richiesto 1500.00 (G2 di S1, non G1: la riga aperta piu' recente che lo valorizza, D-03 Rev. 1; piu' G3 di S2), contributo ammesso 800.00 (il valore mancante di S2 non entra nella somma); se la determina non ha i contributi valgono gli importi SIAN della domanda (D-03 Rev. 3), domande con atto di concessione 1 (S1 ha numero e data dell'atto nel report CSR-DS, D-03 Rev. 2), perimetro 'SIGC no'; SRA01 attivato, domande ammesse 1, importi null con motivo NON_VALORIZZATO (G4 non li riporta); SRD02 non attivato, 0 domande, importi 0.00; totali: perimetro ufficiale 3 interventi, attivati 2, ammesse 3, richiesto 1500.00, ammesso 800.00; una determina aperta piu' recente senza contributi non li cancella (regola per campo); con gli importi SIAN di S4 SRA01 ha richiesto 300.00 e ammesso 250.00 (la sua determina non ha i contributi), i totali 1800.00 e 1050.00; senza alcun atto di concessione nel database le domande con atto sono null con FONTE_NON_ATTIVA ATTO_CONCESSIONE, per riga e nel totale, anche nel riepilogo, mai 0 (D-03 Rev. 4)",
+      "kind": "positive",
+      "test_tag": "SC-PC_AMMESSE",
+      "approved": true,
+      "role": "p1-dirigente"
+    },
+    {
+      "scenario_id": "SC-PC_STATI_SOSTEGNO",
+      "req_uids": [
+        "RU-00000027"
+      ],
+      "given": "SRD01 (perimetro 'SIGC no') e SRA01 collegati a OS4, SRD02 collegato a OS5 senza domande; domande correnti di SRD01: S1 SOSTEGNO RILASCIATO ADA Latina, stato area programmazione AMMESSA, determina corrente G2 del 2025-06-30 con contributo richiesto 1000,00 e ammesso 800,00 (riga piu' vecchia G1 del 2025-01-10 con 900,00 e 700,00); S2 SOSTEGNO 'ISTRUITA CON ESITO POSITIVO SU TUTTE LE MISURE' ADA Frosinone, AMMESSA, determina G3 con richiesto 500,00 e ammesso non valorizzato; S3 SOSTEGNO RILASCIATO ADA Latina senza determina; P1 PAGAMENTO CSR-DP 'PROPOSTO AL PAGAMENTO - DA REVISIONARE' ADA Latina, stato area programmazione REVOCATA (codice PROSA fuori catalogo); domande di SRA01: S4 SOSTEGNO 'SOSPESA' (stato SIAN fuori catalogo) ADA Latina, AMMESSA, determina G4 senza contributi; nessuna domanda non rilasciata del tipo nel database",
+      "when": "chiama GET /api/procedurale/stati-sostegno",
+      "then": "200, per intervento e in totale le 11 voci di RF027 nell'ordine di SR-01, tutte presenti anche a 0 (NON_RICEVIBILE 0), tranne IN_COMPILAZIONE che esce null con FONTE_NON_ATTIVA DOMANDE_IN_COMPILAZIONE (le domande in compilazione non hanno codice a barre e non sono acquisite, D-04 Rev. 3): SRD01 RILASCIATO 2, ESITO_POSITIVO_TUTTE_LE_MISURE 1 (alias 'ISTRUITA...', D-04); SRA01 nessuna voce e tra gli altri stati SOSPESA 1 col suo codice; la domanda di pagamento P1 non e' contata; totale 4",
+      "kind": "positive",
+      "test_tag": "SC-PC_STATI_SOSTEGNO",
+      "approved": true,
+      "role": "p1-dirigente"
+    },
+    {
+      "scenario_id": "SC-PC_IN_COMPILAZIONE",
+      "req_uids": [
+        "RU-00000027"
+      ],
+      "given": "le domande di SC-PC_STATI_SOSTEGNO e tre domande di sostegno non rilasciate di SRD01 (DOMANDANONRILASCIATA): due IN COMPILAZIONE e una STAMPATO; nessuna domanda di pagamento non rilasciata; una quarta riga DOMANDANONRILASCIATA di sostegno di SRD01 senza stato, altre due con lo stato vuoto ('') e di soli spazi, e una riga di pagamento con lo stato di soli spazi",
+      "when": "chiama GET /api/procedurale/stati-sostegno, /stati-pagamento e /riepilogo",
+      "then": "200: SRD01 IN_COMPILAZIONE 2 e STAMPATO 1, gli altri interventi IN_COMPILAZIONE 0, totale IN_COMPILAZIONE 2 e totale 7; negli stati di pagamento IN_COMPILAZIONE resta null con FONTE_NON_ATTIVA DOMANDE_IN_COMPILAZIONE (D-04 Rev. 4); il riepilogo ha gli stessi totali (sostegno IN_COMPILAZIONE 2, pagamento senza fonte), nessun errore; ogni voce dice di quante non rilasciate e' fatta (D-04 Rev. 5): SRD01 IN_COMPILAZIONE di cui 2, STAMPATO di cui 1, RILASCIATO di cui 0, la distribuzione di SRD01 e il totale di cui 3, gli altri interventi di cui 0; le righe senza stato, nullo, vuoto o di soli spazi, non si contano e non sono un errore (totale 7), e la riga di pagamento di soli spazi non attiva la fonte del pagamento (D-04 Rev. 6); senza interventi selezionati il totale ha IN_COMPILAZIONE 0, non FONTE_NON_ATTIVA",
+      "kind": "positive",
+      "test_tag": "SC-PC_IN_COMPILAZIONE",
+      "approved": true,
+      "role": "p1-dirigente"
+    },
+    {
+      "scenario_id": "SC-PC_STATI_PAGAMENTO",
+      "req_uids": [
+        "RU-00000028"
+      ],
+      "given": "SRD01 (perimetro 'SIGC no') e SRA01 collegati a OS4, SRD02 collegato a OS5 senza domande; domande correnti di SRD01: S1 SOSTEGNO RILASCIATO ADA Latina, stato area programmazione AMMESSA, determina corrente G2 del 2025-06-30 con contributo richiesto 1000,00 e ammesso 800,00 (riga piu' vecchia G1 del 2025-01-10 con 900,00 e 700,00); S2 SOSTEGNO 'ISTRUITA CON ESITO POSITIVO SU TUTTE LE MISURE' ADA Frosinone, AMMESSA, determina G3 con richiesto 500,00 e ammesso non valorizzato; S3 SOSTEGNO RILASCIATO ADA Latina senza determina; P1 PAGAMENTO CSR-DP 'PROPOSTO AL PAGAMENTO - DA REVISIONARE' ADA Latina, stato area programmazione REVOCATA (codice PROSA fuori catalogo); domande di SRA01: S4 SOSTEGNO 'SOSPESA' (stato SIAN fuori catalogo) ADA Latina, AMMESSA, determina G4 senza contributi; inoltre di SRD01 una domanda di PAGAMENTO SIGC (presenza ASR2-08 aperta), una domanda minima creata da un decreto, P2 PAGAMENTO CSR-DP 'PROPOSTO AL PAGAMENTO-AUT.ELENCO ENTE TERRITORIALE' ADA Frosinone e P3 PAGAMENTO CSR-DP 'PROPOSTO AL PAGAMENTO-ESTRAZ. CAMPIONE-DA ESEGUIRE' ADA Latina, entrambe senza stato area programmazione; utente P3 dell'area procedurale; nessuna domanda non rilasciata del tipo nel database",
+      "when": "chiama GET /api/procedurale/stati-pagamento",
+      "then": "200, le 5 voci di RF028: SRD01 PROPOSTA_DA_REVISIONARE 1 (P1) e PROPOSTA_AUTORIZZAZIONE_ENTE 1 (P2), alias dei testi dello scarico CSR-DP del 27/07/2026 (D-04 Rev. 2), IN_COMPILAZIONE null con FONTE_NON_ATTIVA DOMANDE_IN_COMPILAZIONE (D-04 Rev. 3), le altre 0; P3 tra gli altri stati col suo codice (l'estrazione a campione non e' tra i 5 stati, punto aperto); totale 3; la domanda SIGC e la domanda minima non sono contate (solo PAGAMENTO con presenza CSR-DP aperta); nessuna domanda di sostegno",
+      "kind": "positive",
+      "test_tag": "SC-PC_STATI_PAGAMENTO",
+      "approved": true,
+      "role": "p3-funzionario-area"
+    },
+    {
+      "scenario_id": "SC-PC_FILTRO_STATO",
+      "req_uids": [
+        "RU-00000026",
+        "RU-00000027",
+        "RU-00000028",
+        "RU-00000029"
+      ],
+      "given": "SRD01 (perimetro 'SIGC no') e SRA01 collegati a OS4, SRD02 collegato a OS5 senza domande; domande correnti di SRD01: S1 SOSTEGNO RILASCIATO ADA Latina, stato area programmazione AMMESSA, determina corrente G2 del 2025-06-30 con contributo richiesto 1000,00 e ammesso 800,00 (riga piu' vecchia G1 del 2025-01-10 con 900,00 e 700,00); S2 SOSTEGNO 'ISTRUITA CON ESITO POSITIVO SU TUTTE LE MISURE' ADA Frosinone, AMMESSA, determina G3 con richiesto 500,00 e ammesso non valorizzato; S3 SOSTEGNO RILASCIATO ADA Latina senza determina; P1 PAGAMENTO CSR-DP 'PROPOSTO AL PAGAMENTO - DA REVISIONARE' ADA Latina, stato area programmazione REVOCATA (codice PROSA fuori catalogo); domande di SRA01: S4 SOSTEGNO 'SOSPESA' (stato SIAN fuori catalogo) ADA Latina, AMMESSA, determina G4 senza contributi",
+      "when": "chiama GET /api/procedurale/stati-sostegno, GET /api/procedurale/domande-ammesse e GET /api/procedurale/riepilogo con ?stato=AMMESSA, con ?stato=SENZA_STATO, con ?stato=REVOCATA&stato=senza_stato e con ?os=OS5",
+      "then": "con AMMESSA contano solo S1, S2, S4 (stati sostegno: RILASCIATO 1, ESITO_POSITIVO 1, altri SOSPESA 1); con SENZA_STATO solo S3 e zero domande ammesse; con REVOCATA e senza_stato (maiuscole indifferenti) S3 e P1 (piu' le domande di pagamento senza stato aggiunte in SC-PC_STATI_PAGAMENTO); con os=OS5 la sola riga SRD02 con tutti zeri; il filtro restringe l'universo di tutte le misure (D-01, D-02)",
+      "kind": "positive",
+      "test_tag": "SC-PC_FILTRO_STATO",
+      "approved": true,
+      "role": "p1-dirigente"
+    },
+    {
+      "scenario_id": "SC-PC_RIEPILOGO",
+      "req_uids": [
+        "RU-00000029"
+      ],
+      "given": "SRD01 (perimetro 'SIGC no') e SRA01 collegati a OS4, SRD02 collegato a OS5 senza domande; domande correnti di SRD01: S1 SOSTEGNO RILASCIATO ADA Latina, stato area programmazione AMMESSA, determina corrente G2 del 2025-06-30 con contributo richiesto 1000,00 e ammesso 800,00 (riga piu' vecchia G1 del 2025-01-10 con 900,00 e 700,00); S2 SOSTEGNO 'ISTRUITA CON ESITO POSITIVO SU TUTTE LE MISURE' ADA Frosinone, AMMESSA, determina G3 con richiesto 500,00 e ammesso non valorizzato; S3 SOSTEGNO RILASCIATO ADA Latina senza determina; P1 PAGAMENTO CSR-DP 'PROPOSTO AL PAGAMENTO - DA REVISIONARE' ADA Latina, stato area programmazione REVOCATA (codice PROSA fuori catalogo); domande di SRA01: S4 SOSTEGNO 'SOSPESA' (stato SIAN fuori catalogo) ADA Latina, AMMESSA, determina G4 senza contributi",
+      "when": "chiama GET /api/procedurale/riepilogo e confronta con GET /api/procedurale/domande-ammesse, /stati-sostegno e /stati-pagamento",
+      "then": "200, una riga per intervento con le misure di TX-0026, le distribuzioni DS e DP e quella dell'area programmazione (SRD01: AMMESSA 2, REVOCATA 1 tra gli altri, senza stato S3 e le domande di SRD01 senza stato aggiunte negli altri scenari), piu' la riga dei totali; ogni numero coincide con quello del report dedicato con gli stessi filtri, anche se un import fa commit durante la lettura (istantanea unica, D-05 Rev. 1)",
+      "kind": "positive",
+      "test_tag": "SC-PC_RIEPILOGO",
+      "approved": true,
+      "role": "p2-referente-adg"
+    },
+    {
+      "scenario_id": "SC-PC_UNIT_AMOUNT",
+      "req_uids": [
+        "RU-00000030"
+      ],
+      "given": "SRD01 con le Unit Amount UA1 (seminativi, esercizio 2025, importo unitario 150,00, output 10, importo pagato 1,00), UA2 (esercizio 2024, importo unitario non valorizzato) e UA1 dell'esercizio 2024 con percentuale pagata 40; AT001 con una Unit Amount",
+      "when": "chiama GET /api/procedurale/unit-amount e GET /api/procedurale/unit-amount?intervento=SRD01",
+      "then": "200, perimetro REGIONALE, per intervento, esercizio e codice (UA1 2024, UA2 2024, UA1 2025): UA2 con importo unitario e importo pagato null NON_VALORIZZATO; UA1 2025 con importo pagato 1,00, percentuale pagata NON_VALORIZZATO e base storica 40 (la percentuale di UA1 nel 2024); UA1 2024 con base storica NON_VALORIZZATO; senza alcun pagato nel database importo pagato, percentuale e base storica sono null con FONTE_NON_ATTIVA PAGATO_PER_UNIT_AMOUNT (D-06 Rev. 2, OP-010); AT001 mai",
+      "kind": "positive",
+      "test_tag": "SC-PC_UNIT_AMOUNT",
+      "approved": true,
+      "role": "p1-dirigente"
+    },
+    {
+      "scenario_id": "SC-PC_SOTTOFASI",
+      "req_uids": [
+        "RU-00000031",
+        "RU-00000032"
+      ],
+      "given": "anagrafica SOTTOFASEAMMISSIBILITA (TX-1008): per PAGAMENTO 'Antimafia' col codice della voce DP_ANTIMAFIA (esito OK), 'Garanzie e pagamenti' codice GAR e 'garanzie e pagamenti' codice GAR2, 'Verifica DURC'; per SOSTEGNO 'Congruenza e conformita' documenti allegati'; P1 (PAGAMENTO, ADA Latina) e P2 (PAGAMENTO, ADA Frosinone) nella sottofase Antimafia (DOMANDASOTTOFASE); legate ad Antimafia anche una domanda di pagamento dell'Assistenza tecnica con presenza CSR-DP, una domanda di sostegno e una domanda di pagamento senza presenza CSR-DP; poi una seconda sottofase di pagamento 'Verifica antimafia' col codice ANTIMAFIA, che abbina la stessa voce, con P3 (pagamento con presenza CSR-DP), e P4 (pagamento con presenza CSR-DP) nella sottofase GAR; infine P1 legata anche alla seconda sottofase ANTIMAFIA (D-06 Rev. 5)",
+      "when": "chiama GET /api/procedurale/sottofasi-sostegno e GET /api/procedurale/sottofasi-pagamento",
+      "then": "200, perimetro REGIONALE: sostegno con le 6 voci di RF031 (la prima censita, le altre no), pagamento con le 7 di RF032 nell'ordine di SR-01, Antimafia censita con esito OK e 2 domande (P1 e P2: non l'Assistenza tecnica, non la domanda di sostegno, non quella di pagamento senza CSR-DP, D-06 Rev. 3); con le domande l'abbinamento e' solo per codice e alias (D-06 Rev. 3): garanzie e pagamenti resta non censita (NON_VALORIZZATO) e GAR e GAR2 sono tra le altre con la verifica DURC; senza domande legate del tipo (il sostegno) l'abbinamento vale anche per descrizione (la prima voce censita); le voci non censite hanno il numero di domande null NON_VALORIZZATO; senza domande legate a sottofasi del tipo ogni voce e' null con FONTE_NON_ATTIVA SOTTOFASI_DOMANDA (D-06 Rev. 2, OP-009); anagrafica vuota = tutte le voci non censite, nessun errore; con la seconda sottofase (D-06 Rev. 4) la voce Antimafia e' censita con la prima per codice (ANTIMAFIA, con la sua sola domanda P3) e conta le domande delle due sottofasi che la abbinano (3), DP_ANTIMAFIA non e' tra le altre, e le altre dicono le loro domande (GAR 1 con P4, GAR2 0); con P1 legata anche ad ANTIMAFIA la voce conta le domande distinte (D-06 Rev. 5, decisione D16): resta 3 (P1, P2 e P3, P1 una volta) e non 4, mentre ANTIMAFIA, censita, ne espone 2 (P1 e P3), sempre nel perimetro del chiamante (il P4 di Latina vede la voce e ANTIMAFIA a 1, la sola P1)",
+      "kind": "positive",
+      "test_tag": "SC-PC_SOTTOFASI",
+      "approved": true,
+      "role": "p1-dirigente"
+    },
+    {
+      "scenario_id": "SC-PC_SCOPE_P4",
+      "req_uids": [
+        "RU-00000026",
+        "RU-00000027",
+        "RU-00000028",
+        "RU-00000029"
+      ],
+      "given": "SRD01 (perimetro 'SIGC no') e SRA01 collegati a OS4, SRD02 collegato a OS5 senza domande; domande correnti di SRD01: S1 SOSTEGNO RILASCIATO ADA Latina, stato area programmazione AMMESSA, determina corrente G2 del 2025-06-30 con contributo richiesto 1000,00 e ammesso 800,00 (riga piu' vecchia G1 del 2025-01-10 con 900,00 e 700,00); S2 SOSTEGNO 'ISTRUITA CON ESITO POSITIVO SU TUTTE LE MISURE' ADA Frosinone, AMMESSA, determina G3 con richiesto 500,00 e ammesso non valorizzato; S3 SOSTEGNO RILASCIATO ADA Latina senza determina; P1 PAGAMENTO CSR-DP 'PROPOSTO AL PAGAMENTO - DA REVISIONARE' ADA Latina, stato area programmazione REVOCATA (codice PROSA fuori catalogo); domande di SRA01: S4 SOSTEGNO 'SOSPESA' (stato SIAN fuori catalogo) ADA Latina, AMMESSA, determina G4 senza contributi; un P4 di Latina; un P4 senza alcun gruppo ADA; per le domande non rilasciate due righe DOMANDANONRILASCIATA di sostegno di SRD01 IN COMPILAZIONE, una di Latina e una di Frosinone (ente delegato e provincia della riga)",
+      "when": "chiamano GET /api/procedurale/domande-ammesse, /stati-sostegno, /stati-pagamento, /riepilogo, /unit-amount e /sottofasi-pagamento",
+      "then": "il P4 di Latina vede perimetro ADA e le sole domande di Latina (ammesse SRD01 1 con richiesto 1000.00, mai S2 di Frosinone; stati sostegno RILASCIATO 2; stati pagamento senza P2 di Frosinone; riepilogo con gli stessi numeri ristretti), gli interventi del perimetro ufficiale e le Unit Amount regionali; nelle sottofasi di pagamento perimetro ADA e Antimafia con 1 domanda (P1, non P2 di Frosinone, D-07 Rev. 1); il P4 senza gruppi ADA vede zero domande (deny-by-default), non un errore; nessun parametro della richiesta cambia il perimetro (D-07); delle non rilasciate il P4 di Latina conta la sola di Latina (IN_COMPILAZIONE 1 per SRD01 e nel totale, nei report per stato e nel riepilogo) e il P4 senza gruppi ADA IN_COMPILAZIONE 0, non FONTE_NON_ATTIVA (D-04 Rev. 4: perimetro su ente e provincia della riga)",
+      "kind": "negative",
+      "test_tag": "SC-PC_SCOPE_P4",
+      "approved": true,
+      "role": "p4-responsabile-procedimento-ada"
+    },
+    {
+      "scenario_id": "SC-PC_DENY",
+      "req_uids": [
+        "RU-00000024",
+        "RU-00000025",
+        "RU-00000026",
+        "RU-00000027",
+        "RU-00000028",
+        "RU-00000029",
+        "RU-00000030",
+        "RU-00000031",
+        "RU-00000032"
+      ],
+      "given": "un utente P5, P6 o P7, un P3 delle aree finanziaria, istituzionale, fisica o primo pilastro, e un utente non autenticato",
+      "when": "chiama uno qualsiasi dei 9 endpoint GET /api/procedurale/...",
+      "then": "403 problem+json ACCESSO_NEGATO per P5, P6, P7 e per i P3 delle altre aree (il catalogo concede TX-0024..TX-0032 a P1, P2, al P3 dell'area procedurale e a P4 con perimetro), 401 senza autenticazione; nessuna lettura; nessuna riga di AUDIT_CONSULTAZIONE per l'anonimo",
+      "kind": "negative",
+      "test_tag": "SC-PC_DENY",
+      "approved": true,
+      "role": "p6-amministratore-tecnico"
+    },
+    {
+      "scenario_id": "SC-PC_PARAMETRO_NON_VALIDO",
+      "req_uids": [
+        "RU-00000026",
+        "RU-00000027",
+        "RU-00000028",
+        "RU-00000029",
+        "RU-00000030"
+      ],
+      "given": "un P1",
+      "when": "chiama un report con un filtro vuoto (intervento=%20 o stato= senza valore, anche os, og, op), con piu' di 100 valori in una dimensione, con ?stato=BOH, con ?stato= un codice PROSA abbinato da una voce (va chiesto con la voce), con ?azione=1",
+      "then": "400 problem+json DATO_NON_VALIDO con il nome del parametro (intervento, os, og, op, stato, azione) nel dettaglio, mai il valore inviato; nessuna lettura dei report; la consultazione e' registrata in AUDIT_CONSULTAZIONE con esito FALLIMENTO e i valori come sono arrivati",
+      "kind": "negative",
+      "test_tag": "SC-PC_PARAMETRO_NON_VALIDO",
+      "approved": true,
+      "role": "p1-dirigente"
+    },
+    {
+      "scenario_id": "SC-PC_STORICO",
+      "req_uids": [
+        "RU-00000026",
+        "RU-00000027",
+        "RU-00000028",
+        "RU-00000029"
+      ],
+      "given": "SRD01 (perimetro 'SIGC no') e SRA01 collegati a OS4, SRD02 collegato a OS5 senza domande; domande correnti di SRD01: S1 SOSTEGNO RILASCIATO ADA Latina, stato area programmazione AMMESSA, determina corrente G2 del 2025-06-30 con contributo richiesto 1000,00 e ammesso 800,00 (riga piu' vecchia G1 del 2025-01-10 con 900,00 e 700,00); S2 SOSTEGNO 'ISTRUITA CON ESITO POSITIVO SU TUTTE LE MISURE' ADA Frosinone, AMMESSA, determina G3 con richiesto 500,00 e ammesso non valorizzato; S3 SOSTEGNO RILASCIATO ADA Latina senza determina; P1 PAGAMENTO CSR-DP 'PROPOSTO AL PAGAMENTO - DA REVISIONARE' ADA Latina, stato area programmazione REVOCATA (codice PROSA fuori catalogo); domande di SRA01: S4 SOSTEGNO 'SOSPESA' (stato SIAN fuori catalogo) ADA Latina, AMMESSA, determina G4 senza contributi; una domanda di SOSTEGNO AMMESSA di SRD01 chiusa (CHIUSA_IL valorizzato) e una riga DETERMINADOMANDA chiusa piu' recente di G2 su S1",
+      "when": "chiama GET /api/procedurale/domande-ammesse e GET /api/procedurale/stati-sostegno",
+      "then": "la domanda chiusa non conta in nessun report; la riga chiusa non e' la determina corrente di S1 (resta G2: richiesto 1500.00 per SRD01)",
+      "kind": "positive",
+      "test_tag": "SC-PC_STORICO",
+      "approved": true,
+      "role": "p1-dirigente"
+    },
+    {
+      "scenario_id": "SC-PC_CAPACITA",
+      "req_uids": [
+        "RU-00000024",
+        "RU-00000025",
+        "RU-00000026",
+        "RU-00000027",
+        "RU-00000028",
+        "RU-00000029",
+        "RU-00000030",
+        "RU-00000031",
+        "RU-00000032"
+      ],
+      "given": "le letture concorrenti dei report gia' al limite configurato (condiviso con gli altri report) oppure dell'utente; oppure una lettura che supera il tetto di durata",
+      "when": "chiama un endpoint GET /api/procedurale/...",
+      "then": "503 problem+json CAPACITA_ESAURITA con Retry-After, registrato in audit come FALLIMENTO; oltre il tetto di durata 503 TEMPO_SCADUTO (D-07)",
+      "kind": "negative",
+      "test_tag": "SC-PC_CAPACITA",
+      "approved": true,
+      "role": "p1-dirigente"
+    },
+    {
+      "scenario_id": "SC-PC_AUDIT",
+      "req_uids": [
+        "RU-00000024",
+        "RU-00000025",
+        "RU-00000026",
+        "RU-00000027",
+        "RU-00000028",
+        "RU-00000029",
+        "RU-00000030",
+        "RU-00000031",
+        "RU-00000032"
+      ],
+      "given": "un P1 e un P4",
+      "when": "consultano i report, anche con esito negativo (400)",
+      "then": "una riga in AUDIT_CONSULTAZIONE per consultazione, con operazione TX-00nn, utente, profili, esito e parametri come sono arrivati (intervento, os, og, op, azione, stato; nessun parametro per filtri, stati e sottofasi), mai importi ne' dati personali; nella catena di impronte",
+      "kind": "positive",
+      "test_tag": "SC-PC_AUDIT",
+      "approved": true,
+      "role": "p1-dirigente"
+    }
+  ]
+}

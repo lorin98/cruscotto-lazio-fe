@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<!-- Wireframe v2 (template wireframe-v2 di green-fe, ADR 0027). Valori di esempio, nessun dato reale. -->
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Stati delle domande di sostegno - Procedurale - Cruscotto CSR 2023-2027</title>
+<link rel="stylesheet" href="wireframe.css">
+</head>
+<body>
+<a class="skip-link" href="#contenuto">Salta al contenuto</a>
+<header class="ui-testata">
+  <div class="ui-ente">
+    <span class="ui-logo">Regione Lazio</span>
+    <span class="ui-logo">ARSIAL</span>
+  </div>
+  <div class="ui-appbar">
+    <a class="ui-appbar__nome" href="../../panoramica/panoramica.html">Cruscotto CSR 2023-2027</a>
+    <form class="ui-cerca" action="#" method="get" role="search">
+      <label class="form-label" for="cerca-app">Cerca un intervento</label>
+      <input class="form-control" type="search" id="cerca-app" name="q">
+    </form>
+    <span class="ui-utente">Nome Cognome - <a href="#contenuto">Esci</a></span>
+  </div>
+</header>
+<div class="ui-layout">
+  <nav class="ui-sidebar" aria-label="Navigazione principale">
+    <p class="ui-menu__sezione">Aree del cruscotto</p>
+    <ul class="ui-menu">
+      <li><a class="ui-menu__gruppo" href="../../panoramica/panoramica.html">Finanziario</a></li>
+      <li><a class="ui-menu__gruppo" href="../panoramica/panoramica.html">Procedurale</a>
+        <ul class="ui-menu__sub">
+          <li><a href="../panoramica/panoramica.html">Panoramica</a></li>
+          <li><a href="stati-sostegno.html" aria-current="page">Stati delle domande di sostegno</a></li>
+          <li><a href="stati-pagamento.html">Stati delle domande di pagamento</a></li>
+          <li><a href="../ammesse/ammesse.html">Domande ammesse</a></li>
+          <li><a href="../sottofasi/sottofasi.html">Sottofasi di ammissibilità</a></li>
+          <li><a href="../unit-amount/unit-amount.html">Unit Amount</a></li>
+          <li><a href="../riepilogo/riepilogo.html">Riepilogo per intervento</a></li>
+        </ul>
+      </li>
+      <li><span class="ui-menu__presto">Fisico (presto)</span></li>
+      <li><span class="ui-menu__presto">Istituzionale (presto)</span></li>
+    </ul>
+    <p class="ui-menu__sezione">Strumenti</p>
+    <ul class="ui-menu">
+      <li><a class="ui-menu__gruppo" href="../../elenco-operativo/domande/domande.html">Elenco operativo</a></li>
+    </ul>
+  </nav>
+  <main class="ui-main" id="contenuto">
+    <div class="ui-filtri" role="region" aria-label="Filtri attivi">
+      <a class="btn btn-primary" href="../panoramica/panoramica.html#pannello-filtri">Filtri (1)</a>
+      <span class="ui-chip">Obiettivo specifico: OS4 <button class="btn" type="button" aria-label="Togli il filtro Obiettivo specifico OS4">x</button></span>
+      <span class="ui-pill">Perimetro: regionale (profilo ADA: solo le domande della propria ADA, non rimovibile)</span>
+    </div>
+    <nav class="breadcrumb-container" aria-label="Percorso">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="../../panoramica/panoramica.html">Home</a></li>
+        <li class="breadcrumb-item"><a href="../panoramica/panoramica.html">Procedurale</a></li>
+        <li class="breadcrumb-item" aria-current="page">Stati delle domande di sostegno</li>
+      </ol>
+    </nav>
+    <div class="ui-titolo">
+      <h1>Procedurale: stati delle domande di sostegno</h1>
+      <p>Gli undici stati della domanda di sostegno (SR-01) per intervento, con le domande non ancora rilasciate. Clic su una riga per l'anteprima dell'intervento.</p>
+    </div>
+    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0024.read, csr.tx-0025.read, csr.tx-0027.read - Transazioni: TX-0027 (RF027), TX-0024 e TX-0025 (valori dei filtri). Universo: domande di sostegno correnti piu' le domande non ancora rilasciate (righe CSR-DS senza codice a barre, D-04 Rev. 4); con il filtro per stato area programmazione le non rilasciate contano solo se il filtro chiede le domande senza stato. Ultimo dato sincronizzato assente dai DTO (OP-PR-01).</p>
+    <div class="ui-griglia ui-griglia--2">
+      <section class="ui-kpi" aria-label="Domande di sostegno">
+        <p>Domande di sostegno</p>
+        <p class="ui-kpi__valore">n</p>
+        <p class="ui-barra">voci, altri stati e domande non rilasciate comprese (totale.totale)</p>
+      </section>
+      <section class="ui-kpi" aria-label="Di cui non rilasciate">
+        <p>Di cui non rilasciate</p>
+        <p class="ui-kpi__valore">n</p>
+        <p class="ui-barra">in compilazione o stampate, non ancora nell'elenco operativo (totale.domandeNonRilasciate)</p>
+      </section>
+    </div>
+    <section class="ui-card" aria-labelledby="g-stati">
+      <div class="ui-card__testa">
+        <h2 id="g-stati">Domande di sostegno per stato</h2>
+        <div class="ui-seg" role="group" aria-label="Vista di Domande di sostegno per stato"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+      </div>
+      <figure class="ui-grafico ui-grafico--barre">
+        <figcaption>Barre orizzontali impilate: le undici voci di SR-01 nell'ordine del backend, poi gli altri stati per codice; ogni barra divide rilasciate e non rilasciate. Clic su una barra: la tabella per intervento resta con gli interventi che hanno domande in quella voce (chip "Voce: ..." rimovibile, solo nella pagina).</figcaption>
+      </figure>
+      <p class="ui-fonte">Fonte: TX-0027 (totale). Scarica: immagine PNG del grafico (il report non ha export del backend: i dati sono nel CSV del riepilogo, OP-PR-05).</p>
+    </section>
+    <h2>Vista: Tabella di Domande di sostegno per stato</h2>
+    <section class="ui-card" aria-labelledby="t-stati">
+      <div class="ui-card__testa">
+        <h2 id="t-stati">Domande di sostegno per stato</h2>
+        <div class="ui-seg" role="group" aria-label="Vista di Domande di sostegno per stato"><button class="btn" type="button" aria-pressed="false">Grafico</button> <button class="btn" type="button" aria-pressed="true">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+      </div>
+      <table class="ui-tabella">
+        <caption>Domande di sostegno per stato: la voce di SR-01 e' l'intestazione di riga. Apri nell'elenco apre le sole domande rilasciate della voce (domande meno di cui non rilasciate).</caption>
+        <thead>
+          <tr>
+            <th scope="col">Stato della domanda di sostegno</th>
+            <th scope="col" class="ui-num">Domande</th>
+            <th scope="col" class="ui-num">Di cui non rilasciate</th>
+            <th scope="col">Elenco operativo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">In compilazione</th><td>non disponibile (fonte non attiva: domande in compilazione)</td><td>non disponibile</td><td>nessun link</td></tr>
+          <tr><th scope="row">Stampato</th><td class="ui-num">n</td><td class="ui-num">n</td><td><a class="btn" href="../../elenco-operativo/domande/domande.html" aria-label="Apri nell'elenco operativo le n domande di sostegno rilasciate nello stato Stampato">Apri nell'elenco (n rilasciate)</a></td></tr>
+          <tr><th scope="row">Rilasciato</th><td class="ui-num">n</td><td class="ui-num">0</td><td><a class="btn" href="../../elenco-operativo/domande/domande.html" aria-label="Apri nell'elenco operativo le n domande di sostegno nello stato Rilasciato">Apri nell'elenco</a></td></tr>
+          <tr><th scope="row">Non ricevibile</th><td class="ui-num">0</td><td class="ui-num">0</td><td>nessuna domanda</td></tr>
+          <tr><th scope="row">Istruttoria con esito positivo su tutte le misure</th><td class="ui-num">n</td><td class="ui-num">0</td><td><a class="btn" href="../../elenco-operativo/domande/domande.html" aria-label="Apri nell'elenco operativo le n domande di sostegno nello stato Istruttoria con esito positivo su tutte le misure">Apri nell'elenco</a></td></tr>
+          <tr><th scope="row">Altro stato: SOSPESA (codice SIAN fuori catalogo)</th><td class="ui-num">n</td><td class="ui-num">0</td><td><a class="btn" href="../../elenco-operativo/domande/domande.html" aria-label="Apri nell'elenco operativo le n domande di sostegno nello stato SOSPESA">Apri nell'elenco</a></td></tr>
+        </tbody>
+        <tfoot>
+          <tr><th scope="row">Totale</th><td class="ui-num">n</td><td class="ui-num">n</td><td></td></tr>
+        </tfoot>
+      </table>
+      <p class="ui-fonte">Fonte: TX-0027 (totale). Link elenco-stato-sostegno: statoSostegno = nome della voce (es. RILASCIATO) o codice dell'altro stato, voceProgrammazione = valori del filtro stato, intervento, os, og, op correnti. Con la fonte delle non rilasciate attiva In compilazione e' un numero (0 per gli interventi senza) e il link apre la sua parte rilasciata. Una voce con zero domande rilasciate non ha il link.</p>
+    </section>
+    <section class="ui-card" aria-labelledby="t-interventi">
+      <div class="ui-card__testa"><h2 id="t-interventi">Domande di sostegno per intervento e stato</h2></div>
+      <div class="ui-strumenti">
+        <label class="form-label" for="t-cerca">Cerca nella tabella</label>
+        <input class="form-control" type="search" id="t-cerca" name="t">
+        <button class="btn" type="button">Colonne (13)</button>
+      </div>
+      <table class="ui-tabella">
+        <caption>Domande di sostegno per intervento e stato: l'intervento e' l'intestazione di riga, le voci di SR-01 e gli altri stati le colonne (scegli quali con Colonne); clic o Invio su una riga per l'anteprima.</caption>
+        <thead>
+          <tr>
+            <th scope="col"><button class="btn" type="button">Intervento</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Totale</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Di cui non rilasciate</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">In compilazione</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Rilasciato</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Ricevibile</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Esito positivo su tutte le misure</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Altri stati</button></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="ui-riga"><th scope="row">SRD01 - descrizione</th><td class="ui-num">n</td><td class="ui-num">n</td><td>non disponibile</td><td class="ui-num">n</td><td class="ui-num">0</td><td class="ui-num">n</td><td>nessuno</td></tr>
+          <tr class="ui-riga"><th scope="row">SRA01 - descrizione</th><td class="ui-num">n</td><td class="ui-num">0</td><td>non disponibile</td><td class="ui-num">0</td><td class="ui-num">0</td><td class="ui-num">0</td><td>SOSPESA n</td></tr>
+        </tbody>
+        <tfoot>
+          <tr><th scope="row">Totale (dal backend)</th><td class="ui-num">n</td><td class="ui-num">n</td><td>non disponibile</td><td class="ui-num">n</td><td class="ui-num">0</td><td class="ui-num">n</td><td>SOSPESA n</td></tr>
+        </tfoot>
+      </table>
+      <p class="ui-fonte">Fonte: TX-0027 (righe e totale). Gli altri stati sono per codice (una colonna per codice in Colonne; qui riassunti). Totali del backend, mai sommati nel browser. Nessun export del report: i dati per intervento si scaricano dal riepilogo in CSV.</p>
+      <nav class="ui-paginazione" aria-label="Pagine della tabella"><button class="btn" type="button" aria-current="page">1</button> <button class="btn" type="button">2</button></nav>
+    </section>
+    <aside class="ui-drawer" aria-label="Anteprima dell'intervento SRD01">
+      <h2>Anteprima: SRD01</h2>
+      <dl>
+        <dt>Domande di sostegno</dt><dd>n, di cui non rilasciate n</dd>
+        <dt>Rilasciato</dt><dd>n <a class="btn" href="../../elenco-operativo/domande/domande.html" aria-label="Apri nell'elenco operativo le n domande di sostegno di SRD01 nello stato Rilasciato">Apri nell'elenco</a></dd>
+        <dt>Stampato</dt><dd>n, di cui non rilasciate n <a class="btn" href="../../elenco-operativo/domande/domande.html" aria-label="Apri nell'elenco operativo le n domande di sostegno rilasciate di SRD01 nello stato Stampato">Apri nell'elenco (n rilasciate)</a></dd>
+        <dt>In compilazione</dt><dd>non disponibile (fonte non attiva: domande in compilazione)</dd>
+      </dl>
+      <figure class="ui-grafico ui-grafico--barre ui-grafico--mini">
+        <figcaption>Mini grafico a barre delle voci dell'intervento, con la tabella equivalente nascosta per i lettori di schermo.</figcaption>
+      </figure>
+      <a class="btn btn-primary" href="../panoramica/intervento.html">Apri il dettaglio dell'intervento</a>
+    </aside>
+    <p class="wf-note">Drawer: ogni voce con domande rilasciate ha Apri nell'elenco (link elenco-stato-sostegno-riga: statoSostegno, voceProgrammazione, intervento della riga); Apri il dettaglio = link dettaglio-intervento-stati-sostegno.</p>
+    <h2>Stato: caricamento</h2>
+    <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro della card e della tabella)</div>
+    <h2>Stato: vuoto</h2>
+    <div class="ui-vuoto" role="status">Nessuna domanda di sostegno per i filtri scelti. <a class="btn btn-primary" href="../panoramica/panoramica.html#pannello-filtri">Modifica i filtri</a></div>
+    <h2>Stato: errore</h2>
+    <div class="alert alert-danger" role="alert">Dati non disponibili: messaggio dal problem-type (400 filtro non valido, 403 accesso negato, 503 da riprovare dopo Retry-After). <a href="#contenuto">Riprova</a></div>
+  </main>
+</div>
+<footer class="ui-footer">
+  <ul>
+    <li><a href="#contenuto">Dichiarazione di accessibilita' (indirizzo da definire)</a></li>
+    <li><a href="#contenuto">Privacy (indirizzo da definire)</a></li>
+    <li><a href="#contenuto">Note legali (indirizzo da definire)</a></li>
+    <li>Regione Lazio - ARSIAL</li>
+  </ul>
+</footer>
+</body>
+</html>
