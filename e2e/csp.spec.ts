@@ -194,8 +194,10 @@ test('pannello dei filtri e anteprima: dialoghi senza violazioni (react-aria con
   await expect(filtri).toBeHidden();
   expect(await violazioniConModale(page)).toEqual([]);
 
-  // review v2 N-25: anche l'anteprima laterale del riepilogo, aperta dalla riga della tabella
+  // review v2 N-25: anche l'anteprima laterale del riepilogo, aperta dalla riga della tabella. Dal 19/10 il riepilogo si
+  // apre sul grafico: prima si sceglie la vista Tabella (review delta 21/10 X1)
   await page.goto('/finanziario/riepilogo');
+  await page.getByRole('group', { name: 'Vista del riepilogo' }).getByRole('button', { name: 'Tabella' }).click();
   await page.getByRole('row', { name: "Apri l'anteprima dell'intervento SRA01" }).click();
   const anteprima = page.getByRole('dialog', { name: 'SRA01' });
   await expect(anteprima).toBeVisible();
