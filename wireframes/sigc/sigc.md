@@ -18,7 +18,7 @@ Vocabolario del kit UI v2 (ADR 0027 di green-fe), resa approvata nel prototipo `
 
 - /finanziario/sigc: Shell > Barra filtri > Breadcrumb > Titolo > Card domande SIGC (barre orizzontali) + Card importi SIGC (cascata) > Stati
 - /finanziario/sigc/riserva: Shell (senza barra filtri: dato regionale) > Breadcrumb > Titolo > Selettore anno > KPI x4 > Card utilizzo progressivo (linea con zoom) > Stati
-- /finanziario/sigc/verifica-smp: Shell > Barra filtri > Breadcrumb > Titolo > Selettore esercizio > Card previsione e spesa (barre) > Card tabella 20 dati (cerca, colonne) > Stati
+- /finanziario/sigc/verifica-smp: Shell > Barra filtri > Breadcrumb > Titolo > Selettore esercizio > Card spesa erogata nella campagna precedente (barre) > Card tabella 20 dati (cerca, colonne) > Stati
 
 ## Grafici del flusso
 
@@ -47,8 +47,8 @@ questi profili misti esistono; se si', un parametro del backend restringera' l'e
 | /finanziario/sigc | elenco-sigc | passo di Domande SIGC | elenco-operativo: /elenco-operativo/domande | - | sigc=true e, per pagate, da pagare e senza importi, pagamento=PAGATA, DA_PAGARE, SENZA_IMPORTI + filtri correnti |
 | /finanziario/sigc | elenco-sigc-importi | Importi SIGC | elenco-operativo: /elenco-operativo/domande | - | sigc=true + filtri correnti (il sinottico dell'elenco riporta richiesto, ammesso, pagato e ancora da pagare) |
 
-Non collegati: Utilizzo progressivo della riserva (TX-0014, dato regionale, non e' un insieme di domande) e Previsione di
-pagamento e spesa erogata (TX-0015, per intervento ed esercizio).
+Non collegati: Utilizzo progressivo della riserva (TX-0014, dato regionale, non e' un insieme di domande) e Spesa erogata
+nella campagna precedente (TX-0015, per intervento ed esercizio).
 
 ## Stati resi (obbligatori)
 
