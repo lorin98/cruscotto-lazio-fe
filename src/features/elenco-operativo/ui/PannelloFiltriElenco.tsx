@@ -6,7 +6,7 @@
 // grant, o se non arrivano, resta la ricerca per testo (A-06); azioni portanti e atto di concessione si scelgono solo se
 // TX-0060 li dichiara disponibili (legameAzioniDisponibile, attoConcessioneDisponibile). PannelloLaterale (react-aria) da'
 // focus trap, Esc e ritorno del focus; i controlli sono Bootstrap Italia (vedi controlli.tsx).
-import { useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { ANNO_ASSENTE, ANNO_SENZA } from '../../../entities/domanda';
 import { getErrorMessage } from '../../../shared/lib';
 import { ErroreVista, PannelloLaterale, VistaQuery } from '../../../shared/ui';
@@ -90,7 +90,34 @@ function GruppoDomanda({ dati, sel, imposta, conta, aperto }: Scelta & { aperto:
   );
 }
 
+/**
+ * "Togli il filtro Atto di concessione" si smonta al clic: il fuoco passa alla nota accanto e non resta sul nulla (la regola
+ * dei chip della barra, review v1 X-02, WCAG 2.4.3; review delta 21/10 passata 2 V2). `scelto`: la concessione e' fra i
+ * criteri; il fuoco si sposta quando esce dopo il clic.
+ */
+function useFocusDopoIlTogli(scelto: boolean) {
+  const nota = useRef<HTMLParagraphElement>(null);
+  const daRifocalizzare = useRef(false);
+  useEffect(() => {
+    if (scelto || !daRifocalizzare.current) return;
+    nota.current?.focus();
+    daRifocalizzare.current = false;
+  }, [scelto]);
+  return {
+    nota,
+    segnaIlTogli: () => {
+      daRifocalizzare.current = true;
+    },
+  };
+}
+
 function GruppoStati({ id, dati, sel, imposta, conta }: Scelta) {
+  const concessione = sel('concessione').length > 0;
+  const { nota, segnaIlTogli } = useFocusDopoIlTogli(concessione);
+  const togliConcessione = () => {
+    segnaIlTogli();
+    imposta('concessione')([]);
+  };
   return (
     <Gruppo titolo="Stati" scelti={conta('stato', 'statoProgrammazione', 'concessione', 'anomalie')}>
       <Caselle id={`${id}-stato`} etichetta={ETICHETTE_FILTRI.stato} opzioni={conSenza(daVoci(dati.stati), 'SENZA_STATO', 'Senza stato SIAN')} scelti={sel('stato')} onCambia={imposta('stato')} />
@@ -103,12 +130,15 @@ function GruppoStati({ id, dati, sel, imposta, conta }: Scelta) {
       />
       {/* senza alcun atto di concessione nel database il backend rifiuta il filtro (400 DATO_NON_VALIDO, D-02 Rev. 5-6):
           il controllo non si mostra, come le azioni portanti senza legame, e il pannello non aggiunge mai `concessione`.
-          Se arriva gia' dall'indirizzo (link condiviso o scritto a mano) si toglie anche da qui (review delta 21/10 V3) */}
+          Se arriva gia' dall'indirizzo (link condiviso o scritto a mano) si toglie anche da qui (review delta 21/10 V3),
+          e il fuoco passa alla nota (V2 della passata 2) */}
       {dati.attoConcessioneDisponibile === false ? (
         <>
-          <p className="ui-nota">Atto di concessione non disponibile finché nessuna domanda ha un atto di concessione.</p>
-          {sel('concessione').length > 0 && (
-            <button type="button" className="btn btn-outline-primary btn-sm" onClick={() => imposta('concessione')([])}>
+          <p className="ui-nota" ref={nota} tabIndex={-1}>
+            Atto di concessione non disponibile finché nessuna domanda ha un atto di concessione.
+          </p>
+          {concessione && (
+            <button type="button" className="btn btn-outline-primary btn-sm" onClick={togliConcessione}>
               Togli il filtro Atto di concessione
             </button>
           )}

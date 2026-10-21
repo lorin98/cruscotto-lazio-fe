@@ -283,8 +283,9 @@ describe("RA006: filtro dell'atto di concessione solo se TX-0060 lo dichiara dis
     await waitFor(() => expect(router.state.location.search).toBe(''));
   });
 
-  // review delta 21/10 V3: il pannello conta la concessione arrivata dall'indirizzo e la rimanderebbe a ogni scelta
-  it("domande: con la concessione nell'indirizzo e la fonte non attiva il pannello aperto la toglie, e le altre scelte non la rimandano", async () => {
+  // review delta 21/10 V3: il pannello conta la concessione arrivata dall'indirizzo e la rimanderebbe a ogni scelta;
+  // passata 2 V2: dopo il clic il fuoco non resta sul pulsante smontato
+  it("domande: con la concessione nell'indirizzo e la fonte non attiva il pannello aperto la toglie (fuoco sulla nota), e le altre scelte non la rimandano", async () => {
     servi();
     senzaAtto();
     // come il backend: 400 sul campo concessione, altrimenti la risposta
@@ -303,6 +304,8 @@ describe("RA006: filtro dell'atto di concessione solo se TX-0060 lo dichiara dis
     await userEvent.click(within(dialogo).getByRole('button', { name: 'Togli il filtro Atto di concessione' }));
     await waitFor(() => expect(router.state.location.search).toBe(''));
     expect(within(dialogo).queryByRole('button', { name: 'Togli il filtro Atto di concessione' })).toBeNull();
+    // il pulsante si e' smontato: il fuoco e' sulla nota accanto, non sul nulla (review delta 21/10 passata 2 V2, X-02)
+    expect(document.activeElement).toBe(within(dialogo).getByText(NON_DISPONIBILE));
     await userEvent.click(within(dialogo).getByRole('button', { name: 'Con anomalie' }));
     await waitFor(() => expect(router.state.location.search).toBe('?anomalie=true'));
     await waitFor(() => expect(domande).toContain('?anomalie=true'));
