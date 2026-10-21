@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<!-- Wireframe v2 (template wireframe-v2 di green-fe, ADR 0027), feature fisico, flusso superfici. Valori di esempio presi
+     dagli scenari di accettazione del backend (fisico-scenarios.json), nessun dato reale. -->
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Superfici ammissibili - Fisico - Cruscotto CSR 2023-2027</title>
+<link rel="stylesheet" href="wireframe.css">
+</head>
+<body>
+<a class="skip-link" href="#contenuto">Salta al contenuto</a>
+<header class="ui-testata">
+  <div class="ui-ente">
+    <span class="ui-logo">Regione Lazio</span>
+    <span class="ui-logo">ARSIAL</span>
+  </div>
+  <div class="ui-appbar">
+    <a class="ui-appbar__nome" href="../../panoramica/panoramica.html">Cruscotto CSR 2023-2027</a>
+    <form class="ui-cerca" action="#" method="get" role="search">
+      <label class="form-label" for="cerca-app">Cerca un intervento</label>
+      <input class="form-control" type="search" id="cerca-app" name="q">
+    </form>
+    <span class="ui-utente">Nome Cognome - <a href="#contenuto">Esci</a></span>
+  </div>
+</header>
+<div class="ui-layout">
+  <nav class="ui-sidebar" aria-label="Navigazione principale">
+    <p class="ui-menu__sezione">Aree del cruscotto</p>
+    <ul class="ui-menu">
+      <li><a class="ui-menu__gruppo" href="../../panoramica/panoramica.html">Finanziario</a></li>
+      <li><a class="ui-menu__gruppo" href="superfici.html">Fisico</a>
+        <ul class="ui-menu__sub">
+          <li><a href="superfici.html" aria-current="page">Superfici ammissibili</a></li>
+          <li><a href="../determine/determine.html">Determine di una domanda</a></li>
+        </ul>
+      </li>
+      <li><span class="ui-menu__presto">Procedurale (presto)</span></li>
+      <li><span class="ui-menu__presto">Istituzionale (presto)</span></li>
+    </ul>
+    <p class="ui-menu__sezione">Strumenti</p>
+    <ul class="ui-menu">
+      <li><a class="ui-menu__gruppo" href="../../elenco-operativo/domande/domande.html">Elenco operativo</a></li>
+    </ul>
+  </nav>
+  <main class="ui-main" id="contenuto">
+    <div class="ui-filtri" role="region" aria-label="Filtri attivi">
+      <a class="btn btn-primary" href="#pannello-filtri">Filtri (2)</a>
+      <span class="ui-chip">Intervento: SRB01 <button class="btn" type="button" aria-label="Togli il filtro Intervento SRB01">x</button></span>
+      <span class="ui-chip">Campagna: 2025 <button class="btn" type="button" aria-label="Togli il filtro Campagna 2025">x</button></span>
+      <span class="ui-pill">Perimetro: regionale, sempre (nessun perimetro ADA per le letture del fisico)</span>
+    </div>
+    <nav class="breadcrumb-container" aria-label="Percorso">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="../../panoramica/panoramica.html">Home</a></li>
+        <li class="breadcrumb-item"><a href="superfici.html">Fisico</a></li>
+        <li class="breadcrumb-item" aria-current="page">Superfici ammissibili</li>
+      </ol>
+    </nav>
+    <div class="ui-titolo">
+      <h1>Fisico: superfici ammissibili per intervento</h1>
+      <p>Superficie ammissibile delle domande di sostegno (DS) e delle domande di pagamento (DP) per intervento e campagna, con la verifica incrociata fra le due. Clic su una barra per l'anteprima dell'intervento; nella vista Tabella cerca, ordina e scegli le colonne.</p>
+    </div>
+    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0018.read - Transazioni: TX-0018 (RF018). Una sola lettura per pagina, con i filtri dell'indirizzo (intervento, os, og, op, azione, campagna); l'Assistenza tecnica AT001 non e' selezionabile ne' elencata. Superfici in ettari con due decimali (D-01 e D-04 del backend).</p>
+    <p class="wf-note">Campagne: le superfici di campagne diverse non si sommano (D-01: un impegno pluriennale ripete la stessa superficie DS in piu' campagne). KPI, barre per intervento e verifica incrociata sono della campagna scelta col filtro Campagna o, senza filtro, della campagna piu' recente presente nella risposta (detto nel titolo dei KPI); la serie per campagna le mostra tutte. I KPI sono somme delle righe della campagna: il report e' completo, senza paginazione.</p>
+    <p class="wf-note">Barra dei filtri: niente "ultimo dato sincronizzato", nessun DTO della slice fisico lo porta (OP-FIS-02). Valori del pannello dei filtri: da decidere (OP-FIS-01).</p>
+    <h2>Totali della campagna 2025</h2>
+    <div class="ui-griglia ui-griglia--4">
+      <section class="ui-kpi" aria-label="Superficie ammissibile delle domande di sostegno, campagna 2025">
+        <p>Superficie ammissibile DS</p>
+        <p class="ui-kpi__valore">15,50 ha</p>
+        <p class="ui-barra">2 domande di sostegno (la DS si conta una volta per domanda di sostegno)</p>
+      </section>
+      <section class="ui-kpi" aria-label="Superficie ammissibile delle domande di pagamento, campagna 2025">
+        <p>Superficie ammissibile DP</p>
+        <p class="ui-kpi__valore">16,20 ha</p>
+        <p class="ui-barra">3 domande di pagamento</p>
+      </section>
+      <section class="ui-kpi" aria-label="Differenza fra superficie DP e superficie DS, campagna 2025">
+        <p>Differenza DP - DS</p>
+        <p class="ui-kpi__valore">+0,70 ha</p>
+        <p class="ui-barra">negativa se la DP e' minore della DS</p>
+      </section>
+      <section class="ui-kpi" aria-label="Domande di pagamento con superficie DP oltre la DS, campagna 2025">
+        <p>Domande con DP oltre la DS</p>
+        <p class="ui-kpi__valore">1</p>
+        <p class="ui-barra">su 3 domande di pagamento: 33,3%</p>
+      </section>
+    </div>
+    <section class="ui-card" aria-labelledby="t-sup">
+      <div class="ui-card__testa"><h2 id="t-sup">Superfici per intervento e campagna</h2></div>
+      <div class="ui-seg" role="group" aria-label="Vista delle superfici"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button></div>
+      <div class="ui-griglia ui-griglia--2">
+        <section class="ui-card" aria-labelledby="g-int">
+          <div class="ui-card__testa">
+            <h2 id="g-int">Superficie DS e DP per intervento, campagna 2025</h2>
+            <div class="ui-seg" role="group" aria-label="Vista di Superficie DS e DP per intervento"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica PNG</button></div>
+          </div>
+          <figure class="ui-grafico ui-grafico--barre">
+            <figcaption>Barre raggruppate con zoom oltre 12 interventi: superficie DS e superficie DP di ogni intervento nella campagna. Clic su una barra: anteprima dell'intervento. Interventi senza superfici (non a superficie o non SIGC): fuori dal grafico, elencati sotto.</figcaption>
+          </figure>
+          <p class="ui-fonte">Fonte: TX-0018. 1 intervento senza superfici, non valorizzato: SRA29. La tabella equivalente mostra gli stessi valori.</p>
+        </section>
+        <section class="ui-card" aria-labelledby="g-camp">
+          <div class="ui-card__testa">
+            <h2 id="g-camp">Superficie DS e DP per campagna</h2>
+            <div class="ui-seg" role="group" aria-label="Vista di Superficie DS e DP per campagna"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica PNG</button></div>
+          </div>
+          <figure class="ui-grafico ui-grafico--linea">
+            <figcaption>Linea: superficie DS e superficie DP degli interventi scelti, campagna per campagna (somma degli interventi dentro ogni campagna, mai fra campagne). Clic su un punto: filtro Campagna su quell'anno.</figcaption>
+          </figure>
+          <p class="ui-fonte">Fonte: TX-0018 letta senza filtro Campagna. Con una campagna scelta la serie non si disegna: "Togli il filtro Campagna per vedere tutte le campagne".</p>
+        </section>
+      </div>
+      <section class="ui-card" aria-labelledby="g-ver">
+        <div class="ui-card__testa">
+          <h2 id="g-ver">Verifica incrociata: differenza DP - DS per intervento, campagna 2025</h2>
+          <div class="ui-seg" role="group" aria-label="Vista di Verifica incrociata"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica PNG</button></div>
+        </div>
+        <figure class="ui-grafico ui-grafico--barre">
+          <figcaption>Barre orizzontali ordinate, a destra dello zero se la DP supera la DS, a sinistra se e' minore; accanto a ogni barra il numero di domande con DP oltre la DS. Clic su una barra: anteprima dell'intervento.</figcaption>
+        </figure>
+        <p class="ui-fonte">Fonte: TX-0018 (differenzaDpDs, domandeDpOltreDs). Quantita' richiesta a premio: non disponibile (fonte non attiva: quantita' richiesta a premio, OP-FIS-04). La tabella equivalente mostra gli stessi valori.</p>
+      </section>
+    </section>
+    <h2>Vista: Tabella</h2>
+    <p class="wf-note">Con il bottone Tabella di "Vista delle superfici" la tabella prende il posto dei grafici nella stessa card: una riga per intervento e campagna, tutte le campagne della risposta. Niente "Esporta CSV": la spec fisico non ha endpoint di export (OP-FIS-03).</p>
+    <section class="ui-card" aria-labelledby="t-sup-tabella">
+      <div class="ui-card__testa"><h2 id="t-sup-tabella">Superfici per intervento e campagna</h2></div>
+      <div class="ui-seg" role="group" aria-label="Vista delle superfici"><button class="btn" type="button" aria-pressed="false">Grafico</button> <button class="btn" type="button" aria-pressed="true">Tabella</button></div>
+      <div class="ui-strumenti">
+        <label class="form-label" for="t-cerca">Cerca nella tabella</label>
+        <input class="form-control" type="search" id="t-cerca" name="t">
+        <button class="btn" type="button">Colonne (10)</button>
+      </div>
+      <table class="ui-tabella">
+        <caption>Superficie ammissibile DS e DP per intervento e campagna, con la verifica incrociata. Clic o Invio su una riga per l'anteprima dell'intervento.</caption>
+        <thead>
+          <tr>
+            <th scope="col"><button class="btn" type="button">Intervento</button></th>
+            <th scope="col"><button class="btn" type="button">Campagna</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Domande di pagamento</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Domande di sostegno</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Superficie DS (ha)</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Superficie DP (ha)</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Differenza DP - DS (ha)</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Domande con DP oltre la DS</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Sostegni con DS discordanti</button></th>
+            <th scope="col"><button class="btn" type="button">Quantita' richiesta a premio</button></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="ui-riga"><th scope="row">SRB01</th><td>2025</td><td class="ui-num">3</td><td class="ui-num">2</td><td class="ui-num">15,50</td><td class="ui-num">16,20</td><td class="ui-num">+0,70</td><td class="ui-num">1</td><td class="ui-num">0</td><td>non disponibile (fonte non attiva)</td></tr>
+          <tr class="ui-riga"><th scope="row">SRB01</th><td>2024</td><td class="ui-num">1</td><td class="ui-num">1</td><td class="ui-num">10,50</td><td class="ui-num">10,00</td><td class="ui-num">-0,50</td><td class="ui-num">0</td><td class="ui-num">0</td><td>non disponibile (fonte non attiva)</td></tr>
+          <tr class="ui-riga"><th scope="row">SRA29</th><td colspan="9">nessuna superficie in nessuna campagna (non valorizzato: intervento non a superficie o non SIGC)</td></tr>
+        </tbody>
+        <tfoot>
+          <tr><th scope="row">Totale campagna 2025 (1 intervento con superfici)</th><td>2025</td><td class="ui-num">3</td><td class="ui-num">2</td><td class="ui-num">15,50</td><td class="ui-num">16,20</td><td class="ui-num">+0,70</td><td class="ui-num">1</td><td class="ui-num">0</td><td></td></tr>
+          <tr><th scope="row">Totale campagna 2024 (1 intervento con superfici)</th><td>2024</td><td class="ui-num">1</td><td class="ui-num">1</td><td class="ui-num">10,50</td><td class="ui-num">10,00</td><td class="ui-num">-0,50</td><td class="ui-num">0</td><td class="ui-num">0</td><td></td></tr>
+        </tfoot>
+      </table>
+      <p class="form-text">Un totale per campagna, nessun totale generale: le campagne non si sommano. "Sostegni con DS discordanti": domande di sostegno riportate dalle domande di pagamento con superfici DS diverse, di cui si e' preso il massimo.</p>
+      <nav class="ui-paginazione" aria-label="Pagine della tabella"><button class="btn" type="button" aria-current="page">1</button> <button class="btn" type="button">2</button></nav>
+    </section>
+    <aside class="ui-drawer" aria-label="Anteprima dell'intervento SRB01">
+      <h2>Anteprima: SRB01</h2>
+      <dl>
+        <dt>Superficie DS, campagna 2025</dt><dd>15,50 ha</dd>
+        <dt>Superficie DP, campagna 2025</dt><dd>16,20 ha</dd>
+        <dt>Differenza DP - DS</dt><dd>+0,70 ha</dd>
+        <dt>Domande con DP oltre la DS</dt><dd>1 su 3</dd>
+        <dt>Superficie DS, campagna 2024</dt><dd>10,50 ha</dd>
+        <dt>Superficie DP, campagna 2024</dt><dd>10,00 ha</dd>
+        <dt>Quantita' richiesta a premio</dt><dd>non disponibile (fonte non attiva: quantita' richiesta a premio)</dd>
+      </dl>
+      <figure class="ui-grafico ui-grafico--linea ui-grafico--mini">
+        <figcaption>Mini linea: superficie DS e DP dell'intervento per campagna, con la tabella equivalente per i lettori di schermo.</figcaption>
+      </figure>
+      <button class="btn btn-primary" type="button">Mostra solo SRB01</button>
+    </aside>
+    <p class="form-text">"Mostra solo SRB01" mette il filtro Intervento sull'intervento (chip nella barra dei filtri) e chiude l'anteprima: resta sulla stessa pagina.</p>
+    <aside class="ui-pannello" id="pannello-filtri" aria-label="Pannello dei filtri">
+      <h2>Filtri delle superfici ammissibili</h2>
+      <details class="ui-gruppo-filtro" open>
+        <summary>Intervento</summary>
+        <label class="form-label" for="f-cerca">Cerca per codice o descrizione</label>
+        <input class="form-control" type="search" id="f-cerca" name="cerca">
+        <label class="ui-opzione" for="f-1"><input type="checkbox" id="f-1" name="intervento"> SRB01 - descrizione (fonte da decidere, OP-FIS-01)</label>
+        <label class="ui-opzione" for="f-2"><input type="checkbox" id="f-2" name="intervento"> SRA29 - descrizione (fonte da decidere, OP-FIS-01)</label>
+      </details>
+      <details class="ui-gruppo-filtro">
+        <summary>Obiettivo generale (OG), specifico (OS), di policy (OP)</summary>
+        <button class="ui-toggle-chip" type="button" aria-pressed="false">OG2</button> <button class="ui-toggle-chip" type="button" aria-pressed="true">OS4</button> <button class="ui-toggle-chip" type="button" aria-pressed="false">OP1</button>
+      </details>
+      <details class="ui-gruppo-filtro">
+        <summary>Azione portante</summary>
+        <p class="form-text">Non disponibile finche' nessun intervento e' collegato a un'azione portante (legameAzioniDisponibile = falso).</p>
+      </details>
+      <details class="ui-gruppo-filtro" open>
+        <summary>Campagna (un solo anno)</summary>
+        <button class="ui-toggle-chip" type="button" aria-pressed="false">Tutte le campagne</button> <button class="ui-toggle-chip" type="button" aria-pressed="true">2025</button> <button class="ui-toggle-chip" type="button" aria-pressed="false">2024</button>
+      </details>
+      <p class="form-text">Voci dello stesso filtro in alternativa (O); filtri diversi insieme (E). La campagna e' una sola alla volta. I filtri restano nell'indirizzo della pagina.</p>
+      <button class="btn" type="button">Azzera</button> <button class="btn btn-primary" type="button">Applica i filtri</button>
+    </aside>
+    <h2>Stato: caricamento</h2>
+    <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro dei KPI e delle card)</div>
+    <h2>Stato: vuoto</h2>
+    <div class="ui-vuoto" role="status">Nessun intervento per i filtri scelti. <a class="btn btn-primary" href="#pannello-filtri">Modifica i filtri</a></div>
+    <div class="ui-vuoto" role="status">Nessuna superficie per gli interventi scelti nella campagna 2025: gli interventi non sono a superficie o non sono SIGC (non valorizzato). <a class="btn btn-primary" href="#pannello-filtri">Modifica i filtri</a></div>
+    <h2>Stato: errore</h2>
+    <div class="alert alert-danger" role="alert">Dati non disponibili: messaggio dal problem-type (400 filtri non validi, 403 accesso negato, 429 troppe richieste e 503 capacita' esaurita o tempo scaduto con nuovo tentativo dopo Retry-After). <a href="#contenuto">Riprova</a></div>
+  </main>
+</div>
+<footer class="ui-footer">
+  <ul>
+    <li><a href="#contenuto">Dichiarazione di accessibilita' (indirizzo da definire)</a></li>
+    <li><a href="#contenuto">Privacy (indirizzo da definire)</a></li>
+    <li><a href="#contenuto">Note legali (indirizzo da definire)</a></li>
+    <li>Regione Lazio - ARSIAL</li>
+  </ul>
+</footer>
+</body>
+</html>

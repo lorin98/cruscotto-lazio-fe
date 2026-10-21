@@ -1,0 +1,204 @@
+{
+  "schema_version": "1.0",
+  "slice": "fisico",
+  "scenarios": [
+    {
+      "scenario_id": "SC-FS_SUPERFICIE",
+      "req_uids": [
+        "RU-00000018"
+      ],
+      "given": "SRB01 con domande di PAGAMENTO correnti e presenza ASR2-20 aperta: campagna 2025 DP1 (sostegno S1, DS 10,50, DP 9,00), DP2 (sostegno S1, DS 10,50, DP 1,20), DP3 (senza codice della domanda di sostegno, DS 5,00, DP 6,00); campagna 2024 DP4 (sostegno S1, DS 10,50, DP 10,00); SRA29 censito senza domande con superfici",
+      "when": "chiama GET /api/fisico/superficie-ammissibile",
+      "then": "200, perimetro REGIONALE, campagna null, una riga per intervento selezionato in ordine di codice: SRA29 con campagne vuote e motivo NON_VALORIZZATO; SRB01 con le campagne in ordine crescente: 2024 domande di pagamento 1, domande di sostegno 1, DS 10.50, DP 10.00, differenza DP-DS -0.50, domande con DP oltre la DS 0; 2025 domande di pagamento 3, domande di sostegno 2 (S1 una volta sola, DP3 vale come sostegno di se stessa), sostegni discordanti 0, DS 15.50 (D-01: la DS di S1 non si somma due volte), DP 16.20, differenza 0.70, domande con DP oltre la DS 1 (DP3, D-02); le campagne non si sommano tra loro",
+      "kind": "positive",
+      "test_tag": "SC-FS_SUPERFICIE",
+      "approved": true,
+      "role": "p1-dirigente"
+    },
+    {
+      "scenario_id": "SC-FS_SUPERFICIE_PREMIO",
+      "req_uids": [
+        "RU-00000018"
+      ],
+      "given": "SRB01 con domande di PAGAMENTO correnti e presenza ASR2-20 aperta: campagna 2025 DP1 (sostegno S1, DS 10,50, DP 9,00), DP2 (sostegno S1, DS 10,50, DP 1,20), DP3 (senza codice della domanda di sostegno, DS 5,00, DP 6,00); campagna 2024 DP4 (sostegno S1, DS 10,50, DP 10,00); SRA29 censito senza domande con superfici; ASR2-08 della campagna 2025 acquisito con quantita' richiesta a premio valorizzata",
+      "when": "chiama GET /api/fisico/superficie-ammissibile",
+      "then": "in ogni campagna la quantita' richiesta a premio e' null con motivo FONTE_NON_ATTIVA e fonte QUANTITA_RICHIESTA_PREMIO (D-02: l'import la lascia nello staging); mai letta dallo staging ne' ricavata dalle superfici",
+      "kind": "positive",
+      "test_tag": "SC-FS_SUPERFICIE_PREMIO",
+      "approved": true,
+      "role": "p2-referente-adg"
+    },
+    {
+      "scenario_id": "SC-FS_SUPERFICIE_DISCORDANTE",
+      "req_uids": [
+        "RU-00000018"
+      ],
+      "given": "SRB01 campagna 2025 con due domande di pagamento correnti del sostegno S2 che ne riportano DS 8,00 e 7,50 (DP 4,00 e 3,00)",
+      "when": "chiama GET /api/fisico/superficie-ammissibile",
+      "then": "campagna 2025 con domande di sostegno 1, sostegni discordanti 1, DS 8.00 (il massimo, D-01), DP 7.00, domande con DP oltre la DS 0",
+      "kind": "positive",
+      "test_tag": "SC-FS_SUPERFICIE_DISCORDANTE",
+      "approved": true,
+      "role": "p1-dirigente"
+    },
+    {
+      "scenario_id": "SC-FS_SUPERFICIE_FONTE",
+      "req_uids": [
+        "RU-00000018"
+      ],
+      "given": "SRB01 con domande di PAGAMENTO correnti e presenza ASR2-20 aperta: campagna 2025 DP1 (sostegno S1, DS 10,50, DP 9,00), DP2 (sostegno S1, DS 10,50, DP 1,20), DP3 (senza codice della domanda di sostegno, DS 5,00, DP 6,00); campagna 2024 DP4 (sostegno S1, DS 10,50, DP 10,00); SRA29 censito senza domande con superfici; inoltre in campagna 2025: una DP con presenza ASR2-20 chiusa, una DP chiusa (CHIUSA_IL valorizzato), una DP con presenza ASR2-20 aperta ma senza superfici (righe solo NP/UBA), una DP con sola presenza ASR2-08, una domanda di SOSTEGNO con superfici valorizzate, una DP con DS 2,00 e DP non valorizzata",
+      "when": "chiama GET /api/fisico/superficie-ammissibile",
+      "then": "non contano la DP con presenza chiusa, la DP chiusa, la DP senza superfici, la DP con sola ASR2-08 e la domanda di sostegno (D-01); la DP con sola DS conta tra le domande e nella DS (2.00 in piu') ma non nella DP ne' tra quelle con DP oltre la DS: campagna 2025 con domande di pagamento 4, domande di sostegno 3, DS 17.50, DP 16.20, domande con DP oltre la DS 1",
+      "kind": "positive",
+      "test_tag": "SC-FS_SUPERFICIE_FONTE",
+      "approved": true,
+      "role": "p1-dirigente"
+    },
+    {
+      "scenario_id": "SC-FS_SUPERFICIE_NEGATIVA_E_CAMPAGNA",
+      "req_uids": [
+        "RU-00000018"
+      ],
+      "given": "un intervento con una domanda di pagamento corrente senza anno di campagna, con presenza ASR2-20 aperta del perimetro 2022, DS -1,00 e DP 2,00, e una domanda di pagamento della campagna 2022 con DS 3,00 e DP 1,00",
+      "when": "chiama GET /api/fisico/superficie-ammissibile sull'intervento, senza campagna, con ?campagna=2022 e con ?campagna=2025",
+      "then": "una sola campagna 2022 (la prima domanda prende la campagna dalla presenza ASR2-20, D-01 Rev. 2) con domande di pagamento 2, domande di sostegno 2, DS 2.00 (la superficie negativa del file si somma col suo segno), DP 3.00, differenza 1.00, domande con DP oltre la DS 1; con campagna=2022 la stessa riga, con campagna=2025 nessuna campagna",
+      "kind": "positive",
+      "test_tag": "SC-FS_SUPERFICIE_NEGATIVA_E_CAMPAGNA",
+      "approved": true,
+      "role": "p1-dirigente"
+    },
+    {
+      "scenario_id": "SC-FS_SUPERFICIE_CAMPAGNA",
+      "req_uids": [
+        "RU-00000018"
+      ],
+      "given": "SRB01 con domande di PAGAMENTO correnti e presenza ASR2-20 aperta: campagna 2025 DP1 (sostegno S1, DS 10,50, DP 9,00), DP2 (sostegno S1, DS 10,50, DP 1,20), DP3 (senza codice della domanda di sostegno, DS 5,00, DP 6,00); campagna 2024 DP4 (sostegno S1, DS 10,50, DP 10,00); SRA29 censito senza domande con superfici; utente P3 dell'area fisica",
+      "when": "chiama GET /api/fisico/superficie-ammissibile con ?campagna=2025 e con ?campagna=2023",
+      "then": "con 2025: campagna 2025 nella risposta e per SRB01 la sola campagna 2025 (valori come SC-FS_SUPERFICIE); con 2023: SRB01 e SRA29 con campagne vuote e motivo NON_VALORIZZATO",
+      "kind": "positive",
+      "test_tag": "SC-FS_SUPERFICIE_CAMPAGNA",
+      "approved": true,
+      "role": "p3-funzionario-area"
+    },
+    {
+      "scenario_id": "SC-FS_FILTRI",
+      "req_uids": [
+        "RU-00000018"
+      ],
+      "given": "SRB01 collegato a OS4, SRA29 a OS5, AT001 censito con una domanda di pagamento con superfici; INTERVENTOAZIONE vuota",
+      "when": "chiama GET /api/fisico/superficie-ammissibile senza filtri, con ?os=OS4, con ?intervento=AT001 e con ?azione=<id di un'azione portante>",
+      "then": "con os=OS4 solo SRB01; AT001 non compare mai (D-08 di finanziario), ne' senza filtri ne' richiesta esplicitamente; con il filtro sulle azioni nessuna riga; filtri come nei report finanziari (dimensioni in AND, valori in OR)",
+      "kind": "positive",
+      "test_tag": "SC-FS_FILTRI",
+      "approved": true,
+      "role": "p1-dirigente"
+    },
+    {
+      "scenario_id": "SC-FS_DETERMINA",
+      "req_uids": [
+        "RU-00000020"
+      ],
+      "given": "domanda di PAGAMENTO 54810769585 corrente con righe DETERMINADOMANDA aperte: G00001 del 2025-01-10 (stato area programmazione AMMESSA, comparto C1), G00002 del 2025-06-30 (solo comparto C2), G00003 del 2025-06-30 (nessuno dei due); una riga chiusa della determina G00000 del 2025-09-01",
+      "when": "chiama GET /api/fisico/domande/54810769585/determina",
+      "then": "200 con codice a barre 54810769585, tipo PAGAMENTO, domanda non chiusa; determina corrente G00003 del 2025-06-30 (data, poi codice: D-05 di acquisizione-prosa); elenco G00003, G00002, G00001 in quest'ordine, con fonte dello stato area programmazione su G00001 e fonte del comparto su G00002 (la piu' recente che valorizza il campo, D-03); G00000 (riga chiusa) assente",
+      "kind": "positive",
+      "test_tag": "SC-FS_DETERMINA",
+      "approved": true,
+      "role": "p1-dirigente"
+    },
+    {
+      "scenario_id": "SC-FS_DETERMINA_TIPO",
+      "req_uids": [
+        "RU-00000020"
+      ],
+      "given": "il codice 34810022870 e' sia di una domanda di SOSTEGNO (determina G00010) sia di una di PAGAMENTO (determina G00011); il codice 44810208247 e' solo di una domanda di SOSTEGNO (determina G00012); il codice 34810063734 e' di una domanda di PAGAMENTO chiusa e di una di SOSTEGNO aperta (determina G00015, agganciata dall'import alla SOSTEGNO); il codice 34810063735 e' di una domanda di PAGAMENTO a cui l'import ha agganciato la determina G00016 e che poi si e' chiusa (la riga resta aperta) e di una SOSTEGNO aperta senza righe; il codice 34810063736 e' di una SOSTEGNO con la determina G00017 e di una PAGAMENTO aperta arrivata dopo, senza righe; il codice 34810063737 e' di una PAGAMENTO chiusa con la determina G00018 e di una SOSTEGNO aperta con la determina G00019",
+      "when": "chiama GET /api/fisico/domande/{codice}/determina con 34810022870, con 44810208247, con %2044810208247%20, con 34810063734, con 34810063735, con 34810063736 e con 34810063737",
+      "then": "per 34810022870 la domanda di PAGAMENTO con G00011 (fra le aperte la PAGAMENTO); per 44810208247 la domanda di SOSTEGNO con G00012, anche con gli spazi ai lati (tolti); per 34810063734 la SOSTEGNO aperta con G00015, non la PAGAMENTO chiusa (prima le aperte: la regola dell'aggancio, D-07 Rev. 4 di acquisizione-prosa, D-03 Rev. 2); per 34810063735 la PAGAMENTO chiusa con G00016 e per 34810063736 la SOSTEGNO con G00017: prima la domanda con righe aperte, dove l'import ha agganciato (D-03 Rev. 3); per 34810063737, righe su entrambe, la SOSTEGNO aperta con G00019 (a parita' la regola dell'aggancio)",
+      "kind": "positive",
+      "test_tag": "SC-FS_DETERMINA_TIPO",
+      "approved": true,
+      "role": "p5-amministratore-funzionale"
+    },
+    {
+      "scenario_id": "SC-FS_DETERMINA_NESSUNA",
+      "req_uids": [
+        "RU-00000020"
+      ],
+      "given": "una domanda di PAGAMENTO senza righe DETERMINADOMANDA aperte (una sola riga chiusa) e una domanda chiusa con una riga aperta",
+      "when": "chiama GET /api/fisico/domande/{codice}/determina per le due domande",
+      "then": "200 per entrambe: la prima con determina corrente null e motivo NON_VALORIZZATO ed elenco vuoto; la seconda con domanda chiusa true e la sua determina",
+      "kind": "positive",
+      "test_tag": "SC-FS_DETERMINA_NESSUNA",
+      "approved": true,
+      "role": "p2-referente-adg"
+    },
+    {
+      "scenario_id": "SC-FS_DETERMINA_ASSENTE",
+      "req_uids": [
+        "RU-00000020"
+      ],
+      "given": "nessuna domanda con il codice 99999999999",
+      "when": "chiama GET /api/fisico/domande/{codice}/determina con 99999999999, con 5481A, con 5481-0769, con 31 cifre e con %20",
+      "then": "404 problem+json NOT_FOUND per 99999999999; 400 problem+json DATO_NON_VALIDO (codiceABarre) per gli altri (sole cifre, al piu' 30, D-03); nessuna lettura per i 400; tutte le consultazioni in AUDIT_CONSULTAZIONE con esito FALLIMENTO",
+      "kind": "negative",
+      "test_tag": "SC-FS_DETERMINA_ASSENTE",
+      "approved": true,
+      "role": "p1-dirigente"
+    },
+    {
+      "scenario_id": "SC-FS_DENY",
+      "req_uids": [
+        "RU-00000018",
+        "RU-00000020"
+      ],
+      "given": "un utente P4, P6 o P7, un P3 delle aree finanziaria, istituzionale, procedurale o primo pilastro, e un utente non autenticato",
+      "when": "chiama GET /api/fisico/superficie-ammissibile o GET /api/fisico/domande/{codice}/determina",
+      "then": "403 problem+json ACCESSO_NEGATO per P4, P6, P7 e per i P3 delle altre aree (il catalogo concede TX-0018 e TX-0020 a P1, P2, P5 e al solo P3 dell'area fisica), 401 senza autenticazione; nessuna lettura; nessuna riga di AUDIT_CONSULTAZIONE per l'anonimo",
+      "kind": "negative",
+      "test_tag": "SC-FS_DENY",
+      "approved": true,
+      "role": "p4-responsabile-procedimento-ada"
+    },
+    {
+      "scenario_id": "SC-FS_PARAMETRO_NON_VALIDO",
+      "req_uids": [
+        "RU-00000018"
+      ],
+      "given": "un P1",
+      "when": "chiama GET /api/fisico/superficie-ammissibile con un filtro vuoto (intervento=%20 o intervento= senza valore, anche os, og, op), con piu' di 100 valori in una dimensione, con un'azione non numerica, con campagna vuota, non numerica, fuori da 2000-2100 o ripetuta (campagna=2025&campagna=2024)",
+      "then": "400 problem+json DATO_NON_VALIDO con il nome del parametro (intervento, os, og, op, azione, campagna) nel dettaglio, 'ripetuto' per la campagna ripetuta; nessuna lettura; la consultazione e' registrata in AUDIT_CONSULTAZIONE con esito FALLIMENTO e il valore come e' arrivato",
+      "kind": "negative",
+      "test_tag": "SC-FS_PARAMETRO_NON_VALIDO",
+      "approved": true,
+      "role": "p1-dirigente"
+    },
+    {
+      "scenario_id": "SC-FS_CAPACITA",
+      "req_uids": [
+        "RU-00000018",
+        "RU-00000020"
+      ],
+      "given": "le letture concorrenti dei report gia' al limite configurato, in tutto (condiviso con i report finanziari e istituzionali) oppure dell'utente; oppure una lettura che supera il tetto di durata",
+      "when": "chiama GET /api/fisico/superficie-ammissibile o GET /api/fisico/domande/{codice}/determina",
+      "then": "503 problem+json CAPACITA_ESAURITA con Retry-After, registrato in audit come FALLIMENTO; una lettura oltre il tetto di durata 503 TEMPO_SCADUTO, anche per le letture per chiave di TX-0020 (D-04 Rev. 2)",
+      "kind": "negative",
+      "test_tag": "SC-FS_CAPACITA",
+      "approved": true,
+      "role": "p1-dirigente"
+    },
+    {
+      "scenario_id": "SC-FS_AUDIT",
+      "req_uids": [
+        "RU-00000018",
+        "RU-00000020"
+      ],
+      "given": "un P1 e un P5",
+      "when": "consultano i due report, anche con esito negativo (400, 404)",
+      "then": "una riga in AUDIT_CONSULTAZIONE per consultazione, con operazione TX-0018 o TX-0020, utente, profili, esito e parametri come sono arrivati: per TX-0018 i filtri (intervento, os, og, op, azione) e campagna; per TX-0020 codiceABarre, sostituito dal segnaposto <omesso> quando ha 11 cifre come una partita IVA (NFR-84, D-04); mai superfici ne' dati personali; nella catena di impronte",
+      "kind": "positive",
+      "test_tag": "SC-FS_AUDIT",
+      "approved": true,
+      "role": "p1-dirigente"
+    }
+  ]
+}

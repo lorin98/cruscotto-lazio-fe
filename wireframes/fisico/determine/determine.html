@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<!-- Wireframe v2 (template wireframe-v2 di green-fe, ADR 0027), feature fisico, flusso determine. Valori di esempio presi
+     dagli scenari di accettazione del backend (fisico-scenarios.json), nessun dato reale. -->
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Determine di una domanda - Fisico - Cruscotto CSR 2023-2027</title>
+<link rel="stylesheet" href="wireframe.css">
+</head>
+<body>
+<a class="skip-link" href="#contenuto">Salta al contenuto</a>
+<header class="ui-testata">
+  <div class="ui-ente">
+    <span class="ui-logo">Regione Lazio</span>
+    <span class="ui-logo">ARSIAL</span>
+  </div>
+  <div class="ui-appbar">
+    <a class="ui-appbar__nome" href="../../panoramica/panoramica.html">Cruscotto CSR 2023-2027</a>
+    <form class="ui-cerca" action="#" method="get" role="search">
+      <label class="form-label" for="cerca-app">Cerca un intervento</label>
+      <input class="form-control" type="search" id="cerca-app" name="q">
+    </form>
+    <span class="ui-utente">Nome Cognome - <a href="#contenuto">Esci</a></span>
+  </div>
+</header>
+<div class="ui-layout">
+  <nav class="ui-sidebar" aria-label="Navigazione principale">
+    <p class="ui-menu__sezione">Aree del cruscotto</p>
+    <ul class="ui-menu">
+      <li><a class="ui-menu__gruppo" href="../../panoramica/panoramica.html">Finanziario</a></li>
+      <li><a class="ui-menu__gruppo" href="../superfici/superfici.html">Fisico</a>
+        <ul class="ui-menu__sub">
+          <li><a href="../superfici/superfici.html">Superfici ammissibili</a></li>
+          <li><a href="determine.html" aria-current="page">Determine di una domanda</a></li>
+        </ul>
+      </li>
+      <li><span class="ui-menu__presto">Procedurale (presto)</span></li>
+      <li><span class="ui-menu__presto">Istituzionale (presto)</span></li>
+    </ul>
+    <p class="ui-menu__sezione">Strumenti</p>
+    <ul class="ui-menu">
+      <li><a class="ui-menu__gruppo" href="../../elenco-operativo/domande/domande.html">Elenco operativo</a></li>
+    </ul>
+  </nav>
+  <main class="ui-main" id="contenuto">
+    <nav class="breadcrumb-container" aria-label="Percorso">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="../../panoramica/panoramica.html">Home</a></li>
+        <li class="breadcrumb-item"><a href="../superfici/superfici.html">Fisico</a></li>
+        <li class="breadcrumb-item"><a href="determine.html">Determine di una domanda</a></li>
+        <li class="breadcrumb-item" aria-current="page">Domanda 54810769585</li>
+      </ol>
+    </nav>
+    <section class="ui-card" aria-labelledby="t-cerca">
+      <div class="ui-card__testa"><h2 id="t-cerca">Cerca le determine di una domanda</h2></div>
+      <form action="#" method="get" role="search" aria-label="Cerca le determine di una domanda">
+        <label class="form-label" for="d-codice">Codice a barre della domanda</label>
+        <input class="form-control" type="search" id="d-codice" name="codice" inputmode="numeric" aria-describedby="d-codice-aiuto">
+        <p class="form-text" id="d-codice-aiuto">Contano solo le cifre, fino a 30: spazi e separatori si tolgono.</p>
+        <button class="btn btn-primary" type="submit">Cerca</button>
+      </form>
+    </section>
+    <section class="ui-hero">
+      <p class="ui-eyebrow">Domanda di pagamento 54810769585 - fonte delle informazioni</p>
+      <h1>Determine della domanda 54810769585</h1>
+      <p><span class="badge">Domanda di pagamento</span> <span class="badge">Domanda corrente</span> <span class="badge">3 determine con riga aperta</span></p>
+      <a class="btn btn-primary" href="../../elenco-operativo/dettaglio-domanda/dettaglio-domanda.html">Apri la scheda della domanda</a>
+    </section>
+    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0020.read - Transazioni: TX-0020 (RF020). Una lettura per codice a barre, senza filtri ne perimetro (sempre regionale, D-04 del backend). "Apri la scheda della domanda" porta alla scheda della domanda nell'elenco operativo (link scheda-domanda: tipo e codice dalla risposta); si vede solo con il grant csr.tx-0058.read e con la domanda non chiusa.</p>
+    <p class="wf-note">Lo stesso codice a barre puo' essere di una domanda di sostegno e di una di pagamento: la risposta sceglie quella con le determine agganciate (righe aperte) e, a parita', prima la aperta e fra le aperte la domanda di pagamento (D-03 Rev. 3). La testata dice quale tipo e se la domanda e' chiusa.</p>
+    <div class="ui-griglia ui-griglia--4">
+      <section class="ui-kpi" aria-label="Determina corrente">
+        <p>Determina corrente</p>
+        <p class="ui-kpi__valore">G00003</p>
+        <p class="ui-barra">del 30/06/2025 (la piu' recente con riga aperta: data, poi codice)</p>
+      </section>
+      <section class="ui-kpi" aria-label="Determine con riga aperta">
+        <p>Determine con riga aperta</p>
+        <p class="ui-kpi__valore">3</p>
+        <p class="ui-barra">le righe chiuse non si elencano</p>
+      </section>
+      <section class="ui-kpi" aria-label="Determina da cui viene lo stato area programmazione">
+        <p>Stato area programmazione da</p>
+        <p class="ui-kpi__valore">G00001</p>
+        <p class="ui-barra">del 10/01/2025</p>
+      </section>
+      <section class="ui-kpi" aria-label="Determina da cui viene il comparto">
+        <p>Comparto da</p>
+        <p class="ui-kpi__valore">G00002</p>
+        <p class="ui-barra">del 30/06/2025</p>
+      </section>
+    </div>
+    <p class="form-text">Un campo della domanda viene dalla determina piu' recente che lo valorizza, che puo' non essere la corrente. Se nessuna determina aperta lo fornisce il riquadro dice "nessuna determina (non valorizzato)".</p>
+    <section class="ui-card" aria-labelledby="t-elenco">
+      <div class="ui-card__testa"><h2 id="t-elenco">Determine con riga aperta, dalla piu' recente</h2></div>
+      <table class="ui-tabella">
+        <caption>Determine da cui la domanda 54810769585 prende le informazioni: codice, data e campi della domanda che ne prendono il valore. Ordine per data, poi per codice, dalla piu' recente.</caption>
+        <thead>
+          <tr>
+            <th scope="col">Codice della determina</th>
+            <th scope="col">Data</th>
+            <th scope="col">Determina corrente</th>
+            <th scope="col">Da qui lo stato area programmazione</th>
+            <th scope="col">Da qui il comparto</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="ui-riga"><th scope="row">G00003</th><td>30/06/2025</td><td>si, corrente</td><td>no</td><td>no</td></tr>
+          <tr class="ui-riga"><th scope="row">G00002</th><td>30/06/2025</td><td>no</td><td>no</td><td>si</td></tr>
+          <tr class="ui-riga"><th scope="row">G00001</th><td>10/01/2025</td><td>no</td><td>si</td><td>no</td></tr>
+        </tbody>
+      </table>
+      <p class="ui-fonte">Fonte: TX-0020 (corrente, elenco). Responsabile, ADA, provincia e contributi delle determine sono nella scheda della domanda (elenco operativo, scheda Determine).</p>
+    </section>
+    <h2>Stato: senza codice (ingresso dal menu)</h2>
+    <div class="ui-vuoto" role="status">Scrivi il codice a barre di una domanda per vedere da quali determine prende le informazioni.</div>
+    <p class="form-text">Senza codice nell'indirizzo (/fisico/determine) la pagina mostra solo il modulo di ricerca e questo messaggio, senza letture; il titolo della pagina e' "Determine di una domanda".</p>
+    <h2>Stato: nessuna determina aperta</h2>
+    <div class="ui-vuoto" role="status">Nessuna determina aperta per la domanda 54810769585 (non valorizzato): la domanda non prende informazioni da nessuna determina.</div>
+    <h2>Stato: domanda chiusa</h2>
+    <p><span class="badge">Domanda chiusa: non e' piu' nelle fonti SIAN</span></p>
+    <p class="form-text">Con domandaChiusa vero la testata lo dice in testo e non offre "Apri la scheda della domanda" (la scheda risponde solo per le domande correnti); determine ed elenco restano visibili.</p>
+    <h2>Stato: caricamento</h2>
+    <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro della testata, dei riquadri e della tabella)</div>
+    <h2>Stato: errore</h2>
+    <div class="alert alert-danger" role="alert">Nessuna domanda con il codice a barre 99999999999 (404). Codice senza cifre: 400 dato non valido, detto sotto il campo. Accesso negato (403); troppe richieste (429) o capacita' esaurita e tempo scaduto (503) con nuovo tentativo dopo Retry-After. <a href="#d-codice">Cerca un altro codice</a></div>
+  </main>
+</div>
+<footer class="ui-footer">
+  <ul>
+    <li><a href="#contenuto">Dichiarazione di accessibilita' (indirizzo da definire)</a></li>
+    <li><a href="#contenuto">Privacy (indirizzo da definire)</a></li>
+    <li><a href="#contenuto">Note legali (indirizzo da definire)</a></li>
+    <li>Regione Lazio - ARSIAL</li>
+  </ul>
+</footer>
+</body>
+</html>

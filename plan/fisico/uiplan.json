@@ -1,0 +1,320 @@
+{
+  "schema_version": "1.0",
+  "feature": "fisico",
+  "pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb",
+  "spec_pins": [
+    {
+      "slice": "fisico",
+      "path": "handover/openapi-fisico.json",
+      "sha256": "sha256:45d08644cf6b3d80349670c978eb3af3a18df757f1e5e9324a928aab50e30c2b",
+      "manifest_hash_match": true
+    }
+  ],
+  "routes": [
+    {
+      "path": "/fisico/superfici",
+      "kind": "report",
+      "transactions": [
+        "TX-0018"
+      ],
+      "reqs": [
+        "RF018"
+      ],
+      "roles": [
+        "csr.tx-0018.read"
+      ],
+      "flow": "superfici",
+      "url_params": [
+        {
+          "name": "intervento",
+          "source": "TX-0018.intervento",
+          "multi": true
+        },
+        {
+          "name": "os",
+          "source": "TX-0018.os",
+          "multi": true
+        },
+        {
+          "name": "og",
+          "source": "TX-0018.og",
+          "multi": true
+        },
+        {
+          "name": "op",
+          "source": "TX-0018.op",
+          "multi": true
+        },
+        {
+          "name": "azione",
+          "source": "TX-0018.azione",
+          "multi": true
+        },
+        {
+          "name": "campagna",
+          "source": "TX-0018.campagna"
+        }
+      ],
+      "links": []
+    },
+    {
+      "path": "/fisico/determine/:codice?",
+      "kind": "dettaglio",
+      "transactions": [
+        "TX-0020"
+      ],
+      "reqs": [
+        "RF020"
+      ],
+      "roles": [
+        "csr.tx-0020.read"
+      ],
+      "flow": "determine",
+      "links": [
+        {
+          "id": "cerca-domanda",
+          "trigger": "Cerca nel modulo 'Codice a barre della domanda' (anche dallo stato iniziale senza codice): stessa pagina con il codice ridotto alle sole cifre",
+          "target": "/fisico/determine/:codice?",
+          "path_params": [
+            "codice"
+          ],
+          "query": []
+        },
+        {
+          "id": "scheda-domanda",
+          "trigger": "Apri la scheda della domanda (testata): solo con csr.tx-0058.read e domanda non chiusa (domandaChiusa falso); tipo = tipoDomanda, codiceABarre = codiceABarre della risposta",
+          "target_feature": "elenco-operativo",
+          "target": "/elenco-operativo/domande/:tipo/:codiceABarre",
+          "path_params": [
+            "tipo",
+            "codiceABarre"
+          ],
+          "query": []
+        }
+      ]
+    }
+  ],
+  "fields": [
+    {
+      "route": "/fisico/superfici",
+      "name": "campagna",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/SuperficieAmmissibile"
+    },
+    {
+      "route": "/fisico/superfici",
+      "name": "perimetro",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/SuperficieAmmissibile"
+    },
+    {
+      "route": "/fisico/superfici",
+      "name": "righe[].codiceIntervento",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/SuperficieIntervento"
+    },
+    {
+      "route": "/fisico/superfici",
+      "name": "righe[].motivo",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/SuperficieIntervento"
+    },
+    {
+      "route": "/fisico/superfici",
+      "name": "righe[].campagne[].anno",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/SuperficieCampagna"
+    },
+    {
+      "route": "/fisico/superfici",
+      "name": "righe[].campagne[].domandePagamento",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/SuperficieCampagna"
+    },
+    {
+      "route": "/fisico/superfici",
+      "name": "righe[].campagne[].domandeSostegno",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/SuperficieCampagna"
+    },
+    {
+      "route": "/fisico/superfici",
+      "name": "righe[].campagne[].sostegniDiscordanti",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/SuperficieCampagna"
+    },
+    {
+      "route": "/fisico/superfici",
+      "name": "righe[].campagne[].superficieDs",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/SuperficieCampagna"
+    },
+    {
+      "route": "/fisico/superfici",
+      "name": "righe[].campagne[].superficieDp",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/SuperficieCampagna"
+    },
+    {
+      "route": "/fisico/superfici",
+      "name": "righe[].campagne[].differenzaDpDs",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/SuperficieCampagna"
+    },
+    {
+      "route": "/fisico/superfici",
+      "name": "righe[].campagne[].domandeDpOltreDs",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/SuperficieCampagna"
+    },
+    {
+      "route": "/fisico/superfici",
+      "name": "righe[].campagne[].quantitaRichiestaPremio.valore",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/QuantitaRichiestaPremio"
+    },
+    {
+      "route": "/fisico/superfici",
+      "name": "righe[].campagne[].quantitaRichiestaPremio.motivo",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/QuantitaRichiestaPremio"
+    },
+    {
+      "route": "/fisico/superfici",
+      "name": "righe[].campagne[].quantitaRichiestaPremio.fonte",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/QuantitaRichiestaPremio"
+    },
+    {
+      "route": "/fisico/determine/:codice?",
+      "name": "codiceABarre",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/DetermineDomanda"
+    },
+    {
+      "route": "/fisico/determine/:codice?",
+      "name": "tipoDomanda",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/DetermineDomanda"
+    },
+    {
+      "route": "/fisico/determine/:codice?",
+      "name": "domandaChiusa",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/DetermineDomanda"
+    },
+    {
+      "route": "/fisico/determine/:codice?",
+      "name": "corrente.motivo",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/DeterminaCorrente"
+    },
+    {
+      "route": "/fisico/determine/:codice?",
+      "name": "corrente.valore.codice",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/DeterminaDellaDomanda"
+    },
+    {
+      "route": "/fisico/determine/:codice?",
+      "name": "corrente.valore.data",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/DeterminaDellaDomanda"
+    },
+    {
+      "route": "/fisico/determine/:codice?",
+      "name": "elenco[].codice",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/DeterminaDellaDomanda"
+    },
+    {
+      "route": "/fisico/determine/:codice?",
+      "name": "elenco[].data",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/DeterminaDellaDomanda"
+    },
+    {
+      "route": "/fisico/determine/:codice?",
+      "name": "elenco[].fonteStatoAreaProgrammazione",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/DeterminaDellaDomanda"
+    },
+    {
+      "route": "/fisico/determine/:codice?",
+      "name": "elenco[].fonteComparto",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/DeterminaDellaDomanda"
+    }
+  ],
+  "flows": [
+    {
+      "name": "superfici",
+      "routes": [
+        "/fisico/superfici"
+      ],
+      "wireframe_dir": "wireframes/fisico/superfici",
+      "wcag_notes": [
+        "Un solo h1; focus sul titolo dopo il cambio di route; interruttore di pagina Grafico | Tabella con aria-pressed, nello stesso ordine di quello delle card",
+        "Ogni grafico ha la tabella equivalente a un clic e la didascalia; gli interventi senza superfici (NON_VALORIZZATO) sono omessi dai grafici e dichiarati in testo, mai a zero",
+        "Superfici negative (possibili per D-01 Rev. 2) leggibili anche senza colore: segno meno nel testo e nella tabella equivalente",
+        "Quantita' richiesta a premio assente: la cella dice 'non disponibile (fonte non attiva)', mai uno zero",
+        "Residuo manuale: ordine di lettura di KPI, card e tabella; comprensibilita' di 'DS', 'DP' e 'differenza DP - DS' (sciolte per esteso alla prima occorrenza); contrasto della resa finale"
+      ]
+    },
+    {
+      "name": "determine",
+      "routes": [
+        "/fisico/determine/:codice?"
+      ],
+      "wireframe_dir": "wireframes/fisico/determine",
+      "wcag_notes": [
+        "Un solo h1 (il codice a barre della domanda o, senza codice, il titolo della pagina); focus sul titolo dopo il cambio di route e dopo una ricerca",
+        "Modulo di ricerca con role=search, label esplicita e messaggio d'errore collegato al campo (aria-describedby) per un codice senza cifre",
+        "Le colonne si/no della tabella delle determine sono testo, non solo icone o colore; la determina corrente e' dichiarata in testo nella riga",
+        "Residuo manuale: ordine di lettura di testata, riquadri e tabella; comprensibilita' di 'stato area programmazione' e 'comparto'; contrasto della resa finale"
+      ]
+    }
+  ],
+  "open_points": [
+    {
+      "id": "OP-FIS-01",
+      "kind": "altro",
+      "detail": "Valori del pannello dei filtri: TX-0018 accetta intervento, os, og, op, azione e campagna (stesse regole dei report finanziari, D-04 del backend), ma la slice fisico non espone l'elenco dei valori (il finanziario li legge da TX-0001, che il P3 dell'area fisica non ha; la risposta di TX-0018 porta solo i codici degli interventi, senza descrizione). Proposta da far decidere all'utente: (a) leggere i valori da TX-0060 dell'elenco operativo (csr.tx-0060.read, che hanno tutti i profili con csr.tx-0018.read: P1, P2, P3 area fisica, P5), lettura dichiarata nella route senza cambiare transazioni e grant di TX-0018; (b) campo additivo sulla risposta di TX-0018 con i valori dei filtri (risigillo della sola slice fisico, green-be); (c) solo il filtro Intervento con i codici della risposta, senza descrizioni ne' obiettivi e azioni. Campagna (un solo anno, parametro non ripetibile): valori = campagne presenti nella risposta letta senza campagna. Il wireframe disegna il pannello come nel finanziario (intervento, obiettivi, azione portante, campagna)."
+    },
+    {
+      "id": "OP-FIS-02",
+      "kind": "altro",
+      "detail": "Ultimo dato sincronizzato (NFR-25 b): nessun DTO della slice fisico lo porta (nel finanziario viene da TX-0001, nell'elenco da TX-0057 e TX-0059). La barra dei filtri delle pagine del fisico non lo mostra. Alternative da far decidere all'utente: accettare l'assenza; mostrarlo a chi ha csr.tx-0001.read leggendo TX-0001 (il P3 dell'area fisica non lo vedrebbe); oppure campo additivo ultimiDatiSincronizzati sulla risposta di TX-0018 (green-be, risigillo della slice fisico)."
+    },
+    {
+      "id": "OP-FIS-03",
+      "kind": "altro",
+      "detail": "Esportazioni: la spec fisico non ha endpoint di export (nel finanziario e nell'elenco GET .../{formato} con l'audit NFR-34 e l'intestazione NFR-50). Le card offrono solo il PNG del grafico, generato nel browser e non registrato in AUDIT_ESPORTAZIONE (stesso limite di OP-FE-08); la vista Tabella non ha 'Esporta CSV/XLSX'. Se serve l'export della tabella delle superfici: endpoint additivo del backend (es. GET /api/fisico/superficie-ammissibile/{formato}, csv e xlsx, stessi filtri, X-Requested-With), risigillo della slice fisico."
+    },
+    {
+      "id": "OP-FIS-04",
+      "kind": "altro",
+      "detail": "Quantita' richiesta a premio (terzo dato di TX-0018, 'confronto/verifica incrociata'): esce sempre null con motivo FONTE_NON_ATTIVA e fonte QUANTITA_RICHIESTA_PREMIO (D-02 del backend: l'import di ASR2-08 non la salva). La UI la dichiara 'non disponibile (fonte non attiva: quantita' richiesta a premio)' in colonna e nel riquadro della verifica incrociata, che intanto mostra la differenza DP - DS e le domande con DP oltre la DS (discrepanza della minuta del 17/07/2026, da chiarire con AGEA). Quando acquisizione-sian la salvera', il confronto si estende senza cambiare il layout."
+    },
+    {
+      "id": "OP-FIS-05",
+      "kind": "altro",
+      "detail": "Nessun drill-down dal report delle superfici verso l'elenco operativo: l'insieme di domande di TX-0018 (domande di PAGAMENTO correnti con presenza ASR2-20 aperta e superficie in ettari, campagna = anno di campagna o perimetro della presenza ASR2-20, D-01 del backend) non si riproduce con i parametri di TX-0056 (sigc = presenza ASR2-08 o ASR2-20; anno = anno di raccolta, cioe' campagna o anno di rilascio della domanda di sostegno; nessun filtro 'con superficie'): il numero non coinciderebbe. Se l'utente vuole il passaggio: parametro additivo di TX-0056/TX-0059 (es. presenza ASR2-20 con superficie e campagna con la regola di D-01), risigillo della slice elenco-operativo, poi link dichiarato qui."
+    },
+    {
+      "id": "OP-FIS-06",
+      "kind": "altro",
+      "detail": "Card dell'ambito Fisico in src/app/aree.ts (AREE_FUTURE) diversa dalla slice: 'Output programmato e realizzato dal 2023 al 2029' e' TX-0017 (RF017, slice istituzionale, gia' nella card Istituzionale come 'Output regionale per intervento'); 'Pagamenti per Unit Amount' e' TX-0030 (RF030, slice procedurale); TX-0020 della slice fisico (RF020, area 'P - Procedurale' nella SR) non e' nella card Fisico e la card Procedurale cita 'Determine, responsabili e ADA di riferimento'. Da far decidere all'utente (non risolto qui): testo della card Fisico, area di menu della pagina delle determine e dove stanno TX-0017 e TX-0030. Questa feature copre solo TX-0018 e TX-0020; la card la tocca lo step6."
+    },
+    {
+      "id": "OP-FIS-07",
+      "kind": "altro",
+      "detail": "Voci di menu e Home: l'area Fisico passa da AREE_FUTURE ad AREE in src/app/aree.ts allo step6 (layer app/, fuori dalle feature, uiplan-patterns 7), con le voci 'Superfici ammissibili' (/fisico/superfici, grant csr.tx-0018.read) e 'Determine di una domanda' (/fisico/determine, grant csr.tx-0020.read), visibili solo col grant della route."
+    },
+    {
+      "id": "OP-FIS-08",
+      "kind": "altro",
+      "detail": "Ingresso alla pagina delle determine dall'elenco operativo: un link dalla scheda della domanda (scheda Determine) verso /fisico/determine/:codice? lo dichiarerebbe la feature elenco-operativo nel suo refresh (target_feature fisico), come OP-EO-03 per il finanziario; finche' manca, si entra dal menu e si scrive il codice. Il passaggio inverso (da qui alla scheda della domanda) e' il link scheda-domanda di questa feature."
+    }
+  ]
+}
