@@ -354,8 +354,10 @@ describe("RA003: drill-down dal riepilogo all'elenco operativo", () => {
     await userEvent.keyboard('{Enter}');
     await ritrovato();
   });
-  // review v4 iter3 X-01: aprendo il dettaglio dal grafico si torna sulla vista Grafico
-  it('dal dettaglio aperto dal grafico "Torna al riepilogo" ritrova la vista Grafico', async () => {
+  // review v4 iter3 X-01. Dal 19/10 il grafico e' anche la vista predefinita (review delta 21/10 X4): il test prova che la
+  // scelta Grafico sostituisce la Tabella salvata e che "Torna al riepilogo" riporta la vista nello state della history;
+  // che lo state viaggi davvero lo prova anche il test X-04 qui sopra (ritrovato(), con la Tabella)
+  it('la scelta Grafico sostituisce la Tabella salvata; dal dettaglio aperto dal grafico "Torna al riepilogo" la riporta nello state', async () => {
     server.use(http.get('*/api/finanziario/riepilogo', () => HttpResponse.json(RIEPILOGO)), http.get('*/api/finanziario/filtri', () => HttpResponse.json(FILTRI)));
     const { router } = renderRiepilogoEDettaglio('/finanziario/riepilogo');
     await tabellaDelRiepilogo(TABELLA);
@@ -371,6 +373,7 @@ describe("RA003: drill-down dal riepilogo all'elenco operativo", () => {
     await screen.findByRole('group', { name: 'Vista del riepilogo' });
     expect(vistaRiepilogo().getByRole('button', { name: 'Grafico' }).getAttribute('aria-pressed')).toBe('true');
     expect(screen.queryByRole('table', { name: TABELLA })).toBeNull();
+    expect(router.state.location.state).toMatchObject({ vistaRiepilogo: { valore: 'grafico' } });
   });
   it("senza i grant dell'elenco nessun link", async () => {
     server.use(
