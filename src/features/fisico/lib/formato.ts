@@ -1,5 +1,5 @@
-// formato.ts — testi PURI del fisico (zero React): superfici in ettari con due decimali e il segno meno scritto (D-01 Rev.
-// 2: una DS negativa del file ASR2-20 entra col suo segno), differenze col segno, assenze dette con la resa unica
+// formato.ts — testi PURI del fisico (zero React): la superficie si scrive con la resa unica del kit (ettari di shared/lib:
+// due decimali e il segno meno scritto, D-01 Rev. 2; review H5), qui le differenze col segno, le celle senza unita', assenze dette con la resa unica
 // dell'entity importo (mai uno zero), etichette dei campi di TX-0018, conteggi delle domande, nota della quantita' a premio
 // e descrizione dell'intervento dalle voci dei filtri (review H3: prima nei componenti). I testi sono quelli dei wireframe
 // approvati.
@@ -8,11 +8,6 @@ import type { DatoMotivatoLike } from '../../../entities/importo';
 import { formatEttari, formatNumber, formatPercentuale } from '../../../shared/lib';
 import type { InterventoSuperficie } from './dto';
 import { campagnaDi } from './superfici';
-
-/** "15,50 ha", "-1,00 ha". */
-export function testoSuperficie(v: number): string {
-  return `${formatEttari(v)} ha`;
-}
 
 /** Differenza DP - DS col segno: "+0,70 ha", "-0,50 ha", "0,00 ha". */
 export function testoDifferenza(v: number): string {

@@ -7,10 +7,10 @@
 // aperto); dentro, lista di definizioni e pulsante bootstrap-italia.
 import type { ReactNode } from 'react';
 import { ValoreMotivato } from '../../../entities/importo';
-import { formatNumber } from '../../../shared/lib';
+import { ettari, formatNumber } from '../../../shared/lib';
 import { CardGrafico, PannelloLaterale } from '../../../shared/ui';
 import type { CampagnaSuperficie, InterventoSuperficie } from '../lib/dto';
-import { fonteLineaIntervento, testoDifferenza, testoSenzaSuperfici, testoSuperficie } from '../lib/formato';
+import { fonteLineaIntervento, testoDifferenza, testoSenzaSuperfici } from '../lib/formato';
 import { graficoInterventoPerCampagna } from '../lib/grafici';
 import { campagneDellAnteprima } from '../lib/superfici';
 
@@ -27,8 +27,8 @@ function Voce({ termine, children }: { termine: string; children: ReactNode }) {
 function VociRiferimento({ c }: { c: CampagnaSuperficie }) {
   return (
     <>
-      <Voce termine={`Superficie DS, campagna ${c.anno}`}>{testoSuperficie(c.superficieDs)}</Voce>
-      <Voce termine={`Superficie DP, campagna ${c.anno}`}>{testoSuperficie(c.superficieDp)}</Voce>
+      <Voce termine={`Superficie DS, campagna ${c.anno}`}>{ettari(c.superficieDs)}</Voce>
+      <Voce termine={`Superficie DP, campagna ${c.anno}`}>{ettari(c.superficieDp)}</Voce>
       <Voce termine="Differenza DP - DS">{testoDifferenza(c.differenzaDpDs)}</Voce>
       <Voce termine="Domande con DP oltre la DS">{`${formatNumber(c.domandeDpOltreDs)} su ${formatNumber(c.domandePagamento)}`}</Voce>
     </>
@@ -50,10 +50,10 @@ function Superfici({ riga, campagna, campagnaRisposta }: { riga: InterventoSuper
       {riferimento && <VociRiferimento c={riferimento} />}
       {altre.flatMap((c) => [
         <Voce key={`${c.anno}-ds`} termine={`Superficie DS, campagna ${c.anno}`}>
-          {testoSuperficie(c.superficieDs)}
+          {ettari(c.superficieDs)}
         </Voce>,
         <Voce key={`${c.anno}-dp`} termine={`Superficie DP, campagna ${c.anno}`}>
-          {testoSuperficie(c.superficieDp)}
+          {ettari(c.superficieDp)}
         </Voce>,
       ])}
       {premio && (

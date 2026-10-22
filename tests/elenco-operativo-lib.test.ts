@@ -215,7 +215,9 @@ describe('elenco operativo, formati (mai uno zero per un dato assente)', () => {
   });
 
   it('superficie, responsabile (OP-008), atto, conteggi', () => {
-    expect(testoSuperficie({ valore: 12.5, motivo: null })).toBe('12,5 ha');
+    // la resa unica degli ettari del kit, due decimali come il wireframe della scheda (D2)
+    expect(testoSuperficie({ valore: 12.5, motivo: null })).toBe('12,50 ha');
+    expect(testoSuperficie({ valore: 12.4, motivo: null })).toBe('12,40 ha');
     expect(testoSuperficie({ valore: null, motivo: 'NON_VALORIZZATO' })).toBe('non valorizzata');
     expect(testoResponsabile({ valore: 'Funzionario A', motivo: null })).toBe('Funzionario A');
     expect(testoResponsabile({ valore: null, motivo: 'NON_ESPOSTO' })).toBe("riservato ai profili dell'area procedurale");

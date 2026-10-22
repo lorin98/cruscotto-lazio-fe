@@ -2,7 +2,7 @@
 // grafici, determine, grant e pagine. Chiamate dirette, niente render; i dati sono quelli degli scenari del backend.
 import type { EChartsOption } from 'echarts';
 import { describe, expect, it } from 'vitest';
-import { COLORI, valoreEttari } from '../src/shared/lib';
+import { COLORI, ettari, valoreEttari } from '../src/shared/lib';
 import { criteriAttivi, criteriDaRicerca, campagnaDaTesto, conCampagna, conFiltriDelProgramma, ricercaDaCriteri, soloIntervento, testiCriteri, vociDelPannello } from '../src/features/fisico/lib/criteri';
 import {
   campagnaDi,
@@ -33,7 +33,6 @@ import {
   testoQuantitaPremio,
   testoQuotaOltreDs,
   testoSenzaSuperfici,
-  testoSuperficie,
 } from '../src/features/fisico/lib/formato';
 import { cardDelleSuperfici, kpiDellaCampagna } from '../src/features/fisico/lib/report';
 import { MOTIVO_CON_CAMPAGNA, graficoInterventoPerCampagna, graficoPerCampagna, graficoPerIntervento, graficoVerifica, lineePerCampagna } from '../src/features/fisico/lib/grafici';
@@ -193,9 +192,9 @@ describe('RF018: superfici per campagna (le campagne non si sommano, D-01)', () 
 });
 
 describe('RF018: testi delle superfici (ettari con due decimali, assenze mai a zero)', () => {
-  it('superfici e differenze col segno', () => {
-    expect(n(testoSuperficie(15.5))).toBe('15,50 ha');
-    expect(n(testoSuperficie(-1))).toBe('-1,00 ha');
+  it('superfici con la resa del kit (ettari, due decimali) e differenze col segno', () => {
+    expect(n(ettari(15.5))).toBe('15,50 ha');
+    expect(n(ettari(-1))).toBe('-1,00 ha');
     expect(n(testoDifferenza(0.7))).toBe('+0,70 ha');
     expect(n(testoDifferenza(-0.5))).toBe('-0,50 ha');
     expect(cellaSuperficie(10)).toBe('10,00');

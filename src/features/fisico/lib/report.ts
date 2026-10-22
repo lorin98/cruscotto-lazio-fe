@@ -2,12 +2,12 @@
 // campagna di riferimento (somme delle righe della campagna: il report e' completo) e le tre card della vista Grafico
 // (titolo, sottotitolo, fonte, dati, criteri dei file CSV e XLSX, cosa fa il clic). I componenti li rendono con un map;
 // l'aspetto (icona, tono) e i gestori dei clic restano nella UI. I testi sono quelli del wireframe approvato.
-import { formatNumber } from '../../../shared/lib';
+import { ettari, formatNumber } from '../../../shared/lib';
 import type { DatiGrafico } from '../../../shared/lib';
 import { conCampagna } from './criteri';
 import type { Criteri } from './criteri';
 import type { InterventoSuperficie, Superfici } from './dto';
-import { notaQuantitaPremio, testoDifferenza, testoDomande, testoQuotaOltreDs, testoSuperficie } from './formato';
+import { notaQuantitaPremio, testoDifferenza, testoDomande, testoQuotaOltreDs } from './formato';
 import { graficoPerCampagna, graficoPerIntervento, graficoVerifica } from './grafici';
 import { quotaDpOltreDs, totaliCampagna, totaliPerCampagna } from './superfici';
 
@@ -34,14 +34,14 @@ export function kpiDellaCampagna(righe: readonly InterventoSuperficie[], campagn
       chiave: 'ds',
       etichetta: 'Superficie ammissibile DS',
       nomeAccessibile: `Superficie ammissibile DS: superficie delle domande di sostegno, campagna ${campagna}`,
-      valore: testoSuperficie(t.superficieDs),
+      valore: ettari(t.superficieDs),
       nota: `${testoDomande(t.domandeSostegno, 'sostegno')} (la DS si conta una volta per domanda di sostegno)`,
     },
     {
       chiave: 'dp',
       etichetta: 'Superficie ammissibile DP',
       nomeAccessibile: `Superficie ammissibile DP: superficie delle domande di pagamento, campagna ${campagna}`,
-      valore: testoSuperficie(t.superficieDp),
+      valore: ettari(t.superficieDp),
       nota: testoDomande(t.domandePagamento, 'pagamento'),
     },
     {

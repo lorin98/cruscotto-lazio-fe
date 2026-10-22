@@ -4,7 +4,7 @@
 import { ANNO_ASSENTE, ANNO_SENZA, ETICHETTE_ANNUALITA, ETICHETTE_ESITO_PAGAMENTO, ETICHETTE_ESITO_RIGA, ETICHETTE_TIPO_DOMANDA, etichettaTipoDomanda } from '../../../entities/domanda';
 import { descriviAssenza, descriviImporto, testoConNota } from '../../../entities/importo';
 import type { ImportoLike } from '../../../entities/importo';
-import { formatDate, formatEuro, formatNumber, formatPercentuale, plurale } from '../../../shared/lib';
+import { ettari, formatDate, formatEuro, formatNumber, formatPercentuale, plurale } from '../../../shared/lib';
 import type { DatoSenzaFonte, Somma } from './dto';
 
 /** Cella di un Importo di una domanda: euro, oppure l'assenza con il motivo ("non valorizzato"). */
@@ -91,9 +91,12 @@ export function siNo(v: boolean | null | undefined): string {
   return v ? 'sì' : 'no';
 }
 
-/** Superficie in ettari, oppure l'assenza col motivo (mai zero). */
+/**
+ * Superficie in ettari con la resa unica del kit (ettari: due decimali, "12,40 ha" come il wireframe approvato della scheda;
+ * decisione D2 del 22/10/2026), oppure l'assenza col motivo (mai zero).
+ */
 export function testoSuperficie(s: DatoSenzaFonte<number> | null | undefined): string {
-  if (s?.valore != null) return `${formatNumber(s.valore)} ha`;
+  if (s?.valore != null) return ettari(s.valore);
   return 'non valorizzata';
 }
 
