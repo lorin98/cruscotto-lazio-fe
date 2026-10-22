@@ -244,7 +244,9 @@ describe('RF017: l output regionale (TX-0017)', () => {
       { termine: 'Realizzato non SIGC', valore: 'cumulativo per anno di riferimento' },
     ]);
     const srg01 = OUTPUT.righe[3];
-    expect(vociAnteprima(srg01, false).map((v) => v.valore)).toEqual(['non valorizzato', 'non valorizzato (il dato non è presente nella fonte)', 'annuale']);
+    // l'indicatore assente con la resa unica delle assenze, come la tabella; senza l'unita' anche se c'e' (review V4)
+    expect(vociAnteprima(srg01, false).map((v) => v.valore)).toEqual(['non valorizzato (il dato non è presente nella fonte)', 'non valorizzato (il dato non è presente nella fonte)', 'annuale']);
+    expect(vociAnteprima({ ...srg01, unitaMisura: 'ettari' }, false)[0].valore).toBe('non valorizzato (il dato non è presente nella fonte)');
     expect(importiOrdinati(SRA01_OUTPUT).map((i) => `${i.esercizio} ${i.codiceUnitAmount}`)).toEqual(['2024 UA01', '2024 UA02', '2025 UA01']);
     expect(SRA01_OUTPUT.importiUnitari[0].codiceUnitAmount).toBe('UA02');
     expect(rigaDellIntervento(OUTPUT.righe, 'SRD01')?.unitaMisura).toBe('numero di operazioni');

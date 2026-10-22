@@ -7,7 +7,7 @@ import type { DatoMotivatoLike } from '../../../entities/importo';
 import { confronta, minuscolaIniziale } from '../../../shared/lib';
 import type { ValoreOrdinabile } from '../../../shared/lib';
 import type { ImportoUnitario, Output, RigaOutput } from './dto';
-import { testoTarget } from './formato';
+import { TESTO_ASSENTE, testoMotivato, testoTarget } from './formato';
 
 export type Misura = 'programmato' | 'realizzatoSigc' | 'realizzatoNonSigc';
 
@@ -51,11 +51,20 @@ export function captionOutput(m: Misura, cumulativo: boolean): string {
   return `Output ${minuscolaIniziale(etichettaMisura(m, cumulativo))} per anno (misura scelta sopra), l'intervento è l'intestazione di riga e gli anni vengono dalla risposta`;
 }
 
+/**
+ * L'indicatore di output con l'unita' accanto ("O.14 (ettari)"); assente, la resa unica delle assenze col motivo, come
+ * la tabella della stessa pagina, senza l'unita' (review V4).
+ */
+function indicatoreConUnita(r: Pick<RigaOutput, 'indicatoreOutput' | 'unitaMisura'>): string {
+  if (r.indicatoreOutput === null) return testoMotivato<string>(TESTO_ASSENTE, String);
+  return r.unitaMisura ? `${r.indicatoreOutput} (${r.unitaMisura})` : r.indicatoreOutput;
+}
+
 /** Le voci del drawer di anteprima: indicatore con l'unita', target di fine periodo, come si legge il realizzato non SIGC. */
 export function vociAnteprima(r: RigaOutput, cumulativo: boolean): { termine: string; valore: string }[] {
-  const indicatore = r.indicatoreOutput ?? 'non valorizzato';
   return [
-    { termine: 'Indicatore di output', valore: r.unitaMisura ? `${indicatore} (${r.unitaMisura})` : indicatore },
+    { termine: 'Indicatore di output', valore: indicatoreConUnita(r) },
+
     { termine: 'Target di fine periodo', valore: testoTarget(r.targetFinePeriodo, r.annoTarget, r.unitaMisura) },
     { termine: 'Realizzato non SIGC', valore: cumulativo ? 'cumulativo per anno di riferimento' : 'annuale' },
   ];
