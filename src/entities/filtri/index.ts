@@ -1,7 +1,8 @@
 // entities/filtri — public API (barrel): i filtri sulle dimensioni del programma (intervento, OS, OG, OP, azione portante)
 // comuni ai report del finanziario, del fisico e dell'istituzionale (lib nell'indirizzo, regola dell'azione senza legame
-// e bozza del pannello, gruppi del pannello, pannello con le voci di TX-0060), e i valori dei filtri letti da TX-0060
-// dell'elenco operativo, condivisi dalle feature che ne compongono il pannello (elenco operativo, fisico, istituzionale).
+// e bozza del pannello, gruppi del pannello, pannello con le voci di TX-0060, pannello della pagina col focus dopo
+// "Applica i filtri"), e i valori dei filtri letti da TX-0060 dell'elenco operativo, condivisi dalle feature che ne
+// compongono il pannello (elenco operativo, fisico, istituzionale).
 export { useValoriFiltri } from './api';
 export type { ValoriFiltriElenco, VoceFiltro } from './api';
 export {
@@ -25,3 +26,5 @@ export { PannelloFiltriProgramma } from './ui/PannelloFiltriProgramma';
 export type { PropsPannelloProgramma } from './ui/PannelloFiltriProgramma';
 export { useBozzaFiltri, useFiltriProgrammaNellIndirizzo } from './ui/useFiltriProgrammaNellIndirizzo';
 export type { LetturaValoriFiltri, ParametriFiltriNellIndirizzo } from './ui/useFiltriProgrammaNellIndirizzo';
+export { usePannelloConFocus } from './ui/usePannelloConFocus';
+export type { PannelloAperto } from './ui/usePannelloConFocus';

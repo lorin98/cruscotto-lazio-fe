@@ -13,11 +13,11 @@
 // torna li' (A1 dell'iterazione 2).
 // Design system: classi bootstrap-italia e del kit v2; i primitivi react-aria stanno solo dentro i componenti del kit che
 // li richiedono (pannello e drawer modali, popover della pill).
-import { useMemo, useRef, useState } from 'react';
-import { descrizioneIntervento } from '../../../entities/filtri';
+import { useMemo, useState } from 'react';
+import { descrizioneIntervento, usePannelloConFocus } from '../../../entities/filtri';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { righeContesto } from '../../../shared/lib';
-import { AvvisoPagina, BarraFiltri, Briciole, Caricamento, ContestoIntestazione, PillDatiAl, TestaPagina, VistaQuery, VuotoConFiltri, useFocusDopoIlCambio } from '../../../shared/ui';
+import { AvvisoPagina, BarraFiltri, Briciole, Caricamento, ContestoIntestazione, PillDatiAl, TestaPagina, VistaQuery, VuotoConFiltri } from '../../../shared/ui';
 import type { VistaGrafico } from '../../../shared/ui';
 import { useSuperfici } from '../api';
 import type { SuperficieAmmissibile } from '../api';
@@ -77,43 +77,24 @@ function CorpoSuperfici({ stato, inAttesa, ...report }: PropsCorpo) {
   );
 }
 
-/** Il pannello dei filtri: chiuso, aperto dal bottone Filtri della barra o da "Modifica i filtri" di uno stato vuoto. */
-type Pannello = 'barra' | 'vuoto' | null;
-
-/** Criteri applicati da un comando che sparisce col report: dopo la chiusura del dialogo il focus va sull'h1 (A1, X2). */
-function useApplicaConFocus(applica: (c: Criteri) => void) {
-  const h1 = useRef<HTMLHeadingElement>(null);
-  const sposta = useFocusDopoIlCambio(h1);
-  const applicaConFocus = (c: Criteri) => {
-    applica(c);
-    sposta();
-  };
-  return { h1, applicaConFocus };
-}
-
 export function SuperficiAmmissibili() {
   const { criteri, inAttesa, chip, applica, togliTutti, valori } = useCriteriNellIndirizzo();
   const stato = useSuperfici(criteri, { abilitato: !inAttesa });
-  const { h1, applicaConFocus } = useApplicaConFocus(applica);
-  const [pannello, setPannello] = useState<Pannello>(null);
+  // il pannello e il focus dopo "Applica i filtri" (regola comune di entities/filtri); i criteri applicati da un comando
+  // che sparisce col report (applicaConFocus) portano il focus sull'h1 dopo la chiusura del dialogo (A1, X2)
+  const { h1, pannello, apri, chiudi, onApplica, applicaConFocus } = usePannelloConFocus(criteri, applica, ricercaDaCriteri);
   const [vista, setVista] = useState<VistaGrafico>('grafico');
   const righe = stato.data?.righe ?? [];
   const descrizioneDi = (codice: string) => descrizioneIntervento(valori?.data?.interventi, codice);
-  // il bottone che ha aperto il pannello resta (Filtri della barra, o "Modifica i filtri" con criteri invariati) e
-  // react-aria ci riporta il focus; dallo stato vuoto, con criteri nuovi, il contenuto cambia e il focus va sull'h1
-  const onApplica = (c: Criteri) => {
-    setPannello(null);
-    (pannello === 'vuoto' && ricercaDaCriteri(c) !== ricercaDaCriteri(criteri) ? applicaConFocus : applica)(c);
-  };
   return (
     <>
-      <BarraFiltri chip={chip} onApri={() => setPannello('barra')} onTogliTutti={togliTutti} vuoto="Nessun filtro: tutti gli interventi e tutte le campagne" destra={<PillDellaBarra d={stato.data} inErrore={stato.isError} />} />
+      <BarraFiltri chip={chip} onApri={() => apri('barra')} onTogliTutti={togliTutti} vuoto="Nessun filtro: tutti gli interventi e tutte le campagne" destra={<PillDellaBarra d={stato.data} inErrore={stato.isError} />} />
       <main className="ui-pagina" id="contenuto">
         <Briciole voci={BRICIOLE} />
         <TestaPagina titolo="Fisico: superfici ammissibili per intervento" titoloDocumento="Superfici ammissibili - Fisico" sottotitolo={SOTTOTITOLO} refTitolo={h1} />
-        <CorpoSuperfici stato={stato} inAttesa={inAttesa} criteri={criteri} vista={vista} onVista={setVista} applica={applicaConFocus} onModificaFiltri={() => setPannello('vuoto')} descrizioneDi={descrizioneDi} />
+        <CorpoSuperfici stato={stato} inAttesa={inAttesa} criteri={criteri} vista={vista} onVista={setVista} applica={applicaConFocus} onModificaFiltri={() => apri('vuoto')} descrizioneDi={descrizioneDi} />
       </main>
-      <PannelloFiltriSuperfici aperto={pannello !== null} criteri={criteri} valori={valori} campagne={campagnePresenti(righe)} codiciRisposta={righe.map((r) => r.codiceIntervento)} onChiudi={() => setPannello(null)} onApplica={onApplica} />
+      <PannelloFiltriSuperfici aperto={pannello !== null} criteri={criteri} valori={valori} campagne={campagnePresenti(righe)} codiciRisposta={righe.map((r) => r.codiceIntervento)} onChiudi={chiudi} onApplica={onApplica} />
     </>
   );
 }

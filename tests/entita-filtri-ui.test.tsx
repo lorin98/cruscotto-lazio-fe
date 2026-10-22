@@ -1,14 +1,15 @@
 // Test della regola comune dei filtri del programma nell'indirizzo (entities/filtri: useFiltriProgrammaNellIndirizzo e
 // useBozzaFiltri), il solo test della regola X-03 (review del fisico H2): finanziario, fisico e istituzionale la
 // compongono con la loro lettura dei valori (TX-0001, TX-0060) e la loro scrittura dell'indirizzo. Poi il pannello comune
-// con le voci di TX-0060 (fisico, istituzionale). Profilo dal server MSW dei test.
+// con le voci di TX-0060 (fisico, istituzionale) e il pannello della pagina col focus dopo "Applica i filtri". Profilo
+// dal server MSW dei test.
 import type { ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { act, cleanup, render, renderHook, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, useLocation } from 'react-router';
-import { PannelloFiltriProgramma, filtriDaRicerca, filtriNellaBarra, ricercaDaFiltri, useBozzaFiltri, useFiltriProgrammaNellIndirizzo } from '../src/entities/filtri';
+import { PannelloFiltriProgramma, filtriDaRicerca, filtriNellaBarra, ricercaDaFiltri, useBozzaFiltri, useFiltriProgrammaNellIndirizzo, usePannelloConFocus } from '../src/entities/filtri';
 import type { Filtri, LetturaValoriFiltri, ValoriProgramma } from '../src/entities/filtri';
 import { clientDiTest } from '../src/shared/testing/render';
 
@@ -144,5 +145,72 @@ describe('entities/filtri: pannello dei filtri del programma con le voci di TX-0
     expect(within(dialogo).getByRole('checkbox', { name: 'SRD01 Investimenti' })).toBeTruthy();
     await userEvent.click(within(dialogo).getByRole('button', { name: 'Applica i filtri' }));
     expect(onApplica).toHaveBeenLastCalledWith({ os: ['OS4'] });
+  });
+});
+
+describe('entities/filtri: pannello della pagina e focus dopo Applica i filtri (usePannelloConFocus, review H4)', () => {
+  /** Una pagina minima: l'h1, lo stato del pannello e i comandi che lo aprono e lo applicano. */
+  function Pagina({ criteri, applica }: { criteri: Filtri; applica: (f: Filtri) => void }) {
+    const { h1, pannello, apri, chiudi, onApplica, applicaConFocus } = usePannelloConFocus(criteri, applica, ricercaDaFiltri);
+    return (
+      <>
+        <h1 ref={h1} tabIndex={-1}>
+          Titolo
+        </h1>
+        <p>{`pannello ${pannello ?? 'chiuso'}`}</p>
+        <button type="button" onClick={() => apri('barra')}>
+          Filtri
+        </button>
+        <button type="button" onClick={() => apri('vuoto')}>
+          Modifica i filtri
+        </button>
+        <button type="button" onClick={() => onApplica({ os: ['OS4'] })}>
+          Applica OS4
+        </button>
+        <button type="button" onClick={() => onApplica(criteri)}>
+          Applica gli stessi
+        </button>
+        <button type="button" onClick={() => applicaConFocus({ intervento: ['SRB01'] })}>
+          Mostra solo SRB01
+        </button>
+        <button type="button" onClick={chiudi}>
+          Chiudi
+        </button>
+      </>
+    );
+  }
+
+  it('dallo stato vuoto con criteri nuovi il focus va sull h1; con criteri invariati o dalla barra resta sul comando', async () => {
+    const applica = vi.fn();
+    render(<Pagina criteri={{}} applica={applica} />);
+    const h1 = screen.getByRole('heading', { level: 1 });
+    await userEvent.click(screen.getByRole('button', { name: 'Modifica i filtri' }));
+    expect(screen.getByText('pannello vuoto')).toBeTruthy();
+    const stessi = screen.getByRole('button', { name: 'Applica gli stessi' });
+    await userEvent.click(stessi);
+    expect(screen.getByText('pannello chiuso')).toBeTruthy();
+    expect(applica).toHaveBeenLastCalledWith({});
+    expect(document.activeElement).toBe(stessi);
+    await userEvent.click(screen.getByRole('button', { name: 'Filtri' }));
+    const os4 = screen.getByRole('button', { name: 'Applica OS4' });
+    await userEvent.click(os4);
+    expect(applica).toHaveBeenLastCalledWith({ os: ['OS4'] });
+    expect(document.activeElement).toBe(os4);
+    await userEvent.click(screen.getByRole('button', { name: 'Modifica i filtri' }));
+    await userEvent.click(os4);
+    expect(screen.getByText('pannello chiuso')).toBeTruthy();
+    await waitFor(() => expect(document.activeElement).toBe(h1));
+  });
+
+  it('applicaConFocus (un comando che sparisce col contenuto) applica e porta il focus sull h1; Chiudi chiude', async () => {
+    const applica = vi.fn();
+    render(<Pagina criteri={{}} applica={applica} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Mostra solo SRB01' }));
+    expect(applica).toHaveBeenLastCalledWith({ intervento: ['SRB01'] });
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1 })));
+    await userEvent.click(screen.getByRole('button', { name: 'Filtri' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Chiudi' }));
+    expect(screen.getByText('pannello chiuso')).toBeTruthy();
+    expect(applica).toHaveBeenCalledTimes(1);
   });
 });

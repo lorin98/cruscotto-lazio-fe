@@ -10,7 +10,7 @@
 // pannello, il drawer e il popover della pill del kit. La misura dell'interruttore sta nella pagina: resta quando il
 // report si rilegge coi filtri nuovi, un chip tolto o Riprova (wireframe approvato, review V1).
 import { useState } from 'react';
-import { ricercaDaFiltri } from '../../../entities/filtri';
+import { ricercaDaFiltri, usePannelloConFocus } from '../../../entities/filtri';
 import type { Filtri } from '../../../entities/filtri';
 import { AvvisoPagina, BarraFiltri, Briciole, Caricamento, Interruttore, PillDatiAl, Sezione, TestaPagina, VistaQuery, VuotoConFiltri } from '../../../shared/ui';
 import { useOutputRegionale } from '../api';
@@ -25,7 +25,7 @@ import { NOTA_FILE_OUTPUT, fileOutput } from './esportazioni';
 import { useIngressoArea } from './navigazione';
 import { PannelloFiltriIstituzionale } from './PannelloFiltriIstituzionale';
 import { TabellaOutput } from './TabellaOutput';
-import { useFiltriNellIndirizzo, usePannelloConFocus } from './useFiltriNellIndirizzo';
+import { useFiltriNellIndirizzo } from './useFiltriNellIndirizzo';
 
 const SOTTOTITOLO = "Per ogni intervento l'output programmato e realizzato della Regione Lazio, anno per anno, nell'unità di misura del suo indicatore. Clic su una riga per l'anteprima.";
 const TITOLO_OUTPUT = 'Output per intervento e anno';
@@ -83,7 +83,7 @@ export function OutputRegionale() {
   const { filtri, inAttesa, chip, applica, togliTutti, valori } = useFiltriNellIndirizzo(false);
   const stato = useOutputRegionale(filtri, { abilitato: !inAttesa });
   const [misura, setMisura] = useState<Misura>('programmato');
-  const { h1, pannello, apri, chiudi, onApplica } = usePannelloConFocus(filtri, applica);
+  const { h1, pannello, apri, chiudi, onApplica } = usePannelloConFocus(filtri, applica, ricercaDaFiltri);
   const briciole = [{ etichetta: 'Istituzionale', a: useIngressoArea() }, { etichetta: 'Output regionale' }];
   return (
     <>

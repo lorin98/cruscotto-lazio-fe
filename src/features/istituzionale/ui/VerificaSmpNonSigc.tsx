@@ -9,7 +9,7 @@
 // disponibili. Design system: classi bootstrap-italia e del kit v2; i primitivi react-aria stanno solo dentro i
 // componenti del kit che li richiedono (pannello modale, popover della pill).
 import { Link } from 'react-router';
-import { ricercaDaFiltri } from '../../../entities/filtri';
+import { ricercaDaFiltri, usePannelloConFocus } from '../../../entities/filtri';
 import type { Filtri } from '../../../entities/filtri';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { AvvisoPagina, BarraFiltri, Briciole, Caricamento, ContestoIntestazione, PillDatiAl, SelettoreAnno, TestaPagina, VistaQuery, VuotoConFiltri, useAnnoNellIndirizzo } from '../../../shared/ui';
@@ -23,7 +23,7 @@ import { ValoriNonDisponibili, useContesto } from './comuni';
 import { useIngressoArea } from './navigazione';
 import { PannelloFiltriIstituzionale } from './PannelloFiltriIstituzionale';
 import { ReportVerifica } from './ReportVerifica';
-import { useFiltriNellIndirizzo, usePannelloConFocus } from './useFiltriNellIndirizzo';
+import { useFiltriNellIndirizzo } from './useFiltriNellIndirizzo';
 
 const SOTTOTITOLO = 'I dati dei file ASR non SIGC per intervento, da confrontare con SMP - Data Platform.';
 const AIUTO_ANNO = "Facoltativo. Vale per indicatori, output e dati dell'avviso; domande e spesa sono cumulative (tutte le domande correnti).";
@@ -75,7 +75,7 @@ export function VerificaSmpNonSigc() {
   const { filtri, inAttesa, chip, applica, togliTutti, valori } = useFiltriNellIndirizzo(true);
   const [anno, impostaAnno] = useAnnoNellIndirizzo(PARAMETRO_ANNO);
   const stato = useVerificaSmpNonSigc(criteriVerifica(filtri, anno), { abilitato: !inAttesa });
-  const { h1, pannello, apri, chiudi, onApplica } = usePannelloConFocus(filtri, applica);
+  const { h1, pannello, apri, chiudi, onApplica } = usePannelloConFocus(filtri, applica, ricercaDaFiltri);
   const briciole = [{ etichetta: 'Istituzionale', a: useIngressoArea() }, { etichetta: 'Verifica SMP non SIGC' }];
   const nota = puoLeggere(useAuthStatus().data, 'verificaSigc') ? <FraseVerificaSigc /> : undefined;
   return (
