@@ -106,6 +106,18 @@ describe('PannelloFiltriSuperfici (componente)', () => {
     expect(within(pannello).getByRole('checkbox', { name: 'SRA29' })).toBeTruthy();
     expect(within(pannello).getByRole('checkbox', { name: 'SRB01' })).toBeTruthy();
   });
+
+  it('senza i valori di TX-0060 e senza righe nella risposta il gruppo Intervento dice che i valori mancano, non una ricerca (X4)', async () => {
+    serviSuperfici({ ...SUPERFICI, righe: [] }, null);
+    renderPagina(SuperficiAmmissibili, '/fisico/superfici', '/fisico/superfici?intervento=SRB09');
+    await userEvent.click(await screen.findByRole('button', { name: 'Modifica i filtri' }));
+    const pannello = await screen.findByRole('dialog', { name: 'Filtri delle superfici ammissibili' });
+    const intervento = within(pannello).getByText('Intervento', { selector: 'summary' }).closest('details');
+    if (!intervento) throw new Error('gruppo Intervento assente');
+    expect(intervento.textContent).toContain('Nessuna voce: valori dei filtri non disponibili.');
+    expect(within(pannello).queryByText('Nessuna voce corrisponde alla ricerca.')).toBeNull();
+    expect(within(intervento).queryAllByRole('checkbox')).toHaveLength(0);
+  });
 });
 
 describe('AnteprimaIntervento (componente)', () => {

@@ -75,7 +75,8 @@ function Caselle({ id, etichetta, opzioni, scelti, disabilitato, onCambia }: { i
             </span>
           </label>
         ))}
-        {visibili.length === 0 && <p className="small text-muted mb-0">Nessuna voce corrisponde alla ricerca.</p>}
+        {/* solo dopo una ricerca: una lista vuota senza ricerca la dice chi la compone (senzaVoci), mai come ricerca fallita */}
+        {cercato.trim() !== '' && visibili.length === 0 && <p className="small text-muted mb-0">Nessuna voce corrisponde alla ricerca.</p>}
       </div>
     </fieldset>
   );
@@ -116,10 +117,16 @@ export function GruppiProgramma({ valori, bozza, imposta, senzaVoci }: { valori:
   const chip = (k: 'og' | 'os' | 'op', opzioni: Opzione[]) =>
     senzaVoci && opzioni.length === 0 ? <SenzaVoci testo={senzaVoci} /> : <Chip etichetta={nome(k)} opzioni={opzioni} scelti={sel(k)} onCambia={imposta(k)} />;
   const azioni = daVoci(valori.azioniPortanti);
+  const interventi = daVoci(valori.interventi);
   return (
     <>
       <Gruppo titolo={nome('intervento')} scelti={sel('intervento').length} aperto>
-        <Caselle id={`${id}-int`} etichetta={nome('intervento')} opzioni={daVoci(valori.interventi)} scelti={sel('intervento')} onCambia={imposta('intervento')} />
+        {/* il fisico senza TX-0060 e senza righe nella risposta: nessun codice da proporre, lo dice (review X4) */}
+        {senzaVoci && interventi.length === 0 ? (
+          <SenzaVoci testo={senzaVoci} />
+        ) : (
+          <Caselle id={`${id}-int`} etichetta={nome('intervento')} opzioni={interventi} scelti={sel('intervento')} onCambia={imposta('intervento')} />
+        )}
       </Gruppo>
       <Gruppo titolo={nome('og')} scelti={sel('og').length}>
         {chip('og', daTesti(valori.obiettiviGenerali))}
