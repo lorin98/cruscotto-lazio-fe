@@ -1,6 +1,6 @@
 // shared/ui — componenti trasversali senza dominio: stati della vista, kit UI v2 (ADR 0027: grafici ECharts, KPI, filtri e
-// controlli del pannello dei filtri, pannello laterale, tabella interattiva, icone, pulsanti di download e file del
-// backend), salvataggio file, focus di pagina, percorso e titolo della pagina.
+// controlli del pannello dei filtri, selettore d'anno, pannello laterale, tabella interattiva, icone, pulsanti di download
+// e file del backend), salvataggio file, focus di pagina, percorso e titolo della pagina, anno della pagina nell'indirizzo.
 export { Caricamento, ErroreVista, Vuoto, VistaQuery } from './stati/StatiVista';
 export { AvvisoPagina } from './stati/AvvisoPagina';
 export type { StatoQuery } from './stati/StatiVista';
@@ -9,6 +9,7 @@ export { useFocusDopoIlCambio, useFocusTitolo } from './focus';
 export { Briciole, TestaPagina, TestataDettaglio } from './pagina/Testata';
 export type { Briciola } from './pagina/Testata';
 export { useStatoNellaHistory } from './useStatoNellaHistory';
+export { useAnnoNellIndirizzo } from './useAnnoNellIndirizzo';
 export { Icona } from './icona';
 export type { NomeIcona } from './icona';
 export { Grafico } from './grafici/Grafico';
@@ -26,6 +27,7 @@ export { BarraFiltri } from './filtri/BarraFiltri';
 export { Caselle, Gruppo, Scelte } from './filtri/ControlliPannello';
 export type { OpzioneFiltro } from './filtri/ControlliPannello';
 export { PillDatiAl } from './filtri/PillDatiAl';
+export { SelettoreAnno } from './filtri/SelettoreAnno';
 export type { ChipFiltro } from './filtri/BarraFiltri';
 export { PannelloLaterale } from './laterale/PannelloLaterale';
 export { TabellaInterattiva, statoTabellaValido } from './tabella/TabellaInterattiva';

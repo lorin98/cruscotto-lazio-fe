@@ -1,6 +1,7 @@
 // Pagina /finanziario/sigc/riserva (green-fe step6): riserva al 5% (TX-0014). L'anno sta nell'indirizzo (?anno=);
 // i filtri del finanziario non si applicano (dato regionale, OP-FE-03).
-import { RiservaReport, useAnnoNellIndirizzo } from '../../../../features/finanziario';
+import { RiservaReport } from '../../../../features/finanziario';
+import { useAnnoNellIndirizzo } from '../../../../shared/ui';
 import { PaginaFinanziario } from '../../../../widgets/report-finanziario';
 
 export default function Pagina() {
