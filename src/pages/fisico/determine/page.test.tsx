@@ -2,12 +2,12 @@
 // backend (SC-FS_DETERMINA, SC-FS_DETERMINA_NESSUNA, SC-FS_DETERMINA_ASSENTE), MSW seminato con onUnhandledRequest
 // 'error' (ogni lettura dichiarata qui), axe-core diretto, tastiera e focus del modulo di ricerca.
 import { describe, expect, it } from 'vitest';
-import { screen, waitFor, within } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { server } from '../../../shared/api/mock/server';
 import { expectNoA11yViolations } from '../../../shared/testing/axe';
-import { problema } from '../../../shared/testing/msw';
+import { problema, trattenuta } from '../../../shared/testing/msw';
 import { renderPagina } from '../../../shared/testing/render-pagina';
 import { DETERMINE, DETERMINE_CHIUSA, DETERMINE_NESSUNA } from '../../../features/fisico/testing/fixture';
 import Pagina from './page';
@@ -70,6 +70,27 @@ describe("RF020: codice e data delle determine da cui la domanda prende l'inform
     // link scheda-domanda verso l'elenco operativo: tipo e codice dalla risposta
     expect(screen.getByRole('link', { name: 'Apri la scheda della domanda' }).getAttribute('href')).toBe('/elenco-operativo/domande/PAGAMENTO/54810769585');
     await expectNoA11yViolations(container);
+  });
+
+  it('caricamento: lo scheletro con role=status e aria-live, distinto da vuoto ed errore; poi le determine', async () => {
+    const t = trattenuta();
+    server.use(
+      http.get('*/api/fisico/domande/:codice/determina', async () => {
+        await t.attesa;
+        return HttpResponse.json(DETERMINE);
+      }),
+    );
+    apri('/fisico/determine/54810769585');
+    const caricamento = await screen.findByText('Caricamento in corso…');
+    expect(caricamento.closest('[role="status"]')?.getAttribute('aria-live')).toBe('polite');
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(screen.queryByRole('table')).toBeNull();
+    // il titolo della domanda c'e' gia', senza dati: niente badge ne' link alla scheda
+    expect(screen.getByRole('heading', { level: 1, name: 'Determine della domanda 54810769585' })).toBeTruthy();
+    expect(screen.queryByRole('list', { name: 'Dati principali' })).toBeNull();
+    await act(async () => t.libera());
+    expect(await screen.findByRole('table', { name: /^Determine da cui la domanda 54810769585 prende le informazioni/ })).toBeTruthy();
+    expect(screen.queryByText('Caricamento in corso…')).toBeNull();
   });
 
   it('domanda chiusa: lo dice in testo e non offre la scheda (risponde solo per le domande correnti); le determine restano', async () => {
