@@ -1,11 +1,14 @@
 // Kit comune portato fuori dalle feature (o esteso) per l'istituzionale: selettore d'anno e anno della pagina
-// nell'indirizzo (shared/ui, prima nel finanziario). Dati di prova inventati.
+// nell'indirizzo (shared/ui, prima nel finanziario), link verso l'elenco operativo (entities/domanda, prima nel
+// finanziario). Dati di prova inventati.
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { SelettoreAnno, useAnnoNellIndirizzo } from '../src/shared/ui';
 import { SelettoreAnno as SelettoreFinanziario } from '../src/features/finanziario/ui/SelettoreAnno';
+import { ApriNellElenco as ApriFinanziario } from '../src/features/finanziario/ui/LinkElenco';
+import { ApriNellElenco } from '../src/entities/domanda';
 import { expectNoA11yViolations } from '../src/shared/testing/axe';
 
 describe('SelettoreAnno del kit: select con Mostra, gli anni e la voce senza anno di chi lo usa', () => {
@@ -62,5 +65,34 @@ describe('useAnnoNellIndirizzo del kit: l anno della pagina nella query string',
     // replace: tornando indietro si arriva alla pagina di prima, non alle scelte d'anno
     void router.navigate(-1);
     await waitFor(() => expect(router.state.location.pathname).toBe('/altra'));
+  });
+});
+
+describe('ApriNellElenco di entities/domanda: il link di drill-down verso l elenco operativo (prima nel finanziario)', () => {
+  it('nome accessibile completo che contiene il testo visibile; senza indirizzo nulla; il finanziario riesporta lo stesso', async () => {
+    const router = createMemoryRouter(
+      [
+        {
+          path: '*',
+          element: (
+            <>
+              <ApriNellElenco variante="testo" indirizzo="/elenco-operativo/domande?tipo=SOSTEGNO&intervento=SRD01" descrizione="le domande di sostegno correnti dell'intervento SRD01" />
+              <ApriNellElenco variante="testo" indirizzo="/elenco-operativo/pagamenti?esito=PAGATA" testo="Apri nei pagamenti" descrizione="le righe pagate non SIGC dell'intervento SRD01" />
+              <ApriNellElenco indirizzo={null} descrizione="nessuna" />
+            </>
+          ),
+        },
+      ],
+      { initialEntries: ['/'] },
+    );
+    const { container } = render(<RouterProvider router={router} />);
+    const link = screen.getAllByRole('link');
+    expect(link.map((l) => [l.textContent, l.getAttribute('aria-label'), l.getAttribute('href')])).toEqual([
+      ["Apri nell'elenco", "Apri nell'elenco operativo le domande di sostegno correnti dell'intervento SRD01", '/elenco-operativo/domande?tipo=SOSTEGNO&intervento=SRD01'],
+      ['Apri nei pagamenti', "Apri nei pagamenti: apri nell'elenco operativo le righe pagate non SIGC dell'intervento SRD01", '/elenco-operativo/pagamenti?esito=PAGATA'],
+    ]);
+    expect(link[0].className).toBe('ui-link-elenco');
+    expect(ApriFinanziario).toBe(ApriNellElenco);
+    await expectNoA11yViolations(container);
   });
 });

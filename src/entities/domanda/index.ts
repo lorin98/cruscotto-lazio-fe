@@ -1,5 +1,5 @@
 // entities/domanda — public API (barrel): vocabolario della domanda e contratto dell'indirizzo dell'elenco operativo
-// (pagine, scheda della domanda, codice a barre), condivisi dalle feature.
+// (pagine, scheda della domanda, codice a barre) e il link di drill-down verso l'elenco, condivisi dalle feature.
 export { ANNO_ASSENTE, ANNO_SENZA, ETICHETTE_ANNUALITA, ETICHETTE_ESITO_PAGAMENTO, ETICHETTE_TIPO_DOMANDA, etichettaTipoDomanda } from './lib/vocabolario';
 export type { Annualita, EsitoPagamentoDomanda } from './lib/vocabolario';
 export {
@@ -13,3 +13,4 @@ export {
   riferimentoDomandaValido,
 } from './lib/elenco';
 export type { DestinazioneElenco, EsitoRigaElenco } from './lib/elenco';
+export { ApriNellElenco } from './ui/ApriNellElenco';
