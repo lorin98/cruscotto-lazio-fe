@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { http, HttpResponse } from 'msw';
 import { server } from '../src/shared/api/mock/server';
 import { problema } from '../src/shared/testing/msw';
+import { PROBLEM_TYPES } from '../src/shared/api/problem/problem-types';
+import { handlersEsempio } from '../src/features/fisico/api/mock/esempio';
 import { esportaSuperfici, rispostaDatoNonValido, rispostaDomandaAssente, useDetermine, useSuperfici, useValoriFiltri } from '../src/features/fisico/api';
 import { useValoriFiltri as useValoriFiltriElenco } from '../src/features/elenco-operativo/api';
 
@@ -108,5 +110,23 @@ describe('feature fisico, wrapper api (step3) su MSW', () => {
     );
     const errore = await esportaSuperfici('csv', {}).catch((e: unknown) => e);
     expect(rispostaDatoNonValido(errore)).toBe(true);
+  });
+});
+
+// il mock del dev server risponde come il backend: superfici filtrate, 404 e 400 di TX-0020 sul problem-type del contratto
+describe('mock di esempio del dev server del fisico', () => {
+  it('superfici filtrate per intervento e campagna; 404 per un codice sconosciuto, 400 per uno senza cifre', async () => {
+    server.use(...handlersEsempio);
+    const s = (await (await fetch('http://localhost/api/fisico/superficie-ammissibile?intervento=SRA29&campagna=2024')).json()) as { campagna: number; righe: Array<{ campagne: unknown[] }> };
+    expect(s.campagna).toBe(2024);
+    expect(s.righe).toHaveLength(1);
+    expect(s.righe[0].campagne).toHaveLength(1);
+    const assente = await fetch('http://localhost/api/fisico/domande/99999999999/determina');
+    expect(assente.status).toBe(404);
+    expect(await assente.json()).toMatchObject({ type: PROBLEM_TYPES.NON_TROVATO, errorCode: 'NOT_FOUND' });
+    const nonValido = await fetch('http://localhost/api/fisico/domande/5481A/determina');
+    expect(nonValido.status).toBe(400);
+    expect(await nonValido.json()).toMatchObject({ type: PROBLEM_TYPES.DATO_NON_VALIDO });
+    expect((await fetch('http://localhost/api/fisico/domande/54810769585/determina')).status).toBe(200);
   });
 });
