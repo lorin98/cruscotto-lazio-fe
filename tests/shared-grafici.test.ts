@@ -13,9 +13,12 @@ import {
   arrotonda1,
   arrotondaPercentuale,
   aria,
+  MISURA_ETTARI,
+  asseEttari,
   asseImporti,
   assePercentuale,
   barreRaggruppate,
+  ettari,
   centesimi,
   codiceDalClic,
   confronta,
@@ -37,6 +40,7 @@ import {
   sommaCentesimi,
   tooltipDettaglio,
   valoreBreve,
+  valoreEttari,
   valoreInNumero,
   zoomSeMolti,
 } from '../src/shared/lib';
@@ -440,6 +444,32 @@ describe('barreRaggruppate', () => {
       ['inside', 0, 11],
       ['slider', 0, 11],
     ]);
+  });
+});
+
+describe('barreRaggruppate in ettari (MISURA_ETTARI, superfici del fisico)', () => {
+  const definizioni: SerieRaggruppata[] = [
+    { nome: 'Superficie DS', soggetto: 'superficie DS' },
+    { nome: 'Superficie DP', soggetto: 'superficie DP' },
+  ];
+  const testi: TestiBarre = { caption: 'Superfici', colonne: ['Intervento', 'DS', 'DP'], titolo: 'Barre delle superfici', vuoto: 'nessun intervento', unita: ['intervento', 'interventi'] };
+
+  it('dettaglio, tooltip, asse e descrizione in ettari; la misura di default resta l euro', () => {
+    const g = barreRaggruppate([{ categoria: 'SRB01', codice: 'SRB01', valori: [15.5, -1], celle: ['15,50', '-1,00'] }], definizioni, testi, [], MISURA_ETTARI);
+    const o = prova(g.opzioni);
+    expect(o.series[0].data).toEqual([{ value: 15.5, name: 'SRB01', codice: 'SRB01', dettaglio: 'SRB01, superficie DS: 15,50 ha' }]);
+    expect(o.series[1].data).toEqual([{ value: -1, name: 'SRB01', codice: 'SRB01', dettaglio: 'SRB01, superficie DP: -1,00 ha' }]);
+    expect(o.tooltip?.valueFormatter).toBe(valoreEttari);
+    expect(asse(o.yAxis).axisLabel?.formatter).toBe(asseEttari);
+    expect(o.aria?.label.description).toBe('Barre delle superfici per 1 intervento (SRB01), superfici in ettari.');
+  });
+
+  it('ettari: due decimali e segno meno scritto; tacca senza decimali da 10 ha', () => {
+    expect(n(ettari(15.5))).toBe('15,50 ha');
+    expect(n(ettari(-0.5))).toBe('-0,50 ha');
+    expect(valoreEttari('x')).toBe('non disponibile');
+    expect(n(asseEttari(1250))).toBe('1250 ha');
+    expect(n(asseEttari(2.5))).toBe('2,50 ha');
   });
 });
 

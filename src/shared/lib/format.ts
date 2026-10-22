@@ -12,6 +12,15 @@ export function formatEuro(value: number | null | undefined): string {
   return value.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+// Superficie in ettari con due decimali (D-01 del backend fisico: "ettari, due decimali"), senza unita': "15,50", "-0,50".
+// `segno`: il piu' davanti ai valori positivi, per le differenze ("+0,70"); lo zero resta "0,00". Il segno meno e' sempre
+// scritto: un valore negativo si riconosce anche senza colore.
+export function formatEttari(value: number | null | undefined, { segno = false }: { segno?: boolean } = {}): string {
+  if (value == null) return '-';
+  const testo = value.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return segno && value > 0 && testo !== '0,00' ? `+${testo}` : testo;
+}
+
 // Percentuale gia' espressa in centesimi (es. 12.5 -> "12,5 %"), al piu' due decimali. Un valore non nullo che a due
 // decimali sarebbe zero non si scrive "0 %": "< 0,01 %" (o "> -0,01 %").
 export function formatPercentuale(value: number | null | undefined): string {

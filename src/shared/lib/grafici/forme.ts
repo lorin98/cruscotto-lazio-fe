@@ -8,14 +8,17 @@ import { nonDisegnabile } from './contratto';
 import type { DatiGrafico, TabellaEquivalente } from './contratto';
 import {
   aria,
+  asseEttari,
   asseImporti,
   etichettaDato,
+  ettari,
   importoBreve,
   notaOmessi,
   percentuale,
   plurale,
   tooltipDettaglio,
   valoreBreve,
+  valoreEttari,
   zoomSeMolti,
 } from './primitive';
 import type { DatoSerie } from './primitive';
@@ -84,7 +87,23 @@ export interface TestiBarre {
   unita: [string, string];
 }
 
-function datiBarre(voci: readonly VoceRaggruppata[], definizioni: readonly SerieRaggruppata[], omessi: string[]) {
+/**
+ * Unita' dei valori delle barre: valore breve dei testi composti (dettaglio del tooltip), formatter del tooltip e dell'asse
+ * (funzioni a se', senza dati catturati: firmaOpzioni le confronta per sorgente) e unita' della descrizione accessibile.
+ */
+export interface MisuraBarre {
+  breve: (v: number) => string;
+  valore: (v: unknown) => string;
+  asse: (v: number) => string;
+  descrizione: string;
+}
+
+/** Importi in euro (in milioni da un milione in su): la misura di default. */
+export const MISURA_EURO: MisuraBarre = { breve: importoBreve, valore: valoreBreve, asse: asseImporti, descrizione: 'importi in euro' };
+/** Superfici in ettari con due decimali (superfici ammissibili del fisico). */
+export const MISURA_ETTARI: MisuraBarre = { breve: ettari, valore: valoreEttari, asse: asseEttari, descrizione: 'superfici in ettari' };
+
+function datiBarre(voci: readonly VoceRaggruppata[], definizioni: readonly SerieRaggruppata[], omessi: string[], misura: MisuraBarre) {
   const categorie: string[] = [];
   const datiSerie: Array<Array<DatoSerie | null>> = definizioni.map(() => []);
   for (const v of voci) {
@@ -95,27 +114,36 @@ function datiBarre(voci: readonly VoceRaggruppata[], definizioni: readonly Serie
     if (v.valori.every((x) => x == null)) continue;
     categorie.push(v.categoria);
     v.valori.forEach((x, k) => {
-      datiSerie[k].push(x == null ? null : { value: x, name: v.categoria, codice: v.codice, dettaglio: `${v.categoria}, ${definizioni[k].soggetto}: ${importoBreve(x)}` });
+      datiSerie[k].push(x == null ? null : { value: x, name: v.categoria, codice: v.codice, dettaglio: `${v.categoria}, ${definizioni[k].soggetto}: ${misura.breve(x)}` });
     });
   }
   return { categorie, datiSerie };
 }
 
-/** Barre raggruppate (una serie per definizione) di importi; i valori assenti restano vuoti e dichiarati. */
-export function barreRaggruppate(voci: readonly VoceRaggruppata[], definizioni: readonly SerieRaggruppata[], testi: TestiBarre, omessiIniziali: readonly string[] = []): DatiGrafico {
+/**
+ * Barre raggruppate (una serie per definizione) di importi, o dei valori della `misura` data (es. superfici in ettari); i
+ * valori assenti restano vuoti e dichiarati.
+ */
+export function barreRaggruppate(
+  voci: readonly VoceRaggruppata[],
+  definizioni: readonly SerieRaggruppata[],
+  testi: TestiBarre,
+  omessiIniziali: readonly string[] = [],
+  misura: MisuraBarre = MISURA_EURO,
+): DatiGrafico {
   const tabella: TabellaEquivalente = { caption: testi.caption, colonne: testi.colonne, righe: voci.map((v) => [v.categoria, ...v.celle]) };
   const omessi = [...omessiIniziali];
-  const { categorie, datiSerie } = datiBarre(voci, definizioni, omessi);
+  const { categorie, datiSerie } = datiBarre(voci, definizioni, omessi, misura);
   if (categorie.length === 0) return nonDisegnabile(testi.vuoto, tabella, omessi);
   const estremi = categorie.length === 1 ? ` (${categorie[0]})` : `, da ${categorie[0]} a ${categorie[categorie.length - 1]}`;
-  const descrizione = `${testi.titolo} per ${plurale(categorie.length, testi.unita[0], testi.unita[1])}${estremi}, importi in euro.${notaOmessi(omessi)}`;
+  const descrizione = `${testi.titolo} per ${plurale(categorie.length, testi.unita[0], testi.unita[1])}${estremi}, ${misura.descrizione}.${notaOmessi(omessi)}`;
   const opzioni: EChartsOption = {
     aria: aria(descrizione),
     legend: {},
-    tooltip: { trigger: 'axis', valueFormatter: valoreBreve },
+    tooltip: { trigger: 'axis', valueFormatter: misura.valore },
     ...zoomSeMolti(categorie.length),
     xAxis: { type: 'category', data: categorie, axisLabel: { interval: 0, rotate: categorie.length > 8 ? 45 : 0 } },
-    yAxis: { type: 'value', axisLabel: { formatter: asseImporti } },
+    yAxis: { type: 'value', axisLabel: { formatter: misura.asse } },
     series: definizioni.map((def, k): BarSeriesOption => ({ type: 'bar', name: def.nome, data: datiSerie[k] })),
   };
   return { opzioni, tabella, omessi };
