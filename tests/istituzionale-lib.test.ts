@@ -29,7 +29,7 @@ import {
 import { DATI_VERIFICA, TESTI_LINK, indirizzoDelDato, testoRicerca, testoValore, titoloDato, valoreOrdinabile, vociRiferimenti } from '../src/features/istituzionale/lib/verifica';
 import type { DatoVerifica } from '../src/features/istituzionale/lib/verifica';
 import { MISURE, anniDelPeriodo, captionOutput, datoDellAnno, etichettaMisura, importiOrdinati, opzioniMisura, ordinabileDellAnno, rigaDellIntervento, testoRicercaOutput, vociAnteprima } from '../src/features/istituzionale/lib/output';
-import { SENZA_DATI, SENZA_UNIT_AMOUNT, TITOLI_SCHEDE, badgeIntervento, captionVociVerifica, kpiIntervento, schedeVisibili, statoDelDettaglio, tutteRisposte, ultimoDatoInErrore, sopratitoloIntervento, titoloIntervento, ultimiDelDettaglio } from '../src/features/istituzionale/lib/intervento';
+import { SENZA_DATI, SENZA_UNIT_AMOUNT, TITOLI_SCHEDE, badgeIntervento, captionVociVerifica, kpiIntervento, schedeVisibili, statoDelDettaglio, testoAggiornamentoAnno, tutteRisposte,ultimoDatoInErrore, sopratitoloIntervento, titoloIntervento, ultimiDelDettaglio } from '../src/features/istituzionale/lib/intervento';
 import { TITOLO_SPESA, graficoOutputPerAnno, graficoSpesa } from '../src/features/istituzionale/lib/grafici';
 import { OUTPUT, SRA01_OUTPUT, SRD01, ULTIMI, VERIFICA, outputPer, righeDeiFiltri, verificaPer } from '../src/features/istituzionale/testing/fixture';
 
@@ -308,6 +308,8 @@ describe('RF016 e RF017: il dettaglio dell intervento (testata, KPI, ultimo dato
     expect(schedeVisibili(false, true)).toEqual(['output', 'importi']);
     expect(captionVociVerifica(2025)).toBe("I dati ASR non SIGC dell'intervento da confrontare con SMP (anno di riferimento 2025), con i valori assenti e il loro motivo");
     expect(captionVociVerifica(null)).toContain('(anno di riferimento nessun file)');
+    expect(testoAggiornamentoAnno(2024)).toBe("Lettura dell'anno 2024 in corso: restano i dati dell'anno precedente.");
+    expect(testoAggiornamentoAnno(undefined)).toBe("Lettura dell'ultimo anno con un file in corso: restano i dati dell'anno precedente.");
     expect(SENZA_UNIT_AMOUNT).toMatch(/^Intervento senza Unit Amount/);
     expect(SENZA_DATI).toContain('AT001');
   });

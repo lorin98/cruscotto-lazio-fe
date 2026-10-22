@@ -9,7 +9,7 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import { formatNumber, plurale } from '../../../shared/lib';
-import { AvvisoPagina, ContestoIntestazione, Griglia, Kpi, VistaQuery } from '../../../shared/ui';
+import { AvvisoAggiornamento, AvvisoPagina, ContestoIntestazione, Griglia, Kpi, VistaQuery } from '../../../shared/ui';
 import { usePagamenti } from '../api';
 import type { PagamentoElenco, TotaliPagamenti } from '../api';
 import { percorsoDomandeDeiPagamenti } from '../lib/collegamenti';
@@ -17,7 +17,7 @@ import { cellaImporto, testoSomma } from '../lib/formato';
 import { puoLeggere } from '../lib/grant';
 import { AnteprimaPagamento } from './anteprime';
 import { colonnePagamenti } from './colonne';
-import { AccessoNonDisponibile, AvvisoAggiornamento, BarraInterrogazione, VuotoFiltri } from './comuni';
+import { AccessoNonDisponibile, BarraInterrogazione, VuotoFiltri } from './comuni';
 import { PannelloInterrogazione, RisultatiInterrogazione, useScelteElenco } from './interrogazione';
 import type { Interrogazione } from './interrogazione';
 import { Briciole, TestaPagina } from './testata';

@@ -10,14 +10,14 @@
 import { useMemo } from 'react';
 import { Tab, TabList, TabPanel, Tabs } from 'react-aria-components';
 import { ValoreImporto } from '../../../entities/importo';
-import { CardGrafico, ErroreNellaPagina, PulsantiScarica, SelettoreAnno, TabellaStatica, TabellaVoci, VistaQuery, Vuoto } from '../../../shared/ui';
+import { AvvisoAggiornamento, CardGrafico, ErroreNellaPagina, PulsantiScarica, SelettoreAnno, TabellaStatica, TabellaVoci, VistaQuery, Vuoto } from '../../../shared/ui';
 import type { ColonnaStatica } from '../../../shared/ui';
 import { useOutputRegionale, useVerificaSmpNonSigc } from '../api';
 import { anniDiRiferimento, criteriVerifica, soloIntervento } from '../lib/criteri';
 import type { ImportoUnitario, RigaOutput, Verifica } from '../lib/dto';
 import { DEFINIZIONI_VERIFICA, NESSUN_FILE } from '../lib/formato';
 import { graficoOutputPerAnno } from '../lib/grafici';
-import { SENZA_UNIT_AMOUNT, TITOLI_SCHEDE, captionVociVerifica, schedeVisibili } from '../lib/intervento';
+import { SENZA_UNIT_AMOUNT, TITOLI_SCHEDE, captionVociVerifica, schedeVisibili, testoAggiornamentoAnno } from '../lib/intervento';
 import type { IdScheda } from '../lib/intervento';
 import { importiOrdinati, rigaDellIntervento } from '../lib/output';
 import { DATI_VERIFICA, titoloDato } from '../lib/verifica';
@@ -86,12 +86,16 @@ interface PropsVerifica {
   unita: string | null;
 }
 
-/** Il selettore dell'anno resta montato mentre si legge un altro anno (i dati di prima restano, aria-busy): il focus su "Mostra". */
+/**
+ * Il selettore dell'anno resta montato mentre si legge un altro anno: il focus su "Mostra". I dati di prima restano con
+ * lo stile di aggiornamento del kit (ui-risultati con aria-busy) e lo stato detto in role=status (review A3).
+ */
 function SchedaVerifica({ stato, codice, anno, onAnno, unita }: PropsVerifica) {
   return (
     <>
       <SelettoreAnno id="f-anno-intervento" etichetta="Anno di riferimento del monitoraggio SMP non SIGC" aiuto={AIUTO_ANNO} anni={anniDiRiferimento(stato.data?.annoRiferimento, anno)} voceVuota="Ultimo anno con un file (predefinito)" anno={anno} onCambia={onAnno} />
-      <div aria-busy={stato.isPlaceholderData || undefined}>
+      <AvvisoAggiornamento attivo={stato.isPlaceholderData} testo={testoAggiornamentoAnno(anno)} />
+      <div className="ui-risultati" aria-busy={stato.isPlaceholderData || undefined}>
         <VistaQuery stato={stato} errorePersonalizzato={nellaPagina}>
           {(d) => <VociVerifica d={d} codice={codice} anno={anno} unita={unita} />}
         </VistaQuery>

@@ -1,7 +1,7 @@
 // comuni — pezzi comuni delle due pagine dell'interrogazione: barra dei filtri con perimetro e data dell'ultimo dato,
-// avviso di aggiornamento (i dati precedenti restano, ADR 0029; regione role=status sempre presente, cosi' i lettori di
-// schermo annunciano il cambio: review v1 X-08), ordinamento attivo dichiarato (X-02, X-04), pagina oltre l'ultima (H-01),
-// stato vuoto che porta al pannello dei filtri, accesso non disponibile senza il grant della lettura (A-06).
+// ordinamento attivo dichiarato (X-02, X-04), pagina oltre l'ultima (H-01), stato vuoto che porta al pannello dei filtri,
+// accesso non disponibile senza il grant della lettura (A-06). L'avviso di aggiornamento (i dati precedenti restano, ADR
+// 0029) e' passato nel kit (AvvisoAggiornamento di shared/ui), usato anche dall'istituzionale.
 import type { ChipFiltro } from '../../../shared/ui';
 import { BarraFiltri, Caricamento, PillDatiAl } from '../../../shared/ui';
 import type { UltimoDato } from '../../../shared/lib';
@@ -40,17 +40,6 @@ export function BarraInterrogazione({
         </>
       }
     />
-  );
-}
-
-const TESTO_AGGIORNAMENTO = 'Aggiornamento dei risultati: restano visibili quelli precedenti finché arrivano i nuovi.';
-
-/** Regione role=status sempre montata: cambia solo il testo (una regione live inserita gia' piena non si annuncia). */
-export function AvvisoAggiornamento({ attivo, testo = TESTO_AGGIORNAMENTO }: { attivo: boolean; testo?: string }) {
-  return (
-    <p className={attivo ? 'ui-aggiornamento' : 'visually-hidden'} role="status">
-      {attivo ? testo : ''}
-    </p>
   );
 }
 

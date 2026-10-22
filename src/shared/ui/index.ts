@@ -1,7 +1,7 @@
 // shared/ui — componenti trasversali senza dominio: stati della vista, kit UI v2 (ADR 0027: grafici ECharts, KPI, filtri e
 // controlli del pannello dei filtri, selettore d'anno, pannello laterale, tabella interattiva, icone, pulsanti di download
 // e file del backend), salvataggio file, focus di pagina, percorso e titolo della pagina, anno della pagina nell'indirizzo.
-export { Caricamento, ErroreVista, Vuoto, VuotoConFiltri, VistaQuery } from './stati/StatiVista';
+export { AvvisoAggiornamento, Caricamento, ErroreVista, Vuoto, VuotoConFiltri, VistaQuery } from './stati/StatiVista';
 export { AvvisoPagina, ErroreNellaPagina, useErroreNellaPagina } from './stati/AvvisoPagina';
 export type { StatoQuery } from './stati/StatiVista';
 export { blobDaDataUrl, salvaFile } from './salva-file';

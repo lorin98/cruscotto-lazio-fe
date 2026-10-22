@@ -9,7 +9,7 @@ import { Fragment, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import { formatNumber } from '../../../shared/lib';
 import type { TabellaEquivalente } from '../../../shared/lib';
-import { CardGrafico, Griglia, Kpi, TabellaStatica } from '../../../shared/ui';
+import { AvvisoAggiornamento, CardGrafico, Griglia, Kpi, TabellaStatica } from '../../../shared/ui';
 import type { ClicGrafico, ColonnaStatica } from '../../../shared/ui';
 import type { SinotticoElenco } from '../api';
 import type { Voce } from '../lib/dto';
@@ -17,7 +17,6 @@ import { TESTI_RIPARTIZIONE, filtroDalClic, filtroDellaVoce, graficoRipartizione
 import type { Ripartizione } from '../lib/grafici';
 import { testoAggregato, testoConteggio, testoQuotaPagata, testoSomma } from '../lib/formato';
 import type { Indicatore, Vista } from '../lib/viste';
-import { AvvisoAggiornamento } from './comuni';
 
 const FONTE = 'Fonte: sinottico dell’insieme filtrato (TX-0057), calcolato dal server su tutte le domande, non sulla pagina.';
 

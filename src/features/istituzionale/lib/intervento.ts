@@ -131,6 +131,11 @@ export function captionVociVerifica(anno: number | null): string {
   return `I dati ASR non SIGC dell'intervento da confrontare con SMP (anno di riferimento ${anno ?? 'nessun file'}), con i valori assenti e il loro motivo`;
 }
 
+/** Lo stato della scheda Verifica mentre si legge un altro anno: i dati dell'anno di prima restano (review A3). */
+export function testoAggiornamentoAnno(anno: number | undefined): string {
+  return `Lettura ${anno === undefined ? "dell'ultimo anno con un file" : `dell'anno ${anno}`} in corso: restano i dati dell'anno precedente.`;
+}
+
 /** La scheda Importi unitari di un intervento senza Unit Amount (SC-IS_OUTPUT_STRUTTURALE). */
 export const SENZA_UNIT_AMOUNT = 'Intervento senza Unit Amount (per esempio un intervento strutturale): nessun importo unitario; il programmato per anno è non valorizzato e vale il solo target.';
 

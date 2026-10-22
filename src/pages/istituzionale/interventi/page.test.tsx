@@ -193,6 +193,32 @@ describe("RF016: la verifica SMP non SIGC dell'intervento (TX-0016 filtrata sull
     expect(screen.getByRole('link', { name: 'Output regionale filtrato su questo intervento' }).getAttribute('href')).toBe('/istituzionale/output-regionale?intervento=SRD01');
   });
 
+  it('durante la lettura di un altro anno i dati di prima restano con lo stato detto in role=status e aria-busy', async () => {
+    servi();
+    const t = trattenuta();
+    server.use(
+      http.get('*/api/istituzionale/verifica-smp-non-sigc', async ({ request }) => {
+        const p = new URL(request.url).searchParams;
+        if (p.has('anno')) await t.attesa;
+        return HttpResponse.json(verificaPer(VERIFICA, p));
+      }),
+    );
+    apri('/istituzionale/interventi/SRD01');
+    await userEvent.click(await screen.findByRole('tab', { name: 'Verifica SMP non SIGC' }));
+    await voci();
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Anno di riferimento del monitoraggio SMP non SIGC' }), '2024');
+    await userEvent.click(screen.getByRole('button', { name: 'Mostra' }));
+    const stato = await screen.findByText("Lettura dell'anno 2024 in corso: restano i dati dell'anno precedente.");
+    expect(stato.getAttribute('role')).toBe('status');
+    const risultati = (await voci()).closest('.ui-risultati') as HTMLElement;
+    expect(risultati.getAttribute('aria-busy')).toBe('true');
+    expect((await voci()).querySelector('caption')?.textContent).toContain('(anno di riferimento 2025)');
+    await act(async () => t.libera());
+    await waitFor(async () => expect((await voci()).querySelector('caption')?.textContent).toContain('(anno di riferimento 2024)'));
+    expect(stato.textContent).toBe('');
+    expect(risultati.getAttribute('aria-busy')).toBeNull();
+  });
+
   it('il codice del percorso e codificato: un valore con / non manda richieste e la pagina lo dice', async () => {
     const lette = servi();
     apri('/istituzionale/interventi/SR%2F..%2FA01');

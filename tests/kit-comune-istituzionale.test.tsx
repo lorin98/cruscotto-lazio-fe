@@ -8,7 +8,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { AxiosError, AxiosHeaders } from 'axios';
-import { CardGrafico, Interruttore, InterruttoreVista, OLTRE_IL_LIMITE_DELL_ESPORTAZIONE, SelettoreAnno, TestaPagina, Vuoto, VuotoConFiltri, messaggioOltreIlLimite, useAnnoNellIndirizzo } from '../src/shared/ui';
+import { AvvisoAggiornamento, CardGrafico, Interruttore,InterruttoreVista, OLTRE_IL_LIMITE_DELL_ESPORTAZIONE, SelettoreAnno, TestaPagina, Vuoto, VuotoConFiltri, messaggioOltreIlLimite, useAnnoNellIndirizzo } from '../src/shared/ui';
 import { AssenzaMotivata, BadgeAssenza } from '../src/entities/importo';
 import { PROBLEM_TYPES } from '../src/shared/api/problem/problem-types';
 import type { DatiGrafico, Scaricamento } from '../src/shared/ui';
@@ -165,6 +165,17 @@ describe('Interruttore, VuotoConFiltri e BadgeAssenza: kit per le tre misure del
       ['Grafico', 'false'],
       ['Tabella', 'true'],
     ]);
+  });
+
+  it('AvvisoAggiornamento (prima nell elenco operativo): role=status sempre montato, il testo solo durante l aggiornamento', () => {
+    const { rerender } = render(<AvvisoAggiornamento attivo={false} testo="Lettura in corso." />);
+    const stato = screen.getByRole('status');
+    expect([stato.textContent, stato.className]).toEqual(['', 'visually-hidden']);
+    rerender(<AvvisoAggiornamento attivo testo="Lettura in corso." />);
+    expect(screen.getByRole('status')).toBe(stato);
+    expect([stato.textContent, stato.className]).toEqual(['Lettura in corso.', 'ui-aggiornamento']);
+    rerender(<AvvisoAggiornamento attivo />);
+    expect(stato.textContent).toBe('Aggiornamento dei risultati: restano visibili quelli precedenti finché arrivano i nuovi.');
   });
 
   it('VuotoConFiltri: il testo e Modifica i filtri; BadgeAssenza: la stessa forma di AssenzaMotivata con una resa data', async () => {

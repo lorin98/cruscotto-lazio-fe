@@ -36,6 +36,21 @@ export function Vuoto({ children }: { children: ReactNode }) {
   );
 }
 
+const TESTO_AGGIORNAMENTO = 'Aggiornamento dei risultati: restano visibili quelli precedenti finché arrivano i nuovi.';
+
+/**
+ * I dati di prima restano mentre se ne leggono di nuovi (ADR 0029; prima nell'elenco operativo, ora anche nel dettaglio
+ * dell'istituzionale): regione role=status sempre montata, cambia solo il testo (una regione live inserita gia' piena
+ * non si annuncia: review v1 X-08 dell'elenco). Va accanto al contenitore `ui-risultati` con aria-busy.
+ */
+export function AvvisoAggiornamento({ attivo, testo = TESTO_AGGIORNAMENTO }: { attivo: boolean; testo?: string }) {
+  return (
+    <p className={attivo ? 'ui-aggiornamento' : 'visually-hidden'} role="status">
+      {attivo ? testo : ''}
+    </p>
+  );
+}
+
 /**
  * Il contenuto di uno stato vuoto che dipende dai filtri: il testo e "Modifica i filtri", che apre il pannello della
  * pagina (prima nel fisico; lo usa anche l'istituzionale). Va dentro Vuoto (o nel `vuoto` di VistaQuery).

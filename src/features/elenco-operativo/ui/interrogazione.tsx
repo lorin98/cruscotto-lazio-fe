@@ -8,7 +8,7 @@
 // della sezione, mai sul body (review v2 X-03, WCAG 2.4.3).
 import { useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Paginazione, PulsantiScarica, TabellaServer, colonneNascoste, useStatoNellaHistory } from '../../../shared/ui';
+import { AvvisoAggiornamento, Paginazione, PulsantiScarica, TabellaServer, colonneNascoste, useStatoNellaHistory } from '../../../shared/ui';
 import type { ColonnaServer } from '../../../shared/ui';
 import { CHIAVE_STATO_ELENCO, FIRMA_STATO_ELENCO, statoElencoValido } from '../lib/collegamenti';
 import type { StatoElenco } from '../lib/collegamenti';
@@ -16,7 +16,7 @@ import { conDimensione, conPagina, dimensioneDi, ordinaPer, ordinamentoDi, ordin
 import type { Criteri, Elenco, NomeFiltro } from '../lib/criteri';
 import { testoConteggio } from '../lib/formato';
 import { titoloDelCampo } from './colonne';
-import { AvvisoAggiornamento, OrdinamentoAttivo, PaginaOltreLUltima } from './comuni';
+import { OrdinamentoAttivo, PaginaOltreLUltima } from './comuni';
 import { avvisoLimite, scaricamentiElenco } from './esportazioni';
 import { PannelloFiltriElenco } from './PannelloFiltriElenco';
 import type { useInterrogazione } from './useInterrogazione';
