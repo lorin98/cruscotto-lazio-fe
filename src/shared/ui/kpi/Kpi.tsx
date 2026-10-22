@@ -16,6 +16,7 @@ export function Kpi({
   tono = 'blu',
   assente,
   azione,
+  nomeAccessibile,
 }: {
   etichetta: string;
   valore?: string;
@@ -29,11 +30,14 @@ export function Kpi({
   assente?: string;
   /** Azione della tessera sotto il valore (es. il link che apre l'elenco delle domande contate). */
   azione?: ReactNode;
+  /**
+   * Nome della tessera per i lettori di schermo quando l'etichetta ha sigle da sciogliere (es. "Superficie ammissibile DS:
+   * superficie delle domande di sostegno"); deve contenere l'etichetta visibile (WCAG 2.5.3). Assente = l'etichetta.
+   */
+  nomeAccessibile?: string;
 }) {
-  // la barra si ferma al pieno, il testo accessibile dice il valore vero (oltre il 100%: review v3 X-05, WCAG 1.1.1)
-  const percentuale = quota != null && quota >= 0 ? quota * 100 : null;
   return (
-    <section className="ui-card ui-kpi ui-dissolvenza" aria-label={etichetta}>
+    <section className="ui-card ui-kpi ui-dissolvenza" aria-label={nomeAccessibile ?? etichetta}>
       <p className="ui-kpi__etichetta">
         <span className={`ui-kpi__icona ui-tono-${tono}`}>
           <Icona nome={icona} />
@@ -49,12 +53,20 @@ export function Kpi({
         </p>
       )}
       {nota && <p className="ui-kpi__nota">{nota}</p>}
-      {!assente && percentuale !== null && (
-        <div className="ui-barra" role="img" aria-label={`${percentuale.toLocaleString('it-IT', { maximumFractionDigits: 1 })}%`}>
-          <span className={`ui-barra__${Math.round(Math.min(100, percentuale) / 5) * 5}`} />
-        </div>
-      )}
+      {!assente && <BarraQuota quota={quota} />}
       {azione && <div className="ui-kpi__azione">{azione}</div>}
     </section>
+  );
+}
+
+/** La quota fra 0 e 1 come barra; niente se non calcolabile o negativa. */
+function BarraQuota({ quota }: { quota: number | null | undefined }) {
+  // la barra si ferma al pieno, il testo accessibile dice il valore vero (oltre il 100%: review v3 X-05, WCAG 1.1.1)
+  if (quota == null || quota < 0) return null;
+  const percentuale = quota * 100;
+  return (
+    <div className="ui-barra" role="img" aria-label={`${percentuale.toLocaleString('it-IT', { maximumFractionDigits: 1 })}%`}>
+      <span className={`ui-barra__${Math.round(Math.min(100, percentuale) / 5) * 5}`} />
+    </div>
   );
 }

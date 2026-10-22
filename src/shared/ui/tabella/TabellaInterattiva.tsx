@@ -158,8 +158,8 @@ interface PropsTabellaInterattiva<T> {
   notaRicerca?: string;
   onRiga?: (r: T) => void;
   etichettaRiga?: (r: T) => string;
-  /** Riga dei totali, calcolata sulle righe filtrate. */
-  totali?: (righe: readonly T[]) => RigaPiede;
+  /** Riga dei totali (o piu' righe, es. un totale per campagna), calcolata sulle righe filtrate. */
+  totali?: (righe: readonly T[]) => RigaPiede | RigaPiede[];
   /** Righe di piede indipendenti dalla ricerca (es. un valore fuori tabella). */
   righePiede?: RigaPiede[];
   ordineIniziale?: Ordine;
@@ -221,7 +221,7 @@ export function TabellaInterattiva<T>(props: PropsTabellaInterattiva<T>) {
   const filtrate = useMemo(() => filtraRighe(righe, cercato, testoRicerca), [righe, cercato, testoRicerca]);
   const ordinate = useMemo(() => ordinaRighe(filtrate, (colonne.find((c) => c.chiave === ordine.chiave) ?? colonne[0]).valore, ordine.verso), [filtrate, colonne, ordine]);
   const corrente = paginaDi(ordinate, pagina, perPagina);
-  const piede = [...(totali ? [totali(filtrate)] : []), ...righePiede];
+  const piede = [...(totali ? [totali(filtrate)].flat() : []), ...righePiede];
   // un solo punto per i cambi dell'utente: aggiorna lo stato e lo notifica (review v4 H-05: niente effetto al montaggio)
   const cambia = (prossimo: StatoTabella) => {
     setCercato(prossimo.cercato ?? '');
