@@ -21,6 +21,7 @@ import { OUTPUT, SRA01_OUTPUT, SRD01, VALORI, VERIFICA, outputPer, verificaPer }
 import { AnteprimaOutput } from '../src/features/istituzionale/ui/AnteprimaOutput';
 import { CellaDato, ValoriNonDisponibili } from '../src/features/istituzionale/ui/comuni';
 import { TabellaOutput } from '../src/features/istituzionale/ui/TabellaOutput';
+import { TabellaVerifica } from '../src/features/istituzionale/ui/TabellaVerifica';
 import { DATI_VERIFICA } from '../src/features/istituzionale/lib/verifica';
 import type { StatoQuery } from '../src/shared/ui';
 import type { ValoriFiltriElenco } from '../src/features/istituzionale/api';
@@ -97,7 +98,7 @@ describe('VerificaSmpNonSigc (pagina della verifica SMP non SIGC, componente)', 
     const { router } = renderPagina(VerificaSmpNonSigc, '/istituzionale/verifica-smp-non-sigc', '/istituzionale/verifica-smp-non-sigc?anno=2024');
     const grafico = graficoDi(await trovaCard('Spesa pubblica erogata per intervento (anticipi inclusi)'));
     if (!grafico) throw new Error('grafico assente');
-    clicSulDato(grafico, 0, 1);
+    clicSulDato(grafico, 0, 2);
     await waitFor(() => expect(`${router.state.location.pathname}${router.state.location.search}`).toBe('/istituzionale/interventi/SRD01?anno=2024'));
   });
 
@@ -138,6 +139,17 @@ describe('TabellaVerifica e CellaDato (i ventuno dati di TX-0016)', () => {
     const sra16 = within(tabella).getByRole('row', { name: "Apri il dettaglio dell'intervento SRA16" });
     expect(testo(sra16.textContent)).toContain('non attribuibileriga presente sia nel monitoraggio SIGC sia nel non SIGC');
     await expectNoA11yViolations(container);
+  });
+
+  it('la tabella parte ordinata per intervento anche con righe fuori ordine (la fixture e in ordine di codice come il backend)', () => {
+    servi();
+    const fuoriOrdine = { ...VERIFICA, righe: [...VERIFICA.righe].reverse() };
+    expect(fuoriOrdine.righe.map((r) => r.codiceIntervento)).toEqual(['SRD01', 'SRA16', 'SRA01']);
+    const router = createMemoryRouter([{ path: '*', element: <TabellaVerifica d={fuoriOrdine} scaricamenti={[]} onRiga={() => undefined} /> }], { initialEntries: ['/'] });
+    renderConQuery(<RouterProvider router={router} />);
+    const t = screen.getByRole('table', { name: /^Verifica SMP non SIGC: / });
+    expect(within(t).getAllByRole('rowheader').map((c) => c.textContent)).toEqual(['SRA01', 'SRA16', 'SRD01']);
+    expect(within(t).getByRole('columnheader', { name: /^Intervento/ }).getAttribute('aria-sort')).toBe('ascending');
   });
 
   it('senza il grant dell elenco la cella resta senza link; il si e no come testo', () => {

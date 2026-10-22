@@ -120,7 +120,7 @@ describe('RF016: i dati ASR non SIGC per intervento, da confrontare con SMP - Da
     const { router } = apri();
     const grafico = graficoDi(await trovaCard(CARD));
     if (!grafico) throw new Error('grafico assente');
-    clicSulDato(grafico, 0, 1);
+    clicSulDato(grafico, 0, 2);
     await waitFor(() => expect(`${router.state.location.pathname}${router.state.location.search}`).toBe('/istituzionale/interventi/SRD01'));
   });
 

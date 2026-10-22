@@ -133,12 +133,21 @@ describe('feature istituzionale: i dati di prima durante la lettura di un altro 
 describe('mock di esempio del dev server dell istituzionale', () => {
   it('righe filtrate per intervento e obiettivi, nessuna con l azione; ANNO_NON_CONSERVATO con un altro anno; 400 per un anno non valido', async () => {
     server.use(...handlersEsempio);
-    const leggi = async (q: string) => (await (await fetch(`http://localhost/api/istituzionale/${q}`)).json()) as { righe: Array<{ codiceIntervento: string; dotazioneAvvisi?: { motivo: string | null } }>; annoRiferimento?: number };
+    type Motivo = { motivo: string | null };
+    type Riga = { codiceIntervento: string; dotazioneAvvisi?: Motivo; avvisiAttivati?: Motivo; avvisiChiusi?: Motivo; concessioniPreviste?: Motivo; indicatoreOutput?: Motivo; outputErogato?: Motivo };
+    const leggi = async (q: string) => (await (await fetch(`http://localhost/api/istituzionale/${q}`)).json()) as { righe: Riga[]; annoRiferimento?: number };
+
     expect((await leggi('verifica-smp-non-sigc?os=OS4')).righe.map((r) => r.codiceIntervento)).toEqual(['SRD01']);
     expect((await leggi('output-regionale?azione=3')).righe).toEqual([]);
     expect((await leggi('output-regionale?intervento=SRA01&intervento=SRA16')).righe.map((r) => r.codiceIntervento)).toEqual(['SRA01', 'SRA16']);
     const anno2024 = await leggi('verifica-smp-non-sigc?anno=2024&intervento=SRD01');
     expect([anno2024.annoRiferimento, anno2024.righe[0].dotazioneAvvisi?.motivo]).toEqual([2024, 'ANNO_NON_CONSERVATO']);
+    // SC-IS_SMP_ANNO (review V3): tutti i dati dell'avviso, anche avvisi e concessioni; senza file niente indicatori
+    expect([anno2024.righe[0].avvisiAttivati?.motivo, anno2024.righe[0].concessioniPreviste?.motivo, anno2024.righe[0].indicatoreOutput?.motivo]).toEqual(['ANNO_NON_CONSERVATO', 'ANNO_NON_CONSERVATO', null]);
+    const anno2023 = await leggi('verifica-smp-non-sigc?anno=2023&intervento=SRD01');
+    expect([anno2023.righe[0].indicatoreOutput?.motivo, anno2023.righe[0].outputErogato?.motivo, anno2023.righe[0].avvisiChiusi?.motivo]).toEqual(['NON_VALORIZZATO', 'NON_VALORIZZATO', 'ANNO_NON_CONSERVATO']);
+    // le righe in ordine di codice, come il backend
+    expect((await leggi('verifica-smp-non-sigc')).righe.map((r) => r.codiceIntervento)).toEqual(['SRA01', 'SRA16', 'SRD01']);
     const nonValido = await fetch('http://localhost/api/istituzionale/verifica-smp-non-sigc?anno=abc');
     expect(nonValido.status).toBe(400);
     expect(await nonValido.json()).toMatchObject({ type: PROBLEM_TYPES.DATO_NON_VALIDO });

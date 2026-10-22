@@ -330,8 +330,8 @@ describe('RF016 e RF017: grafici (spesa per intervento, output per anno col targ
     const serie = (g.opzioni?.series as BarSeriesOption[])[0];
     expect((serie.data as Array<{ value: number; codice: string }>).map((d) => [d.codice, d.value])).toEqual([
       ['SRA01', 0],
-      ['SRD01', 90000],
       ['SRA16', 1200.5],
+      ['SRD01', 90000],
     ]);
     expect(g.omessi).toEqual(['SRD04, spesa pubblica erogata: non valorizzato (il dato non è presente nella fonte)']);
     expect(g.tabella.righe.at(-1)).toEqual(['SRD04', 'non valorizzato (il dato non è presente nella fonte)']);
@@ -376,4 +376,22 @@ describe('fixture: le risposte di prova filtrano come il backend (SC-IS_FILTRI, 
     const anno2024 = verificaPer(VERIFICA, new URLSearchParams('anno=2024&intervento=SRD01'));
     expect([anno2024.annoRiferimento, anno2024.righe[0].dotazioneAvvisi.motivo, anno2024.righe[0].outputErogato.valore, anno2024.righe[0].domandeRicevute]).toEqual([2024, 'ANNO_NON_CONSERVATO', 7, 3]);
   });
+
+  it('SC-IS_SMP_ANNO: tutti i dati dell avviso di un altro anno; nel 2023 (nessun file) indicatori e output non valorizzati', () => {
+    const avviso = ['avvisiAttivati', 'avvisiChiusi', 'azioniAttivate', 'dotazioneAvvisi', 'chiusuraUltimoAvvisoAperto', 'includeTopUp', 'importoTopUp', 'concessioniPreviste'] as const;
+    const file = ['indicatoreOutput', 'indicatoreRisultato', 'outputAttesoFinanziate', 'outputErogato'] as const;
+    const [srd2024] = verificaPer(VERIFICA, new URLSearchParams('anno=2024&intervento=SRD01')).righe;
+    expect(avviso.map((k) => srd2024[k].motivo)).toEqual(avviso.map(() => 'ANNO_NON_CONSERVATO'));
+    expect([srd2024.indicatoreOutput.valore, srd2024.indicatoreRisultato.valore, srd2024.outputAttesoFinanziate.valore]).toEqual(['O.20', 'R.9', 40]);
+    const [srd2023] = verificaPer(VERIFICA, new URLSearchParams('anno=2023&intervento=SRD01')).righe;
+    expect(avviso.map((k) => srd2023[k].motivo)).toEqual(avviso.map(() => 'ANNO_NON_CONSERVATO'));
+    expect(file.map((k) => [srd2023[k].valore, srd2023[k].motivo])).toEqual(file.map(() => [null, 'NON_VALORIZZATO']));
+    // domande e spesa restano cumulative; un intervento senza avviso tiene i dati dell'avviso NON_VALORIZZATO
+    expect([srd2023.domandeRicevute, srd2023.spesaErogata.valore]).toEqual([3, 90000]);
+    const [sra2024] = verificaPer(VERIFICA, new URLSearchParams('anno=2024&intervento=SRA01')).righe;
+    expect(avviso.map((k) => sra2024[k].motivo)).toEqual(avviso.map(() => 'NON_VALORIZZATO'));
+    // le righe in ordine di codice, come il backend
+    expect(VERIFICA.righe.map((r) => r.codiceIntervento)).toEqual(['SRA01', 'SRA16', 'SRD01']);
+  });
+
 });

@@ -90,24 +90,50 @@ export const SRD01: VerificaSmpNonSigcRiga = rigaVerifica('SRD01', NV, {
   concessioniPreviste: v(false),
 });
 
+/** Le righe in ordine di codice, come le rende il backend (SC-IS_SMP_NONSIGC); l'ordinamento della tabella ha il suo test. */
 export const VERIFICA: VerificaSmpNonSigc = {
   annoRiferimento: 2025,
   perimetro: 'REGIONALE',
   outputCumulativo: true,
   righe: [
     rigaVerifica('SRA01', NV),
-    SRD01,
     // SC-IS_OUTPUT_AMBIGUO: la riga di output e' in entrambi i monitoraggi
     rigaVerifica('SRA16', NV, { domandeRicevute: 1, valoreDomandeRicevute: v(5000), spesaErogata: v(1200.5), outputErogato: AMBIGUA }),
+    SRD01,
   ],
   ultimiDatiSincronizzati: ULTIMI,
 };
 
-/** SC-IS_SMP_ANNO: con un anno diverso dal file piu' recente i dati dell'avviso sono ANNO_NON_CONSERVATO. */
+/**
+ * I dati dell'avviso NOSIGC per un anno diverso dal file piu' recente: l'avviso e' uno per intervento e porta i dati del
+ * file 2025 (SC-IS_SMP_ANNO), compresi avvisi attivati e chiusi e concessioni previste, che si leggono dall'avviso
+ * (SC-IS_SMP_SENZA_FONTE; riga SRD04 del low-fi approvato).
+ */
+const AVVISO_DI_UN_ALTRO_ANNO = {
+  avvisiAttivati: ANNO,
+  avvisiChiusi: ANNO,
+  azioniAttivate: ANNO,
+  dotazioneAvvisi: ANNO,
+  chiusuraUltimoAvvisoAperto: ANNO,
+  includeTopUp: ANNO,
+  importoTopUp: ANNO,
+  concessioniPreviste: ANNO,
+} satisfies Partial<VerificaSmpNonSigcRiga>;
+
+/** I dati del file NOSIGC di un anno senza file (il 2023 di SC-IS_SMP_ANNO): indicatori e output NON_VALORIZZATO. */
+const SENZA_FILE_DELL_ANNO = { indicatoreOutput: NV, indicatoreRisultato: NV, outputAttesoFinanziate: NV, outputErogato: NV } satisfies Partial<VerificaSmpNonSigcRiga>;
+
+/**
+ * SC-IS_SMP_ANNO: con un anno diverso dal 2025 i dati dell'avviso sono ANNO_NON_CONSERVATO (un intervento senza avviso li
+ * tiene NON_VALORIZZATO); il 2024 ha il suo file (output erogato 7), un altro anno nessun file.
+ */
 function conAnno(r: VerificaSmpNonSigcRiga, anno: number): VerificaSmpNonSigcRiga {
-  if (anno === 2025 || r.dotazioneAvvisi.valore === null) return r;
-  return { ...r, dotazioneAvvisi: ANNO, chiusuraUltimoAvvisoAperto: ANNO, includeTopUp: ANNO, importoTopUp: ANNO, azioniAttivate: ANNO, outputErogato: anno === 2024 ? v(7) : NV };
+  if (anno === 2025) return r;
+  const avviso = r.dotazioneAvvisi.valore === null ? {} : AVVISO_DI_UN_ALTRO_ANNO;
+  const file = anno !== 2024 ? SENZA_FILE_DELL_ANNO : r.outputErogato.valore === null ? {} : { outputErogato: v(7) };
+  return { ...r, ...avviso, ...file };
 }
+
 
 // SC-IS_FILTRI: il legame intervento - obiettivi (OS, OG, OP) e nessun intervento collegato alle azioni portanti
 const OBIETTIVI: Record<string, readonly string[]> = { SRA01: ['OS5', 'OG1', 'OP1'], SRA16: ['OS5', 'OG1'], SRD01: ['OS4', 'OG2', 'OP1'], SRD04: ['OS4', 'OG2'], SRG01: ['OS6'] };
