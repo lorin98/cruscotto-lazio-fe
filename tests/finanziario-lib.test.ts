@@ -136,6 +136,13 @@ describe('resa dell Importo (mai uno zero al posto di un dato assente)', () => {
     expect(descriviAssenza({ motivo: 'NON_VALORIZZATO' }, true)).toEqual(descriviImporto({ valore: null, motivo: 'NON_VALORIZZATO' }, true));
     expect(descriviAssenza(undefined)).toEqual({ disponibile: false, testo: 'non disponibile' });
   });
+  it("descriviAssenza: i motivi dei report istituzionali con i testi approvati (OP-IS-08), mai il generico 'non disponibile'", () => {
+    expect(descriviAssenza({ motivo: 'ANNO_NON_CONSERVATO' })).toEqual({ disponibile: false, testo: "non disponibile per l'anno scelto", nota: "l'avviso porta i dati del file più recente" });
+    expect(testoConNota(descriviAssenza({ motivo: 'FONTE_AMBIGUA' }))).toBe('non attribuibile (riga presente sia nel monitoraggio SIGC sia nel non SIGC)');
+    // la resa non dipende da `aggregato`: non sono totali
+    expect(descriviAssenza({ motivo: 'FONTE_AMBIGUA' }, true)).toEqual(descriviAssenza({ motivo: 'FONTE_AMBIGUA' }));
+    expect(descriviImporto({ valore: null, motivo: 'ANNO_NON_CONSERVATO' }).testo).toBe("non disponibile per l'anno scelto");
+  });
   it('testoConNota: la forma testuale unica di una resa, con la nota fra parentesi (review delta 21/10 passata 2 H3)', () => {
     expect(testoConNota(descriviAssenza({ motivo: 'FONTE_NON_ATTIVA', fonte: 'ATTO_CONCESSIONE' }))).toBe('non disponibile (fonte atto di concessione non attiva)');
     expect(testoConNota(descriviImporto({ valore: null, motivo: 'NON_VALORIZZATO' }))).toBe('non valorizzato (il dato non è presente nella fonte)');

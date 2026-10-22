@@ -1,8 +1,9 @@
 // importo.ts — funzioni PURE sull'Importo dei report e sugli altri dati col motivo dell'assenza (zero React). Il backend
 // porta il valore (l'importo al centesimo, un conteggio, un si'/no) oppure null con il motivo dell'assenza (schemi Importo,
 // ConteggioFinanziario, SiNoFinanziario delle spec: FONTE_NON_ATTIVA con la fonte attesa, NON_VALORIZZATO,
-// FUORI_PERIMETRO). Regola di resa: un dato assente non e' mai uno zero ne' un "no"; l'assenza si dice sempre allo stesso
-// modo, qualunque sia il tipo del valore (review delta 21/10 H1).
+// FUORI_PERIMETRO; nei report istituzionali anche ANNO_NON_CONSERVATO e FONTE_AMBIGUA, testi approvati coi wireframe
+// dell'istituzionale il 22/10/2026, OP-IS-08). Regola di resa: un dato assente non e' mai uno zero ne' un "no"; l'assenza
+// si dice sempre allo stesso modo, qualunque sia il tipo del valore (review delta 21/10 H1).
 import { formatEuro } from '../../../shared/lib';
 
 /**
@@ -72,6 +73,12 @@ export function descriviAssenza(dato: Pick<DatoMotivatoLike<unknown>, 'motivo' |
         : { disponibile: false, testo: 'non valorizzato', nota: 'il dato non è presente nella fonte' };
     case 'FUORI_PERIMETRO':
       return { disponibile: false, testo: 'fuori perimetro', nota: 'non visibile nel perimetro del profilo' };
+    // TX-0016: l'avviso SMP non SIGC e' uno per intervento e porta i dati del file piu' recente (D-05 Rev. 2 del backend)
+    case 'ANNO_NON_CONSERVATO':
+      return { disponibile: false, testo: "non disponibile per l'anno scelto", nota: "l'avviso porta i dati del file più recente" };
+    // TX-0016 e TX-0017: la stessa riga di output e' in entrambi i monitoraggi, mai lo stesso valore nei due (D-04 Rev. 2)
+    case 'FONTE_AMBIGUA':
+      return { disponibile: false, testo: 'non attribuibile', nota: 'riga presente sia nel monitoraggio SIGC sia nel non SIGC' };
     default:
       return { disponibile: false, testo: 'non disponibile' };
   }
