@@ -2,7 +2,8 @@
 // colonne, paginazione), una riga per intervento e campagna con tutte le campagne della risposta, un intervento senza
 // superfici in una riga sola col motivo (mai zeri; con il filtro Campagna "nella campagna N", mai "in nessuna campagna"), un totale per campagna nel piede calcolato sulle righe trovate e nessun
 // totale generale (le campagne non si sommano, D-01), CSV e XLSX di TX-0018 coi filtri della pagina negli strumenti, riga
-// apribile (clic o Invio) verso l'anteprima dell'intervento. Tabella HTML nativa del kit (caption, th scope, aria-sort):
+// apribile (clic o Invio) verso l'anteprima dell'intervento. Ordine iniziale del wireframe approvato: dalla campagna piu'
+// recente, gli interventi senza superfici in fondo (i null dell'ordinamento) e, dentro la campagna, per codice (X3). Tabella HTML nativa del kit (caption, th scope, aria-sort):
 // nessuna griglia react-aria, che qui non serve (niente selezione ne' modifica di celle).
 import { useMemo } from 'react';
 import { ValoreMotivato } from '../../../entities/importo';
@@ -95,6 +96,7 @@ export function TabellaSuperfici({ righe, campagnaRisposta, criteri, onRiga }: P
         righe={righeDellaTabella}
         colonne={COLONNE}
         chiaveRiga={(r) => r.chiave}
+        ordineIniziale={{ chiave: 'campagna', verso: 'decrescente' }}
         testoRicerca={testoRicerca}
         segnapostoRicerca="Cerca per codice dell'intervento o campagna"
         notaRicerca="I file CSV e XLSX contengono tutti gli interventi dei filtri, non solo quelli trovati dalla ricerca."

@@ -69,7 +69,11 @@ describe('SuperficiAmmissibili (pagina delle superfici, componente)', () => {
     await userEvent.click(within(gruppo).getByRole('button', { name: 'Tabella' }));
     const tabella = screen.getByRole('table', { name: /^Superficie ammissibile DS e DP per intervento e campagna/ });
     const intestazioni = within(tabella).getAllByRole('rowheader').map((c) => c.textContent);
-    expect(intestazioni).toEqual(['SRA29', 'SRB01', 'SRB01', 'Totale campagna 2025 (1 intervento con superfici)', 'Totale campagna 2024 (1 intervento con superfici)']);
+    // ordine del wireframe approvato: dalla campagna piu' recente, l'intervento senza superfici in fondo (X3)
+    expect(intestazioni).toEqual(['SRB01', 'SRB01', 'SRA29', 'Totale campagna 2025 (1 intervento con superfici)', 'Totale campagna 2024 (1 intervento con superfici)']);
+    const campagne = within(tabella).getAllByRole('rowgroup')[1].querySelectorAll('tr');
+    expect(Array.from(campagne).map((r) => r.querySelectorAll('td')[0]?.textContent)).toEqual(['2025', '2024', 'nessuna superficie in nessuna campagna (non valorizzato: intervento non a superficie o non SIGC)']);
+    expect(within(tabella).getByRole('button', { name: /^Campagna/ }).closest('th')?.getAttribute('aria-sort')).toBe('descending');
     expect(tabella.textContent).toContain('nessuna superficie in nessuna campagna (non valorizzato: intervento non a superficie o non SIGC)');
     expect(within(screen.getByRole('group', { name: 'Scarica la tabella Superfici per intervento e campagna' })).getAllByRole('button').map((b) => b.textContent)).toEqual(['CSV', 'XLSX']);
     await expectNoA11yViolations(container);
