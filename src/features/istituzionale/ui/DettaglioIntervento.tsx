@@ -123,12 +123,18 @@ function SenzaDati({ conOutput }: { conOutput: boolean }) {
 
 type PropsCorpo = Omit<PropsSchede, 'unita'>;
 
-/** Nessuna lettura ha risposto: l'errore lo dice, una volta e con Riprova, l'avviso della pagina; qui il testo statico. */
+const senzaRisposta = <S extends { isError: boolean; data: unknown }>(s: S | null): S | null => (s !== null && s.isError && s.data === undefined ? s : null);
+
+/**
+ * Le letture che non hanno risposto: l'errore lo dice subito, una volta e con Riprova, l'avviso della pagina (anche se la
+ * scheda della lettura non e' aperta); qui il testo statico della vista.
+ */
 function ErroriDelleLetture({ verifica, output }: Pick<PropsCorpo, 'verifica' | 'output'>) {
+  const [v, o] = [senzaRisposta(verifica), senzaRisposta(output)];
   return (
     <>
-      {verifica && <VistaQuery stato={verifica}>{() => null}</VistaQuery>}
-      {output && <VistaQuery stato={output}>{() => null}</VistaQuery>}
+      {v && <VistaQuery stato={v}>{() => null}</VistaQuery>}
+      {o && <VistaQuery stato={o}>{() => null}</VistaQuery>}
     </>
   );
 }
@@ -138,6 +144,7 @@ function DatiDelDettaglio({ codice, verifica, output, ...schede }: PropsCorpo) {
   const rigaOutput = rigaDellIntervento(output?.data?.righe, codice);
   return (
     <>
+      <ErroriDelleLetture verifica={verifica} output={output} />
       <KpiDettaglio output={rigaOutput} verifica={rigaDellIntervento(verifica?.data?.righe, codice)} />
       <SchedeIntervento {...schede} codice={codice} verifica={verifica} output={output} unita={rigaOutput?.unitaMisura ?? null} />
     </>

@@ -128,18 +128,25 @@ function useSchedaAttiva(schede: readonly IdScheda[]): [IdScheda | undefined, (s
   return [scelta !== null && schede.includes(scelta) ? scelta : schede[0], setScelta];
 }
 
+/** La tablist con le schede visibili, nell'ordine del wireframe. */
+function ListaSchede({ schede }: { schede: readonly IdScheda[] }) {
+  return (
+    <TabList aria-label="Sezioni dell'intervento" className="ui-tabs">
+      {schede.map((s) => (
+        <Tab key={s} id={s} className="ui-tab">
+          {TITOLI_SCHEDE[s]}
+        </Tab>
+      ))}
+    </TabList>
+  );
+}
+
 export function SchedeIntervento({ codice, anno, onAnno, verifica, output, unita }: PropsSchede) {
   const schede = schedeVisibili(verifica !== null, output !== null);
   const [attiva, scegli] = useSchedaAttiva(schede);
   return (
     <Tabs selectedKey={attiva} onSelectionChange={(k) => scegli(String(k) as IdScheda)}>
-      <TabList aria-label="Sezioni dell'intervento" className="ui-tabs">
-        {schede.map((s) => (
-          <Tab key={s} id={s} className="ui-tab">
-            {TITOLI_SCHEDE[s]}
-          </Tab>
-        ))}
-      </TabList>
+      <ListaSchede schede={schede} />
       {output && (
         <TabPanel id="output">
           <SchedaOutput stato={output} codice={codice} />
