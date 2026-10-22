@@ -13,7 +13,7 @@ import type { Ref } from 'react';
 import { Link } from 'react-router';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { formatDate, formatNumber } from '../../../shared/lib';
-import { AvvisoPagina, Briciole, Griglia, Kpi, Sezione, TabellaStatica, VistaQuery, Vuoto, useFocusTitolo } from '../../../shared/ui';
+import { AvvisoPagina, Briciole, Griglia, Kpi, Sezione, TabellaStatica, TestataDettaglio, VistaQuery, Vuoto, useFocusTitolo } from '../../../shared/ui';
 import type { ColonnaStatica } from '../../../shared/ui';
 import { rispostaDatoNonValido, rispostaDomandaAssente, useDetermine } from '../api';
 import {
@@ -37,32 +37,14 @@ const ID_CAMPO = 'codice-domanda';
 const TITOLO_PAGINA = PAGINE_FISICO.find((p) => p.percorso === PERCORSI.determine)?.titolo ?? 'Determine di una domanda';
 const CODICE_NON_VALIDO = 'Codice a barre non valido: contano solo le cifre, fino a 30.';
 
-/** Testata (flusso approvato): sopratitolo, h1, badge in testo e il link alla scheda; senza dati resta il solo h1. */
+/** Testata (flusso approvato, testata di dettaglio del kit): sopratitolo, h1, badge in testo e il link alla scheda. */
 function Testata({ h1, titolo, d, scheda }: { h1: Ref<HTMLHeadingElement>; titolo: string; d: Determine | undefined; scheda: string | null }) {
-  return (
-    <section className="ui-hero ui-dissolvenza" aria-labelledby="t-determine">
-      {d && <span className="ui-eyebrow">{sopratitoloDetermine(d)}</span>}
-      <h1 id="t-determine" ref={h1} tabIndex={-1}>
-        {titolo}
-      </h1>
-      {d && (
-        <ul className="ui-hero__badge-elenco" aria-label="Dati principali">
-          {badgeDetermine(d).map((b) => (
-            <li key={b} className="ui-hero__badge">
-              {b}
-            </li>
-          ))}
-        </ul>
-      )}
-      {scheda && (
-        <div className="ui-hero__azioni">
-          <Link className="btn btn-light btn-sm" to={scheda}>
-            Apri la scheda della domanda
-          </Link>
-        </div>
-      )}
-    </section>
+  const azioni = scheda && (
+    <Link className="btn btn-light btn-sm" to={scheda}>
+      Apri la scheda della domanda
+    </Link>
   );
+  return <TestataDettaglio idTitolo="t-determine" titolo={titolo} h1={h1} sopratitolo={d && sopratitoloDetermine(d)} badge={d && badgeDetermine(d)} azioni={azioni} />;
 }
 
 /** KPI di una determina che fa da fonte, oppure l'assenza in testo. */

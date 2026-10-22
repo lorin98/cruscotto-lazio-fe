@@ -1,12 +1,14 @@
-// Kit comune portato fuori dalle feature per il fisico (shared/ui ed entities/filtri): testata della pagina, file CSV e
-// XLSX del backend, totali su piu' righe della tabella interattiva, nome accessibile del KPI, gruppi del pannello del
-// programma e controlli del pannello dei filtri (il solo test dei controlli: review del fisico H1). Dati di prova inventati.
+// Kit comune portato fuori dalle feature per il fisico (shared/ui ed entities/filtri): testata della pagina e di
+// dettaglio, file CSV e XLSX del backend, totali su piu' righe della tabella interattiva, nome accessibile del KPI, gruppi
+// del pannello del programma e controlli del pannello dei filtri (il solo test dei controlli: review del fisico H1). Dati
+// di prova inventati.
+import { createRef } from 'react';
 import type { ReactElement } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
-import { Briciole, Caselle, Gruppo, Kpi, PulsantiScarica, Scelte, TabellaInterattiva, TestaPagina, scaricamentiDalBackend } from '../src/shared/ui';
+import { Briciole, Caselle, Gruppo, Kpi, PulsantiScarica, Scelte, TabellaInterattiva, TestaPagina, TestataDettaglio, scaricamentiDalBackend } from '../src/shared/ui';
 import type { ColonnaTabella } from '../src/shared/ui';
 import { GruppiProgramma } from '../src/entities/filtri';
 import { expectNoA11yViolations } from '../src/shared/testing/axe';
@@ -33,6 +35,24 @@ describe('Testata della pagina (Briciole e TestaPagina del kit)', () => {
     expect(document.activeElement).toBe(h1);
     expect(document.title).toBe('Determine di una domanda - Fisico - Cruscotto CSR 2023-2027');
     await expectNoA11yViolations(document.body);
+  });
+});
+
+describe('TestataDettaglio: la testata delle pagine di dettaglio (scheda della domanda, determine)', () => {
+  it('sopratitolo, un solo h1 col ref che nomina la sezione, badge in testo e azioni; senza dati il solo h1', async () => {
+    const h1 = createRef<HTMLHeadingElement>();
+    const { rerender } = inRouter(<TestataDettaglio idTitolo="t-prova" titolo="Determine della domanda 1" h1={h1} sopratitolo="Domanda di pagamento 1" badge={['Domanda corrente', '3 determine']} azioni={<a href="/x">Apri</a>} />);
+    const sezione = screen.getByRole('region', { name: 'Determine della domanda 1' });
+    expect(within(sezione).getByText('Domanda di pagamento 1')).toBeTruthy();
+    expect(within(screen.getByRole('list', { name: 'Dati principali' })).getAllByRole('listitem').map((l) => l.textContent)).toEqual(['Domanda corrente', '3 determine']);
+    expect(within(sezione).getByRole('link', { name: 'Apri' })).toBeTruthy();
+    expect(h1.current).toBe(screen.getByRole('heading', { level: 1, name: 'Determine della domanda 1' }));
+    expect(h1.current?.tabIndex).toBe(-1);
+    await expectNoA11yViolations(document.body);
+    rerender(<TestataDettaglio idTitolo="t-prova" titolo="Determine di una domanda" h1={h1} />);
+    expect(screen.queryByRole('list', { name: 'Dati principali' })).toBeNull();
+    expect(screen.queryByRole('link')).toBeNull();
+    expect(screen.getByRole('region', { name: 'Determine di una domanda' }).children).toHaveLength(1);
   });
 });
 

@@ -14,7 +14,7 @@ import { Link, useLocation } from 'react-router';
 import { Tab, TabList, TabPanel, Tabs } from 'react-aria-components';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { formatNumber, formatPercentuale, righeContesto } from '../../../shared/lib';
-import { AvvisoPagina, CardGrafico, ContestoIntestazione, Griglia, Kpi, Sezione, VistaQuery, useFocusTitolo } from '../../../shared/ui';
+import { AvvisoPagina, CardGrafico, ContestoIntestazione, Griglia, Kpi, Sezione, TestataDettaglio, VistaQuery, useFocusTitolo } from '../../../shared/ui';
 import { rispostaDomandaAssente, rispostaRiferimentoNonValido, useDettaglioDomanda, useValoriFiltri } from '../api';
 import type { DettaglioDomanda, DomandaElenco } from '../api';
 import { PERCORSO_DOMANDE, PERCORSO_PAGAMENTI, percorsoDettaglio, percorsoDomandeDelBeneficiario, riferimentoValido, ritornoAllElenco, statoDiRitorno } from '../lib/collegamenti';
@@ -30,7 +30,7 @@ import { Briciole } from './testata';
 const ASSENTE = 'La domanda non è disponibile: non esiste, è chiusa oppure è fuori dal tuo perimetro.';
 const NON_VALIDO = "Tipo o codice a barre non validi: l'indirizzo non indica una domanda.";
 
-/** Testata (flusso approvato): sopratitolo, h1, badge e azioni; senza dati resta il solo h1. */
+/** Testata (flusso approvato, testata di dettaglio del kit): sopratitolo, h1, badge e azioni; senza dati il solo h1 e le azioni. */
 function Testata({
   h1,
   titolo,
@@ -48,32 +48,27 @@ function Testata({
 }) {
   const d = scheda?.domanda;
   const beneficiario = d && conBeneficiario ? percorsoDomandeDelBeneficiario(d.cuaa) : null;
-  return (
-    <section className="ui-hero ui-dissolvenza" aria-labelledby="t-scheda">
-      {d && <span className="ui-eyebrow">{sopratitoloDomanda(d, scheda?.descrizioneIntervento)}</span>}
-      <h1 id="t-scheda" ref={h1} tabIndex={-1}>
-        {titolo}
-      </h1>
-      {d && (
-        <ul className="ui-hero__badge-elenco" aria-label="Dati principali">
-          {badgeDellaDomanda(d, scheda?.perimetro).map((b) => (
-            <li key={b} className="ui-hero__badge">
-              {b}
-            </li>
-          ))}
-        </ul>
-      )}
-      <div className="ui-hero__azioni">
-        {beneficiario && (
-          <Link className="btn btn-light btn-sm" to={beneficiario}>
-            Altre domande del beneficiario
-          </Link>
-        )}
-        <Link className="btn btn-outline-light btn-sm" to={ritorno} state={statoRitorno}>
-          {"Torna all'elenco"}
+  const azioni = (
+    <>
+      {beneficiario && (
+        <Link className="btn btn-light btn-sm" to={beneficiario}>
+          Altre domande del beneficiario
         </Link>
-      </div>
-    </section>
+      )}
+      <Link className="btn btn-outline-light btn-sm" to={ritorno} state={statoRitorno}>
+        {"Torna all'elenco"}
+      </Link>
+    </>
+  );
+  return (
+    <TestataDettaglio
+      idTitolo="t-scheda"
+      titolo={titolo}
+      h1={h1}
+      sopratitolo={d && sopratitoloDomanda(d, scheda?.descrizioneIntervento)}
+      badge={d && badgeDellaDomanda(d, scheda?.perimetro)}
+      azioni={azioni}
+    />
   );
 }
 

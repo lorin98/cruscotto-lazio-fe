@@ -1,7 +1,8 @@
 // Testata — percorso (Home > area > pagina) e titolo delle pagine (UI v2), uguali per tutte le aree: l'h1 riceve il focus a
 // ogni cambio di pagina e da' il titolo al documento (useFocusTitolo, WCAG 2.4.2 e 2.4.3). Prima ogni area aveva la sua
 // copia (widget del finanziario, testata dell'elenco operativo); le voci e il titolo del documento li decide la pagina.
-import type { ReactNode, RefObject } from 'react';
+// Poi la testata delle pagine di dettaglio (hero), comune alla scheda della domanda e alle determine (review H6).
+import type { ReactNode, Ref, RefObject } from 'react';
 import { Link } from 'react-router';
 import { useFocusTitolo } from '../focus';
 
@@ -45,6 +46,43 @@ interface PropsTestaPagina {
   azioni?: ReactNode;
   /** Il ref dell'h1, se la pagina ci riporta il focus (es. dopo un comando che sparisce col report: useFocusDopoIlCambio). */
   refTitolo?: RefObject<HTMLHeadingElement | null>;
+}
+
+interface PropsTestataDettaglio {
+  /** Id dell'h1, che da' il nome alla sezione. */
+  idTitolo: string;
+  titolo: string;
+  /** Il ref dell'h1 (tabIndex=-1): la pagina ci porta il focus a ogni cambio di route (useFocusTitolo). */
+  h1: Ref<HTMLHeadingElement>;
+  sopratitolo?: string;
+  /** I badge in testo ("Dati principali"); assenti (senza dati) la lista non c'e'. */
+  badge?: readonly string[];
+  azioni?: ReactNode;
+}
+
+/**
+ * Testata di una pagina di dettaglio (hero): sopratitolo, un solo h1, badge in testo e azioni; senza dati resta il solo
+ * h1. Prima la scheda della domanda dell'elenco e le determine del fisico ne avevano una copia ciascuna (review H6).
+ */
+export function TestataDettaglio({ idTitolo, titolo, h1, sopratitolo, badge, azioni }: PropsTestataDettaglio) {
+  return (
+    <section className="ui-hero ui-dissolvenza" aria-labelledby={idTitolo}>
+      {sopratitolo && <span className="ui-eyebrow">{sopratitolo}</span>}
+      <h1 id={idTitolo} ref={h1} tabIndex={-1}>
+        {titolo}
+      </h1>
+      {badge && (
+        <ul className="ui-hero__badge-elenco" aria-label="Dati principali">
+          {badge.map((b) => (
+            <li key={b} className="ui-hero__badge">
+              {b}
+            </li>
+          ))}
+        </ul>
+      )}
+      {azioni && <div className="ui-hero__azioni">{azioni}</div>}
+    </section>
+  );
 }
 
 /** Titolo della pagina: l'h1 col focus al montaggio e il titolo del documento. */
