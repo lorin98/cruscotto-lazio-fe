@@ -1,9 +1,9 @@
 // grant.ts — grant VERBATIM dell'authz-catalog per le letture del fisico e i predicati di visibilita' (PURO). Sono GATE DI
-// UX (hide-by-role), MAI enforcement: il backend ridecide su ogni lettura (403 ACCESSO_NEGATO). I predicati vengono dalla
-// fabbrica del template (makeRolePredicate: fine || coarse sui roles[] di /auth/status).
+// UX (hide-by-role), MAI enforcement: il backend ridecide su ogni lettura (403 ACCESSO_NEGATO). Il predicato e' hasGrant:
+// il grant e' fra i roles[] di /auth/status (come nell'elenco operativo).
 import { GRANT_ELENCO } from '../../../entities/domanda';
+import { hasGrant } from '../../../shared/api/auth/stato';
 import type { AuthStatus } from '../../../shared/api/auth/stato';
-import { makeRolePredicate } from '../../../shared/lib/predicates';
 
 export const GRANT = {
   /** TX-0018 (RF018): superfici ammissibili; apre la pagina delle superfici. */
@@ -18,14 +18,7 @@ export const GRANT = {
 
 export type Lettura = keyof typeof GRANT;
 
-const PREDICATI: Record<Lettura, (status: AuthStatus | undefined) => boolean> = {
-  superfici: makeRolePredicate(GRANT.superfici),
-  determine: makeRolePredicate(GRANT.determine),
-  filtri: makeRolePredicate(GRANT.filtri),
-  schedaDomanda: makeRolePredicate(GRANT.schedaDomanda),
-};
-
 /** Il profilo puo' fare la lettura (stato assente = no: in caricamento non si mostra un link che porterebbe a un 403). */
 export function puoLeggere(status: AuthStatus | undefined, lettura: Lettura): boolean {
-  return PREDICATI[lettura](status);
+  return hasGrant(status, GRANT[lettura]);
 }
