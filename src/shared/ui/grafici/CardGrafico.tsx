@@ -156,7 +156,6 @@ export function CardGrafico(props: PropsCardGrafico) {
       {strumenti}
       {disegnabile && <InterruttoreVista etichetta={`Vista di ${titolo}`} vista={vista} onVista={setVista} />}
       <PulsantiScarica oggetto={`il grafico ${titolo}`} scaricamenti={[...png, ...fileDeiDati(scaricamenti, oggettoDati)]} />
-
     </>
   );
   return (

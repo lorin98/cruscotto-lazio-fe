@@ -45,7 +45,6 @@ function CardOutput({ r, cumulativo }: { r: RigaOutput; cumulativo: boolean }) {
       fonte={`Fonte: TX-0017. PNG: l'immagine del grafico con l'intestazione, non registrata in audit; CSV e XLSX: l'export di TX-0017 con intervento = ${codice} (output per anno e importi unitari), registrato in AUDIT_ESPORTAZIONE.`}
       scaricamenti={fileOutput(`Output ${codice}`, soloIntervento(codice))}
       oggettoDati={`l'output e gli importi unitari dell'intervento ${codice}`}
-
     />
   );
 }

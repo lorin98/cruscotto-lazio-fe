@@ -93,7 +93,6 @@ export function OutputRegionale() {
         <TestaPagina titolo="Istituzionale: output regionale programmato e realizzato" titoloDocumento="Output regionale - Istituzionale" sottotitolo={SOTTOTITOLO} refTitolo={h1} />
         <ValoriNonDisponibili valori={valori} h1={h1} />
         <CorpoOutput stato={stato} inAttesa={inAttesa} filtri={filtri} onModificaFiltri={() => apri('vuoto')} misura={misura} onMisura={setMisura} />
-
       </main>
       <PannelloFiltriIstituzionale aperto={pannello !== null} filtri={filtri} valori={valori} codiciRisposta={(stato.data?.righe ?? []).map((r) => r.codiceIntervento)} onApplica={onApplica} onChiudi={chiudi} />
     </>

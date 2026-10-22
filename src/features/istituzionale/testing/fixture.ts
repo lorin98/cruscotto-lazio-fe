@@ -134,7 +134,6 @@ function conAnno(r: VerificaSmpNonSigcRiga, anno: number): VerificaSmpNonSigcRig
   return { ...r, ...avviso, ...file };
 }
 
-
 // SC-IS_FILTRI: il legame intervento - obiettivi (OS, OG, OP) e nessun intervento collegato alle azioni portanti
 const OBIETTIVI: Record<string, readonly string[]> = { SRA01: ['OS5', 'OG1', 'OP1'], SRA16: ['OS5', 'OG1'], SRD01: ['OS4', 'OG2', 'OP1'], SRD04: ['OS4', 'OG2'], SRG01: ['OS6'] };
 

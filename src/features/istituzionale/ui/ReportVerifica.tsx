@@ -13,7 +13,6 @@ import { NESSUN_FILE } from '../lib/formato';
 import { TITOLO_SPESA, graficoSpesa } from '../lib/grafici';
 import { vociRiferimenti } from '../lib/verifica';
 import { OGGETTO_FILE_VERIFICA, fileVerifica } from './esportazioni';
-
 import { useApriIntervento } from './navigazione';
 import { TabellaVerifica } from './TabellaVerifica';
 

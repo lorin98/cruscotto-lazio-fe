@@ -108,7 +108,6 @@ describe("RF017: output programmato e realizzato dell'intervento per anno (TX-00
     const clic = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
     apri('/istituzionale/interventi/SRD01?anno=2024');
     await userEvent.click(await screen.findByRole('button', { name: "Scarica l'output e gli importi unitari dell'intervento SRD01 in CSV" }));
-
     await waitFor(() => expect(clic).toHaveBeenCalledTimes(1));
     expect((clic.mock.contexts.at(-1) as HTMLAnchorElement).download).toBe('output-srd01-tx-0017.csv');
     await userEvent.click(screen.getByRole('tab', { name: 'Verifica SMP non SIGC' }));

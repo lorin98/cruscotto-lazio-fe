@@ -36,7 +36,6 @@ const tabella = () => screen.findByRole('table', { name: /^Verifica SMP non SIGC
 /** La card "Dati per intervento" della tabella: i suoi CSV e XLSX hanno lo stesso nome di quelli della card del grafico. */
 const sezioneDellaTabella = (t: HTMLElement) => t.closest('section') as HTMLElement;
 
-
 afterEach(() => vi.restoreAllMocks());
 
 describe('RF016: i dati ASR non SIGC per intervento, da confrontare con SMP - Data Platform (TX-0016)', () => {

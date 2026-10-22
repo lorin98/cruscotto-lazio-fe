@@ -64,7 +64,6 @@ function indicatoreConUnita(r: Pick<RigaOutput, 'indicatoreOutput' | 'unitaMisur
 export function vociAnteprima(r: RigaOutput, cumulativo: boolean): { termine: string; valore: string }[] {
   return [
     { termine: 'Indicatore di output', valore: indicatoreConUnita(r) },
-
     { termine: 'Target di fine periodo', valore: testoTarget(r.targetFinePeriodo, r.annoTarget, r.unitaMisura) },
     { termine: 'Realizzato non SIGC', valore: cumulativo ? 'cumulativo per anno di riferimento' : 'annuale' },
   ];

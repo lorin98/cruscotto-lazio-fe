@@ -18,7 +18,6 @@ export const NOTA_FILE_OUTPUT =
 export const OGGETTO_FILE_VERIFICA = 'i dati della verifica SMP non SIGC';
 
 /** CSV e XLSX di TX-0016 coi criteri dati, come "<titolo>-tx-0016.csv". */
-
 export function fileVerifica(titolo: string, criteri: CriteriVerifica): Scaricamento[] {
   return scaricamentiDalBackend({ base: `${titolo} TX-0016`, esporta: (formato) => esportaVerificaSmpNonSigc(formato, criteri), messaggioErrore: messaggioOltreIlLimite });
 }

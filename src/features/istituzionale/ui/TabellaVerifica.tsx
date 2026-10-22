@@ -14,7 +14,6 @@ import { DATI_VERIFICA, testoRicerca, titoloDato, valoreOrdinabile } from '../li
 import type { LinkDato, TipoDato } from '../lib/verifica';
 import { CellaDato } from './comuni';
 import { NOTA_FILE_VERIFICA, OGGETTO_FILE_VERIFICA } from './esportazioni';
-
 import { usePuoAprireElenco } from './navigazione';
 
 const TITOLO_TABELLA_VERIFICA = 'Dati per intervento';

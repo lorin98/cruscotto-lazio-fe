@@ -393,5 +393,4 @@ describe('fixture: le risposte di prova filtrano come il backend (SC-IS_FILTRI, 
     // le righe in ordine di codice, come il backend
     expect(VERIFICA.righe.map((r) => r.codiceIntervento)).toEqual(['SRA01', 'SRA16', 'SRD01']);
   });
-
 });

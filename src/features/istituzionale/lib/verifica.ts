@@ -94,7 +94,6 @@ export const TESTI_LINK: Record<LinkDato, (codice: string) => { testo?: string; 
  */
 export function indirizzoDelDato(r: RigaVerifica, d: DatoVerifica, puo: (l: LinkDato) => boolean): string | null {
   if (d.link === undefined || !puo(d.link) || codiceDelPercorso(r.codiceIntervento) === null) return null;
-
   if (d.link === 'ricevute') return conValore(r.domandeRicevute) ? elencoRicevute(r.codiceIntervento) : null;
   return conValore(r.spesaErogata.valore) ? elencoSpesa(r.codiceIntervento) : null;
 }

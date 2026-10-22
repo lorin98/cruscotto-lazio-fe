@@ -67,7 +67,6 @@ export function PulsantiScarica({ oggetto, scaricamenti }: { oggetto: string; sc
             }}
             aria-disabled={occupato || undefined}
             aria-label={`Scarica ${s.oggetto ?? oggetto} in ${s.formato}`}
-
             title={`Scarica in ${s.formato}`}
           >
             <Icona nome={ICONA[s.formato]} />

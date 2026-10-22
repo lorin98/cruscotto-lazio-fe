@@ -17,7 +17,6 @@ const v = (valore: unknown): Dato => ({ valore, motivo: null, fonte: null });
 const NV: Dato = { valore: null, motivo: 'NON_VALORIZZATO', fonte: null };
 const ANNO: Dato = { valore: null, motivo: 'ANNO_NON_CONSERVATO', fonte: null };
 const AMBIGUA: Dato = { valore: null, motivo: 'FONTE_AMBIGUA', fonte: null };
-
 const OBIETTIVI: Record<string, string[]> = { SRA01: ['OS5', 'OG1'], SRD01: ['OS4', 'OG2', 'OP1'], SRA16: ['OS5', 'OG1'] };
 
 /** Un intervento col file NOSIGC 2025 e l'avviso (come SRD01 degli scenari del backend): dati di programma e conti veri. */
@@ -116,7 +115,6 @@ function rispostaVerifica(p: URLSearchParams) {
   const anno = p.get('anno');
   if (anno !== null && !/^\d{4}$/.test(anno)) return HttpResponse.json({ type: PROBLEM_TYPES.DATO_NON_VALIDO, title: 'Errore', status: 400, errorCode: 'DATO_NON_VALIDO', detail: 'anno: valore non ammesso' }, { status: 400 });
   const righe = filtra(VERIFICA, p).map((r) => (anno === null ? r : rigaDellAnno(r, anno)));
-
   return HttpResponse.json({ annoRiferimento: anno === null ? 2025 : Number(anno), perimetro: 'REGIONALE', outputCumulativo: true, righe, ultimiDatiSincronizzati: ULTIMI });
 }
 

@@ -88,7 +88,6 @@ describe('VerificaSmpNonSigc (pagina della verifica SMP non SIGC, componente)', 
     expect(testo(riferimenti.textContent)).toContain('2025 (ultimo anno con un file SMP non SIGC presente)');
     expect(within(card).getAllByRole('button', { name: /^Scarica / }).map((b) => b.textContent)).toEqual(['PNG', 'CSV', 'XLSX']);
     expect(within(card).getByRole('button', { name: 'Scarica i dati della verifica SMP non SIGC in CSV' })).toBeTruthy();
-
     expect(screen.getByRole('table', { name: /^Verifica SMP non SIGC: / })).toBeTruthy();
     await expectNoA11yViolations(container);
   });
