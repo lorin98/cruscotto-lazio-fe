@@ -10,13 +10,15 @@ import { server } from '../src/shared/api/mock/server';
 import { rispondi } from '../src/shared/testing/msw';
 import { formatNumber } from '../src/shared/lib';
 import * as F from '../src/features/finanziario/testing/fixture';
-import { AREE, AREE_FUTURE, areeVisibili } from '../src/app/aree';
+import { AMBITI, AREE, AREE_FUTURE, areeVisibili, eRealizzata } from '../src/app/aree';
 import { appRoutes } from '../src/app/routes';
 import routeTable from '../src/app/route-table.json';
 import { pagineVisibili } from '../src/features/finanziario';
 import { pagineVisibili as pagineFisico } from '../src/features/fisico';
+import { pagineVisibili as pagineIstituzionale, ricercaConservata as ricercaIstituzionale } from '../src/features/istituzionale';
 import { PAGINE_FINANZIARIO } from '../src/features/finanziario/lib/report';
 import { PAGINE_FISICO } from '../src/features/fisico/lib/pagine';
+import { PAGINE_ISTITUZIONALE } from '../src/features/istituzionale/lib/pagine';
 import { clientApp } from './app-client';
 
 function apriHomeCon(ruoli: string[], indirizzo = '/') {
@@ -38,18 +40,21 @@ describe('catalogo delle aree', () => {
     }
   });
 
-  it('finanziario e fisico prendono le pagine visibili dal barrel della feature', () => {
+  it('finanziario, fisico e istituzionale prendono le pagine visibili dal barrel della feature', () => {
     expect(AREE.find((a) => a.chiave === 'finanziario')?.pagineVisibili).toBe(pagineVisibili);
     expect(AREE.find((a) => a.chiave === 'fisico')?.pagineVisibili).toBe(pagineFisico);
-    expect(areeVisibili(() => true).map((a) => a.pagine)).toEqual([PAGINE_FINANZIARIO, PAGINE_FISICO]);
+    expect(AREE.find((a) => a.chiave === 'istituzionale')?.pagineVisibili).toBe(pagineIstituzionale);
+    expect(areeVisibili(() => true).map((a) => a.pagine)).toEqual([PAGINE_FINANZIARIO, PAGINE_FISICO, PAGINE_ISTITUZIONALE]);
     expect(areeVisibili(() => false)).toEqual([]);
   });
 
-  it('le pagine del fisico aprono col grant della loro route (visibility della route-table)', () => {
-    for (const p of PAGINE_FISICO) {
+  it('le pagine del fisico e dell istituzionale aprono col grant della loro route (visibility della route-table)', () => {
+    for (const p of [...PAGINE_FISICO, ...PAGINE_ISTITUZIONALE]) {
       const route = routeTable.routes.find((r) => matchPath(r.path, p.percorso));
-      expect(route?.visibility).toEqual([p.grant]);
+      expect(route?.visibility, p.percorso).toEqual([p.grant]);
     }
+    // il dettaglio dell'intervento non e' una voce di menu: si apre con uno dei due grant dei report
+    expect(routeTable.routes.find((r) => r.path === '/istituzionale/interventi/:codice')?.visibility).toEqual(['csr.tx-0016.read', 'csr.tx-0017.read']);
   });
 
   it('card della Home dal contenuto reale delle feature (decisione G1 del 21/10/2026)', () => {
@@ -60,25 +65,31 @@ describe('catalogo delle aree', () => {
     const procedurale = AREE_FUTURE.find((a) => a.chiave === 'procedurale');
     expect(procedurale?.contenuti.join(' ')).toMatch(/Unit Amount/);
     expect(procedurale?.contenuti.join(' ')).not.toMatch(/Determine, responsabili/);
-    const istituzionale = AREE_FUTURE.find((a) => a.chiave === 'istituzionale');
-    expect(istituzionale?.contenuti.join(' ')).toMatch(/Output regionale programmato e realizzato/);
-    expect(AREE_FUTURE.map((a) => a.chiave)).toEqual(['procedurale', 'istituzionale']);
+    // G1: istituzionale = verifica SMP non SIGC e output regionale programmato e realizzato (TX-0016, TX-0017)
+    const istituzionale = AREE.find((a) => a.chiave === 'istituzionale');
+    expect(istituzionale?.contenuti).toEqual(['Verifica SMP dei dati ASR non SIGC', 'Output regionale programmato e realizzato per intervento e anno']);
+    expect(istituzionale?.descrizione).toBe('Dati ASR non SIGC a confronto con SMP - Data Platform e output regionale programmato e realizzato.');
+    expect(AREE_FUTURE.map((a) => a.chiave)).toEqual(['procedurale']);
   });
 
-  it('una ricerca conservata porta solo i filtri del finanziario', () => {
+  it('una ricerca conservata porta solo i filtri del programma: del finanziario, e dell istituzionale senza l anno', () => {
     const finanziario = AREE.find((a) => a.chiave === 'finanziario');
     expect(finanziario?.ricercaConservata?.('?intervento=SRA01&pagina=3')).toBe('intervento=SRA01');
+    const istituzionale = AREE.find((a) => a.chiave === 'istituzionale');
+    expect(istituzionale?.ricercaConservata).toBe(ricercaIstituzionale);
+    expect(istituzionale?.ricercaConservata?.('?intervento=SRD01&anno=2024')).toBe('intervento=SRD01');
   });
 
   it('le aree future non sono aree realizzate', () => {
     expect(AREE_FUTURE.filter((f) => AREE.some((a) => a.titolo === f.titolo))).toEqual([]);
   });
 
-  it('quattro ambiti, ognuno col suo colore, senza il primo pilastro', () => {
-    const ambiti = [...AREE, ...AREE_FUTURE];
-    expect(ambiti.map((a) => a.titolo)).toEqual(['Finanziario', 'Fisico', 'Procedurale', 'Istituzionale']);
-    expect(new Set(ambiti.map((a) => a.tono)).size).toBe(4);
-    expect(new Set(ambiti.map((a) => a.chiave)).size).toBe(4);
+  it('quattro ambiti nell ordine fisso del catalogo, realizzati o no, ognuno col suo colore, senza il primo pilastro', () => {
+    expect(AMBITI.map((a) => a.titolo)).toEqual(['Finanziario', 'Fisico', 'Procedurale', 'Istituzionale']);
+    expect(AMBITI.map((a) => eRealizzata(a))).toEqual([true, true, false, true]);
+    expect(AMBITI).toHaveLength(AREE.length + AREE_FUTURE.length);
+    expect(new Set(AMBITI.map((a) => a.tono)).size).toBe(4);
+    expect(new Set(AMBITI.map((a) => a.chiave)).size).toBe(4);
   });
 });
 
@@ -96,7 +107,7 @@ describe('Home e menu dallo stesso catalogo', () => {
       expect(within(presto).queryAllByRole('link')).toHaveLength(0);
       expect(menu.textContent).toContain(`${futura.titolo}presto`);
     }
-    // i quattro ambiti stanno nella stessa griglia, nell'ordine del catalogo
+    // i quattro ambiti stanno nella stessa griglia, nell'ordine fisso del catalogo (realizzati o no)
     const griglia = within(screen.getByRole('navigation', { name: 'Aree del cruscotto' })).getAllByRole('list')[0];
     const ambiti = Array.from(griglia.children) as HTMLElement[];
     expect(ambiti.map((li) => within(li).getByRole('heading').textContent)).toEqual(['Finanziario', 'Fisico', 'Procedurale', 'Istituzionale']);
@@ -147,6 +158,48 @@ describe('Home e menu dallo stesso catalogo', () => {
     expect(menu.textContent).toContain('Proceduralepresto');
   });
 
+  it('profilo dell istituzionale: la card porta alla verifica SMP non SIGC e il menu ha i due report, dopo Procedurale', async () => {
+    server.use(
+      http.get('*/api/istituzionale/verifica-smp-non-sigc', () => HttpResponse.json({ annoRiferimento: 2025, perimetro: 'REGIONALE', outputCumulativo: true, righe: [], ultimiDatiSincronizzati: [] })),
+      http.get('*/api/elenco-operativo/filtri', () => HttpResponse.json({ perimetro: 'REGIONALE', interventi: [] })),
+    );
+    apriHomeCon(['csr.tx-0016.read', 'csr.tx-0017.read', 'csr.tx-0060.read']);
+    const card = await screen.findByRole('region', { name: 'Istituzionale' });
+    expect(within(card).getByText('Disponibile')).toBeTruthy();
+    expect(within(card).getByRole('link', { name: 'Entra in Istituzionale' }).getAttribute('href')).toBe('/istituzionale/verifica-smp-non-sigc');
+    expect(within(card).getByText('Verifica SMP dei dati ASR non SIGC')).toBeTruthy();
+    const menu = screen.getByRole('navigation', { name: 'Navigazione principale' });
+    const gruppo = within(menu).getByRole('button', { name: 'Istituzionale' });
+    const sottomenu = document.getElementById(gruppo.getAttribute('aria-controls') ?? '') as HTMLElement;
+    expect(within(sottomenu).getAllByRole('link').map((l) => [l.textContent, l.getAttribute('href')])).toEqual([
+      ['Verifica SMP non SIGC', '/istituzionale/verifica-smp-non-sigc'],
+      ['Output regionale', '/istituzionale/output-regionale'],
+    ]);
+    expect(menu.textContent).not.toContain('Istituzionalepresto');
+    // l'ordine del catalogo resta: Procedurale (presto) prima di Istituzionale
+    expect(menu.textContent?.indexOf('Proceduralepresto')).toBeLessThan(menu.textContent?.indexOf('Istituzionale') ?? -1);
+  });
+
+  it('profilo col solo output regionale: la card porta all output, il menu ha la sola voce', async () => {
+    apriHomeCon(['csr.tx-0017.read']);
+    const card = await screen.findByRole('region', { name: 'Istituzionale' });
+    expect(within(card).getByRole('link', { name: 'Entra in Istituzionale' }).getAttribute('href')).toBe('/istituzionale/output-regionale');
+    const menu = screen.getByRole('navigation', { name: 'Navigazione principale' });
+    expect(within(menu).getAllByRole('link').map((l) => l.textContent)).toEqual(['Output regionale']);
+  });
+
+  it('dal menu i filtri dell istituzionale restano passando dalla verifica all output, senza l anno', async () => {
+    server.use(
+      http.get('*/api/istituzionale/verifica-smp-non-sigc', () => HttpResponse.json({ annoRiferimento: 2024, perimetro: 'REGIONALE', outputCumulativo: true, righe: [], ultimiDatiSincronizzati: [] })),
+      http.get('*/api/elenco-operativo/filtri', () => HttpResponse.json({ perimetro: 'REGIONALE', interventi: [] })),
+    );
+    apriHomeCon(['csr.tx-0016.read', 'csr.tx-0017.read', 'csr.tx-0060.read'], '/istituzionale/verifica-smp-non-sigc?intervento=SRD01&anno=2024');
+    expect(await screen.findByRole('heading', { level: 1, name: 'Istituzionale: verifica SMP non SIGC' })).toBeTruthy();
+    const menu = screen.getByRole('navigation', { name: 'Navigazione principale' });
+    expect(within(menu).getByRole('link', { name: 'Output regionale' }).getAttribute('href')).toBe('/istituzionale/output-regionale?intervento=SRD01');
+    expect(within(menu).getByRole('link', { name: 'Verifica SMP non SIGC' }).getAttribute('aria-current')).toBe('page');
+  });
+
   it('la voce "Determine di una domanda" resta corrente con il codice nel percorso (sottopercorso)', async () => {
     server.use(
       http.get('*/api/fisico/domande/:codice/determina', () =>
@@ -170,6 +223,7 @@ describe('Home e menu dallo stesso catalogo', () => {
     const menu = screen.getByRole('navigation', { name: 'Navigazione principale' });
     expect(within(menu).queryAllByRole('button')).toHaveLength(0);
     expect(within(menu).queryAllByRole('link')).toHaveLength(0);
-    expect(menu.textContent).toContain('Istituzionalepresto');
+    expect(menu.textContent).toContain('Proceduralepresto');
+    expect(menu.textContent).not.toContain('Istituzionalepresto');
   });
 });

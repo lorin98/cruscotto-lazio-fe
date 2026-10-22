@@ -1,6 +1,7 @@
 // home.tsx — porta d'ingresso dell'applicazione (dopo il login il BFF torna su "/"). Non e' una feature (nessuna
 // authz-surface propria): resta fuori dal manifest. Mostra i quattro ambiti del catalogo (aree.ts, lo stesso del menu
-// laterale) in una griglia bilanciata: quattro colonne, due su due, una sola sugli schermi stretti; mai tre piu' una.
+// laterale) in una griglia bilanciata, nell'ordine fisso del catalogo: quattro colonne, due su due, una sola sugli schermi
+// stretti; mai tre piu' una.
 // Ogni ambito ha il suo colore. La card di un'area realizzata porta alla prima pagina visibile per i grant dell'utente
 // (hide-by-role di sola UX, l'enforcement resta server-side) e ne mostra i numeri chiave; le aree future dicono cosa
 // conterranno, senza link.
@@ -9,7 +10,7 @@ import { hasGrant, useAuthStatus } from '../shared/api/auth/use-auth-status';
 import { NOME_APPLICAZIONE } from '../shared/config/applicazione';
 import { resolveLoginPath } from '../shared/config/base-path';
 import { Icona, useFocusTitolo } from '../shared/ui';
-import { AREE, AREE_FUTURE, STRUMENTI, areeVisibili } from './aree';
+import { AMBITI, STRUMENTI, areeVisibili, eRealizzata } from './aree';
 import type { Area, PaginaArea, SchedaArea } from './aree';
 import { SessioneNonVerificabile } from './sessione-non-verificabile';
 
@@ -92,12 +93,9 @@ function Ambiti({ haGrant }: { haGrant: (grant: string) => boolean }) {
       {visibili.length === 0 && <p role="status">Il tuo profilo non ha ancora aree del cruscotto da consultare.</p>}
       <nav className="ui-ambiti" aria-label="Aree del cruscotto">
         <ul className="ui-ambiti__griglia">
-          {AREE.map((area) => (
-            <CardArea key={area.chiave} area={area} pagine={visibili.find((v) => v.area === area)?.pagine ?? []} />
-          ))}
-          {AREE_FUTURE.map((scheda) => (
-            <CardAreaFutura key={scheda.chiave} scheda={scheda} />
-          ))}
+          {AMBITI.map((a) =>
+            eRealizzata(a) ? <CardArea key={a.chiave} area={a} pagine={visibili.find((v) => v.area === a)?.pagine ?? []} /> : <CardAreaFutura key={a.chiave} scheda={a} />,
+          )}
         </ul>
       </nav>
     </>

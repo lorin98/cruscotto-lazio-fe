@@ -9,6 +9,7 @@ import type { ComponentType, ReactNode } from 'react';
 import { pagineVisibili as pagineElenco } from '../features/elenco-operativo';
 import { AnteprimaFinanziario, filtriDaRicerca, pagineVisibili as pagineFinanziario, ricercaDaFiltri } from '../features/finanziario';
 import { pagineVisibili as pagineFisico } from '../features/fisico';
+import { pagineVisibili as pagineIstituzionale, ricercaConservata as ricercaIstituzionale } from '../features/istituzionale';
 import type { NomeIcona } from '../shared/ui';
 
 /** Una pagina di un'area, come la espone il barrel della feature. */
@@ -67,6 +68,19 @@ export const AREE: readonly Area[] = [
     contenuti: ['Superfici ammissibili di sostegno e di pagamento per intervento e campagna', 'Verifica incrociata fra superficie di pagamento e di sostegno', 'Determine da cui una domanda prende le informazioni'],
     pagineVisibili: pagineFisico,
   },
+  {
+    // G1: verifica SMP non SIGC (TX-0016) e output regionale programmato e realizzato (TX-0017); i due report hanno gli
+    // stessi filtri, che restano passando dall'uno all'altro (come nel finanziario). Il dettaglio dell'intervento non e'
+    // una voce di menu: ci si arriva dai report.
+    chiave: 'istituzionale',
+    titolo: 'Istituzionale',
+    descrizione: 'Dati ASR non SIGC a confronto con SMP - Data Platform e output regionale programmato e realizzato.',
+    icona: 'it-pa',
+    tono: 'viola',
+    contenuti: ['Verifica SMP dei dati ASR non SIGC', 'Output regionale programmato e realizzato per intervento e anno'],
+    pagineVisibili: pagineIstituzionale,
+    ricercaConservata: ricercaIstituzionale,
+  },
 ];
 
 /** Aree non ancora realizzate: la Home e il menu le dichiarano "presto", senza link. */
@@ -79,15 +93,6 @@ export const AREE_FUTURE: readonly SchedaArea[] = [
     icona: 'it-file-signed',
     tono: 'arancio',
     contenuti: ['Stati e sottofasi delle domande', 'Domande ammesse con atto di concessione e contributo', 'Riepilogo per intervento e pagamenti per Unit Amount'],
-  },
-  {
-    // G1: verifica SMP non SIGC (TX-0016) e output regionale programmato e realizzato (TX-0017)
-    chiave: 'istituzionale',
-    titolo: 'Istituzionale',
-    descrizione: 'Dati ASR non SIGC a confronto con SMP - Data Platform e output regionale programmato e realizzato.',
-    icona: 'it-pa',
-    tono: 'viola',
-    contenuti: ['Verifica SMP dei dati ASR non SIGC', 'Output regionale programmato e realizzato per intervento e anno'],
   },
 ];
 
@@ -106,6 +111,17 @@ export const STRUMENTI: readonly Area[] = [
     pagineVisibili: pagineElenco,
   },
 ];
+
+/** Vero per un'area realizzata (con le sue pagine), falso per una scheda di un'area futura. */
+export function eRealizzata(a: Area | SchedaArea): a is Area {
+  return 'pagineVisibili' in a;
+}
+
+/** L'ordine dei quattro ambiti nella Home e nel menu, fisso: un'area che si realizza non cambia di posto. */
+const ORDINE_AMBITI = ['finanziario', 'fisico', 'procedurale', 'istituzionale'];
+
+/** I quattro ambiti, realizzati e futuri, nell'ordine del catalogo (finanziario, fisico, procedurale, istituzionale). */
+export const AMBITI: readonly (Area | SchedaArea)[] = [...AREE, ...AREE_FUTURE].sort((a, b) => ORDINE_AMBITI.indexOf(a.chiave) - ORDINE_AMBITI.indexOf(b.chiave));
 
 /** Le aree (o gli strumenti) con almeno una pagina visibile per i grant dell'utente, ognuna con le sue pagine visibili. */
 export function areeVisibili(haGrant: (grant: string) => boolean, aree: readonly Area[] = AREE): { area: Area; pagine: PaginaArea[] }[] {
