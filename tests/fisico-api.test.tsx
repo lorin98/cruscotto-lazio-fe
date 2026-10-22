@@ -52,6 +52,20 @@ describe('feature fisico, wrapper api (step3) su MSW', () => {
     expect(result.current.data?.corrente.motivo).toBe('NON_VALORIZZATO');
   });
 
+  it('useDetermine codifica il codice nel percorso: un valore costruito ad arte resta un solo segmento (TX-0020, A-01)', async () => {
+    // senza encodeURIComponent '1/../x' diventerebbe /api/fisico/domande/x/determina: un altro codice, un altro segmento
+    const percorsi: string[] = [];
+    server.use(
+      http.get('*/api/fisico/domande/:codice/determina', ({ request }) => {
+        percorsi.push(new URL(request.url).pathname);
+        return HttpResponse.json({ codiceABarre: 'x', tipoDomanda: 'PAGAMENTO', domandaChiusa: false, corrente: { valore: null, motivo: 'NON_VALORIZZATO' }, elenco: [] });
+      }),
+    );
+    const { result } = renderHook(() => useDetermine('1/../x'), { wrapper: wrapper() });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(percorsi).toEqual(['/api/fisico/domande/1%2F..%2Fx/determina']);
+  });
+
   it('il 404 e il 400 di TX-0020 si riconoscono dal problem-type, non dal solo status', async () => {
     server.use(http.get('*/api/fisico/domande/:codice/determina', () => HttpResponse.json(problema(404, 'NOT_FOUND'), { status: 404 })));
     const assente = renderHook(() => useDetermine('99999999999'), { wrapper: wrapper() });
