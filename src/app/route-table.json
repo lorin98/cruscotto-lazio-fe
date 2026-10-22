@@ -293,6 +293,41 @@
           "grant": "csr.tx-0060.read"
         }
       ]
+    },
+    {
+      "path": "/fisico/superfici",
+      "flow": "superfici",
+      "component": "src/pages/fisico/superfici/page.tsx",
+      "visibility": [
+        "csr.tx-0018.read"
+      ],
+      "actions": [
+        {
+          "operationId": "TX-0018",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0018.read"
+        },
+        {
+          "operationId": "TX-0060",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0060.read"
+        }
+      ]
+    },
+    {
+      "path": "/fisico/determine/:codice?",
+      "flow": "determine",
+      "component": "src/pages/fisico/determine/page.tsx",
+      "visibility": [
+        "csr.tx-0020.read"
+      ],
+      "actions": [
+        {
+          "operationId": "TX-0020",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0020.read"
+        }
+      ]
     }
   ]
 }

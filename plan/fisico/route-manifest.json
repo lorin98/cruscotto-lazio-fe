@@ -1,0 +1,56 @@
+{
+  "feature": "fisico",
+  "pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb",
+  "routes": [
+    {
+      "actions": [
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0018.read",
+          "operationId": "TX-0018"
+        },
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0060.read",
+          "operationId": "TX-0060"
+        }
+      ],
+      "component": "src/pages/fisico/superfici/page.tsx",
+      "flow": "superfici",
+      "path": "/fisico/superfici",
+      "visibility": [
+        "csr.tx-0018.read"
+      ]
+    },
+    {
+      "actions": [
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0020.read",
+          "operationId": "TX-0020"
+        }
+      ],
+      "component": "src/pages/fisico/determine/page.tsx",
+      "flow": "determine",
+      "path": "/fisico/determine/:codice?",
+      "visibility": [
+        "csr.tx-0020.read"
+      ]
+    }
+  ],
+  "schema_version": "1.0",
+  "spec_pins": [
+    {
+      "manifest_hash_match": true,
+      "path": "handover/openapi-fisico.json",
+      "sha256": "sha256:8558e1f4d278f2e97fc873a3eebbdaffdd54d8e390d245b0c8784dd35822c861",
+      "slice": "fisico"
+    },
+    {
+      "manifest_hash_match": true,
+      "path": "handover/openapi-elenco-operativo.json",
+      "sha256": "sha256:7532fe3b3708398d1448238ef2fe4df9e3d1037b096325bc23435cb9dc39a4ca",
+      "slice": "elenco-operativo"
+    }
+  ]
+}
