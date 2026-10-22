@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { http, HttpResponse } from 'msw';
 import { server } from '../src/shared/api/mock/server';
 import { problema } from '../src/shared/testing/msw';
+import { PROBLEM_TYPES } from '../src/shared/api/problem/problem-types';
+import { handlersEsempio } from '../src/features/istituzionale/api/mock/esempio';
 import {
   esportaOutputRegionale,
   esportaVerificaSmpNonSigc,
@@ -107,5 +109,39 @@ describe('feature istituzionale, wrapper api (step3) su MSW', () => {
     server.use(http.get('*/api/istituzionale/output-regionale/:formato', () => HttpResponse.json(problema(400, 'DATO_NON_VALIDO', 'oltre 5000 righe'), { status: 400 })));
     const errore = await esportaOutputRegionale('csv', {}).catch((e: unknown) => e);
     expect(rispostaDatoNonValido(errore)).toBe(true);
+  });
+});
+
+describe('feature istituzionale: i dati di prima durante la lettura di un altro anno (dettaglio dell intervento)', () => {
+  it('con mantieniDati la risposta di prima resta (placeholderData) finche arriva quella del nuovo anno; senza, no', async () => {
+    server.use(http.get('*/api/istituzionale/verifica-smp-non-sigc', ({ request }) => HttpResponse.json({ ...VERIFICA, annoRiferimento: Number(new URL(request.url).searchParams.get('anno')) })));
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const con = renderHook((p: { anno: number }) => useVerificaSmpNonSigc({ anno: p.anno }, { mantieniDati: true }), { initialProps: { anno: 2025 }, wrapper: wrapper(client) });
+    await waitFor(() => expect(con.result.current.data?.annoRiferimento).toBe(2025));
+    con.rerender({ anno: 2024 });
+    expect(con.result.current.data?.annoRiferimento).toBe(2025);
+    expect(con.result.current.isPlaceholderData).toBe(true);
+    await waitFor(() => expect(con.result.current.data?.annoRiferimento).toBe(2024));
+    const senza = renderHook((p: { anno: number }) => useVerificaSmpNonSigc({ anno: p.anno }), { initialProps: { anno: 2023 }, wrapper: wrapper(client) });
+    await waitFor(() => expect(senza.result.current.data?.annoRiferimento).toBe(2023));
+    senza.rerender({ anno: 2022 });
+    expect(senza.result.current.data).toBeUndefined();
+  });
+});
+
+// il mock del dev server risponde come il backend: righe dei filtri, anno con i dati dell'avviso del file piu' recente
+describe('mock di esempio del dev server dell istituzionale', () => {
+  it('righe filtrate per intervento e obiettivi, nessuna con l azione; ANNO_NON_CONSERVATO con un altro anno; 400 per un anno non valido', async () => {
+    server.use(...handlersEsempio);
+    const leggi = async (q: string) => (await (await fetch(`http://localhost/api/istituzionale/${q}`)).json()) as { righe: Array<{ codiceIntervento: string; dotazioneAvvisi?: { motivo: string | null } }>; annoRiferimento?: number };
+    expect((await leggi('verifica-smp-non-sigc?os=OS4')).righe.map((r) => r.codiceIntervento)).toEqual(['SRD01']);
+    expect((await leggi('output-regionale?azione=3')).righe).toEqual([]);
+    expect((await leggi('output-regionale?intervento=SRA01&intervento=SRA16')).righe.map((r) => r.codiceIntervento)).toEqual(['SRA01', 'SRA16']);
+    const anno2024 = await leggi('verifica-smp-non-sigc?anno=2024&intervento=SRD01');
+    expect([anno2024.annoRiferimento, anno2024.righe[0].dotazioneAvvisi?.motivo]).toEqual([2024, 'ANNO_NON_CONSERVATO']);
+    const nonValido = await fetch('http://localhost/api/istituzionale/verifica-smp-non-sigc?anno=abc');
+    expect(nonValido.status).toBe(400);
+    expect(await nonValido.json()).toMatchObject({ type: PROBLEM_TYPES.DATO_NON_VALIDO });
+    expect((await fetch('http://localhost/api/istituzionale/output-regionale/csv')).status).toBe(200);
   });
 });
