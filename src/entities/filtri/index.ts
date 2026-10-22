@@ -17,8 +17,7 @@ export {
   senzaValore,
   valoreFiltroValido,
 } from './lib/programma';
-export type { ChiaveFiltro, Filtri, FiltroAttivo, FiltroNellaBarra } from './lib/programma';
+export type { ChiaveFiltro, Filtri, FiltroAttivo, FiltroNellaBarra, ValoriProgramma } from './lib/programma';
 export { GruppiProgramma } from './ui/GruppiProgramma';
-export type { ValoriProgramma } from './ui/GruppiProgramma';
 export { useBozzaFiltri, useFiltriProgrammaNellIndirizzo } from './ui/useFiltriProgrammaNellIndirizzo';
 export type { LetturaValoriFiltri, ParametriFiltriNellIndirizzo } from './ui/useFiltriProgrammaNellIndirizzo';

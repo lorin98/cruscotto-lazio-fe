@@ -10,6 +10,22 @@ export type ChiaveFiltro = (typeof CHIAVI_FILTRO)[number];
 /** Stessa forma dei parametri dei report: ogni filtro e' ripetibile. */
 export type Filtri = Partial<Record<ChiaveFiltro, string[]>>;
 
+/** Una voce di un filtro: il valore da rimandare e la descrizione, se c'e' (forma di VoceFiltro di TX-0001 e TX-0060). */
+export interface VoceLike {
+  chiave?: string;
+  descrizione?: string | null;
+}
+
+/** I valori dei gruppi del pannello, nella forma comune di FiltriFinanziari (TX-0001) e ValoriFiltriElenco (TX-0060). */
+export interface ValoriProgramma {
+  interventi?: VoceLike[];
+  obiettiviSpecifici?: VoceLike[];
+  obiettiviGenerali?: string[];
+  obiettiviPolicy?: string[];
+  azioniPortanti?: VoceLike[];
+  legameAzioniDisponibile?: boolean;
+}
+
 // Formato ammesso per ogni filtro (valori reali: SRA01, OS-AKIS, OG1, OP2, azione 3) e tetto di valori per chiave del
 // backend (ParametriGrezzi.MAX_VALORI). Un valore fuori formato viene scartato: dall'indirizzo non arriva in pagina testo
 // arbitrario (A-11), e il backend lo rifiuterebbe comunque.

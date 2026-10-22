@@ -9,23 +9,7 @@ import { useId } from 'react';
 import { Caselle, Gruppo, Scelte } from '../../../shared/ui';
 import type { OpzioneFiltro } from '../../../shared/ui';
 import { ETICHETTE_FILTRO } from '../lib/programma';
-import type { ChiaveFiltro, Filtri } from '../lib/programma';
-
-/** Una voce di un filtro: il valore da rimandare e la descrizione, se c'e' (forma di VoceFiltro di TX-0001 e TX-0060). */
-interface VoceLike {
-  chiave?: string;
-  descrizione?: string | null;
-}
-
-/** I valori dei gruppi, nella forma comune di FiltriFinanziari (TX-0001) e ValoriFiltriElenco (TX-0060). */
-export interface ValoriProgramma {
-  interventi?: VoceLike[];
-  obiettiviSpecifici?: VoceLike[];
-  obiettiviGenerali?: string[];
-  obiettiviPolicy?: string[];
-  azioniPortanti?: VoceLike[];
-  legameAzioniDisponibile?: boolean;
-}
+import type { ChiaveFiltro, Filtri, ValoriProgramma, VoceLike } from '../lib/programma';
 
 const daVoci = (voci: VoceLike[] | undefined): OpzioneFiltro[] =>
   (voci ?? []).filter((v): v is VoceLike & { chiave: string } => !!v.chiave).map((v) => ({ valore: v.chiave, descrizione: v.descrizione ?? undefined }));
