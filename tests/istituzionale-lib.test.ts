@@ -29,7 +29,7 @@ import {
 import { DATI_VERIFICA, TESTI_LINK, indirizzoDelDato, testoRicerca, testoValore, titoloDato, valoreOrdinabile, vociRiferimenti } from '../src/features/istituzionale/lib/verifica';
 import type { DatoVerifica } from '../src/features/istituzionale/lib/verifica';
 import { MISURE, anniDelPeriodo, captionOutput, datoDellAnno, etichettaMisura, importiOrdinati, opzioniMisura, ordinabileDellAnno, rigaDellIntervento, testoRicercaOutput, vociAnteprima } from '../src/features/istituzionale/lib/output';
-import { SENZA_DATI, SENZA_UNIT_AMOUNT, TITOLI_SCHEDE, badgeIntervento, captionVociVerifica, kpiIntervento, schedeVisibili, statoDelDettaglio, ultimoDatoInErrore, sopratitoloIntervento, titoloIntervento, ultimiDelDettaglio } from '../src/features/istituzionale/lib/intervento';
+import { SENZA_DATI, SENZA_UNIT_AMOUNT, TITOLI_SCHEDE, badgeIntervento, captionVociVerifica, kpiIntervento, schedeVisibili, statoDelDettaglio, tutteRisposte, ultimoDatoInErrore, sopratitoloIntervento, titoloIntervento, ultimiDelDettaglio } from '../src/features/istituzionale/lib/intervento';
 import { TITOLO_SPESA, graficoOutputPerAnno, graficoSpesa } from '../src/features/istituzionale/lib/grafici';
 import { OUTPUT, SRA01_OUTPUT, SRD01, ULTIMI, VERIFICA, outputPer, righeDeiFiltri, verificaPer } from '../src/features/istituzionale/testing/fixture';
 
@@ -277,16 +277,27 @@ describe('RF016 e RF017: il dettaglio dell intervento (testata, KPI, ultimo dato
     const ok = (data: { righe: readonly unknown[] }) => ({ data, isError: false });
     const inCorso = { data: undefined, isError: false };
     const errore = { data: undefined, isError: true };
-    expect(statoDelDettaglio([ok(VERIFICA), inCorso])).toBe('caricamento');
-    expect(statoDelDettaglio([errore, errore])).toBe('errore');
-    expect(statoDelDettaglio([ok({ righe: [] }), ok({ righe: [] })])).toBe('vuoto');
-    expect(statoDelDettaglio([ok({ righe: [] })])).toBe('vuoto');
-    expect(statoDelDettaglio([ok({ righe: [] }), ok(OUTPUT)])).toBe('dati');
-    expect(statoDelDettaglio([errore, ok(OUTPUT)])).toBe('dati');
+    // prima apertura: lo scheletro finche' non hanno risposto tutte (KPI e schede insieme, AT001 non passa dai dati)
+    expect(statoDelDettaglio([ok(VERIFICA), inCorso], false)).toBe('caricamento');
+    expect(statoDelDettaglio([ok({ righe: [] }), inCorso], false)).toBe('caricamento');
+    expect(statoDelDettaglio([errore, errore], false)).toBe('errore');
+    expect(statoDelDettaglio([ok({ righe: [] }), ok({ righe: [] })], false)).toBe('vuoto');
+    expect(statoDelDettaglio([ok({ righe: [] })], false)).toBe('vuoto');
+    expect(statoDelDettaglio([ok({ righe: [] }), ok(OUTPUT)], false)).toBe('dati');
+    expect(statoDelDettaglio([errore, ok(OUTPUT)], false)).toBe('dati');
     // una lettura in errore accanto a una riuscita senza righe: i dati, con l'errore nella sua scheda
-    expect(statoDelDettaglio([errore, ok({ righe: [] })])).toBe('dati');
+    expect(statoDelDettaglio([errore, ok({ righe: [] })], false)).toBe('dati');
+    // dopo la prima risposta una lettura che riparte (Riprova, un altro anno dopo un errore) accanto a una coi dati
+    // lascia la pagina coi dati: lo scheletro e' nella sua scheda (review H1/X1)
+    expect(statoDelDettaglio([inCorso, ok(OUTPUT)], true)).toBe('dati');
+    expect(statoDelDettaglio([inCorso, ok({ righe: [] })], true)).toBe('dati');
+    // senza dati lo scheletro torna: Riprova dopo l'errore di tutte
+    expect(statoDelDettaglio([inCorso, inCorso], true)).toBe('caricamento');
+    expect(statoDelDettaglio([errore, inCorso], true)).toBe('caricamento');
     // nessuna lettura abilitata: il profilo e' in caricamento
-    expect(statoDelDettaglio([])).toBe('caricamento');
+    expect(statoDelDettaglio([], false)).toBe('caricamento');
+    expect(statoDelDettaglio([], true)).toBe('caricamento');
+    expect([tutteRisposte([errore, ok(OUTPUT)]), tutteRisposte([inCorso, ok(OUTPUT)]), tutteRisposte([])]).toEqual([true, false, false]);
     // la pill "Dati al" e' in errore solo se tutte le letture fatte lo sono, mai senza letture
     expect([ultimoDatoInErrore([errore, errore]), ultimoDatoInErrore([errore, ok(OUTPUT)]), ultimoDatoInErrore([])]).toEqual([true, false, false]);
   });

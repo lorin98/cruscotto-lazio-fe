@@ -3,12 +3,14 @@
 // nome che dice l'intervento), "Verifica SMP non SIGC" (selettore dell'anno di riferimento, le venti voci di TX-0016 come
 // tabella a due colonne con intestazione di riga e i link verso l'elenco; CSV, XLSX) e "Importi unitari" (le Unit Amount
 // in ordine di esercizio e di codice). Ogni scheda c'e' solo col grant della sua transazione (gate di UX) e la scheda
-// attiva e' stato della pagina, non dell'indirizzo. Tabs di react-aria-components (tablist con le frecce da tastiera,
-// tabpanel collegato: il comportamento ARIA complesso del pattern); dentro, classi bootstrap-italia e del kit.
-import { useMemo, useState } from 'react';
+// attiva e' stato della pagina (in DettaglioIntervento), non dell'indirizzo. L'errore di una lettura senza risposta lo
+// dice l'avviso della pagina, che lo registra una volta (DettaglioIntervento): nella scheda resta il testo statico.
+// Tabs di react-aria-components (tablist con le frecce da tastiera, tabpanel collegato: il comportamento ARIA complesso
+// del pattern); dentro, classi bootstrap-italia e del kit.
+import { useMemo } from 'react';
 import { Tab, TabList, TabPanel, Tabs } from 'react-aria-components';
 import { ValoreImporto } from '../../../entities/importo';
-import { CardGrafico, PulsantiScarica, SelettoreAnno, TabellaStatica, TabellaVoci, VistaQuery, Vuoto } from '../../../shared/ui';
+import { CardGrafico, ErroreNellaPagina, PulsantiScarica, SelettoreAnno, TabellaStatica, TabellaVoci, VistaQuery, Vuoto } from '../../../shared/ui';
 import type { ColonnaStatica } from '../../../shared/ui';
 import { useOutputRegionale, useVerificaSmpNonSigc } from '../api';
 import { anniDiRiferimento, criteriVerifica, soloIntervento } from '../lib/criteri';
@@ -28,6 +30,8 @@ type StatoOutput = ReturnType<typeof useOutputRegionale>;
 
 const SOTTOTITOLO_OUTPUT = 'Il realizzato non SIGC è cumulativo per anno di riferimento, quello SIGC annuale: le barre non si sommano';
 const AIUTO_ANNO = "Facoltativo. Vale per indicatori, output e dati dell'avviso; domande e spesa sono cumulative.";
+/** L'errore senza risposta nella scheda: il solo testo statico, senza registrarlo di nuovo nell'avviso della pagina. */
+const nellaPagina = () => <ErroreNellaPagina />;
 
 /** Il grafico per anno dell'output dell'intervento (una sola unita' di misura: OP-IS-06), coi file di TX-0017 dell'intervento. */
 function CardOutput({ r, cumulativo }: { r: RigaOutput; cumulativo: boolean }) {
@@ -47,7 +51,7 @@ function CardOutput({ r, cumulativo }: { r: RigaOutput; cumulativo: boolean }) {
 
 function SchedaOutput({ stato, codice }: { stato: StatoOutput; codice: string }) {
   return (
-    <VistaQuery stato={stato}>
+    <VistaQuery stato={stato} errorePersonalizzato={nellaPagina}>
       {(d) => {
         const r = rigaDellIntervento(d.righe, codice);
         return r ? <CardOutput r={r} cumulativo={d.realizzatoNonSigcCumulativo} /> : <Vuoto>Nessun output per questo intervento nel report.</Vuoto>;
@@ -88,7 +92,9 @@ function SchedaVerifica({ stato, codice, anno, onAnno, unita }: PropsVerifica) {
     <>
       <SelettoreAnno id="f-anno-intervento" etichetta="Anno di riferimento del monitoraggio SMP non SIGC" aiuto={AIUTO_ANNO} anni={anniDiRiferimento(stato.data?.annoRiferimento, anno)} voceVuota="Ultimo anno con un file (predefinito)" anno={anno} onCambia={onAnno} />
       <div aria-busy={stato.isPlaceholderData || undefined}>
-        <VistaQuery stato={stato}>{(d) => <VociVerifica d={d} codice={codice} anno={anno} unita={unita} />}</VistaQuery>
+        <VistaQuery stato={stato} errorePersonalizzato={nellaPagina}>
+          {(d) => <VociVerifica d={d} codice={codice} anno={anno} unita={unita} />}
+        </VistaQuery>
       </div>
     </>
   );
@@ -120,12 +126,14 @@ export interface PropsSchede {
   verifica: StatoVerifica | null;
   output: StatoOutput | null;
   unita: string | null;
+  /** La scheda scelta dall'utente (stato della pagina: resta mentre una lettura riparte); null = la prima. */
+  scheda: IdScheda | null;
+  onScheda: (s: IdScheda) => void;
 }
 
-/** La scheda attiva: la scelta dell'utente se ancora visibile, altrimenti la prima (stato della pagina). */
-function useSchedaAttiva(schede: readonly IdScheda[]): [IdScheda | undefined, (s: IdScheda) => void] {
-  const [scelta, setScelta] = useState<IdScheda | null>(null);
-  return [scelta !== null && schede.includes(scelta) ? scelta : schede[0], setScelta];
+/** La scheda attiva: la scelta dell'utente se ancora visibile, altrimenti la prima. */
+function schedaAttiva(schede: readonly IdScheda[], scelta: IdScheda | null): IdScheda | undefined {
+  return scelta !== null && schede.includes(scelta) ? scelta : schede[0];
 }
 
 /** La tablist con le schede visibili, nell'ordine del wireframe. */
@@ -141,11 +149,10 @@ function ListaSchede({ schede }: { schede: readonly IdScheda[] }) {
   );
 }
 
-export function SchedeIntervento({ codice, anno, onAnno, verifica, output, unita }: PropsSchede) {
+export function SchedeIntervento({ codice, anno, onAnno, verifica, output, unita, scheda, onScheda }: PropsSchede) {
   const schede = schedeVisibili(verifica !== null, output !== null);
-  const [attiva, scegli] = useSchedaAttiva(schede);
   return (
-    <Tabs selectedKey={attiva} onSelectionChange={(k) => scegli(String(k) as IdScheda)}>
+    <Tabs selectedKey={schedaAttiva(schede, scheda)} onSelectionChange={(k) => onScheda(String(k) as IdScheda)}>
       <ListaSchede schede={schede} />
       {output && (
         <TabPanel id="output">
@@ -159,7 +166,9 @@ export function SchedeIntervento({ codice, anno, onAnno, verifica, output, unita
       )}
       {output && (
         <TabPanel id="importi">
-          <VistaQuery stato={output}>{(d) => <TabellaImporti riga={rigaDellIntervento(d.righe, codice)} />}</VistaQuery>
+          <VistaQuery stato={output} errorePersonalizzato={nellaPagina}>
+            {(d) => <TabellaImporti riga={rigaDellIntervento(d.righe, codice)} />}
+          </VistaQuery>
         </TabPanel>
       )}
     </Tabs>

@@ -5,14 +5,17 @@
 // descrizione dell'intervento da TX-0060, se no "Intervento <codice>"; focus a ogni cambio di route), badge in testo e i
 // pulsanti verso i due report filtrati sull'intervento (solo col grant della destinazione), quattro KPI, le schede. Ogni
 // lettura parte solo col grant della sua transazione; l'anno di riferimento sta nell'indirizzo (?anno=). Stati:
-// caricamento (scheletro), errore (un solo avviso della pagina, problem-type, Riprova), intervento senza dati (es.
-// AT001) con il ritorno al report. Design system: classi bootstrap-italia e del kit v2 (hero, badge, KPI); react-aria
-// solo nelle schede (tablist) e nel popover della pill.
+// caricamento (scheletro, alla prima apertura finche' non hanno risposto tutte le letture), errore (un solo avviso della
+// pagina, problem-type, Riprova: ogni lettura vi registra il suo errore una volta), intervento senza dati (es. AT001) con
+// il ritorno al report. La scheda attiva e' stato della pagina: resta mentre una lettura riparte (Riprova, un altro anno).
+// Design system: classi bootstrap-italia e del kit v2 (hero, badge, KPI); react-aria solo nelle schede (tablist) e nel
+// popover della pill.
 import { Link } from 'react-router';
+import { useState } from 'react';
 import type { Ref } from 'react';
 import { descrizioneIntervento } from '../../../entities/filtri';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
-import { AvvisoPagina, Briciole, Caricamento, ContestoIntestazione, Griglia, Kpi, PillDatiAl, TestataDettaglio, VistaQuery, Vuoto, useAnnoNellIndirizzo, useFocusTitolo } from '../../../shared/ui';
+import { AvvisoPagina, Briciole, Caricamento, ContestoIntestazione, ErroreNellaPagina, Griglia, Kpi, PillDatiAl, TestataDettaglio, Vuoto, useAnnoNellIndirizzo, useErroreNellaPagina, useFocusTitolo } from '../../../shared/ui';
 import type { NomeIcona, TonoKpi } from '../../../shared/ui';
 import { useOutputRegionale, useValoriFiltri, useVerificaSmpNonSigc } from '../api';
 import { outputDellIntervento, verificaDellIntervento } from '../lib/collegamenti';
@@ -20,8 +23,8 @@ import { PARAMETRO_ANNO, codiceDelPercorso, criteriVerifica, soloIntervento, tes
 import type { RigaOutput, RigaVerifica } from '../lib/dto';
 import { PILL_PERIMETRO } from '../lib/formato';
 import { puoLeggere } from '../lib/grant';
-import { SENZA_DATI, badgeIntervento, kpiIntervento, sopratitoloIntervento, statoDelDettaglio, titoloIntervento, ultimiDelDettaglio, ultimoDatoInErrore } from '../lib/intervento';
-import type { ChiaveKpi } from '../lib/intervento';
+import { SENZA_DATI, badgeIntervento, kpiIntervento, sopratitoloIntervento, statoDelDettaglio, titoloIntervento, tutteRisposte, ultimiDelDettaglio, ultimoDatoInErrore } from '../lib/intervento';
+import type { ChiaveKpi, IdScheda, LetturaDettaglio } from '../lib/intervento';
 import { rigaDellIntervento } from '../lib/output';
 import { PERCORSI } from '../lib/pagine';
 import { useContesto } from './comuni';
@@ -122,21 +125,18 @@ function SenzaDati({ conOutput }: { conOutput: boolean }) {
 }
 
 type PropsCorpo = Omit<PropsSchede, 'unita'>;
+type Stato = ReturnType<typeof statoDelDettaglio>;
 
-const senzaRisposta = <S extends { isError: boolean; data: unknown }>(s: S | null): S | null => (s !== null && s.isError && s.data === undefined ? s : null);
+const senzaRisposta = (s: { isError: boolean; data: unknown } | null): boolean => s !== null && s.isError && s.data === undefined;
 
 /**
  * Le letture che non hanno risposto: l'errore lo dice subito, una volta e con Riprova, l'avviso della pagina (anche se la
- * scheda della lettura non e' aperta); qui il testo statico della vista.
+ * scheda della lettura non e' aperta). E' il solo a registrarlo (review H1): le schede mostrano il testo statico.
  */
 function ErroriDelleLetture({ verifica, output }: Pick<PropsCorpo, 'verifica' | 'output'>) {
-  const [v, o] = [senzaRisposta(verifica), senzaRisposta(output)];
-  return (
-    <>
-      {v && <VistaQuery stato={v}>{() => null}</VistaQuery>}
-      {o && <VistaQuery stato={o}>{() => null}</VistaQuery>}
-    </>
-  );
+  useErroreNellaPagina(senzaRisposta(verifica), verifica?.error, () => verifica?.refetch());
+  useErroreNellaPagina(senzaRisposta(output), output?.error, () => output?.refetch());
+  return null;
 }
 
 /** I KPI delle righe dell'intervento e le schede. */
@@ -144,25 +144,34 @@ function DatiDelDettaglio({ codice, verifica, output, ...schede }: PropsCorpo) {
   const rigaOutput = rigaDellIntervento(output?.data?.righe, codice);
   return (
     <>
-      <ErroriDelleLetture verifica={verifica} output={output} />
       <KpiDettaglio output={rigaOutput} verifica={rigaDellIntervento(verifica?.data?.righe, codice)} />
       <SchedeIntervento {...schede} codice={codice} verifica={verifica} output={output} unita={rigaOutput?.unitaMisura ?? null} />
     </>
   );
 }
 
-/** Il corpo secondo lo stato delle letture: scheletro, errore (nell'avviso della pagina), senza dati, KPI e schede. */
-function CorpoDettaglio(props: PropsCorpo) {
-  const stato = statoDelDettaglio([props.verifica, props.output].filter((s) => s !== null));
+/** Il corpo secondo lo stato delle letture: scheletro, errore (detto dall'avviso della pagina), senza dati, KPI e schede. */
+function CorpoDettaglio({ stato, ...props }: PropsCorpo & { stato: Stato }) {
   if (stato === 'caricamento') return <Caricamento alto />;
-  if (stato === 'errore') return <ErroriDelleLetture verifica={props.verifica} output={props.output} />;
+  if (stato === 'errore') return <ErroreNellaPagina />;
   if (stato === 'vuoto') return <SenzaDati conOutput={props.output !== null} />;
   return <DatiDelDettaglio {...props} />;
 }
 
+/** Lo stato del dettaglio; finita la prima apertura (tutte le letture hanno risposto) la pagina non torna allo scheletro. */
+function useStatoDelDettaglio(letture: readonly LetturaDettaglio[]): Stato {
+  const [giaRisposte, setGiaRisposte] = useState(false);
+  const risposte = tutteRisposte(letture);
+  if (risposte && !giaRisposte) setGiaRisposte(true);
+  return statoDelDettaglio(letture, giaRisposte || risposte);
+}
+
 function Dettaglio({ codice }: { codice: string }) {
   const [anno, impostaAnno] = useAnnoNellIndirizzo(PARAMETRO_ANNO);
+  const [scheda, setScheda] = useState<IdScheda | null>(null);
   const { verifica, output, descrizione } = useLettureDelDettaglio(codice, anno);
+  const letture = [verifica, output].filter((s) => s !== null);
+  const stato = useStatoDelDettaglio(letture);
   // il titolo del documento dal codice: la descrizione che arriva dopo non riporta il focus sull'h1
   const h1 = useFocusTitolo<HTMLHeadingElement>(`${codice} - Istituzionale`);
   const ultimi = ultimiDelDettaglio(verifica?.data, output?.data);
@@ -170,12 +179,13 @@ function Dettaglio({ codice }: { codice: string }) {
   const badge = badgeIntervento(rigaDellIntervento(output?.data?.righe, codice), rigaDellIntervento(verifica?.data?.righe, codice));
   return (
     <ContestoIntestazione.Provider value={contesto}>
-      <BarraRiferimenti ultimi={ultimi} inErrore={ultimoDatoInErrore([verifica, output].filter((s) => s !== null))} />
+      <BarraRiferimenti ultimi={ultimi} inErrore={ultimoDatoInErrore(letture)} />
       <main className="ui-pagina" id="contenuto">
         <Briciole voci={[{ etichetta: 'Istituzionale', a: useIngressoArea() }, { etichetta: codice }]} />
         <TestataIntervento h1={h1} codice={codice} titolo={titoloIntervento(codice, descrizione)} badge={badge} anno={anno} />
         <AvvisoPagina>
-          <CorpoDettaglio codice={codice} anno={anno} onAnno={impostaAnno} verifica={verifica} output={output} />
+          <ErroriDelleLetture verifica={verifica} output={output} />
+          <CorpoDettaglio stato={stato} codice={codice} anno={anno} onAnno={impostaAnno} verifica={verifica} output={output} scheda={scheda} onScheda={setScheda} />
         </AvvisoPagina>
       </main>
     </ContestoIntestazione.Provider>

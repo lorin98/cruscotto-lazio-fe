@@ -10,7 +10,7 @@ import { expectNoA11yViolations } from '../../../shared/testing/axe';
 import { descrizioneDi, tabellaDi, trovaCard } from '../../../shared/testing/card-grafico';
 import { problema, trattenuta } from '../../../shared/testing/msw';
 import { renderPagina } from '../../../shared/testing/render-pagina';
-import { OUTPUT, VERIFICA } from '../../../features/istituzionale/testing/fixture';
+import { OUTPUT, VERIFICA, verificaPer } from '../../../features/istituzionale/testing/fixture';
 import { lettureIstituzionale } from '../../../features/istituzionale/testing/letture';
 import Pagina from './page';
 
@@ -30,6 +30,8 @@ const kpi = (nome: string) => screen.findByRole('region', { name: nome });
 const voci = () => screen.findByRole('table', { name: /^I dati ASR non SIGC dell'intervento/ });
 /** La riga della voce con l'etichetta data (intestazione di riga esatta). */
 const voce = (t: HTMLElement, etichetta: string) => within(t).getByRole('rowheader', { name: etichetta }).closest('tr') as HTMLElement;
+const UNA_SEZIONE = 'Una sezione della pagina non si è caricata.';
+const NON_CARICATI = "Dati non caricati: l'avviso in cima alla pagina dice il motivo e permette di riprovare.";
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -230,18 +232,82 @@ describe("RF016: la verifica SMP non SIGC dell'intervento (TX-0016 filtrata sull
     await kpi('Target di fine periodo');
   });
 
-  it('errore di una sola lettura: i dati dell altra restano, l avviso della pagina dice quella mancata', async () => {
+  it('errore di TX-0016: i dati di TX-0017 restano; l avviso dice una sezione, prima e dopo l apertura della scheda, e il testo statico e uno', async () => {
     servi();
     server.use(http.get('*/api/istituzionale/verifica-smp-non-sigc', () => HttpResponse.json(problema(403, 'ACCESSO_NEGATO'), { status: 403 })));
     apri('/istituzionale/interventi/SRA01');
     await kpi('Target di fine periodo');
     // l'avviso c'e' subito, anche con la scheda della verifica chiusa; i KPI di TX-0016 no
-    expect((await screen.findAllByRole('alert')).length).toBe(1);
+    expect((await screen.findByRole('alert')).textContent).toContain(UNA_SEZIONE);
     expect(screen.queryByRole('region', { name: 'Domande ricevute non SIGC' })).toBeNull();
     await userEvent.click(screen.getByRole('tab', { name: 'Verifica SMP non SIGC' }));
-    expect(screen.getAllByRole('alert')).toHaveLength(1);
     const scheda = await screen.findByRole('tabpanel', { name: 'Verifica SMP non SIGC' });
-    expect(within(scheda).getByText("Dati non caricati: l'avviso in cima alla pagina dice il motivo e permette di riprovare.")).toBeTruthy();
+    expect(within(scheda).getByText(NON_CARICATI)).toBeTruthy();
+    // review H1: la lettura ha un solo proprietario del suo errore, anche con la sua scheda aperta
+    expect(screen.getAllByRole('alert')).toHaveLength(1);
+    expect(screen.getByRole('alert').textContent).toContain(UNA_SEZIONE);
+    expect(screen.getAllByText(NON_CARICATI)).toHaveLength(1);
+  });
+
+  it('errore di TX-0017: la scheda iniziale Output dice il testo statico una volta, l avviso una sezione', async () => {
+    servi();
+    server.use(http.get('*/api/istituzionale/output-regionale', () => HttpResponse.json(problema(403, 'ACCESSO_NEGATO'), { status: 403 })));
+    apri('/istituzionale/interventi/SRD01');
+    await kpi('Domande ricevute non SIGC');
+    const scheda = screen.getByRole('tabpanel', { name: 'Output per anno' });
+    expect(within(scheda).getByText(NON_CARICATI)).toBeTruthy();
+    expect(screen.getAllByText(NON_CARICATI)).toHaveLength(1);
+    expect(screen.getAllByRole('alert')).toHaveLength(1);
+    expect(screen.getByRole('alert').textContent).toContain(UNA_SEZIONE);
+    expect(screen.queryByRole('region', { name: 'Target di fine periodo' })).toBeNull();
+  });
+
+  it('dopo l errore di TX-0016 Riprova rilegge nella sua scheda: i KPI di TX-0017 e la scheda Verifica scelta restano', async () => {
+    servi();
+    const t = trattenuta();
+    let tentativi = 0;
+    server.use(
+      http.get('*/api/istituzionale/verifica-smp-non-sigc', async ({ request }) => {
+        tentativi += 1;
+        if (tentativi === 1) return HttpResponse.json(problema(503, 'TEMPO_SCADUTO', 'lettura oltre il tetto di durata'), { status: 503 });
+        await t.attesa;
+        return HttpResponse.json(verificaPer(VERIFICA, new URL(request.url).searchParams));
+      }),
+    );
+    apri('/istituzionale/interventi/SRD01');
+    await kpi('Target di fine periodo');
+    await userEvent.click(screen.getByRole('tab', { name: 'Verifica SMP non SIGC' }));
+    await userEvent.click(within(await screen.findByRole('alert')).getByRole('button', { name: 'Riprova' }));
+    // review X1: la lettura che riparte mostra lo scheletro nella sua scheda, la pagina resta
+    expect(await within(screen.getByRole('tabpanel', { name: 'Verifica SMP non SIGC' })).findByText('Caricamento in corso…')).toBeTruthy();
+    expect(screen.getByRole('region', { name: 'Target di fine periodo' })).toBeTruthy();
+    expect(screen.getByRole('tab', { name: 'Verifica SMP non SIGC' }).getAttribute('aria-selected')).toBe('true');
+    await act(async () => t.libera());
+    expect(await voci()).toBeTruthy();
+    expect(screen.getByRole('tab', { name: 'Verifica SMP non SIGC' }).getAttribute('aria-selected')).toBe('true');
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('dopo l errore di TX-0016 un altro anno con Mostra: la scheda Verifica resta scelta e il focus resta su Mostra', async () => {
+    servi();
+    let tentativi = 0;
+    server.use(
+      http.get('*/api/istituzionale/verifica-smp-non-sigc', ({ request }) => {
+        tentativi += 1;
+        if (tentativi === 1) return HttpResponse.json(problema(503, 'TEMPO_SCADUTO', 'lettura oltre il tetto di durata'), { status: 503 });
+        return HttpResponse.json(verificaPer(VERIFICA, new URL(request.url).searchParams));
+      }),
+    );
+    const { router } = apri('/istituzionale/interventi/SRD01');
+    await kpi('Target di fine periodo');
+    await userEvent.click(screen.getByRole('tab', { name: 'Verifica SMP non SIGC' }));
+    await userEvent.selectOptions(await screen.findByRole('combobox', { name: 'Anno di riferimento del monitoraggio SMP non SIGC' }), '2024');
+    const mostra = screen.getByRole('button', { name: 'Mostra' });
+    await userEvent.click(mostra);
+    await waitFor(() => expect(router.state.location.search).toBe('?anno=2024'));
+    await waitFor(async () => expect((await voci()).querySelector('caption')?.textContent).toContain('(anno di riferimento 2024)'));
+    expect(screen.getByRole('tab', { name: 'Verifica SMP non SIGC' }).getAttribute('aria-selected')).toBe('true');
+    expect(document.activeElement).toBe(mostra);
   });
 });
 
