@@ -96,9 +96,13 @@ describe('RF018: superficie ammissibile della domanda di sostegno e di pagamento
     const card = await trovaCard('Superficie DS e DP per campagna');
     const grafico = graficoDi(card);
     if (!grafico) throw new Error('grafico assente');
+    // il focus dentro la card, come dopo l'interruttore Grafico | Tabella
+    within(card).getByRole('button', { name: 'Grafico' }).focus();
     clicSulDato(grafico, 0, 0);
     await waitFor(() => expect(router.state.location.search).toBe('?campagna=2024'));
     expect(router.state.location.pathname).toBe(PERCORSO);
+    // la card sparisce col report: il focus va sul titolo della pagina, non sul body (A1)
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1, name: 'Fisico: superfici ammissibili per intervento' })));
   });
 
   it('vista Tabella: tutte le campagne, un totale per campagna sulle righe trovate, nessun totale generale', async () => {
@@ -255,6 +259,38 @@ describe('RF018: superficie ammissibile della domanda di sostegno e di pagamento
     await userEvent.click(within(anteprima).getByRole('button', { name: 'Mostra solo SRB01' }));
     await waitFor(() => expect(router.state.location.search).toBe('?intervento=SRB01&campagna=2025'));
     expect(router.state.location.pathname).toBe(PERCORSO);
+    // la riga che ha aperto l'anteprima sparisce col report: il focus va sul titolo della pagina, non sul body (A1)
+    const h1 = screen.getByRole('heading', { level: 1, name: 'Fisico: superfici ammissibili per intervento' });
+    await waitFor(() => expect(document.activeElement).toBe(h1));
+    await titoloKpi(2025);
+    expect(document.activeElement).toBe(h1);
+  });
+
+  it('Applica i filtri del pannello aperto dallo stato vuoto porta il focus sul titolo della pagina (X2)', async () => {
+    servi({ ...SUPERFICI, righe: [] });
+    const { router } = apri(`${PERCORSO}?intervento=SRB09`);
+    await userEvent.click(await screen.findByRole('button', { name: 'Modifica i filtri' }));
+    const pannello = await screen.findByRole('dialog', { name: 'Filtri delle superfici ammissibili' });
+    await userEvent.click(within(pannello).getByRole('button', { name: 'Azzera' }));
+    await userEvent.click(within(pannello).getByRole('button', { name: 'Applica i filtri' }));
+    await waitFor(() => expect(router.state.location.search).toBe(''));
+    const h1 = screen.getByRole('heading', { level: 1, name: 'Fisico: superfici ammissibili per intervento' });
+    await waitFor(() => expect(document.activeElement).toBe(h1));
+    expect(await screen.findByText('Nessun intervento per i filtri scelti.')).toBeTruthy();
+    expect(document.activeElement).toBe(h1);
+  });
+
+  it('Applica i filtri del pannello aperto dalla barra riporta il focus al bottone Filtri, che resta', async () => {
+    servi();
+    const { router } = apri();
+    await titoloKpi(2025);
+    const bottone = screen.getByRole('button', { name: /^Filtri/ });
+    await userEvent.click(bottone);
+    const pannello = await screen.findByRole('dialog', { name: 'Filtri delle superfici ammissibili' });
+    await userEvent.click(within(pannello).getByRole('button', { name: '2024' }));
+    await userEvent.click(within(pannello).getByRole('button', { name: 'Applica i filtri' }));
+    await waitFor(() => expect(router.state.location.search).toBe('?campagna=2024'));
+    await waitFor(() => expect(document.activeElement).toBe(bottone));
   });
 });
 

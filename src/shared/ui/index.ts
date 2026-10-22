@@ -5,7 +5,7 @@ export { Caricamento, ErroreVista, Vuoto, VistaQuery } from './stati/StatiVista'
 export { AvvisoPagina } from './stati/AvvisoPagina';
 export type { StatoQuery } from './stati/StatiVista';
 export { blobDaDataUrl, salvaFile } from './salva-file';
-export { useFocusTitolo } from './focus';
+export { useFocusDopoIlCambio, useFocusTitolo } from './focus';
 export { Briciole, TestaPagina } from './pagina/Testata';
 export type { Briciola } from './pagina/Testata';
 export { useStatoNellaHistory } from './useStatoNellaHistory';

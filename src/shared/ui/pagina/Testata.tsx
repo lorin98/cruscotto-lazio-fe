@@ -1,7 +1,7 @@
 // Testata — percorso (Home > area > pagina) e titolo delle pagine (UI v2), uguali per tutte le aree: l'h1 riceve il focus a
 // ogni cambio di pagina e da' il titolo al documento (useFocusTitolo, WCAG 2.4.2 e 2.4.3). Prima ogni area aveva la sua
 // copia (widget del finanziario, testata dell'elenco operativo); le voci e il titolo del documento li decide la pagina.
-import type { ReactNode } from 'react';
+import type { ReactNode, RefObject } from 'react';
 import { Link } from 'react-router';
 import { useFocusTitolo } from '../focus';
 
@@ -37,9 +37,19 @@ export function Briciole({ voci }: { voci: readonly Briciola[] }) {
   );
 }
 
-/** Titolo della pagina: l'h1 col focus al montaggio; `titoloDocumento` e' il titolo del documento (senza il nome dell'app). */
-export function TestaPagina({ titolo, titoloDocumento, sottotitolo, azioni }: { titolo: string; titoloDocumento: string; sottotitolo?: string; azioni?: ReactNode }) {
-  const h1 = useFocusTitolo<HTMLHeadingElement>(titoloDocumento);
+interface PropsTestaPagina {
+  titolo: string;
+  /** Il titolo del documento (senza il nome dell'app). */
+  titoloDocumento: string;
+  sottotitolo?: string;
+  azioni?: ReactNode;
+  /** Il ref dell'h1, se la pagina ci riporta il focus (es. dopo un comando che sparisce col report: useFocusDopoIlCambio). */
+  refTitolo?: RefObject<HTMLHeadingElement | null>;
+}
+
+/** Titolo della pagina: l'h1 col focus al montaggio e il titolo del documento. */
+export function TestaPagina({ titolo, titoloDocumento, sottotitolo, azioni, refTitolo }: PropsTestaPagina) {
+  const h1 = useFocusTitolo<HTMLHeadingElement>(titoloDocumento, refTitolo);
   return (
     <div className="ui-titolo">
       <div>

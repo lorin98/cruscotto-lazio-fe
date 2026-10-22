@@ -10,10 +10,12 @@
 // (nessun intervento; nessuna superficie, mai una pagina di zeri: con il filtro Campagna detto di quella campagna, D1) e
 // valori dei filtri non disponibili (nel pannello). La campagna della risposta (null = letta senza filtro) decide i testi
 // degli interventi senza superfici in tabella, nelle note dei grafici e nell'anteprima (V1 della review del fisico).
-// Nessun link verso altre pagine (OP-FIS-05): il clic apre l'anteprima o mette un filtro della stessa pagina.
+// Nessun link verso altre pagine (OP-FIS-05): il clic apre l'anteprima o mette un filtro della stessa pagina. Un comando che
+// sparisce col report ("Mostra solo", punto della serie per campagna, "Applica i filtri" del pannello aperto dallo stato
+// vuoto) porta il focus sull'h1 dopo la chiusura del dialogo (A1, X2 della review: WCAG 2.4.3).
 // Design system: classi bootstrap-italia e del kit v2 (card, KPI, bottoni, interruttore con aria-pressed); i primitivi
 // react-aria stanno solo dentro i componenti del kit che li richiedono (pannello e drawer modali, popover della pill).
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { codiceDalClic, formatNumber, righeContesto } from '../../../shared/lib';
@@ -32,6 +34,7 @@ import {
   TestaPagina,
   VistaQuery,
   Vuoto,
+  useFocusDopoIlCambio,
 } from '../../../shared/ui';
 import type { ClicGrafico, VistaGrafico } from '../../../shared/ui';
 import { useSuperfici } from '../api';
@@ -254,23 +257,38 @@ function useContesto(criteri: Criteri, d: SuperficieAmmissibile | undefined, pro
   );
 }
 
+/** Il pannello dei filtri: chiuso, aperto dal bottone Filtri della barra o da "Modifica i filtri" di uno stato vuoto. */
+type Pannello = 'barra' | 'vuoto' | null;
+
+/** Criteri applicati da un comando che sparisce col report: dopo la chiusura del dialogo il focus va sull'h1 (A1, X2). */
+function useApplicaConFocus(applica: (c: Criteri) => void) {
+  const h1 = useRef<HTMLHeadingElement>(null);
+  const sposta = useFocusDopoIlCambio(h1);
+  const applicaConFocus = (c: Criteri) => {
+    applica(c);
+    sposta();
+  };
+  return { h1, applicaConFocus };
+}
+
 export function SuperficiAmmissibili() {
   const { criteri, inAttesa, chip, applica, togliTutti, valori } = useCriteriNellIndirizzo();
   const stato = useSuperfici(criteri, { abilitato: !inAttesa });
   const auth = useAuthStatus();
-  const [pannello, setPannello] = useState(false);
+  const { h1, applicaConFocus } = useApplicaConFocus(applica);
+  const [pannello, setPannello] = useState<Pannello>(null);
   const [vista, setVista] = useState<VistaGrafico>('grafico');
   const contesto = useContesto(criteri, stato.data, auth.data?.user?.profile);
-  const apriPannello = () => setPannello(true);
+  const apriPannello = () => setPannello('vuoto');
   const righe = stato.data?.righe ?? [];
   const campagne = campagnePresenti(righe);
   const descrizioneDi = (codice: string) => valori?.data?.interventi?.find((v) => v.chiave === codice)?.descrizione ?? undefined;
   return (
     <>
-      <BarraFiltri chip={chip} onApri={apriPannello} onTogliTutti={togliTutti} vuoto="Nessun filtro: tutti gli interventi e tutte le campagne" destra={<PillDellaBarra d={stato.data} inErrore={stato.isError} />} />
+      <BarraFiltri chip={chip} onApri={() => setPannello('barra')} onTogliTutti={togliTutti} vuoto="Nessun filtro: tutti gli interventi e tutte le campagne" destra={<PillDellaBarra d={stato.data} inErrore={stato.isError} />} />
       <main className="ui-pagina" id="contenuto">
         <Briciole voci={[{ etichetta: 'Fisico', a: PERCORSI.superfici }, { etichetta: 'Superfici ammissibili' }]} />
-        <TestaPagina titolo="Fisico: superfici ammissibili per intervento" titoloDocumento="Superfici ammissibili - Fisico" sottotitolo={SOTTOTITOLO} />
+        <TestaPagina titolo="Fisico: superfici ammissibili per intervento" titoloDocumento="Superfici ammissibili - Fisico" sottotitolo={SOTTOTITOLO} refTitolo={h1} />
         <ContestoIntestazione.Provider value={contesto}>
           <AvvisoPagina>
             {/* finche' non si sa se il filtro per azione si applica, TX-0018 non si legge (come nel finanziario, X-03) */}
@@ -279,22 +297,23 @@ export function SuperficiAmmissibili() {
             ) : (
               <VistaQuery stato={stato} eVuoto={(d) => d.righe.length === 0} vuoto={<VuotoConFiltri onModifica={apriPannello}>Nessun intervento per i filtri scelti.</VuotoConFiltri>}>
                 {/* criteri nuovi = contenuto nuovo: l'anteprima aperta non resta quella di prima */}
-                {(d) => <Report key={ricercaDaCriteri(criteri)} d={d} criteri={criteri} vista={vista} onVista={setVista} applica={applica} onModificaFiltri={apriPannello} descrizioneDi={descrizioneDi} />}
+                {(d) => <Report key={ricercaDaCriteri(criteri)} d={d} criteri={criteri} vista={vista} onVista={setVista} applica={applicaConFocus} onModificaFiltri={apriPannello} descrizioneDi={descrizioneDi} />}
               </VistaQuery>
             )}
           </AvvisoPagina>
         </ContestoIntestazione.Provider>
       </main>
       <PannelloFiltriSuperfici
-        aperto={pannello}
+        aperto={pannello !== null}
         criteri={criteri}
         valori={valori}
         campagne={campagne}
         codiciRisposta={righe.map((r) => r.codiceIntervento)}
-        onChiudi={() => setPannello(false)}
+        onChiudi={() => setPannello(null)}
         onApplica={(c) => {
-          setPannello(false);
-          applica(c);
+          setPannello(null);
+          // dalla barra il bottone Filtri resta e react-aria ci riporta il focus; dallo stato vuoto il bottone sparisce
+          (pannello === 'vuoto' ? applicaConFocus : applica)(c);
         }}
       />
     </>
