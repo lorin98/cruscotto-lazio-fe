@@ -8,8 +8,13 @@ Gate non declassabili verdi. Lenti V (8), H (11), A (5), antagonista (3) e Judge
 accettati in `review/istituzionale-findings.json` (duplicati assorbiti: V2 in A1, A5 in V7, X1 in H1; declassati A1 e H1
 da MAGGIORE, V6, H9 e H11 a COSMETICO).
 
-Decisioni da chiedere all'utente (judge.md): D1 (V5) chip dei filtri col codice o con la voce leggibile; D2 (X2) letture
-del dettaglio all'apertura della pagina, da registrare fra le deviazioni del gate wireframe_intervento.
+Decisioni dell'utente del 22/10/2026 (judge.md), registrate con state-set nei `deviations_reviewed` dei gate (i wireframe
+non cambiano):
+- D1 (V5): chip dei filtri col codice, come nel low-fi approvato e nelle barre di finanziario e fisico; la descrizione e'
+  nel pannello e nella testata del dettaglio (gate wireframe_verifica-smp-non-sigc e wireframe_output-regionale).
+- D2 (X2): TX-0016 e TX-0017 si leggono all'apertura della pagina del dettaglio, non della scheda (KPI e badge della
+  testata le usano; le schede leggono dalla stessa cache), con il test "una sola lettura per transazione" (gate
+  wireframe_intervento).
 
 ### MINORE (18)
 
