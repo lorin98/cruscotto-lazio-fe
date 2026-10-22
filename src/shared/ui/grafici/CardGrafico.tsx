@@ -2,7 +2,9 @@
 // canale accessibile, WCAG 1.1.1 e 1.4.1), download, valori omessi dichiarati, nota sulla fonte. Se il grafico non e'
 // disegnabile (opzioni null) dice perche' e mostra subito la tabella con cio' che c'e'. Download (09/10/2026): PNG del
 // grafico come si vede, nella vista Grafico (usePngDelGrafico), poi i file dei dati che passa il chiamante (CSV e XLSX dal
-// backend); il PNG prende il nome dei file dei dati, con l'estensione png (review v3 H-06).
+// backend); il PNG prende il nome dei file dei dati, con l'estensione png (review v3 H-06). Una card puo' non avere il PNG
+// (un'anteprima, es. il mini grafico del drawer dell'output regionale) e dire nei nomi dei pulsanti di cosa sono i file
+// (es. l'intervento del dettaglio): estensioni dell'istituzionale, facoltative.
 import { useId, useState } from 'react';
 import type { ReactNode } from 'react';
 import { nomeFile } from '../../lib/nome-file';
@@ -118,23 +120,36 @@ interface PropsCardGrafico {
   vistaIniziale?: Vista;
   /** Notifica della vista scelta dall'utente (es. per conservarla nello state della history). */
   onVista?: (vista: Vista) => void;
+  /** Completa "Scarica …" nei nomi accessibili dei pulsanti (default "il grafico <titolo>"), es. con l'intervento. */
+  oggetto?: string;
+  /** Nessun PNG: la card e' un'anteprima senza scaricamento (es. il mini grafico di un drawer). */
+  senzaPng?: boolean;
 }
 
-export function CardGrafico({ titolo, sottotitolo, dati, fonte, altezza = 'normale', onClic, strumenti, scaricamenti = [], livello = 2, tabella, nomeFile: base, vistaIniziale, onVista }: PropsCardGrafico) {
+/** La vista della card: quella da cui ripartire (o il grafico), poi la scelta dell'utente, notificata a chi la vuole. */
+function useVista(iniziale: Vista | undefined, onVista: ((v: Vista) => void) | undefined): [Vista, (v: Vista) => void] {
+  const [vista, setVista] = useState<Vista>(iniziale ?? 'grafico');
+  return [
+    vista,
+    (v) => {
+      setVista(v);
+      onVista?.(v);
+    },
+  ];
+}
+
+export function CardGrafico(props: PropsCardGrafico) {
+  const { titolo, sottotitolo, dati, fonte, altezza = 'normale', onClic, strumenti, scaricamenti = [], livello = 2, tabella, nomeFile: base, oggetto, senzaPng } = props;
   const id = useId();
-  const [vista, setVistaLocale] = useState<Vista>(vistaIniziale ?? 'grafico');
-  const setVista = (v: Vista) => {
-    setVistaLocale(v);
-    onVista?.(v);
-  };
+  const [vista, setVista] = useVista(props.vistaIniziale, props.onVista);
   const disegnabile = dati.opzioni !== null;
   // il PNG solo nella vista Grafico: nella vista Tabella il grafico e' nascosto e non ha dimensioni
-  const { onIstanza, png } = usePngDelGrafico({ titolo, fonte, file: nomePng(base ?? titolo, scaricamenti), attivo: disegnabile && vista === 'grafico' });
+  const { onIstanza, png } = usePngDelGrafico({ titolo, fonte, file: nomePng(base ?? titolo, scaricamenti), attivo: disegnabile && vista === 'grafico' && !senzaPng });
   const strumentiCard = (
     <>
       {strumenti}
       {disegnabile && <InterruttoreVista etichetta={`Vista di ${titolo}`} vista={vista} onVista={setVista} />}
-      <PulsantiScarica oggetto={`il grafico ${titolo}`} scaricamenti={[...png, ...scaricamenti]} />
+      <PulsantiScarica oggetto={oggetto ?? `il grafico ${titolo}`} scaricamenti={[...png, ...scaricamenti]} />
     </>
   );
   return (

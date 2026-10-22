@@ -1,11 +1,13 @@
 // Kit comune portato fuori dalle feature (o esteso) per l'istituzionale: selettore d'anno e anno della pagina
 // nell'indirizzo (shared/ui, prima nel finanziario), link verso l'elenco operativo (entities/domanda, prima nel
-// finanziario). Dati di prova inventati.
+// finanziario), riga sotto il sottotitolo della testata, card del grafico senza PNG o col nome dei file. Dati di prova
+// inventati.
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
-import { SelettoreAnno, useAnnoNellIndirizzo } from '../src/shared/ui';
+import { CardGrafico, SelettoreAnno, TestaPagina, useAnnoNellIndirizzo } from '../src/shared/ui';
+import type { DatiGrafico, Scaricamento } from '../src/shared/ui';
 import { SelettoreAnno as SelettoreFinanziario } from '../src/features/finanziario/ui/SelettoreAnno';
 import { ApriNellElenco as ApriFinanziario } from '../src/features/finanziario/ui/LinkElenco';
 import { ApriNellElenco } from '../src/entities/domanda';
@@ -94,5 +96,31 @@ describe('ApriNellElenco di entities/domanda: il link di drill-down verso l elen
     expect(link[0].className).toBe('ui-link-elenco');
     expect(ApriFinanziario).toBe(ApriNellElenco);
     await expectNoA11yViolations(container);
+  });
+});
+
+describe('Estensioni del kit per l istituzionale: riga sotto il sottotitolo e card del grafico senza PNG o col nome dei file', () => {
+  const DATI: DatiGrafico = {
+    opzioni: { series: [{ type: 'bar', data: [1] }] },
+    tabella: { caption: 'Tabella equivalente', colonne: ['Anno', 'Valore'], righe: [['2024', '1']] },
+    omessi: [],
+  };
+  const csv: Scaricamento = { formato: 'CSV', scarica: () => undefined, file: 'prova.csv' };
+
+  it('TestaPagina: la nota (anche con un link) sta sotto il sottotitolo, nella stessa testata', () => {
+    const router = createMemoryRouter([{ path: '*', element: <TestaPagina titolo="Titolo" titoloDocumento="Titolo" sottotitolo="Sotto" nota={<a href="/altra">Altra area</a>} /> }], { initialEntries: ['/'] });
+    render(<RouterProvider router={router} />);
+    const testata = screen.getByRole('heading', { level: 1, name: 'Titolo' }).parentElement;
+    expect(Array.from(testata?.querySelectorAll('p') ?? []).map((p) => p.textContent)).toEqual(['Sotto', 'Altra area']);
+  });
+
+  it('CardGrafico: senzaPng toglie il PNG e lascia gli altri file; oggetto da il nome ai pulsanti', () => {
+    const { rerender } = render(<CardGrafico titolo="Mini grafico" dati={DATI} fonte="Fonte" senzaPng />);
+    expect(screen.queryByRole('group', { name: /^Scarica/ })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Grafico' }).getAttribute('aria-pressed')).toBe('true');
+    rerender(<CardGrafico titolo="Output per anno" dati={DATI} fonte="Fonte" scaricamenti={[csv]} oggetto="l'output dell'intervento SRA01" />);
+    expect(screen.getAllByRole('button', { name: /^Scarica/ }).map((b) => b.getAttribute('aria-label'))).toEqual(["Scarica l'output dell'intervento SRA01 in PNG", "Scarica l'output dell'intervento SRA01 in CSV"]);
+    rerender(<CardGrafico titolo="Output per anno" dati={DATI} fonte="Fonte" scaricamenti={[csv]} />);
+    expect(screen.getAllByRole('button', { name: /^Scarica/ }).map((b) => b.getAttribute('aria-label'))).toEqual(['Scarica il grafico Output per anno in PNG', 'Scarica il grafico Output per anno in CSV']);
   });
 });

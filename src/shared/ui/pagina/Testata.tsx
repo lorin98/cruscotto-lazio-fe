@@ -43,6 +43,8 @@ interface PropsTestaPagina {
   /** Il titolo del documento (senza il nome dell'app). */
   titoloDocumento: string;
   sottotitolo?: string;
+  /** Una riga sotto il sottotitolo (es. il rimando a un'altra area, con un link: verifica SMP non SIGC, G4). */
+  nota?: ReactNode;
   azioni?: ReactNode;
   /** Il ref dell'h1, se la pagina ci riporta il focus (es. dopo un comando che sparisce col report: useFocusDopoIlCambio). */
   refTitolo?: RefObject<HTMLHeadingElement | null>;
@@ -86,7 +88,7 @@ export function TestataDettaglio({ idTitolo, titolo, h1, sopratitolo, badge, azi
 }
 
 /** Titolo della pagina: l'h1 col focus al montaggio e il titolo del documento. */
-export function TestaPagina({ titolo, titoloDocumento, sottotitolo, azioni, refTitolo }: PropsTestaPagina) {
+export function TestaPagina({ titolo, titoloDocumento, sottotitolo, nota, azioni, refTitolo }: PropsTestaPagina) {
   const h1 = useFocusTitolo<HTMLHeadingElement>(titoloDocumento, refTitolo);
   return (
     <div className="ui-titolo">
@@ -95,6 +97,7 @@ export function TestaPagina({ titolo, titoloDocumento, sottotitolo, azioni, refT
           {titolo}
         </h1>
         {sottotitolo && <p>{sottotitolo}</p>}
+        {nota && <p>{nota}</p>}
       </div>
       {azioni && <div className="ui-titolo__azioni">{azioni}</div>}
     </div>
