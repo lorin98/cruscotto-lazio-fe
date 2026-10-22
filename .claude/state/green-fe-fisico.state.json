@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "fisico",
-  "current_step": 3,
+  "current_step": 4,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -57,6 +57,17 @@
         "codegen_compiles": "pass",
         "orval_types": "pass",
         "csrf_static": "pass"
+      }
+    },
+    "step3-api": {
+      "status": "done",
+      "completed_at": "2026-10-22T09:07:25Z",
+      "artifacts": [
+        "./src/features"
+      ],
+      "gates": {
+        "api_wrappers_compile": "pass",
+        "querykey_from_factory": "pass"
       }
     }
   },
