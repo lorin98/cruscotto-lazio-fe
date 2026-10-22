@@ -13,8 +13,7 @@
 //   chi lo mostra non conosce la forma delle chiavi.
 import { hashKey } from '@tanstack/react-query';
 import type { Query, QueryClient } from '@tanstack/react-query';
-import { isAxiosError } from 'axios';
-import { classifyProblem } from '../../../shared/api/problem/problem-types';
+import { eProblema } from '../../../shared/api/problem/e-problema';
 import {
   getApiFinanziarioDistribuzioneDotazioneFormato,
   getApiFinanziarioDomandePerAnnoFormato,
@@ -142,7 +141,7 @@ export const useRiserva = (anno: number | undefined) =>
 
 /** Vero se l'errore della riserva e' il 404 NOT_FOUND "anno senza movimenti" (problem-type, non il solo status). */
 export function rispostaRiservaAssente(errore: unknown): boolean {
-  return isAxiosError(errore) && classifyProblem(errore.response?.status ?? 0, errore.response?.data).kind === 'not-found';
+  return eProblema(errore, 'not-found');
 }
 
 // TX-0015 (RF015): esercizio obbligatorio; senza esercizio nessuna richiesta (enabled guard).

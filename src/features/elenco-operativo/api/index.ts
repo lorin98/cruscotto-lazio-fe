@@ -13,7 +13,7 @@
 //   criteri nuovi (placeholderData), cosi' i numeri si aggiornano senza svuotare la pagina.
 import { keepPreviousData } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
-import { classifyProblem } from '../../../shared/api/problem/problem-types';
+import { eProblema } from '../../../shared/api/problem/e-problema';
 import { riferimentoValido } from '../lib/collegamenti';
 import {
   getApiElencoOperativoDomandeFormato,
@@ -88,7 +88,7 @@ export const usePagamenti = (criteri: CriteriPagamenti, { abilitato = true }: { 
 /** Vero se l'errore della scheda e' il 404 NOT_FOUND (problem-type, non il solo status): stesso esito per domanda
  *  inesistente, chiusa o fuori perimetro (D-06). */
 export function rispostaDomandaAssente(errore: unknown): boolean {
-  return isAxiosError(errore) && classifyProblem(errore.response?.status ?? 0, errore.response?.data).kind === 'not-found';
+  return eProblema(errore, 'not-found');
 }
 
 /** Vero se la risposta e' un 400 (per un'esportazione con l'insieme oltre il limite di NFR-06: D-09 del backend). */
@@ -99,7 +99,7 @@ export function rispostaRichiestaNonValida(errore: unknown): boolean {
 /** Vero se l'errore della scheda e' il 400 DATO_NON_VALIDO sul tipo o sul codice a barre: la pagina lo dice come un
  *  riferimento non valido, con il ritorno all'elenco (stato 400 del wireframe approvato). */
 export function rispostaRiferimentoNonValido(errore: unknown): boolean {
-  return isAxiosError(errore) && classifyProblem(errore.response?.status ?? 0, errore.response?.data).kind === 'invalid-data';
+  return eProblema(errore, 'invalid-data');
 }
 
 // Esportazioni (D-09): il file CSV o XLSX lo scrive il backend, con gli stessi criteri e lo stesso ordinamento della

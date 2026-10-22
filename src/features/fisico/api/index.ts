@@ -12,8 +12,7 @@
 //   backend); il mutator li serializza ripetuti e mette in coda le letture oltre il tetto per utente, nella stessa coda
 //   del finanziario e dell'elenco (app/tetti-letture, SC-FS_CAPACITA).
 // - Retry: nessuna opzione qui; la politica (rete assente e 503 con Retry-After) e' del QueryClient (app/query-client.ts).
-import { isAxiosError } from 'axios';
-import { classifyProblem } from '../../../shared/api/problem/problem-types';
+import { eProblema } from '../../../shared/api/problem/e-problema';
 import { getApiFisicoSuperficieAmmissibileFormato, useTx0018, useTx0020 } from '../../../shared/api/generated/fisico/fisico/fisico';
 import type { Tx0018Params } from '../../../shared/api/generated/fisico/aRSCSRBootstrapPostgresAPI.schemas';
 
@@ -50,12 +49,12 @@ export const useDetermine = (codice: string | null) => useTx0020(codice === null
 
 /** Vero se l'errore di TX-0020 e' il 404 NOT_FOUND (problem-type, non il solo status): nessuna domanda con quel codice. */
 export function rispostaDomandaAssente(errore: unknown): boolean {
-  return isAxiosError(errore) && classifyProblem(errore.response?.status ?? 0, errore.response?.data).kind === 'not-found';
+  return eProblema(errore, 'not-found');
 }
 
 /** Vero se l'errore e' il 400 DATO_NON_VALIDO (problem-type): il codice a barre di TX-0020, o un file oltre il limite. */
 export function rispostaDatoNonValido(errore: unknown): boolean {
-  return isAxiosError(errore) && classifyProblem(errore.response?.status ?? 0, errore.response?.data).kind === 'invalid-data';
+  return eProblema(errore, 'invalid-data');
 }
 
 // Esportazioni (D-06 del backend fisico, D-08 di nfr-conformance): il file CSV o XLSX lo scrive il backend, con gli stessi

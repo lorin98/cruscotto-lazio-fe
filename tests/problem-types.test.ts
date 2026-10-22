@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { AxiosError } from 'axios';
+import { eProblema } from '../src/shared/api/problem/e-problema';
 import {
   classifyProblem,
   PROBLEM_TYPES,
@@ -42,5 +44,18 @@ describe('classifyProblem — discrimina sul problem-type URI, non sul solo stat
   });
   it('403 senza body problem => unknown (non deduce dal solo codice)', () => {
     expect(classifyProblem(403).kind).toBe('unknown');
+  });
+});
+
+describe('eProblema: il riconoscimento comune dei wrapper api/ delle feature (review del fisico H8)', () => {
+  const risposta = (status: number, data?: unknown) => Object.assign(new AxiosError('errore'), { response: { status, data, statusText: '', headers: {}, config: {} } });
+
+  it('vero solo per una risposta HTTP col problem-type di quel tipo, mai dal solo status', () => {
+    expect(eProblema(risposta(404, pd(PROBLEM_TYPES.NON_TROVATO)), 'not-found')).toBe(true);
+    expect(eProblema(risposta(404, pd(PROBLEM_TYPES.NON_TROVATO)), 'invalid-data')).toBe(false);
+    expect(eProblema(risposta(400, pd(PROBLEM_TYPES.DATO_NON_VALIDO)), 'invalid-data')).toBe(true);
+    expect(eProblema(risposta(404), 'not-found')).toBe(false);
+    expect(eProblema(new Error('non HTTP'), 'not-found')).toBe(false);
+    expect(eProblema(undefined, 'not-found')).toBe(false);
   });
 });
