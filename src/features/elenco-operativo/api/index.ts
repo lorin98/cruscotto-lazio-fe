@@ -22,7 +22,6 @@ import {
   useTx0057,
   useTx0058,
   useTx0059,
-  useTx0060,
 } from '../../../shared/api/generated/elenco-operativo/elenco-operativo/elenco-operativo';
 import type {
   Tx0056Params,
@@ -62,8 +61,9 @@ export type CriteriSinottico = Tx0057Params;
 export type CriteriPagamenti = Tx0059Params;
 
 // TX-0060 (RA006): valori dei filtri nel perimetro del chiamante. `abilitato` falso: nessuna lettura (profilo senza il
-// grant dei filtri, dove servono solo come descrizioni dei chip).
-export const useValoriFiltri = (abilitato = true) => useTx0060({ query: { enabled: abilitato } });
+// grant dei filtri, dove servono solo come descrizioni dei chip). La lettura e' comune con il fisico (decisione G2):
+// sta in entities/filtri, con la stessa query-key e la stessa cache; qui resta riesportata per i componenti dell'elenco.
+export { useValoriFiltri } from '../../../entities/filtri';
 
 // TX-0056 (RA002): una pagina dell'elenco delle domande; `abilitato` falso (profilo senza il grant): nessuna lettura.
 export const useDomande = (criteri: CriteriDomande, { abilitato = true }: { abilitato?: boolean } = {}) =>
