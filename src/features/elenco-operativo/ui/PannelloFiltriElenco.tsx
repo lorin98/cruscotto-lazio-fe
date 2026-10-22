@@ -6,10 +6,10 @@
 // grant, o se non arrivano, resta la ricerca per testo (A-06); azioni portanti e atto di concessione si scelgono solo se
 // TX-0060 li dichiara disponibili (legameAzioniDisponibile, attoConcessioneDisponibile). PannelloLaterale (react-aria) da'
 // focus trap, Esc e ritorno del focus; i controlli sono Bootstrap Italia (quelli del kit e controlli.tsx).
-import { useEffect, useId, useRef, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import { ANNO_ASSENTE, ANNO_SENZA } from '../../../entities/domanda';
 import { getErrorMessage } from '../../../shared/lib';
-import { ErroreVista, Gruppo, PannelloLaterale, Scelte, VistaQuery } from '../../../shared/ui';
+import { ErroreVista, Gruppo, PannelloLaterale, Scelte, VistaQuery, useFocusDopoIlCambio } from '../../../shared/ui';
 import type { OpzioneFiltro, StatoQuery } from '../../../shared/ui';
 import type { ValoriFiltriElenco } from '../api';
 import { ETICHETTE_FILTRI } from '../lib/chip';
@@ -89,32 +89,14 @@ function GruppoDomanda({ dati, sel, imposta, conta, aperto }: Scelta & { aperto:
   );
 }
 
-/**
- * "Togli il filtro Atto di concessione" si smonta al clic: il fuoco passa alla nota accanto e non resta sul nulla (la regola
- * dei chip della barra, review v1 X-02, WCAG 2.4.3; review delta 21/10 passata 2 V2). `scelto`: la concessione e' fra i
- * criteri; il fuoco si sposta quando esce dopo il clic.
- */
-function useFocusDopoIlTogli(scelto: boolean) {
-  const nota = useRef<HTMLParagraphElement>(null);
-  const daRifocalizzare = useRef(false);
-  useEffect(() => {
-    if (scelto || !daRifocalizzare.current) return;
-    nota.current?.focus();
-    daRifocalizzare.current = false;
-  }, [scelto]);
-  return {
-    nota,
-    segnaIlTogli: () => {
-      daRifocalizzare.current = true;
-    },
-  };
-}
-
 function GruppoStati({ id, dati, sel, imposta, conta }: Scelta) {
   const concessione = sel('concessione').length > 0;
-  const { nota, segnaIlTogli } = useFocusDopoIlTogli(concessione);
+  // "Togli il filtro Atto di concessione" si smonta al clic: il fuoco passa alla nota accanto e non resta sul nulla (la
+  // regola dei chip della barra, review v1 X-02, WCAG 2.4.3; review delta 21/10 passata 2 V2; H1 della review del fisico)
+  const nota = useRef<HTMLParagraphElement>(null);
+  const sposta = useFocusDopoIlCambio(nota);
   const togliConcessione = () => {
-    segnaIlTogli();
+    sposta();
     imposta('concessione')([]);
   };
   return (
