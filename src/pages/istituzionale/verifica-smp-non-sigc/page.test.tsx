@@ -116,7 +116,7 @@ describe('RF016: i dati ASR non SIGC per intervento, da confrontare con SMP - Da
     await waitFor(() => expect(`${router.state.location.pathname}${router.state.location.search}`).toBe('/istituzionale/interventi/SRD01'));
   });
 
-  it('OP-IS-09: Apri nell elenco e Apri nei pagamenti solo con un valore positivo; senza i grant dell elenco nessun link', async () => {
+  it('OP-IS-09: Apri nell elenco e Apri nei pagamenti solo con un valore positivo (zero: nessun link verso un elenco vuoto)', async () => {
     servi();
     apri();
     const srd01 = within(await tabella()).getByRole('row', { name: "Apri il dettaglio dell'intervento SRD01" });
@@ -135,6 +135,24 @@ describe('RF016: i dati ASR non SIGC per intervento, da confrontare con SMP - Da
     const t = await tabella();
     expect(within(t).queryAllByRole('link')).toHaveLength(0);
     expect(testo(within(t).getByRole('row', { name: "Apri il dettaglio dell'intervento SRD01" }).textContent)).toContain('3');
+  });
+
+  it('OP-IS-09: col solo grant di TX-0056 le domande ricevute portano all elenco, la spesa no', async () => {
+    profilo(['csr.tx-0016.read', 'csr.tx-0056.read']);
+    servi();
+    apri();
+    const srd01 = within(await tabella()).getByRole('row', { name: "Apri il dettaglio dell'intervento SRD01" });
+    expect(within(srd01).getAllByRole('link').map((l) => l.getAttribute('href'))).toEqual(['/elenco-operativo/domande?tipo=SOSTEGNO&intervento=SRD01']);
+    expect(within(srd01).queryByRole('link', { name: /^Apri nei pagamenti/ })).toBeNull();
+  });
+
+  it('OP-IS-09: col solo grant di TX-0059 la spesa porta ai pagamenti, le domande ricevute no', async () => {
+    profilo(['csr.tx-0016.read', 'csr.tx-0059.read']);
+    servi();
+    apri();
+    const srd01 = within(await tabella()).getByRole('row', { name: "Apri il dettaglio dell'intervento SRD01" });
+    expect(within(srd01).getAllByRole('link').map((l) => l.getAttribute('href'))).toEqual(['/elenco-operativo/pagamenti?esito=PAGATA&sigc=false&intervento=SRD01']);
+    expect(within(srd01).queryByRole('link', { name: /^Apri nell'elenco operativo/ })).toBeNull();
   });
 
   it('CSV e XLSX dal backend coi filtri e l anno della pagina, con X-Requested-With; nome del file', async () => {

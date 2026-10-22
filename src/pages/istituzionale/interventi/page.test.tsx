@@ -239,6 +239,17 @@ describe("RF016: la verifica SMP non SIGC dell'intervento (TX-0016 filtrata sull
     await waitFor(() => expect(router.state.location.pathname).toBe('/istituzionale/output-regionale'));
   });
 
+  it('intervento senza dati col solo grant di TX-0016: il ritorno e alla verifica SMP non SIGC, nessuna lettura di TX-0017', async () => {
+    profilo(['csr.tx-0016.read']);
+    const lette = servi();
+    apri('/istituzionale/interventi/AT001');
+    const stato = (await screen.findByText(/^Nessun dato per questo intervento nei report istituzionali/)).closest('[role="status"]') as HTMLElement;
+    expect(within(stato).getByRole('link', { name: 'Torna alla verifica SMP non SIGC' }).getAttribute('href')).toBe('/istituzionale/verifica-smp-non-sigc');
+    expect(within(stato).queryByRole('link', { name: "Torna all'output regionale" })).toBeNull();
+    expect(lette.output).toEqual([]);
+    expect(lette.verifica).toEqual(['?intervento=AT001']);
+  });
+
   it('caricamento con lo scheletro e aria-live, poi i dati', async () => {
     const t = trattenuta();
     servi();
