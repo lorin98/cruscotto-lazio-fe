@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "istituzionale",
-  "current_step": 4,
+  "current_step": 5,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -77,6 +77,17 @@
       "gates": {
         "api_wrappers_compile": "pass",
         "querykey_from_factory": "pass"
+      }
+    },
+    "step4-lib": {
+      "status": "done",
+      "completed_at": "2026-10-22T14:10:23Z",
+      "artifacts": [
+        "./src/shared/lib"
+      ],
+      "gates": {
+        "lib_pure_compile": "pass",
+        "lib_zero_react": "pass"
       }
     }
   },
