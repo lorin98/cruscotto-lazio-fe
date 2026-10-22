@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!-- Wireframe v2 (template dettaglio di green-fe, ADR 0027): dettaglio dell'intervento dell'area istituzionale, composto
-     dai due report filtrati sull'intervento (nessuna transazione nuova). Valori di esempio, nessun dato reale. -->
+     dai due report filtrati sull'intervento (nessuna transazione nuova). Rework del 22/10/2026 dopo il giro G3 del backend
+     e la decisione G2. Valori di esempio, nessun dato reale. -->
 <html lang="it">
 <head>
 <meta charset="utf-8">
@@ -43,6 +44,10 @@
     </ul>
   </nav>
   <main class="ui-main" id="contenuto">
+    <div class="ui-filtri" role="region" aria-label="Riferimenti dei dati">
+      <span class="ui-pill">Perimetro: regionale (i report istituzionali non hanno perimetro ADA)</span>
+      <button class="ui-pill" type="button" aria-label="Ultimo dato sincronizzato: dati al gg/mm/aaaa per tutti i flussi. Mostra il dettaglio per flusso">Dati al gg/mm/aaaa</button>
+    </div>
     <nav class="breadcrumb-container" aria-label="Percorso">
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="../../panoramica/panoramica.html">Home</a></li>
@@ -51,12 +56,12 @@
       </ol>
     </nav>
     <section class="ui-hero">
-      <p class="ui-eyebrow">Istituzionale - intervento</p>
-      <h1>Intervento SRA01</h1>
+      <p class="ui-eyebrow">Istituzionale - intervento SRA01</p>
+      <h1>Descrizione dell'intervento (da TX-0060)</h1>
       <p><span class="badge">Perimetro regionale</span> <span class="badge">Indicatore di output O.14 (ettari)</span> <span class="badge">Indicatore di risultato R.n</span></p>
       <a class="btn btn-primary" href="../verifica-smp-non-sigc/verifica-smp-non-sigc.html">Verifica SMP non SIGC filtrata su questo intervento</a> <a class="btn" href="../output-regionale/output-regionale.html">Output regionale filtrato su questo intervento</a>
     </section>
-    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0016.read, csr.tx-0017.read - Transazioni: TX-0016 e TX-0017 filtrate su intervento = codice della route (nessuna transazione nuova). Ogni scheda compare solo col grant della sua transazione e legge i dati solo quando si apre. La descrizione dell'intervento non e' nella spec istituzionale (OP-IS-01): la testata mostra il codice. Esempio composito: le schede mostrano insieme casi che in un intervento reale non convivono (un intervento SIGC come SRA01 non ha domande non SIGC).</p>
+    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0016.read, csr.tx-0017.read - Transazioni: TX-0016 e TX-0017 filtrate su intervento = codice della route (nessuna transazione nuova). Ogni scheda compare solo col grant della sua transazione e legge i dati solo quando si apre. Descrizione dell'intervento da TX-0060 dell'elenco operativo (interventi[].descrizione della voce con chiave = codice; csr.tx-0060.read, decisione G2); se TX-0060 non risponde il titolo e' "Intervento SRA01". "Dati al" = ultimiDatiSincronizzati della prima risposta arrivata fra TX-0016 e TX-0017 (stesso elenco). Esempio composito: le schede mostrano insieme casi che in un intervento reale non convivono (un intervento SIGC come SRA01 non ha domande non SIGC).</p>
     <div class="ui-griglia ui-griglia--4">
       <section class="ui-kpi" aria-label="Target di fine periodo">
         <p>Target di fine periodo</p>
@@ -86,12 +91,13 @@
       <section class="ui-card" aria-labelledby="g-anni">
         <div class="ui-card__testa">
           <h2 id="g-anni">Output programmato e realizzato per anno (ettari)</h2>
-          <div class="ui-seg" role="group" aria-label="Vista di Output programmato e realizzato per anno"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica PNG</button></div>
+          <div class="ui-seg" role="group" aria-label="Vista di Output programmato e realizzato per anno"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button></div>
+          <div class="ui-strumenti"><button class="btn" type="button" aria-label="Scarica il grafico Output programmato e realizzato per anno in PNG">PNG</button> <button class="btn" type="button" aria-label="Scarica l'output e gli importi unitari dell'intervento SRA01 in CSV">CSV</button> <button class="btn" type="button" aria-label="Scarica l'output e gli importi unitari dell'intervento SRA01 in XLSX">XLSX</button></div>
         </div>
         <figure class="ui-grafico ui-grafico--barre">
           <figcaption>Barre raggruppate per anno: programmato, realizzato SIGC, realizzato non SIGC (cumulativo), nell'unita' dell'indicatore; il target di fine periodo e' la linea di riferimento. Gli anni senza valore sono omessi e dichiarati sotto il grafico col motivo. Nessun clic: i valori e la tabella bastano.</figcaption>
         </figure>
-        <p class="ui-fonte">Fonte: TX-0017. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati.</p>
+        <p class="ui-fonte">Fonte: TX-0017. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati. PNG: immagine del grafico disegnata nel browser con l'intestazione, non registrata in audit; CSV e XLSX: export di TX-0017 con intervento = SRA01 (output per anno e importi unitari), registrato in AUDIT_ESPORTAZIONE.</p>
         <table class="ui-tabella">
           <caption>Tabella equivalente: output dell'intervento SRA01 per anno, in ettari</caption>
           <thead>
@@ -120,6 +126,7 @@
         <p class="form-text" id="anno-aiuto">Facoltativo. Vale per indicatori, output e dati dell'avviso; domande e spesa sono cumulative.</p>
         <button class="btn btn-primary" type="submit">Mostra</button>
       </form>
+      <div class="ui-strumenti"><button class="btn" type="button" aria-label="Scarica la verifica SMP non SIGC dell'intervento SRA01 in CSV">CSV</button> <button class="btn" type="button" aria-label="Scarica la verifica SMP non SIGC dell'intervento SRA01 in XLSX">XLSX</button></div>
       <table class="ui-tabella">
         <caption>I dati ASR non SIGC dell'intervento da confrontare con SMP (anno di riferimento aaaa), con i valori assenti e il loro motivo</caption>
         <tbody>
@@ -163,6 +170,7 @@
           <tr><th scope="row">UA01</th><td>gruppo colturale</td><td class="ui-num">2025</td><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td></tr>
         </tbody>
       </table>
+      <p class="form-text">Gli importi unitari sono anche nei file CSV e XLSX della scheda Output per anno (stesso export di TX-0017).</p>
       <div class="ui-vuoto" role="status">Intervento senza Unit Amount (per esempio un intervento strutturale): nessun importo unitario; il programmato per anno e' non valorizzato e vale il solo target.</div>
     </section>
     <h2>Stato: caricamento</h2>
@@ -171,6 +179,8 @@
     <div class="ui-vuoto" role="status">Nessun dato per questo intervento nei report istituzionali (l'Assistenza tecnica AT001 non e' nei report). <a class="btn btn-primary" href="../output-regionale/output-regionale.html">Torna all'output regionale</a></div>
     <h2>Stato: errore</h2>
     <div class="alert alert-danger" role="alert">Intervento non disponibile (codice non valido: 400 dato non valido; accesso negato: 403; 503 capacita' esaurita o tempo scaduto, con Riprova).</div>
+    <h2>Stato: file non scaricato</h2>
+    <div class="alert alert-danger" role="alert">File CSV non scaricato: messaggio dal problem-type (503 esportazione non registrata nel registro di audit o capacita' esaurita: riprova dopo Retry-After). L'esito riuscito si annuncia in role=status: "File CSV scaricato."</div>
   </main>
 </div>
 <footer class="ui-footer">

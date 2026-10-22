@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- Wireframe v2 (template lista-filtri di green-fe, ADR 0027): report tabellare con drawer di anteprima.
-     Valori di esempio, nessun dato reale. -->
+     Rework del 22/10/2026 dopo il giro G3 del backend e la decisione G2. Valori di esempio, nessun dato reale. -->
 <html lang="it">
 <head>
 <meta charset="utf-8">
@@ -47,6 +47,7 @@
       <a class="btn btn-primary" href="#pannello-filtri">Filtri (0)</a>
       <span class="ui-pill">Perimetro: regionale (i report istituzionali non hanno perimetro ADA)</span>
       <span class="ui-pill">Periodo: aaaa - aaaa (dalla risposta; predefinito 2023 - 2029)</span>
+      <button class="ui-pill" type="button" aria-label="Ultimo dato sincronizzato: dati al gg/mm/aaaa per tutti i flussi. Mostra il dettaglio per flusso">Dati al gg/mm/aaaa</button>
     </div>
     <nav class="breadcrumb-container" aria-label="Percorso">
       <ol class="breadcrumb">
@@ -59,21 +60,25 @@
       <h1>Istituzionale: output regionale programmato e realizzato</h1>
       <p>Per ogni intervento l'output programmato e realizzato della Regione Lazio, anno per anno, nell'unita' di misura del suo indicatore. Clic su una riga per l'anteprima.</p>
     </div>
-    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0017.read - Transazioni: TX-0017 (RF017). Report tabellare: le quantita' di interventi diversi hanno unita' diverse e non stanno in un solo grafico (OP-IS-06); il grafico per anno e' nel drawer e nel dettaglio dell'intervento. Nessun CSV o XLSX nella spec (OP-IS-03).</p>
+    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0017.read - Transazioni: TX-0017 (RF017) e il suo export CSV o XLSX (GET /api/istituzionale/output-regionale/{formato}, senza operationId, con X-Requested-With); valori dei filtri da TX-0060 dell'elenco operativo (csr.tx-0060.read, che hanno tutti i profili con csr.tx-0017.read: decisione G2). Report tabellare: le quantita' di interventi diversi hanno unita' diverse e non stanno in un solo grafico (OP-IS-06); il grafico per anno e' nel drawer e nel dettaglio dell'intervento. "Dati al" = ultimiDatiSincronizzati della risposta di TX-0017.</p>
     <aside class="ui-pannello" id="pannello-filtri" aria-label="Pannello dei filtri">
-      <h2>Filtri</h2>
+      <h2>Filtri dei report istituzionali</h2>
       <details class="ui-gruppo-filtro" open>
         <summary>Intervento</summary>
-        <label class="form-label" for="f-cerca">Cerca tra gli interventi</label>
+        <label class="form-label" for="f-cerca">Cerca per codice o descrizione</label>
         <input class="form-control" type="search" id="f-cerca" name="cerca">
-        <label class="ui-opzione" for="f-sra01"><input type="checkbox" id="f-sra01" name="intervento"> SRA01</label>
-        <label class="ui-opzione" for="f-srd01"><input type="checkbox" id="f-srd01" name="intervento"> SRD01</label>
+        <label class="ui-opzione" for="f-sra01"><input type="checkbox" id="f-sra01" name="intervento"> SRA01 - descrizione da TX-0060</label>
+        <label class="ui-opzione" for="f-srd01"><input type="checkbox" id="f-srd01" name="intervento"> SRD01 - descrizione da TX-0060</label>
       </details>
       <details class="ui-gruppo-filtro">
-        <summary>Obiettivo specifico, obiettivo generale, obiettivo di policy, azione portante</summary>
-        <p class="form-text">Nessuna voce da proporre: la spec istituzionale non espone i valori di questi filtri (OP-IS-01). Un filtro arrivato con l'indirizzo resta come chip rimovibile.</p>
+        <summary>Obiettivo generale (OG), specifico (OS), di policy (OP)</summary>
+        <button class="ui-toggle-chip" type="button" aria-pressed="false">OG - testo da TX-0060</button> <button class="ui-toggle-chip" type="button" aria-pressed="false">OS4</button> <button class="ui-toggle-chip" type="button" aria-pressed="false">OP - testo da TX-0060</button>
       </details>
-      <p class="form-text">Voci dello stesso filtro in alternativa (O); filtri diversi insieme (E). Le voci di Intervento sono i codici delle righe della risposta; l'Assistenza tecnica AT001 non e' selezionabile.</p>
+      <details class="ui-gruppo-filtro">
+        <summary>Azione portante</summary>
+        <p class="form-text">Non disponibile finche' nessun intervento e' collegato a un'azione portante (legameAzioniDisponibile = falso in TX-0060); altrimenti le azioni portanti con la descrizione.</p>
+      </details>
+      <p class="form-text">Valori da TX-0060 dell'elenco operativo: gli interventi del CSR con la descrizione (senza l'Assistenza tecnica AT001), gli obiettivi e le azioni portanti. Voci dello stesso filtro in alternativa (O); filtri diversi insieme (E). I filtri restano nell'indirizzo della pagina.</p>
       <button class="btn" type="button">Azzera</button> <button class="btn btn-primary" type="button">Applica i filtri</button>
     </aside>
     <section class="ui-card" aria-labelledby="t-output">
@@ -85,7 +90,9 @@
         <label class="form-label" for="t-cerca">Cerca nella tabella</label>
         <input class="form-control" type="search" id="t-cerca" name="t">
         <button class="btn" type="button">Colonne</button>
+        <button class="btn" type="button" aria-label="Scarica i dati dell'output regionale in CSV">CSV</button> <button class="btn" type="button" aria-label="Scarica i dati dell'output regionale in XLSX">XLSX</button>
       </div>
+      <p class="form-text">I file CSV e XLSX contengono tutti gli interventi dei filtri, non solo quelli trovati dalla ricerca, e tutte e tre le misure per anno qualunque sia quella mostrata, piu' gli importi unitari per Unit Amount.</p>
       <table class="ui-tabella">
         <caption>Output programmato per anno (misura scelta sopra): l'intervento e' l'intestazione di riga, gli anni vengono dalla risposta. Ordinabile; clic o Invio su una riga per l'anteprima.</caption>
         <thead>
@@ -129,8 +136,12 @@
     <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro della tabella)</div>
     <h2>Stato: vuoto</h2>
     <div class="ui-vuoto" role="status">Nessun intervento per i filtri scelti (per esempio un'azione portante senza interventi collegati). <a class="btn btn-primary" href="#pannello-filtri">Modifica i filtri</a></div>
+    <h2>Stato: valori dei filtri non disponibili</h2>
+    <div class="ui-vuoto" role="status">Valori dei filtri non disponibili (lettura di TX-0060 non riuscita: messaggio dal problem-type). I filtri dell'indirizzo restano applicati come chip rimovibili e il report si legge lo stesso. <a href="#pannello-filtri">Riprova</a></div>
     <h2>Stato: errore</h2>
     <div class="alert alert-danger" role="alert">Dati non disponibili: messaggio dal problem-type (400 dato non valido col nome del filtro, 403 accesso negato, 503 capacita' esaurita con nuovo tentativo dopo Retry-After, 503 tempo scaduto). <a href="#contenuto">Riprova</a></div>
+    <h2>Stato: file non scaricato</h2>
+    <div class="alert alert-danger" role="alert">File XLSX non scaricato: messaggio dal problem-type (400 oltre il limite dell'export di 5.000 righe o 50.000 celle: restringi i filtri; 503 esportazione non registrata nel registro di audit o capacita' esaurita: riprova dopo Retry-After). L'esito riuscito si annuncia in role=status: "File XLSX scaricato."</div>
   </main>
 </div>
 <footer class="ui-footer">

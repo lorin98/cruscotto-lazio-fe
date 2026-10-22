@@ -4,11 +4,21 @@
 > del flusso (`wireframes/istituzionale/verifica-smp-non-sigc/`; hash da `wireframe-hash.sh`): modificare un file qui
 > invalida l'approvazione del flusso (e solo di questo flusso).
 
+Rework del 22/10/2026 sui contratti del giro G3 (spec sha256:b0c069cf...): ultimo dato sincronizzato, export CSV e XLSX,
+valori dei filtri da TX-0060 (decisione G2), link alla verifica SMP SIGC del finanziario (decisione G4).
+
 ## Route del flusso
 
 | route | kind | pattern | grant (verbatim dal catalogo) |
 |---|---|---|---|
 | /istituzionale/verifica-smp-non-sigc | report | report v2 (selettore, grafico a barre, tabella interattiva), come /finanziario/sigc/verifica-smp | csr.tx-0016.read |
+
+Letture della pagina: TX-0016 (report), il suo export `GET /api/istituzionale/verifica-smp-non-sigc/{formato}` (csv,
+xlsx; stesso grant, senza operationId, con X-Requested-With) e TX-0060 dell'elenco operativo per le voci del pannello
+(`GET /api/elenco-operativo/filtri`, csr.tx-0060.read: lo hanno p1, p2 e p3-funzionario-area-ist, cioe' tutti i profili
+con csr.tx-0016.read; decisione G2, nessun campo nuovo nel contratto istituzionale). Come nel fisico, TX-0060 (RA006) e'
+fra le transazioni della route e la slice elenco-operativo e' pinnata nell'handover; la visibilita' della route resta il
+solo csr.tx-0016.read e la lettura dei valori e' un'azione col controllo di csr.tx-0060.read (step6).
 
 ## Component tree (per pagina)
 
@@ -16,16 +26,43 @@ Vocabolario del kit UI v2 (ADR 0027): Shell (fascia ente, barra, menu a gruppi, 
 (chip, perimetro, dati al) > Breadcrumb > Titolo | Testata di dettaglio > [KPI | Sinottico] > [Card grafico (tipo)] >
 [Tabella interattiva (+ Totali dal server)] > [Drawer di anteprima] > [Schede] > Stati.
 
-- /istituzionale/verifica-smp-non-sigc: Shell > Barra filtri (chip, perimetro regionale, anno di riferimento del file) >
-  Breadcrumb > Titolo > Pannello filtri > Selettore dell'anno di riferimento (facoltativo, pulsante Mostra) > Riferimenti
-  della risposta (anno, output cumulativo, perimetro) > Card spesa pubblica erogata per intervento (barre) > Card tabella
-  dei 21 dati (cerca, colonne, ordinamento) con le note sulle definizioni > Stati
+- /istituzionale/verifica-smp-non-sigc: Shell > Barra filtri (chip, perimetro regionale, anno di riferimento del file,
+  "Dati al") > Breadcrumb > Titolo (con la frase verso la verifica SMP SIGC, solo con csr.tx-0015.read) > Pannello filtri
+  (valori da TX-0060) > Selettore dell'anno di riferimento (facoltativo, pulsante Mostra) > Riferimenti della risposta
+  (anno, output cumulativo, perimetro) > Card spesa pubblica erogata per intervento (barre; PNG, CSV, XLSX) > Card tabella
+  dei 21 dati (cerca, colonne, ordinamento; CSV, XLSX) con le note sulle definizioni > Stati
 
 Stessa resa della verifica SMP SIGC del finanziario (TX-0015, flusso sigc): nessun KPI (i dati sono per intervento),
 selettore d'anno con Mostra, una card a barre, la tabella dei dati con l'intervento come intestazione di riga, i si'/no
-come colonne di testo, il clic su barra o riga che apre il dettaglio dell'intervento. Differenze dovute al contratto:
-l'anno di TX-0016 e' facoltativo (assente = l'ultimo anno con un file), e' l'anno di riferimento del file SMP non SIGC e
-non l'esercizio finanziario; domande e spesa sono cumulative.
+come colonne di testo, il clic su barra o riga che apre il dettaglio dell'intervento, un pulsante per formato. Differenze
+dovute al contratto: l'anno di TX-0016 e' facoltativo (assente = l'ultimo anno con un file), e' l'anno di riferimento del
+file SMP non SIGC e non l'esercizio finanziario; domande e spesa sono cumulative.
+
+## Barra dei filtri e "Dati al"
+
+- "Dati al gg/mm/aaaa": campo `ultimiDatiSincronizzati[]` (flusso, conclusoIl) della risposta di TX-0016, provenance spec
+  (`openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc`), stessa pill del finanziario e dell'elenco
+  (`PillDatiAl`): la data fino a cui tutti i flussi sono aggiornati (la conclusione meno recente) e nel popover una voce
+  per flusso d'import con data e ora. Elenco vuoto (nessuna acquisizione conclusa): "Ultimo dato sincronizzato: nessuna
+  acquisizione conclusa". In caricamento non si mostra; con la lettura in errore "non disponibile". La stessa data e'
+  nell'intestazione dei file CSV e XLSX.
+- Chip dei filtri attivi con la voce leggibile da TX-0060 (descrizione dell'intervento, testo dell'obiettivo o
+  dell'azione); perimetro regionale fisso; anno di riferimento del file (annoRiferimento della risposta).
+
+## Pannello dei filtri (valori da TX-0060, decisione G2)
+
+| gruppo | parametro della route | voci (provenance spec: openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco) |
+|---|---|---|
+| Intervento | intervento | interventi[].chiave + interventi[].descrizione (senza AT001), ricerca per codice o descrizione |
+| Obiettivo specifico | os | obiettiviSpecifici[].chiave (solo codice: descrizione null) |
+| Obiettivo generale | og | obiettiviGenerali[] (testo della gerarchia) |
+| Obiettivo di policy | op | obiettiviPolicy[] (testo della gerarchia) |
+| Azione portante | azione | azioniPortanti[].chiave (id numerico) + descrizione; con legameAzioniDisponibile = falso il gruppo dice che non e' disponibile |
+
+Stesse regole dei report del finanziario: voci dello stesso filtro in alternativa (O), filtri diversi insieme (E), filtri
+nell'indirizzo. TX-0060 e' dell'elenco operativo: la pagina non importa nulla da quella feature (uiplan-patterns 7), usa
+il client generato dalla spec sigillata dell'elenco (shared). Se TX-0060 non risponde, i filtri dell'indirizzo restano
+chip rimovibili e il report si legge lo stesso (stato "valori dei filtri non disponibili").
 
 ## Colonne della tabella (21, provenance spec: openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc)
 
@@ -54,7 +91,7 @@ non l'esercizio finanziario; domande e spesa sono cumulative.
 | Indicatore di risultato | righe[].indicatoreRisultato | testo col motivo |
 
 Testa della risposta: annoRiferimento (barra filtri e riferimenti; null = nessun file), perimetro (sempre REGIONALE),
-outputCumulativo (dichiarato nei riferimenti).
+outputCumulativo (dichiarato nei riferimenti), ultimiDatiSincronizzati (pill "Dati al").
 
 Resa delle assenze (kit `descriviAssenza`/`testoConNota`, una sola forma per tutte le feature; i due motivi nuovi
 sono la proposta di OP-IS-08):
@@ -72,6 +109,18 @@ parentesi e' quella delle voci e dei motivi dei grafici (`testoConNota`).
 Uno 0 nelle colonne Domande ricevute, finanziate, pagate o in Spesa erogata e' un conteggio vero del backend (per esempio
 un intervento SIGC come SRA01 non ha domande non SIGC), non un'assenza.
 
+## Scaricamenti (un pulsante per formato, come nel finanziario)
+
+| dove | formati | contenuto |
+|---|---|---|
+| card del grafico | PNG, CSV, XLSX | PNG = immagine del grafico disegnata nel browser con l'intestazione di NFR-50 (fonte, filtri, data di estrazione, ultimo dato sincronizzato, profilo, uso interno), non registrata in AUDIT_ESPORTAZIONE (stesso limite di OP-FE-08 del finanziario); CSV e XLSX = i dati del report |
+| card della tabella | CSV, XLSX | `GET /api/istituzionale/verifica-smp-non-sigc/{formato}` con gli stessi filtri e lo stesso anno: una riga per intervento con i 21 dati e i motivi delle assenze, intestazione con anno di riferimento, filtri, perimetro, ultimo dato sincronizzato per flusso, uso interno; una riga di AUDIT_ESPORTAZIONE per file (SC-IS_ESPORTA) |
+
+I file contengono tutti gli interventi dei filtri e tutte le colonne, non solo quelli trovati dalla ricerca o le colonne
+scelte (la nota lo dice sotto gli strumenti). Pulsanti nascosti se la risposta non ha righe. Errori col motivo in
+role=alert: 400 oltre 5.000 righe o 50.000 celle (restringere i filtri), 503 ESPORTAZIONE_NON_REGISTRATA, CAPACITA_ESAURITA
+o TEMPO_SCADUTO (riprovare dopo Retry-After).
+
 ## Grafici del flusso
 
 | pagina | grafico | tipo | dati (transazione) | clic | valori assenti |
@@ -85,10 +134,12 @@ un intervento SIGC come SRA01 non ha domande non SIGC), non un'assenza.
 | /istituzionale/verifica-smp-non-sigc | dettaglio-intervento-smp | barra del grafico, clic o Invio su una riga | istituzionale: /istituzionale/interventi/:codice | codice | anno (se scelto) |
 | /istituzionale/verifica-smp-non-sigc | elenco-ricevute-riga | "Apri nell'elenco" nella cella Domande ricevute | elenco-operativo: /elenco-operativo/domande | - | tipo=SOSTEGNO, intervento della riga |
 | /istituzionale/verifica-smp-non-sigc | elenco-spesa-riga | "Apri nei pagamenti" nella cella Spesa erogata | elenco-operativo: /elenco-operativo/pagamenti | - | esito=PAGATA, sigc=false, intervento della riga |
+| /istituzionale/verifica-smp-non-sigc | verifica-smp-sigc | link "Verifica SMP SIGC" nella frase sotto il titolo, solo con csr.tx-0015.read (p1, p2) | finanziario: /finanziario/sigc/verifica-smp (flusso sigc, approvato) | - | nessuna (G4: esercizio e anno di riferimento non si traducono) |
 
 I due link verso l'elenco valgono per definizione (D-05 del backend), senza uno scenario che lo verifichi: OP-IS-09.
-Non collegati: finanziate, pagate (saldate) e anticipi, che l'elenco non riproduce. Collegamento con la verifica SMP
-SIGC del finanziario: proposta non dichiarata, OP-IS-04 (nota nel wireframe).
+Non collegati: finanziate, pagate (saldate) e anticipi, che l'elenco non riproduce. Il link verso il finanziario (G4) e'
+in una sola direzione: il finanziario non cambia. Per chi non ha csr.tx-0015.read (p3-funzionario-area-ist) la frase non
+si rende affatto (gate di UX; il backend negherebbe comunque TX-0015 con 403).
 
 ## Filtri nell'URL (url_params)
 
@@ -101,32 +152,38 @@ SIGC del finanziario: proposta non dichiarata, OP-IS-04 (nota nel wireframe).
 | /istituzionale/verifica-smp-non-sigc | op | TX-0016.op | si' | no |
 | /istituzionale/verifica-smp-non-sigc | azione | TX-0016.azione | si' | no |
 
-Le voci del pannello: OP-IS-01 (solo i codici di intervento delle righe finche' green-be non espone i valori).
+Gli stessi parametri vanno all'export `{formato}` (stessi nomi nella spec).
 
 ## Stati resi (obbligatori)
 
 - vuoto: "Nessun intervento per i filtri scelti" con "Modifica i filtri" (mai schermo bianco); nessun file SMP non SIGC
   (annoRiferimento null): stato dichiarato, i dati di programma sono non valorizzati e domande e spesa restano
 - caricamento: scheletro delle card, `role="status"` + `aria-live="polite"`; letture al piu' due alla volta
+- valori dei filtri non disponibili (TX-0060 in errore): `role="status"`, chip dell'indirizzo invariati, Riprova
 - errore: `role="alert"`, discriminato sul problem-type `urn:cruscottocsr:problem:*` (400 DATO_NON_VALIDO col nome del
   filtro; 403 ACCESSO_NEGATO; 503 CAPACITA_ESAURITA ritentata rispettando Retry-After; 503 TEMPO_SCADUTO; 401/419 sessione)
+- file non scaricato: `role="alert"` col motivo; riuscito: "File CSV scaricato." in `role="status"`
 
 ## Note WCAG 2.2 (residuo manuale DICHIARATO)
 
 - Meccanizzato a valle (step7/step8): tab-order, focus dopo route-change, focus-trap del pannello, tabella equivalente
   del grafico, axe (deferred-to-step8: il lint di step1 non ha un DOM).
-- RESIDUO umano da verificare qui: ordine di lettura (filtri, anno, riferimenti, grafico, tabella), didascalia del grafico,
-  comprensibilita' delle etichette delle colonne e delle note sulle definizioni, contrasto della resa finale (il low-fi non
-  fa fede sul colore).
+- Pulsanti di scaricamento: sigla visibile (PNG, CSV, XLSX) contenuta nel nome accessibile completo (WCAG 2.5.3); durante
+  la preparazione aria-disabled col focus sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert.
+- Pill "Dati al": bottone col nome accessibile completo ("Ultimo dato sincronizzato: dati al ... per tutti i flussi.
+  Mostra il dettaglio per flusso") e popover con le voci per flusso.
+- RESIDUO umano da verificare qui: ordine di lettura (filtri, titolo con la frase verso il SIGC, anno, riferimenti,
+  grafico, tabella), didascalia del grafico, comprensibilita' delle etichette delle colonne e delle note sulle definizioni,
+  contrasto della resa finale (il low-fi non fa fede sul colore).
 - RESIDUO umano: bersagli dei link "Apri nell'elenco" e "Apri nei pagamenti" nelle celle (minimo 24 px, WCAG 2.5.8) e
-  loro allineamento nelle celle numeriche; testi lunghi delle assenze nelle celle (a capo, larghezza delle colonne).
+  loro allineamento nelle celle numeriche; testi lunghi delle assenze nelle celle (a capo, larghezza delle colonne); il
+  link "Verifica SMP SIGC" deve dire che porta a un'altra area (testo della frase).
 
 ## Punti aperti che toccano questo flusso
 
-- OP-IS-01: voci dei filtri assenti dalla spec istituzionale.
-- OP-IS-02: ultimo dato sincronizzato assente (la barra mostra l'anno di riferimento del file).
-- OP-IS-03: nessuna esportazione CSV/XLSX nella spec; solo PNG del grafico.
-- OP-IS-04: collegamento con la verifica SMP SIGC del finanziario (da decidere).
 - OP-IS-07: definizioni da confermare (D-02 pagate solo saldate, D-04 output cumulativo) e marcatore "da consolidare".
 - OP-IS-08: testi dei motivi ANNO_NON_CONSERVATO e FONTE_AMBIGUA.
 - OP-IS-09: link verso l'elenco senza scenario di coincidenza.
+- OP-IS-10 (informativo): TX-0056..TX-0059 della slice elenco-operativo, pinnata per TX-0060, restano dell'elenco.
+- Chiusi il 22/10/2026: OP-IS-01 (G2, valori da TX-0060), OP-IS-02 (G3, ultimiDatiSincronizzati), OP-IS-03 (G3, export
+  CSV e XLSX), OP-IS-04 (G4, link verso la verifica SMP SIGC).

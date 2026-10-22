@@ -29,7 +29,7 @@
       "ownership": "istituzionale",
       "path": "./datamodel/istituzionale-decisions.json",
       "role": "migration",
-      "sha256": "sha256:853fb6651afcd7b730dd149c2a9be63921cf6a87e2e6d8ef9ba4396ec2e73f3e",
+      "sha256": "sha256:7a4b1e5b8bde18ef6939f6a0a352fb5f70a316afdf9da67e4a482afdcc0072f6",
       "step": "step2-datamodel"
     },
     {
@@ -37,7 +37,7 @@
       "ownership": "istituzionale",
       "path": "./acceptance/istituzionale-scenarios.json",
       "role": "application",
-      "sha256": "sha256:ce20e21a22e86456cb08f3d59099e43e3ed0aeb8fcef42dd95e2590a2918a12b",
+      "sha256": "sha256:d336be8163a0b0979fd47b4de33fbfb76523892a281ebefea4a9b071a53ef82b",
       "step": "step5-service"
     },
     {
@@ -45,7 +45,7 @@
       "ownership": "istituzionale",
       "path": "./openapi/openapi-istituzionale.json",
       "role": "adapter-in-rest",
-      "sha256": "sha256:061d52efa18cdbe14bf06f6e9d0d6e33699803637224b3f91b2f85bf25dec70d",
+      "sha256": "sha256:b0c069cf6b6874cc5bcdd6baaa6597db8438bd313c233d22ff7444aa9cb3c288",
       "step": "step8-rest"
     }
   ],
@@ -76,16 +76,16 @@
     "step11-review.review": "pass",
     "step1b-scaffold.reactor_compiles": "pass",
     "step2-datamodel.ddl_approved": {
-      "approved_at": "2026-10-19T13:47:44Z",
-      "approved_hash": "sha256:853fb6651afcd7b730dd149c2a9be63921cf6a87e2e6d8ef9ba4396ec2e73f3e",
+      "approved_at": "2026-10-21T21:45:02Z",
+      "approved_hash": "sha256:7a4b1e5b8bde18ef6939f6a0a352fb5f70a316afdf9da67e4a482afdcc0072f6",
       "baseline_ref": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
     },
     "step3-domain.domain_compiles": "pass",
     "step3-domain.domain_pure": "pass",
     "step4-ports.ports_pure": "pass",
     "step5-service.acceptance_approved": {
-      "approved_at": "2026-10-19T13:47:44Z",
-      "approved_hash": "sha256:ce20e21a22e86456cb08f3d59099e43e3ed0aeb8fcef42dd95e2590a2918a12b",
+      "approved_at": "2026-10-21T14:49:00Z",
+      "approved_hash": "sha256:d336be8163a0b0979fd47b4de33fbfb76523892a281ebefea4a9b071a53ef82b",
       "baseline_ref": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
     },
     "step5-service.authz_import_zero": "pass",
@@ -96,7 +96,7 @@
     "step9-functions.functions": "pass"
   },
   "openapi": {
-    "hash": "sha256:061d52efa18cdbe14bf06f6e9d0d6e33699803637224b3f91b2f85bf25dec70d",
+    "hash": "sha256:b0c069cf6b6874cc5bcdd6baaa6597db8438bd313c233d22ff7444aa9cb3c288",
     "path": "./openapi/openapi-istituzionale.json"
   },
   "pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb",

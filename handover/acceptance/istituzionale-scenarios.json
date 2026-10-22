@@ -216,6 +216,34 @@
       "test_tag": "SC-IS_AUDIT",
       "approved": true,
       "role": "p1-dirigente"
+    },
+    {
+      "scenario_id": "SC-IS_ULTIMO_DATO",
+      "req_uids": [
+        "RU-00000016",
+        "RU-00000017"
+      ],
+      "given": "[NFR-25] un'esecuzione d'import SUCCESS di un flusso proprio conclusa il 2026-03-02 alle 09:30 UTC; un P3 dell'area istituzionale (senza il grant di TX-0001) e un utente che legge anche TX-0001",
+      "when": "GET /api/istituzionale/verifica-smp-non-sigc e GET /api/istituzionale/output-regionale",
+      "then": "200 con ciascuno dei due report e ultimiDatiSincronizzati: per ogni flusso d'import con un'esecuzione conclusa la conclusione della piu' recente, il flusso proprio con 2026-03-02T09:30:00Z, lo stesso elenco di GET /api/finanziario/filtri (TX-0001) per chi lo puo' leggere, anche al P3 dell'area, che TX-0001 non lo legge (403); letto fuori dal tetto delle letture e fuori dall'audit: per ogni richiesta una sola riga di AUDIT_CONSULTAZIONE, quella del report (D-05 Rev. 5)",
+      "kind": "positive",
+      "test_tag": "SC-IS_ULTIMO_DATO",
+      "approved": true,
+      "role": "p3-funzionario-area"
+    },
+    {
+      "scenario_id": "SC-IS_ESPORTA",
+      "req_uids": [
+        "RU-00000016",
+        "RU-00000017"
+      ],
+      "given": "[NFR-06, NFR-34, NFR-50] un intervento X con il monitoraggio NOSIGC 2025 (output atteso 40 ed erogato 12, indicatore O.14), un avviso NOSIGC 2025 (2 attivati, 1 chiuso, dotazione 2.000.000,00, chiusura il 31/03/2025, top-up si' per 150.000,00, 3 azioni, concessioni no), due domande di sostegno (una con richiesto 100.000,00 e ammesso 90.000,00, una senza richiesto), un pagamento non SIGC (anticipo 20.000,00 e saldo 30.000,00), il target 2029 di 1.500 ettari e una Unit Amount 2024 (importo unitario 250,00, output previsto 300); un intervento Y senza dati; un P3 dell'area istituzionale, un P1 e un P4 (senza il grant)",
+      "when": "GET /api/istituzionale/verifica-smp-non-sigc/csv e /xlsx con ?intervento=X&intervento=Y&anno=2025 e GET /api/istituzionale/output-regionale/csv e /xlsx con ?intervento=X&intervento=Y, con l'header X-Requested-With; poi senza l'header, con HEAD, con /pdf, con ?anno=abc, con un intervento vuoto e da un P4",
+      "then": "200 con allegato (text/csv o XLSX, Content-Disposition attachment tx-0016-<data> o tx-0017-<data>, Cache-Control no-store) e gli stessi dati della risposta JSON con gli stessi filtri: TX-0016 una riga per intervento con i ventuno dati (X: O.14, avvisi 2 e 1, dotazione 2000000,00, chiusura 31/03/2025, 2 domande ricevute per 100000,00, 1 senza richiesto, top-up si' per 150000,00, concessioni no; Y con i motivi delle assenze), intestazione con anno di riferimento 2025, filtri applicati, perimetro REGIONALE, ultimo dato sincronizzato per flusso e dicitura d'uso interno; TX-0017 per ogni intervento una riga 'Output dell'anno' per anno del periodo (X 2024: programmato 300, target 1500 ettari al 2029) e una riga 'Importo unitario' per Unit Amount (X: 2024, Seminativi, 250,00), periodo nell'intestazione; una riga di AUDIT_ESPORTAZIONE per file (area A2, requisito TX-0016 o TX-0017, formato, righe e colonne, campi identificativi falso, impronta dei byte) e la consultazione del report in AUDIT_CONSULTAZIONE con i filtri; senza X-Requested-With 403 RICHIESTA_NON_AMMESSA, HEAD 405, formato sconosciuto 404, anno o intervento non validi 400 DATO_NON_VALIDO, P4 403 ACCESSO_NEGATO: nessun file e nessuna riga di AUDIT_ESPORTAZIONE (D-07)",
+      "kind": "positive",
+      "test_tag": "SC-IS_ESPORTA",
+      "approved": true,
+      "role": "p3-funzionario-area"
     }
   ]
 }

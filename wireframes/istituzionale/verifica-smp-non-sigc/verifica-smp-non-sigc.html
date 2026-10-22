@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!-- Wireframe v2 (template wireframe-v2 di green-fe, ADR 0027): pattern report come la verifica SMP SIGC del finanziario
-     (wireframes/sigc/verifica-smp.html). Valori di esempio, nessun dato reale. -->
+     (wireframes/sigc/verifica-smp.html). Rework del 22/10/2026 dopo il giro G3 del backend e le decisioni G2 e G4.
+     Valori di esempio, nessun dato reale. -->
 <html lang="it">
 <head>
 <meta charset="utf-8">
@@ -48,6 +49,7 @@
       <span class="ui-chip">Intervento: SRD01 <button class="btn" type="button" aria-label="Togli il filtro Intervento SRD01">x</button></span>
       <span class="ui-pill">Perimetro: regionale (i report istituzionali non hanno perimetro ADA)</span>
       <span class="ui-pill">Anno di riferimento del file SMP non SIGC: aaaa</span>
+      <button class="ui-pill" type="button" aria-label="Ultimo dato sincronizzato: dati al gg/mm/aaaa per tutti i flussi. Mostra il dettaglio per flusso">Dati al gg/mm/aaaa</button>
     </div>
     <nav class="breadcrumb-container" aria-label="Percorso">
       <ol class="breadcrumb">
@@ -58,24 +60,29 @@
     </nav>
     <div class="ui-titolo">
       <h1>Istituzionale: verifica SMP non SIGC</h1>
-      <p>I diciannove dati dei file ASR non SIGC per intervento, da confrontare con SMP - Data Platform.</p>
+      <p>I dati dei file ASR non SIGC per intervento, da confrontare con SMP - Data Platform.</p>
+      <p>I dati SIGC per lo stesso confronto sono nel Finanziario: <a href="../../sigc/verifica-smp.html">Verifica SMP SIGC</a>.</p>
     </div>
-    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0016.read - Transazioni: TX-0016 (RF016). Stesso aspetto della verifica SMP SIGC del finanziario (TX-0015): selettore, grafico a barre, tabella dei dati per intervento. Perimetro sempre regionale. Clic su barra o riga: link:dettaglio-intervento-smp.</p>
-    <p class="wf-note">Proposta da decidere (OP-IS-04): qui una frase "I dati SIGC per lo stesso confronto sono nel Finanziario: verifica SMP", con il link solo per chi ha csr.tx-0015.read (p1, p2). Non e' un link dichiarato finche' l'utente non sceglie.</p>
+    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0016.read - Transazioni: TX-0016 (RF016) e il suo export CSV o XLSX (GET /api/istituzionale/verifica-smp-non-sigc/{formato}, senza operationId, con X-Requested-With); valori dei filtri da TX-0060 dell'elenco operativo (csr.tx-0060.read, che hanno tutti i profili con csr.tx-0016.read: decisione G2). Stesso aspetto della verifica SMP SIGC del finanziario (TX-0015): selettore, grafico a barre, tabella dei dati per intervento. Perimetro sempre regionale. "Dati al" = ultimiDatiSincronizzati della risposta di TX-0016 (la conclusione meno recente; nel popover una voce per flusso d'import). Clic su barra o riga: link:dettaglio-intervento-smp.</p>
+    <p class="wf-note">Collegamento con il finanziario (decisione G4, link:verifica-smp-sigc): la frase sotto il titolo e il link compaiono solo a chi ha anche csr.tx-0015.read (p1-dirigente, p2-referente-adg); per p3-funzionario-area-ist la frase non c'e'. Nessun filtro portato: l'esercizio finanziario (obbligatorio per TX-0015) e l'anno di riferimento del file (facoltativo per TX-0016) non si traducono e la route del finanziario non dichiara parametri; la verifica SIGC si apre col selettore dell'esercizio, come dal menu. Il finanziario non cambia (nessun link di ritorno).</p>
     <aside class="ui-pannello" id="pannello-filtri" aria-label="Pannello dei filtri">
-      <h2>Filtri</h2>
+      <h2>Filtri dei report istituzionali</h2>
       <details class="ui-gruppo-filtro" open>
         <summary>Intervento</summary>
-        <label class="form-label" for="f-cerca">Cerca tra gli interventi</label>
+        <label class="form-label" for="f-cerca">Cerca per codice o descrizione</label>
         <input class="form-control" type="search" id="f-cerca" name="cerca">
-        <label class="ui-opzione" for="f-srd01"><input type="checkbox" id="f-srd01" name="intervento"> SRD01</label>
-        <label class="ui-opzione" for="f-sra01"><input type="checkbox" id="f-sra01" name="intervento"> SRA01</label>
+        <label class="ui-opzione" for="f-srd01"><input type="checkbox" id="f-srd01" name="intervento" checked> SRD01 - descrizione da TX-0060</label>
+        <label class="ui-opzione" for="f-sra01"><input type="checkbox" id="f-sra01" name="intervento"> SRA01 - descrizione da TX-0060</label>
       </details>
       <details class="ui-gruppo-filtro">
-        <summary>Obiettivo specifico, obiettivo generale, obiettivo di policy, azione portante</summary>
-        <p class="form-text">Nessuna voce da proporre: la spec istituzionale non espone i valori di questi filtri (OP-IS-01). Un filtro arrivato con l'indirizzo resta come chip rimovibile.</p>
+        <summary>Obiettivo generale (OG), specifico (OS), di policy (OP)</summary>
+        <button class="ui-toggle-chip" type="button" aria-pressed="false">OG - testo da TX-0060</button> <button class="ui-toggle-chip" type="button" aria-pressed="false">OS4</button> <button class="ui-toggle-chip" type="button" aria-pressed="false">OP - testo da TX-0060</button>
       </details>
-      <p class="form-text">Voci dello stesso filtro in alternativa (O); filtri diversi insieme (E). Le voci di Intervento sono i codici delle righe della risposta; l'Assistenza tecnica AT001 non e' selezionabile.</p>
+      <details class="ui-gruppo-filtro">
+        <summary>Azione portante</summary>
+        <p class="form-text">Non disponibile finche' nessun intervento e' collegato a un'azione portante (legameAzioniDisponibile = falso in TX-0060); altrimenti le azioni portanti con la descrizione.</p>
+      </details>
+      <p class="form-text">Valori da TX-0060 dell'elenco operativo: gli interventi del CSR con la descrizione (senza l'Assistenza tecnica AT001), gli obiettivi e le azioni portanti. Voci dello stesso filtro in alternativa (O); filtri diversi insieme (E). I filtri restano nell'indirizzo della pagina.</p>
       <button class="btn" type="button">Azzera</button> <button class="btn btn-primary" type="button">Applica i filtri</button>
     </aside>
     <form action="#" method="get">
@@ -95,12 +102,13 @@
       <section class="ui-card" aria-labelledby="g-spesa">
         <div class="ui-card__testa">
           <h2 id="g-spesa">Spesa pubblica erogata per intervento (anticipi inclusi)</h2>
-          <div class="ui-seg" role="group" aria-label="Vista di Spesa pubblica erogata per intervento"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica PNG</button></div>
+          <div class="ui-seg" role="group" aria-label="Vista di Spesa pubblica erogata per intervento"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button></div>
+          <div class="ui-strumenti"><button class="btn" type="button" aria-label="Scarica il grafico Spesa pubblica erogata per intervento in PNG">PNG</button> <button class="btn" type="button" aria-label="Scarica i dati della verifica SMP non SIGC in CSV">CSV</button> <button class="btn" type="button" aria-label="Scarica i dati della verifica SMP non SIGC in XLSX">XLSX</button></div>
         </div>
         <figure class="ui-grafico ui-grafico--barre">
           <figcaption>Barre con zoom: spesa pubblica erogata non SIGC per intervento, anticipi inclusi, al lordo dei recuperi. Gli interventi senza valore sono omessi ed elencati sotto il grafico col motivo. Clic su una barra: dettaglio dell'intervento.</figcaption>
         </figure>
-        <p class="ui-fonte">Fonte: TX-0016 (domande e spesa cumulative). La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati. CSV e XLSX non ci sono ancora (OP-IS-03): il PNG e' generato nel browser.</p>
+        <p class="ui-fonte">Fonte: TX-0016 (domande e spesa cumulative). La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati. PNG: l'immagine del grafico disegnata nel browser, con l'intestazione (fonte, filtri, data di estrazione, ultimo dato sincronizzato, profilo, uso interno), non registrata in audit come nel finanziario. CSV e XLSX: i dati del report scritti dal backend con gli stessi filtri e anno, registrati in AUDIT_ESPORTAZIONE.</p>
       </section>
     <section class="ui-card" aria-labelledby="t-smp">
       <div class="ui-card__testa"><h2 id="t-smp">Dati per intervento</h2></div>
@@ -108,7 +116,9 @@
         <label class="form-label" for="s-cerca">Cerca nella tabella</label>
         <input class="form-control" type="search" id="s-cerca" name="s">
         <button class="btn" type="button">Colonne (21)</button>
+        <button class="btn" type="button" aria-label="Scarica i dati della verifica SMP non SIGC in CSV">CSV</button> <button class="btn" type="button" aria-label="Scarica i dati della verifica SMP non SIGC in XLSX">XLSX</button>
       </div>
+      <p class="form-text">I file CSV e XLSX contengono tutti gli interventi dei filtri e tutte le 21 colonne, non solo quelli trovati dalla ricerca o le colonne scelte.</p>
       <table class="ui-tabella">
         <caption>Verifica SMP non SIGC: l'intervento e' l'intestazione di riga; un dato mancante dice il motivo, mai uno 0 o un "no" inventati. Altre colonne con Colonne (21).</caption>
         <thead>
@@ -142,8 +152,12 @@
     <div class="ui-vuoto" role="status">Nessun file SMP non SIGC acquisito: gli indicatori, gli output e i dati dell'avviso sono non valorizzati; domande e spesa sono calcolate dalle pratiche.</div>
     <h2>Stato: vuoto</h2>
     <div class="ui-vuoto" role="status">Nessun intervento per i filtri scelti (per esempio un'azione portante senza interventi collegati). <a class="btn btn-primary" href="#pannello-filtri">Modifica i filtri</a></div>
+    <h2>Stato: valori dei filtri non disponibili</h2>
+    <div class="ui-vuoto" role="status">Valori dei filtri non disponibili (lettura di TX-0060 non riuscita: messaggio dal problem-type). I filtri dell'indirizzo restano applicati come chip rimovibili e il report si legge lo stesso. <a href="#pannello-filtri">Riprova</a></div>
     <h2>Stato: errore</h2>
     <div class="alert alert-danger" role="alert">Dati non disponibili: messaggio dal problem-type (400 dato non valido col nome del filtro, 403 accesso negato, 503 capacita' esaurita con nuovo tentativo dopo Retry-After, 503 tempo scaduto). <a href="#contenuto">Riprova</a></div>
+    <h2>Stato: file non scaricato</h2>
+    <div class="alert alert-danger" role="alert">File CSV non scaricato: messaggio dal problem-type (400 oltre il limite dell'export di 5.000 righe o 50.000 celle: restringi i filtri; 503 esportazione non registrata nel registro di audit o capacita' esaurita: riprova dopo Retry-After). L'esito riuscito si annuncia in role=status: "File CSV scaricato."</div>
   </main>
 </div>
 <footer class="ui-footer">

@@ -6,7 +6,13 @@
     {
       "slice": "istituzionale",
       "path": "handover/openapi-istituzionale.json",
-      "sha256": "sha256:061d52efa18cdbe14bf06f6e9d0d6e33699803637224b3f91b2f85bf25dec70d",
+      "sha256": "sha256:b0c069cf6b6874cc5bcdd6baaa6597db8438bd313c233d22ff7444aa9cb3c288",
+      "manifest_hash_match": true
+    },
+    {
+      "slice": "elenco-operativo",
+      "path": "handover/openapi-elenco-operativo.json",
+      "sha256": "sha256:7532fe3b3708398d1448238ef2fe4df9e3d1037b096325bc23435cb9dc39a4ca",
       "manifest_hash_match": true
     }
   ],
@@ -15,10 +21,12 @@
       "path": "/istituzionale/verifica-smp-non-sigc",
       "kind": "report",
       "transactions": [
-        "TX-0016"
+        "TX-0016",
+        "TX-0060"
       ],
       "reqs": [
-        "RF016"
+        "RF016",
+        "RA006"
       ],
       "roles": [
         "csr.tx-0016.read"
@@ -89,6 +97,14 @@
             "sigc",
             "intervento"
           ]
+        },
+        {
+          "id": "verifica-smp-sigc",
+          "trigger": "Link 'Verifica SMP SIGC' nella frase sotto il titolo ('I dati SIGC per lo stesso confronto sono nel Finanziario'), reso solo a chi ha anche csr.tx-0015.read (p1-dirigente, p2-referente-adg; non a p3-funzionario-area-ist). Decisione G4 dell'utente: nessun filtro portato, perche' l'esercizio finanziario (obbligatorio per TX-0015) e l'anno di riferimento del file (TX-0016) non si traducono e la route del finanziario non dichiara url_params; il finanziario non cambia",
+          "target_feature": "finanziario",
+          "target": "/finanziario/sigc/verifica-smp",
+          "path_params": [],
+          "query": []
         }
       ]
     },
@@ -96,10 +112,12 @@
       "path": "/istituzionale/output-regionale",
       "kind": "report",
       "transactions": [
-        "TX-0017"
+        "TX-0017",
+        "TX-0060"
       ],
       "reqs": [
-        "RF017"
+        "RF017",
+        "RA006"
       ],
       "roles": [
         "csr.tx-0017.read"
@@ -149,11 +167,13 @@
       "kind": "dettaglio",
       "transactions": [
         "TX-0016",
-        "TX-0017"
+        "TX-0017",
+        "TX-0060"
       ],
       "reqs": [
         "RF016",
-        "RF017"
+        "RF017",
+        "RA006"
       ],
       "roles": [
         "csr.tx-0016.read",
@@ -358,6 +378,66 @@
       "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
     },
     {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "ultimiDatiSincronizzati[].flusso",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "ultimiDatiSincronizzati[].conclusoIl",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "interventi[].chiave",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "interventi[].descrizione",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "obiettiviSpecifici[].chiave",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "obiettiviGenerali[]",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "obiettiviPolicy[]",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "azioniPortanti[].chiave",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "azioniPortanti[].descrizione",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "legameAzioniDisponibile",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
       "route": "/istituzionale/output-regionale",
       "name": "annoInizio",
       "provenance": "spec",
@@ -434,6 +514,66 @@
       "name": "righe[].anni[].realizzatoNonSigc",
       "provenance": "spec",
       "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/istituzionale/output-regionale",
+      "name": "ultimiDatiSincronizzati[].flusso",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/istituzionale/output-regionale",
+      "name": "ultimiDatiSincronizzati[].conclusoIl",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/istituzionale/output-regionale",
+      "name": "interventi[].chiave",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/istituzionale/output-regionale",
+      "name": "interventi[].descrizione",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/istituzionale/output-regionale",
+      "name": "obiettiviSpecifici[].chiave",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/istituzionale/output-regionale",
+      "name": "obiettiviGenerali[]",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/istituzionale/output-regionale",
+      "name": "obiettiviPolicy[]",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/istituzionale/output-regionale",
+      "name": "azioniPortanti[].chiave",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/istituzionale/output-regionale",
+      "name": "azioniPortanti[].descrizione",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/istituzionale/output-regionale",
+      "name": "legameAzioniDisponibile",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
     },
     {
       "route": "/istituzionale/interventi/:codice",
@@ -680,6 +820,42 @@
       "name": "righe[].importiUnitari[].importoUnitario",
       "provenance": "spec",
       "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "ultimiDatiSincronizzati[].flusso",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "ultimiDatiSincronizzati[].conclusoIl",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "ultimiDatiSincronizzati[].flusso",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "ultimiDatiSincronizzati[].conclusoIl",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "interventi[].chiave",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "interventi[].descrizione",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
     }
   ],
   "flows": [
@@ -695,6 +871,9 @@
         "Righe apribili con Invio oltre che col clic; intestazioni ordinabili come bottoni con lo stato annunciato; l'intervento e' l'intestazione di riga",
         "Selettore dell'anno con etichetta e testo d'aiuto collegati (aria-describedby); la scelta si applica col pulsante Mostra, non scorrendo le voci",
         "Link 'Apri nell'elenco' e 'Apri nei pagamenti' nelle celle: bersaglio minimo 24 px (WCAG 2.5.8) e testo che dice dove portano",
+        "Scaricamenti per formato come nel finanziario (PNG, CSV e XLSX nella card del grafico, CSV e XLSX in quella della tabella): sigla visibile contenuta nel nome accessibile completo (WCAG 2.5.3); durante la preparazione aria-disabled col focus sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo",
+        "Pill 'Dati al' (ultimiDatiSincronizzati) come bottone col nome accessibile completo ('Ultimo dato sincronizzato: dati al ... per tutti i flussi. Mostra il dettaglio per flusso') e popover con una voce per flusso",
+        "Frase verso la verifica SMP SIGC del finanziario resa solo con csr.tx-0015.read (mai un link che porta a un 403); il testo dice l'area di arrivo",
         "Residuo manuale: ordine di lettura (filtri, anno, grafico, tabella), comprensibilita delle note sulle definizioni, contrasto della resa finale; axe rinviato allo step8"
       ]
     },
@@ -709,6 +888,8 @@
         "Colonne degli anni dalla risposta (annoInizio..annoFine), intestazioni di colonna con scope; l'intervento e' l'intestazione di riga",
         "Drawer di anteprima con focus-trap e ritorno del focus alla riga; il mini grafico ha la tabella equivalente per i lettori di schermo",
         "Unita' di misura sempre accanto al valore (mai un numero senza unita')",
+        "Scaricamenti per formato come nel finanziario (CSV e XLSX nella card della tabella; nessun PNG: la pagina non ha grafici): sigla visibile contenuta nel nome accessibile completo (WCAG 2.5.3); durante la preparazione aria-disabled col focus sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo",
+        "Pill 'Dati al' (ultimiDatiSincronizzati) come bottone col nome accessibile completo ('Ultimo dato sincronizzato: dati al ... per tutti i flussi. Mostra il dettaglio per flusso') e popover con una voce per flusso",
         "Residuo manuale: leggibilita della tabella larga con scorrimento orizzontale (WCAG 1.4.10 reflow), ordine di lettura, contrasto della resa finale; axe rinviato allo step8"
       ]
     },
@@ -722,6 +903,8 @@
         "Schede come tablist con frecce da tastiera; il focus va al titolo dopo il cambio di route",
         "Grafico per anno con la tabella equivalente (anno per anno, valori assenti col motivo); il target di fine periodo e' anche una voce di testo, non solo la linea di riferimento",
         "Voci della verifica SMP come tabella a due colonne con intestazione di riga",
+        "Scaricamenti per formato come nel finanziario (PNG, CSV e XLSX nella scheda Output per anno, CSV e XLSX nella scheda Verifica; il nome accessibile dice anche l'intervento): sigla visibile contenuta nel nome accessibile completo (WCAG 2.5.3); durante la preparazione aria-disabled col focus sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo",
+        "Pill 'Dati al' (ultimiDatiSincronizzati) come bottone col nome accessibile completo ('Ultimo dato sincronizzato: dati al ... per tutti i flussi. Mostra il dettaglio per flusso') e popover con una voce per flusso",
         "Residuo manuale: ordine di lettura di testata, KPI e schede; comprensibilita delle note sulle definizioni; contrasto della resa finale; axe rinviato allo step8"
       ]
     }
@@ -730,27 +913,27 @@
     {
       "id": "OP-IS-01",
       "kind": "campo-assente-dalla-spec",
-      "detail": "Voci dei filtri e descrizione degli interventi: TX-0016 e TX-0017 accettano i filtri intervento, os, og, op, azione (e anno per TX-0016), ma la spec istituzionale non espone le voci selezionabili (interventi con descrizione, obiettivi specifici, generali e di policy, azioni portanti, legame con le azioni disponibile) ne' la descrizione dell'intervento per la testata del dettaglio. Nel finanziario vengono da TX-0001 (csr.tx-0001.read), che il profilo p3-funzionario-area-ist non detiene; TX-0060 e' dell'elenco operativo, un'altra feature (fra feature si comunica solo via URL). Richiesta a green-be: campo ADDITIVO su una risposta esistente della slice (es. valoriFiltri e descrizione su VerificaSmpNonSigc e MonitoraggioOutput), stessa transazione e stesso grant, risigillo della sola slice istituzionale. Finche' manca (proposta da approvare col wireframe): i filtri arrivati con l'indirizzo sono chip rimovibili; il pannello propone come voci di Intervento i codici delle righe della risposta (righe[].codiceIntervento, provenance spec) e la tabella ha la ricerca; obiettivi e azioni portanti non hanno voci da proporre; la testata del dettaglio mostra il solo codice."
+      "detail": "CHIUSO il 22/10/2026 con la decisione G2 dell'utente (21/10/2026, cruscotto-lazio-spec/decisioni/MIN-20261022-decisioni-utente-altri-ambiti.md): le voci del pannello dei filtri (interventi con descrizione, senza l'Assistenza tecnica AT001; obiettivi specifici, generali e di policy; azioni portanti con legameAzioniDisponibile) e la descrizione dell'intervento nella testata del dettaglio vengono da TX-0060 dell'elenco operativo (GET /api/elenco-operativo/filtri, ValoriFiltriElenco, RA006). Nessun campo nuovo nel contratto istituzionale. Come nel fisico (OP-FIS-01): le tre route dichiarano TX-0060 fra le loro transazioni e la slice elenco-operativo e' pinnata nell'handover e in spec_pins (riconciliata col suo manifest, spec sha256:7532fe3b... invariata dal backend); le altre transazioni di quella slice restano dell'elenco (OP-IS-10). Visibilita' delle route invariata (csr.tx-0016.read, csr.tx-0017.read): csr.tx-0060.read e' di tutti gli 11 profili e la visibilita' e' 'almeno un grant', quindi aggiungerlo ai roles aprirebbe le pagine a chi non legge i report; la lettura di TX-0060 e' un'azione hide-by-role con csr.tx-0060.read (step6), che hanno tutti i profili con csr.tx-0016.read o csr.tx-0017.read (p1-dirigente, p2-referente-adg, p3-funzionario-area-ist: perimetro regionale, voci regionali). Realizzazione (step3-api): client generato di TX-0060 in src/shared/api/generated/elenco-operativo, usato da shared senza importare da features/elenco-operativo (uiplan-patterns 7). Se TX-0060 non risponde, i filtri dell'indirizzo restano chip rimovibili, il report si legge lo stesso e la testata del dettaglio mostra il codice. Testo originale in sintesi: voci dei filtri e descrizione dell'intervento assenti dalla spec istituzionale, p3-funzionario-area-ist senza TX-0001; ripiego proposto con le sole voci di Intervento prese dalle righe della risposta."
     },
     {
       "id": "OP-IS-02",
       "kind": "campo-assente-dalla-spec",
-      "detail": "Ultimo dato sincronizzato (NFR-25 b): nessun DTO della slice istituzionale porta ultimiDatiSincronizzati (nel finanziario lo porta TX-0001, nell'elenco TX-0057 e TX-0059). La barra dei filtri dichiara l'anno di riferimento del file SMP NOSIGC (annoRiferimento di TX-0016) e il periodo (annoInizio-annoFine di TX-0017), non la data dell'ultima acquisizione. Richiesta a green-be: campo additivo ultimiDatiSincronizzati (stessa forma di UltimoDatoSincronizzato) su TX-0016 e TX-0017, risigillo della slice. Restano fuori, come nel finanziario (OP-FE-04), il marcatore 'dato non aggiornato da N giorni' di NFR-25 (c)."
+      "detail": "CHIUSO il 22/10/2026 dal giro G3 del backend (decisione G3): TX-0016 e TX-0017 portano ultimiDatiSincronizzati (UltimoDatoSincronizzato: flusso, conclusoIl), lo stesso elenco di TX-0001 anche per p3-funzionario-area-ist che TX-0001 non lo legge (SC-IS_ULTIMO_DATO). Ogni pagina della feature mostra la pill 'Dati al' come il finanziario e l'elenco (la conclusione meno recente, popover per flusso; 'nessuna acquisizione conclusa' con l'elenco vuoto); il dettaglio la prende dalla prima risposta arrivata fra TX-0016 e TX-0017. Resta fuori, come nel finanziario (OP-FE-04), il marcatore 'dato non aggiornato da N giorni' di NFR-25 (c). Testo originale in sintesi: nessun DTO della slice portava ultimiDatiSincronizzati; la barra mostrava solo anno di riferimento e periodo."
     },
     {
       "id": "OP-IS-03",
       "kind": "altro",
-      "detail": "Esportazione: la spec istituzionale non ha le esportazioni CSV e XLSX ({formato}) che il finanziario ha per ogni report (TX-0015 compresa), registrate in AUDIT_ESPORTAZIONE (NFR-34) con l'intestazione di NFR-50. Per la coerenza col finanziario (un pulsante per formato) servono a green-be GET /api/istituzionale/verifica-smp-non-sigc/{formato} e /api/istituzionale/output-regionale/{formato}, risigillo della slice. Finche' mancano: nessun pulsante CSV o XLSX; i wireframe propongono il solo PNG del grafico generato nel browser, con lo stesso limite di OP-FE-08 (non registrato in audit) e senza l'ultimo dato sincronizzato nell'intestazione (OP-IS-02). Da decidere: PNG nel frattempo, oppure nessuno scaricamento fino agli endpoint."
+      "detail": "CHIUSO il 22/10/2026 dal giro G3 del backend: GET /api/istituzionale/verifica-smp-non-sigc/{formato} e /api/istituzionale/output-regionale/{formato} (csv, xlsx; stessi filtri e stesso grant della transazione; X-Requested-With; intestazione di NFR-50 con l'ultimo dato sincronizzato; una riga di AUDIT_ESPORTAZIONE per file; D-07 di istituzionale, SC-IS_ESPORTA). Come nel finanziario un pulsante per formato: PNG solo per i grafici (card della verifica, scheda Output per anno del dettaglio), disegnato nel browser con l'intestazione e non registrato in audit (stesso limite accettato di OP-FE-08); CSV e XLSX nelle card dei grafici e delle tabelle; l'output regionale, senza grafico in pagina, ha solo CSV e XLSX. I file contengono tutti gli interventi dei filtri (non la sola ricerca) e, per TX-0017, le tre misure per anno e gli importi unitari. Testo originale in sintesi: nessuna esportazione nella spec, proposto il solo PNG."
     },
     {
       "id": "OP-IS-04",
       "kind": "altro",
-      "detail": "Collegamento con la verifica SMP SIGC del finanziario (TX-0015, /finanziario/sigc/verifica-smp, flusso sigc approvato): NON dichiarato come link, da far decidere all'utente. RF015 (SIGC) e RF016 (non SIGC) sono la stessa verifica APR su due ambiti e la card dell'ambito Istituzionale li elenca insieme. Raggiungibilita': csr.tx-0015.read e' di p1, p2, p3-fin, p4, p5; csr.tx-0016.read di p1, p2, p3-ist: il link servirebbe solo a p1 e p2 e va nascosto agli altri (gate di UX). I parametri non si traducono: TX-0015 vuole l'esercizio finanziario (obbligatorio), TX-0016 l'anno di riferimento del file (facoltativo); la route del finanziario non dichiara url_params, quindi il link porterebbe query vuota (i filtri non passano senza un refresh del finanziario). Opzioni: (A) link solo da qui verso il finanziario, visibile con csr.tx-0015.read, query vuota; (B) link nei due sensi: serve un refresh della feature finanziario (route verifica-smp con il link e, se si vogliono i filtri, i suoi url_params) e la riapprovazione del flusso sigc; (C) nessun link, solo una frase che dice dove sono i dati SIGC."
+      "detail": "CHIUSO il 22/10/2026 con la decisione G4 dell'utente (opzione A): link verifica-smp-sigc dalla verifica SMP non SIGC verso /finanziario/sigc/verifica-smp (feature finanziario, flusso sigc approvato), in una frase sotto il titolo resa solo a chi ha anche csr.tx-0015.read (p1-dirigente, p2-referente-adg; non a p3-funzionario-area-ist); query vuota, perche' l'esercizio finanziario (obbligatorio per TX-0015) e l'anno di riferimento del file (facoltativo per TX-0016) non si traducono e la route del finanziario non dichiara url_params. Il finanziario non cambia: nessun link di ritorno, nessuna riapprovazione del flusso sigc. Testo originale in sintesi: collegamento fra le due verifiche SMP da far decidere, opzioni A (solo da qui), B (nei due sensi, refresh del finanziario), C (nessun link)."
     },
     {
       "id": "OP-IS-05",
       "kind": "altro",
-      "detail": "Card dell'ambito in src/app/aree.ts (la tocca lo step6, non questa feature): (1) Istituzionale 'Dati ASR SIGC e non SIGC da confrontare con SMP': qui si rende solo il non SIGC (TX-0016); il SIGC (TX-0015, RF015, area 'I - Istituzionale' nel pack) e' nella slice e nella feature finanziario, e la card del Finanziario lo elenca gia' ('SIGC, riserva di efficacia e verifica SMP'); (2) Istituzionale 'Output regionale per intervento' = TX-0017, reso qui, ma RF017 nel pack e' dell'area 'F2 - Fisico' e la card del Fisico dichiara 'Output programmato e realizzato dal 2023 al 2029' (e 'Pagamenti per Unit Amount'), che non sono nella slice fisico (TX-0018, TX-0020); (3) 'Avvisi attivati e chiusi, concessioni previste' e' coperto da TX-0016. Da decidere con l'utente: testi delle due card e, se serve, il rimando fra le aree."
+      "detail": "CHIUSO il 22/10/2026 con la decisione G1 dell'utente: le card della Home in src/app/aree.ts descrivono il contenuto reale delle feature. Istituzionale = verifica SMP non SIGC (TX-0016) e output regionale programmato e realizzato (TX-0017); i dati SIGC da confrontare con SMP restano nella feature e nella card Finanziario (TX-0015), raggiungibili dal link G4; la card del Fisico non elenca piu' l'output programmato e realizzato (Fisico = superfici TX-0018 e determine TX-0020). La Home e' del layer app/: la modifica la fa lo step6 (uiplan-patterns 7), non questa feature; le voci di menu dell'area (Verifica SMP non SIGC, Output regionale) vengono dalle route della feature. Testo originale in sintesi: testi delle card Istituzionale e Fisico diversi dalle slice (SIGC nel finanziario, RF017 dell'area F2 nel pack ma TX-0017 nella slice istituzionale)."
     },
     {
       "id": "OP-IS-06",
@@ -771,6 +954,18 @@
       "id": "OP-IS-09",
       "kind": "altro",
       "detail": "Drill-down verso l'elenco operativo (link elenco-ricevute-riga, elenco-spesa-riga, elenco-ricevute-intervento, elenco-spesa-intervento): la coincidenza dei numeri vale per definizione (D-05 del backend: ricevute = domande correnti di SOSTEGNO, cioe' TX-0056 con tipo=SOSTEGNO; spesa erogata non SIGC = righe PAGATA la cui domanda non soddisfa il predicato SIGC dei pagamenti, cioe' TX-0059 con esito=PAGATA e sigc=false, regola dei pagamenti D-07 Rev. 1), ma nessuno scenario del backend la verifica, a differenza di SC-EO_DRILLDOWN per i link del finanziario. Non collegati perche' l'elenco non li riproduce: domande finanziate (servirebbe ammessoDa=0.01, soglia artificiosa), domande pagate solo saldate (nessun parametro per il saldo), anticipi erogati (TX-0059 non filtra per tipologia di pagamento). Da decidere: tenere i quattro link, oppure chiedere a green-be di estendere SC-EO_DRILLDOWN a tipo=SOSTEGNO e a sigc=false sui pagamenti e rendere i link solo dopo (open point che li blocca)."
+    },
+    {
+      "id": "OP-IS-10",
+      "kind": "coperta-da-altra-feature",
+      "feature": "elenco-operativo",
+      "detail": "La slice elenco-operativo e' pinnata solo per TX-0060 (valori dei filtri e descrizione dell'intervento, decisione G2, OP-IS-01): le sue altre transazioni (elenco delle domande, sinottico, scheda della domanda, elenco dei pagamenti) le rende la feature elenco-operativo nelle sue route approvate; qui si raggiungono solo coi link dichiarati elenco-ricevute-riga, elenco-spesa-riga, elenco-ricevute-intervento ed elenco-spesa-intervento. Stessa delega del fisico (OP-FIS-09).",
+      "blocks": [
+        "TX-0056",
+        "TX-0057",
+        "TX-0058",
+        "TX-0059"
+      ]
     }
   ]
 }

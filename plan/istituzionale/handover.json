@@ -15,9 +15,18 @@
     {
       "slice": "istituzionale",
       "spec_path": "handover/openapi-istituzionale.json",
-      "spec_sha256": "sha256:061d52efa18cdbe14bf06f6e9d0d6e33699803637224b3f91b2f85bf25dec70d",
+      "spec_sha256": "sha256:b0c069cf6b6874cc5bcdd6baaa6597db8438bd313c233d22ff7444aa9cb3c288",
       "manifest_path": "handover/slices/istituzionale/manifest.json",
-      "manifest_openapi_hash": "sha256:061d52efa18cdbe14bf06f6e9d0d6e33699803637224b3f91b2f85bf25dec70d",
+      "manifest_openapi_hash": "sha256:b0c069cf6b6874cc5bcdd6baaa6597db8438bd313c233d22ff7444aa9cb3c288",
+      "manifest_hash_match": true,
+      "backend_gates_ok": true
+    },
+    {
+      "slice": "elenco-operativo",
+      "spec_path": "handover/openapi-elenco-operativo.json",
+      "spec_sha256": "sha256:7532fe3b3708398d1448238ef2fe4df9e3d1037b096325bc23435cb9dc39a4ca",
+      "manifest_path": "handover/slices/elenco-operativo/manifest.json",
+      "manifest_openapi_hash": "sha256:7532fe3b3708398d1448238ef2fe4df9e3d1037b096325bc23435cb9dc39a4ca",
       "manifest_hash_match": true,
       "backend_gates_ok": true
     }
