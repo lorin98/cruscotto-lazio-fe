@@ -1,5 +1,25 @@
 # Review step9 FULL — feature fisico
 
+## v1 iterazione 2 (22/10/2026): PASS, score 91
+
+Esito meccanico (`review-score.sh FULL review/fisico-findings-iter2.json`): 0 CRITICO, 0 MAGGIORE, 2 MINORE, 3 COSMETICO,
+score 91/80, su f6140ad (correzioni 691ad34..88ed136, wireframe superfici riapprovato in ed992a5, step8 11/11 per fisico,
+finanziario ed elenco). Gate non declassabili verdi (`check-ui-authz.sh`, `fe-project-check.sh --built --catalog`). Lenti V (0),
+H (4), A (1), antagonista (1) e Judge in `review/fisico/v1-iter2/`. I 14 finding dell'iterazione 1 sono risolti; nessuna
+regressione in finanziario ed elenco. Rigettato X1 (vuoto senza `key` sui criteri: cambia solo il nodo del DOM, il focus resta
+sull'h1); la parte sui commenti entra in A1.
+
+Residui da correggere dopo il verdetto (come nel finanziario v4), in commit separati, poi step8 delle tre feature:
+- **A1** (MINORE) 'Applica i filtri' senza modifiche dal pannello aperto dallo stato vuoto porta il focus sull'h1 anche se 'Modifica i filtri' resta — `src/features/fisico/ui/SuperficiAmmissibili.tsx:102`.
+- **H1** (MINORE) `useFocusDopoIlTogli` dell'elenco ripete `useFocusDopoIlCambio` del kit — `src/features/elenco-operativo/ui/PannelloFiltriElenco.tsx:97`.
+- **H2** (COSMETICO) `VoceLike` e `ValoriProgramma` dichiarati nel componente invece che in `entities/filtri/lib/programma.ts` — `src/entities/filtri/ui/GruppiProgramma.tsx:15`.
+- **H3** (COSMETICO) Riesportazioni morte `filtriAttivi`, `senzaValore`, `FiltroAttivo` nel lib del finanziario — `src/features/finanziario/lib/filtri.ts:14`.
+- **H4** (COSMETICO) `ettari` fra le primitive dei grafici invece che accanto a `formatEttari` — `src/shared/lib/grafici/primitive.ts:81`.
+
+Nota fuori dai finding (antagonista): la riapprovazione del wireframe superfici (ed992a5, 12:36:17Z) ha tenuto
+`time_to_approve_s: 218` della prima approvazione; il tempo misurato dalla domanda (11:32:00Z) alla risposta (12:36:01Z) e' 3841 s.
+Non corretto: la modifica del registro dell'approvazione e' lasciata all'utente.
+
 ## v1 iterazione 1 (22/10/2026): FAIL, score 50
 
 Esito meccanico (review-score.sh): 0 CRITICO, 1 MAGGIORE, 11 MINORE, 2 COSMETICO, score 50/80 (FULL), su 9aeeccd (step2-7
