@@ -7,7 +7,9 @@
 // (CSV e XLSX della campagna della card nelle card della campagna di riferimento: scelta approvata il 22/10/2026), oppure
 // la tabella interattiva coi totali per campagna; anteprima dell'intervento nel drawer. UNA lettura di TX-0018 per pagina,
 // coi criteri dell'indirizzo. Stati: caricamento (scheletro), errore (un solo avviso della pagina, problem-type), vuoto
-// (nessun intervento; nessuna superficie, mai una pagina di zeri) e valori dei filtri non disponibili (nel pannello).
+// (nessun intervento; nessuna superficie, mai una pagina di zeri: con il filtro Campagna detto di quella campagna, D1) e
+// valori dei filtri non disponibili (nel pannello). La campagna della risposta (null = letta senza filtro) decide i testi
+// degli interventi senza superfici in tabella, nelle note dei grafici e nell'anteprima (V1 della review del fisico).
 // Nessun link verso altre pagine (OP-FIS-05): il clic apre l'anteprima o mette un filtro della stessa pagina.
 // Design system: classi bootstrap-italia e del kit v2 (card, KPI, bottoni, interruttore con aria-pressed); i primitivi
 // react-aria stanno solo dentro i componenti del kit che li richiedono (pannello e drawer modali, popover della pill).
@@ -37,7 +39,7 @@ import type { SuperficieAmmissibile } from '../api';
 import type { InterventoSuperficie } from '../lib/dto';
 import { campagnaDaTesto, conCampagna, ricercaDaCriteri, soloIntervento, testiCriteri } from '../lib/criteri';
 import type { Criteri } from '../lib/criteri';
-import { testoDifferenza, testoPerimetro, testoQuantitaPremio, testoQuotaOltreDs, testoSuperficie } from '../lib/formato';
+import { testoDifferenza, testoNessunaSuperficie, testoPerimetro, testoQuantitaPremio, testoQuotaOltreDs, testoSuperficie } from '../lib/formato';
 import { graficoPerCampagna, graficoPerIntervento, graficoVerifica } from '../lib/grafici';
 import { PERCORSI } from '../lib/pagine';
 import { campagnaDi, campagnePresenti, esitoSuperfici, quotaDpOltreDs, totaliCampagna, totaliPerCampagna } from '../lib/superfici';
@@ -130,9 +132,9 @@ interface PropsGrafici {
 
 /** Le tre card grafico della vista Grafico. */
 function Grafici({ d, criteri, campagna, onIntervento, onCampagna }: PropsGrafici) {
-  const perIntervento = useMemo(() => graficoPerIntervento(d.righe, campagna), [d.righe, campagna]);
+  const perIntervento = useMemo(() => graficoPerIntervento(d.righe, campagna, d.campagna), [d.righe, campagna, d.campagna]);
   const perCampagna = useMemo(() => graficoPerCampagna(totaliPerCampagna(d.righe), criteri.campagna), [d.righe, criteri.campagna]);
-  const verifica = useMemo(() => graficoVerifica(d.righe, campagna), [d.righe, campagna]);
+  const verifica = useMemo(() => graficoVerifica(d.righe, campagna, d.campagna), [d.righe, campagna, d.campagna]);
   const dellaCampagna = conCampagna(criteri, campagna);
   const titoloIntervento = `Superficie DS e DP per intervento, campagna ${campagna}`;
   const titoloVerifica = `Verifica incrociata: differenza DP - DS per intervento, campagna ${campagna}`;
@@ -199,10 +201,9 @@ function Report({ d, criteri, vista, onVista, applica, onModificaFiltri, descriz
   const [aperto, setAperto] = useState<string | null>(null);
   const esito = esitoSuperfici(d.righe, criteri.campagna);
   if (esito.tipo !== 'dati') {
-    const dove = esito.tipo === 'senza-superfici' && esito.campagna !== null ? ` nella campagna ${esito.campagna}` : '';
     return (
       <Vuoto>
-        <VuotoConFiltri onModifica={onModificaFiltri}>{`Nessuna superficie per gli interventi scelti${dove}: gli interventi non sono a superficie o non sono SIGC (non valorizzato).`}</VuotoConFiltri>
+        <VuotoConFiltri onModifica={onModificaFiltri}>{testoNessunaSuperficie(esito.tipo === 'senza-superfici' ? esito.campagna : null)}</VuotoConFiltri>
       </Vuoto>
     );
   }
@@ -214,7 +215,7 @@ function Report({ d, criteri, vista, onVista, applica, onModificaFiltri, descriz
         {/* interruttore di pagina: quello del kit, nello stesso ordine Grafico | Tabella di ogni card */}
         <InterruttoreVista etichetta="Vista delle superfici" vista={vista} onVista={onVista} className="mb-3" />
         {vista === 'tabella' ? (
-          <TabellaSuperfici righe={d.righe} criteri={criteri} onRiga={setAperto} />
+          <TabellaSuperfici righe={d.righe} campagnaRisposta={d.campagna} criteri={criteri} onRiga={setAperto} />
         ) : (
           <Grafici d={d} criteri={criteri} campagna={esito.campagna} onIntervento={setAperto} onCampagna={(anno) => applica(conCampagna(criteri, anno))} />
         )}
@@ -222,6 +223,7 @@ function Report({ d, criteri, vista, onVista, applica, onModificaFiltri, descriz
       <AnteprimaIntervento
         riga={riga}
         campagna={esito.campagna}
+        campagnaRisposta={d.campagna}
         descrizione={riga ? descrizioneDi(riga.codiceIntervento) : undefined}
         onChiudi={() => setAperto(null)}
         onMostraSolo={(codice) => {

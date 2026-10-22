@@ -1,6 +1,6 @@
 // TabellaSuperfici — vista Tabella delle superfici (flusso superfici approvato): TabellaInterattiva del kit (cerca, ordina,
 // colonne, paginazione), una riga per intervento e campagna con tutte le campagne della risposta, un intervento senza
-// superfici in una riga sola col motivo (mai zeri), un totale per campagna nel piede calcolato sulle righe trovate e nessun
+// superfici in una riga sola col motivo (mai zeri; con il filtro Campagna "nella campagna N", mai "in nessuna campagna"), un totale per campagna nel piede calcolato sulle righe trovate e nessun
 // totale generale (le campagne non si sommano, D-01), CSV e XLSX di TX-0018 coi filtri della pagina negli strumenti, riga
 // apribile (clic o Invio) verso l'anteprima dell'intervento. Tabella HTML nativa del kit (caption, th scope, aria-sort):
 // nessuna griglia react-aria, che qui non serve (niente selezione ne' modifica di celle).
@@ -11,7 +11,7 @@ import { PulsantiScarica, TabellaInterattiva } from '../../../shared/ui';
 import type { ColonnaTabella, RigaPiede } from '../../../shared/ui';
 import type { CriteriSuperfici } from '../api';
 import type { InterventoSuperficie } from '../lib/dto';
-import { ETICHETTE, SENZA_SUPERFICI, cellaDifferenza, cellaSuperficie } from '../lib/formato';
+import { ETICHETTE, cellaDifferenza, cellaSuperficie, testoSenzaSuperfici } from '../lib/formato';
 import { interventiDelleRighe, righeTabella, totaliPerCampagna } from '../lib/superfici';
 import type { RigaSuperficie, TotaliCampagna } from '../lib/superfici';
 import { scaricamentiSuperfici } from './esportazioni';
@@ -39,7 +39,7 @@ const ettari = (chiave: CampoEttari): ColonnaTabella<RigaSuperficie> => ({
 
 const COLONNE: ColonnaTabella<RigaSuperficie>[] = [
   { chiave: 'intervento', titolo: ETICHETTE.intervento, valore: (r) => r.codiceIntervento, fissa: true },
-  { chiave: 'campagna', titolo: ETICHETTE.campagna, valore: (r) => r.campagna?.anno ?? null, resa: (r) => (r.campagna ? String(r.campagna.anno) : SENZA_SUPERFICI) },
+  { chiave: 'campagna', titolo: ETICHETTE.campagna, valore: (r) => r.campagna?.anno ?? null, resa: (r) => (r.campagna ? String(r.campagna.anno) : testoSenzaSuperfici(r.campagnaRisposta)) },
   numero('domandePagamento'),
   numero('domandeSostegno'),
   ettari('superficieDs'),
@@ -78,8 +78,16 @@ function totali(righe: readonly RigaSuperficie[]): RigaPiede[] {
 
 const testoRicerca = (r: RigaSuperficie) => `${r.codiceIntervento} ${r.campagna?.anno ?? ''}`;
 
-export function TabellaSuperfici({ righe, criteri, onRiga }: { righe: readonly InterventoSuperficie[]; criteri: CriteriSuperfici; onRiga: (codice: string) => void }) {
-  const righeDellaTabella = useMemo(() => righeTabella(righe), [righe]);
+interface PropsTabella {
+  righe: readonly InterventoSuperficie[];
+  /** La campagna della risposta (null = letta senza il filtro Campagna). */
+  campagnaRisposta: number | null;
+  criteri: CriteriSuperfici;
+  onRiga: (codice: string) => void;
+}
+
+export function TabellaSuperfici({ righe, campagnaRisposta, criteri, onRiga }: PropsTabella) {
+  const righeDellaTabella = useMemo(() => righeTabella(righe, campagnaRisposta), [righe, campagnaRisposta]);
   return (
     <>
       <TabellaInterattiva

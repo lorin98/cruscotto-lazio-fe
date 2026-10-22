@@ -65,6 +65,30 @@ export const SUPERFICI_SENZA: SuperficieAmmissibile = {
   ultimiDatiSincronizzati: ULTIMI,
 };
 
+/**
+ * La risposta di TX-0018 che il backend darebbe ai criteri della query, come il mock del dev server (review del fisico V2):
+ * solo gli interventi richiesti; con la campagna le sole superfici di quella e, per gli interventi che non ne hanno, campagne
+ * vuote e NON_VALORIZZATO anche se ne hanno in altre campagne (SC-FS_SUPERFICIE_CAMPAGNA). Gli altri filtri del programma
+ * non si simulano: le fixture non hanno le dimensioni del programma.
+ */
+export function superficiPer(corpo: SuperficieAmmissibile, ricerca: string | URLSearchParams): SuperficieAmmissibile {
+  const p = typeof ricerca === 'string' ? new URLSearchParams(ricerca) : ricerca;
+  const interventi = p.getAll('intervento');
+  const testo = p.get('campagna');
+  const anno = testo === null ? null : Number(testo);
+  const righe = corpo.righe
+    .filter((r) => interventi.length === 0 || interventi.includes(r.codiceIntervento))
+    .map((r) => {
+      if (anno === null) return r;
+      const campagne = r.campagne.filter((c) => c.anno === anno);
+      return { ...r, campagne, motivo: campagne.length === 0 ? 'NON_VALORIZZATO' : null };
+    });
+  return { ...corpo, campagna: anno, righe };
+}
+
+/** SUPERFICI_TRE letta con ?campagna=2024: SRB02 (superfici solo nel 2025) e SRA29 con campagne vuote e NON_VALORIZZATO. */
+export const SUPERFICI_TRE_2024: SuperficieAmmissibile = superficiPer(SUPERFICI_TRE, '?campagna=2024');
+
 /** SC-FS_DETERMINA: G00003 corrente, G00002 fonte del comparto, G00001 fonte dello stato area programmazione. */
 export const DETERMINE: DetermineDomanda = {
   codiceABarre: '54810769585',

@@ -14,16 +14,19 @@ import { problema } from '../src/shared/testing/msw';
 import { renderPagina } from '../src/shared/testing/render-pagina';
 import { renderConQuery } from '../src/shared/testing/render';
 import { DetermineDellaDomanda, SuperficiAmmissibili } from '../src/features/fisico';
-import { DETERMINE, SUPERFICI, VALORI } from '../src/features/fisico/testing/fixture';
+import { DETERMINE, SUPERFICI, VALORI, superficiPer } from '../src/features/fisico/testing/fixture';
+import type { SuperficieAmmissibile } from '../src/features/fisico/api';
 
 const testo = (s: string | null | undefined) => (s ?? '').replace(/\s/g, ' ');
 
-function serviSuperfici(corpo: object = SUPERFICI, valori: object | null = VALORI) {
+/** TX-0018 risponde come il backend ai criteri della query (review V2); TX-0060 coi valori, oppure in errore (null). */
+function serviSuperfici(corpo: SuperficieAmmissibile = SUPERFICI, valori: object | null = VALORI) {
   const lette: string[] = [];
   server.use(
     http.get('*/api/fisico/superficie-ammissibile', ({ request }) => {
-      lette.push(new URL(request.url).search);
-      return HttpResponse.json(corpo);
+      const u = new URL(request.url);
+      lette.push(u.search);
+      return HttpResponse.json(superficiPer(corpo, u.searchParams));
     }),
     http.get('*/api/elenco-operativo/filtri', () => (valori ? HttpResponse.json(valori) : HttpResponse.json(problema(503, 'CAPACITA_ESAURITA'), { status: 503 }))),
   );

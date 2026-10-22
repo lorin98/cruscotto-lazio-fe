@@ -73,17 +73,28 @@ export function quotaDpOltreDs(t: Pick<TotaliCampagna, 'domandeDpOltreDs' | 'dom
   return t.domandePagamento > 0 ? percentuale(t.domandeDpOltreDs, t.domandePagamento) : null;
 }
 
-/** Perche' un intervento manca da un grafico della campagna: nessuna superficie in nessuna campagna, o non in questa. */
+/**
+ * Perche' un intervento manca dai grafici della campagna: nessuna superficie in nessuna campagna (risposta letta senza il
+ * filtro Campagna: intervento non a superficie o non SIGC), superfici solo in altre campagne della risposta, oppure nessuna
+ * superficie nella campagna filtrata. Con il filtro la risposta ha le sole superfici di quella campagna e NON_VALORIZZATO
+ * per ogni altro intervento scelto, anche se ne ha in altre campagne (SC-FS_SUPERFICIE_CAMPAGNA): mai "in nessuna campagna".
+ */
+export type MotivoSenzaSuperfici = 'nessuna-campagna' | 'non-in-campagna' | 'campagna-filtrata';
+
 export interface InterventoSenzaSuperfici {
   codice: string;
-  motivo: 'nessuna-campagna' | 'non-in-campagna';
+  motivo: MotivoSenzaSuperfici;
+}
+
+/** Il motivo per un intervento senza superfici nella campagna; `campagnaRisposta`: la campagna della risposta (null = tutte). */
+export function motivoSenzaSuperfici(riga: InterventoSuperficie, campagnaRisposta: number | null): MotivoSenzaSuperfici {
+  if (riga.campagne.length > 0) return 'non-in-campagna';
+  return campagnaRisposta === null ? 'nessuna-campagna' : 'campagna-filtrata';
 }
 
 /** Gli interventi fuori dai grafici della campagna `anno`, nell'ordine della risposta (codice). */
-export function senzaSuperfici(righe: readonly InterventoSuperficie[], anno: number): InterventoSenzaSuperfici[] {
-  return righe
-    .filter((r) => campagnaDi(r, anno) === undefined)
-    .map((r) => ({ codice: r.codiceIntervento, motivo: r.campagne.length === 0 ? 'nessuna-campagna' : 'non-in-campagna' }));
+export function senzaSuperfici(righe: readonly InterventoSuperficie[], anno: number, campagnaRisposta: number | null): InterventoSenzaSuperfici[] {
+  return righe.filter((r) => campagnaDi(r, anno) === undefined).map((r) => ({ codice: r.codiceIntervento, motivo: motivoSenzaSuperfici(r, campagnaRisposta) }));
 }
 
 /** Una riga della tabella: un intervento in una campagna, oppure l'intervento senza superfici (campagna null). */
@@ -93,15 +104,20 @@ export interface RigaSuperficie {
   campagna: CampagnaSuperficie | null;
   /** Motivo dell'assenza della riga senza campagna (NON_VALORIZZATO). */
   motivo: string | null;
+  /** La campagna della risposta (null = letta senza il filtro Campagna): dice il testo della riga senza superfici. */
+  campagnaRisposta: number | null;
 }
 
 /** Una riga per intervento e campagna (come il file CSV e XLSX di D-06); un intervento senza superfici ha una riga sola. */
-export function righeTabella(righe: readonly InterventoSuperficie[]): RigaSuperficie[] {
-  return righe.flatMap((r): RigaSuperficie[] =>
-    r.campagne.length === 0
-      ? [{ chiave: r.codiceIntervento, codiceIntervento: r.codiceIntervento, campagna: null, motivo: r.motivo ?? 'NON_VALORIZZATO' }]
-      : r.campagne.map((c) => ({ chiave: `${r.codiceIntervento}:${c.anno}`, codiceIntervento: r.codiceIntervento, campagna: c, motivo: null })),
-  );
+export function righeTabella(righe: readonly InterventoSuperficie[], campagnaRisposta: number | null): RigaSuperficie[] {
+  const riga = (r: InterventoSuperficie, c: CampagnaSuperficie | null): RigaSuperficie => ({
+    chiave: c ? `${r.codiceIntervento}:${c.anno}` : r.codiceIntervento,
+    codiceIntervento: r.codiceIntervento,
+    campagna: c,
+    motivo: c ? null : (r.motivo ?? 'NON_VALORIZZATO'),
+    campagnaRisposta,
+  });
+  return righe.flatMap((r) => (r.campagne.length === 0 ? [riga(r, null)] : r.campagne.map((c) => riga(r, c))));
 }
 
 /** Le righe della tabella riportate agli interventi (per i totali sulle righe trovate dalla ricerca). */

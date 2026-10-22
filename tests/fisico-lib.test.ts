@@ -16,7 +16,20 @@ import {
   totaliCampagna,
   totaliPerCampagna,
 } from '../src/features/fisico/lib/superfici';
-import { SENZA_SUPERFICI, cellaDifferenza, cellaSuperficie, testoDifferenza, testoNonInCampagna, testoQuantitaPremio, testoQuotaOltreDs, testoSuperficie } from '../src/features/fisico/lib/formato';
+import {
+  SENZA_SUPERFICI,
+  cellaDifferenza,
+  cellaSuperficie,
+  fonteLineaIntervento,
+  testoDifferenza,
+  testoNessunaSuperficie,
+  testoNonInCampagna,
+  testoNonNellaCampagnaFiltrata,
+  testoQuantitaPremio,
+  testoQuotaOltreDs,
+  testoSenzaSuperfici,
+  testoSuperficie,
+} from '../src/features/fisico/lib/formato';
 import { MOTIVO_CON_CAMPAGNA, graficoInterventoPerCampagna, graficoPerCampagna, graficoPerIntervento, graficoVerifica, lineePerCampagna } from '../src/features/fisico/lib/grafici';
 import {
   MAX_CIFRE,
@@ -35,7 +48,7 @@ import {
 } from '../src/features/fisico/lib/determine';
 import { GRANT, puoLeggere } from '../src/features/fisico/lib/grant';
 import { PAGINE_FISICO, PERCORSI, pagineVisibili } from '../src/features/fisico/lib/pagine';
-import { DETERMINE, DETERMINE_CHIUSA, DETERMINE_NESSUNA, SUPERFICI, SUPERFICI_SENZA, SUPERFICI_TRE } from '../src/features/fisico/testing/fixture';
+import { DETERMINE, DETERMINE_CHIUSA, DETERMINE_NESSUNA, SUPERFICI, SUPERFICI_SENZA, SUPERFICI_TRE, SUPERFICI_TRE_2024, superficiPer } from '../src/features/fisico/testing/fixture';
 
 // gli spazi del formato it-IT sono non separabili: si confronta con spazi normali
 const n = (s: string | undefined) => (s ?? '').replace(/\s/g, ' ');
@@ -122,18 +135,42 @@ describe('RF018: superfici per campagna (le campagne non si sommano, D-01)', () 
   });
 
   it('interventi senza superfici: in nessuna campagna o non in quella scelta', () => {
-    expect(senzaSuperfici(SUPERFICI_TRE.righe, 2025)).toEqual([
+    expect(senzaSuperfici(SUPERFICI_TRE.righe, 2025, null)).toEqual([
       { codice: 'SRA29', motivo: 'nessuna-campagna' },
       { codice: 'SRB03', motivo: 'non-in-campagna' },
     ]);
   });
 
+  it('con il filtro Campagna un intervento con campagne vuote e non nella campagna filtrata, mai in nessuna campagna (V1)', () => {
+    // la risposta filtrata: SRB02 ha superfici solo nel 2025, ma col filtro 2024 ha campagne vuote e NON_VALORIZZATO
+    expect(SUPERFICI_TRE_2024.campagna).toBe(2024);
+    expect(SUPERFICI_TRE_2024.righe.find((r) => r.codiceIntervento === 'SRB02')).toMatchObject({ campagne: [], motivo: 'NON_VALORIZZATO' });
+    expect(senzaSuperfici(SUPERFICI_TRE_2024.righe, 2024, 2024)).toEqual([
+      { codice: 'SRA29', motivo: 'campagna-filtrata' },
+      { codice: 'SRB02', motivo: 'campagna-filtrata' },
+    ]);
+    expect(righeTabella(SUPERFICI_TRE_2024.righe, 2024).filter((r) => r.campagna === null).map((r) => [r.codiceIntervento, r.campagnaRisposta])).toEqual([
+      ['SRA29', 2024],
+      ['SRB02', 2024],
+    ]);
+  });
+
+  it('la risposta filtrata dei test: interventi richiesti e la sola campagna richiesta (forma del contratto, V2)', () => {
+    const r = superficiPer(SUPERFICI_TRE, '?intervento=SRB01&intervento=SRB03&campagna=2025');
+    expect(r.campagna).toBe(2025);
+    expect(r.righe.map((x) => [x.codiceIntervento, x.campagne.map((c) => c.anno), x.motivo])).toEqual([
+      ['SRB01', [2025], null],
+      ['SRB03', [], 'NON_VALORIZZATO'],
+    ]);
+    expect(superficiPer(SUPERFICI, '')).toEqual(SUPERFICI);
+  });
+
   it('righe della tabella: una per intervento e campagna; l intervento senza superfici ha una riga sola', () => {
-    const righe = righeTabella(SUPERFICI.righe);
-    expect(righe.map((r) => [r.chiave, r.campagna?.anno ?? null, r.motivo])).toEqual([
-      ['SRA29', null, 'NON_VALORIZZATO'],
-      ['SRB01:2024', 2024, null],
-      ['SRB01:2025', 2025, null],
+    const righe = righeTabella(SUPERFICI.righe, null);
+    expect(righe.map((r) => [r.chiave, r.campagna?.anno ?? null, r.motivo, r.campagnaRisposta])).toEqual([
+      ['SRA29', null, 'NON_VALORIZZATO', null],
+      ['SRB01:2024', 2024, null, null],
+      ['SRB01:2025', 2025, null, null],
     ]);
     // dalle righe (anche solo quelle trovate dalla ricerca) si torna agli interventi per i totali per campagna
     expect(interventiDelleRighe(righe.slice(2)).map((r) => [r.codiceIntervento, r.campagne.map((c) => c.anno)])).toEqual([['SRB01', [2025]]]);
@@ -168,15 +205,25 @@ describe('RF018: testi delle superfici (ettari con due decimali, assenze mai a z
   it('interventi fuori dai grafici e quota', () => {
     expect(SENZA_SUPERFICI).toContain('non valorizzato');
     expect(testoNonInCampagna(2025)).toBe('nessuna superficie nella campagna 2025');
+    expect(testoNonNellaCampagnaFiltrata(2024)).toBe('nessuna superficie nella campagna 2024 (non valorizzato)');
+    expect(testoSenzaSuperfici(null)).toBe(SENZA_SUPERFICI);
+    expect(testoSenzaSuperfici(2024)).toBe('nessuna superficie nella campagna 2024 (non valorizzato)');
     expect(n(testoQuotaOltreDs(3, 33.3))).toBe('su 3 domande di pagamento: 33,3 %');
     expect(n(testoQuotaOltreDs(1, 100))).toBe('su 1 domanda di pagamento: 100 %');
     expect(testoQuotaOltreDs(0, null)).toBe('nessuna domanda di pagamento');
+  });
+
+  it('stato vuoto nessuna superficie: senza filtro non a superficie o non SIGC, col filtro Campagna solo quella (D1)', () => {
+    expect(testoNessunaSuperficie(null)).toBe('Nessuna superficie per gli interventi scelti: gli interventi non sono a superficie o non sono SIGC (non valorizzato).');
+    expect(testoNessunaSuperficie(2023)).toBe('Nessuna superficie per gli interventi scelti nella campagna 2023 (non valorizzato). Togli il filtro Campagna per vedere le altre campagne.');
+    expect(fonteLineaIntervento(null)).toBe("Fonte: TX-0018, superfici dell'intervento campagna per campagna (le campagne non si sommano).");
+    expect(fonteLineaIntervento(2024)).toBe("Fonte: TX-0018 con il filtro Campagna 2024: l'anteprima mostra solo la campagna 2024.");
   });
 });
 
 describe('RF018: grafici delle superfici (tabella equivalente, omessi dichiarati)', () => {
   it('barre DS e DP per intervento nella campagna: SRA29 omesso e dichiarato, in ettari', () => {
-    const g = graficoPerIntervento(SUPERFICI.righe, 2025);
+    const g = graficoPerIntervento(SUPERFICI.righe, 2025, null);
     const o = prova(g.opzioni);
     expect(o.xAxis?.data).toEqual(['SRB01']);
     expect(o.series.map((s) => s.name)).toEqual(['Superficie DS', 'Superficie DP']);
@@ -192,10 +239,22 @@ describe('RF018: grafici delle superfici (tabella equivalente, omessi dichiarati
   });
 
   it('nessun intervento con la campagna: non disegnabile col motivo, la tabella resta', () => {
-    const g = graficoPerIntervento(SUPERFICI_SENZA.righe, 2023);
+    const g = graficoPerIntervento(SUPERFICI_SENZA.righe, 2023, 2023);
     expect(g.opzioni).toBeNull();
     expect(g.motivoAssenza).toBe('nessun intervento con superfici nella campagna 2023');
     expect(g.tabella.righe).toHaveLength(2);
+  });
+
+  it('con il filtro Campagna gli omessi sono non nella campagna filtrata, mai in nessuna campagna (V1)', () => {
+    const g = graficoPerIntervento(SUPERFICI_TRE_2024.righe, 2024, 2024);
+    expect(g.omessi).toEqual(['SRA29: nessuna superficie nella campagna 2024 (non valorizzato)', 'SRB02: nessuna superficie nella campagna 2024 (non valorizzato)']);
+    expect(g.tabella.righe.slice(-2)).toEqual([
+      ['SRA29', 'nessuna superficie (non valorizzato)', 'nessuna superficie (non valorizzato)'],
+      ['SRB02', 'nessuna superficie (non valorizzato)', 'nessuna superficie (non valorizzato)'],
+    ]);
+    const v = graficoVerifica(SUPERFICI_TRE_2024.righe, 2024, 2024);
+    expect(v.omessi).toEqual(g.omessi);
+    expect(v.omessi.join(' ')).not.toContain('in nessuna campagna');
   });
 
   it('linea per campagna: un punto per campagna col suo anno (clic = filtro Campagna)', () => {
@@ -223,13 +282,22 @@ describe('RF018: grafici delle superfici (tabella equivalente, omessi dichiarati
   });
 
   it("mini linea dell'anteprima: le campagne del solo intervento", () => {
-    const o = prova(graficoInterventoPerCampagna(SUPERFICI.righe[1]).opzioni);
+    const o = prova(graficoInterventoPerCampagna(SUPERFICI.righe[1], null).opzioni);
     expect(n(o.aria?.label.description)).toContain('Linee della superficie DS e DP di SRB01 per campagna dal 2024 al 2025');
-    expect(graficoInterventoPerCampagna(SUPERFICI.righe[0]).opzioni).toBeNull();
+    expect(graficoInterventoPerCampagna(SUPERFICI.righe[0], null).opzioni).toBeNull();
+  });
+
+  it("mini linea dell'anteprima con il filtro Campagna: non si disegna e lo dice, la tabella resta (V1)", () => {
+    const srb01 = SUPERFICI_TRE_2024.righe.find((r) => r.codiceIntervento === 'SRB01');
+    if (!srb01) throw new Error('SRB01 assente');
+    const g = graficoInterventoPerCampagna(srb01, 2024);
+    expect(g.opzioni).toBeNull();
+    expect(g.motivoAssenza).toBe(MOTIVO_CON_CAMPAGNA);
+    expect(g.tabella.righe).toEqual([['2024', '10,50', '10,00']]);
   });
 
   it('verifica incrociata: barre dalla differenza maggiore, zero al centro, segno nel testo e colore per verso', () => {
-    const g = graficoVerifica(SUPERFICI_TRE.righe, 2025);
+    const g = graficoVerifica(SUPERFICI_TRE.righe, 2025, null);
     const o = prova(g.opzioni);
     expect(o.yAxis).toMatchObject({ type: 'category', inverse: true, data: ['SRB01', 'SRB02'] });
     expect(o.xAxis?.min).toBe(-(o.xAxis?.max ?? 0));
@@ -244,7 +312,7 @@ describe('RF018: grafici delle superfici (tabella equivalente, omessi dichiarati
     expect(n(o.aria?.label.description)).toBe(
       "Barre orizzontali della differenza fra superficie DP e superficie DS per 2 interventi nella campagna 2025: dalla più alta, SRB01 +0,70 ha, alla più bassa, SRB02 -0,30 ha; a destra dello zero la DP supera la DS. 2 voci omesse per dati mancanti o non utilizzabili.",
     );
-    expect(graficoVerifica(SUPERFICI_SENZA.righe, 2023).opzioni).toBeNull();
+    expect(graficoVerifica(SUPERFICI_SENZA.righe, 2023, 2023).opzioni).toBeNull();
   });
 });
 

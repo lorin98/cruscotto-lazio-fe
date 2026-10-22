@@ -34,12 +34,43 @@ export function testoQuantitaPremio(q: DatoMotivatoLike<number> | null | undefin
   return testoConNota(descriviAssenza(q));
 }
 
-/** Motivo di una riga senza superfici (NON_VALORIZZATO): intervento non a superficie o non SIGC (D-01 del backend). */
+/**
+ * Motivo di una riga senza superfici nella risposta letta SENZA il filtro Campagna (NON_VALORIZZATO): intervento non a
+ * superficie o non SIGC (D-01 del backend). Con il filtro vale testoNonNellaCampagnaFiltrata.
+ */
 export const SENZA_SUPERFICI = 'nessuna superficie in nessuna campagna (non valorizzato: intervento non a superficie o non SIGC)';
 
-/** "nessuna superficie nella campagna 2025" per un intervento che ha superfici solo in altre campagne. */
+/** "nessuna superficie nella campagna 2025" per un intervento che ha superfici solo in altre campagne della risposta. */
 export function testoNonInCampagna(anno: number): string {
   return `nessuna superficie nella campagna ${anno}`;
+}
+
+/**
+ * "nessuna superficie nella campagna 2024 (non valorizzato)": con il filtro Campagna la risposta dice NON_VALORIZZATO anche
+ * per un intervento che ha superfici in altre campagne (SC-FS_SUPERFICIE_CAMPAGNA), quindi mai "in nessuna campagna" (D1).
+ */
+export function testoNonNellaCampagnaFiltrata(anno: number): string {
+  return `${testoNonInCampagna(anno)} (non valorizzato)`;
+}
+
+/** Un intervento senza superfici nella risposta: in nessuna campagna (letta senza filtro) o nella campagna filtrata. */
+export function testoSenzaSuperfici(campagnaRisposta: number | null): string {
+  return campagnaRisposta === null ? SENZA_SUPERFICI : testoNonNellaCampagnaFiltrata(campagnaRisposta);
+}
+
+/**
+ * Lo stato vuoto "nessuna superficie" (decisione D1 del 22/10/2026): senza filtro gli interventi non sono a superficie o
+ * non sono SIGC; con il filtro Campagna la risposta dice solo di quella campagna, e la frase dice come vedere le altre.
+ */
+export function testoNessunaSuperficie(campagnaRisposta: number | null): string {
+  if (campagnaRisposta === null) return 'Nessuna superficie per gli interventi scelti: gli interventi non sono a superficie o non sono SIGC (non valorizzato).';
+  return `Nessuna superficie per gli interventi scelti nella campagna ${campagnaRisposta} (non valorizzato). Togli il filtro Campagna per vedere le altre campagne.`;
+}
+
+/** La fonte della mini linea dell'anteprima: con il filtro Campagna l'anteprima mostra solo la campagna filtrata, e lo dice. */
+export function fonteLineaIntervento(campagnaRisposta: number | null): string {
+  if (campagnaRisposta === null) return "Fonte: TX-0018, superfici dell'intervento campagna per campagna (le campagne non si sommano).";
+  return `Fonte: TX-0018 con il filtro Campagna ${campagnaRisposta}: l'anteprima mostra solo la campagna ${campagnaRisposta}.`;
 }
 
 /** "su 3 domande di pagamento: 33,3 %", oppure "nessuna domanda di pagamento" (la quota non si calcola). */

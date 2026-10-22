@@ -11,22 +11,28 @@ import { graficoDi, trovaCard } from '../../../shared/testing/card-grafico';
 import { clicSulDato } from '../../../shared/testing/grafico-finto';
 import { problema, trattenuta } from '../../../shared/testing/msw';
 import { renderPagina } from '../../../shared/testing/render-pagina';
-import { SUPERFICI, SUPERFICI_SENZA, SUPERFICI_TRE, VALORI } from '../../../features/fisico/testing/fixture';
+import { SUPERFICI, SUPERFICI_TRE, VALORI, superficiPer } from '../../../features/fisico/testing/fixture';
 import Pagina from './page';
+
+type SuperficieAmmissibile = Parameters<typeof superficiPer>[0];
 
 const PERCORSO = '/fisico/superfici';
 const testo = (s: string | null | undefined) => (s ?? '').replace(/\s/g, ' ');
 const profilo = (roles: string[]) =>
   server.use(http.get('*/auth/status', () => HttpResponse.json({ authenticated: true, user: { username: 'U', profile: 'p3-funzionario-area-fis', roles } })));
 
-/** Le letture di TX-0018 (query string) e di TX-0060 dichiarate dal test. */
-function servi(corpo: object = SUPERFICI, valori: object = VALORI) {
+/**
+ * Le letture di TX-0018 (query string) e di TX-0060 dichiarate dal test. TX-0018 risponde come il backend ai criteri della
+ * query (superficiPer: interventi richiesti; con la campagna, la sola campagna e NON_VALORIZZATO per gli altri; review V2).
+ */
+function servi(corpo: SuperficieAmmissibile = SUPERFICI, valori: object = VALORI) {
   const superfici: string[] = [];
   const filtri: number[] = [];
   server.use(
     http.get('*/api/fisico/superficie-ammissibile', ({ request }) => {
-      superfici.push(new URL(request.url).search);
-      return HttpResponse.json(corpo);
+      const u = new URL(request.url);
+      superfici.push(u.search);
+      return HttpResponse.json(superficiPer(corpo, u.searchParams));
     }),
     http.get('*/api/elenco-operativo/filtri', () => {
       filtri.push(1);
@@ -75,8 +81,7 @@ describe('RF018: superficie ammissibile della domanda di sostegno e di pagamento
   });
 
   it('con il filtro Campagna i KPI sono di quella campagna e la serie per campagna dice perche non si disegna', async () => {
-    const soloIl2024 = { ...SUPERFICI, campagna: 2024, righe: [SUPERFICI.righe[0], { ...SUPERFICI.righe[1], campagne: [SUPERFICI.righe[1].campagne[0]] }] };
-    const { superfici } = servi(soloIl2024);
+    const { superfici } = servi();
     apri(`${PERCORSO}?campagna=2024`);
     await titoloKpi(2024);
     expect(superfici).toEqual(['?campagna=2024']);
@@ -162,13 +167,47 @@ describe('RF018: superficie ammissibile della domanda di sostegno e di pagamento
     expect(await screen.findByRole('dialog', { name: 'Filtri delle superfici ammissibili' })).toBeTruthy();
   });
 
-  it('nessuna superficie nella campagna scelta: lo stato lo dice (non valorizzato), mai una pagina di zeri', async () => {
-    servi(SUPERFICI_SENZA);
+  it('nessuna superficie nella campagna scelta: lo stato dice solo di quella campagna e come vedere le altre (D1), mai una pagina di zeri', async () => {
+    const { superfici } = servi();
     apri(`${PERCORSO}?campagna=2023`);
-    expect(
-      await screen.findByText('Nessuna superficie per gli interventi scelti nella campagna 2023: gli interventi non sono a superficie o non sono SIGC (non valorizzato).'),
-    ).toBeTruthy();
+    // SRB01 ha superfici nel 2024 e nel 2025: con il filtro 2023 la pagina non dice che non e' a superficie
+    const vuoto = await screen.findByText('Nessuna superficie per gli interventi scelti nella campagna 2023 (non valorizzato). Togli il filtro Campagna per vedere le altre campagne.');
+    expect(vuoto.closest('[role="status"]')).not.toBeNull();
+    expect(superfici).toEqual(['?campagna=2023']);
     expect(screen.queryByRole('heading', { level: 2, name: /^Totali della campagna/ })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Modifica i filtri' })).toBeTruthy();
+  });
+
+  it('nessuna superficie in nessuna campagna, senza filtro Campagna: gli interventi non sono a superficie o non sono SIGC', async () => {
+    servi();
+    apri(`${PERCORSO}?intervento=SRA29`);
+    expect(await screen.findByText('Nessuna superficie per gli interventi scelti: gli interventi non sono a superficie o non sono SIGC (non valorizzato).')).toBeTruthy();
+  });
+
+  it('con il filtro Campagna un intervento con superfici in altre campagne e detto non nella campagna filtrata (V1)', async () => {
+    // SRB02 ha superfici solo nel 2025: con ?campagna=2024 la risposta lo da' con campagne vuote e NON_VALORIZZATO
+    servi(SUPERFICI_TRE);
+    apri(`${PERCORSO}?campagna=2024`);
+    await titoloKpi(2024);
+    const perIntervento = await trovaCard('Superficie DS e DP per intervento, campagna 2024');
+    expect(perIntervento.textContent).toContain('SRB02: nessuna superficie nella campagna 2024 (non valorizzato)');
+    expect(perIntervento.textContent).not.toContain('in nessuna campagna');
+    await userEvent.click(within(screen.getByRole('group', { name: 'Vista delle superfici' })).getByRole('button', { name: 'Tabella' }));
+    const tabella = screen.getByRole('table', { name: /^Superficie ammissibile DS e DP per intervento e campagna/ });
+    const srb02 = within(tabella).getByRole('row', { name: "Apri l'anteprima dell'intervento SRB02" });
+    expect(srb02.textContent).toContain('nessuna superficie nella campagna 2024 (non valorizzato)');
+    expect(tabella.textContent).not.toContain('in nessuna campagna');
+    // l'anteprima di SRB02 dice lo stesso; quella di SRB01 non disegna la linea per campagna e dice perche'
+    await userEvent.click(srb02);
+    const anteprima = await screen.findByRole('dialog', { name: 'SRB02' });
+    expect(anteprima.textContent).toContain('nessuna superficie nella campagna 2024 (non valorizzato)');
+    await userEvent.click(within(anteprima).getByRole('button', { name: 'Chiudi: SRB02' }));
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'SRB02' })).toBeNull());
+    await userEvent.click(within(tabella).getByRole('row', { name: "Apri l'anteprima dell'intervento SRB01, campagna 2024" }));
+    const linea = await trovaCard('Superficie DS e DP di SRB01 per campagna');
+    expect(linea.getAttribute('data-card-grafico')).toBe('assente');
+    expect(linea.textContent).toContain('togli il filtro Campagna per vedere tutte le campagne');
+    expect(linea.textContent).toContain("Fonte: TX-0018 con il filtro Campagna 2024: l'anteprima mostra solo la campagna 2024.");
   });
 
   it('caricamento con lo scheletro e aria-live, poi i dati', async () => {
@@ -234,8 +273,7 @@ describe("RA006: valori dei filtri delle superfici da TX-0060 dell'elenco operat
   });
 
   it('con una campagna nell indirizzo il pannello propone quella e Tutte le campagne, senza una seconda lettura di TX-0018', async () => {
-    const soloIl2024 = { ...SUPERFICI, campagna: 2024, righe: [SUPERFICI.righe[0], { ...SUPERFICI.righe[1], campagne: [SUPERFICI.righe[1].campagne[0]] }] };
-    const { superfici } = servi(soloIl2024);
+    const { superfici } = servi();
     apri(`${PERCORSO}?campagna=2024`);
     await titoloKpi(2024);
     await userEvent.click(screen.getByRole('button', { name: /^Filtri/ }));

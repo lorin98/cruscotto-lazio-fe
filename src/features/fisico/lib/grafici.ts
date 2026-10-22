@@ -20,30 +20,45 @@ import {
 } from '../../../shared/lib';
 import type { DatiGrafico, DatoSerie, TabellaEquivalente, VoceRaggruppata } from '../../../shared/lib';
 import type { InterventoSuperficie } from './dto';
-import { ETICHETTE, SENZA_SUPERFICI, cellaDifferenza, cellaSuperficie, testoDifferenza, testoNonInCampagna, testoQuantitaPremio } from './formato';
+import { ETICHETTE, SENZA_SUPERFICI, cellaDifferenza, cellaSuperficie, testoDifferenza, testoNonInCampagna, testoNonNellaCampagnaFiltrata, testoQuantitaPremio } from './formato';
 import { campagnaDi, senzaSuperfici } from './superfici';
-import type { InterventoSenzaSuperfici } from './superfici';
+import type { InterventoSenzaSuperfici, MotivoSenzaSuperfici } from './superfici';
 
 const SERIE_DS_DP = [
   { nome: 'Superficie DS', soggetto: 'superficie DS' },
   { nome: 'Superficie DP', soggetto: 'superficie DP' },
 ];
 
-/** Perche' l'intervento non e' nel grafico della campagna, in testo. */
-function motivoFuori(f: InterventoSenzaSuperfici, anno: number): string {
-  return f.motivo === 'nessuna-campagna' ? SENZA_SUPERFICI : testoNonInCampagna(anno);
-}
+/** Perche' l'intervento non e' nel grafico della campagna, in testo (con il filtro Campagna mai "in nessuna campagna"). */
+const MOTIVI_FUORI: Record<MotivoSenzaSuperfici, (anno: number) => string> = {
+  'nessuna-campagna': () => SENZA_SUPERFICI,
+  'non-in-campagna': testoNonInCampagna,
+  'campagna-filtrata': testoNonNellaCampagnaFiltrata,
+};
 
 /** Cella breve della tabella equivalente per un intervento fuori dal grafico. */
+const CELLE_FUORI: Record<MotivoSenzaSuperfici, string> = {
+  'nessuna-campagna': 'non valorizzato',
+  'non-in-campagna': 'nessuna superficie',
+  'campagna-filtrata': 'nessuna superficie (non valorizzato)',
+};
+
+function motivoFuori(f: InterventoSenzaSuperfici, anno: number): string {
+  return MOTIVI_FUORI[f.motivo](anno);
+}
+
 function cellaFuori(f: InterventoSenzaSuperfici): string {
-  return f.motivo === 'nessuna-campagna' ? 'non valorizzato' : 'nessuna superficie';
+  return CELLE_FUORI[f.motivo];
 }
 
 // ---------------------------------------------------------------- superficie DS e DP per intervento
 
-/** Barre raggruppate della superficie DS e DP di ogni intervento nella campagna; clic: anteprima dell'intervento (codice). */
-export function graficoPerIntervento(righe: readonly InterventoSuperficie[], anno: number): DatiGrafico {
-  const fuori = senzaSuperfici(righe, anno);
+/**
+ * Barre raggruppate della superficie DS e DP di ogni intervento nella campagna; clic: anteprima dell'intervento (codice).
+ * `campagnaRisposta`: la campagna della risposta (null = letta senza filtro), che dice il motivo degli omessi.
+ */
+export function graficoPerIntervento(righe: readonly InterventoSuperficie[], anno: number, campagnaRisposta: number | null): DatiGrafico {
+  const fuori = senzaSuperfici(righe, anno, campagnaRisposta);
   const voci: VoceRaggruppata[] = righe.flatMap((r) => {
     const c = campagnaDi(r, anno);
     return c ? [{ categoria: r.codiceIntervento, codice: r.codiceIntervento, valori: [c.superficieDs, c.superficieDp], celle: [cellaSuperficie(c.superficieDs), cellaSuperficie(c.superficieDp)] }] : [];
@@ -113,12 +128,17 @@ export function graficoPerCampagna(punti: readonly PuntoCampagna[], filtroCampag
   return filtroCampagna === undefined ? g : nonDisegnabile(MOTIVO_CON_CAMPAGNA, g.tabella, []);
 }
 
-/** La mini linea dell'anteprima: le superfici di un solo intervento campagna per campagna. */
-export function graficoInterventoPerCampagna(riga: InterventoSuperficie): DatiGrafico {
-  return lineePerCampagna(riga.campagne, {
+/**
+ * La mini linea dell'anteprima: le superfici di un solo intervento campagna per campagna. Con il filtro Campagna
+ * (`campagnaRisposta` non null) la risposta ha la sola campagna filtrata: la serie non si disegna e lo dice, come la card
+ * della pagina, senza una seconda lettura di TX-0018 (una lettura per pagina, scelta approvata).
+ */
+export function graficoInterventoPerCampagna(riga: InterventoSuperficie, campagnaRisposta: number | null): DatiGrafico {
+  const g = lineePerCampagna(riga.campagne, {
     caption: `Superficie DS e DP di ${riga.codiceIntervento} per campagna`,
     titolo: `Linee della superficie DS e DP di ${riga.codiceIntervento} per campagna`,
   });
+  return campagnaRisposta === null ? g : nonDisegnabile(MOTIVO_CON_CAMPAGNA, g.tabella, []);
 }
 
 // ---------------------------------------------------------------- verifica incrociata DP - DS
@@ -153,8 +173,8 @@ function estremo(voci: readonly VoceVerifica[]): number {
 }
 
 /** Barre orizzontali della differenza DP - DS per intervento nella campagna, dalla maggiore; clic: anteprima. */
-export function graficoVerifica(righe: readonly InterventoSuperficie[], anno: number): DatiGrafico {
-  const fuori = senzaSuperfici(righe, anno);
+export function graficoVerifica(righe: readonly InterventoSuperficie[], anno: number, campagnaRisposta: number | null): DatiGrafico {
+  const fuori = senzaSuperfici(righe, anno, campagnaRisposta);
   const omessi = fuori.map((f) => `${f.codice}: ${motivoFuori(f, anno)}`);
   const conCampagna = righe.flatMap((r) => {
     const c = campagnaDi(r, anno);
