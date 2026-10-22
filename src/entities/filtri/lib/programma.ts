@@ -116,3 +116,20 @@ export function filtriNellaBarra<F extends Filtri>(filtri: F): FiltroNellaBarra<
 
 /** Testo del chip del filtro per azione portante quando il legame interventi - azioni non c'e' (non si applica). */
 export const AZIONE_NON_APPLICATA = 'non applicato: il legame con le azioni portanti viene da una fonte non attiva';
+
+/**
+ * La descrizione dell'intervento fra le voci dei filtri (TX-0001, TX-0060), se lette e se c'e'. Prima nel lib del fisico;
+ * la usano anche la testata e il drawer dell'istituzionale e il titolo del dettaglio del finanziario.
+ */
+export function descrizioneIntervento(voci: readonly VoceLike[] | undefined, codice: string): string | undefined {
+  return voci?.find((v) => v.chiave === codice)?.descrizione ?? undefined;
+}
+
+/**
+ * Le voci del pannello dei filtri: quelle lette (TX-0060, decisione G2), oppure, senza il grant o con la lettura in errore,
+ * i soli codici degli interventi della risposta del report (gli obiettivi e le azioni non hanno voci). Prima nel lib del
+ * fisico; il pannello comune (PannelloFiltriProgramma) la usa per il fisico e l'istituzionale.
+ */
+export function vociDelPannello(valori: ValoriProgramma | undefined, codiciRisposta: readonly string[]): ValoriProgramma {
+  return valori ?? { interventi: codiciRisposta.map((chiave) => ({ chiave })) };
+}

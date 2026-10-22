@@ -1,8 +1,8 @@
 // formato.ts — testi PURI del fisico (zero React): la superficie si scrive con la resa unica del kit (ettari di shared/lib:
 // due decimali e il segno meno scritto, D-01 Rev. 2; review H5), qui le differenze col segno, le celle senza unita', assenze dette con la resa unica
-// dell'entity importo (mai uno zero), etichette dei campi di TX-0018, conteggi delle domande, nota della quantita' a premio
-// e descrizione dell'intervento dalle voci dei filtri (review H3: prima nei componenti). I testi sono quelli dei wireframe
-// approvati.
+// dell'entity importo (mai uno zero), etichette dei campi di TX-0018, conteggi delle domande e nota della quantita' a
+// premio (review H3: prima nei componenti; la descrizione dell'intervento dalle voci dei filtri ora e' di entities/filtri,
+// comune con l'istituzionale). I testi sono quelli dei wireframe approvati.
 import { descriviAssenza, testoConNota } from '../../../entities/importo';
 import type { DatoMotivatoLike } from '../../../entities/importo';
 import { formatEttari, formatNumber, formatPercentuale } from '../../../shared/lib';
@@ -96,11 +96,6 @@ export function notaQuantitaPremio(righe: readonly InterventoSuperficie[], campa
   const assenti = campagne.filter((c) => c.quantitaRichiestaPremio.valore == null);
   if (assenti.length === campagne.length && assenti[0]) return `Quantità richiesta a premio: ${testoQuantitaPremio(assenti[0].quantitaRichiestaPremio)}.`;
   return 'Quantità richiesta a premio nella tabella equivalente.';
-}
-
-/** La descrizione dell'intervento fra le voci dei filtri (TX-0060), se lette e se c'e'. */
-export function descrizioneIntervento(voci: ReadonlyArray<{ chiave?: string; descrizione?: string | null }> | undefined, codice: string): string | undefined {
-  return voci?.find((v) => v.chiave === codice)?.descrizione ?? undefined;
 }
 
 /** Perimetro della risposta in parole: sempre REGIONALE per le letture del fisico (D-04 del backend). */

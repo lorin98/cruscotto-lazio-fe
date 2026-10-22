@@ -3,7 +3,7 @@
 import type { EChartsOption } from 'echarts';
 import { describe, expect, it } from 'vitest';
 import { COLORI, ettari, valoreEttari } from '../src/shared/lib';
-import { criteriAttivi, criteriDaRicerca, campagnaDaTesto, conCampagna, conFiltriDelProgramma, ricercaDaCriteri, soloIntervento, testiCriteri, vociDelPannello } from '../src/features/fisico/lib/criteri';
+import { criteriAttivi, criteriDaRicerca, campagnaDaTesto, conCampagna, conFiltriDelProgramma, ricercaDaCriteri, soloIntervento, testiCriteri } from '../src/features/fisico/lib/criteri';
 import {
   campagnaDi,
   campagnaDiRiferimento,
@@ -22,7 +22,6 @@ import {
   SENZA_SUPERFICI,
   cellaDifferenza,
   cellaSuperficie,
-  descrizioneIntervento,
   fonteLineaIntervento,
   notaQuantitaPremio,
   testoDifferenza,
@@ -53,7 +52,7 @@ import {
 } from '../src/features/fisico/lib/determine';
 import { GRANT, puoLeggere } from '../src/features/fisico/lib/grant';
 import { PAGINE_FISICO, PERCORSI, pagineVisibili } from '../src/features/fisico/lib/pagine';
-import { DETERMINE, DETERMINE_CHIUSA, DETERMINE_NESSUNA, SUPERFICI, SUPERFICI_SENZA, SUPERFICI_TRE, SUPERFICI_TRE_2024, VALORI, superficiPer } from '../src/features/fisico/testing/fixture';
+import { DETERMINE, DETERMINE_CHIUSA, DETERMINE_NESSUNA, SUPERFICI, SUPERFICI_SENZA, SUPERFICI_TRE, SUPERFICI_TRE_2024, superficiPer } from '../src/features/fisico/testing/fixture';
 
 // gli spazi del formato it-IT sono non separabili: si confronta con spazi normali
 const n = (s: string | undefined) => (s ?? '').replace(/\s/g, ' ');
@@ -375,16 +374,10 @@ describe('RF018: il report come dati e i calcoli spostati dai componenti (H3, H4
     expect(campagneDellAnteprima(SUPERFICI.righe[0], 2025)).toEqual({ riferimento: undefined, altre: [], premio: undefined });
   });
 
-  it('pannello: campagne proposte, voci da TX-0060 o i codici della risposta, descrizione dell intervento', () => {
+  it('pannello: campagne proposte dalla risposta e quella scelta (voci e descrizione dell intervento: entities/filtri)', () => {
     expect(campagneProposte([2025, 2024], undefined)).toEqual([2025, 2024]);
     expect(campagneProposte([2025, 2024], 2024)).toEqual([2025, 2024]);
     expect(campagneProposte([2024], 2023)).toEqual([2023, 2024]);
-    expect(vociDelPannello(VALORI, ['SRB01'])).toBe(VALORI);
-    expect(vociDelPannello(undefined, ['SRA29', 'SRB01'])).toEqual({ interventi: [{ chiave: 'SRA29' }, { chiave: 'SRB01' }] });
-    expect(descrizioneIntervento(VALORI.interventi, 'SRA29')).toBe('Agricoltura biologica');
-    expect(descrizioneIntervento(VALORI.interventi, 'SRZ99')).toBeUndefined();
-    expect(descrizioneIntervento(undefined, 'SRA29')).toBeUndefined();
-    expect(descrizioneIntervento([{ chiave: 'SRA29', descrizione: null }], 'SRA29')).toBeUndefined();
   });
 });
 

@@ -3,7 +3,7 @@
 // (TX-0018: campagna non ripetibile, 2000-2100; assente = tutte le campagne presenti). Sono gli url_params della route
 // /fisico/superfici dello uiplan: dall'indirizzo arrivano solo valori nel formato ammesso, e cosi' si riscrivono.
 import { CHIAVI_FILTRO, filtriDaRicerca, filtriNellaBarra, ricercaDaFiltri } from '../../../entities/filtri';
-import type { ChiaveFiltro, Filtri, FiltroNellaBarra, ValoriProgramma } from '../../../entities/filtri';
+import type { ChiaveFiltro, Filtri, FiltroNellaBarra } from '../../../entities/filtri';
 import { isAnnoValido } from '../../../shared/lib';
 
 /** Criteri di TX-0018: i filtri del programma e la campagna (assente = tutte le campagne presenti). */
@@ -71,12 +71,4 @@ export function testiCriteri(criteri: Criteri): string[] {
 /** Vero se c'e' almeno un filtro del programma (la campagna esclusa): serve a dire se il vuoto dipende dai filtri. */
 export function conFiltriDelProgramma(criteri: Criteri): boolean {
   return CHIAVI_FILTRO.some((k: ChiaveFiltro) => (criteri[k] ?? []).length > 0);
-}
-
-/**
- * Le voci del pannello dei filtri: quelle di TX-0060 (decisione G2), oppure, senza il grant o con TX-0060 in errore, i soli
- * codici degli interventi della risposta di TX-0018 (gli obiettivi e le azioni non hanno voci).
- */
-export function vociDelPannello(valori: ValoriProgramma | undefined, codiciRisposta: readonly string[]): ValoriProgramma {
-  return valori ?? { interventi: codiciRisposta.map((chiave) => ({ chiave })) };
 }

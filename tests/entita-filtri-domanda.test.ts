@@ -6,12 +6,14 @@ import {
   AZIONE_NON_APPLICATA,
   CHIAVI_FILTRO,
   ETICHETTE_FILTRO,
+  descrizioneIntervento,
   filtriAttivi,
   filtriDaRicerca,
   ricercaDaFiltri,
   senzaAzioneSeNonDisponibile,
   senzaValore,
   valoreFiltroValido,
+  vociDelPannello,
 } from '../src/entities/filtri';
 import { codiceABarreValido, etichettaTipoDomanda, percorsoSchedaDomanda, riferimentoDomandaValido } from '../src/entities/domanda';
 import * as Finanziario from '../src/features/finanziario/lib/filtri';
@@ -57,6 +59,17 @@ describe('entities/filtri: i filtri del programma comuni a finanziario e fisico'
     expect(senzaOs).not.toHaveProperty('os');
     expect(senzaValore(filtri, 'op', 'OP1')).toEqual(filtri);
     expect(filtri).toEqual({ intervento: ['SRA01', 'SRA03'], os: ['OS4'] });
+  });
+
+  it('voci del pannello: quelle lette, o i codici della risposta; descrizione dell intervento fra le voci (prima nel fisico)', () => {
+    const valori = { interventi: [{ chiave: 'SRA29', descrizione: 'Agricoltura biologica' }], legameAzioniDisponibile: false };
+    expect(vociDelPannello(valori, ['SRB01'])).toBe(valori);
+    expect(vociDelPannello(undefined, ['SRA29', 'SRB01'])).toEqual({ interventi: [{ chiave: 'SRA29' }, { chiave: 'SRB01' }] });
+    expect(vociDelPannello(undefined, [])).toEqual({ interventi: [] });
+    expect(descrizioneIntervento(valori.interventi, 'SRA29')).toBe('Agricoltura biologica');
+    expect(descrizioneIntervento(valori.interventi, 'SRZ99')).toBeUndefined();
+    expect(descrizioneIntervento(undefined, 'SRA29')).toBeUndefined();
+    expect(descrizioneIntervento([{ chiave: 'SRA29', descrizione: null }], 'SRA29')).toBeUndefined();
   });
 
   it('il finanziario riesporta le stesse funzioni dalla entity (nessuna copia)', () => {

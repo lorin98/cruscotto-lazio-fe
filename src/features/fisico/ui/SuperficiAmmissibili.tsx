@@ -14,6 +14,7 @@
 // Design system: classi bootstrap-italia e del kit v2; i primitivi react-aria stanno solo dentro i componenti del kit che
 // li richiedono (pannello e drawer modali, popover della pill).
 import { useMemo, useRef, useState } from 'react';
+import { descrizioneIntervento } from '../../../entities/filtri';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { righeContesto } from '../../../shared/lib';
 import { AvvisoPagina, BarraFiltri, Briciole, Caricamento, ContestoIntestazione, PillDatiAl, TestaPagina, VistaQuery, useFocusDopoIlCambio } from '../../../shared/ui';
@@ -22,7 +23,7 @@ import { useSuperfici } from '../api';
 import type { SuperficieAmmissibile } from '../api';
 import { ricercaDaCriteri, testiCriteri } from '../lib/criteri';
 import type { Criteri } from '../lib/criteri';
-import { descrizioneIntervento, testoPerimetro } from '../lib/formato';
+import { testoPerimetro } from '../lib/formato';
 import { PERCORSI } from '../lib/pagine';
 import { campagnePresenti } from '../lib/superfici';
 import { PannelloFiltriSuperfici } from './PannelloFiltriSuperfici';

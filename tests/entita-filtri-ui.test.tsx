@@ -1,13 +1,15 @@
 // Test della regola comune dei filtri del programma nell'indirizzo (entities/filtri: useFiltriProgrammaNellIndirizzo e
-// useBozzaFiltri), il solo test della regola X-03 (review del fisico H2): finanziario e fisico la compongono con la loro
-// lettura dei valori (TX-0001, TX-0060) e la loro scrittura dell'indirizzo. Profilo dal server MSW dei test.
+// useBozzaFiltri), il solo test della regola X-03 (review del fisico H2): finanziario, fisico e istituzionale la
+// compongono con la loro lettura dei valori (TX-0001, TX-0060) e la loro scrittura dell'indirizzo. Poi il pannello comune
+// con le voci di TX-0060 (fisico, istituzionale). Profilo dal server MSW dei test.
 import type { ReactNode } from 'react';
-import { describe, expect, it } from 'vitest';
-import { act, renderHook, waitFor } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import { act, cleanup, render, renderHook, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, useLocation } from 'react-router';
-import { filtriDaRicerca, filtriNellaBarra, ricercaDaFiltri, useBozzaFiltri, useFiltriProgrammaNellIndirizzo } from '../src/entities/filtri';
-import type { Filtri, LetturaValoriFiltri } from '../src/entities/filtri';
+import { PannelloFiltriProgramma, filtriDaRicerca, filtriNellaBarra, ricercaDaFiltri, useBozzaFiltri, useFiltriProgrammaNellIndirizzo } from '../src/entities/filtri';
+import type { Filtri, LetturaValoriFiltri, ValoriProgramma } from '../src/entities/filtri';
 import { clientDiTest } from '../src/shared/testing/render';
 
 const posizione = { attuale: '' };
@@ -92,5 +94,55 @@ describe('entities/filtri: bozza del pannello (useBozzaFiltri)', () => {
     rerender({ aperto: false, applicati: { os: ['OS4'] } });
     rerender({ aperto: true, applicati: { os: ['OS4'] } });
     expect(result.current.bozza).toEqual({ os: ['OS4'] });
+  });
+});
+
+describe('entities/filtri: pannello dei filtri del programma con le voci di TX-0060 (PannelloFiltriProgramma)', () => {
+  type ConAnno = Filtri & { anno?: number };
+  const stato = (data: ValoriProgramma | undefined, isError = false) => ({ data, isPending: data === undefined && !isError, isError, fetchStatus: 'idle' as const, error: null, refetch: () => undefined });
+  function apri(valori: Parameters<typeof PannelloFiltriProgramma<ConAnno>>[0]['valori'], criteri: ConAnno = {}) {
+    const onApplica = vi.fn();
+    render(
+      <PannelloFiltriProgramma<ConAnno>
+        aperto
+        titolo="Filtri di prova"
+        criteri={criteri}
+        valori={valori}
+        codiciRisposta={['SRD01']}
+        nessuno={{ anno: 2025 }}
+        onApplica={onApplica}
+        onChiudi={() => undefined}
+        nota="Nota della pagina."
+        altriGruppi={(bozza, setBozza) => (
+          <button type="button" onClick={() => setBozza((b) => ({ ...b, anno: 2024 }))}>
+            {`Anno ${bozza.anno ?? 'nessuno'}`}
+          </button>
+        )}
+      />,
+    );
+    return { onApplica, dialogo: screen.getByRole('dialog', { name: 'Filtri di prova' }) };
+  }
+
+  it('senza il grant (valori null): lo stato in testo, i codici della risposta, i gruppi della pagina sulla bozza e Azzera ai criteri dati', async () => {
+    const { onApplica, dialogo } = apri(null, { os: ['OS4'] });
+    expect(within(dialogo).getByRole('status').textContent).toMatch(/^Valori dei filtri non disponibili/);
+    expect(within(dialogo).getByRole('checkbox', { name: 'SRD01' })).toBeTruthy();
+    expect(within(dialogo).getByText('Nota della pagina.')).toBeTruthy();
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Anno nessuno' }));
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Applica i filtri' }));
+    expect(onApplica).toHaveBeenLastCalledWith({ os: ['OS4'], anno: 2024 });
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Azzera' }));
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Applica i filtri' }));
+    expect(onApplica).toHaveBeenLastCalledWith({ anno: 2025 });
+  });
+
+  it('valori in caricamento: lo scheletro; senza il legame Applica toglie l azione portante', async () => {
+    const inCorso = apri(stato(undefined));
+    expect(within(inCorso.dialogo).getByText('Caricamento dei valori dei filtri…')).toBeTruthy();
+    cleanup();
+    const { onApplica, dialogo } = apri(stato({ interventi: [{ chiave: 'SRD01', descrizione: 'Investimenti' }], legameAzioniDisponibile: false }), { azione: ['3'], os: ['OS4'] });
+    expect(within(dialogo).getByRole('checkbox', { name: 'SRD01 Investimenti' })).toBeTruthy();
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Applica i filtri' }));
+    expect(onApplica).toHaveBeenLastCalledWith({ os: ['OS4'] });
   });
 });
