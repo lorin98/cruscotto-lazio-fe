@@ -1,10 +1,13 @@
 // shared/ui — componenti trasversali senza dominio: stati della vista, kit UI v2 (ADR 0027: grafici ECharts, KPI, filtri,
-// pannello laterale, tabella interattiva, icone, pulsanti di download), salvataggio file, focus di pagina.
+// pannello laterale, tabella interattiva, icone, pulsanti di download e file del backend), salvataggio file, focus di
+// pagina, percorso e titolo della pagina.
 export { Caricamento, ErroreVista, Vuoto, VistaQuery } from './stati/StatiVista';
 export { AvvisoPagina } from './stati/AvvisoPagina';
 export type { StatoQuery } from './stati/StatiVista';
 export { blobDaDataUrl, salvaFile } from './salva-file';
 export { useFocusTitolo } from './focus';
+export { Briciole, TestaPagina } from './pagina/Testata';
+export type { Briciola } from './pagina/Testata';
 export { useStatoNellaHistory } from './useStatoNellaHistory';
 export { Icona } from './icona';
 export type { NomeIcona } from './icona';
@@ -25,6 +28,8 @@ export type { ChipFiltro } from './filtri/BarraFiltri';
 export { PannelloLaterale } from './laterale/PannelloLaterale';
 export { TabellaInterattiva, statoTabellaValido } from './tabella/TabellaInterattiva';
 export { PulsantiScarica } from './scarica/PulsantiScarica';
+export { scaricamentiDalBackend } from './scarica/scaricamenti';
+export type { FormatoDelBackend } from './scarica/scaricamenti';
 export type { FormatoScaricabile, Scaricamento } from './scarica/PulsantiScarica';
 export type { ColonnaTabella, RigaPiede, StatoTabella } from './tabella/TabellaInterattiva';
 export { TabellaServer, colonneNascoste } from './tabella/TabellaServer';

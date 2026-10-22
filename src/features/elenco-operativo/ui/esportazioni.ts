@@ -2,8 +2,8 @@
 // ordinamento della pagina, tutte le righe dell'insieme (senza pagina), intestazione e registrazione in
 // AUDIT_ESPORTAZIONE. Oltre il limite di NFR-06 il backend risponde 400: il messaggio dice di restringere i filtri, e la
 // pagina lo avvisa gia' prima del clic (review v1 V-16). L'XLSX viene per primo: tiene gli zeri iniziali di codici e CUAA.
-import { formatNumber, nomeFile } from '../../../shared/lib';
-import { salvaFile } from '../../../shared/ui';
+import { formatNumber } from '../../../shared/lib';
+import { scaricamentiDalBackend } from '../../../shared/ui';
 import type { Scaricamento } from '../../../shared/ui';
 import { LIMITE_ESPORTAZIONE, esportaDomande, esportaPagamenti, rispostaRichiestaNonValida } from '../api';
 import type { FormatoEsportazione } from '../api';
@@ -36,13 +36,5 @@ function messaggioLimite(elenco: Elenco, totaleRighe: number | undefined) {
 export function scaricamentiElenco(elenco: Elenco, criteri: Criteri, totaleRighe?: number): Scaricamento[] {
   const filtri = criteriEsportazione(criteri);
   const esporta = (formato: FormatoEsportazione) => (elenco === 'domande' ? esportaDomande(formato, filtri) : esportaPagamenti(formato, filtri));
-  return (['xlsx', 'csv'] as const).map((formato) => {
-    const file = nomeFile(TITOLI[elenco], formato);
-    return {
-      formato: formato === 'csv' ? 'CSV' : 'XLSX',
-      file,
-      scarica: async () => salvaFile(await esporta(formato), file),
-      messaggioErrore: messaggioLimite(elenco, totaleRighe),
-    };
-  });
+  return scaricamentiDalBackend({ base: TITOLI[elenco], esporta, formati: ['xlsx', 'csv'], messaggioErrore: messaggioLimite(elenco, totaleRighe) });
 }

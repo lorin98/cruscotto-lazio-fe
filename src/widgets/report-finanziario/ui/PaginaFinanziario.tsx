@@ -5,58 +5,18 @@
 // le righe della pagina nell'intestazione dei PNG dei grafici (filtri della barra, profilo, ultimo dato: NFR-50, V-01).
 import { useState } from 'react';
 import type { ReactNode } from 'react';
-import { Link } from 'react-router';
 import { ContestoFiltri, PANORAMICA, PannelloFiltri, PerimetroPill, UltimoAggiornamento, conFiltri, titoloH1, useFiltriNellIndirizzo, useRigheIntestazione, voceDi } from '../../../features/finanziario';
 import type { Filtri } from '../../../features/finanziario';
-import { AvvisoPagina, BarraFiltri, Caricamento, ContestoIntestazione, useFocusTitolo } from '../../../shared/ui';
-import type { ChipFiltro } from '../../../shared/ui';
+import { AvvisoPagina, BarraFiltri, Briciole as BricioleKit, Caricamento, ContestoIntestazione, TestaPagina } from '../../../shared/ui';
+import type { Briciola, ChipFiltro } from '../../../shared/ui';
 
-interface Briciola {
-  etichetta: string;
-  a?: string;
-  /** State della navigazione del link (es. lo stato del riepilogo da ritrovare tornando dal dettaglio, review v4 X-04). */
-  stato?: unknown;
-}
-
-/** Home > Finanziario > voci della pagina: i link conservano la selezione dell'indirizzo, anche dal dettaglio (N-03). */
+/**
+ * Home > Finanziario > voci della pagina, sulla testata comune del kit: i link conservano la selezione dell'indirizzo,
+ * anche dal dettaglio (N-03); lo state di una voce (es. lo stato del riepilogo da ritrovare, review v4 X-04) resta.
+ */
 function Briciole({ voci, filtri }: { voci: Briciola[]; filtri: Filtri }) {
-  return (
-    <nav className="ui-briciole" aria-label="Percorso">
-      <ol>
-        <li>
-          <Link to="/">Home</Link>
-        </li>
-        <li aria-current={voci.length === 0 ? 'page' : undefined}>{voci.length === 0 ? 'Finanziario' : <Link to={conFiltri(PANORAMICA.percorso, filtri)}>Finanziario</Link>}</li>
-        {voci.map((v, i) => (
-          <li key={v.etichetta} aria-current={i === voci.length - 1 ? 'page' : undefined}>
-            {v.a ? (
-              <Link to={conFiltri(v.a, filtri)} state={v.stato}>
-                {v.etichetta}
-              </Link>
-            ) : (
-              v.etichetta
-            )}
-          </li>
-        ))}
-      </ol>
-    </nav>
-  );
-}
-
-/** Titolo della pagina: l'h1 riceve il focus a ogni cambio di pagina e da' il titolo al documento. */
-function TestaPagina({ titolo, titoloDocumento, sottotitolo, azioni }: { titolo: string; titoloDocumento: string; sottotitolo?: string; azioni?: ReactNode }) {
-  const h1 = useFocusTitolo<HTMLHeadingElement>(`${titoloDocumento} - Finanziario`);
-  return (
-    <div className="ui-titolo">
-      <div>
-        <h1 ref={h1} tabIndex={-1}>
-          {titolo}
-        </h1>
-        {sottotitolo && <p>{sottotitolo}</p>}
-      </div>
-      {azioni && <div className="ui-titolo__azioni">{azioni}</div>}
-    </div>
-  );
+  const area: Briciola = { etichetta: 'Finanziario', a: voci.length === 0 ? undefined : conFiltri(PANORAMICA.percorso, filtri) };
+  return <BricioleKit voci={[area, ...voci.map((v) => ({ ...v, a: v.a ? conFiltri(v.a, filtri) : undefined }))]} />;
 }
 
 interface PropsPagina {
@@ -85,7 +45,7 @@ function Testata({ percorso, briciole, titolo, titoloDocumento, sottotitolo, azi
   return (
     <>
       <Briciole voci={briciole ?? (percorso === PANORAMICA.percorso ? [] : [{ etichetta: catalogo }])} filtri={filtri} />
-      <TestaPagina titolo={titolo ?? titoloH1(catalogo)} titoloDocumento={titoloDocumento ?? catalogo} sottotitolo={sottotitolo ?? voce?.sottotitolo} azioni={azioni} />
+      <TestaPagina titolo={titolo ?? titoloH1(catalogo)} titoloDocumento={`${titoloDocumento ?? catalogo} - Finanziario`} sottotitolo={sottotitolo ?? voce?.sottotitolo} azioni={azioni} />
     </>
   );
 }
