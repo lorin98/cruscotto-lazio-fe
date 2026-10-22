@@ -120,7 +120,7 @@
     },
     "step8-gate": {
       "status": "done",
-      "completed_at": "2026-10-22T12:41:40Z",
+      "completed_at": "2026-10-22T13:33:23Z",
       "artifacts": [
         "./plan/fisico/fe-gate-report.json"
       ],
