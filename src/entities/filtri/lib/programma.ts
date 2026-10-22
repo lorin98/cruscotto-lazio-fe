@@ -81,5 +81,22 @@ export function senzaValore<F extends Filtri>(filtri: F, chiave: ChiaveFiltro, v
   return nuovi;
 }
 
+/**
+ * Un criterio attivo della barra dei filtri: chiave stabile, etichetta breve, valore, la dimensione del programma (null per
+ * un criterio della pagina, es. la campagna del fisico) e i criteri senza di lui (il chip tolto).
+ */
+export interface FiltroNellaBarra<F> {
+  chiave: string;
+  etichetta: string;
+  valore: string;
+  dimensione: ChiaveFiltro | null;
+  senza: F;
+}
+
+/** I filtri del programma attivi come voci della barra, nell'ordine delle chiavi: un chip per valore. */
+export function filtriNellaBarra<F extends Filtri>(filtri: F): FiltroNellaBarra<F>[] {
+  return filtriAttivi(filtri).map((f) => ({ chiave: `${f.chiave}:${f.valore}`, etichetta: f.etichetta, valore: f.valore, dimensione: f.chiave, senza: senzaValore(filtri, f.chiave, f.valore) }));
+}
+
 /** Testo del chip del filtro per azione portante quando il legame interventi - azioni non c'e' (non si applica). */
 export const AZIONE_NON_APPLICATA = 'non applicato: il legame con le azioni portanti viene da una fonte non attiva';

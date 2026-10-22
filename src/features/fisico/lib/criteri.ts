@@ -2,8 +2,8 @@
 // report finanziari (entities/filtri: SC-FS_FILTRI "filtri come nei report finanziari"), e la campagna, un solo anno
 // (TX-0018: campagna non ripetibile, 2000-2100; assente = tutte le campagne presenti). Sono gli url_params della route
 // /fisico/superfici dello uiplan: dall'indirizzo arrivano solo valori nel formato ammesso, e cosi' si riscrivono.
-import { CHIAVI_FILTRO, filtriAttivi, filtriDaRicerca, ricercaDaFiltri, senzaValore } from '../../../entities/filtri';
-import type { ChiaveFiltro, Filtri } from '../../../entities/filtri';
+import { CHIAVI_FILTRO, filtriDaRicerca, filtriNellaBarra, ricercaDaFiltri } from '../../../entities/filtri';
+import type { ChiaveFiltro, Filtri, FiltroNellaBarra } from '../../../entities/filtri';
 import { isAnnoValido } from '../../../shared/lib';
 
 /** Criteri di TX-0018: i filtri del programma e la campagna (assente = tutte le campagne presenti). */
@@ -53,24 +53,14 @@ export function soloIntervento(criteri: Criteri, codice: string): Criteri {
   return { ...criteri, intervento: [codice] };
 }
 
-/** Un criterio attivo della barra: chiave stabile, etichetta breve, valore e i criteri senza di lui (il chip tolto). */
-export interface CriterioAttivo {
-  chiave: string;
-  etichetta: string;
-  valore: string;
-  senza: Criteri;
-}
+/** Un criterio attivo della barra (entities/filtri): la campagna non e' una dimensione del programma (dimensione null). */
+export type CriterioAttivo = FiltroNellaBarra<Criteri>;
 
 /** I criteri attivi nell'ordine della barra: i filtri del programma, poi la campagna. */
 export function criteriAttivi(criteri: Criteri): CriterioAttivo[] {
-  const filtri: CriterioAttivo[] = filtriAttivi(criteri).map((f) => ({
-    chiave: `${f.chiave}:${f.valore}`,
-    etichetta: f.etichetta,
-    valore: f.valore,
-    senza: senzaValore(criteri, f.chiave, f.valore),
-  }));
+  const filtri = filtriNellaBarra(criteri);
   if (criteri.campagna === undefined) return filtri;
-  return [...filtri, { chiave: `campagna:${criteri.campagna}`, etichetta: ETICHETTA_CAMPAGNA, valore: String(criteri.campagna), senza: conCampagna(criteri, undefined) }];
+  return [...filtri, { chiave: `campagna:${criteri.campagna}`, etichetta: ETICHETTA_CAMPAGNA, valore: String(criteri.campagna), dimensione: null, senza: conCampagna(criteri, undefined) }];
 }
 
 /** "Etichetta: valore" di ogni criterio, per l'intestazione del PNG dei grafici (filtri applicati, NFR-50). */

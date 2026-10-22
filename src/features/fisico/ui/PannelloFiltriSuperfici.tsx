@@ -7,9 +7,8 @@
 // obiettivi e azione portante non hanno voci, e il report resta leggibile. La scelta e' una bozza: "Applica i filtri" la
 // porta nell'indirizzo, "Azzera" la svuota. PannelloLaterale (react-aria) da' focus trap, Esc e ritorno del focus; i
 // controlli sono quelli del kit (gruppo, chip a scelta singola per la campagna: review H1), bootstrap-italia nativi.
-import { useState } from 'react';
-import { GruppiProgramma, senzaAzioneSeNonDisponibile } from '../../../entities/filtri';
-import type { ChiaveFiltro, ValoriProgramma } from '../../../entities/filtri';
+import { GruppiProgramma, senzaAzioneSeNonDisponibile, useBozzaFiltri } from '../../../entities/filtri';
+import type { ValoriProgramma } from '../../../entities/filtri';
 import { Caricamento, Gruppo, PannelloLaterale, Scelte } from '../../../shared/ui';
 import type { StatoQuery } from '../../../shared/ui';
 import type { ValoriFiltriElenco } from '../api';
@@ -48,25 +47,14 @@ interface PropsPannello {
   onChiudi: () => void;
 }
 
-/** La bozza dei criteri: all'apertura riparte da quelli applicati (stato derivato dal prop, senza effetti). */
-function useBozza(aperto: boolean, criteri: Criteri) {
-  const [bozza, setBozza] = useState<Criteri>(criteri);
-  const [apertoPrima, setApertoPrima] = useState(aperto);
-  if (aperto !== apertoPrima) {
-    setApertoPrima(aperto);
-    if (aperto) setBozza(criteri);
-  }
-  const imposta = (k: ChiaveFiltro) => (v: string[]) => setBozza((b) => ({ ...b, [k]: v.length > 0 ? v : undefined }));
-  return { bozza, setBozza, imposta };
-}
-
 /** Le campagne da proporre: quelle della risposta, e quella della bozza se non c'e' (con una campagna gia' scelta). */
 function campagneProposte(campagne: readonly number[], scelta: number | undefined): readonly number[] {
   return scelta === undefined || campagne.includes(scelta) ? campagne : [scelta, ...campagne];
 }
 
 export function PannelloFiltriSuperfici({ aperto, criteri, valori, campagne, codiciRisposta, onApplica, onChiudi }: PropsPannello) {
-  const { bozza, setBozza, imposta } = useBozza(aperto, criteri);
+  // la bozza dei criteri riparte da quelli applicati a ogni apertura (entities/filtri, come nel finanziario)
+  const { bozza, setBozza, imposta } = useBozzaFiltri(aperto, criteri);
   const disponibili = valori?.data;
   const inCaricamento = valori !== null && disponibili === undefined && !valori.isError;
   const legame = disponibili?.legameAzioniDisponibile === true;
