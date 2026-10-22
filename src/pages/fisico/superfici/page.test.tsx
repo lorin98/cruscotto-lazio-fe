@@ -280,6 +280,18 @@ describe('RF018: superficie ammissibile della domanda di sostegno e di pagamento
     expect(document.activeElement).toBe(h1);
   });
 
+  it('Applica i filtri senza modifiche dal pannello aperto dallo stato vuoto riporta il focus a Modifica i filtri, che resta (A1)', async () => {
+    servi({ ...SUPERFICI, righe: [] });
+    const { router } = apri(`${PERCORSO}?intervento=SRB09`);
+    const bottone = await screen.findByRole('button', { name: 'Modifica i filtri' });
+    await userEvent.click(bottone);
+    const pannello = await screen.findByRole('dialog', { name: 'Filtri delle superfici ammissibili' });
+    await userEvent.click(within(pannello).getByRole('button', { name: 'Applica i filtri' }));
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Filtri delle superfici ammissibili' })).toBeNull());
+    expect(router.state.location.search).toBe('?intervento=SRB09');
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Modifica i filtri' })));
+  });
+
   it('Applica i filtri del pannello aperto dalla barra riporta il focus al bottone Filtri, che resta', async () => {
     servi();
     const { router } = apri();

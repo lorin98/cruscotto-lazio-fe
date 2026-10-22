@@ -7,8 +7,10 @@
 // di quella campagna, D1) e valori dei filtri non disponibili (nel pannello). La campagna della risposta (null = letta
 // senza filtro) decide i testi degli interventi senza superfici in tabella, nelle note dei grafici e nell'anteprima (V1
 // della review del fisico). Nessun link verso altre pagine (OP-FIS-05): il clic apre l'anteprima o mette un filtro della
-// stessa pagina. Un comando che sparisce col report ("Mostra solo", punto della serie per campagna, "Applica i filtri" del
-// pannello aperto dallo stato vuoto) porta il focus sull'h1 dopo la chiusura del dialogo (A1, X2: WCAG 2.4.3).
+// stessa pagina. Criteri nuovi = contenuto nuovo: un comando che sparisce col report ("Mostra solo", punto della serie per
+// campagna, "Applica i filtri" con criteri cambiati dal pannello aperto dallo stato vuoto) porta il focus sull'h1 dopo la
+// chiusura del dialogo (A1, X2: WCAG 2.4.3); con criteri invariati il bottone che ha aperto il pannello resta e il focus
+// torna li' (A1 dell'iterazione 2).
 // Design system: classi bootstrap-italia e del kit v2; i primitivi react-aria stanno solo dentro i componenti del kit che
 // li richiedono (pannello e drawer modali, popover della pill).
 import { useMemo, useRef, useState } from 'react';
@@ -96,10 +98,11 @@ export function SuperficiAmmissibili() {
   const [vista, setVista] = useState<VistaGrafico>('grafico');
   const righe = stato.data?.righe ?? [];
   const descrizioneDi = (codice: string) => descrizioneIntervento(valori?.data?.interventi, codice);
-  // dalla barra il bottone Filtri resta e react-aria ci riporta il focus; dallo stato vuoto il bottone sparisce
+  // il bottone che ha aperto il pannello resta (Filtri della barra, o "Modifica i filtri" con criteri invariati) e
+  // react-aria ci riporta il focus; dallo stato vuoto, con criteri nuovi, il contenuto cambia e il focus va sull'h1
   const onApplica = (c: Criteri) => {
     setPannello(null);
-    (pannello === 'vuoto' ? applicaConFocus : applica)(c);
+    (pannello === 'vuoto' && ricercaDaCriteri(c) !== ricercaDaCriteri(criteri) ? applicaConFocus : applica)(c);
   };
   return (
     <>
