@@ -47,9 +47,12 @@
     </ul>
   </nav>
   <main class="ui-main" id="contenuto">
-    <div class="ui-filtri" role="region" aria-label="Perimetro dei dati">
+    <div class="ui-filtri" role="region" aria-label="Filtri attivi">
+      <a class="btn btn-primary" href="../panoramica/panoramica.html#pannello-filtri">Filtri (2)</a>
+      <span class="ui-chip">Intervento: SRD01 <button class="btn" type="button" aria-label="Togli il filtro Intervento SRD01">x</button></span>
+      <span class="ui-chip">Stato area programmazione: Revocata <button class="btn" type="button" aria-label="Togli il filtro Stato area programmazione Revocata">x</button></span>
       <span class="ui-pill">Perimetro: regionale (profilo ADA: domande per sottofase della propria ADA; anagrafica delle sottofasi regionale)</span>
-      <span class="ui-pill">I filtri dei report procedurali non si applicano alle sottofasi</span>
+      <button class="ui-pill" type="button" aria-label="Ultimo dato sincronizzato: dati al gg/mm/aaaa per tutti i flussi. Mostra il dettaglio per flusso">Dati al gg/mm/aaaa</button>
     </div>
     <nav class="breadcrumb-container" aria-label="Percorso">
       <ol class="breadcrumb">
@@ -60,13 +63,14 @@
     </nav>
     <div class="ui-titolo">
       <h1>Procedurale: sottofasi di ammissibilità</h1>
-      <p>Le sottofasi dello stato di ammissibilita' della domanda di sostegno (sei) e di pagamento (sette) di SR-01, con la sottofase dell'anagrafica che le abbina e le domande che vi si trovano.</p>
+      <p>Le sottofasi dello stato di ammissibilita' della domanda di sostegno (sei) e di pagamento (sette) di SR-01, con la sottofase dell'anagrafica che le abbina e le domande che vi si trovano. I filtri restringono le domande contate; l'elenco delle sottofasi resta intero.</p>
     </div>
-    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0031.read, csr.tx-0032.read - Transazioni: TX-0031 (RF031), TX-0032 (RF032). Gli endpoint non accettano filtri: la barra dichiara il perimetro e che i filtri non si applicano, senza il bottone Filtri (OP-PR-03). Ogni card compare solo con il grant della sua transazione. Ultimo dato sincronizzato assente dai DTO (OP-PR-01).</p>
+    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0024.read, csr.tx-0025.read, csr.tx-0031.read, csr.tx-0032.read - Transazioni: TX-0031 (RF031), TX-0032 (RF032), TX-0024 e TX-0025 (valori dei filtri e Dati al). Dal giro G3 (D-06 Rev. 6 del backend) le sottofasi accettano i filtri di RF024 come i report per domanda: intervento, OS, OG, OP e stato area programmazione, nell'indirizzo della pagina e condivisi con le altre pagine del procedurale. I filtri restringono le domande contate per voce, per sottofase censita e per le altre sottofasi; l'anagrafica (voci di SR-01 e sottofasi del tipo) resta intera e regionale, e la fonte resta per tipo di domanda: con la fonte attiva un insieme filtrato senza domande da' 0, non "non disponibile". Ogni card compare solo con il grant della sua transazione.</p>
     <section class="ui-card" aria-labelledby="g-sostegno">
       <div class="ui-card__testa">
         <h2 id="g-sostegno">Domande di sostegno per sottofase di ammissibilita'</h2>
-        <div class="ui-seg" role="group" aria-label="Vista di Domande di sostegno per sottofase di ammissibilita'"><button class="btn" type="button" aria-pressed="false">Grafico</button> <button class="btn" type="button" aria-pressed="true">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+        <div class="ui-seg" role="group" aria-label="Vista di Domande di sostegno per sottofase di ammissibilita'"><button class="btn" type="button" aria-pressed="false">Grafico</button> <button class="btn" type="button" aria-pressed="true">Tabella</button></div>
+        <div class="ui-strumenti" role="group" aria-label="Scarica il grafico Domande di sostegno per sottofase di ammissibilita'"><button class="btn" type="button" aria-label="Scarica il grafico Domande di sostegno per sottofase di ammissibilita' in CSV">CSV</button> <button class="btn" type="button" aria-label="Scarica il grafico Domande di sostegno per sottofase di ammissibilita' in XLSX">XLSX</button></div>
       </div>
       <p class="wf-note">Grafico non disponibile: nessuna domanda di sostegno e' legata a una sottofase (fonte non attiva: sottofasi della domanda). La card lo dice in testo e si apre sulla tabella con l'anagrafica. Con la fonte attiva la vista iniziale e' il Grafico: barre orizzontali delle sei voci nell'ordine di SR-01 (le voci non censite omesse e dichiarate), senza clic (l'elenco operativo non ha un filtro per sottofase, OP-PR-08).</p>
       <table class="ui-tabella">
@@ -86,23 +90,25 @@
           <tr><th scope="row">Valutazioni personalizzazioni regionali</th><td>non censita</td><td>non censita</td><td>non disponibile (fonte non attiva: sottofasi della domanda)</td><td>non censita</td></tr>
         </tbody>
       </table>
-      <p class="ui-fonte">Fonte: TX-0031 (voci; perimetro della risposta). Con la fonte attiva una voce censita conta le domande correnti nella sua sottofase (0 se nessuna), una voce non censita e' "non valorizzato" (nessuna sottofase a cui legare le domande). Scarica: immagine PNG del grafico, quando c'e'.</p>
+      <p class="ui-fonte">Fonte: TX-0031 (voci; perimetro della risposta). Con la fonte attiva una voce censita conta le domande correnti nella sua sottofase (0 se nessuna), una voce non censita e' "non valorizzato" (nessuna sottofase a cui legare le domande). Scarica: CSV e XLSX dal backend (GET /api/procedurale/sottofasi-sostegno/{formato}, filtri correnti: una riga per voce di SR-01 con la sottofase censita, poi le altre sottofasi); il PNG solo quando il grafico c'e'.</p>
     </section>
     <section class="ui-card" aria-labelledby="g-pagamento">
       <div class="ui-card__testa">
         <h2 id="g-pagamento">Domande di pagamento per sottofase di ammissibilita'</h2>
-        <div class="ui-seg" role="group" aria-label="Vista di Domande di pagamento per sottofase di ammissibilita'"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+        <div class="ui-seg" role="group" aria-label="Vista di Domande di pagamento per sottofase di ammissibilita'"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button></div>
+        <div class="ui-strumenti" role="group" aria-label="Scarica il grafico Domande di pagamento per sottofase di ammissibilita'"><button class="btn" type="button" aria-label="Scarica il grafico Domande di pagamento per sottofase di ammissibilita' in PNG">PNG</button> <button class="btn" type="button" aria-label="Scarica il grafico Domande di pagamento per sottofase di ammissibilita' in CSV">CSV</button> <button class="btn" type="button" aria-label="Scarica il grafico Domande di pagamento per sottofase di ammissibilita' in XLSX">XLSX</button></div>
       </div>
       <figure class="ui-grafico ui-grafico--barre">
         <figcaption>Barre orizzontali: le sette voci di SR-01 della domanda di pagamento (congruenza documenti, criteri di ammissibilita', criteri di selezione, indicatori di risultato, valutazioni regionali, garanzie e pagamenti, antimafia) con le domande della voce; voci non censite omesse e dichiarate sotto il grafico. Nessun clic.</figcaption>
       </figure>
-      <p class="ui-fonte">Fonte: TX-0032 (voci). La tabella equivalente mostra le stesse voci con la sottofase censita, l'esito e le domande.</p>
+      <p class="ui-fonte">Fonte: TX-0032 (voci). La tabella equivalente mostra le stesse voci con la sottofase censita, l'esito e le domande. Scarica: PNG del grafico (nel browser, solo nella vista Grafico); CSV e XLSX dal backend (GET /api/procedurale/sottofasi-pagamento/{formato}, filtri correnti).</p>
     </section>
     <h2>Vista: Tabella di Domande di pagamento per sottofase di ammissibilita'</h2>
     <section class="ui-card" aria-labelledby="t-pagamento">
       <div class="ui-card__testa">
         <h2 id="t-pagamento">Domande di pagamento per sottofase di ammissibilita'</h2>
-        <div class="ui-seg" role="group" aria-label="Vista di Domande di pagamento per sottofase di ammissibilita'"><button class="btn" type="button" aria-pressed="false">Grafico</button> <button class="btn" type="button" aria-pressed="true">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+        <div class="ui-seg" role="group" aria-label="Vista di Domande di pagamento per sottofase di ammissibilita'"><button class="btn" type="button" aria-pressed="false">Grafico</button> <button class="btn" type="button" aria-pressed="true">Tabella</button></div>
+        <div class="ui-strumenti" role="group" aria-label="Scarica il grafico Domande di pagamento per sottofase di ammissibilita'"><button class="btn" type="button" aria-label="Scarica il grafico Domande di pagamento per sottofase di ammissibilita' in CSV">CSV</button> <button class="btn" type="button" aria-label="Scarica il grafico Domande di pagamento per sottofase di ammissibilita' in XLSX">XLSX</button></div>
       </div>
       <table class="ui-tabella">
         <caption>Sottofasi di ammissibilita' della domanda di pagamento: la voce conta le domande distinte di tutte le sottofasi che la abbinano; la sottofase censita (la prima per codice) mostra le sue sole domande.</caption>
@@ -120,7 +126,7 @@
           <tr><th scope="row">Antimafia</th><td>ANTIMAFIA - descrizione dell'anagrafica</td><td>OK</td><td class="ui-num">3</td><td class="ui-num">2</td></tr>
         </tbody>
       </table>
-      <p class="ui-fonte">Fonte: TX-0032. Con piu' sottofasi sulla stessa voce (es. ANTIMAFIA e DP_ANTIMAFIA) la voce conta le domande distinte (una domanda in due sottofasi una volta, D-06 Rev. 5): puo' essere minore della somma delle sottofasi, e la pagina non somma. Domande di pagamento: solo con presenza CSR-DP aperta, mai l'Assistenza tecnica.</p>
+      <p class="ui-fonte">Fonte: TX-0032. Con piu' sottofasi sulla stessa voce (es. ANTIMAFIA e DP_ANTIMAFIA) la voce conta le domande distinte (una domanda in due sottofasi una volta, D-06 Rev. 5): puo' essere minore della somma delle sottofasi, e la pagina non somma. Domande di pagamento: solo con presenza CSR-DP aperta, mai l'Assistenza tecnica. Con i filtri (qui SRD01 e Revocata) i numeri sono quelli delle domande dell'insieme filtrato; le voci e le sottofasi senza domande nell'insieme restano in tabella con 0.</p>
       <table class="ui-tabella">
         <caption>Altre sottofasi dell'anagrafica di pagamento: nessuna voce di SR-01 le prende (codice libero), ciascuna con le sue domande.</caption>
         <thead>
@@ -141,8 +147,9 @@
     <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro delle due card)</div>
     <h2>Stato: vuoto</h2>
     <div class="ui-vuoto" role="status">Anagrafica delle sottofasi vuota: tutte le voci risultano non censite (nessun errore). Le sottofasi si censiscono dall'amministrazione (TX-1008).</div>
+    <div class="ui-vuoto" role="status">Nessuna domanda nelle sottofasi per i filtri scelti: le voci restano con 0. <a class="btn btn-primary" href="../panoramica/panoramica.html#pannello-filtri">Modifica i filtri</a></div>
     <h2>Stato: errore</h2>
-    <div class="alert alert-danger" role="alert">Dati non disponibili: messaggio dal problem-type (403 accesso negato, 503 da riprovare dopo Retry-After). <a href="#contenuto">Riprova</a></div>
+    <div class="alert alert-danger" role="alert">Dati non disponibili: messaggio dal problem-type (400 filtro non valido, 403 accesso negato, 503 da riprovare dopo Retry-After). <a href="#contenuto">Riprova</a></div>
   </main>
 </div>
 <footer class="ui-footer">

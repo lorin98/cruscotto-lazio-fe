@@ -52,6 +52,7 @@
       <span class="ui-chip">Intervento: SRD01 <button class="btn" type="button" aria-label="Togli il filtro Intervento SRD01">x</button></span>
       <span class="ui-chip">Stato area programmazione: Ammessa <button class="btn" type="button" aria-label="Togli il filtro Stato area programmazione Ammessa">x</button></span>
       <span class="ui-pill">Perimetro: regionale (profilo ADA: solo le domande della propria ADA, non rimovibile)</span>
+      <button class="ui-pill" type="button" aria-label="Ultimo dato sincronizzato: dati al gg/mm/aaaa per tutti i flussi. Mostra il dettaglio per flusso">Dati al gg/mm/aaaa</button>
     </div>
     <nav class="breadcrumb-container" aria-label="Percorso">
       <ol class="breadcrumb">
@@ -64,7 +65,7 @@
       <p>Domande ammesse, stati delle domande di sostegno e di pagamento e stato area programmazione degli interventi selezionati.</p>
     </div>
     <p class="wf-note">Ruoli (grant verbatim): csr.tx-0024.read, csr.tx-0025.read, csr.tx-0026.read, csr.tx-0027.read, csr.tx-0028.read, csr.tx-0029.read - Transazioni: TX-0024 e TX-0025 (valori dei filtri), TX-0026 (KPI e importi per intervento), TX-0027, TX-0028 (stati), TX-0029 (stato area programmazione). Ogni card compare solo con il grant della sua transazione (gate di UX).</p>
-    <p class="wf-note">Ultimo dato sincronizzato: nessun DTO procedurale lo espone (OP-PR-01), la pill non c'e' finche' il backend non aggiunge il campo a TX-0024. Il perimetro viene dal campo perimetro di ogni risposta (REGIONALE o ADA).</p>
+    <p class="wf-note">Dati al: ultimiDatiSincronizzati di TX-0024 (giro G3, come la pill del finanziario e dell'elenco): la pill dice la data fino a cui tutti i flussi d'import sono aggiornati (la conclusione meno recente) e, al clic, una voce per flusso con data e ora; senza acquisizioni concluse "Ultimo dato sincronizzato: nessuna acquisizione conclusa", con TX-0024 in errore "non disponibile". E' la stessa data dell'intestazione dei file CSV e XLSX. Il perimetro viene dal campo perimetro di ogni risposta (REGIONALE o ADA).</p>
     <div class="ui-griglia ui-griglia--4">
       <section class="ui-kpi" aria-label="Domande ammesse">
         <p>Domande ammesse</p>
@@ -93,51 +94,57 @@
       <section class="ui-card" aria-labelledby="g-sostegno">
         <div class="ui-card__testa">
           <h2 id="g-sostegno">Domande di sostegno per stato</h2>
-          <div class="ui-seg" role="group" aria-label="Vista di Domande di sostegno per stato"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+          <div class="ui-seg" role="group" aria-label="Vista di Domande di sostegno per stato"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button></div>
+          <div class="ui-strumenti" role="group" aria-label="Scarica il grafico Domande di sostegno per stato"><button class="btn" type="button" aria-label="Scarica il grafico Domande di sostegno per stato in PNG">PNG</button> <button class="btn" type="button" aria-label="Scarica il grafico Domande di sostegno per stato in CSV">CSV</button> <button class="btn" type="button" aria-label="Scarica il grafico Domande di sostegno per stato in XLSX">XLSX</button></div>
         </div>
         <figure class="ui-grafico ui-grafico--barre">
           <figcaption>Barre orizzontali impilate: le undici voci di SR-01 nell'ordine del backend, poi gli altri stati per codice; ogni barra divide le domande rilasciate da quelle non ancora rilasciate (di cui non rilasciate). In compilazione con fonte non attiva: voce omessa e dichiarata sotto. Clic sulla card o su una barra: pagina degli stati delle domande di sostegno.</figcaption>
         </figure>
-        <p class="ui-fonte">Fonte: TX-0027 (totale). La tabella equivalente mostra voce, domande e di cui non rilasciate. Scarica: immagine PNG (il backend non esporta questo report: i dati sono nel CSV del riepilogo, OP-PR-05).</p>
+        <p class="ui-fonte">Fonte: TX-0027 (totale). La tabella equivalente mostra voce, domande e di cui non rilasciate. Scarica: PNG del grafico (disegnato nel browser, solo nella vista Grafico); CSV e XLSX dal backend (GET /api/procedurale/stati-sostegno/{formato} con i filtri correnti: una riga per intervento e stato, poi il totale).</p>
       </section>
       <section class="ui-card" aria-labelledby="g-pagamento">
         <div class="ui-card__testa">
           <h2 id="g-pagamento">Domande di pagamento per stato</h2>
-          <div class="ui-seg" role="group" aria-label="Vista di Domande di pagamento per stato"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+          <div class="ui-seg" role="group" aria-label="Vista di Domande di pagamento per stato"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button></div>
+          <div class="ui-strumenti" role="group" aria-label="Scarica il grafico Domande di pagamento per stato"><button class="btn" type="button" aria-label="Scarica il grafico Domande di pagamento per stato in PNG">PNG</button> <button class="btn" type="button" aria-label="Scarica il grafico Domande di pagamento per stato in CSV">CSV</button> <button class="btn" type="button" aria-label="Scarica il grafico Domande di pagamento per stato in XLSX">XLSX</button></div>
         </div>
         <figure class="ui-grafico ui-grafico--barre">
           <figcaption>Barre orizzontali impilate: i cinque stati di SR-01 della domanda di pagamento (CSR-DP), poi gli altri stati per codice, con il di cui non rilasciate. Le domande SIGC non hanno questi stati e restano fuori. Clic sulla card o su una barra: pagina degli stati delle domande di pagamento.</figcaption>
         </figure>
-        <p class="ui-fonte">Fonte: TX-0028 (totale). La tabella equivalente mostra voce, domande e di cui non rilasciate. Scarica: immagine PNG.</p>
+        <p class="ui-fonte">Fonte: TX-0028 (totale). La tabella equivalente mostra voce, domande e di cui non rilasciate. Scarica: PNG del grafico; CSV e XLSX dal backend (GET /api/procedurale/stati-pagamento/{formato}, filtri correnti).</p>
       </section>
     </div>
     <div class="ui-griglia ui-griglia--2">
       <section class="ui-card" aria-labelledby="g-area">
         <div class="ui-card__testa">
           <h2 id="g-area">Domande per stato area programmazione</h2>
-          <div class="ui-seg" role="group" aria-label="Vista di Domande per stato area programmazione"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+          <div class="ui-seg" role="group" aria-label="Vista di Domande per stato area programmazione"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button></div>
+          <div class="ui-strumenti" role="group" aria-label="Scarica il grafico Domande per stato area programmazione"><button class="btn" type="button" aria-label="Scarica il grafico Domande per stato area programmazione in PNG">PNG</button> <button class="btn" type="button" aria-label="Scarica il grafico Domande per stato area programmazione in CSV">CSV</button> <button class="btn" type="button" aria-label="Scarica il grafico Domande per stato area programmazione in XLSX">XLSX</button></div>
         </div>
         <figure class="ui-grafico ui-grafico--barre">
           <figcaption>Barre orizzontali: le dieci voci di RF025 (stato scritto dalle determine PROSA), gli stati osservati fuori catalogo e le domande senza stato (nessuna determina aperta). Clic su una barra: aggiunge il filtro per quello stato alla pagina (chip).</figcaption>
         </figure>
-        <p class="ui-fonte">Fonte: TX-0029 (totale.statiAreaProgrammazione). La tabella equivalente ha l'azione Apri nell'elenco per ogni voce con domande.</p>
+        <p class="ui-fonte">Fonte: TX-0029 (totale.statiAreaProgrammazione). La tabella equivalente ha l'azione Apri nell'elenco per ogni voce con domande. Scarica: PNG del grafico; CSV e XLSX del riepilogo (GET /api/procedurale/riepilogo/{formato}: le colonne dello stato area programmazione per intervento).</p>
       </section>
       <section class="ui-card" aria-labelledby="g-importi">
         <div class="ui-card__testa">
           <h2 id="g-importi">Importo richiesto e contributo ammesso per intervento</h2>
-          <div class="ui-seg" role="group" aria-label="Vista di Importo richiesto e contributo ammesso per intervento"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+          <div class="ui-seg" role="group" aria-label="Vista di Importo richiesto e contributo ammesso per intervento"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button></div>
+          <div class="ui-strumenti" role="group" aria-label="Scarica il grafico Importo richiesto e contributo ammesso per intervento"><button class="btn" type="button" aria-label="Scarica il grafico Importo richiesto e contributo ammesso per intervento in PNG">PNG</button> <button class="btn" type="button" aria-label="Scarica il grafico Importo richiesto e contributo ammesso per intervento in CSV">CSV</button> <button class="btn" type="button" aria-label="Scarica il grafico Importo richiesto e contributo ammesso per intervento in XLSX">XLSX</button></div>
         </div>
         <figure class="ui-grafico ui-grafico--barre">
           <figcaption>Barre raggruppate con zoom oltre 12 interventi: importo richiesto e contributo ammesso delle domande ammesse. Importo non valorizzato: barra omessa e dichiarata. Clic su una barra: dettaglio procedurale dell'intervento.</figcaption>
         </figure>
-        <p class="ui-fonte">Fonte: TX-0026 (righe). Importi della determina corrente, altrimenti della domanda negli scarichi SIAN (D-03).</p>
+        <p class="ui-fonte">Fonte: TX-0026 (righe). Importi della determina corrente, altrimenti della domanda negli scarichi SIAN (D-03). Scarica: PNG del grafico; CSV e XLSX dal backend (GET /api/procedurale/domande-ammesse/{formato}: una riga per intervento e la riga dei totali).</p>
       </section>
     </div>
+    <p class="wf-note">Download come nel finanziario: un pulsante per formato con la sigla visibile (PNG, CSV, XLSX) e il nome accessibile completo ("Scarica il grafico ... in CSV"). Il PNG e' l'immagine del grafico con l'intestazione di NFR-50 (fonte, filtri, data, ultimo dato sincronizzato, profilo, uso interno), generata nel browser e non registrata in audit. CSV e XLSX sono i file del backend del report della card, con gli stessi filtri e l'header X-Requested-With, registrati in AUDIT_ESPORTAZIONE; un file alla volta, esito in role=status, errore in role=alert col motivo (oltre 5.000 righe o 50.000 celle: restringere i filtri). I KPI non hanno download.</p>
     <h2>Vista: Tabella di Domande per stato area programmazione</h2>
     <section class="ui-card" aria-labelledby="t-area">
       <div class="ui-card__testa">
         <h2 id="t-area">Domande per stato area programmazione</h2>
-        <div class="ui-seg" role="group" aria-label="Vista di Domande per stato area programmazione"><button class="btn" type="button" aria-pressed="false">Grafico</button> <button class="btn" type="button" aria-pressed="true">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+        <div class="ui-seg" role="group" aria-label="Vista di Domande per stato area programmazione"><button class="btn" type="button" aria-pressed="false">Grafico</button> <button class="btn" type="button" aria-pressed="true">Tabella</button></div>
+        <div class="ui-strumenti" role="group" aria-label="Scarica il grafico Domande per stato area programmazione"><button class="btn" type="button" aria-label="Scarica il grafico Domande per stato area programmazione in CSV">CSV</button> <button class="btn" type="button" aria-label="Scarica il grafico Domande per stato area programmazione in XLSX">XLSX</button></div>
       </div>
       <table class="ui-tabella">
         <caption>Domande per stato area programmazione: la voce e' l'intestazione di riga; Apri nell'elenco apre le domande di quello stato con i filtri correnti.</caption>
@@ -158,7 +165,7 @@
           <tr><th scope="row">Totale</th><td class="ui-num">n</td><td></td></tr>
         </tfoot>
       </table>
-      <p class="ui-fonte">Fonte: TX-0029. Link elenco-area-programmazione-panoramica: voceProgrammazione = chiave della voce (il codice per uno stato osservato, SENZA_STATO per le domande senza stato), intervento, os, og, op correnti. L'area programmazione non ha domande non rilasciate: il numero coincide con l'elenco.</p>
+      <p class="ui-fonte">Fonte: TX-0029. Link elenco-area-programmazione-panoramica: voceProgrammazione = chiave della voce (il codice per uno stato osservato, SENZA_STATO per le domande senza stato), intervento, os, og, op correnti. L'area programmazione non ha domande non rilasciate: il numero coincide con l'elenco. Nella vista Tabella il PNG non c'e' (il grafico e' nascosto): restano CSV e XLSX.</p>
     </section>
     <aside class="ui-pannello" id="pannello-filtri" aria-label="Pannello dei filtri">
       <h2>Filtri dei report procedurali</h2>
@@ -182,8 +189,7 @@
         <label class="ui-opzione" for="f-s5"><input type="checkbox" id="f-s5" name="stato"> Senza stato (nessuna determina aperta)</label>
         <p class="form-text">Le dieci voci di RF025, poi gli stati osservati e la voce senza stato, con le descrizioni del backend (TX-0025).</p>
       </details>
-      <p class="form-text">L'azione portante non e' un filtro dell'ambito procedurale (D-01 del backend, OP-PR-02).</p>
-      <p class="form-text">Voci dello stesso filtro in alternativa (O); filtri diversi insieme (E). I filtri restano nell'indirizzo della pagina e valgono per tutte le pagine del procedurale che li accettano.</p>
+      <p class="form-text">Voci dello stesso filtro in alternativa (O); filtri diversi insieme (E). I filtri restano nell'indirizzo della pagina e valgono per tutte le pagine del procedurale, sottofasi comprese; le Unit Amount prendono intervento e obiettivi, non lo stato area programmazione.</p>
       <button class="btn" type="button">Azzera</button> <button class="btn btn-primary" type="button">Applica i filtri</button>
     </aside>
     <h2>Stato: caricamento</h2>
@@ -192,6 +198,7 @@
     <div class="ui-vuoto" role="status">Nessun intervento per i filtri scelti. <a class="btn btn-primary" href="panoramica.html#pannello-filtri">Modifica i filtri</a></div>
     <h2>Stato: errore</h2>
     <div class="alert alert-danger" role="alert">Dati non disponibili: messaggio dal problem-type (400 filtro non valido, 403 accesso negato, 503 capacita' esaurita o tempo scaduto con nuovo tentativo dopo Retry-After). <a href="#contenuto">Riprova</a></div>
+    <div class="alert alert-danger" role="alert">File XLSX non scaricato. La tabella supera il limite dell'esportazione (5.000 righe o 50.000 celle): restringi i filtri e riprova.</div>
   </main>
 </div>
 <footer class="ui-footer">

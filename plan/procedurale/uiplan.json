@@ -6,7 +6,7 @@
     {
       "slice": "procedurale",
       "path": "handover/openapi-procedurale.json",
-      "sha256": "sha256:461d222b40f1aa97cd08a36d87cafe96f0277cd71b5452675fee730b3f90a492",
+      "sha256": "sha256:22da01896b49d117841f2ed5de405709e0854ac17aa7b2ca3841deebdf848ab0",
       "manifest_hash_match": true
     }
   ],
@@ -77,9 +77,9 @@
     {
       "path": "/procedurale/interventi/:codice",
       "kind": "dettaglio",
-      "transactions": ["TX-0024", "TX-0026", "TX-0027", "TX-0028", "TX-0029", "TX-0030"],
-      "reqs": ["RF024", "RF026", "RF027", "RF028", "RF029", "RF030"],
-      "roles": ["csr.tx-0024.read", "csr.tx-0026.read", "csr.tx-0027.read", "csr.tx-0028.read", "csr.tx-0029.read", "csr.tx-0030.read"],
+      "transactions": ["TX-0024", "TX-0026", "TX-0027", "TX-0028", "TX-0029", "TX-0030", "TX-0031", "TX-0032"],
+      "reqs": ["RF024", "RF026", "RF027", "RF028", "RF029", "RF030", "RF031", "RF032"],
+      "roles": ["csr.tx-0024.read", "csr.tx-0026.read", "csr.tx-0027.read", "csr.tx-0028.read", "csr.tx-0029.read", "csr.tx-0030.read", "csr.tx-0031.read", "csr.tx-0032.read"],
       "scope_filters": ["territoriale-ada"],
       "flow": "panoramica",
       "url_params": [
@@ -277,12 +277,18 @@
     {
       "path": "/procedurale/sottofasi",
       "kind": "lista",
-      "transactions": ["TX-0031", "TX-0032"],
-      "reqs": ["RF031", "RF032"],
-      "roles": ["csr.tx-0031.read", "csr.tx-0032.read"],
+      "transactions": ["TX-0024", "TX-0025", "TX-0031", "TX-0032"],
+      "reqs": ["RF024", "RF025", "RF031", "RF032"],
+      "roles": ["csr.tx-0024.read", "csr.tx-0025.read", "csr.tx-0031.read", "csr.tx-0032.read"],
       "scope_filters": ["territoriale-ada"],
       "flow": "sottofasi",
-      "url_params": [],
+      "url_params": [
+        {"name": "intervento", "source": "TX-0031.intervento", "multi": true},
+        {"name": "os", "source": "TX-0031.os", "multi": true},
+        {"name": "og", "source": "TX-0031.og", "multi": true},
+        {"name": "op", "source": "TX-0031.op", "multi": true},
+        {"name": "stato", "source": "TX-0031.stato", "multi": true}
+      ],
       "links": []
     },
     {
@@ -365,6 +371,11 @@
     {"route": "/procedurale", "name": "pagamento (TX-0028): perimetro, totale.voci[] (stato, descrizione, domande, domandeNonRilasciate, motivo, fonte)", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/StatiDomande"},
     {"route": "/procedurale", "name": "pagamento (TX-0028): totale.altriStati[] (codice, descrizione, domande, domandeNonRilasciate), totale.totale, totale.domandeNonRilasciate", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/DistribuzioneStati"},
     {"route": "/procedurale", "name": "riepilogo (TX-0029): totale.statiAreaProgrammazione.voci[] (stato, descrizione, domande, motivo, fonte), altriStati[] (codice, descrizione, domande), senzaStato, totale", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/RiepilogoProceduraleTotale"},
+    {"route": "/procedurale", "name": "Dati al (NFR-25 b): ultimiDatiSincronizzati[].flusso, ultimiDatiSincronizzati[].conclusoIl", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/FiltriProcedurali"},
+    {"route": "/procedurale", "name": "esportazione (D-10 del backend, senza operationId): card Domande di sostegno per stato: CSV, XLSX - GET /api/procedurale/stati-sostegno/{formato}", "provenance": "spec", "source_ref": "openapi-procedurale.json#/paths/~1api~1procedurale~1stati-sostegno~1{formato}"},
+    {"route": "/procedurale", "name": "esportazione (D-10 del backend, senza operationId): card Domande di pagamento per stato: CSV, XLSX - GET /api/procedurale/stati-pagamento/{formato}", "provenance": "spec", "source_ref": "openapi-procedurale.json#/paths/~1api~1procedurale~1stati-pagamento~1{formato}"},
+    {"route": "/procedurale", "name": "esportazione (D-10 del backend, senza operationId): card e tabella Domande per stato area programmazione: CSV, XLSX del riepilogo - GET /api/procedurale/riepilogo/{formato}", "provenance": "spec", "source_ref": "openapi-procedurale.json#/paths/~1api~1procedurale~1riepilogo~1{formato}"},
+    {"route": "/procedurale", "name": "esportazione (D-10 del backend, senza operationId): card Importo richiesto e contributo ammesso per intervento: CSV, XLSX - GET /api/procedurale/domande-ammesse/{formato}", "provenance": "spec", "source_ref": "openapi-procedurale.json#/paths/~1api~1procedurale~1domande-ammesse~1{formato}"},
 
     {"route": "/procedurale/interventi/:codice", "name": "filtri: interventi[].chiave, interventi[].descrizione (descrizione dell'intervento nella testata)", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/FiltriProcedurali"},
     {"route": "/procedurale/interventi/:codice", "name": "ammesse: perimetro, righe[].codiceIntervento, righe[].perimetroIntervento, righe[].attivato", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/DomandeAmmesseRiga"},
@@ -373,6 +384,16 @@
     {"route": "/procedurale/interventi/:codice", "name": "pagamento (TX-0028): righe[].stati (voci[], altriStati[], totale, domandeNonRilasciate)", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/StatiDomandeRiga"},
     {"route": "/procedurale/interventi/:codice", "name": "riepilogo (TX-0029): righe[].statiAreaProgrammazione (voci[], altriStati[], senzaStato, totale)", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/RiepilogoProceduraleRiga"},
     {"route": "/procedurale/interventi/:codice", "name": "unit amount (TX-0030): righe[] (codiceUnitAmount, gruppoColturale, esercizio, importoUnitario, outputPrevisto, importoPagato, percentualePagata, baseStorica)", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/PagamentiUnitAmountRiga"},
+    {"route": "/procedurale/interventi/:codice", "name": "Dati al (NFR-25 b): ultimiDatiSincronizzati[].flusso, ultimiDatiSincronizzati[].conclusoIl", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/FiltriProcedurali"},
+    {"route": "/procedurale/interventi/:codice", "name": "sottofasi (TX-0031, TX-0032): perimetro, tipoDomanda", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/SottofasiAmmissibilita"},
+    {"route": "/procedurale/interventi/:codice", "name": "sottofasi: voci[].fase, voci[].descrizione, voci[].domande (valore, motivo, fonte)", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/SottofaseVoce"},
+    {"route": "/procedurale/interventi/:codice", "name": "sottofasi: voci[].censita e altre[] (codice, descrizione, esito, domande)", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/SottofaseCensita"},
+    {"route": "/procedurale/interventi/:codice", "name": "esportazione (D-10 del backend, senza operationId): scheda Stati, card sostegno: CSV, XLSX con intervento=:codice - GET /api/procedurale/stati-sostegno/{formato}", "provenance": "spec", "source_ref": "openapi-procedurale.json#/paths/~1api~1procedurale~1stati-sostegno~1{formato}"},
+    {"route": "/procedurale/interventi/:codice", "name": "esportazione (D-10 del backend, senza operationId): scheda Stati, card pagamento: CSV, XLSX con intervento=:codice - GET /api/procedurale/stati-pagamento/{formato}", "provenance": "spec", "source_ref": "openapi-procedurale.json#/paths/~1api~1procedurale~1stati-pagamento~1{formato}"},
+    {"route": "/procedurale/interventi/:codice", "name": "esportazione (D-10 del backend, senza operationId): scheda Area programmazione: CSV, XLSX del riepilogo con intervento=:codice - GET /api/procedurale/riepilogo/{formato}", "provenance": "spec", "source_ref": "openapi-procedurale.json#/paths/~1api~1procedurale~1riepilogo~1{formato}"},
+    {"route": "/procedurale/interventi/:codice", "name": "esportazione (D-10 del backend, senza operationId): scheda Sottofasi, sostegno: CSV, XLSX con intervento=:codice - GET /api/procedurale/sottofasi-sostegno/{formato}", "provenance": "spec", "source_ref": "openapi-procedurale.json#/paths/~1api~1procedurale~1sottofasi-sostegno~1{formato}"},
+    {"route": "/procedurale/interventi/:codice", "name": "esportazione (D-10 del backend, senza operationId): scheda Sottofasi, pagamento: CSV, XLSX con intervento=:codice - GET /api/procedurale/sottofasi-pagamento/{formato}", "provenance": "spec", "source_ref": "openapi-procedurale.json#/paths/~1api~1procedurale~1sottofasi-pagamento~1{formato}"},
+    {"route": "/procedurale/interventi/:codice", "name": "esportazione (D-10 del backend, senza operationId): scheda Unit Amount: CSV, XLSX con intervento=:codice (senza stato) - GET /api/procedurale/unit-amount/{formato}", "provenance": "spec", "source_ref": "openapi-procedurale.json#/paths/~1api~1procedurale~1unit-amount~1{formato}"},
 
     {"route": "/procedurale/stati-sostegno", "name": "filtri: interventi[], obiettiviSpecifici[], obiettiviGenerali[], obiettiviPolicy[]", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/FiltriProcedurali"},
     {"route": "/procedurale/stati-sostegno", "name": "stati area programmazione: valori[].chiave, valori[].descrizione, valori[].origine", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/StatiAreaProgrammazione"},
@@ -381,6 +402,8 @@
     {"route": "/procedurale/stati-sostegno", "name": "righe[].stati.voci[] e totale.voci[] (stato, descrizione, domande, domandeNonRilasciate, motivo, fonte)", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/VoceStato"},
     {"route": "/procedurale/stati-sostegno", "name": "righe[].stati.altriStati[] e totale.altriStati[] (codice, descrizione, domande, domandeNonRilasciate)", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/AltroStato"},
     {"route": "/procedurale/stati-sostegno", "name": "righe[].stati.totale, righe[].stati.domandeNonRilasciate, totale.totale, totale.domandeNonRilasciate", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/DistribuzioneStati"},
+    {"route": "/procedurale/stati-sostegno", "name": "Dati al (NFR-25 b): ultimiDatiSincronizzati[].flusso, ultimiDatiSincronizzati[].conclusoIl", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/FiltriProcedurali"},
+    {"route": "/procedurale/stati-sostegno", "name": "esportazione (D-10 del backend, senza operationId): card e tabella per intervento e stato: CSV, XLSX - GET /api/procedurale/stati-sostegno/{formato}", "provenance": "spec", "source_ref": "openapi-procedurale.json#/paths/~1api~1procedurale~1stati-sostegno~1{formato}"},
 
     {"route": "/procedurale/stati-pagamento", "name": "filtri: interventi[], obiettiviSpecifici[], obiettiviGenerali[], obiettiviPolicy[]", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/FiltriProcedurali"},
     {"route": "/procedurale/stati-pagamento", "name": "stati area programmazione: valori[].chiave, valori[].descrizione, valori[].origine", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/StatiAreaProgrammazione"},
@@ -389,6 +412,8 @@
     {"route": "/procedurale/stati-pagamento", "name": "righe[].stati.voci[] e totale.voci[] (stato, descrizione, domande, domandeNonRilasciate, motivo, fonte)", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/VoceStato"},
     {"route": "/procedurale/stati-pagamento", "name": "righe[].stati.altriStati[] e totale.altriStati[] (codice, descrizione, domande, domandeNonRilasciate)", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/AltroStato"},
     {"route": "/procedurale/stati-pagamento", "name": "righe[].stati.totale, righe[].stati.domandeNonRilasciate, totale.totale, totale.domandeNonRilasciate", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/DistribuzioneStati"},
+    {"route": "/procedurale/stati-pagamento", "name": "Dati al (NFR-25 b): ultimiDatiSincronizzati[].flusso, ultimiDatiSincronizzati[].conclusoIl", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/FiltriProcedurali"},
+    {"route": "/procedurale/stati-pagamento", "name": "esportazione (D-10 del backend, senza operationId): card e tabella per intervento e stato: CSV, XLSX - GET /api/procedurale/stati-pagamento/{formato}", "provenance": "spec", "source_ref": "openapi-procedurale.json#/paths/~1api~1procedurale~1stati-pagamento~1{formato}"},
 
     {"route": "/procedurale/ammesse", "name": "filtri: interventi[], obiettiviSpecifici[], obiettiviGenerali[], obiettiviPolicy[]", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/FiltriProcedurali"},
     {"route": "/procedurale/ammesse", "name": "stati area programmazione: valori[].chiave, valori[].descrizione, valori[].origine", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/StatiAreaProgrammazione"},
@@ -397,17 +422,26 @@
     {"route": "/procedurale/ammesse", "name": "righe[].domandeAmmesse, righe[].conAttoConcessione (valore, motivo, fonte)", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/DomandeAmmesseRiga"},
     {"route": "/procedurale/ammesse", "name": "righe[].importoRichiesto, righe[].contributoAmmesso (valore, motivo, fonte)", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/DomandeAmmesseRiga"},
     {"route": "/procedurale/ammesse", "name": "totale.domandeAmmesse, totale.conAttoConcessione, totale.importoRichiesto, totale.contributoAmmesso, totale.interventiAttivati, totale.interventiPerimetroUfficiale", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/DomandeAmmesseTotale"},
+    {"route": "/procedurale/ammesse", "name": "Dati al (NFR-25 b): ultimiDatiSincronizzati[].flusso, ultimiDatiSincronizzati[].conclusoIl", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/FiltriProcedurali"},
+    {"route": "/procedurale/ammesse", "name": "esportazione (D-10 del backend, senza operationId): card e tabella per intervento: CSV, XLSX - GET /api/procedurale/domande-ammesse/{formato}", "provenance": "spec", "source_ref": "openapi-procedurale.json#/paths/~1api~1procedurale~1domande-ammesse~1{formato}"},
 
     {"route": "/procedurale/sottofasi", "name": "sostegno (TX-0031) e pagamento (TX-0032): perimetro, tipoDomanda", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/SottofasiAmmissibilita"},
     {"route": "/procedurale/sottofasi", "name": "voci[].fase, voci[].descrizione, voci[].domande (valore, motivo, fonte)", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/SottofaseVoce"},
     {"route": "/procedurale/sottofasi", "name": "voci[].censita (codice, descrizione, esito, domande), null se non censita", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/SottofaseCensita"},
     {"route": "/procedurale/sottofasi", "name": "altre[] (codice, descrizione, esito, domande)", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/SottofaseCensita"},
+    {"route": "/procedurale/sottofasi", "name": "Dati al (NFR-25 b): ultimiDatiSincronizzati[].flusso, ultimiDatiSincronizzati[].conclusoIl", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/FiltriProcedurali"},
+    {"route": "/procedurale/sottofasi", "name": "filtri: interventi[], obiettiviSpecifici[], obiettiviGenerali[], obiettiviPolicy[]", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/FiltriProcedurali"},
+    {"route": "/procedurale/sottofasi", "name": "stati area programmazione: valori[].chiave, valori[].descrizione, valori[].origine", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/StatiAreaProgrammazione"},
+    {"route": "/procedurale/sottofasi", "name": "esportazione (D-10 del backend, senza operationId): card sostegno: CSV, XLSX - GET /api/procedurale/sottofasi-sostegno/{formato}", "provenance": "spec", "source_ref": "openapi-procedurale.json#/paths/~1api~1procedurale~1sottofasi-sostegno~1{formato}"},
+    {"route": "/procedurale/sottofasi", "name": "esportazione (D-10 del backend, senza operationId): card pagamento: CSV, XLSX - GET /api/procedurale/sottofasi-pagamento/{formato}", "provenance": "spec", "source_ref": "openapi-procedurale.json#/paths/~1api~1procedurale~1sottofasi-pagamento~1{formato}"},
 
     {"route": "/procedurale/unit-amount", "name": "filtri: interventi[], obiettiviSpecifici[], obiettiviGenerali[], obiettiviPolicy[]", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/FiltriProcedurali"},
     {"route": "/procedurale/unit-amount", "name": "perimetro", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/PagamentiUnitAmount"},
     {"route": "/procedurale/unit-amount", "name": "righe[].codiceIntervento, righe[].codiceUnitAmount, righe[].gruppoColturale, righe[].esercizio", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/PagamentiUnitAmountRiga"},
     {"route": "/procedurale/unit-amount", "name": "righe[].importoUnitario, righe[].importoPagato (valore, motivo, fonte)", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/PagamentiUnitAmountRiga"},
     {"route": "/procedurale/unit-amount", "name": "righe[].outputPrevisto, righe[].percentualePagata, righe[].baseStorica (valore, motivo, fonte)", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/PagamentiUnitAmountRiga"},
+    {"route": "/procedurale/unit-amount", "name": "Dati al (NFR-25 b): ultimiDatiSincronizzati[].flusso, ultimiDatiSincronizzati[].conclusoIl", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/FiltriProcedurali"},
+    {"route": "/procedurale/unit-amount", "name": "esportazione (D-10 del backend, senza operationId): card e tabella delle Unit Amount: CSV, XLSX (intervento e obiettivi, mai lo stato) - GET /api/procedurale/unit-amount/{formato}", "provenance": "spec", "source_ref": "openapi-procedurale.json#/paths/~1api~1procedurale~1unit-amount~1{formato}"},
 
     {"route": "/procedurale/riepilogo", "name": "filtri: interventi[], obiettiviSpecifici[], obiettiviGenerali[], obiettiviPolicy[]", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/FiltriProcedurali"},
     {"route": "/procedurale/riepilogo", "name": "stati area programmazione: valori[].chiave, valori[].descrizione, valori[].origine", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/StatiAreaProgrammazione"},
@@ -415,7 +449,9 @@
     {"route": "/procedurale/riepilogo", "name": "righe[].ammesse (codiceIntervento, perimetroIntervento, attivato, domandeAmmesse, conAttoConcessione, importoRichiesto, contributoAmmesso)", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/RiepilogoProceduraleRiga"},
     {"route": "/procedurale/riepilogo", "name": "righe[].statiAreaProgrammazione (voci[], altriStati[], senzaStato, totale)", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/RiepilogoProceduraleRiga"},
     {"route": "/procedurale/riepilogo", "name": "righe[].statiSostegno, righe[].statiPagamento (voci[], altriStati[], totale, domandeNonRilasciate)", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/RiepilogoProceduraleRiga"},
-    {"route": "/procedurale/riepilogo", "name": "totale.ammesse, totale.statiAreaProgrammazione, totale.statiSostegno, totale.statiPagamento", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/RiepilogoProceduraleTotale"}
+    {"route": "/procedurale/riepilogo", "name": "totale.ammesse, totale.statiAreaProgrammazione, totale.statiSostegno, totale.statiPagamento", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/RiepilogoProceduraleTotale"},
+    {"route": "/procedurale/riepilogo", "name": "Dati al (NFR-25 b): ultimiDatiSincronizzati[].flusso, ultimiDatiSincronizzati[].conclusoIl", "provenance": "spec", "source_ref": "openapi-procedurale.json#/components/schemas/FiltriProcedurali"},
+    {"route": "/procedurale/riepilogo", "name": "esportazione (D-10 del backend, senza operationId): card del grafico e tabella di riepilogo: CSV, XLSX (per csv lo stesso indirizzo storico riepilogo/csv) - GET /api/procedurale/riepilogo/{formato}", "provenance": "spec", "source_ref": "openapi-procedurale.json#/paths/~1api~1procedurale~1riepilogo~1{formato}"}
   ],
   "flows": [
     {
@@ -427,6 +463,8 @@
         "Valori assenti resi come testo con motivo e fonte attesa dal DTO (es. 'non disponibile: fonte non attiva, atto di concessione'), mai uno zero o una cella vuota; nel grafico la voce e' omessa e dichiarata nella didascalia.",
         "Perimetro (REGIONALE o ADA) dichiarato in testo nella barra dei filtri, non solo con il colore; non rimovibile.",
         "Il 'di cui non rilasciate' delle voci di stato e' un testo accanto al numero e una colonna della tabella equivalente, non solo un segmento colorato della barra.",
+        "Pill 'Dati al gg/mm/aaaa' (ultimiDatiSincronizzati di TX-0024, la conclusione meno recente fra i flussi): bottone con nome accessibile completo e popover con una voce per flusso; senza acquisizioni concluse e' testo, mai una data vuota.",
+        "Download per formato (PNG, CSV, XLSX) come nel finanziario: un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo (400 oltre 5.000 righe o 50.000 celle: restringere i filtri; 503 ESPORTAZIONE_NON_REGISTRATA). PNG solo per i grafici disegnati, nella vista Grafico.",
         "Residuo manuale: ordine di lettura di KPI e card, comprensibilita' delle didascalie, contrasto della resa finale; axe deferito al gate di step8."
       ]
     },
@@ -438,6 +476,8 @@
         "Tabella per intervento con intestazioni di riga (codice) e di colonna (voce di stato) con scope; colonne scelte da 'Colonne' annunciate; riga apribile con Invio oltre che col clic.",
         "Ogni grafico ha la tabella equivalente; la voce IN_COMPILAZIONE con fonte non attiva e' omessa dal grafico e dichiarata in testo.",
         "Il link 'Apri nell'elenco' ha un nome accessibile che dice quante domande apre (la parte rilasciata) e perche' puo' differire dal numero della voce.",
+        "Pill 'Dati al gg/mm/aaaa' (ultimiDatiSincronizzati di TX-0024, la conclusione meno recente fra i flussi): bottone con nome accessibile completo e popover con una voce per flusso; senza acquisizioni concluse e' testo, mai una data vuota.",
+        "Download per formato (PNG, CSV, XLSX) come nel finanziario: un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo (400 oltre 5.000 righe o 50.000 celle: restringere i filtri; 503 ESPORTAZIONE_NON_REGISTRATA). PNG solo per i grafici disegnati, nella vista Grafico.",
         "Residuo manuale: leggibilita' della tabella larga (11 voci piu' altri stati) a 320 px con lo scorrimento orizzontale della sola tabella (WCAG 1.4.10), contrasto della resa finale; axe deferito al gate di step8."
       ]
     },
@@ -448,6 +488,8 @@
       "wcag_notes": [
         "KPI con etichetta testuale e valore; la quota del contributo ammesso sul richiesto compare solo se entrambi i termini sono valorizzati.",
         "Atto di concessione con fonte non attiva: testo 'non disponibile' col motivo in KPI, celle e drawer, e nessun link verso l'elenco (che risponderebbe 400).",
+        "Pill 'Dati al gg/mm/aaaa' (ultimiDatiSincronizzati di TX-0024, la conclusione meno recente fra i flussi): bottone con nome accessibile completo e popover con una voce per flusso; senza acquisizioni concluse e' testo, mai una data vuota.",
+        "Download per formato (PNG, CSV, XLSX) come nel finanziario: un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo (400 oltre 5.000 righe o 50.000 celle: restringere i filtri; 503 ESPORTAZIONE_NON_REGISTRATA). PNG solo per i grafici disegnati, nella vista Grafico.",
         "Residuo manuale: dimensione dei bersagli dei link 'Apri nell'elenco' nelle celle (WCAG 2.5.8, minimo 24 px), contrasto della resa finale; axe deferito al gate di step8."
       ]
     },
@@ -456,8 +498,11 @@
       "routes": ["/procedurale/sottofasi"],
       "wireframe_dir": "wireframes/procedurale/sottofasi",
       "wcag_notes": [
+        "Barra dei filtri con chip e pannello comune (D-06 Rev. 6): i filtri restringono le domande contate, l'elenco delle sottofasi resta intero; una voce a 0 con i filtri e' detta in testo, distinta dalla voce non censita.",
         "Le due tabelle (sostegno, pagamento) hanno caption propria; la sottofase non censita e il numero non disponibile sono testo con il motivo, mai una cella vuota.",
         "Grafico non disponibile (fonte non attiva SOTTOFASI_DOMANDA): la card lo dice in testo e mostra subito la tabella.",
+        "Pill 'Dati al gg/mm/aaaa' (ultimiDatiSincronizzati di TX-0024, la conclusione meno recente fra i flussi): bottone con nome accessibile completo e popover con una voce per flusso; senza acquisizioni concluse e' testo, mai una data vuota.",
+        "Download per formato (PNG, CSV, XLSX) come nel finanziario: un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo (400 oltre 5.000 righe o 50.000 celle: restringere i filtri; 503 ESPORTAZIONE_NON_REGISTRATA). PNG solo per i grafici disegnati, nella vista Grafico.",
         "Residuo manuale: comprensibilita' della nota 'la voce conta le domande distinte', contrasto della resa finale; axe deferito al gate di step8."
       ]
     },
@@ -468,6 +513,8 @@
       "wcag_notes": [
         "Importo pagato, percentuale e base storica con fonte non attiva: testo col motivo in ogni cella e grafico non disponibile dichiarato, tabella mostrata subito.",
         "Il filtro per stato area programmazione non si applica alle Unit Amount: la barra dei filtri lo dice in testo.",
+        "Pill 'Dati al gg/mm/aaaa' (ultimiDatiSincronizzati di TX-0024, la conclusione meno recente fra i flussi): bottone con nome accessibile completo e popover con una voce per flusso; senza acquisizioni concluse e' testo, mai una data vuota.",
+        "Download per formato (PNG, CSV, XLSX) come nel finanziario: un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo (400 oltre 5.000 righe o 50.000 celle: restringere i filtri; 503 ESPORTAZIONE_NON_REGISTRATA). PNG solo per i grafici disegnati, nella vista Grafico.",
         "Residuo manuale: contrasto della resa finale, ordine di lettura della tabella; axe deferito al gate di step8."
       ]
     },
@@ -478,7 +525,8 @@
       "wcag_notes": [
         "Interruttore di pagina Grafico | Tabella (vista iniziale Grafico) come il riepilogo del finanziario; la scelta resta nella cronologia del browser.",
         "Tabella larga a sezioni (ammesse, area programmazione, sostegno, pagamento): intestazioni di gruppo con scope colgroup e di colonna con scope col; 'Colonne' sceglie le sezioni.",
-        "Esporta CSV: pulsante con la sigla visibile e il nome accessibile completo (WCAG 2.5.3), esito in role=status, errore (oltre 5.000 righe o 50.000 celle) in role=alert con l'invito a restringere i filtri.",
+        "Pill 'Dati al gg/mm/aaaa' (ultimiDatiSincronizzati di TX-0024, la conclusione meno recente fra i flussi): bottone con nome accessibile completo e popover con una voce per flusso; senza acquisizioni concluse e' testo, mai una data vuota.",
+        "Download per formato (PNG, CSV, XLSX) come nel finanziario: un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo (400 oltre 5.000 righe o 50.000 celle: restringere i filtri; 503 ESPORTAZIONE_NON_REGISTRATA). PNG solo per i grafici disegnati, nella vista Grafico.",
         "Residuo manuale: leggibilita' della tabella larga a 320 px (scorrimento della sola tabella, WCAG 1.4.10), contrasto della resa finale; axe deferito al gate di step8."
       ]
     }
@@ -487,27 +535,27 @@
     {
       "id": "OP-PR-01",
       "kind": "campo-assente-dalla-spec",
-      "detail": "Ultimo dato sincronizzato (NFR-25 b, come OP-FE-04 del finanziario): nessun DTO della slice procedurale lo espone (FiltriProcedurali di TX-0024 non ha ultimiDatiSincronizzati come FiltriFinanziari di TX-0001; la data c'e' solo nell'intestazione del CSV di TX-0029). TX-0001 non si puo' riusare: e' di un'altra slice e il P3 dell'area procedurale non ha csr.tx-0001.read. Richiesta a green-be: campo ADDITIVO ultimiDatiSincronizzati su FiltriProcedurali (stessa transazione TX-0024, stesso grant), risigillo della sola slice. Finche' manca, la barra dei filtri delle pagine procedurali non mostra la pill 'Ultimo dato sincronizzato' (nei wireframe e' dichiarata come assente)."
+      "detail": "RISOLTO il 22/10/2026 (giro G3 del backend, D-01 Rev. 2 di procedurale): la risposta di TX-0024 porta ultimiDatiSincronizzati, nella forma di TX-0001 (UltimoDatoSincronizzato: flusso, conclusoIl), letto fuori dal tetto e dall'audit; ogni pagina del procedurale, sottofasi comprese, legge TX-0024 per i valori dei filtri e mostra la pill 'Dati al' della barra dei filtri come il finanziario (anche al P3 dell'area procedurale, che TX-0001 non lo legge). Restano fuori, come nel finanziario, il marcatore 'dato non aggiornato da N giorni' di NFR-25 (c) e il 'da consolidare' di NFR-25 (d). Testo originale: Ultimo dato sincronizzato (NFR-25 b, come OP-FE-04 del finanziario): nessun DTO della slice procedurale lo espone (FiltriProcedurali di TX-0024 non ha ultimiDatiSincronizzati come FiltriFinanziari di TX-0001; la data c'e' solo nell'intestazione del CSV di TX-0029). TX-0001 non si puo' riusare: e' di un'altra slice e il P3 dell'area procedurale non ha csr.tx-0001.read. Richiesta a green-be: campo ADDITIVO ultimiDatiSincronizzati su FiltriProcedurali (stessa transazione TX-0024, stesso grant), risigillo della sola slice. Finche' manca, la barra dei filtri delle pagine procedurali non mostra la pill 'Ultimo dato sincronizzato' (nei wireframe e' dichiarata come assente)."
     },
     {
       "id": "OP-PR-02",
       "kind": "altro",
-      "detail": "Parametro azione: il contratto di TX-0026..TX-0030 dichiara il parametro di query azione (id dell'azione portante), ma D-01 esclude il filtro per azione portante, TX-0024 non ne da' i valori e lo scenario di confine dei filtri vuoti risponde 400 DATO_NON_VALIDO a ?azione=1. La FE non lo espone ne' lo inoltra (nessun url_param azione, nessun link che lo porta). Da allineare in green-be: togliere azione dal contratto procedurale oppure descriverlo come non ammesso (l'orval lo generera' comunque come parametro opzionale)."
+      "detail": "RISOLTO il 22/10/2026 (giro G3 del backend, D-01 Rev. 1 di procedurale): il parametro azione e' uscito dal contratto di TX-0026..TX-0030, dei loro export e di riepilogo/csv; un ?azione= resta un 400 auditato. La FE non l'ha mai esposto ne' inoltrato: nessun url_param azione, nessun filtro per azione portante nel pannello (RF024 non lo prevede). Testo originale: Parametro azione: il contratto di TX-0026..TX-0030 dichiara il parametro di query azione (id dell'azione portante), ma D-01 esclude il filtro per azione portante, TX-0024 non ne da' i valori e lo scenario di confine dei filtri vuoti risponde 400 DATO_NON_VALIDO a ?azione=1. La FE non lo espone ne' lo inoltra (nessun url_param azione, nessun link che lo porta). Da allineare in green-be: togliere azione dal contratto procedurale oppure descriverlo come non ammesso (l'orval lo generera' comunque come parametro opzionale)."
     },
     {
       "id": "OP-PR-03",
       "kind": "altro",
-      "detail": "RF024 chiede i filtri per intervento, OS, OP, OG e stato domanda area programmazione su tutto l'ambito procedurale, ma TX-0030 (GET /api/procedurale/unit-amount) non accetta stato (le Unit Amount sono dati di programma) e TX-0031/TX-0032 (sottofasi) non accettano alcun parametro. Le pagine lo dichiarano invece di mostrare filtri che non si applicano (come OP-FE-03 per la riserva del finanziario). Da chiarire con green-spec (requisito) e green-be (contratto): eccezione di RF024 o filtri da aggiungere agli endpoint."
+      "detail": "RISOLTO il 22/10/2026 (giro G3 del backend, D-06 Rev. 6 di procedurale): TX-0031 e TX-0032 accettano intervento, OS, OG, OP e stato come i report per domanda (url_params della route /procedurale/sottofasi da TX-0031; il dettaglio dell'intervento ha la scheda Sottofasi con intervento=:codice). TX-0030 resta senza stato per decisione del backend (RF030 e' dell'area F2 - Fisico nel pack, le Unit Amount sono dati di programma senza domande): la pagina Unit Amount lo dichiara in testo. Testo originale: RF024 chiede i filtri per intervento, OS, OP, OG e stato domanda area programmazione su tutto l'ambito procedurale, ma TX-0030 (GET /api/procedurale/unit-amount) non accetta stato (le Unit Amount sono dati di programma) e TX-0031/TX-0032 (sottofasi) non accettano alcun parametro. Le pagine lo dichiarano invece di mostrare filtri che non si applicano (come OP-FE-03 per la riserva del finanziario). Da chiarire con green-spec (requisito) e green-be (contratto): eccezione di RF024 o filtri da aggiungere agli endpoint."
     },
     {
       "id": "OP-PR-04",
       "kind": "altro",
-      "detail": "Card dell'ambito in src/app/aree.ts (da segnalare all'utente, non risolto qui; la card la tocca step6): (a) la voce 'Determine, responsabili e ADA di riferimento' della card Procedurale non corrisponde a nessuna transazione della slice: TX-0026 usa la determina corrente solo come fonte di importo richiesto e contributo ammesso (D-03), determine e responsabile del procedimento per domanda sono nella scheda della domanda dell'elenco operativo (TX-0058) e codice e data determina in TX-0020 (slice fisico), TX-0021..TX-0023 sono import PROSA (acquisizione-prosa, nessuna UI); l'ADA e' il perimetro P4 dichiarato da ogni risposta. (b) la card Fisico cita 'Pagamenti per Unit Amount', che e' TX-0030 di questa slice: nel pack RU-00000030 ha area F2 - Fisico, ma la transazione e' nello slice-group A4 Procedurale e csr.tx-0030.read e' concesso a P1, P2, P3 dell'area procedurale e P4, non al P3 dell'area fisica. La pagina Unit Amount e' quindi un flusso a se' di questa feature (unit-amount), approvabile o sospendibile senza toccare gli altri."
+      "detail": "RISOLTO il 22/10/2026 (decisione dell'utente G1, MIN-20261022-decisioni-utente-altri-ambiti): le card di src/app/aree.ts descrivono il contenuto reale delle feature. Card Procedurale: stati delle domande, domande ammesse con atto e contributo, riepilogo, sottofasi, pagamenti per Unit Amount (TX-0024..TX-0032); la voce 'Determine, responsabili e ADA di riferimento' esce; la card Fisico non cita piu' le Unit Amount (Fisico = TX-0018 e TX-0020). La pagina Unit Amount resta in questa feature (la feature della sua slice; la visibilita' la danno i grant). Da fare in step6 (la Home e' dell'app, fuori da questo uiplan): riscrivere le due card in src/app/aree.ts. Testo originale: Card dell'ambito in src/app/aree.ts (da segnalare all'utente, non risolto qui; la card la tocca step6): (a) la voce 'Determine, responsabili e ADA di riferimento' della card Procedurale non corrisponde a nessuna transazione della slice: TX-0026 usa la determina corrente solo come fonte di importo richiesto e contributo ammesso (D-03), determine e responsabile del procedimento per domanda sono nella scheda della domanda dell'elenco operativo (TX-0058) e codice e data determina in TX-0020 (slice fisico), TX-0021..TX-0023 sono import PROSA (acquisizione-prosa, nessuna UI); l'ADA e' il perimetro P4 dichiarato da ogni risposta. (b) la card Fisico cita 'Pagamenti per Unit Amount', che e' TX-0030 di questa slice: nel pack RU-00000030 ha area F2 - Fisico, ma la transazione e' nello slice-group A4 Procedurale e csr.tx-0030.read e' concesso a P1, P2, P3 dell'area procedurale e P4, non al P3 dell'area fisica. La pagina Unit Amount e' quindi un flusso a se' di questa feature (unit-amount), approvabile o sospendibile senza toccare gli altri."
     },
     {
       "id": "OP-PR-05",
       "kind": "altro",
-      "detail": "Esportazioni: solo TX-0029 ha l'export del backend (GET /api/procedurale/riepilogo/csv, senza operationId come gli export del finanziario e dell'elenco, OP-EO-05), solo in CSV (niente XLSX), con X-Requested-With, gli stessi filtri e il limite dell'export sincrono di 5.000 righe o 50.000 celle (400: restringere i filtri). Gli altri report procedurali non hanno export: le card offrono il PNG del grafico (intestazione di NFR-50, non registrato in AUDIT_ESPORTAZIONE: OP-FE-08) e la tabella equivalente; i dati delle card di ammesse, stato area programmazione e stati DS e DP si scaricano dalla tabella di riepilogo in CSV. Sottofasi (TX-0031/TX-0032) e Unit Amount (TX-0030) non sono nel riepilogo, benche' RF029 chieda una tabella di riepilogo di tutti i dati dei grafici dell'ambito: per loro nessun export dei dati. Da confermare se servono CSV/XLSX per i singoli report (D-08 di nfr-conformance) o le sezioni mancanti nel riepilogo."
+      "detail": "RISOLTO il 22/10/2026 (giro G3 del backend, D-10 di procedurale): GET /api/procedurale/<report>/{formato} (csv, xlsx; senza operationId come gli export del finanziario) per domande-ammesse (TX-0026), stati-sostegno (TX-0027), stati-pagamento (TX-0028), riepilogo (TX-0029, ora anche XLSX; riepilogo/csv resta invariato, stesso file), unit-amount (TX-0030), sottofasi-sostegno (TX-0031) e sottofasi-pagamento (TX-0032), con i parametri della lettura, X-Requested-With, AUDIT_ESPORTAZIONE e il limite di 5.000 righe o 50.000 celle. Nei wireframe ogni card ha PNG, CSV, XLSX (PNG solo per i grafici disegnati) e ogni tabella CSV e XLSX, come nel finanziario. Il PNG resta del frontend e non e' registrato in audit (come OP-FE-08 del finanziario). Nessun export per TX-0024 e TX-0025 (valori dei filtri). Testo originale: Esportazioni: solo TX-0029 ha l'export del backend (GET /api/procedurale/riepilogo/csv, senza operationId come gli export del finanziario e dell'elenco, OP-EO-05), solo in CSV (niente XLSX), con X-Requested-With, gli stessi filtri e il limite dell'export sincrono di 5.000 righe o 50.000 celle (400: restringere i filtri). Gli altri report procedurali non hanno export: le card offrono il PNG del grafico (intestazione di NFR-50, non registrato in AUDIT_ESPORTAZIONE: OP-FE-08) e la tabella equivalente; i dati delle card di ammesse, stato area programmazione e stati DS e DP si scaricano dalla tabella di riepilogo in CSV. Sottofasi (TX-0031/TX-0032) e Unit Amount (TX-0030) non sono nel riepilogo, benche' RF029 chieda una tabella di riepilogo di tutti i dati dei grafici dell'ambito: per loro nessun export dei dati. Da confermare se servono CSV/XLSX per i singoli report (D-08 di nfr-conformance) o le sezioni mancanti nel riepilogo."
     },
     {
       "id": "OP-PR-06",
@@ -522,7 +570,7 @@
     {
       "id": "OP-PR-08",
       "kind": "altro",
-      "detail": "Drill-down e 'di cui non rilasciate' (D-04 Rev. 5, decisione D1 del backend): l'elenco operativo ha le sole domande rilasciate, quindi i link per stato (statoSostegno, statoPagamento) aprono la parte rilasciata della voce, domande meno di cui non rilasciate; il link lo dice nell'etichetta e non compare per una voce senza domande rilasciate o con la fonte non attiva (IN_COMPILAZIONE con FONTE_NON_ATTIVA DOMANDE_IN_COMPILAZIONE). Il filtro per stato area programmazione passa all'elenco come voceProgrammazione (stesse chiavi di TX-0025). Nessun link per importi (richiesto e contributo ammesso: l'elenco ha gli importi della domanda, non quelli della determina corrente di D-03), per le sottofasi (l'elenco non ha un filtro per sottofase) e per le Unit Amount (non sono insiemi di domande)."
+      "detail": "Drill-down e 'di cui non rilasciate' (D-04 Rev. 5, decisione D1 del backend): l'elenco operativo ha le sole domande rilasciate, quindi i link per stato (statoSostegno, statoPagamento) aprono la parte rilasciata della voce, domande meno di cui non rilasciate; il link lo dice nell'etichetta e non compare per una voce senza domande rilasciate o con la fonte non attiva (IN_COMPILAZIONE con FONTE_NON_ATTIVA DOMANDE_IN_COMPILAZIONE). Il filtro per stato area programmazione passa all'elenco come voceProgrammazione (stesse chiavi di TX-0025). Nessun link per importi (richiesto e contributo ammesso: l'elenco ha gli importi della domanda, non quelli della determina corrente di D-03), per le sottofasi (l'elenco non ha un filtro per sottofase, anche ora che le sottofasi accettano i filtri) e per le Unit Amount (non sono insiemi di domande)."
     },
     {
       "id": "OP-PR-09",

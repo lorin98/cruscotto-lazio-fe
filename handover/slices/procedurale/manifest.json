@@ -29,7 +29,7 @@
       "ownership": "procedurale",
       "path": "./datamodel/procedurale-decisions.json",
       "role": "migration",
-      "sha256": "sha256:0c0503ec380c28dfbafb74607cf706ac7bb51edc67024c4e0ebfb76129acd2c6",
+      "sha256": "sha256:4a20841ab4db32638ca4e53fb001e3712f61e3ddcb67470dace5cc1241c82e72",
       "step": "step2-datamodel"
     },
     {
@@ -37,7 +37,7 @@
       "ownership": "procedurale",
       "path": "./acceptance/procedurale-scenarios.json",
       "role": "application",
-      "sha256": "sha256:562bfa6944c85e8812a0c1c9c4322f8b6747115f66d53ee2eb9cf46249d94f4d",
+      "sha256": "sha256:74cb83dac3dee85df46221ca0bf95eaddf60331ccdc058f540cfb7d031ede96c",
       "step": "step5-service"
     },
     {
@@ -45,7 +45,7 @@
       "ownership": "procedurale",
       "path": "./openapi/openapi-procedurale.json",
       "role": "adapter-in-rest",
-      "sha256": "sha256:461d222b40f1aa97cd08a36d87cafe96f0277cd71b5452675fee730b3f90a492",
+      "sha256": "sha256:22da01896b49d117841f2ed5de405709e0854ac17aa7b2ca3841deebdf848ab0",
       "step": "step8-rest"
     }
   ],
@@ -76,16 +76,16 @@
     "step11-review.review": "pass",
     "step1b-scaffold.reactor_compiles": "pass",
     "step2-datamodel.ddl_approved": {
-      "approved_at": "2026-10-21T07:02:06Z",
-      "approved_hash": "sha256:0c0503ec380c28dfbafb74607cf706ac7bb51edc67024c4e0ebfb76129acd2c6",
+      "approved_at": "2026-10-21T21:45:02Z",
+      "approved_hash": "sha256:4a20841ab4db32638ca4e53fb001e3712f61e3ddcb67470dace5cc1241c82e72",
       "baseline_ref": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
     },
     "step3-domain.domain_compiles": "pass",
     "step3-domain.domain_pure": "pass",
     "step4-ports.ports_pure": "pass",
     "step5-service.acceptance_approved": {
-      "approved_at": "2026-10-21T07:02:06Z",
-      "approved_hash": "sha256:562bfa6944c85e8812a0c1c9c4322f8b6747115f66d53ee2eb9cf46249d94f4d",
+      "approved_at": "2026-10-21T14:49:00Z",
+      "approved_hash": "sha256:74cb83dac3dee85df46221ca0bf95eaddf60331ccdc058f540cfb7d031ede96c",
       "baseline_ref": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
     },
     "step5-service.authz_import_zero": "pass",
@@ -96,7 +96,7 @@
     "step9-functions.functions": "pass"
   },
   "openapi": {
-    "hash": "sha256:461d222b40f1aa97cd08a36d87cafe96f0277cd71b5452675fee730b3f90a492",
+    "hash": "sha256:22da01896b49d117841f2ed5de405709e0854ac17aa7b2ca3841deebdf848ab0",
     "path": "./openapi/openapi-procedurale.json"
   },
   "pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb",

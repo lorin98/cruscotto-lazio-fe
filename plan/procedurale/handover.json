@@ -15,9 +15,9 @@
     {
       "slice": "procedurale",
       "spec_path": "handover/openapi-procedurale.json",
-      "spec_sha256": "sha256:461d222b40f1aa97cd08a36d87cafe96f0277cd71b5452675fee730b3f90a492",
+      "spec_sha256": "sha256:22da01896b49d117841f2ed5de405709e0854ac17aa7b2ca3841deebdf848ab0",
       "manifest_path": "handover/slices/procedurale/manifest.json",
-      "manifest_openapi_hash": "sha256:461d222b40f1aa97cd08a36d87cafe96f0277cd71b5452675fee730b3f90a492",
+      "manifest_openapi_hash": "sha256:22da01896b49d117841f2ed5de405709e0854ac17aa7b2ca3841deebdf848ab0",
       "manifest_hash_match": true,
       "backend_gates_ok": true
     }

@@ -8,16 +8,19 @@
 
 | route | kind | pattern | grant (verbatim dal catalogo) |
 |---|---|---|---|
-| /procedurale/riepilogo | report | report v2 (interruttore di pagina Grafico / Tabella, card grafico, tabella interattiva, export CSV, drawer) | csr.tx-0024.read, csr.tx-0025.read, csr.tx-0029.read |
+| /procedurale/riepilogo | report | report v2 (interruttore di pagina Grafico / Tabella, card grafico, tabella interattiva, export CSV e XLSX, drawer) | csr.tx-0024.read, csr.tx-0025.read, csr.tx-0029.read |
 
 Stessa resa del riepilogo del finanziario (riapprovato il 21/10/2026, vista iniziale Grafico).
 
+Cambiato il 22/10/2026 (giro G3 del backend): pill "Dati al" da TX-0024; CSV e XLSX con un pulsante per formato
+(GET /api/procedurale/riepilogo/{formato}) al posto di "Esporta CSV"; PNG, CSV, XLSX sulla card del grafico.
+
 ## Component tree (per pagina)
 
-- /procedurale/riepilogo: Shell > Barra filtri > Breadcrumb > Titolo > Card riepilogo per intervento (interruttore di
-  pagina "Vista del riepilogo" Grafico | Tabella; vista Grafico: card del grafico a barre con il suo interruttore Grafico |
-  Tabella equivalente e Scarica PNG; vista Tabella: cerca, Colonne per sezione, Esporta CSV, ordinamento, intestazioni di
-  gruppo, totali dal backend, paginazione) > Drawer di anteprima > Stati
+- /procedurale/riepilogo: Shell > Barra filtri (con la pill "Dati al") > Breadcrumb > Titolo > Card riepilogo per
+  intervento (interruttore di pagina "Vista del riepilogo" Grafico | Tabella; vista Grafico: card del grafico a barre con il
+  suo interruttore Grafico | Tabella equivalente e i pulsanti PNG, CSV, XLSX; vista Tabella: cerca, Colonne per sezione, CSV,
+  XLSX, ordinamento, intestazioni di gruppo, totali dal backend, paginazione) > Drawer di anteprima > Stati
 
 ## Grafici del flusso
 
@@ -47,11 +50,16 @@ dettaglio dell'intervento. Importi non collegati.
 |---|---|---|---|---|
 | /procedurale/riepilogo | intervento, os, og, op, stato | TX-0029.intervento, .os, .og, .op, .stato | si' | no |
 
-Export CSV: GET /api/procedurale/riepilogo/csv (senza operationId, come gli export del finanziario e dell'elenco) con gli
-stessi filtri e l'header X-Requested-With; UTF-8 con BOM, punto e virgola, intestazione con fonte, filtri, data di
-estrazione, profili, ultimo dato sincronizzato per flusso e uso interno; per sezione la colonna "di cui non rilasciate";
-registrato in AUDIT_ESPORTAZIONE. Oltre 5.000 righe o 50.000 celle: 400 DATO_NON_VALIDO, il messaggio invita a restringere i
-filtri. Solo CSV: il backend non ha XLSX per il procedurale (OP-PR-05).
+## Download (come nel finanziario)
+
+CSV e XLSX: GET /api/procedurale/riepilogo/{formato} (senza operationId, come gli export del finanziario e dell'elenco; D-10
+del backend) con gli stessi filtri e l'header X-Requested-With. Per csv l'indirizzo e' lo stesso dello storico
+GET /api/procedurale/riepilogo/csv, che resta nel contratto (anche in quello di nfr-conformance) con lo stesso file. CSV
+UTF-8 con BOM e punto e virgola, XLSX un foglio con i numeri come numeri; intestazione con fonte, filtri, perimetro, data di
+estrazione, profili, ultimo dato sincronizzato per flusso e uso interno; tutte le sezioni e le voci, per sezione la colonna
+"di cui non rilasciate"; registrato in AUDIT_ESPORTAZIONE col formato. Oltre 5.000 righe o 50.000 celle: 400
+DATO_NON_VALIDO, il messaggio invita a restringere i filtri. La card del grafico offre anche il PNG (nel browser, con
+l'intestazione di NFR-50, non registrato in audit) e, come dati, lo stesso file del riepilogo.
 
 ## Stati resi (obbligatori)
 
@@ -67,10 +75,12 @@ filtri. Solo CSV: il backend non ha XLSX per il procedurale (OP-PR-05).
 - RESIDUO umano: tabella larga a sezioni a 320 px (scorrimento della sola tabella, WCAG 1.4.10); intestazioni di gruppo
   (scope colgroup) lette correttamente dai lettori di schermo.
 - RESIDUO umano: dimensione dei bersagli dei link nelle celle (WCAG 2.5.8); contrasto della resa finale.
+- Download: un pulsante per formato con la sigla visibile e il nome accessibile completo (WCAG 2.5.3), aria-disabled
+  durante la preparazione col focus sul pulsante (WCAG 2.4.3), esito in role=status, errore in role=alert col motivo.
 
 ## Punti aperti che toccano questo flusso
 
-- OP-PR-01: ultimo dato sincronizzato assente dai DTO (c'e' solo nell'intestazione del CSV).
-- OP-PR-05: solo CSV, niente XLSX; il CSV del riepilogo e' l'export di tutti i dati dei grafici (RF029).
 - OP-PR-06: profili misti: il riepilogo e' ADA, l'elenco aperto dai link e' regionale.
 - OP-PR-08: regole del drill-down.
+- Chiusi col giro G3 (22/10/2026): OP-PR-01 (pill "Dati al" da TX-0024), OP-PR-05 (riepilogo anche in XLSX; sottofasi e
+  Unit Amount hanno ora i loro export, nelle loro pagine).

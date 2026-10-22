@@ -7,15 +7,15 @@
   "steps": {
     "step0-config": {
       "status": "done",
-      "completed_at": "2026-10-21T12:57:15Z",
+      "completed_at": "2026-10-22T08:27:09Z",
       "artifacts": [
         "./plan/procedurale/handover.json"
       ],
       "gates": {
         "handover_verified": {
-          "approved_hash": "sha256:cedeb9e9890f1d775b8761fb29970a19a889a2c965f463dea9d4b3e20e679c28",
+          "approved_hash": "sha256:57fff564bdba95bf16ca6cc3ef1b522aae2549ffc3da9cec8a801ba3e6b6f003",
           "baseline_ref": "./plan/procedurale/handover.json",
-          "approved_at": "2026-10-21T12:57:15Z"
+          "approved_at": "2026-10-22T08:27:09Z"
         }
       }
     },

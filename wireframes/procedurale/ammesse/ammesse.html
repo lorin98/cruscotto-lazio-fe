@@ -51,6 +51,7 @@
       <a class="btn btn-primary" href="../panoramica/panoramica.html#pannello-filtri">Filtri (1)</a>
       <span class="ui-chip">Obiettivo specifico: OS4 <button class="btn" type="button" aria-label="Togli il filtro Obiettivo specifico OS4">x</button></span>
       <span class="ui-pill">Perimetro: regionale (profilo ADA: solo le domande della propria ADA, non rimovibile)</span>
+      <button class="ui-pill" type="button" aria-label="Ultimo dato sincronizzato: dati al gg/mm/aaaa per tutti i flussi. Mostra il dettaglio per flusso">Dati al gg/mm/aaaa</button>
     </div>
     <nav class="breadcrumb-container" aria-label="Percorso">
       <ol class="breadcrumb">
@@ -63,7 +64,7 @@
       <h1>Procedurale: domande ammesse per intervento</h1>
       <p>Numero di domande ammesse, domande con atto di concessione, importo richiesto e contributo ammesso per intervento, con gli interventi attivati.</p>
     </div>
-    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0024.read, csr.tx-0025.read, csr.tx-0026.read - Transazioni: TX-0026 (RF026), TX-0024 e TX-0025 (valori dei filtri). Domanda ammessa = domanda corrente di qualunque tipo con stato area programmazione Ammessa (determine PROSA). Importo richiesto e contributo ammesso: della determina corrente, altrimenti della domanda negli scarichi SIAN (D-03 Rev. 3); un importo non valorizzato non entra nella somma. Ultimo dato sincronizzato assente dai DTO (OP-PR-01).</p>
+    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0024.read, csr.tx-0025.read, csr.tx-0026.read - Transazioni: TX-0026 (RF026), TX-0024 e TX-0025 (valori dei filtri). Domanda ammessa = domanda corrente di qualunque tipo con stato area programmazione Ammessa (determine PROSA). Importo richiesto e contributo ammesso: della determina corrente, altrimenti della domanda negli scarichi SIAN (D-03 Rev. 3); un importo non valorizzato non entra nella somma. Dati al: ultimiDatiSincronizzati di TX-0024 (pill della barra dei filtri, dettaglio per flusso al clic).</p>
     <div class="ui-griglia ui-griglia--4">
       <section class="ui-kpi" aria-label="Domande ammesse">
         <p>Domande ammesse</p>
@@ -92,22 +93,24 @@
       <section class="ui-card" aria-labelledby="g-importi">
         <div class="ui-card__testa">
           <h2 id="g-importi">Importo richiesto e contributo ammesso per intervento</h2>
-          <div class="ui-seg" role="group" aria-label="Vista di Importo richiesto e contributo ammesso per intervento"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+          <div class="ui-seg" role="group" aria-label="Vista di Importo richiesto e contributo ammesso per intervento"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button></div>
+          <div class="ui-strumenti" role="group" aria-label="Scarica il grafico Importo richiesto e contributo ammesso per intervento"><button class="btn" type="button" aria-label="Scarica il grafico Importo richiesto e contributo ammesso per intervento in PNG">PNG</button> <button class="btn" type="button" aria-label="Scarica il grafico Importo richiesto e contributo ammesso per intervento in CSV">CSV</button> <button class="btn" type="button" aria-label="Scarica il grafico Importo richiesto e contributo ammesso per intervento in XLSX">XLSX</button></div>
         </div>
         <figure class="ui-grafico ui-grafico--barre">
           <figcaption>Barre raggruppate con zoom oltre 12 interventi: importo richiesto e contributo ammesso delle domande ammesse. Importo non valorizzato: barra omessa e dichiarata sotto. Clic su una barra: dettaglio procedurale dell'intervento.</figcaption>
         </figure>
-        <p class="ui-fonte">Fonte: TX-0026 (righe). La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati. Scarica: immagine PNG.</p>
+        <p class="ui-fonte">Fonte: TX-0026 (righe). La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati. Scarica: PNG del grafico (nel browser, solo nella vista Grafico); CSV e XLSX dal backend (GET /api/procedurale/domande-ammesse/{formato}, filtri correnti).</p>
       </section>
       <section class="ui-card" aria-labelledby="g-conteggi">
         <div class="ui-card__testa">
           <h2 id="g-conteggi">Domande ammesse e con atto di concessione per intervento</h2>
-          <div class="ui-seg" role="group" aria-label="Vista di Domande ammesse e con atto di concessione per intervento"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+          <div class="ui-seg" role="group" aria-label="Vista di Domande ammesse e con atto di concessione per intervento"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button></div>
+          <div class="ui-strumenti" role="group" aria-label="Scarica il grafico Domande ammesse e con atto di concessione per intervento"><button class="btn" type="button" aria-label="Scarica il grafico Domande ammesse e con atto di concessione per intervento in PNG">PNG</button> <button class="btn" type="button" aria-label="Scarica il grafico Domande ammesse e con atto di concessione per intervento in CSV">CSV</button> <button class="btn" type="button" aria-label="Scarica il grafico Domande ammesse e con atto di concessione per intervento in XLSX">XLSX</button></div>
         </div>
         <figure class="ui-grafico ui-grafico--barre">
           <figcaption>Barre raggruppate con zoom oltre 12 interventi: domande ammesse e domande con atto di concessione. Con la fonte dell'atto non attiva la seconda serie e' omessa e la card lo dice. Clic su una barra: dettaglio procedurale dell'intervento.</figcaption>
         </figure>
-        <p class="ui-fonte">Fonte: TX-0026 (righe). La tabella equivalente ha Apri nell'elenco per le domande ammesse di ogni intervento.</p>
+        <p class="ui-fonte">Fonte: TX-0026 (righe). La tabella equivalente ha Apri nell'elenco per le domande ammesse di ogni intervento. Scarica: PNG del grafico; CSV e XLSX dello stesso file di TX-0026.</p>
       </section>
     </div>
     <section class="ui-card" aria-labelledby="t-ammesse">
@@ -115,7 +118,7 @@
       <div class="ui-strumenti">
         <label class="form-label" for="t-cerca">Cerca nella tabella</label>
         <input class="form-control" type="search" id="t-cerca" name="t">
-        <button class="btn" type="button">Colonne (7)</button>
+        <button class="btn" type="button">Colonne (7)</button> <div class="ui-strumenti" role="group" aria-label="Scarica la tabella Domande ammesse per intervento"><button class="btn" type="button" aria-label="Scarica la tabella Domande ammesse per intervento in CSV">CSV</button> <button class="btn" type="button" aria-label="Scarica la tabella Domande ammesse per intervento in XLSX">XLSX</button></div>
       </div>
       <table class="ui-tabella">
         <caption>Domande ammesse per intervento: l'intervento e' l'intestazione di riga; ordinabile con le intestazioni; clic o Invio su una riga per l'anteprima.</caption>
@@ -139,7 +142,7 @@
           <tr><th scope="row">Totale (n interventi del perimetro ufficiale, n attivati)</th><td></td><td></td><td class="ui-num">n</td><td>non disponibile</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td></tr>
         </tfoot>
       </table>
-      <p class="ui-fonte">Fonte: TX-0026 (righe e totale del backend). Con atto di concessione: numero e Apri nell'elenco (link elenco-con-atto-riga) con la fonte attiva, "non disponibile (fonte non attiva: atto di concessione)" senza; mai 0 al posto del motivo. Perimetro = INTERVENTO.PERIMETRO; attivato = almeno una domanda di sostegno corrente nell'universo filtrato. Nessun export del report: i dati sono nel CSV del riepilogo (OP-PR-05).</p>
+      <p class="ui-fonte">Fonte: TX-0026 (righe e totale del backend). Con atto di concessione: numero e Apri nell'elenco (link elenco-con-atto-riga) con la fonte attiva, "non disponibile (fonte non attiva: atto di concessione)" senza; mai 0 al posto del motivo. Perimetro = INTERVENTO.PERIMETRO; attivato = almeno una domanda di sostegno corrente nell'universo filtrato. CSV e XLSX: GET /api/procedurale/domande-ammesse/{formato} con i filtri correnti, una riga per intervento e la riga dei totali; un dato assente porta nella cella il motivo e la fonte attesa (es. FONTE_NON_ATTIVA ATTO_CONCESSIONE).</p>
       <nav class="ui-paginazione" aria-label="Pagine della tabella"><button class="btn" type="button" aria-current="page">1</button> <button class="btn" type="button">2</button></nav>
     </section>
     <aside class="ui-drawer" aria-label="Anteprima dell'intervento SRD01">

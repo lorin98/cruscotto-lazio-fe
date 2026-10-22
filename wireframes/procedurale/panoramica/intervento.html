@@ -51,6 +51,7 @@
       <a class="btn btn-primary" href="panoramica.html#pannello-filtri">Filtri (1)</a>
       <span class="ui-chip">Stato area programmazione: Ammessa <button class="btn" type="button" aria-label="Togli il filtro Stato area programmazione Ammessa">x</button></span>
       <span class="ui-pill">Perimetro: regionale (profilo ADA: solo le domande della propria ADA, non rimovibile)</span>
+      <button class="ui-pill" type="button" aria-label="Ultimo dato sincronizzato: dati al gg/mm/aaaa per tutti i flussi. Mostra il dettaglio per flusso">Dati al gg/mm/aaaa</button>
     </div>
     <nav class="breadcrumb-container" aria-label="Percorso">
       <ol class="breadcrumb">
@@ -65,7 +66,7 @@
       <p><span class="badge">Perimetro: SIGC no</span> <span class="badge">Attivato: si'</span></p>
       <a class="btn btn-primary" href="panoramica.html">Filtra i report procedurali su questo intervento</a> <a class="btn" href="panoramica.html">Torna alla panoramica</a>
     </section>
-    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0024.read, csr.tx-0026.read, csr.tx-0027.read, csr.tx-0028.read, csr.tx-0029.read, csr.tx-0030.read - Transazioni: TX-0024 (descrizione dell'intervento), TX-0026, TX-0027, TX-0028, TX-0029 con intervento=SRD01 e il filtro per stato, TX-0030 con intervento=SRD01. Nessuna transazione nuova: gli stessi report filtrati sull'intervento. Le schede caricano i dati solo quando si aprono; ogni scheda compare solo con il grant della sua transazione.</p>
+    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0024.read, csr.tx-0026.read, csr.tx-0027.read, csr.tx-0028.read, csr.tx-0029.read, csr.tx-0030.read, csr.tx-0031.read, csr.tx-0032.read - Transazioni: TX-0024 (descrizione dell'intervento e Dati al), TX-0026, TX-0027, TX-0028, TX-0029, TX-0031, TX-0032 con intervento=SRD01 e il filtro per stato, TX-0030 con intervento=SRD01 (senza stato). Nessuna transazione nuova: gli stessi report filtrati sull'intervento. Le schede caricano i dati solo quando si aprono; ogni scheda compare solo con il grant della sua transazione.</p>
     <p class="wf-note">Testata: descrizione da TX-0024 (interventi[].descrizione), perimetro da INTERVENTO.PERIMETRO (righe[].perimetroIntervento di TX-0026), attivato = almeno una domanda di sostegno corrente nell'universo filtrato (righe[].attivato). Il bottone Filtra i report porta alla panoramica con intervento=SRD01 (link panoramica-intervento). Intervento fuori dal CSR o AT001: 400 del backend, reso come errore con il messaggio del problem-type.</p>
     <div class="ui-griglia ui-griglia--4">
       <section class="ui-kpi" aria-label="Domande ammesse">
@@ -91,34 +92,37 @@
       </section>
     </div>
     <div class="ui-tabs" role="tablist" aria-label="Sezioni del dettaglio">
-      <button class="btn" type="button" role="tab" aria-selected="true">Stati delle domande</button> <button class="btn" type="button" role="tab" aria-selected="false">Area programmazione</button> <button class="btn" type="button" role="tab" aria-selected="false">Unit Amount</button>
+      <button class="btn" type="button" role="tab" aria-selected="true">Stati delle domande</button> <button class="btn" type="button" role="tab" aria-selected="false">Area programmazione</button> <button class="btn" type="button" role="tab" aria-selected="false">Sottofasi</button> <button class="btn" type="button" role="tab" aria-selected="false">Unit Amount</button>
     </div>
     <section role="tabpanel" aria-label="Stati delle domande">
       <div class="ui-griglia ui-griglia--2">
       <section class="ui-card" aria-labelledby="g-d-sostegno">
         <div class="ui-card__testa">
           <h2 id="g-d-sostegno">Domande di sostegno per stato</h2>
-          <div class="ui-seg" role="group" aria-label="Vista di Domande di sostegno per stato"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+          <div class="ui-seg" role="group" aria-label="Vista di Domande di sostegno per stato"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button></div>
+          <div class="ui-strumenti" role="group" aria-label="Scarica il grafico Domande di sostegno per stato di SRD01"><button class="btn" type="button" aria-label="Scarica il grafico Domande di sostegno per stato di SRD01 in PNG">PNG</button> <button class="btn" type="button" aria-label="Scarica il grafico Domande di sostegno per stato di SRD01 in CSV">CSV</button> <button class="btn" type="button" aria-label="Scarica il grafico Domande di sostegno per stato di SRD01 in XLSX">XLSX</button></div>
         </div>
         <figure class="ui-grafico ui-grafico--barre">
           <figcaption>Barre orizzontali impilate dell'intervento: le undici voci di SR-01 e gli altri stati, ogni barra divisa fra rilasciate e non rilasciate. Clic su una barra: elenco operativo con le domande rilasciate di quella voce (link elenco-stato-sostegno-intervento).</figcaption>
         </figure>
-        <p class="ui-fonte">Fonte: TX-0027 (riga dell'intervento). La tabella equivalente ha voce, domande, di cui non rilasciate e Apri nell'elenco (n rilasciate).</p>
+        <p class="ui-fonte">Fonte: TX-0027 (riga dell'intervento). La tabella equivalente ha voce, domande, di cui non rilasciate e Apri nell'elenco (n rilasciate). CSV e XLSX: GET /api/procedurale/stati-sostegno/{formato} con intervento=SRD01 e il filtro per stato.</p>
       </section>
       <section class="ui-card" aria-labelledby="g-d-pagamento">
         <div class="ui-card__testa">
           <h2 id="g-d-pagamento">Domande di pagamento per stato</h2>
-          <div class="ui-seg" role="group" aria-label="Vista di Domande di pagamento per stato"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+          <div class="ui-seg" role="group" aria-label="Vista di Domande di pagamento per stato"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button></div>
+          <div class="ui-strumenti" role="group" aria-label="Scarica il grafico Domande di pagamento per stato di SRD01"><button class="btn" type="button" aria-label="Scarica il grafico Domande di pagamento per stato di SRD01 in PNG">PNG</button> <button class="btn" type="button" aria-label="Scarica il grafico Domande di pagamento per stato di SRD01 in CSV">CSV</button> <button class="btn" type="button" aria-label="Scarica il grafico Domande di pagamento per stato di SRD01 in XLSX">XLSX</button></div>
         </div>
         <figure class="ui-grafico ui-grafico--barre">
           <figcaption>Barre orizzontali impilate dell'intervento: i cinque stati CSR-DP e gli altri stati, con il di cui non rilasciate. Clic su una barra: elenco operativo con le domande rilasciate di quella voce (link elenco-stato-pagamento-intervento).</figcaption>
         </figure>
-        <p class="ui-fonte">Fonte: TX-0028 (riga dell'intervento). In compilazione con fonte non attiva: voce omessa e dichiarata, nessun link.</p>
+        <p class="ui-fonte">Fonte: TX-0028 (riga dell'intervento). In compilazione con fonte non attiva: voce omessa e dichiarata, nessun link. CSV e XLSX: GET /api/procedurale/stati-pagamento/{formato} con intervento=SRD01 e il filtro per stato.</p>
       </section>
       </div>
     </section>
-    <p class="wf-note">Scheda Area programmazione: barre orizzontali delle voci di RF025, degli stati osservati e delle domande senza stato dell'intervento (TX-0029, righe[].statiAreaProgrammazione); clic su una barra o Apri nell'elenco nella tabella equivalente = link elenco-area-programmazione-intervento (voceProgrammazione, intervento=SRD01).</p>
-    <p class="wf-note">Scheda Unit Amount: la tabella delle Unit Amount dell'intervento (TX-0030 con intervento=SRD01: codice, gruppo colturale, esercizio, importo unitario, output previsto, importo pagato, percentuale pagata, base storica), con i valori assenti in testo (fonte non attiva: pagato per Unit Amount). Dati di programma: regionali per ogni profilo e senza filtro per stato (OP-PR-03).</p>
+    <p class="wf-note">Scheda Area programmazione: barre orizzontali delle voci di RF025, degli stati osservati e delle domande senza stato dell'intervento (TX-0029, righe[].statiAreaProgrammazione); clic su una barra o Apri nell'elenco nella tabella equivalente = link elenco-area-programmazione-intervento (voceProgrammazione, intervento=SRD01). Scarica: PNG del grafico, CSV e XLSX del riepilogo con intervento=SRD01 (GET /api/procedurale/riepilogo/{formato}).</p>
+    <p class="wf-note">Scheda Sottofasi (nuova dal giro G3: TX-0031 e TX-0032 accettano i filtri): le due tabelle delle sottofasi di sostegno e di pagamento come nella pagina Sottofasi di ammissibilita', con le domande dell'intervento (intervento=SRD01 e il filtro per stato); l'anagrafica resta intera e regionale, i filtri restringono solo le domande contate. Grafico a barre delle voci con la fonte attiva, altrimenti "grafico non disponibile (fonte non attiva: sottofasi della domanda)" e la tabella. Scarica: PNG del grafico quando c'e', CSV e XLSX di GET /api/procedurale/sottofasi-sostegno/{formato} e sottofasi-pagamento/{formato}. Nessun link verso l'elenco (l'elenco non ha un filtro per sottofase).</p>
+    <p class="wf-note">Scheda Unit Amount: la tabella delle Unit Amount dell'intervento (TX-0030 con intervento=SRD01: codice, gruppo colturale, esercizio, importo unitario, output previsto, importo pagato, percentuale pagata, base storica), con i valori assenti in testo (fonte non attiva: pagato per Unit Amount). Dati di programma: regionali per ogni profilo e senza filtro per stato (D-06 Rev. 6 del backend: le Unit Amount non sono domande). Scarica: CSV e XLSX di GET /api/procedurale/unit-amount/{formato} con intervento=SRD01.</p>
     <h2>Stato: caricamento</h2>
     <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro della testata e delle card)</div>
     <h2>Stato: vuoto</h2>

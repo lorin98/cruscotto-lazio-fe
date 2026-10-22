@@ -10,16 +10,20 @@
 |---|---|---|---|
 | /procedurale/unit-amount | report | report v2 (card grafico, tabella interattiva, drawer) | csr.tx-0024.read, csr.tx-0030.read |
 
-Flusso a se' perche' la collocazione e' da decidere (OP-PR-04 b): nel pack RF030 e' dell'area fisica e la card Fisico della
-Home cita "Pagamenti per Unit Amount", ma TX-0030 e' della slice procedurale e csr.tx-0030.read e' concesso a P1, P2, P3
-dell'area procedurale e P4, non al P3 dell'area fisica. Si puo' approvare o sospendere senza toccare gli altri flussi.
+Flusso a se' (si approva o si sospende senza toccare gli altri). Collocazione decisa con G1 (21/10/2026): la pagina resta
+nel procedurale, la feature della sua slice (TX-0030, csr.tx-0030.read di P1, P2, P3 dell'area procedurale e P4); la card
+Procedurale della Home citera' i pagamenti per Unit Amount e quella del Fisico non piu' (la Home la riscrive step6).
+
+Cambiato il 22/10/2026 (giro G3 del backend): pill "Dati al" da TX-0024; download CSV e XLSX
+(GET /api/procedurale/unit-amount/{formato}) della card e della tabella, PNG quando il grafico c'e'; il filtro per stato
+resta non applicabile per decisione del backend (D-06 Rev. 6).
 
 ## Component tree (per pagina)
 
-- /procedurale/unit-amount: Shell > Barra filtri (intervento, OS, OG, OP; perimetro regionale; "stato non si applica") >
-  Breadcrumb > Titolo > Card Percentuale pagata per Unit Amount (grafico non disponibile con il motivo, finche' la fonte non
-  e' attiva) > Tabella interattiva delle Unit Amount (cerca, Colonne, ordinamento, paginazione, nessun totale) > Drawer >
-  Stati
+- /procedurale/unit-amount: Shell > Barra filtri (intervento, OS, OG, OP; perimetro regionale; "stato non si applica";
+  pill "Dati al") > Breadcrumb > Titolo > Card Percentuale pagata per Unit Amount (grafico non disponibile con il motivo,
+  finche' la fonte non e' attiva; CSV, XLSX, e PNG col grafico) > Tabella interattiva delle Unit Amount (cerca, Colonne,
+  CSV, XLSX, ordinamento, paginazione, nessun totale) > Drawer > Stati
 
 Nessun KPI: il DTO di TX-0030 non porta totali (la pagina non somma le righe).
 
@@ -33,6 +37,16 @@ Regole del dato (D-06 Rev. 2 del backend): anagrafica UNITAMOUNT degli intervent
 esercizio, importo unitario, output previsto; dati di programma dall'import CSR-UA, regionali per tutti); importo pagato e
 percentuale pagata sul richiesto dalla riga; base storica = percentuale pagata della stessa Unit Amount dell'intervento
 nell'esercizio precedente. Mai l'Assistenza tecnica.
+
+## Download (come nel finanziario)
+
+| dove | formati | file |
+|---|---|---|
+| card Percentuale pagata per Unit Amount | CSV, XLSX; PNG solo col grafico disegnato (fonte attiva, vista Grafico) | GET /api/procedurale/unit-amount/{formato} |
+| tabella Unit Amount degli interventi selezionati | CSV, XLSX | lo stesso file: una riga per Unit Amount, con il motivo nelle celle senza valore |
+
+Parametri: intervento, os, og, op (mai lo stato), header X-Requested-With, registrati in AUDIT_ESPORTAZIONE; intestazione
+con perimetro REGIONALE e ultimo dato sincronizzato per flusso.
 
 ## Link del flusso (drill-down dichiarati)
 
@@ -48,8 +62,9 @@ Nessun link verso l'elenco operativo: le Unit Amount non sono insiemi di domande
 |---|---|---|---|---|
 | /procedurale/unit-amount | intervento, os, og, op | TX-0030.intervento, .os, .og, .op | si' | no |
 
-TX-0030 non accetta `stato`: la barra lo dice in testo e uno stato arrivato dall'indirizzo non parte verso il backend
-(OP-PR-03).
+TX-0030 non accetta `stato` (D-06 Rev. 6 del backend: RF030 e' dell'area F2 - Fisico nel pack e le Unit Amount sono dati di
+programma senza domande): la barra lo dice in testo e uno stato arrivato dall'indirizzo non parte verso il backend ne'
+verso l'export, ma resta nell'indirizzo per le altre pagine.
 
 ## Stati resi (obbligatori)
 
@@ -65,10 +80,11 @@ TX-0030 non accetta `stato`: la barra lo dice in testo e uno stato arrivato dall
   disponibile (fonte non attiva)" in tre colonne per riga: valutare al gate una nota unica sopra la tabella piu' il testo
   breve nelle celle.
 - RESIDUO umano: contrasto della resa finale.
+- Download: un pulsante per formato con la sigla visibile e il nome accessibile completo (WCAG 2.5.3), aria-disabled
+  durante la preparazione col focus sul pulsante (WCAG 2.4.3), esito in role=status, errore in role=alert col motivo.
 
 ## Punti aperti che toccano questo flusso
 
-- OP-PR-01: ultimo dato sincronizzato assente dai DTO procedurali.
-- OP-PR-03: TX-0030 non accetta il filtro per stato area programmazione.
-- OP-PR-04 (b): collocazione della pagina Unit Amount (procedurale o fisico) e testo delle card della Home.
-- OP-PR-05: nessun export di TX-0030 (non e' nel CSV del riepilogo): solo il PNG del grafico, quando c'e'.
+- Nessuno aperto. Chiusi col giro G3 e con G1 (22/10/2026): OP-PR-01 (pill "Dati al" da TX-0024), OP-PR-03 (lo stato non
+  si applica alle Unit Amount per decisione del backend, D-06 Rev. 6: la pagina lo dichiara), OP-PR-04 (la pagina resta nel
+  procedurale, G1), OP-PR-05 (CSV e XLSX di TX-0030).

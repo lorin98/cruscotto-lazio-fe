@@ -184,7 +184,7 @@
       ],
       "given": "un P1",
       "when": "chiama un report con un filtro vuoto (intervento=%20 o stato= senza valore, anche os, og, op), con piu' di 100 valori in una dimensione, con ?stato=BOH, con ?stato= un codice PROSA abbinato da una voce (va chiesto con la voce), con ?azione=1",
-      "then": "400 problem+json DATO_NON_VALIDO con il nome del parametro (intervento, os, og, op, stato, azione) nel dettaglio, mai il valore inviato; nessuna lettura dei report; la consultazione e' registrata in AUDIT_CONSULTAZIONE con esito FALLIMENTO e i valori come sono arrivati",
+      "then": "400 problem+json DATO_NON_VALIDO con il nome del parametro (intervento, os, og, op, stato, azione) nel dettaglio, mai il valore inviato; nessuna lettura dei report; la consultazione e' registrata in AUDIT_CONSULTAZIONE con esito FALLIMENTO e i valori come sono arrivati; azione non e' un parametro del contratto dei report procedurali (D-01 Rev. 1: RF024 e TX-0024 non prevedono le azioni portanti), nemmeno per l'indirizzo storico riepilogo/csv, che sta anche nel contratto di nfr-conformance, e un ?azione= resta un 400, mai ignorato",
       "kind": "negative",
       "test_tag": "SC-PC_PARAMETRO_NON_VALIDO",
       "approved": true,
@@ -242,11 +242,59 @@
       ],
       "given": "un P1 e un P4",
       "when": "consultano i report, anche con esito negativo (400)",
-      "then": "una riga in AUDIT_CONSULTAZIONE per consultazione, con operazione TX-00nn, utente, profili, esito e parametri come sono arrivati (intervento, os, og, op, azione, stato; nessun parametro per filtri, stati e sottofasi), mai importi ne' dati personali; nella catena di impronte",
+      "then": "una riga in AUDIT_CONSULTAZIONE per consultazione, con operazione TX-00nn, utente, profili, esito e parametri come sono arrivati (intervento, os, og, op, azione, stato; nessun parametro per filtri e stati, TX-0024 e TX-0025; le sottofasi, TX-0031 e TX-0032, registrano i filtri come i report, D-06 Rev. 6), mai importi ne' dati personali; nella catena di impronte",
       "kind": "positive",
       "test_tag": "SC-PC_AUDIT",
       "approved": true,
       "role": "p1-dirigente"
+    },
+    {
+      "scenario_id": "SC-PC_SOTTOFASI_FILTRI",
+      "req_uids": [
+        "RU-00000024",
+        "RU-00000025",
+        "RU-00000031",
+        "RU-00000032"
+      ],
+      "given": "l'anagrafica e i legami di SC-PC_SOTTOFASI: P1 (PAGAMENTO CSR-DP di SRD01, ADA Latina, stato area programmazione REVOCATA) e P2 (PAGAMENTO CSR-DP di SRD01, ADA Frosinone, senza stato area programmazione) nella sottofase Antimafia (DP_ANTIMAFIA); SRA01 senza domande di pagamento legate a sottofasi; SRD02 collegato a OS5 senza domande; nessuna domanda di sostegno legata a una sottofase di sostegno",
+      "when": "chiama GET /api/procedurale/sottofasi-pagamento con ?intervento=SRD01, ?intervento=SRA01, ?os=OS5, ?intervento=SRD01&stato=SENZA_STATO e ?stato=REVOCATA, GET /api/procedurale/sottofasi-sostegno con ?intervento=SRD01, e le due con un filtro vuoto (intervento=%20), con ?stato=BOH e con ?azione=1",
+      "then": "200 con tutte le voci e l'anagrafica di sempre (le 7 voci di RF032, Antimafia censita DP_ANTIMAFIA) e le domande ristrette dai filtri come nei report per domanda (D-06 Rev. 6): SRD01 2 (P1 e P2); SRA01 e OS5 0, non FONTE_NON_ATTIVA (la sonda della fonte non dipende dai filtri), la censita a 0; SRD01 senza stato 1 (P2); REVOCATA 1 (P1, anche nella censita); il sostegno senza domande legate resta FONTE_NON_ATTIVA SOTTOFASI_DOMANDA anche con i filtri; filtro vuoto, stato fuori dominio e azione: 400 DATO_NON_VALIDO col nome del parametro, nessuna lettura; ogni consultazione di TX-0031 e TX-0032 e' in AUDIT_CONSULTAZIONE con i filtri come sono arrivati, anche col 400",
+      "kind": "positive",
+      "test_tag": "SC-PC_SOTTOFASI_FILTRI",
+      "approved": true,
+      "role": "p1-dirigente"
+    },
+    {
+      "scenario_id": "SC-PC_ULTIMO_DATO",
+      "req_uids": [
+        "RU-00000024"
+      ],
+      "given": "[NFR-25] un'esecuzione d'import SUCCESS di un flusso proprio conclusa il 2026-03-02 alle 09:30 UTC; un P3 dell'area procedurale (senza il grant di TX-0001) e un utente che legge anche TX-0001",
+      "when": "GET /api/procedurale/filtri",
+      "then": "200 con i valori dei filtri e ultimiDatiSincronizzati: per ogni flusso d'import con un'esecuzione conclusa la conclusione della piu' recente, il flusso proprio con 2026-03-02T09:30:00Z, lo stesso elenco di GET /api/finanziario/filtri (TX-0001) per chi lo puo' leggere, anche al P3 dell'area, che TX-0001 non lo legge (403); letto fuori dal tetto delle letture e fuori dall'audit: per ogni richiesta una sola riga di AUDIT_CONSULTAZIONE, quella del report (D-01 Rev. 2)",
+      "kind": "positive",
+      "test_tag": "SC-PC_ULTIMO_DATO",
+      "approved": true,
+      "role": "p3-funzionario-area"
+    },
+    {
+      "scenario_id": "SC-PC_ESPORTA",
+      "req_uids": [
+        "RU-00000026",
+        "RU-00000027",
+        "RU-00000028",
+        "RU-00000029",
+        "RU-00000030",
+        "RU-00000031",
+        "RU-00000032"
+      ],
+      "given": "[NFR-06, NFR-34, NFR-50] un intervento P (perimetro 'SIGC no') con S1 SOSTEGNO RILASCIATO di Latina, AMMESSA, determina con richiesto 1000,00 e ammesso 800,00, S2 SOSTEGNO 'SOSPESA' (fuori catalogo) di Frosinone senza stato area programmazione, D1 PAGAMENTO CSR-DP 'PROPOSTO AL PAGAMENTO - DA REVISIONARE' di Latina e una Unit Amount 2025 (importo unitario 150,00); un intervento Q senza domande; per la prova delle sottofasi D1 legata alla sottofase Antimafia; un P1, un P3 dell'area procedurale, un P4 di Latina e un P5 (senza grant procedurali)",
+      "when": "GET /api/procedurale/domande-ammesse, /stati-sostegno, /stati-pagamento, /riepilogo, /unit-amount, /sottofasi-sostegno e /sottofasi-pagamento seguiti da /csv o /xlsx, con ?intervento=P&intervento=Q e l'header X-Requested-With; /riepilogo/csv anche come indirizzo storico; poi senza l'header, con HEAD, con /pdf, con ?stato=BOH, con ?azione=1, con un intervento vuoto e da un P5",
+      "then": "200 con allegato (text/csv o XLSX, Content-Disposition attachment tx-00nn-<data>, Cache-Control no-store) per ognuno, con gli stessi numeri della risposta JSON con gli stessi filtri: TX-0026 una riga per intervento (P: si', 1 ammessa, 1000,00 e 800,00) e la riga 'Totale' (1 su 2 interventi attivati); TX-0027 e TX-0028 una riga per intervento e stato (P: RILASCIATO 1, SOSPESA tra gli altri stati, totale 2) con il di cui non rilasciate e le righe del totale; TX-0029 nei due formati con le stesse righe e colonne, riepilogo/csv invariato; TX-0030 una riga per Unit Amount (150,00); TX-0032 le voci di SR-01 e le sottofasi fuori catalogo, con ?intervento=P la voce Antimafia a 1 (D1); intestazione con titolo della TX, fonte, filtri applicati, perimetro (REGIONALE, ADA per il P4, che esporta solo le domande di Latina), tipo di domanda per stati e sottofasi, ultimo dato sincronizzato per flusso e dicitura d'uso interno; una riga di AUDIT_ESPORTAZIONE per file (area A4, requisito TX-0026..TX-0032, formato, campi identificativi falso, impronta dei byte, filtri come arrivati) e la consultazione del report in AUDIT_CONSULTAZIONE; senza X-Requested-With 403 RICHIESTA_NON_AMMESSA, HEAD 405, formato sconosciuto 404, stato fuori dominio, azione (D-01 Rev. 1) o intervento vuoto 400 DATO_NON_VALIDO, P5 403 ACCESSO_NEGATO per ogni export: nessun file e nessuna riga di AUDIT_ESPORTAZIONE (D-10)",
+      "kind": "positive",
+      "test_tag": "SC-PC_ESPORTA",
+      "approved": true,
+      "role": "p3-funzionario-area"
     }
   ]
 }

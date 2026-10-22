@@ -51,6 +51,7 @@
       <a class="btn btn-primary" href="../panoramica/panoramica.html#pannello-filtri">Filtri (1)</a>
       <span class="ui-chip">Obiettivo specifico: OS4 <button class="btn" type="button" aria-label="Togli il filtro Obiettivo specifico OS4">x</button></span>
       <span class="ui-pill">Perimetro: regionale (profilo ADA: solo le domande della propria ADA, non rimovibile)</span>
+      <button class="ui-pill" type="button" aria-label="Ultimo dato sincronizzato: dati al gg/mm/aaaa per tutti i flussi. Mostra il dettaglio per flusso">Dati al gg/mm/aaaa</button>
     </div>
     <nav class="breadcrumb-container" aria-label="Percorso">
       <ol class="breadcrumb">
@@ -63,7 +64,7 @@
       <h1>Procedurale: stati delle domande di sostegno</h1>
       <p>Gli undici stati della domanda di sostegno (SR-01) per intervento, con le domande non ancora rilasciate. Clic su una riga per l'anteprima dell'intervento.</p>
     </div>
-    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0024.read, csr.tx-0025.read, csr.tx-0027.read - Transazioni: TX-0027 (RF027), TX-0024 e TX-0025 (valori dei filtri). Universo: domande di sostegno correnti piu' le domande non ancora rilasciate (righe CSR-DS senza codice a barre, D-04 Rev. 4); con il filtro per stato area programmazione le non rilasciate contano solo se il filtro chiede le domande senza stato. Ultimo dato sincronizzato assente dai DTO (OP-PR-01).</p>
+    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0024.read, csr.tx-0025.read, csr.tx-0027.read - Transazioni: TX-0027 (RF027), TX-0024 e TX-0025 (valori dei filtri). Universo: domande di sostegno correnti piu' le domande non ancora rilasciate (righe CSR-DS senza codice a barre, D-04 Rev. 4); con il filtro per stato area programmazione le non rilasciate contano solo se il filtro chiede le domande senza stato. Dati al: ultimiDatiSincronizzati di TX-0024 (pill della barra dei filtri, dettaglio per flusso al clic).</p>
     <div class="ui-griglia ui-griglia--2">
       <section class="ui-kpi" aria-label="Domande di sostegno">
         <p>Domande di sostegno</p>
@@ -79,18 +80,20 @@
     <section class="ui-card" aria-labelledby="g-stati">
       <div class="ui-card__testa">
         <h2 id="g-stati">Domande di sostegno per stato</h2>
-        <div class="ui-seg" role="group" aria-label="Vista di Domande di sostegno per stato"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+        <div class="ui-seg" role="group" aria-label="Vista di Domande di sostegno per stato"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button></div>
+        <div class="ui-strumenti" role="group" aria-label="Scarica il grafico Domande di sostegno per stato"><button class="btn" type="button" aria-label="Scarica il grafico Domande di sostegno per stato in PNG">PNG</button> <button class="btn" type="button" aria-label="Scarica il grafico Domande di sostegno per stato in CSV">CSV</button> <button class="btn" type="button" aria-label="Scarica il grafico Domande di sostegno per stato in XLSX">XLSX</button></div>
       </div>
       <figure class="ui-grafico ui-grafico--barre">
         <figcaption>Barre orizzontali impilate: le undici voci di SR-01 nell'ordine del backend, poi gli altri stati per codice; ogni barra divide rilasciate e non rilasciate. Clic su una barra: la tabella per intervento resta con gli interventi che hanno domande in quella voce (chip "Voce: ..." rimovibile, solo nella pagina).</figcaption>
       </figure>
-      <p class="ui-fonte">Fonte: TX-0027 (totale). Scarica: immagine PNG del grafico (il report non ha export del backend: i dati sono nel CSV del riepilogo, OP-PR-05).</p>
+      <p class="ui-fonte">Fonte: TX-0027 (totale). Scarica: PNG del grafico (nel browser, solo nella vista Grafico); CSV e XLSX dal backend (GET /api/procedurale/stati-sostegno/{formato}, filtri correnti): una riga per intervento e stato con domande e di cui non rilasciate, poi le righe del totale.</p>
     </section>
     <h2>Vista: Tabella di Domande di sostegno per stato</h2>
     <section class="ui-card" aria-labelledby="t-stati">
       <div class="ui-card__testa">
         <h2 id="t-stati">Domande di sostegno per stato</h2>
-        <div class="ui-seg" role="group" aria-label="Vista di Domande di sostegno per stato"><button class="btn" type="button" aria-pressed="false">Grafico</button> <button class="btn" type="button" aria-pressed="true">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+        <div class="ui-seg" role="group" aria-label="Vista di Domande di sostegno per stato"><button class="btn" type="button" aria-pressed="false">Grafico</button> <button class="btn" type="button" aria-pressed="true">Tabella</button></div>
+        <div class="ui-strumenti" role="group" aria-label="Scarica il grafico Domande di sostegno per stato"><button class="btn" type="button" aria-label="Scarica il grafico Domande di sostegno per stato in CSV">CSV</button> <button class="btn" type="button" aria-label="Scarica il grafico Domande di sostegno per stato in XLSX">XLSX</button></div>
       </div>
       <table class="ui-tabella">
         <caption>Domande di sostegno per stato: la voce di SR-01 e' l'intestazione di riga. Apri nell'elenco apre le sole domande rilasciate della voce (domande meno di cui non rilasciate).</caption>
@@ -121,7 +124,7 @@
       <div class="ui-strumenti">
         <label class="form-label" for="t-cerca">Cerca nella tabella</label>
         <input class="form-control" type="search" id="t-cerca" name="t">
-        <button class="btn" type="button">Colonne (13)</button>
+        <button class="btn" type="button">Colonne (13)</button> <div class="ui-strumenti" role="group" aria-label="Scarica la tabella Domande di sostegno per intervento e stato"><button class="btn" type="button" aria-label="Scarica la tabella Domande di sostegno per intervento e stato in CSV">CSV</button> <button class="btn" type="button" aria-label="Scarica la tabella Domande di sostegno per intervento e stato in XLSX">XLSX</button></div>
       </div>
       <table class="ui-tabella">
         <caption>Domande di sostegno per intervento e stato: l'intervento e' l'intestazione di riga, le voci di SR-01 e gli altri stati le colonne (scegli quali con Colonne); clic o Invio su una riga per l'anteprima.</caption>
@@ -145,7 +148,7 @@
           <tr><th scope="row">Totale (dal backend)</th><td class="ui-num">n</td><td class="ui-num">n</td><td>non disponibile</td><td class="ui-num">n</td><td class="ui-num">0</td><td class="ui-num">n</td><td>SOSPESA n</td></tr>
         </tfoot>
       </table>
-      <p class="ui-fonte">Fonte: TX-0027 (righe e totale). Gli altri stati sono per codice (una colonna per codice in Colonne; qui riassunti). Totali del backend, mai sommati nel browser. Nessun export del report: i dati per intervento si scaricano dal riepilogo in CSV.</p>
+      <p class="ui-fonte">Fonte: TX-0027 (righe e totale). Gli altri stati sono per codice (una colonna per codice in Colonne; qui riassunti). Totali del backend, mai sommati nel browser. CSV e XLSX della tabella: lo stesso file della card (GET /api/procedurale/stati-sostegno/{formato}), con tutte le colonne, non solo quelle scelte con Colonne.</p>
       <nav class="ui-paginazione" aria-label="Pagine della tabella"><button class="btn" type="button" aria-current="page">1</button> <button class="btn" type="button">2</button></nav>
     </section>
     <aside class="ui-drawer" aria-label="Anteprima dell'intervento SRD01">

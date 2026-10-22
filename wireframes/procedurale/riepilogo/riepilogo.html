@@ -51,6 +51,7 @@
       <a class="btn btn-primary" href="../panoramica/panoramica.html#pannello-filtri">Filtri (1)</a>
       <span class="ui-chip">Intervento: SRD01 <button class="btn" type="button" aria-label="Togli il filtro Intervento SRD01">x</button></span>
       <span class="ui-pill">Perimetro: regionale (profilo ADA: solo le domande della propria ADA, non rimovibile)</span>
+      <button class="ui-pill" type="button" aria-label="Ultimo dato sincronizzato: dati al gg/mm/aaaa per tutti i flussi. Mostra il dettaglio per flusso">Dati al gg/mm/aaaa</button>
     </div>
     <nav class="breadcrumb-container" aria-label="Percorso">
       <ol class="breadcrumb">
@@ -61,9 +62,9 @@
     </nav>
     <div class="ui-titolo">
       <h1>Procedurale: riepilogo per intervento</h1>
-      <p>Grafico per intervento: clic su una barra per il dettaglio; nella vista Tabella tutte le misure procedurali per intervento, da cercare, ordinare, scegliere per sezione ed esportare in CSV.</p>
+      <p>Grafico per intervento: clic su una barra per il dettaglio; nella vista Tabella tutte le misure procedurali per intervento, da cercare, ordinare, scegliere per sezione e scaricare in CSV o XLSX.</p>
     </div>
-    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0024.read, csr.tx-0025.read, csr.tx-0029.read - Transazioni: TX-0029 (RF029) e il suo export CSV (GET /api/procedurale/riepilogo/csv, senza operationId, con X-Requested-With), TX-0024 e TX-0025 (valori dei filtri). Stessi filtri, perimetro e regole dei report dedicati: i numeri coincidono con quelli delle altre pagine (istantanea unica del backend, D-05). Ultimo dato sincronizzato assente dai DTO (OP-PR-01).</p>
+    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0024.read, csr.tx-0025.read, csr.tx-0029.read - Transazioni: TX-0029 (RF029) e i suoi export CSV e XLSX (GET /api/procedurale/riepilogo/{formato}, senza operationId, con X-Requested-With; per csv e' lo stesso indirizzo storico GET /api/procedurale/riepilogo/csv, invariato), TX-0024 e TX-0025 (valori dei filtri e Dati al). Stessi filtri, perimetro e regole dei report dedicati: i numeri coincidono con quelli delle altre pagine (istantanea unica del backend, D-05).</p>
     <p class="wf-note">Vista iniziale: Grafico, come il riepilogo del finanziario. L'interruttore di pagina "Vista del riepilogo" (Grafico | Tabella) sceglie fra il grafico e la tabella; la scelta resta tornando dal dettaglio dell'intervento o dall'elenco operativo. L'interruttore della card del grafico mostra la sua tabella equivalente (intervento, domande di sostegno, di pagamento, ammesse).</p>
     <section class="ui-card" aria-labelledby="t-riep">
       <div class="ui-card__testa"><h2 id="t-riep">Riepilogo per intervento</h2></div>
@@ -71,12 +72,13 @@
       <section class="ui-card" aria-labelledby="g-riep">
         <div class="ui-card__testa">
           <h2 id="g-riep">Domande per intervento</h2>
-          <div class="ui-seg" role="group" aria-label="Vista di Domande per intervento"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+          <div class="ui-seg" role="group" aria-label="Vista di Domande per intervento"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button></div>
+          <div class="ui-strumenti" role="group" aria-label="Scarica il grafico Domande per intervento"><button class="btn" type="button" aria-label="Scarica il grafico Domande per intervento in PNG">PNG</button> <button class="btn" type="button" aria-label="Scarica il grafico Domande per intervento in CSV">CSV</button> <button class="btn" type="button" aria-label="Scarica il grafico Domande per intervento in XLSX">XLSX</button></div>
         </div>
         <figure class="ui-grafico ui-grafico--barre">
           <figcaption>Barre raggruppate con zoom oltre 12 interventi: domande di sostegno, domande di pagamento CSR-DP e domande ammesse per intervento. Clic su una barra: dettaglio procedurale dell'intervento.</figcaption>
         </figure>
-        <p class="ui-fonte">Fonte: TX-0029 (righe: statiSostegno.totale, statiPagamento.totale, ammesse.domandeAmmesse). Scarica: immagine PNG; i dati completi con Esporta CSV nella vista Tabella.</p>
+        <p class="ui-fonte">Fonte: TX-0029 (righe: statiSostegno.totale, statiPagamento.totale, ammesse.domandeAmmesse). Scarica: PNG del grafico (nel browser, solo nella vista Grafico); CSV e XLSX = il file della tabella di riepilogo (GET /api/procedurale/riepilogo/{formato}).</p>
       </section>
     </section>
     <h2>Vista: Tabella</h2>
@@ -87,7 +89,7 @@
       <div class="ui-strumenti">
         <label class="form-label" for="t-cerca">Cerca nella tabella</label>
         <input class="form-control" type="search" id="t-cerca" name="t">
-        <button class="btn" type="button">Colonne (4 sezioni)</button> <button class="btn" type="button" aria-label="Esporta in CSV la tabella Riepilogo per intervento">Esporta CSV</button>
+        <button class="btn" type="button">Colonne (4 sezioni)</button> <div class="ui-strumenti" role="group" aria-label="Scarica la tabella Riepilogo per intervento"><button class="btn" type="button" aria-label="Scarica la tabella Riepilogo per intervento in CSV">CSV</button> <button class="btn" type="button" aria-label="Scarica la tabella Riepilogo per intervento in XLSX">XLSX</button></div>
       </div>
       <table class="ui-tabella">
         <caption>Riepilogo per intervento: tutte le misure procedurali dei grafici (RF029). L'intervento e' l'intestazione di riga; clic o Invio su una riga per l'anteprima.</caption>
@@ -121,7 +123,7 @@
           <tr><th scope="row">Totale (dal backend)</th><td class="ui-num">n</td><td>non disponibile</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n</td><td class="ui-num">n</td><td class="ui-num">n</td><td class="ui-num">n</td><td class="ui-num">n</td><td class="ui-num">0</td></tr>
         </tfoot>
       </table>
-      <p class="ui-fonte">Fonte: TX-0029 (righe e totale del backend). Con Colonne si aggiungono le voci di ogni sezione (le dieci di RF025 con gli stati osservati, le undici di RF027, le cinque di RF028, gli altri stati, perimetro e attivato dell'intervento); valori assenti in testo col motivo. Esporta CSV: stessi filtri, UTF-8 con BOM e punto e virgola, per sezione la colonna "di cui non rilasciate"; oltre 5.000 righe o 50.000 celle il backend risponde 400 e il messaggio invita a restringere i filtri (OP-PR-05).</p>
+      <p class="ui-fonte">Fonte: TX-0029 (righe e totale del backend). Con Colonne si aggiungono le voci di ogni sezione (le dieci di RF025 con gli stati osservati, le undici di RF027, le cinque di RF028, gli altri stati, perimetro e attivato dell'intervento); valori assenti in testo col motivo. CSV e XLSX (GET /api/procedurale/riepilogo/{formato}): stessi filtri, tutte le sezioni e le voci (non solo le colonne scelte), per sezione la colonna "di cui non rilasciate"; CSV UTF-8 con BOM e punto e virgola, XLSX con i numeri come numeri; intestazione con fonte, filtri, perimetro, data di estrazione, profili e ultimo dato sincronizzato. Oltre 5.000 righe o 50.000 celle il backend risponde 400 e il messaggio invita a restringere i filtri.</p>
       <nav class="ui-paginazione" aria-label="Pagine della tabella"><button class="btn" type="button" aria-current="page">1</button> <button class="btn" type="button">2</button></nav>
     </section>
     <aside class="ui-drawer" aria-label="Anteprima dell'intervento SRD01">
@@ -143,6 +145,7 @@
     <div class="ui-vuoto" role="status">Nessun intervento per i filtri scelti. <a class="btn btn-primary" href="../panoramica/panoramica.html#pannello-filtri">Modifica i filtri</a></div>
     <h2>Stato: errore</h2>
     <div class="alert alert-danger" role="alert">Dati non disponibili: messaggio dal problem-type (400 filtro non valido o export oltre il limite, 403 accesso negato, 503 da riprovare dopo Retry-After). <a href="#contenuto">Riprova</a></div>
+    <div class="alert alert-danger" role="alert">File CSV non scaricato. Esportazione non registrata nel registro di audit (503): riprova tra qualche secondo.</div>
   </main>
 </div>
 <footer class="ui-footer">

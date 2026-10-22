@@ -52,6 +52,7 @@
       <span class="ui-chip">Intervento: SRD01 <button class="btn" type="button" aria-label="Togli il filtro Intervento SRD01">x</button></span>
       <span class="ui-pill">Perimetro: regionale (dati di programma, uguali per ogni profilo)</span>
       <span class="ui-pill">Il filtro per stato area programmazione non si applica alle Unit Amount</span>
+      <button class="ui-pill" type="button" aria-label="Ultimo dato sincronizzato: dati al gg/mm/aaaa per tutti i flussi. Mostra il dettaglio per flusso">Dati al gg/mm/aaaa</button>
     </div>
     <nav class="breadcrumb-container" aria-label="Percorso">
       <ol class="breadcrumb">
@@ -64,21 +65,22 @@
       <h1>Procedurale: pagamenti per Unit Amount</h1>
       <p>Per ogni Unit Amount (gruppo colturale) degli interventi selezionati: importo unitario, output previsto, importo pagato, percentuale pagata sul richiesto e base storica per la previsione.</p>
     </div>
-    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0024.read, csr.tx-0030.read - Transazioni: TX-0030 (RF030), TX-0024 (valori dei filtri intervento, OS, OG, OP). TX-0030 non accetta lo stato area programmazione: la barra dice sempre in testo che quel filtro non si applica, e uno stato arrivato dall'indirizzo non diventa un chip ne' parte verso il backend (OP-PR-03). Nel pack RF030 e' dell'area fisica: collocazione da decidere (OP-PR-04). Ultimo dato sincronizzato assente dai DTO (OP-PR-01).</p>
+    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0024.read, csr.tx-0030.read - Transazioni: TX-0030 (RF030), TX-0024 (valori dei filtri intervento, OS, OG, OP). TX-0030 non accetta lo stato area programmazione (D-06 Rev. 6 del backend, giro G3: le Unit Amount sono dati di programma senza domande, lo stato e' un attributo della domanda): la barra dice sempre in testo che quel filtro non si applica, e uno stato arrivato dall'indirizzo non diventa un chip ne' parte verso il backend, ma resta nell'indirizzo per le altre pagine del procedurale. La pagina resta nel procedurale (decisione G1: la card Procedurale della Home cita i pagamenti per Unit Amount, quella del Fisico no). Dati al: ultimiDatiSincronizzati di TX-0024.</p>
     <section class="ui-card" aria-labelledby="g-ua">
       <div class="ui-card__testa">
         <h2 id="g-ua">Percentuale pagata per Unit Amount</h2>
-        <div class="ui-seg" role="group" aria-label="Vista di Percentuale pagata per Unit Amount"><button class="btn" type="button" aria-pressed="false">Grafico</button> <button class="btn" type="button" aria-pressed="true">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+        <div class="ui-seg" role="group" aria-label="Vista di Percentuale pagata per Unit Amount"><button class="btn" type="button" aria-pressed="false">Grafico</button> <button class="btn" type="button" aria-pressed="true">Tabella</button></div>
+        <div class="ui-strumenti" role="group" aria-label="Scarica il grafico Percentuale pagata per Unit Amount"><button class="btn" type="button" aria-label="Scarica il grafico Percentuale pagata per Unit Amount in CSV">CSV</button> <button class="btn" type="button" aria-label="Scarica il grafico Percentuale pagata per Unit Amount in XLSX">XLSX</button></div>
       </div>
       <p class="wf-note">Grafico non disponibile: nessuna Unit Amount ha ancora l'importo pagato (fonte non attiva: pagato per Unit Amount, arrivera' con la Data Platform). La card lo dice in testo e mostra subito la tabella. Con la fonte attiva la vista iniziale e' il Grafico: barre orizzontali raggruppate per Unit Amount con la percentuale pagata dell'esercizio e la base storica (esercizio precedente); valore non valorizzato omesso e dichiarato; clic su una barra: anteprima della riga nella tabella.</p>
-      <p class="ui-fonte">Fonte: TX-0030. Scarica: immagine PNG del grafico, quando c'e'; nessun export del backend per questo report (OP-PR-05).</p>
+      <p class="ui-fonte">Fonte: TX-0030. Scarica: CSV e XLSX dal backend (GET /api/procedurale/unit-amount/{formato} con intervento e obiettivi correnti, senza stato: una riga per Unit Amount); il PNG solo quando il grafico c'e'.</p>
     </section>
     <section class="ui-card" aria-labelledby="t-ua">
       <div class="ui-card__testa"><h2 id="t-ua">Unit Amount degli interventi selezionati</h2></div>
       <div class="ui-strumenti">
         <label class="form-label" for="t-cerca">Cerca nella tabella</label>
         <input class="form-control" type="search" id="t-cerca" name="t">
-        <button class="btn" type="button">Colonne (9)</button>
+        <button class="btn" type="button">Colonne (9)</button> <div class="ui-strumenti" role="group" aria-label="Scarica la tabella Unit Amount degli interventi selezionati"><button class="btn" type="button" aria-label="Scarica la tabella Unit Amount degli interventi selezionati in CSV">CSV</button> <button class="btn" type="button" aria-label="Scarica la tabella Unit Amount degli interventi selezionati in XLSX">XLSX</button></div>
       </div>
       <table class="ui-tabella">
         <caption>Unit Amount per intervento, esercizio e codice: la Unit Amount e' l'intestazione di riga; clic o Invio su una riga per l'anteprima.</caption>
@@ -100,7 +102,7 @@
           <tr class="ui-riga"><td>SRD01</td><th scope="row">UA2</th><td>Gruppo colturale</td><td class="ui-num">2024</td><td>non valorizzato</td><td class="ui-num">n</td><td>non disponibile (fonte non attiva)</td><td>non disponibile (fonte non attiva)</td><td>non disponibile (fonte non attiva)</td></tr>
         </tbody>
       </table>
-      <p class="ui-fonte">Fonte: TX-0030 (righe, ordinate dal backend per intervento, esercizio e codice). Con la fonte attiva: importo pagato e percentuale della riga ("non valorizzato" se mancano nella riga) e base storica = percentuale pagata della stessa Unit Amount dell'intervento nell'esercizio precedente ("non valorizzato" se manca). Nessun totale: il DTO non lo porta e la pagina non somma. Mai l'Assistenza tecnica (AT001).</p>
+      <p class="ui-fonte">Fonte: TX-0030 (righe, ordinate dal backend per intervento, esercizio e codice). Con la fonte attiva: importo pagato e percentuale della riga ("non valorizzato" se mancano nella riga) e base storica = percentuale pagata della stessa Unit Amount dell'intervento nell'esercizio precedente ("non valorizzato" se manca). Nessun totale: il DTO non lo porta e la pagina non somma. Mai l'Assistenza tecnica (AT001). CSV e XLSX: lo stesso file della card, con il motivo nelle celle senza valore (FONTE_NON_ATTIVA PAGATO_PER_UNIT_AMOUNT, NON_VALORIZZATO).</p>
       <nav class="ui-paginazione" aria-label="Pagine della tabella"><button class="btn" type="button" aria-current="page">1</button> <button class="btn" type="button">2</button></nav>
     </section>
     <aside class="ui-drawer" aria-label="Anteprima della Unit Amount UA1 di SRD01">

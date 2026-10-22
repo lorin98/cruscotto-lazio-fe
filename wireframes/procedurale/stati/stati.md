@@ -15,12 +15,16 @@ TX-0027 e TX-0028 sono EQ con ui_hint list: pattern lista, con lo scoping territ
 perimetro (mai rimovibile). Due route separate (una per tipo di domanda), cosi' ogni pagina ha il suo grant, la sua voce
 di menu e un indirizzo condivisibile; il passaggio fra le due e' nel menu, che conserva i filtri.
 
+Cambiato il 22/10/2026 (giro G3 del backend): pill "Dati al" da TX-0024, download PNG, CSV, XLSX della card e CSV, XLSX
+della tabella per intervento (GET /api/procedurale/stati-sostegno/{formato} e stati-pagamento/{formato}), nessun riferimento
+al parametro `azione`.
+
 ## Component tree (per pagina)
 
-- /procedurale/stati-sostegno: Shell > Barra filtri > Breadcrumb > Titolo > KPI x2 (domande di sostegno, di cui non
-  rilasciate) > Card Domande di sostegno per stato (barre impilate; interruttore Grafico | Tabella, vista iniziale Grafico;
-  Scarica PNG) > Tabella interattiva per intervento e stato (cerca, Colonne, ordinamento, totali dal backend, paginazione)
-  > Drawer di anteprima dell'intervento > Stati
+- /procedurale/stati-sostegno: Shell > Barra filtri (con la pill "Dati al") > Breadcrumb > Titolo > KPI x2 (domande di
+  sostegno, di cui non rilasciate) > Card Domande di sostegno per stato (barre impilate; interruttore Grafico | Tabella,
+  vista iniziale Grafico; pulsanti PNG, CSV, XLSX) > Tabella interattiva per intervento e stato (cerca, Colonne, CSV, XLSX,
+  ordinamento, totali dal backend, paginazione) > Drawer di anteprima dell'intervento > Stati
 - /procedurale/stati-pagamento: come sopra con TX-0028 (cinque stati CSR-DP)
 
 ## Grafici del flusso
@@ -33,6 +37,17 @@ di menu e un indirizzo condivisibile; il passaggio fra le due e' nel menu, che c
 La tabella per intervento e' il contenuto principale della lista (una riga per intervento selezionato, righe complete nel DTO:
 l'ordinamento e la ricerca sul client sono ammessi; i totali vengono dal campo totale del backend, mai sommati nel browser).
 Gli altri stati (codici SIAN fuori catalogo, es. SOSPESA o l'estrazione a campione) hanno una colonna per codice in Colonne.
+
+## Download (come nel finanziario)
+
+| pagina | dove | formati | file |
+|---|---|---|---|
+| /procedurale/stati-sostegno | card del grafico | PNG (vista Grafico), CSV, XLSX | PNG nel browser con l'intestazione di NFR-50 (non in audit); CSV e XLSX = GET /api/procedurale/stati-sostegno/{formato} |
+| /procedurale/stati-sostegno | tabella per intervento e stato | CSV, XLSX | lo stesso file: una riga per intervento e stato (voci di SR-01, altri stati, totale dell'intervento) con domande e di cui non rilasciate, poi le righe del totale; tutte le colonne, non solo quelle scelte |
+| /procedurale/stati-pagamento | card e tabella | come sopra | GET /api/procedurale/stati-pagamento/{formato} |
+
+Stessi filtri della pagina (intervento, os, og, op, stato), header X-Requested-With, registrati in AUDIT_ESPORTAZIONE;
+intestazione del file con tipo di domanda, perimetro (ADA per il P4) e ultimo dato sincronizzato per flusso.
 
 ## Link del flusso (drill-down dichiarati)
 
@@ -77,12 +92,13 @@ chiede le domande senza stato (D-04 Rev. 4): la pagina lo dice nella nota del KP
 - RESIDUO umano: il segmento "non rilasciate" delle barre impilate distinguibile senza colore; contrasto della resa finale.
 - Con la voce In compilazione assente (fonte non attiva) anche il suo "di cui non rilasciate" e' reso come non disponibile
   (il DTO porta 0, ma per una voce senza fonte non ha significato): da confermare al gate.
+- Download: un pulsante per formato con la sigla visibile e il nome accessibile completo (WCAG 2.5.3), aria-disabled
+  durante la preparazione col focus sul pulsante (WCAG 2.4.3), esito in role=status, errore in role=alert col motivo.
 
 ## Punti aperti che toccano questo flusso
 
-- OP-PR-01: ultimo dato sincronizzato assente dai DTO procedurali.
-- OP-PR-05: nessun export di TX-0027/TX-0028; PNG del grafico e CSV del riepilogo.
 - OP-PR-06: profili misti: il report e' ADA, l'elenco aperto dai link e' regionale.
 - OP-PR-08: regole del drill-down per stato (parte rilasciata).
 - OP-PR-09: stato "PROPOSTO AL PAGAMENTO-ESTRAZ. CAMPIONE-DA ESEGUIRE" fra gli altri stati di pagamento (punto aperto del
   backend verso ARSIAL).
+- Chiusi col giro G3 (22/10/2026): OP-PR-01 (pill "Dati al" da TX-0024), OP-PR-05 (CSV e XLSX di TX-0027 e TX-0028).

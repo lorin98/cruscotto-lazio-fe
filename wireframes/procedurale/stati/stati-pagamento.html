@@ -51,6 +51,7 @@
       <a class="btn btn-primary" href="../panoramica/panoramica.html#pannello-filtri">Filtri (1)</a>
       <span class="ui-chip">Intervento: SRD01 <button class="btn" type="button" aria-label="Togli il filtro Intervento SRD01">x</button></span>
       <span class="ui-pill">Perimetro: regionale (profilo ADA: solo le domande della propria ADA, non rimovibile)</span>
+      <button class="ui-pill" type="button" aria-label="Ultimo dato sincronizzato: dati al gg/mm/aaaa per tutti i flussi. Mostra il dettaglio per flusso">Dati al gg/mm/aaaa</button>
     </div>
     <nav class="breadcrumb-container" aria-label="Percorso">
       <ol class="breadcrumb">
@@ -63,7 +64,7 @@
       <h1>Procedurale: stati delle domande di pagamento</h1>
       <p>I cinque stati della domanda di pagamento (SR-01, flusso CSR-DP) per intervento, con le domande non ancora rilasciate. Clic su una riga per l'anteprima dell'intervento.</p>
     </div>
-    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0024.read, csr.tx-0025.read, csr.tx-0028.read - Transazioni: TX-0028 (RF028), TX-0024 e TX-0025 (valori dei filtri). Universo: domande di pagamento correnti con presenza CSR-DP aperta, piu' le non rilasciate CSR-DP; le domande SIGC (ASR2-08, ASR2-20) e le domande minime dei decreti non hanno questi stati e restano fuori (D-04): la pagina lo dice sotto il titolo. Ultimo dato sincronizzato assente dai DTO (OP-PR-01).</p>
+    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0024.read, csr.tx-0025.read, csr.tx-0028.read - Transazioni: TX-0028 (RF028), TX-0024 e TX-0025 (valori dei filtri). Universo: domande di pagamento correnti con presenza CSR-DP aperta, piu' le non rilasciate CSR-DP; le domande SIGC (ASR2-08, ASR2-20) e le domande minime dei decreti non hanno questi stati e restano fuori (D-04): la pagina lo dice sotto il titolo. Dati al: ultimiDatiSincronizzati di TX-0024 (pill della barra dei filtri, dettaglio per flusso al clic).</p>
     <div class="ui-griglia ui-griglia--2">
       <section class="ui-kpi" aria-label="Domande di pagamento">
         <p>Domande di pagamento</p>
@@ -79,18 +80,20 @@
     <section class="ui-card" aria-labelledby="g-stati">
       <div class="ui-card__testa">
         <h2 id="g-stati">Domande di pagamento per stato</h2>
-        <div class="ui-seg" role="group" aria-label="Vista di Domande di pagamento per stato"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+        <div class="ui-seg" role="group" aria-label="Vista di Domande di pagamento per stato"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button></div>
+        <div class="ui-strumenti" role="group" aria-label="Scarica il grafico Domande di pagamento per stato"><button class="btn" type="button" aria-label="Scarica il grafico Domande di pagamento per stato in PNG">PNG</button> <button class="btn" type="button" aria-label="Scarica il grafico Domande di pagamento per stato in CSV">CSV</button> <button class="btn" type="button" aria-label="Scarica il grafico Domande di pagamento per stato in XLSX">XLSX</button></div>
       </div>
       <figure class="ui-grafico ui-grafico--barre">
         <figcaption>Barre orizzontali impilate: in compilazione, rilasciato, proposta al pagamento da revisionare, proposta al pagamento con autorizzazione dell'ente territoriale, finanziato, poi gli altri stati per codice; ogni barra divide rilasciate e non rilasciate. Clic su una barra: la tabella per intervento resta con gli interventi che hanno domande in quella voce.</figcaption>
       </figure>
-      <p class="ui-fonte">Fonte: TX-0028 (totale). Scarica: immagine PNG del grafico (nessun export del backend per questo report, OP-PR-05).</p>
+      <p class="ui-fonte">Fonte: TX-0028 (totale). Scarica: PNG del grafico (nel browser, solo nella vista Grafico); CSV e XLSX dal backend (GET /api/procedurale/stati-pagamento/{formato}, filtri correnti): una riga per intervento e stato, poi le righe del totale.</p>
     </section>
     <h2>Vista: Tabella di Domande di pagamento per stato</h2>
     <section class="ui-card" aria-labelledby="t-stati">
       <div class="ui-card__testa">
         <h2 id="t-stati">Domande di pagamento per stato</h2>
-        <div class="ui-seg" role="group" aria-label="Vista di Domande di pagamento per stato"><button class="btn" type="button" aria-pressed="false">Grafico</button> <button class="btn" type="button" aria-pressed="true">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+        <div class="ui-seg" role="group" aria-label="Vista di Domande di pagamento per stato"><button class="btn" type="button" aria-pressed="false">Grafico</button> <button class="btn" type="button" aria-pressed="true">Tabella</button></div>
+        <div class="ui-strumenti" role="group" aria-label="Scarica il grafico Domande di pagamento per stato"><button class="btn" type="button" aria-label="Scarica il grafico Domande di pagamento per stato in CSV">CSV</button> <button class="btn" type="button" aria-label="Scarica il grafico Domande di pagamento per stato in XLSX">XLSX</button></div>
       </div>
       <table class="ui-tabella">
         <caption>Domande di pagamento per stato: la voce di SR-01 e' l'intestazione di riga. Apri nell'elenco apre le sole domande rilasciate della voce.</caption>
@@ -121,7 +124,7 @@
       <div class="ui-strumenti">
         <label class="form-label" for="t-cerca">Cerca nella tabella</label>
         <input class="form-control" type="search" id="t-cerca" name="t">
-        <button class="btn" type="button">Colonne (8)</button>
+        <button class="btn" type="button">Colonne (8)</button> <div class="ui-strumenti" role="group" aria-label="Scarica la tabella Domande di pagamento per intervento e stato"><button class="btn" type="button" aria-label="Scarica la tabella Domande di pagamento per intervento e stato in CSV">CSV</button> <button class="btn" type="button" aria-label="Scarica la tabella Domande di pagamento per intervento e stato in XLSX">XLSX</button></div>
       </div>
       <table class="ui-tabella">
         <caption>Domande di pagamento per intervento e stato: l'intervento e' l'intestazione di riga, i cinque stati e gli altri stati le colonne; clic o Invio su una riga per l'anteprima.</caption>
@@ -145,7 +148,7 @@
           <tr><th scope="row">Totale (dal backend)</th><td class="ui-num">n</td><td class="ui-num">0</td><td>non disponibile</td><td class="ui-num">0</td><td class="ui-num">n</td><td class="ui-num">n</td><td class="ui-num">0</td><td>estrazione a campione n</td></tr>
         </tfoot>
       </table>
-      <p class="ui-fonte">Fonte: TX-0028 (righe e totale). Totali del backend, mai sommati nel browser; intestazioni brevi delle colonne con la descrizione completa di SR-01 nel nome accessibile.</p>
+      <p class="ui-fonte">Fonte: TX-0028 (righe e totale). Totali del backend, mai sommati nel browser; intestazioni brevi delle colonne con la descrizione completa di SR-01 nel nome accessibile. CSV e XLSX della tabella: lo stesso file della card (GET /api/procedurale/stati-pagamento/{formato}), con tutte le colonne.</p>
     </section>
     <aside class="ui-drawer" aria-label="Anteprima dell'intervento SRD01">
       <h2>Anteprima: SRD01</h2>
