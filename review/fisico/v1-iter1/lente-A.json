@@ -1,0 +1,18 @@
+[
+  {
+    "id": "A1",
+    "severity": "MINORE",
+    "file": "src/features/fisico/ui/SuperficiAmmissibili.tsx:227",
+    "titolo": "\"Mostra solo <intervento>\" dell'anteprima lascia il focus su BODY: il controllo che ha aperto il drawer sparisce insieme al report (WCAG 2.4.3)",
+    "evidenza": "onMostraSolo (righe 227-230) chiude il drawer e chiama applica(soloIntervento(...)): cambiano i criteri dell'indirizzo, quindi la query-key di useSuperfici (riga 257). Senza placeholderData (app/query-client.ts) stato.data torna undefined e VistaQuery (riga 278) mostra il caricamento: Report, che e' anche rimontato per la key={ricercaDaCriteri(criteri)} (riga 280), esce dal DOM con la riga della tabella (o la barra) che aveva aperto il drawer e con l'AnteprimaIntervento stessa. Il PannelloLaterale di react-aria (shared/ui/laterale/PannelloLaterale.tsx) ripristina il focus solo verso un nodo ancora connesso, e la pagina non e' dentro un altro FocusScope: chi usa tastiera o lettore di schermo, dopo 'Mostra solo SRB01', si ritrova su BODY e riparte dall'inizio del documento. La route non cambia (solo la query), quindi useFocusTitolo non riporta il focus sull'h1. I test dichiarano il flusso ma non il focus: tests/fisico-ui.test.tsx:117-119 e src/pages/fisico/superfici/page.test.tsx:216-218 verificano solo l'indirizzo e la chiusura del dialogo. Nel progetto lo stesso caso e' gia' risolto nell'elenco operativo (src/features/elenco-operativo/ui/interrogazione.tsx:88-91, review X-03: un comando che sparisce col proprio clic porta il focus sull'h2 della sezione). Il caso \"Applica i filtri\" aperto dal bottone Filtri della barra non e' toccato (il bottone resta fuori dal report).",
+    "fix": "Dopo applica in onMostraSolo portare il focus su un elemento stabile fuori da VistaQuery/Report (per esempio un titolo con tabIndex=-1 reso da SuperficiAmmissibili fuori dal report, oppure l'h1 della TestaPagina tramite un ref esposto), come X-03 dell'elenco; aggiungere al test della pagina, dopo il clic su 'Mostra solo SRB01', l'asserzione che document.activeElement sia quell'elemento (e non document.body)."
+  },
+  {
+    "id": "A2",
+    "severity": "MINORE",
+    "file": "tests/fisico-api.test.tsx:39",
+    "titolo": "Il test dichiara il codice a barre \"nel percorso codificato\" ma usa solo cifre: togliere encodeURIComponent da useDetermine non lo fa fallire",
+    "evidenza": "Il test 'useDetermine senza codice non chiama il backend; con il codice lo mette nel percorso codificato (TX-0020)' (righe 39-53) chiama useDetermine('54810769585') e controlla il pathname '/api/fisico/domande/54810769585/determina': per una stringa di sole cifre encodeURIComponent e' l'identita', quindi il test passa anche se src/features/fisico/api/index.ts:49 inserisse il codice crudo nel client orval (che non codifica: shared/api/generated/fisico/fisico/fisico.ts:63). La protezione effettiva oggi e' la convalida a monte (codiceDalPercorso, codiceABarreValido /^\\d{1,30}$/, provata in tests/entita-filtri-domanda.test.ts:56 e tests/fisico-lib.test.ts:253-256), ma la codifica, che il commento del wrapper (righe 45-48) presenta come difesa per 'un indirizzo costruito ad arte', non e' coperta da nessun test.",
+    "fix": "Aggiungere al test un caso con un valore non convalidato passato direttamente al wrapper (es. useDetermine('1/../x')) e verificare dal request.url di MSW il pathname '/api/fisico/domande/1%2F..%2Fx/determina' (un solo segmento, nessun altro endpoint raggiunto); in alternativa togliere 'codificato' dal titolo del test, se la codifica non deve essere un requisito."
+  }
+]

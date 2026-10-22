@@ -1,0 +1,128 @@
+[
+  {
+    "id": "V1",
+    "severity": "MAGGIORE",
+    "titolo": "Con il filtro Campagna un intervento che ha superfici in altre campagne viene detto 'nessuna superficie in nessuna campagna (intervento non a superficie o non SIGC)' in tabella, note dei grafici e anteprima; la mini linea dell'anteprima si disegna dalla sola campagna filtrata (assorbe V2, X1)",
+    "file": "src/features/fisico/lib/superfici.ts",
+    "riga": 86,
+    "fix": "Distinguere la risposta filtrata (SuperficieAmmissibile.campagna non null): senzaSuperfici, righeTabella e AnteprimaIntervento ricevono la campagna del filtro e, con il filtro, un intervento con campagne [] e' 'nessuna superficie nella campagna N (non valorizzato)' (testoNonInCampagna con la nota) in nota degli omessi, cella breve, colonna Campagna e anteprima; SENZA_SUPERFICI solo con campagna null. Nell'anteprima filtrata la mini linea e' nonDisegnabile(MOTIVO_CON_CAMPAGNA) come la card (graficoInterventoPerCampagna(riga, filtro)), senza una seconda lettura. Test: servi() di src/pages/fisico/superfici/page.test.tsx risponde nella forma del contratto (filtra per intervento e campagna come api/mock/esempio.ts; allineare i test delle righe 47, 210, 288), un test di pagina ?campagna=2024 con un intervento solo nel 2025 (tabella, nota del grafico, anteprima) e i test L1 dei builder col filtro. Lo stato vuoto con la campagna resta il testo approvato fino alla decisione D1 (judge.md).",
+    "decisione_utente": false
+  },
+  {
+    "id": "V3",
+    "severity": "MINORE",
+    "titolo": "Pagina delle determine senza il test dello stato di caricamento richiesto dal wireframe approvato e da step7",
+    "file": "src/pages/fisico/determine/page.test.tsx",
+    "riga": 36,
+    "fix": "Nel describe RF020 un test con trattenuta() sull'handler di TX-0020 su /fisico/determine/54810769585: Caricamento con role=status e aria-live=polite, nessun alert ne' tabella; poi libera la risposta e attendi la tabella delle determine.",
+    "decisione_utente": false
+  },
+  {
+    "id": "A1",
+    "severity": "MINORE",
+    "titolo": "'Mostra solo <intervento>' dell'anteprima, 'Applica i filtri' aperto da 'Modifica i filtri' dello stato vuoto e il clic sulla serie per campagna lasciano il focus su BODY: il controllo che li ha aperti sparisce col report (WCAG 2.4.3; assorbe X2)",
+    "file": "src/features/fisico/ui/SuperficiAmmissibili.tsx",
+    "riga": 227,
+    "fix": "Un solo applica con focus in SuperficiAmmissibili (es. applicaConFocus) usato da onMostraSolo, onCampagna e da onApplica quando il pannello e' stato aperto da VuotoConFiltri: segna l'intento e, dopo il render che ha chiuso il dialogo (effetto, non nel gestore: col focus trap attivo un focus() sincrono torna nel dialogo), porta il focus su un elemento stabile fuori da VistaQuery (h1 della TestaPagina via ref o un titolo con tabIndex=-1), come X-03 dell'elenco. Test: dopo 'Mostra solo SRB01' e dopo vuoto -> 'Modifica i filtri' -> 'Applica i filtri', document.activeElement e' quell'elemento e non document.body.",
+    "decisione_utente": false
+  },
+  {
+    "id": "A2",
+    "severity": "MINORE",
+    "titolo": "Il test dichiara il codice a barre 'nel percorso codificato' ma usa solo cifre: togliere encodeURIComponent da useDetermine non lo fa fallire",
+    "file": "tests/fisico-api.test.tsx",
+    "riga": 39,
+    "fix": "Aggiungere al test useDetermine('1/../x') e verificare dal request.url di MSW il pathname '/api/fisico/domande/1%2F..%2Fx/determina' (un solo segmento, nessun altro endpoint raggiunto). La codifica resta un requisito (A-01 dell'elenco): l'alternativa di togliere 'codificato' dal titolo e' scartata.",
+    "decisione_utente": false
+  },
+  {
+    "id": "X3",
+    "severity": "MINORE",
+    "titolo": "Vista Tabella: l'ordine iniziale mette prima gli interventi senza superfici e, per ogni intervento, la campagna piu' vecchia; il wireframe approvato e il piede della stessa tabella partono dalla piu' recente",
+    "file": "src/features/fisico/ui/TabellaSuperfici.tsx",
+    "riga": 85,
+    "fix": "Passare a TabellaInterattiva ordineIniziale={{ chiave: 'campagna', verso: 'decrescente' }} (i null, cioe' gli interventi senza superfici, restano in fondo; dentro la campagna resta l'ordine per codice) e aggiornare tests/fisico-ui.test.tsx:68 all'ordine del wireframe (SRB01 2025, SRB01 2024, SRA29).",
+    "decisione_utente": false
+  },
+  {
+    "id": "X4",
+    "severity": "MINORE",
+    "titolo": "Valori dei filtri non disponibili e risposta senza righe: il gruppo Intervento del pannello dice 'Nessuna voce corrisponde alla ricerca.' senza alcuna ricerca (senzaVoci non vale per Intervento)",
+    "file": "src/entities/filtri/ui/GruppiProgramma.tsx",
+    "riga": 122,
+    "fix": "In GruppiProgramma, con senzaVoci definito e nessuna voce di Intervento, rendere <SenzaVoci testo={senzaVoci} /> al posto di Caselle (il finanziario, senza senzaVoci, non cambia); in Caselle 'Nessuna voce corrisponde alla ricerca.' solo con cercato non vuoto. Test L2: TX-0060 in errore e TX-0018 con righe [] -> il gruppo Intervento dice 'Nessuna voce: valori dei filtri non disponibili.'.",
+    "decisione_utente": false
+  },
+  {
+    "id": "H1",
+    "severity": "MINORE",
+    "titolo": "I controlli del pannello dei filtri (gruppo a scomparsa, caselle con ricerca, chip a pressione) stanno in entities/filtri, restano copiati in elenco-operativo/ui/controlli.tsx e il fisico ne scrive una terza variante (GruppoCampagna)",
+    "file": "src/entities/filtri/ui/GruppiProgramma.tsx",
+    "riga": 40,
+    "fix": "Portare Gruppo, Caselle (disabilitato e testo della lista vuota facoltativi) e Scelte (ripetibili o esclusive) nel kit (es. shared/ui/filtri/ControlliPannello.tsx, esportato dal barrel di shared/ui); GruppiProgramma, controlli.tsx dell'elenco e GruppoCampagna del fisico li importano ('Tutte le campagne' come voce senza valore); togliere Gruppo dal barrel di entities/filtri; un solo test dei controlli, nel kit.",
+    "decisione_utente": false
+  },
+  {
+    "id": "H2",
+    "severity": "MINORE",
+    "titolo": "La regola del legame interventi - azioni (attesa X-03, chip 'non applicato') e la bozza del pannello sono ricopiate dal finanziario invece di stare in entities/filtri",
+    "file": "src/features/fisico/ui/useCriteriNellIndirizzo.ts",
+    "riga": 17,
+    "fix": "In entities/filtri/ui un hook generico (es. useFiltriProgrammaNellIndirizzo con leggi, scrivi, la lettura dei valori e i chip attivi, che restituisce filtri, inAttesa, chip, applica, togliTutti) e useBozzaFiltri(aperto, applicati); finanziario (TX-0001) e fisico (TX-0060) li compongono con la loro lettura e serializzazione; un solo test della regola X-03, nell'entity.",
+    "decisione_utente": false
+  },
+  {
+    "id": "H3",
+    "severity": "MINORE",
+    "titolo": "Calcoli sui dati di TX-0018 scritti nei componenti invece che in lib/: nota della quantita' a premio, campagne dell'anteprima, conteggi dei KPI, descrizione dell'intervento, campagne proposte",
+    "file": "src/features/fisico/ui/SuperficiAmmissibili.tsx",
+    "riga": 113,
+    "fix": "Spostare in lib/superfici.ts o lib/formato.ts notaQuantitaPremio(righe, campagna), campagneDellAnteprima(riga, campagna) -> { riferimento, altre, premio }, testoDomande(n, tipo), campagneProposte(campagne, scelta), valoriDei e descrizioneIntervento(voci, codice), con i test L1 in tests/fisico-lib.test.ts (compreso il ramo con una quantita' valorizzata); i componenti chiamano solo le funzioni.",
+    "decisione_utente": false
+  },
+  {
+    "id": "H4",
+    "severity": "MINORE",
+    "titolo": "Componenti oltre la soglia di 30 righe: Grafici 54, CercaDomanda 50, SuperficiAmmissibili 46, KpiCampagna 45, PannelloFiltriSuperfici 42",
+    "file": "src/features/fisico/ui/SuperficiAmmissibili.tsx",
+    "riga": 132,
+    "fix": "Descrivere le tre card come dati ({ titolo, sottotitolo, fonte, criteri dei file, clic }) da una funzione pura in lib/ e renderle con un map; i quattro KPI come array di { etichetta, nomeAccessibile, valore, nota } da lib (insieme a H3); in CercaDomanda separare il campo con aiuto ed errore (CampoCodice) dall'invio; in SuperficiAmmissibili estrarre il corpo (AvvisoPagina con VistaQuery e Report) e nel pannello le azioni Azzera/Applica, fino a stare sotto 30 righe.",
+    "decisione_utente": false
+  },
+  {
+    "id": "H5",
+    "severity": "MINORE",
+    "titolo": "Gli ettari si scrivono in due modi: il kit con due decimali (formatEttari, ettari), l'elenco operativo con formatNumber ('12,5 ha' contro '12,40 ha' del wireframe approvato della scheda); il fisico ricopia ettari del kit come testoSuperficie",
+    "file": "src/features/elenco-operativo/lib/formato.ts",
+    "riga": 95,
+    "fix": "Fisico: usare ettari del kit al posto di testoSuperficie (src/features/fisico/lib/formato.ts:9). Elenco, solo se l'utente approva D2 (judge.md): testoSuperficie usa formatEttari e tiene 'non valorizzata'; test tests/elenco-operativo-lib.test.ts:218 a '12,50 ha'.",
+    "decisione_utente": true
+  },
+  {
+    "id": "H6",
+    "severity": "MINORE",
+    "titolo": "La testata di dettaglio (hero) delle determine e' ricopiata dalla scheda della domanda dell'elenco: il kit ha preso solo Briciole e TestaPagina",
+    "file": "src/features/fisico/ui/DetermineDellaDomanda.tsx",
+    "riga": 41,
+    "fix": "Una TestataDettaglio in shared/ui/pagina ({ idTitolo, titolo, ref dell'h1, sopratitolo?, badge: string[], azioni?: ReactNode }) usata dalle determine e dalla scheda dell'elenco (e dal dettaglio dell'intervento del finanziario se il markup coincide), con il test in tests/kit-comune.test.tsx.",
+    "decisione_utente": false
+  },
+  {
+    "id": "H7",
+    "severity": "COSMETICO",
+    "titolo": "I predicati del fisico usano lo scaffolding makeRolePredicate ('nessun uso in produzione') e il commento dice 'fine || coarse', mentre hasGrant e' roles.includes",
+    "file": "src/features/fisico/lib/grant.ts",
+    "riga": 6,
+    "fix": "puoLeggere(status, lettura) come return hasGrant(status, GRANT[lettura]), come nell'elenco, senza PREDICATI ne' l'import da shared/lib/predicates.ts; correggere il commento delle righe 2-3.",
+    "decisione_utente": false
+  },
+  {
+    "id": "H8",
+    "severity": "COSMETICO",
+    "titolo": "Il riconoscimento del problem-type e' riscritto cinque volte nelle api delle tre feature",
+    "file": "src/features/fisico/api/index.ts",
+    "riga": 53,
+    "fix": "Un helper puro in shared/api/problem (es. eProblema(errore: unknown, kind: ProblemKind): boolean); i wrapper delle feature (rispostaDomandaAssente, rispostaDatoNonValido, rispostaRiferimentoNonValido) restano col loro nome come una riga che lo chiama.",
+    "decisione_utente": false
+  }
+]

@@ -1,0 +1,66 @@
+[
+  {
+    "id": "H1",
+    "severity": "MINORE",
+    "file": "src/entities/filtri/ui/GruppiProgramma.tsx:40",
+    "titolo": "I controlli del pannello dei filtri (gruppo a scomparsa, caselle con ricerca, chip a pressione) sono finiti nell'entity, restano copiati nell'elenco operativo e il fisico ne scrive una terza variante",
+    "evidenza": "Gruppo (GruppiProgramma.tsx:40-50) e' identico a Gruppo di features/elenco-operativo/ui/controlli.tsx:19-29 (stesso details ui-gruppo-filtro, stesso '1 scelto'/'n scelti'). Caselle (GruppiProgramma.tsx:52-82) ricalca Caselle di controlli.tsx:32-57 (fieldset con legend nascosta, ricerca oltre 8 voci con filtraRighe, caselle ui-opzione). Chip (GruppiProgramma.tsx:84-97) ricalca Scelte di controlli.tsx:59-75. Sono circa 50 righe ripetute fra due file, e le copie divergono gia': segnaposto 'Cerca per codice o descrizione' contro 'Cerca', 'Nessun valore nel tuo perimetro' solo nell'elenco, fieldset disabilitabile solo nell'entity. Sono controlli senza dominio, perche' non nominano i filtri del programma, eppure lo spostamento li ha messi in entities/filtri, che esporta Gruppo dal barrel (index.ts:19). Il fisico importa Gruppo per la Campagna (PannelloFiltriSuperfici.tsx:27), che non e' una dimensione del programma, e riscrive a mano i chip a scelta singola (PannelloFiltriSuperfici.tsx:24-37) che Scelte con `esclusive` dell'elenco fa gia'. Il controllo del kit sta nello strato sbagliato e il duplicato resta oltre la soglia di 30 righe. MINORE: oggi nessun comportamento e' sbagliato.",
+    "fix": "Portare Gruppo, Caselle (con `disabilitato` e il testo della lista vuota facoltativi) e Scelte (ripetibili o a scelta singola) nel kit, per esempio in shared/ui/filtri/ControlliPannello.tsx esportato dal barrel di shared/ui. GruppiProgramma dell'entity e controlli.tsx dell'elenco li importano da li'; GruppoCampagna del fisico usa la variante a scelta singola, con 'Tutte le campagne' come voce senza valore. Togliere Gruppo dal barrel di entities/filtri e tenere un solo test dei controlli, nel kit."
+  },
+  {
+    "id": "H2",
+    "severity": "MINORE",
+    "file": "src/features/fisico/ui/useCriteriNellIndirizzo.ts:17",
+    "titolo": "La regola del legame interventi - azioni (attesa X-03, chip 'non applicato') e la bozza del pannello sono ricopiate dal finanziario invece di stare in entities/filtri",
+    "evidenza": "useCriteriNellIndirizzo.ts:18-39 ripete useFiltriNellIndirizzo.ts:17-38 del finanziario riga per riga: useLocation e useNavigate, gate del grant, legameAssente, legameIgnoto con la stessa espressione, inAttesa, senzaAzioneSeNonDisponibile, applica con navigate, chip con AZIONE_NON_APPLICATA, togliTutti. Sono circa 20 righe, oltre la soglia di 15. Cambiano solo la lettura dei valori (TX-0060 invece di TX-0001) e la serializzazione (ricercaDaCriteri invece di ricercaConParametri). Anche la bozza del pannello, che riparte dal prop all'apertura (PannelloFiltriSuperfici.tsx:58-67), ricopia PannelloFiltri.tsx:16-23. Lo spostamento in entities/filtri ha preso la parte pura (lib/programma) e i gruppi, ma non la parte con stato che porta la regola X-03. Una correzione futura va quindi fatta in due posti, e l'istituzionale, che secondo il punto aperto 2 del resoconto userebbe entities/filtri, ne farebbe una terza copia.",
+    "fix": "In entities/filtri/ui un hook generico, per esempio useFiltriProgrammaNellIndirizzo<C extends Filtri>({ leggi: (search) => C, scrivi: (c: C, search: string) => string, valori: { data?: { legameAzioniDisponibile?: boolean }; isError: boolean } | null, attivi: (c: C) => Array<{ chiave; etichetta; valore; senza: C }> }), che restituisce { filtri, inAttesa, chip, applica, togliTutti }, e useBozzaFiltri(aperto, applicati) per il pannello. Finanziario e fisico li compongono con la loro lettura (TX-0001 o TX-0060) e la loro serializzazione, e il test della regola X-03 diventa uno solo, nell'entity."
+  },
+  {
+    "id": "H3",
+    "severity": "MINORE",
+    "file": "src/features/fisico/ui/SuperficiAmmissibili.tsx:113",
+    "titolo": "Calcoli sui dati di TX-0018 scritti nei componenti invece che in lib/: nota della quantita' a premio, campagne dell'anteprima, conteggi dei KPI",
+    "evidenza": "notaPremio (SuperficiAmmissibili.tsx:113-121) decide dai dati se la quantita' richiesta a premio manca in tutte le righe della campagna (OP-FIS-04), e nessun test copre il ramo 'Quantita' richiesta a premio nella tabella equivalente'. Superfici dell'anteprima (AnteprimaIntervento.tsx:27-29) sceglie la campagna di riferimento, ordina le altre dalla piu' recente e sceglie da quale campagna mostrare la quantita' a premio (quella di riferimento, altrimenti la piu' recente). KpiCampagna (SuperficiAmmissibili.tsx:70) compone a mano il conteggio con il plurale ('1 domanda'/'n domande di ...'), mentre il testo vicino, testoQuotaOltreDs, sta in lib/formato. descrizioneDi (SuperficiAmmissibili.tsx:265) cerca la descrizione dell'intervento fra le voci di TX-0060 nel corpo della pagina. campagneProposte e valoriDei (PannelloFiltriSuperfici.tsx:40, :70) sono funzioni pure dentro il file del componente. lib/superfici ha gia' campagnaDi, totaliCampagna e quotaDpOltreDs: questi calcoli sono dello stesso tipo, ma senza test L1 e non riusabili. La review v1 dell'elenco ha accettato lo stesso rilievo (H-14).",
+    "fix": "Spostare in lib/superfici.ts o lib/formato.ts notaQuantitaPremio(righe, campagna), campagneDellAnteprima(riga, campagna) -> { riferimento, altre, premio }, testoDomande(n, tipo), campagneProposte(campagne, scelta) e descrizioneIntervento(voci, codice). Aggiungere i test L1 in tests/fisico-lib.test.ts, compreso il ramo con una quantita' valorizzata. I componenti chiamano solo le funzioni."
+  },
+  {
+    "id": "H4",
+    "severity": "MINORE",
+    "file": "src/features/fisico/ui/SuperficiAmmissibili.tsx:132",
+    "titolo": "Componenti oltre la soglia di 30 righe: Grafici 54, CercaDomanda 50, SuperficiAmmissibili 46, KpiCampagna 45, PannelloFiltriSuperfici 42",
+    "evidenza": "Grafici (SuperficiAmmissibili.tsx:132-185) compone tre CardGrafico e ripete per ognuna titolo, sottotitolo, fonte, onClic e scaricamenti; i testi della fonte sono costruiti nel JSX, con un ramo sul filtro Campagna. CercaDomanda (CercaDomanda.tsx:13-62) tiene insieme stato, convalida, focus all'errore e markup del campo con aiuto ed errore. Sopra soglia anche SuperficiAmmissibili (SuperficiAmmissibili.tsx:255-300), KpiCampagna (SuperficiAmmissibili.tsx:66-110, quattro Kpi con nomi accessibili e note scritti nel JSX) e PannelloFiltriSuperfici (PannelloFiltriSuperfici.tsx:74-115). Nessuno supera 60 righe. La checklist mette 'Metodo > 30 righe' fra i MINORE.",
+    "fix": "Descrivere le tre card come dati ({ titolo, sottotitolo, fonte, criteri dei file, clic }) con una funzione pura in lib/ e renderle con un map. I quattro KPI diventano un array di { etichetta, nomeAccessibile, valore, nota } prodotto da lib (risolve insieme H3). In CercaDomanda separare il campo con aiuto ed errore collegati (un componente CampoCodice) dall'invio del modulo."
+  },
+  {
+    "id": "H5",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/lib/formato.ts:96",
+    "titolo": "Gli ettari si scrivono in due modi: il kit nuovo con due decimali, l'elenco operativo con formatNumber; il fisico ricopia la funzione del kit con un altro nome",
+    "evidenza": "La feature ha aggiunto al kit formatEttari (shared/lib/format.ts:18) ed ettari (shared/lib/grafici/primitive.ts:81: `${formatEttari(v)} ha`). testoSuperficie del fisico (lib/formato.ts:9) e' la stessa funzione con un altro nome, e il fisico usa entrambe: ettari nei tooltip e nelle descrizioni (lib/grafici.ts:78, :84), testoSuperficie nei KPI e nell'anteprima. L'elenco operativo scrive ancora `${formatNumber(s.valore)} ha` per le superfici di sostegno e di pagamento della domanda (formato.ts:96). Cosi' 12,4 ettari diventano '12,4 ha', mentre il wireframe approvato della scheda mostra '12,40 ha / 12,10 ha' (wireframes/elenco-operativo/dettaglio-domanda/dettaglio-domanda.html:92) e il fisico scrive '12,40 ha'. Il test tests/elenco-operativo-lib.test.ts:218 fissa '12,5 ha'. La stessa grandezza ha due regole nell'app proprio quando il kit ne ha una.",
+    "fix": "Nel fisico usare ettari del kit al posto di testoSuperficie (o riesportarlo con quel nome). Nell'elenco, testoSuperficie usa formatEttari e tiene la resa dell'assenza ('non valorizzata'); aggiornare il test a '12,50 ha', allineato al wireframe approvato della scheda."
+  },
+  {
+    "id": "H6",
+    "severity": "MINORE",
+    "file": "src/features/fisico/ui/DetermineDellaDomanda.tsx:41",
+    "titolo": "La testata di dettaglio (hero) delle determine e' ricopiata dalla scheda della domanda dell'elenco: il kit ha preso solo Briciole e TestaPagina",
+    "evidenza": "Testata (DetermineDellaDomanda.tsx:41-66) ripete la testata di features/elenco-operativo/ui/SchedaDomanda.tsx:52-76: section ui-hero ui-dissolvenza con aria-labelledby, sopratitolo ui-eyebrow, h1 con ref e tabIndex=-1, lista ui-hero__badge-elenco 'Dati principali' con una voce per badge, azioni ui-hero__azioni con Link btn-light btn-sm. Una terza variante sta nel dettaglio dell'intervento del finanziario (DettaglioIntervento.tsx:64). Il resoconto dichiara la testata comune in shared/ui/pagina (Briciole e TestaPagina), ma la variante di dettaglio, usata ormai da due feature, resta copiata in ciascuna. Sono 14 righe, sotto la soglia.",
+    "fix": "Aggiungere una TestataDettaglio in shared/ui/pagina/Testata.tsx ({ idTitolo, titolo, titoloDocumento per useFocusTitolo interno oppure il ref dell'h1, sopratitolo?, badge: string[], azioni?: ReactNode }), usata dalle determine, dalla scheda dell'elenco e, se il markup coincide, dal dettaglio dell'intervento; il test va con quelli del kit (tests/kit-comune.test.tsx)."
+  },
+  {
+    "id": "H7",
+    "severity": "COSMETICO",
+    "file": "src/features/fisico/lib/grant.ts:6",
+    "titolo": "I predicati del fisico usano lo scaffolding makeRolePredicate, dichiarato 'nessun uso in produzione', mentre l'elenco fa la stessa cosa con hasGrant",
+    "evidenza": "L'intestazione di shared/lib/predicates.ts:2 dice 'SCAFFOLDING del template green-fe: nessun uso in produzione, fuori dal barrel di shared/lib (review v2 H-26)'. lib/grant.ts del fisico lo importa dal file (:6) e costruisce una mappa PREDICATI di chiusure (:21-26) che chiamano soltanto hasGrant (predicates.ts:10). Il commento (:3) parla di 'fine || coarse', ma hasGrant e' roles.includes(grant). Il puoLeggere di elenco-operativo/lib/grant.ts:13-15 fa la stessa cosa in una riga, con hasGrant. Il comportamento non cambia.",
+    "fix": "Scrivere puoLeggere(status, lettura) come `return hasGrant(status, GRANT[lettura]);`, come nell'elenco, senza PREDICATI e senza l'import da predicates.ts. Se si vuole tenere la fabbrica, aggiornare l'intestazione di predicates.ts e il commento di grant.ts."
+  },
+  {
+    "id": "H8",
+    "severity": "COSMETICO",
+    "file": "src/features/fisico/api/index.ts:52",
+    "titolo": "Il riconoscimento del problem-type e' riscritto cinque volte nelle api delle tre feature",
+    "evidenza": "`isAxiosError(errore) && classifyProblem(errore.response?.status ?? 0, errore.response?.data).kind === '<kind>'` compare in fisico api/index.ts:53 e :58, elenco-operativo api/index.ts:91 e :102, finanziario api/index.ts:145. rispostaDatoNonValido del fisico e rispostaRiferimentoNonValido dell'elenco sono la stessa funzione, cosi' come rispostaDomandaAssente nelle due feature.",
+    "fix": "Un helper puro in shared/api/problem (per esempio eProblema(errore: unknown, kind: ProblemKind): boolean). I wrapper delle feature restano, con il loro nome di dominio, come una riga che lo chiama."
+  }
+]
