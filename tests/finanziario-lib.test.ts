@@ -9,16 +9,13 @@ import {
   MAX_VALORI_FILTRO,
   PARAMETRI_DI_PAGINA,
   anniSelezionabili,
-  filtriAttivi,
   filtriDaRicerca,
   isAnnoValido,
   ricercaConParametri,
   ricercaDaFiltri,
   senzaAzioneSeNonDisponibile,
-  senzaValore,
   valoreFiltroValido,
 } from '../src/features/finanziario/lib/filtri';
-import type { Filtri } from '../src/features/finanziario/lib/filtri';
 import { PERIMETRO_ADA, etichettaDellArea, etichettaDiProgramma, etichettaPerimetro, perimetroBreve, perimetroCombinato } from '../src/features/finanziario/lib/perimetro';
 import {
   annoDiRaccolta,
@@ -196,24 +193,6 @@ describe('chip dei filtri e parametri di pagina', () => {
     expect(Object.keys(ETICHETTE_FILTRO).sort()).toEqual([...CHIAVI_FILTRO].sort());
     expect(ETICHETTE_FILTRO.os).toEqual({ breve: 'OS', estesa: 'Obiettivo specifico (OS)' });
     expect(ETICHETTE_FILTRO.azione.breve).toBe('Azione portante');
-  });
-  it('filtriAttivi: un chip per valore, nell ordine delle chiavi, con l etichetta breve', () => {
-    expect(filtriAttivi({ os: ['OS4'], intervento: ['SRA01', 'SRA03'] })).toEqual([
-      { chiave: 'intervento', valore: 'SRA01', etichetta: 'Intervento' },
-      { chiave: 'intervento', valore: 'SRA03', etichetta: 'Intervento' },
-      { chiave: 'os', valore: 'OS4', etichetta: 'OS' },
-    ]);
-    expect(filtriAttivi({})).toEqual([]);
-    expect(filtriAttivi({ og: [] })).toEqual([]);
-  });
-  it('senzaValore: toglie un chip; la chiave rimasta senza valori sparisce; l originale non cambia', () => {
-    const filtri: Filtri = { intervento: ['SRA01', 'SRA03'], os: ['OS4'] };
-    expect(senzaValore(filtri, 'intervento', 'SRA01')).toEqual({ intervento: ['SRA03'], os: ['OS4'] });
-    const senzaOs = senzaValore(filtri, 'os', 'OS4');
-    expect(senzaOs).toEqual({ intervento: ['SRA01', 'SRA03'] });
-    expect(senzaOs).not.toHaveProperty('os');
-    expect(senzaValore(filtri, 'op', 'OP1')).toEqual(filtri);
-    expect(filtri).toEqual({ intervento: ['SRA01', 'SRA03'], os: ['OS4'] });
   });
   it('ricercaConParametri: i filtri nuovi e i parametri di pagina della ricerca corrente (anno, esercizio)', () => {
     expect(PARAMETRI_DI_PAGINA).toEqual(['anno', 'esercizio', 'scheda']);

@@ -42,6 +42,23 @@ describe('entities/filtri: i filtri del programma comuni a finanziario e fisico'
     expect(CHIAVI_FILTRO.map((k) => ETICHETTE_FILTRO[k].breve)).toEqual(['Intervento', 'OS', 'OG', 'OP', 'Azione portante']);
   });
 
+  it('filtriAttivi e senzaValore: nessun chip senza valori; la chiave rimasta vuota sparisce; l originale non cambia', () => {
+    expect(filtriAttivi({ os: ['OS4'], intervento: ['SRA01', 'SRA03'] })).toEqual([
+      { chiave: 'intervento', valore: 'SRA01', etichetta: 'Intervento' },
+      { chiave: 'intervento', valore: 'SRA03', etichetta: 'Intervento' },
+      { chiave: 'os', valore: 'OS4', etichetta: 'OS' },
+    ]);
+    expect(filtriAttivi({})).toEqual([]);
+    expect(filtriAttivi({ og: [] })).toEqual([]);
+    const filtri = { intervento: ['SRA01', 'SRA03'], os: ['OS4'] };
+    expect(senzaValore(filtri, 'intervento', 'SRA01')).toEqual({ intervento: ['SRA03'], os: ['OS4'] });
+    const senzaOs = senzaValore(filtri, 'os', 'OS4');
+    expect(senzaOs).toEqual({ intervento: ['SRA01', 'SRA03'] });
+    expect(senzaOs).not.toHaveProperty('os');
+    expect(senzaValore(filtri, 'op', 'OP1')).toEqual(filtri);
+    expect(filtri).toEqual({ intervento: ['SRA01', 'SRA03'], os: ['OS4'] });
+  });
+
   it('il finanziario riesporta le stesse funzioni dalla entity (nessuna copia)', () => {
     expect(Finanziario.filtriDaRicerca).toBe(filtriDaRicerca);
     expect(Finanziario.ricercaDaFiltri).toBe(ricercaDaFiltri);

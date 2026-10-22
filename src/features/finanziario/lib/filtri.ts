@@ -11,14 +11,12 @@ export {
   CHIAVI_FILTRO,
   ETICHETTE_FILTRO,
   MAX_VALORI_FILTRO,
-  filtriAttivi,
   filtriDaRicerca,
   ricercaDaFiltri,
   senzaAzioneSeNonDisponibile,
-  senzaValore,
   valoreFiltroValido,
 } from '../../../entities/filtri';
-export type { ChiaveFiltro, Filtri, FiltroAttivo } from '../../../entities/filtri';
+export type { ChiaveFiltro, Filtri } from '../../../entities/filtri';
 
 // anno della riserva ed esercizio della verifica SMP: la regola dell'anno dei parametri del contratto (shared/lib/anni),
 // la stessa della campagna del fisico
