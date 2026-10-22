@@ -8,6 +8,10 @@ Rifatto il 22/10/2026 sui contratti del giro G3 del backend (TX-0018 con `ultimi
 `superficie-ammissibile/{formato}`) e sulla decisione G2 dell'utente del 21/10/2026 (valori dei filtri da TX-0060
 dell'elenco operativo).
 
+Aggiornato il 22/10/2026 con la correzione della review step9 del fisico (v1 iterazione 1): decisione D1 dell'utente sul
+filtro Campagna (V1: interventi senza superfici nella campagna filtrata, stato vuoto, mini linea dell'anteprima) e focus sul
+titolo dopo un comando che sparisce col report (A1). Vedi "Filtro Campagna e interventi senza superfici" e "Stati resi".
+
 ## Route del flusso
 
 | route | kind | pattern | grant (verbatim dal catalogo) |
@@ -37,14 +41,30 @@ Vocabolario del kit UI v2 (ADR 0027 di green-fe), lo stesso del finanziario (rie
 
 | pagina | grafico | tipo | dati (transazione) | clic | valori assenti |
 |---|---|---|---|---|---|
-| /fisico/superfici | Superficie DS e DP per intervento (campagna di riferimento) | barre raggruppate, zoom oltre 12 interventi | TX-0018 (superficieDs, superficieDp) | anteprima dell'intervento (drawer, stessa pagina) | intervento con motivo NON_VALORIZZATO: fuori dal grafico, elencato sotto ("senza superfici"), mai a zero |
+| /fisico/superfici | Superficie DS e DP per intervento (campagna di riferimento) | barre raggruppate, zoom oltre 12 interventi | TX-0018 (superficieDs, superficieDp) | anteprima dell'intervento (drawer, stessa pagina) | intervento con motivo NON_VALORIZZATO: fuori dal grafico, elencato sotto ("senza superfici"), mai a zero; con il filtro Campagna "nessuna superficie nella campagna N (non valorizzato)" (D1) |
 | /fisico/superfici | Superficie DS e DP per campagna | linea | TX-0018 (somme degli interventi per campagna) | filtro Campagna su quell'anno (stessa pagina, chip) | con una campagna scelta la serie non si disegna e la card lo dice |
 | /fisico/superfici | Verifica incrociata: differenza DP - DS per intervento | barre orizzontali con lo zero al centro (valori negativi a sinistra) | TX-0018 (differenzaDpDs, domandeDpOltreDs) | anteprima dell'intervento (drawer) | quantita' richiesta a premio: non disponibile, fonte non attiva (OP-FIS-04) |
 
 Campagne: le superfici di campagne diverse non si sommano (D-01 del backend: un impegno pluriennale ripete la stessa
 superficie DS in piu' campagne). La campagna di riferimento di KPI, barre e verifica incrociata e' quella del filtro
 Campagna o, senza filtro, la piu' recente presente nella risposta; il titolo dei KPI e delle card la nomina. La linea per
-campagna usa la risposta letta senza filtro Campagna. Nella tabella un totale per campagna, nessun totale generale.
+campagna usa la risposta letta senza filtro Campagna. Nella tabella un totale per campagna, nessun totale generale; ordine
+iniziale dalla campagna piu' recente, gli interventi senza superfici in fondo.
+
+### Filtro Campagna e interventi senza superfici (decisione D1, review V1)
+
+Con il filtro Campagna la risposta di TX-0018 ha le sole superfici della campagna filtrata e, per ogni altro intervento
+scelto, campagne vuote e NON_VALORIZZATO anche se l'intervento ha superfici in altre campagne (SC-FS_SUPERFICIE_CAMPAGNA:
+con 2023, SRB01 e SRA29 con campagne vuote). La campagna della risposta (`campagna`, null = letta senza filtro) decide il
+testo, una lettura di TX-0018 per pagina (nessuna seconda lettura senza filtro):
+
+| dove | risposta senza filtro Campagna | risposta con il filtro Campagna N |
+|---|---|---|
+| colonna Campagna della tabella | "nessuna superficie in nessuna campagna (non valorizzato: intervento non a superficie o non SIGC)" | "nessuna superficie nella campagna N (non valorizzato)" |
+| nota degli interventi fuori dai grafici per intervento e della verifica | "SRA29: nessuna superficie in nessuna campagna (...)"; "SRB03: nessuna superficie nella campagna N" se ha superfici in altre campagne della risposta | "SRB02: nessuna superficie nella campagna N (non valorizzato)" |
+| cella breve della tabella equivalente | "non valorizzato" (o "nessuna superficie") | "nessuna superficie (non valorizzato)" |
+| anteprima, intervento senza superfici | "Superfici: nessuna superficie in nessuna campagna (...)" | "Superfici: nessuna superficie nella campagna N (non valorizzato)" |
+| anteprima, mini linea per campagna | le campagne dell'intervento | non si disegna: "con il filtro Campagna la serie non si disegna: togli il filtro Campagna per vedere tutte le campagne"; fonte "Fonte: TX-0018 con il filtro Campagna N: l'anteprima mostra solo la campagna N." |
 
 KPI (somme delle righe della campagna di riferimento: il report e' completo, nessuna paginazione lato server; le domande
 appartengono a un solo intervento, quindi la somma fra interventi della stessa campagna non conta due volte):
@@ -126,8 +146,12 @@ propone quella e "Tutte le campagne".
 
 ## Stati resi (obbligatori)
 
-- vuoto: "Nessun intervento per i filtri scelti" con "Modifica i filtri"; e "Nessuna superficie per gli interventi scelti"
-  quando tutte le righe hanno motivo NON_VALORIZZATO (mai una pagina di zeri)
+- vuoto: "Nessun intervento per i filtri scelti" con "Modifica i filtri"; e, quando tutte le righe hanno motivo
+  NON_VALORIZZATO (mai una pagina di zeri), con "Modifica i filtri":
+  - senza filtro Campagna: "Nessuna superficie per gli interventi scelti: gli interventi non sono a superficie o non sono
+    SIGC (non valorizzato).";
+  - con il filtro Campagna N (decisione D1): "Nessuna superficie per gli interventi scelti nella campagna N (non
+    valorizzato). Togli il filtro Campagna per vedere le altre campagne."
 - valori dei filtri non disponibili: TX-0060 in errore o senza grant, il report resta (vedi sopra)
 - caricamento: scheletro dei KPI e delle card, `role="status"` + `aria-live="polite"`
 - errore: `role="alert"`, discriminato sul problem-type `urn:cruscottocsr:problem:*` (400 DATO_NON_VALIDO filtri non validi;
@@ -139,6 +163,10 @@ propone quella e "Tutte le campagne".
 
 - Meccanizzato a valle (step7/step8): tab-order, focus sul titolo dopo il cambio di route, focus-trap di pannello e
   drawer, tabella equivalente di ogni grafico, axe (nel lint di step1: axe deferito a step8, bloccante nel gate 11/11).
+- Focus dopo un comando che sparisce col report (2.4.3, review A1): "Mostra solo <intervento>" dell'anteprima, "Applica i
+  filtri" del pannello aperto da "Modifica i filtri" di uno stato vuoto e il clic su un punto della serie per campagna
+  portano il focus sul titolo della pagina (h1), dopo la chiusura del dialogo; aperto dal bottone Filtri della barra, il
+  pannello riporta il focus al bottone.
 - Download per formato: sigla visibile contenuta nel nome accessibile (2.5.3); durante la preparazione aria-disabled e focus
   sul pulsante attivato (2.4.3); esito in `role="status"`, errore in `role="alert"` col motivo (come il finanziario, V-07).
 - Pill "Dati al" come pulsante col nome accessibile completo; il dettaglio per flusso e' un dialogo con nome.

@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <!-- Wireframe v2 (template wireframe-v2 di green-fe, ADR 0027), feature fisico, flusso superfici. Valori di esempio presi
      dagli scenari di accettazione del backend (fisico-scenarios.json), nessun dato reale. Rifatto il 22/10/2026 dopo il
-     giro G3 del backend (ultimo dato sincronizzato ed export di TX-0018) e la decisione G2 (valori dei filtri da TX-0060). -->
+     giro G3 del backend (ultimo dato sincronizzato ed export di TX-0018) e la decisione G2 (valori dei filtri da TX-0060).
+     Aggiornato il 22/10/2026 con la decisione D1 della review step9 (V1: interventi senza superfici con il filtro Campagna,
+     stato vuoto con la campagna, mini linea dell'anteprima) e il focus dopo un comando che sparisce col report (A1). -->
 <html lang="it">
 <head>
 <meta charset="utf-8">
@@ -164,6 +166,25 @@
       <p class="form-text">Un totale per campagna, nessun totale generale: le campagne non si sommano. "Sostegni con DS discordanti": domande di sostegno riportate dalle domande di pagamento con superfici DS diverse, di cui si e' preso il massimo. I totali per campagna stanno solo nella pagina: il file CSV o XLSX non li ha (D-06 del backend).</p>
       <nav class="ui-paginazione" aria-label="Pagine della tabella"><button class="btn" type="button" aria-current="page">1</button> <button class="btn" type="button">2</button></nav>
     </section>
+    <p class="wf-note">La tabella qui sopra e' quella letta senza il filtro Campagna (tutte le campagne della risposta), in ordine iniziale dalla campagna piu' recente; gli interventi senza superfici in fondo.</p>
+    <h2>Vista: Tabella con il filtro Campagna</h2>
+    <p class="wf-note">Decisione D1 del 22/10/2026 (review step9 del fisico, V1): con il filtro Campagna la risposta di TX-0018 ha le sole superfici della campagna filtrata e, per ogni altro intervento scelto, campagne vuote e NON_VALORIZZATO anche se l'intervento ha superfici in altre campagne (SC-FS_SUPERFICIE_CAMPAGNA). Quell'intervento si legge "nessuna superficie nella campagna 2024 (non valorizzato)" nella colonna Campagna della tabella, nella nota degli interventi fuori dai grafici ("SRB02: nessuna superficie nella campagna 2024 (non valorizzato)", cella breve della tabella equivalente "nessuna superficie (non valorizzato)") e nell'anteprima, mai "nessuna superficie in nessuna campagna". Esempio con il filtro Campagna 2024: SRB01 ha superfici nel 2024, SRB02 solo nel 2025.</p>
+    <table class="ui-tabella">
+      <caption>Esempio con il filtro Campagna 2024: superficie ammissibile DS e DP per intervento e campagna.</caption>
+      <thead>
+        <tr>
+          <th scope="col">Intervento</th>
+          <th scope="col">Campagna</th>
+          <th scope="col" class="ui-num">Domande di pagamento</th>
+          <th scope="col" class="ui-num">Superficie DS (ha)</th>
+          <th scope="col" class="ui-num">Superficie DP (ha)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="ui-riga"><th scope="row">SRB01</th><td>2024</td><td class="ui-num">1</td><td class="ui-num">10,50</td><td class="ui-num">10,00</td></tr>
+        <tr class="ui-riga"><th scope="row">SRB02</th><td colspan="4">nessuna superficie nella campagna 2024 (non valorizzato)</td></tr>
+      </tbody>
+    </table>
     <aside class="ui-drawer" aria-label="Anteprima dell'intervento SRB01">
       <h2>Anteprima: SRB01</h2>
       <p>SRB01 - descrizione dell'intervento (da TX-0060)</p>
@@ -181,7 +202,8 @@
       </figure>
       <button class="btn btn-primary" type="button">Mostra solo SRB01</button>
     </aside>
-    <p class="form-text">"Mostra solo SRB01" mette il filtro Intervento sull'intervento (chip nella barra dei filtri) e chiude l'anteprima: resta sulla stessa pagina. La descrizione dell'intervento viene dalle voci di TX-0060; senza, l'anteprima mostra il solo codice.</p>
+    <p class="form-text">"Mostra solo SRB01" mette il filtro Intervento sull'intervento (chip nella barra dei filtri) e chiude l'anteprima: resta sulla stessa pagina, e il focus va sul titolo della pagina (la riga o la barra che ha aperto l'anteprima sparisce col report). La descrizione dell'intervento viene dalle voci di TX-0060; senza, l'anteprima mostra il solo codice.</p>
+    <p class="wf-note">Anteprima con il filtro Campagna (D1, V1): la risposta ha la sola campagna filtrata, quindi l'anteprima non elenca altre campagne e la mini linea per campagna non si disegna: la card dice "Grafico non disponibile: con il filtro Campagna la serie non si disegna: togli il filtro Campagna per vedere tutte le campagne", con la fonte "Fonte: TX-0018 con il filtro Campagna 2024: l'anteprima mostra solo la campagna 2024." e la tabella equivalente della sola campagna. Nessuna seconda lettura di TX-0018 (una lettura per pagina). Un intervento senza superfici nella campagna filtrata: "Superfici: nessuna superficie nella campagna 2024 (non valorizzato)".</p>
     <aside class="ui-pannello" id="pannello-filtri" aria-label="Pannello dei filtri">
       <h2>Filtri delle superfici ammissibili</h2>
       <details class="ui-gruppo-filtro" open>
@@ -212,7 +234,10 @@
     <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro dei KPI e delle card)</div>
     <h2>Stato: vuoto</h2>
     <div class="ui-vuoto" role="status">Nessun intervento per i filtri scelti. <a class="btn btn-primary" href="#pannello-filtri">Modifica i filtri</a></div>
-    <div class="ui-vuoto" role="status">Nessuna superficie per gli interventi scelti nella campagna 2025: gli interventi non sono a superficie o non sono SIGC (non valorizzato). <a class="btn btn-primary" href="#pannello-filtri">Modifica i filtri</a></div>
+    <div class="ui-vuoto" role="status">Nessuna superficie per gli interventi scelti: gli interventi non sono a superficie o non sono SIGC (non valorizzato). <a class="btn btn-primary" href="#pannello-filtri">Modifica i filtri</a></div>
+    <p class="wf-note">Con il filtro Campagna (decisione D1 del 22/10/2026): la risposta dice solo di quella campagna, e un intervento scelto puo' avere superfici in altre campagne.</p>
+    <div class="ui-vuoto" role="status">Nessuna superficie per gli interventi scelti nella campagna 2025 (non valorizzato). Togli il filtro Campagna per vedere le altre campagne. <a class="btn btn-primary" href="#pannello-filtri">Modifica i filtri</a></div>
+    <p class="form-text">"Applica i filtri" del pannello aperto da "Modifica i filtri" di uno stato vuoto porta il focus sul titolo della pagina: lo stato vuoto, e il suo bottone, spariscono col nuovo risultato.</p>
     <h2>Stato: errore</h2>
     <div class="alert alert-danger" role="alert">Dati non disponibili: messaggio dal problem-type (400 filtri non validi, 403 accesso negato, 429 troppe richieste e 503 capacita' esaurita o tempo scaduto con nuovo tentativo dopo Retry-After). <a href="#contenuto">Riprova</a></div>
     <div class="alert alert-danger" role="alert">File CSV non scaricato. La tabella supera il limite dell'esportazione (5.000 righe o 50.000 celle): restringi i filtri e riprova.</div>
