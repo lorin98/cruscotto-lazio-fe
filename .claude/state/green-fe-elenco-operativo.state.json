@@ -126,7 +126,7 @@
     },
     "step8-gate": {
       "status": "done",
-      "completed_at": "2026-10-22T10:03:28Z",
+      "completed_at": "2026-10-22T12:41:43Z",
       "artifacts": [
         "./plan/elenco-operativo/fe-gate-report.json"
       ],
