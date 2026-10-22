@@ -14,7 +14,11 @@ export const NOTA_FILE_VERIFICA = 'I file CSV e XLSX contengono tutti gli interv
 export const NOTA_FILE_OUTPUT =
   'I file CSV e XLSX contengono tutti gli interventi dei filtri, non solo quelli trovati dalla ricerca, e tutte e tre le misure per anno qualunque sia quella mostrata, più gli importi unitari per Unit Amount.';
 
+/** I file di TX-0016 della pagina della verifica nei nomi dei pulsanti, nella card del grafico e nella tabella (low-fi approvato). */
+export const OGGETTO_FILE_VERIFICA = 'i dati della verifica SMP non SIGC';
+
 /** CSV e XLSX di TX-0016 coi criteri dati, come "<titolo>-tx-0016.csv". */
+
 export function fileVerifica(titolo: string, criteri: CriteriVerifica): Scaricamento[] {
   return scaricamentiDalBackend({ base: `${titolo} TX-0016`, esporta: (formato) => esportaVerificaSmpNonSigc(formato, criteri), messaggioErrore: messaggioOltreIlLimite });
 }

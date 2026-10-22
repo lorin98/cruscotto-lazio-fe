@@ -33,6 +33,9 @@ function servi(basi?: Parameters<typeof lettureIstituzionale>[0]) {
 const apri = (indirizzo = PERCORSO) => renderPagina(Pagina, PERCORSO, indirizzo);
 const h1 = () => screen.getByRole('heading', { level: 1, name: TITOLO });
 const tabella = () => screen.findByRole('table', { name: /^Verifica SMP non SIGC: / });
+/** La card "Dati per intervento" della tabella: i suoi CSV e XLSX hanno lo stesso nome di quelli della card del grafico. */
+const sezioneDellaTabella = (t: HTMLElement) => t.closest('section') as HTMLElement;
+
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -58,7 +61,12 @@ describe('RF016: i dati ASR non SIGC per intervento, da confrontare con SMP - Da
     const card = await trovaCard(CARD);
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
     expect(within(card).getByRole('button', { name: 'Grafico' }).getAttribute('aria-pressed')).toBe('true');
-    expect(within(card).getAllByRole('button', { name: /^Scarica il grafico / }).map((b) => b.textContent)).toEqual(['PNG', 'CSV', 'XLSX']);
+    // review X3: il PNG e' il grafico, CSV e XLSX l'export completo di TX-0016 (nomi del low-fi approvato)
+    expect(within(card).getAllByRole('button', { name: /^Scarica / }).map((b) => b.getAttribute('aria-label'))).toEqual([
+      `Scarica il grafico ${CARD} in PNG`,
+      'Scarica i dati della verifica SMP non SIGC in CSV',
+      'Scarica i dati della verifica SMP non SIGC in XLSX',
+    ]);
     // l'intervento senza spesa valorizzata e' fuori dal grafico e dichiarato; lo zero di SRA01 e' una barra vera
     expect(graficoDi(card)?.opzioni.length).toBeGreaterThan(0);
     await expectNoA11yViolations(container);
@@ -161,10 +169,10 @@ describe('RF016: i dati ASR non SIGC per intervento, da confrontare con SMP - Da
     URL.revokeObjectURL = vi.fn();
     const clic = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
     apri(`${PERCORSO}?intervento=SRD01&anno=2024`);
-    await userEvent.click(await screen.findByRole('button', { name: `Scarica il grafico ${CARD} in CSV` }));
+    await userEvent.click(within(await trovaCard(CARD)).getByRole('button', { name: 'Scarica i dati della verifica SMP non SIGC in CSV' }));
     await waitFor(() => expect(clic).toHaveBeenCalledTimes(1));
     expect((clic.mock.contexts.at(-1) as HTMLAnchorElement).download).toBe('verifica-smp-non-sigc-2024-tx-0016.csv');
-    await userEvent.click(screen.getByRole('button', { name: 'Scarica i dati della verifica SMP non SIGC in XLSX' }));
+    await userEvent.click(within(sezioneDellaTabella(await tabella())).getByRole('button', { name: 'Scarica i dati della verifica SMP non SIGC in XLSX' }));
     await waitFor(() => expect(clic).toHaveBeenCalledTimes(2));
     expect(lette.file).toEqual([
       '/api/istituzionale/verifica-smp-non-sigc/csv?intervento=SRD01&anno=2024 XMLHttpRequest',
@@ -176,10 +184,9 @@ describe('RF016: i dati ASR non SIGC per intervento, da confrontare con SMP - Da
     servi();
     server.use(http.get('*/api/istituzionale/verifica-smp-non-sigc/:formato', () => HttpResponse.json(problema(400, 'DATO_NON_VALIDO', 'oltre 5000 righe'), { status: 400 })));
     apri();
-    const t = await tabella();
-    const pulsante = screen.getByRole('button', { name: 'Scarica i dati della verifica SMP non SIGC in CSV' });
+    const sezione = sezioneDellaTabella(await tabella());
+    const pulsante = within(sezione).getByRole('button', { name: 'Scarica i dati della verifica SMP non SIGC in CSV' });
     await userEvent.click(pulsante);
-    const sezione = t.closest('section') as HTMLElement;
     expect((await within(sezione).findByRole('alert')).textContent).toBe("File CSV non scaricato. La tabella supera il limite dell'esportazione (5.000 righe o 50.000 celle): restringi i filtri e riprova.");
     expect(document.activeElement).toBe(pulsante);
   });

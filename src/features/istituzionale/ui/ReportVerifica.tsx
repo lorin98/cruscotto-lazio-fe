@@ -12,7 +12,8 @@ import type { Verifica } from '../lib/dto';
 import { NESSUN_FILE } from '../lib/formato';
 import { TITOLO_SPESA, graficoSpesa } from '../lib/grafici';
 import { vociRiferimenti } from '../lib/verifica';
-import { fileVerifica } from './esportazioni';
+import { OGGETTO_FILE_VERIFICA, fileVerifica } from './esportazioni';
+
 import { useApriIntervento } from './navigazione';
 import { TabellaVerifica } from './TabellaVerifica';
 
@@ -28,7 +29,7 @@ export function ReportVerifica({ d, filtri, anno }: { d: Verifica; filtri: Filtr
     <>
       {d.annoRiferimento === null && <Vuoto>{NESSUN_FILE}</Vuoto>}
       <TabellaVoci caption="Riferimenti della risposta" voci={vociRiferimenti(d, anno)} />
-      <CardGrafico titolo={TITOLO_SPESA} sottotitolo={SOTTOTITOLO} dati={dati} fonte={FONTE} livello={2} altezza="alto" onClic={dalClic} scaricamenti={file} />
+      <CardGrafico titolo={TITOLO_SPESA} sottotitolo={SOTTOTITOLO} dati={dati} fonte={FONTE} livello={2} altezza="alto" onClic={dalClic} scaricamenti={file} oggettoDati={OGGETTO_FILE_VERIFICA} />
       <TabellaVerifica d={d} scaricamenti={file} onRiga={apri} />
     </>
   );

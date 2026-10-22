@@ -20,6 +20,8 @@ export interface Scaricamento {
   file?: string;
   /** Messaggio d'errore proprio di questo file (es. oltre il limite di righe); null o assente = quello del problem-type. */
   messaggioErrore?: (errore: unknown) => string | null;
+  /** Completa "Scarica …" nel nome di questo pulsante quando il file non e' cio' che dice il gruppo (es. i dati del report accanto al PNG del grafico); assente = l'oggetto del gruppo. */
+  oggetto?: string;
 }
 
 const ICONA: Record<FormatoScaricabile, NomeIcona> = { PNG: 'it-file-image', CSV: 'it-file-csv', XLSX: 'it-file-xlsx' };
@@ -64,7 +66,8 @@ export function PulsantiScarica({ oggetto, scaricamenti }: { oggetto: string; sc
               if (!occupato) void avvia(s);
             }}
             aria-disabled={occupato || undefined}
-            aria-label={`Scarica ${oggetto} in ${s.formato}`}
+            aria-label={`Scarica ${s.oggetto ?? oggetto} in ${s.formato}`}
+
             title={`Scarica in ${s.formato}`}
           >
             <Icona nome={ICONA[s.formato]} />

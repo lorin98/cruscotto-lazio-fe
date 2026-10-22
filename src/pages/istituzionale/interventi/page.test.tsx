@@ -69,12 +69,17 @@ describe("RF017: output programmato e realizzato dell'intervento per anno (TX-00
     await expectNoA11yViolations(container);
   });
 
-  it('il grafico per anno ha il target come riferimento e come riga della tabella equivalente; PNG, CSV e XLSX dicono l intervento', async () => {
+  it('il grafico per anno ha il target come riferimento e come riga della tabella equivalente; CSV e XLSX dicono l intervento, il PNG il grafico', async () => {
     servi();
     apri('/istituzionale/interventi/SRA01');
     const card = await trovaCard('Output programmato e realizzato per anno (ettari)');
     expect(descrizioneDi(card)).toMatch(/Target di fine periodo: 1500 ettari al 2029\.$/);
-    expect(within(card).getAllByRole('button', { name: /^Scarica il grafico e i dati dell'output dell'intervento SRA01 in / }).map((b) => b.textContent)).toEqual(['PNG', 'CSV', 'XLSX']);
+    // review X3: il PNG contiene solo l'immagine del grafico, CSV e XLSX l'output e gli importi unitari (low-fi approvato)
+    expect(within(card).getAllByRole('button', { name: /^Scarica / }).map((b) => b.getAttribute('aria-label'))).toEqual([
+      'Scarica il grafico Output programmato e realizzato per anno (ettari) in PNG',
+      "Scarica l'output e gli importi unitari dell'intervento SRA01 in CSV",
+      "Scarica l'output e gli importi unitari dell'intervento SRA01 in XLSX",
+    ]);
     const t = await tabellaDi(card);
     expect(within(t).getAllByRole('rowheader').at(-1)?.textContent).toBe('Target di fine periodo');
     expect(card.textContent).toContain('2023, programmato: non valorizzato (il dato non è presente nella fonte)');
@@ -102,7 +107,8 @@ describe("RF017: output programmato e realizzato dell'intervento per anno (TX-00
     URL.revokeObjectURL = vi.fn();
     const clic = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
     apri('/istituzionale/interventi/SRD01?anno=2024');
-    await userEvent.click(await screen.findByRole('button', { name: "Scarica il grafico e i dati dell'output dell'intervento SRD01 in CSV" }));
+    await userEvent.click(await screen.findByRole('button', { name: "Scarica l'output e gli importi unitari dell'intervento SRD01 in CSV" }));
+
     await waitFor(() => expect(clic).toHaveBeenCalledTimes(1));
     expect((clic.mock.contexts.at(-1) as HTMLAnchorElement).download).toBe('output-srd01-tx-0017.csv');
     await userEvent.click(screen.getByRole('tab', { name: 'Verifica SMP non SIGC' }));

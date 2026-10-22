@@ -8,7 +8,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { AxiosError, AxiosHeaders } from 'axios';
-import { AvvisoAggiornamento, CardGrafico, Interruttore,InterruttoreVista, OLTRE_IL_LIMITE_DELL_ESPORTAZIONE, SelettoreAnno, TestaPagina, Vuoto, VuotoConFiltri, messaggioOltreIlLimite, useAnnoNellIndirizzo } from '../src/shared/ui';
+import { AvvisoAggiornamento, CardGrafico, Interruttore, InterruttoreVista, OLTRE_IL_LIMITE_DELL_ESPORTAZIONE, PulsantiScarica, SelettoreAnno, TestaPagina, Vuoto, VuotoConFiltri, messaggioOltreIlLimite, useAnnoNellIndirizzo } from '../src/shared/ui';
 import { AssenzaMotivata, BadgeAssenza } from '../src/entities/importo';
 import { PROBLEM_TYPES } from '../src/shared/api/problem/problem-types';
 import type { DatiGrafico, Scaricamento } from '../src/shared/ui';
@@ -118,14 +118,21 @@ describe('Estensioni del kit per l istituzionale: riga sotto il sottotitolo e ca
     expect(Array.from(testata?.querySelectorAll('p') ?? []).map((p) => p.textContent)).toEqual(['Sotto', 'Altra area']);
   });
 
-  it('CardGrafico: senzaPng toglie il PNG e lascia gli altri file; oggetto da il nome ai pulsanti', () => {
+  it('CardGrafico: senzaPng toglie il PNG e lascia gli altri file; oggettoDati da il nome ai file dei dati, il PNG resta il grafico', () => {
     const { rerender } = render(<CardGrafico titolo="Mini grafico" dati={DATI} fonte="Fonte" senzaPng />);
     expect(screen.queryByRole('group', { name: /^Scarica/ })).toBeNull();
     expect(screen.getByRole('button', { name: 'Grafico' }).getAttribute('aria-pressed')).toBe('true');
-    rerender(<CardGrafico titolo="Output per anno" dati={DATI} fonte="Fonte" scaricamenti={[csv]} oggetto="l'output dell'intervento SRA01" />);
-    expect(screen.getAllByRole('button', { name: /^Scarica/ }).map((b) => b.getAttribute('aria-label'))).toEqual(["Scarica l'output dell'intervento SRA01 in PNG", "Scarica l'output dell'intervento SRA01 in CSV"]);
+    // review X3: il PNG e' l'immagine del grafico, il CSV e' l'export dei dati: nomi diversi (WCAG 2.4.6)
+    rerender(<CardGrafico titolo="Output per anno" dati={DATI} fonte="Fonte" scaricamenti={[csv]} oggettoDati="l'output e gli importi unitari dell'intervento SRA01" />);
+    expect(screen.getAllByRole('button', { name: /^Scarica/ }).map((b) => b.getAttribute('aria-label'))).toEqual(['Scarica il grafico Output per anno in PNG', "Scarica l'output e gli importi unitari dell'intervento SRA01 in CSV"]);
     rerender(<CardGrafico titolo="Output per anno" dati={DATI} fonte="Fonte" scaricamenti={[csv]} />);
     expect(screen.getAllByRole('button', { name: /^Scarica/ }).map((b) => b.getAttribute('aria-label'))).toEqual(['Scarica il grafico Output per anno in PNG', 'Scarica il grafico Output per anno in CSV']);
+  });
+
+  it('PulsantiScarica: un file col suo oggetto ha il suo nome, gli altri quello del gruppo', () => {
+    render(<PulsantiScarica oggetto="il grafico Spesa" scaricamenti={[{ ...csv, formato: 'PNG' }, { ...csv, oggetto: 'i dati della verifica' }]} />);
+    expect(screen.getByRole('group', { name: 'Scarica il grafico Spesa' })).toBeTruthy();
+    expect(screen.getAllByRole('button').map((b) => b.getAttribute('aria-label'))).toEqual(['Scarica il grafico Spesa in PNG', 'Scarica i dati della verifica in CSV']);
   });
 });
 

@@ -13,7 +13,8 @@ import { DEFINIZIONI_VERIFICA } from '../lib/formato';
 import { DATI_VERIFICA, testoRicerca, titoloDato, valoreOrdinabile } from '../lib/verifica';
 import type { LinkDato, TipoDato } from '../lib/verifica';
 import { CellaDato } from './comuni';
-import { NOTA_FILE_VERIFICA } from './esportazioni';
+import { NOTA_FILE_VERIFICA, OGGETTO_FILE_VERIFICA } from './esportazioni';
+
 import { usePuoAprireElenco } from './navigazione';
 
 const TITOLO_TABELLA_VERIFICA = 'Dati per intervento';
@@ -50,7 +51,7 @@ export function TabellaVerifica({ d, scaricamenti, onRiga }: { d: Verifica; scar
         segnapostoRicerca="Cerca per codice o indicatore"
         etichettaRiga={(r) => `Apri il dettaglio dell'intervento ${r.codiceIntervento}`}
         onRiga={(r) => onRiga(r.codiceIntervento)}
-        strumenti={<PulsantiScarica oggetto="i dati della verifica SMP non SIGC" scaricamenti={scaricamenti} />}
+        strumenti={<PulsantiScarica oggetto={OGGETTO_FILE_VERIFICA} scaricamenti={scaricamenti} />}
       />
       <p className="ui-fonte">{DEFINIZIONI_VERIFICA}</p>
     </Sezione>
