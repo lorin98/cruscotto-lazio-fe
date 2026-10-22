@@ -1,0 +1,87 @@
+{
+  "feature": "istituzionale",
+  "pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb",
+  "routes": [
+    {
+      "actions": [
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0016.read",
+          "operationId": "TX-0016"
+        },
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0060.read",
+          "operationId": "TX-0060"
+        }
+      ],
+      "component": "src/pages/istituzionale/verifica-smp-non-sigc/page.tsx",
+      "flow": "verifica-smp-non-sigc",
+      "path": "/istituzionale/verifica-smp-non-sigc",
+      "visibility": [
+        "csr.tx-0016.read"
+      ]
+    },
+    {
+      "actions": [
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0017.read",
+          "operationId": "TX-0017"
+        },
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0060.read",
+          "operationId": "TX-0060"
+        }
+      ],
+      "component": "src/pages/istituzionale/output-regionale/page.tsx",
+      "flow": "output-regionale",
+      "path": "/istituzionale/output-regionale",
+      "visibility": [
+        "csr.tx-0017.read"
+      ]
+    },
+    {
+      "actions": [
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0016.read",
+          "operationId": "TX-0016"
+        },
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0017.read",
+          "operationId": "TX-0017"
+        },
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0060.read",
+          "operationId": "TX-0060"
+        }
+      ],
+      "component": "src/pages/istituzionale/interventi/page.tsx",
+      "flow": "intervento",
+      "path": "/istituzionale/interventi/:codice",
+      "visibility": [
+        "csr.tx-0016.read",
+        "csr.tx-0017.read"
+      ]
+    }
+  ],
+  "schema_version": "1.0",
+  "spec_pins": [
+    {
+      "manifest_hash_match": true,
+      "path": "handover/openapi-istituzionale.json",
+      "sha256": "sha256:b0c069cf6b6874cc5bcdd6baaa6597db8438bd313c233d22ff7444aa9cb3c288",
+      "slice": "istituzionale"
+    },
+    {
+      "manifest_hash_match": true,
+      "path": "handover/openapi-elenco-operativo.json",
+      "sha256": "sha256:7532fe3b3708398d1448238ef2fe4df9e3d1037b096325bc23435cb9dc39a4ca",
+      "slice": "elenco-operativo"
+    }
+  ]
+}
