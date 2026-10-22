@@ -6,9 +6,8 @@
 // H3 e H4): qui l'aspetto (icone, toni) e i gestori dei clic. Classi bootstrap-italia e del kit v2 (card, KPI,
 // interruttore con aria-pressed); react-aria solo dentro il drawer del kit.
 import { useMemo, useState } from 'react';
-import type { ReactNode } from 'react';
 import { codiceDalClic } from '../../../shared/lib';
-import { CardGrafico, Griglia, InterruttoreVista, Kpi, Sezione, Vuoto } from '../../../shared/ui';
+import { CardGrafico, Griglia, InterruttoreVista, Kpi, Sezione, Vuoto, VuotoConFiltri } from '../../../shared/ui';
 import type { ClicGrafico, NomeIcona, TonoKpi, VistaGrafico } from '../../../shared/ui';
 import type { SuperficieAmmissibile } from '../api';
 import type { InterventoSuperficie } from '../lib/dto';
@@ -21,18 +20,6 @@ import { esitoSuperfici } from '../lib/superfici';
 import { AnteprimaIntervento } from './AnteprimaIntervento';
 import { TITOLO_TABELLA, TabellaSuperfici } from './TabellaSuperfici';
 import { scaricamentiSuperfici } from './esportazioni';
-
-/** Stato vuoto con "Modifica i filtri", che apre il pannello. */
-export function VuotoConFiltri({ children, onModifica }: { children: ReactNode; onModifica: () => void }) {
-  return (
-    <>
-      <span>{children}</span>
-      <button type="button" className="btn btn-outline-primary btn-sm ms-2" onClick={onModifica}>
-        Modifica i filtri
-      </button>
-    </>
-  );
-}
 
 const ASPETTO_KPI: Record<ChiaveKpi, { icona: NomeIcona; tono?: TonoKpi }> = {
   ds: { icona: 'it-map-marker', tono: 'scuro' },

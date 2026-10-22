@@ -17,7 +17,7 @@ import { useMemo, useRef, useState } from 'react';
 import { descrizioneIntervento } from '../../../entities/filtri';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { righeContesto } from '../../../shared/lib';
-import { AvvisoPagina, BarraFiltri, Briciole, Caricamento, ContestoIntestazione, PillDatiAl, TestaPagina, VistaQuery, useFocusDopoIlCambio } from '../../../shared/ui';
+import { AvvisoPagina, BarraFiltri, Briciole, Caricamento, ContestoIntestazione, PillDatiAl, TestaPagina, VistaQuery, VuotoConFiltri, useFocusDopoIlCambio } from '../../../shared/ui';
 import type { VistaGrafico } from '../../../shared/ui';
 import { useSuperfici } from '../api';
 import type { SuperficieAmmissibile } from '../api';
@@ -27,7 +27,7 @@ import { testoPerimetro } from '../lib/formato';
 import { PERCORSI } from '../lib/pagine';
 import { campagnePresenti } from '../lib/superfici';
 import { PannelloFiltriSuperfici } from './PannelloFiltriSuperfici';
-import { Report, VuotoConFiltri } from './ReportSuperfici';
+import { Report } from './ReportSuperfici';
 import type { PropsReport } from './ReportSuperfici';
 import { useCriteriNellIndirizzo } from './useCriteriNellIndirizzo';
 

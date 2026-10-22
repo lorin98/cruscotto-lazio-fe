@@ -2,4 +2,4 @@
 export { descriviAssenza, descriviImporto, etichettaFonte, testoConNota } from './lib/importo';
 export type { DatoMotivatoLike, ImportoLike, ImportoResa } from './lib/importo';
 export { ValoreImporto } from './ui/ValoreImporto';
-export { AssenzaMotivata, ValoreMotivato } from './ui/ValoreMotivato';
+export { AssenzaMotivata, BadgeAssenza, ValoreMotivato } from './ui/ValoreMotivato';

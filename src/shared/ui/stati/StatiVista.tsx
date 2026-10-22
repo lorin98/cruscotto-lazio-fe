@@ -36,6 +36,21 @@ export function Vuoto({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Il contenuto di uno stato vuoto che dipende dai filtri: il testo e "Modifica i filtri", che apre il pannello della
+ * pagina (prima nel fisico; lo usa anche l'istituzionale). Va dentro Vuoto (o nel `vuoto` di VistaQuery).
+ */
+export function VuotoConFiltri({ children, onModifica }: { children: ReactNode; onModifica: () => void }) {
+  return (
+    <>
+      <span>{children}</span>
+      <button type="button" className="btn btn-outline-primary btn-sm ms-2" onClick={onModifica}>
+        Modifica i filtri
+      </button>
+    </>
+  );
+}
+
 /** Stato di una query React Query nella forma minima che serve a scegliere il ramo. */
 export interface StatoQuery<T> {
   data: T | undefined;

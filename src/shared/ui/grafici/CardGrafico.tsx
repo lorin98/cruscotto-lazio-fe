@@ -9,6 +9,7 @@ import { useId, useState } from 'react';
 import type { ReactNode } from 'react';
 import { nomeFile } from '../../lib/nome-file';
 import type { DatiGrafico } from '../../lib/grafici';
+import { Interruttore } from '../card/Interruttore';
 import { TestaCard } from '../card/Sezione';
 import { Icona } from '../icona';
 import { PulsantiScarica } from '../scarica/PulsantiScarica';
@@ -26,22 +27,18 @@ type Vista = VistaGrafico;
 /** Convalida di una vista salvata fuori dal componente (es. nello state della history, che e' `unknown`). */
 export const eVistaGrafico = (v: unknown): v is VistaGrafico => v === 'grafico' || v === 'tabella';
 
+const VISTE = [
+  { valore: 'grafico', etichetta: 'Grafico' },
+  { valore: 'tabella', etichetta: 'Tabella' },
+] as const;
+
 /**
  * Interruttore Grafico | Tabella, sempre in quest'ordine: quello di ogni card e quello di una pagina con le due viste (es.
- * il riepilogo), un solo componente (review delta 21/10 X3-b e passata 2 H2). `etichetta`: il nome del gruppo per i
- * lettori di schermo; `className`: classi in piu' (es. il margine).
+ * il riepilogo), un solo componente (review delta 21/10 X3-b e passata 2 H2), sull'interruttore del kit. `etichetta`: il
+ * nome del gruppo per i lettori di schermo; `className`: classi in piu' (es. il margine).
  */
 export function InterruttoreVista({ etichetta, vista, onVista, className }: { etichetta: string; vista: Vista; onVista: (v: Vista) => void; className?: string }) {
-  return (
-    <div className={className ? `ui-seg ${className}` : 'ui-seg'} role="group" aria-label={etichetta}>
-      <button type="button" aria-pressed={vista === 'grafico'} onClick={() => onVista('grafico')}>
-        Grafico
-      </button>
-      <button type="button" aria-pressed={vista === 'tabella'} onClick={() => onVista('tabella')}>
-        Tabella
-      </button>
-    </div>
-  );
+  return <Interruttore etichetta={etichetta} opzioni={VISTE} scelta={vista} onScelta={onVista} className={className} />;
 }
 
 function VociOmesse({ omessi }: { omessi: readonly string[] }) {

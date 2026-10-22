@@ -1,13 +1,15 @@
 // Kit comune portato fuori dalle feature (o esteso) per l'istituzionale: selettore d'anno e anno della pagina
 // nell'indirizzo (shared/ui, prima nel finanziario), link verso l'elenco operativo (entities/domanda, prima nel
 // finanziario), riga sotto il sottotitolo della testata, card del grafico senza PNG o col nome dei file, messaggio del
-// file oltre il limite dell'esportazione (prima nel fisico). Dati di prova inventati.
+// file oltre il limite dell'esportazione, interruttore a piu' scelte, stato vuoto coi filtri e badge di un'assenza (prima
+// nel fisico e nel finanziario). Dati di prova inventati.
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { AxiosError, AxiosHeaders } from 'axios';
-import { CardGrafico, OLTRE_IL_LIMITE_DELL_ESPORTAZIONE, SelettoreAnno, TestaPagina, messaggioOltreIlLimite, useAnnoNellIndirizzo } from '../src/shared/ui';
+import { CardGrafico, Interruttore, InterruttoreVista, OLTRE_IL_LIMITE_DELL_ESPORTAZIONE, SelettoreAnno, TestaPagina, Vuoto, VuotoConFiltri, messaggioOltreIlLimite, useAnnoNellIndirizzo } from '../src/shared/ui';
+import { AssenzaMotivata, BadgeAssenza } from '../src/entities/importo';
 import { PROBLEM_TYPES } from '../src/shared/api/problem/problem-types';
 import type { DatiGrafico, Scaricamento } from '../src/shared/ui';
 import { SelettoreAnno as SelettoreFinanziario } from '../src/features/finanziario/ui/SelettoreAnno';
@@ -135,5 +137,55 @@ describe('messaggioOltreIlLimite del kit: il file oltre il limite dell esportazi
     expect(messaggioOltreIlLimite(errore(400, 'about:blank'))).toBeNull();
     expect(messaggioOltreIlLimite(errore(503, PROBLEM_TYPES.CAPACITA_ESAURITA))).toBeNull();
     expect(messaggioOltreIlLimite(new Error('rete'))).toBeNull();
+  });
+});
+
+describe('Interruttore, VuotoConFiltri e BadgeAssenza: kit per le tre misure dell output e gli stati (prima nel fisico)', () => {
+  it('Interruttore: una sola scelta premuta, il clic sceglie e il focus resta sul bottone; InterruttoreVista ci sta sopra', async () => {
+    const onScelta = vi.fn();
+    const opzioni = [
+      { valore: 'a', etichetta: 'Prima' },
+      { valore: 'b', etichetta: 'Seconda' },
+      { valore: 'c', etichetta: 'Terza' },
+    ] as const;
+    const { container, rerender } = render(<Interruttore etichetta="Misura mostrata" opzioni={opzioni} scelta="a" onScelta={onScelta} className="mb-3" />);
+    const gruppo = screen.getByRole('group', { name: 'Misura mostrata' });
+    expect(gruppo.className).toBe('ui-seg mb-3');
+    expect(screen.getAllByRole('button').map((b) => [b.textContent, b.getAttribute('aria-pressed')])).toEqual([
+      ['Prima', 'true'],
+      ['Seconda', 'false'],
+      ['Terza', 'false'],
+    ]);
+    await userEvent.click(screen.getByRole('button', { name: 'Terza' }));
+    expect(onScelta).toHaveBeenLastCalledWith('c');
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Terza' }));
+    await expectNoA11yViolations(container);
+    rerender(<InterruttoreVista etichetta="Vista" vista="tabella" onVista={() => undefined} />);
+    expect(screen.getAllByRole('button').map((b) => [b.textContent, b.getAttribute('aria-pressed')])).toEqual([
+      ['Grafico', 'false'],
+      ['Tabella', 'true'],
+    ]);
+  });
+
+  it('VuotoConFiltri: il testo e Modifica i filtri; BadgeAssenza: la stessa forma di AssenzaMotivata con una resa data', async () => {
+    const onModifica = vi.fn();
+    render(
+      <>
+        <Vuoto>
+          <VuotoConFiltri onModifica={onModifica}>Nessun intervento.</VuotoConFiltri>
+        </Vuoto>
+        <p data-testid="badge">
+          <BadgeAssenza resa={{ disponibile: false, testo: 'non valorizzato', nota: 'nessun target' }} />
+        </p>
+        <p data-testid="motivata">
+          <AssenzaMotivata dato={{ motivo: 'NON_VALORIZZATO' }} />
+        </p>
+      </>,
+    );
+    expect(screen.getByRole('status').textContent).toBe('Nessun intervento.Modifica i filtri');
+    await userEvent.click(screen.getByRole('button', { name: 'Modifica i filtri' }));
+    expect(onModifica).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId('badge').innerHTML).toBe('<span><span class="badge bg-secondary me-1">non valorizzato</span><span class="small">nessun target</span></span>');
+    expect(screen.getByTestId('motivata').textContent).toBe('non valorizzatoil dato non è presente nella fonte');
   });
 });
