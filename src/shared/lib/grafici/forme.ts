@@ -2,7 +2,7 @@
 // trasparente), barre raggruppate per categoria, ciambella di due parti di un totale. I testi delle assenze arrivano
 // gia' composti dalla feature (resa del dominio): qui solo forma, descrizione accessibile e voci omesse.
 import type { BarSeriesOption, EChartsOption, PieSeriesOption } from 'echarts';
-import { formatPercentuale } from '../format';
+import { ettari, formatPercentuale } from '../format';
 import { COLORI } from './colori';
 import { nonDisegnabile } from './contratto';
 import type { DatiGrafico, TabellaEquivalente } from './contratto';
@@ -11,7 +11,6 @@ import {
   asseEttari,
   asseImporti,
   etichettaDato,
-  ettari,
   importoBreve,
   notaOmessi,
   percentuale,

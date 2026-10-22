@@ -1,7 +1,7 @@
 // primitive.ts — mattoni generici e PURI dei builder di grafici: numeri, testi in italiano, descrizione accessibile,
 // scorrimento delle barre, dato di una serie con i testi gia' composti e i callback che li leggono. Nessun dominio.
 import type { DataZoomComponentOption, EChartsOption, TooltipComponentOption } from 'echarts';
-import { formatEttari, formatEuro, formatNumber, formatPercentuale } from '../format';
+import { ettari, formatEttari, formatEuro, formatNumber, formatPercentuale } from '../format';
 
 export const NON_DISPONIBILE = 'non disponibile';
 export const NON_CALCOLABILE = 'non calcolabile';
@@ -75,11 +75,6 @@ export function importoBreve(v: number): string {
 
 export function valoreBreve(v: unknown): string {
   return typeof v === 'number' ? importoBreve(v) : NON_DISPONIBILE;
-}
-
-/** Superficie di etichette, tooltip e descrizioni: "15,50 ha" (due decimali, segno meno scritto). */
-export function ettari(v: number): string {
-  return `${formatEttari(v)} ha`;
 }
 
 export function valoreEttari(v: unknown): string {

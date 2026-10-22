@@ -21,6 +21,11 @@ export function formatEttari(value: number | null | undefined, { segno = false }
   return segno && value > 0 && testo !== '0,00' ? `+${testo}` : testo;
 }
 
+/** Resa unica delle superfici in testi, tabelle e grafici: "15,50 ha" (due decimali, segno meno scritto; D-01, D2). */
+export function ettari(v: number): string {
+  return `${formatEttari(v)} ha`;
+}
+
 // Percentuale gia' espressa in centesimi (es. 12.5 -> "12,5 %"), al piu' due decimali. Un valore non nullo che a due
 // decimali sarebbe zero non si scrive "0 %": "< 0,01 %" (o "> -0,01 %").
 export function formatPercentuale(value: number | null | undefined): string {
