@@ -2,7 +2,8 @@
 // colonne, paginazione), una riga per intervento e campagna con tutte le campagne della risposta, un intervento senza
 // superfici in una riga sola col motivo (mai zeri), un totale per campagna nel piede calcolato sulle righe trovate e nessun
 // totale generale (le campagne non si sommano, D-01), CSV e XLSX di TX-0018 coi filtri della pagina negli strumenti, riga
-// apribile (clic o Invio) verso l'anteprima dell'intervento. Tabella HTML nativa (caption, th scope): vedi il kit.
+// apribile (clic o Invio) verso l'anteprima dell'intervento. Tabella HTML nativa del kit (caption, th scope, aria-sort):
+// nessuna griglia react-aria, che qui non serve (niente selezione ne' modifica di celle).
 import { useMemo } from 'react';
 import { ValoreMotivato } from '../../../entities/importo';
 import { formatNumber, plurale } from '../../../shared/lib';

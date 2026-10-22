@@ -3,6 +3,7 @@
 // (aria-describedby, aria-invalid, invalid-feedback in role=alert) e focus sul campo all'errore. Il codice si riduce alle
 // sole cifre (lib/determine) e la ricerca porta alla stessa route col codice nel percorso; nessuna lettura da qui. Un
 // errore che arriva da fuori (codice dell'indirizzo non valido, 400 DATO_NON_VALIDO del backend) si dice sotto il campo.
+// Nessun primitivo react-aria: un campo e un bottone nativi bastano (niente combobox ne' autocompletamento).
 import { useId, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router';

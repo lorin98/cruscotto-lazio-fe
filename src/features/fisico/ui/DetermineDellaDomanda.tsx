@@ -7,6 +7,8 @@
 // KPI (corrente, numero di determine, da dove vengono stato area programmazione e comparto), tabella delle determine con
 // riga aperta (si'/no in testo). Niente pill "Dati al" ne' download: TX-0020 non li ha (G3). Stati: senza codice, nessuna
 // determina, domanda chiusa, caricamento, errore (404 e 400 sul problem-type, il resto con l'avviso della pagina).
+// Design system: classi bootstrap-italia e del kit v2 (hero, badge, KPI, tabella statica nativa); nessun primitivo
+// react-aria, che qui non serve (nessun dialogo, nessuna scheda).
 import type { Ref } from 'react';
 import { Link } from 'react-router';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';

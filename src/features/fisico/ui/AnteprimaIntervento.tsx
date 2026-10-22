@@ -2,7 +2,8 @@
 // voci di TX-0060 (senza, il solo codice), superfici della campagna di riferimento con la verifica incrociata, superfici
 // delle altre campagne, quantita' richiesta a premio (assente: la resa unica, OP-FIS-04), mini linea per campagna con la
 // tabella equivalente, e "Mostra solo <intervento>": il filtro Intervento sull'intervento, stessa pagina (nessun link verso
-// altre pagine: OP-FIS-05). PannelloLaterale di react-aria: focus trap, Esc, ritorno del focus a cio' che l'ha aperto.
+// altre pagine: OP-FIS-05). PannelloLaterale di react-aria (dialogo: focus trap, Esc, ritorno del focus a cio' che l'ha
+// aperto); dentro, lista di definizioni e pulsante bootstrap-italia.
 import type { ReactNode } from 'react';
 import { ValoreMotivato } from '../../../entities/importo';
 import { formatNumber } from '../../../shared/lib';

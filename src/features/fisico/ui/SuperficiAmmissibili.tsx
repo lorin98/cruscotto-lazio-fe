@@ -9,6 +9,8 @@
 // coi criteri dell'indirizzo. Stati: caricamento (scheletro), errore (un solo avviso della pagina, problem-type), vuoto
 // (nessun intervento; nessuna superficie, mai una pagina di zeri) e valori dei filtri non disponibili (nel pannello).
 // Nessun link verso altre pagine (OP-FIS-05): il clic apre l'anteprima o mette un filtro della stessa pagina.
+// Design system: classi bootstrap-italia e del kit v2 (card, KPI, bottoni, interruttore con aria-pressed); i primitivi
+// react-aria stanno solo dentro i componenti del kit che li richiedono (pannello e drawer modali, popover della pill).
 import { useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
