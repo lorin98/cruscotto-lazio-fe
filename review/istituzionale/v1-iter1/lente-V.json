@@ -1,0 +1,66 @@
+[
+  {
+    "id": "V1",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/ui/OutputRegionale.tsx:45",
+    "titolo": "La misura dell'interruttore torna a Programmato a ogni cambio dei filtri: e' stato del report, non della pagina",
+    "evidenza": "Il wireframe approvato output-regionale.md (Filtri nell'URL) dice: 'La misura dell'interruttore non e' un parametro della spec: resta nello stato della pagina'. Il resoconto la dichiara 'stato della pagina'. Invece useState<Misura>('programmato') sta in ReportOutput (riga 45). ReportOutput si smonta a ogni nuova lettura di TX-0017: VistaQuery mostra il caricamento perche' non c'e' placeholderData, e c'e' anche key={ricercaDaFiltri(filtri)} alla riga 72. Cosi' chi guarda 'Realizzato SIGC' e toglie un chip, o applica un filtro, o preme Riprova, si ritrova su 'Programmato'. La didascalia lo dice, ma la scelta e' persa. Nessun test copre la misura dopo un cambio di filtri.",
+    "fix": "Portare useState<Misura> in OutputRegionale e passare misura e setMisura a CorpoOutput e poi a ReportOutput, lasciando nel report solo lo stato del drawer. Aggiungere a output-regionale/page.test.tsx un caso: scegliere 'Realizzato SIGC', togliere un chip, attendere la tabella 'Output realizzato SIGC per anno' con aria-pressed ancora true."
+  },
+  {
+    "id": "V2",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/ui/DettaglioIntervento.tsx:169",
+    "titolo": "Il PNG del grafico Output per anno (TX-0017) dichiara fra i filtri l'anno di riferimento di TX-0016",
+    "evidenza": "Il contesto dell'intestazione del PNG e' unico per la pagina del dettaglio: useContesto(testiCriteri(soloIntervento(codice), anno), ultimi). Con ?anno=2024, testiCriteri aggiunge 'Anno di riferimento: 2024' (criteri.ts:113-116). L'unico grafico con PNG del dettaglio e' CardOutput (SchedeIntervento.tsx:37). I suoi dati sono TX-0017 filtrata solo sull'intervento: l'export e' fileOutput(..., soloIntervento(codice)) e l'anno non entra. L'immagine scaricata dichiara quindi un filtro mai applicato ai dati. NFR-50 e il wireframe intervento chiedono nell'intestazione i 'filtri applicati'.",
+    "fix": "Dare a CardOutput il suo contesto, senza l'anno: per esempio un ContestoIntestazione.Provider intorno alla scheda Output costruito con testiCriteri(soloIntervento(codice)). Oppure non mettere l'anno nel contesto della pagina, perche' la scheda Verifica non ha PNG. Aggiungere un test: con ?anno=2024 le righe di contesto del PNG della scheda Output non contengono 'Anno di riferimento'."
+  },
+  {
+    "id": "V3",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/testing/fixture.ts:109",
+    "titolo": "Fixture e mock di esempio non seguono SC-IS_SMP_ANNO e il wireframe approvato per un anno diverso dal file piu' recente",
+    "evidenza": "conAnno mette ANNO_NON_CONSERVATO solo su dotazione, chiusura, top-up, importo top-up e azioni. Lascia valorizzati avvisiAttivati v(2), avvisiChiusi v(1) e concessioniPreviste v(false): con ?anno=2024 la fixture risponde un 'no' per un avviso che non e' conservato. Il low-fi approvato (riga SRD04 di verifica-smp-non-sigc.html) mostra 'non disponibile per l'anno scelto' anche su Avvisi attivati, Avvisi chiusi e Concessioni previste. SC-IS_SMP_SENZA_FONTE dice che sono letti dall'avviso NOSIGC, che porta i dati del file 2025 (D-05 Rev. 2). Con anno=2023 (nessun file), SC-IS_SMP_ANNO vuole 'indicatori e output null con motivo NON_VALORIZZATO', ma la fixture tiene O.20 e R.9. Lo stesso sottoinsieme e' in api/mock/esempio.ts:81. Inoltre VERIFICA.righe e' in ordine SRA01, SRD01, SRA16 (riga 96), mentre il contratto e SC-IS_SMP_NONSIGC rispondono 'in ordine di codice'. Il problema e' l'header 'rispondono come il backend' (riga 5): nessun test oggi si appoggia ai valori sbagliati.",
+    "fix": "In conAnno (e nel mock di esempio) mettere ANNO_NON_CONSERVATO su tutti i dati dell'avviso: avvisiAttivati, avvisiChiusi, azioniAttivate, dotazioneAvvisi, chiusuraUltimoAvvisoAperto, includeTopUp, importoTopUp e concessioniPreviste. Per un anno senza file (2023 nella fixture) mettere NON_VALORIZZATO su indicatoreOutput, indicatoreRisultato e outputErogato. Ordinare VERIFICA.righe per codice e aggiornare l'indice di clicSulDato nei test (SRD01 diventa l'indice 2). Estendere il test della fixture in istituzionale-lib.test.ts:356 a concessioniPreviste e agli indicatori del 2023."
+  },
+  {
+    "id": "V4",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/lib/output.ts:56",
+    "titolo": "Nel drawer l'indicatore assente e' scritto a mano 'non valorizzato', senza il testo unico delle assenze del kit",
+    "evidenza": "vociAnteprima usa r.indicatoreOutput ?? 'non valorizzato'. Nel drawer escono cosi' 'non valorizzato' senza la nota, oppure 'non valorizzato (ettari)' se c'e' solo l'unita'. La scelta approvata (brief, Assenze) vuole le assenze rese come nel kit (entities/importo), con una sola forma: testoConNota(descriviAssenza(...)) da' 'non valorizzato (il dato non e' presente nella fonte)'. La tabella della stessa pagina, per lo stesso campo, usa AssenzaMotivata con TESTO_ASSENTE (TabellaOutput.tsx:120). La stessa riga SRG01 si legge quindi in due modi fra tabella e drawer.",
+    "fix": "In vociAnteprima: se indicatoreOutput e' null, valore = testoConNota(descriviAssenza(TESTO_ASSENTE)), senza l'unita' fra parentesi; altrimenti come ora. Aggiungere a istituzionale-lib.test.ts un caso vociAnteprima(OUTPUT.righe[3], true)[0].valore con il testo atteso."
+  },
+  {
+    "id": "V5",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/ui/useFiltriNellIndirizzo.ts:24",
+    "titolo": "Chip dei filtri col solo codice o id, mentre il doc del flusso approvato chiede la voce leggibile di TX-0060",
+    "evidenza": "verifica-smp-non-sigc.md:49 (approvato, richiamato anche da output-regionale.md) dice: 'Chip dei filtri attivi con la voce leggibile da TX-0060 (descrizione dell'intervento, testo dell'obiettivo o dell'azione)'. Il codice passa attivi: filtriNellaBarra, che mette nel chip il valore grezzo dell'indirizzo. Il low-fi mostra 'Intervento: SRD01' e per l'intervento la scelta e' discutibile. Per l'azione portante, invece, il chip mostra l'id numerico ('Azione portante 3') e non la descrizione che TX-0060 porta gia' (azioniPortanti[].descrizione), che la pagina legge. Oggi il legame manca e il chip dice 'non applicato'. Quando il legame arriva, il chip resta un numero opaco. Il resoconto lo dichiara al punto 3.",
+    "fix": "Nell'hook passare un attivi che, con TX-0060 letto, mette nel valore del chip la descrizione accanto al codice: 'SRD01 - <descrizione>' e la descrizione dell'azione per azione. Senza TX-0060 resta il codice. Il nome accessibile 'Togli il filtro ...' deve contenere il testo visibile. In alternativa registrare la scelta 'chip col codice' fra le deviazioni riviste del gate, perche' e' in contrasto col testo del doc approvato."
+  },
+  {
+    "id": "V6",
+    "severity": "MINORE",
+    "file": "src/pages/istituzionale/verifica-smp-non-sigc/page.test.tsx:62",
+    "titolo": "Il test di pagina dichiara in commento che il grafico omette e dichiara gli interventi senza spesa, ma non lo verifica e i dati non lo prevedono",
+    "evidenza": "Il commento alle righe 62-63 dice: 'l'intervento senza spesa valorizzata e' fuori dal grafico e dichiarato; lo zero di SRA01 e' una barra vera'. L'unica asserzione e' graficoDi(card)?.opzioni.length > 0. In VERIFICA tutte le righe hanno spesaErogata valorizzata (SRA01 0, SRD01 90000, SRA16 1200.5), quindi a livello di pagina non c'e' nessun intervento omesso. Il requisito del wireframe ('omessi ed elencati sotto il grafico col motivo, mai a zero') e' provato solo in L1 (istituzionale-lib.test.ts:306, graficoSpesa). Nessun test controlla che la lista dei valori omessi sotto la card della pagina compaia.",
+    "fix": "Togliere il commento, oppure renderlo vero: servi({ verifica: { ...VERIFICA, righe: [...VERIFICA.righe, { ...SRD01, codiceIntervento: 'SRD04', spesaErogata: { valore: null, motivo: 'NON_VALORIZZATO', fonte: null } }] } }). Poi asserire che la card elenca 'SRD04, spesa pubblica erogata: non valorizzato (...)' sotto il grafico e che la serie ha la barra di SRA01 a 0."
+  },
+  {
+    "id": "V7",
+    "severity": "MINORE",
+    "file": "src/pages/fisico/superfici/page.test.tsx:394",
+    "titolo": "Il test del fisico gemello di quello trovato instabile (Esc sul pannello) controlla il focus subito, ora che il pannello e' quello comune",
+    "evidenza": "Il resoconto (punto aperto 6) dice che il test dell'istituzionale 'Esc chiude il pannello e il focus torna a Filtri' ha trovato il focus su BODY in una suite completa: react-aria riporta il focus dopo aver smontato il dialogo. E' stato corretto con un waitFor (verifica-smp-non-sigc/page.test.tsx:344), e un fallimento non identificato e' comparso anche con la copertura. Il pannello del fisico e' ora lo stesso PannelloFiltriProgramma spostato da questa feature. Il suo test omologo fa await waitFor(dialog assente) e poi, senza attesa, expect(document.activeElement).toBe(bottone). E' la stessa corsa, e puo' far fallire il gate dei test (suite verde due volte) senza nessun difetto vero.",
+    "fix": "Nel test del fisico: await waitFor(() => expect(document.activeElement).toBe(bottone)), come nell'istituzionale e in shared-ui-kit.test.tsx:575. Non indebolisce l'asserzione: il focus deve comunque tornare al bottone. Cercare altri controlli del focus subito dopo la chiusura di un PannelloLaterale (riepilogo del finanziario, drawer) e allinearli."
+  },
+  {
+    "id": "V8",
+    "severity": "COSMETICO",
+    "file": "src/features/istituzionale/ui/DettaglioIntervento.tsx:167",
+    "titolo": "Titolo del documento del dettaglio diverso dal wireframe approvato",
+    "evidenza": "Il wireframe intervento.html:8 ha <title>Intervento SRA01 - Istituzionale - Cruscotto CSR 2023-2027</title>. Il codice usa useFocusTitolo(`${codice} - Istituzionale`), quindi 'SRA01 - Istituzionale - Cruscotto CSR 2023-2027' (fissato da interventi/page.test.tsx:61). Il titolo del dettaglio del finanziario segue lo stesso schema col solo codice, ma il wireframe di questa feature e' esplicito.",
+    "fix": "useFocusTitolo(`Intervento ${codice} - Istituzionale`) e aggiornare l'asserzione di interventi/page.test.tsx:61."
+  }
+]

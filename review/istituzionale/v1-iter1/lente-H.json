@@ -1,0 +1,90 @@
+[
+  {
+    "id": "H1",
+    "severity": "MAGGIORE",
+    "file": "src/features/istituzionale/ui/DettaglioIntervento.tsx:132",
+    "titolo": "Dettaglio dell'intervento: l'errore di una stessa lettura entra due volte nell'avviso della pagina (ErroriDelleLetture e la VistaQuery della scheda aperta), e il test che dichiara il caso non lo prova",
+    "evidenza": "ErroriDelleLetture (DettaglioIntervento.tsx:132-140, montato da DatiDelDettaglio a :147) rende una VistaQuery per ogni lettura senza risposta. La scheda aperta rende un'altra VistaQuery sullo STESSO stato: SchedeIntervento.tsx:50 (Output per anno), :91 (Verifica), :162 (Importi unitari). Dentro AvvisoPagina ogni VistaQuery registra l'errore con il proprio useId (AvvisoPagina.tsx:78) e ElencoErrori conta le registrazioni (AvvisoPagina.tsx:28). Caso 1: TX-0017 in errore e TX-0016 riuscita. La scheda iniziale e' Output, e react-aria monta solo il pannello attivo. L'avviso dice subito '2 sezioni della pagina non si sono caricate.' per UNA lettura, e 'Dati non caricati: l'avviso in cima alla pagina...' compare due volte, sopra i KPI e nella scheda. Caso 2: TX-0016 in errore. Lo stesso succede appena si apre la scheda Verifica. Il test src/pages/istituzionale/interventi/page.test.tsx:233 si intitola 'l'avviso della pagina dice quella mancata', ma controlla solo che esista un solo role=alert (:239, :242), non il testo dell'avviso. Non copre neppure il caso con TX-0017 in errore.",
+    "fix": "Ogni lettura deve avere un solo proprietario del suo errore. (1) ErroriDelleLetture registra l'errore senza rendere il testo statico: esportare dal kit useErroreNellaPagina, oggi interno a shared/ui/stati/AvvisoPagina.tsx:76. (2) Le tre schede passano a VistaQuery errorePersonalizzato={() => <ErroreNellaPagina />}, da esportare dal kit; il ramo personalizzato non registra (StatiVista.tsx, useErroreSenzaDati). Nel test di :233 asserire 'Una sezione della pagina non si è caricata.' prima e dopo l'apertura della scheda Verifica, e un solo testo 'Dati non caricati'. Aggiungere il caso con TX-0017 in errore, dove la scheda iniziale e' Output."
+  },
+  {
+    "id": "H2",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/ui/LinkElenco.tsx:12",
+    "titolo": "Residuo dello spostamento di ApriNellElenco: il finanziario lo riesporta da LinkElenco, sei componenti lo importano ancora da li' e un test fissa la riesportazione",
+    "evidenza": "LinkElenco.tsx:12 contiene `export { ApriNellElenco } from '../../../entities/domanda'` e il commento :4 dice 'riesportato qui per i report della feature'. Lo importano da './LinkElenco' questi file: colonneAnno.tsx:11, DettaglioIntervento.tsx:28, DomandeReport.tsx:24, Panoramica.tsx:22, RiepilogoReport.tsx:27, SigcReport.tsx:20. L'istituzionale invece lo importa dall'entity (comuni.tsx:8). Lo stesso componente ha quindi due percorsi di import. tests/kit-comune-istituzionale.test.tsx:16 e :101 (`expect(ApriFinanziario).toBe(ApriNellElenco)`) rendono permanente lo shim. Precedente: le riesportazioni residue erano gia' state segnalate nella review del fisico (H3, COSMETICO).",
+    "fix": "Nei sei file del finanziario importare ApriNellElenco da '../../../entities/domanda' (useLinkElenco e useApriNellElenco restano in LinkElenco). Togliere la riesportazione di LinkElenco.tsx:12, aggiornare il commento :1-4 e togliere l'import :16 e l'asserzione :101 di tests/kit-comune-istituzionale.test.tsx."
+  },
+  {
+    "id": "H3",
+    "severity": "COSMETICO",
+    "file": "src/features/istituzionale/api/index.ts:71",
+    "titolo": "rispostaDatoNonValido non ha consumatori in src: e' codice morto, provato al posto del percorso reale del messaggio",
+    "evidenza": "Nessun file di src/ chiama rispostaDatoNonValido dell'istituzionale; i soli usi sono tests/istituzionale-api.test.tsx:13, :67, :72, :111. Il 400 dell'esportazione passa da messaggioOltreIlLimite del kit (shared/ui/scarica/scaricamenti.ts:45, usato in ui/esportazioni.ts:19 e :24). Il 400 delle letture passa da VistaQuery/getErrorMessage. E' la terza copia di `eProblema(errore, 'invalid-data')` (fisico/api/index.ts:56, che il fisico usa davvero, e elenco-operativo/api/index.ts:102). Il test di :108-112 ('il 400 dell'esportazione oltre il limite') prova questa funzione morta, non messaggioOltreIlLimite.",
+    "fix": "Togliere rispostaDatoNonValido e l'import di eProblema da api/index.ts. Nei test di :63-73 asserire il problem-type con eProblema(errore, 'invalid-data') di shared/api/problem. Nel test di :108-112 asserire `messaggioOltreIlLimite(errore)` uguale a OLTRE_IL_LIMITE_DELL_ESPORTAZIONE: e' il percorso che l'utente vede."
+  },
+  {
+    "id": "H4",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/ui/useFiltriNellIndirizzo.ts:36",
+    "titolo": "La regola del focus dopo 'Applica i filtri' (WCAG 2.4.3) e' copiata dal fisico invece di stare accanto al pannello comune spostato in entities/filtri",
+    "evidenza": "useFiltriNellIndirizzo.ts:29-47 replica SuperficiAmmissibili.tsx:81-107 del fisico: (a) il tipo `Pannello = 'barra' | 'vuoto' | null`; (b) l'h1 con useFocusDopoIlCambio; (c) onApplica che chiude il pannello, applica e sposta il focus solo se il pannello era aperto da 'vuoto' e la ricerca e' cambiata. PannelloFiltriProgramma e' stato spostato in entities/filtri proprio perche' l'istituzionale lo voleva uguale. Lo stato che lo apre e la regola del focus restano invece in due copie. Il resoconto (punto aperto 6) segnala gia' un'instabilita' del focus dopo la chiusura, corretta da una sola parte: una correzione a una copia non raggiunge l'altra.",
+    "fix": "Spostare in entities/filtri/ui, esportati dal barrel, `type PannelloAperto` e un hook generico `usePannelloConFocus<C extends Filtri>(criteri: C, applica: (c: C) => void, ricerca: (c: C) => string)`. Usarlo in SuperficiAmmissibili (ricercaDaCriteri) e nell'istituzionale (ricercaDaFiltri). Restano i test di focus delle due pagine; aggiungerne uno L2 dell'hook in tests/entita-filtri-ui.test.tsx."
+  },
+  {
+    "id": "H5",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/ui/comuni.tsx:21",
+    "titolo": "Un hook di focus generico (nessun dominio) sta nei 'mattoni di DOMINIO' della feature e duplica quello privato di AvvisoPagina",
+    "evidenza": "useFocusSeSparisce (comuni.tsx:21-28) ripete la logica di useFocusDopoAvviso di shared/ui/stati/AvvisoPagina.tsx:36-46: un ref 'prima visibile', il controllo `document.activeElement === null || === document.body` e il focus sulla destinazione quando il contenuto sparisce. Non usa nulla dell'istituzionale, eppure il commento di testata di comuni.tsx:1 dichiara 'mattoni di DOMINIO'. Il kit ha gia' la sua sede per il focus (shared/ui/focus.ts: useFocusTitolo, useFocusDopoIlCambio).",
+    "fix": "Esportare da shared/ui/focus.ts `useFocusSeSparisce(visibile: boolean, destinazione: RefObject<HTMLElement | null>)`. Usarlo in AvvisoPagina, al posto di useFocusDopoAvviso, e in ValoriNonDisponibili; togliere la copia da comuni.tsx. Spostare in tests/kit-comune-istituzionale.test.tsx un test L2 del focus sul titolo quando lo stato sparisce."
+  },
+  {
+    "id": "H6",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/ui/VerificaSmpNonSigc.tsx:74",
+    "titolo": "L'impaginazione dei due report istituzionali e' scritta due volte (pagina e corpo), mentre il finanziario la raccoglie in un widget",
+    "evidenza": "VerificaSmpNonSigc.tsx:52-94 e OutputRegionale.tsx:60-96 hanno, nello stesso ordine:\n- la stessa sequenza di hook (useFiltriNellIndirizzo, usePannelloConFocus, le briciole con useIngressoArea);\n- lo stesso guscio (BarraFiltri con PillDellaBarra, main con Briciole, TestaPagina col refTitolo, ValoriNonDisponibili, PannelloFiltriIstituzionale con codiciRisposta);\n- lo stesso corpo (CorpoVerifica e CorpoOutput: AvvisoPagina, 'Verifica dei filtri in corso…' in attesa, VistaQuery con eVuoto sulle righe e VuotoConFiltri).\nCirca 20 righe sono uguali. Cambiano solo la lettura, i testi della testata, l'anno col selettore e la nota G4. Il finanziario risolve lo stesso problema col widget PaginaFinanziario (src/widgets/report-finanziario/ui/PaginaFinanziario.tsx:69).",
+    "fix": "Estrarre in ui/ un componente PaginaReportIstituzionale<D extends { righe: readonly unknown[] }>. Props: titolo, titoloDocumento, briciola, sottotitolo, nota?, pill(d), sopra? (per il selettore d'anno), stato, filtri, inAttesa e children(d). Il componente possiede barra, pannello, focus e corpo (AvvisoPagina, attesa, VistaQuery, vuoto coi filtri). Le due pagine passano solo cio' che cambia. In alternativa, un widget come report-finanziario."
+  },
+  {
+    "id": "H7",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/lib/formato.ts:14",
+    "titolo": "Piccole copie nuove di codice gia' presente nel fisico e nel finanziario (sotto soglia, ma ognuna alla seconda o terza copia)",
+    "evidenza": "Quattro copie:\n- testoPerimetro (formato.ts:14-16) e' identico a fisico/lib/formato.ts:102-104 (terza variante in elenco-operativo/lib/formato.ts:46).\n- useContesto (ui/comuni.tsx:70-74), con la memo su `criteri.join('\\n')` e `split('\\n')` e righeContesto, ripete fisico/ui/SuperficiAmmissibili.tsx:49-56 e finanziario/ui/useRigheIntestazione.ts:17.\n- ricercaConservata (lib/pagine.ts:37-39) e' la stessa funzione scritta inline per il finanziario in src/app/aree.ts:58.\n- anniDiRiferimento (lib/criteri.ts:27-32: periodo CSR dal 2023 piu' l'anno scelto valido, ordinati) ripete anniSelezionabili del finanziario (finanziario/lib/filtri.ts:27-36), adesso che il SelettoreAnno e' del kit.",
+    "fix": "Una copia per ciascuna:\n- testoPerimetro in shared/lib, accanto a righeContesto che ne riceve il risultato, usato da fisico e istituzionale;\n- un hook del kit `useRigheContesto(criteri, ultimi, perimetro?)` in shared/ui, usato dalle tre feature;\n- in entities/filtri una `ricercaDeiSoliFiltri(search)`, che serve sia ad aree.ts sia a pagine.ts;\n- in shared/lib una `anniProposti(primo, ultimo, ...extra)`, da cui finanziario e istituzionale passano i loro estremi."
+  },
+  {
+    "id": "H8",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/lib/collegamenti.ts:12",
+    "titolo": "Link G4: il percorso e il grant della pagina del finanziario sono copiati come letterali, e il loro test e' tautologico",
+    "evidenza": "La destinazione della decisione G4 e' scritta a mano due volte: VERIFICA_SMP_SIGC = '/finanziario/sigc/verifica-smp' (collegamenti.ts:12) e GRANT.verificaSigc = 'csr.tx-0015.read' (lib/grant.ts:20). Sono copie di PERCORSI.verificaSmp e GRANT.verificaSmp del finanziario (finanziario/lib/report.ts:45 e :25). L'unico test e' tests/istituzionale-lib.test.ts:110, `expect(VERIFICA_SMP_SIGC).toBe('/finanziario/sigc/verifica-smp')`, che confronta il letterale con se stesso. Non verifica che la route esista in route-table.json, ne' che la sua visibility sia il grant usato per mostrare la frase. Per i link verso l'elenco, invece, il contratto sta in entities/domanda (PERCORSO_ELENCO_*, GRANT_ELENCO). Se il finanziario rinomina la route o ne cambia il grant, la frase G4 porta a un 404 o si mostra al profilo sbagliato, e nessun test fallisce.",
+    "fix": "In tests/app-aree.test.tsx, come gia' per le voci di menu (:51-58), aggiungere un test: la route-table ha VERIFICA_SMP_SIGC fra le route e la sua visibility e' [GRANT.verificaSigc]. Togliere l'asserzione tautologica di istituzionale-lib.test.ts:110. In alternativa, promuovere percorso e grant della verifica SMP SIGC a un contratto condiviso, come entities/domanda per l'elenco."
+  },
+  {
+    "id": "H9",
+    "severity": "MINORE",
+    "file": "src/app/aree.ts:121",
+    "titolo": "L'ordine fisso degli ambiti e' scritto in due posti e si appoggia a chiavi stringa non tipizzate: una chiave fuori lista finisce prima delle altre senza errori",
+    "evidenza": "AMBITI (aree.ts:124) ordina `[...AREE, ...AREE_FUTURE]` con ORDINE_AMBITI (aree.ts:121), un `string[]` confrontato con `chiave: string` (aree.ts:30). L'ordine vive quindi sia nella posizione delle voci in AREE e AREE_FUTURE sia nella lista dei nomi. Una chiave assente o sbagliata (un refuso, o un quinto ambito aggiunto senza toccare ORDINE_AMBITI) da' indexOf = -1, e l'area finisce prima delle altre senza un errore di compilazione. Lo scopre solo il test di tests/app-aree.test.tsx:88, che fissa i quattro titoli.",
+    "fix": "Una sola fonte dell'ordine. Scrivere AMBITI come letterale nell'ordine del catalogo, con le voci realizzate e quelle future, e ricavare `AREE = AMBITI.filter(eRealizzata)` e AREE_FUTURE per differenza. In alternativa, tipizzare `chiave` degli ambiti come unione ChiaveAmbito e scrivere `ORDINE_AMBITI = [...] as const satisfies readonly ChiaveAmbito[]` con un controllo di completezza a compilazione."
+  },
+  {
+    "id": "H10",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/lib/criteri.ts:12",
+    "titolo": "Due tipi CriteriVerifica diversi nella stessa slice, e i parametri di TX-0016 non sono nel controllo statico del contratto",
+    "evidenza": "Lo stesso nome indica due tipi diversi:\n- lib/criteri.ts:12 definisce a mano `interface CriteriVerifica extends Filtri { anno?: number }`;\n- api/index.ts:50 esporta `type CriteriVerifica = Tx0016Params`.\nui/esportazioni.ts:10 importa quello di api/; ReportVerifica.tsx:26 e SchedeIntervento.tsx:69 costruiscono quello di lib/ con criteriVerifica() e lo passano dove serve quello di api/. ui/contratto.ts:11-18 controlla le forme delle RISPOSTE, non i parametri. Tx0016Params ha solo campi facoltativi e il valore passato non e' un letterale. Se la spec rinominasse `anno`, la compilazione passerebbe ancora: l'anno scelto arriverebbe al backend con un nome che il backend non legge, e la risposta resterebbe quella dell'ultimo anno con un file.",
+    "fix": "Rinominare il tipo di lib/, per esempio in CriteriDellaVerifica. In ui/contratto.ts aggiungere `CONTRATTO_CRITERI_VERIFICA: Uguali<keyof CriteriDellaVerifica, keyof Tx0016Params> = true` (Tx0016Params riesportato da api/ come CriteriVerifica) e lo stesso per i filtri di TX-0017."
+  },
+  {
+    "id": "H11",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/api/mock/esempio.ts:19",
+    "titolo": "Il generatore dei dati d'esempio di TX-0016 supera la soglia di complessita' (ciclomatica 22)",
+    "evidenza": "verifica(codiceIntervento, conFile, dati) (esempio.ts:19-45) ha 27 righe con 10 ternari su conFile, 8 `programma ?? v(...)` e altri due ternari. La complessita' misurata col parser TypeScript e' 22, contro la soglia di 10. Non e' MAGGIORE: e' codice del solo dev server, ogni ramo costruisce un campo e non ci sono percorsi di business. Il filtro `filtra` (esempio.ts:71-76) ripete inoltre righeDeiFiltri di testing/fixture.ts:115-120.",
+    "fix": "Due oggetti di base, CON_FILE e SENZA_FILE, con i ventuno campi, e `verifica = (codice, conFile, dati) => ({ codiceIntervento: codice, ...(conFile ? CON_FILE : SENZA_FILE), ...dati })`. Facoltativo: un solo filtro dei parametri, in un modulo che mock e fixture possano importare entrambi."
+  }
+]
