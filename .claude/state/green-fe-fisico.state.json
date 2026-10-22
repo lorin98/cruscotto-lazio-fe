@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "fisico",
-  "current_step": 1,
+  "current_step": 2,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -18,6 +18,33 @@
           "approved_at": "2026-10-22T08:32:15Z"
         }
       }
+    },
+    "step1-uiplan": {
+      "status": "done",
+      "gates": {
+        "wireframe_determine": {
+          "approved_hash": "sha256:c797793a40a02c16b021bf98496a77e808dd8072184e3ab4847e8581da535d32",
+          "baseline_ref": "./wireframes/fisico/determine",
+          "approved_at": "2026-10-22T08:51:29Z",
+          "time_to_approve_s": 218,
+          "deviations_reviewed": [
+            "Scelte di disegno approvate dall'utente il 22/10/2026: CSV/XLSX delle card legate a una campagna = campagna della card; campagna di riferimento = filtro o la piu' recente; una sola route /fisico/determine/:codice?; nessun drill-down superfici->elenco (OP-FIS-05); link dalla scheda dell'elenco alle determine nel refresh dell'elenco (OP-FIS-08); campagne del pannello con campagna nell'indirizzo = quella o tutte"
+          ]
+        },
+        "wireframe_superfici": {
+          "approved_hash": "sha256:b3825903e66f4c1db6ac3462fccc2b492b3c4e2d72e22350910f1b1e099640e6",
+          "baseline_ref": "./wireframes/fisico/superfici",
+          "approved_at": "2026-10-22T08:51:29Z",
+          "time_to_approve_s": 218,
+          "deviations_reviewed": [
+            "Scelte di disegno approvate dall'utente il 22/10/2026: CSV/XLSX delle card legate a una campagna = campagna della card; campagna di riferimento = filtro o la piu' recente; una sola route /fisico/determine/:codice?; nessun drill-down superfici->elenco (OP-FIS-05); link dalla scheda dell'elenco alle determine nel refresh dell'elenco (OP-FIS-08); campagne del pannello con campagna nell'indirizzo = quella o tutte"
+          ]
+        }
+      },
+      "completed_at": "2026-10-22T08:53:23Z",
+      "artifacts": [
+        "./plan/fisico/uiplan.json"
+      ]
     }
   },
   "open_blockers": [],

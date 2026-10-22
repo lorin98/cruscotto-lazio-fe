@@ -875,7 +875,14 @@
         "Pill 'Dati al' (ultimiDatiSincronizzati) come bottone col nome accessibile completo ('Ultimo dato sincronizzato: dati al ... per tutti i flussi. Mostra il dettaglio per flusso') e popover con una voce per flusso",
         "Frase verso la verifica SMP SIGC del finanziario resa solo con csr.tx-0015.read (mai un link che porta a un 403); il testo dice l'area di arrivo",
         "Residuo manuale: ordine di lettura (filtri, anno, grafico, tabella), comprensibilita delle note sulle definizioni, contrasto della resa finale; axe rinviato allo step8"
-      ]
+      ],
+      "approval": {
+        "approved_hash": "sha256:4a53048a290b2708318e4d74613ba4e82eb9b7bc02484ddafb2d4e2c4af91909",
+        "baseline_ref": "./wireframes/istituzionale/verifica-smp-non-sigc",
+        "approved_at": "2026-10-22T08:51:29Z",
+        "time_to_approve_s": 218,
+        "rework_rounds": 1
+      }
     },
     {
       "name": "output-regionale",
@@ -891,7 +898,14 @@
         "Scaricamenti per formato come nel finanziario (CSV e XLSX nella card della tabella; nessun PNG: la pagina non ha grafici): sigla visibile contenuta nel nome accessibile completo (WCAG 2.5.3); durante la preparazione aria-disabled col focus sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo",
         "Pill 'Dati al' (ultimiDatiSincronizzati) come bottone col nome accessibile completo ('Ultimo dato sincronizzato: dati al ... per tutti i flussi. Mostra il dettaglio per flusso') e popover con una voce per flusso",
         "Residuo manuale: leggibilita della tabella larga con scorrimento orizzontale (WCAG 1.4.10 reflow), ordine di lettura, contrasto della resa finale; axe rinviato allo step8"
-      ]
+      ],
+      "approval": {
+        "approved_hash": "sha256:4b7342bfd3870e169d098ff86e16b94921f91bde4782a1bddeb9e565fa90f302",
+        "baseline_ref": "./wireframes/istituzionale/output-regionale",
+        "approved_at": "2026-10-22T08:51:29Z",
+        "time_to_approve_s": 218,
+        "rework_rounds": 1
+      }
     },
     {
       "name": "intervento",
@@ -906,7 +920,14 @@
         "Scaricamenti per formato come nel finanziario (PNG, CSV e XLSX nella scheda Output per anno, CSV e XLSX nella scheda Verifica; il nome accessibile dice anche l'intervento): sigla visibile contenuta nel nome accessibile completo (WCAG 2.5.3); durante la preparazione aria-disabled col focus sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo",
         "Pill 'Dati al' (ultimiDatiSincronizzati) come bottone col nome accessibile completo ('Ultimo dato sincronizzato: dati al ... per tutti i flussi. Mostra il dettaglio per flusso') e popover con una voce per flusso",
         "Residuo manuale: ordine di lettura di testata, KPI e schede; comprensibilita delle note sulle definizioni; contrasto della resa finale; axe rinviato allo step8"
-      ]
+      ],
+      "approval": {
+        "approved_hash": "sha256:1932cee77819cb6b6333e61f8e65b1c45c2f22393985d85fd427c4b56ee79a1b",
+        "baseline_ref": "./wireframes/istituzionale/intervento",
+        "approved_at": "2026-10-22T08:51:29Z",
+        "time_to_approve_s": 218,
+        "rework_rounds": 1
+      }
     }
   ],
   "open_points": [

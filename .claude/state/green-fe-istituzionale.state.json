@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "istituzionale",
-  "current_step": 1,
+  "current_step": 2,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -18,6 +18,42 @@
           "approved_at": "2026-10-22T08:42:20Z"
         }
       }
+    },
+    "step1-uiplan": {
+      "status": "done",
+      "gates": {
+        "wireframe_intervento": {
+          "approved_hash": "sha256:1932cee77819cb6b6333e61f8e65b1c45c2f22393985d85fd427c4b56ee79a1b",
+          "baseline_ref": "./wireframes/istituzionale/intervento",
+          "approved_at": "2026-10-22T08:51:29Z",
+          "time_to_approve_s": 218,
+          "deviations_reviewed": [
+            "Scelte di disegno approvate dall'utente il 22/10/2026: quattro link verso l'elenco tenuti, scenario di coincidenza da chiedere a green-be (OP-IS-09); testi proposti per ANNO_NON_CONSERVATO e FONTE_AMBIGUA (OP-IS-08); output regionale con interruttore della misura e mini grafico nel drawer (OP-IS-06); dettaglio dell'intervento come terzo flusso"
+          ]
+        },
+        "wireframe_output-regionale": {
+          "approved_hash": "sha256:4b7342bfd3870e169d098ff86e16b94921f91bde4782a1bddeb9e565fa90f302",
+          "baseline_ref": "./wireframes/istituzionale/output-regionale",
+          "approved_at": "2026-10-22T08:51:29Z",
+          "time_to_approve_s": 218,
+          "deviations_reviewed": [
+            "Scelte di disegno approvate dall'utente il 22/10/2026: quattro link verso l'elenco tenuti, scenario di coincidenza da chiedere a green-be (OP-IS-09); testi proposti per ANNO_NON_CONSERVATO e FONTE_AMBIGUA (OP-IS-08); output regionale con interruttore della misura e mini grafico nel drawer (OP-IS-06); dettaglio dell'intervento come terzo flusso"
+          ]
+        },
+        "wireframe_verifica-smp-non-sigc": {
+          "approved_hash": "sha256:4a53048a290b2708318e4d74613ba4e82eb9b7bc02484ddafb2d4e2c4af91909",
+          "baseline_ref": "./wireframes/istituzionale/verifica-smp-non-sigc",
+          "approved_at": "2026-10-22T08:51:29Z",
+          "time_to_approve_s": 218,
+          "deviations_reviewed": [
+            "Scelte di disegno approvate dall'utente il 22/10/2026: quattro link verso l'elenco tenuti, scenario di coincidenza da chiedere a green-be (OP-IS-09); testi proposti per ANNO_NON_CONSERVATO e FONTE_AMBIGUA (OP-IS-08); output regionale con interruttore della misura e mini grafico nel drawer (OP-IS-06); dettaglio dell'intervento come terzo flusso"
+          ]
+        }
+      },
+      "completed_at": "2026-10-22T08:53:27Z",
+      "artifacts": [
+        "./plan/istituzionale/uiplan.json"
+      ]
     }
   },
   "open_blockers": [],

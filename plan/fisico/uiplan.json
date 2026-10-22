@@ -330,7 +330,14 @@
         "Pill 'Dati al' come pulsante col nome accessibile completo ('Ultimo dato sincronizzato: dati al gg/mm/aaaa per tutti i flussi. Mostra il dettaglio per flusso'); il dettaglio per flusso e' un dialogo con nome; elenco vuoto o errore detti in testo",
         "Pannello dei filtri senza le voci di TX-0060 (errore o grant assente): lo stato lo dice in testo (role=status) e il report resta leggibile; i chip dei filtri arrivati con l'indirizzo restano rimovibili",
         "Residuo manuale: ordine di lettura di KPI, card e tabella; comprensibilita' di 'DS', 'DP' e 'differenza DP - DS' (sciolte per esteso alla prima occorrenza) e della differenza fra il file di una card della campagna di riferimento e quello della tabella (tutte le campagne); contrasto della resa finale"
-      ]
+      ],
+      "approval": {
+        "approved_hash": "sha256:b3825903e66f4c1db6ac3462fccc2b492b3c4e2d72e22350910f1b1e099640e6",
+        "baseline_ref": "./wireframes/fisico/superfici",
+        "approved_at": "2026-10-22T08:51:29Z",
+        "time_to_approve_s": 218,
+        "rework_rounds": 1
+      }
     },
     {
       "name": "determine",
@@ -344,7 +351,14 @@
         "Le colonne si/no della tabella delle determine sono testo, non solo icone o colore; la determina corrente e' dichiarata in testo nella riga",
         "Nessuna pill 'Dati al' e nessun download: TX-0020 non porta l'ultimo dato sincronizzato e non ha export (D-01 Rev. 3 e D-06 del backend), nulla da annunciare",
         "Residuo manuale: ordine di lettura di testata, riquadri e tabella; comprensibilita' di 'stato area programmazione' e 'comparto'; contrasto della resa finale"
-      ]
+      ],
+      "approval": {
+        "approved_hash": "sha256:c797793a40a02c16b021bf98496a77e808dd8072184e3ab4847e8581da535d32",
+        "baseline_ref": "./wireframes/fisico/determine",
+        "approved_at": "2026-10-22T08:51:29Z",
+        "time_to_approve_s": 218,
+        "rework_rounds": 1
+      }
     }
   ],
   "open_points": [
