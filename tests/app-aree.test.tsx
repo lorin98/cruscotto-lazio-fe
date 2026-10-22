@@ -4,7 +4,7 @@
 import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { createMemoryRouter, RouterProvider } from 'react-router';
+import { createMemoryRouter, matchPath, RouterProvider } from 'react-router';
 import { http, HttpResponse } from 'msw';
 import { server } from '../src/shared/api/mock/server';
 import { rispondi } from '../src/shared/testing/msw';
@@ -14,12 +14,14 @@ import { AREE, AREE_FUTURE, areeVisibili } from '../src/app/aree';
 import { appRoutes } from '../src/app/routes';
 import routeTable from '../src/app/route-table.json';
 import { pagineVisibili } from '../src/features/finanziario';
+import { pagineVisibili as pagineFisico } from '../src/features/fisico';
 import { PAGINE_FINANZIARIO } from '../src/features/finanziario/lib/report';
+import { PAGINE_FISICO } from '../src/features/fisico/lib/pagine';
 import { clientApp } from './app-client';
 
-function apriHomeCon(ruoli: string[]) {
+function apriHomeCon(ruoli: string[], indirizzo = '/') {
   server.use(http.get('*/auth/status', () => HttpResponse.json({ authenticated: true, user: { username: 'U', roles: ruoli } })));
-  const router = createMemoryRouter(appRoutes(), { initialEntries: ['/'] });
+  const router = createMemoryRouter(appRoutes(), { initialEntries: [indirizzo] });
   return render(
     <QueryClientProvider client={clientApp()}>
       <RouterProvider router={router} />
@@ -28,19 +30,39 @@ function apriHomeCon(ruoli: string[]) {
 }
 
 describe('catalogo delle aree', () => {
-  it('le pagine di ogni area, per un profilo con tutti i grant, sono route della route-table', () => {
-    const percorsi = new Set(routeTable.routes.map((r) => r.path));
+  it('le pagine di ogni area, per un profilo con tutti i grant, sono route della route-table (anche col segmento facoltativo)', () => {
     for (const area of AREE) {
       const pagine = area.pagineVisibili(() => true);
       expect(pagine.length).toBeGreaterThan(0);
-      for (const p of pagine) expect(percorsi.has(p.percorso)).toBe(true);
+      for (const p of pagine) expect(routeTable.routes.some((r) => matchPath(r.path, p.percorso)), p.percorso).toBe(true);
     }
   });
 
-  it('il finanziario prende le pagine visibili dal barrel della feature', () => {
+  it('finanziario e fisico prendono le pagine visibili dal barrel della feature', () => {
     expect(AREE.find((a) => a.chiave === 'finanziario')?.pagineVisibili).toBe(pagineVisibili);
-    expect(areeVisibili(() => true).map((a) => a.pagine)).toEqual([PAGINE_FINANZIARIO]);
+    expect(AREE.find((a) => a.chiave === 'fisico')?.pagineVisibili).toBe(pagineFisico);
+    expect(areeVisibili(() => true).map((a) => a.pagine)).toEqual([PAGINE_FINANZIARIO, PAGINE_FISICO]);
     expect(areeVisibili(() => false)).toEqual([]);
+  });
+
+  it('le pagine del fisico aprono col grant della loro route (visibility della route-table)', () => {
+    for (const p of PAGINE_FISICO) {
+      const route = routeTable.routes.find((r) => matchPath(r.path, p.percorso));
+      expect(route?.visibility).toEqual([p.grant]);
+    }
+  });
+
+  it('card della Home dal contenuto reale delle feature (decisione G1 del 21/10/2026)', () => {
+    const fisico = AREE.find((a) => a.chiave === 'fisico');
+    expect(fisico?.contenuti.join(' ')).toMatch(/Superfici ammissibili/);
+    expect(fisico?.contenuti.join(' ')).toMatch(/Determine/);
+    expect(fisico?.contenuti.join(' ')).not.toMatch(/Output programmato|Unit Amount/);
+    const procedurale = AREE_FUTURE.find((a) => a.chiave === 'procedurale');
+    expect(procedurale?.contenuti.join(' ')).toMatch(/Unit Amount/);
+    expect(procedurale?.contenuti.join(' ')).not.toMatch(/Determine, responsabili/);
+    const istituzionale = AREE_FUTURE.find((a) => a.chiave === 'istituzionale');
+    expect(istituzionale?.contenuti.join(' ')).toMatch(/Output regionale programmato e realizzato/);
+    expect(AREE_FUTURE.map((a) => a.chiave)).toEqual(['procedurale', 'istituzionale']);
   });
 
   it('una ricerca conservata porta solo i filtri del finanziario', () => {
@@ -106,6 +128,36 @@ describe('Home e menu dallo stesso catalogo', () => {
     expect(within(cifre).getByText('Dotazione (regionale)')).toBeTruthy();
     expect(within(cifre).getByText("Pagato lordo sulla dotazione: Non confrontabile: dotazione regionale e pagamenti dell'area (perimetro ADA)")).toBeTruthy();
     expect(within(cifre).queryByText('20 %')).toBeNull();
+  });
+
+  it('profilo del fisico: la card porta alle superfici e il menu ha le due pagine', async () => {
+    apriHomeCon(['csr.tx-0018.read', 'csr.tx-0020.read']);
+    const card = await screen.findByRole('region', { name: 'Fisico' });
+    expect(within(card).getByText('Disponibile')).toBeTruthy();
+    expect(within(card).getByRole('link', { name: 'Entra in Fisico' }).getAttribute('href')).toBe('/fisico/superfici');
+    expect(within(card).getByText('Determine da cui una domanda prende le informazioni')).toBeTruthy();
+    const menu = screen.getByRole('navigation', { name: 'Navigazione principale' });
+    const gruppo = within(menu).getByRole('button', { name: 'Fisico' });
+    const sottomenu = document.getElementById(gruppo.getAttribute('aria-controls') ?? '') as HTMLElement;
+    expect(within(sottomenu).getAllByRole('link').map((l) => [l.textContent, l.getAttribute('href')])).toEqual([
+      ['Superfici ammissibili', '/fisico/superfici'],
+      ['Determine di una domanda', '/fisico/determine'],
+    ]);
+    expect(menu.textContent).not.toContain('Fisicopresto');
+    expect(menu.textContent).toContain('Proceduralepresto');
+  });
+
+  it('la voce "Determine di una domanda" resta corrente con il codice nel percorso (sottopercorso)', async () => {
+    server.use(
+      http.get('*/api/fisico/domande/:codice/determina', () =>
+        HttpResponse.json({ codiceABarre: '54810769585', tipoDomanda: 'PAGAMENTO', domandaChiusa: false, corrente: { valore: null, motivo: 'NON_VALORIZZATO' }, elenco: [] }),
+      ),
+    );
+    apriHomeCon(['csr.tx-0018.read', 'csr.tx-0020.read'], '/fisico/determine/54810769585');
+    expect(await screen.findByRole('heading', { level: 1, name: 'Determine della domanda 54810769585' })).toBeTruthy();
+    const menu = screen.getByRole('navigation', { name: 'Navigazione principale' });
+    expect(within(menu).getByRole('link', { name: 'Determine di una domanda' }).getAttribute('aria-current')).toBe('page');
+    expect(within(menu).getByRole('link', { name: 'Superfici ammissibili' }).getAttribute('aria-current')).toBeNull();
   });
 
   it('profilo senza pagine in nessuna area: la Home lo dice, il menu ha solo le aree future', async () => {

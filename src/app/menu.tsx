@@ -3,7 +3,8 @@
 // passando da una pagina all'altra della stessa area la sua parte dell'indirizzo (i filtri) resta. Solo dalla stessa
 // area: i filtri di un'altra area non entrano nei suoi link (review v1 H-10, una navigazione che nessun link dichiara).
 // Le aree non ancora realizzate sono dichiarate "presto", senza link. Gli strumenti trasversali (elenco operativo) hanno
-// una sezione propria, con le sole pagine visibili.
+// una sezione propria, con le sole pagine visibili. Una voce e' corrente sul suo percorso, o anche nei sottopercorsi se
+// la pagina lo dichiara (le determine di una domanda: /fisico/determine/<codice>).
 import { useId, useState } from 'react';
 import { NavLink, useLocation } from 'react-router';
 import { hasGrant, useAuthStatus } from '../shared/api/auth/use-auth-status';
@@ -27,7 +28,7 @@ function GruppoArea({ area, pagine, onNaviga }: { area: Area; pagine: PaginaArea
       <ul id={`${id}-${area.chiave}`} className="ui-menu__sub" hidden={!aperto}>
         {pagine.map((p) => (
           <li key={p.percorso}>
-            <NavLink to={query ? `${p.percorso}?${query}` : p.percorso} end onClick={onNaviga}>
+            <NavLink to={query ? `${p.percorso}?${query}` : p.percorso} end={!p.conSottopercorsi} onClick={onNaviga}>
               {p.voceMenu}
             </NavLink>
           </li>

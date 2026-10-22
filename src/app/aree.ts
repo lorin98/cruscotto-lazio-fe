@@ -3,10 +3,12 @@
 // la loro visibilita' per grant (solo UX, l'enforcement resta del backend) le espone il barrel della feature; le route
 // restano in route-table.json. Una nuova area si aggiunge qui con le funzioni del suo barrel e si toglie da AREE_FUTURE.
 // Gli ambiti sono quattro (finanziario, fisico, procedurale, istituzionale), ognuno col suo colore; i dati del primo
-// pilastro (Extra CSR) non hanno un ambito nel frontend (scelta dell'utente del 12/10/2026).
+// pilastro (Extra CSR) non hanno un ambito nel frontend (scelta dell'utente del 12/10/2026). Le card descrivono il
+// contenuto reale delle feature (decisione G1 dell'utente del 21/10/2026): ogni pagina sta nella feature della sua slice.
 import type { ComponentType, ReactNode } from 'react';
 import { pagineVisibili as pagineElenco } from '../features/elenco-operativo';
 import { AnteprimaFinanziario, filtriDaRicerca, pagineVisibili as pagineFinanziario, ricercaDaFiltri } from '../features/finanziario';
+import { pagineVisibili as pagineFisico } from '../features/fisico';
 import type { NomeIcona } from '../shared/ui';
 
 /** Una pagina di un'area, come la espone il barrel della feature. */
@@ -14,6 +16,8 @@ export interface PaginaArea {
   percorso: string;
   /** Voce breve del menu laterale. */
   voceMenu: string;
+  /** La voce del menu e' corrente anche nei sottopercorsi (es. /fisico/determine/<codice>); di norma solo sul percorso. */
+  conSottopercorsi?: boolean;
 }
 
 /** Colore dell'ambito nella Home (classi ui-ambito--<tono> di tema.css). */
@@ -53,33 +57,37 @@ export const AREE: readonly Area[] = [
     ricercaConservata: (search) => ricercaDaFiltri(filtriDaRicerca(search)),
     Anteprima: AnteprimaFinanziario,
   },
+  {
+    // G1: superfici ammissibili (TX-0018) e determine di una domanda (TX-0020); le due pagine non condividono filtri
+    chiave: 'fisico',
+    titolo: 'Fisico',
+    descrizione: 'Superfici ammissibili delle domande di sostegno e di pagamento per intervento e campagna, e determine di una domanda.',
+    icona: 'it-map-marker',
+    tono: 'verde',
+    contenuti: ['Superfici ammissibili di sostegno e di pagamento per intervento e campagna', 'Verifica incrociata fra superficie di pagamento e di sostegno', 'Determine da cui una domanda prende le informazioni'],
+    pagineVisibili: pagineFisico,
+  },
 ];
 
 /** Aree non ancora realizzate: la Home e il menu le dichiarano "presto", senza link. */
 export const AREE_FUTURE: readonly SchedaArea[] = [
   {
-    chiave: 'fisico',
-    titolo: 'Fisico',
-    descrizione: 'Output programmati e realizzati per intervento e superfici ammissibili delle domande.',
-    icona: 'it-map-marker',
-    tono: 'verde',
-    contenuti: ['Output programmato e realizzato dal 2023 al 2029', 'Superfici ammissibili di sostegno e di pagamento', 'Pagamenti per Unit Amount'],
-  },
-  {
+    // G1: stati e sottofasi delle domande, ammesse con atto e contributo, riepilogo, Unit Amount (TX-0024..TX-0032)
     chiave: 'procedurale',
     titolo: 'Procedurale',
-    descrizione: 'Stati delle domande di sostegno e di pagamento, determine e atti di concessione.',
+    descrizione: 'Stati e sottofasi delle domande di sostegno e di pagamento, domande ammesse e pagamenti per Unit Amount.',
     icona: 'it-file-signed',
     tono: 'arancio',
-    contenuti: ['Stati e sottofasi delle domande', 'Determine, responsabili e ADA di riferimento', 'Domande con atto di concessione e contributo ammesso'],
+    contenuti: ['Stati e sottofasi delle domande', 'Domande ammesse con atto di concessione e contributo', 'Riepilogo per intervento e pagamenti per Unit Amount'],
   },
   {
+    // G1: verifica SMP non SIGC (TX-0016) e output regionale programmato e realizzato (TX-0017)
     chiave: 'istituzionale',
     titolo: 'Istituzionale',
-    descrizione: 'Dati dei file ASR a confronto con SMP - Data Platform e output regionali.',
+    descrizione: 'Dati ASR non SIGC a confronto con SMP - Data Platform e output regionale programmato e realizzato.',
     icona: 'it-pa',
     tono: 'viola',
-    contenuti: ['Dati ASR SIGC e non SIGC da confrontare con SMP', 'Avvisi attivati e chiusi, concessioni previste', 'Output regionale per intervento'],
+    contenuti: ['Verifica SMP dei dati ASR non SIGC', 'Output regionale programmato e realizzato per intervento e anno'],
   },
 ];
 

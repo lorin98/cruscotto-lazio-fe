@@ -380,7 +380,7 @@ describe('shell UI v2: intestazione degli enti, menu laterale, ricerca, piede', 
     const corrente = within(menu).getByRole('link', { name: 'Riepilogo per intervento' });
     await waitFor(() => expect(corrente.getAttribute('aria-current')).toBe('page'));
     expect(within(menu).getByRole('link', { name: 'Panoramica' }).getAttribute('aria-current')).toBeNull();
-    expect(menu.textContent).toContain('Fisicopresto');
+    expect(menu.textContent).toContain('Proceduralepresto');
     await userEvent.click(gruppo);
     expect(gruppo.getAttribute('aria-expanded')).toBe('false');
     expect(within(sottomenu).queryAllByRole('link')).toHaveLength(0);
