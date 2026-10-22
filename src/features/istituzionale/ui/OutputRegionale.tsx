@@ -7,7 +7,8 @@
 // card grafico in pagina (unita' diverse fra interventi: OP-IS-06), quindi nessun PNG. UNA lettura di TX-0017 per pagina.
 // Stati: caricamento, errore (un solo avviso), vuoto (con "Modifica i filtri"), valori dei filtri non disponibili.
 // Design system: classi bootstrap-italia e del kit v2 (card, interruttore con aria-pressed); react-aria solo dentro il
-// pannello, il drawer e il popover della pill del kit.
+// pannello, il drawer e il popover della pill del kit. La misura dell'interruttore sta nella pagina: resta quando il
+// report si rilegge coi filtri nuovi, un chip tolto o Riprova (wireframe approvato, review V1).
 import { useState } from 'react';
 import { ricercaDaFiltri } from '../../../entities/filtri';
 import type { Filtri } from '../../../entities/filtri';
@@ -40,14 +41,16 @@ function PillDellaBarra({ d, inErrore }: { d: Output | undefined; inErrore: bool
   );
 }
 
+/** La misura dell'interruttore, stato della pagina: il report la riceve e la cambia. */
+type PropsMisura = { misura: Misura; onMisura: (m: Misura) => void };
+
 /** Il report: la card con l'interruttore della misura, la tabella e le definizioni, poi il drawer della riga aperta. */
-function ReportOutput({ d, filtri }: { d: Output; filtri: Filtri }) {
-  const [misura, setMisura] = useState<Misura>('programmato');
+function ReportOutput({ d, filtri, misura, onMisura }: { d: Output; filtri: Filtri } & PropsMisura) {
   const [aperto, setAperto] = useState<string | null>(null);
   const cumulativo = d.realizzatoNonSigcCumulativo;
   return (
     <>
-      <Sezione titolo={TITOLO_OUTPUT} strumenti={<Interruttore etichetta="Misura mostrata negli anni" opzioni={opzioniMisura(cumulativo)} scelta={misura} onScelta={setMisura} />}>
+      <Sezione titolo={TITOLO_OUTPUT} strumenti={<Interruttore etichetta="Misura mostrata negli anni" opzioni={opzioniMisura(cumulativo)} scelta={misura} onScelta={onMisura} />}>
         <p className="ui-nota">{NOTA_FILE_OUTPUT}</p>
         <TabellaOutput d={d} misura={misura} scaricamenti={fileOutput('Output regionale', filtri)} onRiga={setAperto} />
         <p className="ui-fonte">{DEFINIZIONI_OUTPUT}</p>
@@ -57,10 +60,10 @@ function ReportOutput({ d, filtri }: { d: Output; filtri: Filtri }) {
   );
 }
 
-type PropsCorpo = { stato: ReturnType<typeof useOutputRegionale>; inAttesa: boolean; filtri: Filtri; onModificaFiltri: () => void };
+type PropsCorpo = { stato: ReturnType<typeof useOutputRegionale>; inAttesa: boolean; filtri: Filtri; onModificaFiltri: () => void } & PropsMisura;
 
 /** Il corpo: un solo avviso, l'attesa del legame con le azioni, la lettura di TX-0017 e il report (nuovo coi filtri nuovi). */
-function CorpoOutput({ stato, inAttesa, filtri, onModificaFiltri }: PropsCorpo) {
+function CorpoOutput({ stato, inAttesa, filtri, onModificaFiltri, ...misura }: PropsCorpo) {
   const vuoto = <VuotoConFiltri onModifica={onModificaFiltri}>{testoVuoto(conFiltri(filtri))}</VuotoConFiltri>;
   return (
     <AvvisoPagina>
@@ -69,7 +72,7 @@ function CorpoOutput({ stato, inAttesa, filtri, onModificaFiltri }: PropsCorpo) 
         <Caricamento testo="Verifica dei filtri in corso…" />
       ) : (
         <VistaQuery stato={stato} eVuoto={(d) => d.righe.length === 0} vuoto={vuoto}>
-          {(d) => <ReportOutput key={ricercaDaFiltri(filtri)} d={d} filtri={filtri} />}
+          {(d) => <ReportOutput key={ricercaDaFiltri(filtri)} d={d} filtri={filtri} {...misura} />}
         </VistaQuery>
       )}
     </AvvisoPagina>
@@ -79,6 +82,7 @@ function CorpoOutput({ stato, inAttesa, filtri, onModificaFiltri }: PropsCorpo) 
 export function OutputRegionale() {
   const { filtri, inAttesa, chip, applica, togliTutti, valori } = useFiltriNellIndirizzo(false);
   const stato = useOutputRegionale(filtri, { abilitato: !inAttesa });
+  const [misura, setMisura] = useState<Misura>('programmato');
   const { h1, pannello, apri, chiudi, onApplica } = usePannelloConFocus(filtri, applica);
   const briciole = [{ etichetta: 'Istituzionale', a: useIngressoArea() }, { etichetta: 'Output regionale' }];
   return (
@@ -88,7 +92,8 @@ export function OutputRegionale() {
         <Briciole voci={briciole} />
         <TestaPagina titolo="Istituzionale: output regionale programmato e realizzato" titoloDocumento="Output regionale - Istituzionale" sottotitolo={SOTTOTITOLO} refTitolo={h1} />
         <ValoriNonDisponibili valori={valori} h1={h1} />
-        <CorpoOutput stato={stato} inAttesa={inAttesa} filtri={filtri} onModificaFiltri={() => apri('vuoto')} />
+        <CorpoOutput stato={stato} inAttesa={inAttesa} filtri={filtri} onModificaFiltri={() => apri('vuoto')} misura={misura} onMisura={setMisura} />
+
       </main>
       <PannelloFiltriIstituzionale aperto={pannello !== null} filtri={filtri} valori={valori} codiciRisposta={(stato.data?.righe ?? []).map((r) => r.codiceIntervento)} onApplica={onApplica} onChiudi={chiudi} />
     </>

@@ -84,6 +84,18 @@ describe('RF017: output programmato e realizzato della Regione Lazio per interve
     expect(testo(within(await tabella('realizzato non SIGC \\(cumulativo\\)')).getByRole('row', { name: "Apri l'anteprima dell'intervento SRD01" }).textContent)).toContain('12 numero di operazioni');
   });
 
+  it('la misura scelta e stato della pagina: resta quando un chip tolto rilegge il report coi filtri nuovi', async () => {
+    const lette = servi();
+    apri(`${PERCORSO}?intervento=SRA01&intervento=SRA16`);
+    await tabella();
+    await userEvent.click(within(screen.getByRole('group', { name: 'Misura mostrata negli anni' })).getByRole('button', { name: 'Realizzato SIGC' }));
+    await tabella('realizzato SIGC');
+    await userEvent.click(screen.getByRole('button', { name: 'Togli il filtro Intervento SRA16' }));
+    await waitFor(() => expect(lette.output.at(-1)).toBe('?intervento=SRA01'));
+    await waitFor(async () => expect(within(await tabella('realizzato SIGC')).getAllByRole('rowheader').map((c) => c.textContent)).toEqual(['SRA01']));
+    expect(within(screen.getByRole('group', { name: 'Misura mostrata negli anni' })).getByRole('button', { name: 'Realizzato SIGC' }).getAttribute('aria-pressed')).toBe('true');
+  });
+
   it('riga apribile con Invio: il drawer con le voci e il mini grafico; Esc lo chiude e il focus torna alla riga', async () => {
     servi();
     apri();
