@@ -6,7 +6,13 @@
     {
       "slice": "fisico",
       "path": "handover/openapi-fisico.json",
-      "sha256": "sha256:45d08644cf6b3d80349670c978eb3af3a18df757f1e5e9324a928aab50e30c2b",
+      "sha256": "sha256:8558e1f4d278f2e97fc873a3eebbdaffdd54d8e390d245b0c8784dd35822c861",
+      "manifest_hash_match": true
+    },
+    {
+      "slice": "elenco-operativo",
+      "path": "handover/openapi-elenco-operativo.json",
+      "sha256": "sha256:7532fe3b3708398d1448238ef2fe4df9e3d1037b096325bc23435cb9dc39a4ca",
       "manifest_hash_match": true
     }
   ],
@@ -15,10 +21,12 @@
       "path": "/fisico/superfici",
       "kind": "report",
       "transactions": [
-        "TX-0018"
+        "TX-0018",
+        "TX-0060"
       ],
       "reqs": [
-        "RF018"
+        "RF018",
+        "RA006"
       ],
       "roles": [
         "csr.tx-0018.read"
@@ -186,6 +194,66 @@
       "source_ref": "openapi-fisico.json#/components/schemas/QuantitaRichiestaPremio"
     },
     {
+      "route": "/fisico/superfici",
+      "name": "ultimiDatiSincronizzati[].flusso",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/UltimoDatoSincronizzato"
+    },
+    {
+      "route": "/fisico/superfici",
+      "name": "ultimiDatiSincronizzati[].conclusoIl",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/UltimoDatoSincronizzato"
+    },
+    {
+      "route": "/fisico/superfici",
+      "name": "filtri.interventi[].chiave",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/fisico/superfici",
+      "name": "filtri.interventi[].descrizione",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/fisico/superfici",
+      "name": "filtri.obiettiviSpecifici[].chiave",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/fisico/superfici",
+      "name": "filtri.obiettiviGenerali[]",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/fisico/superfici",
+      "name": "filtri.obiettiviPolicy[]",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/fisico/superfici",
+      "name": "filtri.azioniPortanti[].chiave",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/fisico/superfici",
+      "name": "filtri.azioniPortanti[].descrizione",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/fisico/superfici",
+      "name": "filtri.legameAzioniDisponibile",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
       "route": "/fisico/determine/:codice?",
       "name": "codiceABarre",
       "provenance": "spec",
@@ -258,7 +326,10 @@
         "Ogni grafico ha la tabella equivalente a un clic e la didascalia; gli interventi senza superfici (NON_VALORIZZATO) sono omessi dai grafici e dichiarati in testo, mai a zero",
         "Superfici negative (possibili per D-01 Rev. 2) leggibili anche senza colore: segno meno nel testo e nella tabella equivalente",
         "Quantita' richiesta a premio assente: la cella dice 'non disponibile (fonte non attiva)', mai uno zero",
-        "Residuo manuale: ordine di lettura di KPI, card e tabella; comprensibilita' di 'DS', 'DP' e 'differenza DP - DS' (sciolte per esteso alla prima occorrenza); contrasto della resa finale"
+        "Download per formato (PNG, CSV, XLSX), come nel finanziario: un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo (anche il limite di righe dell'export)",
+        "Pill 'Dati al' come pulsante col nome accessibile completo ('Ultimo dato sincronizzato: dati al gg/mm/aaaa per tutti i flussi. Mostra il dettaglio per flusso'); il dettaglio per flusso e' un dialogo con nome; elenco vuoto o errore detti in testo",
+        "Pannello dei filtri senza le voci di TX-0060 (errore o grant assente): lo stato lo dice in testo (role=status) e il report resta leggibile; i chip dei filtri arrivati con l'indirizzo restano rimovibili",
+        "Residuo manuale: ordine di lettura di KPI, card e tabella; comprensibilita' di 'DS', 'DP' e 'differenza DP - DS' (sciolte per esteso alla prima occorrenza) e della differenza fra il file di una card della campagna di riferimento e quello della tabella (tutte le campagne); contrasto della resa finale"
       ]
     },
     {
@@ -271,6 +342,7 @@
         "Un solo h1 (il codice a barre della domanda o, senza codice, il titolo della pagina); focus sul titolo dopo il cambio di route e dopo una ricerca",
         "Modulo di ricerca con role=search, label esplicita e messaggio d'errore collegato al campo (aria-describedby) per un codice senza cifre",
         "Le colonne si/no della tabella delle determine sono testo, non solo icone o colore; la determina corrente e' dichiarata in testo nella riga",
+        "Nessuna pill 'Dati al' e nessun download: TX-0020 non porta l'ultimo dato sincronizzato e non ha export (D-01 Rev. 3 e D-06 del backend), nulla da annunciare",
         "Residuo manuale: ordine di lettura di testata, riquadri e tabella; comprensibilita' di 'stato area programmazione' e 'comparto'; contrasto della resa finale"
       ]
     }
@@ -279,17 +351,17 @@
     {
       "id": "OP-FIS-01",
       "kind": "altro",
-      "detail": "Valori del pannello dei filtri: TX-0018 accetta intervento, os, og, op, azione e campagna (stesse regole dei report finanziari, D-04 del backend), ma la slice fisico non espone l'elenco dei valori (il finanziario li legge da TX-0001, che il P3 dell'area fisica non ha; la risposta di TX-0018 porta solo i codici degli interventi, senza descrizione). Proposta da far decidere all'utente: (a) leggere i valori da TX-0060 dell'elenco operativo (csr.tx-0060.read, che hanno tutti i profili con csr.tx-0018.read: P1, P2, P3 area fisica, P5), lettura dichiarata nella route senza cambiare transazioni e grant di TX-0018; (b) campo additivo sulla risposta di TX-0018 con i valori dei filtri (risigillo della sola slice fisico, green-be); (c) solo il filtro Intervento con i codici della risposta, senza descrizioni ne' obiettivi e azioni. Campagna (un solo anno, parametro non ripetibile): valori = campagne presenti nella risposta letta senza campagna. Il wireframe disegna il pannello come nel finanziario (intervento, obiettivi, azione portante, campagna)."
+      "detail": "RISOLTO il 22/10/2026 (decisione G2 dell'utente del 21/10/2026, alternativa (a)): i valori del pannello dei filtri vengono da TX-0060 dell'elenco operativo (GET /api/elenco-operativo/filtri: interventi con descrizione senza AT001, obiettivi specifici, generali e di policy, azioni portanti, legameAzioniDisponibile; nessun campo nuovo nel contratto di fisico). La route /fisico/superfici dichiara TX-0060 fra le sue transazioni (RA006) e la slice elenco-operativo e' pinnata nell'handover e in spec_pins (riconciliata col suo manifest; le altre transazioni di quella slice restano dell'elenco: OP-FIS-09). Visibilita' della route: il solo csr.tx-0018.read, perche' csr.tx-0060.read e' di tutti gli 11 profili e la visibilita' e' 'almeno un grant' (la aprirebbe a chi non legge TX-0018); la lettura di TX-0060 e' un'azione hide-by-role con csr.tx-0060.read (step6), che hanno tutti i profili con csr.tx-0018.read (P1, P2, P3 area fisica, P5: nessuno con perimetro ADA, quindi voci regionali). Senza quel grant o con TX-0060 in errore: Intervento coi codici della risposta senza descrizione, obiettivi e azioni senza voci, report comunque leggibile. Campagna: campagne della risposta di TX-0018. La descrizione dell'intervento dell'anteprima viene dalle stesse voci. Testo originale: Valori del pannello dei filtri: TX-0018 accetta intervento, os, og, op, azione e campagna (stesse regole dei report finanziari, D-04 del backend), ma la slice fisico non espone l'elenco dei valori (il finanziario li legge da TX-0001, che il P3 dell'area fisica non ha; la risposta di TX-0018 porta solo i codici degli interventi, senza descrizione). Proposta da far decidere all'utente: (a) leggere i valori da TX-0060 dell'elenco operativo (csr.tx-0060.read, che hanno tutti i profili con csr.tx-0018.read: P1, P2, P3 area fisica, P5), lettura dichiarata nella route senza cambiare transazioni e grant di TX-0018; (b) campo additivo sulla risposta di TX-0018 con i valori dei filtri (risigillo della sola slice fisico, green-be); (c) solo il filtro Intervento con i codici della risposta, senza descrizioni ne' obiettivi e azioni. Campagna (un solo anno, parametro non ripetibile): valori = campagne presenti nella risposta letta senza campagna. Il wireframe disegna il pannello come nel finanziario (intervento, obiettivi, azione portante, campagna)."
     },
     {
       "id": "OP-FIS-02",
       "kind": "altro",
-      "detail": "Ultimo dato sincronizzato (NFR-25 b): nessun DTO della slice fisico lo porta (nel finanziario viene da TX-0001, nell'elenco da TX-0057 e TX-0059). La barra dei filtri delle pagine del fisico non lo mostra. Alternative da far decidere all'utente: accettare l'assenza; mostrarlo a chi ha csr.tx-0001.read leggendo TX-0001 (il P3 dell'area fisica non lo vedrebbe); oppure campo additivo ultimiDatiSincronizzati sulla risposta di TX-0018 (green-be, risigillo della slice fisico)."
+      "detail": "RISOLTO il 22/10/2026 (decisione G3, D-01 Rev. 3 del backend fisico): la risposta di TX-0018 porta ultimiDatiSincronizzati (UltimoDatoSincronizzato: flusso, conclusoIl), nella forma di TX-0001 del finanziario e di TX-0057/TX-0059 dell'elenco; la pagina delle superfici la mostra come la pill 'Dati al' del finanziario e dell'elenco (conclusione meno recente fra i flussi, dettaglio per flusso), anche al P3 dell'area fisica che non ha TX-0001. TX-0020 non la porta (e' la scheda delle determine di una domanda, come TX-0058 dell'elenco): la pagina delle determine non ha la pill. Restano fuori, come nel finanziario, il marcatore 'dato non aggiornato da N giorni' (NFR-25 c) e il 'da consolidare' (NFR-25 d). Testo originale: Ultimo dato sincronizzato (NFR-25 b): nessun DTO della slice fisico lo porta (nel finanziario viene da TX-0001, nell'elenco da TX-0057 e TX-0059). La barra dei filtri delle pagine del fisico non lo mostra. Alternative da far decidere all'utente: accettare l'assenza; mostrarlo a chi ha csr.tx-0001.read leggendo TX-0001 (il P3 dell'area fisica non lo vedrebbe); oppure campo additivo ultimiDatiSincronizzati sulla risposta di TX-0018 (green-be, risigillo della slice fisico)."
     },
     {
       "id": "OP-FIS-03",
       "kind": "altro",
-      "detail": "Esportazioni: la spec fisico non ha endpoint di export (nel finanziario e nell'elenco GET .../{formato} con l'audit NFR-34 e l'intestazione NFR-50). Le card offrono solo il PNG del grafico, generato nel browser e non registrato in AUDIT_ESPORTAZIONE (stesso limite di OP-FE-08); la vista Tabella non ha 'Esporta CSV/XLSX'. Se serve l'export della tabella delle superfici: endpoint additivo del backend (es. GET /api/fisico/superficie-ammissibile/{formato}, csv e xlsx, stessi filtri, X-Requested-With), risigillo della slice fisico."
+      "detail": "RISOLTO il 22/10/2026 (decisione G3, D-06 del backend fisico): GET /api/fisico/superficie-ammissibile/{formato}, csv o xlsx, senza operationId come gli export del finanziario, grant csr.tx-0018.read, header X-Requested-With, stessi parametri della lettura; intestazione di D-08 (fonte, filtri, perimetro, data di estrazione, profili, ultimo dato sincronizzato per flusso, uso interno) e una riga di AUDIT_ESPORTAZIONE per file; una riga per intervento e campagna, nessun totale; oltre 5.000 righe o 50.000 celle 400 DATO_NON_VALIDO (il messaggio invita a restringere i filtri), 503 ESPORTAZIONE_NON_REGISTRATA da riprovare. Download per formato come nel finanziario: PNG, CSV e XLSX in ogni card grafico (CSV e XLSX con la campagna della card nelle due card della campagna di riferimento, coi filtri della pagina nella serie per campagna) e CSV e XLSX negli strumenti della vista Tabella. Il PNG resta del frontend, non registrato in AUDIT_ESPORTAZIONE (OP-FE-08 del finanziario). TX-0020 non ha export. Testo originale: Esportazioni: la spec fisico non ha endpoint di export (nel finanziario e nell'elenco GET .../{formato} con l'audit NFR-34 e l'intestazione NFR-50). Le card offrono solo il PNG del grafico, generato nel browser e non registrato in AUDIT_ESPORTAZIONE (stesso limite di OP-FE-08); la vista Tabella non ha 'Esporta CSV/XLSX'. Se serve l'export della tabella delle superfici: endpoint additivo del backend (es. GET /api/fisico/superficie-ammissibile/{formato}, csv e xlsx, stessi filtri, X-Requested-With), risigillo della slice fisico."
     },
     {
       "id": "OP-FIS-04",
@@ -304,17 +376,29 @@
     {
       "id": "OP-FIS-06",
       "kind": "altro",
-      "detail": "Card dell'ambito Fisico in src/app/aree.ts (AREE_FUTURE) diversa dalla slice: 'Output programmato e realizzato dal 2023 al 2029' e' TX-0017 (RF017, slice istituzionale, gia' nella card Istituzionale come 'Output regionale per intervento'); 'Pagamenti per Unit Amount' e' TX-0030 (RF030, slice procedurale); TX-0020 della slice fisico (RF020, area 'P - Procedurale' nella SR) non e' nella card Fisico e la card Procedurale cita 'Determine, responsabili e ADA di riferimento'. Da far decidere all'utente (non risolto qui): testo della card Fisico, area di menu della pagina delle determine e dove stanno TX-0017 e TX-0030. Questa feature copre solo TX-0018 e TX-0020; la card la tocca lo step6."
+      "detail": "RISOLTO il 22/10/2026 (decisione G1 dell'utente del 21/10/2026: card della Home = contenuto reale delle feature): la card Fisico descrive superfici ammissibili (TX-0018) e determine di una domanda (TX-0020); l'output programmato e realizzato (TX-0017) e' della card Istituzionale e i pagamenti per Unit Amount (TX-0030) della card Procedurale, come le loro feature; la pagina delle determine resta nella feature fisico e nel menu Fisico. La card in src/app/aree.ts la allinea lo step6 (layer app/, fuori da questa feature: uiplan-patterns 7). Testo originale: Card dell'ambito Fisico in src/app/aree.ts (AREE_FUTURE) diversa dalla slice: 'Output programmato e realizzato dal 2023 al 2029' e' TX-0017 (RF017, slice istituzionale, gia' nella card Istituzionale come 'Output regionale per intervento'); 'Pagamenti per Unit Amount' e' TX-0030 (RF030, slice procedurale); TX-0020 della slice fisico (RF020, area 'P - Procedurale' nella SR) non e' nella card Fisico e la card Procedurale cita 'Determine, responsabili e ADA di riferimento'. Da far decidere all'utente (non risolto qui): testo della card Fisico, area di menu della pagina delle determine e dove stanno TX-0017 e TX-0030. Questa feature copre solo TX-0018 e TX-0020; la card la tocca lo step6."
     },
     {
       "id": "OP-FIS-07",
       "kind": "altro",
-      "detail": "Voci di menu e Home: l'area Fisico passa da AREE_FUTURE ad AREE in src/app/aree.ts allo step6 (layer app/, fuori dalle feature, uiplan-patterns 7), con le voci 'Superfici ammissibili' (/fisico/superfici, grant csr.tx-0018.read) e 'Determine di una domanda' (/fisico/determine, grant csr.tx-0020.read), visibili solo col grant della route."
+      "detail": "Voci di menu e Home: l'area Fisico passa da AREE_FUTURE ad AREE in src/app/aree.ts allo step6 (layer app/, fuori dalle feature, uiplan-patterns 7), con le voci 'Superfici ammissibili' (/fisico/superfici, grant csr.tx-0018.read) e 'Determine di una domanda' (/fisico/determine, grant csr.tx-0020.read), visibili solo col grant della route; il testo della card e' quello di G1 (OP-FIS-06)."
     },
     {
       "id": "OP-FIS-08",
       "kind": "altro",
       "detail": "Ingresso alla pagina delle determine dall'elenco operativo: un link dalla scheda della domanda (scheda Determine) verso /fisico/determine/:codice? lo dichiarerebbe la feature elenco-operativo nel suo refresh (target_feature fisico), come OP-EO-03 per il finanziario; finche' manca, si entra dal menu e si scrive il codice. Il passaggio inverso (da qui alla scheda della domanda) e' il link scheda-domanda di questa feature."
+    },
+    {
+      "id": "OP-FIS-09",
+      "kind": "coperta-da-altra-feature",
+      "feature": "elenco-operativo",
+      "blocks": [
+        "TX-0056",
+        "TX-0057",
+        "TX-0058",
+        "TX-0059"
+      ],
+      "detail": "La slice elenco-operativo e' pinnata da questa feature solo per TX-0060, fonte dei valori del pannello dei filtri delle superfici (G2, OP-FIS-01). Le sue altre transazioni le rende la feature elenco-operativo nei suoi flussi approvati: TX-0056 e TX-0057 (domande), TX-0058 (dettaglio-domanda), TX-0059 (pagamenti). Il link scheda-domanda della pagina delle determine verso /elenco-operativo/domande/:tipo/:codiceABarre (TX-0058) resta un link dichiarato verso quella feature, non una route di questa. Effetto del pin: un cambio del contratto dell'elenco operativo rende STALE anche questa feature (refresh)."
     }
   ]
 }

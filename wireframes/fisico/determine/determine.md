@@ -4,6 +4,10 @@
 > del flusso (`wireframes/fisico/determine/`, hash da `wireframe-hash.sh`): modificare un file qui invalida
 > l'approvazione del flusso (e solo di questo flusso).
 
+Rivisto il 22/10/2026: contratto del giro G3 del backend (TX-0020 invariata: niente export ne' ultimo dato sincronizzato,
+D-01 Rev. 3 e D-06 di fisico) e decisione G1 dell'utente del 21/10/2026 (la card Fisico della Home elenca superfici e
+determine; la pagina resta nella feature della sua slice, nel menu Fisico).
+
 ## Route del flusso
 
 | route | kind | pattern | grant (verbatim dal catalogo) |
@@ -26,6 +30,10 @@ Vocabolario del kit UI v2 (ADR 0027 di green-fe), lo stesso della scheda della d
   barre, Cerca) > Testata (tipo della domanda, corrente o chiusa, numero di determine, "Apri la scheda della domanda") >
   KPI x4 (determina corrente, determine con riga aperta, da dove vengono stato area programmazione e comparto) > Card
   tabella "Determine con riga aperta" > Stati
+
+Niente barra dei filtri, pill "Dati al" e download: TX-0020 non ha parametri di query, non porta `ultimiDatiSincronizzati`
+e non ha un endpoint di export (il backend li ha dati ai soli report: TX-0020 e' una scheda, come TX-0058 dell'elenco, che
+non porta l'ultimo dato). Nessun campo nuovo rispetto al 21/10.
 
 ## Grafici del flusso
 
@@ -79,8 +87,8 @@ Nessun parametro di query: TX-0020 ha solo il codice a barre, nel path.
 
 ## Punti aperti che toccano questo flusso
 
-- OP-FIS-06: TX-0020 (RF020) e' nell'area "P - Procedurale" della SR e la card Procedurale cita le determine, ma sta nella
-  slice fisico: in quale area di menu va la pagina lo decide l'utente (step6).
+- OP-FIS-06: risolto il 22/10/2026 con G1: la pagina sta nel menu Fisico e nella card Fisico della Home (la card
+  Procedurale non cita piu' le determine); lo allinea lo step6.
 - OP-FIS-07: voce di menu "Determine di una domanda" (/fisico/determine) nel layer app/ allo step6.
 - OP-FIS-08: link dalla scheda della domanda dell'elenco operativo verso questa pagina (refresh della feature elenco-operativo).
 - Audit (D-04 del backend, informativo): il registro conserva chi, quando ed esito della lettura, non quale domanda (il

@@ -4,24 +4,34 @@
 > del flusso (`wireframes/fisico/superfici/`, hash da `wireframe-hash.sh`): modificare un file qui invalida
 > l'approvazione del flusso (e solo di questo flusso).
 
+Rifatto il 22/10/2026 sui contratti del giro G3 del backend (TX-0018 con `ultimiDatiSincronizzati` ed export
+`superficie-ammissibile/{formato}`) e sulla decisione G2 dell'utente del 21/10/2026 (valori dei filtri da TX-0060
+dell'elenco operativo).
+
 ## Route del flusso
 
 | route | kind | pattern | grant (verbatim dal catalogo) |
 |---|---|---|---|
-| /fisico/superfici | report | report v2 (KPI, card grafico con Grafico, Tabella e Scarica, interruttore di pagina Grafico, Tabella, tabella interattiva, drawer, pannello dei filtri) | csr.tx-0018.read |
+| /fisico/superfici | report | report v2 (KPI, card grafico con Grafico, Tabella e download per formato, interruttore di pagina Grafico, Tabella, tabella interattiva, drawer, pannello dei filtri) | csr.tx-0018.read |
 
 Profili con il grant (catalogo): p1-dirigente, p2-referente-adg, p3-funzionario-area-fis, p5-amministratore-funzionale.
 P4, P6, P7 e i P3 delle altre aree non lo hanno (la SR elenca anche P6 e P7 in RF018: fa fede il catalogo approvato).
+
+Transazioni della route: TX-0018 (il report) e TX-0060 dell'elenco operativo (solo i valori del pannello dei filtri, G2).
+La visibilita' della route resta il solo csr.tx-0018.read: csr.tx-0060.read e' di tutti gli 11 profili e la visibilita' e'
+"almeno un grant", quindi aggiungerlo aprirebbe la pagina a chi non legge TX-0018. La lettura di TX-0060 e' un'azione
+hide-by-role con csr.tx-0060.read (step6), che tutti i profili con csr.tx-0018.read hanno.
 
 ## Component tree (per pagina)
 
 Vocabolario del kit UI v2 (ADR 0027 di green-fe), lo stesso del finanziario (riepilogo e dotazione).
 
-- /fisico/superfici: Shell > Barra filtri (Filtri, chip Intervento e Campagna, pill del perimetro regionale) > Breadcrumb >
-  Titolo > KPI x4 della campagna di riferimento > Card "Superfici per intervento e campagna" (interruttore di pagina
-  Grafico | Tabella, vista iniziale Grafico: card barre per intervento + card linea per campagna + card barre della verifica
-  incrociata, ognuna col suo interruttore Grafico | Tabella equivalente e Scarica PNG; vista Tabella: cerca, colonne,
-  ordinamento, totali per campagna, paginazione) > Drawer di anteprima dell'intervento > Pannello dei filtri > Stati
+- /fisico/superfici: Shell > Barra filtri (Filtri, chip Intervento e Campagna, pill del perimetro regionale, pill "Dati al
+  gg/mm/aaaa" con il dettaglio per flusso d'import) > Breadcrumb > Titolo > KPI x4 della campagna di riferimento > Card
+  "Superfici per intervento e campagna" (interruttore di pagina Grafico | Tabella, vista iniziale Grafico: card barre per
+  intervento + card linea per campagna + card barre della verifica incrociata, ognuna col suo interruttore Grafico | Tabella
+  equivalente e i download PNG, CSV, XLSX; vista Tabella: cerca, colonne, Scarica CSV e XLSX, ordinamento, totali per
+  campagna, paginazione) > Drawer di anteprima dell'intervento > Pannello dei filtri (voci da TX-0060) > Stati
 
 ## Grafici del flusso
 
@@ -42,7 +52,36 @@ superficie DS (con le domande di sostegno), superficie DP (con le domande di pag
 oltre la DS (con la quota sulle domande di pagamento). Superfici in ettari con due decimali; una superficie negativa del
 file ASR2-20 entra col suo segno (D-01 Rev. 2) e si legge col segno meno.
 
-Download: solo il PNG del grafico, generato nel browser (la spec fisico non ha export CSV o XLSX: OP-FIS-03).
+## Ultimo dato sincronizzato ("Dati al")
+
+Dalla risposta di TX-0018 (`ultimiDatiSincronizzati[]`: `flusso`, `conclusoIl`; D-01 Rev. 3 del backend), come il finanziario
+(TX-0001) e l'elenco (TX-0057, TX-0059), con la pill del kit (`PillDatiAl`): "Dati al gg/mm/aaaa" = la conclusione meno
+recente fra le voci (la data fino a cui tutti i flussi sono aggiornati); il clic apre il dettaglio con una voce per flusso
+(etichetta del flusso, data e ora). Nome accessibile: "Ultimo dato sincronizzato: dati al gg/mm/aaaa per tutti i flussi.
+Mostra il dettaglio per flusso". Elenco vuoto: "Ultimo dato sincronizzato: nessuna acquisizione conclusa"; TX-0018 in errore:
+"Ultimo dato sincronizzato: non disponibile"; in caricamento la pill non c'e'. Ora anche il P3 dell'area fisica la vede
+(non ha TX-0001). Restano fuori, come nel finanziario, il marcatore "dato non aggiornato da N giorni" (NFR-25 c).
+
+## Download (PNG, CSV, XLSX)
+
+Come nel finanziario (kit `PulsantiScarica`): un pulsante per formato, con icona e sigla visibili e il nome accessibile
+completo ("Scarica il grafico <titolo> in PNG", "... in CSV", "... in XLSX"); nel low-fi la sigla e' scritta "Scarica PNG",
+"Scarica CSV", "Scarica XLSX".
+
+| dove | PNG | CSV e XLSX |
+|---|---|---|
+| card "Superficie DS e DP per intervento" | immagine del grafico (browser, intestazione NFR-50) | TX-0018 coi filtri della pagina e la campagna del grafico (campagna di riferimento) |
+| card "Superficie DS e DP per campagna" | immagine del grafico | TX-0018 coi filtri della pagina (tutte le campagne, se nessun filtro Campagna) |
+| card "Verifica incrociata" | immagine del grafico | come la card per intervento (campagna di riferimento) |
+| vista Tabella (strumenti) | - | TX-0018 coi filtri della pagina |
+
+CSV e XLSX: `GET /api/fisico/superficie-ammissibile/{formato}` (csv, xlsx; senza operationId come gli export del
+finanziario), con X-Requested-With e gli stessi parametri della lettura; il backend scrive l'intestazione di D-08 (fonte,
+filtri, perimetro, data di estrazione, profili, ultimo dato sincronizzato per flusso, uso interno) e registra il file in
+AUDIT_ESPORTAZIONE (D-06 di fisico). Nel file una riga per intervento e campagna, nessun totale; un intervento senza
+superfici ha la campagna vuota e NON_VALORIZZATO. Oltre 5.000 righe o 50.000 celle: 400 DATO_NON_VALIDO, il messaggio invita
+a restringere i filtri; 403 RICHIESTA_NON_AMMESSA senza X-Requested-With; 503 ESPORTAZIONE_NON_REGISTRATA da riprovare. Il
+PNG non e' registrato in AUDIT_ESPORTAZIONE (stesso limite di OP-FE-08 del finanziario).
 
 ## Link del flusso (drill-down dichiarati)
 
@@ -65,33 +104,57 @@ TX-0018 non si riproduce con i parametri di TX-0056 (OP-FIS-05).
 | /fisico/superfici | azione | TX-0018.azione | si | no |
 | /fisico/superfici | campagna | TX-0018.campagna | no (un solo anno: ripetuto = 400) | no (assente = tutte le campagne) |
 
-Il pannello applica i filtri con "Applica i filtri" (come il finanziario: e' un report, non un'interrogazione). I valori
-delle voci (interventi con descrizione, obiettivi, azioni portanti) non sono nella slice fisico: fonte da decidere (OP-FIS-01).
+Il pannello applica i filtri con "Applica i filtri" (come il finanziario: e' un report, non un'interrogazione).
+
+Voci del pannello (decisione G2): da TX-0060 dell'elenco operativo (`GET /api/elenco-operativo/filtri`, csr.tx-0060.read),
+valori regionali per tutti i profili con csr.tx-0018.read (nessuno ha un perimetro ADA):
+
+| gruppo | voci (TX-0060) | parametro di TX-0018 |
+|---|---|---|
+| Intervento | `interventi[]` (chiave e descrizione; senza AT001), con la ricerca per codice o descrizione | intervento |
+| Obiettivo specifico | `obiettiviSpecifici[].chiave` (solo codice) | os |
+| Obiettivo generale | `obiettiviGenerali[]` (testo della gerarchia) | og |
+| Obiettivo di policy | `obiettiviPolicy[]` (testo della gerarchia) | op |
+| Azione portante | `azioniPortanti[]` (chiave e descrizione); gruppo disabilitato con la spiegazione se `legameAzioniDisponibile` e' falso | azione |
+| Campagna | campagne della risposta di TX-0018 (`righe[].campagne[].anno`), una sola o "Tutte le campagne" | campagna |
+
+La descrizione dell'intervento nell'anteprima viene dalle stesse voci. Senza il grant csr.tx-0060.read o con TX-0060 in
+errore (stato "valori dei filtri non disponibili"): Intervento propone i codici delle righe della risposta senza
+descrizione, obiettivi e azione portante non hanno voci, i filtri gia' nell'indirizzo restano chip rimovibili e il report si
+legge comunque. Campagna: aperta la pagina con una campagna nell'indirizzo, la risposta ha solo quella campagna e il gruppo
+propone quella e "Tutte le campagne".
 
 ## Stati resi (obbligatori)
 
 - vuoto: "Nessun intervento per i filtri scelti" con "Modifica i filtri"; e "Nessuna superficie per gli interventi scelti"
   quando tutte le righe hanno motivo NON_VALORIZZATO (mai una pagina di zeri)
+- valori dei filtri non disponibili: TX-0060 in errore o senza grant, il report resta (vedi sopra)
 - caricamento: scheletro dei KPI e delle card, `role="status"` + `aria-live="polite"`
 - errore: `role="alert"`, discriminato sul problem-type `urn:cruscottocsr:problem:*` (400 DATO_NON_VALIDO filtri non validi;
   403 ACCESSO_NEGATO o RICHIESTA_NON_AMMESSA; 429 TROPPE_RICHIESTE e 503 CAPACITA_ESAURITA o TEMPO_SCADUTO ritentati
-  rispettando Retry-After; 401/419 sessione)
+  rispettando Retry-After; 401/419 sessione); errore di un download sotto i suoi pulsanti, `role="alert"` col motivo (es.
+  oltre il limite di righe dell'export)
 
 ## Note WCAG 2.2 (residuo manuale DICHIARATO)
 
 - Meccanizzato a valle (step7/step8): tab-order, focus sul titolo dopo il cambio di route, focus-trap di pannello e
   drawer, tabella equivalente di ogni grafico, axe (nel lint di step1: axe deferito a step8, bloccante nel gate 11/11).
+- Download per formato: sigla visibile contenuta nel nome accessibile (2.5.3); durante la preparazione aria-disabled e focus
+  sul pulsante attivato (2.4.3); esito in `role="status"`, errore in `role="alert"` col motivo (come il finanziario, V-07).
+- Pill "Dati al" come pulsante col nome accessibile completo; il dettaglio per flusso e' un dialogo con nome.
 - RESIDUO umano da verificare qui: ordine di lettura di KPI, card e tabella; didascalie dei grafici; comprensibilita' di
-  "DS", "DP" e "differenza DP - DS" (sciolte per esteso nel sottotitolo e nei nomi accessibili dei KPI); contrasto della
-  resa finale (il low-fi non fa fede sul colore).
+  "DS", "DP" e "differenza DP - DS" (sciolte per esteso nel sottotitolo e nei nomi accessibili dei KPI); comprensibilita'
+  della differenza fra il file della card (campagna di riferimento) e quello della tabella (tutte le campagne); contrasto
+  della resa finale (il low-fi non fa fede sul colore).
 - Valori negativi riconoscibili senza colore (segno meno nel testo e nella tabella equivalente); assenze dette in testo
   ("non valorizzato", "non disponibile (fonte non attiva)"), mai uno zero.
 
 ## Punti aperti che toccano questo flusso
 
-- OP-FIS-01: valori del pannello dei filtri (TX-0060 dell'elenco, campo additivo su TX-0018, o solo Intervento).
-- OP-FIS-02: ultimo dato sincronizzato assente dai DTO della slice fisico.
-- OP-FIS-03: nessun export CSV o XLSX nella spec fisico; il PNG non e' registrato in AUDIT_ESPORTAZIONE.
-- OP-FIS-04: quantita' richiesta a premio sempre FONTE_NON_ATTIVA (D-02 del backend).
+- OP-FIS-01, OP-FIS-02, OP-FIS-03: risolti il 22/10/2026 (G2: voci da TX-0060; G3: ultimo dato ed export di TX-0018).
+- OP-FIS-04: quantita' richiesta a premio sempre FONTE_NON_ATTIVA (D-02 del backend), informativo.
 - OP-FIS-05: nessun drill-down verso l'elenco operativo (insieme di domande non riproducibile).
-- OP-FIS-06 e OP-FIS-07: card dell'ambito e voci di menu (step6, layer app/).
+- OP-FIS-06: risolto (G1: la card Fisico della Home elenca superfici e determine; la allinea lo step6).
+- OP-FIS-07: voci di menu e Home nel layer app/ (step6), informativo.
+- OP-FIS-09: TX-0056, TX-0057, TX-0058 e TX-0059 della slice elenco-operativo, pinnata per TX-0060, restano rese
+  dall'elenco operativo (copertura per delega).

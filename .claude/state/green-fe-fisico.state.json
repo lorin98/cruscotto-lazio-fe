@@ -13,9 +13,9 @@
       ],
       "gates": {
         "handover_verified": {
-          "approved_hash": "sha256:61e7ad6f8ee5447e2bd8bf3f3b3ce38b4ee57346201704e499854c86d41e573f",
+          "approved_hash": "sha256:e38f48c5801c420be018b86bf448ad4e9caa45953509109e85e468e38913459d",
           "baseline_ref": "./plan/fisico/handover.json",
-          "approved_at": "2026-10-21T13:02:18Z"
+          "approved_at": "2026-10-22T08:32:15Z"
         }
       }
     }

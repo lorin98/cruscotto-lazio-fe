@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!-- Wireframe v2 (template wireframe-v2 di green-fe, ADR 0027), feature fisico, flusso determine. Valori di esempio presi
-     dagli scenari di accettazione del backend (fisico-scenarios.json), nessun dato reale. -->
+     dagli scenari di accettazione del backend (fisico-scenarios.json), nessun dato reale. Rivisto il 22/10/2026 dopo il giro
+     G3 del backend (TX-0020 resta senza export e senza ultimo dato) e la decisione G1 (pagina nel menu Fisico). -->
 <html lang="it">
 <head>
 <meta charset="utf-8">
@@ -68,6 +69,7 @@
     </section>
     <p class="wf-note">Ruoli (grant verbatim): csr.tx-0020.read - Transazioni: TX-0020 (RF020). Una lettura per codice a barre, senza filtri ne perimetro (sempre regionale, D-04 del backend). "Apri la scheda della domanda" porta alla scheda della domanda nell'elenco operativo (link scheda-domanda: tipo e codice dalla risposta); si vede solo con il grant csr.tx-0058.read e con la domanda non chiusa.</p>
     <p class="wf-note">Lo stesso codice a barre puo' essere di una domanda di sostegno e di una di pagamento: la risposta sceglie quella con le determine agganciate (righe aperte) e, a parita', prima la aperta e fra le aperte la domanda di pagamento (D-03 Rev. 3). La testata dice quale tipo e se la domanda e' chiusa.</p>
+    <p class="wf-note">Niente pill "Dati al" e niente download: TX-0020 non porta l'ultimo dato sincronizzato e non ha export (giro G3 del backend, D-01 Rev. 3 e D-06 di fisico: e' la scheda delle determine di una domanda, non un report, come la scheda TX-0058 dell'elenco). La pagina sta nel menu Fisico e nella card Fisico della Home (decisione G1 del 21/10/2026; menu e Home li allinea lo step6).</p>
     <div class="ui-griglia ui-griglia--4">
       <section class="ui-kpi" aria-label="Determina corrente">
         <p>Determina corrente</p>

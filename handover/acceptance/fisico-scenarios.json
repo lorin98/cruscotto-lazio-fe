@@ -199,6 +199,32 @@
       "test_tag": "SC-FS_AUDIT",
       "approved": true,
       "role": "p1-dirigente"
+    },
+    {
+      "scenario_id": "SC-FS_ULTIMO_DATO",
+      "req_uids": [
+        "RU-00000018"
+      ],
+      "given": "[NFR-25] un'esecuzione d'import SUCCESS di un flusso proprio conclusa il 2026-03-02 alle 09:30 UTC; un P3 dell'area fisica (senza il grant di TX-0001) e un utente che legge anche TX-0001",
+      "when": "GET /api/fisico/superficie-ammissibile",
+      "then": "200 con la superficie ammissibile e ultimiDatiSincronizzati: per ogni flusso d'import con un'esecuzione conclusa la conclusione della piu' recente, il flusso proprio con 2026-03-02T09:30:00Z, lo stesso elenco di GET /api/finanziario/filtri (TX-0001) per chi lo puo' leggere, anche al P3 dell'area, che TX-0001 non lo legge (403); letto fuori dal tetto delle letture e fuori dall'audit: per ogni richiesta una sola riga di AUDIT_CONSULTAZIONE, quella del report (D-01 Rev. 3)",
+      "kind": "positive",
+      "test_tag": "SC-FS_ULTIMO_DATO",
+      "approved": true,
+      "role": "p3-funzionario-area"
+    },
+    {
+      "scenario_id": "SC-FS_ESPORTA",
+      "req_uids": [
+        "RU-00000018"
+      ],
+      "given": "[NFR-06, NFR-34, NFR-50] un intervento A con tre domande di pagamento ASR2-20 in ettari: due del 2025 della stessa domanda di sostegno (DS 10,50 e 10,50, DP 9,00 e 1,20) e una del 2024 (DS 5,00, DP 6,00); un intervento B senza superfici; un'acquisizione conclusa; un P3 dell'area fisica, un P1 e un P4 (senza il grant di TX-0018)",
+      "when": "GET /api/fisico/superficie-ammissibile/csv e /xlsx con ?intervento=A&intervento=B e l'header X-Requested-With, poi con &campagna=2025; poi senza l'header, con HEAD, con /pdf, con ?campagna=abc e da un P4",
+      "then": "200 con allegato (text/csv o XLSX, Content-Disposition attachment tx-0018-<data>.csv|xlsx, Cache-Control no-store): una riga per intervento e campagna con gli stessi numeri della risposta JSON di GET /api/fisico/superficie-ammissibile con gli stessi filtri (A 2024: 1 pagamento, DS 5,00, DP 6,00, differenza 1,00, 1 DP oltre la DS; A 2025: 2 pagamenti e 1 sostegno, DS 10,50, DP 10,20, differenza -0,30; la quantita' a premio FONTE_NON_ATTIVA (QUANTITA_RICHIESTA_PREMIO)), B con la campagna vuota e NON_VALORIZZATO nelle superfici; intestazione con titolo TX-0018, fonte, filtri applicati, perimetro REGIONALE, campagna ('tutte le campagne presenti' o 2025, che lascia le sole righe del 2025), ultimo dato sincronizzato per flusso e dicitura d'uso interno; una riga di AUDIT_ESPORTAZIONE per file (area A3, requisito TX-0018, formato CSV o XLSX, righe e colonne della tabella, campi identificativi falso, impronta dei byte) e la consultazione di TX-0018 in AUDIT_CONSULTAZIONE; senza X-Requested-With 403 RICHIESTA_NON_AMMESSA, HEAD 405, formato sconosciuto 404, campagna non valida 400 DATO_NON_VALIDO, P4 403 ACCESSO_NEGATO: nessun file e nessuna riga di AUDIT_ESPORTAZIONE (D-06)",
+      "kind": "positive",
+      "test_tag": "SC-FS_ESPORTA",
+      "approved": true,
+      "role": "p3-funzionario-area"
     }
   ]
 }

@@ -29,7 +29,7 @@
       "ownership": "fisico",
       "path": "./datamodel/fisico-decisions.json",
       "role": "migration",
-      "sha256": "sha256:7ad923511e0cba4f8c7ebced628f9000ca456b611a2c9907f7a42a7d72430b6f",
+      "sha256": "sha256:7a8a9b1276d9836cf6faab6ceaf41be842dc55d39eaab9e56fcf01810990a26c",
       "step": "step2-datamodel"
     },
     {
@@ -37,7 +37,7 @@
       "ownership": "fisico",
       "path": "./acceptance/fisico-scenarios.json",
       "role": "application",
-      "sha256": "sha256:b4faa2d7cd0c53a4652a678fcab12ac1052e93e0929ec6c4d5d42ebd5a257b2c",
+      "sha256": "sha256:048688017a46c79f3884fef5c3e5b437c6af9a82a585d4e68d72d58798603fbf",
       "step": "step5-service"
     },
     {
@@ -45,7 +45,7 @@
       "ownership": "fisico",
       "path": "./openapi/openapi-fisico.json",
       "role": "adapter-in-rest",
-      "sha256": "sha256:45d08644cf6b3d80349670c978eb3af3a18df757f1e5e9324a928aab50e30c2b",
+      "sha256": "sha256:8558e1f4d278f2e97fc873a3eebbdaffdd54d8e390d245b0c8784dd35822c861",
       "step": "step8-rest"
     }
   ],
@@ -76,17 +76,17 @@
     "step11-review.review": "pass",
     "step1b-scaffold.reactor_compiles": "pass",
     "step2-datamodel.ddl_approved": {
-      "approved_at": "2026-10-05T08:32:56Z",
-      "approved_hash": "sha256:7ad923511e0cba4f8c7ebced628f9000ca456b611a2c9907f7a42a7d72430b6f",
-      "baseline_ref": "sha256:1ef3a90c51c555441a3a3e3fb203dfdaa0f2f7d1861a5664982f33cb828de4c4"
+      "approved_at": "2026-10-21T21:45:02Z",
+      "approved_hash": "sha256:7a8a9b1276d9836cf6faab6ceaf41be842dc55d39eaab9e56fcf01810990a26c",
+      "baseline_ref": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
     },
     "step3-domain.domain_compiles": "pass",
     "step3-domain.domain_pure": "pass",
     "step4-ports.ports_pure": "pass",
     "step5-service.acceptance_approved": {
-      "approved_at": "2026-10-05T08:47:43Z",
-      "approved_hash": "sha256:b4faa2d7cd0c53a4652a678fcab12ac1052e93e0929ec6c4d5d42ebd5a257b2c",
-      "baseline_ref": "sha256:1ef3a90c51c555441a3a3e3fb203dfdaa0f2f7d1861a5664982f33cb828de4c4"
+      "approved_at": "2026-10-21T14:49:00Z",
+      "approved_hash": "sha256:048688017a46c79f3884fef5c3e5b437c6af9a82a585d4e68d72d58798603fbf",
+      "baseline_ref": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
     },
     "step5-service.authz_import_zero": "pass",
     "step6-adapter-pg.adapter_pg_compiles": "pass",
@@ -96,7 +96,7 @@
     "step9-functions.functions": "pass"
   },
   "openapi": {
-    "hash": "sha256:45d08644cf6b3d80349670c978eb3af3a18df757f1e5e9324a928aab50e30c2b",
+    "hash": "sha256:8558e1f4d278f2e97fc873a3eebbdaffdd54d8e390d245b0c8784dd35822c861",
     "path": "./openapi/openapi-fisico.json"
   },
   "pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb",

@@ -95,6 +95,13 @@
         ],
         "type": "object"
       },
+      "Instant": {
+        "examples": [
+          "2022-03-10T16:15:50Z"
+        ],
+        "format": "date-time",
+        "type": "string"
+      },
       "LocalDate": {
         "examples": [
           "2022-03-10"
@@ -204,12 +211,20 @@
               "$ref": "#/components/schemas/SuperficieIntervento"
             },
             "type": "array"
+          },
+          "ultimiDatiSincronizzati": {
+            "description": "Come TX-0001 (NFR-25 b): per ogni flusso d'import con almeno un'esecuzione conclusa (SUCCESS o PARTIAL), la conclusione della piu' recente, in ordine di flusso; la stessa data dell'intestazione degli export. Vuoto finche' nessuna acquisizione e' conclusa",
+            "items": {
+              "$ref": "#/components/schemas/UltimoDatoSincronizzato"
+            },
+            "type": "array"
           }
         },
         "required": [
           "campagna",
           "perimetro",
-          "righe"
+          "righe",
+          "ultimiDatiSincronizzati"
         ],
         "type": "object"
       },
@@ -294,6 +309,21 @@
           "motivo",
           "campagne"
         ],
+        "type": "object"
+      },
+      "UltimoDatoSincronizzato": {
+        "description": "NFR-25 (b): ultimo dato sincronizzato di un flusso d'import",
+        "properties": {
+          "conclusoIl": {
+            "$ref": "#/components/schemas/Instant",
+            "description": "Conclusione dell'esecuzione SUCCESS o PARTIAL piu' recente del flusso",
+            "type": "string"
+          },
+          "flusso": {
+            "description": "Flusso d'import del registro IMPORT_RUN, es. PROSA_DS04",
+            "type": "string"
+          }
+        },
         "type": "object"
       }
     },
@@ -582,6 +612,192 @@
           }
         ],
         "summary": "TX-0018: superficie ammissibile DS e DP per intervento e campagna, con il confronto",
+        "tags": [
+          "Fisico"
+        ]
+      }
+    },
+    "/api/fisico/superficie-ammissibile/{formato}": {
+      "get": {
+        "parameters": [
+          {
+            "description": "Formato del file: csv (UTF-8 con BOM, punto e virgola) o xlsx (foglio Office Open XML: numeri come numeri, testi mai formule)",
+            "in": "path",
+            "name": "formato",
+            "required": true,
+            "schema": {
+              "enum": [
+                "csv",
+                "xlsx"
+              ]
+            }
+          },
+          {
+            "description": "Id dell'azione portante (ripetibile, numerico)",
+            "in": "query",
+            "name": "azione",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Anno di campagna, 2000-2100; assente = tutte le campagne presenti",
+            "example": 2025,
+            "in": "query",
+            "name": "campagna",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Codice intervento (ripetibile); l'Assistenza tecnica AT001 non e' selezionabile",
+            "in": "query",
+            "name": "intervento",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Obiettivo generale, testo della gerarchia (ripetibile)",
+            "in": "query",
+            "name": "og",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Obiettivo di policy, testo della gerarchia (ripetibile)",
+            "in": "query",
+            "name": "op",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Codice dell'obiettivo specifico (ripetibile): seleziona gli interventi collegati, ognuno una volta",
+            "in": "query",
+            "name": "os",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              },
+              "text/csv; charset=UTF-8": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "File CSV (UTF-8 con BOM, separatore punto e virgola, virgola decimale, testi tra virgolette) o XLSX (un foglio, stesso contenuto): intestazione con fonte, filtri, data di estrazione, profili, ultimo dato sincronizzato per flusso e uso interno, poi la tabella. Registrato in AUDIT_ESPORTAZIONE col formato",
+            "headers": {
+              "Content-Disposition": {
+                "description": "attachment, con il nome del file CSV o XLSX da salvare",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Filtri non validi, oppure tabella oltre il limite dell'export sincrono di 5.000 righe o 50.000 celle (DATO_NON_VALIDO: restringere i filtri)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Non autenticato"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Senza il grant della transazione (ACCESSO_NEGATO), oppure richiesta senza l'header X-Requested-With (o un bearer) o da un'origine non ammessa (RICHIESTA_NON_AMMESSA): l'export si scarica con una richiesta dell'applicazione, non con un collegamento"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Troppe richieste dello stesso utente in un minuto, o troppe autenticazioni con bearer fallite dallo stesso indirizzo (TROPPE_RICHIESTE): riprovare dopo i secondi di Retry-After",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Da riprovare (header Retry-After): troppe letture in corso (CAPACITA_ESAURITA), lettura oltre il tetto di durata (TEMPO_SCADUTO) o esportazione non registrata nel registro di audit (ESPORTAZIONE_NON_REGISTRATA)",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SecurityScheme": [
+              "csr.tx-0018.read"
+            ]
+          }
+        ],
+        "summary": "TX-0018 in CSV o XLSX (esportazione, D-08 di nfr-conformance, D-06 di fisico)",
         "tags": [
           "Fisico"
         ]

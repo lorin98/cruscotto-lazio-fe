@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!-- Wireframe v2 (template wireframe-v2 di green-fe, ADR 0027), feature fisico, flusso superfici. Valori di esempio presi
-     dagli scenari di accettazione del backend (fisico-scenarios.json), nessun dato reale. -->
+     dagli scenari di accettazione del backend (fisico-scenarios.json), nessun dato reale. Rifatto il 22/10/2026 dopo il
+     giro G3 del backend (ultimo dato sincronizzato ed export di TX-0018) e la decisione G2 (valori dei filtri da TX-0060). -->
 <html lang="it">
 <head>
 <meta charset="utf-8">
@@ -48,6 +49,7 @@
       <span class="ui-chip">Intervento: SRB01 <button class="btn" type="button" aria-label="Togli il filtro Intervento SRB01">x</button></span>
       <span class="ui-chip">Campagna: 2025 <button class="btn" type="button" aria-label="Togli il filtro Campagna 2025">x</button></span>
       <span class="ui-pill">Perimetro: regionale, sempre (nessun perimetro ADA per le letture del fisico)</span>
+      <button class="ui-pill" type="button" aria-label="Ultimo dato sincronizzato: dati al 02/03/2026 per tutti i flussi. Mostra il dettaglio per flusso">Dati al 02/03/2026</button>
     </div>
     <nav class="breadcrumb-container" aria-label="Percorso">
       <ol class="breadcrumb">
@@ -60,9 +62,9 @@
       <h1>Fisico: superfici ammissibili per intervento</h1>
       <p>Superficie ammissibile delle domande di sostegno (DS) e delle domande di pagamento (DP) per intervento e campagna, con la verifica incrociata fra le due. Clic su una barra per l'anteprima dell'intervento; nella vista Tabella cerca, ordina e scegli le colonne.</p>
     </div>
-    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0018.read - Transazioni: TX-0018 (RF018). Una sola lettura per pagina, con i filtri dell'indirizzo (intervento, os, og, op, azione, campagna); l'Assistenza tecnica AT001 non e' selezionabile ne' elencata. Superfici in ettari con due decimali (D-01 e D-04 del backend).</p>
+    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0018.read - Transazioni: TX-0018 (RF018) e, per i soli valori del pannello dei filtri, TX-0060 dell'elenco operativo (RA006, letta solo con csr.tx-0060.read: lo hanno tutti i profili con csr.tx-0018.read; decisione G2 del 21/10/2026). Una lettura di TX-0018 per pagina, con i filtri dell'indirizzo (intervento, os, og, op, azione, campagna); l'Assistenza tecnica AT001 non e' selezionabile ne' elencata. Superfici in ettari con due decimali (D-01 e D-04 del backend).</p>
     <p class="wf-note">Campagne: le superfici di campagne diverse non si sommano (D-01: un impegno pluriennale ripete la stessa superficie DS in piu' campagne). KPI, barre per intervento e verifica incrociata sono della campagna scelta col filtro Campagna o, senza filtro, della campagna piu' recente presente nella risposta (detto nel titolo dei KPI); la serie per campagna le mostra tutte. I KPI sono somme delle righe della campagna: il report e' completo, senza paginazione.</p>
-    <p class="wf-note">Barra dei filtri: niente "ultimo dato sincronizzato", nessun DTO della slice fisico lo porta (OP-FIS-02). Valori del pannello dei filtri: da decidere (OP-FIS-01).</p>
+    <p class="wf-note">"Dati al": la data fino a cui tutti i flussi d'import sono aggiornati (la conclusione meno recente fra le voci di ultimiDatiSincronizzati della risposta di TX-0018), come nel finanziario e nell'elenco; il clic apre il dettaglio con una voce per flusso (flusso, data e ora). Senza acquisizioni concluse: "Ultimo dato sincronizzato: nessuna acquisizione conclusa"; con TX-0018 in errore: "Ultimo dato sincronizzato: non disponibile".</p>
     <h2>Totali della campagna 2025</h2>
     <div class="ui-griglia ui-griglia--4">
       <section class="ui-kpi" aria-label="Superficie ammissibile delle domande di sostegno, campagna 2025">
@@ -93,44 +95,45 @@
         <section class="ui-card" aria-labelledby="g-int">
           <div class="ui-card__testa">
             <h2 id="g-int">Superficie DS e DP per intervento, campagna 2025</h2>
-            <div class="ui-seg" role="group" aria-label="Vista di Superficie DS e DP per intervento"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica PNG</button></div>
+            <div class="ui-seg" role="group" aria-label="Vista di Superficie DS e DP per intervento"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica PNG</button> <button class="btn" type="button">Scarica CSV</button> <button class="btn" type="button">Scarica XLSX</button></div>
           </div>
           <figure class="ui-grafico ui-grafico--barre">
             <figcaption>Barre raggruppate con zoom oltre 12 interventi: superficie DS e superficie DP di ogni intervento nella campagna. Clic su una barra: anteprima dell'intervento. Interventi senza superfici (non a superficie o non SIGC): fuori dal grafico, elencati sotto.</figcaption>
           </figure>
-          <p class="ui-fonte">Fonte: TX-0018. 1 intervento senza superfici, non valorizzato: SRA29. La tabella equivalente mostra gli stessi valori.</p>
+          <p class="ui-fonte">Fonte: TX-0018. 1 intervento senza superfici, non valorizzato: SRA29. La tabella equivalente mostra gli stessi valori. CSV e XLSX: la tabella di TX-0018 della campagna 2025 (i filtri della pagina e la campagna del grafico), come il grafico; PNG: l'immagine del grafico.</p>
         </section>
         <section class="ui-card" aria-labelledby="g-camp">
           <div class="ui-card__testa">
             <h2 id="g-camp">Superficie DS e DP per campagna</h2>
-            <div class="ui-seg" role="group" aria-label="Vista di Superficie DS e DP per campagna"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica PNG</button></div>
+            <div class="ui-seg" role="group" aria-label="Vista di Superficie DS e DP per campagna"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica PNG</button> <button class="btn" type="button">Scarica CSV</button> <button class="btn" type="button">Scarica XLSX</button></div>
           </div>
           <figure class="ui-grafico ui-grafico--linea">
             <figcaption>Linea: superficie DS e superficie DP degli interventi scelti, campagna per campagna (somma degli interventi dentro ogni campagna, mai fra campagne). Clic su un punto: filtro Campagna su quell'anno.</figcaption>
           </figure>
-          <p class="ui-fonte">Fonte: TX-0018 letta senza filtro Campagna. Con una campagna scelta la serie non si disegna: "Togli il filtro Campagna per vedere tutte le campagne".</p>
+          <p class="ui-fonte">Fonte: TX-0018 letta senza filtro Campagna. Con una campagna scelta la serie non si disegna: "Togli il filtro Campagna per vedere tutte le campagne". CSV e XLSX: la tabella di TX-0018 coi filtri della pagina, tutte le campagne.</p>
         </section>
       </div>
       <section class="ui-card" aria-labelledby="g-ver">
         <div class="ui-card__testa">
           <h2 id="g-ver">Verifica incrociata: differenza DP - DS per intervento, campagna 2025</h2>
-          <div class="ui-seg" role="group" aria-label="Vista di Verifica incrociata"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica PNG</button></div>
+          <div class="ui-seg" role="group" aria-label="Vista di Verifica incrociata"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica PNG</button> <button class="btn" type="button">Scarica CSV</button> <button class="btn" type="button">Scarica XLSX</button></div>
         </div>
         <figure class="ui-grafico ui-grafico--barre">
           <figcaption>Barre orizzontali ordinate, a destra dello zero se la DP supera la DS, a sinistra se e' minore; accanto a ogni barra il numero di domande con DP oltre la DS. Clic su una barra: anteprima dell'intervento.</figcaption>
         </figure>
-        <p class="ui-fonte">Fonte: TX-0018 (differenzaDpDs, domandeDpOltreDs). Quantita' richiesta a premio: non disponibile (fonte non attiva: quantita' richiesta a premio, OP-FIS-04). La tabella equivalente mostra gli stessi valori.</p>
+        <p class="ui-fonte">Fonte: TX-0018 (differenzaDpDs, domandeDpOltreDs). Quantita' richiesta a premio: non disponibile (fonte non attiva: quantita' richiesta a premio, OP-FIS-04). La tabella equivalente mostra gli stessi valori. CSV e XLSX: come il grafico per intervento, campagna 2025.</p>
       </section>
     </section>
+    <p class="wf-note">Download per formato, come nel finanziario: PNG generato nel browser con l'intestazione di NFR-50 (non registrato in AUDIT_ESPORTAZIONE, come OP-FE-08); CSV e XLSX dal backend (GET /api/fisico/superficie-ammissibile/{formato}, con X-Requested-With e gli stessi filtri; il backend registra ogni file in AUDIT_ESPORTAZIONE, D-06). Nel file una riga per intervento e campagna, nessun totale (le campagne non si sommano); un intervento senza superfici ha la campagna vuota e "non valorizzato". Oltre 5.000 righe o 50.000 celle il backend risponde 400: il messaggio invita a restringere i filtri.</p>
     <h2>Vista: Tabella</h2>
-    <p class="wf-note">Con il bottone Tabella di "Vista delle superfici" la tabella prende il posto dei grafici nella stessa card: una riga per intervento e campagna, tutte le campagne della risposta. Niente "Esporta CSV": la spec fisico non ha endpoint di export (OP-FIS-03).</p>
+    <p class="wf-note">Con il bottone Tabella di "Vista delle superfici" la tabella prende il posto dei grafici nella stessa card: una riga per intervento e campagna, tutte le campagne della risposta. "Scarica CSV" e "Scarica XLSX" scaricano la tabella coi filtri della pagina.</p>
     <section class="ui-card" aria-labelledby="t-sup-tabella">
       <div class="ui-card__testa"><h2 id="t-sup-tabella">Superfici per intervento e campagna</h2></div>
       <div class="ui-seg" role="group" aria-label="Vista delle superfici"><button class="btn" type="button" aria-pressed="false">Grafico</button> <button class="btn" type="button" aria-pressed="true">Tabella</button></div>
       <div class="ui-strumenti">
         <label class="form-label" for="t-cerca">Cerca nella tabella</label>
         <input class="form-control" type="search" id="t-cerca" name="t">
-        <button class="btn" type="button">Colonne (10)</button>
+        <button class="btn" type="button">Colonne (10)</button> <button class="btn" type="button">Scarica CSV</button> <button class="btn" type="button">Scarica XLSX</button>
       </div>
       <table class="ui-tabella">
         <caption>Superficie ammissibile DS e DP per intervento e campagna, con la verifica incrociata. Clic o Invio su una riga per l'anteprima dell'intervento.</caption>
@@ -158,11 +161,12 @@
           <tr><th scope="row">Totale campagna 2024 (1 intervento con superfici)</th><td>2024</td><td class="ui-num">1</td><td class="ui-num">1</td><td class="ui-num">10,50</td><td class="ui-num">10,00</td><td class="ui-num">-0,50</td><td class="ui-num">0</td><td class="ui-num">0</td><td></td></tr>
         </tfoot>
       </table>
-      <p class="form-text">Un totale per campagna, nessun totale generale: le campagne non si sommano. "Sostegni con DS discordanti": domande di sostegno riportate dalle domande di pagamento con superfici DS diverse, di cui si e' preso il massimo.</p>
+      <p class="form-text">Un totale per campagna, nessun totale generale: le campagne non si sommano. "Sostegni con DS discordanti": domande di sostegno riportate dalle domande di pagamento con superfici DS diverse, di cui si e' preso il massimo. I totali per campagna stanno solo nella pagina: il file CSV o XLSX non li ha (D-06 del backend).</p>
       <nav class="ui-paginazione" aria-label="Pagine della tabella"><button class="btn" type="button" aria-current="page">1</button> <button class="btn" type="button">2</button></nav>
     </section>
     <aside class="ui-drawer" aria-label="Anteprima dell'intervento SRB01">
       <h2>Anteprima: SRB01</h2>
+      <p>SRB01 - descrizione dell'intervento (da TX-0060)</p>
       <dl>
         <dt>Superficie DS, campagna 2025</dt><dd>15,50 ha</dd>
         <dt>Superficie DP, campagna 2025</dt><dd>16,20 ha</dd>
@@ -177,15 +181,15 @@
       </figure>
       <button class="btn btn-primary" type="button">Mostra solo SRB01</button>
     </aside>
-    <p class="form-text">"Mostra solo SRB01" mette il filtro Intervento sull'intervento (chip nella barra dei filtri) e chiude l'anteprima: resta sulla stessa pagina.</p>
+    <p class="form-text">"Mostra solo SRB01" mette il filtro Intervento sull'intervento (chip nella barra dei filtri) e chiude l'anteprima: resta sulla stessa pagina. La descrizione dell'intervento viene dalle voci di TX-0060; senza, l'anteprima mostra il solo codice.</p>
     <aside class="ui-pannello" id="pannello-filtri" aria-label="Pannello dei filtri">
       <h2>Filtri delle superfici ammissibili</h2>
       <details class="ui-gruppo-filtro" open>
         <summary>Intervento</summary>
         <label class="form-label" for="f-cerca">Cerca per codice o descrizione</label>
         <input class="form-control" type="search" id="f-cerca" name="cerca">
-        <label class="ui-opzione" for="f-1"><input type="checkbox" id="f-1" name="intervento"> SRB01 - descrizione (fonte da decidere, OP-FIS-01)</label>
-        <label class="ui-opzione" for="f-2"><input type="checkbox" id="f-2" name="intervento"> SRA29 - descrizione (fonte da decidere, OP-FIS-01)</label>
+        <label class="ui-opzione" for="f-1"><input type="checkbox" id="f-1" name="intervento" checked> SRB01 - descrizione da TX-0060</label>
+        <label class="ui-opzione" for="f-2"><input type="checkbox" id="f-2" name="intervento"> SRA29 - descrizione da TX-0060</label>
       </details>
       <details class="ui-gruppo-filtro">
         <summary>Obiettivo generale (OG), specifico (OS), di policy (OP)</summary>
@@ -193,15 +197,17 @@
       </details>
       <details class="ui-gruppo-filtro">
         <summary>Azione portante</summary>
-        <p class="form-text">Non disponibile finche' nessun intervento e' collegato a un'azione portante (legameAzioniDisponibile = falso).</p>
+        <p class="form-text">Non disponibile finche' nessun intervento e' collegato a un'azione portante (legameAzioniDisponibile di TX-0060 falso).</p>
       </details>
       <details class="ui-gruppo-filtro" open>
         <summary>Campagna (un solo anno)</summary>
         <button class="ui-toggle-chip" type="button" aria-pressed="false">Tutte le campagne</button> <button class="ui-toggle-chip" type="button" aria-pressed="true">2025</button> <button class="ui-toggle-chip" type="button" aria-pressed="false">2024</button>
       </details>
-      <p class="form-text">Voci dello stesso filtro in alternativa (O); filtri diversi insieme (E). La campagna e' una sola alla volta. I filtri restano nell'indirizzo della pagina.</p>
+      <p class="form-text">Voci di Intervento, obiettivi e azioni portanti da TX-0060 dell'elenco operativo (valori regionali: nessun profilo con csr.tx-0018.read ha un perimetro ADA); voci di Campagna dalle campagne della risposta di TX-0018. Voci dello stesso filtro in alternativa (O); filtri diversi insieme (E). La campagna e' una sola alla volta. I filtri restano nell'indirizzo della pagina.</p>
       <button class="btn" type="button">Azzera</button> <button class="btn btn-primary" type="button">Applica i filtri</button>
     </aside>
+    <h2>Stato: valori dei filtri non disponibili</h2>
+    <div class="ui-vuoto" role="status">Valori dei filtri non disponibili (TX-0060 in errore o senza il grant csr.tx-0060.read): Intervento propone i codici delle righe della risposta, senza descrizione; obiettivi e azione portante non hanno voci. I filtri gia' nell'indirizzo restano chip rimovibili e il report si legge comunque.</div>
     <h2>Stato: caricamento</h2>
     <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro dei KPI e delle card)</div>
     <h2>Stato: vuoto</h2>
@@ -209,6 +215,7 @@
     <div class="ui-vuoto" role="status">Nessuna superficie per gli interventi scelti nella campagna 2025: gli interventi non sono a superficie o non sono SIGC (non valorizzato). <a class="btn btn-primary" href="#pannello-filtri">Modifica i filtri</a></div>
     <h2>Stato: errore</h2>
     <div class="alert alert-danger" role="alert">Dati non disponibili: messaggio dal problem-type (400 filtri non validi, 403 accesso negato, 429 troppe richieste e 503 capacita' esaurita o tempo scaduto con nuovo tentativo dopo Retry-After). <a href="#contenuto">Riprova</a></div>
+    <div class="alert alert-danger" role="alert">File CSV non scaricato. La tabella supera il limite dell'esportazione (5.000 righe o 50.000 celle): restringi i filtri e riprova.</div>
   </main>
 </div>
 <footer class="ui-footer">
