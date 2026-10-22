@@ -1,6 +1,6 @@
-// shared/ui — componenti trasversali senza dominio: stati della vista, kit UI v2 (ADR 0027: grafici ECharts, KPI, filtri,
-// pannello laterale, tabella interattiva, icone, pulsanti di download e file del backend), salvataggio file, focus di
-// pagina, percorso e titolo della pagina.
+// shared/ui — componenti trasversali senza dominio: stati della vista, kit UI v2 (ADR 0027: grafici ECharts, KPI, filtri e
+// controlli del pannello dei filtri, pannello laterale, tabella interattiva, icone, pulsanti di download e file del
+// backend), salvataggio file, focus di pagina, percorso e titolo della pagina.
 export { Caricamento, ErroreVista, Vuoto, VistaQuery } from './stati/StatiVista';
 export { AvvisoPagina } from './stati/AvvisoPagina';
 export type { StatoQuery } from './stati/StatiVista';
@@ -23,6 +23,8 @@ export type { Colonna, ColonnaStatica, Voce } from './tabella/TabelleSemplici';
 export { Kpi } from './kpi/Kpi';
 export type { TonoKpi } from './kpi/Kpi';
 export { BarraFiltri } from './filtri/BarraFiltri';
+export { Caselle, Gruppo, Scelte } from './filtri/ControlliPannello';
+export type { OpzioneFiltro } from './filtri/ControlliPannello';
 export { PillDatiAl } from './filtri/PillDatiAl';
 export type { ChipFiltro } from './filtri/BarraFiltri';
 export { PannelloLaterale } from './laterale/PannelloLaterale';

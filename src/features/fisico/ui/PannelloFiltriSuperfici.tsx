@@ -6,32 +6,26 @@
 // lo stato lo dice in testo (role=status): Intervento propone i codici delle righe della risposta senza descrizione,
 // obiettivi e azione portante non hanno voci, e il report resta leggibile. La scelta e' una bozza: "Applica i filtri" la
 // porta nell'indirizzo, "Azzera" la svuota. PannelloLaterale (react-aria) da' focus trap, Esc e ritorno del focus; i
-// controlli sono bootstrap-italia nativi (caselle, bottoni con aria-pressed).
+// controlli sono quelli del kit (gruppo, chip a scelta singola per la campagna: review H1), bootstrap-italia nativi.
 import { useState } from 'react';
-import { Gruppo, GruppiProgramma, senzaAzioneSeNonDisponibile } from '../../../entities/filtri';
+import { GruppiProgramma, senzaAzioneSeNonDisponibile } from '../../../entities/filtri';
 import type { ChiaveFiltro, ValoriProgramma } from '../../../entities/filtri';
-import { Caricamento, PannelloLaterale } from '../../../shared/ui';
+import { Caricamento, Gruppo, PannelloLaterale, Scelte } from '../../../shared/ui';
 import type { StatoQuery } from '../../../shared/ui';
 import type { ValoriFiltriElenco } from '../api';
-import { conCampagna } from '../lib/criteri';
+import { campagnaDaTesto, conCampagna } from '../lib/criteri';
 import type { Criteri } from '../lib/criteri';
 
 const NON_DISPONIBILI =
   "Valori dei filtri non disponibili: Intervento propone i codici delle righe della risposta, senza descrizione; obiettivi e azione portante non hanno voci. I filtri già nell'indirizzo restano e il report si legge comunque.";
 const SENZA_VOCI = 'Nessuna voce: valori dei filtri non disponibili.';
 
-/** Campagna: una sola alla volta, oppure tutte (parametro non ripetibile di TX-0018). */
+/** Campagna: una sola alla volta, oppure tutte (parametro non ripetibile di TX-0018): "Tutte le campagne" e' la voce senza valore. */
 function GruppoCampagna({ campagne, scelta, onScegli }: { campagne: readonly number[]; scelta: number | undefined; onScegli: (c: number | undefined) => void }) {
-  const voci: Array<[number | undefined, string]> = [[undefined, 'Tutte le campagne'], ...campagne.map((c): [number, string] => [c, String(c)])];
+  const voci = [{ valore: '', etichetta: 'Tutte le campagne' }, ...campagne.map((c) => ({ valore: String(c), etichetta: String(c) }))];
   return (
     <Gruppo titolo="Campagna (un solo anno)" scelti={scelta === undefined ? 0 : 1} aperto>
-      <div className="ui-toggle-chips" role="group" aria-label="Campagna">
-        {voci.map(([valore, testo]) => (
-          <button key={testo} type="button" className="ui-toggle-chip" aria-pressed={scelta === valore} onClick={() => onScegli(valore)}>
-            {testo}
-          </button>
-        ))}
-      </div>
+      <Scelte etichetta="Campagna" opzioni={voci} scelti={[scelta === undefined ? '' : String(scelta)]} esclusive onCambia={(v) => onScegli(campagnaDaTesto(v[0]))} />
     </Gruppo>
   );
 }

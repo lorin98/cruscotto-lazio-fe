@@ -5,29 +5,28 @@
 // lettori di schermo, review v1 X-03). Valori dei filtri da TX-0060 (letti da useInterrogazione col loro grant): senza il
 // grant, o se non arrivano, resta la ricerca per testo (A-06); azioni portanti e atto di concessione si scelgono solo se
 // TX-0060 li dichiara disponibili (legameAzioniDisponibile, attoConcessioneDisponibile). PannelloLaterale (react-aria) da'
-// focus trap, Esc e ritorno del focus; i controlli sono Bootstrap Italia (vedi controlli.tsx).
+// focus trap, Esc e ritorno del focus; i controlli sono Bootstrap Italia (quelli del kit e controlli.tsx).
 import { useEffect, useId, useRef, useState } from 'react';
 import { ANNO_ASSENTE, ANNO_SENZA } from '../../../entities/domanda';
 import { getErrorMessage } from '../../../shared/lib';
-import { ErroreVista, PannelloLaterale, VistaQuery } from '../../../shared/ui';
-import type { StatoQuery } from '../../../shared/ui';
+import { ErroreVista, Gruppo, PannelloLaterale, Scelte, VistaQuery } from '../../../shared/ui';
+import type { OpzioneFiltro, StatoQuery } from '../../../shared/ui';
 import type { ValoriFiltriElenco } from '../api';
 import { ETICHETTE_FILTRI } from '../lib/chip';
 import { conFiltro, testoInviabile, valoreAccettabile } from '../lib/criteri';
 import type { Criteri, Elenco, NomeFiltro } from '../lib/criteri';
 import { ETICHETTE_VALORI } from '../lib/formato';
-import { CampiFascia, CampoFiltro, Caselle, Gruppo, Scelte } from './controlli';
-import type { Opzione } from './controlli';
+import { CampiFascia, CampoFiltro, Caselle } from './controlli';
 
-const daCodici = (codici: readonly (string | number)[] | undefined, nome?: NomeFiltro): Opzione[] =>
+const daCodici = (codici: readonly (string | number)[] | undefined, nome?: NomeFiltro): OpzioneFiltro[] =>
   (codici ?? []).map((c) => ({ valore: String(c), etichetta: (nome && ETICHETTE_VALORI[nome]?.[String(c)]) ?? String(c) }));
-const daVoci = (voci: ReadonlyArray<{ chiave?: string; codice?: string; descrizione?: string | null }> | undefined): Opzione[] =>
+const daVoci = (voci: ReadonlyArray<{ chiave?: string; codice?: string; descrizione?: string | null }> | undefined): OpzioneFiltro[] =>
   (voci ?? [])
     .map((v) => ({ valore: v.chiave ?? v.codice ?? '', etichetta: v.descrizione ? `${v.chiave ?? v.codice} - ${v.descrizione}` : (v.chiave ?? v.codice ?? '') }))
     .filter((o) => o.valore !== '');
-const fisse = (nome: NomeFiltro): Opzione[] => Object.entries(ETICHETTE_VALORI[nome] ?? {}).map(([valore, etichetta]) => ({ valore, etichetta }));
-const booleano = (si: string, no?: string): Opzione[] => [{ valore: 'true', etichetta: si }, ...(no ? [{ valore: 'false', etichetta: no }] : [])];
-const conSenza = (opzioni: Opzione[], chiave: string, etichetta: string): Opzione[] => [...opzioni, { valore: chiave, etichetta }];
+const fisse = (nome: NomeFiltro): OpzioneFiltro[] => Object.entries(ETICHETTE_VALORI[nome] ?? {}).map(([valore, etichetta]) => ({ valore, etichetta }));
+const booleano = (si: string, no?: string): OpzioneFiltro[] => [{ valore: 'true', etichetta: si }, ...(no ? [{ valore: 'false', etichetta: no }] : [])];
+const conSenza = (opzioni: OpzioneFiltro[], chiave: string, etichetta: string): OpzioneFiltro[] => [...opzioni, { valore: chiave, etichetta }];
 
 const IMPORTI: ReadonlyArray<[string, NomeFiltro, NomeFiltro]> = [
   ['Importo richiesto (euro)', 'richiestoDa', 'richiestoA'],

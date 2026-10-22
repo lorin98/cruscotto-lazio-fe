@@ -1,12 +1,12 @@
 // Kit comune portato fuori dalle feature per il fisico (shared/ui ed entities/filtri): testata della pagina, file CSV e
 // XLSX del backend, totali su piu' righe della tabella interattiva, nome accessibile del KPI, gruppi del pannello del
-// programma. Dati di prova inventati.
+// programma e controlli del pannello dei filtri (il solo test dei controlli: review del fisico H1). Dati di prova inventati.
 import type { ReactElement } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
-import { Briciole, Kpi, PulsantiScarica, TabellaInterattiva, TestaPagina, scaricamentiDalBackend } from '../src/shared/ui';
+import { Briciole, Caselle, Gruppo, Kpi, PulsantiScarica, Scelte, TabellaInterattiva, TestaPagina, scaricamentiDalBackend } from '../src/shared/ui';
 import type { ColonnaTabella } from '../src/shared/ui';
 import { GruppiProgramma } from '../src/entities/filtri';
 import { expectNoA11yViolations } from '../src/shared/testing/axe';
@@ -125,5 +125,73 @@ describe('GruppiProgramma: i gruppi del pannello del programma (entities/filtri)
     expect(screen.getAllByText('Nessuna voce: valori dei filtri non disponibili.')).toHaveLength(4);
     expect(screen.queryByText(/Non disponibile finché/)).toBeNull();
     expect(screen.getByRole('checkbox', { name: 'SRB01' })).toBeTruthy();
+  });
+});
+
+describe('Controlli del pannello dei filtri (kit: Gruppo, Caselle, Scelte)', () => {
+  it('Gruppo: il titolo dice quanti valori sono scelti; aperto o chiuso', () => {
+    const { rerender } = render(
+      <Gruppo titolo="Intervento" scelti={1} aperto>
+        <p>corpo</p>
+      </Gruppo>,
+    );
+    const gruppo = screen.getByText('Intervento', { selector: 'summary' }).closest('details');
+    expect(gruppo?.open).toBe(true);
+    expect(gruppo?.textContent).toContain('1 scelto');
+    rerender(
+      <Gruppo titolo="Intervento" scelti={2}>
+        <p>corpo</p>
+      </Gruppo>,
+    );
+    expect(screen.getByText('Intervento', { selector: 'summary' }).closest('details')?.open).toBe(false);
+    expect(screen.getByText('2 scelti')).toBeTruthy();
+  });
+
+  it('Caselle: oltre 8 voci la ricerca (senza maiuscole e accenti), la ricerca fallita detta, codice e descrizione o etichetta', async () => {
+    const onCambia = vi.fn();
+    const opzioni = Array.from({ length: 10 }, (_, n) => ({ valore: `SRD${String(n + 1).padStart(2, '0')}`, descrizione: n === 0 ? 'Qualità' : `Prova ${n + 1}` }));
+    const { container } = render(<Caselle id="c" etichetta="Intervento" opzioni={opzioni} scelti={['SRD02']} segnaposto="Cerca per codice o descrizione" onCambia={onCambia} />);
+    const cerca = screen.getByRole('searchbox', { name: 'Cerca in Intervento' });
+    expect(cerca.getAttribute('placeholder')).toBe('Cerca per codice o descrizione');
+    expect(screen.queryByText('Nessuna voce corrisponde alla ricerca.')).toBeNull();
+    await userEvent.click(screen.getByRole('checkbox', { name: 'SRD01 Qualità' }));
+    expect(onCambia).toHaveBeenLastCalledWith(['SRD02', 'SRD01']);
+    await userEvent.click(screen.getByRole('checkbox', { name: 'SRD02 Prova 2' }));
+    expect(onCambia).toHaveBeenLastCalledWith([]);
+    await userEvent.type(cerca, 'QUALITA');
+    expect(screen.getAllByRole('checkbox').map((c) => c.closest('label')?.textContent)).toEqual(['SRD01 Qualità']);
+    await userEvent.clear(cerca);
+    await userEvent.type(cerca, 'nessuno');
+    expect(screen.queryAllByRole('checkbox')).toHaveLength(0);
+    expect(screen.getByText('Nessuna voce corrisponde alla ricerca.')).toBeTruthy();
+    await expectNoA11yViolations(container);
+  });
+
+  it('Caselle: la lista vuota dice il testo dato, o nulla (mai una ricerca fallita); disabilitate col fieldset; con l etichetta', () => {
+    const { rerender, container } = render(<Caselle id="v" etichetta="Ente" opzioni={[]} scelti={[]} vuoto="Nessun valore nel tuo perimetro." onCambia={() => undefined} />);
+    expect(screen.getByText('Nessun valore nel tuo perimetro.')).toBeTruthy();
+    expect(screen.queryByRole('searchbox')).toBeNull();
+    rerender(<Caselle id="v" etichetta="Ente" opzioni={[]} scelti={[]} onCambia={() => undefined} />);
+    expect(container.textContent).toBe('Ente');
+    rerender(<Caselle id="v" etichetta="Azione portante" opzioni={[{ valore: '3', etichetta: '3 - Azione di prova' }]} scelti={[]} disabilitato onCambia={() => undefined} />);
+    expect(container.querySelector('fieldset')?.disabled).toBe(true);
+    expect(screen.getByRole('checkbox', { name: '3 - Azione di prova' })).toBeTruthy();
+  });
+
+  it('Scelte: chip ripetibili o a scelta singola (ri-clic toglie), testo dall etichetta o codice - descrizione', async () => {
+    const onCambia = vi.fn();
+    const { rerender } = render(<Scelte etichetta="OS" opzioni={[{ valore: 'OS4', descrizione: 'Clima' }, { valore: 'OS5' }]} scelti={['OS4']} onCambia={onCambia} />);
+    const gruppo = screen.getByRole('group', { name: 'OS' });
+    expect(within(gruppo).getAllByRole('button').map((b) => [b.textContent, b.getAttribute('aria-pressed')])).toEqual([
+      ['OS4 - Clima', 'true'],
+      ['OS5', 'false'],
+    ]);
+    await userEvent.click(screen.getByRole('button', { name: 'OS5' }));
+    expect(onCambia).toHaveBeenLastCalledWith(['OS4', 'OS5']);
+    rerender(<Scelte etichetta="Campagna" opzioni={[{ valore: '', etichetta: 'Tutte le campagne' }, { valore: '2025', etichetta: '2025' }]} scelti={['']} esclusive onCambia={onCambia} />);
+    await userEvent.click(screen.getByRole('button', { name: '2025' }));
+    expect(onCambia).toHaveBeenLastCalledWith(['2025']);
+    await userEvent.click(screen.getByRole('button', { name: 'Tutte le campagne' }));
+    expect(onCambia).toHaveBeenLastCalledWith([]);
   });
 });

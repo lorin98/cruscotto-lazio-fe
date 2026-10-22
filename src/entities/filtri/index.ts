@@ -16,5 +16,5 @@ export {
   valoreFiltroValido,
 } from './lib/programma';
 export type { ChiaveFiltro, Filtri, FiltroAttivo } from './lib/programma';
-export { Gruppo, GruppiProgramma } from './ui/GruppiProgramma';
+export { GruppiProgramma } from './ui/GruppiProgramma';
 export type { ValoriProgramma } from './ui/GruppiProgramma';
