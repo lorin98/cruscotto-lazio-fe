@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "istituzionale",
-  "current_step": 3,
+  "current_step": 4,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -66,6 +66,17 @@
         "codegen_compiles": "pass",
         "orval_types": "pass",
         "csrf_static": "pass"
+      }
+    },
+    "step3-api": {
+      "status": "done",
+      "completed_at": "2026-10-22T13:48:18Z",
+      "artifacts": [
+        "./src/features"
+      ],
+      "gates": {
+        "api_wrappers_compile": "pass",
+        "querykey_from_factory": "pass"
       }
     }
   },
