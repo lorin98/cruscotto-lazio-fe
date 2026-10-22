@@ -332,11 +332,11 @@
         "Residuo manuale: ordine di lettura di KPI, card e tabella; comprensibilita' di 'DS', 'DP' e 'differenza DP - DS' (sciolte per esteso alla prima occorrenza) e della differenza fra il file di una card della campagna di riferimento e quello della tabella (tutte le campagne); contrasto della resa finale"
       ],
       "approval": {
-        "approved_hash": "sha256:b3825903e66f4c1db6ac3462fccc2b492b3c4e2d72e22350910f1b1e099640e6",
+        "approved_hash": "sha256:f803b5cf0cdee87bcce162b1d9d3d8a4a3eea8fcd7763ab25a2fb4bfa9dac6bd",
         "baseline_ref": "./wireframes/fisico/superfici",
-        "approved_at": "2026-10-22T08:51:29Z",
+        "approved_at": "2026-10-22T12:36:17Z",
         "time_to_approve_s": 218,
-        "rework_rounds": 1
+        "rework_rounds": 2
       }
     },
     {
