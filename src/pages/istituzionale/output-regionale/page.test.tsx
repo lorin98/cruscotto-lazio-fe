@@ -97,7 +97,7 @@ describe('RF017: output programmato e realizzato della Regione Lazio per interve
     expect(within(mini).queryByRole('group', { name: /^Scarica/ })).toBeNull();
     await userEvent.keyboard('{Escape}');
     await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Anteprima: SRA01' })).toBeNull());
-    expect(document.activeElement).toBe(within(screen.getByRole('table', { name: /^Output programmato per anno/ })).getByRole('row', { name: "Apri l'anteprima dell'intervento SRA01" }));
+    await waitFor(() => expect(document.activeElement).toBe(within(screen.getByRole('table', { name: /^Output programmato per anno/ })).getByRole('row', { name: "Apri l'anteprima dell'intervento SRA01" })));
   });
 
   it('Apri il dettaglio del drawer porta al dettaglio dell intervento (link:dettaglio-intervento-output, senza anno)', async () => {

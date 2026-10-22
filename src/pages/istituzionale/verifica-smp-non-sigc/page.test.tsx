@@ -340,6 +340,7 @@ describe("RA006: valori dei filtri della verifica da TX-0060 dell'elenco operati
     expect(pannello.contains(document.activeElement)).toBe(true);
     await userEvent.keyboard('{Escape}');
     await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Filtri dei report istituzionali' })).toBeNull());
-    expect(document.activeElement).toBe(bottone);
+    // react-aria riporta il focus dopo la chiusura del dialogo: si aspetta, come per gli altri cambi di focus
+    await waitFor(() => expect(document.activeElement).toBe(bottone));
   });
 });
