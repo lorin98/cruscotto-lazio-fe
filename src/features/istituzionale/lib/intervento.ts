@@ -79,6 +79,14 @@ export function ultimiDelDettaglio(verifica: { ultimiDatiSincronizzati: UltimoDa
   return (verifica ?? output)?.ultimiDatiSincronizzati;
 }
 
+/**
+ * L'ultimo dato sincronizzato non si conosce: tutte le letture fatte sono in errore. Nessuna lettura abilitata (il profilo
+ * in caricamento) non e' un errore: la pill semplicemente non c'e' ancora.
+ */
+export function ultimoDatoInErrore(letture: ReadonlyArray<{ isError: boolean }>): boolean {
+  return letture.length > 0 && letture.every((l) => l.isError);
+}
+
 /** Quanto serve di una lettura per lo stato del dettaglio: la risposta (righe) se c'e', e se e' in errore. */
 export interface LetturaDettaglio {
   data?: { righe: readonly unknown[] } | undefined;

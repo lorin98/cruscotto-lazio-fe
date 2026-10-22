@@ -225,6 +225,7 @@ describe("RF016: la verifica SMP non SIGC dell'intervento (TX-0016 filtrata sull
     const avviso = await screen.findByRole('alert');
     expect(screen.getAllByRole('alert')).toHaveLength(1);
     expect(avviso.textContent).toContain('2 sezioni della pagina non si sono caricate.');
+    expect(within(screen.getByRole('region', { name: 'Riferimenti dei dati' })).getByText('Ultimo dato sincronizzato: non disponibile')).toBeTruthy();
     await userEvent.click(within(avviso).getByRole('button', { name: 'Riprova' }));
     await kpi('Target di fine periodo');
   });

@@ -20,7 +20,7 @@ import { PARAMETRO_ANNO, codiceDelPercorso, criteriVerifica, soloIntervento, tes
 import type { RigaOutput, RigaVerifica } from '../lib/dto';
 import { PILL_PERIMETRO } from '../lib/formato';
 import { puoLeggere } from '../lib/grant';
-import { SENZA_DATI, badgeIntervento, kpiIntervento, sopratitoloIntervento, statoDelDettaglio, titoloIntervento, ultimiDelDettaglio } from '../lib/intervento';
+import { SENZA_DATI, badgeIntervento, kpiIntervento, sopratitoloIntervento, statoDelDettaglio, titoloIntervento, ultimiDelDettaglio, ultimoDatoInErrore } from '../lib/intervento';
 import type { ChiaveKpi } from '../lib/intervento';
 import { rigaDellIntervento } from '../lib/output';
 import { PERCORSI } from '../lib/pagine';
@@ -170,7 +170,7 @@ function Dettaglio({ codice }: { codice: string }) {
   const badge = badgeIntervento(rigaDellIntervento(output?.data?.righe, codice), rigaDellIntervento(verifica?.data?.righe, codice));
   return (
     <ContestoIntestazione.Provider value={contesto}>
-      <BarraRiferimenti ultimi={ultimi} inErrore={[verifica, output].every((s) => s === null || s.isError)} />
+      <BarraRiferimenti ultimi={ultimi} inErrore={ultimoDatoInErrore([verifica, output].filter((s) => s !== null))} />
       <main className="ui-pagina" id="contenuto">
         <Briciole voci={[{ etichetta: 'Istituzionale', a: useIngressoArea() }, { etichetta: codice }]} />
         <TestataIntervento h1={h1} codice={codice} titolo={titoloIntervento(codice, descrizione)} badge={badge} anno={anno} />

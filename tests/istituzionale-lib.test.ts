@@ -29,7 +29,7 @@ import {
 import { DATI_VERIFICA, TESTI_LINK, indirizzoDelDato, testoRicerca, testoValore, titoloDato, valoreOrdinabile, vociRiferimenti } from '../src/features/istituzionale/lib/verifica';
 import type { DatoVerifica } from '../src/features/istituzionale/lib/verifica';
 import { MISURE, anniDelPeriodo, captionOutput, datoDellAnno, etichettaMisura, importiOrdinati, opzioniMisura, ordinabileDellAnno, rigaDellIntervento, testoRicercaOutput, vociAnteprima } from '../src/features/istituzionale/lib/output';
-import { SENZA_DATI, SENZA_UNIT_AMOUNT, TITOLI_SCHEDE, badgeIntervento, captionVociVerifica, kpiIntervento, schedeVisibili, statoDelDettaglio, sopratitoloIntervento, titoloIntervento, ultimiDelDettaglio } from '../src/features/istituzionale/lib/intervento';
+import { SENZA_DATI, SENZA_UNIT_AMOUNT, TITOLI_SCHEDE, badgeIntervento, captionVociVerifica, kpiIntervento, schedeVisibili, statoDelDettaglio, ultimoDatoInErrore, sopratitoloIntervento, titoloIntervento, ultimiDelDettaglio } from '../src/features/istituzionale/lib/intervento';
 import { TITOLO_SPESA, graficoOutputPerAnno, graficoSpesa } from '../src/features/istituzionale/lib/grafici';
 import { OUTPUT, SRA01_OUTPUT, SRD01, ULTIMI, VERIFICA, outputPer, righeDeiFiltri, verificaPer } from '../src/features/istituzionale/testing/fixture';
 
@@ -287,6 +287,8 @@ describe('RF016 e RF017: il dettaglio dell intervento (testata, KPI, ultimo dato
     expect(statoDelDettaglio([errore, ok({ righe: [] })])).toBe('dati');
     // nessuna lettura abilitata: il profilo e' in caricamento
     expect(statoDelDettaglio([])).toBe('caricamento');
+    // la pill "Dati al" e' in errore solo se tutte le letture fatte lo sono, mai senza letture
+    expect([ultimoDatoInErrore([errore, errore]), ultimoDatoInErrore([errore, ok(OUTPUT)]), ultimoDatoInErrore([])]).toEqual([true, false, false]);
   });
 
   it('schede per grant nell ordine del wireframe; didascalia delle voci; testi degli stati', () => {
