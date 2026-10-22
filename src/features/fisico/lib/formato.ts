@@ -1,9 +1,13 @@
 // formato.ts — testi PURI del fisico (zero React): superfici in ettari con due decimali e il segno meno scritto (D-01 Rev.
 // 2: una DS negativa del file ASR2-20 entra col suo segno), differenze col segno, assenze dette con la resa unica
-// dell'entity importo (mai uno zero), etichette dei campi di TX-0018. I testi sono quelli dei wireframe approvati.
+// dell'entity importo (mai uno zero), etichette dei campi di TX-0018, conteggi delle domande, nota della quantita' a premio
+// e descrizione dell'intervento dalle voci dei filtri (review H3: prima nei componenti). I testi sono quelli dei wireframe
+// approvati.
 import { descriviAssenza, testoConNota } from '../../../entities/importo';
 import type { DatoMotivatoLike } from '../../../entities/importo';
 import { formatEttari, formatNumber, formatPercentuale } from '../../../shared/lib';
+import type { InterventoSuperficie } from './dto';
+import { campagnaDi } from './superfici';
 
 /** "15,50 ha", "-1,00 ha". */
 export function testoSuperficie(v: number): string {
@@ -77,6 +81,31 @@ export function fonteLineaIntervento(campagnaRisposta: number | null): string {
 export function testoQuotaOltreDs(pagamento: number, quota: number | null): string {
   if (quota === null) return 'nessuna domanda di pagamento';
   return `su ${formatNumber(pagamento)} ${pagamento === 1 ? 'domanda' : 'domande'} di pagamento: ${formatPercentuale(quota)}`;
+}
+
+/** "1 domanda di sostegno", "3 domande di pagamento". */
+export function testoDomande(n: number, tipo: 'sostegno' | 'pagamento'): string {
+  return `${formatNumber(n)} ${n === 1 ? 'domanda' : 'domande'} di ${tipo}`;
+}
+
+/**
+ * La nota della verifica incrociata sulla quantita' richiesta a premio della campagna (OP-FIS-04): se manca in tutte le
+ * righe della campagna, la sua assenza con la resa unica (oggi sempre "fonte non attiva"); altrimenti il rimando alla
+ * tabella equivalente, che ha il valore di ogni intervento.
+ */
+export function notaQuantitaPremio(righe: readonly InterventoSuperficie[], campagna: number): string {
+  const campagne = righe.flatMap((r) => {
+    const c = campagnaDi(r, campagna);
+    return c ? [c] : [];
+  });
+  const assenti = campagne.filter((c) => c.quantitaRichiestaPremio.valore == null);
+  if (assenti.length === campagne.length && assenti[0]) return `Quantità richiesta a premio: ${testoQuantitaPremio(assenti[0].quantitaRichiestaPremio)}.`;
+  return 'Quantità richiesta a premio nella tabella equivalente.';
+}
+
+/** La descrizione dell'intervento fra le voci dei filtri (TX-0060), se lette e se c'e'. */
+export function descrizioneIntervento(voci: ReadonlyArray<{ chiave?: string; descrizione?: string | null }> | undefined, codice: string): string | undefined {
+  return voci?.find((v) => v.chiave === codice)?.descrizione ?? undefined;
 }
 
 /** Perimetro della risposta in parole: sempre REGIONALE per le letture del fisico (D-04 del backend). */

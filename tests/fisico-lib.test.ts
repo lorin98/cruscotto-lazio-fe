@@ -3,11 +3,13 @@
 import type { EChartsOption } from 'echarts';
 import { describe, expect, it } from 'vitest';
 import { COLORI, valoreEttari } from '../src/shared/lib';
-import { criteriAttivi, criteriDaRicerca, campagnaDaTesto, conCampagna, conFiltriDelProgramma, ricercaDaCriteri, soloIntervento, testiCriteri } from '../src/features/fisico/lib/criteri';
+import { criteriAttivi, criteriDaRicerca, campagnaDaTesto, conCampagna, conFiltriDelProgramma, ricercaDaCriteri, soloIntervento, testiCriteri, vociDelPannello } from '../src/features/fisico/lib/criteri';
 import {
   campagnaDi,
   campagnaDiRiferimento,
+  campagneDellAnteprima,
   campagnePresenti,
+  campagneProposte,
   esitoSuperfici,
   interventiDelleRighe,
   quotaDpOltreDs,
@@ -20,8 +22,11 @@ import {
   SENZA_SUPERFICI,
   cellaDifferenza,
   cellaSuperficie,
+  descrizioneIntervento,
   fonteLineaIntervento,
+  notaQuantitaPremio,
   testoDifferenza,
+  testoDomande,
   testoNessunaSuperficie,
   testoNonInCampagna,
   testoNonNellaCampagnaFiltrata,
@@ -30,6 +35,7 @@ import {
   testoSenzaSuperfici,
   testoSuperficie,
 } from '../src/features/fisico/lib/formato';
+import { cardDelleSuperfici, kpiDellaCampagna } from '../src/features/fisico/lib/report';
 import { MOTIVO_CON_CAMPAGNA, graficoInterventoPerCampagna, graficoPerCampagna, graficoPerIntervento, graficoVerifica, lineePerCampagna } from '../src/features/fisico/lib/grafici';
 import {
   MAX_CIFRE,
@@ -48,7 +54,7 @@ import {
 } from '../src/features/fisico/lib/determine';
 import { GRANT, puoLeggere } from '../src/features/fisico/lib/grant';
 import { PAGINE_FISICO, PERCORSI, pagineVisibili } from '../src/features/fisico/lib/pagine';
-import { DETERMINE, DETERMINE_CHIUSA, DETERMINE_NESSUNA, SUPERFICI, SUPERFICI_SENZA, SUPERFICI_TRE, SUPERFICI_TRE_2024, superficiPer } from '../src/features/fisico/testing/fixture';
+import { DETERMINE, DETERMINE_CHIUSA, DETERMINE_NESSUNA, SUPERFICI, SUPERFICI_SENZA, SUPERFICI_TRE, SUPERFICI_TRE_2024, VALORI, superficiPer } from '../src/features/fisico/testing/fixture';
 
 // gli spazi del formato it-IT sono non separabili: si confronta con spazi normali
 const n = (s: string | undefined) => (s ?? '').replace(/\s/g, ' ');
@@ -313,6 +319,73 @@ describe('RF018: grafici delle superfici (tabella equivalente, omessi dichiarati
       "Barre orizzontali della differenza fra superficie DP e superficie DS per 2 interventi nella campagna 2025: dalla più alta, SRB01 +0,70 ha, alla più bassa, SRB02 -0,30 ha; a destra dello zero la DP supera la DS. 2 voci omesse per dati mancanti o non utilizzabili.",
     );
     expect(graficoVerifica(SUPERFICI_SENZA.righe, 2023, 2023).opzioni).toBeNull();
+  });
+});
+
+describe('RF018: il report come dati e i calcoli spostati dai componenti (H3, H4)', () => {
+  it('KPI della campagna: somme dentro la campagna, nomi accessibili con le sigle sciolte, quota sulle domande di pagamento', () => {
+    const kpi = kpiDellaCampagna(SUPERFICI_TRE.righe, 2025);
+    expect(kpi?.map((k) => [k.chiave, k.etichetta, n(k.valore), n(k.nota)])).toEqual([
+      ['ds', 'Superficie ammissibile DS', '19,50 ha', '4 domande di sostegno (la DS si conta una volta per domanda di sostegno)'],
+      ['dp', 'Superficie ammissibile DP', '19,90 ha', '5 domande di pagamento'],
+      ['differenza', 'Differenza DP - DS', '+0,40 ha', 'negativa se la DP è minore della DS'],
+      ['oltre', 'Domande con DP oltre la DS', '1', 'su 5 domande di pagamento: 20 %'],
+    ]);
+    expect(kpi?.[0].nomeAccessibile).toBe('Superficie ammissibile DS: superficie delle domande di sostegno, campagna 2025');
+    expect(kpi?.[3].quota).toBe(0.2);
+    expect(kpi?.[0].quota).toBeUndefined();
+    expect(kpiDellaCampagna(SUPERFICI.righe, 2023)).toBeNull();
+    expect(testoDomande(1, 'sostegno')).toBe('1 domanda di sostegno');
+    expect(testoDomande(3, 'pagamento')).toBe('3 domande di pagamento');
+  });
+
+  it('le tre card: titoli della campagna, clic, criteri dei file (la campagna della card o i filtri della pagina) e fonte', () => {
+    const [perIntervento, perCampagna, verifica] = cardDelleSuperfici(SUPERFICI, { intervento: ['SRB01'] }, 2025);
+    expect([perIntervento.titolo, perCampagna.titolo, verifica.titolo]).toEqual([
+      'Superficie DS e DP per intervento, campagna 2025',
+      'Superficie DS e DP per campagna',
+      'Verifica incrociata: differenza DP - DS per intervento, campagna 2025',
+    ]);
+    expect([perIntervento.clic, perCampagna.clic, verifica.clic]).toEqual(['intervento', 'campagna', 'intervento']);
+    expect(perIntervento.criteriFile).toEqual({ intervento: ['SRB01'], campagna: 2025 });
+    expect(perCampagna.criteriFile).toEqual({ intervento: ['SRB01'] });
+    expect(verifica.criteriFile).toEqual({ intervento: ['SRB01'], campagna: 2025 });
+    expect(perCampagna.fonte).toBe('Fonte: TX-0018, tutte le campagne della risposta. CSV e XLSX: la tabella di TX-0018 coi filtri della pagina, tutte le campagne.');
+    expect(verifica.fonte).toContain('Quantità richiesta a premio: non disponibile (fonte quantità richiesta a premio non attiva).');
+    expect(perIntervento.dati.omessi).toEqual([`SRA29: ${SENZA_SUPERFICI}`]);
+    const filtrate = cardDelleSuperfici(SUPERFICI_TRE_2024, { campagna: 2024 }, 2024);
+    expect(filtrate[1].fonte).toBe('Fonte: TX-0018 con il filtro Campagna 2024. CSV e XLSX: la tabella di TX-0018 coi filtri della pagina.');
+    expect(filtrate[1].dati.motivoAssenza).toBe(MOTIVO_CON_CAMPAGNA);
+    expect(filtrate[0].dati.omessi).toContain('SRB02: nessuna superficie nella campagna 2024 (non valorizzato)');
+  });
+
+  it('nota della quantita a premio: assente in tutta la campagna oppure il rimando alla tabella (anche con un valore)', () => {
+    expect(notaQuantitaPremio(SUPERFICI.righe, 2025)).toBe('Quantità richiesta a premio: non disponibile (fonte quantità richiesta a premio non attiva).');
+    const conValore = [{ codiceIntervento: 'SRB09', motivo: null, campagne: [{ ...SUPERFICI.righe[1].campagne[1], quantitaRichiestaPremio: { valore: 12, motivo: null, fonte: null } }] }, ...SUPERFICI.righe];
+    expect(notaQuantitaPremio(conValore, 2025)).toBe('Quantità richiesta a premio nella tabella equivalente.');
+    expect(notaQuantitaPremio(SUPERFICI.righe, 2023)).toBe('Quantità richiesta a premio nella tabella equivalente.');
+  });
+
+  it("campagne dell'anteprima: quella di riferimento, le altre dalla piu recente, quella della quantita a premio", () => {
+    const srb01 = SUPERFICI.righe[1];
+    const con2025 = campagneDellAnteprima(srb01, 2025);
+    expect([con2025.riferimento?.anno, con2025.altre.map((c) => c.anno), con2025.premio?.anno]).toEqual([2025, [2024], 2025]);
+    const senza = campagneDellAnteprima(srb01, null);
+    expect([senza.riferimento, senza.altre.map((c) => c.anno), senza.premio?.anno]).toEqual([undefined, [2025, 2024], 2025]);
+    expect(campagneDellAnteprima(srb01, 2023).riferimento).toBeUndefined();
+    expect(campagneDellAnteprima(SUPERFICI.righe[0], 2025)).toEqual({ riferimento: undefined, altre: [], premio: undefined });
+  });
+
+  it('pannello: campagne proposte, voci da TX-0060 o i codici della risposta, descrizione dell intervento', () => {
+    expect(campagneProposte([2025, 2024], undefined)).toEqual([2025, 2024]);
+    expect(campagneProposte([2025, 2024], 2024)).toEqual([2025, 2024]);
+    expect(campagneProposte([2024], 2023)).toEqual([2023, 2024]);
+    expect(vociDelPannello(VALORI, ['SRB01'])).toBe(VALORI);
+    expect(vociDelPannello(undefined, ['SRA29', 'SRB01'])).toEqual({ interventi: [{ chiave: 'SRA29' }, { chiave: 'SRB01' }] });
+    expect(descrizioneIntervento(VALORI.interventi, 'SRA29')).toBe('Agricoltura biologica');
+    expect(descrizioneIntervento(VALORI.interventi, 'SRZ99')).toBeUndefined();
+    expect(descrizioneIntervento(undefined, 'SRA29')).toBeUndefined();
+    expect(descrizioneIntervento([{ chiave: 'SRA29', descrizione: null }], 'SRA29')).toBeUndefined();
   });
 });
 

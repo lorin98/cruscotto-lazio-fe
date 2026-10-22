@@ -38,49 +38,73 @@ function SenzaVoci({ testo }: { testo: string }) {
   return <p className="ui-nota mb-0">{testo}</p>;
 }
 
+/** Cosa serve a ogni gruppo: la bozza, il suo cambio e il testo di un gruppo senza voci (se il pannello lo chiede). */
+interface PropsGruppo {
+  id: string;
+  scelti: string[];
+  onCambia: (v: string[]) => void;
+  senzaVoci?: string;
+}
+
+// le etichette estese della lib, le stesse dei chip della barra in forma breve (H-07)
+const nome = (k: ChiaveFiltro) => ETICHETTE_FILTRO[k].estesa;
+
+/** Intervento a caselle; il fisico senza TX-0060 e senza righe nella risposta non ha codici da proporre e lo dice (X4). */
+function GruppoIntervento({ id, scelti, onCambia, senzaVoci, opzioni }: PropsGruppo & { opzioni: OpzioneFiltro[] }) {
+  return (
+    <Gruppo titolo={nome('intervento')} scelti={scelti.length} aperto>
+      {senzaVoci && opzioni.length === 0 ? (
+        <SenzaVoci testo={senzaVoci} />
+      ) : (
+        <Caselle id={`${id}-int`} etichetta={nome('intervento')} opzioni={opzioni} scelti={scelti} segnaposto={SEGNAPOSTO} onCambia={onCambia} />
+      )}
+    </Gruppo>
+  );
+}
+
+/** Un obiettivo (OG, OS, OP) a chip; senza voci, col testo di senzaVoci se c'e'. */
+function GruppoObiettivo({ chiave, scelti, onCambia, senzaVoci, opzioni }: Omit<PropsGruppo, 'id'> & { chiave: 'og' | 'os' | 'op'; opzioni: OpzioneFiltro[] }) {
+  return (
+    <Gruppo titolo={nome(chiave)} scelti={scelti.length}>
+      {senzaVoci && opzioni.length === 0 ? <SenzaVoci testo={senzaVoci} /> : <Scelte etichetta={nome(chiave)} opzioni={opzioni} scelti={scelti} onCambia={onCambia} />}
+    </Gruppo>
+  );
+}
+
+/**
+ * Azione portante: disabilitata con la spiegazione finche' manca il legame (OP-002); senza i valori (fisico senza TX-0060)
+ * il legame non si conosce: niente spiegazione sul legame, solo l'assenza delle voci.
+ */
+function GruppoAzione({ id, scelti, onCambia, senzaVoci, valori }: PropsGruppo & { valori: ValoriProgramma }) {
+  const legame = valori.legameAzioniDisponibile === true;
+  const legameIgnoto = senzaVoci !== undefined && valori.legameAzioniDisponibile === undefined;
+  const opzioni = daVoci(valori.azioniPortanti);
+  return (
+    <Gruppo titolo={nome('azione')} scelti={scelti.length}>
+      {!legame && !legameIgnoto && <p className="ui-nota">{"Non disponibile finché nessun intervento è collegato a un'azione portante."}</p>}
+      {senzaVoci && opzioni.length === 0 && legameIgnoto ? (
+        <SenzaVoci testo={senzaVoci} />
+      ) : (
+        <Caselle id={`${id}-az`} etichetta={nome('azione')} opzioni={opzioni} scelti={scelti} disabilitato={!legame} segnaposto={SEGNAPOSTO} onCambia={onCambia} />
+      )}
+    </Gruppo>
+  );
+}
+
 /**
  * I cinque gruppi del programma con la nota sulle combinazioni. `senzaVoci`: testo per un gruppo senza voci (es. il fisico
  * senza i valori di TX-0060: obiettivi e azioni non ne hanno); assente, il gruppo resta com'e' nel finanziario.
  */
 export function GruppiProgramma({ valori, bozza, imposta, senzaVoci }: { valori: ValoriProgramma; bozza: Filtri; imposta: (k: ChiaveFiltro) => (v: string[]) => void; senzaVoci?: string }) {
   const id = useId();
-  const legame = valori.legameAzioniDisponibile === true;
-  // senza i valori (fisico senza TX-0060) il legame non si conosce: niente spiegazione sul legame, solo l'assenza delle voci
-  const legameIgnoto = senzaVoci !== undefined && valori.legameAzioniDisponibile === undefined;
-  const sel = (k: ChiaveFiltro) => bozza[k] ?? [];
-  // le etichette estese della lib, le stesse dei chip della barra in forma breve (H-07)
-  const nome = (k: ChiaveFiltro) => ETICHETTE_FILTRO[k].estesa;
-  const chip = (k: 'og' | 'os' | 'op', opzioni: OpzioneFiltro[]) =>
-    senzaVoci && opzioni.length === 0 ? <SenzaVoci testo={senzaVoci} /> : <Scelte etichetta={nome(k)} opzioni={opzioni} scelti={sel(k)} onCambia={imposta(k)} />;
-  const azioni = daVoci(valori.azioniPortanti);
-  const interventi = daVoci(valori.interventi);
+  const di = (k: ChiaveFiltro) => ({ scelti: bozza[k] ?? [], onCambia: imposta(k), senzaVoci });
   return (
     <>
-      <Gruppo titolo={nome('intervento')} scelti={sel('intervento').length} aperto>
-        {/* il fisico senza TX-0060 e senza righe nella risposta: nessun codice da proporre, lo dice (review X4) */}
-        {senzaVoci && interventi.length === 0 ? (
-          <SenzaVoci testo={senzaVoci} />
-        ) : (
-          <Caselle id={`${id}-int`} etichetta={nome('intervento')} opzioni={interventi} scelti={sel('intervento')} segnaposto={SEGNAPOSTO} onCambia={imposta('intervento')} />
-        )}
-      </Gruppo>
-      <Gruppo titolo={nome('og')} scelti={sel('og').length}>
-        {chip('og', daTesti(valori.obiettiviGenerali))}
-      </Gruppo>
-      <Gruppo titolo={nome('os')} scelti={sel('os').length}>
-        {chip('os', daVoci(valori.obiettiviSpecifici))}
-      </Gruppo>
-      <Gruppo titolo={nome('op')} scelti={sel('op').length}>
-        {chip('op', daTesti(valori.obiettiviPolicy))}
-      </Gruppo>
-      <Gruppo titolo={nome('azione')} scelti={sel('azione').length}>
-        {!legame && !legameIgnoto && <p className="ui-nota">{"Non disponibile finché nessun intervento è collegato a un'azione portante."}</p>}
-        {senzaVoci && azioni.length === 0 && legameIgnoto ? (
-          <SenzaVoci testo={senzaVoci} />
-        ) : (
-          <Caselle id={`${id}-az`} etichetta={nome('azione')} opzioni={azioni} scelti={sel('azione')} disabilitato={!legame} segnaposto={SEGNAPOSTO} onCambia={imposta('azione')} />
-        )}
-      </Gruppo>
+      <GruppoIntervento id={id} {...di('intervento')} opzioni={daVoci(valori.interventi)} />
+      <GruppoObiettivo chiave="og" {...di('og')} opzioni={daTesti(valori.obiettiviGenerali)} />
+      <GruppoObiettivo chiave="os" {...di('os')} opzioni={daVoci(valori.obiettiviSpecifici)} />
+      <GruppoObiettivo chiave="op" {...di('op')} opzioni={daTesti(valori.obiettiviPolicy)} />
+      <GruppoAzione id={id} {...di('azione')} valori={valori} />
       <p className="ui-nota">Valori dello stesso filtro in alternativa (O); filtri diversi insieme (E). Nessuna scelta: tutti i valori.</p>
     </>
   );

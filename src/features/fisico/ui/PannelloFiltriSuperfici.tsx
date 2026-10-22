@@ -8,12 +8,13 @@
 // porta nell'indirizzo, "Azzera" la svuota. PannelloLaterale (react-aria) da' focus trap, Esc e ritorno del focus; i
 // controlli sono quelli del kit (gruppo, chip a scelta singola per la campagna: review H1), bootstrap-italia nativi.
 import { GruppiProgramma, senzaAzioneSeNonDisponibile, useBozzaFiltri } from '../../../entities/filtri';
-import type { ValoriProgramma } from '../../../entities/filtri';
+import type { ChiaveFiltro } from '../../../entities/filtri';
 import { Caricamento, Gruppo, PannelloLaterale, Scelte } from '../../../shared/ui';
 import type { StatoQuery } from '../../../shared/ui';
 import type { ValoriFiltriElenco } from '../api';
-import { campagnaDaTesto, conCampagna } from '../lib/criteri';
+import { campagnaDaTesto, conCampagna, vociDelPannello } from '../lib/criteri';
 import type { Criteri } from '../lib/criteri';
+import { campagneProposte } from '../lib/superfici';
 
 const NON_DISPONIBILI =
   "Valori dei filtri non disponibili: Intervento propone i codici delle righe della risposta, senza descrizione; obiettivi e azione portante non hanno voci. I filtri già nell'indirizzo restano e il report si legge comunque.";
@@ -29,11 +30,6 @@ function GruppoCampagna({ campagne, scelta, onScegli }: { campagne: readonly num
   );
 }
 
-/** Le voci dei gruppi: quelle di TX-0060, oppure i soli codici degli interventi della risposta. */
-function valoriDei(valori: ValoriFiltriElenco | undefined, codiciRisposta: readonly string[]): ValoriProgramma {
-  return valori ?? { interventi: codiciRisposta.map((chiave) => ({ chiave })) };
-}
-
 interface PropsPannello {
   aperto: boolean;
   criteri: Criteri;
@@ -47,48 +43,56 @@ interface PropsPannello {
   onChiudi: () => void;
 }
 
-/** Le campagne da proporre: quelle della risposta, e quella della bozza se non c'e' (con una campagna gia' scelta). */
-function campagneProposte(campagne: readonly number[], scelta: number | undefined): readonly number[] {
-  return scelta === undefined || campagne.includes(scelta) ? campagne : [scelta, ...campagne];
+/** Azzera e Applica i filtri: senza il legame con le azioni portanti l'azione non si applica (come nel finanziario). */
+function Azioni({ bozza, valori, onAzzera, onApplica }: { bozza: Criteri; valori: ValoriFiltriElenco | undefined; onAzzera: () => void; onApplica: (c: Criteri) => void }) {
+  return (
+    <>
+      <button type="button" className="btn btn-outline-primary" onClick={onAzzera}>
+        Azzera
+      </button>
+      <button type="button" className="btn btn-primary" onClick={() => onApplica(valori ? senzaAzioneSeNonDisponibile(bozza, valori.legameAzioniDisponibile === true) : bozza)}>
+        Applica i filtri
+      </button>
+    </>
+  );
+}
+
+interface PropsGruppi {
+  valori: StatoQuery<ValoriFiltriElenco> | null;
+  codiciRisposta: readonly string[];
+  bozza: Criteri;
+  imposta: (k: ChiaveFiltro) => (v: string[]) => void;
+}
+
+/** I gruppi del programma: in caricamento, oppure con le voci di TX-0060 o, senza, coi codici della risposta e lo stato detto. */
+function GruppiDelPannello({ valori, codiciRisposta, bozza, imposta }: PropsGruppi) {
+  const disponibili = valori?.data;
+  if (valori !== null && disponibili === undefined && !valori.isError) return <Caricamento testo="Caricamento dei valori dei filtri…" />;
+  return (
+    <>
+      {!disponibili && (
+        <p className="ui-nota" role="status">
+          {NON_DISPONIBILI}
+        </p>
+      )}
+      <GruppiProgramma valori={vociDelPannello(disponibili, codiciRisposta)} bozza={bozza} imposta={imposta} senzaVoci={disponibili ? undefined : SENZA_VOCI} />
+    </>
+  );
 }
 
 export function PannelloFiltriSuperfici({ aperto, criteri, valori, campagne, codiciRisposta, onApplica, onChiudi }: PropsPannello) {
   // la bozza dei criteri riparte da quelli applicati a ogni apertura (entities/filtri, come nel finanziario)
   const { bozza, setBozza, imposta } = useBozzaFiltri(aperto, criteri);
-  const disponibili = valori?.data;
-  const inCaricamento = valori !== null && disponibili === undefined && !valori.isError;
-  const legame = disponibili?.legameAzioniDisponibile === true;
-  const proposte = campagneProposte(campagne, bozza.campagna);
   return (
     <PannelloLaterale
       aperto={aperto}
       onChiudi={onChiudi}
       titolo="Filtri delle superfici ammissibili"
       descrizione="Restano nell'indirizzo della pagina."
-      azioni={
-        <>
-          <button type="button" className="btn btn-outline-primary" onClick={() => setBozza({})}>
-            Azzera
-          </button>
-          <button type="button" className="btn btn-primary" onClick={() => onApplica(disponibili ? senzaAzioneSeNonDisponibile(bozza, legame) : bozza)}>
-            Applica i filtri
-          </button>
-        </>
-      }
+      azioni={<Azioni bozza={bozza} valori={valori?.data} onAzzera={() => setBozza({})} onApplica={onApplica} />}
     >
-      {inCaricamento ? (
-        <Caricamento testo="Caricamento dei valori dei filtri…" />
-      ) : (
-        <>
-          {!disponibili && (
-            <p className="ui-nota" role="status">
-              {NON_DISPONIBILI}
-            </p>
-          )}
-          <GruppiProgramma valori={valoriDei(disponibili, codiciRisposta)} bozza={bozza} imposta={imposta} senzaVoci={disponibili ? undefined : SENZA_VOCI} />
-        </>
-      )}
-      <GruppoCampagna campagne={proposte} scelta={bozza.campagna} onScegli={(c) => setBozza((b) => conCampagna(b, c))} />
+      <GruppiDelPannello valori={valori} codiciRisposta={codiciRisposta} bozza={bozza} imposta={imposta} />
+      <GruppoCampagna campagne={campagneProposte(campagne, bozza.campagna)} scelta={bozza.campagna} onScegli={(c) => setBozza((b) => conCampagna(b, c))} />
       <p className="ui-nota">
         {"Voci di Intervento, obiettivi e azioni portanti da TX-0060 dell'elenco operativo (valori regionali); voci di Campagna dalle campagne della risposta. La campagna è una sola alla volta."}
       </p>

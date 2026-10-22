@@ -12,7 +12,7 @@ import { CardGrafico, PannelloLaterale } from '../../../shared/ui';
 import type { CampagnaSuperficie, InterventoSuperficie } from '../lib/dto';
 import { fonteLineaIntervento, testoDifferenza, testoSenzaSuperfici, testoSuperficie } from '../lib/formato';
 import { graficoInterventoPerCampagna } from '../lib/grafici';
-import { campagnaDi } from '../lib/superfici';
+import { campagneDellAnteprima } from '../lib/superfici';
 
 function Voce({ termine, children }: { termine: string; children: ReactNode }) {
   return (
@@ -23,11 +23,20 @@ function Voce({ termine, children }: { termine: string; children: ReactNode }) {
   );
 }
 
+/** Le superfici della campagna di riferimento con la verifica incrociata. */
+function VociRiferimento({ c }: { c: CampagnaSuperficie }) {
+  return (
+    <>
+      <Voce termine={`Superficie DS, campagna ${c.anno}`}>{testoSuperficie(c.superficieDs)}</Voce>
+      <Voce termine={`Superficie DP, campagna ${c.anno}`}>{testoSuperficie(c.superficieDp)}</Voce>
+      <Voce termine="Differenza DP - DS">{testoDifferenza(c.differenzaDpDs)}</Voce>
+      <Voce termine="Domande con DP oltre la DS">{`${formatNumber(c.domandeDpOltreDs)} su ${formatNumber(c.domandePagamento)}`}</Voce>
+    </>
+  );
+}
+
 /** Superfici della campagna di riferimento con la verifica incrociata, poi le altre campagne dalla piu' recente. */
 function Superfici({ riga, campagna, campagnaRisposta }: { riga: InterventoSuperficie; campagna: number | null; campagnaRisposta: number | null }) {
-  const riferimento = campagna === null ? undefined : campagnaDi(riga, campagna);
-  const altre = riga.campagne.filter((c) => c !== riferimento).sort((a, b) => b.anno - a.anno);
-  const premio: CampagnaSuperficie | undefined = riferimento ?? altre[0];
   if (riga.campagne.length === 0) {
     return (
       <dl className="ui-dl">
@@ -35,16 +44,10 @@ function Superfici({ riga, campagna, campagnaRisposta }: { riga: InterventoSuper
       </dl>
     );
   }
+  const { riferimento, altre, premio } = campagneDellAnteprima(riga, campagna);
   return (
     <dl className="ui-dl">
-      {riferimento && (
-        <>
-          <Voce termine={`Superficie DS, campagna ${riferimento.anno}`}>{testoSuperficie(riferimento.superficieDs)}</Voce>
-          <Voce termine={`Superficie DP, campagna ${riferimento.anno}`}>{testoSuperficie(riferimento.superficieDp)}</Voce>
-          <Voce termine="Differenza DP - DS">{testoDifferenza(riferimento.differenzaDpDs)}</Voce>
-          <Voce termine="Domande con DP oltre la DS">{`${formatNumber(riferimento.domandeDpOltreDs)} su ${formatNumber(riferimento.domandePagamento)}`}</Voce>
-        </>
-      )}
+      {riferimento && <VociRiferimento c={riferimento} />}
       {altre.flatMap((c) => [
         <Voce key={`${c.anno}-ds`} termine={`Superficie DS, campagna ${c.anno}`}>
           {testoSuperficie(c.superficieDs)}

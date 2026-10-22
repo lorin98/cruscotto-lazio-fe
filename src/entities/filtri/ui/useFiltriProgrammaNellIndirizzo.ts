@@ -7,7 +7,7 @@
 // applica (X-03). Senza il grant dei valori, o con la loro lettura in errore, il legame non si conosce e l'azione va al
 // backend com'e'. Prima la regola era ricopiata nel finanziario e nel fisico (review del fisico H2): ogni feature passa la
 // sua lettura dei valori (TX-0001, TX-0060) e la sua lettura e scrittura dell'indirizzo. Poi la bozza del pannello.
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import type { ChipFiltro } from '../../../shared/ui';
@@ -38,12 +38,13 @@ export function useFiltriProgrammaNellIndirizzo<C extends Filtri>({ leggi, scriv
   const { pathname, search } = useLocation();
   const naviga = useNavigate();
   const auth = useAuthStatus();
-  const richiesti = leggi(search);
+  // criteri stabili per indirizzo: chi li usa nei memo (es. i grafici descritti come dati) non ricalcola a ogni render
+  const richiesti = useMemo(() => leggi(search), [leggi, search]);
   const legameAssente = valori.data?.legameAzioniDisponibile === false;
   // il legame non si conosce ancora: profilo in caricamento, oppure i valori dei filtri in corso
   const legameIgnoto = (auth.data === undefined && !auth.isError) || (conValori && valori.data === undefined && !valori.isError);
   const inAttesa = legameIgnoto && (richiesti.azione ?? []).length > 0;
-  const filtri: C = legameAssente ? senzaAzioneSeNonDisponibile(richiesti, false) : richiesti;
+  const filtri: C = useMemo(() => (legameAssente ? senzaAzioneSeNonDisponibile(richiesti, false) : richiesti), [richiesti, legameAssente]);
   const applica = (c: C) => {
     const query = scrivi(c, search);
     void naviga(query ? `${pathname}?${query}` : pathname);

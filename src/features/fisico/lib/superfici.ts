@@ -120,6 +120,25 @@ export function righeTabella(righe: readonly InterventoSuperficie[], campagnaRis
   return righe.flatMap((r) => (r.campagne.length === 0 ? [riga(r, null)] : r.campagne.map((c) => riga(r, c))));
 }
 
+/** Le campagne dell'anteprima: quella di riferimento, le altre dalla piu' recente e quella della quantita' a premio. */
+export interface CampagneDellAnteprima {
+  riferimento: CampagnaSuperficie | undefined;
+  altre: CampagnaSuperficie[];
+  /** La campagna da cui leggere la quantita' richiesta a premio: quella di riferimento, altrimenti la piu' recente. */
+  premio: CampagnaSuperficie | undefined;
+}
+
+export function campagneDellAnteprima(riga: InterventoSuperficie, campagna: number | null): CampagneDellAnteprima {
+  const riferimento = campagna === null ? undefined : campagnaDi(riga, campagna);
+  const altre = riga.campagne.filter((c) => c !== riferimento).sort((a, b) => b.anno - a.anno);
+  return { riferimento, altre, premio: riferimento ?? altre[0] };
+}
+
+/** Le campagne del pannello: quelle della risposta, e quella scelta se non c'e' (con una campagna gia' nell'indirizzo). */
+export function campagneProposte(campagne: readonly number[], scelta: number | undefined): readonly number[] {
+  return scelta === undefined || campagne.includes(scelta) ? campagne : [scelta, ...campagne];
+}
+
 /** Le righe della tabella riportate agli interventi (per i totali sulle righe trovate dalla ricerca). */
 export function interventiDelleRighe(righe: readonly RigaSuperficie[]): InterventoSuperficie[] {
   const perCodice = new Map<string, CampagnaSuperficie[]>();
