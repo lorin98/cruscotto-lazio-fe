@@ -6,6 +6,7 @@
 import { formatDate, formatEuro, formatNumber } from '../../../shared/lib';
 import type { ValoreOrdinabile } from '../../../shared/lib';
 import { conValore, elencoRicevute, elencoSpesa } from './collegamenti';
+import { codiceDelPercorso } from './criteri';
 import type { RigaVerifica, Verifica } from './dto';
 import { quantita, siNo, testoAnnoDiRiferimento, testoOutputErogato, testoPerimetro } from './formato';
 
@@ -87,10 +88,13 @@ export const TESTI_LINK: Record<LinkDato, (codice: string) => { testo?: string; 
 
 /**
  * L'indirizzo del link verso l'elenco di un dato (OP-IS-09): solo col valore maggiore di 0 e se il profilo legge la
- * destinazione (`puo`, gate di UX); altrimenti null (nessun link verso un elenco vuoto o verso un 403).
+ * destinazione (`puo`, gate di UX); altrimenti null (nessun link verso un elenco vuoto o verso un 403). Fail-closed sul
+ * codice della risposta, come il finanziario: un codice fuori formato l'elenco lo scarterebbe e aprirebbe un insieme
+ * piu' largo di quello che il nome del link dichiara (review A2), quindi nessun link.
  */
 export function indirizzoDelDato(r: RigaVerifica, d: DatoVerifica, puo: (l: LinkDato) => boolean): string | null {
-  if (d.link === undefined || !puo(d.link)) return null;
+  if (d.link === undefined || !puo(d.link) || codiceDelPercorso(r.codiceIntervento) === null) return null;
+
   if (d.link === 'ricevute') return conValore(r.domandeRicevute) ? elencoRicevute(r.codiceIntervento) : null;
   return conValore(r.spesaErogata.valore) ? elencoSpesa(r.codiceIntervento) : null;
 }

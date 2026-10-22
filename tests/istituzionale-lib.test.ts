@@ -200,6 +200,11 @@ describe('RF016: i ventuno dati della verifica SMP non SIGC (TX-0016)', () => {
     expect(indirizzoDelDato(VERIFICA.righe[0], dato('spesaErogata'), tutto)).toBeNull();
     expect(indirizzoDelDato(SRD01, dato('spesaErogata'), (l) => l === 'ricevute')).toBeNull();
     expect(indirizzoDelDato(SRD01, dato('dotazioneAvvisi'), tutto)).toBeNull();
+    // fail-closed sul codice della risposta (review A2): un codice che l'elenco scarterebbe non apre l'elenco intero
+    for (const codice of [' ', 'SRD01\u200B', '', 'SRD01&tipo=PAGAMENTO']) {
+      expect(indirizzoDelDato({ ...SRD01, codiceIntervento: codice }, dato('domandeRicevute'), tutto)).toBeNull();
+      expect(indirizzoDelDato({ ...SRD01, codiceIntervento: codice }, dato('spesaErogata'), tutto)).toBeNull();
+    }
     expect(TESTI_LINK.ricevute('SRD01')).toEqual({ descrizione: "le domande di sostegno correnti dell'intervento SRD01" });
     expect(TESTI_LINK.spesa('SRD01')).toEqual({ testo: 'Apri nei pagamenti', descrizione: "le righe pagate non SIGC dell'intervento SRD01" });
   });
