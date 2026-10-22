@@ -1,0 +1,34 @@
+[
+  {
+    "id": "H1",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/PannelloFiltriElenco.tsx:97",
+    "titolo": "Il focus dopo un comando che sparisce ha ora due implementazioni: useFocusDopoIlCambio, nuovo nel kit col fix A1, e useFocusDopoIlTogli, locale al pannello dell'elenco, che fa la stessa cosa",
+    "evidenza": "Il kit (shared/ui/focus.ts:27-33): il gestore chiama sposta() e un effetto, dopo il render, porta il focus sull'elemento stabile del ref. L'elenco (PannelloFiltriElenco.tsx:97-111, useFocusDopoIlTogli): il gestore segna l'intento in un ref booleano e un effetto, dopo il render che ha smontato il pulsante, porta il focus sulla nota del ref. Lo usa una sola volta GruppoStati (righe 113-119, 'Togli il filtro Atto di concessione'). La responsabilita' e' la stessa (WCAG 2.4.3, X-02/X-03). Il hook del kit e' nato nel giro di correzione (e8fe95a) e non ha assorbito la copia gia' presente nello stesso perimetro: il file e' stato toccato da a557bf6. Il cambio di criteri di imposta e' sincrono (useCriteri.ts:87-91, setBozza: la bozza si vede subito), quindi il pulsante sparisce nello stesso render in cui il kit sposterebbe il focus. La sostituzione non cambia il comportamento. E' una duplicazione sotto soglia (circa 13 righe contro le 6 del kit).",
+    "fix": "In GruppoStati: const nota = useRef<HTMLParagraphElement>(null); const sposta = useFocusDopoIlCambio(nota); togliConcessione = () => { sposta(); imposta('concessione')([]); }. Togliere useFocusDopoIlTogli e useEffect dall'import di react. Il test esistente src/pages/elenco-operativo/interrogazione-stati.test.tsx:304-308 (focus sulla nota dopo il togli) deve restare verde."
+  },
+  {
+    "id": "H2",
+    "severity": "COSMETICO",
+    "file": "src/features/fisico/lib/criteri.ts:6",
+    "titolo": "Il lib puro del fisico dipende da un tipo dichiarato in un modulo ui: ValoriProgramma sta in entities/filtri/ui/GruppiProgramma.tsx e vociDelPannello, portata nel lib da H3, lo importa",
+    "evidenza": "ValoriProgramma, con VoceLike, e' la forma dei valori dei filtri di TX-0001 e TX-0060 (GruppiProgramma.tsx:15-28): un tipo di dati, ma e' dichiarato nel file del componente ed esportato dal barrel da './ui/GruppiProgramma' (entities/filtri/index.ts:22). A dcedafe lo usava solo la UI del fisico (PannelloFiltriSuperfici.tsx:12, valoriDei). Con H3 (236ddd7) vociDelPannello e' passata in lib/criteri.ts:76-82: il lib, puro per l'invariante di lib/, ora importa per tipo da un modulo ui dell'entity. E' solo un tipo, senza effetti a runtime.",
+    "fix": "Spostare VoceLike e ValoriProgramma in entities/filtri/lib/programma.ts, accanto a Filtri, ed esportarli dal barrel da './lib/programma'; GruppiProgramma.tsx li importa dal lib. Chi importa dal barrel non cambia nulla."
+  },
+  {
+    "id": "H3",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/lib/filtri.ts:14",
+    "titolo": "Riesportazioni morte dopo H2: filtriAttivi e senzaValore del lib del finanziario non hanno piu' consumatori di produzione e restano solo per test che ripetono quelli dell'entity",
+    "evidenza": "A dcedafe useFiltriNellIndirizzo del finanziario importava filtriAttivi e senzaValore da '../lib/filtri'. Con cee5e26 la regola e' in entities/filtri (filtriNellaBarra), e nessun file di src/features/finanziario li usa piu': il grep trova solo la riesportazione, alle righe 14 e 18. Li tiene vivi solo tests/finanziario-lib.test.ts:200-217, che prova attraverso la feature funzioni dell'entity gia' provate in tests/entita-filtri-domanda.test.ts:36-38 (l'identita' delle riesportazioni e' provata alle righe 45-49). Per queste due non vale piu' il commento delle righe 4-5 ('si riesportano, cosi' i moduli della feature non cambiano'). Anche il tipo FiltroAttivo (riga 21) non ha consumatori.",
+    "fix": "Togliere filtriAttivi, senzaValore e FiltroAttivo dalla riesportazione di finanziario/lib/filtri.ts. In tests/finanziario-lib.test.ts togliere i due it (filtriAttivi, senzaValore), oppure portare i loro casi che mancano all'entity (lista vuota, chiave senza valori, originale non mutato) in tests/entita-filtri-domanda.test.ts, importando dall'entity."
+  },
+  {
+    "id": "H4",
+    "severity": "COSMETICO",
+    "file": "src/shared/lib/grafici/primitive.ts:81",
+    "titolo": "ettari, ora la resa unica delle superfici in tutti i testi (D2), sta fra le primitive dei grafici e non accanto a formatEttari",
+    "evidenza": "primitive.ts:80-83 la documenta come resa 'di etichette, tooltip e descrizioni' dei grafici. Con H5/D2 (c5ccabe) e' diventata anche la resa delle celle e della sintesi della scheda dell'elenco (elenco-operativo/lib/formato.ts:98-101), dei KPI (fisico/lib/report.ts:37, 44) e dell'anteprima (AnteprimaIntervento.tsx:30-31, 53, 56). Lo strato e' giusto (shared/lib, letta dal barrel); il modulo no. Un testo di tabella dipende da una primitiva dei grafici, e una modifica alle etichette dei grafici cambierebbe anche la tabella dell'elenco. formatEttari, a cui ettari aggiunge solo l'unita', sta in shared/lib/format.ts:18.",
+    "fix": "Spostare ettari in shared/lib/format.ts, accanto a formatEttari, con il commento 'resa unica delle superfici (D-01, D2)'; primitive.ts la importa da '../format' per valoreEttari, e forme.ts (MISURA_ETTARI, riga 104) da '../format' invece che da './primitive'. Il barrel di shared/lib non cambia, quindi non c'e' nessun import da toccare."
+  }
+]

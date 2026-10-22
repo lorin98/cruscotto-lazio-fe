@@ -1,0 +1,47 @@
+[
+  {
+    "id": "A1",
+    "severity": "MINORE",
+    "titolo": "'Applica i filtri' senza modifiche dal pannello aperto dallo stato vuoto porta il focus sull'h1 anche se i criteri non cambiano e 'Modifica i filtri' resta sulla pagina: il codice distingue per l'origine del pannello, il wireframe per il comando che sparisce (superfici.md:166-169, superfici.html:240); assorbe la parte sui commenti di X1",
+    "file": "src/features/fisico/ui/SuperficiAmmissibili.tsx",
+    "riga": 102,
+    "fix": "In onApplica: (pannello === 'vuoto' && ricercaDaCriteri(c) !== ricercaDaCriteri(criteri) ? applicaConFocus : applica)(c), cosi' con criteri invariati react-aria riporta il focus a 'Modifica i filtri' come dalla barra. Riscrivere i commenti delle righe 10-11 e 99 col criterio vero: criteri nuovi = contenuto nuovo, focus sull'h1; criteri invariati = il bottone resta, focus al bottone. 'Mostra solo' resta com'e'. Test di pagina: servi({ ...SUPERFICI, righe: [] }), ?intervento=SRB09, 'Modifica i filtri' -> 'Applica i filtri' senza cambi: indirizzo invariato e, in waitFor, document.activeElement e' il bottone 'Modifica i filtri'. Il test X2 (con Azzera) resta sull'h1. Nessun wireframe da toccare.",
+    "decisione_utente": false
+  },
+  {
+    "id": "H1",
+    "severity": "MINORE",
+    "titolo": "Il focus dopo un comando che sparisce ha due implementazioni: useFocusDopoIlCambio del kit (focus.ts:27-33, nato col fix A1 dell'iterazione 1) e useFocusDopoIlTogli locale al pannello dell'elenco, che fa la stessa cosa",
+    "file": "src/features/elenco-operativo/ui/PannelloFiltriElenco.tsx",
+    "riga": 97,
+    "fix": "In GruppoStati: const nota = useRef<HTMLParagraphElement>(null); const sposta = useFocusDopoIlCambio(nota) (dal barrel di shared/ui); togliConcessione = () => { sposta(); imposta('concessione')([]); }. Togliere useFocusDopoIlTogli e, se non serve piu', useEffect dall'import di react. Deve restare verde src/pages/elenco-operativo/interrogazione-stati.test.tsx:304-308 (focus sulla nota dopo il togli).",
+    "decisione_utente": false
+  },
+  {
+    "id": "H2",
+    "severity": "COSMETICO",
+    "titolo": "VoceLike e ValoriProgramma, tipi dei valori dei filtri, sono dichiarati nel componente GruppiProgramma.tsx, e vociDelPannello del lib del fisico li importa per tipo (criteri.ts:6)",
+    "file": "src/entities/filtri/ui/GruppiProgramma.tsx",
+    "riga": 15,
+    "fix": "Spostare VoceLike e ValoriProgramma in src/entities/filtri/lib/programma.ts, accanto a Filtri; GruppiProgramma.tsx li importa da '../lib/programma'; il barrel (entities/filtri/index.ts:22) esporta ValoriProgramma da './lib/programma'. Chi importa dal barrel non cambia.",
+    "decisione_utente": false
+  },
+  {
+    "id": "H3",
+    "severity": "COSMETICO",
+    "titolo": "Riesportazioni morte dopo H2 dell'iterazione 1: filtriAttivi, senzaValore e FiltroAttivo del lib del finanziario non hanno consumatori di produzione e restano solo per due test che ripetono quelli dell'entity",
+    "file": "src/features/finanziario/lib/filtri.ts",
+    "riga": 14,
+    "fix": "Togliere filtriAttivi, senzaValore (righe 14, 18) e FiltroAttivo (riga 21) dalla riesportazione. Portare in tests/entita-filtri-domanda.test.ts, importando dall'entity, i casi che li' mancano (lista vuota, chiave senza valori, chiave rimasta vuota che sparisce, originale non mutato), e togliere i due it di tests/finanziario-lib.test.ts:200-217.",
+    "decisione_utente": false
+  },
+  {
+    "id": "H4",
+    "severity": "COSMETICO",
+    "titolo": "ettari, la resa unica delle superfici dopo D2 (celle e sintesi dell'elenco, KPI, anteprima), sta fra le primitive dei grafici col commento 'di etichette, tooltip e descrizioni', non accanto a formatEttari",
+    "file": "src/shared/lib/grafici/primitive.ts",
+    "riga": 81,
+    "fix": "Spostare ettari in src/shared/lib/format.ts, dopo formatEttari, col commento 'resa unica delle superfici in testi, tabelle e grafici (D-01, D2)'. primitive.ts la importa da '../format' per valoreEttari, e forme.ts (MISURA_ETTARI, riga 104) la importa da '../format' invece che da './primitive'. Il barrel di shared/lib non cambia (grafici/index.ts riesporta primitive con export *: nessun doppio export).",
+    "decisione_utente": false
+  }
+]
