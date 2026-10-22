@@ -28,3 +28,10 @@ export const ANNO_SENZA = 'SENZA';
  * dichiarate: `breve` per i chip e le opzioni dei filtri, `esteso` nelle descrizioni e nelle tabelle dei report.
  */
 export const ANNO_ASSENTE = { breve: 'Senza anno', esteso: 'senza anno di raccolta' } as const;
+
+/** Tipo della domanda (SOSTEGNO, PAGAMENTO): "Sostegno", "Pagamento"; un codice nuovo resta il codice. */
+export const ETICHETTE_TIPO_DOMANDA: Readonly<Record<string, string>> = { SOSTEGNO: 'Sostegno', PAGAMENTO: 'Pagamento' };
+
+export function etichettaTipoDomanda(tipo: string | null | undefined): string {
+  return tipo ? (ETICHETTE_TIPO_DOMANDA[tipo] ?? tipo) : '';
+}

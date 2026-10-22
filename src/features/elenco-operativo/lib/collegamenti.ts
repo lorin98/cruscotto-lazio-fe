@@ -1,7 +1,7 @@
 // collegamenti.ts — indirizzi dei link dichiarati nello uiplan della feature (PURO): scheda della domanda, elenco dei
 // pagamenti delle domande filtrate e ritorno, altre domande del beneficiario, ricerca di partenza della scheda. Ogni link
 // porta i parametri della sua `query` nello uiplan (i filtri della domanda, drill-down procedurale compreso).
-import { PERCORSO_ELENCO_DOMANDE, PERCORSO_ELENCO_PAGAMENTI } from '../../../entities/domanda';
+import { PERCORSO_ELENCO_DOMANDE, PERCORSO_ELENCO_PAGAMENTI, percorsoSchedaDomanda, riferimentoDomandaValido } from '../../../entities/domanda';
 import { conStatoSalvato, leggiStatoSalvato } from '../../../shared/lib';
 import type { StatoSalvato } from '../../../shared/lib';
 import type { Criteri } from './criteri';
@@ -11,24 +11,13 @@ import { filtriDellaDomanda, ricercaDaCriteri } from './criteri';
 export const PERCORSO_DOMANDE = PERCORSO_ELENCO_DOMANDE;
 export const PERCORSO_PAGAMENTI = PERCORSO_ELENCO_PAGAMENTI;
 
-const TIPI = new Set(['SOSTEGNO', 'PAGAMENTO']);
-const CODICE_A_BARRE = /^\d{1,30}$/;
-
 /**
- * Tipo e codice a barre utilizzabili come riferimento della scheda (TX-0058): tipo SOSTEGNO o PAGAMENTO, codice di sole
- * cifre (al piu' 30). Vale per i link che l'app costruisce e per i parametri del percorso che arrivano dall'indirizzo:
- * un valore diverso non entra mai nell'URL di una lettura (review v1 A-01: niente '/', '..', '%' nel percorso dell'API).
+ * Tipo e codice a barre utilizzabili come riferimento della scheda (TX-0058), e la scheda della domanda (link
+ * dettaglio-domanda, domanda-collegata, dettaglio-domanda-del-pagamento; null se il riferimento non e' valido): sono del
+ * contratto dell'indirizzo condiviso con il fisico (entities/domanda, link scheda-domanda delle determine).
  */
-export function riferimentoValido(tipo: string | null | undefined, codiceABarre: string | null | undefined): boolean {
-  return Boolean(tipo && TIPI.has(tipo) && codiceABarre && CODICE_A_BARRE.test(codiceABarre));
-}
-
-/** Scheda della domanda (link dettaglio-domanda, domanda-collegata, dettaglio-domanda-del-pagamento); null se tipo o codice
- *  non sono un riferimento valido. */
-export function percorsoDettaglio(tipo: string | null | undefined, codiceABarre: string | null | undefined): string | null {
-  if (!riferimentoValido(tipo, codiceABarre)) return null;
-  return `${PERCORSO_DOMANDE}/${tipo}/${codiceABarre}`;
-}
+export const riferimentoValido = riferimentoDomandaValido;
+export const percorsoDettaglio = percorsoSchedaDomanda;
 
 /** Link pagamenti-delle-domande: l'elenco dei pagamenti con i filtri della domanda (non pagina ne' ordinamento). */
 export function percorsoPagamentiDelleDomande(criteri: Criteri): string {

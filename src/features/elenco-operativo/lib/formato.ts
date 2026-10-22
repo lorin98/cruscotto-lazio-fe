@@ -1,7 +1,7 @@
 // formato.ts — resa PURA dei campi dell'elenco operativo (zero React): importi col motivo dell'assenza (mai uno zero),
 // somme del sinottico con le domande senza importo, etichette dei codici del contratto, superfici e responsabile del
 // procedimento col loro motivo, atto di concessione ("nessun atto" solo con la fonte attiva, altrimenti l'assenza).
-import { ANNO_ASSENTE, ANNO_SENZA, ETICHETTE_ANNUALITA, ETICHETTE_ESITO_PAGAMENTO, ETICHETTE_ESITO_RIGA } from '../../../entities/domanda';
+import { ANNO_ASSENTE, ANNO_SENZA, ETICHETTE_ANNUALITA, ETICHETTE_ESITO_PAGAMENTO, ETICHETTE_ESITO_RIGA, ETICHETTE_TIPO_DOMANDA, etichettaTipoDomanda } from '../../../entities/domanda';
 import { descriviAssenza, descriviImporto, testoConNota } from '../../../entities/importo';
 import type { ImportoLike } from '../../../entities/importo';
 import { formatDate, formatEuro, formatNumber, formatPercentuale, plurale } from '../../../shared/lib';
@@ -54,11 +54,8 @@ export function testoQuotaPagata(quota: number | null | undefined): string {
   return quota == null ? 'non calcolabile' : formatPercentuale(quota);
 }
 
-const TIPI: Record<string, string> = { SOSTEGNO: 'Sostegno', PAGAMENTO: 'Pagamento' };
-/** "Sostegno", "Pagamento"; un codice nuovo resta il codice. */
-export function etichettaTipo(tipo: string | null | undefined): string {
-  return tipo ? (TIPI[tipo] ?? tipo) : '';
-}
+/** "Sostegno", "Pagamento"; un codice nuovo resta il codice (vocabolario della domanda, condiviso col fisico). */
+export const etichettaTipo = etichettaTipoDomanda;
 
 const ESITI: Record<string, string> = ETICHETTE_ESITO_RIGA;
 /** Esito della riga di elenco; per una domanda chiusa lo dice in testo (non solo col colore). */
@@ -69,7 +66,7 @@ export function etichettaEsito(esito: string | null | undefined, domandaCorrente
 
 /** Valori dei filtri codificati del contratto, con l'etichetta da mostrare. */
 export const ETICHETTE_VALORI: Partial<Record<string, Record<string, string>>> = {
-  tipo: TIPI,
+  tipo: ETICHETTE_TIPO_DOMANDA,
   annualita: ETICHETTE_ANNUALITA,
   pagamento: ETICHETTE_ESITO_PAGAMENTO,
   esito: ETICHETTE_ESITO_RIGA,
