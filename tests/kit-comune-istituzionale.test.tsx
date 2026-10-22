@@ -1,12 +1,14 @@
 // Kit comune portato fuori dalle feature (o esteso) per l'istituzionale: selettore d'anno e anno della pagina
 // nell'indirizzo (shared/ui, prima nel finanziario), link verso l'elenco operativo (entities/domanda, prima nel
-// finanziario), riga sotto il sottotitolo della testata, card del grafico senza PNG o col nome dei file. Dati di prova
-// inventati.
+// finanziario), riga sotto il sottotitolo della testata, card del grafico senza PNG o col nome dei file, messaggio del
+// file oltre il limite dell'esportazione (prima nel fisico). Dati di prova inventati.
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
-import { CardGrafico, SelettoreAnno, TestaPagina, useAnnoNellIndirizzo } from '../src/shared/ui';
+import { AxiosError, AxiosHeaders } from 'axios';
+import { CardGrafico, OLTRE_IL_LIMITE_DELL_ESPORTAZIONE, SelettoreAnno, TestaPagina, messaggioOltreIlLimite, useAnnoNellIndirizzo } from '../src/shared/ui';
+import { PROBLEM_TYPES } from '../src/shared/api/problem/problem-types';
 import type { DatiGrafico, Scaricamento } from '../src/shared/ui';
 import { SelettoreAnno as SelettoreFinanziario } from '../src/features/finanziario/ui/SelettoreAnno';
 import { ApriNellElenco as ApriFinanziario } from '../src/features/finanziario/ui/LinkElenco';
@@ -122,5 +124,16 @@ describe('Estensioni del kit per l istituzionale: riga sotto il sottotitolo e ca
     expect(screen.getAllByRole('button', { name: /^Scarica/ }).map((b) => b.getAttribute('aria-label'))).toEqual(["Scarica l'output dell'intervento SRA01 in PNG", "Scarica l'output dell'intervento SRA01 in CSV"]);
     rerender(<CardGrafico titolo="Output per anno" dati={DATI} fonte="Fonte" scaricamenti={[csv]} />);
     expect(screen.getAllByRole('button', { name: /^Scarica/ }).map((b) => b.getAttribute('aria-label'))).toEqual(['Scarica il grafico Output per anno in PNG', 'Scarica il grafico Output per anno in CSV']);
+  });
+});
+
+describe('messaggioOltreIlLimite del kit: il file oltre il limite dell esportazione (prima nel fisico)', () => {
+  it('il 400 DATO_NON_VALIDO sul problem-type ha il testo per esteso; gli altri errori il messaggio del problem-type', () => {
+    const errore = (status: number, type: string) => new AxiosError('x', undefined, undefined, undefined, { status, data: { type, title: 'Errore', status, errorCode: 'X' }, statusText: '', headers: {}, config: { headers: new AxiosHeaders() } });
+    expect(messaggioOltreIlLimite(errore(400, PROBLEM_TYPES.DATO_NON_VALIDO))).toBe(OLTRE_IL_LIMITE_DELL_ESPORTAZIONE);
+    expect(OLTRE_IL_LIMITE_DELL_ESPORTAZIONE).toBe("La tabella supera il limite dell'esportazione (5.000 righe o 50.000 celle): restringi i filtri e riprova.");
+    expect(messaggioOltreIlLimite(errore(400, 'about:blank'))).toBeNull();
+    expect(messaggioOltreIlLimite(errore(503, PROBLEM_TYPES.CAPACITA_ESAURITA))).toBeNull();
+    expect(messaggioOltreIlLimite(new Error('rete'))).toBeNull();
   });
 });

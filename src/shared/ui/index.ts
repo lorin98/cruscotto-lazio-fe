@@ -32,7 +32,7 @@ export type { ChipFiltro } from './filtri/BarraFiltri';
 export { PannelloLaterale } from './laterale/PannelloLaterale';
 export { TabellaInterattiva, statoTabellaValido } from './tabella/TabellaInterattiva';
 export { PulsantiScarica } from './scarica/PulsantiScarica';
-export { scaricamentiDalBackend } from './scarica/scaricamenti';
+export { OLTRE_IL_LIMITE_DELL_ESPORTAZIONE, messaggioOltreIlLimite, scaricamentiDalBackend } from './scarica/scaricamenti';
 export type { FormatoDelBackend } from './scarica/scaricamenti';
 export type { FormatoScaricabile, Scaricamento } from './scarica/PulsantiScarica';
 export type { ColonnaTabella, RigaPiede, StatoTabella } from './tabella/TabellaInterattiva';

@@ -2,7 +2,9 @@
 // criteri della consultazione, intestazione, registrazione in AUDIT_ESPORTAZIONE), come li vogliono i PulsantiScarica: un
 // pulsante per formato, il file salvato col nome della base (nomeFile) e l'eventuale messaggio d'errore proprio. Prima
 // ogni area aveva la sua copia (finanziario, elenco operativo); la base del nome, l'ordine dei formati e la lettura le
-// decide chi chiama. Il PNG del grafico lo aggiunge CardGrafico, con lo stesso nome.
+// decide chi chiama. Il PNG del grafico lo aggiunge CardGrafico, con lo stesso nome. Poi il messaggio del file oltre il
+// limite dell'export sincrono, uguale per le aree che lo dicono per esteso (fisico, istituzionale).
+import { eProblema } from '../../api/problem/e-problema';
 import { nomeFile } from '../../lib/nome-file';
 import { salvaFile } from '../salva-file';
 import type { Scaricamento } from './PulsantiScarica';
@@ -31,4 +33,15 @@ export function scaricamentiDalBackend({
       ...(messaggioErrore ? { messaggioErrore } : {}),
     };
   });
+}
+
+// il limite dell'export sincrono del backend (D-06 del fisico, D-07 dell'istituzionale), col testo dei wireframe approvati
+export const OLTRE_IL_LIMITE_DELL_ESPORTAZIONE = "La tabella supera il limite dell'esportazione (5.000 righe o 50.000 celle): restringi i filtri e riprova.";
+
+/**
+ * Per `messaggioErrore`: il 400 DATO_NON_VALIDO di un'esportazione (problem-type, mai il solo status) detto per esteso come
+ * file oltre il limite; gli altri errori col messaggio del problem-type (null).
+ */
+export function messaggioOltreIlLimite(errore: unknown): string | null {
+  return eProblema(errore, 'invalid-data') ? OLTRE_IL_LIMITE_DELL_ESPORTAZIONE : null;
 }
