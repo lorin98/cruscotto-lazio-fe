@@ -10,6 +10,7 @@ import { expectNoA11yViolations } from '../../../shared/testing/axe';
 import { descrizioneDi, tabellaDi, trovaCard } from '../../../shared/testing/card-grafico';
 import { problema, trattenuta } from '../../../shared/testing/msw';
 import { renderPagina } from '../../../shared/testing/render-pagina';
+import { pngDelGrafico } from '../../../shared/ui/grafici/echarts';
 import { OUTPUT, VERIFICA, verificaPer } from '../../../features/istituzionale/testing/fixture';
 import { lettureIstituzionale } from '../../../features/istituzionale/testing/letture';
 import Pagina from './page';
@@ -77,6 +78,22 @@ describe("RF017: output programmato e realizzato dell'intervento per anno (TX-00
     const t = await tabellaDi(card);
     expect(within(t).getAllByRole('rowheader').at(-1)?.textContent).toBe('Target di fine periodo');
     expect(card.textContent).toContain('2023, programmato: non valorizzato (il dato non è presente nella fonte)');
+  });
+
+  it('il PNG della scheda Output dichiara i soli filtri di TX-0017: l anno di riferimento della verifica no (NFR-50)', async () => {
+    servi();
+    URL.createObjectURL = vi.fn(() => 'blob:prova');
+    URL.revokeObjectURL = vi.fn();
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    const png = vi.mocked(pngDelGrafico);
+    png.mockClear();
+    apri('/istituzionale/interventi/SRA01?anno=2024');
+    const card = await trovaCard('Output programmato e realizzato per anno (ettari)');
+    await userEvent.click(within(card).getByRole('button', { name: / in PNG$/ }));
+    await waitFor(() => expect(png).toHaveBeenCalledTimes(1));
+    const intestazione = png.mock.calls[0][1].intestazione;
+    expect(intestazione).toContain('Filtri applicati: Intervento: SRA01');
+    expect(intestazione.join('\n')).not.toContain('Anno di riferimento');
   });
 
   it('il CSV della scheda Output e quello di TX-0017 dell intervento; il CSV della verifica ha anche l anno scelto', async () => {
