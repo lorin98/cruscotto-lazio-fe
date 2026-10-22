@@ -48,6 +48,11 @@ export function testoQuotaOltreDs(pagamento: number, quota: number | null): stri
   return `su ${formatNumber(pagamento)} ${pagamento === 1 ? 'domanda' : 'domande'} di pagamento: ${formatPercentuale(quota)}`;
 }
 
+/** Perimetro della risposta in parole: sempre REGIONALE per le letture del fisico (D-04 del backend). */
+export function testoPerimetro(perimetro: string): string {
+  return perimetro === 'REGIONALE' ? 'regionale' : perimetro.toLowerCase();
+}
+
 /** Etichette dei campi di TX-0018: le stesse in tabella, KPI, anteprima e tabelle equivalenti dei grafici. */
 export const ETICHETTE = {
   intervento: 'Intervento',

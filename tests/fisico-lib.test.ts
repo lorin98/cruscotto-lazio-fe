@@ -30,7 +30,6 @@ import {
   siNo,
   soloCifre,
   sopratitoloDetermine,
-  testoDetermina,
   testoTipoDomanda,
   titoloDetermine,
 } from '../src/features/fisico/lib/determine';
@@ -286,7 +285,6 @@ describe('RF020: determine di una domanda (codice, link e testi)', () => {
     expect(fonteDi(DETERMINE.elenco, 'fonteStatoAreaProgrammazione')?.codice).toBe('G00001');
     expect(fonteDi(DETERMINE.elenco, 'fonteComparto')?.codice).toBe('G00002');
     expect(fonteDi(DETERMINE_NESSUNA.elenco, 'fonteComparto')).toBeUndefined();
-    expect(testoDetermina(DETERMINE.elenco[0])).toBe('G00003 del 30/06/2025');
     expect(siNo(true, 'sì, corrente')).toBe('sì, corrente');
     expect(siNo(false)).toBe('no');
   });

@@ -63,6 +63,4 @@ export function rispostaDatoNonValido(errore: unknown): boolean {
 // uso interno) e la registrazione in AUDIT_ESPORTAZIONE; una riga per intervento e campagna, nessun totale. Oltre 5.000
 // righe o 50.000 celle risponde 400 DATO_NON_VALIDO (il mutator rilegge il corpo JSON del Blob d'errore).
 export type FormatoEsportazione = 'csv' | 'xlsx';
-/** Righe e celle al piu' di un file (D-06 del backend fisico). */
-export const LIMITE_ESPORTAZIONE = { righe: 5000, celle: 50000 } as const;
 export const esportaSuperfici = (formato: FormatoEsportazione, criteri: CriteriSuperfici): Promise<Blob> => getApiFisicoSuperficieAmmissibileFormato(formato, criteri);

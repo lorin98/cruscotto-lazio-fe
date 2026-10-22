@@ -3,7 +3,6 @@
 // indirizzi dei due link dichiarati nello uiplan (cerca-domanda verso la stessa route, scheda-domanda verso l'elenco
 // operativo) e i testi della testata, dei riquadri e della tabella. I si'/no e la determina corrente sono in testo.
 import { codiceABarreValido, etichettaTipoDomanda, percorsoSchedaDomanda } from '../../../entities/domanda';
-import { formatDate } from '../../../shared/lib';
 import type { Determina, Determine } from './dto';
 import { PERCORSI } from './pagine';
 
@@ -75,11 +74,6 @@ export function eCorrente(determina: Determina, corrente: Determine['corrente'])
 /** La determina da cui viene un campo della domanda: la piu' recente dell'elenco che lo valorizza (D-03 del backend). */
 export function fonteDi(elenco: readonly Determina[], campo: 'fonteStatoAreaProgrammazione' | 'fonteComparto'): Determina | undefined {
   return elenco.find((d) => d[campo]);
-}
-
-/** "G00003 del 30/06/2025". */
-export function testoDetermina(d: Determina): string {
-  return `${d.codice} del ${formatDate(d.data)}`;
 }
 
 /** Si'/no in testo, mai solo un'icona. La colonna della corrente dice "sì, corrente". */
