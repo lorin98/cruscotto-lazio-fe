@@ -1,6 +1,7 @@
 // Kit comune portato fuori dalle feature per il fisico (shared/ui ed entities/filtri): testata della pagina, file CSV e
 // XLSX del backend, totali su piu' righe della tabella interattiva, nome accessibile del KPI, gruppi del pannello del
 // programma. Dati di prova inventati.
+import type { ReactElement } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -12,7 +13,7 @@ import { expectNoA11yViolations } from '../src/shared/testing/axe';
 
 vi.mock('../src/shared/ui/salva-file', async (originale) => ({ ...(await originale<typeof import('../src/shared/ui/salva-file')>()), salvaFile: vi.fn() }));
 
-function inRouter(ui: React.ReactElement) {
+function inRouter(ui: ReactElement) {
   const router = createMemoryRouter([{ path: '*', element: ui }], { initialEntries: ['/'] });
   return render(<RouterProvider router={router} />);
 }
