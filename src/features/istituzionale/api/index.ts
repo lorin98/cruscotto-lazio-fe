@@ -14,6 +14,7 @@
 //   mette in coda le letture oltre il tetto per utente, nella stessa coda delle altre aree (app/tetti-letture,
 //   SC-IS_CAPACITA).
 // - Retry: nessuna opzione qui; la politica (rete assente e 503 con Retry-After) e' del QueryClient (app/query-client.ts).
+import { keepPreviousData } from '@tanstack/react-query';
 import { eProblema } from '../../../shared/api/problem/e-problema';
 import {
   getApiIstituzionaleOutputRegionaleFormato,
@@ -56,8 +57,11 @@ interface Opzioni {
 }
 
 // TX-0016 (RF016): i dati non SIGC dei file ASR per intervento, da confrontare con SMP, con l'ultimo dato sincronizzato.
-// Una lettura per pagina coi criteri dell'indirizzo; il dettaglio dell'intervento la fa col solo intervento della route.
-export const useVerificaSmpNonSigc = (criteri: CriteriVerifica, { abilitato = true }: Opzioni = {}) => useTx0016(criteri, { query: { enabled: abilitato } });
+// Una lettura per pagina coi criteri dell'indirizzo; il dettaglio dell'intervento la fa col solo intervento della route e,
+// con `mantieniDati`, durante la lettura di un altro anno tiene i dati di prima (placeholderData, come gli elenchi
+// dell'elenco operativo): la scheda col selettore d'anno resta montata e il focus resta sul suo "Mostra".
+export const useVerificaSmpNonSigc = (criteri: CriteriVerifica, { abilitato = true, mantieniDati = false }: Opzioni & { mantieniDati?: boolean } = {}) =>
+  useTx0016(criteri, { query: { enabled: abilitato, ...(mantieniDati ? { placeholderData: keepPreviousData } : {}) } });
 
 // TX-0017 (RF017): l'output regionale programmato e realizzato per intervento e anno del periodo, con gli importi
 // unitari per Unit Amount e l'ultimo dato sincronizzato.

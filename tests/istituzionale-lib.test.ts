@@ -5,7 +5,7 @@ import type { BarSeriesOption } from 'echarts';
 import { describe, expect, it } from 'vitest';
 import { GRANT, puoLeggere } from '../src/features/istituzionale/lib/grant';
 import { GRANT_DETTAGLIO, PAGINE_ISTITUZIONALE, PERCORSI, pagineVisibili, ricercaConservata } from '../src/features/istituzionale/lib/pagine';
-import { ANNI_DEL_PERIODO, anniDiRiferimento, codiceDelPercorso, criteriVerifica, ricercaConAnno, soloIntervento, testiCriteri } from '../src/features/istituzionale/lib/criteri';
+import { ANNI_DEL_PERIODO, anniDiRiferimento, codiceDelPercorso, conFiltri, criteriVerifica, ricercaConAnno, soloIntervento, testiCriteri } from '../src/features/istituzionale/lib/criteri';
 import { VERIFICA_SMP_SIGC, conValore, elencoRicevute, elencoSpesa, outputDellIntervento, percorsoIntervento, verificaDellIntervento } from '../src/features/istituzionale/lib/collegamenti';
 import {
   ANNO_TARGET_ASSENTE,
@@ -28,8 +28,8 @@ import {
 } from '../src/features/istituzionale/lib/formato';
 import { DATI_VERIFICA, TESTI_LINK, indirizzoDelDato, testoRicerca, testoValore, titoloDato, valoreOrdinabile, vociRiferimenti } from '../src/features/istituzionale/lib/verifica';
 import type { DatoVerifica } from '../src/features/istituzionale/lib/verifica';
-import { MISURE, anniDelPeriodo, captionOutput, datoDellAnno, etichettaMisura, importiOrdinati, ordinabileDellAnno, rigaDellIntervento, testoRicercaOutput, vociAnteprima } from '../src/features/istituzionale/lib/output';
-import { badgeIntervento, esitoDettaglio, kpiIntervento, sopratitoloIntervento, titoloIntervento, ultimiDelDettaglio } from '../src/features/istituzionale/lib/intervento';
+import { MISURE, anniDelPeriodo, captionOutput, datoDellAnno, etichettaMisura, importiOrdinati, opzioniMisura, ordinabileDellAnno, rigaDellIntervento, testoRicercaOutput, vociAnteprima } from '../src/features/istituzionale/lib/output';
+import { SENZA_DATI, SENZA_UNIT_AMOUNT, TITOLI_SCHEDE, badgeIntervento, captionVociVerifica, kpiIntervento, schedeVisibili, statoDelDettaglio, sopratitoloIntervento, titoloIntervento, ultimiDelDettaglio } from '../src/features/istituzionale/lib/intervento';
 import { TITOLO_SPESA, graficoOutputPerAnno, graficoSpesa } from '../src/features/istituzionale/lib/grafici';
 import { OUTPUT, SRA01_OUTPUT, SRD01, ULTIMI, VERIFICA, outputPer, righeDeiFiltri, verificaPer } from '../src/features/istituzionale/testing/fixture';
 
@@ -87,6 +87,7 @@ describe('RF016: criteri nell indirizzo (filtri del programma e anno di riferime
     expect(codiceDelPercorso('SRA01')).toBe('SRA01');
     for (const nonValido of ['SRA01/..', 'sra01', ' SRA01', '', undefined, 'SRA01%2F']) expect(codiceDelPercorso(nonValido)).toBeNull();
     expect(soloIntervento('SRA01')).toEqual({ intervento: ['SRA01'] });
+    expect([conFiltri({ os: ['OS4'] }), conFiltri({}), conFiltri({ intervento: [] })]).toEqual([true, false, false]);
   });
 });
 
@@ -218,6 +219,11 @@ describe('RF017: l output regionale (TX-0017)', () => {
   it('misure dell interruttore, anni del periodo e dato di un anno; un anno non elencato e non valorizzato', () => {
     expect(MISURE.map((m) => etichettaMisura(m, true))).toEqual(['Programmato', 'Realizzato SIGC', 'Realizzato non SIGC (cumulativo)']);
     expect(etichettaMisura('realizzatoNonSigc', false)).toBe('Realizzato non SIGC');
+    expect(opzioniMisura(true)).toEqual([
+      { valore: 'programmato', etichetta: 'Programmato' },
+      { valore: 'realizzatoSigc', etichetta: 'Realizzato SIGC' },
+      { valore: 'realizzatoNonSigc', etichetta: 'Realizzato non SIGC (cumulativo)' },
+    ]);
     expect(anniDelPeriodo({ annoInizio: 2023, annoFine: 2030 })).toHaveLength(8);
     expect(datoDellAnno(SRA01_OUTPUT, 2024, 'programmato').valore).toBe(500);
     expect(datoDellAnno(SRA01_OUTPUT, 2031, 'programmato')).toEqual({ valore: null, motivo: 'NON_VALORIZZATO', fonte: null });
@@ -264,14 +270,33 @@ describe('RF016 e RF017: il dettaglio dell intervento (testata, KPI, ultimo dato
     expect(kpiIntervento(undefined, undefined)).toEqual([]);
   });
 
-  it('ultimo dato della prima risposta; esito: attesa, vuoto (AT001), dati', () => {
+  it('ultimo dato della prima risposta; stato: caricamento, errore, vuoto (AT001), dati anche con una sola lettura riuscita', () => {
     expect(ultimiDelDettaglio(undefined, OUTPUT)).toBe(OUTPUT.ultimiDatiSincronizzati);
     expect(ultimiDelDettaglio(VERIFICA, undefined)).toEqual(ULTIMI);
     expect(ultimiDelDettaglio(undefined, undefined)).toBeUndefined();
-    expect(esitoDettaglio([VERIFICA, undefined])).toBe('attesa');
-    expect(esitoDettaglio([{ righe: [] }, { righe: [] }])).toBe('vuoto');
-    expect(esitoDettaglio([{ righe: [] }, OUTPUT])).toBe('dati');
-    expect(esitoDettaglio([])).toBe('vuoto');
+    const ok = (data: { righe: readonly unknown[] }) => ({ data, isError: false });
+    const inCorso = { data: undefined, isError: false };
+    const errore = { data: undefined, isError: true };
+    expect(statoDelDettaglio([ok(VERIFICA), inCorso])).toBe('caricamento');
+    expect(statoDelDettaglio([errore, errore])).toBe('errore');
+    expect(statoDelDettaglio([ok({ righe: [] }), ok({ righe: [] })])).toBe('vuoto');
+    expect(statoDelDettaglio([ok({ righe: [] })])).toBe('vuoto');
+    expect(statoDelDettaglio([ok({ righe: [] }), ok(OUTPUT)])).toBe('dati');
+    expect(statoDelDettaglio([errore, ok(OUTPUT)])).toBe('dati');
+    // una lettura in errore accanto a una riuscita senza righe: i dati, con l'errore nella sua scheda
+    expect(statoDelDettaglio([errore, ok({ righe: [] })])).toBe('dati');
+    // nessuna lettura abilitata: il profilo e' in caricamento
+    expect(statoDelDettaglio([])).toBe('caricamento');
+  });
+
+  it('schede per grant nell ordine del wireframe; didascalia delle voci; testi degli stati', () => {
+    expect(schedeVisibili(true, true).map((s) => TITOLI_SCHEDE[s])).toEqual(['Output per anno', 'Verifica SMP non SIGC', 'Importi unitari']);
+    expect(schedeVisibili(true, false)).toEqual(['verifica']);
+    expect(schedeVisibili(false, true)).toEqual(['output', 'importi']);
+    expect(captionVociVerifica(2025)).toBe("I dati ASR non SIGC dell'intervento da confrontare con SMP (anno di riferimento 2025), con i valori assenti e il loro motivo");
+    expect(captionVociVerifica(null)).toContain('(anno di riferimento nessun file)');
+    expect(SENZA_UNIT_AMOUNT).toMatch(/^Intervento senza Unit Amount/);
+    expect(SENZA_DATI).toContain('AT001');
   });
 });
 

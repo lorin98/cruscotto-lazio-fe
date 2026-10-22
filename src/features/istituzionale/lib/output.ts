@@ -21,6 +21,11 @@ export function etichettaMisura(m: Misura, cumulativo: boolean): string {
   return cumulativo ? 'Realizzato non SIGC (cumulativo)' : 'Realizzato non SIGC';
 }
 
+/** Le voci dell'interruttore della misura, con le etichette della risposta. */
+export function opzioniMisura(cumulativo: boolean): { valore: Misura; etichetta: string }[] {
+  return MISURE.map((m) => ({ valore: m, etichetta: etichettaMisura(m, cumulativo) }));
+}
+
 /** Gli anni del periodo della risposta, da annoInizio ad annoFine: una colonna ciascuno. */
 export function anniDelPeriodo(d: Pick<Output, 'annoInizio' | 'annoFine'>): number[] {
   const anni: number[] = [];

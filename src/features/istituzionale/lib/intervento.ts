@@ -79,11 +79,41 @@ export function ultimiDelDettaglio(verifica: { ultimiDatiSincronizzati: UltimoDa
   return (verifica ?? output)?.ultimiDatiSincronizzati;
 }
 
-/**
- * Lo stato del dettaglio dalle letture fatte (quelle col grant): 'attesa' finche' una manca, 'vuoto' se nessuna ha la
- * riga dell'intervento (es. AT001, che i report escludono), altrimenti 'dati'.
- */
-export function esitoDettaglio(letture: ReadonlyArray<{ righe: readonly unknown[] } | undefined>): 'attesa' | 'vuoto' | 'dati' {
-  if (letture.some((l) => l === undefined)) return 'attesa';
-  return letture.every((l) => (l?.righe.length ?? 0) === 0) ? 'vuoto' : 'dati';
+/** Quanto serve di una lettura per lo stato del dettaglio: la risposta (righe) se c'e', e se e' in errore. */
+export interface LetturaDettaglio {
+  data?: { righe: readonly unknown[] } | undefined;
+  isError: boolean;
 }
+
+/**
+ * Lo stato del dettaglio dalle letture fatte (quelle col grant): 'caricamento' finche' una non ha ne' dati ne' errore (o
+ * finche' nessuna e' abilitata: il profilo e' in caricamento, la route chiede uno dei due grant), 'errore' se nessuna ha
+ * risposto (l'avviso della pagina lo dice), 'vuoto' se tutte hanno risposto senza la riga dell'intervento (es. AT001, che
+ * i report escludono), altrimenti 'dati' (anche con una sola lettura riuscita: l'altra scheda dice il suo errore).
+ */
+export function statoDelDettaglio(letture: readonly LetturaDettaglio[]): 'caricamento' | 'errore' | 'vuoto' | 'dati' {
+  if (letture.length === 0 || letture.some((l) => l.data === undefined && !l.isError)) return 'caricamento';
+  if (letture.every((l) => l.data === undefined)) return 'errore';
+  return letture.every((l) => l.data !== undefined && l.data.righe.length === 0) ? 'vuoto' : 'dati';
+}
+
+export type IdScheda = 'output' | 'verifica' | 'importi';
+
+/** I titoli delle schede, nell'ordine del wireframe. */
+export const TITOLI_SCHEDE: Readonly<Record<IdScheda, string>> = { output: 'Output per anno', verifica: 'Verifica SMP non SIGC', importi: 'Importi unitari' };
+
+/** Le schede che il profilo vede: Output per anno e Importi unitari con TX-0017, Verifica SMP non SIGC con TX-0016. */
+export function schedeVisibili(conVerifica: boolean, conOutput: boolean): IdScheda[] {
+  return (['output', 'verifica', 'importi'] as const).filter((s) => (s === 'verifica' ? conVerifica : conOutput));
+}
+
+/** La didascalia delle voci della verifica nel dettaglio, con l'anno di riferimento della risposta. */
+export function captionVociVerifica(anno: number | null): string {
+  return `I dati ASR non SIGC dell'intervento da confrontare con SMP (anno di riferimento ${anno ?? 'nessun file'}), con i valori assenti e il loro motivo`;
+}
+
+/** La scheda Importi unitari di un intervento senza Unit Amount (SC-IS_OUTPUT_STRUTTURALE). */
+export const SENZA_UNIT_AMOUNT = 'Intervento senza Unit Amount (per esempio un intervento strutturale): nessun importo unitario; il programmato per anno è non valorizzato e vale il solo target.';
+
+/** Lo stato vuoto del dettaglio: l'intervento non ha righe nei report letti. */
+export const SENZA_DATI = "Nessun dato per questo intervento nei report istituzionali (l'Assistenza tecnica AT001 non è nei report).";

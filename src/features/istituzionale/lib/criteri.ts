@@ -4,7 +4,7 @@
 // un file). Sono gli url_params delle route dello uiplan: dall'indirizzo arrivano solo valori nel formato ammesso. L'anno
 // e' un parametro della pagina, non un filtro: si sceglie col selettore, non ha un chip e resta quando i filtri cambiano
 // (come l'esercizio della verifica SMP del finanziario). Poi il codice dell'intervento del percorso del dettaglio.
-import { filtriNellaBarra, ricercaDaFiltri, valoreFiltroValido } from '../../../entities/filtri';
+import { filtriAttivi, filtriNellaBarra, ricercaDaFiltri, valoreFiltroValido } from '../../../entities/filtri';
 import type { Filtri } from '../../../entities/filtri';
 import { isAnnoValido } from '../../../shared/lib';
 
@@ -35,6 +35,11 @@ export function anniDiRiferimento(risposta: number | null | undefined, scelto: n
 export function ricercaConAnno(filtri: Filtri, search: string): string {
   const anno = Number(new URLSearchParams(search).get(PARAMETRO_ANNO));
   return [ricercaDaFiltri(filtri), isAnnoValido(anno) ? `${PARAMETRO_ANNO}=${anno}` : ''].filter(Boolean).join('&');
+}
+
+/** Vero se c'e' almeno un filtro del programma: lo stato vuoto parla dei filtri solo allora. */
+export function conFiltri(filtri: Filtri): boolean {
+  return filtriAttivi(filtri).length > 0;
 }
 
 /** Criteri di TX-0016: i filtri e l'anno scelto, se c'e'. */
