@@ -103,14 +103,14 @@ describe('coda delle letture: tetto per prefisso del percorso (review step9 H-21
   const insieme = (url: string, method = 'GET', n = 5) =>
     Promise.all(Array.from({ length: n }, () => customInstance<{ ok: boolean }>({ url, method })));
 
-  it(`con i tetti dell'app finanziario, elenco operativo e fisico hanno un tetto: al piu' ${LETTURE_IN_PARALLELO} GET insieme, le altre in coda`, async () => {
-    expect(TETTI_LETTURE).toEqual({ 'letture-limitate': { tetto: 2, prefissi: ['/api/finanziario/', '/api/elenco-operativo/', '/api/fisico/'] } });
+  it(`con i tetti dell'app finanziario, elenco operativo, fisico e istituzionale hanno un tetto: al piu' ${LETTURE_IN_PARALLELO} GET insieme, le altre in coda`, async () => {
+    expect(TETTI_LETTURE).toEqual({ 'letture-limitate': { tetto: 2, prefissi: ['/api/finanziario/', '/api/elenco-operativo/', '/api/fisico/', '/api/istituzionale/'] } });
     const misura = misuraParallelo('/api/finanziario/lenta');
     expect((await insieme('/api/finanziario/lenta')).every((e) => e.ok)).toBe(true);
     expect(misura.massimo).toBe(LETTURE_IN_PARALLELO);
   });
 
-  it('finanziario, elenco operativo e fisico condividono la coda: il tetto del backend e unico per utente (review v1 V-04, SC-FS_CAPACITA)', async () => {
+  it('finanziario, elenco operativo, fisico e istituzionale condividono la coda: il tetto del backend e unico per utente (review v1 V-04, SC-FS_CAPACITA, SC-IS_CAPACITA)', async () => {
     const misura = { inCorso: 0, massimo: 0 };
     const lenta = async () => {
       misura.inCorso++;
@@ -119,8 +119,18 @@ describe('coda delle letture: tetto per prefisso del percorso (review step9 H-21
       misura.inCorso--;
       return HttpResponse.json({ ok: true });
     };
-    server.use(http.get('*/api/finanziario/lenta', lenta), http.get('*/api/elenco-operativo/domande', lenta), http.get('*/api/fisico/superficie-ammissibile', lenta));
-    await Promise.all([insieme('/api/finanziario/lenta', 'GET', 3), insieme('/api/elenco-operativo/domande', 'GET', 3), insieme('/api/fisico/superficie-ammissibile', 'GET', 3)]);
+    server.use(
+      http.get('*/api/finanziario/lenta', lenta),
+      http.get('*/api/elenco-operativo/domande', lenta),
+      http.get('*/api/fisico/superficie-ammissibile', lenta),
+      http.get('*/api/istituzionale/output-regionale', lenta),
+    );
+    await Promise.all([
+      insieme('/api/finanziario/lenta', 'GET', 3),
+      insieme('/api/elenco-operativo/domande', 'GET', 3),
+      insieme('/api/fisico/superficie-ammissibile', 'GET', 3),
+      insieme('/api/istituzionale/output-regionale', 'GET', 3),
+    ]);
     expect(misura.massimo).toBe(LETTURE_IN_PARALLELO);
   });
 
