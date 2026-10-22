@@ -5,14 +5,13 @@
 // TX-0001 non risponde, un indirizzo con l'azione e' `inAttesa`: la pagina non fa leggere i report con un filtro che
 // forse non si applica (X-03).
 import { useLocation, useNavigate } from 'react-router';
+import { AZIONE_NON_APPLICATA } from '../../../entities/filtri';
 import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import type { ChipFiltro } from '../../../shared/ui';
 import { useFiltri } from '../api';
 import { filtriAttivi, filtriDaRicerca, ricercaConParametri, senzaAzioneSeNonDisponibile, senzaValore } from '../lib/filtri';
 import type { Filtri } from '../lib/filtri';
 import { GRANT } from '../lib/report';
-
-const AZIONE_NON_APPLICATA = 'non applicato: il legame con le azioni portanti viene da una fonte non attiva';
 
 export function useFiltriNellIndirizzo() {
   const { pathname, search } = useLocation();

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { formatDataOra, formatDate, formatGiorno, formatNumber } from '../src/shared/lib/format';
+import { formatDataOra, formatDate, formatEttari, formatGiorno, formatNumber } from '../src/shared/lib/format';
+import { isAnnoValido } from '../src/shared/lib/anni';
 import { nomeFile } from '../src/shared/lib/nome-file';
 import { DICITURA_USO, aCapo, righeContesto, righeIntestazione } from '../src/shared/lib/intestazione';
 import { etichettaFlusso, menoRecente, testoUltimiDati } from '../src/shared/lib/aggiornamento';
@@ -21,6 +22,30 @@ describe('lib/format — puro, nullable-safe, locale it-IT', () => {
     expect(formatDate(null)).toBe('');
     expect(formatDate('')).toBe('');
     expect(formatDate('non-una-data')).toBe('non-una-data');
+  });
+});
+
+describe('lib/format — formatEttari, superfici con due decimali (D-01 del backend fisico)', () => {
+  it('due decimali, segno meno sempre scritto, piu davanti alle differenze positive', () => {
+    expect(formatEttari(15.5)).toBe('15,50');
+    expect(formatEttari(-1)).toBe('-1,00');
+    expect(formatEttari(0.7, { segno: true })).toBe('+0,70');
+    expect(formatEttari(-0.5, { segno: true })).toBe('-0,50');
+    expect(formatEttari(0, { segno: true })).toBe('0,00');
+    // un positivo che a due decimali e' zero non prende il piu
+    expect(formatEttari(0.001, { segno: true })).toBe('0,00');
+    expect(formatEttari(null)).toBe('-');
+  });
+});
+
+describe('lib/anni — anno di un parametro del contratto (2000-2100)', () => {
+  it('interi nell intervallo; fuori, decimali e assenti no', () => {
+    expect(isAnnoValido(2025)).toBe(true);
+    expect(isAnnoValido(2000)).toBe(true);
+    expect(isAnnoValido(2100)).toBe(true);
+    expect(isAnnoValido(1999)).toBe(false);
+    expect(isAnnoValido(2025.5)).toBe(false);
+    expect(isAnnoValido(undefined)).toBe(false);
   });
 });
 

@@ -8,3 +8,4 @@ export * from './intestazione';
 export * from './aggiornamento';
 export * from './parametri-ripetuti';
 export * from './stato-history';
+export * from './anni';
