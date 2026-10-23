@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "procedurale",
-  "current_step": 2,
+  "current_step": 3,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -81,6 +81,19 @@
       "artifacts": [
         "./plan/procedurale/uiplan.json"
       ]
+    },
+    "step2-codegen": {
+      "status": "done",
+      "completed_at": "2026-10-23T10:14:31Z",
+      "artifacts": [
+        "./specs/.spec-lock.json",
+        "./src/shared/api/generated"
+      ],
+      "gates": {
+        "codegen_compiles": "pass",
+        "orval_types": "pass",
+        "csrf_static": "pass"
+      }
     }
   },
   "open_blockers": [],
