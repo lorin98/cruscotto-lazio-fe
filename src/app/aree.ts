@@ -13,6 +13,15 @@ import { pagineVisibili as pagineFisico } from '../features/fisico';
 import { pagineVisibili as pagineIstituzionale, ricercaConservata as ricercaIstituzionale } from '../features/istituzionale';
 import type { NomeIcona } from '../shared/ui';
 
+/**
+ * L'ordine dei quattro ambiti nella Home e nel menu, fisso: un'area che si realizza non cambia di posto. E' anche la sola
+ * fonte delle chiavi degli ambiti (review H9): un'area o una scheda futura con una chiave fuori di qui non compila.
+ */
+const ORDINE_AMBITI = ['finanziario', 'fisico', 'procedurale', 'istituzionale'] as const;
+
+/** La chiave di uno dei quattro ambiti del cruscotto. */
+export type ChiaveAmbito = (typeof ORDINE_AMBITI)[number];
+
 /** Una pagina di un'area, come la espone il barrel della feature. */
 export interface PaginaArea {
   percorso: string;
@@ -38,6 +47,9 @@ export interface SchedaArea {
   contenuti: readonly string[];
 }
 
+/** Un ambito (area realizzata o scheda futura): la chiave e' una delle quattro dell'ordine fisso. */
+type DiAmbito<A extends SchedaArea> = A & { chiave: ChiaveAmbito };
+
 export interface Area extends SchedaArea {
   /** Pagine dell'area visibili per i grant dell'utente, nell'ordine del menu: la prima e' l'ingresso dalla Home. */
   pagineVisibili: (haGrant: (grant: string) => boolean) => PaginaArea[];
@@ -47,7 +59,7 @@ export interface Area extends SchedaArea {
   Anteprima?: ComponentType<{ altrimenti: ReactNode }>;
 }
 
-export const AREE: readonly Area[] = [
+export const AREE: readonly DiAmbito<Area>[] = [
   {
     chiave: 'finanziario',
     titolo: 'Finanziario',
@@ -85,7 +97,7 @@ export const AREE: readonly Area[] = [
 ];
 
 /** Aree non ancora realizzate: la Home e il menu le dichiarano "presto", senza link. */
-export const AREE_FUTURE: readonly SchedaArea[] = [
+export const AREE_FUTURE: readonly DiAmbito<SchedaArea>[] = [
   {
     // G1: stati e sottofasi delle domande, ammesse con atto e contributo, riepilogo, Unit Amount (TX-0024..TX-0032)
     chiave: 'procedurale',
@@ -118,11 +130,8 @@ export function eRealizzata(a: Area | SchedaArea): a is Area {
   return 'pagineVisibili' in a;
 }
 
-/** L'ordine dei quattro ambiti nella Home e nel menu, fisso: un'area che si realizza non cambia di posto. */
-const ORDINE_AMBITI = ['finanziario', 'fisico', 'procedurale', 'istituzionale'];
-
 /** I quattro ambiti, realizzati e futuri, nell'ordine del catalogo (finanziario, fisico, procedurale, istituzionale). */
-export const AMBITI: readonly (Area | SchedaArea)[] = [...AREE, ...AREE_FUTURE].sort((a, b) => ORDINE_AMBITI.indexOf(a.chiave) - ORDINE_AMBITI.indexOf(b.chiave));
+export const AMBITI: readonly DiAmbito<Area | SchedaArea>[] = [...AREE, ...AREE_FUTURE].sort((a, b) => ORDINE_AMBITI.indexOf(a.chiave) - ORDINE_AMBITI.indexOf(b.chiave));
 
 /** Le aree (o gli strumenti) con almeno una pagina visibile per i grant dell'utente, ognuna con le sue pagine visibili. */
 export function areeVisibili(haGrant: (grant: string) => boolean, aree: readonly Area[] = AREE): { area: Area; pagine: PaginaArea[] }[] {

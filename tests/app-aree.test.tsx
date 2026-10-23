@@ -11,6 +11,7 @@ import { rispondi } from '../src/shared/testing/msw';
 import { formatNumber } from '../src/shared/lib';
 import * as F from '../src/features/finanziario/testing/fixture';
 import { AMBITI, AREE, AREE_FUTURE, areeVisibili, eRealizzata } from '../src/app/aree';
+import type { ChiaveAmbito } from '../src/app/aree';
 import { appRoutes } from '../src/app/routes';
 import routeTable from '../src/app/route-table.json';
 import { pagineVisibili } from '../src/features/finanziario';
@@ -87,6 +88,14 @@ describe('catalogo delle aree', () => {
     const istituzionale = AREE.find((a) => a.chiave === 'istituzionale');
     expect(istituzionale?.ricercaConservata).toBe(ricercaIstituzionale);
     expect(istituzionale?.ricercaConservata?.('?intervento=SRD01&anno=2024')).toBe('intervento=SRD01');
+  });
+
+  it('le chiavi degli ambiti sono quelle dell ordine fisso: una chiave fuori dall ordine non compila (review H9)', () => {
+    const chiavi: readonly ChiaveAmbito[] = AMBITI.map((a) => a.chiave);
+    expect(chiavi).toEqual(['finanziario', 'fisico', 'procedurale', 'istituzionale']);
+    // @ts-expect-error: il primo pilastro (o un refuso) non e' la chiave di un ambito
+    const fuori: ChiaveAmbito = 'pilastro';
+    expect(chiavi).not.toContain(fuori);
   });
 
   it('le aree future non sono aree realizzate', () => {
