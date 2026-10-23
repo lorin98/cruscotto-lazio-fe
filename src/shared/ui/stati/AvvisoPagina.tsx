@@ -6,6 +6,7 @@
 import { createContext, useCallback, useContext, useEffect, useId, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { getErrorMessage } from '../../lib';
+import { useFocusSeSparisce } from '../focus';
 
 interface ErroreSezione {
   messaggio: string;
@@ -34,18 +35,6 @@ function ElencoErrori({ errori }: { errori: ReadonlyMap<string, ErroreSezione> }
   );
 }
 
-/** Quando l'avviso sparisce col pulsante che aveva il focus (finito su BODY), il focus torna al contenuto della pagina. */
-function useFocusDopoAvviso(errori: number) {
-  const contenitore = useRef<HTMLDivElement>(null);
-  const primaConErrori = useRef(false);
-  useEffect(() => {
-    const focusPerso = document.activeElement === null || document.activeElement === document.body;
-    if (primaConErrori.current && errori === 0 && focusPerso) contenitore.current?.focus();
-    primaConErrori.current = errori > 0;
-  }, [errori]);
-  return contenitore;
-}
-
 export function AvvisoPagina({ children }: { children: ReactNode }) {
   const [errori, setErrori] = useState<ReadonlyMap<string, ErroreSezione>>(new Map());
   const segnala = useCallback<Segnala>((id, errore) => {
@@ -57,7 +46,9 @@ export function AvvisoPagina({ children }: { children: ReactNode }) {
       return dopo;
     });
   }, []);
-  const contenitore = useFocusDopoAvviso(errori.size);
+  // l'avviso sparisce col pulsante che aveva il focus (finito su BODY): il focus torna al contenuto della pagina
+  const contenitore = useRef<HTMLDivElement>(null);
+  useFocusSeSparisce(errori.size > 0, contenitore);
   return (
     <ContestoAvviso.Provider value={segnala}>
       <div ref={contenitore} tabIndex={-1} className="ui-avviso-pagina">

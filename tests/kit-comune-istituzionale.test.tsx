@@ -2,13 +2,15 @@
 // nell'indirizzo (shared/ui, prima nel finanziario), link verso l'elenco operativo (entities/domanda, prima nel
 // finanziario), riga sotto il sottotitolo della testata, card del grafico senza PNG o col nome dei file, messaggio del
 // file oltre il limite dell'esportazione, interruttore a piu' scelte, stato vuoto coi filtri e badge di un'assenza (prima
-// nel fisico e nel finanziario). Dati di prova inventati.
+// nel fisico e nel finanziario), focus quando uno stato sparisce col suo comando (prima nell'istituzionale e in
+// AvvisoPagina). Dati di prova inventati.
+import { useRef } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { AxiosError, AxiosHeaders } from 'axios';
-import { AvvisoAggiornamento, CardGrafico, Interruttore, InterruttoreVista, OLTRE_IL_LIMITE_DELL_ESPORTAZIONE, PulsantiScarica, SelettoreAnno, TestaPagina, Vuoto, VuotoConFiltri, messaggioOltreIlLimite, useAnnoNellIndirizzo } from '../src/shared/ui';
+import { AvvisoAggiornamento, CardGrafico, Interruttore, InterruttoreVista, OLTRE_IL_LIMITE_DELL_ESPORTAZIONE, PulsantiScarica, SelettoreAnno, TestaPagina, Vuoto, VuotoConFiltri, messaggioOltreIlLimite, useAnnoNellIndirizzo, useFocusSeSparisce } from '../src/shared/ui';
 import { AssenzaMotivata, BadgeAssenza } from '../src/entities/importo';
 import { PROBLEM_TYPES } from '../src/shared/api/problem/problem-types';
 import type { DatiGrafico, Scaricamento } from '../src/shared/ui';
@@ -205,5 +207,45 @@ describe('Interruttore, VuotoConFiltri e BadgeAssenza: kit per le tre misure del
     expect(onModifica).toHaveBeenCalledTimes(1);
     expect(screen.getByTestId('badge').innerHTML).toBe('<span><span class="badge bg-secondary me-1">non valorizzato</span><span class="small">nessun target</span></span>');
     expect(screen.getByTestId('motivata').textContent).toBe('non valorizzatoil dato non è presente nella fonte');
+  });
+});
+
+describe('useFocusSeSparisce del kit: il focus quando uno stato sparisce col suo comando (review H5, prima in due copie)', () => {
+  function Prova({ visibile }: { visibile: boolean }) {
+    const titolo = useRef<HTMLHeadingElement>(null);
+    useFocusSeSparisce(visibile, titolo);
+    return (
+      <>
+        <h1 ref={titolo} tabIndex={-1}>
+          Titolo
+        </h1>
+        {visibile && (
+          <button type="button" className="me-2">
+            Riprova
+          </button>
+        )}
+        <button type="button">Altro</button>
+      </>
+    );
+  }
+
+  it('sparito col bottone che aveva il focus (finito su BODY) il focus va sul titolo; altrove resta; mai al montaggio', () => {
+    const { rerender } = render(<Prova visibile={false} />);
+    expect(document.activeElement).toBe(document.body);
+    rerender(<Prova visibile />);
+    expect(document.activeElement).toBe(document.body);
+    screen.getByRole('button', { name: 'Riprova' }).focus();
+    rerender(<Prova visibile={false} />);
+    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1, name: 'Titolo' }));
+    // l'utente ha gia' portato il focus altrove: lo stato che sparisce non lo sposta
+    rerender(<Prova visibile />);
+    const altro = screen.getByRole('button', { name: 'Altro' });
+    altro.focus();
+    rerender(<Prova visibile={false} />);
+    expect(document.activeElement).toBe(altro);
+    // resta nascosto: nessuno spostamento
+    altro.blur();
+    rerender(<Prova visibile={false} />);
+    expect(document.activeElement).toBe(document.body);
   });
 });

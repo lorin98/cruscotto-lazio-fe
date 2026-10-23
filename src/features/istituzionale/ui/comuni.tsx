@@ -3,7 +3,7 @@
 // restano e il report si legge lo stesso), la resa di un dato della verifica SMP non SIGC (il valore, oppure l'assenza
 // col motivo in badge: mai uno 0 o un "no" inventati) col suo link verso l'elenco operativo, e le righe di contesto del
 // PNG dei grafici (NFR-50). Classi bootstrap-italia e del kit; nessun react-aria.
-import { useEffect, useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 import type { RefObject } from 'react';
 import { ApriNellElenco } from '../../../entities/domanda';
 import { ValoreImporto, ValoreMotivato } from '../../../entities/importo';
@@ -11,25 +11,16 @@ import type { DatoMotivatoLike } from '../../../entities/importo';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { formatNumber, getErrorMessage, righeContesto } from '../../../shared/lib';
 import type { UltimoDato } from '../../../shared/lib';
+import { useFocusSeSparisce } from '../../../shared/ui';
 import type { StatoQuery } from '../../../shared/ui';
 import type { ValoriFiltriElenco } from '../api';
 import type { RigaVerifica } from '../lib/dto';
 import { TESTI_LINK, indirizzoDelDato, testoValore } from '../lib/verifica';
 import type { DatoVerifica, LinkDato } from '../lib/verifica';
 
-/** Quando il contenuto sparisce col bottone che aveva il focus (finito su BODY), il focus va sull'elemento stabile dato. */
-function useFocusSeSparisce(visibile: boolean, destinazione: RefObject<HTMLElement | null>) {
-  const primaVisibile = useRef(visibile);
-  useEffect(() => {
-    const perso = document.activeElement === null || document.activeElement === document.body;
-    if (primaVisibile.current && !visibile && perso) destinazione.current?.focus();
-    primaVisibile.current = visibile;
-  }, [visibile, destinazione]);
-}
-
 /**
  * TX-0060 in errore (col grant): lo stato in role=status col messaggio del problem-type e "Riprova". Riuscito il nuovo
- * tentativo lo stato sparisce col suo bottone: il focus va sul titolo della pagina (WCAG 2.4.3).
+ * tentativo lo stato sparisce col suo bottone: il focus va sul titolo della pagina (WCAG 2.4.3, useFocusSeSparisce del kit).
  */
 export function ValoriNonDisponibili({ valori, h1 }: { valori: StatoQuery<ValoriFiltriElenco> | null; h1: RefObject<HTMLHeadingElement | null> }) {
   const inErrore = valori !== null && valori.isError && valori.data === undefined;

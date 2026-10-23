@@ -1,7 +1,7 @@
 // focus.ts — a11y del cambio di route (green-fe step6, invariante #6): al montaggio della pagina il focus va sul suo
 // titolo (h1 con tabIndex=-1), cosi' chi usa lettore di schermo o tastiera riparte dal contenuto nuovo; con il titolo
 // della pagina aggiorna anche document.title (WCAG 2.4.2), che altrimenti resterebbe quello di index.html. Poi il focus
-// dopo un comando che sparisce col contenuto che cambia (WCAG 2.4.3).
+// dopo un comando che sparisce col contenuto che cambia, e quando sparisce col suo stato (WCAG 2.4.3).
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import { NOME_APPLICAZIONE } from '../config/applicazione';
@@ -30,4 +30,19 @@ export function useFocusDopoIlCambio<T extends HTMLElement>(destinazione: RefObj
     if (richieste > 0) destinazione.current?.focus();
   }, [richieste, destinazione]);
   return useCallback(() => setRichieste((n) => n + 1), []);
+}
+
+/**
+ * Focus quando un contenuto sparisce col comando che aveva il focus (WCAG 2.4.3; review H5 dell'istituzionale): se
+ * `visibile` passa da vero a falso e il focus e' finito su BODY, va sull'elemento stabile del ref (il titolo della pagina,
+ * il contenitore dell'avviso della pagina). Se l'utente il focus l'ha gia' portato altrove, resta li'. Lo usano l'avviso
+ * della pagina (un "Riprova" riuscito) e lo stato dei valori dei filtri non disponibili dell'istituzionale.
+ */
+export function useFocusSeSparisce(visibile: boolean, destinazione: RefObject<HTMLElement | null>) {
+  const primaVisibile = useRef(visibile);
+  useEffect(() => {
+    const perso = document.activeElement === null || document.activeElement === document.body;
+    if (primaVisibile.current && !visibile && perso) destinazione.current?.focus();
+    primaVisibile.current = visibile;
+  }, [visibile, destinazione]);
 }
