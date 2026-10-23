@@ -2,21 +2,21 @@
 // approvati), riusate da panoramica, pagine degli stati e dettaglio dell'intervento: CardStati (gli stati della domanda di
 // sostegno o di pagamento, barre impilate delle rilasciate e delle non ancora rilasciate) e CardArea (lo stato area
 // programmazione). Cosa fa il clic su una barra lo decide la pagina (la pagina degli stati, il filtro della tabella o
-// della pagina, l'elenco operativo); col grant dell'elenco la vista Tabella e' la tabella equivalente con "Apri
-// nell'elenco" per ogni voce che si apre e, nelle pagine degli stati, "Filtra la tabella": il percorso da tastiera del
-// clic. PNG, CSV e XLSX: il PNG e' il grafico, CSV e
-// XLSX l'export dell'intero report (scelta 7 approvata). CardGrafico del kit; nessun react-aria.
+// della pagina, l'elenco operativo). La vista Tabella e' la tabella equivalente con le azioni della voce: col grant
+// dell'elenco "Apri nell'elenco" per ogni voce che si apre; nelle pagine degli stati, anche senza quel grant, "Filtra la
+// tabella", il percorso da tastiera del clic. Senza nessuna delle due, la tabella equivalente generata dal kit. PNG, CSV
+// e XLSX: il PNG e' il grafico, CSV e XLSX l'export dell'intero report (scelta 7 approvata). CardGrafico del kit; nessun
+// react-aria.
 import { useMemo } from 'react';
 import type { ReactNode } from 'react';
 import { codiceDalClic } from '../../../shared/lib';
 import { CardGrafico } from '../../../shared/ui';
 import type { ClicGrafico, Scaricamento } from '../../../shared/ui';
-import type { TestiLink } from '../lib/collegamenti';
 import type { Distribuzione, TipoDomanda } from '../lib/dto';
 import { graficoArea, graficoStati } from '../lib/grafici';
 import { diTipo, vociDegliStati, vociDellArea } from '../lib/stati';
-import type { VoceDistribuzione } from '../lib/stati';
 import { TabellaVoci } from './comuni';
+import type { LinkDellaVoce } from './comuni';
 
 interface PropsCardDistribuzione {
   d: Distribuzione | undefined;
@@ -25,8 +25,11 @@ interface PropsCardDistribuzione {
   fonte: string;
   /** Il clic su una barra, con la chiave della voce; assente = nessun clic. */
   onVoce?: (chiave: string) => void;
-  /** Il link di ogni voce verso l'elenco; assente (senza il grant dell'elenco) la tabella equivalente generata. */
-  link?: (v: VoceDistribuzione) => { indirizzo: string | null; testi: TestiLink };
+  /**
+   * Il link di ogni voce verso l'elenco; assente (senza il grant dell'elenco) niente colonna Elenco operativo, e senza
+   * link ne' onFiltra la tabella equivalente generata.
+   */
+  link?: LinkDellaVoce;
   scaricamenti: Scaricamento[];
   oggettoDati: string;
   /** Il nome del PNG quando il titolo non dice l'intervento (le schede del dettaglio: "il grafico <titolo> di SRD01"). */

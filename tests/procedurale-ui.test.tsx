@@ -155,6 +155,15 @@ describe('PaginaProcedurale e PannelloFiltriProcedurale (impaginazione e filtri 
 });
 
 describe('TessereKpi, TabellaVoci e le card delle distribuzioni (CardStati, CardArea) nella panoramica', () => {
+  it('le card prendono il link della voce col tipo di TabellaVoci, e i doc dicono Filtra la tabella anche senza il grant dell elenco (H4 iter2)', () => {
+    // i commenti su una riga sola: a capo e prefissi (// e *) tolti
+    const card = readFileSync(resolve(process.cwd(), 'src/features/procedurale/ui/CardDistribuzioni.tsx'), 'utf8').replace(/\r?\n\s*(\/\/|\*)?\s*/g, ' ');
+    expect(card).toContain('link?: LinkDellaVoce;');
+    expect(card).not.toContain('{ indirizzo: string | null; testi: TestiLink }');
+    expect(card).toContain("assente (senza il grant dell'elenco) niente colonna Elenco operativo, e senza link ne' onFiltra la tabella equivalente generata.");
+    expect(card).toContain('nelle pagine degli stati, anche senza quel grant, "Filtra la tabella", il percorso da tastiera del clic.');
+  });
+
   it('quattro KPI dal totale di TX-0026 col link delle ammesse; nessun link con la fonte dell atto non attiva', async () => {
     servi();
     renderPagina(Panoramica, '/procedurale', '/procedurale?intervento=SRD01');
