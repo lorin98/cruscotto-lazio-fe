@@ -150,3 +150,11 @@ export function vociDelPannello(valori: ValoriProgramma | undefined, codiciRispo
 export function codiceDelPercorso(parametro: string | null | undefined): string | null {
   return typeof parametro === 'string' && valoreFiltroValido('intervento', parametro) ? parametro : null;
 }
+
+/**
+ * La riga dell'intervento in una risposta per intervento (il dettaglio legge col solo intervento della route). Prima in
+ * shared/lib (dal lib dell'istituzionale): conosce il campo codiceIntervento, quindi sta qui (review H2 del procedurale).
+ */
+export function rigaDellIntervento<R extends { codiceIntervento?: string }>(righe: readonly R[] | undefined, codice: string): R | undefined {
+  return righe?.find((r) => r.codiceIntervento === codice);
+}

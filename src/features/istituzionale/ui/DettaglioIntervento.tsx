@@ -13,9 +13,8 @@
 import { Link } from 'react-router';
 import { useState } from 'react';
 import type { Ref } from 'react';
-import { codiceDelPercorso, descrizioneIntervento } from '../../../entities/filtri';
+import { codiceDelPercorso, descrizioneIntervento, rigaDellIntervento } from '../../../entities/filtri';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
-import { rigaDellIntervento } from '../../../shared/lib';
 import type { StatoDettaglio } from '../../../shared/lib';
 import { AvvisoPagina, Briciole, Caricamento, ContestoIntestazione, ErroreNellaPagina, Griglia, Kpi, PillDatiAl, TestataDettaglio, Vuoto, useAnnoNellIndirizzo, useErroreNellaPagina, useFocusTitolo, useRigheContesto, useStatoDelDettaglio } from '../../../shared/ui';
 import type { NomeIcona, TonoKpi } from '../../../shared/ui';

@@ -29,7 +29,7 @@ import {
 import { DATI_VERIFICA, TESTI_LINK, indirizzoDelDato, testoRicerca, testoValore, titoloDato, valoreOrdinabile, vociRiferimenti } from '../src/features/istituzionale/lib/verifica';
 import type { DatoVerifica } from '../src/features/istituzionale/lib/verifica';
 import { MISURE, anniDelPeriodo, captionOutput, datoDellAnno, etichettaMisura, importiOrdinati, opzioniMisura, ordinabileDellAnno, testoRicercaOutput, vociAnteprima } from '../src/features/istituzionale/lib/output';
-import { rigaDellIntervento, statoDelDettaglio, tutteRisposte } from '../src/shared/lib';
+import { statoDelDettaglio, tutteRisposte } from '../src/shared/lib';
 import { SENZA_DATI, SENZA_UNIT_AMOUNT, TITOLI_SCHEDE, badgeIntervento, captionVociVerifica, kpiIntervento, schedeVisibili, testoAggiornamentoAnno, ultimoDatoInErrore, sopratitoloIntervento, titoloIntervento, ultimiDelDettaglio } from '../src/features/istituzionale/lib/intervento';
 import { TITOLO_SPESA, graficoOutputPerAnno, graficoSpesa } from '../src/features/istituzionale/lib/grafici';
 import { OUTPUT, SRA01_OUTPUT, SRD01, ULTIMI, VERIFICA, outputPer, righeDeiFiltri, verificaPer } from '../src/features/istituzionale/testing/fixture';
@@ -249,8 +249,6 @@ describe('RF017: l output regionale (TX-0017)', () => {
     expect(vociAnteprima({ ...srg01, unitaMisura: 'ettari' }, false)[0].valore).toBe('non valorizzato (il dato non è presente nella fonte)');
     expect(importiOrdinati(SRA01_OUTPUT).map((i) => `${i.esercizio} ${i.codiceUnitAmount}`)).toEqual(['2024 UA01', '2024 UA02', '2025 UA01']);
     expect(SRA01_OUTPUT.importiUnitari[0].codiceUnitAmount).toBe('UA02');
-    expect(rigaDellIntervento(OUTPUT.righe, 'SRD01')?.unitaMisura).toBe('numero di operazioni');
-    expect(rigaDellIntervento(undefined, 'SRD01')).toBeUndefined();
     expect(testoRicercaOutput(SRA01_OUTPUT)).toBe('SRA01 O.14 ettari');
   });
 });

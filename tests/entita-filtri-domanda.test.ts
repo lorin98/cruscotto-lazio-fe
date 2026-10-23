@@ -12,6 +12,7 @@ import {
   filtriDaRicerca,
   ricercaDaFiltri,
   ricercaDeiSoliFiltri,
+  rigaDellIntervento,
   senzaAzioneSeNonDisponibile,
   senzaValore,
   valoreFiltroValido,
@@ -36,6 +37,12 @@ describe('entities/filtri: i filtri del programma comuni a finanziario e fisico'
   it('codiceDelPercorso (prima nell istituzionale, ora anche del procedurale): il codice nel formato del filtro, altrimenti null', () => {
     expect(codiceDelPercorso('SRD01')).toBe('SRD01');
     for (const nonValido of ['SRD01/..', 'srd01', ' SRD01', '', null, undefined, 'SRD01%2F', 'SRD01/x']) expect(codiceDelPercorso(nonValido)).toBeNull();
+  });
+
+  it('rigaDellIntervento (prima in shared/lib, review H2 del procedurale): la riga col codice della route, anche col codice facoltativo', () => {
+    expect(rigaDellIntervento([{ codiceIntervento: 'SRA01' }, {}, { codiceIntervento: 'SRD01', n: 2 }], 'SRD01')).toEqual({ codiceIntervento: 'SRD01', n: 2 });
+    expect(rigaDellIntervento<{ codiceIntervento?: string }>([], 'SRD01')).toBeUndefined();
+    expect(rigaDellIntervento(undefined, 'SRD01')).toBeUndefined();
   });
 
   it('scrittura nell ordine delle chiavi, chiave ripetuta per valore', () => {

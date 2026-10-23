@@ -15,9 +15,9 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
 import type { Ref } from 'react';
-import { codiceDelPercorso, descrizioneIntervento, ValoriFiltriNonDisponibili } from '../../../entities/filtri';
+import { codiceDelPercorso, descrizioneIntervento, rigaDellIntervento, ValoriFiltriNonDisponibili } from '../../../entities/filtri';
 import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
-import { rigaDellIntervento, testoPerimetro } from '../../../shared/lib';
+import { testoPerimetro } from '../../../shared/lib';
 import type { StatoDettaglio } from '../../../shared/lib';
 import { AvvisoAggiornamento, AvvisoPagina, BarraFiltri, Briciole, Caricamento, ContestoIntestazione, ErroreNellaPagina, PillDatiAl, TestataDettaglio, Vuoto, VuotoConFiltri, useErroreNellaPagina, useFocusTitolo, useRigheContesto, useStatoDelDettaglio } from '../../../shared/ui';
 import type { StatoQuery } from '../../../shared/ui';

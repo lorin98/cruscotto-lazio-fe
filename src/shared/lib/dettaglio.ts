@@ -1,6 +1,7 @@
 // dettaglio.ts — lo stato di una pagina di dettaglio che compone piu' letture dei report filtrate sull'oggetto della route
-// (il dettaglio dell'intervento dell'istituzionale e del procedurale), e la riga dell'intervento in una risposta (PURO).
-// Prima nel lib dell'istituzionale (review H1/X1 della sua v1): il dettaglio del procedurale ne ha bisogno uguale.
+// (il dettaglio dell'intervento dell'istituzionale e del procedurale) (PURO). Prima nel lib dell'istituzionale (review
+// H1/X1 della sua v1): il dettaglio del procedurale ne ha bisogno uguale. La riga dell'intervento in una risposta, che
+// conosce il campo codiceIntervento, sta in entities/filtri (review H2 del procedurale).
 
 /** Quanto serve di una lettura per lo stato del dettaglio: la risposta (righe; assenti = nessuna) se c'e', e se e' in errore. */
 export interface LetturaDettaglio {
@@ -31,9 +32,4 @@ export function statoDelDettaglio(letture: readonly LetturaDettaglio[], giaRispo
   const conDati = letture.filter((l) => l.data !== undefined);
   if (conDati.length === 0) return letture.every((l) => l.isError) ? 'errore' : 'caricamento';
   return conDati.length === letture.length && conDati.every((l) => (l.data?.righe ?? []).length === 0) ? 'vuoto' : 'dati';
-}
-
-/** La riga dell'intervento nella risposta (il dettaglio legge col solo intervento della route). */
-export function rigaDellIntervento<R extends { codiceIntervento?: string }>(righe: readonly R[] | undefined, codice: string): R | undefined {
-  return righe?.find((r) => r.codiceIntervento === codice);
 }

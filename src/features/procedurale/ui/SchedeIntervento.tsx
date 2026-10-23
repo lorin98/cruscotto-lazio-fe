@@ -9,8 +9,8 @@
 // letture delle schede lo registra la scheda. Tabs di react-aria-components; dentro, classi bootstrap-italia e del kit.
 import { useNavigate } from 'react-router';
 import { Tab, TabList, TabPanel, Tabs } from 'react-aria-components';
+import { rigaDellIntervento } from '../../../entities/filtri';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
-import { rigaDellIntervento } from '../../../shared/lib';
 import { ErroreNellaPagina, Griglia, Sezione, VistaQuery, Vuoto } from '../../../shared/ui';
 import type { StatoQuery } from '../../../shared/ui';
 import { useRiepilogo, useSottofasiPagamento, useSottofasiSostegno, useUnitAmount } from '../api';

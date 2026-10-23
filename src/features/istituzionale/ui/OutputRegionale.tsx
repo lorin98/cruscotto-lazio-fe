@@ -11,9 +11,8 @@
 // report si rilegge coi filtri nuovi, un chip tolto o Riprova (wireframe approvato, review V1). Barra, testata, stati e
 // pannello sono l'impaginazione comune dei due report (PaginaReport, review H6).
 import { useState } from 'react';
-import { ricercaDaFiltri } from '../../../entities/filtri';
+import { ricercaDaFiltri, rigaDellIntervento } from '../../../entities/filtri';
 import type { Filtri } from '../../../entities/filtri';
-import { rigaDellIntervento } from '../../../shared/lib';
 import { Interruttore, Sezione } from '../../../shared/ui';
 import { useOutputRegionale } from '../api';
 import type { Output } from '../lib/dto';

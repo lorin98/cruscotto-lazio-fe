@@ -9,10 +9,10 @@
 // del pattern); dentro, classi bootstrap-italia e del kit.
 import { useMemo } from 'react';
 import { Tab, TabList, TabPanel, Tabs } from 'react-aria-components';
+import { rigaDellIntervento } from '../../../entities/filtri';
 import { ValoreImporto } from '../../../entities/importo';
 import { AvvisoAggiornamento, CardGrafico, ErroreNellaPagina, PulsantiScarica, SelettoreAnno, TabellaStatica, TabellaVoci, VistaQuery, Vuoto } from '../../../shared/ui';
 import type { ColonnaStatica } from '../../../shared/ui';
-import { rigaDellIntervento } from '../../../shared/lib';
 import { useOutputRegionale, useVerificaSmpNonSigc } from '../api';
 import { anniDiRiferimento, criteriVerifica, soloIntervento } from '../lib/criteri';
 import type { ImportoUnitario, RigaOutput, Verifica } from '../lib/dto';
