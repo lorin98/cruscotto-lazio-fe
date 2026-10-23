@@ -92,6 +92,15 @@ describe('soglie dei lib/ (H-06) e della UI (review v3 H-01)', () => {
   });
 });
 
+describe('soglia di revisione dei componenti, 30 righe (review H11 del procedurale, come H4 del fisico)', () => {
+  // la soglia della review e' piu' stretta del limite di eslint (60): si controlla sul file, con la stessa misura
+  const trenta = new ESLint({ cwd: process.cwd(), overrideConfig: { rules: { 'max-lines-per-function': ['error', { max: 30, skipBlankLines: true, skipComments: true }] } } });
+  it('le schede del dettaglio procedurale non superano le 30 righe per funzione', async () => {
+    const [r] = await trenta.lintFiles(['src/features/procedurale/ui/SchedeIntervento.tsx']);
+    expect(r.messages.filter((m) => m.ruleId === 'max-lines-per-function').map((m) => `${m.line}: ${m.message}`)).toEqual([]);
+  });
+});
+
 describe('moduli di prova fuori dal codice di produzione (Z-02)', () => {
   const vietati = (m: string[]) => m.filter((x) => x.startsWith('no-restricted-imports') && x.includes('Z-02'));
   const fixture = "import { FILTRI } from '../../../features/finanziario/testing/fixture';\nexport const x = FILTRI;\n";

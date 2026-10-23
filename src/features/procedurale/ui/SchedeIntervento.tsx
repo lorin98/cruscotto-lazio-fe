@@ -8,6 +8,7 @@
 // L'errore delle letture della pagina (TX-0026..TX-0028) lo dice l'avviso della pagina: qui il testo statico; quello delle
 // letture delle schede lo registra la scheda. Tabs di react-aria-components; dentro, classi bootstrap-italia e del kit.
 import { useNavigate } from 'react-router';
+import type { ReactNode } from 'react';
 import { Tab, TabList, TabPanel, Tabs } from 'react-aria-components';
 import { rigaDellIntervento } from '../../../entities/filtri';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
@@ -142,35 +143,33 @@ function ListaSchede({ schede }: { schede: readonly IdScheda[] }) {
   );
 }
 
-export function SchedeIntervento({ sostegno, pagamento, scheda, onScheda, ...p }: PropsSchede) {
+/** Quanto riceve una scheda: i criteri del dettaglio e, per la scheda Stati, le letture della pagina (gia' in cache). */
+type PropsPannello = Omit<PropsSchede, 'scheda' | 'onScheda'>;
+
+/** Il contenuto di ogni scheda, per id (una scheda sola: react-aria monta il solo pannello scelto). */
+const PANNELLI: Readonly<Record<IdScheda, (p: PropsPannello) => ReactNode>> = {
+  stati: ({ sostegno, pagamento, ...p }) => (
+    <Griglia>
+      {sostegno && <StatiDellIntervento tipo="SOSTEGNO" stato={sostegno} {...p} />}
+      {pagamento && <StatiDellIntervento tipo="PAGAMENTO" stato={pagamento} {...p} />}
+    </Griglia>
+  ),
+  area: (p) => <AreaDellIntervento {...p} />,
+  sottofasi: (p) => <SottofasiDellIntervento {...p} />,
+  unitAmount: (p) => <UnitAmountDellIntervento {...p} />,
+};
+
+export function SchedeIntervento({ scheda, onScheda, ...p }: PropsSchede) {
   const auth = useAuthStatus().data;
   const schede = schedeVisibili((l: Lettura) => puoLeggere(auth, l));
   return (
     <Tabs selectedKey={schedaAttiva(schede, scheda)} onSelectionChange={(k) => onScheda(String(k) as IdScheda)}>
       <ListaSchede schede={schede} />
-      {schede.includes('stati') && (
-        <TabPanel id="stati">
-          <Griglia>
-            {sostegno && <StatiDellIntervento tipo="SOSTEGNO" stato={sostegno} {...p} />}
-            {pagamento && <StatiDellIntervento tipo="PAGAMENTO" stato={pagamento} {...p} />}
-          </Griglia>
+      {schede.map((s) => (
+        <TabPanel key={s} id={s}>
+          {PANNELLI[s](p)}
         </TabPanel>
-      )}
-      {schede.includes('area') && (
-        <TabPanel id="area">
-          <AreaDellIntervento {...p} />
-        </TabPanel>
-      )}
-      {schede.includes('sottofasi') && (
-        <TabPanel id="sottofasi">
-          <SottofasiDellIntervento {...p} />
-        </TabPanel>
-      )}
-      {schede.includes('unitAmount') && (
-        <TabPanel id="unitAmount">
-          <UnitAmountDellIntervento {...p} />
-        </TabPanel>
-      )}
+      ))}
     </Tabs>
   );
 }
