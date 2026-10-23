@@ -50,9 +50,8 @@ interface SenzaAzione {
 
 export type ParametriFiltriNellIndirizzo<C extends Filtri> = ParametriComuni<C> & (ConAzione | SenzaAzione);
 
-/** Il legame non si conosce ancora: profilo in caricamento, oppure (con l'azione) i valori dei filtri in corso. */
-function legameIgnoto(profiloIgnoto: boolean, p: ConAzione | SenzaAzione): boolean {
-  if (p.senzaAzione) return profiloIgnoto;
+/** Il legame non si conosce ancora (solo con l'azione portante): profilo in caricamento o valori dei filtri in corso. */
+function legameIgnoto(profiloIgnoto: boolean, p: ConAzione): boolean {
   return profiloIgnoto || (p.conValori && p.valori.data === undefined && !p.valori.isError);
 }
 

@@ -3,6 +3,8 @@
 // compongono con la loro lettura dei valori (TX-0001, TX-0060) e la loro scrittura dell'indirizzo. Poi il pannello comune
 // con le voci di TX-0060 (fisico, istituzionale), il pannello della pagina col focus dopo "Applica i filtri" e la pagina
 // del dettaglio dell'intervento col codice non valido. Profilo dal server MSW dei test.
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import type { ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { createRef } from 'react';
@@ -98,6 +100,12 @@ describe('entities/filtri: la regola senza l azione portante (senzaAzione, il pr
     ]);
     act(() => result.current.togliTutti());
     await waitFor(() => expect(posizione.attuale).toBe('/report'));
+  });
+
+  it('la regola "senza l azione non si aspetta" e scritta una volta: il legame si chiede solo coi parametri con l azione (H3 iter2)', () => {
+    const sorgente = readFileSync(resolve(process.cwd(), 'src/entities/filtri/ui/useFiltriProgrammaNellIndirizzo.ts'), 'utf8');
+    expect(sorgente).toContain('function legameIgnoto(profiloIgnoto: boolean, p: ConAzione): boolean');
+    expect(sorgente).not.toMatch(/if \(p\.senzaAzione\) return/);
   });
 });
 
