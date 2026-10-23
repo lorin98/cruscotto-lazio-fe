@@ -118,6 +118,9 @@ function ReportStati({ tipo, d, pagina, voce, onVoce, aperto, onApri }: PropsRep
 function PaginaStati({ tipo, stato, pagina }: { tipo: TipoDomanda; stato: StatoQuery<Stati>; pagina: PaginaDeiCriteri }) {
   const [voce, setVoce] = useState<string | null>(null);
   const [aperto, setAperto] = useState<string | null>(null);
+  // la voce scelta che sparisce dalla risposta (un altro stato fuori catalogo, con altri filtri) si toglie: chip e filtro
+  // della tabella non spariscono in silenzio per ricomparire da soli tornando ai filtri di prima (stato derivato nel render)
+  if (voce !== null && stato.data && !vociDegliStati(stato.data.totale).some((v) => v.chiave === voce)) setVoce(null);
   const testi = TESTI[tipo];
   const vuoto = (d: Stati) => <VuotoConFiltri onModifica={() => pagina.apri('vuoto')}>{testoVuoto(testi.vuoto, conFiltri(pagina.filtri), d.perimetro)}</VuotoConFiltri>;
   return (

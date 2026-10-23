@@ -79,6 +79,21 @@ describe('RF027: stati della domanda di sostegno per intervento (TX-0027)', () =
     await waitFor(() => expect(document.activeElement).toBe(h1()));
   });
 
+  it('la voce scelta che sparisce dalla risposta con altri filtri si toglie: tornando ai filtri di prima niente chip ne filtro', async () => {
+    const lette = servi();
+    const { router } = apri();
+    clicSulCodice(graficoDi(await trovaCard(CARD)), 'SOSPESA');
+    await screen.findByRole('group', { name: 'Filtro della tabella dal grafico' });
+    expect(righe(await tabella())).toEqual(["Apri l'anteprima dell'intervento SRA01"]);
+    await act(() => router.navigate(`${PERCORSO}?intervento=SRD01`));
+    await waitFor(() => expect(lette.sostegno.at(-1)).toBe('?intervento=SRD01'));
+    await waitFor(async () => expect(righe(await tabella())).toEqual(["Apri l'anteprima dell'intervento SRD01"]));
+    expect(screen.queryByRole('group', { name: 'Filtro della tabella dal grafico' })).toBeNull();
+    await act(() => router.navigate(-1));
+    await waitFor(async () => expect(righe(await tabella())).toHaveLength(3));
+    expect(screen.queryByRole('group', { name: 'Filtro della tabella dal grafico' })).toBeNull();
+  });
+
   it('riga apribile con Invio: il drawer con le voci e i loro link, il mini grafico, il dettaglio; Esc lo chiude e il focus torna', async () => {
     servi();
     const { router } = apri(`${PERCORSO}?stato=AMMESSA`);
