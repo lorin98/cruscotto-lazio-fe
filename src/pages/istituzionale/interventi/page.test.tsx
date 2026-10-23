@@ -61,7 +61,7 @@ describe("RF017: output programmato e realizzato dell'intervento per anno (TX-00
     await kpi('Domande ricevute non SIGC');
     const h1 = screen.getByRole('heading', { level: 1, name: 'Investimenti produttivi agricoli per la competitività' });
     expect(document.activeElement).toBe(h1);
-    expect(document.title).toBe('SRD01 - Istituzionale - Cruscotto CSR 2023-2027');
+    expect(document.title).toBe('Intervento SRD01 - Istituzionale - Cruscotto CSR 2023-2027');
     const barra = screen.getByRole('region', { name: 'Riferimenti dei dati' });
     expect(within(barra).getByText('Perimetro: regionale (i report istituzionali non hanno perimetro ADA)')).toBeTruthy();
     expect(within(barra).getByRole('button', { name: /^Ultimo dato sincronizzato: dati al 02\/03\/2026/ })).toBeTruthy();

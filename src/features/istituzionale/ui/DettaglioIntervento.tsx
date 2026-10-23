@@ -171,8 +171,9 @@ function Dettaglio({ codice }: { codice: string }) {
   const { verifica, output, descrizione } = useLettureDelDettaglio(codice, anno);
   const letture = [verifica, output].filter((s) => s !== null);
   const stato = useStatoDelDettaglio(letture);
-  // il titolo del documento dal codice: la descrizione che arriva dopo non riporta il focus sull'h1
-  const h1 = useFocusTitolo<HTMLHeadingElement>(`${codice} - Istituzionale`);
+  // il titolo del documento dal codice, come nel wireframe approvato (review V8): la descrizione che arriva dopo non
+  // riporta il focus sull'h1
+  const h1 = useFocusTitolo<HTMLHeadingElement>(`Intervento ${codice} - Istituzionale`);
   const ultimi = ultimiDelDettaglio(verifica?.data, output?.data);
   // l'intestazione del PNG coi soli criteri di TX-0017: l'unico PNG della pagina e' quello della scheda Output, che l'anno
   // di riferimento di TX-0016 non lo applica (review A1, NFR-50); un PNG di TX-0016 avrebbe il suo contesto nella scheda
