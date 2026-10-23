@@ -366,7 +366,7 @@ describe('shell UI v2: intestazione degli enti, menu laterale, ricerca, piede', 
     expect(legali.textContent).toContain('Privacy (indirizzo da definire)');
   });
 
-  it("menu laterale: le pagine del finanziario visibili, la corrente marcata, i filtri dell'indirizzo conservati, le aree future senza link", async () => {
+  it("menu laterale: le pagine del finanziario visibili, la corrente marcata, i filtri dell'indirizzo conservati, mai nelle altre aree", async () => {
     servi();
     apriApp('/finanziario/riepilogo?intervento=SRA01');
     const menu = await screen.findByRole('navigation', { name: 'Navigazione principale' });
@@ -377,10 +377,13 @@ describe('shell UI v2: intestazione degli enti, menu laterale, ricerca, piede', 
     const voci = await within(sottomenu).findAllByRole('link');
     expect(voci.map((v) => v.textContent)).toEqual(PAGINE_FINANZIARIO.map((p) => p.voceMenu));
     for (const v of voci) expect(v.getAttribute('href')).toMatch(/\?intervento=SRA01$/);
-    const corrente = within(menu).getByRole('link', { name: 'Riepilogo per intervento' });
+    const corrente = within(sottomenu).getByRole('link', { name: 'Riepilogo per intervento' });
     await waitFor(() => expect(corrente.getAttribute('aria-current')).toBe('page'));
-    expect(within(menu).getByRole('link', { name: 'Panoramica' }).getAttribute('aria-current')).toBeNull();
-    expect(menu.textContent).toContain('Proceduralepresto');
+    expect(within(sottomenu).getByRole('link', { name: 'Panoramica' }).getAttribute('aria-current')).toBeNull();
+    // i quattro ambiti sono realizzati: il procedurale ha le sue voci, senza i filtri del finanziario (review v1 H-10)
+    const procedurale = document.getElementById(within(menu).getByRole('button', { name: 'Procedurale' }).getAttribute('aria-controls') ?? '') as HTMLElement;
+    expect(within(procedurale).getAllByRole('link').map((v) => v.getAttribute('href'))).not.toContainEqual(expect.stringContaining('?'));
+    expect(menu.textContent).not.toContain('presto');
     await userEvent.click(gruppo);
     expect(gruppo.getAttribute('aria-expanded')).toBe('false');
     expect(within(sottomenu).queryAllByRole('link')).toHaveLength(0);

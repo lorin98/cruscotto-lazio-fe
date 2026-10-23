@@ -11,6 +11,7 @@ import { pagineVisibili as pagineElenco } from '../features/elenco-operativo';
 import { AnteprimaFinanziario, pagineVisibili as pagineFinanziario } from '../features/finanziario';
 import { pagineVisibili as pagineFisico } from '../features/fisico';
 import { pagineVisibili as pagineIstituzionale, ricercaConservata as ricercaIstituzionale } from '../features/istituzionale';
+import { pagineVisibili as pagineProcedurale, ricercaConservata as ricercaProcedurale } from '../features/procedurale';
 import type { NomeIcona } from '../shared/ui';
 
 /**
@@ -82,6 +83,20 @@ export const AREE: readonly DiAmbito<Area>[] = [
     pagineVisibili: pagineFisico,
   },
   {
+    // G1: stati delle domande di sostegno e di pagamento (TX-0027, TX-0028), domande ammesse con atto e contributo
+    // (TX-0026), sottofasi (TX-0031, TX-0032), pagamenti per Unit Amount (TX-0030) e riepilogo (TX-0029), coi valori dei
+    // filtri della slice (TX-0024, TX-0025); i criteri restano passando da una pagina all'altra. Il dettaglio
+    // dell'intervento non e' una voce di menu: ci si arriva dai report. Testo della card dal dossier dei wireframe.
+    chiave: 'procedurale',
+    titolo: 'Procedurale',
+    descrizione: 'Stati e sottofasi delle domande di sostegno e di pagamento, domande ammesse con atto di concessione e contributo, riepilogo per intervento e pagamenti per Unit Amount.',
+    icona: 'it-file-signed',
+    tono: 'arancio',
+    contenuti: ['Stati e sottofasi delle domande', 'Domande ammesse con atto di concessione e contributo', 'Riepilogo per intervento', 'Pagamenti per Unit Amount'],
+    pagineVisibili: pagineProcedurale,
+    ricercaConservata: ricercaProcedurale,
+  },
+  {
     // G1: verifica SMP non SIGC (TX-0016) e output regionale programmato e realizzato (TX-0017); i due report hanno gli
     // stessi filtri, che restano passando dall'uno all'altro (come nel finanziario). Il dettaglio dell'intervento non e'
     // una voce di menu: ci si arriva dai report.
@@ -96,18 +111,11 @@ export const AREE: readonly DiAmbito<Area>[] = [
   },
 ];
 
-/** Aree non ancora realizzate: la Home e il menu le dichiarano "presto", senza link. */
-export const AREE_FUTURE: readonly DiAmbito<SchedaArea>[] = [
-  {
-    // G1: stati e sottofasi delle domande, ammesse con atto e contributo, riepilogo, Unit Amount (TX-0024..TX-0032)
-    chiave: 'procedurale',
-    titolo: 'Procedurale',
-    descrizione: 'Stati e sottofasi delle domande di sostegno e di pagamento, domande ammesse e pagamenti per Unit Amount.',
-    icona: 'it-file-signed',
-    tono: 'arancio',
-    contenuti: ['Stati e sottofasi delle domande', 'Domande ammesse con atto di concessione e contributo', 'Riepilogo per intervento e pagamenti per Unit Amount'],
-  },
-];
+/**
+ * Aree non ancora realizzate: la Home e il menu le dichiarano "presto", senza link. Col procedurale (23/10/2026) i quattro
+ * ambiti sono tutti realizzati e la lista e' vuota.
+ */
+export const AREE_FUTURE: readonly DiAmbito<SchedaArea>[] = [];
 
 /**
  * Strumenti trasversali agli ambiti (OP-EO-04): l'elenco operativo delle domande e dei pagamenti. Non sono un ambito

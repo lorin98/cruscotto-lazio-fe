@@ -10,6 +10,7 @@ import { server } from '../src/shared/api/mock/server';
 import { rispondi } from '../src/shared/testing/msw';
 import { formatNumber } from '../src/shared/lib';
 import * as F from '../src/features/finanziario/testing/fixture';
+import { lettureProcedurale } from '../src/features/procedurale/testing/letture';
 import { AMBITI, AREE, AREE_FUTURE, areeVisibili, eRealizzata } from '../src/app/aree';
 import type { ChiaveAmbito } from '../src/app/aree';
 import { appRoutes } from '../src/app/routes';
@@ -17,9 +18,11 @@ import routeTable from '../src/app/route-table.json';
 import { pagineVisibili } from '../src/features/finanziario';
 import { pagineVisibili as pagineFisico } from '../src/features/fisico';
 import { pagineVisibili as pagineIstituzionale, ricercaConservata as ricercaIstituzionale } from '../src/features/istituzionale';
+import { pagineVisibili as pagineProcedurale, ricercaConservata as ricercaProcedurale } from '../src/features/procedurale';
 import { PAGINE_FINANZIARIO } from '../src/features/finanziario/lib/report';
 import { PAGINE_FISICO } from '../src/features/fisico/lib/pagine';
 import { PAGINE_ISTITUZIONALE } from '../src/features/istituzionale/lib/pagine';
+import { PAGINE_PROCEDURALE } from '../src/features/procedurale/lib/pagine';
 import { VERIFICA_SMP_SIGC } from '../src/features/istituzionale/lib/collegamenti';
 import { GRANT as GRANT_ISTITUZIONALE } from '../src/features/istituzionale/lib/grant';
 import { clientApp } from './app-client';
@@ -43,11 +46,12 @@ describe('catalogo delle aree', () => {
     }
   });
 
-  it('finanziario, fisico e istituzionale prendono le pagine visibili dal barrel della feature', () => {
+  it('finanziario, fisico, procedurale e istituzionale prendono le pagine visibili dal barrel della feature', () => {
     expect(AREE.find((a) => a.chiave === 'finanziario')?.pagineVisibili).toBe(pagineVisibili);
     expect(AREE.find((a) => a.chiave === 'fisico')?.pagineVisibili).toBe(pagineFisico);
+    expect(AREE.find((a) => a.chiave === 'procedurale')?.pagineVisibili).toBe(pagineProcedurale);
     expect(AREE.find((a) => a.chiave === 'istituzionale')?.pagineVisibili).toBe(pagineIstituzionale);
-    expect(areeVisibili(() => true).map((a) => a.pagine)).toEqual([PAGINE_FINANZIARIO, PAGINE_FISICO, PAGINE_ISTITUZIONALE]);
+    expect(areeVisibili(() => true).map((a) => a.pagine)).toEqual([PAGINE_FINANZIARIO, PAGINE_FISICO, PAGINE_PROCEDURALE, PAGINE_ISTITUZIONALE]);
     expect(areeVisibili(() => false)).toEqual([]);
   });
 
@@ -58,6 +62,26 @@ describe('catalogo delle aree', () => {
     }
     // il dettaglio dell'intervento non e' una voce di menu: si apre con uno dei due grant dei report
     expect(routeTable.routes.find((r) => r.path === '/istituzionale/interventi/:codice')?.visibility).toEqual(['csr.tx-0016.read', 'csr.tx-0017.read']);
+  });
+
+  it('le pagine del procedurale compaiono col grant di uno dei loro report, sempre fra i grant della route', () => {
+    for (const p of PAGINE_PROCEDURALE) {
+      const route = routeTable.routes.find((r) => r.path === p.percorso);
+      expect(route, p.percorso).toBeDefined();
+      for (const g of p.grant) expect(route?.visibility, `${p.percorso} ${g}`).toContain(g);
+    }
+    // il dettaglio dell'intervento non e' una voce di menu: si apre con le letture dei suoi KPI e delle sue schede
+    expect(PAGINE_PROCEDURALE.some((p) => p.percorso.startsWith('/procedurale/interventi'))).toBe(false);
+    expect(routeTable.routes.find((r) => r.path === '/procedurale/interventi/:codice')?.visibility).toEqual([
+      'csr.tx-0024.read',
+      'csr.tx-0026.read',
+      'csr.tx-0027.read',
+      'csr.tx-0028.read',
+      'csr.tx-0029.read',
+      'csr.tx-0030.read',
+      'csr.tx-0031.read',
+      'csr.tx-0032.read',
+    ]);
   });
 
   it('link G4 dell istituzionale: la verifica SMP SIGC del finanziario e una route col grant che mostra la frase (review H8)', () => {
@@ -72,22 +96,27 @@ describe('catalogo delle aree', () => {
     expect(fisico?.contenuti.join(' ')).toMatch(/Superfici ammissibili/);
     expect(fisico?.contenuti.join(' ')).toMatch(/Determine/);
     expect(fisico?.contenuti.join(' ')).not.toMatch(/Output programmato|Unit Amount/);
-    const procedurale = AREE_FUTURE.find((a) => a.chiave === 'procedurale');
-    expect(procedurale?.contenuti.join(' ')).toMatch(/Unit Amount/);
+    // G1 e dossier dei wireframe: stati e sottofasi, ammesse con atto e contributo, riepilogo, Unit Amount (TX-0024..TX-0032)
+    const procedurale = AREE.find((a) => a.chiave === 'procedurale');
+    expect(procedurale?.contenuti).toEqual(['Stati e sottofasi delle domande', 'Domande ammesse con atto di concessione e contributo', 'Riepilogo per intervento', 'Pagamenti per Unit Amount']);
     expect(procedurale?.contenuti.join(' ')).not.toMatch(/Determine, responsabili/);
     // G1: istituzionale = verifica SMP non SIGC e output regionale programmato e realizzato (TX-0016, TX-0017)
     const istituzionale = AREE.find((a) => a.chiave === 'istituzionale');
     expect(istituzionale?.contenuti).toEqual(['Verifica SMP dei dati ASR non SIGC', 'Output regionale programmato e realizzato per intervento e anno']);
     expect(istituzionale?.descrizione).toBe('Dati ASR non SIGC a confronto con SMP - Data Platform e output regionale programmato e realizzato.');
-    expect(AREE_FUTURE.map((a) => a.chiave)).toEqual(['procedurale']);
+    expect(AREE_FUTURE).toEqual([]);
   });
 
-  it('una ricerca conservata porta solo i filtri del programma: del finanziario, e dell istituzionale senza l anno', () => {
+  it('una ricerca conservata porta solo i criteri dell area: del finanziario, dell istituzionale senza l anno, del procedurale con lo stato', () => {
     const finanziario = AREE.find((a) => a.chiave === 'finanziario');
     expect(finanziario?.ricercaConservata?.('?intervento=SRA01&pagina=3')).toBe('intervento=SRA01');
     const istituzionale = AREE.find((a) => a.chiave === 'istituzionale');
     expect(istituzionale?.ricercaConservata).toBe(ricercaIstituzionale);
     expect(istituzionale?.ricercaConservata?.('?intervento=SRD01&anno=2024')).toBe('intervento=SRD01');
+    // il procedurale porta anche lo stato area programmazione, lo stesso in tutte le sue pagine
+    const procedurale = AREE.find((a) => a.chiave === 'procedurale');
+    expect(procedurale?.ricercaConservata).toBe(ricercaProcedurale);
+    expect(procedurale?.ricercaConservata?.('?intervento=SRD01&stato=AMMESSA&vista=tabella')).toBe('intervento=SRD01&stato=AMMESSA');
   });
 
   it('le chiavi degli ambiti sono quelle dell ordine fisso: una chiave fuori dall ordine non compila (review H9)', () => {
@@ -104,7 +133,7 @@ describe('catalogo delle aree', () => {
 
   it('quattro ambiti nell ordine fisso del catalogo, realizzati o no, ognuno col suo colore, senza il primo pilastro', () => {
     expect(AMBITI.map((a) => a.titolo)).toEqual(['Finanziario', 'Fisico', 'Procedurale', 'Istituzionale']);
-    expect(AMBITI.map((a) => eRealizzata(a))).toEqual([true, true, false, true]);
+    expect(AMBITI.map((a) => eRealizzata(a))).toEqual([true, true, true, true]);
     expect(AMBITI).toHaveLength(AREE.length + AREE_FUTURE.length);
     expect(new Set(AMBITI.map((a) => a.tono)).size).toBe(4);
     expect(new Set(AMBITI.map((a) => a.chiave)).size).toBe(4);
@@ -173,10 +202,53 @@ describe('Home e menu dallo stesso catalogo', () => {
       ['Determine di una domanda', '/fisico/determine'],
     ]);
     expect(menu.textContent).not.toContain('Fisicopresto');
-    expect(menu.textContent).toContain('Proceduralepresto');
+    expect(menu.textContent).not.toContain('presto');
   });
 
-  it('profilo dell istituzionale: la card porta alla verifica SMP non SIGC e il menu ha i due report, dopo Procedurale', async () => {
+  it('profilo del procedurale: la card porta alla panoramica e il menu ha le sette pagine, coi criteri che restano', async () => {
+    const { handlers } = lettureProcedurale();
+    server.use(...handlers);
+    apriHomeCon(['csr.tx-0024.read', 'csr.tx-0025.read', 'csr.tx-0026.read', 'csr.tx-0027.read', 'csr.tx-0028.read', 'csr.tx-0029.read', 'csr.tx-0030.read', 'csr.tx-0031.read', 'csr.tx-0032.read'], '/');
+    const card = await screen.findByRole('region', { name: 'Procedurale' });
+    expect(within(card).getByText('Disponibile')).toBeTruthy();
+    expect(within(card).getByRole('link', { name: 'Entra in Procedurale' }).getAttribute('href')).toBe('/procedurale');
+    expect(within(card).getByText('Pagamenti per Unit Amount')).toBeTruthy();
+    const menu = screen.getByRole('navigation', { name: 'Navigazione principale' });
+    const gruppo = within(menu).getByRole('button', { name: 'Procedurale' });
+    const sottomenu = document.getElementById(gruppo.getAttribute('aria-controls') ?? '') as HTMLElement;
+    expect(within(sottomenu).getAllByRole('link').map((l) => [l.textContent, l.getAttribute('href')])).toEqual([
+      ['Panoramica', '/procedurale'],
+      ['Stati delle domande di sostegno', '/procedurale/stati-sostegno'],
+      ['Stati delle domande di pagamento', '/procedurale/stati-pagamento'],
+      ['Domande ammesse', '/procedurale/ammesse'],
+      ['Sottofasi di ammissibilità', '/procedurale/sottofasi'],
+      ['Unit Amount', '/procedurale/unit-amount'],
+      ['Riepilogo per intervento', '/procedurale/riepilogo'],
+    ]);
+    expect(menu.textContent).not.toContain('presto');
+  });
+
+  it('dal menu i criteri del procedurale restano passando da una pagina all altra, anche dal dettaglio dell intervento', async () => {
+    const { handlers } = lettureProcedurale();
+    server.use(...handlers);
+    const ruoli = ['csr.tx-0024.read', 'csr.tx-0025.read', 'csr.tx-0027.read', 'csr.tx-0030.read'];
+    const stati = apriHomeCon(ruoli, '/procedurale/stati-sostegno?intervento=SRD01&stato=AMMESSA');
+    expect(await screen.findByRole('heading', { level: 1, name: 'Procedurale: stati delle domande di sostegno' })).toBeTruthy();
+    const menu = screen.getByRole('navigation', { name: 'Navigazione principale' });
+    // la panoramica compare con uno dei suoi quattro report (qui gli stati di sostegno)
+    expect(within(menu).getAllByRole('link').map((l) => l.textContent)).toEqual(['Panoramica', 'Stati delle domande di sostegno', 'Unit Amount']);
+    expect(within(menu).getByRole('link', { name: 'Unit Amount' }).getAttribute('href')).toBe('/procedurale/unit-amount?intervento=SRD01&stato=AMMESSA');
+    expect(within(menu).getByRole('link', { name: 'Stati delle domande di sostegno' }).getAttribute('aria-current')).toBe('page');
+    stati.unmount();
+    // dal dettaglio dell'intervento resta lo stato dell'indirizzo (l'intervento e' il segmento del percorso)
+    apriHomeCon(ruoli, '/procedurale/interventi/SRD01?stato=AMMESSA');
+    expect(await screen.findByRole('heading', { level: 1, name: 'SRD01 - Investimenti produttivi agricoli per la competitività' })).toBeTruthy();
+    const delDettaglio = screen.getByRole('navigation', { name: 'Navigazione principale' });
+    expect(within(delDettaglio).getByRole('link', { name: 'Panoramica' }).getAttribute('href')).toBe('/procedurale?stato=AMMESSA');
+    expect(within(delDettaglio).getByRole('link', { name: 'Panoramica' }).getAttribute('aria-current')).toBeNull();
+  });
+
+  it('profilo dell istituzionale: la card porta alla verifica SMP non SIGC e il menu ha i due report', async () => {
     server.use(
       http.get('*/api/istituzionale/verifica-smp-non-sigc', () => HttpResponse.json({ annoRiferimento: 2025, perimetro: 'REGIONALE', outputCumulativo: true, righe: [], ultimiDatiSincronizzati: [] })),
       http.get('*/api/elenco-operativo/filtri', () => HttpResponse.json({ perimetro: 'REGIONALE', interventi: [] })),
@@ -194,8 +266,8 @@ describe('Home e menu dallo stesso catalogo', () => {
       ['Output regionale', '/istituzionale/output-regionale'],
     ]);
     expect(menu.textContent).not.toContain('Istituzionalepresto');
-    // l'ordine del catalogo resta: Procedurale (presto) prima di Istituzionale
-    expect(menu.textContent?.indexOf('Proceduralepresto')).toBeLessThan(menu.textContent?.indexOf('Istituzionale') ?? -1);
+    // senza le letture del procedurale il suo gruppo non c'e' (nessuna area e' piu' "presto")
+    expect(within(menu).queryByRole('button', { name: 'Procedurale' })).toBeNull();
   });
 
   it('profilo col solo output regionale: la card porta all output, il menu ha la sola voce', async () => {
@@ -231,7 +303,7 @@ describe('Home e menu dallo stesso catalogo', () => {
     expect(within(menu).getByRole('link', { name: 'Superfici ammissibili' }).getAttribute('aria-current')).toBeNull();
   });
 
-  it('profilo senza pagine in nessuna area: la Home lo dice, il menu ha solo le aree future', async () => {
+  it('profilo senza pagine in nessuna area: la Home lo dice, il menu non ha voci', async () => {
     apriHomeCon(['altro']);
     expect(await screen.findByText('Il tuo profilo non ha ancora aree del cruscotto da consultare.')).toBeTruthy();
     // la griglia resta di quattro ambiti: il finanziario dice che non e' nel profilo, senza link
@@ -241,7 +313,6 @@ describe('Home e menu dallo stesso catalogo', () => {
     const menu = screen.getByRole('navigation', { name: 'Navigazione principale' });
     expect(within(menu).queryAllByRole('button')).toHaveLength(0);
     expect(within(menu).queryAllByRole('link')).toHaveLength(0);
-    expect(menu.textContent).toContain('Proceduralepresto');
-    expect(menu.textContent).not.toContain('Istituzionalepresto');
+    expect(menu.textContent).not.toContain('presto');
   });
 });
