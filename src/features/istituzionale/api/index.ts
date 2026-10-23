@@ -8,14 +8,13 @@
 //   e nel fisico; l'esito lo mostra chi le chiama.
 // - Errori: nessun onError qui. I componenti li rendono con getErrorMessage (problem-type del backend); il 400
 //   DATO_NON_VALIDO (filtro o anno non validi, file oltre il limite dell'export) si riconosce sul problem-type, mai sul
-//   solo status.
+//   solo status: per il file oltre il limite con messaggioOltreIlLimite del kit (nessun predicato della feature).
 // - Parametri: i cinque filtri ripetibili dei report (intervento, os, og, op, azione) e, per TX-0016, l'anno di
 //   riferimento del file (uno solo, facoltativo: assente = l'ultimo anno con un file); il mutator li serializza ripetuti e
 //   mette in coda le letture oltre il tetto per utente, nella stessa coda delle altre aree (app/tetti-letture,
 //   SC-IS_CAPACITA).
 // - Retry: nessuna opzione qui; la politica (rete assente e 503 con Retry-After) e' del QueryClient (app/query-client.ts).
 import { keepPreviousData } from '@tanstack/react-query';
-import { eProblema } from '../../../shared/api/problem/e-problema';
 import {
   getApiIstituzionaleOutputRegionaleFormato,
   getApiIstituzionaleVerificaSmpNonSigcFormato,
@@ -66,11 +65,6 @@ export const useVerificaSmpNonSigc = (criteri: CriteriVerifica, { abilitato = tr
 // TX-0017 (RF017): l'output regionale programmato e realizzato per intervento e anno del periodo, con gli importi
 // unitari per Unit Amount e l'ultimo dato sincronizzato.
 export const useOutputRegionale = (criteri: CriteriOutput, { abilitato = true }: Opzioni = {}) => useTx0017(criteri, { query: { enabled: abilitato } });
-
-/** Vero se l'errore e' il 400 DATO_NON_VALIDO (problem-type): un filtro o l'anno non validi, o un file oltre il limite. */
-export function rispostaDatoNonValido(errore: unknown): boolean {
-  return eProblema(errore, 'invalid-data');
-}
 
 // Esportazioni (D-07 del backend istituzionale, D-08 di nfr-conformance): il file CSV o XLSX lo scrive il backend, con
 // gli stessi criteri della lettura, l'intestazione (fonte, filtri, anno di riferimento o periodo, perimetro, data,

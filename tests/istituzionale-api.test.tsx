@@ -6,15 +6,11 @@ import { http, HttpResponse } from 'msw';
 import { server } from '../src/shared/api/mock/server';
 import { problema } from '../src/shared/testing/msw';
 import { PROBLEM_TYPES } from '../src/shared/api/problem/problem-types';
+import { eProblema } from '../src/shared/api/problem/e-problema';
+import { OLTRE_IL_LIMITE_DELL_ESPORTAZIONE, messaggioOltreIlLimite } from '../src/shared/ui';
 import { handlersEsempio } from '../src/features/istituzionale/api/mock/esempio';
-import {
-  esportaOutputRegionale,
-  esportaVerificaSmpNonSigc,
-  rispostaDatoNonValido,
-  useOutputRegionale,
-  useValoriFiltri,
-  useVerificaSmpNonSigc,
-} from '../src/features/istituzionale/api';
+import * as Api from '../src/features/istituzionale/api';
+import { esportaOutputRegionale, esportaVerificaSmpNonSigc, useOutputRegionale, useValoriFiltri, useVerificaSmpNonSigc } from '../src/features/istituzionale/api';
 import { useValoriFiltri as useValoriFiltriFisico } from '../src/features/fisico/api';
 
 function wrapper(client = new QueryClient({ defaultOptions: { queries: { retry: false } } })) {
@@ -64,12 +60,14 @@ describe('feature istituzionale, wrapper api (step3) su MSW', () => {
     server.use(http.get('*/api/istituzionale/verifica-smp-non-sigc', () => HttpResponse.json(problema(400, 'DATO_NON_VALIDO', 'anno: valore non ammesso'), { status: 400 })));
     const nonValido = renderHook(() => useVerificaSmpNonSigc({ anno: 2025 }), { wrapper: wrapper() });
     await waitFor(() => expect(nonValido.result.current.isError).toBe(true));
-    expect(rispostaDatoNonValido(nonValido.result.current.error)).toBe(true);
+    expect(eProblema(nonValido.result.current.error, 'invalid-data')).toBe(true);
     // un 400 senza il problem-type del contratto non e' DATO_NON_VALIDO
     server.use(http.get('*/api/istituzionale/output-regionale', () => new HttpResponse(null, { status: 400 })));
     const senzaTipo = renderHook(() => useOutputRegionale({}), { wrapper: wrapper() });
     await waitFor(() => expect(senzaTipo.result.current.isError).toBe(true));
-    expect(rispostaDatoNonValido(senzaTipo.result.current.error)).toBe(false);
+    expect(eProblema(senzaTipo.result.current.error, 'invalid-data')).toBe(false);
+    // review H3: il riconoscimento e' quello comune, la feature non ha un suo predicato senza consumatori
+    expect(Object.keys(Api)).not.toContain('rispostaDatoNonValido');
   });
 
   it('i valori dei filtri sono la lettura comune di TX-0060: stessa cache del fisico e dell elenco (decisione G2)', async () => {
@@ -108,7 +106,9 @@ describe('feature istituzionale, wrapper api (step3) su MSW', () => {
   it("il 400 dell'esportazione oltre il limite si riconosce dal corpo JSON del Blob d'errore", async () => {
     server.use(http.get('*/api/istituzionale/output-regionale/:formato', () => HttpResponse.json(problema(400, 'DATO_NON_VALIDO', 'oltre 5000 righe'), { status: 400 })));
     const errore = await esportaOutputRegionale('csv', {}).catch((e: unknown) => e);
-    expect(rispostaDatoNonValido(errore)).toBe(true);
+    expect(eProblema(errore, 'invalid-data')).toBe(true);
+    // il percorso che l'utente vede: il testo del kit sotto i pulsanti
+    expect(messaggioOltreIlLimite(errore)).toBe(OLTRE_IL_LIMITE_DELL_ESPORTAZIONE);
   });
 });
 
