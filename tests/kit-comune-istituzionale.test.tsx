@@ -131,15 +131,18 @@ describe('Estensioni del kit per l istituzionale: riga sotto il sottotitolo e ca
     expect(Array.from(testata?.querySelectorAll('p') ?? []).map((p) => p.textContent)).toEqual(['Sotto', 'Altra area']);
   });
 
-  it('CardGrafico: senzaPng toglie il PNG e lascia gli altri file; oggettoDati da il nome ai file dei dati, il PNG resta il grafico', () => {
+  it('CardGrafico: senzaPng toglie il PNG e lascia gli altri file; oggettoDati da il nome ai file dei dati e al gruppo, il PNG resta il grafico', () => {
     const { rerender } = render(<CardGrafico titolo="Mini grafico" dati={DATI} fonte="Fonte" senzaPng />);
     expect(screen.queryByRole('group', { name: /^Scarica/ })).toBeNull();
     expect(screen.getByRole('button', { name: 'Grafico' }).getAttribute('aria-pressed')).toBe('true');
     // review X3: il PNG e' l'immagine del grafico, il CSV e' l'export dei dati: nomi diversi (WCAG 2.4.6)
     rerender(<CardGrafico titolo="Output per anno" dati={DATI} fonte="Fonte" scaricamenti={[csv]} oggettoDati="l'output e gli importi unitari dell'intervento SRA01" />);
     expect(screen.getAllByRole('button', { name: /^Scarica/ }).map((b) => b.getAttribute('aria-label'))).toEqual(['Scarica il grafico Output per anno in PNG', "Scarica l'output e gli importi unitari dell'intervento SRA01 in CSV"]);
+    // review V1 v1 iter2: il gruppo dice i due contenuti; senza oggettoDati il nome di sempre (finanziario, fisico, elenco)
+    expect(screen.getByRole('group', { name: /^Scarica/ }).getAttribute('aria-label')).toBe("Scarica il grafico Output per anno e l'output e gli importi unitari dell'intervento SRA01");
     rerender(<CardGrafico titolo="Output per anno" dati={DATI} fonte="Fonte" scaricamenti={[csv]} />);
     expect(screen.getAllByRole('button', { name: /^Scarica/ }).map((b) => b.getAttribute('aria-label'))).toEqual(['Scarica il grafico Output per anno in PNG', 'Scarica il grafico Output per anno in CSV']);
+    expect(screen.getByRole('group', { name: /^Scarica/ }).getAttribute('aria-label')).toBe('Scarica il grafico Output per anno');
   });
 
   it('PulsantiScarica: un file col suo oggetto ha il suo nome, gli altri quello del gruppo', () => {

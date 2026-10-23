@@ -5,7 +5,8 @@
 // backend); il PNG prende il nome dei file dei dati, con l'estensione png (review v3 H-06). Una card puo' non avere il PNG
 // (un'anteprima, es. il mini grafico del drawer dell'output regionale) e dire nei nomi dei pulsanti dei file dei dati di
 // cosa sono quando non sono il solo grafico (l'export completo del report, l'output dell'intervento: WCAG 2.4.6), mentre
-// il PNG resta "il grafico <titolo>": estensioni dell'istituzionale, facoltative.
+// il PNG resta "il grafico <titolo>" e il gruppo dei pulsanti dice i due contenuti (review V1 dell'istituzionale v1
+// iter2): estensioni dell'istituzionale, facoltative.
 import { useId, useState } from 'react';
 import type { ReactNode } from 'react';
 import { nomeFile } from '../../lib/nome-file';
@@ -62,9 +63,14 @@ function nomePng(titolo: string, scaricamenti: readonly Scaricamento[]): string 
   return dati ? dati.replace(/\.[^.]+$/, '.png') : nomeFile(titolo, 'png');
 }
 
-/** I file dei dati col loro oggetto nel nome dei pulsanti, se la card ne da' uno diverso dal grafico. */
-function fileDeiDati(scaricamenti: readonly Scaricamento[], oggetto: string | undefined): readonly Scaricamento[] {
-  return oggetto === undefined ? scaricamenti : scaricamenti.map((s) => ({ ...s, oggetto }));
+/**
+ * Il gruppo dei pulsanti e i suoi file. Senza `oggettoDati` tutto e' "il grafico <titolo>". Con `oggettoDati` il PNG resta
+ * il grafico, i file dei dati hanno il loro oggetto e il gruppo dice i due contenuti (review X3 e V1 dell'istituzionale).
+ */
+function pulsantiDellaCard(titolo: string, png: readonly Scaricamento[], dati: readonly Scaricamento[], oggettoDati: string | undefined): { oggetto: string; scaricamenti: Scaricamento[] } {
+  const grafico = `il grafico ${titolo}`;
+  if (oggettoDati === undefined) return { oggetto: grafico, scaricamenti: [...png, ...dati] };
+  return { oggetto: `${grafico} e ${oggettoDati}`, scaricamenti: [...png.map((s) => ({ ...s, oggetto: grafico })), ...dati.map((s) => ({ ...s, oggetto: oggettoDati }))] };
 }
 
 /** Il grafico (vista Grafico) o il motivo dell'assenza, e la tabella equivalente quando serve. */
@@ -125,7 +131,8 @@ interface PropsCardGrafico {
   onVista?: (vista: Vista) => void;
   /**
    * Completa "Scarica …" nei nomi dei pulsanti dei file dei dati (CSV, XLSX) quando non sono il solo grafico, es. "i dati
-   * della verifica SMP non SIGC" (default: come il PNG, "il grafico <titolo>").
+   * della verifica SMP non SIGC" (default: come il PNG, "il grafico <titolo>"); il gruppo dei pulsanti diventa "Scarica il
+   * grafico <titolo> e <oggettoDati>".
    */
   oggettoDati?: string;
   /** Nessun PNG: la card e' un'anteprima senza scaricamento (es. il mini grafico di un drawer). */
@@ -155,7 +162,7 @@ export function CardGrafico(props: PropsCardGrafico) {
     <>
       {strumenti}
       {disegnabile && <InterruttoreVista etichetta={`Vista di ${titolo}`} vista={vista} onVista={setVista} />}
-      <PulsantiScarica oggetto={`il grafico ${titolo}`} scaricamenti={[...png, ...fileDeiDati(scaricamenti, oggettoDati)]} />
+      <PulsantiScarica {...pulsantiDellaCard(titolo, png, scaricamenti, oggettoDati)} />
     </>
   );
   return (

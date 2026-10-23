@@ -90,6 +90,8 @@ describe("RF017: output programmato e realizzato dell'intervento per anno (TX-00
       "Scarica l'output e gli importi unitari dell'intervento SRA01 in CSV",
       "Scarica l'output e gli importi unitari dell'intervento SRA01 in XLSX",
     ]);
+    // review V1 v1 iter2: il gruppo dei pulsanti dice i due contenuti, il grafico e i dati
+    expect(within(card).getByRole('group', { name: /^Scarica / }).getAttribute('aria-label')).toBe("Scarica il grafico Output programmato e realizzato per anno (ettari) e l'output e gli importi unitari dell'intervento SRA01");
     const t = await tabellaDi(card);
     expect(within(t).getAllByRole('rowheader').at(-1)?.textContent).toBe('Target di fine periodo');
     expect(card.textContent).toContain('2023, programmato: non valorizzato (il dato non è presente nella fonte)');

@@ -68,6 +68,8 @@ describe('RF016: i dati ASR non SIGC per intervento, da confrontare con SMP - Da
       'Scarica i dati della verifica SMP non SIGC in CSV',
       'Scarica i dati della verifica SMP non SIGC in XLSX',
     ]);
+    // review V1 v1 iter2: il gruppo dei pulsanti dice i due contenuti, il grafico e i dati
+    expect(within(card).getByRole('group', { name: /^Scarica / }).getAttribute('aria-label')).toBe(`Scarica il grafico ${CARD} e i dati della verifica SMP non SIGC`);
     // l'intervento senza spesa valorizzata e' fuori dal grafico e dichiarato; lo zero di SRA01 e' una barra vera
     const [serie] = (opzioniDi(graficoDi(card))?.series ?? []) as { data: { codice: string; value: number }[] }[];
     expect(serie.data.map((d) => [d.codice, d.value])).toEqual([
