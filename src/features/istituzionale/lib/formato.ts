@@ -1,11 +1,11 @@
 // formato.ts — testi PURI dell'istituzionale (zero React): perimetro, anno di riferimento del file e periodo della barra,
 // quantita' con la loro unita' di misura (mai un numero senza unita', note WCAG dello uiplan), si'/no, target di fine
-// periodo, assenze con la resa unica dell'entity importo (mai uno zero ne' un "no": motivi della slice compresi,
+// periodo, assenze con la resa unica dell'entity importo (testoMotivato; mai uno zero ne' un "no": motivi della slice compresi,
 // OP-IS-08), stati vuoti e note sulle definizioni del backend (OP-IS-07: note fisse, non un dato). I testi sono quelli
 // dei wireframe approvati del 22/10/2026, con le lettere accentate. Il perimetro in parole e' di shared/lib (review H7).
-import { descriviAssenza, testoConNota } from '../../../entities/importo';
+import { testoMotivato } from '../../../entities/importo';
 import type { DatoMotivatoLike, ImportoResa } from '../../../entities/importo';
-import { formatNumber, maiuscolaIniziale, testoPerimetro } from '../../../shared/lib';
+import { formatNumber, testoPerimetro } from '../../../shared/lib';
 
 /** Pill della barra: i report istituzionali hanno sempre il perimetro regionale (spec: enum REGIONALE). */
 export const PILL_PERIMETRO = 'Perimetro: regionale (i report istituzionali non hanno perimetro ADA)';
@@ -50,17 +50,6 @@ export function siNo(v: boolean): string {
 /** Una quantita' di output con l'unita' di misura dell'indicatore accanto: "1.500 ettari"; senza unita' il solo numero. */
 export function quantita(v: number, unita: string | null | undefined): string {
   return unita ? `${formatNumber(v)} ${unita}` : formatNumber(v);
-}
-
-/** Un dato motivato in testo: il valore reso, oppure l'assenza col motivo fra parentesi (forma unica, testoConNota). */
-export function testoMotivato<T>(dato: DatoMotivatoLike<T> | null | undefined, resa: (v: T) => string): string {
-  return dato?.valore != null ? resa(dato.valore) : testoConNota(descriviAssenza(dato));
-}
-
-/** L'assenza in una frase, per i KPI: "Non valorizzato: il dato non è presente nella fonte". */
-export function assenzaInFrase(dato: Pick<DatoMotivatoLike<unknown>, 'motivo' | 'fonte'> | null | undefined): string {
-  const r = descriviAssenza(dato);
-  return `${maiuscolaIniziale(r.testo)}${r.nota ? `: ${r.nota}` : ''}`;
 }
 
 /** Il target di fine periodo: "1.500 ettari al 2029", oppure la sua assenza col motivo. */

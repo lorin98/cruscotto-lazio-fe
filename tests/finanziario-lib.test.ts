@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 // la route-table e' del progetto (piu' feature, ADR 0028): qui solo le route del finanziario, dai path del suo uiplan
 import { ROTTE_FINANZIARIO } from './rotte-finanziario';
 import { ariaSort, conColonna, didascalia, formatDate, formatEuro, formatPercentuale, versoSuccessivo } from '../src/shared/lib';
-import { descriviAssenza, descriviImporto, etichettaFonte, testoConNota } from '../src/entities/importo';
+import { assenzaInFrase, descriviAssenza, descriviImporto, etichettaFonte, testoConNota, testoMotivato } from '../src/entities/importo';
 import {
   CHIAVI_FILTRO,
   ETICHETTE_FILTRO,
@@ -148,6 +148,13 @@ describe('resa dell Importo (mai uno zero al posto di un dato assente)', () => {
     expect(testoConNota(descriviImporto({ valore: null, motivo: 'NON_VALORIZZATO' }))).toBe('non valorizzato (il dato non è presente nella fonte)');
     expect(testoConNota(descriviAssenza(undefined))).toBe('non disponibile');
     expect(testoConNota(descriviImporto({ valore: 1221000 }))).toBe(descriviImporto({ valore: 1221000 }).testo);
+  });
+
+  it('assenzaInFrase e testoMotivato dell entity (prima nell istituzionale; i KPI del finanziario e il procedurale li usano)', () => {
+    expect(assenzaInFrase({ motivo: 'FONTE_NON_ATTIVA', fonte: 'IMPEGNI' })).toBe('Non disponibile: fonte impegni non attiva');
+    expect(assenzaInFrase({ motivo: 'NON_VALORIZZATO' }, true)).toBe('Non calcolabile: manca per almeno un intervento della selezione: vedi il riepilogo per intervento');
+    expect(testoMotivato({ valore: 3 }, String)).toBe('3');
+    expect(testoMotivato({ valore: null, motivo: 'NON_VALORIZZATO' }, String, true)).toBe('non calcolabile (manca per almeno un intervento della selezione: vedi il riepilogo per intervento)');
   });
   it('etichettaFonte: tutti i codici FonteAttesa del backend, sconosciuta, assente', () => {
     expect(etichettaFonte('QUADRO_SINOTTICO')).toBe('quadro sinottico');

@@ -7,6 +7,7 @@ import { GRANT, puoLeggere } from '../src/features/istituzionale/lib/grant';
 import { GRANT_DETTAGLIO, PAGINE_ISTITUZIONALE, PERCORSI, pagineVisibili, ricercaConservata } from '../src/features/istituzionale/lib/pagine';
 import { ANNI_DEL_PERIODO, anniDiRiferimento, conFiltri, criteriVerifica, ricercaConAnno, soloIntervento, testiCriteri } from '../src/features/istituzionale/lib/criteri';
 import { codiceDelPercorso } from '../src/entities/filtri';
+import { assenzaInFrase, testoMotivato } from '../src/entities/importo';
 import { conValore, elencoRicevute, elencoSpesa, outputDellIntervento, percorsoIntervento, verificaDellIntervento } from '../src/features/istituzionale/lib/collegamenti';
 import {
   ANNO_TARGET_ASSENTE,
@@ -16,13 +17,11 @@ import {
   PERIMETRO_IN_PAROLE,
   PILL_PERIMETRO,
   TESTO_ASSENTE,
-  assenzaInFrase,
   pillAnnoDelFile,
   pillPeriodo,
   quantita,
   siNo,
   testoAnnoDiRiferimento,
-  testoMotivato,
   testoOutputErogato,
   testoTarget,
   testoVuoto,

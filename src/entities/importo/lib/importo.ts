@@ -4,7 +4,7 @@
 // FUORI_PERIMETRO; nei report istituzionali anche ANNO_NON_CONSERVATO e FONTE_AMBIGUA, testi approvati coi wireframe
 // dell'istituzionale il 22/10/2026, OP-IS-08). Regola di resa: un dato assente non e' mai uno zero ne' un "no"; l'assenza
 // si dice sempre allo stesso modo, qualunque sia il tipo del valore (review delta 21/10 H1).
-import { formatEuro } from '../../../shared/lib';
+import { formatEuro, maiuscolaIniziale } from '../../../shared/lib';
 
 /**
  * Forma strutturale di un dato col motivo dell'assenza (Importo, ConteggioFinanziario, SiNoFinanziario della spec; il
@@ -97,4 +97,21 @@ export function testoConNota(r: ImportoResa): string {
 export function descriviImporto(importo: ImportoLike | null | undefined, aggregato = false): ImportoResa {
   if (importo?.valore != null) return { disponibile: true, testo: formatEuro(importo.valore) };
   return descriviAssenza(importo, aggregato);
+}
+
+/**
+ * Un dato motivato in testo: il valore reso, oppure l'assenza col motivo fra parentesi (testoConNota), per le celle delle
+ * tabelle equivalenti e le voci. Prima nel lib dell'istituzionale; lo usa anche il procedurale.
+ */
+export function testoMotivato<T>(dato: DatoMotivatoLike<T> | null | undefined, resa: (v: T) => string, aggregato = false): string {
+  return dato?.valore != null ? resa(dato.valore) : testoConNota(descriviAssenza(dato, aggregato));
+}
+
+/**
+ * L'assenza in una frase, per i KPI: "Non valorizzato: il dato non è presente nella fonte" (`aggregato` come in
+ * descriviAssenza). Prima nel lib dell'istituzionale e, scritta di nuovo, nei KPI degli importi del finanziario.
+ */
+export function assenzaInFrase(dato: Pick<DatoMotivatoLike<unknown>, 'motivo' | 'fonte'> | null | undefined, aggregato = false): string {
+  const r = descriviAssenza(dato, aggregato);
+  return `${maiuscolaIniziale(r.testo)}${r.nota ? `: ${r.nota}` : ''}`;
 }

@@ -3,10 +3,11 @@
 // periodo da TX-0017; domande ricevute, finanziate e spesa erogata non SIGC da TX-0016: nessuna quota calcolata), l'ultimo
 // dato sincronizzato della prima risposta arrivata e l'esito "senza dati" (nessuna riga nei report letti). Ogni KPI c'e'
 // solo con la riga della sua transazione (cioe' col suo grant: le letture sono gated).
+import { assenzaInFrase } from '../../../entities/importo';
 import { formatNumber, importoBreve } from '../../../shared/lib';
 import type { UltimoDato } from '../../../shared/lib';
 import type { RigaOutput, RigaVerifica } from './dto';
-import { assenzaInFrase, testoTarget } from './formato';
+import { testoTarget } from './formato';
 
 /** Il titolo della testata (h1): la descrizione dell'intervento da TX-0060, altrimenti "Intervento <codice>". */
 export function titoloIntervento(codice: string, descrizione: string | undefined): string {

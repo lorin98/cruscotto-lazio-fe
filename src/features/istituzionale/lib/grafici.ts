@@ -5,12 +5,12 @@
 // (note WCAG: non solo il colore). Gli anni o gli interventi senza valore sono omessi e dichiarati col motivo, mai a zero;
 // il realizzato non SIGC e' cumulativo e quello SIGC annuale: le barre non si sommano.
 import type { BarSeriesOption, EChartsOption } from 'echarts';
-import { descriviImporto, testoConNota } from '../../../entities/importo';
+import { descriviImporto, testoConNota, testoMotivato } from '../../../entities/importo';
 import type { ImportoLike } from '../../../entities/importo';
 import { COLORI, aria, barreRaggruppate, formatEuro, formatNumber, minuscolaIniziale, numeroDi, valoreInNumero } from '../../../shared/lib';
 import type { DatiGrafico, MisuraBarre, VoceRaggruppata } from '../../../shared/lib';
 import type { RigaOutput, RigaVerifica } from './dto';
-import { quantita, testoMotivato, testoTarget } from './formato';
+import { quantita, testoTarget } from './formato';
 import { MISURE, etichettaMisura } from './output';
 
 /** Cella della tabella equivalente di un importo: euro al centesimo, oppure l'assenza col motivo (mai uno zero). */

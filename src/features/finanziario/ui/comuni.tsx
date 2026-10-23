@@ -4,9 +4,9 @@
 import { createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
 import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
-import { ValoreImporto, descriviImporto } from '../../../entities/importo';
+import { ValoreImporto, assenzaInFrase } from '../../../entities/importo';
 import type { ImportoLike } from '../../../entities/importo';
-import { formatNumber, importoBreve, maiuscolaIniziale } from '../../../shared/lib';
+import { formatNumber, importoBreve } from '../../../shared/lib';
 import { Caricamento, Kpi, PulsantiScarica, Sezione } from '../../../shared/ui';
 import type { Colonna, ColonnaTabella, NomeIcona, TonoKpi } from '../../../shared/ui';
 import { PERIMETRO_ADA, etichettaDiProgramma, etichettaPerimetro } from '../lib/perimetro';
@@ -127,8 +127,7 @@ export function colonneImporti<T>(campi: readonly CampoImporto<T>[], perimetro: 
  * impegni non attiva", "Non calcolabile: manca per almeno un intervento ..."). `aggregato`: totale su piu' interventi.
  */
 export function KpiImporto({ etichetta, importo, icona, tono, nota, aggregato = true }: { etichetta: string; importo: ImportoLike | null | undefined; icona: NomeIcona; tono: TonoKpi; nota?: string; aggregato?: boolean }) {
-  const r = descriviImporto(importo, aggregato);
-  const assente = r.disponibile ? undefined : `${maiuscolaIniziale(r.testo)}${r.nota ? `: ${r.nota}` : ''}`;
+  const assente = importo?.valore != null ? undefined : assenzaInFrase(importo, aggregato);
   return <Kpi etichetta={etichetta} icona={icona} tono={tono} valore={importo?.valore != null ? importoBreve(importo.valore) : undefined} assente={assente} nota={nota} />;
 }
 

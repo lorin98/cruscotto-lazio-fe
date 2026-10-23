@@ -3,11 +3,12 @@
 // periodo dalla risposta, il dato di un anno per la misura scelta, la didascalia che dice la misura, le voci del drawer di
 // anteprima e gli importi unitari in ordine di esercizio e di codice. Nessun totale ne' somma fra interventi: ogni
 // intervento ha il suo indicatore e la sua unita' di misura (OP-IS-06).
+import { testoMotivato } from '../../../entities/importo';
 import type { DatoMotivatoLike } from '../../../entities/importo';
 import { confronta, minuscolaIniziale } from '../../../shared/lib';
 import type { ValoreOrdinabile } from '../../../shared/lib';
 import type { ImportoUnitario, Output, RigaOutput } from './dto';
-import { TESTO_ASSENTE, testoMotivato, testoTarget } from './formato';
+import { TESTO_ASSENTE, testoTarget } from './formato';
 
 export type Misura = 'programmato' | 'realizzatoSigc' | 'realizzatoNonSigc';
 
