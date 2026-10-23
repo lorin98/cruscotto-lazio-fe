@@ -10,10 +10,8 @@ import { PulsantiScarica, TabellaInterattiva } from '../../../shared/ui';
 import type { ColonnaTabella, Scaricamento } from '../../../shared/ui';
 import type { RigaUnitAmount } from '../lib/dto';
 import { NOTA_FILE } from '../lib/formato';
-import { CAMPI_PAGATO, assenzaPagato, chiaveUnitAmount, notaPagato, valoreDi } from '../lib/unitAmount';
+import { CAMPI_PAGATO, TITOLI_PAGATO, assenzaPagato, chiaveUnitAmount, notaPagato, valoreDi } from '../lib/unitAmount';
 import type { CampoPagato } from '../lib/unitAmount';
-
-const TITOLI_PAGATO: Readonly<Record<CampoPagato, string>> = { importoPagato: 'Importo pagato', percentualePagata: 'Pagato sul richiesto', baseStorica: 'Base storica' };
 
 /**
  * Un dato del pagato: l'euro o la percentuale, oppure l'assenza: `breve` nelle celle della tabella (la nota sopra dice il

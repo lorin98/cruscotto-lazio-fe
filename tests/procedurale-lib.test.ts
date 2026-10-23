@@ -61,7 +61,7 @@ import {
 import type { VoceDistribuzione } from '../src/features/procedurale/lib/stati';
 import { kpiDegliStati, kpiDelleAmmesse, kpiDomandeDellIntervento, kpiInterventi, notaContributo } from '../src/features/procedurale/lib/kpi';
 import { altreSottofasi, anagraficaVuota, etichettaVoce, righeVoci, senzaDomandeNeiFiltri, testoCensita } from '../src/features/procedurale/lib/sottofasi';
-import { CAMPI_PAGATO, assenzaPagato, chiaveUnitAmount, etichettaUnitAmount, notaPagato, valoreDi } from '../src/features/procedurale/lib/unitAmount';
+import { CAMPI_PAGATO, TITOLI_PAGATO, assenzaPagato, chiaveUnitAmount, etichettaUnitAmount, notaPagato, valoreDi } from '../src/features/procedurale/lib/unitAmount';
 import { TITOLI_SEZIONI, codiceDellaRiga, colonneVoci, distribuzioneDi, domandeDellaVoce, righeRiepilogo, senzaStatoDi, testoConNonRilasciate, voceDellaColonna } from '../src/features/procedurale/lib/riepilogo';
 import {
   SENZA_DATI,
@@ -430,6 +430,8 @@ describe('procedurale: sottofasi (SC-PC_SOTTOFASI, SC-PC_SOTTOFASI_FILTRI) e Uni
     expect([chiaveUnitAmount(r), etichettaUnitAmount(r)]).toEqual(['SRD01|UA1|2024', 'UA1 (SRD01, esercizio 2024)']);
     expect(chiaveUnitAmount({})).toBe('||');
     expect(CAMPI_PAGATO).toEqual(['importoPagato', 'percentualePagata', 'baseStorica']);
+    // una sola mappa dei nomi per la tabella e il drawer
+    expect(CAMPI_PAGATO.map((c) => TITOLI_PAGATO[c])).toEqual(['Importo pagato', 'Pagato sul richiesto', 'Base storica']);
     expect(notaPagato(unitAmountPer(q()).righe ?? [])).toBe(
       'Importo pagato, percentuale pagata sul richiesto e base storica: non disponibili per tutte le Unit Amount (fonte pagato per Unit Amount non attiva). Nelle celle: "non disponibile".',
     );

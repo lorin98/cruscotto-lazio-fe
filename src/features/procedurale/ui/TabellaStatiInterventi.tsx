@@ -2,21 +2,21 @@
 // RF027, RF028): TabellaInterattiva del kit (cerca, ordina, colonne, paginazione) con l'intervento come intestazione di
 // riga (codice e descrizione di TX-0024), il totale e il di cui non rilasciate, una colonna per voce di SR-01 con
 // l'intestazione breve e la descrizione completa nel nome accessibile, gli altri stati in breve e, a scelta da "Colonne",
-// una colonna per codice; la voce senza fonte e' "non disponibile", mai 0. Il piede e' il totale del backend (mai sommato
+// una colonna per codice; la voce senza fonte e una distribuzione assente sono "non disponibile", mai 0 ne' "-". Il piede e' il totale del backend (mai sommato
 // nel browser). Riga apribile (clic o Invio) verso l'anteprima; CSV e XLSX dell'intero report negli strumenti.
 import type { ReactNode } from 'react';
 import { descrizioneIntervento } from '../../../entities/filtri';
-import { BadgeAssenza } from '../../../entities/importo';
-import { formatNumber, maiuscolaIniziale } from '../../../shared/lib';
+import { maiuscolaIniziale } from '../../../shared/lib';
 import { PulsantiScarica, Sezione, TabellaInterattiva } from '../../../shared/ui';
 import type { ColonnaTabella, RigaPiede, Scaricamento } from '../../../shared/ui';
 import type { Distribuzione, RigaStati, ValoriFiltri, VoceStato } from '../lib/dto';
-import { NON_DISPONIBILE_BREVE, NOTA_FILE } from '../lib/formato';
+import { NOTA_FILE } from '../lib/formato';
 import { codiciAltriStati, domandeAltroStato, testoAltriStati, titoloBreve, voceDi } from '../lib/stati';
+import { NumeroONonDisponibile } from './comuni';
 
 type Riga = RigaStati & { codiceIntervento: string };
 
-const numero = (n: number | null | undefined) => (n === null ? <BadgeAssenza resa={NON_DISPONIBILE_BREVE} /> : <span className="font-monospace">{formatNumber(n)}</span>);
+const numero = (n: number | null | undefined) => <NumeroONonDisponibile n={n} />;
 
 /** La colonna di una voce di SR-01: le domande dell'intervento nella voce (null = senza fonte). */
 function colonnaVoce(v: VoceStato): ColonnaTabella<Riga> {

@@ -21,6 +21,9 @@ export function etichettaUnitAmount(r: RigaUnitAmount): string {
 export const CAMPI_PAGATO = ['importoPagato', 'percentualePagata', 'baseStorica'] as const;
 export type CampoPagato = (typeof CAMPI_PAGATO)[number];
 
+/** I nomi dei tre dati del pagato, nelle intestazioni della tabella e nel drawer. */
+export const TITOLI_PAGATO: Readonly<Record<CampoPagato, string>> = { importoPagato: 'Importo pagato', percentualePagata: 'Pagato sul richiesto', baseStorica: 'Base storica' };
+
 /** La nota unica sopra la tabella quando la fonte del pagato non e' attiva; null con la fonte attiva. */
 export function notaPagato(righe: readonly RigaUnitAmount[]): string | null {
   const senza = righe.find((r) => r.importoPagato?.motivo === 'FONTE_NON_ATTIVA');

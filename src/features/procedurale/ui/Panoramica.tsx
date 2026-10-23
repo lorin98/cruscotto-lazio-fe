@@ -9,7 +9,6 @@
 // della pagina per lettura: TX-0026 lo registra la card degli importi, i KPI mostrano il testo statico), vuoto con
 // "Modifica i filtri". Classi bootstrap-italia e del kit v2; react-aria solo nel pannello e nella pill.
 import { Link, useNavigate } from 'react-router';
-import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { ErroreNellaPagina, Griglia, VistaQuery, VuotoConFiltri } from '../../../shared/ui';
 import type { StatoQuery } from '../../../shared/ui';
 import { useDomandeAmmesse, useRiepilogo, useStatiPagamento, useStatiSostegno } from '../api';
@@ -18,7 +17,6 @@ import { chiaveStatoValida, conFiltri, criteriDelReport } from '../lib/criteri';
 import type { CriteriProcedurali } from '../lib/criteri';
 import type { Ammesse, Riepilogo, Stati, TipoDomanda } from '../lib/dto';
 import { perimetroDelle, testoNessunIntervento, testoVuoto } from '../lib/formato';
-import { puoLeggere } from '../lib/grant';
 import { kpiDelleAmmesse, kpiInterventi } from '../lib/kpi';
 import { diTipo, senzaDomande } from '../lib/stati';
 import type { VoceDistribuzione } from '../lib/stati';
@@ -26,7 +24,7 @@ import { CardImporti } from './CardAmmesse';
 import { CardArea, CardStati } from './CardDistribuzioni';
 import { TessereKpi } from './comuni';
 import { OGGETTO_FILE, fileReport } from './esportazioni';
-import { usePuoAprireElenco } from './navigazione';
+import { useLettureColGrant, usePuoAprireElenco } from './navigazione';
 import { PaginaProcedurale } from './PaginaProcedurale';
 import { useCriteriDellaPagina } from './useCriteriNellIndirizzo';
 import type { PaginaDeiCriteri } from './useCriteriNellIndirizzo';
@@ -35,14 +33,13 @@ const SOTTOTITOLO = 'Domande ammesse, stati delle domande di sostegno e di pagam
 
 /** Le letture della pagina, ognuna solo col grant della sua transazione (null senza: la sezione non c'e'). */
 function useLetture(c: CriteriProcedurali) {
-  const auth = useAuthStatus().data;
+  const { puo, conGrant } = useLettureColGrant();
   const criteri = criteriDelReport(c);
-  const conGrant = <T,>(lettura: Parameters<typeof puoLeggere>[1], stato: T) => (puoLeggere(auth, lettura) ? stato : null);
   return {
-    ammesse: conGrant('ammesse', useDomandeAmmesse(criteri, { abilitato: puoLeggere(auth, 'ammesse') })),
-    sostegno: conGrant('statiSostegno', useStatiSostegno(criteri, { abilitato: puoLeggere(auth, 'statiSostegno') })),
-    pagamento: conGrant('statiPagamento', useStatiPagamento(criteri, { abilitato: puoLeggere(auth, 'statiPagamento') })),
-    riepilogo: conGrant('riepilogo', useRiepilogo(criteri, { abilitato: puoLeggere(auth, 'riepilogo') })),
+    ammesse: conGrant('ammesse', useDomandeAmmesse(criteri, { abilitato: puo('ammesse') })),
+    sostegno: conGrant('statiSostegno', useStatiSostegno(criteri, { abilitato: puo('statiSostegno') })),
+    pagamento: conGrant('statiPagamento', useStatiPagamento(criteri, { abilitato: puo('statiPagamento') })),
+    riepilogo: conGrant('riepilogo', useRiepilogo(criteri, { abilitato: puo('riepilogo') })),
   };
 }
 

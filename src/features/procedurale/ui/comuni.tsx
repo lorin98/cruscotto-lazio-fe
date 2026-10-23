@@ -48,6 +48,14 @@ export function TessereKpi({ kpi, criteri, colonne = 4 }: { kpi: readonly KpiPro
   );
 }
 
+/**
+ * Un numero di domande in una cella, oppure "non disponibile" in breve se manca (voce senza fonte, distribuzione assente:
+ * mai 0 ne' "-"). Una sola regola per le tabelle del procedurale (review H10).
+ */
+export function NumeroONonDisponibile({ n }: { n: number | null | undefined }) {
+  return n == null ? <BadgeAssenza resa={NON_DISPONIBILE_BREVE} /> : <span className="font-monospace">{formatNumber(n)}</span>;
+}
+
 /** Un numero di domande col link verso l'elenco accanto (cella o voce), se c'e' l'indirizzo. */
 function NumeroConLink({ n, indirizzo, testi }: { n: number; indirizzo: string | null; testi: TestiLink }) {
   return (
@@ -69,8 +77,7 @@ function Domande({ r }: { r: RigaVoci }) {
 
 /** Il di cui non rilasciate: "non disponibile" in breve per la voce senza fonte (scelta 5 approvata). */
 function NonRilasciate({ r }: { r: RigaVoci }) {
-  const n = 'totale' in r ? (r.totale.nonRilasciate ?? 0) : r.voce.nonRilasciate;
-  return n === null ? <BadgeAssenza resa={NON_DISPONIBILE_BREVE} /> : <span className="font-monospace">{formatNumber(n)}</span>;
+  return <NumeroONonDisponibile n={'totale' in r ? (r.totale.nonRilasciate ?? 0) : r.voce.nonRilasciate} />;
 }
 
 /** L'indirizzo della voce verso l'elenco (null = nessun link) e i testi del link. */

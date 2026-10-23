@@ -19,7 +19,7 @@ import type { RigaUnitAmount, UnitAmount as DatiUnitAmount } from '../lib/dto';
 import { NOTA_UNIT_AMOUNT } from '../lib/formato';
 import { graficoUnitAmount } from '../lib/grafici';
 import { puoLeggere } from '../lib/grant';
-import { CAMPI_PAGATO, chiaveUnitAmount, etichettaUnitAmount } from '../lib/unitAmount';
+import { CAMPI_PAGATO, TITOLI_PAGATO, chiaveUnitAmount, etichettaUnitAmount } from '../lib/unitAmount';
 import { OGGETTO_FILE, fileUnitAmount } from './esportazioni';
 import { PaginaProcedurale } from './PaginaProcedurale';
 import { DatoPagato, TabellaUnitAmount } from './TabellaUnitAmount';
@@ -29,7 +29,6 @@ import type { PaginaDeiCriteri } from './useCriteriNellIndirizzo';
 const SOTTOTITOLO = 'Per ogni Unit Amount (gruppo colturale) degli interventi selezionati: importo unitario, output previsto, importo pagato, percentuale pagata sul richiesto e base storica per la previsione.';
 const TITOLO_CARD = 'Percentuale pagata per Unit Amount';
 const TITOLO_TABELLA = 'Unit Amount degli interventi selezionati';
-const ETICHETTE_PAGATO = { importoPagato: 'Importo pagato', percentualePagata: 'Pagato sul richiesto', baseStorica: 'Base storica' } as const;
 
 /**
  * Il drawer di anteprima di una Unit Amount: i dati della riga, le assenze col motivo (il dialogo non arriva alla nota
@@ -45,7 +44,7 @@ function AnteprimaUnitAmount({ riga, onChiudi }: { riga: RigaUnitAmount | null; 
             <div><dt>Importo unitario</dt><dd><ValoreImporto importo={riga.importoUnitario} /></dd></div>
             <div><dt>Output previsto</dt><dd><ValoreMotivato dato={riga.outputPrevisto} resa={formatNumber} /></dd></div>
             {CAMPI_PAGATO.map((campo) => (
-              <div key={campo}><dt>{ETICHETTE_PAGATO[campo]}</dt><dd><DatoPagato r={riga} campo={campo} /></dd></div>
+              <div key={campo}><dt>{TITOLI_PAGATO[campo]}</dt><dd><DatoPagato r={riga} campo={campo} /></dd></div>
             ))}
           </dl>
           {riga.codiceIntervento && (

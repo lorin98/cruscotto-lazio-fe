@@ -7,24 +7,23 @@
 // la riga apre l'anteprima. CSV e XLSX dell'intero riepilogo.
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
-import { AssenzaMotivata, BadgeAssenza, ValoreImporto } from '../../../entities/importo';
-import { formatNumber } from '../../../shared/lib';
+import { AssenzaMotivata, ValoreImporto } from '../../../entities/importo';
 import { PannelloLaterale, PulsantiScarica, TabellaInterattiva } from '../../../shared/ui';
 import type { ColonnaTabella, RigaPiede, Scaricamento } from '../../../shared/ui';
 import { percorsoIntervento } from '../lib/collegamenti';
 import type { CriteriProcedurali } from '../lib/criteri';
 import type { RigaAmmesse, RigaRiepilogo, TotaleRiepilogo, VoceStato } from '../lib/dto';
-import { NON_DISPONIBILE_BREVE, NOTA_FILE, siNo } from '../lib/formato';
+import { NOTA_FILE, siNo } from '../lib/formato';
 import { TITOLI_SEZIONI, codiceDellaRiga, colonneVoci, distribuzioneDi, domandeDellaVoce, senzaStatoDi, testoConNonRilasciate, voceDellaColonna } from '../lib/riepilogo';
 import type { SezioneRiepilogo } from '../lib/riepilogo';
 import { testoAltriStati } from '../lib/stati';
-import { CellaAmmesse, CellaConAtto } from './comuni';
+import { CellaAmmesse, CellaConAtto, NumeroONonDisponibile } from './comuni';
 import type { LinkElenco } from './comuni';
 import { useLinkElenco } from './navigazione';
 
 type Stati = Exclude<SezioneRiepilogo, 'ammesse'>;
 
-const numero = (n: number | null | undefined) => (n == null ? <BadgeAssenza resa={NON_DISPONIBILE_BREVE} /> : <span className="font-monospace">{formatNumber(n)}</span>);
+const numero = (n: number | null | undefined) => <NumeroONonDisponibile n={n} />;
 
 /** Le domande di una voce di stato: il numero, la voce senza fonte col motivo (mai solo "non disponibile"), senza voce breve. */
 function DomandeDellaVoce({ v }: { v: VoceStato | undefined }) {

@@ -26,14 +26,12 @@ import { conCriteri, criteriDellIntervento, testiCriteri } from '../lib/criteri'
 import type { CriteriProcedurali } from '../lib/criteri';
 import type { Perimetro } from '../lib/dto';
 import { perimetroDelle } from '../lib/formato';
-import { puoLeggere } from '../lib/grant';
-import type { Lettura } from '../lib/grant';
 import { SENZA_DATI, badgeIntervento, senzaDomande, sopratitoloIntervento, testoNessunaDomanda, testoSenzaStato, titoloDocumentoIntervento, titoloIntervento } from '../lib/intervento';
 import type { IdScheda } from '../lib/intervento';
 import { kpiDelleAmmesse, kpiDomandeDellIntervento } from '../lib/kpi';
 import { PERCORSI, pagineVisibili } from '../lib/pagine';
 import { PillPerimetro, TessereKpi } from './comuni';
-import { useIngressoArea } from './navigazione';
+import { useIngressoArea, useLettureColGrant } from './navigazione';
 import { PannelloFiltriProcedurale } from './PannelloFiltriProcedurale';
 import { SchedeIntervento } from './SchedeIntervento';
 import { useCriteriDellaPagina } from './useCriteriNellIndirizzo';
@@ -44,13 +42,13 @@ const LINK_KPI = { ammesse: 'elenco-ammesse-intervento', conAtto: 'elenco-con-at
 
 /** Le letture della pagina, ognuna solo col grant della sua transazione (null senza). */
 function useLetture(criteri: CriteriProcedurali) {
-  const auth = useAuthStatus().data;
-  const puo = (l: Lettura) => puoLeggere(auth, l);
+  const { puo, conGrant } = useLettureColGrant();
   // cambiando lo stato restano i dati di prima finche' arrivano i nuovi (la pagina non torna allo scheletro)
-  const ammesse = useDomandeAmmesse(criteri, { abilitato: puo('ammesse'), mantieniDati: true });
-  const sostegno = useStatiSostegno(criteri, { abilitato: puo('statiSostegno'), mantieniDati: true });
-  const pagamento = useStatiPagamento(criteri, { abilitato: puo('statiPagamento'), mantieniDati: true });
-  return { ammesse: puo('ammesse') ? ammesse : null, sostegno: puo('statiSostegno') ? sostegno : null, pagamento: puo('statiPagamento') ? pagamento : null };
+  return {
+    ammesse: conGrant('ammesse', useDomandeAmmesse(criteri, { abilitato: puo('ammesse'), mantieniDati: true })),
+    sostegno: conGrant('statiSostegno', useStatiSostegno(criteri, { abilitato: puo('statiSostegno'), mantieniDati: true })),
+    pagamento: conGrant('statiPagamento', useStatiPagamento(criteri, { abilitato: puo('statiPagamento'), mantieniDati: true })),
+  };
 }
 
 type Letture = ReturnType<typeof useLetture>;

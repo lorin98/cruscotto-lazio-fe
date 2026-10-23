@@ -5,15 +5,14 @@
 // ognuna col suo grant e la sua lettura coi criteri dell'indirizzo. Stati: caricamento (scheletro di ogni card), errore (un
 // solo avviso della pagina), anagrafica vuota (nessun errore), nessuna domanda nei filtri (voci a 0, "Modifica i
 // filtri"), valori dei filtri non disponibili. Classi bootstrap-italia e del kit v2; react-aria solo nel pannello e nella pill.
-import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { VistaQuery } from '../../../shared/ui';
 import type { StatoQuery } from '../../../shared/ui';
 import { useSottofasiPagamento, useSottofasiSostegno } from '../api';
 import { conFiltri, criteriDelReport } from '../lib/criteri';
 import type { Sottofasi as DatiSottofasi, TipoDomanda } from '../lib/dto';
 import { NOTA_SOTTOFASI, perimetroDelle } from '../lib/formato';
-import { puoLeggere } from '../lib/grant';
 import { CardSottofasi } from './CardSottofasi';
+import { useLettureColGrant } from './navigazione';
 import { PaginaProcedurale } from './PaginaProcedurale';
 import { useCriteriDellaPagina } from './useCriteriNellIndirizzo';
 import type { PaginaDeiCriteri } from './useCriteriNellIndirizzo';
@@ -27,11 +26,12 @@ function SezioneSottofasi({ tipo, stato, pagina }: { tipo: TipoDomanda; stato: S
 
 /** Le due letture, ognuna col grant della sua transazione (null senza: la card non c'e'). */
 function useLetture(pagina: PaginaDeiCriteri) {
-  const auth = useAuthStatus().data;
+  const { puo, conGrant } = useLettureColGrant();
   const criteri = criteriDelReport(pagina.filtri);
-  const sostegno = useSottofasiSostegno(criteri, { abilitato: puoLeggere(auth, 'sottofasiSostegno') });
-  const pagamento = useSottofasiPagamento(criteri, { abilitato: puoLeggere(auth, 'sottofasiPagamento') });
-  return { sostegno: puoLeggere(auth, 'sottofasiSostegno') ? sostegno : null, pagamento: puoLeggere(auth, 'sottofasiPagamento') ? pagamento : null };
+  return {
+    sostegno: conGrant('sottofasiSostegno', useSottofasiSostegno(criteri, { abilitato: puo('sottofasiSostegno') })),
+    pagamento: conGrant('sottofasiPagamento', useSottofasiPagamento(criteri, { abilitato: puo('sottofasiPagamento') })),
+  };
 }
 
 export function Sottofasi() {

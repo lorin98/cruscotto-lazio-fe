@@ -5,7 +5,8 @@
 // query; i link verso l'elenco operativo si controllano col grant di arrivo (TX-0056) e senza.
 import type { ReactElement } from 'react';
 import { describe, expect, it } from 'vitest';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { render, renderHook, screen, waitFor, within } from '@testing-library/react';
+import { QueryClientProvider } from '@tanstack/react-query';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { createMemoryRouter, RouterProvider, useParams } from 'react-router';
@@ -21,6 +22,9 @@ import type { Basi } from '../src/features/procedurale/testing/letture';
 import { apreLaVoce, indirizzoElenco, puntoDelloStato, testiLinkStato } from '../src/features/procedurale/lib/collegamenti';
 import { vociDegliStati } from '../src/features/procedurale/lib/stati';
 import { TabellaVoci } from '../src/features/procedurale/ui/comuni';
+import { useLettureColGrant } from '../src/features/procedurale/ui/navigazione';
+import { TabellaStatiInterventi } from '../src/features/procedurale/ui/TabellaStatiInterventi';
+import { clientDiTest } from '../src/shared/testing/render';
 
 const testo = (s: string | null | undefined) => (s ?? '').replace(/\s/g, ' ');
 const intestazioni = (t: HTMLElement) => within(t).getAllByRole('columnheader').map((c) => c.textContent?.replace(/[▲▼↕]/g, '').trim());
@@ -203,6 +207,14 @@ describe('TessereKpi, TabellaVoci e le card delle distribuzioni (CardStati, Card
 });
 
 describe('StatiSostegno, StatiPagamento, TabellaStatiInterventi e AnteprimaStati (pagine degli stati)', () => {
+  it('TabellaStatiInterventi: una riga senza la distribuzione dice "non disponibile", mai "-" (una sola cella numerica)', () => {
+    render(<TabellaStatiInterventi titolo="Prova" righe={[{ codiceIntervento: 'SRD01' }]} totale={statiPer('SOSTEGNO', new URLSearchParams()).totale} valori={undefined} scaricamenti={[]} onRiga={() => undefined} />);
+    const celle = Array.from(screen.getByRole('row', { name: "Apri l'anteprima dell'intervento SRD01" }).children).map((c) => c.textContent);
+    // totale e di cui non rilasciate come le voci: la regola == null di NumeroONonDisponibile, come nel riepilogo
+    expect(celle.slice(1, 4)).toEqual(['non disponibile', 'non disponibile', 'non disponibile']);
+    expect(celle).not.toContain('-');
+  });
+
   it('KPI, card, tabella per intervento con le voci di SR-01 e il totale del backend nel piede; nessuna violazione axe', async () => {
     const corpo = statiPer('SOSTEGNO', new URLSearchParams());
     // l'handler aggiunto dopo prevale su quello delle letture di prova
@@ -440,6 +452,18 @@ describe('Riepilogo, TabellaRiepilogo e AnteprimaRiepilogo (riepilogo per interv
     const { router } = renderPagina(Riepilogo, '/procedurale/riepilogo', '/procedurale/riepilogo?stato=AMMESSA');
     clicSulCodice(graficoDi(await trovaCard('Domande per intervento')), 'SRA01');
     await waitFor(() => expect(dove(router)).toBe('/procedurale/interventi/SRA01?stato=AMMESSA'));
+  });
+});
+
+describe('useLettureColGrant: le letture di panoramica, sottofasi e dettaglio col loro grant (una forma sola)', () => {
+  it('la lettura parte e resta solo col grant della sua transazione; senza, null', async () => {
+    profilo(['csr.tx-0026.read']);
+    const client = clientDiTest();
+    const { result } = renderHook(() => useLettureColGrant(), { wrapper: ({ children }) => <QueryClientProvider client={client}>{children}</QueryClientProvider> });
+    await waitFor(() => expect(result.current.puo('ammesse')).toBe(true));
+    expect(result.current.puo('riepilogo')).toBe(false);
+    const stato = { data: 1 };
+    expect([result.current.conGrant('ammesse', stato), result.current.conGrant('riepilogo', stato)]).toEqual([stato, null]);
   });
 });
 
