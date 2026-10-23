@@ -18,6 +18,7 @@ import {
 } from '../src/entities/filtri';
 import { codiceABarreValido, etichettaTipoDomanda, percorsoSchedaDomanda, riferimentoDomandaValido } from '../src/entities/domanda';
 import * as Finanziario from '../src/features/finanziario/lib/filtri';
+import * as BarrelFinanziario from '../src/features/finanziario';
 import * as Collegamenti from '../src/features/elenco-operativo/lib/collegamenti';
 import { etichettaTipo } from '../src/features/elenco-operativo/lib/formato';
 
@@ -83,6 +84,11 @@ describe('entities/filtri: i filtri del programma comuni a finanziario e fisico'
     expect(Finanziario.filtriDaRicerca).toBe(filtriDaRicerca);
     expect(Finanziario.ricercaDaFiltri).toBe(ricercaDaFiltri);
     expect(Finanziario.ETICHETTE_FILTRO).toBe(ETICHETTE_FILTRO);
+  });
+
+  it("il barrel del finanziario non le espone: fuori dalla feature si usano dall'entity (review H2 dell'istituzionale v1 iter2)", () => {
+    expect(Object.keys(BarrelFinanziario)).not.toContain('filtriDaRicerca');
+    expect(Object.keys(BarrelFinanziario)).not.toContain('ricercaDaFiltri');
   });
 });
 
