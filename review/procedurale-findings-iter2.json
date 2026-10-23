@@ -1,0 +1,74 @@
+[
+  {
+    "id": "X1",
+    "severity": "MINORE",
+    "titolo": "Residuo di X1 dell'iterazione 1: il dettaglio tace solo con la lettura in errore. Con Riprova, o con un altro stato scelto dopo l'errore, la lettura riparte senza dati (status pending, error null): l'avviso sparisce e la pagina dice 'Nessuna domanda di SRD01 per lo stato area programmazione scelto' con 'Modifica i filtri', un vuoto dedotto da una lettura senza risposta",
+    "file": "src/features/procedurale/ui/DettaglioIntervento.tsx",
+    "riga": 101,
+    "fix": "In NessunaDomanda (DettaglioIntervento.tsx:100-103) la guardia di :101 diventa la regola dichiarata dal fix dell'iterazione 1: const fatte = [letture.ammesse, letture.sostegno, letture.pagamento].filter((l) => l !== null); if (fatte.some((l) => l.data === undefined)) return null;. Una lettura col segnaposto di keepPreviousData ha data definita, quindi il comportamento di b2da5c5 resta; quella in errore senza dati e' compresa. Togliere senzaRisposta dall'import di :20 se non serve piu' e correggere il commento di :96-98 ('solo se ogni lettura fatta ha i dati: una lettura in errore o in corso senza dati non conta come zero'). Test in src/pages/procedurale/interventi/page.test.tsx accanto a :273, con ?stato=DECADENZA_TOTALE: TX-0027 a 503 al primo tentativo, poi un handler trattenuto con trattenuta() di shared/testing/msw e il clic su Riprova dell'avviso. Mentre la risposta e' trattenuta, nessun testo /^Nessuna domanda di SRD01/; liberata con 503, di nuovo un solo avviso. Variante: dopo l'errore un altro stato dal pannello (TX-0027 riparte senza segnaposto). Provarli rossi con la guardia di adesso.",
+    "decisione_utente": false
+  },
+  {
+    "id": "V1",
+    "severity": "MINORE",
+    "titolo": "Pagine degli stati: 'Filtra la tabella' (fix di V2) e il clic sulla barra filtrano la tabella per intervento sotto la card senza un messaggio di stato, col focus fermo sul pulsante; anche la voce tolta da sola dal fix di X2 sparisce in silenzio. L'elenco operativo, per la stessa interazione, lo annuncia (WCAG 4.1.3, NFR-70) (assorbe A1)",
+    "file": "src/features/procedurale/ui/StatiDomande.tsx",
+    "riga": 104,
+    "fix": "1. In lib/stati la funzione pura testoFiltroDellaVoce(etichetta, n) -> `Tabella per intervento filtrata sulla voce ${etichetta}: ${plurale(n, 'intervento', 'interventi')}.` (plurale di shared/lib) e la costante VOCE_TOLTA = 'Filtro della voce tolto: la voce non è più nella risposta coi filtri scelti.'; test L1 in tests/procedurale-lib.test.ts. 2. In PaginaStati (StatiDomande.tsx:119-134) uno stato annuncio ({ n, testo } | null) e una regione sempre montata, fuori da VistaQuery: <p className=\"visually-hidden\" role=\"status\">{annuncio && <span key={annuncio.n}>{annuncio.testo}</span>}</p>, come useFiltroDalGrafico di ElencoDomande.tsx:92-107. 3. onVoce di ReportStati (:104, clic sulla barra e 'Filtra la tabella') diventa scegli(chiave): imposta la voce e, con chiave non null, l'annuncio con n = righeConLaVoce(righeStati(stato.data), chiave).length e n+1 come key; scegli(null) (togliLaVoce, :97-100, col focus sull'h1) lo svuota; il reset di X2 (:124) imposta VOCE_TOLTA. 4. Test in src/pages/procedurale/stati-sostegno/page.test.tsx: in quello di :114, dopo Invio su 'Filtra la tabella su Altro stato: SOSPESA (codice SIAN fuori catalogo)', una regione status (cercata per testo, ce ne sono altre) dice 'Tabella per intervento filtrata sulla voce Altro stato: SOSPESA (codice SIAN fuori catalogo): 1 intervento.'; in quello di :82, dopo ?intervento=SRD01, dice VOCE_TOLTA. Provarli rossi senza la correzione.",
+    "decisione_utente": false
+  },
+  {
+    "id": "A2",
+    "severity": "MINORE",
+    "titolo": "Riepilogo: dopo H5 l'intestazione sticky occupa due righe (74 px misurati) e una riga del corpo col focus (tabIndex 0, circa 43 px) puo' finire tutta sotto il thead del contenitore che scorre, perche' manca lo scroll-padding (WCAG 2.4.11, AA). Prima di H5 la banda era di 37 px e la riga restava visibile in parte",
+    "file": "src/shared/ui/tema.css",
+    "riga": 222,
+    "fix": "In tema.css, accanto a :216-222, lo spazio dell'intestazione nella regione di scorrimento del contenitore (tecnica WCAG C43): .ui-tabella-contenitore { scroll-padding-top: 2.5rem } (una riga d'intestazione, 37 px) e .ui-tabella-contenitore:has(th[scope='colgroup']) { scroll-padding-top: 5rem } (due righe, 74 px; :has e' gia' usato nel tema a :213). Vale per tutte le tabelle del kit. Verifica con la misura in Chromium headless usata per H5 (Playwright con executablePath della 1208, tema con addStyleTag): riepilogo con 10 righe e piede, contenitore scorso cosi' che una riga stia sotto il thead (cima a 10-30 px dal bordo), poi focus da tastiera su quella riga (Maiusc+Tab dalla riga sotto) e Maiusc+Tab risalendo dall'ultima riga. Col tema di HEAD la riga e' coperta per intero (rect.bottom <= bottom del thead), col tema corretto no. Stessa prova su un link 'Apri nell'elenco' di una cella e su un 'Filtra la tabella' della tabella equivalente degli stati (una riga d'intestazione). Se la misura mostra che lo scorrimento del focus non applica lo scroll-padding, usare scroll-margin-top con gli stessi valori su .ui-tabella tbody tr, .ui-tabella tbody a e .ui-tabella tbody button. Test di regressione sulla regola del tema accanto a quello di H5 in tests/kit-comune-procedurale.test.tsx.",
+    "decisione_utente": false
+  },
+  {
+    "id": "A3",
+    "severity": "MINORE",
+    "titolo": "Residuo di A2 dell'iterazione 1: il pannello dello stato propone tutte le voci di TX-0025, anche un codice osservato che l'indirizzo non esprime (es. 'REVOCATÀ'); 'Applica i filtri' lo scrive e criteriDaRicerca lo scarta: la pagina si rilegge senza filtro, senza chip e senza avviso. Il fix di A2 ha chiuso solo il clic sulla barra",
+    "file": "src/features/procedurale/ui/PannelloFiltriProcedurale.tsx",
+    "riga": 34,
+    "fix": "In lib/criteri la funzione pura vociDelloStatoNelPannello(valori: readonly StatoArea[]): { voci: StatoArea[]; escluse: number }, con le sole voci per cui chiaveStatoValida(v.chiave) e' vero. VociDelloStato (PannelloFiltriProcedurale.tsx:33-34) fa le opzioni con voci e, con escluse > 0, aggiunge la nota `Stati osservati con un codice che l'indirizzo non esprime, non selezionabili come filtro: ${escluse}.`. Vale per il pannello dei report e per quello del dettaglio, che usano lo stesso GruppoStato. Nel commento di criteri.ts:26-28 nominare anche il pannello. Test L1 in tests/procedurale-lib.test.ts e L2 in tests/procedurale-ui.test.tsx: TX-0025 con una voce osservata 'REVOCATÀ', il pannello non la propone e mostra la nota; le altre voci restano. Alternativa: la parte facoltativa 4 di A2 dell'iterazione 1 (CHIAVE_STATO col dominio del backend), che pero' cambia la validazione dell'indirizzo.",
+    "decisione_utente": false
+  },
+  {
+    "id": "H1",
+    "severity": "COSMETICO",
+    "titolo": "Residuo di H10: la scheda Sottofasi del dettaglio e la scelta delle schede leggono ancora i grant con useAuthStatus e puoLeggere a mano, la forma che useLettureColGrant ('una forma sola per panoramica, sottofasi e dettaglio') doveva togliere",
+    "file": "src/features/procedurale/ui/SchedeIntervento.tsx",
+    "riga": 99,
+    "fix": "In SottofasiDellIntervento (SchedeIntervento.tsx:99-110): const { puo, conGrant } = useLettureColGrant(); sostegno = conGrant('sottofasiSostegno', useSottofasiSostegno(criteri, { abilitato: puo('sottofasiSostegno') })), e lo stesso per il pagamento; le card con {sostegno && <VistaQuery ...>} come Sottofasi.tsx:44-45. In SchedeIntervento (:163-164): schedeVisibili(useLettureColGrant().puo). Togliere dal file gli import di useAuthStatus, puoLeggere e Lettura se non servono piu'. Restano verdi i test delle schede di src/pages/procedurale/interventi/page.test.tsx e quello delle 30 righe di tests/eslint-regole.test.ts.",
+    "decisione_utente": false
+  },
+  {
+    "id": "H2",
+    "severity": "COSMETICO",
+    "titolo": "IntestazioneNonValida, nata nel kit col fix di H1, ha il dominio scritto dentro ('Intervento', 'Intervento non valido', 'non è un codice di intervento' e l'id 't-intervento', copia delle costanti ID_TITOLO delle due feature): e' l'unico componente di shared/ui con un oggetto di business nel testo",
+    "file": "src/shared/ui/pagina/Dettaglio.tsx",
+    "riga": 29,
+    "fix": "Spostare il componente in src/entities/filtri/ui/InterventoNonValido.tsx, accanto a codiceDelPercorso (il controllo che decide la pagina, come per rigaDellIntervento con H2 dell'iterazione 1), con le stesse props, ed esportarlo dal barrel insieme a ID_TITOLO_INTERVENTO = 't-intervento'. I due DettaglioIntervento (procedurale :40 e :57-59, istituzionale :34 e :49-51) usano quel componente e quella costante al posto delle loro ID_TITOLO. In shared/ui/pagina/Dettaglio.tsx restano ErroriDelleLetture e CorpoDelDettaglio; togliere IntestazioneNonValida da shared/ui/index.ts. Il test L2 passa da tests/kit-comune-procedurale.test.tsx a tests/entita-filtri-ui.test.tsx; i DOM dei due dettagli restano uguali e i loro test verdi senza modifiche.",
+    "decisione_utente": false
+  },
+  {
+    "id": "H3",
+    "severity": "COSMETICO",
+    "titolo": "Il ramo senzaAzione di legameIgnoto e' irraggiungibile: l'unica chiamata, inAttesa, esclude senzaAzione prima di chiamarlo; la regola 'senza l'azione non si aspetta' e' scritta due volte",
+    "file": "src/entities/filtri/ui/useFiltriProgrammaNellIndirizzo.ts",
+    "riga": 55,
+    "fix": "legameIgnoto(profiloIgnoto: boolean, p: ConAzione) senza il ramo di :55 (dopo !p.senzaAzione a :68 TypeScript restringe p a ConAzione, come gia' a :66); inAttesa invariato. Il doc di :53 diventa 'Il legame non si conosce ancora (solo con l'azione portante): profilo in caricamento o valori dei filtri in corso.'. Resta verde il test L2 di H3 in tests/entita-filtri-ui.test.tsx e i test X-03 del finanziario.",
+    "decisione_utente": false
+  },
+  {
+    "id": "H4",
+    "severity": "COSMETICO",
+    "titolo": "Dopo V2 la prop link delle card ricopia a mano il tipo LinkDellaVoce esportato da ui/comuni, e il suo doc ('assente la tabella equivalente generata') e quello della testata del file non valgono piu' per CardStati con onFiltra",
+    "file": "src/features/procedurale/ui/CardDistribuzioni.tsx",
+    "riga": 28,
+    "fix": "PropsCardDistribuzione.link?: LinkDellaVoce (import type da ./comuni), togliendo gli import di TestiLink e VoceDistribuzione se non servono piu'. Il doc di :28 diventa: 'Il link di ogni voce verso l'elenco; assente (senza il grant dell'elenco) niente colonna Elenco operativo, e senza link ne' onFiltra la tabella equivalente generata.'. Nella testata del file (:4-7) 'Filtra la tabella' delle pagine degli stati c'e' anche senza il grant dell'elenco.",
+    "decisione_utente": false
+  }
+]

@@ -1,0 +1,34 @@
+[
+  {
+    "id": "H1",
+    "severity": "COSMETICO",
+    "file": "src/features/procedurale/ui/SchedeIntervento.tsx:99",
+    "titolo": "Residuo di H10: nella scheda Sottofasi del dettaglio e nella scelta delle schede le letture col grant hanno ancora la forma che useLettureColGrant doveva togliere",
+    "evidenza": "useLettureColGrant (ui/navigazione.ts:37-46) si dichiara 'una forma sola per panoramica, sottofasi e dettaglio'. SottofasiDellIntervento (SchedeIntervento.tsx:99-110) legge pero' le stesse due transazioni della pagina Sottofasi con useAuthStatus e quattro puoLeggere(auth, ...): due per abilitare TX-0031/TX-0032 (:101-102) e due per rendere le card (:106-107). E' lo schema che Sottofasi.tsx:28-35 ha ora con puo/conGrant. Anche SchedeIntervento ricostruisce il predicato a mano (:163-164, useAuthStatus e (l) => puoLeggere(auth, l)). Il fix di H10 nominava solo Panoramica, Sottofasi e DettaglioIntervento, quindi nella feature restano due forme. E' sotto soglia e il comportamento non cambia.",
+    "fix": "In SottofasiDellIntervento: const { puo, conGrant } = useLettureColGrant(); sostegno = conGrant('sottofasiSostegno', useSottofasiSostegno(criteri, { abilitato: puo('sottofasiSostegno') })), e lo stesso per il pagamento. Rendere {sostegno && <VistaQuery ...>} come in Sottofasi.tsx:44-45. In SchedeIntervento: schedeVisibili(useLettureColGrant().puo). Tolti gli import di useAuthStatus e puoLeggere dal file se non servono piu'. Devono restare verdi i test delle schede di src/pages/procedurale/interventi/page.test.tsx e il test delle 30 righe di tests/eslint-regole.test.ts."
+  },
+  {
+    "id": "H2",
+    "severity": "COSMETICO",
+    "file": "src/shared/ui/pagina/Dettaglio.tsx:29",
+    "titolo": "IntestazioneNonValida del kit ha il dominio scritto dentro: 'Intervento', 'codice di intervento' e l'id 't-intervento', copia delle costanti ID_TITOLO delle due feature",
+    "evidenza": "Le altre parti nuove di shared/ui/pagina/Dettaglio.tsx sono generiche (ErroriDelleLetture, CorpoDelDettaglio). IntestazioneNonValida invece fissa nel kit la voce del percorso 'Intervento' (:29), il titolo 'Intervento non valido' e l'id 't-intervento' (:30), e la frase \"non è un codice di intervento\" (:32). L'id ripete come letterale ID_TITOLO = 't-intervento' di procedurale/ui/DettaglioIntervento.tsx:40 e di istituzionale/ui/DettaglioIntervento.tsx:34: se una feature cambia la sua costante, le due pagine dello stesso dettaglio hanno id diversi. Con grep e' l'unico componente di shared/ui con un oggetto di business nel testo. E' lo stesso metro di H2 dell'iterazione 1, che ha portato rigaDellIntervento fuori da shared/lib. Qui pero' e' solo testo, e le props sono quelle del fix accettato di H1.",
+    "fix": "Due vie. (1) Rendere generico il kit: props oggetto ('intervento'), titolo e idTitolo, passate dai due InterventoNonValido delle feature con il loro ID_TITOLO. (2) Spostare il componente in entities/filtri/ui accanto a codiceDelPercorso, il controllo che decide questa pagina, come InterventoNonValido col dominio. In questo modo nasce anche il wrapper facoltativo di H1. Il test L2 di tests/kit-comune-procedurale.test.tsx segue il componente, e i DOM dei due dettagli restano uguali."
+  },
+  {
+    "id": "H3",
+    "severity": "COSMETICO",
+    "file": "src/entities/filtri/ui/useFiltriProgrammaNellIndirizzo.ts:55",
+    "titolo": "Il ramo senzaAzione di legameIgnoto e' irraggiungibile: inAttesa esclude senzaAzione prima di chiamarlo, e la regola e' scritta due volte",
+    "evidenza": "legameIgnoto(profiloIgnoto, p: ConAzione | SenzaAzione) ha 'if (p.senzaAzione) return profiloIgnoto' (:55). L'unica chiamata e' inAttesa = !p.senzaAzione && legameIgnoto(...) && ... (:68): con senzaAzione vero il && si ferma prima, quindi il ramo non gira mai. Il contratto 'senza l'azione non si aspetta' sta cosi' in due posti, la guardia di :68 e il ramo morto di :55, e il doc di :53 descrive il ramo. Il comportamento e' giusto: il test L2 di tests/entita-filtri-ui.test.tsx prova inAttesa falso, ma non puo' distinguere quale dei due posti lo produce.",
+    "fix": "Tenere una sola delle due. O legameIgnoto(profiloIgnoto, p: ConAzione) senza il ramo, perche' dopo !p.senzaAzione TypeScript restringe p a ConAzione, con inAttesa invariato. Oppure togliere la guardia di :68 e lasciare che legameIgnoto risponda false con senzaAzione. Aggiornare il doc di :53. Il test L2 di H3 resta verde."
+  },
+  {
+    "id": "H4",
+    "severity": "COSMETICO",
+    "file": "src/features/procedurale/ui/CardDistribuzioni.tsx:28",
+    "titolo": "Dopo V2 la prop link delle card ricopia il tipo LinkDellaVoce appena esportato da ui/comuni, e il suo doc non vale piu' per CardStati con onFiltra",
+    "evidenza": "V2 ha aggiunto in ui/comuni.tsx:84 il tipo esportato LinkDellaVoce = (v: VoceDistribuzione) => { indirizzo: string | null; testi: TestiLink } per TabellaVoci. Le card che glielo passano tengono la stessa firma scritta a mano (PropsCardDistribuzione.link, CardDistribuzioni.tsx:29). Il doc di :28 dice 'assente (senza il grant dell'elenco) la tabella equivalente generata'. Non e' piu' vero per CardStati: con onFiltra e senza link la card ha comunque TabellaVoci, con la sola colonna 'Tabella per intervento' (:64). Lo stesso file lo dice nel commento di CardStati (:53-57).",
+    "fix": "PropsCardDistribuzione.link?: LinkDellaVoce, importato da ./comuni. Il doc diventa: 'assente (senza il grant dell'elenco) niente colonna Elenco operativo; senza link e senza onFiltra la tabella equivalente generata'."
+  }
+]
