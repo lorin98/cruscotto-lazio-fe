@@ -21,6 +21,7 @@ import {
   useValoriFiltri,
 } from '../src/features/procedurale/api';
 import type { ReportProcedurale } from '../src/features/procedurale/api';
+import { handlersEsempio } from '../src/features/procedurale/api/mock/esempio';
 
 function wrapper(client = new QueryClient({ defaultOptions: { queries: { retry: false } } })) {
   return ({ children }: { children: ReactNode }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>;
@@ -119,5 +120,22 @@ describe('feature procedurale, wrapper api (step3) su MSW', () => {
     const errore = await esportaReport('domandeAmmesse', 'xlsx', {}).catch((e: unknown) => e);
     expect(eProblema(errore, 'invalid-data')).toBe(true);
     expect(messaggioOltreIlLimite(errore)).toBe(OLTRE_IL_LIMITE_DELL_ESPORTAZIONE);
+  });
+});
+
+// il mock del dev server risponde come il backend: righe degli interventi dei filtri, stato area, non rilasciate di SRD01
+describe('mock di esempio del dev server del procedurale', () => {
+  it('righe filtrate per intervento, obiettivi e stato; le non rilasciate di SRD01; Unit Amount senza lo stato; i file', async () => {
+    server.use(...handlersEsempio);
+    const leggi = async <T,>(q: string) => (await (await fetch(`http://localhost/api/procedurale/${q}`)).json()) as T;
+    type Stati = { righe: { codiceIntervento: string; stati: { totale: number; domandeNonRilasciate: number } }[] };
+    const sostegno = await leggi<Stati>('stati-sostegno?intervento=SRD01');
+    expect(sostegno.righe.map((r) => [r.codiceIntervento, r.stati.totale, r.stati.domandeNonRilasciate])).toEqual([['SRD01', 9, 5]]);
+    expect((await leggi<Stati>('stati-sostegno?os=OS5')).righe.map((r) => r.codiceIntervento)).toEqual(['SRD02']);
+    type Ammesse = { righe: { codiceIntervento: string; domandeAmmesse: number }[] };
+    expect((await leggi<Ammesse>('domande-ammesse?stato=REVOCATA')).righe.map((r) => r.domandeAmmesse)).toEqual([0, 0, 0]);
+    expect((await leggi<{ righe: unknown[] }>('unit-amount?intervento=SRA01')).righe).toEqual([]);
+    expect((await leggi<{ interventi: unknown[] }>('filtri')).interventi).toHaveLength(3);
+    expect((await fetch('http://localhost/api/procedurale/riepilogo/xlsx')).status).toBe(200);
   });
 });
