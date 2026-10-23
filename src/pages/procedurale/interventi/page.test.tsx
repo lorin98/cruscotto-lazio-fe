@@ -130,6 +130,12 @@ describe('RF027 e RF028: scheda Stati delle domande dell intervento (TX-0027, TX
     const clic = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
     const { router } = apri(`${SRD01}?stato=SENZA_STATO`);
     const pagamento = await trovaCard('Domande di pagamento per stato');
+    // il titolo della card non dice l'intervento: il PNG lo dice come i file dei dati (wireframe approvato, WCAG 2.4.6)
+    expect(within(pagamento).getAllByRole('button', { name: /^Scarica / }).map((b) => b.getAttribute('aria-label'))).toEqual([
+      'Scarica il grafico Domande di pagamento per stato di SRD01 in PNG',
+      'Scarica i dati degli stati delle domande di pagamento di SRD01 in CSV',
+      'Scarica i dati degli stati delle domande di pagamento di SRD01 in XLSX',
+    ]);
     const t = await tabellaDi(pagamento);
     expect(within(t).getByRole('link', { name: "Apri nell'elenco operativo la domanda di pagamento di SRD01 nello stato Proposta al pagamento - autorizzazione ente territoriale" }).getAttribute('href')).toBe(
       '/elenco-operativo/domande?statoPagamento=PROPOSTA_AUTORIZZAZIONE_ENTE&voceProgrammazione=SENZA_STATO&intervento=SRD01',
@@ -157,6 +163,7 @@ describe('RF029: scheda Area programmazione dell intervento (TX-0029)', () => {
     await waitFor(() => expect(area.getAttribute('aria-selected')).toBe('true'));
     const card = await trovaCard('Domande per stato area programmazione');
     expect(lette.riepilogo).toEqual(['?intervento=SRD01&stato=AMMESSA&stato=SENZA_STATO']);
+    expect(within(card).getByRole('button', { name: 'Scarica il grafico Domande per stato area programmazione di SRD01 in PNG' })).toBeTruthy();
     expect(within(await tabellaDi(card)).getByRole('link', { name: "Apri nell'elenco operativo le 3 domande di SRD01 senza stato area programmazione" }).getAttribute('href')).toBe(
       '/elenco-operativo/domande?voceProgrammazione=SENZA_STATO&intervento=SRD01',
     );
@@ -184,7 +191,8 @@ describe('RF031 e RF032: scheda Sottofasi dell intervento (TX-0031, TX-0032)', (
     apri(`${SRD01}?stato=SENZA_STATO`);
     await userEvent.click(await screen.findByRole('tab', { name: 'Sottofasi' }));
     const sostegno = await trovaCard('Domande di sostegno per sottofase di ammissibilità');
-    await trovaCard('Domande di pagamento per sottofase di ammissibilità');
+    const pagamento = await trovaCard('Domande di pagamento per sottofase di ammissibilità');
+    expect(within(pagamento).getByRole('button', { name: 'Scarica il grafico Domande di pagamento per sottofase di ammissibilità di SRD01 in PNG' })).toBeTruthy();
     expect(lette.sottofasiSostegno).toEqual(['?intervento=SRD01&stato=SENZA_STATO']);
     expect(lette.sottofasiPagamento).toEqual(['?intervento=SRD01&stato=SENZA_STATO']);
     expect(within(sostegno).getByRole('button', { name: 'Scarica i dati delle sottofasi delle domande di sostegno di SRD01 in CSV' })).toBeTruthy();

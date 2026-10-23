@@ -9,8 +9,8 @@ import { describe, expect, it } from 'vitest';
 import { render, renderHook, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
-import { PaginaConFiltri, TabellaInterattiva, useStatoDelDettaglio } from '../src/shared/ui';
-import type { ColonnaTabella } from '../src/shared/ui';
+import { CardGrafico, PaginaConFiltri, TabellaInterattiva, useStatoDelDettaglio } from '../src/shared/ui';
+import type { ColonnaTabella, DatiGrafico, Scaricamento } from '../src/shared/ui';
 import { renderConQuery } from '../src/shared/testing/render';
 import { expectNoA11yViolations } from '../src/shared/testing/axe';
 
@@ -46,6 +46,22 @@ describe('PaginaConFiltri del kit (prima PaginaReport dell istituzionale): barra
     expect(screen.getByText('Corpo della pagina').closest('.ui-avviso-pagina')).toBeTruthy();
     expect(main.contains(screen.getByRole('complementary', { name: 'Pannello di prova' }))).toBe(false);
     await expectNoA11yViolations(container);
+  });
+});
+
+describe('CardGrafico del kit: oggettoPng, il nome del PNG quando il titolo non basta (schede del dettaglio procedurale)', () => {
+  const DATI: DatiGrafico = { opzioni: { series: [{ type: 'bar', data: [1] }] }, tabella: { caption: 'T', colonne: ['Voce', 'Domande'], righe: [['A', '1']] }, omessi: [] };
+  const csv: Scaricamento = { formato: 'CSV', scarica: () => undefined, file: 'prova.csv' };
+  const nomi = () => screen.getAllByRole('button', { name: /^Scarica/ }).map((b) => b.getAttribute('aria-label'));
+
+  it('col PNG che dice l intervento come i file dei dati; senza, il nome di sempre', () => {
+    const { rerender } = render(<CardGrafico titolo="Stati" dati={DATI} fonte="Fonte" scaricamenti={[csv]} oggettoDati="i dati degli stati di SRD01" oggettoPng="il grafico Stati di SRD01" />);
+    expect(nomi()).toEqual(['Scarica il grafico Stati di SRD01 in PNG', 'Scarica i dati degli stati di SRD01 in CSV']);
+    expect(screen.getByRole('group', { name: /^Scarica/ }).getAttribute('aria-label')).toBe('Scarica il grafico Stati di SRD01 e i dati degli stati di SRD01');
+    rerender(<CardGrafico titolo="Stati" dati={DATI} fonte="Fonte" scaricamenti={[csv]} oggettoPng="il grafico Stati di SRD01" />);
+    expect(nomi()).toEqual(['Scarica il grafico Stati di SRD01 in PNG', 'Scarica il grafico Stati di SRD01 in CSV']);
+    rerender(<CardGrafico titolo="Stati" dati={DATI} fonte="Fonte" scaricamenti={[csv]} oggettoDati="i dati degli stati" />);
+    expect(nomi()).toEqual(['Scarica il grafico Stati in PNG', 'Scarica i dati degli stati in CSV']);
   });
 });
 

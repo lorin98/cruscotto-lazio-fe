@@ -75,7 +75,7 @@ function StatiDellIntervento({ tipo, stato, codice, criteri }: PropsScheda & { t
   const report = tipo === 'SOSTEGNO' ? 'statiSostegno' : 'statiPagamento';
   return (
     <VistaQuery stato={stato} errorePersonalizzato={nellaPagina}>
-      {() => (d ? <CardStati tipo={tipo} d={d} titolo={titolo} sottotitolo="Clic su una barra: le domande rilasciate di quella voce nell'elenco operativo." fonte={`Fonte: ${tipo === 'SOSTEGNO' ? 'TX-0027' : 'TX-0028'} (riga dell'intervento). CSV e XLSX: l'export del report con l'intervento e lo stato della pagina.`} {...elenco} scaricamenti={fileReport(report, `${titolo} ${codice}`, criteri)} oggettoDati={`${OGGETTO_FILE[report]} di ${codice}`} /> : <Vuoto>{`Nessuna domanda ${diTipo(tipo)} di ${codice} nel report.`}</Vuoto>)}
+      {() => (d ? <CardStati tipo={tipo} d={d} titolo={titolo} sottotitolo="Clic su una barra: le domande rilasciate di quella voce nell'elenco operativo." fonte={`Fonte: ${tipo === 'SOSTEGNO' ? 'TX-0027' : 'TX-0028'} (riga dell'intervento). CSV e XLSX: l'export del report con l'intervento e lo stato della pagina.`} {...elenco} scaricamenti={fileReport(report, `${titolo} ${codice}`, criteri)} oggettoDati={`${OGGETTO_FILE[report]} di ${codice}`} oggettoPng={`il grafico ${titolo} di ${codice}`} /> : <Vuoto>{`Nessuna domanda ${diTipo(tipo)} di ${codice} nel report.`}</Vuoto>)}
     </VistaQuery>
   );
 }
@@ -89,7 +89,7 @@ function AreaDellIntervento({ codice, criteri }: PropsScheda) {
   const titolo = 'Domande per stato area programmazione';
   return (
     <VistaQuery stato={stato}>
-      {() => (riga ? <CardArea d={riga.statiAreaProgrammazione} titolo={titolo} sottotitolo="Clic su una barra: le domande di quello stato nell'elenco operativo." fonte="Fonte: TX-0029 (riga dell'intervento). CSV e XLSX: l'export del riepilogo con l'intervento e lo stato della pagina." {...elenco} scaricamenti={fileReport('riepilogo', `${titolo} ${codice}`, criteri)} oggettoDati={`${OGGETTO_FILE.riepilogo} di ${codice}`} /> : <Vuoto>{`Nessun dato di ${codice} nel riepilogo.`}</Vuoto>)}
+      {() => (riga ? <CardArea d={riga.statiAreaProgrammazione} titolo={titolo} sottotitolo="Clic su una barra: le domande di quello stato nell'elenco operativo." fonte="Fonte: TX-0029 (riga dell'intervento). CSV e XLSX: l'export del riepilogo con l'intervento e lo stato della pagina." {...elenco} scaricamenti={fileReport('riepilogo', `${titolo} ${codice}`, criteri)} oggettoDati={`${OGGETTO_FILE.riepilogo} di ${codice}`} oggettoPng={`il grafico ${titolo} di ${codice}`} /> : <Vuoto>{`Nessun dato di ${codice} nel riepilogo.`}</Vuoto>)}
     </VistaQuery>
   );
 }

@@ -89,6 +89,7 @@ export function CardSottofasi({ tipo, s, criteri, codice, onModifica, conFiltri 
         fonte={`Fonte: ${tipo === 'SOSTEGNO' ? 'TX-0031' : 'TX-0032'} (voci e altre sottofasi; perimetro della risposta). PNG: l'immagine del grafico, solo quando c'è; CSV e XLSX: l'export del report coi filtri, una riga per voce di SR-01 con la sottofase censita, poi le altre sottofasi.`}
         scaricamenti={fileReport(report, `${titolo}${di}`, criteri)}
         oggettoDati={`${OGGETTO_FILE[report]}${di}`}
+        oggettoPng={`il grafico ${titolo}${di}`}
         tabella={<TabelleSottofasi s={s} titolo={titolo} />}
       />
     </div>

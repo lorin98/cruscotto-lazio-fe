@@ -29,6 +29,8 @@ interface PropsCardDistribuzione {
   link?: (v: VoceDistribuzione) => { indirizzo: string | null; testi: TestiLink };
   scaricamenti: Scaricamento[];
   oggettoDati: string;
+  /** Il nome del PNG quando il titolo non dice l'intervento (le schede del dettaglio: "il grafico <titolo> di SRD01"). */
+  oggettoPng?: string;
   strumenti?: ReactNode;
   livello?: 2 | 3;
 }

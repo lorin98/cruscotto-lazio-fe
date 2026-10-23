@@ -6,7 +6,8 @@
 // (un'anteprima, es. il mini grafico del drawer dell'output regionale) e dire nei nomi dei pulsanti dei file dei dati di
 // cosa sono quando non sono il solo grafico (l'export completo del report, l'output dell'intervento: WCAG 2.4.6), mentre
 // il PNG resta "il grafico <titolo>" e il gruppo dei pulsanti dice i due contenuti (review V1 dell'istituzionale v1
-// iter2): estensioni dell'istituzionale, facoltative.
+// iter2): estensioni dell'istituzionale, facoltative. Il nome del PNG puo' dire di piu' del titolo (le schede del
+// dettaglio procedurale: "di SRD01", review V8 del procedurale), facoltativo.
 import { useId, useState } from 'react';
 import type { ReactNode } from 'react';
 import { nomeFile } from '../../lib/nome-file';
@@ -64,11 +65,13 @@ function nomePng(titolo: string, scaricamenti: readonly Scaricamento[]): string 
 }
 
 /**
- * Il gruppo dei pulsanti e i suoi file. Senza `oggettoDati` tutto e' "il grafico <titolo>". Con `oggettoDati` il PNG resta
- * il grafico, i file dei dati hanno il loro oggetto e il gruppo dice i due contenuti (review X3 e V1 dell'istituzionale).
+ * Il gruppo dei pulsanti e i suoi file. Senza `oggettoDati` tutto e' il grafico ("il grafico <titolo>", o `oggettoPng`).
+ * Con `oggettoDati` il PNG resta il grafico, i file dei dati hanno il loro oggetto e il gruppo dice i due contenuti
+ * (review X3 e V1 dell'istituzionale).
  */
-function pulsantiDellaCard(titolo: string, png: readonly Scaricamento[], dati: readonly Scaricamento[], oggettoDati: string | undefined): { oggetto: string; scaricamenti: Scaricamento[] } {
-  const grafico = `il grafico ${titolo}`;
+function pulsantiDellaCard(titolo: string, png: readonly Scaricamento[], dati: readonly Scaricamento[], oggetti: { png?: string; dati?: string }): { oggetto: string; scaricamenti: Scaricamento[] } {
+  const grafico = oggetti.png ?? `il grafico ${titolo}`;
+  const oggettoDati = oggetti.dati;
   if (oggettoDati === undefined) return { oggetto: grafico, scaricamenti: [...png, ...dati] };
   return { oggetto: `${grafico} e ${oggettoDati}`, scaricamenti: [...png.map((s) => ({ ...s, oggetto: grafico })), ...dati.map((s) => ({ ...s, oggetto: oggettoDati }))] };
 }
@@ -135,6 +138,11 @@ interface PropsCardGrafico {
    * grafico <titolo> e <oggettoDati>".
    */
   oggettoDati?: string;
+  /**
+   * Completa "Scarica …" nel nome del pulsante del PNG quando il titolo non basta a dire di cosa e' il grafico, es. "il
+   * grafico Domande di sostegno per stato di SRD01" in una scheda del dettaglio (default: "il grafico <titolo>").
+   */
+  oggettoPng?: string;
   /** Nessun PNG: la card e' un'anteprima senza scaricamento (es. il mini grafico di un drawer). */
   senzaPng?: boolean;
 }
@@ -152,7 +160,7 @@ function useVista(iniziale: Vista | undefined, onVista: ((v: Vista) => void) | u
 }
 
 export function CardGrafico(props: PropsCardGrafico) {
-  const { titolo, sottotitolo, dati, fonte, altezza = 'normale', onClic, strumenti, scaricamenti = [], livello = 2, tabella, nomeFile: base, oggettoDati, senzaPng } = props;
+  const { titolo, sottotitolo, dati, fonte, altezza = 'normale', onClic, strumenti, scaricamenti = [], livello = 2, tabella, nomeFile: base, oggettoDati, oggettoPng, senzaPng } = props;
   const id = useId();
   const [vista, setVista] = useVista(props.vistaIniziale, props.onVista);
   const disegnabile = dati.opzioni !== null;
@@ -162,7 +170,7 @@ export function CardGrafico(props: PropsCardGrafico) {
     <>
       {strumenti}
       {disegnabile && <InterruttoreVista etichetta={`Vista di ${titolo}`} vista={vista} onVista={setVista} />}
-      <PulsantiScarica {...pulsantiDellaCard(titolo, png, scaricamenti, oggettoDati)} />
+      <PulsantiScarica {...pulsantiDellaCard(titolo, png, scaricamenti, { png: oggettoPng, dati: oggettoDati })} />
     </>
   );
   return (
