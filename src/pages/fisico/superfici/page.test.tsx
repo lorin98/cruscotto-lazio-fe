@@ -412,6 +412,8 @@ describe("RA006: valori dei filtri delle superfici da TX-0060 dell'elenco operat
     expect(pannello.contains(document.activeElement)).toBe(true);
     await userEvent.keyboard('{Escape}');
     await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Filtri delle superfici ammissibili' })).toBeNull());
-    expect(document.activeElement).toBe(bottone);
+    // react-aria riporta il focus dopo la chiusura del dialogo: si aspetta, come per gli altri cambi di focus (review V7:
+    // l'asserzione subito, gemella di quella dell'istituzionale, trovava a volte il focus su BODY nella suite completa)
+    await waitFor(() => expect(document.activeElement).toBe(bottone));
   });
 });
