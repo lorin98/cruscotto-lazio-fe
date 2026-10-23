@@ -1,5 +1,19 @@
 # Review step9 FULL — feature istituzionale
 
+## v1 iterazione 2 (23/10/2026): PASS, score 92
+
+Esito meccanico (`review-score.sh FULL review/istituzionale-findings-iter2.json`): 0 CRITICO, 0 MAGGIORE, 2 MINORE,
+2 COSMETICO, score 92/80, su 876f447 (correzioni e072e58..8ab034d, resoconto `review/istituzionale/v1-iter1/correzioni.md`;
+step8 11/11 per istituzionale, fisico, finanziario ed elenco). Gate non declassabili verdi. Lenti V (1), H (2), A (0),
+antagonista (1) e Judge in `review/istituzionale/v1-iter2/`. I 22 finding da correggere dell'iterazione 1 sono risolti; V5
+e X2 chiusi dalle decisioni D1 e D2; nessuna regressione in finanziario, fisico ed elenco.
+
+Residui da correggere dopo il verdetto (come per il fisico), in commit separati, poi step8 delle quattro feature:
+- **H1** (MINORE) useRigheContesto del kit (H7) ha un omonimo nell'elenco operativo con un altro contratto posizionale (filtri, profilo, ultimi, perimetro) e lo stesso corpo: la copia unica non c'e' e il commento del kit dice tre copie invece di quattro — `src/features/elenco-operativo/ui/useInterrogazione.ts:58`.
+- **X1** (MINORE) Correzione A3: lo stato in role=status del cambio d'anno dice sempre 'restano i dati dell'anno precedente', anche quando i dati che restano sono di un anno successivo (2025 -> 2024, il caso piu' comune); per chi usa un lettore di schermo e' il solo annuncio e non dice quale anno resta — `src/features/istituzionale/lib/intervento.ts:136`.
+- **V1** (COSMETICO) Correzione X3: con oggettoDati il gruppo dei pulsanti della card resta 'Scarica il grafico <titolo>' anche se CSV e XLSX sono i dati del report; nel dettaglio il nome del gruppo perde 'e i dati' che aveva prima — `src/shared/ui/grafici/CardGrafico.tsx:158`.
+- **H2** (COSMETICO) Residuo di H7: il barrel del finanziario esporta ancora filtriDaRicerca e ricercaDaFiltri, che dopo ricercaDeiSoliFiltri in app/aree.ts non hanno piu' consumatori — `src/features/finanziario/index.ts:21`.
+
 ## v1 iterazione 1 (22/10/2026): FAIL, score 40
 
 Esito meccanico (`review-score.sh FULL review/istituzionale-findings.json`): 0 CRITICO, 0 MAGGIORE, 18 MINORE, 6 COSMETICO,
