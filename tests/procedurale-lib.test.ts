@@ -25,6 +25,7 @@ import {
 } from '../src/features/procedurale/lib/criteri';
 import {
   LINK_ELENCO,
+  LINK_STATO,
   apreConAtto,
   apreLaVoce,
   apreLeAmmesse,
@@ -32,6 +33,7 @@ import {
   paginaDegliStati,
   panoramicaDellIntervento,
   percorsoIntervento,
+  puntoDelloStato,
   quanteDomande,
   testiLinkAmmesse,
   testiLinkArea,
@@ -196,6 +198,8 @@ describe('procedurale: link dello uiplan (fail-closed, solo i parametri della qu
 
   it('elenco operativo: la query di ogni link verbatim dallo uiplan, coi criteri della pagina e il punto del report', () => {
     expect(LINK_ELENCO['elenco-con-atto-riepilogo']).toEqual(['concessione', 'tipo', 'voceProgrammazione', 'intervento']);
+    expect(LINK_STATO.PAGAMENTO).toEqual({ pagina: 'elenco-stato-pagamento', riga: 'elenco-stato-pagamento-riga', intervento: 'elenco-stato-pagamento-intervento' });
+    expect([puntoDelloStato('SOSTEGNO', 'RILASCIATO'), puntoDelloStato('PAGAMENTO', 'FINANZIATO', 'SRD01')]).toEqual([{ statoSostegno: 'RILASCIATO' }, { statoPagamento: 'FINANZIATO', intervento: 'SRD01' }]);
     const c = { intervento: ['SRD01', 'SRA01'], os: ['OS4'], stato: ['AMMESSA', 'SENZA_STATO'] };
     expect(indirizzoElenco('elenco-ammesse-panoramica', c, { voceProgrammazione: 'AMMESSA' })).toBe('/elenco-operativo/domande?voceProgrammazione=AMMESSA&intervento=SRD01&intervento=SRA01&os=OS4');
     expect(indirizzoElenco('elenco-con-atto', c, { concessione: true })).toBe(

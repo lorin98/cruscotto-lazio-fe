@@ -11,7 +11,7 @@ import type { AltroStato, Distribuzione, RigaStati, Stati, TipoDomanda, VoceStat
 /** La chiave della voce delle domande senza stato area programmazione (TX-0025, voceProgrammazione dell'elenco). */
 export const SENZA_STATO = 'SENZA_STATO';
 /** La voce senza stato nelle distribuzioni dell'area programmazione (la risposta porta il solo numero). */
-export const TESTO_SENZA_STATO = 'Senza stato area programmazione (nessuna determina aperta)';
+const TESTO_SENZA_STATO = 'Senza stato area programmazione (nessuna determina aperta)';
 
 /** Una voce di una distribuzione, come la rendono grafici, tabelle e drawer. */
 export interface VoceDistribuzione {

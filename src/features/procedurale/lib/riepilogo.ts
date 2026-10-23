@@ -19,7 +19,7 @@ export function distribuzioneDi(r: RigaRiepilogo | TotaleRiepilogo | undefined, 
 }
 
 /** Una colonna di una voce di stato (a scelta): la chiave, il titolo breve, il nome completo e la voce. */
-export interface ColonnaVoce {
+interface ColonnaVoce {
   chiave: string;
   titolo: string;
   nomeEsteso: string;

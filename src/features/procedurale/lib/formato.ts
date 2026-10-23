@@ -62,9 +62,6 @@ export const NOTA_AMMESSE =
 export const NOTA_SOTTOFASI =
   "La voce conta le domande distinte di tutte le sottofasi che la abbinano (una domanda in due sottofasi equivalenti conta una volta), la sottofase censita le sue sole domande: la voce può essere minore della somma, e la pagina non somma. I filtri restringono le domande contate; l'elenco delle sottofasi resta intero e regionale.";
 
-/** Il link verso l'elenco della parte rilasciata (D-04 Rev. 5, OP-PR-08). */
-export const NOTA_RILASCIATE = "Apri nell'elenco apre le sole domande rilasciate della voce (domande meno di cui non rilasciate): l'elenco operativo non ha le domande non ancora rilasciate.";
-
 /** Le Unit Amount non sono domande: nessun totale (il DTO non lo porta) e nessun link verso l'elenco. */
 export const NOTA_UNIT_AMOUNT = "Dati di programma dall'import CSR-UA, regionali per ogni profilo; base storica = percentuale pagata della stessa Unit Amount dell'intervento nell'esercizio precedente. Nessun totale: la pagina non somma le righe. Mai l'Assistenza tecnica (AT001).";
 

@@ -32,7 +32,7 @@ export const ULTIMI = [
 
 /** Gli interventi selezionabili (SC-PC_FILTRI, senza AT001) con i loro obiettivi e il perimetro INTERVENTO.PERIMETRO. */
 const INTERVENTI = [
-  { codice: 'SRA01', descrizione: 'Produzione integrata', os: 'OS4', og: 'OG2', op: 'OP1', perimetro: "SIGC si'" },
+  { codice: 'SRA01', descrizione: 'Produzione integrata', os: 'OS4', og: 'OG2', op: 'OP1', perimetro: 'SIGC sì' },
   { codice: 'SRD01', descrizione: 'Investimenti produttivi agricoli per la competitività', os: 'OS4', og: 'OG2', op: 'OP1', perimetro: 'SIGC no' },
   { codice: 'SRD02', descrizione: 'Investimenti produttivi agricoli per ambiente, clima e benessere animale', os: 'OS5', og: 'OG3', op: 'OP2', perimetro: null },
 ] as const;
@@ -142,7 +142,7 @@ export interface Varianti {
 const tutti = (p: URLSearchParams, k: string) => p.getAll(k);
 
 /** Gli interventi selezionati dai filtri (intervento, os, og, op: in E fra filtri, in O nello stesso filtro), per codice. */
-export function interventiSelezionati(p: URLSearchParams): (typeof INTERVENTI)[number][] {
+function interventiSelezionati(p: URLSearchParams): (typeof INTERVENTI)[number][] {
   const passa = (k: 'os' | 'og' | 'op', i: (typeof INTERVENTI)[number]) => tutti(p, k).length === 0 || tutti(p, k).includes(i[k]);
   return INTERVENTI.filter((i) => (tutti(p, 'intervento').length === 0 || tutti(p, 'intervento').includes(i.codice)) && passa('os', i) && passa('og', i) && passa('op', i));
 }

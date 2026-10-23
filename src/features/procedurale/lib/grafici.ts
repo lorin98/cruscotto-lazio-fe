@@ -32,14 +32,14 @@ export function testoNonRilasciate(v: VoceDistribuzione): string {
 }
 
 /** I testi di un grafico per stato: titolo (descrizione accessibile), didascalia della tabella e intestazione delle voci. */
-export interface TestiStati {
+interface TestiStati {
   titolo: string;
   caption: string;
   voce: string;
 }
 
 /** Il totale della distribuzione, ultima riga della tabella equivalente (dal backend, mai sommato qui). */
-export interface TotaleStati {
+interface TotaleStati {
   domande: number;
   nonRilasciate?: number;
 }

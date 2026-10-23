@@ -108,6 +108,17 @@ export function indirizzoElenco(id: IdLinkElenco, c: CriteriProcedurali, p: Punt
   return puntoValido(p) ? conQuery(PERCORSO_ELENCO_DOMANDE, LINK_ELENCO[id], parametri(c, p)) : null;
 }
 
+/** I link per stato di un tipo di domanda: dalla pagina degli stati (coi filtri), dalla riga del drawer, dal dettaglio. */
+export const LINK_STATO: Readonly<Record<TipoDomanda, Record<'pagina' | 'riga' | 'intervento', IdLinkElenco>>> = {
+  SOSTEGNO: { pagina: 'elenco-stato-sostegno', riga: 'elenco-stato-sostegno-riga', intervento: 'elenco-stato-sostegno-intervento' },
+  PAGAMENTO: { pagina: 'elenco-stato-pagamento', riga: 'elenco-stato-pagamento-riga', intervento: 'elenco-stato-pagamento-intervento' },
+};
+
+/** Il punto di una voce per stato: statoSostegno o statoPagamento secondo il tipo, e l'intervento della riga o del dettaglio. */
+export function puntoDelloStato(tipo: TipoDomanda, chiave: string, intervento?: string): PuntoElenco {
+  return { ...(tipo === 'SOSTEGNO' ? { statoSostegno: chiave } : { statoPagamento: chiave }), ...(intervento === undefined ? {} : { intervento }) };
+}
+
 /** Le domande ammesse si aprono con un numero maggiore di 0 e un filtro per stato che ammette AMMESSA. */
 export function apreLeAmmesse(c: CriteriProcedurali, domande: number | null | undefined): boolean {
   return typeof domande === 'number' && domande > 0 && statoAmmette(c, VOCE_AMMESSA);

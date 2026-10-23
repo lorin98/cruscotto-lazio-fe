@@ -16,7 +16,7 @@ import { diTipo } from './stati';
 export type ChiaveKpi = 'ammesse' | 'conAtto' | 'contributo' | 'interventi' | 'domande' | 'nonRilasciate';
 
 /** Il link verso l'elenco di un KPI: il link dello uiplan, il punto e la descrizione del nome accessibile. */
-export interface LinkKpi {
+interface LinkKpi {
   id: IdLinkElenco;
   punto: PuntoElenco;
   descrizione: string;
@@ -45,7 +45,7 @@ export function notaContributo(richiesto: Dato | undefined, contributo: Dato | u
 }
 
 /** Dove aprono i KPI delle ammesse e dell'atto: la pagina (coi filtri) o il dettaglio (l'intervento della route). */
-export interface Contesto {
+interface Contesto {
   criteri: CriteriProcedurali;
   /** I due link dello uiplan della pagina, ammesse e con atto. */
   link: { ammesse: IdLinkElenco; conAtto: IdLinkElenco };
