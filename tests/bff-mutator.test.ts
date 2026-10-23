@@ -136,6 +136,20 @@ describe('coda delle letture: tetto per prefisso del percorso (review step9 H-21
     expect(misura.massimo).toBe(LETTURE_IN_PARALLELO);
   });
 
+  it('i valori dei filtri del procedurale (TX-0024, TX-0025) occupano la coda comune come i report: il backend li conta nel tetto (review A5)', async () => {
+    const misura = { inCorso: 0, massimo: 0 };
+    const lenta = async () => {
+      misura.inCorso++;
+      misura.massimo = Math.max(misura.massimo, misura.inCorso);
+      await delay(20);
+      misura.inCorso--;
+      return HttpResponse.json({ ok: true });
+    };
+    server.use(http.get('*/api/procedurale/filtri/stati-area-programmazione', lenta), http.get('*/api/procedurale/filtri', lenta), http.get('*/api/procedurale/domande-ammesse', lenta));
+    await Promise.all([insieme('/api/procedurale/filtri', 'GET', 2), insieme('/api/procedurale/filtri/stati-area-programmazione', 'GET', 2), insieme('/api/procedurale/domande-ammesse', 'GET', 2)]);
+    expect(misura.massimo).toBe(LETTURE_IN_PARALLELO);
+  });
+
   it("il mutator condiviso non ha tetti predefiniti: senza la configurazione dell'app nessuna GET aspetta", async () => {
     azzeraCodeLetture();
     const misura = misuraParallelo('/api/finanziario/lenta');

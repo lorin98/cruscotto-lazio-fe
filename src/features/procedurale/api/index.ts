@@ -79,7 +79,9 @@ interface Opzioni {
 const lettura = ({ abilitato = true, mantieniDati = false }: Opzioni) => ({ query: { enabled: abilitato, ...(mantieniDati ? { placeholderData: keepPreviousData } : {}) } });
 
 // TX-0024 (RF024): interventi senza AT001, OS, OG, OP e ultimiDatiSincronizzati (NFR-25 b, D-01 Rev. 2): una lettura
-// per pagina, fuori dal tetto delle letture e dall'audit del backend; la stessa cache per pannello, pill e descrizioni.
+// per pagina, nella coda comune delle letture come i report (il backend la conta nel tetto, SC-PC_CAPACITA) e registrata
+// in audit senza parametri (SC-PC_AUDIT); fuori dal tetto e dall'audit e' solo l'ultimo dato sincronizzato (D-01 Rev. 2).
+// La stessa cache per pannello, pill e descrizioni.
 export const useValoriFiltri = (abilitato = true) => useTx0024(lettura({ abilitato }));
 
 // TX-0025 (RF025): le dieci voci di RF025, gli stati osservati e la voce senza stato, con le chiavi da rimandare in ?stato=.
