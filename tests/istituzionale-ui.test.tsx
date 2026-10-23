@@ -19,7 +19,8 @@ import { renderConQuery } from '../src/shared/testing/render';
 import { DettaglioIntervento, OutputRegionale, VerificaSmpNonSigc } from '../src/features/istituzionale';
 import { OUTPUT, SRA01_OUTPUT, SRD01, VALORI, VERIFICA, outputPer, verificaPer } from '../src/features/istituzionale/testing/fixture';
 import { AnteprimaOutput } from '../src/features/istituzionale/ui/AnteprimaOutput';
-import { CellaDato, ValoriNonDisponibili } from '../src/features/istituzionale/ui/comuni';
+import { CellaDato } from '../src/features/istituzionale/ui/comuni';
+import { ValoriFiltriNonDisponibili } from '../src/entities/filtri';
 import { PaginaReport } from '../src/features/istituzionale/ui/PaginaReport';
 import { useFiltriDellaPagina } from '../src/features/istituzionale/ui/useFiltriNellIndirizzo';
 import { TabellaOutput } from '../src/features/istituzionale/ui/TabellaOutput';
@@ -178,7 +179,7 @@ describe('TabellaVerifica e CellaDato (i ventuno dati di TX-0016)', () => {
   });
 });
 
-describe('PannelloFiltriIstituzionale e ValoriNonDisponibili', () => {
+describe('PannelloFiltriIstituzionale e ValoriFiltriNonDisponibili (entities/filtri, nato qui)', () => {
   it('il pannello ha le voci di TX-0060 e l azione portante disabilitata senza il legame; nessuna violazione axe', async () => {
     servi();
     renderPagina(VerificaSmpNonSigc, '/istituzionale/verifica-smp-non-sigc');
@@ -191,7 +192,7 @@ describe('PannelloFiltriIstituzionale e ValoriNonDisponibili', () => {
     await expectNoA11yViolations(pannello);
   });
 
-  it('ValoriNonDisponibili: niente senza errore; con l errore lo stato e Riprova; sparito col bottone, il focus sull h1', async () => {
+  it('ValoriFiltriNonDisponibili: niente senza errore; con l errore lo stato e Riprova; sparito col bottone, il focus sull h1', async () => {
     const h1 = createRef<HTMLHeadingElement>();
     const refetch = vi.fn();
     const stato = (isError: boolean): StatoQuery<ValoriFiltriElenco> => ({ data: undefined, isPending: !isError, isError, fetchStatus: 'idle', error: null, refetch });
@@ -200,7 +201,7 @@ describe('PannelloFiltriIstituzionale e ValoriNonDisponibili', () => {
         <h1 ref={h1} tabIndex={-1}>
           Titolo
         </h1>
-        <ValoriNonDisponibili valori={stato(true)} h1={h1} />
+        <ValoriFiltriNonDisponibili letture={[stato(true)]} h1={h1} />
       </>,
     );
     const riprova = screen.getByRole('button', { name: 'Riprova' });
@@ -213,12 +214,12 @@ describe('PannelloFiltriIstituzionale e ValoriNonDisponibili', () => {
         <h1 ref={h1} tabIndex={-1}>
           Titolo
         </h1>
-        <ValoriNonDisponibili valori={{ ...stato(false), data: VALORI }} h1={h1} />
+        <ValoriFiltriNonDisponibili letture={[{ ...stato(false), data: VALORI }]} h1={h1} />
       </>,
     );
     expect(screen.queryByRole('status')).toBeNull();
     expect(document.activeElement).toBe(h1.current);
-    rerender(<ValoriNonDisponibili valori={null} h1={h1} />);
+    rerender(<ValoriFiltriNonDisponibili letture={[null]} h1={h1} />);
     expect(screen.queryByRole('status')).toBeNull();
   });
 });

@@ -8,12 +8,12 @@
 // sull'h1); il pannello dei filtri. Classi bootstrap-italia e del kit v2; react-aria solo dentro il pannello e il popover
 // della pill del kit.
 import type { ReactNode } from 'react';
+import { ValoriFiltriNonDisponibili } from '../../../entities/filtri';
 import { AvvisoPagina, BarraFiltri, Briciole, Caricamento, PillDatiAl, TestaPagina, VistaQuery, VuotoConFiltri } from '../../../shared/ui';
 import type { StatoQuery } from '../../../shared/ui';
 import type { UltimoDato } from '../../../shared/lib';
 import { conFiltri } from '../lib/criteri';
 import { PILL_PERIMETRO, testoVuoto } from '../lib/formato';
-import { ValoriNonDisponibili } from './comuni';
 import { useIngressoArea } from './navigazione';
 import { PannelloFiltriIstituzionale } from './PannelloFiltriIstituzionale';
 import type { FiltriDellaPagina } from './useFiltriNellIndirizzo';
@@ -82,7 +82,7 @@ export function PaginaReport<D extends RispostaReport>({ pagina, stato, briciola
       <main className="ui-pagina" id="contenuto">
         <Briciole voci={briciole} />
         <TestaPagina titolo={titolo} titoloDocumento={titoloDocumento} sottotitolo={sottotitolo} nota={nota} refTitolo={h1} />
-        <ValoriNonDisponibili valori={valori} h1={h1} />
+        <ValoriFiltriNonDisponibili letture={[valori]} h1={h1} />
         {sopra}
         <CorpoReport stato={stato} inAttesa={inAttesa} vuoto={vuoto}>
           {children}

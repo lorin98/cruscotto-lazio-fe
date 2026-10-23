@@ -1,6 +1,6 @@
 // GruppiProgramma — i gruppi del pannello dei filtri sulle dimensioni del programma (UI v2, wireframe panoramica del
 // finanziario): interventi con ricerca e caselle (codice e descrizione), OS, OG e OP come chip, azione portante
-// disabilitata con la spiegazione finche' manca il legame (OP-002). Prima stavano nel pannello del finanziario; il pannello
+// disabilitata con la spiegazione finche' manca il legame (OP-002), oppure assente dove i report non la filtrano. Prima stavano nel pannello del finanziario; il pannello
 // delle superfici del fisico e' "come nel finanziario" (OP-FIS-01), quindi i gruppi sono qui e ogni pannello passa i suoi
 // valori (TX-0001 del finanziario, TX-0060 dell'elenco per il fisico) e la sua bozza. I controlli (gruppo, caselle, chip)
 // sono quelli del kit (shared/ui, review del fisico H1); il focus trap e' del PannelloLaterale che li contiene. Stesso
@@ -78,8 +78,21 @@ function GruppoAzione({ id, scelti, onCambia, senzaVoci, valori }: PropsGruppo &
 /**
  * I cinque gruppi del programma con la nota sulle combinazioni. `senzaVoci`: testo per un gruppo senza voci (es. il fisico
  * senza i valori di TX-0060: obiettivi e azioni non ne hanno); assente, il gruppo resta com'e' nel finanziario.
+ * `senzaAzione`: senza il gruppo dell'azione portante, per i report che non la filtrano (il procedurale: RF024).
  */
-export function GruppiProgramma({ valori, bozza, imposta, senzaVoci }: { valori: ValoriProgramma; bozza: Filtri; imposta: (k: ChiaveFiltro) => (v: string[]) => void; senzaVoci?: string }) {
+export function GruppiProgramma({
+  valori,
+  bozza,
+  imposta,
+  senzaVoci,
+  senzaAzione = false,
+}: {
+  valori: ValoriProgramma;
+  bozza: Filtri;
+  imposta: (k: ChiaveFiltro) => (v: string[]) => void;
+  senzaVoci?: string;
+  senzaAzione?: boolean;
+}) {
   const id = useId();
   const di = (k: ChiaveFiltro) => ({ scelti: bozza[k] ?? [], onCambia: imposta(k), senzaVoci });
   return (
@@ -88,7 +101,7 @@ export function GruppiProgramma({ valori, bozza, imposta, senzaVoci }: { valori:
       <GruppoObiettivo chiave="og" {...di('og')} opzioni={daTesti(valori.obiettiviGenerali)} />
       <GruppoObiettivo chiave="os" {...di('os')} opzioni={daVoci(valori.obiettiviSpecifici)} />
       <GruppoObiettivo chiave="op" {...di('op')} opzioni={daTesti(valori.obiettiviPolicy)} />
-      <GruppoAzione id={id} {...di('azione')} valori={valori} />
+      {!senzaAzione && <GruppoAzione id={id} {...di('azione')} valori={valori} />}
       <p className="ui-nota">Valori dello stesso filtro in alternativa (O); filtri diversi insieme (E). Nessuna scelta: tutti i valori.</p>
     </>
   );

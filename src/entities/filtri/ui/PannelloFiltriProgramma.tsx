@@ -1,6 +1,7 @@
 // PannelloFiltriProgramma — il pannello laterale dei filtri del programma con le voci di TX-0060 dell'elenco operativo
 // (decisione G2), comune alle superfici del fisico e ai report dell'istituzionale (prima era tutto nel pannello del fisico:
-// quando l'istituzionale ne ha avuto bisogno uguale, il pannello e' venuto qui). Gruppi del programma (GruppiProgramma)
+// quando l'istituzionale ne ha avuto bisogno uguale, il pannello e' venuto qui); il procedurale ci passa le voci di
+// TX-0024 della sua slice e lo usa senza l'azione portante (`senzaAzione`, RF024). Gruppi del programma (GruppiProgramma)
 // con le voci lette; in caricamento lo scheletro; senza il grant di TX-0060 o con TX-0060 in errore lo stato lo dice in
 // testo (role=status), Intervento propone i codici delle righe della risposta del report senza descrizione, obiettivi e
 // azione portante non hanno voci, e il report resta leggibile. La pagina aggiunge i suoi gruppi dopo quelli del programma
@@ -15,8 +16,11 @@ import type { ChiaveFiltro, Filtri, ValoriProgramma } from '../lib/programma';
 import { GruppiProgramma } from './GruppiProgramma';
 import { useBozzaFiltri } from './useFiltriProgrammaNellIndirizzo';
 
-const NON_DISPONIBILI =
-  "Valori dei filtri non disponibili: Intervento propone i codici delle righe della risposta, senza descrizione; obiettivi e azione portante non hanno voci. I filtri già nell'indirizzo restano e il report si legge comunque.";
+/** Lo stato senza i valori dei filtri: senza il gruppo dell'azione portante non la nomina. */
+function testoNonDisponibili(senzaAzione: boolean): string {
+  const senzaVoci = senzaAzione ? 'gli obiettivi non hanno voci' : 'obiettivi e azione portante non hanno voci';
+  return `Valori dei filtri non disponibili: Intervento propone i codici delle righe della risposta, senza descrizione; ${senzaVoci}. I filtri già nell'indirizzo restano e il report si legge comunque.`;
+}
 const SENZA_VOCI = 'Nessuna voce: valori dei filtri non disponibili.';
 
 interface PropsGruppi {
@@ -24,20 +28,21 @@ interface PropsGruppi {
   codiciRisposta: readonly string[];
   bozza: Filtri;
   imposta: (k: ChiaveFiltro) => (v: string[]) => void;
+  senzaAzione: boolean;
 }
 
-/** I gruppi del programma: in caricamento, oppure con le voci di TX-0060 o, senza, coi codici della risposta e lo stato detto. */
-function GruppiDelPannello({ valori, codiciRisposta, bozza, imposta }: PropsGruppi) {
+/** I gruppi del programma: in caricamento, oppure con le voci lette o, senza, coi codici della risposta e lo stato detto. */
+function GruppiDelPannello({ valori, codiciRisposta, bozza, imposta, senzaAzione }: PropsGruppi) {
   const disponibili = valori?.data;
   if (valori !== null && disponibili === undefined && !valori.isError) return <Caricamento testo="Caricamento dei valori dei filtri…" />;
   return (
     <>
       {!disponibili && (
         <p className="ui-nota" role="status">
-          {NON_DISPONIBILI}
+          {testoNonDisponibili(senzaAzione)}
         </p>
       )}
-      <GruppiProgramma valori={vociDelPannello(disponibili, codiciRisposta)} bozza={bozza} imposta={imposta} senzaVoci={disponibili ? undefined : SENZA_VOCI} />
+      <GruppiProgramma valori={vociDelPannello(disponibili, codiciRisposta)} bozza={bozza} imposta={imposta} senzaVoci={disponibili ? undefined : SENZA_VOCI} senzaAzione={senzaAzione} />
     </>
   );
 }
@@ -73,9 +78,11 @@ export interface PropsPannelloProgramma<C extends Filtri> {
   altriGruppi?: (bozza: C, setBozza: Dispatch<SetStateAction<C>>) => ReactNode;
   /** Da dove vengono le voci (nota in fondo al pannello). */
   nota: string;
+  /** Senza il gruppo dell'azione portante (report che non la filtrano: il procedurale, RF024). */
+  senzaAzione?: boolean;
 }
 
-export function PannelloFiltriProgramma<C extends Filtri>({ aperto, titolo, criteri, valori, codiciRisposta, nessuno, onApplica, onChiudi, altriGruppi, nota }: PropsPannelloProgramma<C>) {
+export function PannelloFiltriProgramma<C extends Filtri>({ aperto, titolo, criteri, valori, codiciRisposta, nessuno, onApplica, onChiudi, altriGruppi, nota, senzaAzione = false }: PropsPannelloProgramma<C>) {
   // la bozza dei criteri riparte da quelli applicati a ogni apertura (come nel finanziario)
   const { bozza, setBozza, imposta } = useBozzaFiltri(aperto, criteri);
   return (
@@ -86,7 +93,7 @@ export function PannelloFiltriProgramma<C extends Filtri>({ aperto, titolo, crit
       descrizione="Restano nell'indirizzo della pagina."
       azioni={<Azioni bozza={bozza} valori={valori?.data} onAzzera={() => setBozza(nessuno)} onApplica={onApplica} />}
     >
-      <GruppiDelPannello valori={valori} codiciRisposta={codiciRisposta} bozza={bozza} imposta={imposta} />
+      <GruppiDelPannello valori={valori} codiciRisposta={codiciRisposta} bozza={bozza} imposta={imposta} senzaAzione={senzaAzione} />
       {altriGruppi?.(bozza, setBozza)}
       <p className="ui-nota">{nota}</p>
     </PannelloLaterale>

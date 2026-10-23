@@ -29,4 +29,5 @@ export type { PropsPannelloProgramma } from './ui/PannelloFiltriProgramma';
 export { useBozzaFiltri, useFiltriProgrammaNellIndirizzo } from './ui/useFiltriProgrammaNellIndirizzo';
 export type { LetturaValoriFiltri, ParametriFiltriNellIndirizzo } from './ui/useFiltriProgrammaNellIndirizzo';
 export { usePannelloConFocus } from './ui/usePannelloConFocus';
+export { ValoriFiltriNonDisponibili } from './ui/ValoriFiltriNonDisponibili';
 export type { PannelloAperto } from './ui/usePannelloConFocus';

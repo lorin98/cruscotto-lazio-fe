@@ -5,11 +5,12 @@
 // dal server MSW dei test.
 import type { ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
+import { createRef } from 'react';
 import { act, cleanup, render, renderHook, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, useLocation } from 'react-router';
-import { PannelloFiltriProgramma, filtriDaRicerca, filtriNellaBarra, ricercaDaFiltri, useBozzaFiltri, useFiltriProgrammaNellIndirizzo, usePannelloConFocus } from '../src/entities/filtri';
+import { PannelloFiltriProgramma, ValoriFiltriNonDisponibili, filtriDaRicerca, filtriNellaBarra, ricercaDaFiltri, useBozzaFiltri, useFiltriProgrammaNellIndirizzo, usePannelloConFocus } from '../src/entities/filtri';
 import type { Filtri, LetturaValoriFiltri, ValoriProgramma } from '../src/entities/filtri';
 import { clientDiTest } from '../src/shared/testing/render';
 
@@ -101,11 +102,12 @@ describe('entities/filtri: bozza del pannello (useBozzaFiltri)', () => {
 describe('entities/filtri: pannello dei filtri del programma con le voci di TX-0060 (PannelloFiltriProgramma)', () => {
   type ConAnno = Filtri & { anno?: number };
   const stato = (data: ValoriProgramma | undefined, isError = false) => ({ data, isPending: data === undefined && !isError, isError, fetchStatus: 'idle' as const, error: null, refetch: () => undefined });
-  function apri(valori: Parameters<typeof PannelloFiltriProgramma<ConAnno>>[0]['valori'], criteri: ConAnno = {}) {
+  function apri(valori: Parameters<typeof PannelloFiltriProgramma<ConAnno>>[0]['valori'], criteri: ConAnno = {}, senzaAzione = false) {
     const onApplica = vi.fn();
     render(
       <PannelloFiltriProgramma<ConAnno>
         aperto
+        senzaAzione={senzaAzione}
         titolo="Filtri di prova"
         criteri={criteri}
         valori={valori}
@@ -145,6 +147,33 @@ describe('entities/filtri: pannello dei filtri del programma con le voci di TX-0
     expect(within(dialogo).getByRole('checkbox', { name: 'SRD01 Investimenti' })).toBeTruthy();
     await userEvent.click(within(dialogo).getByRole('button', { name: 'Applica i filtri' }));
     expect(onApplica).toHaveBeenLastCalledWith({ os: ['OS4'] });
+  });
+
+  it('senzaAzione (procedurale, RF024): niente gruppo dell azione portante, lo stato senza valori non la nomina', () => {
+    const conVoci = apri(stato({ interventi: [{ chiave: 'SRD01', descrizione: 'Investimenti' }], obiettiviGenerali: ['OG2'] }), {}, true);
+    expect(within(conVoci.dialogo).queryByText('Azione portante')).toBeNull();
+    expect(within(conVoci.dialogo).getByText('Obiettivo generale (OG)')).toBeTruthy();
+    cleanup();
+    const { dialogo } = apri(null, {}, true);
+    expect(within(dialogo).getByRole('status').textContent).toBe(
+      "Valori dei filtri non disponibili: Intervento propone i codici delle righe della risposta, senza descrizione; gli obiettivi non hanno voci. I filtri già nell'indirizzo restano e il report si legge comunque.",
+    );
+    expect(within(dialogo).queryByText('Azione portante')).toBeNull();
+  });
+});
+
+describe('entities/filtri: ValoriFiltriNonDisponibili con piu letture dei valori (procedurale: TX-0024 e TX-0025)', () => {
+  it('lo stato con la prima lettura in errore; Riprova rilegge tutte quelle in errore; nessuno stato senza errori o senza letture', async () => {
+    const h1 = createRef<HTMLHeadingElement>();
+    const lettura = (isError: boolean, refetch = vi.fn()) => ({ data: isError ? undefined : {}, isPending: false, isError, fetchStatus: 'idle' as const, error: null, refetch });
+    const [prima, seconda] = [lettura(true), lettura(true)];
+    const { rerender } = render(<ValoriFiltriNonDisponibili letture={[prima, null, seconda, lettura(false)]} h1={h1} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Riprova' }));
+    expect([prima.refetch.mock.calls.length, seconda.refetch.mock.calls.length]).toEqual([1, 1]);
+    rerender(<ValoriFiltriNonDisponibili letture={[lettura(false), null]} h1={h1} />);
+    expect(screen.queryByRole('status')).toBeNull();
+    rerender(<ValoriFiltriNonDisponibili letture={[]} h1={h1} />);
+    expect(screen.queryByRole('status')).toBeNull();
   });
 });
 
