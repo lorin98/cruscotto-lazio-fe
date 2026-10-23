@@ -131,9 +131,15 @@ export function captionVociVerifica(anno: number | null): string {
   return `I dati ASR non SIGC dell'intervento da confrontare con SMP (anno di riferimento ${anno ?? 'nessun file'}), con i valori assenti e il loro motivo`;
 }
 
-/** Lo stato della scheda Verifica mentre si legge un altro anno: i dati dell'anno di prima restano (review A3). */
-export function testoAggiornamentoAnno(anno: number | undefined): string {
-  return `Lettura ${anno === undefined ? "dell'ultimo anno con un file" : `dell'anno ${anno}`} in corso: restano i dati dell'anno precedente.`;
+/**
+ * Lo stato della scheda Verifica mentre si legge un altro anno: i dati di prima restano (review A3). Dice l'anno chiesto e
+ * quello dei dati che restano in pagina (`mostrato`, l'anno di riferimento della risposta mostrata), lo stesso della
+ * didascalia (captionVociVerifica): annuncio e didascalia non possono divergere (review X1).
+ */
+export function testoAggiornamentoAnno(anno: number | undefined, mostrato: number | null | undefined): string {
+  const lettura = anno === undefined ? "dell'ultimo anno con un file" : `dell'anno ${anno}`;
+  const restano = typeof mostrato === 'number' ? `i dati dell'anno di riferimento ${mostrato}` : `i dati di prima${mostrato === null ? ' (nessun file)' : ''}`;
+  return `Lettura ${lettura} in corso: restano ${restano}.`;
 }
 
 /** La scheda Importi unitari di un intervento senza Unit Amount (SC-IS_OUTPUT_STRUTTURALE). */

@@ -314,8 +314,12 @@ describe('RF016 e RF017: il dettaglio dell intervento (testata, KPI, ultimo dato
     expect(schedeVisibili(false, true)).toEqual(['output', 'importi']);
     expect(captionVociVerifica(2025)).toBe("I dati ASR non SIGC dell'intervento da confrontare con SMP (anno di riferimento 2025), con i valori assenti e il loro motivo");
     expect(captionVociVerifica(null)).toContain('(anno di riferimento nessun file)');
-    expect(testoAggiornamentoAnno(2024)).toBe("Lettura dell'anno 2024 in corso: restano i dati dell'anno precedente.");
-    expect(testoAggiornamentoAnno(undefined)).toBe("Lettura dell'ultimo anno con un file in corso: restano i dati dell'anno precedente.");
+    // lo stato dice l'anno dei dati che restano, lo stesso della didascalia (review X1): indietro, avanti, senza file
+    expect(testoAggiornamentoAnno(2024, 2025)).toBe("Lettura dell'anno 2024 in corso: restano i dati dell'anno di riferimento 2025.");
+    expect(testoAggiornamentoAnno(2025, 2024)).toBe("Lettura dell'anno 2025 in corso: restano i dati dell'anno di riferimento 2024.");
+    expect(testoAggiornamentoAnno(undefined, 2023)).toBe("Lettura dell'ultimo anno con un file in corso: restano i dati dell'anno di riferimento 2023.");
+    expect(testoAggiornamentoAnno(2024, null)).toBe("Lettura dell'anno 2024 in corso: restano i dati di prima (nessun file).");
+    expect(testoAggiornamentoAnno(2024, undefined)).toBe("Lettura dell'anno 2024 in corso: restano i dati di prima.");
     expect(SENZA_UNIT_AMOUNT).toMatch(/^Intervento senza Unit Amount/);
     expect(SENZA_DATI).toContain('AT001');
   });

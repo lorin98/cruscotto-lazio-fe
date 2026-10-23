@@ -223,7 +223,8 @@ describe("RF016: la verifica SMP non SIGC dell'intervento (TX-0016 filtrata sull
     await voci();
     await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Anno di riferimento del monitoraggio SMP non SIGC' }), '2024');
     await userEvent.click(screen.getByRole('button', { name: 'Mostra' }));
-    const stato = await screen.findByText("Lettura dell'anno 2024 in corso: restano i dati dell'anno precedente.");
+    // lo stato dice l'anno dei dati che restano, lo stesso della didascalia, non "l'anno precedente" (review X1)
+    const stato = await screen.findByText("Lettura dell'anno 2024 in corso: restano i dati dell'anno di riferimento 2025.");
     expect(stato.getAttribute('role')).toBe('status');
     const risultati = (await voci()).closest('.ui-risultati') as HTMLElement;
     expect(risultati.getAttribute('aria-busy')).toBe('true');

@@ -88,13 +88,14 @@ interface PropsVerifica {
 
 /**
  * Il selettore dell'anno resta montato mentre si legge un altro anno: il focus su "Mostra". I dati di prima restano con
- * lo stile di aggiornamento del kit (ui-risultati con aria-busy) e lo stato detto in role=status (review A3).
+ * lo stile di aggiornamento del kit (ui-risultati con aria-busy) e lo stato detto in role=status (review A3), con l'anno
+ * dei dati che restano, lo stesso della didascalia (review X1).
  */
 function SchedaVerifica({ stato, codice, anno, onAnno, unita }: PropsVerifica) {
   return (
     <>
       <SelettoreAnno id="f-anno-intervento" etichetta="Anno di riferimento del monitoraggio SMP non SIGC" aiuto={AIUTO_ANNO} anni={anniDiRiferimento(stato.data?.annoRiferimento, anno)} voceVuota="Ultimo anno con un file (predefinito)" anno={anno} onCambia={onAnno} />
-      <AvvisoAggiornamento attivo={stato.isPlaceholderData} testo={testoAggiornamentoAnno(anno)} />
+      <AvvisoAggiornamento attivo={stato.isPlaceholderData} testo={testoAggiornamentoAnno(anno, stato.data?.annoRiferimento)} />
       <div className="ui-risultati" aria-busy={stato.isPlaceholderData || undefined}>
         <VistaQuery stato={stato} errorePersonalizzato={nellaPagina}>
           {(d) => <VociVerifica d={d} codice={codice} anno={anno} unita={unita} />}
