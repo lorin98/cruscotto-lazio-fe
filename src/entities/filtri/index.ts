@@ -10,6 +10,7 @@ export {
   CHIAVI_FILTRO,
   ETICHETTE_FILTRO,
   MAX_VALORI_FILTRO,
+  codiceDelPercorso,
   descrizioneIntervento,
   filtriAttivi,
   filtriDaRicerca,

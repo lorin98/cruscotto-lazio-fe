@@ -141,3 +141,12 @@ export function descrizioneIntervento(voci: readonly VoceLike[] | undefined, cod
 export function vociDelPannello(valori: ValoriProgramma | undefined, codiciRisposta: readonly string[]): ValoriProgramma {
   return valori ?? { interventi: codiciRisposta.map((chiave) => ({ chiave })) };
 }
+
+/**
+ * Il codice dell'intervento dal percorso di un dettaglio (/<area>/interventi/:codice) o da una risposta che lo usera' in
+ * un indirizzo, nel formato del filtro intervento (SRA01, SRD04): un valore diverso (anche con '/', '..' o spazi) e' null
+ * e nessuna lettura ne' link parte. Prima nel lib dell'istituzionale; lo usa anche il procedurale.
+ */
+export function codiceDelPercorso(parametro: string | null | undefined): string | null {
+  return typeof parametro === 'string' && valoreFiltroValido('intervento', parametro) ? parametro : null;
+}

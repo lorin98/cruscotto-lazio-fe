@@ -13,13 +13,13 @@
 import { Link } from 'react-router';
 import { useState } from 'react';
 import type { Ref } from 'react';
-import { descrizioneIntervento } from '../../../entities/filtri';
+import { codiceDelPercorso, descrizioneIntervento } from '../../../entities/filtri';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { AvvisoPagina, Briciole, Caricamento, ContestoIntestazione, ErroreNellaPagina, Griglia, Kpi, PillDatiAl, TestataDettaglio, Vuoto, useAnnoNellIndirizzo, useErroreNellaPagina, useFocusTitolo, useRigheContesto } from '../../../shared/ui';
 import type { NomeIcona, TonoKpi } from '../../../shared/ui';
 import { useOutputRegionale, useValoriFiltri, useVerificaSmpNonSigc } from '../api';
 import { outputDellIntervento, verificaDellIntervento } from '../lib/collegamenti';
-import { PARAMETRO_ANNO, codiceDelPercorso, criteriVerifica, soloIntervento, testiCriteri } from '../lib/criteri';
+import { PARAMETRO_ANNO, criteriVerifica, soloIntervento, testiCriteri } from '../lib/criteri';
 import type { RigaOutput, RigaVerifica } from '../lib/dto';
 import { PERIMETRO_IN_PAROLE, PILL_PERIMETRO } from '../lib/formato';
 import { puoLeggere } from '../lib/grant';

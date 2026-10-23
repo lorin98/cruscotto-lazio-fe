@@ -5,7 +5,8 @@ import type { BarSeriesOption } from 'echarts';
 import { describe, expect, it } from 'vitest';
 import { GRANT, puoLeggere } from '../src/features/istituzionale/lib/grant';
 import { GRANT_DETTAGLIO, PAGINE_ISTITUZIONALE, PERCORSI, pagineVisibili, ricercaConservata } from '../src/features/istituzionale/lib/pagine';
-import { ANNI_DEL_PERIODO, anniDiRiferimento, codiceDelPercorso, conFiltri, criteriVerifica, ricercaConAnno, soloIntervento, testiCriteri } from '../src/features/istituzionale/lib/criteri';
+import { ANNI_DEL_PERIODO, anniDiRiferimento, conFiltri, criteriVerifica, ricercaConAnno, soloIntervento, testiCriteri } from '../src/features/istituzionale/lib/criteri';
+import { codiceDelPercorso } from '../src/entities/filtri';
 import { conValore, elencoRicevute, elencoSpesa, outputDellIntervento, percorsoIntervento, verificaDellIntervento } from '../src/features/istituzionale/lib/collegamenti';
 import {
   ANNO_TARGET_ASSENTE,

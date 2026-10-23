@@ -3,10 +3,10 @@
 // valore, le colonne nascoste di partenza (visibili quelle del low-fi, le altre da "Colonne") e i due link verso l'elenco
 // operativo (OP-IS-09); il valore per l'ordinamento e il testo dei valori; i riferimenti della risposta. I componenti li
 // rendono con un map: qui nessun calcolo resta nei componenti.
+import { codiceDelPercorso } from '../../../entities/filtri';
 import { formatDate, formatEuro, formatNumber, testoPerimetro } from '../../../shared/lib';
 import type { ValoreOrdinabile } from '../../../shared/lib';
 import { conValore, elencoRicevute, elencoSpesa } from './collegamenti';
-import { codiceDelPercorso } from './criteri';
 import type { RigaVerifica, Verifica } from './dto';
 import { quantita, siNo, testoAnnoDiRiferimento, testoOutputErogato } from './formato';
 

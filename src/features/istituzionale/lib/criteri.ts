@@ -3,8 +3,9 @@
 // non SIGC l'anno di riferimento del file (TX-0016.anno: uno solo, facoltativo, 2000-2100; assente = l'ultimo anno con
 // un file). Sono gli url_params delle route dello uiplan: dall'indirizzo arrivano solo valori nel formato ammesso. L'anno
 // e' un parametro della pagina, non un filtro: si sceglie col selettore, non ha un chip e resta quando i filtri cambiano
-// (come l'esercizio della verifica SMP del finanziario). Poi il codice dell'intervento del percorso del dettaglio.
-import { filtriAttivi, filtriNellaBarra, ricercaDaFiltri, valoreFiltroValido } from '../../../entities/filtri';
+// (come l'esercizio della verifica SMP del finanziario). Il codice dell'intervento del percorso del dettaglio e' quello
+// comune di entities/filtri (codiceDelPercorso).
+import { filtriAttivi, filtriNellaBarra, ricercaDaFiltri } from '../../../entities/filtri';
 import type { Filtri } from '../../../entities/filtri';
 import { anniProposti, isAnnoValido } from '../../../shared/lib';
 
@@ -51,14 +52,6 @@ export function criteriVerifica(filtri: Filtri, anno: number | undefined): Crite
 export function testiCriteri(filtri: Filtri, anno?: number): string[] {
   const testi = filtriNellaBarra(filtri).map((f) => `${f.etichetta}: ${f.valore}`);
   return anno === undefined ? testi : [...testi, `${ETICHETTA_ANNO}: ${anno}`];
-}
-
-/**
- * Il codice dell'intervento dal percorso del dettaglio (/istituzionale/interventi/:codice), nel formato dei filtri
- * (SRA01, SRD04): un valore diverso (anche con '/', '..' o spazi) e' null e nessuna lettura parte.
- */
-export function codiceDelPercorso(parametro: string | undefined): string | null {
-  return parametro !== undefined && valoreFiltroValido('intervento', parametro) ? parametro : null;
 }
 
 /** I filtri del dettaglio: il solo intervento della route (le letture di TX-0016 e TX-0017 dell'intervento). */

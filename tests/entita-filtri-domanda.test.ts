@@ -6,6 +6,7 @@ import {
   AZIONE_NON_APPLICATA,
   CHIAVI_FILTRO,
   ETICHETTE_FILTRO,
+  codiceDelPercorso,
   descrizioneIntervento,
   filtriAttivi,
   filtriDaRicerca,
@@ -30,6 +31,11 @@ describe('entities/filtri: i filtri del programma comuni a finanziario e fisico'
     expect(valoreFiltroValido('og', 'testo libero')).toBe(false);
     expect(filtriDaRicerca('?intervento=SRB01&intervento=SRB01&intervento=<x>&os=OS4&campagna=2025')).toEqual({ intervento: ['SRB01'], os: ['OS4'] });
     expect(filtriDaRicerca('')).toEqual({});
+  });
+
+  it('codiceDelPercorso (prima nell istituzionale, ora anche del procedurale): il codice nel formato del filtro, altrimenti null', () => {
+    expect(codiceDelPercorso('SRD01')).toBe('SRD01');
+    for (const nonValido of ['SRD01/..', 'srd01', ' SRD01', '', null, undefined, 'SRD01%2F', 'SRD01/x']) expect(codiceDelPercorso(nonValido)).toBeNull();
   });
 
   it('scrittura nell ordine delle chiavi, chiave ripetuta per valore', () => {

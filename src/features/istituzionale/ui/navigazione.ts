@@ -3,11 +3,11 @@
 // su una riga (link dettaglio-intervento-smp e dettaglio-intervento-output) e i link verso l'elenco operativo, solo col
 // grant della pagina di arrivo (OP-IS-09). Gli indirizzi li costruiscono le funzioni pure di lib/collegamenti.
 import { useNavigate } from 'react-router';
+import { codiceDelPercorso } from '../../../entities/filtri';
 import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { codiceDalClic } from '../../../shared/lib';
 import type { ClicGrafico } from '../../../shared/ui';
 import { percorsoIntervento } from '../lib/collegamenti';
-import { codiceDelPercorso } from '../lib/criteri';
 import { puoLeggere } from '../lib/grant';
 import { pagineVisibili } from '../lib/pagine';
 import type { LinkDato } from '../lib/verifica';
