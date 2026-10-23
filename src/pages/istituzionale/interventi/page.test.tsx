@@ -37,7 +37,7 @@ const NON_CARICATI = "Dati non caricati: l'avviso in cima alla pagina dice il mo
 afterEach(() => vi.restoreAllMocks());
 
 describe("RF017: output programmato e realizzato dell'intervento per anno (TX-0017 filtrata sull'intervento)", () => {
-  it('le letture col solo intervento della route; testata, badge, KPI e le tre schede nell ordine del wireframe', async () => {
+  it('le letture col solo intervento della route, una per transazione anche aprendo le schede; testata, badge, KPI e le tre schede nell ordine del wireframe', async () => {
     const lette = servi();
     apri('/istituzionale/interventi/SRA01');
     expect(await screen.findByRole('heading', { level: 1, name: 'Produzione integrata' })).toBeTruthy();
@@ -53,6 +53,16 @@ describe("RF017: output programmato e realizzato dell'intervento per anno (TX-00
       ['Verifica SMP non SIGC', 'false'],
       ['Importi unitari', 'false'],
     ]);
+    // decisione D2 (review X2): TX-0016 e TX-0017 si leggono all'apertura della pagina, per KPI e badge; le schede leggono
+    // dalla stessa cache, nessuna lettura in piu'
+    await userEvent.click(screen.getByRole('tab', { name: 'Verifica SMP non SIGC' }));
+    await voci();
+    await userEvent.click(screen.getByRole('tab', { name: 'Importi unitari' }));
+    await screen.findByRole('table', { name: /^Importo unitario per Unit Amount/ });
+    await userEvent.click(screen.getByRole('tab', { name: 'Output per anno' }));
+    await trovaCard('Output programmato e realizzato per anno (ettari)');
+    expect(lette.verifica).toEqual(['?intervento=SRA01']);
+    expect(lette.output).toEqual(['?intervento=SRA01']);
   });
 
   it('un solo h1 col focus e il titolo del documento dal codice; la barra dei riferimenti; nessuna violazione axe', async () => {
