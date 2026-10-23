@@ -17,11 +17,13 @@ import {
   criteriUnitAmount,
   etichettaStatoArea,
   nessunFiltro,
+  notaStatiEsclusi,
   ricercaDaCriteri,
   ricercaDeiCriteri,
   statoAmmette,
   testiCriteri,
   testoStato,
+  vociDelloStatoNelPannello,
 } from '../src/features/procedurale/lib/criteri';
 import {
   LINK_ELENCO,
@@ -193,6 +195,17 @@ describe('procedurale: criteri nell indirizzo (RF024: intervento, OS, OG, OP e s
     ]);
     expect([testoStato('AMMESSA', STATI_AREA.valori), testoStato('BOH', STATI_AREA.valori)]).toEqual(['Ammessa', 'BOH']);
     expect([statoAmmette({}, 'AMMESSA'), statoAmmette({ stato: ['ammessa'] }, 'AMMESSA'), statoAmmette({ stato: ['REVOCATA'] }, 'AMMESSA')]).toEqual([true, true, false]);
+  });
+
+  it('il pannello propone solo le voci di TX-0025 che l indirizzo esprime e dice quante ne esclude (A3 iter2)', () => {
+    const catalogo = STATI_AREA.valori ?? [];
+    const accentata = { chiave: 'REVOCATÀ', descrizione: 'revocatà', origine: 'OSSERVATO' as const };
+    const conSegni = { chiave: 'SOSPESA: A&B', descrizione: 'sospesa', origine: 'OSSERVATO' as const };
+    const { voci, escluse } = vociDelloStatoNelPannello([...catalogo.slice(0, 11), accentata, conSegni, ...catalogo.slice(11)]);
+    expect(voci.map((v) => v.chiave)).toEqual(catalogo.map((v) => v.chiave));
+    expect(escluse).toBe(2);
+    expect(vociDelloStatoNelPannello(catalogo)).toEqual({ voci: catalogo, escluse: 0 });
+    expect(notaStatiEsclusi(2)).toBe("Stati osservati con un codice che l'indirizzo non esprime, non selezionabili come filtro: 2.");
   });
 });
 

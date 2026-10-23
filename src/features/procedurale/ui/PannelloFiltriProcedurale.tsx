@@ -2,16 +2,17 @@
 // dei report procedurali"): il pannello comune di entities/filtri (PannelloFiltriProgramma, lo stesso di fisico e
 // istituzionale) con le voci di TX-0024 della slice (interventi senza AT001, OS, OG, OP) e senza l'azione portante
 // (RF024), poi il gruppo dello stato domanda area programmazione con le voci di TX-0025 (le dieci di RF025, gli stati
-// osservati, la voce senza stato). Le Unit Amount non hanno il gruppo dello stato (TX-0030 non lo accetta: lo stato
-// dell'indirizzo resta per le altre pagine); il dettaglio dell'intervento ha il solo gruppo dello stato. La scelta e' una
-// bozza: "Applica i filtri" la porta nell'indirizzo, "Azzera" la svuota. PannelloLaterale di react-aria (focus trap, Esc,
-// ritorno del focus); controlli bootstrap-italia nativi del kit.
+// osservati, la voce senza stato; non uno stato osservato con un codice che l'indirizzo non esprime, detto in una nota).
+// Le Unit Amount non hanno il gruppo dello stato (TX-0030 non lo accetta: lo stato dell'indirizzo resta per le altre
+// pagine); il dettaglio dell'intervento ha il solo gruppo dello stato. La scelta e' una bozza: "Applica i filtri" la porta
+// nell'indirizzo, "Azzera" la svuota. PannelloLaterale di react-aria (focus trap, Esc, ritorno del focus); controlli
+// bootstrap-italia nativi del kit.
 import { useId } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import { PannelloFiltriProgramma, useBozzaFiltri } from '../../../entities/filtri';
 import { Caricamento, Caselle, Gruppo, PannelloLaterale } from '../../../shared/ui';
 import type { StatoQuery } from '../../../shared/ui';
-import { etichettaStatoArea, nessunFiltro } from '../lib/criteri';
+import { etichettaStatoArea, nessunFiltro, notaStatiEsclusi, vociDelloStatoNelPannello } from '../lib/criteri';
 import type { CriteriProcedurali } from '../lib/criteri';
 import type { ValoriFiltri, ValoriStatiArea } from '../lib/dto';
 import type { FormaCriteri } from './useCriteriNellIndirizzo';
@@ -26,17 +27,22 @@ interface PropsStato {
   setBozza: Dispatch<SetStateAction<CriteriProcedurali>>;
 }
 
-/** Le voci dello stato: quelle di TX-0025, oppure, senza (grant o errore), le sole chiavi gia' scelte, da poter togliere. */
+/**
+ * Le voci dello stato: quelle di TX-0025 che l'indirizzo esprime (le altre no, e la nota dice quante sono), oppure, senza
+ * (grant o errore), le sole chiavi gia' scelte, da poter togliere.
+ */
 function VociDelloStato({ statiArea, bozza, setBozza }: PropsStato) {
   const id = useId();
   const scelti = bozza.stato ?? [];
-  const voci = statiArea?.data?.valori;
-  const opzioni = voci ? voci.map((v) => ({ valore: v.chiave, etichetta: etichettaStatoArea(v) })) : scelti.map((s) => ({ valore: s }));
+  const valori = statiArea?.data?.valori;
+  const nelPannello = valori ? vociDelloStatoNelPannello(valori) : null;
+  const opzioni = nelPannello ? nelPannello.voci.map((v) => ({ valore: v.chiave, etichetta: etichettaStatoArea(v) })) : scelti.map((s) => ({ valore: s }));
   return (
     <>
-      {!voci && <p className="ui-nota">Valori dello stato area programmazione non disponibili: restano le voci dell&apos;indirizzo.</p>}
+      {!nelPannello && <p className="ui-nota">Valori dello stato area programmazione non disponibili: restano le voci dell&apos;indirizzo.</p>}
       <Caselle id={`${id}-stato`} etichetta={TITOLO_STATO} opzioni={opzioni} scelti={scelti} onCambia={(v) => setBozza((b) => ({ ...b, stato: v.length > 0 ? v : undefined }))} />
       <p className="ui-nota">Le dieci voci di RF025, poi gli stati osservati e la voce senza stato, con le descrizioni del backend.</p>
+      {nelPannello && nelPannello.escluse > 0 && <p className="ui-nota">{notaStatiEsclusi(nelPannello.escluse)}</p>}
     </>
   );
 }

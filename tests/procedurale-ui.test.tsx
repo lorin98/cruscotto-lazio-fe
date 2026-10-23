@@ -16,7 +16,7 @@ import { graficoDi, tabellaDi, trovaCard } from '../src/shared/testing/card-graf
 import { clicSulCodice } from '../src/shared/testing/grafico-finto';
 import { renderPagina } from '../src/shared/testing/render-pagina';
 import { DettaglioIntervento, DomandeAmmesse, Panoramica, Riepilogo, Sottofasi, StatiPagamento, StatiSostegno, UnitAmount } from '../src/features/procedurale';
-import { ammessePer, sottofasiSostegnoPer, statiPer } from '../src/features/procedurale/testing/fixture';
+import { STATI_AREA, ammessePer, sottofasiSostegnoPer, statiPer } from '../src/features/procedurale/testing/fixture';
 import { lettureProcedurale } from '../src/features/procedurale/testing/letture';
 import type { Basi } from '../src/features/procedurale/testing/letture';
 import { apreLaVoce, indirizzoElenco, puntoDelloStato, testiLinkStato } from '../src/features/procedurale/lib/collegamenti';
@@ -93,6 +93,28 @@ describe('PaginaProcedurale e PannelloFiltriProcedurale (impaginazione e filtri 
     await userEvent.click(within(pannello).getByRole('checkbox', { name: 'Ammessa' }));
     await userEvent.click(within(pannello).getByRole('button', { name: 'Applica i filtri' }));
     await waitFor(() => expect(dove(router)).toBe('/procedurale?intervento=SRD01&stato=AMMESSA'));
+  });
+
+  it('uno stato osservato con un codice che l indirizzo non esprime: il pannello non lo propone e lo dice, nei report e nel dettaglio (A3 iter2)', async () => {
+    const valori = STATI_AREA.valori ?? [];
+    servi({ statiArea: { ...STATI_AREA, valori: [...valori.slice(0, 11), { chiave: 'REVOCATÀ', descrizione: 'revocatà', origine: 'OSSERVATO' }, ...valori.slice(11)] } });
+    const nota = "Stati osservati con un codice che l'indirizzo non esprime, non selezionabili come filtro: 1.";
+    const { unmount } = renderPagina(Panoramica, '/procedurale');
+    await trovaCard('Domande di sostegno per stato');
+    await apriFiltri();
+    const pannello = await screen.findByRole('dialog', { name: 'Filtri dei report procedurali' });
+    expect(within(pannello).queryByRole('checkbox', { name: /^Revocatà/ })).toBeNull();
+    expect(within(pannello).getByRole('checkbox', { name: 'Revocata (stato osservato fuori catalogo)' })).toBeTruthy();
+    expect(within(pannello).getByRole('checkbox', { name: 'Senza stato area programmazione (nessuna determina aperta)' })).toBeTruthy();
+    expect(within(pannello).getAllByRole('checkbox', { name: /^(Presentata|Ammessa|Rettificata\/sostituita)$/ })).toHaveLength(3);
+    expect(within(pannello).getByText(nota)).toBeTruthy();
+    unmount();
+    apriDettaglio('/procedurale/interventi/SRD01');
+    await screen.findByRole('region', { name: 'Domande ammesse' });
+    await apriFiltri();
+    const delDettaglio = await screen.findByRole('dialog', { name: "Filtri del dettaglio dell'intervento" });
+    expect(within(delDettaglio).queryByRole('checkbox', { name: /^Revocatà/ })).toBeNull();
+    expect(within(delDettaglio).getByText(nota)).toBeTruthy();
   });
 
   it('Unit Amount: la pill dello stato non applicato, nessun gruppo dello stato; Azzera lascia lo stato nell indirizzo', async () => {

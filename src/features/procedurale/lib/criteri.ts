@@ -25,7 +25,8 @@ const PROGRAMMA = ['intervento', 'os', 'og', 'op'] as const;
 // ESEGUIRE"): lettere, cifre, spazi e punteggiatura breve, al piu' 100 caratteri, senza spazi ai bordi. Un valore diverso
 // non arriva dall'indirizzo in pagina ne' finisce in un link o in un filtro. Il backend accetta i codici osservati come
 // sono nel database, anche con segni fuori da questo formato (StatoOsservato): per loro la tabella dice che la voce non
-// si apre nell'elenco (motivoSenzaLink di lib/collegamenti) e il clic sulla barra non filtra la pagina.
+// si apre nell'elenco (motivoSenzaLink di lib/collegamenti), il clic sulla barra non filtra la pagina e il pannello dei
+// filtri non li propone, ma dice quanti sono (vociDelloStatoNelPannello).
 const CHIAVE_STATO = /^[A-Za-z0-9](?:[A-Za-z0-9_ .,'()/-]{0,98}[A-Za-z0-9_.)])?$/;
 
 /** Una chiave di stato utilizzabile in un indirizzo. */
@@ -100,6 +101,21 @@ export function etichettaStatoArea(v: StatoArea): string {
   if (v.origine === 'OSSERVATO') return `${maiuscolaIniziale(v.descrizione)} (stato osservato fuori catalogo)`;
   if (v.origine === 'SENZA_STATO') return `${maiuscolaIniziale(v.descrizione)} (nessuna determina aperta)`;
   return maiuscolaIniziale(v.descrizione);
+}
+
+/**
+ * Le voci di TX-0025 che il pannello propone: solo quelle con una chiave che l'indirizzo esprime (chiaveStatoValida).
+ * Le altre, scritte con "Applica i filtri", criteriDaRicerca le scarterebbe: la pagina si rileggerebbe senza filtro e
+ * senza dirlo (review A3 dell'iterazione 2). Quante sono escluse lo dice la nota del pannello.
+ */
+export function vociDelloStatoNelPannello(valori: readonly StatoArea[]): { voci: StatoArea[]; escluse: number } {
+  const voci = valori.filter((v) => chiaveStatoValida(v.chiave));
+  return { voci, escluse: valori.length - voci.length };
+}
+
+/** La nota del pannello sugli stati osservati che non si possono scegliere come filtro. */
+export function notaStatiEsclusi(escluse: number): string {
+  return `Stati osservati con un codice che l'indirizzo non esprime, non selezionabili come filtro: ${escluse}.`;
 }
 
 /** I criteri senza un valore dello stato (il chip tolto); senza valori rimasti lo stato sparisce. */
