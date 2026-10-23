@@ -34,6 +34,9 @@ const apri = (indirizzo = PERCORSO) => renderPagina(Pagina, PERCORSO, indirizzo)
 const h1 = () => screen.getByRole('heading', { level: 1, name: TITOLO });
 const tabella = () => screen.findByRole('table', { name: /^Domande di sostegno per intervento e stato/ });
 const righe = (t: HTMLElement) => within(t).getAllByRole('row', { name: /^Apri l'anteprima/ }).map((r) => r.getAttribute('aria-label'));
+/** Il messaggio di stato del filtro della tabella sulla voce: la regione role=status della pagina (ce ne sono altre). */
+const regioneCon = async (messaggio: string) => (await screen.findByText(messaggio)).closest('[role="status"]');
+const FILTRATA = /^Tabella per intervento filtrata sulla voce/;
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -72,11 +75,14 @@ describe('RF027: stati della domanda di sostegno per intervento (TX-0027)', () =
       '/elenco-operativo/domande?statoSostegno=ESITO_POSITIVO_TUTTE_LE_MISURE&intervento=SRA01&intervento=SRD01',
     );
     expect(righe(await tabella())).toEqual(["Apri l'anteprima dell'intervento SRD01"]);
+    expect(await regioneCon('Tabella per intervento filtrata sulla voce Istruttoria con esito positivo su tutte le misure: 1 intervento.')).not.toBeNull();
     await userEvent.click(screen.getByRole('button', { name: 'Togli il filtro Intervento SRA01' }));
     await waitFor(() => expect(lette.sostegno.at(-1)).toBe('?intervento=SRD01'));
     const ancora = await screen.findByRole('group', { name: 'Filtro della tabella dal grafico' });
     await userEvent.click(within(ancora).getByRole('button', { name: 'Togli il filtro Voce Istruttoria con esito positivo su tutte le misure' }));
     await waitFor(() => expect(document.activeElement).toBe(h1()));
+    // col chip tolto la regione si svuota: il focus sull'h1 dice la pagina
+    expect(screen.queryByText(FILTRATA)).toBeNull();
   });
 
   it('la voce scelta che sparisce dalla risposta con altri filtri si toglie: tornando ai filtri di prima niente chip ne filtro', async () => {
@@ -89,6 +95,7 @@ describe('RF027: stati della domanda di sostegno per intervento (TX-0027)', () =
     await waitFor(() => expect(lette.sostegno.at(-1)).toBe('?intervento=SRD01'));
     await waitFor(async () => expect(righe(await tabella())).toEqual(["Apri l'anteprima dell'intervento SRD01"]));
     expect(screen.queryByRole('group', { name: 'Filtro della tabella dal grafico' })).toBeNull();
+    expect(await regioneCon('Filtro della voce tolto: la voce non è più nella risposta coi filtri scelti.')).not.toBeNull();
     await act(() => router.navigate(-1));
     await waitFor(async () => expect(righe(await tabella())).toHaveLength(3));
     expect(screen.queryByRole('group', { name: 'Filtro della tabella dal grafico' })).toBeNull();
@@ -128,6 +135,9 @@ describe('RF027: stati della domanda di sostegno per intervento (TX-0027)', () =
     const filtro = await screen.findByRole('group', { name: 'Filtro della tabella dal grafico' });
     expect(within(filtro).getByRole('button', { name: 'Togli il filtro Voce Altro stato: SOSPESA (codice SIAN fuori catalogo)' })).toBeTruthy();
     expect(righe(await tabella())).toEqual(["Apri l'anteprima dell'intervento SRA01"]);
+    // la tabella sta dopo la card e il focus resta sul pulsante: lo dice la regione di stato della pagina
+    expect(await regioneCon('Tabella per intervento filtrata sulla voce Altro stato: SOSPESA (codice SIAN fuori catalogo): 1 intervento.')).not.toBeNull();
+    expect(document.activeElement?.getAttribute('aria-label')).toBe('Filtra la tabella su Altro stato: SOSPESA (codice SIAN fuori catalogo)');
   });
 
   it('senza il grant dell elenco: la tabella equivalente senza link, il chip della voce senza link, il drawer senza link', async () => {

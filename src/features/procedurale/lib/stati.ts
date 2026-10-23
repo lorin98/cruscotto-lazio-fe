@@ -4,8 +4,9 @@
 // di cui non rilasciate e la parte rilasciata, quella che l'elenco operativo puo' aprire (D-04 Rev. 5, OP-PR-08). Una
 // voce senza fonte (IN_COMPILAZIONE con FONTE_NON_ATTIVA DOMANDE_IN_COMPILAZIONE) ha domande e di cui non rilasciate null:
 // il DTO porta 0 nel di cui, che per una voce senza fonte non ha significato (scelta 5 approvata il 22/10/2026).
-// Poi le intestazioni brevi delle colonne, i KPI della pagina degli stati e la tabella per intervento.
-import { confronta, formatNumber, maiuscolaIniziale } from '../../../shared/lib';
+// Poi le intestazioni brevi delle colonne, i KPI della pagina degli stati, la tabella per intervento e i messaggi di stato
+// del suo filtro sulla voce.
+import { confronta, formatNumber, maiuscolaIniziale, plurale } from '../../../shared/lib';
 import type { AltroStato, Distribuzione, RigaStati, Stati, TipoDomanda, VoceStato } from './dto';
 
 /** La chiave della voce delle domande senza stato area programmazione (TX-0025, voceProgrammazione dell'elenco). */
@@ -118,3 +119,15 @@ export function senzaDomande(d: Pick<Stati, 'righe' | 'totale'>): boolean {
 export function righeConLaVoce<R extends RigaStati>(righe: readonly R[], chiave: string): R[] {
   return righe.filter((r) => (vociDegliStati(r.stati).find((v) => v.chiave === chiave)?.domande ?? 0) > 0);
 }
+
+/**
+ * Il messaggio di stato della voce scelta (clic sulla barra o "Filtra la tabella"): la tabella per intervento sta dopo la
+ * card e il focus resta sul pulsante, quindi la regione di stato della pagina dice la voce e quante righe restano
+ * (WCAG 4.1.3, come il filtro dal grafico dell'elenco operativo).
+ */
+export function testoFiltroDellaVoce(etichetta: string, n: number): string {
+  return `Tabella per intervento filtrata sulla voce ${etichetta}: ${plurale(n, 'intervento', 'interventi')}.`;
+}
+
+/** Il messaggio di stato quando la voce scelta sparisce dalla risposta (altri filtri) e il filtro della tabella si toglie. */
+export const VOCE_TOLTA = 'Filtro della voce tolto: la voce non è più nella risposta coi filtri scelti.';

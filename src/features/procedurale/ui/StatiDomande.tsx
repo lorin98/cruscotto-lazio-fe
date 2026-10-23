@@ -6,7 +6,8 @@
 // il percorso da tastiera, "Filtra la tabella" e "Apri nell'elenco" per ogni voce, la parte rilasciata); la tabella per
 // intervento e stato; il drawer di anteprima. UNA
 // lettura di TX-0027 o TX-0028 coi criteri dell'indirizzo. La voce scelta e la riga aperta sono stato della pagina: restano
-// mentre la lettura riparte. Togliendo il chip della voce, che sparisce col suo bottone, il focus va sull'h1. Stati:
+// mentre la lettura riparte. La voce scelta, e quella tolta perche' non e' piu' nella risposta, le dice una regione di
+// stato. Togliendo il chip della voce, che sparisce col suo bottone, il focus va sull'h1. Stati:
 // caricamento, errore (un solo avviso della pagina), vuoto con "Modifica i filtri", valori dei filtri non disponibili.
 import { useState } from 'react';
 import { ApriNellElenco } from '../../../entities/domanda';
@@ -20,7 +21,7 @@ import type { Stati, TipoDomanda } from '../lib/dto';
 import { NOTA_SOLO_CSR_DP, testoVuoto } from '../lib/formato';
 import { puoLeggere } from '../lib/grant';
 import { kpiDegliStati } from '../lib/kpi';
-import { righeConLaVoce, righeStati, senzaDomande, vociDegliStati } from '../lib/stati';
+import { VOCE_TOLTA, righeConLaVoce, righeStati, senzaDomande, testoFiltroDellaVoce, vociDegliStati } from '../lib/stati';
 import type { VoceDistribuzione } from '../lib/stati';
 import { AnteprimaStati } from './AnteprimaStati';
 import { CardStati } from './CardDistribuzioni';
@@ -116,18 +117,47 @@ function ReportStati({ tipo, d, pagina, voce, onVoce, aperto, onApri }: PropsRep
   );
 }
 
-function PaginaStati({ tipo, stato, pagina }: { tipo: TipoDomanda; stato: StatoQuery<Stati>; pagina: PaginaDeiCriteri }) {
+/**
+ * La voce scelta dal grafico o da "Filtra la tabella" e la regione role=status che la dice, sempre montata fuori da
+ * VistaQuery (review V1 dell'iterazione 2, come useFiltroDalGrafico dell'elenco operativo): la tabella per intervento sta
+ * dopo la card e il focus resta sul pulsante, quindi la regione dice la voce e quante righe restano. L'annuncio si
+ * rimonta a ogni scelta, anche della stessa voce. Col chip tolto si svuota (il focus va gia' sull'h1); la voce che
+ * sparisce dalla risposta si toglie e la regione lo dice.
+ */
+function useVoceDellaTabella(stato: StatoQuery<Stati>) {
   const [voce, setVoce] = useState<string | null>(null);
-  const [aperto, setAperto] = useState<string | null>(null);
+  const [annuncio, setAnnuncio] = useState<{ n: number; testo: string } | null>(null);
+  const annuncia = (testo: string | null) => setAnnuncio((a) => (testo === null ? null : { n: (a?.n ?? 0) + 1, testo }));
+  const d = stato.data;
   // la voce scelta che sparisce dalla risposta (un altro stato fuori catalogo, con altri filtri) si toglie: chip e filtro
   // della tabella non spariscono in silenzio per ricomparire da soli tornando ai filtri di prima (stato derivato nel render)
-  if (voce !== null && stato.data && !vociDegliStati(stato.data.totale).some((v) => v.chiave === voce)) setVoce(null);
+  if (voce !== null && d && !vociDegliStati(d.totale).some((v) => v.chiave === voce)) {
+    setVoce(null);
+    annuncia(VOCE_TOLTA);
+  }
+  const scegli = (chiave: string | null) => {
+    setVoce(chiave);
+    const v = chiave === null ? undefined : vociDegliStati(d?.totale).find((x) => x.chiave === chiave);
+    annuncia(v && d ? testoFiltroDellaVoce(v.etichetta, righeConLaVoce(righeStati(d), v.chiave).length) : null);
+  };
+  const regione = (
+    <p className="visually-hidden" role="status">
+      {annuncio && <span key={annuncio.n}>{annuncio.testo}</span>}
+    </p>
+  );
+  return { voce, scegli, regione };
+}
+
+function PaginaStati({ tipo, stato, pagina }: { tipo: TipoDomanda; stato: StatoQuery<Stati>; pagina: PaginaDeiCriteri }) {
+  const { voce, scegli, regione } = useVoceDellaTabella(stato);
+  const [aperto, setAperto] = useState<string | null>(null);
   const testi = TESTI[tipo];
   const vuoto = (d: Stati) => <VuotoConFiltri onModifica={() => pagina.apri('vuoto')}>{testoVuoto(testi.vuoto, conFiltri(pagina.filtri), d.perimetro)}</VuotoConFiltri>;
   return (
     <PaginaProcedurale pagina={pagina} briciola={testi.pagina} titolo={`Procedurale: ${testi.pagina.toLowerCase()}`} titoloDocumento={`${testi.pagina} - Procedurale`} sottotitolo={testi.sottotitolo} nota={tipo === 'PAGAMENTO' ? NOTA_SOLO_CSR_DP : undefined} perimetro={stato.data?.perimetro} tipoPerimetro="domande" codiciRisposta={righeStati(stato.data ?? {}).map((r) => r.codiceIntervento)}>
+      {regione}
       <VistaQuery stato={stato} eVuoto={senzaDomande} vuoto={vuoto}>
-        {(d) => <ReportStati tipo={tipo} d={d} pagina={pagina} voce={voce} onVoce={setVoce} aperto={aperto} onApri={setAperto} />}
+        {(d) => <ReportStati tipo={tipo} d={d} pagina={pagina} voce={voce} onVoce={scegli} aperto={aperto} onApri={setAperto} />}
       </VistaQuery>
     </PaginaProcedurale>
   );

@@ -45,6 +45,7 @@ import {
 import { NON_DISPONIBILE_BREVE, STATO_NON_APPLICATO, nellaTuaArea, perimetroDelle, pillPerimetro, resaAssenza, siNo, testoNessunIntervento, testoVuoto } from '../src/features/procedurale/lib/formato';
 import {
   SENZA_STATO,
+  VOCE_TOLTA,
   codiciAltriStati,
   diTipo,
   domandeAltroStato,
@@ -53,6 +54,7 @@ import {
   rilasciate,
   senzaDomande,
   testoAltriStati,
+  testoFiltroDellaVoce,
   titoloBreve,
   voceDi,
   vociDegliStati,
@@ -326,6 +328,12 @@ describe('procedurale: distribuzioni per stato (SC-PC_STATI_SOSTEGNO, SC-PC_STAT
     expect([senzaDomande(SOSTEGNO), senzaDomande(statiPer('SOSTEGNO', q('os=OS5'))), senzaDomande({ righe: [] })]).toEqual([false, true, true]);
     expect(righeConLaVoce(righeStati(SOSTEGNO), 'SOSPESA').map((r) => r.codiceIntervento)).toEqual(['SRA01']);
     expect(righeConLaVoce(righeStati(SOSTEGNO), 'RILASCIATO').map((r) => r.codiceIntervento)).toEqual(['SRD01']);
+  });
+
+  it('i messaggi di stato del filtro della tabella sulla voce: la voce e quante righe restano, la voce tolta (V1 iter2)', () => {
+    expect(testoFiltroDellaVoce('Altro stato: SOSPESA (codice SIAN fuori catalogo)', 1)).toBe('Tabella per intervento filtrata sulla voce Altro stato: SOSPESA (codice SIAN fuori catalogo): 1 intervento.');
+    expect(testoFiltroDellaVoce('Rilasciato', 2)).toBe('Tabella per intervento filtrata sulla voce Rilasciato: 2 interventi.');
+    expect(VOCE_TOLTA).toBe('Filtro della voce tolto: la voce non è più nella risposta coi filtri scelti.');
   });
 
   it('il filtro per stato restringe l universo: le non rilasciate contano solo con SENZA_STATO (SC-PC_FILTRO_STATO)', () => {
