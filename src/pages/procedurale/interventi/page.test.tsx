@@ -12,7 +12,7 @@ import { graficoDi, tabellaDi, trovaCard } from '../../../shared/testing/card-gr
 import { clicSulCodice } from '../../../shared/testing/grafico-finto';
 import { problema, trattenuta } from '../../../shared/testing/msw';
 import { renderPagina } from '../../../shared/testing/render-pagina';
-import { ammessePer } from '../../../features/procedurale/testing/fixture';
+import { ammessePer, statiPer } from '../../../features/procedurale/testing/fixture';
 import { lettureProcedurale } from '../../../features/procedurale/testing/letture';
 import type { Basi } from '../../../features/procedurale/testing/letture';
 import Pagina from './page';
@@ -261,6 +261,23 @@ describe('RF024: stati del dettaglio (caricamento, errore, senza dati, nessuna d
     expect(testo((await screen.findByRole('region', { name: 'Domande ammesse' })).textContent)).toMatch(/^Domande ammesse0/);
     expect(screen.getAllByRole('alert')).toHaveLength(1);
     expect(screen.queryByText(/^Nessuna domanda di SRD01/)).toBeNull();
+  });
+
+  it('perimetro ADA (P4) senza domande di SRD01 nella sua ADA: la pill in evidenza, il vuoto e la barra dicono l ADA', async () => {
+    servi();
+    // le tre letture del P4: la riga di SRD01 c'e' (dato di programma), con zero domande nella sua ADA
+    const zero = new URLSearchParams('intervento=SRD01&stato=DECADENZA_TOTALE');
+    server.use(
+      http.get('*/api/procedurale/domande-ammesse', () => HttpResponse.json({ ...ammessePer(zero), perimetro: 'ADA' })),
+      http.get('*/api/procedurale/stati-sostegno', () => HttpResponse.json({ ...statiPer('SOSTEGNO', zero), perimetro: 'ADA' })),
+      http.get('*/api/procedurale/stati-pagamento', () => HttpResponse.json({ ...statiPer('PAGAMENTO', zero), perimetro: 'ADA' })),
+    );
+    apri();
+    expect(await screen.findByText('Nessuna domanda di SRD01 nella tua area (perimetro ADA).')).toBeTruthy();
+    const barra = screen.getByRole('region', { name: 'Filtri attivi' });
+    expect(within(barra).getByText(/^Perimetro: .* \(solo le domande della tua ADA\)$/).className).toContain('ui-pill--evidenza');
+    expect(within(barra).getByText("Nessun filtro per stato: tutte le domande dell'intervento nella tua ADA")).toBeTruthy();
+    expect(screen.queryByText(/nei report procedurali/)).toBeNull();
   });
 
   it('un intervento senza righe nei report: lo stato senza dati, il titolo col solo codice', async () => {

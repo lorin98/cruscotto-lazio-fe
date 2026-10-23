@@ -1,10 +1,11 @@
 // intervento.ts — il dettaglio procedurale dell'intervento come DATI (PURO, zero React; flusso panoramica, scelta 1
 // approvata il 22/10/2026): titolo e sopratitolo della testata (descrizione da TX-0024), badge in testo (perimetro
 // dell'intervento e attivato, da TX-0026), le schede visibili per grant nell'ordine del wireframe (Stati delle domande |
-// Area programmazione | Sottofasi, scelta 6 | Unit Amount) e gli esiti "senza dati" e "nessuna domanda per lo stato
-// scelto". Nessuna transazione nuova: gli stessi report filtrati sull'intervento (lo stato tranne che per TX-0030).
-import type { Distribuzione, RigaAmmesse } from './dto';
-import { siNo } from './formato';
+// Area programmazione | Sottofasi, scelta 6 | Unit Amount) e gli esiti "senza dati" e "nessuna domanda" (per lo stato
+// scelto, nella propria ADA). Nessuna transazione nuova: gli stessi report filtrati sull'intervento (lo stato tranne che
+// per TX-0030).
+import type { Distribuzione, Perimetro, RigaAmmesse } from './dto';
+import { nellaTuaArea, siNo } from './formato';
 import type { Lettura } from './grant';
 
 /** Il titolo della testata (h1): "SRD01 - descrizione" da TX-0024, altrimenti "Intervento SRD01". */
@@ -53,6 +54,20 @@ export function schedaAttiva(schede: readonly IdScheda[], scelta: IdScheda | nul
 export function senzaDomande(ammesse: RigaAmmesse | undefined, sostegno: Distribuzione | undefined, pagamento: Distribuzione | undefined): boolean {
   const conti = [ammesse?.domandeAmmesse, sostegno?.totale, pagamento?.totale].filter((n) => n !== undefined);
   return conti.length > 0 && conti.every((n) => n === 0);
+}
+
+/**
+ * Il vuoto del dettaglio senza domande, con la regola di testoVuoto: col perimetro ADA dice la propria area (il P4 vede
+ * le sole domande della sua ADA), altrimenti "nei report procedurali"; con lo stato scelto lo dice.
+ */
+export function testoNessunaDomanda(codice: string, conStato: boolean, perimetro: Perimetro | undefined): string {
+  const dove = nellaTuaArea(perimetro) || (conStato ? '' : ' nei report procedurali');
+  return `Nessuna domanda di ${codice}${dove}${conStato ? ' per lo stato area programmazione scelto' : ''}.`;
+}
+
+/** Il chip della barra senza filtro per stato: tutte le domande dell'intervento, col perimetro ADA quelle della propria ADA. */
+export function testoSenzaStato(perimetro: Perimetro | undefined): string {
+  return `Nessun filtro per stato: tutte le domande dell'intervento${perimetro === 'ADA' ? ' nella tua ADA' : ''}`;
 }
 
 /** Lo stato vuoto del dettaglio: l'intervento non ha righe nei report letti. */

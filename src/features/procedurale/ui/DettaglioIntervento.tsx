@@ -29,7 +29,7 @@ import type { Perimetro } from '../lib/dto';
 import { perimetroDelle } from '../lib/formato';
 import { puoLeggere } from '../lib/grant';
 import type { Lettura } from '../lib/grant';
-import { SENZA_DATI, badgeIntervento, senzaDomande, sopratitoloIntervento, titoloDocumentoIntervento, titoloIntervento } from '../lib/intervento';
+import { SENZA_DATI, badgeIntervento, senzaDomande, sopratitoloIntervento, testoNessunaDomanda, testoSenzaStato, titoloDocumentoIntervento, titoloIntervento } from '../lib/intervento';
 import type { IdScheda } from '../lib/intervento';
 import { kpiDelleAmmesse, kpiDomandeDellIntervento } from '../lib/kpi';
 import { PERCORSI, pagineVisibili } from '../lib/pagine';
@@ -118,16 +118,18 @@ function KpiDettaglio({ codice, letture, criteri }: { codice: string; letture: L
 /**
  * Nessuna domanda dell'intervento nelle letture: con lo stato scelto l'invito a cambiarlo (le schede restano). Lo dice
  * solo se tutte le letture fatte hanno risposto: una lettura in errore non conta come zero (mai un vuoto dedotto da un
- * errore, che lo dice l'avviso della pagina).
+ * errore, che lo dice l'avviso della pagina). Col perimetro ADA dice la propria area, come le pagine dei report.
  */
-function NessunaDomanda({ codice, letture, pagina }: { codice: string; letture: Letture; pagina: PaginaDeiCriteri }) {
+function NessunaDomanda({ codice, letture, pagina, perimetro }: { codice: string; letture: Letture; pagina: PaginaDeiCriteri; perimetro: Perimetro | undefined }) {
   if ([letture.ammesse, letture.sostegno, letture.pagamento].some(senzaRisposta)) return null;
   const r = righe(codice, letture);
   if (!senzaDomande(r.ammesse, r.sostegno, r.pagamento)) return null;
-  if ((pagina.filtri.stato ?? []).length === 0) return <Vuoto>{`Nessuna domanda di ${codice} nei report procedurali.`}</Vuoto>;
+  const conStato = (pagina.filtri.stato ?? []).length > 0;
+  const testo = testoNessunaDomanda(codice, conStato, perimetro);
+  if (!conStato) return <Vuoto>{testo}</Vuoto>;
   return (
     <Vuoto>
-      <VuotoConFiltri onModifica={() => pagina.apri('vuoto')}>{`Nessuna domanda di ${codice} per lo stato area programmazione scelto.`}</VuotoConFiltri>
+      <VuotoConFiltri onModifica={() => pagina.apri('vuoto')}>{testo}</VuotoConFiltri>
     </Vuoto>
   );
 }
@@ -138,6 +140,7 @@ interface PropsCorpo {
   letture: Letture;
   pagina: PaginaDeiCriteri;
   criteri: CriteriProcedurali;
+  perimetro: Perimetro | undefined;
   scheda: IdScheda | null;
   onScheda: (s: IdScheda) => void;
 }
@@ -149,7 +152,7 @@ const inAggiornamento = (l: Letture) => [l.ammesse, l.sostegno, l.pagamento].som
  * Il corpo secondo lo stato delle letture: scheletro (solo alla prima apertura), errore (detto dall'avviso della pagina),
  * senza dati, KPI e schede; mentre una lettura riparte coi criteri nuovi i dati di prima restano e l'avviso lo dice.
  */
-function CorpoDettaglio({ stato, codice, letture, pagina, criteri, scheda, onScheda }: PropsCorpo) {
+function CorpoDettaglio({ stato, codice, letture, pagina, criteri, perimetro, scheda, onScheda }: PropsCorpo) {
   if (stato === 'caricamento') return <Caricamento alto />;
   if (stato === 'errore') return <ErroreNellaPagina />;
   if (stato === 'vuoto') return <Vuoto>{SENZA_DATI}</Vuoto>;
@@ -158,7 +161,7 @@ function CorpoDettaglio({ stato, codice, letture, pagina, criteri, scheda, onSch
     <>
       <AvvisoAggiornamento attivo={aggiorna} />
       <div className="ui-risultati" aria-busy={aggiorna || undefined}>
-        <NessunaDomanda codice={codice} letture={letture} pagina={pagina} />
+        <NessunaDomanda codice={codice} letture={letture} pagina={pagina} perimetro={perimetro} />
         <KpiDettaglio codice={codice} letture={letture} criteri={criteri} />
         <SchedeIntervento codice={codice} criteri={criteri} onModifica={() => pagina.apri('vuoto')} sostegno={letture.sostegno} pagamento={letture.pagamento} scheda={scheda} onScheda={onScheda} />
       </div>
@@ -184,7 +187,7 @@ function BarraDelDettaglio({ pagina, perimetro }: { pagina: PaginaDeiCriteri; pe
       {pagina.valori && <PillDatiAl voci={pagina.valori.data?.ultimiDatiSincronizzati} inErrore={pagina.valori.isError} />}
     </>
   );
-  return <BarraFiltri chip={pagina.chip} onApri={() => pagina.apri('barra')} onTogliTutti={pagina.togliTutti} vuoto="Nessun filtro per stato: tutte le domande dell'intervento" destra={destra} />;
+  return <BarraFiltri chip={pagina.chip} onApri={() => pagina.apri('barra')} onTogliTutti={pagina.togliTutti} vuoto={testoSenzaStato(perimetro)} destra={destra} />;
 }
 
 function Dettaglio({ codice }: { codice: string }) {
@@ -207,7 +210,7 @@ function Dettaglio({ codice }: { codice: string }) {
         <ValoriFiltriNonDisponibili letture={[pagina.valori, pagina.statiArea]} h1={pagina.h1} />
         <AvvisoPagina>
           <ErroriDelleLetture letture={letture} />
-          <CorpoDettaglio stato={stato} codice={codice} letture={letture} pagina={pagina} criteri={criteri} scheda={scheda} onScheda={setScheda} />
+          <CorpoDettaglio stato={stato} codice={codice} letture={letture} pagina={pagina} criteri={criteri} perimetro={perimetro} scheda={scheda} onScheda={setScheda} />
         </AvvisoPagina>
       </main>
       <PannelloFiltriProcedurale aperto={pagina.pannello !== null} forma="soloStato" criteri={pagina.filtri} valori={pagina.valori} statiArea={pagina.statiArea} codiciRisposta={[codice]} onApplica={pagina.onApplica} onChiudi={pagina.chiudi} />

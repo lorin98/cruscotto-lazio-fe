@@ -68,6 +68,8 @@ import {
   schedeVisibili,
   senzaDomande as senzaDomandeDellIntervento,
   sopratitoloIntervento,
+  testoNessunaDomanda,
+  testoSenzaStato,
   titoloDocumentoIntervento,
   titoloIntervento,
 } from '../src/features/procedurale/lib/intervento';
@@ -461,6 +463,18 @@ describe('procedurale: riepilogo per intervento (SC-PC_RIEPILOGO) e dettaglio de
     expect(senzaDomandeDellIntervento(RIGA('SRD01'), undefined, undefined)).toBe(false);
     expect(senzaDomandeDellIntervento(undefined, undefined, undefined)).toBe(false);
     expect(SENZA_DATI).toMatch(/^Nessun dato per questo intervento nei report procedurali/);
+  });
+
+  it('nessuna domanda e barra senza stato: col perimetro ADA dicono la propria area (la regola di testoVuoto)', () => {
+    expect([testoNessunaDomanda('SRD01', false, 'REGIONALE'), testoNessunaDomanda('SRD01', true, undefined)]).toEqual([
+      'Nessuna domanda di SRD01 nei report procedurali.',
+      'Nessuna domanda di SRD01 per lo stato area programmazione scelto.',
+    ]);
+    expect([testoNessunaDomanda('SRD01', false, 'ADA'), testoNessunaDomanda('SRD01', true, 'ADA')]).toEqual([
+      'Nessuna domanda di SRD01 nella tua area (perimetro ADA).',
+      'Nessuna domanda di SRD01 nella tua area (perimetro ADA) per lo stato area programmazione scelto.',
+    ]);
+    expect([testoSenzaStato('REGIONALE'), testoSenzaStato('ADA')]).toEqual(["Nessun filtro per stato: tutte le domande dell'intervento", "Nessun filtro per stato: tutte le domande dell'intervento nella tua ADA"]);
   });
 });
 
