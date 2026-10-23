@@ -1,7 +1,8 @@
 // intestazione.ts — intestazione dei file generati nel browser (oggi il PNG di un grafico), con le voci di NFR-50 come
 // quella dei CSV e XLSX scritti dal backend: testata e titolo, fonte, contesto della pagina (filtri applicati, profilo,
 // ultimo dato sincronizzato), data e ora di estrazione, dicitura sull'uso interno (review v3 V-01). Il PNG non e'
-// registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08. Puro.
+// registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08. Il perimetro in parole e' quello delle letture regionali del
+// fisico e dell'istituzionale (review H7: prima una copia per feature). Puro.
 import { formatDataOra } from './format';
 import { testoUltimiDati } from './aggiornamento';
 import type { UltimoDato } from './aggiornamento';
@@ -32,6 +33,11 @@ export function aCapo(testo: string, massimo: number, misura: (t: string) => num
     }
   }
   return corrente ? [...linee, corrente] : linee;
+}
+
+/** Il perimetro di una risposta in parole, per le righe di contesto e i riferimenti (REGIONALE = "regionale"). */
+export function testoPerimetro(perimetro: string): string {
+  return perimetro === 'REGIONALE' ? 'regionale' : perimetro.toLowerCase();
 }
 
 /**

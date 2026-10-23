@@ -3,14 +3,21 @@
 // finanziario), riga sotto il sottotitolo della testata, card del grafico senza PNG o col nome dei file, messaggio del
 // file oltre il limite dell'esportazione, interruttore a piu' scelte, stato vuoto coi filtri e badge di un'assenza (prima
 // nel fisico e nel finanziario), focus quando uno stato sparisce col suo comando (prima nell'istituzionale e in
-// AvvisoPagina). Dati di prova inventati.
+// AvvisoPagina) e righe di contesto del PNG dei grafici (prima nel finanziario, nel fisico e nell'istituzionale). Dati di
+// prova inventati.
 import { useRef } from 'react';
+import type { ReactElement } from 'react';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { http, HttpResponse } from 'msw';
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { AxiosError, AxiosHeaders } from 'axios';
-import { AvvisoAggiornamento, CardGrafico, Interruttore, InterruttoreVista, OLTRE_IL_LIMITE_DELL_ESPORTAZIONE, PulsantiScarica, SelettoreAnno, TestaPagina, Vuoto, VuotoConFiltri, messaggioOltreIlLimite, useAnnoNellIndirizzo, useFocusSeSparisce } from '../src/shared/ui';
+import { AvvisoAggiornamento, CardGrafico, Interruttore, InterruttoreVista, OLTRE_IL_LIMITE_DELL_ESPORTAZIONE, PulsantiScarica, SelettoreAnno, TestaPagina, Vuoto, VuotoConFiltri, messaggioOltreIlLimite, useAnnoNellIndirizzo, useFocusSeSparisce, useRigheContesto } from '../src/shared/ui';
+import { server } from '../src/shared/api/mock/server';
+import { clientDiTest } from '../src/shared/testing/render';
+import type { UltimoDato } from '../src/shared/lib';
 import { AssenzaMotivata, BadgeAssenza } from '../src/entities/importo';
 import { PROBLEM_TYPES } from '../src/shared/api/problem/problem-types';
 import type { DatiGrafico, Scaricamento } from '../src/shared/ui';
@@ -247,5 +254,36 @@ describe('useFocusSeSparisce del kit: il focus quando uno stato sparisce col suo
     altro.blur();
     rerender(<Prova visibile={false} />);
     expect(document.activeElement).toBe(document.body);
+  });
+});
+
+describe('useRigheContesto del kit: le righe di contesto del PNG dei grafici (review H7, prima in tre copie)', () => {
+  const viste: (readonly string[])[] = [];
+  function Righe({ criteri, ultimi, perimetro }: { criteri: string[]; ultimi?: readonly UltimoDato[]; perimetro?: string | null }) {
+    const righe = useRigheContesto(criteri, ultimi, perimetro);
+    viste.push(righe);
+    return (
+      <ul>
+        {righe.map((r) => (
+          <li key={r}>{r}</li>
+        ))}
+      </ul>
+    );
+  }
+
+  it('criteri applicati, perimetro solo se dato, profilo della sessione, ultimo dato; coi dati uguali le righe sono le stesse', async () => {
+    server.use(http.get('*/auth/status', () => HttpResponse.json({ authenticated: true, user: { username: 'U', profile: 'p4-prova', roles: [] } })));
+    const client = clientDiTest();
+    const conQuery = (ui: ReactElement) => <QueryClientProvider client={client}>{ui}</QueryClientProvider>;
+    const ultimi = [{ flusso: 'DS-12', conclusoIl: '2026-03-02T09:15:00Z' }];
+    const { rerender } = render(conQuery(<Righe criteri={['Intervento: SRA01', 'Anno di riferimento: 2024']} ultimi={ultimi} perimetro="regionale" />));
+    const voci = () => screen.getAllByRole('listitem').map((l) => l.textContent);
+    await waitFor(() => expect(voci()).toContain('Profilo: p4-prova'));
+    expect(voci()).toEqual(['Filtri applicati: Intervento: SRA01; Anno di riferimento: 2024', 'Perimetro: regionale', 'Profilo: p4-prova', 'Ultimo dato sincronizzato: DS-12 02/03/2026 10:15']);
+    // criteri nuovi ma uguali: le stesse righe (lo stesso oggetto nel contesto del PNG)
+    rerender(conQuery(<Righe criteri={['Intervento: SRA01', 'Anno di riferimento: 2024']} ultimi={ultimi} perimetro="regionale" />));
+    expect(viste.at(-1)).toBe(viste.at(-2));
+    rerender(conQuery(<Righe criteri={[]} />));
+    expect(voci()).toEqual(['Filtri applicati: nessuno', 'Profilo: p4-prova', 'Ultimo dato sincronizzato: non disponibile']);
   });
 });

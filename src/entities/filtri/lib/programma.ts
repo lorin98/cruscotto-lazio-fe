@@ -59,6 +59,14 @@ export function ricercaDaFiltri(filtri: Filtri): string {
   return scriviRipetuti(CHIAVI_FILTRO, (chiave) => filtri[chiave as ChiaveFiltro]);
 }
 
+/**
+ * I soli filtri del programma di una query string (senza "?"), validi e nell'ordine delle chiavi: la parte che resta
+ * passando dal menu da un report all'altro di un'area (finanziario, istituzionale; review H7 dell'istituzionale).
+ */
+export function ricercaDeiSoliFiltri(ricerca: string): string {
+  return ricercaDaFiltri(filtriDaRicerca(ricerca));
+}
+
 /** Toglie il filtro per azione portante quando il backend dichiara che il legame non c'e' (OP-002). */
 export function senzaAzioneSeNonDisponibile<F extends Filtri>(filtri: F, legameDisponibile: boolean): F {
   if (legameDisponibile || !filtri.azione) return filtri;

@@ -6,8 +6,9 @@
 // pilastro (Extra CSR) non hanno un ambito nel frontend (scelta dell'utente del 12/10/2026). Le card descrivono il
 // contenuto reale delle feature (decisione G1 dell'utente del 21/10/2026): ogni pagina sta nella feature della sua slice.
 import type { ComponentType, ReactNode } from 'react';
+import { ricercaDeiSoliFiltri } from '../entities/filtri';
 import { pagineVisibili as pagineElenco } from '../features/elenco-operativo';
-import { AnteprimaFinanziario, filtriDaRicerca, pagineVisibili as pagineFinanziario, ricercaDaFiltri } from '../features/finanziario';
+import { AnteprimaFinanziario, pagineVisibili as pagineFinanziario } from '../features/finanziario';
 import { pagineVisibili as pagineFisico } from '../features/fisico';
 import { pagineVisibili as pagineIstituzionale, ricercaConservata as ricercaIstituzionale } from '../features/istituzionale';
 import type { NomeIcona } from '../shared/ui';
@@ -55,7 +56,7 @@ export const AREE: readonly Area[] = [
     tono: 'blu',
     contenuti: ['Dotazione, impegni e pagamenti per intervento', 'Domande e importi per anno di raccolta', 'SIGC, riserva di efficacia e verifica SMP'],
     pagineVisibili: pagineFinanziario,
-    ricercaConservata: (search) => ricercaDaFiltri(filtriDaRicerca(search)),
+    ricercaConservata: ricercaDeiSoliFiltri,
     Anteprima: AnteprimaFinanziario,
   },
   {

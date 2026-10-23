@@ -6,7 +6,7 @@
 // (come l'esercizio della verifica SMP del finanziario). Poi il codice dell'intervento del percorso del dettaglio.
 import { filtriAttivi, filtriNellaBarra, ricercaDaFiltri, valoreFiltroValido } from '../../../entities/filtri';
 import type { Filtri } from '../../../entities/filtri';
-import { isAnnoValido } from '../../../shared/lib';
+import { anniProposti, isAnnoValido } from '../../../shared/lib';
 
 /** Criteri di TX-0016: i filtri del programma e l'anno di riferimento del file (assente = l'ultimo anno con un file). */
 export interface CriteriVerifica extends Filtri {
@@ -25,10 +25,7 @@ export const ANNI_DEL_PERIODO = { primo: 2023, ultimo: 2029 } as const;
  * file, se fuori dal periodo) e quello scelto (dall'indirizzo), in ordine. La spec non elenca gli anni dei file.
  */
 export function anniDiRiferimento(risposta: number | null | undefined, scelto: number | undefined): number[] {
-  const anni = new Set<number>();
-  for (let a = ANNI_DEL_PERIODO.primo; a <= ANNI_DEL_PERIODO.ultimo; a++) anni.add(a);
-  for (const a of [risposta, scelto]) if (isAnnoValido(a)) anni.add(a);
-  return [...anni].sort((x, y) => x - y);
+  return anniProposti(ANNI_DEL_PERIODO.primo, ANNI_DEL_PERIODO.ultimo, risposta, scelto);
 }
 
 /** Query string dei filtri (senza "?") con l'anno della ricerca corrente: l'anno resta quando i filtri cambiano. */

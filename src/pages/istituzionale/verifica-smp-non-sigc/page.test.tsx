@@ -11,6 +11,7 @@ import { graficoDi, trovaCard } from '../../../shared/testing/card-grafico';
 import { clicSulDato } from '../../../shared/testing/grafico-finto';
 import { problema, trattenuta } from '../../../shared/testing/msw';
 import { renderPagina } from '../../../shared/testing/render-pagina';
+import { pngDelGrafico } from '../../../shared/ui/grafici/echarts';
 import { VALORI, VERIFICA } from '../../../features/istituzionale/testing/fixture';
 import { lettureIstituzionale } from '../../../features/istituzionale/testing/letture';
 import Pagina from './page';
@@ -69,6 +70,26 @@ describe('RF016: i dati ASR non SIGC per intervento, da confrontare con SMP - Da
     // l'intervento senza spesa valorizzata e' fuori dal grafico e dichiarato; lo zero di SRA01 e' una barra vera
     expect(graficoDi(card)?.opzioni.length).toBeGreaterThan(0);
     await expectNoA11yViolations(container);
+  });
+
+  it('il PNG del grafico dichiara i filtri e l anno della pagina, il perimetro, il profilo e l ultimo dato (NFR-50)', async () => {
+    servi();
+    profilo(P3_IST);
+    URL.createObjectURL = vi.fn(() => 'blob:prova');
+    URL.revokeObjectURL = vi.fn();
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    const png = vi.mocked(pngDelGrafico);
+    png.mockClear();
+    apri(`${PERCORSO}?intervento=SRD01&anno=2024`);
+    const card = await trovaCard(CARD);
+    await userEvent.click(within(card).getByRole('button', { name: / in PNG$/ }));
+    await waitFor(() => expect(png).toHaveBeenCalledTimes(1));
+    expect(png.mock.calls[0][1].intestazione.slice(2, 6)).toEqual([
+      'Filtri applicati: Intervento: SRD01; Anno di riferimento: 2024',
+      'Perimetro: regionale',
+      'Profilo: p3-funzionario-area-ist',
+      expect.stringMatching(/^Ultimo dato sincronizzato: /),
+    ]);
   });
 
   it('decisione G4: con csr.tx-0015.read la frase col link alla verifica SMP SIGC del finanziario, senza filtri portati', async () => {

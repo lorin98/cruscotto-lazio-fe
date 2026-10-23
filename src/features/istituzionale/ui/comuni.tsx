@@ -1,16 +1,13 @@
 // comuni.tsx — mattoni di DOMINIO dei report istituzionali (UI v2, wireframe approvati del 22/10/2026): lo stato "valori
 // dei filtri non disponibili" della pagina (TX-0060 in errore: role=status col motivo e Riprova, i chip dell'indirizzo
 // restano e il report si legge lo stesso), la resa di un dato della verifica SMP non SIGC (il valore, oppure l'assenza
-// col motivo in badge: mai uno 0 o un "no" inventati) col suo link verso l'elenco operativo, e le righe di contesto del
-// PNG dei grafici (NFR-50). Classi bootstrap-italia e del kit; nessun react-aria.
-import { useMemo } from 'react';
+// col motivo in badge: mai uno 0 o un "no" inventati) col suo link verso l'elenco operativo. Le righe di contesto del PNG
+// dei grafici (NFR-50) sono quelle del kit (useRigheContesto). Classi bootstrap-italia e del kit; nessun react-aria.
 import type { RefObject } from 'react';
 import { ApriNellElenco } from '../../../entities/domanda';
 import { ValoreImporto, ValoreMotivato } from '../../../entities/importo';
 import type { DatoMotivatoLike } from '../../../entities/importo';
-import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
-import { formatNumber, getErrorMessage, righeContesto } from '../../../shared/lib';
-import type { UltimoDato } from '../../../shared/lib';
+import { formatNumber, getErrorMessage } from '../../../shared/lib';
 import { useFocusSeSparisce } from '../../../shared/ui';
 import type { StatoQuery } from '../../../shared/ui';
 import type { ValoriFiltriElenco } from '../api';
@@ -55,11 +52,4 @@ export function CellaDato({ r, d, unita, puo }: { r: RigaVerifica; d: DatoVerifi
       {indirizzo && d.link && <ApriNellElenco variante="testo" indirizzo={indirizzo} {...TESTI_LINK[d.link](r.codiceIntervento)} />}
     </>
   );
-}
-
-/** Righe di contesto del PNG dei grafici (NFR-50): criteri applicati, perimetro, profilo, ultimo dato della risposta. */
-export function useContesto(criteri: readonly string[], ultimi: readonly UltimoDato[] | undefined): readonly string[] {
-  const profilo = useAuthStatus().data?.user?.profile;
-  const chiave = criteri.join('\n');
-  return useMemo(() => righeContesto({ filtri: chiave ? chiave.split('\n') : [], profilo, ultimi, perimetro: 'regionale' }), [chiave, profilo, ultimi]);
 }

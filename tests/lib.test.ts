@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { formatDataOra, formatDate, formatEttari, formatGiorno, formatNumber } from '../src/shared/lib/format';
-import { isAnnoValido } from '../src/shared/lib/anni';
+import { anniProposti, isAnnoValido } from '../src/shared/lib/anni';
 import { nomeFile } from '../src/shared/lib/nome-file';
-import { DICITURA_USO, aCapo, righeContesto, righeIntestazione } from '../src/shared/lib/intestazione';
+import { DICITURA_USO, aCapo, righeContesto, righeIntestazione, testoPerimetro } from '../src/shared/lib/intestazione';
 import { etichettaFlusso, menoRecente, testoUltimiDati } from '../src/shared/lib/aggiornamento';
 import { MAX_VALORI_PARAMETRO, leggiRipetuti, scriviRipetuti } from '../src/shared/lib/parametri-ripetuti';
 import { conStatoSalvato, leggiStatoSalvato } from '../src/shared/lib/stato-history';
@@ -46,6 +46,12 @@ describe('lib/anni — anno di un parametro del contratto (2000-2100)', () => {
     expect(isAnnoValido(1999)).toBe(false);
     expect(isAnnoValido(2025.5)).toBe(false);
     expect(isAnnoValido(undefined)).toBe(false);
+  });
+
+  it('anniProposti (review H7 dell istituzionale, prima nel finanziario e nell istituzionale): il periodo e gli anni validi in piu, in ordine', () => {
+    expect(anniProposti(2023, 2025)).toEqual([2023, 2024, 2025]);
+    expect(anniProposti(2023, 2025, 2024, 2031, 2019, 1999, 2025.5, null, undefined)).toEqual([2019, 2023, 2024, 2025, 2031]);
+    expect(anniProposti(2023, 2025, 2031, 2031)).toEqual([2023, 2024, 2025, 2031]);
   });
 });
 
@@ -128,6 +134,10 @@ describe('lib/intestazione — intestazione dei file generati nel browser (NFR-5
       `Uso: ${DICITURA_USO}`,
     ]);
     expect(DICITURA_USO).toBe('Documento ad uso interno di ARSIAL e della Regione Lazio: dati riservati, non diffondere');
+  });
+  it('testoPerimetro (review H7 dell istituzionale, prima nel fisico e nell istituzionale): il perimetro della risposta in parole', () => {
+    expect([testoPerimetro('REGIONALE'), testoPerimetro('ADA')]).toEqual(['regionale', 'ada']);
+    expect(righeContesto({ filtri: [], profilo: 'P1', ultimi: undefined, perimetro: testoPerimetro('REGIONALE') })[1]).toBe('Perimetro: regionale');
   });
   it('aCapo: linee entro il massimo fra le parole, una parola troppo lunga resta intera', () => {
     const misura = (t: string) => t.length;

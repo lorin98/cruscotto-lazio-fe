@@ -7,13 +7,12 @@
 // bootstrap-italia e del kit v2; nessun react-aria.
 import { useMemo } from 'react';
 import type { Filtri } from '../../../entities/filtri';
-import { CardGrafico, ContestoIntestazione, TabellaVoci, Vuoto } from '../../../shared/ui';
+import { CardGrafico, ContestoIntestazione, TabellaVoci, Vuoto, useRigheContesto } from '../../../shared/ui';
 import { criteriVerifica, testiCriteri } from '../lib/criteri';
 import type { Verifica } from '../lib/dto';
-import { NESSUN_FILE } from '../lib/formato';
+import { NESSUN_FILE, PERIMETRO_IN_PAROLE } from '../lib/formato';
 import { TITOLO_SPESA, graficoSpesa } from '../lib/grafici';
 import { vociRiferimenti } from '../lib/verifica';
-import { useContesto } from './comuni';
 import { OGGETTO_FILE_VERIFICA, fileVerifica } from './esportazioni';
 import { useApriIntervento } from './navigazione';
 import { TabellaVerifica } from './TabellaVerifica';
@@ -26,7 +25,7 @@ export function ReportVerifica({ d, filtri, anno }: { d: Verifica; filtri: Filtr
   const { apri, dalClic } = useApriIntervento(anno);
   const dati = useMemo(() => graficoSpesa(d.righe), [d.righe]);
   const file = fileVerifica(anno === undefined ? 'Verifica SMP non SIGC' : `Verifica SMP non SIGC ${anno}`, criteriVerifica(filtri, anno));
-  const contesto = useContesto(testiCriteri(filtri, anno), d.ultimiDatiSincronizzati);
+  const contesto = useRigheContesto(testiCriteri(filtri, anno), d.ultimiDatiSincronizzati, PERIMETRO_IN_PAROLE);
   return (
     <ContestoIntestazione.Provider value={contesto}>
       {d.annoRiferimento === null && <Vuoto>{NESSUN_FILE}</Vuoto>}

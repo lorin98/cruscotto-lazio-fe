@@ -4,7 +4,7 @@
 // filtri del programma (intervento, OS, OG, OP, azione portante) sono gli stessi del fisico: formato, lettura, scrittura,
 // etichette e chip stanno in entities/filtri e qui si riesportano, cosi' i moduli della feature non cambiano.
 import { ricercaDaFiltri } from '../../../entities/filtri';
-import { isAnnoValido } from '../../../shared/lib';
+import { anniProposti } from '../../../shared/lib';
 import type { Filtri } from '../../../entities/filtri';
 
 export {
@@ -29,10 +29,7 @@ const ULTIMO_ANNO: Record<'riserva' | 'esercizio', number> = { riserva: 2029, es
 
 /** Anni da proporre nel selettore; un anno valido gia' scelto (es. dall'indirizzo) resta sempre selezionabile. */
 export function anniSelezionabili(tipo: 'riserva' | 'esercizio', corrente?: number): number[] {
-  const anni: number[] = [];
-  for (let a = PRIMO_ANNO_CSR; a <= ULTIMO_ANNO[tipo]; a++) anni.push(a);
-  if (isAnnoValido(corrente) && !anni.includes(corrente)) anni.push(corrente);
-  return anni.sort((x, y) => x - y);
+  return anniProposti(PRIMO_ANNO_CSR, ULTIMO_ANNO[tipo], corrente);
 }
 
 /**

@@ -2,18 +2,16 @@
 // quantita' con la loro unita' di misura (mai un numero senza unita', note WCAG dello uiplan), si'/no, target di fine
 // periodo, assenze con la resa unica dell'entity importo (mai uno zero ne' un "no": motivi della slice compresi,
 // OP-IS-08), stati vuoti e note sulle definizioni del backend (OP-IS-07: note fisse, non un dato). I testi sono quelli
-// dei wireframe approvati del 22/10/2026, con le lettere accentate.
+// dei wireframe approvati del 22/10/2026, con le lettere accentate. Il perimetro in parole e' di shared/lib (review H7).
 import { descriviAssenza, testoConNota } from '../../../entities/importo';
 import type { DatoMotivatoLike, ImportoResa } from '../../../entities/importo';
-import { formatNumber, maiuscolaIniziale } from '../../../shared/lib';
+import { formatNumber, maiuscolaIniziale, testoPerimetro } from '../../../shared/lib';
 
 /** Pill della barra: i report istituzionali hanno sempre il perimetro regionale (spec: enum REGIONALE). */
 export const PILL_PERIMETRO = 'Perimetro: regionale (i report istituzionali non hanno perimetro ADA)';
 
-/** Perimetro della risposta in parole (sempre REGIONALE: "regionale"). */
-export function testoPerimetro(perimetro: string): string {
-  return perimetro === 'REGIONALE' ? 'regionale' : perimetro.toLowerCase();
-}
+/** Il perimetro dei report istituzionali in parole (sempre REGIONALE), nelle righe di contesto del PNG. */
+export const PERIMETRO_IN_PAROLE = testoPerimetro('REGIONALE');
 
 /** Pill dell'anno di riferimento del file della verifica (annoRiferimento della risposta; null = nessun file). */
 export function pillAnnoDelFile(anno: number | null): string {

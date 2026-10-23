@@ -17,6 +17,7 @@ export type { AltezzaGrafico, ClicGrafico } from './grafici/Grafico';
 export { CardGrafico, InterruttoreVista, eVistaGrafico } from './grafici/CardGrafico';
 export type { VistaGrafico } from './grafici/CardGrafico';
 export { ContestoIntestazione } from './grafici/usePngDelGrafico';
+export { useRigheContesto } from './grafici/useRigheContesto';
 export type { DatiGrafico, TabellaEquivalente } from '../lib/grafici';
 export { Griglia, Sezione } from './card/Sezione';
 export { Interruttore } from './card/Interruttore';

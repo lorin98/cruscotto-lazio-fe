@@ -12,6 +12,7 @@ import {
   DEFINIZIONI_OUTPUT,
   DEFINIZIONI_VERIFICA,
   NESSUN_FILE,
+  PERIMETRO_IN_PAROLE,
   PILL_PERIMETRO,
   TESTO_ASSENTE,
   assenzaInFrase,
@@ -22,7 +23,6 @@ import {
   testoAnnoDiRiferimento,
   testoMotivato,
   testoOutputErogato,
-  testoPerimetro,
   testoTarget,
   testoVuoto,
 } from '../src/features/istituzionale/lib/formato';
@@ -115,7 +115,7 @@ describe('RF016 e RF017: i link dello uiplan (dettaglio, report filtrati, elenco
 describe('RF016 e RF017: testi (perimetro, anno, quantita, assenze, definizioni)', () => {
   it('perimetro, anno del file e periodo della barra', () => {
     expect(PILL_PERIMETRO).toBe('Perimetro: regionale (i report istituzionali non hanno perimetro ADA)');
-    expect([testoPerimetro('REGIONALE'), testoPerimetro('ADA')]).toEqual(['regionale', 'ada']);
+    expect(PERIMETRO_IN_PAROLE).toBe('regionale');
     expect(pillAnnoDelFile(2025)).toBe('Anno di riferimento del file SMP non SIGC: 2025');
     expect(pillAnnoDelFile(null)).toBe('Anno di riferimento del file SMP non SIGC: nessun file');
     expect(pillPeriodo(2023, 2029)).toBe('Periodo: 2023 - 2029');

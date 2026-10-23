@@ -10,6 +10,7 @@ import {
   filtriAttivi,
   filtriDaRicerca,
   ricercaDaFiltri,
+  ricercaDeiSoliFiltri,
   senzaAzioneSeNonDisponibile,
   senzaValore,
   valoreFiltroValido,
@@ -33,6 +34,12 @@ describe('entities/filtri: i filtri del programma comuni a finanziario e fisico'
   it('scrittura nell ordine delle chiavi, chiave ripetuta per valore', () => {
     expect(ricercaDaFiltri({ os: ['OS4'], intervento: ['SRB01', 'SRA29'] })).toBe('intervento=SRB01&intervento=SRA29&os=OS4');
     expect(ricercaDaFiltri({})).toBe('');
+  });
+
+  it('ricercaDeiSoliFiltri (review H7 dell istituzionale, prima nell app e nell istituzionale): i soli filtri validi, nell ordine', () => {
+    expect(ricercaDeiSoliFiltri('?os=OS4&anno=2024&intervento=SRB01&intervento=<x>&pagina=3')).toBe('intervento=SRB01&os=OS4');
+    expect(ricercaDeiSoliFiltri('anno=2024')).toBe('');
+    expect(ricercaDeiSoliFiltri('')).toBe('');
   });
 
   it('chip, valore tolto e azione senza legame: le chiavi in piu (es. la campagna del fisico) restano', () => {

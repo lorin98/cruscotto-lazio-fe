@@ -1,7 +1,7 @@
 // pagine.ts — pagine dell'istituzionale per il menu e la Home (layer app, OP-IS-05 e decisione G1), visibili per grant:
 // gate di UX, l'enforcement resta del backend. Percorsi e grant sono quelli di src/app/route-table.json (un test li
 // confronta). Il dettaglio dell'intervento non e' una voce di menu: ci si arriva dai due report. PURO.
-import { filtriDaRicerca, ricercaDaFiltri } from '../../../entities/filtri';
+import { ricercaDeiSoliFiltri } from '../../../entities/filtri';
 import { GRANT } from './grant';
 
 export const PERCORSI = {
@@ -32,8 +32,7 @@ export function pagineVisibili(haGrant: (grant: string) => boolean): PaginaIstit
 
 /**
  * La parte dell'indirizzo che resta passando dal menu da un report all'altro dell'area: i filtri del programma, gli stessi
- * nei due report (come nel finanziario). L'anno di riferimento del file no: l'output regionale non lo ha.
+ * nei due report (come nel finanziario, la stessa funzione di entities/filtri). L'anno di riferimento del file no:
+ * l'output regionale non lo ha.
  */
-export function ricercaConservata(search: string): string {
-  return ricercaDaFiltri(filtriDaRicerca(search));
-}
+export const ricercaConservata: (search: string) => string = ricercaDeiSoliFiltri;

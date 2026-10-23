@@ -13,17 +13,14 @@
 // torna li' (A1 dell'iterazione 2).
 // Design system: classi bootstrap-italia e del kit v2; i primitivi react-aria stanno solo dentro i componenti del kit che
 // li richiedono (pannello e drawer modali, popover della pill).
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { descrizioneIntervento, usePannelloConFocus } from '../../../entities/filtri';
-import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
-import { righeContesto } from '../../../shared/lib';
-import { AvvisoPagina, BarraFiltri, Briciole, Caricamento, ContestoIntestazione, PillDatiAl, TestaPagina, VistaQuery, VuotoConFiltri } from '../../../shared/ui';
+import { testoPerimetro } from '../../../shared/lib';
+import { AvvisoPagina, BarraFiltri, Briciole, Caricamento, ContestoIntestazione, PillDatiAl, TestaPagina, VistaQuery, VuotoConFiltri, useRigheContesto } from '../../../shared/ui';
 import type { VistaGrafico } from '../../../shared/ui';
 import { useSuperfici } from '../api';
 import type { SuperficieAmmissibile } from '../api';
 import { ricercaDaCriteri, testiCriteri } from '../lib/criteri';
-import type { Criteri } from '../lib/criteri';
-import { testoPerimetro } from '../lib/formato';
 import { PERCORSI } from '../lib/pagine';
 import { campagnePresenti } from '../lib/superfici';
 import { PannelloFiltriSuperfici } from './PannelloFiltriSuperfici';
@@ -45,21 +42,13 @@ function PillDellaBarra({ d, inErrore }: { d: SuperficieAmmissibile | undefined;
   );
 }
 
-/** Righe di contesto del PNG dei grafici (NFR-50): criteri applicati, perimetro, profilo, ultimo dato di TX-0018. */
-function useContesto(criteri: Criteri, d: SuperficieAmmissibile | undefined): readonly string[] {
-  const profilo = useAuthStatus().data?.user?.profile;
-  const filtri = testiCriteri(criteri).join('\n');
-  return useMemo(
-    () => righeContesto({ filtri: filtri ? filtri.split('\n') : [], profilo, ultimi: d?.ultimiDatiSincronizzati, perimetro: d ? testoPerimetro(d.perimetro) : null }),
-    [filtri, profilo, d],
-  );
-}
-
 type PropsCorpo = Omit<PropsReport, 'd'> & { stato: ReturnType<typeof useSuperfici>; inAttesa: boolean };
 
 /** Il corpo della pagina: un solo avviso, l'attesa del legame con le azioni, la lettura di TX-0018 e il report. */
 function CorpoSuperfici({ stato, inAttesa, ...report }: PropsCorpo) {
-  const contesto = useContesto(report.criteri, stato.data);
+  // righe di contesto del PNG dei grafici (NFR-50, hook del kit): criteri applicati, perimetro, profilo, ultimo dato di TX-0018
+  const d = stato.data;
+  const contesto = useRigheContesto(testiCriteri(report.criteri), d?.ultimiDatiSincronizzati, d ? testoPerimetro(d.perimetro) : null);
   return (
     <ContestoIntestazione.Provider value={contesto}>
       <AvvisoPagina>

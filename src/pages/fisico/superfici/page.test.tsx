@@ -11,6 +11,7 @@ import { graficoDi, trovaCard } from '../../../shared/testing/card-grafico';
 import { clicSulDato } from '../../../shared/testing/grafico-finto';
 import { problema, trattenuta } from '../../../shared/testing/msw';
 import { renderPagina } from '../../../shared/testing/render-pagina';
+import { pngDelGrafico } from '../../../shared/ui/grafici/echarts';
 import { SUPERFICI, SUPERFICI_TRE, VALORI, superficiPer } from '../../../features/fisico/testing/fixture';
 import Pagina from './page';
 
@@ -78,6 +79,26 @@ describe('RF018: superficie ammissibile della domanda di sostegno e di pagamento
     expect(perIntervento.textContent).toContain('1 voce non nel grafico');
     expect(perIntervento.textContent).toContain('SRA29: nessuna superficie in nessuna campagna');
     await expectNoA11yViolations(container);
+  });
+
+  it('il PNG di un grafico dichiara i filtri della pagina, il perimetro della risposta, il profilo e l ultimo dato (NFR-50)', async () => {
+    servi();
+    profilo(['csr.tx-0018.read', 'csr.tx-0060.read']);
+    URL.createObjectURL = vi.fn(() => 'blob:prova');
+    URL.revokeObjectURL = vi.fn();
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    const png = vi.mocked(pngDelGrafico);
+    png.mockClear();
+    apri(`${PERCORSO}?intervento=SRB01`);
+    const card = await trovaCard('Superficie DS e DP per campagna');
+    await userEvent.click(within(card).getByRole('button', { name: / in PNG$/ }));
+    await waitFor(() => expect(png).toHaveBeenCalledTimes(1));
+    expect(png.mock.calls[0][1].intestazione.slice(2, 6)).toEqual([
+      'Filtri applicati: Intervento: SRB01',
+      'Perimetro: regionale',
+      'Profilo: p3-funzionario-area-fis',
+      expect.stringMatching(/^Ultimo dato sincronizzato: /),
+    ]);
   });
 
   it('con il filtro Campagna i KPI sono di quella campagna e la serie per campagna dice perche non si disegna', async () => {

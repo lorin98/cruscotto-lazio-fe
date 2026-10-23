@@ -3,12 +3,12 @@
 // valore, le colonne nascoste di partenza (visibili quelle del low-fi, le altre da "Colonne") e i due link verso l'elenco
 // operativo (OP-IS-09); il valore per l'ordinamento e il testo dei valori; i riferimenti della risposta. I componenti li
 // rendono con un map: qui nessun calcolo resta nei componenti.
-import { formatDate, formatEuro, formatNumber } from '../../../shared/lib';
+import { formatDate, formatEuro, formatNumber, testoPerimetro } from '../../../shared/lib';
 import type { ValoreOrdinabile } from '../../../shared/lib';
 import { conValore, elencoRicevute, elencoSpesa } from './collegamenti';
 import { codiceDelPercorso } from './criteri';
 import type { RigaVerifica, Verifica } from './dto';
-import { quantita, siNo, testoAnnoDiRiferimento, testoOutputErogato, testoPerimetro } from './formato';
+import { quantita, siNo, testoAnnoDiRiferimento, testoOutputErogato } from './formato';
 
 /** Il tipo del valore di un dato: conteggio, importo, data, si'/no, quantita' e testo col motivo; numero sempre valorizzato. */
 export type TipoDato = 'conteggio' | 'importo' | 'data' | 'siNo' | 'quantita' | 'testo' | 'numero';

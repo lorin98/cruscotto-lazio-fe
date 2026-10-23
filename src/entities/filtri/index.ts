@@ -15,6 +15,7 @@ export {
   filtriDaRicerca,
   filtriNellaBarra,
   ricercaDaFiltri,
+  ricercaDeiSoliFiltri,
   senzaAzioneSeNonDisponibile,
   senzaValore,
   valoreFiltroValido,

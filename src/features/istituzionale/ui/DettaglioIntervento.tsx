@@ -15,19 +15,18 @@ import { useState } from 'react';
 import type { Ref } from 'react';
 import { descrizioneIntervento } from '../../../entities/filtri';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
-import { AvvisoPagina, Briciole, Caricamento, ContestoIntestazione, ErroreNellaPagina, Griglia, Kpi, PillDatiAl, TestataDettaglio, Vuoto, useAnnoNellIndirizzo, useErroreNellaPagina, useFocusTitolo } from '../../../shared/ui';
+import { AvvisoPagina, Briciole, Caricamento, ContestoIntestazione, ErroreNellaPagina, Griglia, Kpi, PillDatiAl, TestataDettaglio, Vuoto, useAnnoNellIndirizzo, useErroreNellaPagina, useFocusTitolo, useRigheContesto } from '../../../shared/ui';
 import type { NomeIcona, TonoKpi } from '../../../shared/ui';
 import { useOutputRegionale, useValoriFiltri, useVerificaSmpNonSigc } from '../api';
 import { outputDellIntervento, verificaDellIntervento } from '../lib/collegamenti';
 import { PARAMETRO_ANNO, codiceDelPercorso, criteriVerifica, soloIntervento, testiCriteri } from '../lib/criteri';
 import type { RigaOutput, RigaVerifica } from '../lib/dto';
-import { PILL_PERIMETRO } from '../lib/formato';
+import { PERIMETRO_IN_PAROLE, PILL_PERIMETRO } from '../lib/formato';
 import { puoLeggere } from '../lib/grant';
 import { SENZA_DATI, badgeIntervento, kpiIntervento, sopratitoloIntervento, statoDelDettaglio, titoloIntervento, tutteRisposte, ultimiDelDettaglio, ultimoDatoInErrore } from '../lib/intervento';
 import type { ChiaveKpi, IdScheda, LetturaDettaglio } from '../lib/intervento';
 import { rigaDellIntervento } from '../lib/output';
 import { PERCORSI } from '../lib/pagine';
-import { useContesto } from './comuni';
 import { useIngressoArea } from './navigazione';
 import { SchedeIntervento } from './SchedeIntervento';
 import type { PropsSchede } from './SchedeIntervento';
@@ -177,7 +176,7 @@ function Dettaglio({ codice }: { codice: string }) {
   const ultimi = ultimiDelDettaglio(verifica?.data, output?.data);
   // l'intestazione del PNG coi soli criteri di TX-0017: l'unico PNG della pagina e' quello della scheda Output, che l'anno
   // di riferimento di TX-0016 non lo applica (review A1, NFR-50); un PNG di TX-0016 avrebbe il suo contesto nella scheda
-  const contesto = useContesto(testiCriteri(soloIntervento(codice)), ultimi);
+  const contesto = useRigheContesto(testiCriteri(soloIntervento(codice)), ultimi, PERIMETRO_IN_PAROLE);
   const badge = badgeIntervento(rigaDellIntervento(output?.data?.righe, codice), rigaDellIntervento(verifica?.data?.righe, codice));
   return (
     <ContestoIntestazione.Provider value={contesto}>
