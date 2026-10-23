@@ -1,0 +1,42 @@
+[
+  {
+    "id": "A1",
+    "severity": "MINORE",
+    "file": "src/features/procedurale/ui/DettaglioIntervento.tsx:122",
+    "titolo": "Dettaglio dell'intervento: col perimetro ADA (P4) i testi del vuoto e della barra parlano di tutte le domande, senza dire l'ADA",
+    "evidenza": "NessunaDomanda (righe 119-128) rende 'Nessuna domanda di ${codice} nei report procedurali.' senza guardare il perimetro della risposta, e la barra del dettaglio (riga 182) dice 'Nessun filtro per stato: tutte le domande dell'intervento'. Per SC-PC_SCOPE_P4 il P4 riceve le righe degli interventi del perimetro ufficiale con le sole domande della sua ADA (il P4 senza gruppi ADA 'vede zero domande'), quindi per lui il ramo di riga 122 scatta con un intervento che ha domande in altre ADA: il testo fa credere che l'intervento non ne abbia affatto. Le pagine di report usano invece testoVuoto(soggetto, conFiltri, d.perimetro) (lib/formato.ts:151), che aggiunge ' nella tua area (perimetro ADA)'. Nel dettaglio il perimetro c'e' gia' (perimetroDelle a riga 192) ma non arriva a NessunaDomanda ne' al testo vuoto della barra. La pill ADA nella barra attenua il rischio. Nessun test del dettaglio usa una risposta con perimetro 'ADA' (il solo test ADA del procedurale e' quello del vuoto della panoramica, panoramica/page.test.tsx:249).",
+    "fix": "Passare il perimetro (perimetroDelle delle tre letture) a NessunaDomanda e comporre i due testi con la regola di testoVuoto: '... nella tua area (perimetro ADA)'. Il testo vuoto della barra col perimetro ADA diventa per esempio 'Nessun filtro per stato: tutte le domande dell'intervento nella tua ADA'. Aggiungere un test della pagina /procedurale/interventi/:codice con le letture che rispondono perimetro 'ADA' e righe a zero: pill in evidenza e vuoto che nomina l'ADA."
+  },
+  {
+    "id": "A2",
+    "severity": "MINORE",
+    "file": "src/features/procedurale/ui/comuni.tsx:91",
+    "titolo": "Quando il link non si puo' scrivere (chiave di stato fuori formato) la cella dice 'nessuna domanda rilasciata', che e' falso; la chiave cliccata nella panoramica va nell'indirizzo senza controllo",
+    "evidenza": "Elenco (righe 87-92) mostra 'nessuna domanda rilasciata' per ogni indirizzo null con domande > 0. L'indirizzo pero' e' null anche quando indirizzoElenco non riesce a scrivere il punto: puntoValido (lib/collegamenti.ts:101-104) scarta le chiavi che non passano CHIAVE_STATO (lib/criteri.ts:27: niente lettere accentate, '&', ':', '+', '°' e altri segni). Per le voci dello stato area programmazione, che le non rilasciate non le hanno (vociDellArea mette nonRilasciate 0), e per le voci degli stati con rilasciate > 0, il testo e' falso. Il backend accetta i codici osservati cosi' come stanno nel database: StatoOsservato.java:9 dice 'Il codice resta com'e' nel database (i filtri lo rimandano tale e quale)', e FiltroStatoArea.risolvi li confronta senza distinguere maiuscole e minuscole. Quindi una chiave valida per TX-0025 e TX-0029 puo' cadere fuori dalla regex del frontend. In quel caso anche il clic su una barra dell'area nella panoramica (Panoramica.tsx:104: pagina.applica({ ...pagina.filtri, stato: [chiave] }) con la chiave della risposta, senza chiaveStatoValida) e la scelta dal pannello scrivono ?stato=<chiave>, poi criteriDaRicerca la scarta. La pagina si rilegge senza il filtro, senza un chip e senza un avviso. Non c'e' allargamento (fail-closed sul link e niente richieste con valori fuori formato), ma il dato e' detto in modo sbagliato e il filtro sparisce senza che la pagina lo dica.",
+    "fix": "Far restituire al link anche il motivo dell'assenza (per esempio { indirizzo: null, motivo: 'chiave' | 'nessuna' | 'nessunaRilasciata' | 'fonte' }) e mostrare 'non apribile nell'elenco (codice di stato non esprimibile)' quando il punto non si scrive. Nella panoramica applicare il clic solo con chiaveStatoValida(chiave). Allineare CHIAVE_STATO al dominio del backend (testo non vuoto senza caratteri di controllo, al piu' 100 caratteri, come valoreAccettabile dell'elenco) oppure escludere dal pannello le voci di TX-0025 fuori formato, dicendolo. Aggiungere un test con un codice osservato accentato."
+  },
+  {
+    "id": "A3",
+    "severity": "MINORE",
+    "file": "src/features/procedurale/ui/useCriteriNellIndirizzo.ts:36",
+    "titolo": "Il dettaglio dell'intervento legge TX-0025, che il route-manifest e lo uiplan della route non dichiarano: l'oracolo authz non lo vede",
+    "evidenza": "DettaglioIntervento usa useCriteriDellaPagina('soloStato') (DettaglioIntervento.tsx:186). Nella forma soloStato conStato e' vero e conStatiArea = puoLeggere(auth, 'statiArea'), quindi parte useStatiAreaProgrammazione (righe 36-38): GET /api/procedurale/filtri/stati-area-programmazione, cioe' TX-0025. La voce /procedurale/interventi/:codice in src/app/route-table.json:444 (proiettata in plan/procedurale/route-manifest.json:95) ha azioni hide-by-role solo per TX-0024 e TX-0026..TX-0032, e lo uiplan (plan/procedurale/uiplan.json:157) elenca le stesse transactions senza TX-0025. Nelle altre feature una lettura dei valori dei filtri e' dichiarata fra le azioni della route anche quando non sta nella visibility: /istituzionale/interventi/:codice ha l'azione TX-0060. Nel codice la lettura ha il suo grant e TX-0025 e' regionale e verificata dal backend, quindi non c'e' allargamento. Pero' check-ui-authz confronta il manifest con lo uiplan e il PASS di oggi non copre questa lettura.",
+    "fix": "Dichiarare TX-0025 per la route del dettaglio passando dal canale approvato (green-fe refresh dello uiplan: TX-0025 fra le transactions della route, senza allargare roles e visibility), poi aggiungere in route-table.json l'azione { operationId: 'TX-0025', gating: 'hide-by-role', grant: 'csr.tx-0025.read' } e riproiettare il manifest. In alternativa registrare la lettura fra le deviazioni riviste del gate."
+  },
+  {
+    "id": "A4",
+    "severity": "MINORE",
+    "file": "src/shared/ui/tabella/TabellaInterattiva.tsx:292",
+    "titolo": "Con 'Colonne' si puo' nascondere l'intestazione di riga delle Unit Amount: le righe restano senza th scope=row",
+    "evidenza": "TabellaUnitAmount passa intestazioneRiga='ua' (TabellaUnitAmount.tsx:52), ma la colonna 'ua' (riga 27) non e' fissa, quindi SceltaColonne la propone fra quelle da nascondere. Il kit usa props.intestazioneRiga ?? visibili[0].chiave e ripiega sulla prima colonna solo se la proprieta' manca, non se la colonna e' nascosta. Con 'Unit Amount' nascosta nessuna cella ha Cella intestazione=true e ogni riga e' fatta di soli td (WCAG 1.3.1). Nella scheda Unit Amount del dettaglio le righe non hanno nemmeno l'aria-label, perche' onRiga manca. L'estensione intestazioneRiga e' nuova di questo perimetro e oggi la usa solo il procedurale.",
+    "fix": "Nel kit usare la colonna indicata solo se e' visibile, altrimenti la prima visibile: const intestazione = visibili.some((c) => c.chiave === props.intestazioneRiga) ? props.intestazioneRiga : visibili[0].chiave. In alternativa rendere fissa la colonna 'ua'. Aggiungere un test che nasconde la colonna e verifica il th scope=row."
+  },
+  {
+    "id": "A5",
+    "severity": "COSMETICO",
+    "file": "src/features/procedurale/api/index.ts:82",
+    "titolo": "Il commento di useValoriFiltri dice che TX-0024 e' fuori dal tetto e dall'audit del backend: e' falso, e porta a toglierla dalla coda comune",
+    "evidenza": "Il commento delle righe 81-82 dice 'una lettura per pagina, fuori dal tetto delle letture e dall'audit del backend'. Nel backend ConsultaProceduraleService e' @LetturaLimitata a livello di classe e filtri() e' @Audited(operazione = \"TX-0024\") (ConsultaProceduraleService.java:68 e :88). Fuori dal tetto e dall'audit sta solo l'ultimo dato sincronizzato (commento di ProceduraleResource.filtri). SC-PC_CAPACITA vale per 'un endpoint GET /api/procedurale/...' e SC-PC_AUDIT registra TX-0024 senza parametri. Il codice e' corretto: app/tetti-letture.ts mette '/api/procedurale/' nella coda comune, 'valori dei filtri compresi'. Il commento lo contraddice, e chi lo seguisse per togliere /filtri dalla coda supererebbe il tetto per utente (503 CAPACITA_ESAURITA).",
+    "fix": "Correggere il commento: 'una lettura per pagina, nella coda comune delle letture come i report (SC-PC_CAPACITA) e registrata in audit senza parametri (SC-PC_AUDIT); fuori dal tetto e dall'audit e' solo l'ultimo dato sincronizzato (D-01 Rev. 2)'."
+  }
+]

@@ -1,0 +1,90 @@
+[
+  {
+    "id": "H1",
+    "severity": "MINORE",
+    "file": "src/features/procedurale/ui/DettaglioIntervento.tsx:60",
+    "titolo": "Lo scheletro del dettaglio dell'intervento e' ricopiato dall'istituzionale; PaginaConFiltri non accetta una testata di dettaglio",
+    "evidenza": "Lo spostamento di statoDelDettaglio e useStatoDelDettaglio nel kit ha lasciato nelle due feature lo stesso guscio quasi riga per riga (circa 27 righe). InterventoNonValido: procedurale :60-72, istituzionale :50-61, cambiano solo i testi. senzaRisposta: procedurale :91, istituzionale :129, identico. ErroriDelleLetture: :94-99 contro :135-139, una useErroreNellaPagina per lettura. Lo switch di CorpoDettaglio su caricamento/errore/vuoto: :147-150 contro :153-157. Il wrapper DettaglioIntervento con codiceDelPercorso e key=codice: :214-218 contro :190-194. In piu' Dettaglio (:196-209) ricompone a mano BarraFiltri, main, Briciole, testata, ValoriFiltriNonDisponibili, AvvisoPagina e pannello, cioe' l'ordine di PaginaConFiltri. Non puo' usarla perche' shared/ui/pagina/PaginaConFiltri.tsx:16 accetta solo testa: ComponentProps<typeof TestaPagina> e nessuna TestataDettaglio.",
+    "fix": "Portare il guscio comune nel kit, accanto a useStatoDelDettaglio, in shared/ui/pagina: CorpoDelDettaglio({ stato, vuoto, children }) per lo switch, useErroriDelleLetture(letture) che registra una volta l'errore di ogni lettura, IntestazioneNonValida({ area, ingresso, suggerimento }). Dare a PaginaConFiltri uno slot testata: ReactNode in alternativa a testa, e usarla nei due dettagli. Spostare il wrapper con codiceDelPercorso in entities/filtri (es. ConCodiceDelPercorso). Aggiungere i test L2 del kit e lasciare verdi quelli dell'istituzionale."
+  },
+  {
+    "id": "H2",
+    "severity": "MINORE",
+    "file": "src/shared/lib/dettaglio.ts:37",
+    "titolo": "rigaDellIntervento, che lavora sul campo di dominio codiceIntervento, e' finito in shared/lib",
+    "evidenza": "rigaDellIntervento<R extends { codiceIntervento?: string }> e' l'unica funzione di shared/lib e shared/ui che conosce il campo di business codiceIntervento (grep: nessun'altra occorrenza fuori dai commenti). Il concetto di intervento vive in entities/filtri, che ha gia' codiceDelPercorso (spostato qui nello stesso giro) e descrizioneIntervento. Sotto FSD shared deve restare senza dominio. statoDelDettaglio e tutteRisposte invece sono generiche e possono restare.",
+    "fix": "Spostare rigaDellIntervento in entities/filtri/lib/programma.ts ed esportarla dal barrel. Aggiornare gli import di istituzionale (DettaglioIntervento, OutputRegionale, SchedeIntervento) e procedurale (DettaglioIntervento, SchedeIntervento) e lasciare in shared/lib/dettaglio solo lo stato delle letture. Spostare il test L1 in tests/entita-filtri-*.test.ts."
+  },
+  {
+    "id": "H3",
+    "severity": "MINORE",
+    "file": "src/features/procedurale/ui/useCriteriNellIndirizzo.ts:41",
+    "titolo": "Il procedurale spegne la regola dell'azione portante dando un falso conValori al hook comune: l'estensione senzaAzione non arriva al hook",
+    "evidenza": "useFiltriProgrammaNellIndirizzo riceve conValori: false e valori: SENZA_LEGAME (:29, un oggetto { isError: false } costruito a mano) anche quando il profilo ha il grant di TX-0024. Il contratto del parametro (entities/filtri/ui/useFiltriProgrammaNellIndirizzo.ts:31) dice invece 'Il profilo legge i valori dei filtri'. Lo spostamento ha aggiunto senzaAzione a GruppiProgramma e a PannelloFiltriProgramma ma non al hook, e la sua assenza si aggira coi valori. Il doc di PropsPannelloProgramma.valori (PannelloFiltriProgramma.tsx:69) dice ancora 'La lettura di TX-0060' anche se il procedurale ci passa TX-0024.",
+    "fix": "Aggiungere a ParametriFiltriNellIndirizzo un senzaAzione?: boolean, oppure rendere facoltativi conValori e valori: senza, legameIgnoto si basa sul solo profilo e inAttesa e' sempre falso. Togliere SENZA_LEGAME e passare senzaAzione dal procedurale. Correggere il doc di valori ('la lettura dei valori dei filtri della feature: TX-0060 o TX-0024'). Un test L2 in tests/entita-filtri-ui.test.tsx."
+  },
+  {
+    "id": "H4",
+    "severity": "MINORE",
+    "file": "src/shared/ui/tabella/TabellaInterattiva.tsx:292",
+    "titolo": "intestazioneRiga del kit vale solo per il corpo: il piede resta sulla prima colonna e una colonna nascosta da 'Colonne' lascia le righe senza intestazione",
+    "evidenza": "Riga riceve intestazione={props.intestazioneRiga ?? visibili[0].chiave} (:292), ma Piede rende sempre i === 0 come th scope=row (:116). Se la colonna nominata non e' fissa e l'utente la nasconde, nessuna cella della riga e' piu' un th. E' il caso di TabellaUnitAmount: intestazioneRiga=\"ua\" (:52) con la colonna 'ua' non fissa (:27), quindi la si toglie da Colonne, mentre la caption continua a dire 'la Unit Amount è l'intestazione di riga'. Il test del kit (tests/kit-comune-procedurale.test.tsx:98) non copre la colonna nascosta.",
+    "fix": "Calcolare una volta l'intestazione effettiva in TabellaInterattiva: la colonna richiesta se e' fra le visibili, altrimenti la prima visibile. Passarla sia a Riga sia a Piede. In alternativa rendere implicitamente fissa la colonna di intestazioneRiga, cosi' non compare in SceltaColonne. Aggiungere un test L2 che nasconde 'ua' e trova ancora un rowheader per riga."
+  },
+  {
+    "id": "H5",
+    "severity": "MINORE",
+    "file": "src/shared/ui/tema.css:222",
+    "titolo": "La riga delle intestazioni di gruppo (colgroup) e quella delle colonne sono entrambe sticky a top: 0 e si sovrappongono quando la tabella scorre",
+    "evidenza": "La regola esistente .ui-tabella thead th { position: sticky; top: 0; z-index: 1 } (:222) vale ora per due righe di thead: la nuova RigaDeiGruppi (TabellaInterattiva.tsx:48) e quella delle colonne. La nuova regola th[scope='colgroup'] (:221) non cambia top. Dentro .ui-tabella-contenitore (max-height 560px, overflow auto, :218), quando la tabella scorre, le due righe si fermano allo stesso punto. La seconda, a parita' di z-index, copre le intestazioni Domande ammesse / Area programmazione / Sostegno / Pagamento, e i td vuoti della riga dei gruppi escono dallo schermo. Succede nel riepilogo, che ha 10 righe per pagina con link e piede.",
+    "fix": "Per le tabelle a gruppi rendere sticky il thead intero (.ui-tabella thead { position: sticky; top: 0; z-index: 1 } e th non sticky), oppure dare alla seconda riga un top pari all'altezza della prima, via una variabile CSS impostata sulla tabella con gruppi. Dare lo sfondo anche ai td della riga dei gruppi."
+  },
+  {
+    "id": "H6",
+    "severity": "MINORE",
+    "file": "src/shared/lib/grafici/forme.ts:145",
+    "titolo": "barreRaggruppate ha ora sei parametri posizionali (soglia 5) e il procedurale ha due rese diverse delle barre orizzontali",
+    "evidenza": "L'estensione aggiunge { orizzontale } come sesto parametro dopo omessiIniziali e misura (:145-152). Le chiamate passano [] di riempimento: procedurale/lib/grafici.ts:224 barreRaggruppate(voci, definizioni, testi, [], MISURA_PERCENTUALI, { orizzontale: true }). Nella stessa feature graficoStati (:86-88) e barreOrizzontali (:99-101) scrivono a mano l'asse delle categorie orizzontale con axisLabel { width: 180, overflow: 'break' } e grid.containLabel, deprecato in ECharts 6.1.0 ('@deprecated Use grid.outerBounds'). assiBarre del kit (forme.ts:118-122) non gestisce le etichette lunghe, che pure dichiara come motivo dell'orizzontale. Le etichette delle Unit Amount ('UA1 (SRD01, esercizio 2025)') non vanno a capo, quelle degli stati si'.",
+    "fix": "Raccogliere gli argomenti facoltativi in un oggetto: barreRaggruppate(voci, definizioni, testi, { omessi, misura, orizzontale }), aggiornando le chiamate di istituzionale, fisico e procedurale. Mettere in shared/lib/grafici una primitiva asseCategorieOrizzontale(categorie) con inverse, width e overflow 'break', usata da assiBarre e dai due builder del procedurale. Togliere containLabel (il default outerBounds di ECharts 6 contiene gia' le etichette) e aggiungere il test L1 in tests/shared-grafici.test.ts."
+  },
+  {
+    "id": "H7",
+    "severity": "MINORE",
+    "file": "src/features/procedurale/ui/comuni.tsx:91",
+    "titolo": "Regole del drill-down scritte nei componenti invece che in lib/collegamenti; una da' un motivo falso nel caso fail-closed",
+    "evidenza": "La cella Elenco (:87-92) decide in linea perche' manca il link: se domande e' null scrive 'fonte non attiva', se e' 0 'nessuna domanda', altrimenti 'nessuna domanda rilasciata'. Quando la voce ha rilasciate > 0 ma la chiave non e' esprimibile, indirizzoElenco risponde null (fail-closed, lib/collegamenti.ts:107-109) e la cella afferma che non ci sono domande rilasciate: e' falso. Nella tabella dell'area, dove non esistono non rilasciate, la stessa frase e' sempre fuori luogo. Il predicato 'la voce dell'area apre l'elenco' (v.domande ?? 0) > 0 e' riscritto in linea in Panoramica.tsx:94 e SchedeIntervento.tsx:87, accanto agli apre* di lib (apreLaVoce :133, apreLeAmmesse, apreConAtto). SchedeIntervento.tsx:85 riscrive codiceDellaRiga di lib/riepilogo.ts:40.",
+    "fix": "In lib/collegamenti aggiungere apreLaVoceDellArea(v) e motivoSenzaLink(v, esprimibile), coi testi 'fonte non attiva', 'nessuna domanda', 'nessuna domanda rilasciata', 'stato non apribile nell'elenco'. TabellaVoci riceve dal chiamante l'esito gia' deciso. Usare codiceDellaRiga in AreaDellIntervento. Aggiungere i test L1 in tests/procedurale-lib.test.ts, compreso il caso con una chiave fuori formato."
+  },
+  {
+    "id": "H8",
+    "severity": "MINORE",
+    "file": "src/app/aree.ts:118",
+    "titolo": "Il meccanismo 'presto' e' codice irraggiungibile e i suoi test passano a vuoto",
+    "evidenza": "Con AREE_FUTURE = [] (:118) non si possono piu' raggiungere CardAreaFutura (home.tsx:70), AreaFutura (menu.tsx:43), il ramo !eRealizzata (aree.ts:137, home e menu) e gli stili .ui-menu__presto e .ui-ambito--presto (tema.css:83-84, :361). Le asserzioni che lo provavano ora passano senza verificare niente: 'le aree future non sono aree realizzate' (tests/app-aree.test.tsx:130) filtra una lista vuota, e il ciclo for (const futura of AREE_FUTURE) (:152) non esegue nessuna iterazione. Il resoconto (punto 4) lascia la scelta aperta.",
+    "fix": "Togliere il meccanismo: AREE_FUTURE, CardAreaFutura, AreaFutura e le classi CSS. AMBITI diventa AREE nell'ordine del catalogo, eRealizzata e SchedaArea si fondono in Area, e si tolgono le asserzioni vuote. Se si vuole tenerlo per ambiti futuri, rendere le aree future un parametro di Home e menu e provarlo con un test L2 che ne inietta una (card 'presto disponibile' senza link, voce 'presto' nel menu)."
+  },
+  {
+    "id": "H9",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/lib/formato.ts:46",
+    "titolo": "Dopo lo spostamento resta un testoPerimetro omonimo nell'elenco con un contratto diverso da quello del kit",
+    "evidenza": "Lo spostamento in shared/lib/intestazione.ts:43 (testoPerimetro(perimetro: string): string; un valore diverso da ADA e REGIONALE diventa minuscolo) ha lasciato in elenco-operativo/lib/formato.ts:46 una funzione con lo stesso nome ma un altro contratto. Accetta null e undefined e risponde null per qualunque valore diverso da ADA e REGIONALE, e chiama il kit tramite l'alias testoPerimetroDelKit (:7). Cinque file dell'elenco (pill.tsx, voci.ts, ElencoDomande, ElencoPagamenti, SchedaDomanda) importano la versione locale, fisico, istituzionale e procedurale quella del kit: con lo stesso nome due comportamenti, e un import automatico sbagliato passa la compilazione.",
+    "fix": "Rinominare l'adattatore dell'elenco (es. perimetroDellaRisposta) oppure dare al kit la firma testoPerimetro(perimetro: string | null | undefined): string | null con null per i valori assenti, e togliere l'adattatore. Togliere l'alias testoPerimetroDelKit."
+  },
+  {
+    "id": "H10",
+    "severity": "MINORE",
+    "file": "src/features/procedurale/ui/TabellaStatiInterventi.tsx:19",
+    "titolo": "Piccole copie nella feature: cella numerica con l'assenza, etichette del pagato, letture col grant, pulsanti del pannello",
+    "evidenza": "La cella numero con il badge 'non disponibile' compare in TabellaStatiInterventi.tsx:19 con n === null, in TabellaRiepilogo.tsx:26 con n == null e in comuni.tsx:70 (NonRilasciate). Per una distribuzione assente (r.stati undefined) la prima scrive '-' (formatNumber), la seconda il badge: la stessa assenza esce in due modi. ETICHETTE_PAGATO (UnitAmount.tsx:32) e TITOLI_PAGATO (TabellaUnitAmount.tsx:16) sono la stessa mappa. Tre useLetture (Panoramica.tsx:37, Sottofasi.tsx:29, DettaglioIntervento.tsx:47) ripetono abilitato: puoLeggere(...) e poi puoLeggere(...) ? lettura : null, in tre forme diverse. PannelloDelloStato (PannelloFiltriProcedurale.tsx:69) riscrive Azzera e Applica di Azioni (entities/filtri/ui/PannelloFiltriProgramma.tsx:51).",
+    "fix": "Una sola cella NumeroODisponibile(n) in ui/comuni con la regola == null, usata dalle tre tabelle. TITOLI_PAGATO in lib/unitAmount accanto a CAMPI_PAGATO. Un helper conGrant(auth, lettura, stato) in ui/navigazione (o un'opzione dei wrapper api che restituisce null senza grant) per le tre useLetture. Esportare AzioniDelPannello da entities/filtri e usarla in PannelloDelloStato."
+  },
+  {
+    "id": "H11",
+    "severity": "MINORE",
+    "file": "src/features/procedurale/ui/SchedeIntervento.tsx:144",
+    "titolo": "SchedeIntervento supera la soglia di 30 righe (32)",
+    "evidenza": "La funzione va da :144 a :175 (32 righe). Ripete quattro volte lo schema schede.includes(id) && <TabPanel id=...> con il contenuto di ciascuna scheda. ReportStati (StatiDomande.tsx:149) e' a 30, sulla soglia. TabellaInterattiva del kit (54 righe) era gia' lunga prima del perimetro e qui cresce solo di una prop.",
+    "fix": "Una mappa PANNELLI: Readonly<Record<IdScheda, (p) => ReactNode>> e un solo schede.map((s) => <TabPanel key={s} id={s}>{PANNELLI[s](...)}</TabPanel>), con la scheda stati che riceve sostegno e pagamento."
+  }
+]

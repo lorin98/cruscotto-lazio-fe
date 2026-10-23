@@ -1,0 +1,66 @@
+[
+  {
+    "id": "V1",
+    "severity": "MINORE",
+    "file": "src/features/procedurale/ui/useCriteriNellIndirizzo.ts:36",
+    "titolo": "Il dettaglio dell'intervento legge TX-0025, che la route dello uiplan, il route-manifest e il wireframe approvato non dichiarano",
+    "evidenza": "DettaglioIntervento.tsx:186 usa useCriteriDellaPagina('soloStato'). In useCriteriNellIndirizzo.ts:35-38 conStato = forma !== 'senzaStato' e' vero, quindi col grant csr.tx-0025.read parte useStatiAreaProgrammazione (TX-0025) per i chip e il pannello del dettaglio. Il test interventi/page.test.tsx:84 ne dipende: spunta 'Revocata (stato osservato fuori catalogo)', una voce che arriva da TX-0025. TX-0025 pero' non compare nella route /procedurale/interventi/:codice in nessuno degli artefatti: transactions e roles dello uiplan (plan/procedurale/uiplan.json:157), actions del route-manifest (plan/procedurale/route-manifest.json:95-140, otto azioni senza TX-0025), route-table (src/app/route-table.json:444) e nota delle transazioni del wireframe approvato (wireframes/procedurale/panoramica/intervento.html:69, che elenca TX-0024 e TX-0026..TX-0032). La lettura e' gated da hasGrant e tutti i profili del catalogo hanno TX-0025, quindi il privilegio non si allarga. Resta una lettura non tracciata: check-ui-authz.sh (verdict pass, 32 azioni) non la vede.",
+    "fix": "Allineare gli artefatti alla resa approvata, che mostra il chip 'Stato area programmazione: Ammessa' con la descrizione: aggiungere TX-0025 alle transactions della route del dettaglio nello uiplan e un'azione hide-by-role csr.tx-0025.read nel route-manifest e in route-table.json, lasciando invariata la visibility. Va poi rifatto lo step8. In alternativa il dettaglio non legge TX-0025: in useCriteriNellIndirizzo, conStatiArea falso per 'soloStato'; il chip mostra la chiave e il pannello propone le sole voci dell'indirizzo."
+  },
+  {
+    "id": "V2",
+    "severity": "MINORE",
+    "file": "src/features/procedurale/ui/StatiDomande.tsx:103",
+    "titolo": "Pagine degli stati: il filtro della tabella sulla voce (scelta 4) si attiva solo col clic del mouse su una barra",
+    "evidenza": "In ReportStati, CardStati riceve onVoce={onVoce}: il clic su una barra di ECharts imposta la voce, filtra la tabella per intervento (righeConLaVoce, riga 106) e mostra il chip 'Voce' con 'Apri nell'elenco (n rilasciate)'. La tabella equivalente della card dovrebbe essere il percorso da tastiera (nota WCAG del wireframe stati.md:87-88; commento di CardGrafico). Invece TabellaVoci (comuni.tsx:95-104, montata da CardDistribuzioni.tsx:51) ha solo la colonna 'Elenco operativo': nessuna azione rimette il filtro sulla voce. Senza il grant TX-0056 la tabella e' quella generata dal kit, senza alcuna azione. Un utente da tastiera non ottiene quindi il comportamento della scelta 4 approvata (WCAG 2.1.1). Resta un'alternativa parziale: ordinare la tabella per la colonna della voce. Il resoconto lo dichiara al punto 5.",
+    "fix": "Nella tabella equivalente delle pagine degli stati, aggiungere per ogni voce con domande un pulsante 'Filtra la tabella su <voce>' che chiama lo stesso onVoce (TabellaVoci con una prop facoltativa onFiltra), presente anche senza il grant dell'elenco. Aggiungere un test di pagina: dalla vista Tabella della card, da tastiera, la tabella per intervento resta con le righe della voce e compare il chip."
+  },
+  {
+    "id": "V3",
+    "severity": "MINORE",
+    "file": "src/features/procedurale/lib/grafici.ts:220",
+    "titolo": "Unit Amount senza pagato: la tabella equivalente della card ripete il motivo completo in ogni cella, contro la scelta 8 approvata",
+    "evidenza": "Con pagatoSenzaFonte, graficoUnitAmount (righe 220-223) costruisce la tabella della card con le celle di percentuale(): testoMotivato (riga 202), cioe' 'non disponibile (fonte pagato per Unit Amount non attiva)'. Il motivo e' ripetuto in due colonne per ogni riga. La card lo dice gia' nel testo 'Grafico non disponibile: nessuna Unit Amount ha ancora l'importo pagato (fonte ... non attiva)' (UnitAmount.tsx:64-72 e unit-amount/page.test.tsx:57). Sotto, la tabella della pagina ha la nota unica. La scelta 8 del dossier (plan/procedurale/dossier-wireframe.md:50) chiede proprio una nota unica e 'non disponibile' breve, invece del motivo completo ripetuto per riga. Il resoconto lo dichiara al punto 5. Nella stessa pagina il motivo compare quindi tre volte piu' due per ogni riga.",
+    "fix": "In graficoUnitAmount, con pagatoSenzaFonte mettere nelle celle della tabella equivalente NON_DISPONIBILE_BREVE.testo: il motivo resta nel testo della card. In alternativa non dare una tabella alla card senza grafico, perche' la tabella della pagina che segue e' gia' l'equivalente. Aggiornare l'assert di procedurale-lib (Unit Amount senza fonte) e quello di unit-amount/page.test.tsx."
+  },
+  {
+    "id": "V4",
+    "severity": "MINORE",
+    "file": "src/features/procedurale/lib/formato.ts:32",
+    "titolo": "Stato vuoto 'Nessun intervento nella tua area (perimetro ADA)': gli interventi sono dati di programma; il test lo prova con una risposta che il backend non produce",
+    "evidenza": "testoVuoto(soggetto, conFiltri, perimetro) aggiunge ' nella tua area (perimetro ADA)' a qualunque soggetto. Con 'Nessun intervento' lo usano la card degli importi della panoramica (Panoramica.tsx:117), le ammesse (DomandeAmmesse.tsx:50) e il riepilogo (Riepilogo.tsx:91). Per il contratto e per SC-PC_AMMESSE TX-0026 e TX-0029 hanno 'una riga per intervento selezionato'. Gli interventi selezionati vengono dai filtri sui dati di programma (regionali, interventiPerimetroUfficiale); il perimetro ADA restringe le domande, non gli interventi. Per SC-PC_SCOPE_P4 il P4 senza gruppi ADA vede zero domande sulle righe degli interventi, non righe vuote. Le righe vuote nascono solo dai filtri (es. os=OS9), e allora 'nella tua area' attribuisce l'assenza al perimetro. Il test panoramica/page.test.tsx:249-256 ('perimetro ADA (P4) ... lo stato vuoto che dice la propria area') usa { perimetro: 'ADA', righe: [] } senza filtri, una forma che il backend non restituisce. Il caso reale del P4 (righe con zeri e pill in evidenza) non ha un test di pagina.",
+    "fix": "Usare la variante ADA solo per i soggetti che contano domande ('Nessuna domanda ...', pagine degli stati e card della panoramica). Per 'Nessun intervento' tenere il testo del wireframe ('Nessun intervento per i filtri scelti.'). Sostituire il test con il caso di SC-PC_SCOPE_P4: perimetro ADA, righe degli interventi con zeri, pill 'solo le domande della tua ADA' in evidenza, KPI a 0 e nessun errore."
+  },
+  {
+    "id": "V5",
+    "severity": "MINORE",
+    "file": "src/features/procedurale/lib/intervento.ts:59",
+    "titolo": "Dettaglio: AT001 e un intervento fuori dal CSR resi come 'senza dati', mentre il wireframe approvato prevede il 400 reso come errore; il test simula un 200 vuoto",
+    "evidenza": "SENZA_DATI dice \"Nessun dato per questo intervento nei report procedurali (l'Assistenza tecnica AT001 non è nei report)\". CorpoDettaglio lo rende con lo stato 'vuoto' (DettaglioIntervento.tsx:150). Il wireframe approvato del procedurale dice invece: 'Intervento fuori dal CSR o AT001: 400 del backend, reso come errore con il messaggio del problem-type' (wireframes/procedurale/panoramica/intervento.html:70). Lo stato d'errore e' 'Intervento non disponibile: messaggio dal problem-type (400 intervento non valido o AT001, ...). Torna alla panoramica' (riga 131). Il testo dell'istituzionale (AT001 = vuoto) e' stato copiato, ma il suo wireframe diceva altro. Il test interventi/page.test.tsx:256-262 ('un intervento senza righe nei report') ottiene il 200 vuoto per SRX99 dalla fixture, perche' interventiSelezionati (testing/fixture.ts:145-148) ignora i codici sconosciuti. Nessun test copre il 400 DATO_NON_VALIDO del dettaglio. Il codice rende comunque un 400 come errore della pagina, quindi il comportamento regge; testo e test descrivono pero' il ramo che il wireframe esclude.",
+    "fix": "Togliere da SENZA_DATI il rimando ad AT001, oppure allinearlo al wireframe. Aggiungere un test di pagina del dettaglio con TX-0026..TX-0028 che rispondono 400 DATO_NON_VALIDO per intervento=AT001: un solo avviso col messaggio del problem-type e il link 'Torna alla panoramica' della testata. Se il caso dell'intervento senza righe resta, darlo come una risposta coi report vuoti dichiarata nel test, non come comportamento della fixture per i codici sconosciuti."
+  },
+  {
+    "id": "V6",
+    "severity": "MINORE",
+    "file": "src/app/tetti-letture.ts:13",
+    "titolo": "TX-0024 e TX-0025 entrano nel tetto di due letture per utente, che per il wireframe e per SC-PC_ULTIMO_DATO vale fuori dai valori dei filtri",
+    "evidenza": "Il prefisso '/api/procedurale/' mette in coda anche /api/procedurale/filtri e /api/procedurale/filtri/stati-area-programmazione. Il commento (righe 6-7) lo giustifica con 'valori dei filtri compresi (SC-PC_CAPACITA: \"condiviso con gli altri report\")'. SC-PC_CAPACITA parla pero' delle letture dei report. SC-PC_ULTIMO_DATO e il wireframe approvato dicono che TX-0024 e' letto 'fuori dal tetto delle letture e dall'audit (D-01 Rev. 2 del backend)' (wireframes/procedurale/panoramica/panoramica.md:108). Lo dice anche il commento della feature in api/index.ts:81-82. All'apertura di una pagina gli hook dei valori dei filtri partono per primi (useCriteriDellaPagina prima delle letture): TX-0024 e TX-0025 occupano i due posti, e i quattro report della panoramica aspettano un giro in piu'. Non e' un errore di dati: e' latenza in piu', e il codice contraddice il proprio commento.",
+    "fix": "Escludere dalla coda /api/procedurale/filtri, e TX-0025 se il backend lo conferma fuori dal tetto: un elenco di esclusioni in TettoLetture oppure prefissi piu' stretti per i report. Correggere il commento di tetti-letture.ts e aggiungere a bff-mutator.test.ts un caso con /api/procedurale/filtri che non occupa posti nella coda. Se si sceglie di lasciarlo in coda, correggere almeno i due commenti perche' dicano la stessa cosa."
+  },
+  {
+    "id": "V7",
+    "severity": "MINORE",
+    "file": "src/features/procedurale/ui/TabellaUnitAmount.tsx:52",
+    "titolo": "Tabella delle Unit Amount: l'intestazione di riga (colonna 'Unit Amount') si puo' nascondere da Colonne e le righe restano senza th",
+    "evidenza": "La tabella dichiara intestazioneRiga=\"ua\" (riga 52), ma la colonna 'ua' (riga 27) non e' fissa e quindi compare fra le caselle di SceltaColonne. Nel kit (shared/ui/tabella/TabellaInterattiva.tsx:292) l'intestazione e' props.intestazioneRiga ?? visibili[0].chiave: con 'ua' nascosta nessuna cella e' th scope=row. Il wireframe approvato vuole la Unit Amount come intestazione di riga ('la Unit Amount e' l'intestazione di riga', wireframes/procedurale/unit-amount/unit-amount.html:86). Vale sia nella pagina sia nella scheda del dettaglio.",
+    "fix": "Rendere fissa la colonna 'ua' in TabellaUnitAmount. In alternativa, nel kit, ripiegare sulla prima colonna visibile quando la colonna di intestazioneRiga e' nascosta, con un test in kit-comune-procedurale.test.tsx."
+  },
+  {
+    "id": "V8",
+    "severity": "MINORE",
+    "file": "src/features/procedurale/ui/SchedeIntervento.tsx:77",
+    "titolo": "Schede del dettaglio: il nome accessibile del PNG non dice l'intervento, a differenza del wireframe approvato",
+    "evidenza": "Nelle schede Stati (riga 77) e Area programmazione (riga 91) CardStati e CardArea ricevono titolo='Domande ... per stato' senza il codice. CardGrafico (shared/ui/grafici/CardGrafico.tsx:71-73) chiama il PNG 'il grafico <titolo>': il pulsante si chiama 'Scarica il grafico Domande di sostegno per stato in PNG'. CSV e XLSX dicono invece '... di SRD01' (oggettoDati). Il wireframe approvato vuole 'Scarica il grafico Domande di sostegno per stato di SRD01 in PNG' anche per il PNG (wireframes/procedurale/panoramica/intervento.html:103 e 114). Il resoconto lo dichiara al punto 5. Nella pagina il nome non e' ambiguo, e intestazione e nome del file del PNG portano l'intervento: e' una differenza di nome rispetto all'artefatto approvato.",
+    "fix": "Dare a CardGrafico un'opzione per l'oggetto del PNG, per esempio oggettoPng=`il grafico ${titolo} di ${codice}`, e passarla dalle schede del dettaglio. In alternativa, se l'h2 puo' cambiare, titoli delle card del dettaglio con 'di <codice>'. Aggiornare l'assert dei nomi in interventi/page.test.tsx."
+  }
+]
