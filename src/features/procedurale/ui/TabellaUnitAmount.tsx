@@ -27,7 +27,8 @@ export function DatoPagato({ r, campo, breve = false }: { r: RigaUnitAmount; cam
 
 const COLONNE: ColonnaTabella<RigaUnitAmount>[] = [
   { chiave: 'intervento', titolo: 'Intervento', valore: (r) => r.codiceIntervento ?? null, fissa: true },
-  { chiave: 'ua', titolo: 'Unit Amount', valore: (r) => r.codiceUnitAmount ?? null },
+  // l'intestazione di riga del wireframe: sempre visibile (non si nasconde da "Colonne")
+  { chiave: 'ua', titolo: 'Unit Amount', valore: (r) => r.codiceUnitAmount ?? null, fissa: true },
   { chiave: 'gruppo', titolo: 'Gruppo colturale', valore: (r) => r.gruppoColturale ?? null },
   { chiave: 'esercizio', titolo: 'Esercizio', valore: (r) => r.esercizio ?? null, numerica: true },
   { chiave: 'unitario', titolo: 'Importo unitario', valore: (r) => valoreDi(r.importoUnitario), resa: (r) => <ValoreImporto importo={r.importoUnitario} />, numerica: true },

@@ -30,7 +30,7 @@ export interface ColonnaTabella<T> {
   nomeEsteso?: string;
 }
 
-/** Riga di piede: un contenuto per chiave di colonna (la prima colonna e' l'intestazione di riga). */
+/** Riga di piede: un contenuto per chiave di colonna (la colonna dell'intestazione di riga, di norma la prima, e' un th). */
 export type RigaPiede = Partial<Record<string, ReactNode>>;
 
 /** Le colonne visibili consecutive dello stesso gruppo: il gruppo (assente = nessuno) e quante colonne copre. */
@@ -106,14 +106,15 @@ function Riga<T>({ riga, colonne, onRiga, etichetta, intestazione }: { riga: T; 
   );
 }
 
-function Piede<T>({ colonne, righe }: { colonne: ColonnaTabella<T>[]; righe: RigaPiede[] }) {
+/** Le righe di piede, con l'intestazione di riga nella stessa colonna del corpo. */
+function Piede<T>({ colonne, righe, intestazione }: { colonne: ColonnaTabella<T>[]; righe: RigaPiede[]; intestazione: string }) {
   if (righe.length === 0) return null;
   return (
     <tfoot>
       {righe.map((r, n) => (
         <tr key={n}>
-          {colonne.map((c, i) =>
-            i === 0 ? (
+          {colonne.map((c) =>
+            c.chiave === intestazione ? (
               <th key={c.chiave} scope="row">
                 {r[c.chiave] ?? 'Totale'}
               </th>
@@ -204,7 +205,10 @@ interface PropsTabellaInterattiva<T> {
   onStato?: (stato: StatoTabella) => void;
   perPagina?: number;
   strumenti?: ReactNode;
-  /** La chiave della colonna che fa da intestazione di riga (th scope=row); assente = la prima colonna visibile. */
+  /**
+   * La chiave della colonna che fa da intestazione di riga (th scope=row), nel corpo e nel piede; assente, o nascosta da
+   * "Colonne", la prima colonna visibile.
+   */
   intestazioneRiga?: string;
 }
 
@@ -255,6 +259,9 @@ export function TabellaInterattiva<T>(props: PropsTabellaInterattiva<T>) {
   const [nascoste, setNascoste] = useState<Set<string>>(() => new Set(colonne.filter((c) => c.nascosta).map((c) => c.chiave)));
 
   const visibili = colonne.filter((c) => c.fissa || !nascoste.has(c.chiave));
+  // l'intestazione di riga: la colonna data se e' visibile, altrimenti la prima visibile (nascosta da "Colonne", le righe
+  // non restano senza th scope=row: WCAG 1.3.1)
+  const intestazione = props.intestazioneRiga !== undefined && visibili.some((c) => c.chiave === props.intestazioneRiga) ? props.intestazioneRiga : visibili[0].chiave;
   const filtrate = useMemo(() => filtraRighe(righe, cercato, testoRicerca), [righe, cercato, testoRicerca]);
   const ordinate = useMemo(() => ordinaRighe(filtrate, (colonne.find((c) => c.chiave === ordine.chiave) ?? colonne[0]).valore, ordine.verso), [filtrate, colonne, ordine]);
   const corrente = paginaDi(ordinate, pagina, perPagina);
@@ -289,10 +296,10 @@ export function TabellaInterattiva<T>(props: PropsTabellaInterattiva<T>) {
           <Intestazioni colonne={visibili} ordine={ordine} onOrdina={ordina} />
           <tbody>
             {corrente.righe.map((r) => (
-              <Riga key={chiaveRiga(r)} riga={r} colonne={visibili} onRiga={onRiga} etichetta={etichettaRiga?.(r)} intestazione={props.intestazioneRiga ?? visibili[0].chiave} />
+              <Riga key={chiaveRiga(r)} riga={r} colonne={visibili} onRiga={onRiga} etichetta={etichettaRiga?.(r)} intestazione={intestazione} />
             ))}
           </tbody>
-          <Piede colonne={visibili} righe={piede} />
+          <Piede colonne={visibili} righe={piede} intestazione={intestazione} />
         </table>
       </div>
       <Paginazione pagina={corrente.pagina} pagine={corrente.pagine} onPagina={vaiAllaPagina} />

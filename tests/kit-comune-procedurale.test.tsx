@@ -104,4 +104,23 @@ describe('TabellaInterattiva del kit: intestazioni di gruppo, nome esteso, intes
     render(<TabellaInterattiva caption="Prova" righe={righe} colonne={semplici} chiaveRiga={(r) => r.codice} testoRicerca={(r) => r.codice} />);
     expect(screen.getAllByRole('rowheader').map((h) => h.textContent)).toEqual(['SRA01', 'SRD01']);
   });
+
+  it('l intestazione di riga nel piede nella stessa colonna; nascosta da Colonne, le righe la prendono dalla prima colonna visibile', async () => {
+    const semplici = colonne.map((c) => ({ ...c, gruppo: undefined }));
+    const { container } = render(<TabellaInterattiva caption="Prova" righe={righe} colonne={semplici} chiaveRiga={(r) => r.codice} testoRicerca={(r) => r.codice} intestazioneRiga="ua" righePiede={[{ ua: 'Totale', a: 5 }]} />);
+    const piede = () => Array.from(container.querySelectorAll('tfoot tr')[0].children).map((c) => [c.tagName, c.textContent]);
+    expect(piede()).toEqual([
+      ['TD', ''],
+      ['TH', 'Totale'],
+      ['TD', '5'],
+      ['TD', ''],
+    ]);
+    await userEvent.click(screen.getByText('Colonne'));
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Unit Amount' }));
+    expect(container.querySelector('tbody tr')?.children).toHaveLength(3);
+    // ogni riga del corpo ha ancora la sua intestazione di riga (WCAG 1.3.1), e il piede la sua
+    expect(screen.getAllByRole('rowheader').map((h) => h.textContent)).toEqual(['SRA01', 'SRD01', 'Totale']);
+    expect(piede()[0]).toEqual(['TH', 'Totale']);
+    await expectNoA11yViolations(container);
+  });
 });
