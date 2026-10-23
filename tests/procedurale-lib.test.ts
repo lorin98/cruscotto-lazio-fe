@@ -566,7 +566,15 @@ describe('procedurale: builder dei grafici (tabella equivalente, valori assenti 
     const righe = unitAmountPer(q()).righe ?? [];
     const senza = graficoUnitAmount(righe, 'Percentuale pagata per Unit Amount');
     expect(senza.motivoAssenza).toBe("nessuna Unit Amount ha ancora l'importo pagato (fonte pagato per Unit Amount non attiva)");
-    expect(senza.tabella.righe[0]).toEqual(['UA1 (SRD01, esercizio 2024)', 'non disponibile (fonte pagato per Unit Amount non attiva)', 'non disponibile (fonte pagato per Unit Amount non attiva)']);
+    // il motivo e' detto una volta dal testo della card (motivoAssenza): nelle celle "non disponibile" in breve (scelta 8)
+    expect(senza.tabella.righe).toEqual([
+      ['UA1 (SRD01, esercizio 2024)', 'non disponibile', 'non disponibile'],
+      ['UA2 (SRD01, esercizio 2024)', 'non disponibile', 'non disponibile'],
+      ['UA1 (SRD01, esercizio 2025)', 'non disponibile', 'non disponibile'],
+    ]);
+    // un'altra assenza resta col motivo
+    const mista = graficoUnitAmount([righe[0], { ...righe[1], baseStorica: { valore: null, motivo: 'NON_VALORIZZATO', fonte: null } }], 'T');
+    expect(mista.tabella.righe[1]).toEqual(['UA2 (SRD01, esercizio 2024)', 'non disponibile', 'non valorizzato (il dato non è presente nella fonte)']);
     expect(pagatoSenzaFonte(righe)).toBe(true);
     const con = graficoUnitAmount(unitAmountPer(q(), { pagato: true }).righe ?? [], 'Percentuale pagata per Unit Amount');
     const o = con.opzioni as { yAxis: { type: string; data: string[] } };

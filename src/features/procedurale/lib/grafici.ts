@@ -10,7 +10,7 @@ import { descriviAssenza, testoConNota, testoMotivato } from '../../../entities/
 import { COLORI, MISURA_EURO, MISURA_NUMERI, MISURA_PERCENTUALI, aria, barreRaggruppate, formatEuro, formatNumber, formatPercentuale, nonDisegnabile, notaOmessi, plurale, tooltipDettaglio, valoreInNumero } from '../../../shared/lib';
 import type { DatiGrafico, DatoSerie, MisuraBarre, TabellaEquivalente, VoceRaggruppata } from '../../../shared/lib';
 import type { RigaAmmesse, RigaRiepilogo, RigaUnitAmount, Sottofasi, TipoDomanda } from './dto';
-import { NON_DISPONIBILE_BREVE } from './formato';
+import { NON_DISPONIBILE_BREVE, resaAssenza } from './formato';
 import { etichettaVoce } from './sottofasi';
 import { diTipo, rilasciate } from './stati';
 import type { VoceDistribuzione } from './stati';
@@ -201,9 +201,13 @@ export function pagatoSenzaFonte(righe: readonly RigaUnitAmount[]): boolean {
 
 const percentuale = (d: RigaUnitAmount['percentualePagata']) => testoMotivato(d, formatPercentuale);
 
+/** Una percentuale del pagato in testo, con la fonte non attiva "non disponibile" in breve: il motivo lo dice la card. */
+const percentualeBreve = (d: RigaUnitAmount['percentualePagata']) => (d?.valore != null ? formatPercentuale(d.valore) : testoConNota(resaAssenza(d, true)));
+
 /**
  * Barre orizzontali raggruppate della percentuale pagata e della base storica per Unit Amount (TX-0030); senza la fonte
- * del pagato il grafico non e' disponibile e lo dice. Clic su una barra: l'anteprima della riga (codice = la riga).
+ * del pagato il grafico non e' disponibile e lo dice una volta nel testo della card, la tabella equivalente ha le celle
+ * "non disponibile" in breve (scelta 8 approvata). Clic su una barra: l'anteprima della riga (codice = la riga).
  */
 export function graficoUnitAmount(righe: readonly RigaUnitAmount[], titolo: string): DatiGrafico {
   const voci: VoceRaggruppata[] = righe.map((r) => ({
@@ -218,7 +222,7 @@ export function graficoUnitAmount(righe: readonly RigaUnitAmount[], titolo: stri
   ];
   const testi = { caption: titolo, colonne: ['Unit Amount', 'Pagato sul richiesto', 'Base storica'], titolo, vuoto: 'nessuna percentuale valorizzata', unita: ['Unit Amount', 'Unit Amount'] as [string, string] };
   if (pagatoSenzaFonte(righe)) {
-    const tabella: TabellaEquivalente = { caption: titolo, colonne: testi.colonne, righe: voci.map((v) => [v.categoria, ...v.celle]) };
+    const tabella: TabellaEquivalente = { caption: titolo, colonne: testi.colonne, righe: righe.map((r) => [etichettaUnitAmount(r), percentualeBreve(r.percentualePagata), percentualeBreve(r.baseStorica)]) };
     return nonDisegnabile(`nessuna Unit Amount ha ancora l'importo pagato (${descriviAssenza(righe[0]?.importoPagato).nota ?? 'fonte non attiva'})`, tabella, []);
   }
   return barreRaggruppate(voci, definizioni, testi, [], MISURA_PERCENTUALI, { orizzontale: true });

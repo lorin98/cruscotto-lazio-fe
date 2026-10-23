@@ -54,7 +54,10 @@ describe('RF030: pagamenti per Unit Amount degli interventi selezionati (TX-0030
     const t = await tabella();
     expect(screen.getByText('Importo pagato, percentuale pagata sul richiesto e base storica: non disponibili per tutte le Unit Amount (fonte pagato per Unit Amount non attiva). Nelle celle: "non disponibile".')).toBeTruthy();
     expect(testo(within(t).getByRole('row', { name: "Apri l'anteprima della Unit Amount UA1 di SRD01, esercizio 2025" }).textContent)).toBe('SRD01UA1Seminativi2025150,00 €10non disponibilenon disponibilenon disponibile');
-    expect(testo((await trovaCard(CARD)).textContent)).toContain("Grafico non disponibile: nessuna Unit Amount ha ancora l'importo pagato (fonte pagato per Unit Amount non attiva).");
+    const card = await trovaCard(CARD);
+    expect(testo(card.textContent)).toContain("Grafico non disponibile: nessuna Unit Amount ha ancora l'importo pagato (fonte pagato per Unit Amount non attiva).");
+    // la tabella della card, subito sotto il testo che dice il motivo: "non disponibile" in breve (scelta 8)
+    expect(testo(within(within(card).getByRole('table')).getByRole('row', { name: /^UA1 \(SRD01, esercizio 2025\)/ }).textContent)).toBe('UA1 (SRD01, esercizio 2025)non disponibilenon disponibile');
     expect(screen.getByText(/^Dati di programma dall'import CSR-UA, regionali per ogni profilo/)).toBeTruthy();
   });
 
