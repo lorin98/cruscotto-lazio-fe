@@ -3,6 +3,8 @@
 // disegna): i clic sulle barre sono quelli del dato disegnato. Le letture sono dichiarate da ogni test con le letture di
 // prova del procedurale (il server dei test non monta i mock generati) e rispondono come il backend ai parametri della
 // query; i link verso l'elenco operativo si controllano col grant di arrivo (TX-0056) e senza.
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import type { ReactElement } from 'react';
 import { describe, expect, it } from 'vitest';
 import { render, renderHook, screen, waitFor, within } from '@testing-library/react';
@@ -486,6 +488,12 @@ describe('useLettureColGrant: le letture di panoramica, sottofasi e dettaglio co
     expect(result.current.puo('riepilogo')).toBe(false);
     const stato = { data: 1 };
     expect([result.current.conGrant('ammesse', stato), result.current.conGrant('riepilogo', stato)]).toEqual([stato, null]);
+  });
+
+  it('le schede del dettaglio (Sottofasi e la scelta delle schede) usano la stessa forma: nessun grant letto a mano (H1 iter2)', () => {
+    const schede = readFileSync(resolve(process.cwd(), 'src/features/procedurale/ui/SchedeIntervento.tsx'), 'utf8');
+    expect(schede).toContain('useLettureColGrant()');
+    expect(schede).not.toMatch(/useAuthStatus|puoLeggere\(/);
   });
 });
 

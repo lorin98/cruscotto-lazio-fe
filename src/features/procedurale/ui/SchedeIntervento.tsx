@@ -11,7 +11,6 @@ import { useNavigate } from 'react-router';
 import type { ReactNode } from 'react';
 import { Tab, TabList, TabPanel, Tabs } from 'react-aria-components';
 import { rigaDellIntervento } from '../../../entities/filtri';
-import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { ErroreNellaPagina, Griglia, Sezione, VistaQuery, Vuoto } from '../../../shared/ui';
 import type { StatoQuery } from '../../../shared/ui';
 import { useRiepilogo, useSottofasiPagamento, useSottofasiSostegno, useUnitAmount } from '../api';
@@ -20,8 +19,6 @@ import type { IdLinkElenco, PuntoElenco, TestiLink } from '../lib/collegamenti';
 import { criteriUnitAmount } from '../lib/criteri';
 import type { CriteriProcedurali } from '../lib/criteri';
 import type { Distribuzione, Stati, TipoDomanda } from '../lib/dto';
-import { puoLeggere } from '../lib/grant';
-import type { Lettura } from '../lib/grant';
 import { TITOLI_SCHEDE, schedaAttiva, schedeVisibili } from '../lib/intervento';
 import type { IdScheda } from '../lib/intervento';
 import { codiceDellaRiga } from '../lib/riepilogo';
@@ -30,7 +27,7 @@ import type { VoceDistribuzione } from '../lib/stati';
 import { CardArea, CardStati } from './CardDistribuzioni';
 import { CardSottofasi } from './CardSottofasi';
 import { OGGETTO_FILE, fileReport, fileUnitAmount } from './esportazioni';
-import { useLinkElenco, usePuoAprireElenco } from './navigazione';
+import { useLettureColGrant, useLinkElenco, usePuoAprireElenco } from './navigazione';
 import { TabellaUnitAmount } from './TabellaUnitAmount';
 
 /** L'errore delle letture della pagina nella scheda: il solo testo statico (lo registra l'avviso della pagina). */
@@ -97,14 +94,14 @@ function AreaDellIntervento({ codice, criteri }: PropsScheda) {
 
 /** Le sottofasi delle domande dell'intervento: legge TX-0031 e TX-0032 (col loro grant) quando la scheda si apre. */
 function SottofasiDellIntervento({ codice, criteri, onModifica }: PropsScheda) {
-  const auth = useAuthStatus().data;
-  const sostegno = useSottofasiSostegno(criteri, { abilitato: puoLeggere(auth, 'sottofasiSostegno') });
-  const pagamento = useSottofasiPagamento(criteri, { abilitato: puoLeggere(auth, 'sottofasiPagamento') });
+  const { puo, conGrant } = useLettureColGrant();
+  const sostegno = conGrant('sottofasiSostegno', useSottofasiSostegno(criteri, { abilitato: puo('sottofasiSostegno') }));
+  const pagamento = conGrant('sottofasiPagamento', useSottofasiPagamento(criteri, { abilitato: puo('sottofasiPagamento') }));
   const conStato = (criteri.stato ?? []).length > 0;
   return (
     <Griglia>
-      {puoLeggere(auth, 'sottofasiSostegno') && <VistaQuery stato={sostegno}>{(s) => <CardSottofasi tipo="SOSTEGNO" s={s} criteri={criteri} codice={codice} onModifica={onModifica} conFiltri={conStato} />}</VistaQuery>}
-      {puoLeggere(auth, 'sottofasiPagamento') && <VistaQuery stato={pagamento}>{(s) => <CardSottofasi tipo="PAGAMENTO" s={s} criteri={criteri} codice={codice} onModifica={onModifica} conFiltri={conStato} />}</VistaQuery>}
+      {sostegno && <VistaQuery stato={sostegno}>{(s) => <CardSottofasi tipo="SOSTEGNO" s={s} criteri={criteri} codice={codice} onModifica={onModifica} conFiltri={conStato} />}</VistaQuery>}
+      {pagamento && <VistaQuery stato={pagamento}>{(s) => <CardSottofasi tipo="PAGAMENTO" s={s} criteri={criteri} codice={codice} onModifica={onModifica} conFiltri={conStato} />}</VistaQuery>}
     </Griglia>
   );
 }
@@ -160,8 +157,7 @@ const PANNELLI: Readonly<Record<IdScheda, (p: PropsPannello) => ReactNode>> = {
 };
 
 export function SchedeIntervento({ scheda, onScheda, ...p }: PropsSchede) {
-  const auth = useAuthStatus().data;
-  const schede = schedeVisibili((l: Lettura) => puoLeggere(auth, l));
+  const schede = schedeVisibili(useLettureColGrant().puo);
   return (
     <Tabs selectedKey={schedaAttiva(schede, scheda)} onSelectionChange={(k) => onScheda(String(k) as IdScheda)}>
       <ListaSchede schede={schede} />
