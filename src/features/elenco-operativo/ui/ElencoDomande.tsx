@@ -10,14 +10,14 @@ import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import { plurale } from '../../../shared/lib';
-import { AvvisoPagina, ContestoIntestazione, VistaQuery } from '../../../shared/ui';
+import { AvvisoPagina, ContestoIntestazione, VistaQuery, useRigheContesto } from '../../../shared/ui';
 import { useDomande, useSinottico } from '../api';
 import type { SinotticoElenco } from '../api';
 import { ETICHETTE_FILTRI, valoreLeggibile } from '../lib/chip';
 import { percorsoPagamentiDelleDomande } from '../lib/collegamenti';
 import { conValore, criteriSinottico } from '../lib/criteri';
 import type { Criteri, NomeFiltro } from '../lib/criteri';
-import { testoAggregato, testoSomma } from '../lib/formato';
+import { testoAggregato, testoPerimetro, testoSomma } from '../lib/formato';
 import { TESTI_RIPARTIZIONE } from '../lib/grafici';
 import type { Ripartizione } from '../lib/grafici';
 import { puoLeggere } from '../lib/grant';
@@ -30,7 +30,7 @@ import { PannelloInterrogazione, RisultatiInterrogazione, useScelteElenco } from
 import type { Interrogazione } from './interrogazione';
 import { SinotticoDomande } from './SinotticoDomande';
 import { Briciole, TestaPagina } from './testata';
-import { useInterrogazione, useRigheContesto } from './useInterrogazione';
+import { useInterrogazione } from './useInterrogazione';
 
 function SceltaVista({ vista, onVista }: { vista: Vista; onVista: (v: IdVista) => void }) {
   return (
@@ -162,7 +162,7 @@ export function ElencoDomande() {
   const vista = vistaDi(scelte.vista);
   const i = useInterrogazione('domande');
   const l = useLettureDomande(i.criteri, i.auth);
-  const righe = useRigheContesto(i.filtriApplicati, i.auth?.user?.profile, l.sinottico.data?.ultimiDatiSincronizzati, l.perimetro);
+  const righe = useRigheContesto(i.filtriApplicati, l.sinottico.data?.ultimiDatiSincronizzati, testoPerimetro(l.perimetro));
   const grafico = useFiltroDalGrafico(i);
   return (
     <>

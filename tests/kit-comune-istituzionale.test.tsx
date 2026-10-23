@@ -3,8 +3,8 @@
 // finanziario), riga sotto il sottotitolo della testata, card del grafico senza PNG o col nome dei file, messaggio del
 // file oltre il limite dell'esportazione, interruttore a piu' scelte, stato vuoto coi filtri e badge di un'assenza (prima
 // nel fisico e nel finanziario), focus quando uno stato sparisce col suo comando (prima nell'istituzionale e in
-// AvvisoPagina) e righe di contesto del PNG dei grafici (prima nel finanziario, nel fisico e nell'istituzionale). Dati di
-// prova inventati.
+// AvvisoPagina) e righe di contesto del PNG dei grafici (prima nel finanziario, nel fisico, nell'istituzionale e
+// nell'elenco operativo). Dati di prova inventati.
 import { useRef } from 'react';
 import type { ReactElement } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -23,6 +23,7 @@ import { PROBLEM_TYPES } from '../src/shared/api/problem/problem-types';
 import type { DatiGrafico, Scaricamento } from '../src/shared/ui';
 import { SelettoreAnno as SelettoreFinanziario } from '../src/features/finanziario/ui/SelettoreAnno';
 import * as LinkElencoFinanziario from '../src/features/finanziario/ui/LinkElenco';
+import * as InterrogazioneElenco from '../src/features/elenco-operativo/ui/useInterrogazione';
 import { ApriNellElenco } from '../src/entities/domanda';
 import { expectNoA11yViolations } from '../src/shared/testing/axe';
 
@@ -260,7 +261,7 @@ describe('useFocusSeSparisce del kit: il focus quando uno stato sparisce col suo
   });
 });
 
-describe('useRigheContesto del kit: le righe di contesto del PNG dei grafici (review H7, prima in tre copie)', () => {
+describe('useRigheContesto del kit: le righe di contesto del PNG dei grafici (review H7 e H1 v1 iter2, prima in quattro copie)', () => {
   const viste: (readonly string[])[] = [];
   function Righe({ criteri, ultimi, perimetro }: { criteri: string[]; ultimi?: readonly UltimoDato[]; perimetro?: string | null }) {
     const righe = useRigheContesto(criteri, ultimi, perimetro);
@@ -288,5 +289,9 @@ describe('useRigheContesto del kit: le righe di contesto del PNG dei grafici (re
     expect(viste.at(-1)).toBe(viste.at(-2));
     rerender(conQuery(<Righe criteri={[]} />));
     expect(voci()).toEqual(['Filtri applicati: nessuno', 'Profilo: p4-prova', 'Ultimo dato sincronizzato: non disponibile']);
+  });
+
+  it("l'elenco operativo usa l'hook del kit: useInterrogazione non ha piu' la sua copia (review H1 v1 iter2)", () => {
+    expect(Object.keys(InterrogazioneElenco)).toEqual(['useInterrogazione']);
   });
 });

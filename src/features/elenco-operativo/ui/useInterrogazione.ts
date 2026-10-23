@@ -1,18 +1,17 @@
 // useInterrogazione — la parte comune delle due pagine dell'interrogazione (domande e pagamenti): criteri nell'indirizzo con
 // la bozza del debounce (useCriteri), chip della barra (con le descrizioni dei valori di TX-0060 se il profilo li legge),
-// pannello dei filtri, righe di contesto per l'intestazione dei PNG dei grafici (useRigheContesto: filtri, perimetro,
-// profilo, ultimo dato, NFR-50). I valori dei filtri (TX-0060) si leggono UNA volta, qui, e solo col loro grant: il
-// pannello li riceve e senza il grant resta apribile con la sola ricerca per testo (review v1 A-06).
-import { useMemo, useState } from 'react';
+// pannello dei filtri, i filtri applicati in parole per le righe di contesto dell'intestazione dei PNG dei grafici (NFR-50),
+// che le pagine compongono con useRigheContesto del kit e il perimetro in parole dell'elenco (testoPerimetro: "ADA del
+// tuo profilo"; prima una copia qui, review H1 dell'istituzionale v1 iter2). I valori dei filtri (TX-0060) si leggono UNA
+// volta, qui, e solo col loro grant: il pannello li riceve e senza il grant resta apribile con la sola ricerca per testo
+// (review v1 A-06).
+import { useState } from 'react';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
-import { righeContesto } from '../../../shared/lib';
-import type { UltimoDato } from '../../../shared/lib';
 import type { ChipFiltro } from '../../../shared/ui';
 import { useValoriFiltri } from '../api';
 import { chipDeiCriteri } from '../lib/chip';
 import { senzaFiltri, senzaValore } from '../lib/criteri';
 import type { Elenco } from '../lib/criteri';
-import { testoPerimetro } from '../lib/formato';
 import { puoLeggere } from '../lib/grant';
 import { useCriteri } from './useCriteri';
 
@@ -52,11 +51,4 @@ export function useInterrogazione(elenco: Elenco) {
       },
     },
   };
-}
-
-/** Righe di contesto dei PNG: filtri applicati, perimetro e ultimo dato della risposta che li porta, profilo. */
-export function useRigheContesto(filtri: readonly string[], profilo: string | undefined, ultimi: readonly UltimoDato[] | undefined, perimetro?: string | null): readonly string[] {
-  // chiave stabile per useMemo: i filtri cambiano identita' a ogni render
-  const chiave = JSON.stringify(filtri);
-  return useMemo(() => righeContesto({ filtri: JSON.parse(chiave) as string[], profilo, ultimi, perimetro: testoPerimetro(perimetro) }), [chiave, profilo, ultimi, perimetro]);
 }

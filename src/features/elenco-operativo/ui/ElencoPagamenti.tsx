@@ -9,11 +9,11 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import { formatNumber, plurale } from '../../../shared/lib';
-import { AvvisoAggiornamento, AvvisoPagina, ContestoIntestazione, Griglia, Kpi, VistaQuery } from '../../../shared/ui';
+import { AvvisoAggiornamento, AvvisoPagina, ContestoIntestazione, Griglia, Kpi, VistaQuery, useRigheContesto } from '../../../shared/ui';
 import { usePagamenti } from '../api';
 import type { PagamentoElenco, TotaliPagamenti } from '../api';
 import { percorsoDomandeDeiPagamenti } from '../lib/collegamenti';
-import { cellaImporto, testoSomma } from '../lib/formato';
+import { cellaImporto, testoPerimetro, testoSomma } from '../lib/formato';
 import { puoLeggere } from '../lib/grant';
 import { AnteprimaPagamento } from './anteprime';
 import { colonnePagamenti } from './colonne';
@@ -21,7 +21,7 @@ import { AccessoNonDisponibile, BarraInterrogazione, VuotoFiltri } from './comun
 import { PannelloInterrogazione, RisultatiInterrogazione, useScelteElenco } from './interrogazione';
 import type { Interrogazione } from './interrogazione';
 import { Briciole, TestaPagina } from './testata';
-import { useInterrogazione, useRigheContesto } from './useInterrogazione';
+import { useInterrogazione } from './useInterrogazione';
 
 /** I totali vengono dalla stessa lettura delle righe: mentre arrivano quelli nuovi restano i precedenti, dichiarati. */
 function SinotticoPagamenti({ totali, inAggiornamento }: { totali: TotaliPagamenti | undefined; inAggiornamento: boolean }) {
@@ -109,7 +109,7 @@ export function ElencoPagamenti() {
   const i = useInterrogazione('pagamenti');
   const l = useLetturaPagamenti(i);
   const dati = l.stato.data;
-  const righe = useRigheContesto(i.filtriApplicati, i.auth?.user?.profile, dati?.ultimiDatiSincronizzati, dati?.perimetro);
+  const righe = useRigheContesto(i.filtriApplicati, dati?.ultimiDatiSincronizzati, testoPerimetro(dati?.perimetro));
   return (
     <>
       <BarraInterrogazione

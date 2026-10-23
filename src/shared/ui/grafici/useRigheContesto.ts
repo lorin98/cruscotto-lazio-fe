@@ -1,7 +1,8 @@
 // useRigheContesto — le righe di contesto della pagina per l'intestazione del PNG dei grafici (NFR-50, review v3 V-01),
 // che la pagina mette in ContestoIntestazione: i criteri applicati, il perimetro dei dati, il profilo della sessione e
-// l'ultimo dato sincronizzato. Prima in tre copie, nel finanziario, nel fisico e nell'istituzionale (review H7
-// dell'istituzionale). Le righe restano lo stesso oggetto finche' non cambiano i loro dati (memo sul testo dei criteri).
+// l'ultimo dato sincronizzato. Prima in quattro copie, nel finanziario, nel fisico, nell'istituzionale (review H7
+// dell'istituzionale) e nell'elenco operativo (review H1 dell'istituzionale v1 iter2, che passa il suo perimetro in parole,
+// "ADA del tuo profilo"). Le righe restano lo stesso oggetto finche' non cambiano i loro dati (memo sul testo dei criteri).
 import { useMemo } from 'react';
 import { useAuthStatus } from '../../api/auth/use-auth-status';
 import { righeContesto } from '../../lib/intestazione';

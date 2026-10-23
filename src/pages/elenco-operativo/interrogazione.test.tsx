@@ -6,6 +6,8 @@ import { server } from '../../shared/api/mock/server';
 import { expectNoA11yViolations } from '../../shared/testing/axe';
 import { problema, trattenuta } from '../../shared/testing/msw';
 import { renderPagina } from '../../shared/testing/render-pagina';
+import { trovaCard } from '../../shared/testing/card-grafico';
+import { pngDelGrafico } from '../../shared/ui/grafici/echarts';
 import { ElencoDomande, ElencoPagamenti, SchedaDomanda } from '../../features/elenco-operativo';
 import { DETTAGLIO, PAGINA_DOMANDE, PAGINA_PAGAMENTI, SINOTTICO, VALORI } from '../../features/elenco-operativo/testing/fixture';
 import { useParams } from 'react-router';
@@ -108,6 +110,32 @@ describe('RA006: interrogazione libera delle domande con il sinottico sopra e i 
     const { container } = renderPagina(ElencoDomande, '/elenco-operativo/domande');
     await screen.findByRole('table', { name: /Elenco operativo delle domande/ });
     await expectNoA11yViolations(container);
+  });
+});
+
+describe("RA006: PNG di un grafico del sinottico con filtri, perimetro e profilo nell'intestazione (NFR-50)", () => {
+  // le righe le compone l'hook del kit col perimetro in parole dell'elenco (review H1 dell'istituzionale v1 iter2)
+  it("con il perimetro ADA l'intestazione dice i filtri applicati, \"ADA del tuo profilo\" come la barra, il profilo e l'ultimo dato", async () => {
+    servi();
+    server.use(
+      http.get('*/api/elenco-operativo/domande/sinottico', () => HttpResponse.json({ ...SINOTTICO, perimetro: 'ADA' })),
+      http.get('*/api/elenco-operativo/domande', () => HttpResponse.json({ ...PAGINA_DOMANDE, perimetro: 'ADA' })),
+    );
+    const clic = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    const png = vi.mocked(pngDelGrafico);
+    png.mockClear();
+    renderPagina(ElencoDomande, '/elenco-operativo/domande', '/elenco-operativo/domande?intervento=SRA01');
+    expect(await screen.findByText('Perimetro: ADA del tuo profilo')).toBeTruthy();
+    const card = await trovaCard('Domande per intervento');
+    await userEvent.click(within(card).getByRole('button', { name: / in PNG$/ }));
+    await waitFor(() => expect(png).toHaveBeenCalledTimes(1));
+    expect(png.mock.calls[0][1].intestazione.slice(2, 6)).toEqual([
+      'Filtri applicati: Intervento: SRA01 Produzione integrata',
+      'Perimetro: ADA del tuo profilo',
+      'Profilo: p1-dirigente',
+      expect.stringMatching(/^Ultimo dato sincronizzato: /),
+    ]);
+    clic.mockRestore();
   });
 });
 
