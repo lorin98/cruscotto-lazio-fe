@@ -71,6 +71,23 @@ describe('RF029: riepilogo per intervento delle misure procedurali (TX-0029)', (
     await expectNoA11yViolations(container);
   });
 
+  it('vista Tabella con la voce senza fonte scelta da Colonne (In compilazione del pagamento): cella e piede dicono il motivo', async () => {
+    servi();
+    apri(`${PERCORSO}?intervento=SRD01`);
+    await trovaCard(GRAFICO);
+    await userEvent.click(vista().getByRole('button', { name: 'Tabella' }));
+    const t = await tabella();
+    await userEvent.click(screen.getByText('Colonne'));
+    await userEvent.click(within(screen.getByRole('group', { name: 'Pagamento' })).getByRole('checkbox', { name: 'In compilazione' }));
+    // la colonna nella riga delle intestazioni delle colonne (sotto quella dei gruppi)
+    const intestazioni = Array.from(t.querySelectorAll('thead tr')[1].children);
+    const colonna = intestazioni.findIndex((c) => c.textContent?.startsWith('In compilazione'));
+    expect(colonna).toBeGreaterThan(0);
+    for (const riga of [within(t).getByRole('row', { name: "Apri l'anteprima dell'intervento SRD01" }), within(t).getByRole('row', { name: /^Totale \(dal backend\)/ })]) {
+      expect(testo(riga.children[colonna].textContent)).toBe('non disponibilefonte domande in compilazione non attiva');
+    }
+  });
+
   it('la vista scelta resta tornando indietro dall elenco operativo (cronologia del browser)', async () => {
     servi();
     const { router } = apri(`${PERCORSO}?intervento=SRD01`);

@@ -4,7 +4,7 @@
 // RF028, gli altri stati, perimetro e attivato); il codice dell'intervento di una riga e le voci del drawer di anteprima.
 // I totali sono quelli del backend (riga totale della risposta), mai sommati qui; i numeri coincidono coi report dedicati.
 import { formatNumber } from '../../../shared/lib';
-import type { Distribuzione, Riepilogo, RigaRiepilogo, TotaleRiepilogo } from './dto';
+import type { Distribuzione, Riepilogo, RigaRiepilogo, TotaleRiepilogo, VoceStato } from './dto';
 import { titoloBreve, voceDi } from './stati';
 
 export type SezioneRiepilogo = 'ammesse' | 'area' | 'sostegno' | 'pagamento';
@@ -34,6 +34,14 @@ export function colonneVoci(totale: TotaleRiepilogo | undefined, sezione: Exclud
 /** Le domande di una voce di una distribuzione: il numero, oppure null per la voce senza fonte o assente. */
 export function domandeDellaVoce(d: Distribuzione | undefined, stato: string): number | null {
   return voceDi(d, stato)?.domande ?? null;
+}
+
+/**
+ * La voce di una colonna di stato in una riga o nel totale, con domande, motivo e fonte (la voce senza fonte dice perche'
+ * non ha il numero); undefined se la distribuzione non c'e' o non ha la voce.
+ */
+export function voceDellaColonna(r: RigaRiepilogo | TotaleRiepilogo | undefined, sezione: Exclude<SezioneRiepilogo, 'ammesse'>, stato: string): VoceStato | undefined {
+  return voceDi(distribuzioneDi(r, sezione), stato);
 }
 
 /** Il codice dell'intervento di una riga (dalle misure di TX-0026 della riga). */

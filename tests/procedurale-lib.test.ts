@@ -62,7 +62,7 @@ import type { VoceDistribuzione } from '../src/features/procedurale/lib/stati';
 import { kpiDegliStati, kpiDelleAmmesse, kpiDomandeDellIntervento, kpiInterventi, notaContributo } from '../src/features/procedurale/lib/kpi';
 import { altreSottofasi, anagraficaVuota, etichettaVoce, righeVoci, senzaDomandeNeiFiltri, testoCensita } from '../src/features/procedurale/lib/sottofasi';
 import { CAMPI_PAGATO, assenzaPagato, chiaveUnitAmount, etichettaUnitAmount, notaPagato, valoreDi } from '../src/features/procedurale/lib/unitAmount';
-import { TITOLI_SEZIONI, codiceDellaRiga, colonneVoci, distribuzioneDi, domandeDellaVoce, righeRiepilogo, senzaStatoDi, testoConNonRilasciate } from '../src/features/procedurale/lib/riepilogo';
+import { TITOLI_SEZIONI, codiceDellaRiga, colonneVoci, distribuzioneDi, domandeDellaVoce, righeRiepilogo, senzaStatoDi, testoConNonRilasciate, voceDellaColonna } from '../src/features/procedurale/lib/riepilogo';
 import {
   SENZA_DATI,
   TITOLI_SCHEDE,
@@ -457,6 +457,9 @@ describe('procedurale: riepilogo per intervento (SC-PC_RIEPILOGO) e dettaglio de
       ['pagamento:FINANZIATO', 'Finanziato', 'Finanziato (Pagamento)'],
     ]);
     expect([domandeDellaVoce(riga?.statiSostegno, 'RILASCIATO'), domandeDellaVoce(riga?.statiSostegno, 'IN_COMPILAZIONE'), domandeDellaVoce(undefined, 'X')]).toEqual([2, null, null]);
+    // la voce della colonna porta motivo e fonte della voce senza fonte, nella riga e nel totale
+    expect(voceDellaColonna(RIEPILOGO.totale, 'pagamento', 'IN_COMPILAZIONE')).toMatchObject({ domande: null, motivo: 'FONTE_NON_ATTIVA', fonte: 'DOMANDE_IN_COMPILAZIONE' });
+    expect([voceDellaColonna(riga, 'sostegno', 'RILASCIATO')?.domande, voceDellaColonna(undefined, 'area', 'AMMESSA')]).toEqual([2, undefined]);
     expect(righeRiepilogo(RIEPILOGO).map(codiceDellaRiga)).toEqual(['SRA01', 'SRD01', 'SRD02']);
     expect(righeRiepilogo({ righe: [{}] })).toEqual([]);
     expect([testoConNonRilasciate(riga?.statiSostegno), testoConNonRilasciate(undefined)]).toEqual(['3, di cui non rilasciate 0', '-']);

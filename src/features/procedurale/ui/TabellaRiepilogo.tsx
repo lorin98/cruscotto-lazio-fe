@@ -3,7 +3,8 @@
 // colgroup): Domande ammesse (ammesse e con atto col loro "Apri nell'elenco", richiesto, ammesso; a scelta perimetro e
 // attivato), Area programmazione, Sostegno e Pagamento (visibili i totali di ogni sezione, a scelta le voci e gli altri
 // stati); le celle degli stati non hanno link (sarebbero decine per riga: il drill-down per stato e' nelle pagine degli
-// stati e nel dettaglio). Il piede e' il totale del backend; la riga apre l'anteprima. CSV e XLSX dell'intero riepilogo.
+// stati e nel dettaglio); la voce senza fonte dice il motivo, nelle celle e nel piede. Il piede e' il totale del backend;
+// la riga apre l'anteprima. CSV e XLSX dell'intero riepilogo.
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import { AssenzaMotivata, BadgeAssenza, ValoreImporto } from '../../../entities/importo';
@@ -12,9 +13,9 @@ import { PannelloLaterale, PulsantiScarica, TabellaInterattiva } from '../../../
 import type { ColonnaTabella, RigaPiede, Scaricamento } from '../../../shared/ui';
 import { percorsoIntervento } from '../lib/collegamenti';
 import type { CriteriProcedurali } from '../lib/criteri';
-import type { RigaAmmesse, RigaRiepilogo, TotaleRiepilogo } from '../lib/dto';
+import type { RigaAmmesse, RigaRiepilogo, TotaleRiepilogo, VoceStato } from '../lib/dto';
 import { NON_DISPONIBILE_BREVE, NOTA_FILE, siNo } from '../lib/formato';
-import { TITOLI_SEZIONI, codiceDellaRiga, colonneVoci, distribuzioneDi, domandeDellaVoce, senzaStatoDi, testoConNonRilasciate } from '../lib/riepilogo';
+import { TITOLI_SEZIONI, codiceDellaRiga, colonneVoci, distribuzioneDi, domandeDellaVoce, senzaStatoDi, testoConNonRilasciate, voceDellaColonna } from '../lib/riepilogo';
 import type { SezioneRiepilogo } from '../lib/riepilogo';
 import { testoAltriStati } from '../lib/stati';
 import { CellaAmmesse, CellaConAtto } from './comuni';
@@ -24,6 +25,12 @@ import { useLinkElenco } from './navigazione';
 type Stati = Exclude<SezioneRiepilogo, 'ammesse'>;
 
 const numero = (n: number | null | undefined) => (n == null ? <BadgeAssenza resa={NON_DISPONIBILE_BREVE} /> : <span className="font-monospace">{formatNumber(n)}</span>);
+
+/** Le domande di una voce di stato: il numero, la voce senza fonte col motivo (mai solo "non disponibile"), senza voce breve. */
+function DomandeDellaVoce({ v }: { v: VoceStato | undefined }) {
+  if (v && v.domande === null) return <AssenzaMotivata dato={v} />;
+  return numero(v?.domande);
+}
 
 /** La sezione delle domande ammesse: le quattro misure visibili, perimetro e attivato a scelta. */
 function colonneAmmesse(criteri: CriteriProcedurali, link: LinkElenco): ColonnaTabella<RigaRiepilogo>[] {
@@ -50,7 +57,7 @@ function colonneStati(sezione: Stati, totale: TotaleRiepilogo | undefined): Colo
   return [
     { chiave: `${sezione}:totale`, titolo: 'Totale', gruppo, nomeEsteso: `Totale (${gruppo})`, valore: (r) => d(r)?.totale ?? null, resa: (r) => numero(d(r)?.totale), numerica: true },
     seconda,
-    ...colonneVoci(totale, sezione).map((c) => ({ chiave: c.chiave, titolo: c.titolo, gruppo, nomeEsteso: c.nomeEsteso, valore: (r: RigaRiepilogo) => domandeDellaVoce(d(r), c.stato), resa: (r: RigaRiepilogo) => numero(domandeDellaVoce(d(r), c.stato)), numerica: true, nascosta: true })),
+    ...colonneVoci(totale, sezione).map((c) => ({ chiave: c.chiave, titolo: c.titolo, gruppo, nomeEsteso: c.nomeEsteso, valore: (r: RigaRiepilogo) => domandeDellaVoce(d(r), c.stato), resa: (r: RigaRiepilogo) => <DomandeDellaVoce v={voceDellaColonna(r, sezione, c.stato)} />, numerica: true, nascosta: true })),
     { chiave: `${sezione}:altri`, titolo: 'Altri stati', gruppo, nomeEsteso: `Altri stati (${gruppo})`, valore: (r) => testoAltriStati(d(r)), nascosta: true },
   ];
 }
