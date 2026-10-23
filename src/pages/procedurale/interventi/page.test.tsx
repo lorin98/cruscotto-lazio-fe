@@ -91,6 +91,15 @@ describe('RF024: dettaglio procedurale dell intervento, testata e filtro per sta
     expect(testo(screen.getByRole('region', { name: 'Domande ammesse' }).textContent)).toMatch(/^Domande ammesse0/);
   });
 
+  it('senza il grant di TX-0025 nessuna lettura degli stati area programmazione: il chip dello stato mostra la chiave (D1)', async () => {
+    profilo(['csr.tx-0024.read', 'csr.tx-0026.read', 'csr.tx-0027.read', 'csr.tx-0028.read']);
+    const lette = servi();
+    apri(`${SRD01}?stato=AMMESSA`);
+    await screen.findByRole('region', { name: 'Domande ammesse' });
+    expect(within(screen.getByRole('region', { name: 'Filtri attivi' })).getByRole('button', { name: 'Togli il filtro Stato area programmazione AMMESSA' })).toBeTruthy();
+    expect(lette.statiArea).toBe(0);
+  });
+
   it('TX-0024 non disponibile: il titolo col solo codice, lo stato dei valori con Riprova; i report si leggono', async () => {
     servi({ valori: null });
     apri();
