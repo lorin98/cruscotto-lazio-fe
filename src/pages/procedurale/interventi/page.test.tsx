@@ -288,6 +288,20 @@ describe('RF024: stati del dettaglio (caricamento, errore, senza dati, nessuna d
     expect(screen.queryByText(/nei report procedurali/)).toBeNull();
   });
 
+  it('un 400 del backend (DATO_NON_VALIDO) sulle tre letture: un solo avviso col messaggio del problem-type, non il senza dati', async () => {
+    servi();
+    // AT001 o un intervento fuori dal CSR rispondono 200 senza righe (D2 del judge); un 400 resta un errore della pagina
+    const rifiuto = (percorso: string) => http.get(`*/api/procedurale/${percorso}`, () => HttpResponse.json(problema(400, 'DATO_NON_VALIDO', 'stato non valido'), { status: 400 }));
+    server.use(rifiuto('domande-ammesse'), rifiuto('stati-sostegno'), rifiuto('stati-pagamento'));
+    apri(`${SRD01}?stato=AMMESSA`);
+    const avviso = await screen.findByRole('alert');
+    await waitFor(() => expect(avviso.textContent).toContain('3 sezioni della pagina non si sono caricate.'));
+    expect(screen.getAllByRole('alert')).toHaveLength(1);
+    expect(avviso.textContent).toContain('Richiesta non valida: stato non valido. Correggila e riprova.');
+    expect(screen.queryByText(/^Nessun dato per questo intervento/)).toBeNull();
+    expect(screen.queryByRole('tab')).toBeNull();
+  });
+
   it('un intervento senza righe nei report: lo stato senza dati, il titolo col solo codice', async () => {
     servi();
     apri('/procedurale/interventi/SRX99');
