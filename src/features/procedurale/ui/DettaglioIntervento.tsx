@@ -115,8 +115,13 @@ function KpiDettaglio({ codice, letture, criteri }: { codice: string; letture: L
   return kpi.length > 0 ? <TessereKpi kpi={kpi} criteri={criteri} /> : null;
 }
 
-/** Nessuna domanda dell'intervento nelle letture: con lo stato scelto l'invito a cambiarlo (le schede restano). */
+/**
+ * Nessuna domanda dell'intervento nelle letture: con lo stato scelto l'invito a cambiarlo (le schede restano). Lo dice
+ * solo se tutte le letture fatte hanno risposto: una lettura in errore non conta come zero (mai un vuoto dedotto da un
+ * errore, che lo dice l'avviso della pagina).
+ */
 function NessunaDomanda({ codice, letture, pagina }: { codice: string; letture: Letture; pagina: PaginaDeiCriteri }) {
+  if ([letture.ammesse, letture.sostegno, letture.pagamento].some(senzaRisposta)) return null;
   const r = righe(codice, letture);
   if (!senzaDomande(r.ammesse, r.sostegno, r.pagamento)) return null;
   if ((pagina.filtri.stato ?? []).length === 0) return <Vuoto>{`Nessuna domanda di ${codice} nei report procedurali.`}</Vuoto>;

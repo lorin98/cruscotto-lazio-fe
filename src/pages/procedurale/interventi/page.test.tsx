@@ -253,6 +253,16 @@ describe('RF024: stati del dettaglio (caricamento, errore, senza dati, nessuna d
     expect(screen.queryByRole('tab')).toBeNull();
   });
 
+  it('una lettura in errore e le altre a zero: un solo avviso, nessun vuoto dedotto dall errore (mai uno zero inventato)', async () => {
+    servi();
+    server.use(indisponibile('stati-sostegno'));
+    apri(`${SRD01}?stato=DECADENZA_TOTALE`);
+    await screen.findByRole('alert');
+    expect(testo((await screen.findByRole('region', { name: 'Domande ammesse' })).textContent)).toMatch(/^Domande ammesse0/);
+    expect(screen.getAllByRole('alert')).toHaveLength(1);
+    expect(screen.queryByText(/^Nessuna domanda di SRD01/)).toBeNull();
+  });
+
   it('un intervento senza righe nei report: lo stato senza dati, il titolo col solo codice', async () => {
     servi();
     apri('/procedurale/interventi/SRX99');
