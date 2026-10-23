@@ -8,6 +8,7 @@ export { blobDaDataUrl, salvaFile } from './salva-file';
 export { useFocusDopoIlCambio, useFocusSeSparisce, useFocusTitolo } from './focus';
 export { Briciole, TestaPagina, TestataDettaglio } from './pagina/Testata';
 export { PaginaConFiltri } from './pagina/PaginaConFiltri';
+export { CorpoDelDettaglio, ErroriDelleLetture, IntestazioneNonValida } from './pagina/Dettaglio';
 export { useStatoDelDettaglio } from './pagina/useStatoDelDettaglio';
 export type { Briciola } from './pagina/Testata';
 export { useStatoNellaHistory } from './useStatoNellaHistory';

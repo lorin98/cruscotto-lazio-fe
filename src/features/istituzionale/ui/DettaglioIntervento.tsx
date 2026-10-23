@@ -16,7 +16,7 @@ import type { Ref } from 'react';
 import { codiceDelPercorso, descrizioneIntervento, rigaDellIntervento } from '../../../entities/filtri';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import type { StatoDettaglio } from '../../../shared/lib';
-import { AvvisoPagina, Briciole, Caricamento, ContestoIntestazione, ErroreNellaPagina, Griglia, Kpi, PillDatiAl, TestataDettaglio, Vuoto, useAnnoNellIndirizzo, useErroreNellaPagina, useFocusTitolo, useRigheContesto, useStatoDelDettaglio } from '../../../shared/ui';
+import { AvvisoPagina, Briciole, ContestoIntestazione, CorpoDelDettaglio, ErroriDelleLetture, Griglia, IntestazioneNonValida, Kpi, PillDatiAl, TestataDettaglio, Vuoto, useAnnoNellIndirizzo, useFocusTitolo, useRigheContesto, useStatoDelDettaglio } from '../../../shared/ui';
 import type { NomeIcona, TonoKpi } from '../../../shared/ui';
 import { useOutputRegionale, useValoriFiltri, useVerificaSmpNonSigc } from '../api';
 import { outputDellIntervento, verificaDellIntervento } from '../lib/collegamenti';
@@ -45,18 +45,9 @@ function useLettureDelDettaglio(codice: string, anno: number | undefined) {
   return { verifica: conVerifica ? verifica : null, output: conOutput ? output : null, descrizione: descrizioneIntervento(valori.data?.interventi, codice) };
 }
 
-/** Il codice dell'indirizzo non e' un codice di intervento: nessuna richiesta, lo dice la pagina. */
+/** Il codice dell'indirizzo non e' un codice di intervento: nessuna richiesta, lo dice la pagina (lo scheletro del kit). */
 function InterventoNonValido() {
-  const h1 = useFocusTitolo<HTMLHeadingElement>('Intervento non valido - Istituzionale');
-  return (
-    <main className="ui-pagina" id="contenuto">
-      <Briciole voci={[{ etichetta: 'Istituzionale', a: useIngressoArea() }, { etichetta: 'Intervento' }]} />
-      <TestataDettaglio idTitolo={ID_TITOLO} titolo="Intervento non valido" h1={h1} />
-      <p className="alert alert-danger" role="alert">
-        {"Il codice nell'indirizzo non è un codice di intervento: nessun dato richiesto. Scegli l'intervento dalla verifica SMP non SIGC o dall'output regionale."}
-      </p>
-    </main>
-  );
+  return <IntestazioneNonValida area="Istituzionale" ingresso={useIngressoArea()} suggerimento="Scegli l'intervento dalla verifica SMP non SIGC o dall'output regionale." titoloDocumento="Intervento non valido - Istituzionale" />;
 }
 
 /** Perimetro (sempre regionale) e ultimo dato sincronizzato, nella barra dei riferimenti (il dettaglio non ha filtri). */
@@ -125,18 +116,6 @@ function SenzaDati({ conOutput }: { conOutput: boolean }) {
 
 type PropsCorpo = Omit<PropsSchede, 'unita'>;
 
-const senzaRisposta = (s: { isError: boolean; data: unknown } | null): boolean => s !== null && s.isError && s.data === undefined;
-
-/**
- * Le letture che non hanno risposto: l'errore lo dice subito, una volta e con Riprova, l'avviso della pagina (anche se la
- * scheda della lettura non e' aperta). E' il solo a registrarlo (review H1): le schede mostrano il testo statico.
- */
-function ErroriDelleLetture({ verifica, output }: Pick<PropsCorpo, 'verifica' | 'output'>) {
-  useErroreNellaPagina(senzaRisposta(verifica), verifica?.error, () => verifica?.refetch());
-  useErroreNellaPagina(senzaRisposta(output), output?.error, () => output?.refetch());
-  return null;
-}
-
 /** I KPI delle righe dell'intervento e le schede. */
 function DatiDelDettaglio({ codice, verifica, output, ...schede }: PropsCorpo) {
   const rigaOutput = rigaDellIntervento(output?.data?.righe, codice);
@@ -148,12 +127,13 @@ function DatiDelDettaglio({ codice, verifica, output, ...schede }: PropsCorpo) {
   );
 }
 
-/** Il corpo secondo lo stato delle letture: scheletro, errore (detto dall'avviso della pagina), senza dati, KPI e schede. */
+/** Il corpo secondo lo stato delle letture (CorpoDelDettaglio del kit): scheletro, errore, senza dati, KPI e schede. */
 function CorpoDettaglio({ stato, ...props }: PropsCorpo & { stato: StatoDettaglio }) {
-  if (stato === 'caricamento') return <Caricamento alto />;
-  if (stato === 'errore') return <ErroreNellaPagina />;
-  if (stato === 'vuoto') return <SenzaDati conOutput={props.output !== null} />;
-  return <DatiDelDettaglio {...props} />;
+  return (
+    <CorpoDelDettaglio stato={stato} vuoto={<SenzaDati conOutput={props.output !== null} />}>
+      <DatiDelDettaglio {...props} />
+    </CorpoDelDettaglio>
+  );
 }
 
 function Dettaglio({ codice }: { codice: string }) {
@@ -177,7 +157,8 @@ function Dettaglio({ codice }: { codice: string }) {
         <Briciole voci={[{ etichetta: 'Istituzionale', a: useIngressoArea() }, { etichetta: codice }]} />
         <TestataIntervento h1={h1} codice={codice} titolo={titoloIntervento(codice, descrizione)} badge={badge} anno={anno} />
         <AvvisoPagina>
-          <ErroriDelleLetture verifica={verifica} output={output} />
+          {/* l'errore di ogni lettura lo registra l'avviso della pagina, una volta (review H1): le schede il testo statico */}
+          <ErroriDelleLetture letture={[verifica, output]} />
           <CorpoDettaglio stato={stato} codice={codice} anno={anno} onAnno={impostaAnno} verifica={verifica} output={output} scheda={scheda} onScheda={setScheda} />
         </AvvisoPagina>
       </main>

@@ -5,11 +5,13 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { useRef } from 'react';
-import { describe, expect, it } from 'vitest';
-import { render, renderHook, screen, within } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import { render, renderHook, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
-import { CardGrafico, PaginaConFiltri, TabellaInterattiva, useStatoDelDettaglio } from '../src/shared/ui';
+import { senzaRisposta } from '../src/shared/lib';
+import type { StatoDettaglio } from '../src/shared/lib';
+import { AvvisoPagina, CardGrafico, CorpoDelDettaglio, ErroriDelleLetture, IntestazioneNonValida, PaginaConFiltri, TabellaInterattiva, useStatoDelDettaglio } from '../src/shared/ui';
 import type { ColonnaTabella, DatiGrafico, Scaricamento } from '../src/shared/ui';
 import { renderConQuery } from '../src/shared/testing/render';
 import { expectNoA11yViolations } from '../src/shared/testing/axe';
@@ -62,6 +64,53 @@ describe('CardGrafico del kit: oggettoPng, il nome del PNG quando il titolo non 
     expect(nomi()).toEqual(['Scarica il grafico Stati di SRD01 in PNG', 'Scarica il grafico Stati di SRD01 in CSV']);
     rerender(<CardGrafico titolo="Stati" dati={DATI} fonte="Fonte" scaricamenti={[csv]} oggettoDati="i dati degli stati" />);
     expect(nomi()).toEqual(['Scarica il grafico Stati in PNG', 'Scarica i dati degli stati in CSV']);
+  });
+});
+
+describe('Le parti comuni dei due dettagli nel kit (review H1 del procedurale): codice non valido, errori delle letture, corpo', () => {
+  it('IntestazioneNonValida: il percorso con l area, un solo h1 col focus e il titolo del documento, l avviso col suggerimento', async () => {
+    const pagina = <IntestazioneNonValida area="Area" ingresso="/area" suggerimento="Scegli dalla panoramica." titoloDocumento="Intervento non valido - Area" />;
+    const router = createMemoryRouter([{ path: '/', element: pagina }], { initialEntries: ['/'] });
+    const { container } = renderConQuery(<RouterProvider router={router} />);
+    const h1 = screen.getByRole('heading', { level: 1, name: 'Intervento non valido' });
+    await waitFor(() => expect(document.activeElement).toBe(h1));
+    expect(document.title).toBe('Intervento non valido - Area - Cruscotto CSR 2023-2027');
+    expect(screen.getByRole('navigation', { name: 'Percorso' }).textContent).toBe('HomeAreaIntervento');
+    expect(screen.getByRole('link', { name: 'Area' }).getAttribute('href')).toBe('/area');
+    expect(screen.getByRole('alert').textContent).toBe("Il codice nell'indirizzo non è un codice di intervento: nessun dato richiesto. Scegli dalla panoramica.");
+    await expectNoA11yViolations(container);
+  });
+
+  it('ErroriDelleLetture: un solo avviso per le letture senza risposta (non quelle coi dati ne quelle senza grant); Riprova le rilegge', async () => {
+    const riprova = vi.fn();
+    const lettura = (data: unknown, isError: boolean) => ({ data, isError, error: new Error('Servizio non disponibile'), refetch: riprova });
+    render(
+      <AvvisoPagina>
+        <ErroriDelleLetture letture={[lettura(undefined, true), lettura({ righe: [] }, true), null, lettura(undefined, false)]} />
+      </AvvisoPagina>,
+    );
+    const avviso = await screen.findByRole('alert');
+    expect(screen.getAllByRole('alert')).toHaveLength(1);
+    expect(avviso.textContent).toContain('Una sezione della pagina non si è caricata.');
+    await userEvent.click(within(avviso).getByRole('button', { name: 'Riprova' }));
+    expect(riprova).toHaveBeenCalledTimes(1);
+    expect([senzaRisposta(lettura(undefined, true)), senzaRisposta(lettura({}, true)), senzaRisposta(null), senzaRisposta(lettura(undefined, false))]).toEqual([true, false, false, false]);
+  });
+
+  it('CorpoDelDettaglio: lo scheletro, l errore col testo statico, il vuoto dato, altrimenti i dati', () => {
+    const corpo = (stato: StatoDettaglio) => (
+      <CorpoDelDettaglio stato={stato} vuoto={<p>Vuoto del dettaglio</p>}>
+        <p>Dati del dettaglio</p>
+      </CorpoDelDettaglio>
+    );
+    const { container, rerender } = render(corpo('caricamento'));
+    expect(container.querySelector('.ui-skeleton--alto')?.getAttribute('role')).toBe('status');
+    rerender(corpo('errore'));
+    expect(container.textContent).toMatch(/^Dati non caricati: l'avviso in cima alla pagina/);
+    rerender(corpo('vuoto'));
+    expect(container.textContent).toBe('Vuoto del dettaglio');
+    rerender(corpo('dati'));
+    expect(container.textContent).toBe('Dati del dettaglio');
   });
 });
 

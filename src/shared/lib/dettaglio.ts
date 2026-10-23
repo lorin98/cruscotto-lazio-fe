@@ -9,6 +9,19 @@ export interface LetturaDettaglio {
   isError: boolean;
 }
 
+/** Una lettura col suo errore e il modo di riprovarla (l'avviso della pagina lo dice). */
+export interface LetturaConErrore {
+  data?: unknown;
+  isError: boolean;
+  error: unknown;
+  refetch: () => unknown;
+}
+
+/** La lettura fatta (null = senza il grant) e' in errore senza dati: non ha risposto, mai uno zero al suo posto. */
+export function senzaRisposta(l: Pick<LetturaConErrore, 'data' | 'isError'> | null | undefined): boolean {
+  return l != null && l.isError && l.data === undefined;
+}
+
 /** Tutte le letture fatte hanno risposto, coi dati o con l'errore (nessuna lettura abilitata: no). */
 export function tutteRisposte(letture: readonly LetturaDettaglio[]): boolean {
   return letture.length > 0 && letture.every((l) => l.data !== undefined || l.isError);

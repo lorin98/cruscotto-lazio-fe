@@ -17,10 +17,9 @@ import { Link } from 'react-router';
 import type { Ref } from 'react';
 import { codiceDelPercorso, descrizioneIntervento, rigaDellIntervento, ValoriFiltriNonDisponibili } from '../../../entities/filtri';
 import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
-import { testoPerimetro } from '../../../shared/lib';
+import { senzaRisposta, testoPerimetro } from '../../../shared/lib';
 import type { StatoDettaglio } from '../../../shared/lib';
-import { AvvisoAggiornamento, AvvisoPagina, BarraFiltri, Briciole, Caricamento, ContestoIntestazione, ErroreNellaPagina, PillDatiAl, TestataDettaglio, Vuoto, VuotoConFiltri, useErroreNellaPagina, useFocusTitolo, useRigheContesto, useStatoDelDettaglio } from '../../../shared/ui';
-import type { StatoQuery } from '../../../shared/ui';
+import { AvvisoAggiornamento, AvvisoPagina, BarraFiltri, Briciole, ContestoIntestazione, CorpoDelDettaglio, ErroriDelleLetture, IntestazioneNonValida, PillDatiAl, TestataDettaglio, Vuoto, VuotoConFiltri, useFocusTitolo, useRigheContesto, useStatoDelDettaglio } from '../../../shared/ui';
 import { useDomandeAmmesse, useStatiPagamento, useStatiSostegno } from '../api';
 import { panoramicaDellIntervento } from '../lib/collegamenti';
 import { conCriteri, criteriDellIntervento, testiCriteri } from '../lib/criteri';
@@ -56,19 +55,9 @@ function useLetture(criteri: CriteriProcedurali) {
 
 type Letture = ReturnType<typeof useLetture>;
 
-/** Il codice dell'indirizzo non e' un codice di intervento: nessuna richiesta, lo dice la pagina. */
+/** Il codice dell'indirizzo non e' un codice di intervento: nessuna richiesta, lo dice la pagina (lo scheletro del kit). */
 function InterventoNonValido() {
-  const h1 = useFocusTitolo<HTMLHeadingElement>('Intervento non valido - Procedurale');
-  const ingresso = useIngressoArea({});
-  return (
-    <main className="ui-pagina" id="contenuto">
-      <Briciole voci={[{ etichetta: 'Procedurale', a: ingresso }, { etichetta: 'Intervento' }]} />
-      <TestataDettaglio idTitolo={ID_TITOLO} titolo="Intervento non valido" h1={h1} />
-      <p className="alert alert-danger" role="alert">
-        {"Il codice nell'indirizzo non è un codice di intervento: nessun dato richiesto. Scegli l'intervento dalla panoramica o dai report procedurali."}
-      </p>
-    </main>
-  );
+  return <IntestazioneNonValida area="Procedurale" ingresso={useIngressoArea({})} suggerimento="Scegli l'intervento dalla panoramica o dai report procedurali." titoloDocumento="Intervento non valido - Procedurale" />;
 }
 
 /** La testata: sopratitolo, h1, badge in testo e i link verso la panoramica (solo se il profilo la apre). */
@@ -86,16 +75,6 @@ function TestataIntervento({ h1, codice, titolo, badge, stato }: { h1: Ref<HTMLH
     </>
   );
   return <TestataDettaglio idTitolo={ID_TITOLO} titolo={titolo} h1={h1} sopratitolo={sopratitoloIntervento(codice)} badge={badge} azioni={azioni || undefined} />;
-}
-
-const senzaRisposta = (s: StatoQuery<unknown> | null): boolean => s !== null && s.isError && s.data === undefined;
-
-/** Le letture della pagina che non hanno risposto: l'errore lo dice una volta l'avviso della pagina (le parti tacciono). */
-function ErroriDelleLetture({ letture }: { letture: Letture }) {
-  useErroreNellaPagina(senzaRisposta(letture.ammesse), letture.ammesse?.error, () => letture.ammesse?.refetch());
-  useErroreNellaPagina(senzaRisposta(letture.sostegno), letture.sostegno?.error, () => letture.sostegno?.refetch());
-  useErroreNellaPagina(senzaRisposta(letture.pagamento), letture.pagamento?.error, () => letture.pagamento?.refetch());
-  return null;
 }
 
 /** Le righe dell'intervento nelle letture della pagina. */
@@ -148,14 +127,8 @@ interface PropsCorpo {
 /** Una lettura della pagina mostra ancora i dati dello stato di prima, mentre arrivano quelli nuovi. */
 const inAggiornamento = (l: Letture) => [l.ammesse, l.sostegno, l.pagamento].some((x) => x?.isPlaceholderData === true);
 
-/**
- * Il corpo secondo lo stato delle letture: scheletro (solo alla prima apertura), errore (detto dall'avviso della pagina),
- * senza dati, KPI e schede; mentre una lettura riparte coi criteri nuovi i dati di prima restano e l'avviso lo dice.
- */
-function CorpoDettaglio({ stato, codice, letture, pagina, criteri, perimetro, scheda, onScheda }: PropsCorpo) {
-  if (stato === 'caricamento') return <Caricamento alto />;
-  if (stato === 'errore') return <ErroreNellaPagina />;
-  if (stato === 'vuoto') return <Vuoto>{SENZA_DATI}</Vuoto>;
+/** I dati del dettaglio: vuoto per lo stato, KPI e schede; mentre una lettura riparte i dati di prima restano e l'avviso lo dice. */
+function DatiDelDettaglio({ codice, letture, pagina, criteri, perimetro, scheda, onScheda }: Omit<PropsCorpo, 'stato'>) {
   const aggiorna = inAggiornamento(letture);
   return (
     <>
@@ -166,6 +139,15 @@ function CorpoDettaglio({ stato, codice, letture, pagina, criteri, perimetro, sc
         <SchedeIntervento codice={codice} criteri={criteri} onModifica={() => pagina.apri('vuoto')} sostegno={letture.sostegno} pagamento={letture.pagamento} scheda={scheda} onScheda={onScheda} />
       </div>
     </>
+  );
+}
+
+/** Il corpo secondo lo stato delle letture (CorpoDelDettaglio del kit): scheletro solo alla prima apertura, errore, senza dati, dati. */
+function CorpoDettaglio({ stato, ...dati }: PropsCorpo) {
+  return (
+    <CorpoDelDettaglio stato={stato} vuoto={<Vuoto>{SENZA_DATI}</Vuoto>}>
+      <DatiDelDettaglio {...dati} />
+    </CorpoDelDettaglio>
   );
 }
 
@@ -209,7 +191,7 @@ function Dettaglio({ codice }: { codice: string }) {
         <TestataIntervento h1={pagina.h1} codice={codice} titolo={titolo} badge={badgeIntervento(righe(codice, letture).ammesse)} stato={pagina.filtri.stato} />
         <ValoriFiltriNonDisponibili letture={[pagina.valori, pagina.statiArea]} h1={pagina.h1} />
         <AvvisoPagina>
-          <ErroriDelleLetture letture={letture} />
+          <ErroriDelleLetture letture={[letture.ammesse, letture.sostegno, letture.pagamento]} />
           <CorpoDettaglio stato={stato} codice={codice} letture={letture} pagina={pagina} criteri={criteri} perimetro={perimetro} scheda={scheda} onScheda={setScheda} />
         </AvvisoPagina>
       </main>
