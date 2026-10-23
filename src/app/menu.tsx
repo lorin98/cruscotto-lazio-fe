@@ -2,16 +2,15 @@
 // aree (aree.ts, review step9 H-22). Le voci di un'area sono le sue pagine visibili per i grant dell'utente (solo UX);
 // passando da una pagina all'altra della stessa area la sua parte dell'indirizzo (i filtri) resta. Solo dalla stessa
 // area: i filtri di un'altra area non entrano nei suoi link (review v1 H-10, una navigazione che nessun link dichiara).
-// Le aree non ancora realizzate sono dichiarate "presto", senza link; i quattro ambiti stanno nell'ordine fisso del
-// catalogo (aree.ts: AMBITI), realizzati o no. Gli strumenti trasversali (elenco operativo) hanno
-// una sezione propria, con le sole pagine visibili. Una voce e' corrente sul suo percorso, o anche nei sottopercorsi se
+// I quattro ambiti stanno nell'ordine fisso del catalogo (aree.ts: AMBITI), ognuno con le sole pagine visibili; gli
+// strumenti trasversali (elenco operativo) hanno una sezione propria, con le sole pagine visibili. Una voce e' corrente sul suo percorso, o anche nei sottopercorsi se
 // la pagina lo dichiara (le determine di una domanda: /fisico/determine/<codice>).
 import { useId, useState } from 'react';
 import { NavLink, useLocation } from 'react-router';
 import { hasGrant, useAuthStatus } from '../shared/api/auth/use-auth-status';
 import { Icona } from '../shared/ui';
-import { AMBITI, STRUMENTI, areeVisibili, eRealizzata } from './aree';
-import type { Area, PaginaArea, SchedaArea } from './aree';
+import { AMBITI, STRUMENTI, areeVisibili } from './aree';
+import type { Area, PaginaArea } from './aree';
 
 function GruppoArea({ area, pagine, onNaviga }: { area: Area; pagine: PaginaArea[]; onNaviga?: () => void }) {
   const id = useId();
@@ -39,18 +38,6 @@ function GruppoArea({ area, pagine, onNaviga }: { area: Area; pagine: PaginaArea
   );
 }
 
-/** Un'area non ancora realizzata: dichiarata "presto", senza link. */
-function AreaFutura({ scheda }: { scheda: SchedaArea }) {
-  return (
-    <li>
-      <span className="ui-menu__presto">
-        {scheda.titolo}
-        <span>presto</span>
-      </span>
-    </li>
-  );
-}
-
 export function MenuLaterale({ onNaviga }: { onNaviga?: () => void }) {
   const { data: auth } = useAuthStatus();
   const aree = areeVisibili((g) => hasGrant(auth, g));
@@ -60,7 +47,6 @@ export function MenuLaterale({ onNaviga }: { onNaviga?: () => void }) {
       <p className="ui-menu__sezione">Aree del cruscotto</p>
       <ul className="ui-menu">
         {AMBITI.map((a) => {
-          if (!eRealizzata(a)) return <AreaFutura key={a.chiave} scheda={a} />;
           const pagine = aree.find((v) => v.area === a)?.pagine;
           return pagine ? <GruppoArea key={a.chiave} area={a} pagine={pagine} onNaviga={onNaviga} /> : null;
         })}

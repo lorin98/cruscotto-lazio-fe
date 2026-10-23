@@ -2,15 +2,14 @@
 // authz-surface propria): resta fuori dal manifest. Mostra i quattro ambiti del catalogo (aree.ts, lo stesso del menu
 // laterale) in una griglia bilanciata, nell'ordine fisso del catalogo: quattro colonne, due su due, una sola sugli schermi
 // stretti; mai tre piu' una.
-// Ogni ambito ha il suo colore. La card di un'area realizzata porta alla prima pagina visibile per i grant dell'utente
-// (hide-by-role di sola UX, l'enforcement resta server-side) e ne mostra i numeri chiave; le aree future dicono cosa
-// conterranno, senza link.
+// Ogni ambito ha il suo colore. La card di un'area porta alla prima pagina visibile per i grant dell'utente (hide-by-role
+// di sola UX, l'enforcement resta server-side) e ne mostra i numeri chiave.
 import { Link } from 'react-router';
 import { hasGrant, useAuthStatus } from '../shared/api/auth/use-auth-status';
 import { NOME_APPLICAZIONE } from '../shared/config/applicazione';
 import { resolveLoginPath } from '../shared/config/base-path';
 import { Icona, useFocusTitolo } from '../shared/ui';
-import { AMBITI, STRUMENTI, areeVisibili, eRealizzata } from './aree';
+import { AMBITI, STRUMENTI, areeVisibili } from './aree';
 import type { Area, PaginaArea, SchedaArea } from './aree';
 import { SessioneNonVerificabile } from './sessione-non-verificabile';
 
@@ -42,7 +41,7 @@ function Testa({ scheda, id, stato }: { scheda: SchedaArea; id?: string; stato: 
   );
 }
 
-/** Area realizzata: con pagine visibili porta alla prima, altrimenti dice che il profilo non la comprende. */
+/** Un'area: con pagine visibili porta alla prima, altrimenti dice che il profilo non la comprende. */
 function CardArea({ area, pagine }: { area: Area; pagine: PaginaArea[] }) {
   const id = `area-${area.chiave}`;
   const ingresso = pagine[0];
@@ -67,25 +66,6 @@ function CardArea({ area, pagine }: { area: Area; pagine: PaginaArea[] }) {
   );
 }
 
-function CardAreaFutura({ scheda }: { scheda: SchedaArea }) {
-  return (
-    <li>
-      <section className={`ui-ambito ui-ambito--${scheda.tono} ui-ambito--presto`} aria-label={`${scheda.titolo}: presto disponibile`}>
-        <Testa scheda={scheda} stato="In preparazione" />
-        <div className="ui-ambito__corpo">
-          <Contenuti voci={scheda.contenuti} />
-        </div>
-        <div className="ui-ambito__piede">
-          <span className="ui-ambito__entra ui-ambito__entra--spento">
-            Presto disponibile
-            <Icona nome="it-clock" />
-          </span>
-        </div>
-      </section>
-    </li>
-  );
-}
-
 function Ambiti({ haGrant }: { haGrant: (grant: string) => boolean }) {
   const visibili = areeVisibili(haGrant);
   return (
@@ -93,9 +73,9 @@ function Ambiti({ haGrant }: { haGrant: (grant: string) => boolean }) {
       {visibili.length === 0 && <p role="status">Il tuo profilo non ha ancora aree del cruscotto da consultare.</p>}
       <nav className="ui-ambiti" aria-label="Aree del cruscotto">
         <ul className="ui-ambiti__griglia">
-          {AMBITI.map((a) =>
-            eRealizzata(a) ? <CardArea key={a.chiave} area={a} pagine={visibili.find((v) => v.area === a)?.pagine ?? []} /> : <CardAreaFutura key={a.chiave} scheda={a} />,
-          )}
+          {AMBITI.map((a) => (
+            <CardArea key={a.chiave} area={a} pagine={visibili.find((v) => v.area === a)?.pagine ?? []} />
+          ))}
         </ul>
       </nav>
     </>

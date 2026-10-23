@@ -1,7 +1,8 @@
 // aree.ts — catalogo unico degli ambiti del cruscotto (review step9 H-22): la Home (home.tsx) e il menu laterale
-// (menu.tsx) lo iterano, invece di scrivere ciascuno a mano le aree realizzate e quelle future. Le pagine di un'area e
-// la loro visibilita' per grant (solo UX, l'enforcement resta del backend) le espone il barrel della feature; le route
-// restano in route-table.json. Una nuova area si aggiunge qui con le funzioni del suo barrel e si toglie da AREE_FUTURE.
+// (menu.tsx) lo iterano, invece di scrivere ciascuno a mano le aree. Le pagine di un'area e la loro visibilita' per
+// grant (solo UX, l'enforcement resta del backend) le espone il barrel della feature; le route restano in
+// route-table.json. Una nuova area si aggiunge qui con le funzioni del suo barrel. Col procedurale (23/10/2026) i quattro
+// ambiti sono tutti realizzati: il meccanismo delle aree "presto" (senza link) e' stato tolto (review H8 del procedurale).
 // Gli ambiti sono quattro (finanziario, fisico, procedurale, istituzionale), ognuno col suo colore; i dati del primo
 // pilastro (Extra CSR) non hanno un ambito nel frontend (scelta dell'utente del 12/10/2026). Le card descrivono il
 // contenuto reale delle feature (decisione G1 dell'utente del 21/10/2026): ogni pagina sta nella feature della sua slice.
@@ -16,7 +17,7 @@ import type { NomeIcona } from '../shared/ui';
 
 /**
  * L'ordine dei quattro ambiti nella Home e nel menu, fisso: un'area che si realizza non cambia di posto. E' anche la sola
- * fonte delle chiavi degli ambiti (review H9): un'area o una scheda futura con una chiave fuori di qui non compila.
+ * fonte delle chiavi degli ambiti (review H9): un'area con una chiave fuori di qui non compila.
  */
 const ORDINE_AMBITI = ['finanziario', 'fisico', 'procedurale', 'istituzionale'] as const;
 
@@ -35,7 +36,7 @@ export interface PaginaArea {
 /** Colore dell'ambito nella Home (classi ui-ambito--<tono> di tema.css). */
 export type TonoArea = 'blu' | 'verde' | 'arancio' | 'viola';
 
-/** Cio' che serve alla card della Home, per le aree realizzate e per quelle future. */
+/** Cio' che serve alla card della Home e alla voce del menu di un'area. */
 export interface SchedaArea {
   /** Identificativo stabile (chiavi React, id del DOM). */
   chiave: string;
@@ -48,7 +49,7 @@ export interface SchedaArea {
   contenuti: readonly string[];
 }
 
-/** Un ambito (area realizzata o scheda futura): la chiave e' una delle quattro dell'ordine fisso. */
+/** Un ambito: la chiave e' una delle quattro dell'ordine fisso. */
 type DiAmbito<A extends SchedaArea> = A & { chiave: ChiaveAmbito };
 
 export interface Area extends SchedaArea {
@@ -112,12 +113,6 @@ export const AREE: readonly DiAmbito<Area>[] = [
 ];
 
 /**
- * Aree non ancora realizzate: la Home e il menu le dichiarano "presto", senza link. Col procedurale (23/10/2026) i quattro
- * ambiti sono tutti realizzati e la lista e' vuota.
- */
-export const AREE_FUTURE: readonly DiAmbito<SchedaArea>[] = [];
-
-/**
  * Strumenti trasversali agli ambiti (OP-EO-04): l'elenco operativo delle domande e dei pagamenti. Non sono un ambito
  * (la griglia della Home resta di quattro): menu e Home li mostrano in una sezione propria.
  */
@@ -133,13 +128,8 @@ export const STRUMENTI: readonly Area[] = [
   },
 ];
 
-/** Vero per un'area realizzata (con le sue pagine), falso per una scheda di un'area futura. */
-export function eRealizzata(a: Area | SchedaArea): a is Area {
-  return 'pagineVisibili' in a;
-}
-
-/** I quattro ambiti, realizzati e futuri, nell'ordine del catalogo (finanziario, fisico, procedurale, istituzionale). */
-export const AMBITI: readonly DiAmbito<Area | SchedaArea>[] = [...AREE, ...AREE_FUTURE].sort((a, b) => ORDINE_AMBITI.indexOf(a.chiave) - ORDINE_AMBITI.indexOf(b.chiave));
+/** I quattro ambiti nell'ordine del catalogo (finanziario, fisico, procedurale, istituzionale). */
+export const AMBITI: readonly DiAmbito<Area>[] = [...AREE].sort((a, b) => ORDINE_AMBITI.indexOf(a.chiave) - ORDINE_AMBITI.indexOf(b.chiave));
 
 /** Le aree (o gli strumenti) con almeno una pagina visibile per i grant dell'utente, ognuna con le sue pagine visibili. */
 export function areeVisibili(haGrant: (grant: string) => boolean, aree: readonly Area[] = AREE): { area: Area; pagine: PaginaArea[] }[] {

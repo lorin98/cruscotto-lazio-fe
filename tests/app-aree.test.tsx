@@ -1,6 +1,8 @@
 // app-aree.test.tsx — catalogo unico delle aree (review step9 H-22): la Home e il menu laterale lo iterano, le pagine
 // di un'area vengono dal barrel della feature e sono route della route-table, le aree future stanno in una sola lista.
 // Gli ambiti sono quattro, ognuno col suo colore; il primo pilastro non ha un ambito nel frontend (12/10/2026).
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -11,7 +13,8 @@ import { rispondi } from '../src/shared/testing/msw';
 import { formatNumber } from '../src/shared/lib';
 import * as F from '../src/features/finanziario/testing/fixture';
 import { lettureProcedurale } from '../src/features/procedurale/testing/letture';
-import { AMBITI, AREE, AREE_FUTURE, areeVisibili, eRealizzata } from '../src/app/aree';
+import * as catalogo from '../src/app/aree';
+import { AMBITI, AREE, areeVisibili } from '../src/app/aree';
 import type { ChiaveAmbito } from '../src/app/aree';
 import { appRoutes } from '../src/app/routes';
 import routeTable from '../src/app/route-table.json';
@@ -104,7 +107,6 @@ describe('catalogo delle aree', () => {
     const istituzionale = AREE.find((a) => a.chiave === 'istituzionale');
     expect(istituzionale?.contenuti).toEqual(['Verifica SMP dei dati ASR non SIGC', 'Output regionale programmato e realizzato per intervento e anno']);
     expect(istituzionale?.descrizione).toBe('Dati ASR non SIGC a confronto con SMP - Data Platform e output regionale programmato e realizzato.');
-    expect(AREE_FUTURE).toEqual([]);
   });
 
   it('una ricerca conservata porta solo i criteri dell area: del finanziario, dell istituzionale senza l anno, del procedurale con lo stato', () => {
@@ -127,14 +129,18 @@ describe('catalogo delle aree', () => {
     expect(chiavi).not.toContain(fuori);
   });
 
-  it('le aree future non sono aree realizzate', () => {
-    expect(AREE_FUTURE.filter((f) => AREE.some((a) => a.titolo === f.titolo))).toEqual([]);
+  it('nessun meccanismo delle aree "presto": i quattro ambiti sono realizzati (review H8 del procedurale)', () => {
+    expect(Object.keys(catalogo)).not.toContain('AREE_FUTURE');
+    expect(Object.keys(catalogo)).not.toContain('eRealizzata');
+    // ne' gli stili della card e della voce di menu "presto"
+    const tema = readFileSync(resolve(process.cwd(), 'src/shared/ui/tema.css'), 'utf8');
+    expect(tema).not.toMatch(/presto/);
   });
 
-  it('quattro ambiti nell ordine fisso del catalogo, realizzati o no, ognuno col suo colore, senza il primo pilastro', () => {
+  it('quattro ambiti nell ordine fisso del catalogo, ognuno col suo colore, senza il primo pilastro', () => {
     expect(AMBITI.map((a) => a.titolo)).toEqual(['Finanziario', 'Fisico', 'Procedurale', 'Istituzionale']);
-    expect(AMBITI.map((a) => eRealizzata(a))).toEqual([true, true, true, true]);
-    expect(AMBITI).toHaveLength(AREE.length + AREE_FUTURE.length);
+    expect(AMBITI.every((a) => AREE.includes(a))).toBe(true);
+    expect(AMBITI).toHaveLength(AREE.length);
     expect(new Set(AMBITI.map((a) => a.tono)).size).toBe(4);
     expect(new Set(AMBITI.map((a) => a.chiave)).size).toBe(4);
   });
@@ -149,12 +155,7 @@ describe('Home e menu dallo stesso catalogo', () => {
     expect(within(card).getByText('Domande e importi per anno di raccolta')).toBeTruthy();
     const menu = screen.getByRole('navigation', { name: 'Navigazione principale' });
     expect(within(menu).getAllByRole('link').map((l) => l.textContent)).toEqual(['Riepilogo per intervento']);
-    for (const futura of AREE_FUTURE) {
-      const presto = screen.getByRole('region', { name: `${futura.titolo}: presto disponibile` });
-      expect(within(presto).queryAllByRole('link')).toHaveLength(0);
-      expect(menu.textContent).toContain(`${futura.titolo}presto`);
-    }
-    // i quattro ambiti stanno nella stessa griglia, nell'ordine fisso del catalogo (realizzati o no)
+    // i quattro ambiti stanno nella stessa griglia, nell'ordine fisso del catalogo
     const griglia = within(screen.getByRole('navigation', { name: 'Aree del cruscotto' })).getAllByRole('list')[0];
     const ambiti = Array.from(griglia.children) as HTMLElement[];
     expect(ambiti.map((li) => within(li).getByRole('heading').textContent)).toEqual(['Finanziario', 'Fisico', 'Procedurale', 'Istituzionale']);

@@ -80,8 +80,6 @@ body { background: var(--ui-sfondo); color: var(--ui-testo); font-family: 'Titil
 .ui-menu__sub { position: relative; padding-left: 1.6rem !important; }
 .ui-menu__sub::before { content: ''; position: absolute; left: 1.35rem; top: .25rem; bottom: .25rem; width: 1px; background: var(--ui-bordo); }
 .ui-menu__sub a { font-size: .9rem; padding: .45rem .75rem; }
-.ui-menu__presto { display: flex; align-items: center; gap: .65rem; padding: .55rem .75rem; color: #6b7886; font-size: .95rem; }
-.ui-menu__presto span { margin-left: auto; font-size: .68rem; background: var(--ui-sfondo); border-radius: 999px; padding: .1rem .5rem; }
 
 /* ---------------------------------------------------------------- barra dei filtri e pannelli laterali */
 .ui-filtri { position: sticky; top: 60px; z-index: 1020; display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; padding: .7rem 1.75rem;
@@ -361,8 +359,6 @@ h1[tabindex='-1']:focus { outline: none !important; box-shadow: none !important;
 .ui-ambito--attivo:focus-within { outline: 3px solid var(--ui-fuoco); outline-offset: 3px; }
 .ui-ambito__testa { position: relative; overflow: hidden; padding: 1.2rem 1.25rem 1.15rem; color: #fff; min-height: 168px;
   background: radial-gradient(90% 80% at 100% 100%, rgba(255, 255, 255, .1), transparent 60%), linear-gradient(140deg, var(--c), var(--c2)); }
-.ui-ambito--presto .ui-ambito__testa { background: repeating-linear-gradient(135deg, rgba(255, 255, 255, .05) 0 12px, transparent 12px 24px),
-  linear-gradient(140deg, var(--c), var(--c2)); }
 .ui-ambito__filigrana.ui-icona { position: absolute; right: -14px; bottom: -18px; width: 120px; height: 120px; opacity: .1; transform: rotate(-12deg);
   transition: transform .4s ease; }
 .ui-ambito--attivo:hover .ui-ambito__filigrana.ui-icona { transform: rotate(-4deg) scale(1.08); }
