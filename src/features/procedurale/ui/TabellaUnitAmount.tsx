@@ -15,10 +15,13 @@ import type { CampoPagato } from '../lib/unitAmount';
 
 const TITOLI_PAGATO: Readonly<Record<CampoPagato, string>> = { importoPagato: 'Importo pagato', percentualePagata: 'Pagato sul richiesto', baseStorica: 'Base storica' };
 
-/** Un dato del pagato: l'euro o la percentuale, oppure l'assenza (in breve con la fonte non attiva). */
-export function DatoPagato({ r, campo }: { r: RigaUnitAmount; campo: CampoPagato }) {
+/**
+ * Un dato del pagato: l'euro o la percentuale, oppure l'assenza: `breve` nelle celle della tabella (la nota sopra dice il
+ * motivo della fonte non attiva), col motivo altrove (il drawer di anteprima, come nel wireframe approvato).
+ */
+export function DatoPagato({ r, campo, breve = false }: { r: RigaUnitAmount; campo: CampoPagato; breve?: boolean }) {
   const d = r[campo];
-  if (d?.valore == null) return <BadgeAssenza resa={assenzaPagato(r, campo)} />;
+  if (d?.valore == null) return <BadgeAssenza resa={assenzaPagato(r, campo, breve)} />;
   return campo === 'importoPagato' ? <ValoreImporto importo={d} /> : <span className="font-monospace">{formatPercentuale(d.valore)}</span>;
 }
 
@@ -29,7 +32,7 @@ const COLONNE: ColonnaTabella<RigaUnitAmount>[] = [
   { chiave: 'esercizio', titolo: 'Esercizio', valore: (r) => r.esercizio ?? null, numerica: true },
   { chiave: 'unitario', titolo: 'Importo unitario', valore: (r) => valoreDi(r.importoUnitario), resa: (r) => <ValoreImporto importo={r.importoUnitario} />, numerica: true },
   { chiave: 'output', titolo: 'Output previsto', valore: (r) => valoreDi(r.outputPrevisto), resa: (r) => <ValoreMotivato dato={r.outputPrevisto} resa={formatNumber} />, numerica: true },
-  ...CAMPI_PAGATO.map((campo) => ({ chiave: campo, titolo: TITOLI_PAGATO[campo], valore: (r: RigaUnitAmount) => valoreDi(r[campo]), resa: (r: RigaUnitAmount) => <DatoPagato r={r} campo={campo} />, numerica: true })),
+  ...CAMPI_PAGATO.map((campo) => ({ chiave: campo, titolo: TITOLI_PAGATO[campo], valore: (r: RigaUnitAmount) => valoreDi(r[campo]), resa: (r: RigaUnitAmount) => <DatoPagato r={r} campo={campo} breve />, numerica: true })),
 ];
 
 interface PropsTabella {

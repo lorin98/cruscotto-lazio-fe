@@ -1,7 +1,7 @@
 // unitAmount.ts — le Unit Amount come DATI (PURO, zero React; TX-0030): la chiave e l'etichetta di una riga (codice,
 // intervento ed esercizio: lo stesso codice torna per esercizi diversi), il valore per l'ordinamento dei dati motivati,
 // la fonte non attiva del pagato (oggi il caso reale, OP-010) detta UNA volta in una nota sopra la tabella, con le tre
-// celle in breve (scelta 8 approvata il 22/10/2026), e le voci del drawer. Nessun totale: il DTO non lo porta.
+// celle in breve (scelta 8 approvata il 22/10/2026), e nel drawer col motivo. Nessun totale: il DTO non lo porta.
 import { descriviAssenza } from '../../../entities/importo';
 import type { ImportoResa } from '../../../entities/importo';
 import type { RigaUnitAmount } from './dto';
@@ -28,9 +28,12 @@ export function notaPagato(righe: readonly RigaUnitAmount[]): string | null {
   return `Importo pagato, percentuale pagata sul richiesto e base storica: non disponibili per tutte le Unit Amount (${descriviAssenza(senza.importoPagato).nota ?? 'fonte non attiva'}). Nelle celle: "non disponibile".`;
 }
 
-/** La resa dell'assenza di un dato del pagato: breve con la fonte non attiva (la nota la dice sopra), completa altrimenti. */
-export function assenzaPagato(r: RigaUnitAmount, campo: CampoPagato): ImportoResa {
-  return resaAssenza(r[campo], true);
+/**
+ * La resa dell'assenza di un dato del pagato: `breve` (le celle della tabella, sotto la nota che dice il motivo) con la
+ * fonte non attiva "non disponibile", altrimenti completa col motivo (il drawer, un dialogo che non arriva alla nota).
+ */
+export function assenzaPagato(r: RigaUnitAmount, campo: CampoPagato, breve: boolean): ImportoResa {
+  return resaAssenza(r[campo], breve);
 }
 
 /** Il valore per l'ordinamento di un dato motivato (null in fondo). */

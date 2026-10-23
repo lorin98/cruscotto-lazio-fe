@@ -58,6 +58,16 @@ describe('RF030: pagamenti per Unit Amount degli interventi selezionati (TX-0030
     expect(screen.getByText(/^Dati di programma dall'import CSR-UA, regionali per ogni profilo/)).toBeTruthy();
   });
 
+  it('pagato senza fonte: l anteprima (un dialogo, lontano dalla nota della tabella) dice il motivo per i tre dati', async () => {
+    servi();
+    apri();
+    const riga = within(await tabella()).getByRole('row', { name: "Apri l'anteprima della Unit Amount UA1 di SRD01, esercizio 2025" });
+    riga.focus();
+    await userEvent.keyboard('{Enter}');
+    const drawer = testo((await screen.findByRole('dialog', { name: 'Anteprima: UA1 (SRD01, esercizio 2025)' })).textContent);
+    for (const dato of ['Importo pagato', 'Pagato sul richiesto', 'Base storica']) expect(drawer).toContain(`${dato}non disponibilefonte pagato per Unit Amount non attiva`);
+  });
+
   it('col pagato: il grafico, il clic su una barra apre l anteprima; la riga con Invio; Esc chiude e il focus torna alla riga', async () => {
     servi({ pagato: true });
     const { router } = apri();

@@ -433,9 +433,11 @@ describe('procedurale: sottofasi (SC-PC_SOTTOFASI, SC-PC_SOTTOFASI_FILTRI) e Uni
       'Importo pagato, percentuale pagata sul richiesto e base storica: non disponibili per tutte le Unit Amount (fonte pagato per Unit Amount non attiva). Nelle celle: "non disponibile".',
     );
     expect(notaPagato(unitAmountPer(q(), { pagato: true }).righe ?? [])).toBeNull();
-    expect(assenzaPagato(r, 'baseStorica')).toBe(NON_DISPONIBILE_BREVE);
+    expect(assenzaPagato(r, 'baseStorica', true)).toBe(NON_DISPONIBILE_BREVE);
+    // il drawer non arriva alla nota della tabella: col motivo
+    expect(assenzaPagato(r, 'baseStorica', false)).toEqual({ disponibile: false, testo: 'non disponibile', nota: 'fonte pagato per Unit Amount non attiva' });
     const [, ua2] = unitAmountPer(q(), { pagato: true }).righe ?? [];
-    expect(assenzaPagato(ua2, 'importoPagato')).toEqual({ disponibile: false, testo: 'non valorizzato', nota: 'il dato non è presente nella fonte' });
+    expect(assenzaPagato(ua2, 'importoPagato', true)).toEqual({ disponibile: false, testo: 'non valorizzato', nota: 'il dato non è presente nella fonte' });
     expect([valoreDi({ valore: 3 }), valoreDi({ valore: null }), valoreDi(undefined)]).toEqual([3, null, null]);
   });
 });

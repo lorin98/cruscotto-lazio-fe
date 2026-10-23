@@ -31,7 +31,10 @@ const TITOLO_CARD = 'Percentuale pagata per Unit Amount';
 const TITOLO_TABELLA = 'Unit Amount degli interventi selezionati';
 const ETICHETTE_PAGATO = { importoPagato: 'Importo pagato', percentualePagata: 'Pagato sul richiesto', baseStorica: 'Base storica' } as const;
 
-/** Il drawer di anteprima di una Unit Amount: i dati della riga e il dettaglio dell'intervento (link senza lo stato). */
+/**
+ * Il drawer di anteprima di una Unit Amount: i dati della riga, le assenze col motivo (il dialogo non arriva alla nota
+ * della tabella), e il dettaglio dell'intervento (link senza lo stato).
+ */
 function AnteprimaUnitAmount({ riga, onChiudi }: { riga: RigaUnitAmount | null; onChiudi: () => void }) {
   return (
     <PannelloLaterale aperto={riga !== null} onChiudi={onChiudi} titolo={`Anteprima: ${riga ? etichettaUnitAmount(riga) : ''}`} stretto>
