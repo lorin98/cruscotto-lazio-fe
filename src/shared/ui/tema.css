@@ -219,7 +219,10 @@ body { background: var(--ui-sfondo); color: var(--ui-testo); font-family: 'Titil
 .ui-tabella { width: 100%; border-collapse: separate; border-spacing: 0; font-size: .9rem; margin: 0; }
 .ui-tabella caption { caption-side: top; padding: 0 0 .5rem; color: var(--ui-attenuato); font-size: .85rem; }
 .ui-tabella th[scope='colgroup'] { text-align: center; border-bottom: 1px solid var(--ui-bordo); }
-.ui-tabella thead th { position: sticky; top: 0; z-index: 1; padding: .65rem .75rem; background: #f7f9fc; border-bottom: 1px solid var(--ui-bordo); color: var(--ui-attenuato);
+/* l'intestazione intera resta in vista scorrendo: con la riga dei gruppi le due righe restano una sopra l'altra, senza
+   coprirsi (review H5 del procedurale); lo sfondo anche sotto le celle vuote della riga dei gruppi */
+.ui-tabella thead { position: sticky; top: 0; z-index: 1; background: #f7f9fc; }
+.ui-tabella thead th { padding: .65rem .75rem; background: #f7f9fc; border-bottom: 1px solid var(--ui-bordo); color: var(--ui-attenuato);
   font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; text-align: left; }
 .ui-tabella thead th button { all: unset; cursor: pointer; display: inline-flex; gap: .3rem; align-items: center; }
 .ui-tabella thead th button:focus-visible { outline: 3px solid var(--ui-fuoco); }

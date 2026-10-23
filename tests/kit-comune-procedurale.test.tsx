@@ -2,6 +2,8 @@
 // barra dei filtri (shared/ui/pagina, prima PaginaReport dell'istituzionale), lo stato del dettaglio con piu' letture
 // (prima nel dettaglio dell'istituzionale) e le estensioni della tabella interattiva (intestazioni di gruppo, nome esteso
 // delle intestazioni, intestazione di riga in un'altra colonna) e della scelta delle colonne per gruppo. Dati inventati.
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { useRef } from 'react';
 import { describe, expect, it } from 'vitest';
 import { render, renderHook, screen, within } from '@testing-library/react';
@@ -103,6 +105,17 @@ describe('TabellaInterattiva del kit: intestazioni di gruppo, nome esteso, intes
     unmount();
     render(<TabellaInterattiva caption="Prova" righe={righe} colonne={semplici} chiaveRiga={(r) => r.codice} testoRicerca={(r) => r.codice} />);
     expect(screen.getAllByRole('rowheader').map((h) => h.textContent)).toEqual(['SRA01', 'SRD01']);
+  });
+
+  it('tema: sticky l intestazione intera, non le sue celle (con la riga dei gruppi le due righe non si coprono scorrendo)', () => {
+    // jsdom non misura lo scorrimento: la misura e' fatta in Chromium (resoconto della review); qui la regola del tema
+    const css = readFileSync(resolve(process.cwd(), 'src/shared/ui/tema.css'), 'utf8');
+    const regola = (selettore: string) => {
+      const i = css.indexOf(`\n${selettore} {`);
+      return i < 0 ? '' : css.slice(i, css.indexOf('}', i));
+    };
+    expect(regola('.ui-tabella thead')).toContain('position: sticky; top: 0;');
+    expect(regola('.ui-tabella thead th')).not.toContain('position: sticky');
   });
 
   it('l intestazione di riga nel piede nella stessa colonna; nascosta da Colonne, le righe la prendono dalla prima colonna visibile', async () => {
