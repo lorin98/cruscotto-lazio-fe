@@ -38,3 +38,11 @@ test("MSW dei test: una lettura dell'istituzionale non dichiarata dal test e' ri
     await expect(fetch(`http://localhost${percorso}`), percorso).rejects.toThrow(/\[MSW\]|Cannot bypass|error.{0,24}strateg/i);
   }
 });
+
+// lo stesso canarino per i mock generati del procedurale (step3 della feature): esclusi dal server dei test
+test("MSW dei test: una lettura del procedurale non dichiarata dal test e' rifiutata (H-16)", async () => {
+  expect(handlers.some((h) => JSON.stringify(h.info).includes('/api/procedurale'))).toBe(true);
+  for (const percorso of ['/api/procedurale/filtri', '/api/procedurale/domande-ammesse', '/api/procedurale/stati-sostegno', '/api/procedurale/riepilogo/xlsx']) {
+    await expect(fetch(`http://localhost${percorso}`), percorso).rejects.toThrow(/\[MSW\]|Cannot bypass|error.{0,24}strateg/i);
+  }
+});
