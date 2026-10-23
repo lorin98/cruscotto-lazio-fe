@@ -4,7 +4,7 @@
 import { ANNO_ASSENTE, ANNO_SENZA, ETICHETTE_ANNUALITA, ETICHETTE_ESITO_PAGAMENTO, ETICHETTE_ESITO_RIGA, ETICHETTE_TIPO_DOMANDA, etichettaTipoDomanda } from '../../../entities/domanda';
 import { descriviAssenza, descriviImporto, testoConNota } from '../../../entities/importo';
 import type { ImportoLike } from '../../../entities/importo';
-import { ettari, formatDate, formatEuro, formatNumber, formatPercentuale, plurale } from '../../../shared/lib';
+import { ettari, formatDate, formatEuro, formatNumber, formatPercentuale, plurale, testoPerimetro as testoPerimetroDelKit } from '../../../shared/lib';
 import type { DatoSenzaFonte, Somma } from './dto';
 
 /** Cella di un Importo di una domanda: euro, oppure l'assenza con il motivo ("non valorizzato"). */
@@ -42,11 +42,9 @@ export function testoAggregato(importo: ImportoLike | null | undefined, campo: '
   return { valore: 'non calcolabile', nota: MOTIVI_AGGREGATO[campo] };
 }
 
-/** Perimetro della risposta in parole (pill, badge, intestazione dei PNG); null se la risposta non lo porta. */
+/** Perimetro della risposta in parole (pill, badge, intestazione dei PNG) del kit; null se la risposta non lo porta. */
 export function testoPerimetro(perimetro: string | null | undefined): string | null {
-  if (perimetro === 'ADA') return 'ADA del tuo profilo';
-  if (perimetro === 'REGIONALE') return 'regionale';
-  return null;
+  return perimetro === 'ADA' || perimetro === 'REGIONALE' ? testoPerimetroDelKit(perimetro) : null;
 }
 
 /** Quota pagata sull'ammesso (percentuale gia' calcolata dal server), oppure "non calcolabile". */

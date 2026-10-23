@@ -35,8 +35,13 @@ export function aCapo(testo: string, massimo: number, misura: (t: string) => num
   return corrente ? [...linee, corrente] : linee;
 }
 
-/** Il perimetro di una risposta in parole, per le righe di contesto e i riferimenti (REGIONALE = "regionale"). */
+/**
+ * Il perimetro di una risposta in parole, per le pill, le righe di contesto e i riferimenti: REGIONALE = "regionale", ADA
+ * = "ADA del tuo profilo" (le domande del P4, come nell'elenco operativo, che prima ne aveva la sua copia; ora anche nel
+ * procedurale).
+ */
 export function testoPerimetro(perimetro: string): string {
+  if (perimetro === 'ADA') return 'ADA del tuo profilo';
   return perimetro === 'REGIONALE' ? 'regionale' : perimetro.toLowerCase();
 }
 

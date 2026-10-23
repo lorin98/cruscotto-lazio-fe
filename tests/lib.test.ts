@@ -136,7 +136,7 @@ describe('lib/intestazione — intestazione dei file generati nel browser (NFR-5
     expect(DICITURA_USO).toBe('Documento ad uso interno di ARSIAL e della Regione Lazio: dati riservati, non diffondere');
   });
   it('testoPerimetro (review H7 dell istituzionale, prima nel fisico e nell istituzionale): il perimetro della risposta in parole', () => {
-    expect([testoPerimetro('REGIONALE'), testoPerimetro('ADA')]).toEqual(['regionale', 'ada']);
+    expect([testoPerimetro('REGIONALE'), testoPerimetro('ADA')]).toEqual(['regionale', 'ADA del tuo profilo']);
     expect(righeContesto({ filtri: [], profilo: 'P1', ultimi: undefined, perimetro: testoPerimetro('REGIONALE') })[1]).toBe('Perimetro: regionale');
   });
   it('aCapo: linee entro il massimo fra le parole, una parola troppo lunga resta intera', () => {
