@@ -213,7 +213,11 @@ body { background: var(--ui-sfondo); color: var(--ui-testo); font-family: 'Titil
 .ui-colonne__elenco:has(.ui-colonne__gruppo) { max-height: 60vh; overflow: auto; }
 .ui-colonne__gruppo { display: grid; gap: .2rem; margin: .3rem 0 0; padding: .3rem 0 0; border: 0; border-top: 1px solid var(--ui-bordo); }
 .ui-colonne__gruppo > legend { margin: 0; font-size: .8rem; font-weight: 600; color: var(--ui-attenuato); }
-.ui-tabella-contenitore { overflow: auto; max-height: 560px; border: 1px solid var(--ui-bordo); border-radius: var(--ui-raggio-s); }
+/* lo scorrimento del focus si ferma sotto l'intestazione sticky, con lo spazio dell'anello del focus (WCAG 2.4.11, tecnica
+   C43; review A2 dell'iterazione 2 del procedurale): una riga d'intestazione (41px misurati), due con la riga dei gruppi
+   (81px). Cambia solo dove si ferma lo scorrimento del focus, non la resa */
+.ui-tabella-contenitore { overflow: auto; max-height: 560px; border: 1px solid var(--ui-bordo); border-radius: var(--ui-raggio-s); scroll-padding-top: 3rem; }
+.ui-tabella-contenitore:has(th[scope='colgroup']) { scroll-padding-top: 5.5rem; }
 .ui-tabella { width: 100%; border-collapse: separate; border-spacing: 0; font-size: .9rem; margin: 0; }
 .ui-tabella caption { caption-side: top; padding: 0 0 .5rem; color: var(--ui-attenuato); font-size: .85rem; }
 .ui-tabella th[scope='colgroup'] { text-align: center; border-bottom: 1px solid var(--ui-bordo); }

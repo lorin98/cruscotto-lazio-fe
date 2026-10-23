@@ -16,6 +16,13 @@ import type { ColonnaTabella, DatiGrafico, Scaricamento } from '../src/shared/ui
 import { renderConQuery } from '../src/shared/testing/render';
 import { expectNoA11yViolations } from '../src/shared/testing/axe';
 
+/** Il corpo di una regola del tema del kit, dal selettore a inizio riga (vuoto se manca). */
+function regolaDelTema(selettore: string): string {
+  const css = readFileSync(resolve(process.cwd(), 'src/shared/ui/tema.css'), 'utf8');
+  const i = css.indexOf(`\n${selettore} {`);
+  return i < 0 ? '' : css.slice(i, css.indexOf('}', i));
+}
+
 function Pagina() {
   const h1 = useRef<HTMLHeadingElement>(null);
   return (
@@ -174,13 +181,14 @@ describe('TabellaInterattiva del kit: intestazioni di gruppo, nome esteso, intes
 
   it('tema: sticky l intestazione intera, non le sue celle (con la riga dei gruppi le due righe non si coprono scorrendo)', () => {
     // jsdom non misura lo scorrimento: la misura e' fatta in Chromium (resoconto della review); qui la regola del tema
-    const css = readFileSync(resolve(process.cwd(), 'src/shared/ui/tema.css'), 'utf8');
-    const regola = (selettore: string) => {
-      const i = css.indexOf(`\n${selettore} {`);
-      return i < 0 ? '' : css.slice(i, css.indexOf('}', i));
-    };
-    expect(regola('.ui-tabella thead')).toContain('position: sticky; top: 0;');
-    expect(regola('.ui-tabella thead th')).not.toContain('position: sticky');
+    expect(regolaDelTema('.ui-tabella thead')).toContain('position: sticky; top: 0;');
+    expect(regolaDelTema('.ui-tabella thead th')).not.toContain('position: sticky');
+  });
+
+  it('tema: lo scorrimento del focus si ferma sotto l intestazione sticky, una riga o due coi gruppi (scroll-padding, C43; A2 iter2)', () => {
+    // misurato in Chromium (resoconto dei residui): intestazione di 41px, 81px con la riga dei gruppi, piu' l'anello del focus
+    expect(regolaDelTema('.ui-tabella-contenitore')).toContain('scroll-padding-top: 3rem;');
+    expect(regolaDelTema(".ui-tabella-contenitore:has(th[scope='colgroup'])")).toContain('scroll-padding-top: 5.5rem;');
   });
 
   it('l intestazione di riga nel piede nella stessa colonna; nascosta da Colonne, le righe la prendono dalla prima colonna visibile', async () => {
