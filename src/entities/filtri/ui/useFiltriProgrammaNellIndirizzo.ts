@@ -6,7 +6,9 @@
 // valori dei filtri in corso) un indirizzo con l'azione e' `inAttesa`: la pagina non legge con un filtro che forse non si
 // applica (X-03). Senza il grant dei valori, o con la loro lettura in errore, il legame non si conosce e l'azione va al
 // backend com'e'. Prima la regola era ricopiata nel finanziario e nel fisico (review del fisico H2): ogni feature passa la
-// sua lettura dei valori (TX-0001, TX-0060) e la sua lettura e scrittura dell'indirizzo. Poi la bozza del pannello.
+// sua lettura dei valori (TX-0001, TX-0060) e la sua lettura e scrittura dell'indirizzo. Un report senza l'azione
+// portante (il procedurale, RF024) lo dice con `senzaAzione`: la regola del legame non ha nulla da attendere ne' da
+// togliere (review H3 del procedurale, prima un falso conValori). Poi la bozza del pannello.
 import { useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
@@ -20,30 +22,50 @@ export interface LetturaValoriFiltri {
   isError: boolean;
 }
 
-export interface ParametriFiltriNellIndirizzo<C extends Filtri> {
+interface ParametriComuni<C extends Filtri> {
   /** I criteri dalla query string corrente. */
   leggi: (search: string) => C;
   /** La query string dei criteri (senza "?"); riceve quella corrente (es. per conservare i parametri della pagina). */
   scrivi: (criteri: C, search: string) => string;
   /** I criteri attivi nell'ordine della barra. */
   attivi: (criteri: C) => FiltroNellaBarra<C>[];
-  /** Il profilo legge i valori dei filtri (il grant della lettura dei valori della feature). */
-  conValori: boolean;
-  valori: LetturaValoriFiltri;
   /** I criteri senza alcun filtro ("Togli tutti"). */
   nessuno: C;
 }
 
-export function useFiltriProgrammaNellIndirizzo<C extends Filtri>({ leggi, scrivi, attivi, conValori, valori, nessuno }: ParametriFiltriNellIndirizzo<C>) {
+/** Con l'azione portante: il grant e la lettura dei valori dei filtri della feature, che dicono il legame. */
+interface ConAzione {
+  senzaAzione?: false;
+  /** Il profilo legge i valori dei filtri (il grant della lettura dei valori della feature). */
+  conValori: boolean;
+  valori: LetturaValoriFiltri;
+}
+
+/** Senza l'azione portante (il procedurale, RF024): nessun legame da conoscere, nessuna lettura dei valori da passare. */
+interface SenzaAzione {
+  senzaAzione: true;
+  conValori?: never;
+  valori?: never;
+}
+
+export type ParametriFiltriNellIndirizzo<C extends Filtri> = ParametriComuni<C> & (ConAzione | SenzaAzione);
+
+/** Il legame non si conosce ancora: profilo in caricamento, oppure (con l'azione) i valori dei filtri in corso. */
+function legameIgnoto(profiloIgnoto: boolean, p: ConAzione | SenzaAzione): boolean {
+  if (p.senzaAzione) return profiloIgnoto;
+  return profiloIgnoto || (p.conValori && p.valori.data === undefined && !p.valori.isError);
+}
+
+export function useFiltriProgrammaNellIndirizzo<C extends Filtri>(p: ParametriFiltriNellIndirizzo<C>) {
+  const { leggi, scrivi, attivi, nessuno } = p;
   const { pathname, search } = useLocation();
   const naviga = useNavigate();
   const auth = useAuthStatus();
   // criteri stabili per indirizzo: chi li usa nei memo (es. i grafici descritti come dati) non ricalcola a ogni render
   const richiesti = useMemo(() => leggi(search), [leggi, search]);
-  const legameAssente = valori.data?.legameAzioniDisponibile === false;
-  // il legame non si conosce ancora: profilo in caricamento, oppure i valori dei filtri in corso
-  const legameIgnoto = (auth.data === undefined && !auth.isError) || (conValori && valori.data === undefined && !valori.isError);
-  const inAttesa = legameIgnoto && (richiesti.azione ?? []).length > 0;
+  const legameAssente = !p.senzaAzione && p.valori.data?.legameAzioniDisponibile === false;
+  // senza l'azione portante non si aspetta mai: i criteri non la portano
+  const inAttesa = !p.senzaAzione && legameIgnoto(auth.data === undefined && !auth.isError, p) && (richiesti.azione ?? []).length > 0;
   const filtri: C = useMemo(() => (legameAssente ? senzaAzioneSeNonDisponibile(richiesti, false) : richiesti), [richiesti, legameAssente]);
   const applica = (c: C) => {
     const query = scrivi(c, search);

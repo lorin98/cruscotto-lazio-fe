@@ -66,7 +66,7 @@ export interface PropsPannelloProgramma<C extends Filtri> {
   titolo: string;
   /** I criteri applicati (dall'indirizzo): la bozza riparte da qui a ogni apertura. */
   criteri: C;
-  /** La lettura di TX-0060; null senza il grant csr.tx-0060.read. */
+  /** La lettura dei valori dei filtri della feature (TX-0060, o TX-0024 del procedurale); null senza il suo grant. */
   valori: StatoQuery<ValoriProgramma> | null;
   /** Codici degli interventi della risposta del report: le voci di Intervento senza TX-0060. */
   codiciRisposta: readonly string[];

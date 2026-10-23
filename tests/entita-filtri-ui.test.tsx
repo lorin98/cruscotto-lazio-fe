@@ -84,6 +84,22 @@ describe('entities/filtri: regola del filtro per azione portante senza il legame
   });
 });
 
+describe('entities/filtri: la regola senza l azione portante (senzaAzione, il procedurale RF024: review H3)', () => {
+  it('nessuna lettura dei valori da passare e nessuna attesa, anche col profilo in caricamento; chip e Togli tutti come sempre', async () => {
+    const { result } = renderHook(() => useFiltriProgrammaNellIndirizzo<Filtri>({ leggi: filtriDaRicerca, scrivi: (f) => ricercaDaFiltri(f), attivi: filtriNellaBarra, senzaAzione: true, nessuno: {} }), {
+      wrapper: inIndirizzo('/report?os=OS4&azione=3'),
+    });
+    // al primo render il profilo e' ancora in caricamento: con l'azione portante la pagina aspetterebbe
+    expect(result.current.inAttesa).toBe(false);
+    expect(result.current.chip.map((c) => [c.chiave, c.valore])).toEqual([
+      ['os:OS4', 'OS4'],
+      ['azione:3', '3'],
+    ]);
+    act(() => result.current.togliTutti());
+    await waitFor(() => expect(posizione.attuale).toBe('/report'));
+  });
+});
+
 describe('entities/filtri: bozza del pannello (useBozzaFiltri)', () => {
   it('a ogni apertura riparte dai criteri applicati; imposta toglie una dimensione senza valori', () => {
     const { result, rerender } = renderHook((p: { aperto: boolean; applicati: Filtri }) => useBozzaFiltri(p.aperto, p.applicati), { initialProps: { aperto: false, applicati: { os: ['OS4'] } } });
