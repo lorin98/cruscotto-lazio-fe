@@ -1,0 +1,38 @@
+[
+  {
+    "id": "H1",
+    "severity": "MINORE",
+    "titolo": "useRigheContesto del kit (H7) ha un omonimo nell'elenco operativo con un altro contratto posizionale (filtri, profilo, ultimi, perimetro) e lo stesso corpo: la copia unica non c'e' e il commento del kit dice tre copie invece di quattro",
+    "file": "src/features/elenco-operativo/ui/useInterrogazione.ts",
+    "riga": 58,
+    "fix": "1. In ElencoDomande.tsx:165 ed ElencoPagamenti.tsx:112 usare l'hook del kit (shared/ui): useRigheContesto(i.filtriApplicati, <ultimi>, testoPerimetro(<perimetro>)), con testoPerimetro di ../lib/formato, che tiene la resa 'ADA del tuo profilo'. 2. Togliere useRigheContesto da useInterrogazione.ts:57-62 con gli import rimasti senza uso, e correggere i commenti di useInterrogazione.ts:3 e di shared/ui/grafici/useRigheContesto.ts:3 (le copie erano quattro). 3. Un test di pagina in src/pages/elenco-operativo/interrogazione.test.tsx, col mock di pngDelGrafico come scheda-domanda.test.tsx:417-429: il PNG di una card del sinottico delle domande, con perimetro ADA, ha 'Filtri applicati: ...', 'Perimetro: ADA del tuo profilo' e 'Profilo: ...'. Provarlo rosso passando il perimetro senza testoPerimetro.",
+    "decisione_utente": false
+  },
+  {
+    "id": "X1",
+    "severity": "MINORE",
+    "titolo": "Correzione A3: lo stato in role=status del cambio d'anno dice sempre 'restano i dati dell'anno precedente', anche quando i dati che restano sono di un anno successivo (2025 -> 2024, il caso piu' comune); per chi usa un lettore di schermo e' il solo annuncio e non dice quale anno resta",
+    "file": "src/features/istituzionale/lib/intervento.ts",
+    "riga": 136,
+    "fix": "1. testoAggiornamentoAnno(anno, mostrato: number | null | undefined) in lib/intervento.ts:135, con mostrato = l'anno dei dati che restano, lo stesso della didascalia (captionVociVerifica): \"Lettura dell'anno 2024 in corso: restano i dati dell'anno di riferimento 2025.\"; con mostrato null \"... restano i dati di prima (nessun file).\". 2. In SchedeIntervento.tsx:97 passare stato.data?.annoRiferimento. 3. Aggiornare il L1 di tests/istituzionale-lib.test.ts:317-318, con il caso null, e il test di pagina interventi/page.test.tsx:226 al testo con il 2025, provato rosso col testo di oggi.",
+    "decisione_utente": false
+  },
+  {
+    "id": "V1",
+    "severity": "COSMETICO",
+    "titolo": "Correzione X3: con oggettoDati il gruppo dei pulsanti della card resta 'Scarica il grafico <titolo>' anche se CSV e XLSX sono i dati del report; nel dettaglio il nome del gruppo perde 'e i dati' che aveva prima",
+    "file": "src/shared/ui/grafici/CardGrafico.tsx",
+    "riga": 158,
+    "fix": "In CardGrafico.tsx:158 dare al gruppo il nome dei due contenuti quando c'e' oggettoDati: oggetto={oggettoDati === undefined ? `il grafico ${titolo}` : `il grafico ${titolo} e ${oggettoDati}`}. Senza oggettoDati il nome resta quello di oggi, quindi finanziario, fisico ed elenco non cambiano. Nel test L2 di CardGrafico (tests/kit-comune-istituzionale.test.tsx:132) asserire il nome del gruppo con e senza oggettoDati; il test di PulsantiScarica di :144 resta com'e'. Nei test di pagina interventi/page.test.tsx:88 e verifica-smp-non-sigc/page.test.tsx:66 asserire il nome del gruppo della card.",
+    "decisione_utente": false
+  },
+  {
+    "id": "H2",
+    "severity": "COSMETICO",
+    "titolo": "Residuo di H7: il barrel del finanziario esporta ancora filtriDaRicerca e ricercaDaFiltri, che dopo ricercaDeiSoliFiltri in app/aree.ts non hanno piu' consumatori",
+    "file": "src/features/finanziario/index.ts",
+    "riga": 21,
+    "fix": "Togliere la riga 21 di src/features/finanziario/index.ts. Resta la riesportazione dall'entity in lib/filtri.ts, che usano i moduli della feature e che prova tests/entita-filtri-domanda.test.ts:82-86. Verifica: tsc e un grep di filtriDaRicerca e ricercaDaFiltri fuori da src/features/finanziario e src/entities.",
+    "decisione_utente": false
+  }
+]
