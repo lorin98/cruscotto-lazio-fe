@@ -1,0 +1,39 @@
+// dettaglio.ts — lo stato di una pagina di dettaglio che compone piu' letture dei report filtrate sull'oggetto della route
+// (il dettaglio dell'intervento dell'istituzionale e del procedurale), e la riga dell'intervento in una risposta (PURO).
+// Prima nel lib dell'istituzionale (review H1/X1 della sua v1): il dettaglio del procedurale ne ha bisogno uguale.
+
+/** Quanto serve di una lettura per lo stato del dettaglio: la risposta (righe; assenti = nessuna) se c'e', e se e' in errore. */
+export interface LetturaDettaglio {
+  data?: { righe?: readonly unknown[] } | undefined;
+  isError: boolean;
+}
+
+/** Tutte le letture fatte hanno risposto, coi dati o con l'errore (nessuna lettura abilitata: no). */
+export function tutteRisposte(letture: readonly LetturaDettaglio[]): boolean {
+  return letture.length > 0 && letture.every((l) => l.data !== undefined || l.isError);
+}
+
+export type StatoDettaglio = 'caricamento' | 'errore' | 'vuoto' | 'dati';
+
+/**
+ * Lo stato del dettaglio dalle letture fatte (quelle col grant):
+ * - 'caricamento' finche' nessuna e' abilitata (il profilo e' in caricamento: la route chiede almeno uno dei grant); alla
+ *   prima apertura finche' non hanno risposto tutte (`giaRisposte` falso: KPI e schede arrivano insieme); poi solo se
+ *   nessuna lettura ha dati e una e' in corso (es. Riprova dopo l'errore di tutte). Una lettura che riparte accanto a
+ *   una coi dati (Riprova, un altro anno o un altro filtro dopo un errore) mostra lo scheletro nella sua parte: KPI,
+ *   schede e scheda attiva restano (review H1/X1 dell'istituzionale);
+ * - 'errore' se nessuna ha risposto coi dati (l'avviso della pagina lo dice);
+ * - 'vuoto' se tutte hanno risposto senza la riga dell'intervento (es. AT001, che i report escludono);
+ * - altrimenti 'dati' (anche con una sola lettura riuscita: l'altra parte dice il suo errore o il suo caricamento).
+ */
+export function statoDelDettaglio(letture: readonly LetturaDettaglio[], giaRisposte: boolean): StatoDettaglio {
+  if (letture.length === 0 || !(giaRisposte || tutteRisposte(letture))) return 'caricamento';
+  const conDati = letture.filter((l) => l.data !== undefined);
+  if (conDati.length === 0) return letture.every((l) => l.isError) ? 'errore' : 'caricamento';
+  return conDati.length === letture.length && conDati.every((l) => (l.data?.righe ?? []).length === 0) ? 'vuoto' : 'dati';
+}
+
+/** La riga dell'intervento nella risposta (il dettaglio legge col solo intervento della route). */
+export function rigaDellIntervento<R extends { codiceIntervento?: string }>(righe: readonly R[] | undefined, codice: string): R | undefined {
+  return righe?.find((r) => r.codiceIntervento === codice);
+}

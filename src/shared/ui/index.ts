@@ -7,6 +7,7 @@ export type { StatoQuery } from './stati/StatiVista';
 export { blobDaDataUrl, salvaFile } from './salva-file';
 export { useFocusDopoIlCambio, useFocusSeSparisce, useFocusTitolo } from './focus';
 export { Briciole, TestaPagina, TestataDettaglio } from './pagina/Testata';
+export { useStatoDelDettaglio } from './pagina/useStatoDelDettaglio';
 export type { Briciola } from './pagina/Testata';
 export { useStatoNellaHistory } from './useStatoNellaHistory';
 export { useAnnoNellIndirizzo } from './useAnnoNellIndirizzo';

@@ -6,6 +6,7 @@ import { DICITURA_USO, aCapo, righeContesto, righeIntestazione, testoPerimetro }
 import { etichettaFlusso, menoRecente, testoUltimiDati } from '../src/shared/lib/aggiornamento';
 import { MAX_VALORI_PARAMETRO, leggiRipetuti, scriviRipetuti } from '../src/shared/lib/parametri-ripetuti';
 import { conStatoSalvato, leggiStatoSalvato } from '../src/shared/lib/stato-history';
+import { rigaDellIntervento, statoDelDettaglio, tutteRisposte } from '../src/shared/lib/dettaglio';
 import { isOpenEnded, isSentinelDate, SENTINEL_DATE_MAX } from '../src/shared/lib/sentinel-dates';
 import { isEditable, makeRolePredicate } from '../src/shared/lib/predicates';
 import type { AuthStatus } from '../src/shared/api/auth/auth-status';
@@ -243,5 +244,16 @@ describe("lib/stato-history — l'involucro { firma, valore } dello state della 
     expect(leggiStatoSalvato({ k: 'manomesso' }, 'k', 'f', eTesto)).toBeUndefined();
     expect(leggiStatoSalvato(null, 'k', 'f', eTesto)).toBeUndefined();
     expect(leggiStatoSalvato(undefined, 'k', 'f', eTesto)).toBeUndefined();
+  });
+});
+
+describe('lib/dettaglio — lo stato di un dettaglio con piu letture (prima nell istituzionale, ora anche del procedurale)', () => {
+  const ok = (data: { righe?: readonly unknown[] }) => ({ data, isError: false });
+  it('una risposta senza righe (campo facoltativo nella spec) conta come vuota; la riga dell intervento anche col codice facoltativo', () => {
+    expect(statoDelDettaglio([ok({}), ok({ righe: [] })], false)).toBe('vuoto');
+    expect(statoDelDettaglio([ok({}), ok({ righe: [{}] })], false)).toBe('dati');
+    expect(tutteRisposte([ok({}), { data: undefined, isError: true }])).toBe(true);
+    expect(rigaDellIntervento([{ codiceIntervento: 'SRA01' }, {}, { codiceIntervento: 'SRD01', n: 2 }], 'SRD01')).toEqual({ codiceIntervento: 'SRD01', n: 2 });
+    expect(rigaDellIntervento<{ codiceIntervento?: string }>([], 'SRD01')).toBeUndefined();
   });
 });

@@ -15,7 +15,9 @@ import { useState } from 'react';
 import type { Ref } from 'react';
 import { codiceDelPercorso, descrizioneIntervento } from '../../../entities/filtri';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
-import { AvvisoPagina, Briciole, Caricamento, ContestoIntestazione, ErroreNellaPagina, Griglia, Kpi, PillDatiAl, TestataDettaglio, Vuoto, useAnnoNellIndirizzo, useErroreNellaPagina, useFocusTitolo, useRigheContesto } from '../../../shared/ui';
+import { rigaDellIntervento } from '../../../shared/lib';
+import type { StatoDettaglio } from '../../../shared/lib';
+import { AvvisoPagina, Briciole, Caricamento, ContestoIntestazione, ErroreNellaPagina, Griglia, Kpi, PillDatiAl, TestataDettaglio, Vuoto, useAnnoNellIndirizzo, useErroreNellaPagina, useFocusTitolo, useRigheContesto, useStatoDelDettaglio } from '../../../shared/ui';
 import type { NomeIcona, TonoKpi } from '../../../shared/ui';
 import { useOutputRegionale, useValoriFiltri, useVerificaSmpNonSigc } from '../api';
 import { outputDellIntervento, verificaDellIntervento } from '../lib/collegamenti';
@@ -23,9 +25,8 @@ import { PARAMETRO_ANNO, criteriVerifica, soloIntervento, testiCriteri } from '.
 import type { RigaOutput, RigaVerifica } from '../lib/dto';
 import { PERIMETRO_IN_PAROLE, PILL_PERIMETRO } from '../lib/formato';
 import { puoLeggere } from '../lib/grant';
-import { SENZA_DATI, badgeIntervento, kpiIntervento, sopratitoloIntervento, statoDelDettaglio, titoloIntervento, tutteRisposte, ultimiDelDettaglio, ultimoDatoInErrore } from '../lib/intervento';
-import type { ChiaveKpi, IdScheda, LetturaDettaglio } from '../lib/intervento';
-import { rigaDellIntervento } from '../lib/output';
+import { SENZA_DATI, badgeIntervento, kpiIntervento, sopratitoloIntervento, titoloIntervento, ultimiDelDettaglio, ultimoDatoInErrore } from '../lib/intervento';
+import type { ChiaveKpi, IdScheda } from '../lib/intervento';
 import { PERCORSI } from '../lib/pagine';
 import { useIngressoArea } from './navigazione';
 import { SchedeIntervento } from './SchedeIntervento';
@@ -124,7 +125,6 @@ function SenzaDati({ conOutput }: { conOutput: boolean }) {
 }
 
 type PropsCorpo = Omit<PropsSchede, 'unita'>;
-type Stato = ReturnType<typeof statoDelDettaglio>;
 
 const senzaRisposta = (s: { isError: boolean; data: unknown } | null): boolean => s !== null && s.isError && s.data === undefined;
 
@@ -150,19 +150,11 @@ function DatiDelDettaglio({ codice, verifica, output, ...schede }: PropsCorpo) {
 }
 
 /** Il corpo secondo lo stato delle letture: scheletro, errore (detto dall'avviso della pagina), senza dati, KPI e schede. */
-function CorpoDettaglio({ stato, ...props }: PropsCorpo & { stato: Stato }) {
+function CorpoDettaglio({ stato, ...props }: PropsCorpo & { stato: StatoDettaglio }) {
   if (stato === 'caricamento') return <Caricamento alto />;
   if (stato === 'errore') return <ErroreNellaPagina />;
   if (stato === 'vuoto') return <SenzaDati conOutput={props.output !== null} />;
   return <DatiDelDettaglio {...props} />;
-}
-
-/** Lo stato del dettaglio; finita la prima apertura (tutte le letture hanno risposto) la pagina non torna allo scheletro. */
-function useStatoDelDettaglio(letture: readonly LetturaDettaglio[]): Stato {
-  const [giaRisposte, setGiaRisposte] = useState(false);
-  const risposte = tutteRisposte(letture);
-  if (risposte && !giaRisposte) setGiaRisposte(true);
-  return statoDelDettaglio(letture, giaRisposte || risposte);
 }
 
 function Dettaglio({ codice }: { codice: string }) {

@@ -75,11 +75,6 @@ export function importiOrdinati(r: Pick<RigaOutput, 'importiUnitari'>): ImportoU
   return [...r.importiUnitari].sort((a, b) => a.esercizio - b.esercizio || confronta(a.codiceUnitAmount, b.codiceUnitAmount));
 }
 
-/** La riga dell'intervento nella risposta (il dettaglio legge col solo intervento della route). */
-export function rigaDellIntervento<R extends { codiceIntervento: string }>(righe: readonly R[] | undefined, codice: string): R | undefined {
-  return righe?.find((r) => r.codiceIntervento === codice);
-}
-
 /** Testo su cui cerca la ricerca della tabella: codice, indicatore e unita' di misura. */
 export function testoRicercaOutput(r: RigaOutput): string {
   return `${r.codiceIntervento} ${r.indicatoreOutput ?? ''} ${r.unitaMisura ?? ''}`;

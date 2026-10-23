@@ -13,11 +13,12 @@
 import { useState } from 'react';
 import { ricercaDaFiltri } from '../../../entities/filtri';
 import type { Filtri } from '../../../entities/filtri';
+import { rigaDellIntervento } from '../../../shared/lib';
 import { Interruttore, Sezione } from '../../../shared/ui';
 import { useOutputRegionale } from '../api';
 import type { Output } from '../lib/dto';
 import { DEFINIZIONI_OUTPUT, pillPeriodo } from '../lib/formato';
-import { opzioniMisura, rigaDellIntervento } from '../lib/output';
+import { opzioniMisura } from '../lib/output';
 import type { Misura } from '../lib/output';
 import { AnteprimaOutput } from './AnteprimaOutput';
 import { NOTA_FILE_OUTPUT, fileOutput } from './esportazioni';
