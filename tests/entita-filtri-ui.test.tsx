@@ -1,18 +1,19 @@
 // Test della regola comune dei filtri del programma nell'indirizzo (entities/filtri: useFiltriProgrammaNellIndirizzo e
 // useBozzaFiltri), il solo test della regola X-03 (review del fisico H2): finanziario, fisico e istituzionale la
 // compongono con la loro lettura dei valori (TX-0001, TX-0060) e la loro scrittura dell'indirizzo. Poi il pannello comune
-// con le voci di TX-0060 (fisico, istituzionale) e il pannello della pagina col focus dopo "Applica i filtri". Profilo
-// dal server MSW dei test.
+// con le voci di TX-0060 (fisico, istituzionale), il pannello della pagina col focus dopo "Applica i filtri" e la pagina
+// del dettaglio dell'intervento col codice non valido. Profilo dal server MSW dei test.
 import type { ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { createRef } from 'react';
 import { act, cleanup, render, renderHook, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { MemoryRouter, useLocation } from 'react-router';
-import { PannelloFiltriProgramma, ValoriFiltriNonDisponibili, filtriDaRicerca, filtriNellaBarra, ricercaDaFiltri, useBozzaFiltri, useFiltriProgrammaNellIndirizzo, usePannelloConFocus } from '../src/entities/filtri';
+import { MemoryRouter, RouterProvider, createMemoryRouter, useLocation } from 'react-router';
+import { ID_TITOLO_INTERVENTO, InterventoNonValido, PannelloFiltriProgramma, ValoriFiltriNonDisponibili, filtriDaRicerca, filtriNellaBarra, ricercaDaFiltri, useBozzaFiltri, useFiltriProgrammaNellIndirizzo, usePannelloConFocus } from '../src/entities/filtri';
 import type { Filtri, LetturaValoriFiltri, ValoriProgramma } from '../src/entities/filtri';
-import { clientDiTest } from '../src/shared/testing/render';
+import { expectNoA11yViolations } from '../src/shared/testing/axe';
+import { clientDiTest, renderConQuery } from '../src/shared/testing/render';
 
 const posizione = { attuale: '' };
 
@@ -257,5 +258,27 @@ describe('entities/filtri: pannello della pagina e focus dopo Applica i filtri (
     await userEvent.click(screen.getByRole('button', { name: 'Chiudi' }));
     expect(screen.getByText('pannello chiuso')).toBeTruthy();
     expect(applica).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('InterventoNonValido: la pagina del dettaglio dell intervento col codice del percorso non valido (H2 iter2, prima nel kit)', () => {
+  it('InterventoNonValido: il percorso con l area, un solo h1 col focus (id del titolo dei due dettagli) e il titolo del documento, l avviso col suggerimento', async () => {
+    const pagina = <InterventoNonValido area="Area" ingresso="/area" suggerimento="Scegli dalla panoramica." titoloDocumento="Intervento non valido - Area" />;
+    const router = createMemoryRouter([{ path: '/', element: pagina }], { initialEntries: ['/'] });
+    const { container } = renderConQuery(<RouterProvider router={router} />);
+    const h1 = screen.getByRole('heading', { level: 1, name: 'Intervento non valido' });
+    await waitFor(() => expect(document.activeElement).toBe(h1));
+    expect(h1.id).toBe(ID_TITOLO_INTERVENTO);
+    expect(document.title).toBe('Intervento non valido - Area - Cruscotto CSR 2023-2027');
+    expect(screen.getByRole('navigation', { name: 'Percorso' }).textContent).toBe('HomeAreaIntervento');
+    expect(screen.getByRole('link', { name: 'Area' }).getAttribute('href')).toBe('/area');
+    expect(screen.getByRole('alert').textContent).toBe("Il codice nell'indirizzo non è un codice di intervento: nessun dato richiesto. Scegli dalla panoramica.");
+    await expectNoA11yViolations(container);
+  });
+
+
+  it('sta nell entity accanto a codiceDelPercorso: il kit non la esporta piu', async () => {
+    expect(ID_TITOLO_INTERVENTO).toBe('t-intervento');
+    expect(Object.keys(await import('../src/shared/ui'))).not.toContain('IntestazioneNonValida');
   });
 });

@@ -13,10 +13,10 @@
 import { Link } from 'react-router';
 import { useState } from 'react';
 import type { Ref } from 'react';
-import { codiceDelPercorso, descrizioneIntervento, rigaDellIntervento } from '../../../entities/filtri';
+import { ID_TITOLO_INTERVENTO, InterventoNonValido, codiceDelPercorso, descrizioneIntervento, rigaDellIntervento } from '../../../entities/filtri';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import type { StatoDettaglio } from '../../../shared/lib';
-import { AvvisoPagina, Briciole, ContestoIntestazione, CorpoDelDettaglio, ErroriDelleLetture, Griglia, IntestazioneNonValida, Kpi, PillDatiAl, TestataDettaglio, Vuoto, useAnnoNellIndirizzo, useFocusTitolo, useRigheContesto, useStatoDelDettaglio } from '../../../shared/ui';
+import { AvvisoPagina, Briciole, ContestoIntestazione, CorpoDelDettaglio, ErroriDelleLetture, Griglia, Kpi, PillDatiAl, TestataDettaglio, Vuoto, useAnnoNellIndirizzo, useFocusTitolo, useRigheContesto, useStatoDelDettaglio } from '../../../shared/ui';
 import type { NomeIcona, TonoKpi } from '../../../shared/ui';
 import { useOutputRegionale, useValoriFiltri, useVerificaSmpNonSigc } from '../api';
 import { outputDellIntervento, verificaDellIntervento } from '../lib/collegamenti';
@@ -31,8 +31,6 @@ import { useIngressoArea } from './navigazione';
 import { SchedeIntervento } from './SchedeIntervento';
 import type { PropsSchede } from './SchedeIntervento';
 
-const ID_TITOLO = 't-intervento';
-
 /** Le letture del dettaglio, ognuna solo col grant della sua transazione (null senza: la scheda non c'e'). */
 function useLettureDelDettaglio(codice: string, anno: number | undefined) {
   const auth = useAuthStatus().data;
@@ -45,9 +43,9 @@ function useLettureDelDettaglio(codice: string, anno: number | undefined) {
   return { verifica: conVerifica ? verifica : null, output: conOutput ? output : null, descrizione: descrizioneIntervento(valori.data?.interventi, codice) };
 }
 
-/** Il codice dell'indirizzo non e' un codice di intervento: nessuna richiesta, lo dice la pagina (lo scheletro del kit). */
-function InterventoNonValido() {
-  return <IntestazioneNonValida area="Istituzionale" ingresso={useIngressoArea()} suggerimento="Scegli l'intervento dalla verifica SMP non SIGC o dall'output regionale." titoloDocumento="Intervento non valido - Istituzionale" />;
+/** Il codice dell'indirizzo non e' un codice di intervento: nessuna richiesta, lo dice la pagina (InterventoNonValido dell'entity). */
+function CodiceNonValido() {
+  return <InterventoNonValido area="Istituzionale" ingresso={useIngressoArea()} suggerimento="Scegli l'intervento dalla verifica SMP non SIGC o dall'output regionale." titoloDocumento="Intervento non valido - Istituzionale" />;
 }
 
 /** Perimetro (sempre regionale) e ultimo dato sincronizzato, nella barra dei riferimenti (il dettaglio non ha filtri). */
@@ -79,7 +77,7 @@ function TestataIntervento({ h1, codice, titolo, badge, anno }: { h1: Ref<HTMLHe
       )}
     </>
   );
-  return <TestataDettaglio idTitolo={ID_TITOLO} titolo={titolo} h1={h1} sopratitolo={sopratitoloIntervento(codice)} badge={badge} azioni={azioni} />;
+  return <TestataDettaglio idTitolo={ID_TITOLO_INTERVENTO} titolo={titolo} h1={h1} sopratitolo={sopratitoloIntervento(codice)} badge={badge} azioni={azioni} />;
 }
 
 const ASPETTO_KPI: Record<ChiaveKpi, { icona: NomeIcona; tono: TonoKpi }> = {
@@ -170,5 +168,5 @@ function Dettaglio({ codice }: { codice: string }) {
 export function DettaglioIntervento({ codice: parametro }: { codice: string | undefined }) {
   const codice = codiceDelPercorso(parametro);
   // codice nuovo = pagina nuova: la scheda scelta non resta quella dell'intervento di prima
-  return codice === null ? <InterventoNonValido /> : <Dettaglio key={codice} codice={codice} />;
+  return codice === null ? <CodiceNonValido /> : <Dettaglio key={codice} codice={codice} />;
 }

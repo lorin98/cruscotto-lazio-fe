@@ -6,12 +6,12 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { useRef } from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import { render, renderHook, screen, waitFor, within } from '@testing-library/react';
+import { render, renderHook, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { senzaRisposta } from '../src/shared/lib';
 import type { StatoDettaglio } from '../src/shared/lib';
-import { AvvisoPagina, CardGrafico, CorpoDelDettaglio, ErroriDelleLetture, IntestazioneNonValida, PaginaConFiltri, TabellaInterattiva, useStatoDelDettaglio } from '../src/shared/ui';
+import { AvvisoPagina, CardGrafico, CorpoDelDettaglio, ErroriDelleLetture, PaginaConFiltri, TabellaInterattiva, useStatoDelDettaglio } from '../src/shared/ui';
 import type { ColonnaTabella, DatiGrafico, Scaricamento } from '../src/shared/ui';
 import { renderConQuery } from '../src/shared/testing/render';
 import { expectNoA11yViolations } from '../src/shared/testing/axe';
@@ -74,20 +74,7 @@ describe('CardGrafico del kit: oggettoPng, il nome del PNG quando il titolo non 
   });
 });
 
-describe('Le parti comuni dei due dettagli nel kit (review H1 del procedurale): codice non valido, errori delle letture, corpo', () => {
-  it('IntestazioneNonValida: il percorso con l area, un solo h1 col focus e il titolo del documento, l avviso col suggerimento', async () => {
-    const pagina = <IntestazioneNonValida area="Area" ingresso="/area" suggerimento="Scegli dalla panoramica." titoloDocumento="Intervento non valido - Area" />;
-    const router = createMemoryRouter([{ path: '/', element: pagina }], { initialEntries: ['/'] });
-    const { container } = renderConQuery(<RouterProvider router={router} />);
-    const h1 = screen.getByRole('heading', { level: 1, name: 'Intervento non valido' });
-    await waitFor(() => expect(document.activeElement).toBe(h1));
-    expect(document.title).toBe('Intervento non valido - Area - Cruscotto CSR 2023-2027');
-    expect(screen.getByRole('navigation', { name: 'Percorso' }).textContent).toBe('HomeAreaIntervento');
-    expect(screen.getByRole('link', { name: 'Area' }).getAttribute('href')).toBe('/area');
-    expect(screen.getByRole('alert').textContent).toBe("Il codice nell'indirizzo non è un codice di intervento: nessun dato richiesto. Scegli dalla panoramica.");
-    await expectNoA11yViolations(container);
-  });
-
+describe('Le parti comuni dei due dettagli nel kit (review H1 del procedurale): errori delle letture, corpo', () => {
   it('ErroriDelleLetture: un solo avviso per le letture senza risposta (non quelle coi dati ne quelle senza grant); Riprova le rilegge', async () => {
     const riprova = vi.fn();
     const lettura = (data: unknown, isError: boolean) => ({ data, isError, error: new Error('Servizio non disponibile'), refetch: riprova });

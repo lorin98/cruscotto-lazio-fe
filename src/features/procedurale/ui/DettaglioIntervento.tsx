@@ -15,11 +15,11 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
 import type { Ref } from 'react';
-import { codiceDelPercorso, descrizioneIntervento, rigaDellIntervento, ValoriFiltriNonDisponibili } from '../../../entities/filtri';
+import { ID_TITOLO_INTERVENTO, InterventoNonValido, codiceDelPercorso, descrizioneIntervento, rigaDellIntervento, ValoriFiltriNonDisponibili } from '../../../entities/filtri';
 import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { testoPerimetro } from '../../../shared/lib';
 import type { StatoDettaglio } from '../../../shared/lib';
-import { AvvisoAggiornamento, AvvisoPagina, BarraFiltri, Briciole, ContestoIntestazione, CorpoDelDettaglio, ErroriDelleLetture, IntestazioneNonValida, PillDatiAl, TestataDettaglio, Vuoto, VuotoConFiltri, useFocusTitolo, useRigheContesto, useStatoDelDettaglio } from '../../../shared/ui';
+import { AvvisoAggiornamento, AvvisoPagina, BarraFiltri, Briciole, ContestoIntestazione, CorpoDelDettaglio, ErroriDelleLetture, PillDatiAl, TestataDettaglio, Vuoto, VuotoConFiltri, useFocusTitolo, useRigheContesto, useStatoDelDettaglio } from '../../../shared/ui';
 import { useDomandeAmmesse, useStatiPagamento, useStatiSostegno } from '../api';
 import { panoramicaDellIntervento } from '../lib/collegamenti';
 import { conCriteri, criteriDellIntervento, testiCriteri } from '../lib/criteri';
@@ -37,7 +37,6 @@ import { SchedeIntervento } from './SchedeIntervento';
 import { useCriteriDellaPagina } from './useCriteriNellIndirizzo';
 import type { PaginaDeiCriteri } from './useCriteriNellIndirizzo';
 
-const ID_TITOLO = 't-intervento';
 const LINK_KPI = { ammesse: 'elenco-ammesse-intervento', conAtto: 'elenco-con-atto-intervento' } as const;
 
 /** Le letture della pagina, ognuna solo col grant della sua transazione (null senza). */
@@ -53,9 +52,9 @@ function useLetture(criteri: CriteriProcedurali) {
 
 type Letture = ReturnType<typeof useLetture>;
 
-/** Il codice dell'indirizzo non e' un codice di intervento: nessuna richiesta, lo dice la pagina (lo scheletro del kit). */
-function InterventoNonValido() {
-  return <IntestazioneNonValida area="Procedurale" ingresso={useIngressoArea({})} suggerimento="Scegli l'intervento dalla panoramica o dai report procedurali." titoloDocumento="Intervento non valido - Procedurale" />;
+/** Il codice dell'indirizzo non e' un codice di intervento: nessuna richiesta, lo dice la pagina (InterventoNonValido dell'entity). */
+function CodiceNonValido() {
+  return <InterventoNonValido area="Procedurale" ingresso={useIngressoArea({})} suggerimento="Scegli l'intervento dalla panoramica o dai report procedurali." titoloDocumento="Intervento non valido - Procedurale" />;
 }
 
 /** La testata: sopratitolo, h1, badge in testo e i link verso la panoramica (solo se il profilo la apre). */
@@ -72,7 +71,7 @@ function TestataIntervento({ h1, codice, titolo, badge, stato }: { h1: Ref<HTMLH
       </Link>
     </>
   );
-  return <TestataDettaglio idTitolo={ID_TITOLO} titolo={titolo} h1={h1} sopratitolo={sopratitoloIntervento(codice)} badge={badge} azioni={azioni || undefined} />;
+  return <TestataDettaglio idTitolo={ID_TITOLO_INTERVENTO} titolo={titolo} h1={h1} sopratitolo={sopratitoloIntervento(codice)} badge={badge} azioni={azioni || undefined} />;
 }
 
 /** Le righe dell'intervento nelle letture della pagina. */
@@ -205,5 +204,5 @@ function Dettaglio({ codice }: { codice: string }) {
 export function DettaglioIntervento({ codice: parametro }: { codice: string | undefined }) {
   const codice = codiceDelPercorso(parametro);
   // codice nuovo = pagina nuova: la scheda scelta non resta quella dell'intervento di prima
-  return codice === null ? <InterventoNonValido /> : <Dettaglio key={codice} codice={codice} />;
+  return codice === null ? <CodiceNonValido /> : <Dettaglio key={codice} codice={codice} />;
 }
