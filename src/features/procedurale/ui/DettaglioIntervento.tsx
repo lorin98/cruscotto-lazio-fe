@@ -7,8 +7,9 @@
 // e i link verso la panoramica filtrata sull'intervento; i quattro KPI (TX-0026 della riga; domande di sostegno e di
 // pagamento da TX-0027 e TX-0028); le schede. All'apertura leggono TX-0026, TX-0027 e TX-0028 (KPI, badge e la prima
 // scheda), ognuna col suo grant; le altre schede leggono quando si aprono. Stati: caricamento (scheletro, solo alla prima
-// apertura: poi una lettura che riparte mostra lo scheletro nella sua parte), errore (un solo avviso della pagina per
-// lettura, registrato una volta qui), intervento senza dati, nessuna domanda per lo stato scelto ("Modifica i filtri").
+// apertura: cambiando lo stato restano i dati di prima con l'avviso dell'aggiornamento, e una scheda che rilegge mostra
+// lo scheletro nella sua parte), errore (un solo avviso della pagina per lettura, registrato una volta qui), intervento
+// senza dati, nessuna domanda per lo stato scelto ("Modifica i filtri").
 // La scheda attiva e' stato della pagina. Classi bootstrap-italia e del kit v2; react-aria nelle schede, nel pannello e
 // nel popover della pill.
 import { useState } from 'react';
@@ -18,7 +19,7 @@ import { codiceDelPercorso, descrizioneIntervento, ValoriFiltriNonDisponibili } 
 import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { rigaDellIntervento, testoPerimetro } from '../../../shared/lib';
 import type { StatoDettaglio } from '../../../shared/lib';
-import { AvvisoPagina, BarraFiltri, Briciole, Caricamento, ContestoIntestazione, ErroreNellaPagina, PillDatiAl, TestataDettaglio, Vuoto, VuotoConFiltri, useErroreNellaPagina, useFocusTitolo, useRigheContesto, useStatoDelDettaglio } from '../../../shared/ui';
+import { AvvisoAggiornamento, AvvisoPagina, BarraFiltri, Briciole, Caricamento, ContestoIntestazione, ErroreNellaPagina, PillDatiAl, TestataDettaglio, Vuoto, VuotoConFiltri, useErroreNellaPagina, useFocusTitolo, useRigheContesto, useStatoDelDettaglio } from '../../../shared/ui';
 import type { StatoQuery } from '../../../shared/ui';
 import { useDomandeAmmesse, useStatiPagamento, useStatiSostegno } from '../api';
 import { panoramicaDellIntervento } from '../lib/collegamenti';
@@ -46,9 +47,10 @@ const LINK_KPI = { ammesse: 'elenco-ammesse-intervento', conAtto: 'elenco-con-at
 function useLetture(criteri: CriteriProcedurali) {
   const auth = useAuthStatus().data;
   const puo = (l: Lettura) => puoLeggere(auth, l);
-  const ammesse = useDomandeAmmesse(criteri, { abilitato: puo('ammesse') });
-  const sostegno = useStatiSostegno(criteri, { abilitato: puo('statiSostegno') });
-  const pagamento = useStatiPagamento(criteri, { abilitato: puo('statiPagamento') });
+  // cambiando lo stato restano i dati di prima finche' arrivano i nuovi (la pagina non torna allo scheletro)
+  const ammesse = useDomandeAmmesse(criteri, { abilitato: puo('ammesse'), mantieniDati: true });
+  const sostegno = useStatiSostegno(criteri, { abilitato: puo('statiSostegno'), mantieniDati: true });
+  const pagamento = useStatiPagamento(criteri, { abilitato: puo('statiPagamento'), mantieniDati: true });
   return { ammesse: puo('ammesse') ? ammesse : null, sostegno: puo('statiSostegno') ? sostegno : null, pagamento: puo('statiPagamento') ? pagamento : null };
 }
 
@@ -135,18 +137,38 @@ interface PropsCorpo {
   onScheda: (s: IdScheda) => void;
 }
 
-/** Il corpo secondo lo stato delle letture: scheletro, errore (detto dall'avviso della pagina), senza dati, KPI e schede. */
+/** Una lettura della pagina mostra ancora i dati dello stato di prima, mentre arrivano quelli nuovi. */
+const inAggiornamento = (l: Letture) => [l.ammesse, l.sostegno, l.pagamento].some((x) => x?.isPlaceholderData === true);
+
+/**
+ * Il corpo secondo lo stato delle letture: scheletro (solo alla prima apertura), errore (detto dall'avviso della pagina),
+ * senza dati, KPI e schede; mentre una lettura riparte coi criteri nuovi i dati di prima restano e l'avviso lo dice.
+ */
 function CorpoDettaglio({ stato, codice, letture, pagina, criteri, scheda, onScheda }: PropsCorpo) {
   if (stato === 'caricamento') return <Caricamento alto />;
   if (stato === 'errore') return <ErroreNellaPagina />;
   if (stato === 'vuoto') return <Vuoto>{SENZA_DATI}</Vuoto>;
+  const aggiorna = inAggiornamento(letture);
   return (
     <>
-      <NessunaDomanda codice={codice} letture={letture} pagina={pagina} />
-      <KpiDettaglio codice={codice} letture={letture} criteri={criteri} />
-      <SchedeIntervento codice={codice} criteri={criteri} onModifica={() => pagina.apri('vuoto')} sostegno={letture.sostegno} pagamento={letture.pagamento} scheda={scheda} onScheda={onScheda} />
+      <AvvisoAggiornamento attivo={aggiorna} />
+      <div className="ui-risultati" aria-busy={aggiorna || undefined}>
+        <NessunaDomanda codice={codice} letture={letture} pagina={pagina} />
+        <KpiDettaglio codice={codice} letture={letture} criteri={criteri} />
+        <SchedeIntervento codice={codice} criteri={criteri} onModifica={() => pagina.apri('vuoto')} sostegno={letture.sostegno} pagamento={letture.pagamento} scheda={scheda} onScheda={onScheda} />
+      </div>
     </>
   );
+}
+
+/**
+ * Lo stato del corpo dalle letture della pagina (TX-0026..TX-0028). Senza nessuno dei loro grant (un profilo che ha solo
+ * le letture delle schede, per esempio le sottofasi) la pagina non ha nulla da attendere: le schede leggono da se'.
+ */
+function useStatoDelCorpo(letture: Letture): StatoDettaglio {
+  const fatte = [letture.ammesse, letture.sostegno, letture.pagamento].filter((l) => l !== null);
+  const stato = useStatoDelDettaglio(fatte);
+  return fatte.length === 0 ? 'dati' : stato;
 }
 
 /** La barra: il chip dello stato col pannello, il perimetro della prima risposta e "Dati al" di TX-0024. */
@@ -164,7 +186,7 @@ function Dettaglio({ codice }: { codice: string }) {
   const pagina = useCriteriDellaPagina('soloStato');
   const criteri = criteriDellIntervento(codice, pagina.filtri.stato);
   const letture = useLetture(criteri);
-  const stato = useStatoDelDettaglio([letture.ammesse, letture.sostegno, letture.pagamento].filter((l) => l !== null));
+  const stato = useStatoDelCorpo(letture);
   const [scheda, setScheda] = useState<IdScheda | null>(null);
   useFocusTitolo(titoloDocumentoIntervento(codice), pagina.h1);
   const perimetro = perimetroDelle([letture.ammesse, letture.sostegno, letture.pagamento].map((l) => l?.data?.perimetro));
