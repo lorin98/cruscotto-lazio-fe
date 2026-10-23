@@ -150,7 +150,7 @@
     },
     "step8-gate": {
       "status": "done",
-      "completed_at": "2026-10-23T08:53:43Z",
+      "completed_at": "2026-10-23T10:01:02Z",
       "artifacts": [
         "./fe-gate-report.json"
       ],
