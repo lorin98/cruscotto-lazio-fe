@@ -56,6 +56,11 @@
         },
         {
           "gating": "hide-by-role",
+          "grant": "csr.tx-0025.read",
+          "operationId": "TX-0025"
+        },
+        {
+          "gating": "hide-by-role",
           "grant": "csr.tx-0026.read",
           "operationId": "TX-0026"
         },

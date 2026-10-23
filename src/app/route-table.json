@@ -461,6 +461,11 @@
           "grant": "csr.tx-0024.read"
         },
         {
+          "operationId": "TX-0025",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0025.read"
+        },
+        {
           "operationId": "TX-0026",
           "gating": "hide-by-role",
           "grant": "csr.tx-0026.read"

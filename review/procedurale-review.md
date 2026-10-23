@@ -8,9 +8,13 @@ Lenti V (8), H (11), A (5), antagonista (4) e Judge in `review/procedurale/v1-it
 `review/procedurale-findings.json` (duplicati assorbiti: A3 in V1, A4 e H4 in V7, H7 in A2; rigettato V6: TX-0024 e TX-0025
 sono nel tetto e nell'audit del backend; declassati H3 e H9 a COSMETICO).
 
-Decisioni da chiedere all'utente (judge.md): D1 (V1) TX-0025 nel dettaglio da dichiarare con un refresh dello uiplan; D2 (V5)
-AT001 e interventi fuori dal CSR resi come 'senza dati' (il backend risponde 200), da registrare fra le deviazioni del gate
-wireframe_panoramica.
+Decisioni dell'utente del 23/10/2026 (judge.md):
+- D1 (V1): TX-0025 dichiarato nel dettaglio dell'intervento. Lo uiplan ha TX-0025 e RF025 fra le transactions e i reqs di
+  `/procedurale/interventi/:codice` (roles e visibility invariati). La route-table ha l'azione hide-by-role
+  `csr.tx-0025.read`. Il route-manifest e' riproiettato. `uiplan-validate.sh`, `route-manifest-validate.sh`,
+  `check-ui-authz.sh` (8 route) e `fe-project-check.sh` sono verdi. Il wireframe non cambia.
+- D2 (V5): AT001 e un intervento fuori dal CSR sono "senza dati", perche' il backend risponde 200 senza righe. La
+  deviazione e' registrata con state-set nei `deviations_reviewed` del gate wireframe_panoramica; il codice non cambia.
 
 ### MINORE (20)
 
