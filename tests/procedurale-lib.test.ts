@@ -95,6 +95,7 @@ import {
 } from '../src/features/procedurale/lib/grafici';
 import { STATI_AREA, ammessePer, riepilogoPer, sottofasiPagamentoPer, sottofasiSostegnoPer, statiPer, unitAmountPer } from '../src/features/procedurale/testing/fixture';
 import type { RigaAmmesse } from '../src/features/procedurale/lib/dto';
+import { GRIGLIA_CON_ETICHETTE, asseCategorieOrizzontale } from '../src/shared/lib';
 
 const q = (s = '') => new URLSearchParams(s);
 const n = (s: string) => s.replace(/\s/g, ' ');
@@ -512,6 +513,9 @@ describe('procedurale: builder dei grafici (tabella equivalente, valori assenti 
     expect((nonRil.itemStyle as { decal?: unknown }).decal).toBeTruthy();
     expect(descrizione(g.opzioni)).toBe('Domande di sostegno per stato: barre orizzontali impilate delle domande rilasciate e non ancora rilasciate per 4 stati: In compilazione 2 (di cui 2 non rilasciate), Stampato 4 (di cui 3 non rilasciate), Rilasciato 2, Istruttoria con esito positivo su tutte le misure 1.');
     expect(g.tabella.righe.at(-1)).toEqual(['Totale', '9', '5']);
+    // l'asse e la griglia comuni delle barre orizzontali del kit (review H6), senza containLabel deprecato
+    const o = g.opzioni as { yAxis: unknown; grid: unknown };
+    expect([o.yAxis, o.grid]).toEqual([asseCategorieOrizzontale(voci.map((v) => v.etichetta)), GRIGLIA_CON_ETICHETTE]);
     const senza = graficoStati(vociDegliStati(SOSTEGNO.totale), { titolo: 'T', caption: 'C', voce: 'Stato' });
     expect(senza.omessi).toEqual(['In compilazione: non disponibile (fonte domande in compilazione non attiva)']);
     expect(senza.tabella.righe[0]).toEqual(['In compilazione', 'non disponibile (fonte domande in compilazione non attiva)', 'non disponibile']);
@@ -524,6 +528,7 @@ describe('procedurale: builder dei grafici (tabella equivalente, valori assenti 
     const g = graficoArea(vociDellArea(RIEPILOGO.totale?.statiAreaProgrammazione), 'Domande per stato area programmazione', 7);
     expect(serie(g.opzioni)[0].data?.[2]).toEqual({ value: 3, name: 'Ammessa', codice: 'AMMESSA', dettaglio: 'Ammessa: 3' });
     expect(g.tabella.righe.at(-1)).toEqual(['Totale', '7']);
+    expect((g.opzioni as { grid: unknown }).grid).toBe(GRIGLIA_CON_ETICHETTE);
     expect(graficoArea([], 'T').motivoAssenza).toBe('nessuna domanda per stato area programmazione');
   });
 

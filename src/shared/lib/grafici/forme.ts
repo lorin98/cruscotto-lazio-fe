@@ -7,7 +7,9 @@ import { COLORI } from './colori';
 import { nonDisegnabile } from './contratto';
 import type { DatiGrafico, TabellaEquivalente } from './contratto';
 import {
+  GRIGLIA_CON_ETICHETTE,
   aria,
+  asseCategorieOrizzontale,
   asseEttari,
   asseImporti,
   assePercentuale,
@@ -109,15 +111,20 @@ export const MISURA_NUMERI: MisuraBarre = { breve: formatNumber, valore: valoreI
 /** Percentuali gia' in centesimi (percentuale pagata e base storica delle Unit Amount del procedurale). */
 export const MISURA_PERCENTUALI: MisuraBarre = { breve: formatPercentuale, valore: valorePercentuale, asse: assePercentuale, descrizione: 'percentuali' };
 
-/** Barre verticali (di default) oppure orizzontali, con le categorie sull'asse y dall'alto in basso. */
+/** Le opzioni delle barre raggruppate, per nome (review H6 del procedurale: prima tre parametri posizionali in fondo). */
 export interface OpzioniBarre {
+  /** Voci gia' omesse dal chiamante, dichiarate prima di quelle senza valori (es. una serie intera senza fonte). */
+  omessi?: readonly string[];
+  /** L'unita' dei valori: di default gli importi in euro. */
+  misura?: MisuraBarre;
+  /** Barre orizzontali, con le categorie sull'asse y dall'alto in basso (etichette lunghe); di default verticali. */
   orizzontale?: boolean;
 }
 
-/** Gli assi delle barre raggruppate e lo scorrimento lungo le categorie. */
-function assiBarre(categorie: string[], misura: MisuraBarre, orizzontale: boolean): Pick<EChartsOption, 'xAxis' | 'yAxis' | 'dataZoom'> {
+/** Gli assi delle barre raggruppate e lo scorrimento lungo le categorie; le orizzontali con l'asse e la griglia comuni. */
+function assiBarre(categorie: string[], misura: MisuraBarre, orizzontale: boolean): Pick<EChartsOption, 'xAxis' | 'yAxis' | 'dataZoom' | 'grid'> {
   const valori = { type: 'value' as const, axisLabel: { formatter: misura.asse } };
-  if (orizzontale) return { ...zoomSeMolti(categorie.length, 'y'), xAxis: valori, yAxis: { type: 'category', inverse: true, data: categorie } };
+  if (orizzontale) return { ...zoomSeMolti(categorie.length, 'y'), grid: GRIGLIA_CON_ETICHETTE, xAxis: valori, yAxis: asseCategorieOrizzontale(categorie) };
   return { ...zoomSeMolti(categorie.length), xAxis: { type: 'category', data: categorie, axisLabel: { interval: 0, rotate: categorie.length > 8 ? 45 : 0 } }, yAxis: valori };
 }
 
@@ -142,14 +149,7 @@ function datiBarre(voci: readonly VoceRaggruppata[], definizioni: readonly Serie
  * Barre raggruppate (una serie per definizione) di importi, o dei valori della `misura` data (es. superfici in ettari); i
  * valori assenti restano vuoti e dichiarati. Con `orizzontale` le categorie stanno sull'asse y (etichette lunghe).
  */
-export function barreRaggruppate(
-  voci: readonly VoceRaggruppata[],
-  definizioni: readonly SerieRaggruppata[],
-  testi: TestiBarre,
-  omessiIniziali: readonly string[] = [],
-  misura: MisuraBarre = MISURA_EURO,
-  { orizzontale = false }: OpzioniBarre = {},
-): DatiGrafico {
+export function barreRaggruppate(voci: readonly VoceRaggruppata[], definizioni: readonly SerieRaggruppata[], testi: TestiBarre, { omessi: omessiIniziali = [], misura = MISURA_EURO, orizzontale = false }: OpzioniBarre = {}): DatiGrafico {
   const tabella: TabellaEquivalente = { caption: testi.caption, colonne: testi.colonne, righe: voci.map((v) => [v.categoria, ...v.celle]) };
   const omessi = [...omessiIniziali];
   const { categorie, datiSerie } = datiBarre(voci, definizioni, omessi, misura);

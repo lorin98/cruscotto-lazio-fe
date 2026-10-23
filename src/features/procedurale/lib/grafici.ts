@@ -7,7 +7,7 @@
 // in testo. Il dato di ogni barra porta il codice del drill-down (intervento, chiave della voce, riga delle Unit Amount).
 import type { BarSeriesOption, EChartsOption } from 'echarts';
 import { descriviAssenza, testoConNota, testoMotivato } from '../../../entities/importo';
-import { COLORI, MISURA_EURO, MISURA_NUMERI, MISURA_PERCENTUALI, aria, barreRaggruppate, formatEuro, formatNumber, formatPercentuale, nonDisegnabile, notaOmessi, plurale, tooltipDettaglio, valoreInNumero } from '../../../shared/lib';
+import { COLORI, GRIGLIA_CON_ETICHETTE, MISURA_EURO, MISURA_NUMERI, MISURA_PERCENTUALI, aria, asseCategorieOrizzontale, barreRaggruppate, formatEuro, formatNumber, formatPercentuale, nonDisegnabile, notaOmessi, plurale, tooltipDettaglio, valoreInNumero } from '../../../shared/lib';
 import type { DatiGrafico, DatoSerie, MisuraBarre, TabellaEquivalente, VoceRaggruppata } from '../../../shared/lib';
 import type { RigaAmmesse, RigaRiepilogo, RigaUnitAmount, Sottofasi, TipoDomanda } from './dto';
 import { NON_DISPONIBILE_BREVE, resaAssenza } from './formato';
@@ -83,9 +83,9 @@ export function graficoStati(voci: readonly VoceDistribuzione[], testi: TestiSta
     aria: aria(descrizioneStati(testi.titolo, disegnate, omessi)),
     legend: {},
     tooltip: { trigger: 'axis', valueFormatter: valoreInNumero },
-    grid: { containLabel: true },
+    grid: GRIGLIA_CON_ETICHETTE,
     xAxis: { type: 'value', min: 0 },
-    yAxis: { type: 'category', inverse: true, data: disegnate.map((v) => v.etichetta), axisLabel: { width: 180, overflow: 'break' } },
+    yAxis: asseCategorieOrizzontale(disegnate.map((v) => v.etichetta)),
     series: serieStati(disegnate),
   };
   return { opzioni, tabella, omessi };
@@ -96,9 +96,9 @@ function barreOrizzontali(voci: readonly { etichetta: string; chiave: string; va
   return {
     aria: aria(descrizione),
     tooltip: { trigger: 'item', formatter: tooltipDettaglio },
-    grid: { containLabel: true },
+    grid: GRIGLIA_CON_ETICHETTE,
     xAxis: { type: 'value', min: 0 },
-    yAxis: { type: 'category', inverse: true, data: voci.map((v) => v.etichetta), axisLabel: { width: 180, overflow: 'break' } },
+    yAxis: asseCategorieOrizzontale(voci.map((v) => v.etichetta)),
     series: [{ type: 'bar', name: nome, data: voci.map((v): DatoSerie => ({ value: v.valore, name: v.etichetta, codice: v.chiave, dettaglio: `${v.etichetta}: ${formatNumber(v.valore)}` })) }],
   };
 }
@@ -131,7 +131,7 @@ export function graficoImporti(righe: readonly RigaAmmesse[], titolo: string): D
     { nome: 'Importo richiesto', soggetto: 'importo richiesto' },
     { nome: 'Contributo ammesso', soggetto: 'contributo ammesso' },
   ];
-  return barreRaggruppate(voci, definizioni, { caption: titolo, colonne: ['Intervento', 'Importo richiesto', 'Contributo ammesso'], titolo, vuoto: 'nessun importo valorizzato', unita: INTERVENTI }, [], MISURA_EURO);
+  return barreRaggruppate(voci, definizioni, { caption: titolo, colonne: ['Intervento', 'Importo richiesto', 'Contributo ammesso'], titolo, vuoto: 'nessun importo valorizzato', unita: INTERVENTI }, { misura: MISURA_EURO });
 }
 
 /** La fonte dell'atto di concessione non e' attiva per nessun intervento (nessun atto nel database: D-03 Rev. 4). */
@@ -154,7 +154,7 @@ export function graficoAmmesseConAtto(righe: readonly RigaAmmesse[], titolo: str
   const ammesse = { nome: 'Domande ammesse', soggetto: 'domande ammesse' };
   const definizioni = senzaFonte ? [ammesse] : [ammesse, { nome: 'Con atto di concessione', soggetto: 'domande con atto di concessione' }];
   const omessi = senzaFonte ? [`Domande con atto di concessione: ${testoMotivato(righe[0].conAttoConcessione, formatNumber)} per tutti gli interventi`] : [];
-  return barreRaggruppate(voci, definizioni, { caption: titolo, colonne: ['Intervento', 'Domande ammesse', 'Con atto di concessione'], titolo, vuoto: 'nessun intervento', unita: INTERVENTI }, omessi, MISURA_DOMANDE);
+  return barreRaggruppate(voci, definizioni, { caption: titolo, colonne: ['Intervento', 'Domande ammesse', 'Con atto di concessione'], titolo, vuoto: 'nessun intervento', unita: INTERVENTI }, { omessi, misura: MISURA_DOMANDE });
 }
 
 /** Barre raggruppate delle domande di sostegno, di pagamento CSR-DP e ammesse per intervento (TX-0029); clic: il dettaglio. */
@@ -170,7 +170,7 @@ export function graficoRiepilogo(righe: readonly RigaRiepilogo[], titolo: string
     { nome: 'Domande di pagamento CSR-DP', soggetto: 'domande di pagamento CSR-DP' },
     { nome: 'Domande ammesse', soggetto: 'domande ammesse' },
   ];
-  return barreRaggruppate(voci, definizioni, { caption: titolo, colonne: ['Intervento', 'Domande di sostegno', 'Domande di pagamento', 'Domande ammesse'], titolo, vuoto: 'nessun intervento', unita: INTERVENTI }, [], MISURA_DOMANDE);
+  return barreRaggruppate(voci, definizioni, { caption: titolo, colonne: ['Intervento', 'Domande di sostegno', 'Domande di pagamento', 'Domande ammesse'], titolo, vuoto: 'nessun intervento', unita: INTERVENTI }, { misura: MISURA_DOMANDE });
 }
 
 /** La fonte delle sottofasi della domanda non e' attiva per il tipo (nessuna domanda legata a una sottofase: D-06 Rev. 2). */
@@ -225,5 +225,5 @@ export function graficoUnitAmount(righe: readonly RigaUnitAmount[], titolo: stri
     const tabella: TabellaEquivalente = { caption: titolo, colonne: testi.colonne, righe: righe.map((r) => [etichettaUnitAmount(r), percentualeBreve(r.percentualePagata), percentualeBreve(r.baseStorica)]) };
     return nonDisegnabile(`nessuna Unit Amount ha ancora l'importo pagato (${descriviAssenza(righe[0]?.importoPagato).nota ?? 'fonte non attiva'})`, tabella, []);
   }
-  return barreRaggruppate(voci, definizioni, testi, [], MISURA_PERCENTUALI, { orizzontale: true });
+  return barreRaggruppate(voci, definizioni, testi, { misura: MISURA_PERCENTUALI, orizzontale: true });
 }

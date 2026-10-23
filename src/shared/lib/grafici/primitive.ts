@@ -1,6 +1,6 @@
 // primitive.ts — mattoni generici e PURI dei builder di grafici: numeri, testi in italiano, descrizione accessibile,
 // scorrimento delle barre, dato di una serie con i testi gia' composti e i callback che li leggono. Nessun dominio.
-import type { DataZoomComponentOption, EChartsOption, TooltipComponentOption } from 'echarts';
+import type { DataZoomComponentOption, EChartsOption, GridComponentOption, TooltipComponentOption, YAXisComponentOption } from 'echarts';
 import { ettari, formatEttari, formatEuro, formatNumber, formatPercentuale } from '../format';
 
 export const NON_DISPONIBILE = 'non disponibile';
@@ -112,6 +112,17 @@ export function aria(description: string): EChartsOption['aria'] {
 export function notaOmessi(omessi: readonly string[]): string {
   return omessi.length > 0 ? ` ${plurale(omessi.length, 'voce omessa', 'voci omesse')} per dati mancanti o non utilizzabili.` : '';
 }
+
+/**
+ * L'asse delle categorie delle barre orizzontali: dall'alto in basso, con le etichette lunghe a capo (stati e voci di SR-01,
+ * Unit Amount del procedurale). Una sola resa per tutte le barre orizzontali (review H6 del procedurale).
+ */
+export function asseCategorieOrizzontale(categorie: readonly string[]): YAXisComponentOption {
+  return { type: 'category', inverse: true, data: [...categorie], axisLabel: { width: 180, overflow: 'break' } };
+}
+
+/** La griglia che contiene le etichette degli assi, com'era containLabel (deprecato in ECharts 6: grid.outerBounds). */
+export const GRIGLIA_CON_ETICHETTE: GridComponentOption = { outerBoundsMode: 'same', outerBoundsContain: 'axisLabel' };
 
 /**
  * Scorrimento delle barre quando le categorie sono piu' di MAX_BARRE_VISIBILI (se ne mostrano MAX_BARRE_VISIBILI), lungo

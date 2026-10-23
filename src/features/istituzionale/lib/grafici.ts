@@ -76,7 +76,7 @@ export function graficoOutputPerAnno(r: RigaOutput, cumulativo: boolean): DatiGr
     vuoto: "nessun anno con un valore dell'output",
     unita: ['anno', 'anni'] as [string, string],
   };
-  const g = barreRaggruppate(voci, definizioni, testi, [], misuraOutput(unita));
+  const g = barreRaggruppate(voci, definizioni, testi, { misura: misuraOutput(unita) });
   const target = testoTarget(r.targetFinePeriodo, r.annoTarget, unita);
   const tabella = { ...g.tabella, righe: [...g.tabella.righe, ['Target di fine periodo', target, '', '']] };
   return { ...g, tabella, opzioni: g.opzioni && conTarget(g.opzioni, r, target) };

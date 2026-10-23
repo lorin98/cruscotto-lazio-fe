@@ -16,6 +16,8 @@ import {
   MISURA_ETTARI,
   MISURA_NUMERI,
   MISURA_PERCENTUALI,
+  GRIGLIA_CON_ETICHETTE,
+  asseCategorieOrizzontale,
   asseEttari,
   asseImporti,
   assePercentuale,
@@ -425,7 +427,7 @@ describe('barreRaggruppate', () => {
   });
 
   it('omessi iniziali in testa (es. una nota di perimetro)', () => {
-    expect(barreRaggruppate(voci, definizioni, testi, ['nota di prova']).omessi[0]).toBe('nota di prova');
+    expect(barreRaggruppate(voci, definizioni, testi, { omessi: ['nota di prova'] }).omessi[0]).toBe('nota di prova');
   });
 
   it('nessuna categoria con valori: non disegnabile col testo vuoto, la tabella resta', () => {
@@ -454,17 +456,30 @@ describe('barreRaggruppate orizzontali, coi numeri e le percentuali (procedurale
   const testi: TestiBarre = { caption: 'Percentuali', colonne: ['Unit Amount', 'Pagata'], titolo: 'Barre delle percentuali', vuoto: 'nessun valore', unita: ['Unit Amount', 'Unit Amount'] };
 
   it('le categorie sull asse y dall alto, i valori sull asse x; lo scorrimento oltre 12 lungo le categorie', () => {
-    const o = prova(barreRaggruppate([{ categoria: 'UA1', codice: 'UA1', valori: [40], celle: ['40 %'] }], definizioni, testi, [], MISURA_PERCENTUALI, { orizzontale: true }).opzioni);
-    expect(asse(o.yAxis)).toEqual({ type: 'category', inverse: true, data: ['UA1'] });
+    const o = prova(barreRaggruppate([{ categoria: 'UA1', codice: 'UA1', valori: [40], celle: ['40 %'] }], definizioni, testi, { misura: MISURA_PERCENTUALI, orizzontale: true }).opzioni);
+    // l'asse e la griglia comuni delle barre orizzontali (review H6 del procedurale): etichette a capo, contenute
+    expect(asse(o.yAxis)).toEqual({ type: 'category', inverse: true, data: ['UA1'], axisLabel: { width: 180, overflow: 'break' } });
+    expect((o as { grid?: unknown }).grid).toEqual({ outerBoundsMode: 'same', outerBoundsContain: 'axisLabel' });
+    // le verticali (finanziario, fisico, istituzionale) restano senza griglia
+    expect((prova(barreRaggruppate([{ categoria: 'UA1', codice: 'UA1', valori: [40], celle: ['40 %'] }], definizioni, testi).opzioni) as { grid?: unknown }).grid).toBeUndefined();
     expect(asse(o.xAxis).axisLabel?.formatter).toBe(assePercentuale);
     expect(o.series[0].data).toEqual([{ value: 40, name: 'UA1', codice: 'UA1', dettaglio: 'UA1, percentuale pagata: 40 %' }]);
     expect(o.aria?.label.description).toBe('Barre delle percentuali per 1 Unit Amount (UA1), percentuali.');
     const molte = Array.from({ length: 13 }, (_, k) => ({ categoria: `UA${k}`, valori: [k], celle: [String(k)] }));
-    const zoom = prova(barreRaggruppate(molte, definizioni, testi, [], MISURA_NUMERI, { orizzontale: true }).opzioni).dataZoom ?? [];
+    const zoom = prova(barreRaggruppate(molte, definizioni, testi, { misura: MISURA_NUMERI, orizzontale: true }).opzioni).dataZoom ?? [];
     expect(zoom.map((z) => [z.type, z.yAxisIndex, z.xAxisIndex, z.endValue])).toEqual([
       ['inside', 0, undefined, 11],
       ['slider', 0, undefined, 11],
     ]);
+  });
+
+  it('asseCategorieOrizzontale e GRIGLIA_CON_ETICHETTE: una resa per tutte le barre orizzontali, senza containLabel deprecato', () => {
+    const categorie = ['In istruttoria presso ente competente', 'Rilasciato'];
+    const a = asseCategorieOrizzontale(categorie);
+    expect(a).toEqual({ type: 'category', inverse: true, data: categorie, axisLabel: { width: 180, overflow: 'break' } });
+    expect((a as { data: string[] }).data).not.toBe(categorie);
+    expect(GRIGLIA_CON_ETICHETTE).toEqual({ outerBoundsMode: 'same', outerBoundsContain: 'axisLabel' });
+    expect('containLabel' in GRIGLIA_CON_ETICHETTE).toBe(false);
   });
 
   it('MISURA_NUMERI scrive i conteggi in italiano, MISURA_PERCENTUALI le percentuali', () => {
@@ -481,7 +496,7 @@ describe('barreRaggruppate in ettari (MISURA_ETTARI, superfici del fisico)', () 
   const testi: TestiBarre = { caption: 'Superfici', colonne: ['Intervento', 'DS', 'DP'], titolo: 'Barre delle superfici', vuoto: 'nessun intervento', unita: ['intervento', 'interventi'] };
 
   it('dettaglio, tooltip, asse e descrizione in ettari; la misura di default resta l euro', () => {
-    const g = barreRaggruppate([{ categoria: 'SRB01', codice: 'SRB01', valori: [15.5, -1], celle: ['15,50', '-1,00'] }], definizioni, testi, [], MISURA_ETTARI);
+    const g = barreRaggruppate([{ categoria: 'SRB01', codice: 'SRB01', valori: [15.5, -1], celle: ['15,50', '-1,00'] }], definizioni, testi, { misura: MISURA_ETTARI });
     const o = prova(g.opzioni);
     expect(o.series[0].data).toEqual([{ value: 15.5, name: 'SRB01', codice: 'SRB01', dettaglio: 'SRB01, superficie DS: 15,50 ha' }]);
     expect(o.series[1].data).toEqual([{ value: -1, name: 'SRB01', codice: 'SRB01', dettaglio: 'SRB01, superficie DP: -1,00 ha' }]);

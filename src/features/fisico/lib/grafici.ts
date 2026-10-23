@@ -70,13 +70,7 @@ export function graficoPerIntervento(righe: readonly InterventoSuperficie[], ann
     vuoto: `nessun intervento con superfici nella campagna ${anno}`,
     unita: ['intervento', 'interventi'] as [string, string],
   };
-  const g = barreRaggruppate(
-    voci,
-    SERIE_DS_DP,
-    testi,
-    fuori.map((f) => `${f.codice}: ${motivoFuori(f, anno)}`),
-    MISURA_ETTARI,
-  );
+  const g = barreRaggruppate(voci, SERIE_DS_DP, testi, { omessi: fuori.map((f) => `${f.codice}: ${motivoFuori(f, anno)}`), misura: MISURA_ETTARI });
   return { ...g, tabella: { ...g.tabella, righe: [...g.tabella.righe, ...fuori.map((f) => [f.codice, cellaFuori(f), cellaFuori(f)])] } };
 }
 
