@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { GRANT, puoLeggere } from '../src/features/istituzionale/lib/grant';
 import { GRANT_DETTAGLIO, PAGINE_ISTITUZIONALE, PERCORSI, pagineVisibili, ricercaConservata } from '../src/features/istituzionale/lib/pagine';
 import { ANNI_DEL_PERIODO, anniDiRiferimento, codiceDelPercorso, conFiltri, criteriVerifica, ricercaConAnno, soloIntervento, testiCriteri } from '../src/features/istituzionale/lib/criteri';
-import { VERIFICA_SMP_SIGC, conValore, elencoRicevute, elencoSpesa, outputDellIntervento, percorsoIntervento, verificaDellIntervento } from '../src/features/istituzionale/lib/collegamenti';
+import { conValore, elencoRicevute, elencoSpesa, outputDellIntervento, percorsoIntervento, verificaDellIntervento } from '../src/features/istituzionale/lib/collegamenti';
 import {
   ANNO_TARGET_ASSENTE,
   DEFINIZIONI_OUTPUT,
@@ -107,7 +107,6 @@ describe('RF016 e RF017: i link dello uiplan (dettaglio, report filtrati, elenco
   it('elenco operativo: ricevute = domande di sostegno, spesa = righe PAGATA non SIGC (D-05); link solo con un valore positivo', () => {
     expect(elencoRicevute('SRD01')).toBe('/elenco-operativo/domande?tipo=SOSTEGNO&intervento=SRD01');
     expect(elencoSpesa('SRD01')).toBe('/elenco-operativo/pagamenti?esito=PAGATA&sigc=false&intervento=SRD01');
-    expect(VERIFICA_SMP_SIGC).toBe('/finanziario/sigc/verifica-smp');
     expect([conValore(3), conValore(0), conValore(null), conValore(undefined), conValore(-1)]).toEqual([true, false, false, false, false]);
   });
 });

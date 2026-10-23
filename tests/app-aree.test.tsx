@@ -19,6 +19,8 @@ import { pagineVisibili as pagineIstituzionale, ricercaConservata as ricercaIsti
 import { PAGINE_FINANZIARIO } from '../src/features/finanziario/lib/report';
 import { PAGINE_FISICO } from '../src/features/fisico/lib/pagine';
 import { PAGINE_ISTITUZIONALE } from '../src/features/istituzionale/lib/pagine';
+import { VERIFICA_SMP_SIGC } from '../src/features/istituzionale/lib/collegamenti';
+import { GRANT as GRANT_ISTITUZIONALE } from '../src/features/istituzionale/lib/grant';
 import { clientApp } from './app-client';
 
 function apriHomeCon(ruoli: string[], indirizzo = '/') {
@@ -55,6 +57,13 @@ describe('catalogo delle aree', () => {
     }
     // il dettaglio dell'intervento non e' una voce di menu: si apre con uno dei due grant dei report
     expect(routeTable.routes.find((r) => r.path === '/istituzionale/interventi/:codice')?.visibility).toEqual(['csr.tx-0016.read', 'csr.tx-0017.read']);
+  });
+
+  it('link G4 dell istituzionale: la verifica SMP SIGC del finanziario e una route col grant che mostra la frase (review H8)', () => {
+    // un cambio della route o del grant nel finanziario porterebbe la frase a un 404 o al profilo sbagliato
+    const route = routeTable.routes.find((r) => r.path === VERIFICA_SMP_SIGC);
+    expect(route?.component, VERIFICA_SMP_SIGC).toBe('src/pages/finanziario/sigc/verifica-smp/page.tsx');
+    expect(route?.visibility).toEqual([GRANT_ISTITUZIONALE.verificaSigc]);
   });
 
   it('card della Home dal contenuto reale delle feature (decisione G1 del 21/10/2026)', () => {
