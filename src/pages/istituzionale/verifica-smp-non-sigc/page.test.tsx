@@ -7,12 +7,12 @@ import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { server } from '../../../shared/api/mock/server';
 import { expectNoA11yViolations } from '../../../shared/testing/axe';
-import { graficoDi, trovaCard } from '../../../shared/testing/card-grafico';
+import { graficoDi, opzioniDi, trovaCard } from '../../../shared/testing/card-grafico';
 import { clicSulDato } from '../../../shared/testing/grafico-finto';
 import { problema, trattenuta } from '../../../shared/testing/msw';
 import { renderPagina } from '../../../shared/testing/render-pagina';
 import { pngDelGrafico } from '../../../shared/ui/grafici/echarts';
-import { VALORI, VERIFICA } from '../../../features/istituzionale/testing/fixture';
+import { SRD01, VALORI, VERIFICA } from '../../../features/istituzionale/testing/fixture';
 import { lettureIstituzionale } from '../../../features/istituzionale/testing/letture';
 import Pagina from './page';
 
@@ -53,8 +53,9 @@ describe('RF016: i dati ASR non SIGC per intervento, da confrontare con SMP - Da
     expect(screen.getByText('Anno di riferimento del file SMP non SIGC: 2024')).toBeTruthy();
   });
 
-  it('un solo h1 col focus e il titolo del documento; card con PNG, CSV e XLSX; nessuna violazione axe', async () => {
-    servi();
+  it('un solo h1 col focus e il titolo del documento; card con PNG, CSV e XLSX; la spesa assente fuori dal grafico; nessuna violazione axe', async () => {
+    // SRD04 senza la spesa erogata valorizzata (review V6: il caso che il commento sotto dichiara)
+    servi({ verifica: { ...VERIFICA, righe: [...VERIFICA.righe, { ...SRD01, codiceIntervento: 'SRD04', spesaErogata: { valore: null, motivo: 'NON_VALORIZZATO', fonte: null } }] } });
     const { container } = apri();
     expect(document.activeElement).toBe(h1());
     expect(document.title).toBe('Verifica SMP non SIGC - Istituzionale - Cruscotto CSR 2023-2027');
@@ -68,7 +69,14 @@ describe('RF016: i dati ASR non SIGC per intervento, da confrontare con SMP - Da
       'Scarica i dati della verifica SMP non SIGC in XLSX',
     ]);
     // l'intervento senza spesa valorizzata e' fuori dal grafico e dichiarato; lo zero di SRA01 e' una barra vera
-    expect(graficoDi(card)?.opzioni.length).toBeGreaterThan(0);
+    const [serie] = (opzioniDi(graficoDi(card))?.series ?? []) as { data: { codice: string; value: number }[] }[];
+    expect(serie.data.map((d) => [d.codice, d.value])).toEqual([
+      ['SRA01', 0],
+      ['SRA16', 1200.5],
+      ['SRD01', 90000],
+    ]);
+    expect(card.textContent).toContain('1 voce non nel grafico');
+    expect(card.textContent).toContain('SRD04, spesa pubblica erogata: non valorizzato (il dato non è presente nella fonte)');
     await expectNoA11yViolations(container);
   });
 
