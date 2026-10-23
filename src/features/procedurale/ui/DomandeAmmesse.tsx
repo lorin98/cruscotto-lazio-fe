@@ -12,7 +12,7 @@ import { Griglia, VistaQuery, VuotoConFiltri } from '../../../shared/ui';
 import { useDomandeAmmesse } from '../api';
 import { conFiltri, criteriDelReport } from '../lib/criteri';
 import type { Ammesse } from '../lib/dto';
-import { NOTA_AMMESSE, testoVuoto } from '../lib/formato';
+import { NOTA_AMMESSE, testoNessunIntervento } from '../lib/formato';
 import { puoLeggere } from '../lib/grant';
 import { kpiDelleAmmesse, kpiInterventi } from '../lib/kpi';
 import { CardAmmesseConAtto, CardImporti } from './CardAmmesse';
@@ -47,7 +47,7 @@ export function DomandeAmmesse() {
   const pagina = useCriteriDellaPagina('tutti');
   const stato = useDomandeAmmesse(criteriDelReport(pagina.filtri), { abilitato: puoLeggere(useAuthStatus().data, 'ammesse') });
   const [aperto, setAperto] = useState<string | null>(null);
-  const vuoto = (d: Ammesse) => <VuotoConFiltri onModifica={() => pagina.apri('vuoto')}>{testoVuoto('Nessun intervento', conFiltri(pagina.filtri), d.perimetro)}</VuotoConFiltri>;
+  const vuoto = <VuotoConFiltri onModifica={() => pagina.apri('vuoto')}>{testoNessunIntervento(conFiltri(pagina.filtri))}</VuotoConFiltri>;
   return (
     <PaginaProcedurale pagina={pagina} briciola="Domande ammesse" titolo="Procedurale: domande ammesse per intervento" titoloDocumento="Domande ammesse - Procedurale" sottotitolo={SOTTOTITOLO} perimetro={stato.data?.perimetro} tipoPerimetro="domande" codiciRisposta={(stato.data?.righe ?? []).map((r) => r.codiceIntervento)}>
       <VistaQuery stato={stato} eVuoto={(d) => (d.righe ?? []).length === 0} vuoto={vuoto}>

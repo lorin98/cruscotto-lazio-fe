@@ -17,7 +17,7 @@ import { indirizzoElenco, paginaDegliStati, testiLinkArea } from '../lib/collega
 import { conFiltri, criteriDelReport } from '../lib/criteri';
 import type { CriteriProcedurali } from '../lib/criteri';
 import type { Ammesse, Riepilogo, Stati, TipoDomanda } from '../lib/dto';
-import { perimetroDelle, testoVuoto } from '../lib/formato';
+import { perimetroDelle, testoNessunIntervento, testoVuoto } from '../lib/formato';
 import { puoLeggere } from '../lib/grant';
 import { kpiDelleAmmesse, kpiInterventi } from '../lib/kpi';
 import { diTipo, senzaDomande } from '../lib/stati';
@@ -48,9 +48,14 @@ function useLetture(c: CriteriProcedurali) {
 
 type Letture = ReturnType<typeof useLetture>;
 
-/** Il vuoto che dipende dai filtri: "Modifica i filtri" apre il pannello della pagina. */
+/** Il vuoto delle domande, che dipende dai filtri e dice il perimetro ADA: "Modifica i filtri" apre il pannello della pagina. */
 function vuoto(pagina: PaginaDeiCriteri, soggetto: string) {
   return (d: { perimetro?: 'REGIONALE' | 'ADA' }) => <VuotoConFiltri onModifica={() => pagina.apri('vuoto')}>{testoVuoto(soggetto, conFiltri(pagina.filtri), d.perimetro)}</VuotoConFiltri>;
+}
+
+/** Il vuoto degli interventi (dati di programma): solo i filtri lo producono, il perimetro ADA no (SC-PC_SCOPE_P4). */
+function vuotoInterventi(pagina: PaginaDeiCriteri) {
+  return <VuotoConFiltri onModifica={() => pagina.apri('vuoto')}>{testoNessunIntervento(conFiltri(pagina.filtri))}</VuotoConFiltri>;
 }
 
 /** I quattro KPI delle ammesse; l'errore lo dice l'avviso della pagina (lo registra la card degli importi). */
@@ -114,7 +119,7 @@ function AreaPanoramica({ stato, pagina }: { stato: StatoQuery<Riepilogo>; pagin
 /** Gli importi per intervento; e' la sezione che registra l'errore di TX-0026 nell'avviso della pagina. */
 function ImportiPanoramica({ stato, pagina }: { stato: StatoQuery<Ammesse>; pagina: PaginaDeiCriteri }) {
   return (
-    <VistaQuery stato={stato} eVuoto={(d) => (d.righe ?? []).length === 0} vuoto={vuoto(pagina, 'Nessun intervento')}>
+    <VistaQuery stato={stato} eVuoto={(d) => (d.righe ?? []).length === 0} vuoto={vuotoInterventi(pagina)}>
       {(d) => <CardImporti righe={d.righe ?? []} criteri={pagina.filtri} />}
     </VistaQuery>
   );

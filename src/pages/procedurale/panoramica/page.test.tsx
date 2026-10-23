@@ -12,7 +12,7 @@ import { graficoDi, tabellaDi, trovaCard } from '../../../shared/testing/card-gr
 import { clicSulCodice } from '../../../shared/testing/grafico-finto';
 import { problema, trattenuta } from '../../../shared/testing/msw';
 import { renderPagina } from '../../../shared/testing/render-pagina';
-import { VALORI, ammessePer, statiPer } from '../../../features/procedurale/testing/fixture';
+import { VALORI, ammessePer, riepilogoPer, statiPer } from '../../../features/procedurale/testing/fixture';
 import { lettureProcedurale } from '../../../features/procedurale/testing/letture';
 import type { Basi } from '../../../features/procedurale/testing/letture';
 import Pagina from './page';
@@ -246,12 +246,33 @@ describe('RF024: stati della panoramica (caricamento, errore, vuoto, perimetro)'
     expect(screen.queryByRole('alert')).toBeNull();
   });
 
-  it('perimetro ADA (P4): la pill in evidenza e lo stato vuoto che dice la propria area, senza parlare di filtri', async () => {
+  it('perimetro ADA (P4, SC-PC_SCOPE_P4): gli interventi del perimetro ufficiale con le domande a zero; KPI a 0, le domande dicono la propria area', async () => {
     servi();
-    server.use(http.get('*/api/procedurale/domande-ammesse', () => HttpResponse.json({ perimetro: 'ADA', righe: [] })));
+    // la risposta del P4 senza domande nella sua ADA: tutti gli interventi, con zero domande
+    const zero = new URLSearchParams('stato=DECADENZA_TOTALE');
+    server.use(
+      http.get('*/api/procedurale/domande-ammesse', () => HttpResponse.json({ ...ammessePer(zero), perimetro: 'ADA' })),
+      http.get('*/api/procedurale/stati-sostegno', () => HttpResponse.json({ ...statiPer('SOSTEGNO', zero), perimetro: 'ADA' })),
+      http.get('*/api/procedurale/stati-pagamento', () => HttpResponse.json({ ...statiPer('PAGAMENTO', zero), perimetro: 'ADA' })),
+      http.get('*/api/procedurale/riepilogo', () => HttpResponse.json({ ...riepilogoPer(zero), perimetro: 'ADA' })),
+    );
     apri();
-    expect(await screen.findByText('Nessun intervento nella tua area (perimetro ADA).')).toBeTruthy();
+    expect(testo((await screen.findByRole('region', { name: 'Domande ammesse' })).textContent)).toMatch(/^Domande ammesse0/);
+    expect(testo(screen.getByRole('region', { name: 'Interventi attivati' }).textContent)).toContain('0 su 3');
+    await trovaCard('Importo richiesto e contributo ammesso per intervento');
+    expect(await screen.findByText('Nessuna domanda di sostegno nella tua area (perimetro ADA).')).toBeTruthy();
+    expect(screen.getByText('Nessuna domanda di pagamento CSR-DP nella tua area (perimetro ADA).')).toBeTruthy();
+    expect(screen.queryByText(/^Nessun intervento/)).toBeNull();
+    expect(screen.queryByRole('alert')).toBeNull();
     const pill = within(screen.getByRole('region', { name: 'Filtri attivi' })).getByText(/^Perimetro: .* \(solo le domande della tua ADA\)$/);
     expect(pill.className).toContain('ui-pill--evidenza');
+  });
+
+  it('perimetro ADA e filtri senza interventi: il vuoto degli interventi parla dei filtri, non dell area (wireframe approvato)', async () => {
+    servi();
+    server.use(http.get('*/api/procedurale/domande-ammesse', ({ request }) => HttpResponse.json({ ...ammessePer(new URL(request.url).searchParams), perimetro: 'ADA' })));
+    apri(`${PERCORSO}?os=OS9`);
+    expect(await screen.findByText('Nessun intervento per i filtri scelti.')).toBeTruthy();
+    expect(screen.queryByText(/nella tua area/)).toBeNull();
   });
 });

@@ -28,9 +28,25 @@ export function perimetroDelle(perimetri: ReadonlyArray<Perimetro | undefined>):
 /** Pill della barra delle Unit Amount: lo stato area programmazione non vi si applica (D-06 Rev. 6 del backend). */
 export const STATO_NON_APPLICATO = 'Il filtro per stato area programmazione non si applica alle Unit Amount';
 
-/** Lo stato vuoto: "<soggetto> [nella tua area (perimetro ADA)] [per i filtri scelti]." */
+/**
+ * " nella tua area (perimetro ADA)" col perimetro ADA, altrimenti niente: lo dicono solo i testi delle domande, perche' il
+ * perimetro ADA restringe le domande e non gli interventi, che il P4 vede tutti (SC-PC_SCOPE_P4).
+ */
+export function nellaTuaArea(perimetro: Perimetro | undefined): string {
+  return perimetro === 'ADA' ? ' nella tua area (perimetro ADA)' : '';
+}
+
+/** Lo stato vuoto di un soggetto che conta domande: "<soggetto> [nella tua area (perimetro ADA)] [per i filtri scelti]." */
 export function testoVuoto(soggetto: string, conFiltri: boolean, perimetro?: Perimetro): string {
-  return `${soggetto}${perimetro === 'ADA' ? ' nella tua area (perimetro ADA)' : ''}${conFiltri ? ' per i filtri scelti' : ''}.`;
+  return `${soggetto}${nellaTuaArea(perimetro)}${conFiltri ? ' per i filtri scelti' : ''}.`;
+}
+
+/**
+ * Lo stato vuoto degli interventi, come nei wireframe approvati: "Nessun intervento [per i filtri scelti]." Gli interventi
+ * sono dati di programma: le righe mancano solo per i filtri, mai per il perimetro ADA (SC-PC_SCOPE_P4).
+ */
+export function testoNessunIntervento(conFiltri: boolean): string {
+  return `Nessun intervento${conFiltri ? ' per i filtri scelti' : ''}.`;
 }
 
 /** "sì" / "no" di un valore presente (attivato). */

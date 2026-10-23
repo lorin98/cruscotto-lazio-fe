@@ -40,7 +40,7 @@ import {
   testiLinkConAtto,
   testiLinkStato,
 } from '../src/features/procedurale/lib/collegamenti';
-import { NON_DISPONIBILE_BREVE, STATO_NON_APPLICATO, perimetroDelle, pillPerimetro, resaAssenza, siNo, testoVuoto } from '../src/features/procedurale/lib/formato';
+import { NON_DISPONIBILE_BREVE, STATO_NON_APPLICATO, nellaTuaArea, perimetroDelle, pillPerimetro, resaAssenza, siNo, testoNessunIntervento, testoVuoto } from '../src/features/procedurale/lib/formato';
 import {
   SENZA_STATO,
   codiciAltriStati,
@@ -330,10 +330,15 @@ describe('procedurale: testi, KPI e assenze', () => {
     expect(STATO_NON_APPLICATO).toBe('Il filtro per stato area programmazione non si applica alle Unit Amount');
   });
 
-  it('stati vuoti: coi filtri dicono di cambiarli, senza no; col perimetro ADA dicono la propria area', () => {
+  it('stati vuoti: coi filtri dicono di cambiarli, senza no; col perimetro ADA le domande dicono la propria area', () => {
     expect(testoVuoto('Nessuna domanda di sostegno', true)).toBe('Nessuna domanda di sostegno per i filtri scelti.');
-    expect(testoVuoto('Nessun intervento', false)).toBe('Nessun intervento.');
+    expect(testoVuoto('Nessuna domanda', false)).toBe('Nessuna domanda.');
     expect(testoVuoto('Nessuna domanda di pagamento CSR-DP', true, 'ADA')).toBe('Nessuna domanda di pagamento CSR-DP nella tua area (perimetro ADA) per i filtri scelti.');
+    expect([nellaTuaArea('ADA'), nellaTuaArea('REGIONALE'), nellaTuaArea(undefined)]).toEqual([' nella tua area (perimetro ADA)', '', '']);
+  });
+
+  it('nessun intervento: il testo dei wireframe, mai il perimetro ADA (gli interventi sono dati di programma, SC-PC_SCOPE_P4)', () => {
+    expect([testoNessunIntervento(true), testoNessunIntervento(false)]).toEqual(['Nessun intervento per i filtri scelti.', 'Nessun intervento.']);
   });
 
   it('si e no, e le assenze: brevi con la fonte non attiva dove il motivo e detto altrove, altrimenti complete', () => {

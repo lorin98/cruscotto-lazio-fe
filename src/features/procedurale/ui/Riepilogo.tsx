@@ -13,7 +13,7 @@ import type { VistaGrafico } from '../../../shared/ui';
 import { useRiepilogo } from '../api';
 import { conFiltri, criteriDelReport, ricercaDaCriteri } from '../lib/criteri';
 import type { Riepilogo as DatiRiepilogo } from '../lib/dto';
-import { testoVuoto } from '../lib/formato';
+import { testoNessunIntervento } from '../lib/formato';
 import { graficoRiepilogo } from '../lib/grafici';
 import { puoLeggere } from '../lib/grant';
 import { codiceDellaRiga, righeRiepilogo } from '../lib/riepilogo';
@@ -88,7 +88,7 @@ export function Riepilogo() {
   // vista e riga aperta sono stato della pagina: restano mentre la lettura riparte coi filtri nuovi
   const [vista, scegli] = useVista(pagina);
   const [aperto, setAperto] = useState<string | null>(null);
-  const vuoto = (d: DatiRiepilogo) => <VuotoConFiltri onModifica={() => pagina.apri('vuoto')}>{testoVuoto('Nessun intervento', conFiltri(pagina.filtri), d.perimetro)}</VuotoConFiltri>;
+  const vuoto = <VuotoConFiltri onModifica={() => pagina.apri('vuoto')}>{testoNessunIntervento(conFiltri(pagina.filtri))}</VuotoConFiltri>;
   return (
     <PaginaProcedurale pagina={pagina} briciola="Riepilogo per intervento" titolo="Procedurale: riepilogo per intervento" titoloDocumento="Riepilogo per intervento - Procedurale" sottotitolo={SOTTOTITOLO} perimetro={stato.data?.perimetro} tipoPerimetro="domande" codiciRisposta={righeRiepilogo(stato.data ?? {}).map(codiceDellaRiga)}>
       <VistaQuery stato={stato} eVuoto={(d) => righeRiepilogo(d).length === 0} vuoto={vuoto}>
