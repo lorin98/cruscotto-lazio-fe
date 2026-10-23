@@ -20,6 +20,8 @@ import { DettaglioIntervento, OutputRegionale, VerificaSmpNonSigc } from '../src
 import { OUTPUT, SRA01_OUTPUT, SRD01, VALORI, VERIFICA, outputPer, verificaPer } from '../src/features/istituzionale/testing/fixture';
 import { AnteprimaOutput } from '../src/features/istituzionale/ui/AnteprimaOutput';
 import { CellaDato, ValoriNonDisponibili } from '../src/features/istituzionale/ui/comuni';
+import { PaginaReport } from '../src/features/istituzionale/ui/PaginaReport';
+import { useFiltriDellaPagina } from '../src/features/istituzionale/ui/useFiltriNellIndirizzo';
 import { TabellaOutput } from '../src/features/istituzionale/ui/TabellaOutput';
 import { TabellaVerifica } from '../src/features/istituzionale/ui/TabellaVerifica';
 import { DATI_VERIFICA } from '../src/features/istituzionale/lib/verifica';
@@ -332,5 +334,62 @@ describe('DettaglioIntervento e SchedeIntervento (dettaglio dell intervento)', (
     expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Verifica SMP non SIGC']);
     expect(screen.queryByRole('link', { name: 'Output regionale filtrato su questo intervento' })).toBeNull();
     expect(lette.output).toEqual([]);
+  });
+});
+
+describe('PaginaReport e useFiltriDellaPagina: l impaginazione comune dei due report istituzionali (review H6)', () => {
+  const ULTIMI = [{ flusso: 'DS-12', conclusoIl: '2026-03-02T09:15:00Z' }];
+  type Risposta = { righe: { codiceIntervento: string }[]; ultimiDatiSincronizzati: typeof ULTIMI };
+  const stato = (parziale: Partial<StatoQuery<Risposta>>): StatoQuery<Risposta> => ({ data: undefined, isPending: false, isError: false, fetchStatus: 'idle', error: null, refetch: () => undefined, ...parziale });
+  const risposta = (...codici: string[]): Risposta => ({ righe: codici.map((codiceIntervento) => ({ codiceIntervento })), ultimiDatiSincronizzati: ULTIMI });
+
+  /** Un report di prova: la pagina passa solo testi, la pill della risposta, cosa sta sopra e il report. */
+  const provaCon = (s: StatoQuery<Risposta>) =>
+    function Prova() {
+      const pagina = useFiltriDellaPagina(false);
+      return (
+        <PaginaReport pagina={pagina} stato={s} briciola="Prova" titolo="Istituzionale: prova" titoloDocumento="Prova - Istituzionale" sottotitolo="Il sottotitolo." nota="La nota." pill={(d) => `Righe della risposta: ${d.righe.length}`} sopra={<p>sopra il report</p>}>
+          {(d) => <p>{`report di ${d.righe.map((r) => r.codiceIntervento).join(', ')}`}</p>}
+        </PaginaReport>
+      );
+    };
+
+  it('barra coi chip dell indirizzo e le pill, percorso, un solo h1 col focus, nota, sopra e poi il report; pannello coi codici della risposta', async () => {
+    servi(null);
+    const { container } = renderPagina(provaCon(stato({ data: risposta('SRA01', 'SRD01') })), '/istituzionale/prova', '/istituzionale/prova?intervento=SRD01');
+    const barra = screen.getByRole('region', { name: 'Filtri attivi' });
+    expect(within(barra).getByRole('button', { name: 'Togli il filtro Intervento SRD01' })).toBeTruthy();
+    expect(within(barra).getByText('Perimetro: regionale (i report istituzionali non hanno perimetro ADA)')).toBeTruthy();
+    expect(within(barra).getByText('Righe della risposta: 2')).toBeTruthy();
+    expect(within(barra).getByRole('button', { name: /^Ultimo dato sincronizzato: dati al 02\/03\/2026/ })).toBeTruthy();
+    expect((await within(screen.getByRole('navigation', { name: 'Percorso' })).findByRole('link', { name: 'Istituzionale' })).getAttribute('href')).toBe('/istituzionale/verifica-smp-non-sigc');
+    const h1 = screen.getByRole('heading', { level: 1, name: 'Istituzionale: prova' });
+    expect(document.activeElement).toBe(h1);
+    expect(document.title).toBe('Prova - Istituzionale - Cruscotto CSR 2023-2027');
+    expect(screen.getByText('La nota.')).toBeTruthy();
+    const sopra = screen.getByText('sopra il report');
+    const report = screen.getByText('report di SRA01, SRD01');
+    expect(sopra.compareDocumentPosition(report) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // TX-0060 in errore: lo stato dei valori non disponibili; il pannello propone i codici della risposta
+    expect(await screen.findByText(/^Valori dei filtri non disponibili: /)).toBeTruthy();
+    await userEvent.click(within(barra).getByRole('button', { name: /^Filtri/ }));
+    const pannello = await screen.findByRole('dialog', { name: 'Filtri dei report istituzionali' });
+    expect(within(pannello).getByRole('checkbox', { name: 'SRA01' })).toBeTruthy();
+    expect(within(pannello).getByRole('checkbox', { name: 'SRD01' })).toBeTruthy();
+    await expectNoA11yViolations(container);
+  });
+
+  it('nessuna riga: il vuoto dei filtri con Modifica i filtri (apre il pannello); errore: un solo avviso della pagina', async () => {
+    servi();
+    const vuota = renderPagina(provaCon(stato({ data: risposta() })), '/istituzionale/prova', '/istituzionale/prova?intervento=SRD01');
+    const vuoto = await screen.findByText(/^Nessun intervento per i filtri scelti/);
+    await userEvent.click(within(vuoto.closest('[role="status"]') as HTMLElement).getByRole('button', { name: 'Modifica i filtri' }));
+    expect(await screen.findByRole('dialog', { name: 'Filtri dei report istituzionali' })).toBeTruthy();
+    vuota.unmount();
+    renderPagina(provaCon(stato({ isError: true, error: new Error('rete') })), '/istituzionale/prova');
+    expect(await screen.findAllByRole('alert')).toHaveLength(1);
+    expect(screen.getByText(/^Dati non caricati: l'avviso in cima alla pagina/)).toBeTruthy();
+    expect(within(screen.getByRole('region', { name: 'Filtri attivi' })).getByText('Ultimo dato sincronizzato: non disponibile')).toBeTruthy();
+    expect(screen.queryByText('Righe della risposta', { exact: false })).toBeNull();
   });
 });
