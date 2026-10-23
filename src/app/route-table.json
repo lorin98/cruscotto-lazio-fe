@@ -394,6 +394,270 @@
           "grant": "csr.tx-0060.read"
         }
       ]
+    },
+    {
+      "path": "/procedurale",
+      "flow": "panoramica",
+      "component": "src/pages/procedurale/panoramica/page.tsx",
+      "visibility": [
+        "csr.tx-0024.read",
+        "csr.tx-0025.read",
+        "csr.tx-0026.read",
+        "csr.tx-0027.read",
+        "csr.tx-0028.read",
+        "csr.tx-0029.read"
+      ],
+      "actions": [
+        {
+          "operationId": "TX-0024",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0024.read"
+        },
+        {
+          "operationId": "TX-0025",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0025.read"
+        },
+        {
+          "operationId": "TX-0026",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0026.read"
+        },
+        {
+          "operationId": "TX-0027",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0027.read"
+        },
+        {
+          "operationId": "TX-0028",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0028.read"
+        },
+        {
+          "operationId": "TX-0029",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0029.read"
+        }
+      ]
+    },
+    {
+      "path": "/procedurale/interventi/:codice",
+      "flow": "panoramica",
+      "component": "src/pages/procedurale/interventi/page.tsx",
+      "visibility": [
+        "csr.tx-0024.read",
+        "csr.tx-0026.read",
+        "csr.tx-0027.read",
+        "csr.tx-0028.read",
+        "csr.tx-0029.read",
+        "csr.tx-0030.read",
+        "csr.tx-0031.read",
+        "csr.tx-0032.read"
+      ],
+      "actions": [
+        {
+          "operationId": "TX-0024",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0024.read"
+        },
+        {
+          "operationId": "TX-0026",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0026.read"
+        },
+        {
+          "operationId": "TX-0027",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0027.read"
+        },
+        {
+          "operationId": "TX-0028",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0028.read"
+        },
+        {
+          "operationId": "TX-0029",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0029.read"
+        },
+        {
+          "operationId": "TX-0030",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0030.read"
+        },
+        {
+          "operationId": "TX-0031",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0031.read"
+        },
+        {
+          "operationId": "TX-0032",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0032.read"
+        }
+      ]
+    },
+    {
+      "path": "/procedurale/stati-sostegno",
+      "flow": "stati",
+      "component": "src/pages/procedurale/stati-sostegno/page.tsx",
+      "visibility": [
+        "csr.tx-0024.read",
+        "csr.tx-0025.read",
+        "csr.tx-0027.read"
+      ],
+      "actions": [
+        {
+          "operationId": "TX-0024",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0024.read"
+        },
+        {
+          "operationId": "TX-0025",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0025.read"
+        },
+        {
+          "operationId": "TX-0027",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0027.read"
+        }
+      ]
+    },
+    {
+      "path": "/procedurale/stati-pagamento",
+      "flow": "stati",
+      "component": "src/pages/procedurale/stati-pagamento/page.tsx",
+      "visibility": [
+        "csr.tx-0024.read",
+        "csr.tx-0025.read",
+        "csr.tx-0028.read"
+      ],
+      "actions": [
+        {
+          "operationId": "TX-0024",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0024.read"
+        },
+        {
+          "operationId": "TX-0025",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0025.read"
+        },
+        {
+          "operationId": "TX-0028",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0028.read"
+        }
+      ]
+    },
+    {
+      "path": "/procedurale/ammesse",
+      "flow": "ammesse",
+      "component": "src/pages/procedurale/ammesse/page.tsx",
+      "visibility": [
+        "csr.tx-0024.read",
+        "csr.tx-0025.read",
+        "csr.tx-0026.read"
+      ],
+      "actions": [
+        {
+          "operationId": "TX-0024",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0024.read"
+        },
+        {
+          "operationId": "TX-0025",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0025.read"
+        },
+        {
+          "operationId": "TX-0026",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0026.read"
+        }
+      ]
+    },
+    {
+      "path": "/procedurale/sottofasi",
+      "flow": "sottofasi",
+      "component": "src/pages/procedurale/sottofasi/page.tsx",
+      "visibility": [
+        "csr.tx-0024.read",
+        "csr.tx-0025.read",
+        "csr.tx-0031.read",
+        "csr.tx-0032.read"
+      ],
+      "actions": [
+        {
+          "operationId": "TX-0024",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0024.read"
+        },
+        {
+          "operationId": "TX-0025",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0025.read"
+        },
+        {
+          "operationId": "TX-0031",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0031.read"
+        },
+        {
+          "operationId": "TX-0032",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0032.read"
+        }
+      ]
+    },
+    {
+      "path": "/procedurale/unit-amount",
+      "flow": "unit-amount",
+      "component": "src/pages/procedurale/unit-amount/page.tsx",
+      "visibility": [
+        "csr.tx-0024.read",
+        "csr.tx-0030.read"
+      ],
+      "actions": [
+        {
+          "operationId": "TX-0024",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0024.read"
+        },
+        {
+          "operationId": "TX-0030",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0030.read"
+        }
+      ]
+    },
+    {
+      "path": "/procedurale/riepilogo",
+      "flow": "riepilogo",
+      "component": "src/pages/procedurale/riepilogo/page.tsx",
+      "visibility": [
+        "csr.tx-0024.read",
+        "csr.tx-0025.read",
+        "csr.tx-0029.read"
+      ],
+      "actions": [
+        {
+          "operationId": "TX-0024",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0024.read"
+        },
+        {
+          "operationId": "TX-0025",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0025.read"
+        },
+        {
+          "operationId": "TX-0029",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0029.read"
+        }
+      ]
     }
   ]
 }
