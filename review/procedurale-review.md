@@ -1,5 +1,23 @@
 # Review step9 FULL — feature procedurale
 
+## v1 iterazione 2 (23/10/2026): PASS, score 84
+
+Esito meccanico (`review-score.sh FULL review/procedurale-findings-iter2.json`): 0 CRITICO, 0 MAGGIORE, 4 MINORE, 4 COSMETICO,
+score 84/80, su 3475b38 (correzioni eaf9f9f..07940a3, resoconto `review/procedurale/v1-iter1/correzioni.md`; step8 11/11 per
+le cinque feature). Gate non declassabili verdi (8 route, 33 azioni con TX-0025 di D1). Lenti V (1), H (4), A (3), antagonista
+(1) e Judge in `review/procedurale/v1-iter2/` (A1 assorbito in V1). I 23 finding dell'iterazione 1 sono risolti; D1 e D2
+rispettate; nessuna regressione nelle altre feature.
+
+Residui da correggere dopo il verdetto, in commit separati, poi step8 delle cinque feature:
+- **X1** (MINORE) Residuo di X1 dell'iterazione 1: il dettaglio tace solo con la lettura in errore. Con Riprova, o con un altro stato scelto dopo l'errore, la lettura riparte senza dati (status pending, error null): l'avviso sparisce e la pagina dice 'Nessuna domanda di SRD01 per lo stato area programmazione scelto' con 'Modifica i filtri', un vuoto dedotto da una lettura senza risposta — `src/features/procedurale/ui/DettaglioIntervento.tsx:101`.
+- **V1** (MINORE) Pagine degli stati: 'Filtra la tabella' (fix di V2) e il clic sulla barra filtrano la tabella per intervento sotto la card senza un messaggio di stato, col focus fermo sul pulsante; anche la voce tolta da sola dal fix di X2 sparisce in silenzio. L'elenco operativo, per la stessa interazione, lo annuncia (WCAG 4.1.3, NFR-70) (assorbe A1) — `src/features/procedurale/ui/StatiDomande.tsx:104`.
+- **A2** (MINORE) Riepilogo: dopo H5 l'intestazione sticky occupa due righe (74 px misurati) e una riga del corpo col focus (tabIndex 0, circa 43 px) puo' finire tutta sotto il thead del contenitore che scorre, perche' manca lo scroll-padding (WCAG 2.4.11, AA). Prima di H5 la banda era di 37 px e la riga restava visibile in parte — `src/shared/ui/tema.css:222`.
+- **A3** (MINORE) Residuo di A2 dell'iterazione 1: il pannello dello stato propone tutte le voci di TX-0025, anche un codice osservato che l'indirizzo non esprime (es. 'REVOCATÀ'); 'Applica i filtri' lo scrive e criteriDaRicerca lo scarta: la pagina si rilegge senza filtro, senza chip e senza avviso. Il fix di A2 ha chiuso solo il clic sulla barra — `src/features/procedurale/ui/PannelloFiltriProcedurale.tsx:34`.
+- **H1** (COSMETICO) Residuo di H10: la scheda Sottofasi del dettaglio e la scelta delle schede leggono ancora i grant con useAuthStatus e puoLeggere a mano, la forma che useLettureColGrant ('una forma sola per panoramica, sottofasi e dettaglio') doveva togliere — `src/features/procedurale/ui/SchedeIntervento.tsx:99`.
+- **H2** (COSMETICO) IntestazioneNonValida, nata nel kit col fix di H1, ha il dominio scritto dentro ('Intervento', 'Intervento non valido', 'non è un codice di intervento' e l'id 't-intervento', copia delle costanti ID_TITOLO delle due feature): e' l'unico componente di shared/ui con un oggetto di business nel testo — `src/shared/ui/pagina/Dettaglio.tsx:29`.
+- **H3** (COSMETICO) Il ramo senzaAzione di legameIgnoto e' irraggiungibile: l'unica chiamata, inAttesa, esclude senzaAzione prima di chiamarlo; la regola 'senza l'azione non si aspetta' e' scritta due volte — `src/entities/filtri/ui/useFiltriProgrammaNellIndirizzo.ts:55`.
+- **H4** (COSMETICO) Dopo V2 la prop link delle card ricopia a mano il tipo LinkDellaVoce esportato da ui/comuni, e il suo doc ('assente la tabella equivalente generata') e quello della testata del file non valgono piu' per CardStati con onFiltra — `src/features/procedurale/ui/CardDistribuzioni.tsx:28`.
+
 ## v1 iterazione 1 (23/10/2026): FAIL, score 37
 
 Esito meccanico (`review-score.sh FULL review/procedurale-findings.json`): 0 CRITICO, 0 MAGGIORE, 20 MINORE, 3 COSMETICO,
