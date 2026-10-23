@@ -7,6 +7,7 @@
 // grant e il suo perimetro. L'importo decretato viene dagli elenchi di liquidazione: e' la colonna del decretato, non
 // quella del pagato dei pagamenti totali di RF005 (OP-FE-05).
 import { useId, useState } from 'react';
+import { ApriNellElenco } from '../../../entities/domanda';
 import { formatNumber, importoBreve } from '../../../shared/lib';
 import { CardGrafico, Griglia, Kpi, PulsantiScarica, Sezione, TabellaRighe, VistaQuery } from '../../../shared/ui';
 import type { ClicGrafico, Colonna } from '../../../shared/ui';
@@ -21,7 +22,7 @@ import { perAnno } from '../lib/importi';
 import { COLONNE_IMPORTI_PER_ANNO, graficoDomandePerAnno, graficoImportiPerAnno } from '../lib/grafici';
 import { GRANT } from '../lib/report';
 import { ConGrant, KpiImporto, Numero, PerimetroSezione, ScaricaKpi, colonnaImporto, erroreGiaMostrato, vuotoConPerimetro } from './comuni';
-import { ApriNellElenco, useLinkElenco } from './LinkElenco';
+import { useLinkElenco } from './LinkElenco';
 import { colonneDomandePerAnno } from './colonneAnno';
 import { useStatoNellaHistory } from './useStatoNellaHistory';
 import { criteriAnnoAnnualita } from '../lib/link-elenco';

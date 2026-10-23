@@ -1,15 +1,13 @@
 // LinkElenco — drill-down dai report del finanziario all'elenco operativo (uiplan links[] con target_feature
 // elenco-operativo, D-2 di MIN-20261012): il link porta i filtri correnti e i criteri del punto cliccato e si mostra solo a
 // chi ha il grant della lettura di destinazione (gate di UX come il menu: il backend ridecide). Il link reso e' quello
-// comune di entities/domanda (ApriNellElenco, usato anche dall'istituzionale), riesportato qui per i report della feature.
+// comune di entities/domanda (ApriNellElenco, usato anche dall'istituzionale): i report lo importano da li'.
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import type { Filtri } from '../lib/filtri';
 import { grantDelLink, indirizzoDelLink } from '../lib/link-elenco';
 import type { CriteriLink, IdLinkElenco } from '../lib/link-elenco';
-
-export { ApriNellElenco } from '../../../entities/domanda';
 
 /**
  * Indirizzo del link per il profilo corrente: null senza il grant della destinazione (o con l'autenticazione in corso), con

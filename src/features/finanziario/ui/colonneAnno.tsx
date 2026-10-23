@@ -3,12 +3,12 @@
 // tabella equivalente del grafico, percorso da tastiera del clic sui segmenti). Senza il grant dell'elenco restano i numeri.
 // Titoli e formato delle celle sono quelli della tabella equivalente del grafico (ANNUALITA_DOMANDE, numeroOpzionale): con o
 // senza il grant la vista Tabella ha le stesse intestazioni e gli stessi testi, link a parte.
+import { ApriNellElenco } from '../../../entities/domanda';
 import type { Colonna } from '../../../shared/ui';
 import type { DomandePerAnnoRiga } from '../api';
 import { annoDiRaccolta, numeroOpzionale } from '../lib/formato';
 import { ANNUALITA_DOMANDE } from '../lib/grafici';
 import type { Annualita } from '../../../entities/domanda';
-import { ApriNellElenco } from './LinkElenco';
 
 const CELLE_ANNO: { titolo: string; campo: 'primaAnnualita' | 'altreAnnualita' | 'nonClassificate' | 'totali'; annualita?: Annualita }[] = [
   ...ANNUALITA_DOMANDE.map((a) => ({ titolo: a.nome, campo: a.campo, annualita: a.codice })),

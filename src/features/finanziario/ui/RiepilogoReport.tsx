@@ -5,6 +5,7 @@
 // suo motivo; i totali sono "non calcolabile" se manca anche un solo valore (mai somme parziali).
 import { useState } from 'react';
 import { Link } from 'react-router';
+import { ApriNellElenco } from '../../../entities/domanda';
 import { ValoreImporto } from '../../../entities/importo';
 import { formatNumber } from '../../../shared/lib';
 import { CardGrafico, InterruttoreVista, PannelloLaterale, PulsantiScarica, Sezione, TabellaInterattiva, VistaQuery } from '../../../shared/ui';
@@ -24,7 +25,7 @@ import { useApriIntervento } from './useApriIntervento';
 import { useStatoNellaHistory } from './useStatoNellaHistory';
 import { STATO_RIEPILOGO, VISTA_RIEPILOGO, eVistaRiepilogo, useStatoDelRiepilogo } from './ritornoAlRiepilogo';
 import type { VistaRiepilogo } from './ritornoAlRiepilogo';
-import { ApriNellElenco, useLinkElenco } from './LinkElenco';
+import { useLinkElenco } from './LinkElenco';
 import type { CriteriLink, IdLinkElenco } from '../lib/link-elenco';
 import type { CampoImporto } from './comuni';
 

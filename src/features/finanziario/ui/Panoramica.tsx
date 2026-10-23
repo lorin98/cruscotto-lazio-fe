@@ -5,6 +5,7 @@
 // il suo dettaglio; raggruppamento per famiglia finche' manca la gerarchia degli obiettivi (OP-FE-07).
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
+import { ApriNellElenco } from '../../../entities/domanda';
 import { formatNumber, formatPercentuale, importoBreve } from '../../../shared/lib';
 import { Caricamento, CardGrafico, Griglia, Kpi, VistaQuery } from '../../../shared/ui';
 import type { ClicGrafico } from '../../../shared/ui';
@@ -19,7 +20,7 @@ import { GRANT, PERCORSI, conFiltri } from '../lib/report';
 import { ConGrant, NotaPerimetroMisto, PerimetroSezione, ScaricaKpi, diProgramma, erroreGiaMostrato, vuotoConPerimetro } from './comuni';
 import { useSelezioneSenzaDomandeSigc, useSelezioneSenzaInterventi } from './selezione';
 import { useApriIntervento } from './useApriIntervento';
-import { ApriNellElenco, useLinkElenco } from './LinkElenco';
+import { useLinkElenco } from './LinkElenco';
 
 const VUOTO_INTERVENTI = vuotoConPerimetro('Nessun intervento per i filtri scelti.', { programma: true });
 const VUOTO_SIGC = vuotoConPerimetro('Nessuna domanda SIGC per i filtri scelti.');

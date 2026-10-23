@@ -5,6 +5,7 @@
 // importo pagato hanno la stessa fonte, gli importi della domanda del flusso ASR2-20 (D-09 del backend); pagate e da
 // pagare si sovrappongono (domande pagate in parte): la nota lo dice accanto ai dati.
 // UI v2 (wireframe sigc v2): barre delle domande e cascata degli importi, con le voci in tabella sotto ogni grafico.
+import { ApriNellElenco } from '../../../entities/domanda';
 import { ValoreImporto } from '../../../entities/importo';
 import { codiceDalClic } from '../../../shared/lib';
 import { CardGrafico, Griglia, TabellaVoci, VistaQuery } from '../../../shared/ui';
@@ -17,7 +18,7 @@ import { VOCI_DOMANDE_SIGC, graficoCascataSigc, graficoDomandeSigc } from '../li
 import { GRANT } from '../lib/report';
 import { ConGrant, Numero, PerimetroSezione, vuotoConPerimetro } from './comuni';
 import { criteriVoceSigc } from '../lib/link-elenco';
-import { ApriNellElenco, useApriNellElenco, useLinkElenco } from './LinkElenco';
+import { useApriNellElenco, useLinkElenco } from './LinkElenco';
 
 const TITOLO_DOMANDE = 'Domande SIGC (RF012)';
 const TITOLO_IMPORTI = 'Importi SIGC (RF013)';

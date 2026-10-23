@@ -22,7 +22,7 @@ import { AssenzaMotivata, BadgeAssenza } from '../src/entities/importo';
 import { PROBLEM_TYPES } from '../src/shared/api/problem/problem-types';
 import type { DatiGrafico, Scaricamento } from '../src/shared/ui';
 import { SelettoreAnno as SelettoreFinanziario } from '../src/features/finanziario/ui/SelettoreAnno';
-import { ApriNellElenco as ApriFinanziario } from '../src/features/finanziario/ui/LinkElenco';
+import * as LinkElencoFinanziario from '../src/features/finanziario/ui/LinkElenco';
 import { ApriNellElenco } from '../src/entities/domanda';
 import { expectNoA11yViolations } from '../src/shared/testing/axe';
 
@@ -84,7 +84,7 @@ describe('useAnnoNellIndirizzo del kit: l anno della pagina nella query string',
 });
 
 describe('ApriNellElenco di entities/domanda: il link di drill-down verso l elenco operativo (prima nel finanziario)', () => {
-  it('nome accessibile completo che contiene il testo visibile; senza indirizzo nulla; il finanziario riesporta lo stesso', async () => {
+  it('nome accessibile completo che contiene il testo visibile; senza indirizzo nulla', async () => {
     const router = createMemoryRouter(
       [
         {
@@ -107,8 +107,11 @@ describe('ApriNellElenco di entities/domanda: il link di drill-down verso l elen
       ['Apri nei pagamenti', "Apri nei pagamenti: apri nell'elenco operativo le righe pagate non SIGC dell'intervento SRD01", '/elenco-operativo/pagamenti?esito=PAGATA'],
     ]);
     expect(link[0].className).toBe('ui-link-elenco');
-    expect(ApriFinanziario).toBe(ApriNellElenco);
     await expectNoA11yViolations(container);
+  });
+
+  it('il finanziario lo importa da entities/domanda: LinkElenco non lo riesporta (review H2)', () => {
+    expect(Object.keys(LinkElencoFinanziario).sort()).toEqual(['useApriNellElenco', 'useLinkElenco']);
   });
 });
 

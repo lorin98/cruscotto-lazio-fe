@@ -7,6 +7,7 @@
 import { useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router';
 import { Tab, TabList, TabPanel, Tabs } from 'react-aria-components';
+import { ApriNellElenco } from '../../../entities/domanda';
 import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { codiceDalClic, formatNumber, formatPercentuale } from '../../../shared/lib';
 import { CardGrafico, Griglia, Kpi, TabellaDati, TabellaRighe, VistaQuery, Vuoto, eVistaGrafico } from '../../../shared/ui';
@@ -25,7 +26,7 @@ import type { Perimetro } from '../lib/perimetro';
 import { GRANT, PERCORSI, conFiltri } from '../lib/report';
 import { ConGrant, KpiImporto, NotaPerimetroMisto, PerimetroSezione, diProgramma } from './comuni';
 import { useSelezioneSenzaDomandeSigc } from './selezione';
-import { ApriNellElenco, useApriNellElenco, useLinkElenco } from './LinkElenco';
+import { useApriNellElenco, useLinkElenco } from './LinkElenco';
 import { colonneDomandePerAnno } from './colonneAnno';
 import { useStatoDelRiepilogo } from './ritornoAlRiepilogo';
 import { useStatoNellaHistory } from './useStatoNellaHistory';
