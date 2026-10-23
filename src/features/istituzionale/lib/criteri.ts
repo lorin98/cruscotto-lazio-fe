@@ -8,8 +8,11 @@ import { filtriAttivi, filtriNellaBarra, ricercaDaFiltri, valoreFiltroValido } f
 import type { Filtri } from '../../../entities/filtri';
 import { anniProposti, isAnnoValido } from '../../../shared/lib';
 
-/** Criteri di TX-0016: i filtri del programma e l'anno di riferimento del file (assente = l'ultimo anno con un file). */
-export interface CriteriVerifica extends Filtri {
+/**
+ * Criteri di TX-0016 nel layer puro: i filtri del programma e l'anno di riferimento del file (assente = l'ultimo anno con
+ * un file). Le chiavi sono quelle di CriteriVerifica di api/ (Tx0016Params): ui/contratto.ts lo verifica a compilazione.
+ */
+export interface CriteriDellaVerifica extends Filtri {
   anno?: number;
 }
 
@@ -40,7 +43,7 @@ export function conFiltri(filtri: Filtri): boolean {
 }
 
 /** Criteri di TX-0016: i filtri e l'anno scelto, se c'e'. */
-export function criteriVerifica(filtri: Filtri, anno: number | undefined): CriteriVerifica {
+export function criteriVerifica(filtri: Filtri, anno: number | undefined): CriteriDellaVerifica {
   return anno === undefined ? filtri : { ...filtri, anno };
 }
 
