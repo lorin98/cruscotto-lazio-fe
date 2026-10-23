@@ -4,9 +4,11 @@
 // delle intestazioni, intestazione di riga in un'altra colonna) e della scelta delle colonne per gruppo. Dati inventati.
 import { useRef } from 'react';
 import { describe, expect, it } from 'vitest';
-import { renderHook, screen, within } from '@testing-library/react';
+import { render, renderHook, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
-import { PaginaConFiltri, useStatoDelDettaglio } from '../src/shared/ui';
+import { PaginaConFiltri, TabellaInterattiva, useStatoDelDettaglio } from '../src/shared/ui';
+import type { ColonnaTabella } from '../src/shared/ui';
 import { renderConQuery } from '../src/shared/testing/render';
 import { expectNoA11yViolations } from '../src/shared/testing/axe';
 
@@ -55,5 +57,51 @@ describe('useStatoDelDettaglio del kit (prima nel dettaglio dell istituzionale)'
     expect(result.current).toBe('dati');
     rerender({ letture: [ok, inCorso] });
     expect(result.current).toBe('dati');
+  });
+});
+
+describe('TabellaInterattiva del kit: intestazioni di gruppo, nome esteso, intestazione di riga in un altra colonna (procedurale)', () => {
+  type R = { codice: string; ua: string; a: number; b: number; c: number };
+  const righe: R[] = [
+    { codice: 'SRD01', ua: 'UA1', a: 1, b: 2, c: 3 },
+    { codice: 'SRA01', ua: 'UA2', a: 4, b: 5, c: 6 },
+  ];
+  const colonne: ColonnaTabella<R>[] = [
+    { chiave: 'codice', titolo: 'Intervento', valore: (r) => r.codice, fissa: true },
+    { chiave: 'ua', titolo: 'Unit Amount', valore: (r) => r.ua },
+    { chiave: 'a', titolo: 'Totale', valore: (r) => r.a, numerica: true, gruppo: 'Sostegno', nomeEsteso: 'Totale (Sostegno)' },
+    { chiave: 'b', titolo: 'Di cui', valore: (r) => r.b, numerica: true, gruppo: 'Sostegno', nascosta: true },
+    { chiave: 'c', titolo: 'Totale', valore: (r) => r.c, numerica: true, gruppo: 'Pagamento', nomeEsteso: 'Totale (Pagamento)' },
+  ];
+
+  it('la riga dei gruppi con scope colgroup sopra le colonne visibili; i bottoni col nome esteso; Colonne per gruppo', async () => {
+    const { container } = render(<TabellaInterattiva caption="Prova" righe={righe} colonne={colonne} chiaveRiga={(r) => r.codice} testoRicerca={(r) => r.codice} />);
+    const [gruppi] = container.querySelectorAll('thead tr');
+    expect(Array.from(gruppi.children).map((c) => [c.tagName, c.textContent, c.getAttribute('scope'), c.getAttribute('colspan')])).toEqual([
+      ['TD', '', null, '2'],
+      ['TH', 'Sostegno', 'colgroup', '1'],
+      ['TH', 'Pagamento', 'colgroup', '1'],
+    ]);
+    expect(screen.getByRole('button', { name: 'Totale (Sostegno)' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Totale (Pagamento)' })).toBeTruthy();
+    await userEvent.click(screen.getByText('Colonne'));
+    const sostegno = screen.getByRole('group', { name: 'Sostegno' });
+    expect(within(sostegno).getAllByRole('checkbox').map((c) => [c.closest('label')?.textContent, (c as HTMLInputElement).checked])).toEqual([
+      ['Totale', true],
+      ['Di cui', false],
+    ]);
+    await userEvent.click(within(sostegno).getByRole('checkbox', { name: 'Di cui' }));
+    expect(Array.from(container.querySelectorAll('thead tr')[0].children).map((c) => c.getAttribute('colspan'))).toEqual(['2', '2', '1']);
+    await expectNoA11yViolations(container);
+  });
+
+  it('senza gruppi nessuna riga in piu; l intestazione di riga nella colonna data, la prima di default', () => {
+    const semplici = colonne.map((c) => ({ ...c, gruppo: undefined }));
+    const { container, unmount } = render(<TabellaInterattiva caption="Prova" righe={righe} colonne={semplici} chiaveRiga={(r) => r.codice} testoRicerca={(r) => r.codice} intestazioneRiga="ua" />);
+    expect(container.querySelectorAll('thead tr')).toHaveLength(1);
+    expect(screen.getAllByRole('rowheader').map((h) => h.textContent)).toEqual(['UA2', 'UA1']);
+    unmount();
+    render(<TabellaInterattiva caption="Prova" righe={righe} colonne={semplici} chiaveRiga={(r) => r.codice} testoRicerca={(r) => r.codice} />);
+    expect(screen.getAllByRole('rowheader').map((h) => h.textContent)).toEqual(['SRA01', 'SRD01']);
   });
 });

@@ -1,7 +1,10 @@
 // TabellaInterattiva — tabella del kit UI v2 (ADR 0027): ricerca, ordinamento per colonna (aria-sort), scelta delle
 // colonne, paginazione, riga dei totali e righe di piede, riga apribile con clic o Invio. Tabella HTML NATIVA (caption,
 // th scope, intestazioni di riga) invece della Table di react-aria: stessa semantica senza la griglia ARIA, che qui non
-// serve (nessuna selezione ne' modifica di celle). La logica sta nelle funzioni pure di shared/lib/tabella.
+// serve (nessuna selezione ne' modifica di celle). La logica sta nelle funzioni pure di shared/lib/tabella. Per le
+// tabelle larghe del procedurale (estensioni facoltative): intestazioni di gruppo con scope colgroup sopra le colonne
+// dello stesso gruppo, nome esteso del bottone di un'intestazione breve, intestazione di riga in una colonna diversa
+// dalla prima.
 import { useId, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { ariaSort, conColonna, didascalia, filtraRighe, ordinaRighe, paginaDi, versoSuccessivo } from '../../lib/tabella';
@@ -21,20 +24,54 @@ export interface ColonnaTabella<T> {
   fissa?: boolean;
   /** Parte nascosta (l'utente la mostra da "Colonne"). */
   nascosta?: boolean;
+  /** Il gruppo: le colonne consecutive dello stesso gruppo hanno sopra un'intestazione comune (scope colgroup). */
+  gruppo?: string;
+  /** Nome accessibile del bottone dell'intestazione quando il titolo e' breve; contiene il titolo (WCAG 2.5.3). */
+  nomeEsteso?: string;
 }
 
 /** Riga di piede: un contenuto per chiave di colonna (la prima colonna e' l'intestazione di riga). */
 export type RigaPiede = Partial<Record<string, ReactNode>>;
 
+/** Le colonne visibili consecutive dello stesso gruppo: il gruppo (assente = nessuno) e quante colonne copre. */
+function gruppiConsecutivi<T>(colonne: ColonnaTabella<T>[]): { gruppo?: string; colonne: number; chiave: string }[] {
+  const gruppi: { gruppo?: string; colonne: number; chiave: string }[] = [];
+  for (const c of colonne) {
+    const ultimo = gruppi.at(-1);
+    if (ultimo && ultimo.gruppo === c.gruppo) ultimo.colonne += 1;
+    else gruppi.push({ gruppo: c.gruppo, colonne: 1, chiave: c.chiave });
+  }
+  return gruppi;
+}
+
+/** La riga delle intestazioni di gruppo (solo se una colonna visibile ha un gruppo); sopra le colonne senza gruppo, vuota. */
+function RigaDeiGruppi<T>({ colonne }: { colonne: ColonnaTabella<T>[] }) {
+  if (!colonne.some((c) => c.gruppo)) return null;
+  return (
+    <tr>
+      {gruppiConsecutivi(colonne).map((g) =>
+        g.gruppo ? (
+          <th key={g.chiave} scope="colgroup" colSpan={g.colonne}>
+            {g.gruppo}
+          </th>
+        ) : (
+          <td key={g.chiave} colSpan={g.colonne} />
+        ),
+      )}
+    </tr>
+  );
+}
+
 function Intestazioni<T>({ colonne, ordine, onOrdina }: { colonne: ColonnaTabella<T>[]; ordine: Ordine; onOrdina: (chiave: string) => void }) {
   return (
     <thead>
+      <RigaDeiGruppi colonne={colonne} />
       <tr>
         {colonne.map((c) => {
           const sort = ariaSort(ordine, c.chiave);
           return (
             <th key={c.chiave} scope="col" className={c.numerica ? 'ui-num' : undefined} aria-sort={sort}>
-              <button type="button" onClick={() => onOrdina(c.chiave)}>
+              <button type="button" onClick={() => onOrdina(c.chiave)} aria-label={c.nomeEsteso}>
                 {c.titolo}
                 <span aria-hidden="true">{GLIFO_ORDINE[sort]}</span>
               </button>
@@ -46,7 +83,14 @@ function Intestazioni<T>({ colonne, ordine, onOrdina }: { colonne: ColonnaTabell
   );
 }
 
-function Riga<T>({ riga, colonne, onRiga, etichetta }: { riga: T; colonne: ColonnaTabella<T>[]; onRiga?: (r: T) => void; etichetta?: string }) {
+/** Una cella: l'intestazione di riga (th scope=row) nella colonna `intestazione`, altrimenti un dato. */
+function Cella<T>({ riga, c, intestazione }: { riga: T; c: ColonnaTabella<T>; intestazione: boolean }) {
+  const contenuto = c.resa ? c.resa(riga) : String(c.valore(riga) ?? '');
+  if (intestazione) return <th scope="row">{contenuto}</th>;
+  return <td className={c.numerica ? 'ui-num' : undefined}>{contenuto}</td>;
+}
+
+function Riga<T>({ riga, colonne, onRiga, etichetta, intestazione }: { riga: T; colonne: ColonnaTabella<T>[]; onRiga?: (r: T) => void; etichetta?: string; intestazione: string }) {
   const apri = onRiga ? () => onRiga(riga) : undefined;
   return (
     <tr
@@ -55,18 +99,9 @@ function Riga<T>({ riga, colonne, onRiga, etichetta }: { riga: T; colonne: Colon
       aria-label={apri ? etichetta : undefined}
       {...gestoriRigaApribile(apri)}
     >
-      {colonne.map((c, i) => {
-        const contenuto = c.resa ? c.resa(riga) : String(c.valore(riga) ?? '');
-        return i === 0 ? (
-          <th key={c.chiave} scope="row">
-            {contenuto}
-          </th>
-        ) : (
-          <td key={c.chiave} className={c.numerica ? 'ui-num' : undefined}>
-            {contenuto}
-          </td>
-        );
-      })}
+      {colonne.map((c) => (
+        <Cella key={c.chiave} riga={riga} c={c} intestazione={c.chiave === intestazione} />
+      ))}
     </tr>
   );
 }
@@ -169,6 +204,8 @@ interface PropsTabellaInterattiva<T> {
   onStato?: (stato: StatoTabella) => void;
   perPagina?: number;
   strumenti?: ReactNode;
+  /** La chiave della colonna che fa da intestazione di riga (th scope=row); assente = la prima colonna visibile. */
+  intestazioneRiga?: string;
 }
 
 /**
@@ -252,7 +289,7 @@ export function TabellaInterattiva<T>(props: PropsTabellaInterattiva<T>) {
           <Intestazioni colonne={visibili} ordine={ordine} onOrdina={ordina} />
           <tbody>
             {corrente.righe.map((r) => (
-              <Riga key={chiaveRiga(r)} riga={r} colonne={visibili} onRiga={onRiga} etichetta={etichettaRiga?.(r)} />
+              <Riga key={chiaveRiga(r)} riga={r} colonne={visibili} onRiga={onRiga} etichetta={etichettaRiga?.(r)} intestazione={props.intestazioneRiga ?? visibili[0].chiave} />
             ))}
           </tbody>
           <Piede colonne={visibili} righe={piede} />

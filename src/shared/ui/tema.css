@@ -211,9 +211,14 @@ body { background: var(--ui-sfondo); color: var(--ui-testo); font-family: 'Titil
 .ui-colonne > summary::-webkit-details-marker { display: none; }
 .ui-colonne__elenco { position: absolute; right: 0; top: calc(100% + .3rem); z-index: 30; display: grid; gap: .2rem; min-width: 240px; padding: .6rem .75rem; background: #fff;
   border: 1px solid var(--ui-bordo); border-radius: 10px; box-shadow: var(--ui-ombra-forte); }
+/* le colonne a gruppi (sezioni del riepilogo del procedurale): un fieldset per gruppo, l'elenco scorre se e' lungo */
+.ui-colonne__elenco:has(.ui-colonne__gruppo) { max-height: 60vh; overflow: auto; }
+.ui-colonne__gruppo { display: grid; gap: .2rem; margin: .3rem 0 0; padding: .3rem 0 0; border: 0; border-top: 1px solid var(--ui-bordo); }
+.ui-colonne__gruppo > legend { margin: 0; font-size: .8rem; font-weight: 600; color: var(--ui-attenuato); }
 .ui-tabella-contenitore { overflow: auto; max-height: 560px; border: 1px solid var(--ui-bordo); border-radius: var(--ui-raggio-s); }
 .ui-tabella { width: 100%; border-collapse: separate; border-spacing: 0; font-size: .9rem; margin: 0; }
 .ui-tabella caption { caption-side: top; padding: 0 0 .5rem; color: var(--ui-attenuato); font-size: .85rem; }
+.ui-tabella th[scope='colgroup'] { text-align: center; border-bottom: 1px solid var(--ui-bordo); }
 .ui-tabella thead th { position: sticky; top: 0; z-index: 1; padding: .65rem .75rem; background: #f7f9fc; border-bottom: 1px solid var(--ui-bordo); color: var(--ui-attenuato);
   font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; text-align: left; }
 .ui-tabella thead th button { all: unset; cursor: pointer; display: inline-flex; gap: .3rem; align-items: center; }
