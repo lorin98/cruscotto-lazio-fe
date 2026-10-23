@@ -7,10 +7,10 @@ import {
   etichettaEsito,
   etichettaTipo,
   importoConNota,
+  perimetroDellaRisposta,
   testoAnnualita,
   testoAnno,
   testoAtto,
-  testoPerimetro,
   testoSuperficie,
 } from './formato';
 
@@ -70,7 +70,7 @@ function testoTipologia(p: Pick<Pagamento, 'tipologiaElenco' | 'tipologiaPagamen
 /** Badge della testata della scheda (in testo: il colore non e' mai l'unico canale). Il perimetro solo se la risposta lo
  *  porta: mai uno dichiarato per difetto (review v1 A-08). */
 export function badgeDellaDomanda(d: Domanda, perimetro: string | null | undefined): string[] {
-  const p = testoPerimetro(perimetro);
+  const p = perimetroDellaRisposta(perimetro);
   return [
     d.cuaa ? `CUAA ${d.cuaa}` : 'CUAA non valorizzato',
     `Stato SIAN: ${testoStatoSian(d)}`,

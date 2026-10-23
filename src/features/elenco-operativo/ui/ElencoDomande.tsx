@@ -17,7 +17,7 @@ import { ETICHETTE_FILTRI, valoreLeggibile } from '../lib/chip';
 import { percorsoPagamentiDelleDomande } from '../lib/collegamenti';
 import { conValore, criteriSinottico } from '../lib/criteri';
 import type { Criteri, NomeFiltro } from '../lib/criteri';
-import { testoAggregato, testoPerimetro, testoSomma } from '../lib/formato';
+import { perimetroDellaRisposta, testoAggregato, testoSomma } from '../lib/formato';
 import { TESTI_RIPARTIZIONE } from '../lib/grafici';
 import type { Ripartizione } from '../lib/grafici';
 import { puoLeggere } from '../lib/grant';
@@ -162,7 +162,7 @@ export function ElencoDomande() {
   const vista = vistaDi(scelte.vista);
   const i = useInterrogazione('domande');
   const l = useLettureDomande(i.criteri, i.auth);
-  const righe = useRigheContesto(i.filtriApplicati, l.sinottico.data?.ultimiDatiSincronizzati, testoPerimetro(l.perimetro));
+  const righe = useRigheContesto(i.filtriApplicati, l.sinottico.data?.ultimiDatiSincronizzati, perimetroDellaRisposta(l.perimetro));
   const grafico = useFiltroDalGrafico(i);
   return (
     <>

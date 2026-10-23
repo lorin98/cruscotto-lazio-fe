@@ -1,8 +1,8 @@
 // useInterrogazione — la parte comune delle due pagine dell'interrogazione (domande e pagamenti): criteri nell'indirizzo con
 // la bozza del debounce (useCriteri), chip della barra (con le descrizioni dei valori di TX-0060 se il profilo li legge),
 // pannello dei filtri, i filtri applicati in parole per le righe di contesto dell'intestazione dei PNG dei grafici (NFR-50),
-// che le pagine compongono con useRigheContesto del kit e il perimetro in parole dell'elenco (testoPerimetro: "ADA del
-// tuo profilo"; prima una copia qui, review H1 dell'istituzionale v1 iter2). I valori dei filtri (TX-0060) si leggono UNA
+// che le pagine compongono con useRigheContesto del kit e il perimetro in parole dell'elenco (perimetroDellaRisposta:
+// "ADA del tuo profilo"; prima una copia qui, review H1 dell'istituzionale v1 iter2). I valori dei filtri (TX-0060) si leggono UNA
 // volta, qui, e solo col loro grant: il pannello li riceve e senza il grant resta apribile con la sola ricerca per testo
 // (review v1 A-06).
 import { useState } from 'react';

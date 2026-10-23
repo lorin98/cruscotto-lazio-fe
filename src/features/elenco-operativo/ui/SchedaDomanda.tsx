@@ -19,7 +19,7 @@ import { rispostaDomandaAssente, rispostaRiferimentoNonValido, useDettaglioDoman
 import type { DettaglioDomanda, DomandaElenco } from '../api';
 import { PERCORSO_DOMANDE, PERCORSO_PAGAMENTI, percorsoDettaglio, percorsoDomandeDelBeneficiario, riferimentoValido, ritornoAllElenco, statoDiRitorno } from '../lib/collegamenti';
 import type { StatoRitorno, StatoScheda } from '../lib/collegamenti';
-import { cellaImporto, etichettaTipo, quotaSu, testoPerimetro } from '../lib/formato';
+import { cellaImporto, etichettaTipo, perimetroDellaRisposta, quotaSu } from '../lib/formato';
 import { graficoAmmessoPagato } from '../lib/grafici';
 import { puoLeggere } from '../lib/grant';
 import { badgeDellaDomanda, sopratitoloDomanda, vociSintesi } from '../lib/voci';
@@ -236,7 +236,7 @@ function useContestoScheda(scheda: DettaglioDomanda | undefined, profilo: string
   const d = scheda?.domanda;
   const domanda = d ? `Domanda: ${etichettaTipo(d.tipo).toLowerCase()} ${d.codiceABarre ?? ''}` : null;
   const perimetro = scheda?.perimetro;
-  return useMemo(() => [...(domanda ? [domanda] : []), ...righeContesto({ filtri: [], profilo, ultimi: undefined, perimetro: testoPerimetro(perimetro) })], [domanda, profilo, perimetro]);
+  return useMemo(() => [...(domanda ? [domanda] : []), ...righeContesto({ filtri: [], profilo, ultimi: undefined, perimetro: perimetroDellaRisposta(perimetro) })], [domanda, profilo, perimetro]);
 }
 
 type Esito = 'assente' | 'non-valido' | null;

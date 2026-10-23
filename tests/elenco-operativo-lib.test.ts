@@ -34,19 +34,20 @@ import {
   etichettaEsito,
   etichettaTipo,
   importoConNota,
+  perimetroDellaRisposta,
   siNo,
   testoAnnualita,
   testoAnno,
   testoAggregato,
   testoAtto,
   testoConteggio,
-  testoPerimetro,
   testoQuotaPagata,
   testoResponsabile,
   testoSomma,
   testoSuperficie,
   quotaSu,
 } from '../src/features/elenco-operativo/lib/formato';
+import * as formatoElenco from '../src/features/elenco-operativo/lib/formato';
 import { chipDeiCriteri, valoreLeggibile } from '../src/features/elenco-operativo/lib/chip';
 import { ORDINAMENTO_COLONNA, ORDINAMENTO_COLONNA_PAGAMENTI, VISTE, vistaDi } from '../src/features/elenco-operativo/lib/viste';
 import { filtroDalClic, filtroDellaVoce, graficoAmmessoPagato, graficoRipartizione, nomeVoce } from '../src/features/elenco-operativo/lib/grafici';
@@ -441,10 +442,12 @@ describe('elenco operativo, testi rivisti di chip, aggregati e contesto (review 
   });
 
   it("righe di contesto dei PNG col perimetro della risposta", () => {
-    expect(testoPerimetro('ADA')).toBe('ADA del tuo profilo');
-    expect(testoPerimetro('REGIONALE')).toBe('regionale');
-    expect(testoPerimetro(null)).toBeNull();
-    expect(righeContesto({ filtri: ['Intervento: SRA01'], profilo: 'p1-dirigente', ultimi: undefined, perimetro: testoPerimetro('REGIONALE') })).toEqual([
+    expect(perimetroDellaRisposta('ADA')).toBe('ADA del tuo profilo');
+    expect(perimetroDellaRisposta('REGIONALE')).toBe('regionale');
+    expect([perimetroDellaRisposta(null), perimetroDellaRisposta(undefined), perimetroDellaRisposta('ALTRO')]).toEqual([null, null, null]);
+    // un nome proprio, non l'omonimo del kit con un altro contratto (review H9 del procedurale)
+    expect(Object.keys(formatoElenco)).not.toContain('testoPerimetro');
+    expect(righeContesto({ filtri: ['Intervento: SRA01'], profilo: 'p1-dirigente', ultimi: undefined, perimetro: perimetroDellaRisposta('REGIONALE') })).toEqual([
       'Filtri applicati: Intervento: SRA01',
       'Perimetro: regionale',
       'Profilo: p1-dirigente',

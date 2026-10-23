@@ -13,7 +13,7 @@ import { AvvisoAggiornamento, AvvisoPagina, ContestoIntestazione, Griglia, Kpi, 
 import { usePagamenti } from '../api';
 import type { PagamentoElenco, TotaliPagamenti } from '../api';
 import { percorsoDomandeDeiPagamenti } from '../lib/collegamenti';
-import { cellaImporto, testoPerimetro, testoSomma } from '../lib/formato';
+import { cellaImporto, perimetroDellaRisposta, testoSomma } from '../lib/formato';
 import { puoLeggere } from '../lib/grant';
 import { AnteprimaPagamento } from './anteprime';
 import { colonnePagamenti } from './colonne';
@@ -109,7 +109,7 @@ export function ElencoPagamenti() {
   const i = useInterrogazione('pagamenti');
   const l = useLetturaPagamenti(i);
   const dati = l.stato.data;
-  const righe = useRigheContesto(i.filtriApplicati, dati?.ultimiDatiSincronizzati, testoPerimetro(dati?.perimetro));
+  const righe = useRigheContesto(i.filtriApplicati, dati?.ultimiDatiSincronizzati, perimetroDellaRisposta(dati?.perimetro));
   return (
     <>
       <BarraInterrogazione
