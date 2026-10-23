@@ -90,6 +90,11 @@ export function valoreInNumero(v: unknown): string {
   return typeof v === 'number' ? formatNumber(v) : NON_DISPONIBILE;
 }
 
+/** Una percentuale gia' in centesimi per il tooltip, oppure "non disponibile". */
+export function valorePercentuale(v: unknown): string {
+  return typeof v === 'number' ? formatPercentuale(v) : NON_DISPONIBILE;
+}
+
 export function assePercentuale(v: number): string {
   return formatPercentuale(v);
 }
@@ -108,10 +113,13 @@ export function notaOmessi(omessi: readonly string[]): string {
   return omessi.length > 0 ? ` ${plurale(omessi.length, 'voce omessa', 'voci omesse')} per dati mancanti o non utilizzabili.` : '';
 }
 
-/** Scorrimento delle barre quando le categorie sono piu' di MAX_BARRE_VISIBILI (se ne mostrano MAX_BARRE_VISIBILI). */
-export function zoomSeMolti(n: number): { dataZoom?: DataZoomComponentOption[] } {
+/**
+ * Scorrimento delle barre quando le categorie sono piu' di MAX_BARRE_VISIBILI (se ne mostrano MAX_BARRE_VISIBILI), lungo
+ * l'asse delle categorie: x per le barre verticali, y per quelle orizzontali.
+ */
+export function zoomSeMolti(n: number, asse: 'x' | 'y' = 'x'): { dataZoom?: DataZoomComponentOption[] } {
   if (n <= MAX_BARRE_VISIBILI) return {};
-  const finestra = { xAxisIndex: 0, startValue: 0, endValue: MAX_BARRE_VISIBILI - 1 };
+  const finestra = { [asse === 'x' ? 'xAxisIndex' : 'yAxisIndex']: 0, startValue: 0, endValue: MAX_BARRE_VISIBILI - 1 };
   return { dataZoom: [{ type: 'inside', ...finestra }, { type: 'slider', ...finestra }] };
 }
 

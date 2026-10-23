@@ -2,7 +2,7 @@
 // trasparente), barre raggruppate per categoria, ciambella di due parti di un totale. I testi delle assenze arrivano
 // gia' composti dalla feature (resa del dominio): qui solo forma, descrizione accessibile e voci omesse.
 import type { BarSeriesOption, EChartsOption, PieSeriesOption } from 'echarts';
-import { ettari, formatPercentuale } from '../format';
+import { ettari, formatNumber, formatPercentuale } from '../format';
 import { COLORI } from './colori';
 import { nonDisegnabile } from './contratto';
 import type { DatiGrafico, TabellaEquivalente } from './contratto';
@@ -10,6 +10,7 @@ import {
   aria,
   asseEttari,
   asseImporti,
+  assePercentuale,
   etichettaDato,
   importoBreve,
   notaOmessi,
@@ -18,6 +19,8 @@ import {
   tooltipDettaglio,
   valoreBreve,
   valoreEttari,
+  valoreInNumero,
+  valorePercentuale,
   zoomSeMolti,
 } from './primitive';
 import type { DatoSerie } from './primitive';
@@ -101,6 +104,22 @@ export interface MisuraBarre {
 export const MISURA_EURO: MisuraBarre = { breve: importoBreve, valore: valoreBreve, asse: asseImporti, descrizione: 'importi in euro' };
 /** Superfici in ettari con due decimali (superfici ammissibili del fisico). */
 export const MISURA_ETTARI: MisuraBarre = { breve: ettari, valore: valoreEttari, asse: asseEttari, descrizione: 'superfici in ettari' };
+/** Conteggi in italiano (domande del procedurale); chi la usa puo' dire cosa conta nella descrizione. */
+export const MISURA_NUMERI: MisuraBarre = { breve: formatNumber, valore: valoreInNumero, asse: formatNumber, descrizione: 'numeri' };
+/** Percentuali gia' in centesimi (percentuale pagata e base storica delle Unit Amount del procedurale). */
+export const MISURA_PERCENTUALI: MisuraBarre = { breve: formatPercentuale, valore: valorePercentuale, asse: assePercentuale, descrizione: 'percentuali' };
+
+/** Barre verticali (di default) oppure orizzontali, con le categorie sull'asse y dall'alto in basso. */
+export interface OpzioniBarre {
+  orizzontale?: boolean;
+}
+
+/** Gli assi delle barre raggruppate e lo scorrimento lungo le categorie. */
+function assiBarre(categorie: string[], misura: MisuraBarre, orizzontale: boolean): Pick<EChartsOption, 'xAxis' | 'yAxis' | 'dataZoom'> {
+  const valori = { type: 'value' as const, axisLabel: { formatter: misura.asse } };
+  if (orizzontale) return { ...zoomSeMolti(categorie.length, 'y'), xAxis: valori, yAxis: { type: 'category', inverse: true, data: categorie } };
+  return { ...zoomSeMolti(categorie.length), xAxis: { type: 'category', data: categorie, axisLabel: { interval: 0, rotate: categorie.length > 8 ? 45 : 0 } }, yAxis: valori };
+}
 
 function datiBarre(voci: readonly VoceRaggruppata[], definizioni: readonly SerieRaggruppata[], omessi: string[], misura: MisuraBarre) {
   const categorie: string[] = [];
@@ -121,7 +140,7 @@ function datiBarre(voci: readonly VoceRaggruppata[], definizioni: readonly Serie
 
 /**
  * Barre raggruppate (una serie per definizione) di importi, o dei valori della `misura` data (es. superfici in ettari); i
- * valori assenti restano vuoti e dichiarati.
+ * valori assenti restano vuoti e dichiarati. Con `orizzontale` le categorie stanno sull'asse y (etichette lunghe).
  */
 export function barreRaggruppate(
   voci: readonly VoceRaggruppata[],
@@ -129,6 +148,7 @@ export function barreRaggruppate(
   testi: TestiBarre,
   omessiIniziali: readonly string[] = [],
   misura: MisuraBarre = MISURA_EURO,
+  { orizzontale = false }: OpzioniBarre = {},
 ): DatiGrafico {
   const tabella: TabellaEquivalente = { caption: testi.caption, colonne: testi.colonne, righe: voci.map((v) => [v.categoria, ...v.celle]) };
   const omessi = [...omessiIniziali];
@@ -140,9 +160,7 @@ export function barreRaggruppate(
     aria: aria(descrizione),
     legend: {},
     tooltip: { trigger: 'axis', valueFormatter: misura.valore },
-    ...zoomSeMolti(categorie.length),
-    xAxis: { type: 'category', data: categorie, axisLabel: { interval: 0, rotate: categorie.length > 8 ? 45 : 0 } },
-    yAxis: { type: 'value', axisLabel: { formatter: misura.asse } },
+    ...assiBarre(categorie, misura, orizzontale),
     series: definizioni.map((def, k): BarSeriesOption => ({ type: 'bar', name: def.nome, data: datiSerie[k] })),
   };
   return { opzioni, tabella, omessi };

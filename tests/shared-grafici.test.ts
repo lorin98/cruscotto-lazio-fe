@@ -14,6 +14,8 @@ import {
   arrotondaPercentuale,
   aria,
   MISURA_ETTARI,
+  MISURA_NUMERI,
+  MISURA_PERCENTUALI,
   asseEttari,
   asseImporti,
   assePercentuale,
@@ -83,7 +85,7 @@ interface OpzioniProva {
   aria?: { enabled: boolean; label: { description: string } };
   legend?: object;
   tooltip?: { trigger?: string; renderMode?: string; formatter?: unknown; valueFormatter?: unknown };
-  dataZoom?: Array<{ type: string; startValue?: number; endValue?: number }>;
+  dataZoom?: Array<{ type: string; startValue?: number; endValue?: number; xAxisIndex?: number; yAxisIndex?: number }>;
   xAxis?: AsseProva | AsseProva[];
   yAxis?: AsseProva | AsseProva[];
   series: SerieProva[];
@@ -444,6 +446,30 @@ describe('barreRaggruppate', () => {
       ['inside', 0, 11],
       ['slider', 0, 11],
     ]);
+  });
+});
+
+describe('barreRaggruppate orizzontali, coi numeri e le percentuali (procedurale)', () => {
+  const definizioni: SerieRaggruppata[] = [{ nome: 'Pagata', soggetto: 'percentuale pagata' }];
+  const testi: TestiBarre = { caption: 'Percentuali', colonne: ['Unit Amount', 'Pagata'], titolo: 'Barre delle percentuali', vuoto: 'nessun valore', unita: ['Unit Amount', 'Unit Amount'] };
+
+  it('le categorie sull asse y dall alto, i valori sull asse x; lo scorrimento oltre 12 lungo le categorie', () => {
+    const o = prova(barreRaggruppate([{ categoria: 'UA1', codice: 'UA1', valori: [40], celle: ['40 %'] }], definizioni, testi, [], MISURA_PERCENTUALI, { orizzontale: true }).opzioni);
+    expect(asse(o.yAxis)).toEqual({ type: 'category', inverse: true, data: ['UA1'] });
+    expect(asse(o.xAxis).axisLabel?.formatter).toBe(assePercentuale);
+    expect(o.series[0].data).toEqual([{ value: 40, name: 'UA1', codice: 'UA1', dettaglio: 'UA1, percentuale pagata: 40 %' }]);
+    expect(o.aria?.label.description).toBe('Barre delle percentuali per 1 Unit Amount (UA1), percentuali.');
+    const molte = Array.from({ length: 13 }, (_, k) => ({ categoria: `UA${k}`, valori: [k], celle: [String(k)] }));
+    const zoom = prova(barreRaggruppate(molte, definizioni, testi, [], MISURA_NUMERI, { orizzontale: true }).opzioni).dataZoom ?? [];
+    expect(zoom.map((z) => [z.type, z.yAxisIndex, z.xAxisIndex, z.endValue])).toEqual([
+      ['inside', 0, undefined, 11],
+      ['slider', 0, undefined, 11],
+    ]);
+  });
+
+  it('MISURA_NUMERI scrive i conteggi in italiano, MISURA_PERCENTUALI le percentuali', () => {
+    expect([MISURA_NUMERI.breve(12345), MISURA_NUMERI.valore(3), MISURA_NUMERI.valore(null), MISURA_NUMERI.asse(10000)]).toEqual(['12.345', '3', 'non disponibile', '10.000']);
+    expect([MISURA_PERCENTUALI.valore(12.5), MISURA_PERCENTUALI.valore(undefined)].map(n)).toEqual(['12,5 %', 'non disponibile']);
   });
 });
 
