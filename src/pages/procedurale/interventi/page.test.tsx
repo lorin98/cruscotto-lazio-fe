@@ -280,6 +280,65 @@ describe('RF024: stati del dettaglio (caricamento, errore, senza dati, nessuna d
     expect(screen.queryByText(/^Nessuna domanda di SRD01/)).toBeNull();
   });
 
+  it('Riprova dopo l errore: la lettura riparte senza dati e senza errore, il vuoto non si dice finche non ha i dati (X1 iter2)', async () => {
+    const t = trattenuta();
+    let tentativi = 0;
+    servi();
+    server.use(
+      http.get('*/api/procedurale/stati-sostegno', async () => {
+        tentativi += 1;
+        if (tentativi > 1) await t.attesa;
+        return HttpResponse.json(problema(503, 'CAPACITA_ESAURITA'), { status: 503 });
+      }),
+    );
+    apri(`${SRD01}?stato=DECADENZA_TOTALE`);
+    const avviso = await screen.findByRole('alert');
+    expect(testo((await screen.findByRole('region', { name: 'Domande ammesse' })).textContent)).toMatch(/^Domande ammesse0/);
+    await userEvent.click(within(avviso).getByRole('button', { name: 'Riprova' }));
+    await waitFor(() => expect(tentativi).toBe(2));
+    // la lettura trattenuta e' in corso senza dati: l'avviso non c'e' piu', e nessuno zero al suo posto
+    await waitFor(() => expect(screen.queryByRole('alert')).toBeNull());
+    expect(screen.queryByText(/^Nessuna domanda di SRD01/)).toBeNull();
+    await act(async () => t.libera());
+    expect(await screen.findByRole('alert')).toBeTruthy();
+    expect(screen.getAllByRole('alert')).toHaveLength(1);
+    expect(screen.queryByText(/^Nessuna domanda di SRD01/)).toBeNull();
+  });
+
+  it('dopo l errore un altro stato dal pannello: TX-0027 riparte senza segnaposto, il vuoto non si dice coi dati dello stato di prima (X1 iter2)', async () => {
+    const t = trattenuta();
+    servi();
+    const conRevocata = (r: Request) => new URL(r.url).searchParams.getAll('stato').includes('REVOCATA');
+    const trattenutoDopo = (percorso: string, corpo: (p: URLSearchParams) => object) =>
+      http.get(`*/api/procedurale/${percorso}`, async ({ request }) => {
+        if (conRevocata(request)) await t.attesa;
+        return HttpResponse.json(corpo(new URL(request.url).searchParams));
+      });
+    server.use(
+      trattenutoDopo('domande-ammesse', (p) => ammessePer(p)),
+      trattenutoDopo('stati-pagamento', (p) => statiPer('PAGAMENTO', p)),
+      http.get('*/api/procedurale/stati-sostegno', async ({ request }) => {
+        if (!conRevocata(request)) return HttpResponse.json(problema(503, 'CAPACITA_ESAURITA'), { status: 503 });
+        await t.attesa;
+        return HttpResponse.json(statiPer('SOSTEGNO', new URL(request.url).searchParams));
+      }),
+    );
+    apri(`${SRD01}?stato=DECADENZA_TOTALE`);
+    await screen.findByRole('alert');
+    expect(testo((await screen.findByRole('region', { name: 'Domande ammesse' })).textContent)).toMatch(/^Domande ammesse0/);
+    await userEvent.click(screen.getByRole('button', { name: /^Filtri/ }));
+    const pannello = await screen.findByRole('dialog', { name: "Filtri del dettaglio dell'intervento" });
+    await userEvent.click(within(pannello).getByRole('checkbox', { name: 'Revocata (stato osservato fuori catalogo)' }));
+    await userEvent.click(within(pannello).getByRole('button', { name: 'Applica i filtri' }));
+    // TX-0026 e TX-0028 tengono lo zero dello stato di prima, TX-0027 non ha dati: nessun vuoto per lo stato nuovo
+    expect(await screen.findByText(AGGIORNAMENTO)).toBeTruthy();
+    await waitFor(() => expect(screen.queryByRole('alert')).toBeNull());
+    expect(screen.queryByText(/^Nessuna domanda di SRD01/)).toBeNull();
+    await act(async () => t.libera());
+    await waitFor(() => expect(screen.queryByText(AGGIORNAMENTO)).toBeNull());
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
   it('perimetro ADA (P4) senza domande di SRD01 nella sua ADA: la pill in evidenza, il vuoto e la barra dicono l ADA', async () => {
     servi();
     // le tre letture del P4: la riga di SRD01 c'e' (dato di programma), con zero domande nella sua ADA

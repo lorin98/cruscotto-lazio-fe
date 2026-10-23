@@ -17,7 +17,7 @@ import { Link } from 'react-router';
 import type { Ref } from 'react';
 import { codiceDelPercorso, descrizioneIntervento, rigaDellIntervento, ValoriFiltriNonDisponibili } from '../../../entities/filtri';
 import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
-import { senzaRisposta, testoPerimetro } from '../../../shared/lib';
+import { testoPerimetro } from '../../../shared/lib';
 import type { StatoDettaglio } from '../../../shared/lib';
 import { AvvisoAggiornamento, AvvisoPagina, BarraFiltri, Briciole, ContestoIntestazione, CorpoDelDettaglio, ErroriDelleLetture, IntestazioneNonValida, PillDatiAl, TestataDettaglio, Vuoto, VuotoConFiltri, useFocusTitolo, useRigheContesto, useStatoDelDettaglio } from '../../../shared/ui';
 import { useDomandeAmmesse, useStatiPagamento, useStatiSostegno } from '../api';
@@ -94,11 +94,14 @@ function KpiDettaglio({ codice, letture, criteri }: { codice: string; letture: L
 
 /**
  * Nessuna domanda dell'intervento nelle letture: con lo stato scelto l'invito a cambiarlo (le schede restano). Lo dice
- * solo se tutte le letture fatte hanno risposto: una lettura in errore non conta come zero (mai un vuoto dedotto da un
- * errore, che lo dice l'avviso della pagina). Col perimetro ADA dice la propria area, come le pagine dei report.
+ * solo se ogni lettura fatta ha i dati: una lettura in errore o in corso senza dati non conta come zero (mai un vuoto
+ * dedotto da una lettura senza risposta: l'errore lo dice l'avviso della pagina; con Riprova, o con un altro stato dopo
+ * l'errore, la lettura riparte senza dati e senza errore). Il segnaposto dello stato di prima conta come dato, con
+ * l'avviso dell'aggiornamento. Col perimetro ADA dice la propria area, come le pagine dei report.
  */
 function NessunaDomanda({ codice, letture, pagina, perimetro }: { codice: string; letture: Letture; pagina: PaginaDeiCriteri; perimetro: Perimetro | undefined }) {
-  if ([letture.ammesse, letture.sostegno, letture.pagamento].some(senzaRisposta)) return null;
+  const fatte = [letture.ammesse, letture.sostegno, letture.pagamento].filter((l) => l !== null);
+  if (fatte.some((l) => l.data === undefined)) return null;
   const r = righe(codice, letture);
   if (!senzaDomande(r.ammesse, r.sostegno, r.pagamento)) return null;
   const conStato = (pagina.filtri.stato ?? []).length > 0;
