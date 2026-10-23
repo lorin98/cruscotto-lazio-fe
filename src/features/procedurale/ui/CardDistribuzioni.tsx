@@ -3,7 +3,8 @@
 // sostegno o di pagamento, barre impilate delle rilasciate e delle non ancora rilasciate) e CardArea (lo stato area
 // programmazione). Cosa fa il clic su una barra lo decide la pagina (la pagina degli stati, il filtro della tabella o
 // della pagina, l'elenco operativo); col grant dell'elenco la vista Tabella e' la tabella equivalente con "Apri
-// nell'elenco" per ogni voce che si apre, il percorso da tastiera del clic. PNG, CSV e XLSX: il PNG e' il grafico, CSV e
+// nell'elenco" per ogni voce che si apre e, nelle pagine degli stati, "Filtra la tabella": il percorso da tastiera del
+// clic. PNG, CSV e XLSX: il PNG e' il grafico, CSV e
 // XLSX l'export dell'intero report (scelta 7 approvata). CardGrafico del kit; nessun react-aria.
 import { useMemo } from 'react';
 import type { ReactNode } from 'react';
@@ -41,14 +42,24 @@ function daClic(onVoce: PropsCardDistribuzione['onVoce']): ((p: ClicGrafico) => 
   };
 }
 
-/** Gli stati delle domande di sostegno o di pagamento: le voci di SR-01 e gli altri stati, col totale del backend. */
-export function CardStati({ tipo, d, link, onVoce, ...card }: PropsCardDistribuzione & { tipo: TipoDomanda }) {
+/** La didascalia della tabella equivalente degli stati: cosa fanno le sue azioni. */
+function captionStati(titolo: string, conLink: boolean, conFiltro: boolean): string {
+  const azioni = [conFiltro && 'Filtra la tabella lascia nella tabella per intervento gli interventi con domande nella voce', conLink && "Apri nell'elenco apre le sole domande rilasciate della voce"].filter(Boolean);
+  return [`${titolo}: la voce di SR-01 è l'intestazione di riga`, ...azioni].join('; ');
+}
+
+/**
+ * Gli stati delle domande di sostegno o di pagamento: le voci di SR-01 e gli altri stati, col totale del backend. Con
+ * `onFiltra` (le pagine degli stati) la tabella equivalente ha il filtro della tabella per intervento sulla voce, il
+ * percorso da tastiera del clic, anche senza il grant dell'elenco.
+ */
+export function CardStati({ tipo, d, link, onVoce, onFiltra, ...card }: PropsCardDistribuzione & { tipo: TipoDomanda; onFiltra?: (chiave: string) => void }) {
   const intestazione = `Stato della domanda ${diTipo(tipo)}`;
   const voci = useMemo(() => vociDegliStati(d), [d]);
   const totale = useMemo(() => (d ? { domande: d.totale, nonRilasciate: d.domandeNonRilasciate } : undefined), [d]);
   const dati = useMemo(() => graficoStati(voci, { titolo: card.titolo, caption: card.titolo, voce: intestazione }, totale), [voci, card.titolo, intestazione, totale]);
-  const caption = `${card.titolo}: la voce di SR-01 è l'intestazione di riga; Apri nell'elenco apre le sole domande rilasciate della voce`;
-  const tabella = link ? <TabellaVoci caption={caption} intestazione={intestazione} voci={voci} conNonRilasciate link={link} totale={totale} /> : undefined;
+  const caption = captionStati(card.titolo, !!link, !!onFiltra);
+  const tabella = link || onFiltra ? <TabellaVoci caption={caption} intestazione={intestazione} voci={voci} conNonRilasciate link={link} onFiltra={onFiltra} totale={totale} /> : undefined;
   return <CardGrafico {...card} dati={dati} onClic={daClic(onVoce)} tabella={tabella} />;
 }
 

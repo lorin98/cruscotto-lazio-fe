@@ -1,8 +1,9 @@
 // comuni.tsx — mattoni di DOMINIO delle pagine procedurali (UI v2, wireframe approvati del 22/10/2026): la pill del
 // perimetro della risposta (ADA in evidenza, non rimovibile), le tessere dei KPI di lib/kpi col link verso l'elenco (solo
 // col grant di arrivo), un numero col suo link "Apri nell'elenco" nelle celle e nelle voci, e la tabella equivalente di
-// una distribuzione per stato col link di ogni voce (la parte rilasciata, OP-PR-08), l'assenza della voce senza fonte e
-// il totale del backend, le celle delle domande ammesse e con atto di un intervento (tabella, tabella equivalente,
+// una distribuzione per stato col link di ogni voce (la parte rilasciata, OP-PR-08) e, nelle pagine degli stati, il
+// filtro della tabella per intervento sulla voce, l'assenza della voce senza fonte e il totale del backend, le celle
+// delle domande ammesse e con atto di un intervento (tabella, tabella equivalente,
 // anteprima). Classi bootstrap-italia e del kit; nessun react-aria.
 import { ApriNellElenco } from '../../../entities/domanda';
 import { AssenzaMotivata, BadgeAssenza } from '../../../entities/importo';
@@ -72,32 +73,52 @@ function NonRilasciate({ r }: { r: RigaVoci }) {
   return n === null ? <BadgeAssenza resa={NON_DISPONIBILE_BREVE} /> : <span className="font-monospace">{formatNumber(n)}</span>;
 }
 
+/** L'indirizzo della voce verso l'elenco (null = nessun link) e i testi del link. */
+export type LinkDellaVoce = (v: VoceDistribuzione) => { indirizzo: string | null; testi: TestiLink };
+
 interface PropsTabellaVoci {
   caption: string;
   intestazione: string;
   voci: readonly VoceDistribuzione[];
   /** La colonna "Di cui non rilasciate" (gli stati delle domande; l'area programmazione non ne ha). */
   conNonRilasciate: boolean;
-  /** L'indirizzo della voce verso l'elenco (null = nessun link) e i testi del link. */
-  link: (v: VoceDistribuzione) => { indirizzo: string | null; testi: TestiLink };
+  /** La colonna "Elenco operativo" col link di ogni voce; assente (senza il grant dell'elenco) la colonna non c'e'. */
+  link?: LinkDellaVoce;
+  /** La colonna col filtro della tabella per intervento sulla voce, il percorso da tastiera del clic su una barra. */
+  onFiltra?: (chiave: string) => void;
   totale?: { domande: number; nonRilasciate?: number };
 }
 
 /** La cella dell'elenco operativo: il link della voce, oppure perche' non c'e' (il motivo di lib/collegamenti). */
-function Elenco({ r, link, conNonRilasciate }: { r: RigaVoci; link: PropsTabellaVoci['link']; conNonRilasciate: boolean }) {
+function Elenco({ r, link, conNonRilasciate }: { r: RigaVoci; link: LinkDellaVoce; conNonRilasciate: boolean }) {
   if ('totale' in r) return null;
   const { indirizzo, testi } = link(r.voce);
   if (indirizzo) return <ApriNellElenco variante="testo" indirizzo={indirizzo} {...testi} />;
   return <span className="small">{motivoSenzaLink(r.voce, conNonRilasciate)}</span>;
 }
 
-/** La tabella equivalente di una distribuzione con l'azione Apri nell'elenco per ogni voce che si apre. */
-export function TabellaVoci({ caption, intestazione, voci, conNonRilasciate, link, totale }: PropsTabellaVoci) {
+/**
+ * Il filtro della tabella per intervento sulla voce con domande (scelta 4 approvata, come il clic sulla sua barra); il
+ * nome accessibile comincia col testo visibile e dice la voce (WCAG 2.5.3).
+ */
+function Filtra({ r, onFiltra }: { r: RigaVoci; onFiltra: (chiave: string) => void }) {
+  if ('totale' in r || (r.voce.domande ?? 0) === 0) return null;
+  const { chiave, etichetta } = r.voce;
+  return (
+    <button type="button" className="btn btn-link btn-sm p-0" onClick={() => onFiltra(chiave)} aria-label={`Filtra la tabella su ${etichetta}`}>
+      Filtra la tabella
+    </button>
+  );
+}
+
+/** La tabella equivalente di una distribuzione con le azioni del clic su una barra: Apri nell'elenco, Filtra la tabella. */
+export function TabellaVoci({ caption, intestazione, voci, conNonRilasciate, link, onFiltra, totale }: PropsTabellaVoci) {
   const colonne: ColonnaStatica<RigaVoci>[] = [
     { chiave: 'voce', titolo: intestazione, resa: (r) => ('totale' in r ? 'Totale' : r.voce.etichetta) },
     { chiave: 'domande', titolo: 'Domande', resa: (r) => <Domande r={r} />, numerica: true },
     ...(conNonRilasciate ? [{ chiave: 'nonRilasciate', titolo: 'Di cui non rilasciate', resa: (r: RigaVoci) => <NonRilasciate r={r} />, numerica: true }] : []),
-    { chiave: 'elenco', titolo: 'Elenco operativo', resa: (r) => <Elenco r={r} link={link} conNonRilasciate={conNonRilasciate} /> },
+    ...(onFiltra ? [{ chiave: 'filtra', titolo: 'Tabella per intervento', resa: (r: RigaVoci) => <Filtra r={r} onFiltra={onFiltra} /> }] : []),
+    ...(link ? [{ chiave: 'elenco', titolo: 'Elenco operativo', resa: (r: RigaVoci) => <Elenco r={r} link={link} conNonRilasciate={conNonRilasciate} /> }] : []),
   ];
   const righe: RigaVoci[] = [...voci.map((voce) => ({ voce })), ...(totale ? [{ totale }] : [])];
   return <TabellaStatica caption={caption} colonne={colonne} righe={righe} chiaveRiga={(r) => ('totale' in r ? 'totale' : r.voce.chiave)} />;

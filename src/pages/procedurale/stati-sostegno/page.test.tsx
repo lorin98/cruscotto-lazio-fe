@@ -57,7 +57,7 @@ describe('RF027: stati della domanda di sostegno per intervento (TX-0027)', () =
     apri(`${PERCORSO}?intervento=SRD01`);
     expect(testo((await screen.findByRole('region', { name: 'Di cui non rilasciate' })).textContent)).toContain('5');
     const t = await tabellaDi(await trovaCard(CARD));
-    expect(testo(within(t).getByRole('row', { name: /^In compilazione/ }).textContent)).toBe('In compilazione22nessuna domanda rilasciata');
+    expect(testo(within(t).getByRole('row', { name: /^In compilazione/ }).textContent)).toBe('In compilazione22Filtra la tabellanessuna domanda rilasciata');
     const stampato = within(within(t).getByRole('row', { name: /^Stampato/ })).getByRole('link');
     expect(stampato.textContent).toBe("Apri nell'elenco (1 rilasciata)");
     expect(stampato.getAttribute('href')).toBe('/elenco-operativo/domande?statoSostegno=STAMPATO&intervento=SRD01');
@@ -111,7 +111,26 @@ describe('RF027: stati della domanda di sostegno per intervento (TX-0027)', () =
     await waitFor(() => expect(`${router.state.location.pathname}${router.state.location.search}`).toBe('/procedurale/interventi/SRD01?stato=AMMESSA'));
   });
 
-  it('senza il grant dell elenco: la tabella equivalente generata, il chip della voce senza link, il drawer senza link', async () => {
+  it('da tastiera: Filtra la tabella nella tabella equivalente filtra sulla voce come il clic, anche senza il grant dell elenco', async () => {
+    profilo(['csr.tx-0024.read', 'csr.tx-0025.read', 'csr.tx-0027.read']);
+    servi();
+    apri();
+    const t = await tabellaDi(await trovaCard(CARD));
+    expect(within(t).queryByRole('link')).toBeNull();
+    // la voce senza fonte e quelle senza domande non filtrano
+    expect(within(t).getAllByRole('button', { name: /^Filtra la tabella su / }).map((b) => b.getAttribute('aria-label'))).toEqual([
+      'Filtra la tabella su Rilasciato',
+      'Filtra la tabella su Istruttoria con esito positivo su tutte le misure',
+      'Filtra la tabella su Altro stato: SOSPESA (codice SIAN fuori catalogo)',
+    ]);
+    within(t).getByRole('button', { name: 'Filtra la tabella su Altro stato: SOSPESA (codice SIAN fuori catalogo)' }).focus();
+    await userEvent.keyboard('{Enter}');
+    const filtro = await screen.findByRole('group', { name: 'Filtro della tabella dal grafico' });
+    expect(within(filtro).getByRole('button', { name: 'Togli il filtro Voce Altro stato: SOSPESA (codice SIAN fuori catalogo)' })).toBeTruthy();
+    expect(righe(await tabella())).toEqual(["Apri l'anteprima dell'intervento SRA01"]);
+  });
+
+  it('senza il grant dell elenco: la tabella equivalente senza link, il chip della voce senza link, il drawer senza link', async () => {
     profilo(['csr.tx-0024.read', 'csr.tx-0025.read', 'csr.tx-0027.read']);
     servi();
     apri();

@@ -2,8 +2,9 @@
 // lista v2, RF027 e RF028; scelta 2 approvata: due pagine, ognuna col suo grant e la sua voce di menu): barra dei filtri
 // col pannello e le pill; i due KPI (domande del tipo e di cui non rilasciate, con la regola del filtro per stato); la
 // card degli stati nel totale (barre impilate: scelta 4 approvata, il clic su una barra filtra la tabella per intervento
-// sulla voce, con un chip della pagina e l'azione esplicita "Apri nell'elenco (n rilasciate)"; nella tabella equivalente
-// "Apri nell'elenco" per ogni voce, la parte rilasciata); la tabella per intervento e stato; il drawer di anteprima. UNA
+// sulla voce, con un chip della pagina e l'azione esplicita "Apri nell'elenco (n rilasciate)"; nella tabella equivalente,
+// il percorso da tastiera, "Filtra la tabella" e "Apri nell'elenco" per ogni voce, la parte rilasciata); la tabella per
+// intervento e stato; il drawer di anteprima. UNA
 // lettura di TX-0027 o TX-0028 coi criteri dell'indirizzo. La voce scelta e la riga aperta sono stato della pagina: restano
 // mentre la lettura riparte. Togliendo il chip della voce, che sparisce col suo bottone, il focus va sull'h1. Stati:
 // caricamento, errore (un solo avviso della pagina), vuoto con "Modifica i filtri", valori dei filtri non disponibili.
@@ -100,7 +101,7 @@ function ReportStati({ tipo, d, pagina, voce, onVoce, aperto, onApri }: PropsRep
   return (
     <>
       <TessereKpi kpi={kpiDegliStati(d.totale, tipo, (pagina.filtri.stato ?? []).length > 0)} criteri={pagina.filtri} colonne={2} />
-      <CardStati tipo={tipo} d={d.totale} titolo={testi.card} sottotitolo="Clic su una barra: la tabella per intervento resta con gli interventi che hanno domande in quella voce." fonte={`Fonte: ${testi.tx} (totale). PNG: l'immagine del grafico con l'intestazione, non registrata in audit; CSV e XLSX: l'export del report coi filtri della pagina, una riga per intervento e stato, poi il totale.`} onVoce={onVoce} link={conLink ? link : undefined} scaricamenti={file} oggettoDati={OGGETTO_FILE[REPORT[tipo]]} />
+      <CardStati tipo={tipo} d={d.totale} titolo={testi.card} sottotitolo="Clic su una barra: la tabella per intervento resta con gli interventi che hanno domande in quella voce." fonte={`Fonte: ${testi.tx} (totale). PNG: l'immagine del grafico con l'intestazione, non registrata in audit; CSV e XLSX: l'export del report coi filtri della pagina, una riga per intervento e stato, poi il totale.`} onVoce={onVoce} onFiltra={onVoce} link={conLink ? link : undefined} scaricamenti={file} oggettoDati={OGGETTO_FILE[REPORT[tipo]]} />
       <TabellaStatiInterventi
         titolo={testi.tabella}
         righe={scelta ? righeConLaVoce(righe, scelta.chiave) : righe}
