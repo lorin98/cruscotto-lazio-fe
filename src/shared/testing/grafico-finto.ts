@@ -88,3 +88,18 @@ export function clicSulDato(g: GraficoFinto, serie: number, indice: number): voi
   const nome = typeof proprio === 'string' ? proprio : typeof categoria === 'string' ? categoria : undefined;
   clicSu(g, { name: nome, dataIndex: indice, data: dato, seriesName: s.name });
 }
+
+/**
+ * Clic sul dato che porta il codice dato (il `codice` dei dati delle serie del kit: un intervento, la chiave di una voce,
+ * una riga), come lo manda ECharts: il primo dato col codice nelle serie delle ultime opzioni ricevute. Il test clicca
+ * la barra del dato che conta senza contarne la posizione. Errore se nessun dato porta il codice.
+ */
+export function clicSulCodice(g: GraficoFinto | undefined, codice: string): void {
+  if (!g) throw new Error('grafico assente');
+  const opzioni = g.opzioni.at(-1) as { series?: Array<{ data?: unknown[] }> } | undefined;
+  for (const [serie, s] of (opzioni?.series ?? []).entries()) {
+    const indice = (s.data ?? []).findIndex((d) => typeof d === 'object' && d !== null && (d as { codice?: unknown }).codice === codice);
+    if (indice >= 0) return clicSulDato(g, serie, indice);
+  }
+  throw new Error(`nessun dato col codice ${codice} nel grafico`);
+}

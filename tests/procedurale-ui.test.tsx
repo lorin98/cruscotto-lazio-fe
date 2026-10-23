@@ -12,8 +12,7 @@ import { createMemoryRouter, RouterProvider, useParams } from 'react-router';
 import { server } from '../src/shared/api/mock/server';
 import { expectNoA11yViolations } from '../src/shared/testing/axe';
 import { graficoDi, tabellaDi, trovaCard } from '../src/shared/testing/card-grafico';
-import { clicSulDato } from '../src/shared/testing/grafico-finto';
-import type { GraficoFinto } from '../src/shared/testing/grafico-finto';
+import { clicSulCodice } from '../src/shared/testing/grafico-finto';
 import { renderPagina } from '../src/shared/testing/render-pagina';
 import { DettaglioIntervento, DomandeAmmesse, Panoramica, Riepilogo, Sottofasi, StatiPagamento, StatiSostegno, UnitAmount } from '../src/features/procedurale';
 import { ammessePer, sottofasiSostegnoPer, statiPer } from '../src/features/procedurale/testing/fixture';
@@ -37,17 +36,6 @@ function servi(basi?: Basi) {
   const { handlers, lette } = lettureProcedurale(basi);
   server.use(...handlers);
   return lette;
-}
-
-/** Clic sulla barra del dato col codice dato (intervento, chiave della voce, riga delle Unit Amount). */
-function clicSulCodice(g: GraficoFinto | undefined, codice: string) {
-  if (!g) throw new Error('grafico assente');
-  const opzioni = g.opzioni.at(-1) as { series?: { data?: unknown[] }[] } | undefined;
-  for (const [s, serie] of (opzioni?.series ?? []).entries()) {
-    const i = (serie.data ?? []).findIndex((d) => typeof d === 'object' && d !== null && (d as { codice?: unknown }).codice === codice);
-    if (i >= 0) return clicSulDato(g, s, i);
-  }
-  throw new Error(`nessun dato col codice ${codice}`);
 }
 
 const dove = (router: { state: { location: { pathname: string; search: string } } }) => `${router.state.location.pathname}${router.state.location.search}`;
