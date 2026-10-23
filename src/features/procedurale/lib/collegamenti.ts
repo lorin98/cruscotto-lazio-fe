@@ -134,6 +134,23 @@ export function apreLaVoce(v: VoceDistribuzione): boolean {
   return (rilasciate(v) ?? 0) > 0;
 }
 
+/** Una voce dello stato area programmazione si apre con domande maggiori di 0 (l'area non ha domande non rilasciate). */
+export function apreLaVoceDellArea(v: VoceDistribuzione): boolean {
+  return (v.domande ?? 0) > 0;
+}
+
+/**
+ * Perche' una voce non ha il link verso l'elenco (la cella "Elenco operativo" della tabella equivalente): senza fonte,
+ * senza domande, senza domande rilasciate (solo gli stati della domanda, `conRilasciate`: l'area programmazione non ha
+ * domande non rilasciate), oppure un codice che i parametri dell'elenco non esprimono (fail-closed, puntoValido).
+ */
+export function motivoSenzaLink(v: VoceDistribuzione, conRilasciate: boolean): string {
+  if (v.domande === null) return 'nessun link (fonte non attiva)';
+  if (v.domande === 0) return 'nessuna domanda';
+  if (conRilasciate && !apreLaVoce(v)) return 'nessuna domanda rilasciata';
+  return chiaveStatoValida(v.chiave) ? "non apribile nell'elenco (codice dell'intervento non esprimibile)" : "non apribile nell'elenco (codice di stato non esprimibile)";
+}
+
 // ---------------------------------------------------------------- testi dei link (nome accessibile e testo visibile)
 
 /** "la domanda [singolare]" o "le n domande [plurale]": quante domande apre il link. */

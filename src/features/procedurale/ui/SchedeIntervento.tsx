@@ -14,7 +14,7 @@ import { rigaDellIntervento } from '../../../shared/lib';
 import { ErroreNellaPagina, Griglia, Sezione, VistaQuery, Vuoto } from '../../../shared/ui';
 import type { StatoQuery } from '../../../shared/ui';
 import { useRiepilogo, useSottofasiPagamento, useSottofasiSostegno, useUnitAmount } from '../api';
-import { LINK_STATO, apreLaVoce, puntoDelloStato, testiLinkArea, testiLinkStato } from '../lib/collegamenti';
+import { LINK_STATO, apreLaVoce, apreLaVoceDellArea, puntoDelloStato, testiLinkArea, testiLinkStato } from '../lib/collegamenti';
 import type { IdLinkElenco, PuntoElenco, TestiLink } from '../lib/collegamenti';
 import { criteriUnitAmount } from '../lib/criteri';
 import type { CriteriProcedurali } from '../lib/criteri';
@@ -23,6 +23,7 @@ import { puoLeggere } from '../lib/grant';
 import type { Lettura } from '../lib/grant';
 import { TITOLI_SCHEDE, schedaAttiva, schedeVisibili } from '../lib/intervento';
 import type { IdScheda } from '../lib/intervento';
+import { codiceDellaRiga } from '../lib/riepilogo';
 import { diTipo, vociDegliStati, vociDellArea } from '../lib/stati';
 import type { VoceDistribuzione } from '../lib/stati';
 import { CardArea, CardStati } from './CardDistribuzioni';
@@ -82,9 +83,9 @@ function StatiDellIntervento({ tipo, stato, codice, criteri }: PropsScheda & { t
 /** Lo stato area programmazione dell'intervento: legge TX-0029 quando la scheda si apre. */
 function AreaDellIntervento({ codice, criteri }: PropsScheda) {
   const stato = useRiepilogo(criteri);
-  const riga = (stato.data?.righe ?? []).find((r) => r.ammesse?.codiceIntervento === codice);
+  const riga = (stato.data?.righe ?? []).find((r) => codiceDellaRiga(r) === codice);
   const voci = vociDellArea(riga?.statiAreaProgrammazione);
-  const elenco = useVociVersoLElenco({ id: 'elenco-area-programmazione-intervento', voci, punto: (v) => ({ voceProgrammazione: v.chiave, intervento: codice }), testi: (v) => testiLinkArea(v, codice), criteri, apre: (v) => (v.domande ?? 0) > 0 });
+  const elenco = useVociVersoLElenco({ id: 'elenco-area-programmazione-intervento', voci, punto: (v) => ({ voceProgrammazione: v.chiave, intervento: codice }), testi: (v) => testiLinkArea(v, codice), criteri, apre: apreLaVoceDellArea });
   const titolo = 'Domande per stato area programmazione';
   return (
     <VistaQuery stato={stato}>

@@ -28,8 +28,10 @@ import {
   LINK_STATO,
   apreConAtto,
   apreLaVoce,
+  apreLaVoceDellArea,
   apreLeAmmesse,
   indirizzoElenco,
+  motivoSenzaLink,
   paginaDegliStati,
   panoramicaDellIntervento,
   percorsoIntervento,
@@ -56,6 +58,7 @@ import {
   vociDegliStati,
   vociDellArea,
 } from '../src/features/procedurale/lib/stati';
+import type { VoceDistribuzione } from '../src/features/procedurale/lib/stati';
 import { kpiDegliStati, kpiDelleAmmesse, kpiDomandeDellIntervento, kpiInterventi, notaContributo } from '../src/features/procedurale/lib/kpi';
 import { altreSottofasi, anagraficaVuota, etichettaVoce, righeVoci, senzaDomandeNeiFiltri, testoCensita } from '../src/features/procedurale/lib/sottofasi';
 import { CAMPI_PAGATO, assenzaPagato, chiaveUnitAmount, etichettaUnitAmount, notaPagato, valoreDi } from '../src/features/procedurale/lib/unitAmount';
@@ -223,6 +226,20 @@ describe('procedurale: link dello uiplan (fail-closed, solo i parametri della qu
     const [inCompilazione, stampato, , rilasciato] = vociDegliStati(SOSTEGNO_NR.righe?.[1]?.stati);
     expect([apreLaVoce(inCompilazione), apreLaVoce(stampato), apreLaVoce(rilasciato)]).toEqual([false, true, true]);
     expect(apreLaVoce(vociDegliStati(SOSTEGNO.totale)[0])).toBe(false);
+  });
+
+  it('il motivo della voce senza link: fonte, domande, rilasciate (solo gli stati), codice di stato non esprimibile', () => {
+    const voci = vociDegliStati(SOSTEGNO.totale);
+    const nr = vociDegliStati(SOSTEGNO_NR.righe?.[1]?.stati);
+    expect([motivoSenzaLink(voci[0], true), motivoSenzaLink(voci[2], true), motivoSenzaLink(nr[0], true)]).toEqual(['nessun link (fonte non attiva)', 'nessuna domanda', 'nessuna domanda rilasciata']);
+    // un codice osservato accentato: il backend lo accetta com'e' nel database, l'indirizzo dell'elenco no
+    const accentata: VoceDistribuzione = { chiave: 'REVOCATÀ', etichetta: 'Revocatà (stato osservato fuori catalogo)', domande: 2, nonRilasciate: 0, altro: true };
+    expect(indirizzoElenco('elenco-area-programmazione-panoramica', {}, { voceProgrammazione: accentata.chiave })).toBeNull();
+    expect([motivoSenzaLink(accentata, false), motivoSenzaLink(accentata, true)]).toEqual(["non apribile nell'elenco (codice di stato non esprimibile)", "non apribile nell'elenco (codice di stato non esprimibile)"]);
+    // l'area programmazione non ha domande non rilasciate: mai "nessuna domanda rilasciata"
+    const area = vociDellArea(RIEPILOGO.totale?.statiAreaProgrammazione);
+    expect(area.map((v) => motivoSenzaLink(v, false))).not.toContain('nessuna domanda rilasciata');
+    expect([apreLaVoceDellArea(area[2]), apreLaVoceDellArea(area[0]), apreLaVoceDellArea(accentata)]).toEqual([true, false, true]);
   });
 
   it('testi dei link: quante domande apre, la parte rilasciata nel testo visibile, la voce o il codice', () => {

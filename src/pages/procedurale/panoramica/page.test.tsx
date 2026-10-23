@@ -198,6 +198,23 @@ describe('RF029: stato area programmazione dal riepilogo per intervento nella pa
     expect(within(within(t).getByRole('row', { name: /^Presentata/ })).queryByRole('link')).toBeNull();
     expect(testo(within(t).getByRole('row', { name: /^Totale/ }).textContent)).toBe('Totale6');
   });
+
+  it('uno stato osservato col codice fuori dal formato dell indirizzo: la tabella dice che non si apre, il clic non filtra la pagina', async () => {
+    servi();
+    // il backend accetta i codici osservati come sono nel database: qui uno accentato
+    const accentato = (r: ReturnType<typeof riepilogoPer>) => {
+      const area = r.totale?.statiAreaProgrammazione;
+      return { ...r, totale: { ...r.totale, statiAreaProgrammazione: area && { ...area, altriStati: area.altriStati.map((a) => ({ ...a, codice: 'REVOCATÀ', descrizione: 'revocatà' })) } } };
+    };
+    server.use(http.get('*/api/procedurale/riepilogo', ({ request }) => HttpResponse.json(accentato(riepilogoPer(new URL(request.url).searchParams)))));
+    const { router } = apri(`${PERCORSO}?intervento=SRD01`);
+    const card = await trovaCard('Domande per stato area programmazione');
+    clicSulCodice(graficoDi(card), 'REVOCATÀ');
+    await new Promise((r) => setTimeout(r, 50));
+    expect(router.state.location.search).toBe('?intervento=SRD01');
+    const t = await tabellaDi(card);
+    expect(testo(within(t).getByRole('row', { name: /^Revocatà/ }).textContent)).toBe("Revocatà (stato osservato fuori catalogo)1non apribile nell'elenco (codice di stato non esprimibile)");
+  });
 });
 
 describe('RF024: stati della panoramica (caricamento, errore, vuoto, perimetro)', () => {

@@ -13,8 +13,8 @@ import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { ErroreNellaPagina, Griglia, VistaQuery, VuotoConFiltri } from '../../../shared/ui';
 import type { StatoQuery } from '../../../shared/ui';
 import { useDomandeAmmesse, useRiepilogo, useStatiPagamento, useStatiSostegno } from '../api';
-import { indirizzoElenco, paginaDegliStati, testiLinkArea } from '../lib/collegamenti';
-import { conFiltri, criteriDelReport } from '../lib/criteri';
+import { apreLaVoceDellArea, indirizzoElenco, paginaDegliStati, testiLinkArea } from '../lib/collegamenti';
+import { chiaveStatoValida, conFiltri, criteriDelReport } from '../lib/criteri';
 import type { CriteriProcedurali } from '../lib/criteri';
 import type { Ammesse, Riepilogo, Stati, TipoDomanda } from '../lib/dto';
 import { perimetroDelle, testoNessunIntervento, testoVuoto } from '../lib/formato';
@@ -96,7 +96,11 @@ function StatiPanoramica({ tipo, stato, pagina }: { tipo: TipoDomanda; stato: St
 /** Lo stato area programmazione nel totale del riepilogo (scelta 3): il clic filtra la pagina per quello stato. */
 function AreaPanoramica({ stato, pagina }: { stato: StatoQuery<Riepilogo>; pagina: PaginaDeiCriteri }) {
   const conElenco = usePuoAprireElenco();
-  const link = conElenco ? (v: VoceDistribuzione) => ({ indirizzo: (v.domande ?? 0) > 0 ? indirizzoElenco('elenco-area-programmazione-panoramica', pagina.filtri, { voceProgrammazione: v.chiave }) : null, testi: testiLinkArea(v) }) : undefined;
+  const link = conElenco ? (v: VoceDistribuzione) => ({ indirizzo: apreLaVoceDellArea(v) ? indirizzoElenco('elenco-area-programmazione-panoramica', pagina.filtri, { voceProgrammazione: v.chiave }) : null, testi: testiLinkArea(v) }) : undefined;
+  // una chiave fuori dal formato dell'indirizzo non diventa un filtro (sarebbe scartata in silenzio): la tabella lo dice
+  const filtra = (chiave: string) => {
+    if (chiaveStatoValida(chiave)) pagina.applica({ ...pagina.filtri, stato: [chiave] });
+  };
   const titolo = 'Domande per stato area programmazione';
   return (
     <VistaQuery stato={stato} eVuoto={(d) => (d.totale?.statiAreaProgrammazione?.totale ?? 0) === 0} vuoto={vuoto(pagina, 'Nessuna domanda')}>
@@ -106,7 +110,7 @@ function AreaPanoramica({ stato, pagina }: { stato: StatoQuery<Riepilogo>; pagin
           titolo={titolo}
           sottotitolo="Le dieci voci di RF025, gli stati osservati fuori catalogo e le domande senza stato. Clic su una barra: filtra la pagina per quello stato."
           fonte="Fonte: TX-0029 (totale). L'area programmazione non ha domande non rilasciate: il numero coincide con l'elenco. PNG: l'immagine del grafico; CSV e XLSX: l'export del riepilogo coi filtri della pagina."
-          onVoce={(chiave) => pagina.applica({ ...pagina.filtri, stato: [chiave] })}
+          onVoce={filtra}
           link={link}
           scaricamenti={fileReport('riepilogo', titolo, pagina.filtri)}
           oggettoDati={OGGETTO_FILE.riepilogo}

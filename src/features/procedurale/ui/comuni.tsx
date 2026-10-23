@@ -9,7 +9,7 @@ import { AssenzaMotivata, BadgeAssenza } from '../../../entities/importo';
 import { formatNumber } from '../../../shared/lib';
 import { Griglia, Kpi, TabellaStatica } from '../../../shared/ui';
 import type { ColonnaStatica, NomeIcona, TonoKpi } from '../../../shared/ui';
-import { VOCE_AMMESSA, apreConAtto, apreLeAmmesse, testiLinkAmmesse, testiLinkConAtto } from '../lib/collegamenti';
+import { VOCE_AMMESSA, apreConAtto, apreLeAmmesse, motivoSenzaLink, testiLinkAmmesse, testiLinkConAtto } from '../lib/collegamenti';
 import type { IdLinkElenco, TestiLink } from '../lib/collegamenti';
 import type { CriteriProcedurali } from '../lib/criteri';
 import type { Perimetro, RigaAmmesse } from '../lib/dto';
@@ -83,12 +83,12 @@ interface PropsTabellaVoci {
   totale?: { domande: number; nonRilasciate?: number };
 }
 
-/** La cella dell'elenco operativo: il link della voce, oppure perche' non c'e'. */
-function Elenco({ r, link }: { r: RigaVoci; link: PropsTabellaVoci['link'] }) {
+/** La cella dell'elenco operativo: il link della voce, oppure perche' non c'e' (il motivo di lib/collegamenti). */
+function Elenco({ r, link, conNonRilasciate }: { r: RigaVoci; link: PropsTabellaVoci['link']; conNonRilasciate: boolean }) {
   if ('totale' in r) return null;
   const { indirizzo, testi } = link(r.voce);
   if (indirizzo) return <ApriNellElenco variante="testo" indirizzo={indirizzo} {...testi} />;
-  return <span className="small">{r.voce.domande === null ? 'nessun link (fonte non attiva)' : (r.voce.domande ?? 0) === 0 ? 'nessuna domanda' : 'nessuna domanda rilasciata'}</span>;
+  return <span className="small">{motivoSenzaLink(r.voce, conNonRilasciate)}</span>;
 }
 
 /** La tabella equivalente di una distribuzione con l'azione Apri nell'elenco per ogni voce che si apre. */
@@ -97,7 +97,7 @@ export function TabellaVoci({ caption, intestazione, voci, conNonRilasciate, lin
     { chiave: 'voce', titolo: intestazione, resa: (r) => ('totale' in r ? 'Totale' : r.voce.etichetta) },
     { chiave: 'domande', titolo: 'Domande', resa: (r) => <Domande r={r} />, numerica: true },
     ...(conNonRilasciate ? [{ chiave: 'nonRilasciate', titolo: 'Di cui non rilasciate', resa: (r: RigaVoci) => <NonRilasciate r={r} />, numerica: true }] : []),
-    { chiave: 'elenco', titolo: 'Elenco operativo', resa: (r) => <Elenco r={r} link={link} /> },
+    { chiave: 'elenco', titolo: 'Elenco operativo', resa: (r) => <Elenco r={r} link={link} conNonRilasciate={conNonRilasciate} /> },
   ];
   const righe: RigaVoci[] = [...voci.map((voce) => ({ voce })), ...(totale ? [{ totale }] : [])];
   return <TabellaStatica caption={caption} colonne={colonne} righe={righe} chiaveRiga={(r) => ('totale' in r ? 'totale' : r.voce.chiave)} />;

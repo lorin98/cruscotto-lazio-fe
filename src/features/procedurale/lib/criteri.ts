@@ -23,7 +23,9 @@ const PROGRAMMA = ['intervento', 'os', 'og', 'op'] as const;
 // Chiavi degli stati: di TX-0025 (voci di RF025 come AMMESSA, codici osservati dell'anagrafica come REVOCATA, SENZA_STATO)
 // e codici degli stati SIAN fuori catalogo delle distribuzioni (SOSPESA, "PROPOSTO AL PAGAMENTO-ESTRAZ. CAMPIONE-DA
 // ESEGUIRE"): lettere, cifre, spazi e punteggiatura breve, al piu' 100 caratteri, senza spazi ai bordi. Un valore diverso
-// non arriva dall'indirizzo in pagina ne' finisce in un link (il backend risponderebbe 400).
+// non arriva dall'indirizzo in pagina ne' finisce in un link o in un filtro. Il backend accetta i codici osservati come
+// sono nel database, anche con segni fuori da questo formato (StatoOsservato): per loro la tabella dice che la voce non
+// si apre nell'elenco (motivoSenzaLink di lib/collegamenti) e il clic sulla barra non filtra la pagina.
 const CHIAVE_STATO = /^[A-Za-z0-9](?:[A-Za-z0-9_ .,'()/-]{0,98}[A-Za-z0-9_.)])?$/;
 
 /** Una chiave di stato utilizzabile in un indirizzo. */
