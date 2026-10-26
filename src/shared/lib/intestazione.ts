@@ -46,6 +46,14 @@ export function testoPerimetro(perimetro: string): string {
 }
 
 /**
+ * Etichetta di una misura per domanda (pagamenti, domande, superfici): con il perimetro ADA della risposta e' dell'area del
+ * profilo. Prima nel lib del finanziario; ora anche delle card della Home degli altri ambiti.
+ */
+export function etichettaDellArea(etichetta: string, perimetro: string | null | undefined): string {
+  return perimetro === 'ADA' ? `${etichetta} della tua area` : etichetta;
+}
+
+/**
  * Righe di contesto della pagina per l'intestazione dei file generati nel browser (PNG dei grafici, NFR-50): i filtri
  * applicati come nella barra, il profilo, l'ultimo dato sincronizzato per flusso con lo stesso testo dei file del backend.
  * `filtri`: "Etichetta: valore" di ogni filtro applicato; `ultimi` assente = non letto (grant mancante, errore, attesa).

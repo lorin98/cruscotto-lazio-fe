@@ -3,7 +3,7 @@
 // calcolabile e lo si dice con gli interventi che mancano; la quota pagata sulla dotazione e' la stessa media
 // ponderata del grafico dell'avanzamento (stessi interventi inclusi ed esclusi).
 import type { ImportoLike } from '../../../entities/importo';
-import { centesimi, formatEuro, plurale } from '../../../shared/lib';
+import { formatEuro, plurale, sommaSeCompleta } from '../../../shared/lib';
 import { avanzamentoPonderato } from './avanzamento';
 import type { RigaImportiAnno, RigaSpesa } from './dto';
 import { assenzaImporto, codiceDi, valoreDi } from './importi';
@@ -17,10 +17,8 @@ export interface Aggregato {
   nota?: string;
 }
 
-/** Somma di numeri solo se ognuno e' noto: con anche un solo assente il risultato e' null. */
-export function sommaSeCompleta(valori: ReadonlyArray<number | null | undefined>): number | null {
-  return valori.every((v): v is number => typeof v === 'number' && Number.isFinite(v)) ? centesimi(valori.reduce((a, v) => a + v, 0)) : null;
-}
+/** Somma di numeri solo se ognuno e' noto (del kit: la usano anche le card della Home degli altri ambiti). */
+export { sommaSeCompleta };
 
 /** Totale di un Importo per intervento: "non calcolabile" con gli interventi senza valore, mai una somma parziale. */
 export function totaleImporti<T extends { codiceIntervento?: string }>(righe: readonly T[], importo: (r: T) => ImportoLike | null | undefined): Aggregato {

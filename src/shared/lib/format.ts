@@ -26,6 +26,11 @@ export function ettari(v: number): string {
   return `${formatEttari(v)} ha`;
 }
 
+/** Un conteggio arrotondato all'unita': i passi di un numero animato (NumeroAnimato) non sono interi. */
+export function intero(v: number): string {
+  return formatNumber(Math.round(v));
+}
+
 // Percentuale gia' espressa in centesimi (es. 12.5 -> "12,5 %"), al piu' due decimali. Un valore non nullo che a due
 // decimali sarebbe zero non si scrive "0 %": "< 0,01 %" (o "> -0,01 %").
 export function formatPercentuale(value: number | null | undefined): string {

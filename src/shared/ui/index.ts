@@ -48,3 +48,4 @@ export type { ColonnaSceglibile } from './tabella/SceltaColonne';
 export type { ColonnaServer, OrdinamentoServer } from './tabella/TabellaServer';
 export { Paginazione } from './tabella/Paginazione';
 export { NumeroAnimato, movimentoRidotto, useValoreAnimato } from './animazione/NumeroAnimato';
+export { AnteprimaArea, AttesaArea, AvanzamentoArea, NON_DISPONIBILE, NotaArea, NumeriArea, NumeroArea, RiferimentoArea } from './anteprima/AnteprimaArea';

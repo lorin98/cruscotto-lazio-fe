@@ -1,5 +1,7 @@
 // perimetro.ts — perimetro dei dati del finanziario, funzioni PURE (zero React): regionale, oppure l'area decentrata
 // (ADA) del profilo per le misure per domanda. I dati di programma (dotazione, quote) restano regionali anche per un P4.
+// L'etichetta di una misura per domanda e' del kit (shared/lib), comune alle card della Home di tutti gli ambiti.
+export { etichettaDellArea } from '../../../shared/lib';
 
 /** Perimetro delle misure per domanda (enum della spec: il controllo di allineamento e' in ui/contratto.ts). */
 export type Perimetro = 'REGIONALE' | 'ADA';
@@ -24,11 +26,6 @@ export function perimetroBreve(perimetro: Perimetro): string {
 export function perimetroCombinato(perimetri: ReadonlyArray<string | null | undefined>): Perimetro | undefined {
   if (perimetri.includes(PERIMETRO_ADA)) return PERIMETRO_ADA;
   return perimetri.includes('REGIONALE') ? 'REGIONALE' : undefined;
-}
-
-/** Etichetta di una misura per domanda (pagamenti, domande): con il perimetro ADA e' dell'area del profilo. */
-export function etichettaDellArea(etichetta: string, perimetro: string | null | undefined): string {
-  return perimetro === PERIMETRO_ADA ? `${etichetta} della tua area` : etichetta;
 }
 
 /** Etichetta di un dato di programma (dotazione, quote): con il perimetro ADA resta regionale e lo si dichiara. */

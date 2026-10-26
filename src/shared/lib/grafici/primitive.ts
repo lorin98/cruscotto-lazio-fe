@@ -41,6 +41,14 @@ export function sommaCentesimi(valori: readonly number[]): number {
   return centesimi(valori.reduce((acc, v) => acc + v, 0));
 }
 
+/**
+ * Somma al centesimo solo se ogni numero e' noto: con anche un solo assente il risultato e' null (mai una somma parziale,
+ * come i totali del backend). Prima nel lib del finanziario; ora anche delle card della Home degli altri ambiti.
+ */
+export function sommaSeCompleta(valori: ReadonlyArray<number | null | undefined>): number | null {
+  return valori.every((v): v is number => numeroDi(v) !== null) ? sommaCentesimi(valori as number[]) : null;
+}
+
 /** "1 intervento", "3 interventi". */
 export function plurale(n: number, singolare: string, plurale: string): string {
   return `${formatNumber(n)} ${n === 1 ? singolare : plurale}`;

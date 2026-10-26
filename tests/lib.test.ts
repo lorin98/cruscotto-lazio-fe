@@ -40,6 +40,25 @@ describe('lib/format — formatEttari, superfici con due decimali (D-01 del back
   });
 });
 
+describe('lib del kit per le card della Home (decisione dell utente del 26/10/2026)', () => {
+  it('intero: i passi di un numero animato arrotondati all unita, come formatNumber (it-IT: separatore da 10.000)', () => {
+    expect(libComune.intero(12345.4)).toBe('12.345');
+    expect(libComune.intero(0.6)).toBe('1');
+    expect(libComune.intero(1234.5)).toBe(libComune.formatNumber(1235));
+  });
+  it('etichettaDellArea: col perimetro ADA la misura e dell area del profilo, altrimenti invariata', () => {
+    expect(libComune.etichettaDellArea('Domande ammesse', 'ADA')).toBe('Domande ammesse della tua area');
+    expect(libComune.etichettaDellArea('Domande ammesse', 'REGIONALE')).toBe('Domande ammesse');
+    expect(libComune.etichettaDellArea('Domande ammesse', undefined)).toBe('Domande ammesse');
+  });
+  it('sommaSeCompleta: la somma al centesimo solo se ogni numero e noto, mai una somma parziale', () => {
+    expect(libComune.sommaSeCompleta([0.1, 0.2])).toBe(0.3);
+    expect(libComune.sommaSeCompleta([])).toBe(0);
+    expect(libComune.sommaSeCompleta([1, null])).toBeNull();
+    expect(libComune.sommaSeCompleta([1, Number.NaN])).toBeNull();
+  });
+});
+
 describe('lib/anni — anno di un parametro del contratto (2000-2100)', () => {
   it('interi nell intervallo; fuori, decimali e assenti no', () => {
     expect(isAnnoValido(2025)).toBe(true);
