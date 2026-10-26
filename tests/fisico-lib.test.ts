@@ -33,7 +33,8 @@ import {
   testoQuotaOltreDs,
   testoSenzaSuperfici,
 } from '../src/features/fisico/lib/formato';
-import { cardDelleSuperfici, kpiDellaCampagna } from '../src/features/fisico/lib/report';
+import { TESTI_KPI, cardDelleSuperfici, kpiDellaCampagna } from '../src/features/fisico/lib/report';
+import { anteprimaSuperfici } from '../src/features/fisico/lib/anteprima';
 import { MOTIVO_CON_CAMPAGNA, graficoInterventoPerCampagna, graficoPerCampagna, graficoPerIntervento, graficoVerifica, lineePerCampagna } from '../src/features/fisico/lib/grafici';
 import {
   MAX_CIFRE,
@@ -52,7 +53,7 @@ import {
 } from '../src/features/fisico/lib/determine';
 import { GRANT, puoLeggere } from '../src/features/fisico/lib/grant';
 import { PAGINE_FISICO, PERCORSI, pagineVisibili } from '../src/features/fisico/lib/pagine';
-import { DETERMINE, DETERMINE_CHIUSA, DETERMINE_NESSUNA, SUPERFICI, SUPERFICI_SENZA, SUPERFICI_TRE, SUPERFICI_TRE_2024, superficiPer } from '../src/features/fisico/testing/fixture';
+import { DETERMINE, DETERMINE_CHIUSA, DETERMINE_NESSUNA, SUPERFICI, SUPERFICI_SENZA, SUPERFICI_TRE, SUPERFICI_TRE_2024, campagna, superficiPer } from '../src/features/fisico/testing/fixture';
 
 // gli spazi del formato it-IT sono non separabili: si confronta con spazi normali
 const n = (s: string | undefined) => (s ?? '').replace(/\s/g, ' ');
@@ -437,5 +438,35 @@ describe('grant e pagine del fisico (gate di UX)', () => {
     expect(pagineVisibili((g) => g === GRANT.determine).map((p) => p.percorso)).toEqual([PERCORSI.determine]);
     expect(pagineVisibili(() => true).map((p) => p.voceMenu)).toEqual(['Superfici ammissibili', 'Determine di una domanda']);
     expect(PAGINE_FISICO.map((p) => p.grant)).toEqual([GRANT.superfici, GRANT.determine]);
+  });
+});
+
+describe('RF018: card della Home coi KPI della campagna piu recente (OP-FIS-10, decisione dell utente del 26/10/2026)', () => {
+  it('la campagna piu recente della risposta, coi conti della pagina: dentro la campagna si sommano gli interventi', () => {
+    expect(anteprimaSuperfici(SUPERFICI)).toEqual({ campagna: 2025, superficieDs: 15.5, superficieDp: 16.2, domandePagamento: 3, quotaOltreDs: 33.3 });
+    // SRB01 e SRB02 nel 2025; SRB03 ha solo il 2024 e non entra (le campagne non si sommano, D-01)
+    expect(anteprimaSuperfici(SUPERFICI_TRE)).toEqual({ campagna: 2025, superficieDs: 19.5, superficieDp: 19.9, domandePagamento: 5, quotaOltreDs: 20 });
+    // gli stessi numeri dei KPI della pagina per quella campagna
+    const kpi = kpiDellaCampagna(SUPERFICI_TRE.righe, 2025) ?? [];
+    expect(kpi.find((k) => k.chiave === 'ds')?.valore).toBe(ettari(19.5));
+    expect(kpi.find((k) => k.chiave === 'dp')?.valore).toBe(ettari(19.9));
+    expect(kpi.find((k) => k.chiave === 'oltre')?.quota).toBe(0.2);
+  });
+
+  it('nessuna superficie: nessun numero; senza domande di pagamento nella campagna nessuna quota', () => {
+    expect(anteprimaSuperfici(SUPERFICI_SENZA)).toBeNull();
+    const senzaPagamento = { righe: [{ codiceIntervento: 'SRB01', motivo: null, campagne: [campagna(2026, { domandePagamento: 0 })] }] };
+    expect(anteprimaSuperfici(senzaPagamento)).toMatchObject({ campagna: 2026, domandePagamento: 0, quotaOltreDs: null });
+  });
+
+  it('etichette e spiegazioni comuni alla pagina e alla card', () => {
+    const kpi = kpiDellaCampagna(SUPERFICI.righe, 2025) ?? [];
+    expect(kpi.map((k) => k.etichetta)).toEqual([TESTI_KPI.ds.etichetta, TESTI_KPI.dp.etichetta, 'Differenza DP - DS', TESTI_KPI.oltre.etichetta]);
+    expect(kpi.map((k) => k.nomeAccessibile)).toEqual([
+      'Superficie ammissibile DS: superficie delle domande di sostegno, campagna 2025',
+      'Superficie ammissibile DP: superficie delle domande di pagamento, campagna 2025',
+      'Differenza DP - DS: superficie di pagamento meno superficie di sostegno, campagna 2025',
+      'Domande con DP oltre la DS: domande di pagamento con superficie oltre quella di sostegno, campagna 2025',
+    ]);
   });
 });

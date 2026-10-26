@@ -3,3 +3,4 @@
 export { SuperficiAmmissibili } from './ui/SuperficiAmmissibili';
 export { DetermineDellaDomanda } from './ui/DetermineDellaDomanda';
 export { pagineVisibili } from './lib/pagine';
+export { AnteprimaFisico } from './ui/AnteprimaFisico';

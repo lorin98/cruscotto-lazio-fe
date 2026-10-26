@@ -13,6 +13,19 @@ import { quotaDpOltreDs, totaliCampagna, totaliPerCampagna } from './superfici';
 
 export type ChiaveKpi = 'ds' | 'dp' | 'differenza' | 'oltre';
 
+/** Etichetta visibile e spiegazione (le sigle sciolte) dei KPI della campagna: le stesse nella pagina e nella card della Home. */
+export const TESTI_KPI = {
+  ds: { etichetta: 'Superficie ammissibile DS', spiegazione: 'superficie delle domande di sostegno' },
+  dp: { etichetta: 'Superficie ammissibile DP', spiegazione: 'superficie delle domande di pagamento' },
+  oltre: { etichetta: 'Domande con DP oltre la DS', spiegazione: 'domande di pagamento con superficie oltre quella di sostegno' },
+} as const satisfies Partial<Record<ChiaveKpi, { etichetta: string; spiegazione: string }>>;
+
+/** Nome accessibile di un KPI: l'etichetta, la spiegazione e la campagna. */
+function nomeKpi(chiave: keyof typeof TESTI_KPI, campagna: number): string {
+  const t = TESTI_KPI[chiave];
+  return `${t.etichetta}: ${t.spiegazione}, campagna ${campagna}`;
+}
+
 /** Un KPI della campagna: etichetta visibile, nome accessibile con le sigle sciolte, valore, nota e quota della barra. */
 export interface KpiSuperfici {
   chiave: ChiaveKpi;
@@ -32,15 +45,15 @@ export function kpiDellaCampagna(righe: readonly InterventoSuperficie[], campagn
   return [
     {
       chiave: 'ds',
-      etichetta: 'Superficie ammissibile DS',
-      nomeAccessibile: `Superficie ammissibile DS: superficie delle domande di sostegno, campagna ${campagna}`,
+      etichetta: TESTI_KPI.ds.etichetta,
+      nomeAccessibile: nomeKpi('ds', campagna),
       valore: ettari(t.superficieDs),
       nota: `${testoDomande(t.domandeSostegno, 'sostegno')} (la DS si conta una volta per domanda di sostegno)`,
     },
     {
       chiave: 'dp',
-      etichetta: 'Superficie ammissibile DP',
-      nomeAccessibile: `Superficie ammissibile DP: superficie delle domande di pagamento, campagna ${campagna}`,
+      etichetta: TESTI_KPI.dp.etichetta,
+      nomeAccessibile: nomeKpi('dp', campagna),
       valore: ettari(t.superficieDp),
       nota: testoDomande(t.domandePagamento, 'pagamento'),
     },
@@ -53,8 +66,8 @@ export function kpiDellaCampagna(righe: readonly InterventoSuperficie[], campagn
     },
     {
       chiave: 'oltre',
-      etichetta: 'Domande con DP oltre la DS',
-      nomeAccessibile: `Domande con DP oltre la DS: domande di pagamento con superficie oltre quella di sostegno, campagna ${campagna}`,
+      etichetta: TESTI_KPI.oltre.etichetta,
+      nomeAccessibile: nomeKpi('oltre', campagna),
       valore: formatNumber(t.domandeDpOltreDs),
       nota: testoQuotaOltreDs(t.domandePagamento, quota),
       quota: quota === null ? null : quota / 100,
