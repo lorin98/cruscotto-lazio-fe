@@ -856,6 +856,18 @@
       "name": "interventi[].descrizione",
       "provenance": "spec",
       "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "card della Home: somme fra gli interventi di righe[].domandeFinanziate, righe[].spesaErogata, righe[].valoreDomandeFinanziate, righe[].domandeRicevute di TX-0016 senza filtri e senza anno",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigcRiga"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "card della Home: annoRiferimento e perimetro della risposta (anno di riferimento detto in testo; etichette 'della tua area' col perimetro ADA)",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
     }
   ],
   "flows": [
@@ -874,14 +886,15 @@
         "Scaricamenti per formato come nel finanziario (PNG, CSV e XLSX nella card del grafico, CSV e XLSX in quella della tabella): sigla visibile contenuta nel nome accessibile completo (WCAG 2.5.3); durante la preparazione aria-disabled col focus sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo",
         "Pill 'Dati al' (ultimiDatiSincronizzati) come bottone col nome accessibile completo ('Ultimo dato sincronizzato: dati al ... per tutti i flussi. Mostra il dettaglio per flusso') e popover con una voce per flusso",
         "Frase verso la verifica SMP SIGC del finanziario resa solo con csr.tx-0015.read (mai un link che porta a un 403); il testo dice l'area di arrivo",
-        "Residuo manuale: ordine di lettura (filtri, anno, grafico, tabella), comprensibilita delle note sulle definizioni, contrasto della resa finale; axe rinviato allo step8"
+        "Residuo manuale: ordine di lettura (filtri, anno, grafico, tabella), comprensibilita delle note sulle definizioni, contrasto della resa finale; axe rinviato allo step8",
+        "Card della Home (home.html, decisione dell'utente del 26/10/2026): numeri in una lista di definizioni dentro un gruppo con nome (\"L'istituzionale in cifre\"); numero animato letto solo nel valore finale e fermo con prefers-reduced-motion; barra della spesa sul valore finanziato nascosta ai lettori di schermo, percentuale nel testo; totale di un dato motivato assente in una riga detto 'non disponibile' col motivo, mai una somma parziale; errore detto in una frase senza fermare la Home."
       ],
       "approval": {
-        "approved_hash": "sha256:4a53048a290b2708318e4d74613ba4e82eb9b7bc02484ddafb2d4e2c4af91909",
+        "approved_hash": "sha256:bb59cdbaaf09749c1f4e96551c6094b56af2aa652fbcfd02bbd65929189310c9",
         "baseline_ref": "./wireframes/istituzionale/verifica-smp-non-sigc",
-        "approved_at": "2026-10-22T08:51:29Z",
-        "time_to_approve_s": 218,
-        "rework_rounds": 1
+        "approved_at": "2026-10-26T08:49:12Z",
+        "time_to_approve_s": 122,
+        "rework_rounds": 0
       }
     },
     {
@@ -987,6 +1000,11 @@
         "TX-0058",
         "TX-0059"
       ]
+    },
+    {
+      "id": "OP-IS-11",
+      "kind": "altro",
+      "detail": "Card della Home dinamica (decisione dell'utente del 26/10/2026, come la card del finanziario): coi grant csr.tx-0016.read la card Istituzionale mostra i totali della verifica SMP non SIGC letta senza filtri e senza anno (stessa cache della pagina): domande finanziate, spesa pubblica erogata, quota della spesa sul valore delle domande finanziate (barra), domande ricevute, con l'anno di riferimento della risposta. Somme fra interventi lecite: ogni domanda e' di un solo intervento (D-02 Rev. 2), la spesa sono righe pagate non SIGC; un dato motivato assente in una riga rende il totale non disponibile col motivo. Nessuna lettura di TX-0017 (OP-IS-06). La pagina resta senza KPI. La Home non e' una route della feature: il componente sta nella feature (G1, OP-IS-05) e lo monta lo step6 in src/app/aree.ts come Anteprima. Wireframe: home.html del flusso verifica-smp-non-sigc."
     }
   ]
 }

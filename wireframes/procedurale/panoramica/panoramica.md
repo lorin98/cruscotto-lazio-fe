@@ -18,6 +18,9 @@ Cambiato il 22/10/2026 (giro G3 del backend): pill "Dati al" da TX-0024 (ultimiD
 PNG, CSV, XLSX in ogni card (CSV e XLSX dagli export `<report>/{formato}`), scheda Sottofasi nel dettaglio (TX-0031 e
 TX-0032 ora accettano intervento e stato), nessun riferimento al parametro `azione` (uscito dal contratto).
 
+Aggiornato il 26/10/2026 con la card Procedurale della Home (`home.html`, decisione dell'utente del 26/10/2026: domande
+ammesse, contributo ammesso, barra degli interventi attivati, domande di sostegno). Vedi "Card della Home".
+
 ## Component tree (per pagina)
 
 Vocabolario del kit UI v2 (ADR 0027 di green-fe), lo stesso del finanziario (prototipo approvato `prototipo/finanziario/`).
@@ -107,6 +110,41 @@ si apre da ogni pagina; la panoramica lo ospita nel wireframe. Bottone "Applica 
 contratto non ha un conteggio dei risultati, come nel finanziario). TX-0024 porta anche ultimiDatiSincronizzati, la pill
 "Dati al" di ogni pagina: una lettura per pagina, fuori dal tetto delle letture e dall'audit (D-01 Rev. 2 del backend).
 
+## Card della Home (decisione dell'utente del 26/10/2026, OP-PR-10)
+
+Pagina: `home.html` di questa dir. La Home non e' una route della feature (resta fuori dal manifest, `src/app/home.tsx`):
+la card dell'area e' contenuto della feature (G1, OP-PR-04) e la monta lo step6 in `src/app/aree.ts` come `Anteprima`,
+accanto a quella del finanziario (`AnteprimaFinanziario`), con la stessa forma: fascia colorata invariata (icona, stato,
+titolo, descrizione), numeri chiave nel corpo, "Entra in Procedurale" nel piede.
+
+- Letture: TX-0026 e TX-0027 senza filtri, le stesse della panoramica aperta senza filtri (stessa cache). Ognuna col suo
+  grant: csr.tx-0026.read per domande ammesse, contributo e interventi attivati; csr.tx-0027.read per le domande di
+  sostegno (p1-dirigente, p2-referente-adg, p3-funzionario-area-pro, p4-responsabile-procedimento-ada hanno entrambi).
+  Senza nessuno dei due nessuna lettura e la card elenca i contenuti dell'area, come oggi. Nessuna lettura di TX-0024,
+  TX-0025, TX-0028, TX-0029.
+- Numeri: quelli della panoramica senza filtri, dagli stessi DTO:
+
+| numero | campo (provenance spec: openapi-procedurale.json) | resa |
+|---|---|---|
+| Domande ammesse | DomandeAmmesse.totale.domandeAmmesse | intero, numero animato (come il KPI della panoramica) |
+| Contributo ammesso | DomandeAmmesse.totale.contributoAmmesso (Importo motivato) | importo breve, numero animato; assente: "non disponibile" col motivo, mai 0 |
+| Interventi attivati | totale.interventiAttivati su totale.interventiPerimetroUfficiale | "n su m" e percentuale nel testo, barra a passi del 5 % (decorativa); con m = 0 il solo testo |
+| Domande di sostegno | StatiDomande.totale.totale di TX-0027 (voci, altri stati e non rilasciate comprese) | intero, numero animato (come il KPI della pagina degli stati) |
+
+- Perimetro ADA (P4): col perimetro ADA della risposta le etichette lo dicono ("Domande ammesse della tua area",
+  "Contributo ammesso della tua area", "Domande di sostegno della tua area", "Interventi attivati con domande della tua
+  area"), come la card del finanziario; il perimetro ufficiale degli interventi resta quello del programma.
+- Stati: caricamento (uno scheletro per lettura); errore di una lettura (la sua frase, l'altra resta: "Domande ammesse e
+  contributo non disponibili in questo momento.", "Conteggio delle domande di sostegno non disponibile in questo
+  momento."; la Home non si ferma, nessun avviso della pagina); risposta di TX-0026 senza totale (la frase dell'errore);
+  contributo senza fonte (assenza motivata); nessun intervento nel perimetro ufficiale (testo senza barra); profilo senza
+  grant (contenuti dell'area); un solo grant (il solo gruppo di numeri di quella lettura).
+- Nessun link verso l'elenco dalla card: l'ingresso e' "Entra in Procedurale" (i link dei KPI restano nella panoramica).
+- WCAG: numeri in una lista di definizioni (dt, dd) in un gruppo con nome ("Il procedurale in cifre"); il numero animato
+  e' letto solo nel valore finale e non si anima con prefers-reduced-motion (kit `NumeroAnimato`); la barra e' nascosta ai
+  lettori di schermo e numeri e percentuale sono nel testo. RESIDUO umano: ordine di lettura della card, contrasto della
+  resa finale; axe deferito a step8.
+
 ## Stati resi (obbligatori)
 
 - vuoto: messaggio azionabile con "Modifica i filtri" (mai schermo bianco); nel dettaglio "nessuna domanda dell'intervento"
@@ -135,6 +173,8 @@ contratto non ha un conteggio dei risultati, come nel finanziario). TX-0024 port
 - OP-PR-06: profili misti (P4 con un profilo regionale): il report e' ADA, l'elenco aperto dai link e' regionale.
 - OP-PR-07: TX-0024 e TX-0025 (ui_hint form) resi come pannello dei filtri, non come route form.
 - OP-PR-08: regole del drill-down (parte rilasciata, voceProgrammazione, cosa non si collega).
+- OP-PR-10: card della Home coi numeri chiave della panoramica (decisione dell'utente del 26/10/2026), vedi "Card della
+  Home"; la monta lo step6 in `src/app/aree.ts`.
 - Chiusi col giro G3 e con G1 (22/10/2026): OP-PR-01 (ultimo dato sincronizzato da TX-0024), OP-PR-02 (parametro `azione`
   uscito dal contratto), OP-PR-03 (sottofasi con i filtri; Unit Amount senza lo stato per decisione del backend), OP-PR-04
   (card della Home = contenuto reale della feature, la riscrive step6), OP-PR-05 (export CSV e XLSX di TX-0026..TX-0032).

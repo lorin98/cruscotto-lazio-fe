@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<!-- Wireframe v2 (template wireframe-v2 di green-fe, ADR 0027), feature istituzionale, flusso verifica-smp-non-sigc: la card
+     Istituzionale della Home coi totali della verifica SMP non SIGC (decisione dell'utente del 26/10/2026). La Home non e'
+     una route della feature: la card e' contenuto della feature (G1) e la monta lo step6 in src/app/aree.ts, come quella del
+     finanziario. Valori di esempio, nessun dato reale. -->
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Home - Cruscotto CSR 2023-2027</title>
+<link rel="stylesheet" href="wireframe.css">
+</head>
+<body>
+<a class="skip-link" href="#contenuto">Salta al contenuto</a>
+<header class="ui-testata">
+  <div class="ui-ente">
+    <span class="ui-logo">Regione Lazio</span>
+    <span class="ui-logo">ARSIAL</span>
+  </div>
+  <div class="ui-appbar">
+    <a class="ui-appbar__nome" href="home.html">Cruscotto CSR 2023-2027</a>
+    <form class="ui-cerca" action="#" method="get" role="search">
+      <label class="form-label" for="cerca-app">Cerca un intervento</label>
+      <input class="form-control" type="search" id="cerca-app" name="q">
+    </form>
+    <span class="ui-utente">Nome Cognome - <a href="#contenuto">Esci</a></span>
+  </div>
+</header>
+<div class="ui-layout">
+  <nav class="ui-sidebar" aria-label="Navigazione principale">
+    <p class="ui-menu__sezione">Aree del cruscotto</p>
+    <ul class="ui-menu">
+      <li><a class="ui-menu__gruppo" href="../../panoramica/panoramica.html">Finanziario</a></li>
+      <li><a class="ui-menu__gruppo" href="../../fisico/superfici/superfici.html">Fisico</a></li>
+      <li><a class="ui-menu__gruppo" href="../../procedurale/panoramica/panoramica.html">Procedurale</a></li>
+      <li><a class="ui-menu__gruppo" href="verifica-smp-non-sigc.html">Istituzionale</a></li>
+    </ul>
+    <p class="ui-menu__sezione">Strumenti</p>
+    <ul class="ui-menu">
+      <li><a class="ui-menu__gruppo" href="../../elenco-operativo/domande/domande.html">Elenco operativo</a></li>
+    </ul>
+  </nav>
+  <main class="ui-main" id="contenuto">
+    <nav class="breadcrumb-container" aria-label="Percorso">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item" aria-current="page">Home</li>
+      </ol>
+    </nav>
+    <div class="ui-hero">
+      <p class="ui-eyebrow">Regione Lazio - ARSIAL</p>
+      <h1>Cruscotto CSR 2023-2027</h1>
+      <p>Monitoraggio del Complemento di Sviluppo Rurale 2023-2027 della Regione Lazio: scegli un ambito per entrare.</p>
+    </div>
+    <p class="wf-note">Card Istituzionale. Ruoli (grant verbatim): csr.tx-0016.read - Transazione: TX-0016, letta senza filtri e senza anno (la stessa lettura della pagina Verifica SMP non SIGC aperta senza filtri, in cache condivisa). Nessuna lettura di TX-0017: l'output regionale ha unita' di misura diverse per intervento e non si somma (OP-IS-06). Senza il grant la card non legge nulla e mostra i contenuti dell'area (gate di UX, mai sicurezza). Le altre tre card sono fuori da questo flusso.</p>
+    <p class="wf-note">I numeri sono i totali di quattro colonne della tabella della verifica, sommate fra gli interventi della risposta. Si sommano perche' ogni domanda e' una domanda di sostegno corrente di un solo intervento (D-02 Rev. 2 del backend) e la spesa erogata sono righe pagate non SIGC (anticipi inclusi, al lordo dei recuperi). Se in una riga un dato motivato manca, il totale e' "non disponibile" col motivo: mai una somma parziale. La pagina della verifica non cambia (resta senza KPI).</p>
+    <div class="ui-griglia ui-griglia--4">
+      <section class="ui-card" aria-labelledby="area-finanziario">
+        <div class="ui-card__testa">
+          <h2 id="area-finanziario">Finanziario</h2>
+          <span class="badge">Disponibile</span>
+        </div>
+        <p class="wf-note">Card del finanziario, invariata: dotazione, pagamenti lordi, quota pagata sulla dotazione, domande presentate.</p>
+      </section>
+      <section class="ui-card" aria-labelledby="area-fisico">
+        <div class="ui-card__testa">
+          <h2 id="area-fisico">Fisico</h2>
+          <span class="badge">Disponibile</span>
+        </div>
+        <p class="wf-note">Card del fisico: flusso superfici del fisico.</p>
+      </section>
+      <section class="ui-card" aria-labelledby="area-procedurale">
+        <div class="ui-card__testa">
+          <h2 id="area-procedurale">Procedurale</h2>
+          <span class="badge">Disponibile</span>
+        </div>
+        <p class="wf-note">Card del procedurale: flusso panoramica del procedurale.</p>
+      </section>
+      <section class="ui-card" aria-labelledby="area-istituzionale">
+        <div class="ui-card__testa">
+          <h2 id="area-istituzionale">Istituzionale</h2>
+          <span class="badge">Disponibile</span>
+        </div>
+        <p>Dati ASR non SIGC a confronto con SMP - Data Platform e output regionale programmato e realizzato.</p>
+        <div role="group" aria-label="L'istituzionale in cifre">
+          <p class="ui-eyebrow">Non SIGC, anno di riferimento aaaa</p>
+          <dl>
+            <dt>Domande finanziate</dt>
+            <dd class="ui-kpi__valore">nnn</dd>
+            <dt>Spesa pubblica erogata</dt>
+            <dd class="ui-kpi__valore">n,n M euro</dd>
+          </dl>
+          <p class="ui-barra">Spesa erogata sul valore delle domande finanziate: n,nn % (barra a passi del 5 %, decorativa: la percentuale e' nel testo)</p>
+          <dl>
+            <dt>Domande ricevute</dt>
+            <dd class="ui-kpi__valore">n.nnn</dd>
+          </dl>
+        </div>
+        <a class="btn btn-primary" href="verifica-smp-non-sigc.html">Entra in Istituzionale</a>
+      </section>
+    </div>
+    <h2>Stato: caricamento</h2>
+    <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro al posto dei numeri della card Istituzionale; fascia, testo e "Entra in Istituzionale" restano)</div>
+    <h2>Stato: errore</h2>
+    <p class="ui-fonte">Dati della verifica SMP non SIGC non disponibili in questo momento.</p>
+    <p class="wf-note">Un errore non ferma la Home e non apre un avviso della pagina: la card resta l'ingresso all'area, come la card del finanziario.</p>
+    <h2>Stato: nessun file SMP non SIGC</h2>
+    <p class="ui-eyebrow">Non SIGC, nessun file SMP non SIGC</p>
+    <p class="wf-note">Senza anno di riferimento nella risposta i numeri restano: domande e spesa vengono dalle pratiche, non dal file SMP (come lo stato "nessun file SMP non SIGC" della pagina).</p>
+    <h2>Stato: un dato motivato assente in una riga</h2>
+    <dl>
+      <dt>Spesa pubblica erogata</dt>
+      <dd>non disponibile</dd>
+      <dd class="ui-fonte">non disponibile: fonte non attiva (spesa erogata)</dd>
+    </dl>
+    <p class="ui-fonte">Spesa erogata sul valore delle domande finanziate: non disponibile</p>
+    <p class="wf-note">Il totale di un dato motivato esiste solo se ogni riga lo ha: altrimenti "non disponibile" col motivo (entity importo), e la quota che lo usa non c'e'. La quota non c'e' nemmeno con valore finanziato nullo. Se la spesa supera il valore finanziato la percentuale e' quella vera e la barra si ferma al 100 %.</p>
+    <h2>Stato: perimetro ADA</h2>
+    <p class="wf-note">TX-0016 dichiara il perimetro della risposta: col perimetro ADA le etichette dicono "della tua area", come nella card del finanziario. Oggi nessun profilo con csr.tx-0016.read ha il perimetro ADA (catalogo: p1-dirigente, p2-referente-adg, p3-funzionario-area-ist).</p>
+    <h2>Stato: profilo senza csr.tx-0016.read</h2>
+    <ul>
+      <li>Verifica SMP dei dati ASR non SIGC</li>
+      <li>Output regionale programmato e realizzato per intervento e anno</li>
+    </ul>
+    <p class="wf-note">Nessuna lettura: la card elenca cosa c'e' nell'area, come oggi, anche per chi ha il solo csr.tx-0017.read (la card non legge l'output).</p>
+  </main>
+</div>
+<footer class="ui-footer">
+  <ul>
+    <li><a href="#contenuto">Dichiarazione di accessibilita' (indirizzo da definire)</a></li>
+    <li><a href="#contenuto">Privacy (indirizzo da definire)</a></li>
+    <li><a href="#contenuto">Note legali (indirizzo da definire)</a></li>
+    <li>Regione Lazio - ARSIAL</li>
+  </ul>
+</footer>
+</body>
+</html>

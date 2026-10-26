@@ -12,6 +12,9 @@ Aggiornato il 22/10/2026 con la correzione della review step9 del fisico (v1 ite
 filtro Campagna (V1: interventi senza superfici nella campagna filtrata, stato vuoto, mini linea dell'anteprima) e focus sul
 titolo dopo un comando che sparisce col report (A1). Vedi "Filtro Campagna e interventi senza superfici" e "Stati resi".
 
+Aggiornato il 26/10/2026 con la card Fisico della Home (`home.html`, decisione dell'utente del 26/10/2026: i KPI della
+pagina per la campagna piu' recente). Vedi "Card della Home".
+
 ## Route del flusso
 
 | route | kind | pattern | grant (verbatim dal catalogo) |
@@ -144,6 +147,38 @@ descrizione, obiettivi e azione portante non hanno voci, i filtri gia' nell'indi
 legge comunque. Campagna: aperta la pagina con una campagna nell'indirizzo, la risposta ha solo quella campagna e il gruppo
 propone quella e "Tutte le campagne".
 
+## Card della Home (decisione dell'utente del 26/10/2026, OP-FIS-10)
+
+Pagina: `home.html` di questa dir. La Home non e' una route della feature (resta fuori dal manifest, `src/app/home.tsx`):
+la card dell'area e' contenuto della feature (G1) e la monta lo step6 in `src/app/aree.ts` come `Anteprima`, accanto a
+quella del finanziario (`AnteprimaFinanziario`), con la stessa forma: fascia colorata invariata (icona, stato, titolo,
+descrizione), numeri chiave nel corpo, "Entra in Fisico" nel piede.
+
+- Lettura: TX-0018 senza filtri, la stessa della pagina Superfici aperta senza filtri (stessa cache: chi ha gia' aperto
+  la pagina ha gia' il dato, e viceversa). Nessuna lettura di TX-0060. Grant: csr.tx-0018.read (p1-dirigente,
+  p2-referente-adg, p3-funzionario-area-fis, p5-amministratore-funzionale); senza il grant nessuna lettura e la card
+  elenca i contenuti dell'area, come oggi.
+- Campagna: quella di riferimento della pagina senza filtro (`campagnaDiRiferimento`: la piu' recente nella risposta),
+  detta in testo sopra i numeri ("Campagna 2026"). Superfici di campagne diverse mai sommate (D-01 del backend).
+- Numeri: i KPI della pagina per quella campagna, dagli stessi conti del lib (`totaliCampagna`, `quotaDpOltreDs`):
+
+| numero | campo (provenance spec: openapi-fisico.json#/components/schemas/SuperficieAmmissibile) | resa |
+|---|---|---|
+| Superficie ammissibile DS | somma di righe[].campagne[anno].superficieDs | ettari, numero animato |
+| Superficie ammissibile DP | somma di righe[].campagne[anno].superficieDp | ettari, numero animato |
+| Domande con DP oltre la DS | somma di domandeDpOltreDs sulla somma di domandePagamento | percentuale nel testo e barra a passi del 5 % (decorativa) |
+| Domande di pagamento | somma di righe[].campagne[anno].domandePagamento | intero, numero animato |
+
+- Perimetro: con `perimetro` ADA le etichette dicono "della tua area" (oggi nessun profilo con csr.tx-0018.read e' ADA).
+- Stati: caricamento (scheletro al posto dei numeri); errore ("Superfici non disponibili in questo momento.": la Home non
+  si ferma, nessun avviso della pagina, la card resta l'ingresso); nessuna superficie (risposta senza campagne: "Nessuna
+  superficie ammissibile nelle domande."); nessuna domanda di pagamento nella campagna (la frase del KPI della pagina al
+  posto della barra, mai 0 %); profilo senza grant (contenuti dell'area).
+- WCAG: numeri in una lista di definizioni (dt, dd) in un gruppo con nome ("Il fisico in cifre"); il numero animato e'
+  letto solo nel valore finale e non si anima con prefers-reduced-motion (kit `NumeroAnimato`); la barra e' nascosta ai
+  lettori di schermo e la percentuale e' nel testo; "DS" e "DP" come nella pagina (sciolte nei nomi accessibili). RESIDUO
+  umano: ordine di lettura della card, contrasto della resa finale; axe deferito a step8.
+
 ## Stati resi (obbligatori)
 
 - vuoto: "Nessun intervento per i filtri scelti" con "Modifica i filtri"; e, quando tutte le righe hanno motivo
@@ -186,3 +221,5 @@ propone quella e "Tutte le campagne".
 - OP-FIS-07: voci di menu e Home nel layer app/ (step6), informativo.
 - OP-FIS-09: TX-0056, TX-0057, TX-0058 e TX-0059 della slice elenco-operativo, pinnata per TX-0060, restano rese
   dall'elenco operativo (copertura per delega).
+- OP-FIS-10: card della Home coi numeri chiave delle superfici (decisione dell'utente del 26/10/2026), vedi "Card della
+  Home"; la monta lo step6 in `src/app/aree.ts`.

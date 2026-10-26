@@ -7,6 +7,9 @@
 Rework del 22/10/2026 sui contratti del giro G3 (spec sha256:b0c069cf...): ultimo dato sincronizzato, export CSV e XLSX,
 valori dei filtri da TX-0060 (decisione G2), link alla verifica SMP SIGC del finanziario (decisione G4).
 
+Aggiornato il 26/10/2026 con la card Istituzionale della Home (`home.html`, decisione dell'utente del 26/10/2026: totali
+della verifica SMP non SIGC). La pagina della verifica non cambia. Vedi "Card della Home".
+
 ## Route del flusso
 
 | route | kind | pattern | grant (verbatim dal catalogo) |
@@ -154,6 +157,40 @@ si rende affatto (gate di UX; il backend negherebbe comunque TX-0015 con 403).
 
 Gli stessi parametri vanno all'export `{formato}` (stessi nomi nella spec).
 
+## Card della Home (decisione dell'utente del 26/10/2026, OP-IS-11)
+
+Pagina: `home.html` di questa dir. La Home non e' una route della feature (resta fuori dal manifest, `src/app/home.tsx`):
+la card dell'area e' contenuto della feature (G1, OP-IS-05) e la monta lo step6 in `src/app/aree.ts` come `Anteprima`,
+accanto a quella del finanziario (`AnteprimaFinanziario`), con la stessa forma: fascia colorata invariata (icona, stato,
+titolo, descrizione), numeri chiave nel corpo, "Entra in Istituzionale" nel piede.
+
+- Lettura: TX-0016 senza filtri e senza anno, la stessa della pagina aperta senza filtri (stessa cache). Grant:
+  csr.tx-0016.read (p1-dirigente, p2-referente-adg, p3-funzionario-area-ist); senza il grant nessuna lettura e la card
+  elenca i contenuti dell'area, come oggi. Nessuna lettura di TX-0017 (l'output ha unita' di misura diverse per
+  intervento e non si somma, OP-IS-06) ne' di TX-0060.
+- Riferimento: "Non SIGC, anno di riferimento aaaa" dall'annoRiferimento della risposta (l'ultimo anno con un file); senza
+  file "Non SIGC, nessun file SMP non SIGC", e i numeri restano (domande e spesa vengono dalle pratiche).
+- Numeri: totali di quattro colonne della tabella, sommate fra gli interventi della risposta. Si sommano perche' ogni
+  domanda e' una domanda di sostegno corrente di un solo intervento (D-02 Rev. 2) e la spesa erogata sono righe pagate
+  non SIGC; gli interventi SIGC contano 0 (conteggio vero, vedi sopra). La pagina resta senza KPI.
+
+| numero | campo (provenance spec: openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc) | resa |
+|---|---|---|
+| Domande finanziate | somma di righe[].domandeFinanziate (sempre valorizzato) | intero, numero animato |
+| Spesa pubblica erogata | somma di righe[].spesaErogata (importo motivato) | importo breve, numero animato; un'assenza in una riga: "non disponibile" col motivo, mai una somma parziale |
+| Spesa erogata sul valore delle domande finanziate | somma di spesaErogata sulla somma di righe[].valoreDomandeFinanziate | percentuale nel testo, barra a passi del 5 % (decorativa, si ferma al 100 %); solo con entrambi i totali completi e il valore finanziato maggiore di 0 |
+| Domande ricevute | somma di righe[].domandeRicevute (sempre valorizzato) | intero, numero animato |
+
+- Perimetro: con `perimetro` ADA le etichette dicono "della tua area" (oggi la risposta e' sempre REGIONALE).
+- Stati: caricamento (scheletro al posto dei numeri); errore ("Dati della verifica SMP non SIGC non disponibili in questo
+  momento.": la Home non si ferma, nessun avviso della pagina); nessun file SMP non SIGC (riferimento senza anno, numeri
+  presenti); dato motivato assente in una riga (totale non disponibile col motivo, quota assente); profilo senza
+  csr.tx-0016.read (contenuti dell'area, anche col solo csr.tx-0017.read).
+- WCAG: numeri in una lista di definizioni (dt, dd) in un gruppo con nome ("L'istituzionale in cifre"); il numero
+  animato e' letto solo nel valore finale e non si anima con prefers-reduced-motion (kit `NumeroAnimato`); la barra e'
+  nascosta ai lettori di schermo e la percentuale e' nel testo. RESIDUO umano: ordine di lettura della card, comprensibilita'
+  di "non SIGC" e dell'anno di riferimento, contrasto della resa finale; axe deferito a step8.
+
 ## Stati resi (obbligatori)
 
 - vuoto: "Nessun intervento per i filtri scelti" con "Modifica i filtri" (mai schermo bianco); nessun file SMP non SIGC
@@ -185,5 +222,7 @@ Gli stessi parametri vanno all'export `{formato}` (stessi nomi nella spec).
 - OP-IS-08: testi dei motivi ANNO_NON_CONSERVATO e FONTE_AMBIGUA.
 - OP-IS-09: link verso l'elenco senza scenario di coincidenza.
 - OP-IS-10 (informativo): TX-0056..TX-0059 della slice elenco-operativo, pinnata per TX-0060, restano dell'elenco.
+- OP-IS-11: card della Home coi totali della verifica SMP non SIGC (decisione dell'utente del 26/10/2026), vedi "Card
+  della Home"; la monta lo step6 in `src/app/aree.ts`.
 - Chiusi il 22/10/2026: OP-IS-01 (G2, valori da TX-0060), OP-IS-02 (G3, ultimiDatiSincronizzati), OP-IS-03 (G3, export
   CSV e XLSX), OP-IS-04 (G4, link verso la verifica SMP SIGC).

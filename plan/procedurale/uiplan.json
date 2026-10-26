@@ -1288,6 +1288,24 @@
       "name": "esportazione (D-10 del backend, senza operationId): card del grafico e tabella di riepilogo: CSV, XLSX (per csv lo stesso indirizzo storico riepilogo/csv) - GET /api/procedurale/riepilogo/{formato}",
       "provenance": "spec",
       "source_ref": "openapi-procedurale.json#/paths/~1api~1procedurale~1riepilogo~1{formato}"
+    },
+    {
+      "route": "/procedurale",
+      "name": "card della Home: totale.domandeAmmesse, totale.contributoAmmesso, totale.interventiAttivati, totale.interventiPerimetroUfficiale di TX-0026 senza filtri",
+      "provenance": "spec",
+      "source_ref": "openapi-procedurale.json#/components/schemas/DomandeAmmesseTotale"
+    },
+    {
+      "route": "/procedurale",
+      "name": "card della Home: totale.totale delle domande di sostegno di TX-0027 senza filtri (voci, altri stati e non rilasciate comprese)",
+      "provenance": "spec",
+      "source_ref": "openapi-procedurale.json#/components/schemas/StatiDomande"
+    },
+    {
+      "route": "/procedurale",
+      "name": "card della Home: perimetro delle due risposte (etichette 'della tua area' col perimetro ADA del P4)",
+      "provenance": "spec",
+      "source_ref": "openapi-procedurale.json#/components/schemas/DomandeAmmesse"
     }
   ],
   "flows": [
@@ -1305,14 +1323,15 @@
         "Il 'di cui non rilasciate' delle voci di stato e' un testo accanto al numero e una colonna della tabella equivalente, non solo un segmento colorato della barra.",
         "Pill 'Dati al gg/mm/aaaa' (ultimiDatiSincronizzati di TX-0024, la conclusione meno recente fra i flussi): bottone con nome accessibile completo e popover con una voce per flusso; senza acquisizioni concluse e' testo, mai una data vuota.",
         "Download per formato (PNG, CSV, XLSX) come nel finanziario: un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo (400 oltre 5.000 righe o 50.000 celle: restringere i filtri; 503 ESPORTAZIONE_NON_REGISTRATA). PNG solo per i grafici disegnati, nella vista Grafico.",
-        "Residuo manuale: ordine di lettura di KPI e card, comprensibilita' delle didascalie, contrasto della resa finale; axe deferito al gate di step8."
+        "Residuo manuale: ordine di lettura di KPI e card, comprensibilita' delle didascalie, contrasto della resa finale; axe deferito al gate di step8.",
+        "Card della Home (home.html, decisione dell'utente del 26/10/2026): numeri in una lista di definizioni dentro un gruppo con nome ('Il procedurale in cifre'); numero animato letto solo nel valore finale e fermo con prefers-reduced-motion; barra degli interventi attivati nascosta ai lettori di schermo, 'n su m' e percentuale nel testo; contributo assente detto col motivo, mai 0; errore di una lettura detto in una frase senza fermare la Home."
       ],
       "approval": {
-        "approved_hash": "sha256:b3871a3065288a5dc88fc789794281d7f23b827cc4907c52d0030c0a2b529d3e",
+        "approved_hash": "sha256:de56d106e8a0855a0d570ee07ed4f22fa7e6e4281ede1f94c01bf6bafc9770b5",
         "baseline_ref": "./wireframes/procedurale/panoramica",
-        "approved_at": "2026-10-22T08:51:29Z",
-        "time_to_approve_s": 218,
-        "rework_rounds": 1
+        "approved_at": "2026-10-26T08:49:12Z",
+        "time_to_approve_s": 122,
+        "rework_rounds": 0
       }
     },
     {
@@ -1469,6 +1488,11 @@
       "id": "OP-PR-09",
       "kind": "altro",
       "detail": "Stato PROPOSTO AL PAGAMENTO-ESTRAZ. CAMPIONE-DA ESEGUIRE (scarico CSR-DP del 10/04/2026): non e' tra i cinque stati di RF028 e il backend lo espone tra gli altri stati col suo codice (D-04 Rev. 2, punto aperto del backend verso ARSIAL). La pagina degli stati di pagamento lo mostra tra gli altri stati, apribile nell'elenco col suo codice, finche' ARSIAL non dice a quale voce ricondurlo."
+    },
+    {
+      "id": "OP-PR-10",
+      "kind": "altro",
+      "detail": "Card della Home dinamica (decisione dell'utente del 26/10/2026, come la card del finanziario): la card Procedurale mostra i numeri della panoramica senza filtri, ognuno col grant della sua transazione: domande ammesse, contributo ammesso e interventi attivati sul perimetro ufficiale (barra) da TX-0026 (csr.tx-0026.read), domande di sostegno da TX-0027 (csr.tx-0027.read); stesse letture e cache della panoramica senza filtri. Col perimetro ADA le etichette dicono 'della tua area'. Senza nessuno dei due grant elenca i contenuti dell'area, come prima. La Home non e' una route della feature: il componente sta nella feature (G1, OP-PR-04) e lo monta lo step6 in src/app/aree.ts come Anteprima. Wireframe: home.html del flusso panoramica."
     }
   ]
 }

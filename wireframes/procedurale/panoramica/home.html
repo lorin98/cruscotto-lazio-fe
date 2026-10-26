@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<!-- Wireframe v2 (template wireframe-v2 di green-fe, ADR 0027), feature procedurale, flusso panoramica: la card Procedurale
+     della Home coi numeri chiave della panoramica (decisione dell'utente del 26/10/2026). La Home non e' una route della
+     feature: la card e' contenuto della feature (G1) e la monta lo step6 in src/app/aree.ts, come quella del finanziario.
+     Valori di esempio, nessun dato reale. -->
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Home - Cruscotto CSR 2023-2027</title>
+<link rel="stylesheet" href="wireframe.css">
+</head>
+<body>
+<a class="skip-link" href="#contenuto">Salta al contenuto</a>
+<header class="ui-testata">
+  <div class="ui-ente">
+    <span class="ui-logo">Regione Lazio</span>
+    <span class="ui-logo">ARSIAL</span>
+  </div>
+  <div class="ui-appbar">
+    <a class="ui-appbar__nome" href="home.html">Cruscotto CSR 2023-2027</a>
+    <form class="ui-cerca" action="#" method="get" role="search">
+      <label class="form-label" for="cerca-app">Cerca un intervento</label>
+      <input class="form-control" type="search" id="cerca-app" name="q">
+    </form>
+    <span class="ui-utente">Nome Cognome - <a href="#contenuto">Esci</a></span>
+  </div>
+</header>
+<div class="ui-layout">
+  <nav class="ui-sidebar" aria-label="Navigazione principale">
+    <p class="ui-menu__sezione">Aree del cruscotto</p>
+    <ul class="ui-menu">
+      <li><a class="ui-menu__gruppo" href="../../panoramica/panoramica.html">Finanziario</a></li>
+      <li><a class="ui-menu__gruppo" href="../../fisico/superfici/superfici.html">Fisico</a></li>
+      <li><a class="ui-menu__gruppo" href="panoramica.html">Procedurale</a></li>
+      <li><a class="ui-menu__gruppo" href="../../istituzionale/verifica-smp-non-sigc/verifica-smp-non-sigc.html">Istituzionale</a></li>
+    </ul>
+    <p class="ui-menu__sezione">Strumenti</p>
+    <ul class="ui-menu">
+      <li><a class="ui-menu__gruppo" href="../../elenco-operativo/domande/domande.html">Elenco operativo</a></li>
+    </ul>
+  </nav>
+  <main class="ui-main" id="contenuto">
+    <nav class="breadcrumb-container" aria-label="Percorso">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item" aria-current="page">Home</li>
+      </ol>
+    </nav>
+    <div class="ui-hero">
+      <p class="ui-eyebrow">Regione Lazio - ARSIAL</p>
+      <h1>Cruscotto CSR 2023-2027</h1>
+      <p>Monitoraggio del Complemento di Sviluppo Rurale 2023-2027 della Regione Lazio: scegli un ambito per entrare.</p>
+    </div>
+    <p class="wf-note">Card Procedurale. Ruoli (grant verbatim): csr.tx-0026.read, csr.tx-0027.read - Transazioni: TX-0026 (domande ammesse, contributo, interventi attivati) e TX-0027 (domande di sostegno), lette senza filtri (le stesse letture della panoramica aperta senza filtri, in cache condivisa). Ogni gruppo di numeri compare solo col grant della sua transazione; senza nessuno dei due la card non legge nulla e mostra i contenuti dell'area (gate di UX, mai sicurezza). Le altre tre card sono fuori da questo flusso.</p>
+    <p class="wf-note">I numeri sono quelli della panoramica senza filtri: i KPI Domande ammesse, Contributo ammesso e Interventi attivati (TX-0026) e il totale delle domande di sostegno della card degli stati (TX-0027: voci, altri stati e domande non rilasciate comprese).</p>
+    <div class="ui-griglia ui-griglia--4">
+      <section class="ui-card" aria-labelledby="area-finanziario">
+        <div class="ui-card__testa">
+          <h2 id="area-finanziario">Finanziario</h2>
+          <span class="badge">Disponibile</span>
+        </div>
+        <p class="wf-note">Card del finanziario, invariata: dotazione, pagamenti lordi, quota pagata sulla dotazione, domande presentate.</p>
+      </section>
+      <section class="ui-card" aria-labelledby="area-fisico">
+        <div class="ui-card__testa">
+          <h2 id="area-fisico">Fisico</h2>
+          <span class="badge">Disponibile</span>
+        </div>
+        <p class="wf-note">Card del fisico: flusso superfici del fisico.</p>
+      </section>
+      <section class="ui-card" aria-labelledby="area-procedurale">
+        <div class="ui-card__testa">
+          <h2 id="area-procedurale">Procedurale</h2>
+          <span class="badge">Disponibile</span>
+        </div>
+        <p>Stati e sottofasi delle domande di sostegno e di pagamento, domande ammesse con atto di concessione e contributo, riepilogo per intervento e pagamenti per Unit Amount.</p>
+        <div role="group" aria-label="Il procedurale in cifre">
+          <dl>
+            <dt>Domande ammesse</dt>
+            <dd class="ui-kpi__valore">nnn</dd>
+            <dt>Contributo ammesso</dt>
+            <dd class="ui-kpi__valore">nnn,n M euro</dd>
+          </dl>
+          <p class="ui-barra">Interventi attivati: nn su nn, nn,n % (barra a passi del 5 %, decorativa: numeri e percentuale sono nel testo)</p>
+          <dl>
+            <dt>Domande di sostegno</dt>
+            <dd class="ui-kpi__valore">n.nnn</dd>
+          </dl>
+        </div>
+        <a class="btn btn-primary" href="panoramica.html">Entra in Procedurale</a>
+      </section>
+      <section class="ui-card" aria-labelledby="area-istituzionale">
+        <div class="ui-card__testa">
+          <h2 id="area-istituzionale">Istituzionale</h2>
+          <span class="badge">Disponibile</span>
+        </div>
+        <p class="wf-note">Card dell'istituzionale: flusso verifica-smp-non-sigc dell'istituzionale.</p>
+      </section>
+    </div>
+    <h2>Stato: caricamento</h2>
+    <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (uno scheletro per lettura al posto dei suoi numeri; fascia, testo e "Entra in Procedurale" restano)</div>
+    <h2>Stato: errore di una lettura</h2>
+    <p class="ui-fonte">Domande ammesse e contributo non disponibili in questo momento.</p>
+    <p class="ui-fonte">Conteggio delle domande di sostegno non disponibile in questo momento.</p>
+    <p class="wf-note">Ogni lettura sbaglia da sola: l'altra resta. Un errore non ferma la Home e non apre un avviso della pagina: la card resta l'ingresso all'area, come la card del finanziario.</p>
+    <h2>Stato: contributo senza fonte</h2>
+    <dl>
+      <dt>Contributo ammesso</dt>
+      <dd>non disponibile</dd>
+      <dd class="ui-fonte">non disponibile: fonte non attiva (contributo ammesso)</dd>
+    </dl>
+    <p class="wf-note">Il contributo e' un dato motivato del DTO: assente, si dice il motivo in una frase (entity importo), mai uno 0.</p>
+    <h2>Stato: perimetro ADA (P4)</h2>
+    <dl>
+      <dt>Domande ammesse della tua area</dt>
+      <dd class="ui-kpi__valore">nn</dd>
+      <dt>Contributo ammesso della tua area</dt>
+      <dd class="ui-kpi__valore">n,n M euro</dd>
+      <dt>Domande di sostegno della tua area</dt>
+      <dd class="ui-kpi__valore">nnn</dd>
+    </dl>
+    <p class="ui-barra">Interventi attivati con domande della tua area: n su nn, nn,n %</p>
+    <p class="wf-note">Col perimetro ADA della risposta le etichette lo dicono, come nella card del finanziario; il perimetro ufficiale degli interventi resta quello del programma.</p>
+    <h2>Stato: nessun intervento nel perimetro ufficiale</h2>
+    <p class="ui-fonte">Interventi attivati: 0 su 0</p>
+    <p class="wf-note">Senza interventi nel perimetro ufficiale la quota non esiste: il testo senza barra e senza percentuale.</p>
+    <h2>Stato: profilo senza csr.tx-0026.read e csr.tx-0027.read</h2>
+    <ul>
+      <li>Stati e sottofasi delle domande</li>
+      <li>Domande ammesse con atto di concessione e contributo</li>
+      <li>Riepilogo per intervento</li>
+      <li>Pagamenti per Unit Amount</li>
+    </ul>
+    <p class="wf-note">Nessuna lettura: la card elenca cosa c'e' nell'area, come oggi. Con uno solo dei due grant c'e' solo il suo gruppo di numeri.</p>
+  </main>
+</div>
+<footer class="ui-footer">
+  <ul>
+    <li><a href="#contenuto">Dichiarazione di accessibilita' (indirizzo da definire)</a></li>
+    <li><a href="#contenuto">Privacy (indirizzo da definire)</a></li>
+    <li><a href="#contenuto">Note legali (indirizzo da definire)</a></li>
+    <li>Regione Lazio - ARSIAL</li>
+  </ul>
+</footer>
+</body>
+</html>

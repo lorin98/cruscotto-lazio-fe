@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<!-- Wireframe v2 (template wireframe-v2 di green-fe, ADR 0027), feature fisico, flusso superfici: la card Fisico della Home
+     coi numeri chiave delle superfici (decisione dell'utente del 26/10/2026). La Home non e' una route della feature: la card
+     e' contenuto della feature (G1) e la monta lo step6 in src/app/aree.ts, come quella del finanziario. Valori di esempio,
+     nessun dato reale. -->
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Home - Cruscotto CSR 2023-2027</title>
+<link rel="stylesheet" href="wireframe.css">
+</head>
+<body>
+<a class="skip-link" href="#contenuto">Salta al contenuto</a>
+<header class="ui-testata">
+  <div class="ui-ente">
+    <span class="ui-logo">Regione Lazio</span>
+    <span class="ui-logo">ARSIAL</span>
+  </div>
+  <div class="ui-appbar">
+    <a class="ui-appbar__nome" href="home.html">Cruscotto CSR 2023-2027</a>
+    <form class="ui-cerca" action="#" method="get" role="search">
+      <label class="form-label" for="cerca-app">Cerca un intervento</label>
+      <input class="form-control" type="search" id="cerca-app" name="q">
+    </form>
+    <span class="ui-utente">Nome Cognome - <a href="#contenuto">Esci</a></span>
+  </div>
+</header>
+<div class="ui-layout">
+  <nav class="ui-sidebar" aria-label="Navigazione principale">
+    <p class="ui-menu__sezione">Aree del cruscotto</p>
+    <ul class="ui-menu">
+      <li><a class="ui-menu__gruppo" href="../../panoramica/panoramica.html">Finanziario</a></li>
+      <li><a class="ui-menu__gruppo" href="superfici.html">Fisico</a></li>
+      <li><a class="ui-menu__gruppo" href="../../procedurale/panoramica/panoramica.html">Procedurale</a></li>
+      <li><a class="ui-menu__gruppo" href="../../istituzionale/verifica-smp-non-sigc/verifica-smp-non-sigc.html">Istituzionale</a></li>
+    </ul>
+    <p class="ui-menu__sezione">Strumenti</p>
+    <ul class="ui-menu">
+      <li><a class="ui-menu__gruppo" href="../../elenco-operativo/domande/domande.html">Elenco operativo</a></li>
+    </ul>
+  </nav>
+  <main class="ui-main" id="contenuto">
+    <nav class="breadcrumb-container" aria-label="Percorso">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item" aria-current="page">Home</li>
+      </ol>
+    </nav>
+    <div class="ui-hero">
+      <p class="ui-eyebrow">Regione Lazio - ARSIAL</p>
+      <h1>Cruscotto CSR 2023-2027</h1>
+      <p>Monitoraggio del Complemento di Sviluppo Rurale 2023-2027 della Regione Lazio: scegli un ambito per entrare.</p>
+    </div>
+    <p class="wf-note">Card Fisico. Ruoli (grant verbatim): csr.tx-0018.read - Transazione: TX-0018, letta senza filtri (la stessa lettura della pagina Superfici aperta senza filtri, in cache condivisa). Senza il grant la card non legge nulla e mostra i contenuti dell'area (gate di UX, mai sicurezza). Le altre tre card sono fuori da questo flusso.</p>
+    <p class="wf-note">I numeri sono i KPI della pagina Superfici per la campagna di riferimento senza filtro: la piu' recente presente nella risposta. Le superfici di campagne diverse non si sommano (D-01 del backend); dentro una campagna si sommano fra gli interventi.</p>
+    <div class="ui-griglia ui-griglia--4">
+      <section class="ui-card" aria-labelledby="area-finanziario">
+        <div class="ui-card__testa">
+          <h2 id="area-finanziario">Finanziario</h2>
+          <span class="badge">Disponibile</span>
+        </div>
+        <p class="wf-note">Card del finanziario, invariata: dotazione, pagamenti lordi, quota pagata sulla dotazione, domande presentate.</p>
+      </section>
+      <section class="ui-card" aria-labelledby="area-fisico">
+        <div class="ui-card__testa">
+          <h2 id="area-fisico">Fisico</h2>
+          <span class="badge">Disponibile</span>
+        </div>
+        <p>Superfici ammissibili delle domande di sostegno e di pagamento per intervento e campagna, e determine di una domanda.</p>
+        <div role="group" aria-label="Il fisico in cifre">
+          <p class="ui-eyebrow">Campagna aaaa</p>
+          <dl>
+            <dt>Superficie ammissibile DS</dt>
+            <dd class="ui-kpi__valore">nnn.nnn,nn ha</dd>
+            <dt>Superficie ammissibile DP</dt>
+            <dd class="ui-kpi__valore">nnn.nnn,nn ha</dd>
+          </dl>
+          <p class="ui-barra">Domande con DP oltre la DS: n,nn % (barra a passi del 5 %, decorativa: la percentuale e' nel testo)</p>
+          <dl>
+            <dt>Domande di pagamento</dt>
+            <dd class="ui-kpi__valore">nn.nnn</dd>
+          </dl>
+        </div>
+        <a class="btn btn-primary" href="superfici.html">Entra in Fisico</a>
+      </section>
+      <section class="ui-card" aria-labelledby="area-procedurale">
+        <div class="ui-card__testa">
+          <h2 id="area-procedurale">Procedurale</h2>
+          <span class="badge">Disponibile</span>
+        </div>
+        <p class="wf-note">Card del procedurale: flusso panoramica del procedurale.</p>
+      </section>
+      <section class="ui-card" aria-labelledby="area-istituzionale">
+        <div class="ui-card__testa">
+          <h2 id="area-istituzionale">Istituzionale</h2>
+          <span class="badge">Disponibile</span>
+        </div>
+        <p class="wf-note">Card dell'istituzionale: flusso verifica-smp-non-sigc dell'istituzionale.</p>
+      </section>
+    </div>
+    <h2>Stato: caricamento</h2>
+    <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro al posto dei numeri della card Fisico; fascia, testo e "Entra in Fisico" restano)</div>
+    <h2>Stato: errore</h2>
+    <p class="ui-fonte">Superfici non disponibili in questo momento.</p>
+    <p class="wf-note">Un errore non ferma la Home e non apre un avviso della pagina: la card resta l'ingresso all'area e dice che il numero non e' disponibile, come la card del finanziario.</p>
+    <h2>Stato: nessuna superficie</h2>
+    <div class="ui-vuoto" role="status">Nessuna superficie ammissibile nelle domande.</div>
+    <p class="wf-note">La risposta non ha campagne (nessun intervento con superfici): niente campagna, niente numeri.</p>
+    <h2>Stato: nessuna domanda di pagamento nella campagna</h2>
+    <p class="ui-fonte">Domande con DP oltre la DS: nessuna domanda di pagamento</p>
+    <p class="wf-note">Senza domande di pagamento la quota non esiste: la frase al posto della barra (stesso testo del KPI della pagina), mai uno 0 %.</p>
+    <h2>Stato: profilo senza csr.tx-0018.read</h2>
+    <ul>
+      <li>Superfici ammissibili di sostegno e di pagamento per intervento e campagna</li>
+      <li>Verifica incrociata fra superficie di pagamento e di sostegno</li>
+      <li>Determine da cui una domanda prende le informazioni</li>
+    </ul>
+    <p class="wf-note">Nessuna lettura: la card elenca cosa c'e' nell'area, come oggi. Se il profilo non ha nessuna pagina del fisico la card dice "Non nel tuo profilo" (home.tsx, invariato).</p>
+  </main>
+</div>
+<footer class="ui-footer">
+  <ul>
+    <li><a href="#contenuto">Dichiarazione di accessibilita' (indirizzo da definire)</a></li>
+    <li><a href="#contenuto">Privacy (indirizzo da definire)</a></li>
+    <li><a href="#contenuto">Note legali (indirizzo da definire)</a></li>
+    <li>Regione Lazio - ARSIAL</li>
+  </ul>
+</footer>
+</body>
+</html>

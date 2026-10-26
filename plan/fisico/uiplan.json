@@ -312,6 +312,18 @@
       "name": "elenco[].fonteComparto",
       "provenance": "spec",
       "source_ref": "openapi-fisico.json#/components/schemas/DeterminaDellaDomanda"
+    },
+    {
+      "route": "/fisico/superfici",
+      "name": "card della Home: superficieDs, superficieDp, domandePagamento, domandeDpOltreDs di righe[].campagne[] della campagna piu' recente (somme fra gli interventi)",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/SuperficieCampagna"
+    },
+    {
+      "route": "/fisico/superfici",
+      "name": "card della Home: perimetro della risposta (etichette 'della tua area' col perimetro ADA)",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/SuperficieAmmissibile"
     }
   ],
   "flows": [
@@ -329,14 +341,15 @@
         "Download per formato (PNG, CSV, XLSX), come nel finanziario: un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo (anche il limite di righe dell'export)",
         "Pill 'Dati al' come pulsante col nome accessibile completo ('Ultimo dato sincronizzato: dati al gg/mm/aaaa per tutti i flussi. Mostra il dettaglio per flusso'); il dettaglio per flusso e' un dialogo con nome; elenco vuoto o errore detti in testo",
         "Pannello dei filtri senza le voci di TX-0060 (errore o grant assente): lo stato lo dice in testo (role=status) e il report resta leggibile; i chip dei filtri arrivati con l'indirizzo restano rimovibili",
-        "Residuo manuale: ordine di lettura di KPI, card e tabella; comprensibilita' di 'DS', 'DP' e 'differenza DP - DS' (sciolte per esteso alla prima occorrenza) e della differenza fra il file di una card della campagna di riferimento e quello della tabella (tutte le campagne); contrasto della resa finale"
+        "Residuo manuale: ordine di lettura di KPI, card e tabella; comprensibilita' di 'DS', 'DP' e 'differenza DP - DS' (sciolte per esteso alla prima occorrenza) e della differenza fra il file di una card della campagna di riferimento e quello della tabella (tutte le campagne); contrasto della resa finale",
+        "Card della Home (home.html, decisione dell'utente del 26/10/2026): numeri in una lista di definizioni dentro un gruppo con nome ('Il fisico in cifre'); numero animato letto solo nel valore finale e fermo con prefers-reduced-motion; barra delle domande con DP oltre la DS nascosta ai lettori di schermo, percentuale nel testo; errore detto in una frase senza fermare la Home."
       ],
       "approval": {
-        "approved_hash": "sha256:f803b5cf0cdee87bcce162b1d9d3d8a4a3eea8fcd7763ab25a2fb4bfa9dac6bd",
+        "approved_hash": "sha256:199cd655ea694dd53c53bc67bcf83fcb132e8da272304d8f195f3c67ddf66596",
         "baseline_ref": "./wireframes/fisico/superfici",
-        "approved_at": "2026-10-22T12:36:17Z",
-        "time_to_approve_s": 218,
-        "rework_rounds": 2
+        "approved_at": "2026-10-26T08:49:12Z",
+        "time_to_approve_s": 122,
+        "rework_rounds": 0
       }
     },
     {
@@ -413,6 +426,11 @@
         "TX-0059"
       ],
       "detail": "La slice elenco-operativo e' pinnata da questa feature solo per TX-0060, fonte dei valori del pannello dei filtri delle superfici (G2, OP-FIS-01). Le sue altre transazioni le rende la feature elenco-operativo nei suoi flussi approvati: TX-0056 e TX-0057 (domande), TX-0058 (dettaglio-domanda), TX-0059 (pagamenti). Il link scheda-domanda della pagina delle determine verso /elenco-operativo/domande/:tipo/:codiceABarre (TX-0058) resta un link dichiarato verso quella feature, non una route di questa. Effetto del pin: un cambio del contratto dell'elenco operativo rende STALE anche questa feature (refresh)."
+    },
+    {
+      "id": "OP-FIS-10",
+      "kind": "altro",
+      "detail": "Card della Home dinamica (decisione dell'utente del 26/10/2026, come la card del finanziario): coi grant csr.tx-0018.read la card Fisico mostra i KPI della pagina Superfici per la campagna di riferimento senza filtro (la piu' recente della risposta di TX-0018 letta senza filtri, stessa cache della pagina): superficie ammissibile DS e DP, quota delle domande con DP oltre la DS (barra), domande di pagamento. Senza il grant elenca i contenuti dell'area, come prima. La Home non e' una route della feature: il componente sta nella feature (G1) e lo monta lo step6 in src/app/aree.ts come Anteprima. Wireframe: home.html del flusso superfici."
     }
   ]
 }
