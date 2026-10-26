@@ -9,3 +9,4 @@ export { UnitAmount } from './ui/UnitAmount';
 export { Riepilogo } from './ui/Riepilogo';
 export { DettaglioIntervento } from './ui/DettaglioIntervento';
 export { pagineVisibili, ricercaConservata } from './lib/pagine';
+export { AnteprimaProcedurale } from './ui/AnteprimaProcedurale';

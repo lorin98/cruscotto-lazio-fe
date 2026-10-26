@@ -98,7 +98,8 @@ import {
   testoNonRilasciate,
 } from '../src/features/procedurale/lib/grafici';
 import { STATI_AREA, ammessePer, riepilogoPer, sottofasiPagamentoPer, sottofasiSostegnoPer, statiPer, unitAmountPer } from '../src/features/procedurale/testing/fixture';
-import type { RigaAmmesse } from '../src/features/procedurale/lib/dto';
+import type { Ammesse, RigaAmmesse } from '../src/features/procedurale/lib/dto';
+import { anteprimaAmmesse, domandeDiSostegno, etichetteAnteprima, testoInterventi } from '../src/features/procedurale/lib/anteprima';
 import { GRIGLIA_CON_ETICHETTE, asseCategorieOrizzontale } from '../src/shared/lib';
 
 const q = (s = '') => new URLSearchParams(s);
@@ -612,5 +613,44 @@ describe('procedurale: builder dei grafici (tabella equivalente, valori assenti 
     expect(o.yAxis.type).toBe('category');
     expect(o.yAxis.data).toEqual(['UA1 (SRD01, esercizio 2024)', 'UA1 (SRD01, esercizio 2025)']);
     expect(serie(con.opzioni)[0].data?.[0]).toMatchObject({ value: 40, codice: 'SRD01|UA1|2024' });
+  });
+});
+
+describe('RF026 e RF027: card della Home coi numeri della panoramica (OP-PR-10, decisione dell utente del 26/10/2026)', () => {
+  const senzaFiltri = new URLSearchParams();
+
+  it('domande ammesse, contributo e interventi attivati sul perimetro ufficiale, come i KPI della panoramica', () => {
+    const d = ammessePer(senzaFiltri);
+    const a = anteprimaAmmesse(d);
+    expect(a).toEqual({ domandeAmmesse: 3, contributo: { valore: 800 }, interventi: { attivati: 2, perimetroUfficiale: 3, quota: 66.7 } });
+    expect(a && testoInterventi(a.interventi)).toBe('2 su 3 (66,7 %)');
+    // lo stesso "n su m" del KPI Interventi attivati della panoramica
+    expect(d.totale && kpiInterventi(d.totale).valore).toBe('2 su 3');
+  });
+
+  it('contributo assente: la sua frase, mai uno 0; senza i totali nessun numero; perimetro ufficiale vuoto: nessuna quota', () => {
+    const base: Ammesse = ammessePer(senzaFiltri);
+    const senzaFonte = anteprimaAmmesse({ ...base, totale: { ...base.totale, contributoAmmesso: { valore: null, motivo: 'FONTE_NON_ATTIVA', fonte: 'ATTO_CONCESSIONE' } } });
+    expect(senzaFonte?.contributo).toEqual({ valore: null, motivo: 'Non disponibile: fonte atto di concessione non attiva' });
+    expect(anteprimaAmmesse({ ...base, totale: undefined })).toBeNull();
+    const vuoto = anteprimaAmmesse({ ...base, totale: { ...base.totale, interventiAttivati: 0, interventiPerimetroUfficiale: 0 } });
+    expect(vuoto?.interventi.quota).toBeNull();
+    expect(vuoto && testoInterventi(vuoto.interventi)).toBe('0 su 0');
+  });
+
+  it('domande di sostegno: il totale di TX-0027, non rilasciate comprese; senza totale nessun numero', () => {
+    expect(domandeDiSostegno(statiPer('SOSTEGNO', senzaFiltri))).toBe(4);
+    expect(domandeDiSostegno(statiPer('SOSTEGNO', senzaFiltri, { nonRilasciate: true }))).toBe(10);
+    expect(domandeDiSostegno({})).toBeNull();
+  });
+
+  it('col perimetro ADA le etichette sono dell area del profilo; il perimetro ufficiale resta del programma', () => {
+    expect(etichetteAnteprima('ADA')).toEqual({
+      ammesse: 'Domande ammesse della tua area',
+      contributo: 'Contributo ammesso della tua area',
+      interventi: 'Interventi attivati con domande della tua area',
+      sostegno: 'Domande di sostegno della tua area',
+    });
+    expect(etichetteAnteprima('REGIONALE')).toEqual({ ammesse: 'Domande ammesse', contributo: 'Contributo ammesso', interventi: 'Interventi attivati', sostegno: 'Domande di sostegno' });
   });
 });

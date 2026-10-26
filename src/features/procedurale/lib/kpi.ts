@@ -15,6 +15,9 @@ import { diTipo } from './stati';
 
 export type ChiaveKpi = 'ammesse' | 'conAtto' | 'contributo' | 'interventi' | 'domande' | 'nonRilasciate';
 
+/** Etichette dei KPI di TX-0026: le stesse nella panoramica, nelle ammesse, nel dettaglio e nella card della Home. */
+export const ETICHETTE_KPI = { ammesse: 'Domande ammesse', contributo: 'Contributo ammesso', interventi: 'Interventi attivati' } as const;
+
 /** Il link verso l'elenco di un KPI: il link dello uiplan, il punto e la descrizione del nome accessibile. */
 interface LinkKpi {
   id: IdLinkElenco;
@@ -59,7 +62,7 @@ function kpiAmmesse(t: TotaleAmmesse, x: Contesto): KpiProcedurale {
   const n = t.domandeAmmesse;
   return {
     chiave: 'ammesse',
-    etichetta: 'Domande ammesse',
+    etichetta: ETICHETTE_KPI.ammesse,
     valore: formatNumber(n),
     nota: 'stato area programmazione Ammessa, domande di ogni tipo',
     ...(apreLeAmmesse(x.criteri, n) ? { elenco: { id: x.link.ammesse, punto: { voceProgrammazione: VOCE_AMMESSA, intervento: x.intervento }, descrizione: `le domande ammesse${dellIntervento(x.intervento)}` } } : {}),
@@ -81,7 +84,7 @@ export function kpiDelleAmmesse(t: TotaleAmmesse, x: Contesto): KpiProcedurale[]
   return [
     kpiAmmesse(t, x),
     kpiConAtto(t, x),
-    { chiave: 'contributo', etichetta: 'Contributo ammesso', ...valoreOAssenza(t.contributoAmmesso, importoBreve), nota: notaContributo(t.importoRichiesto, t.contributoAmmesso) },
+    { chiave: 'contributo', etichetta: ETICHETTE_KPI.contributo, ...valoreOAssenza(t.contributoAmmesso, importoBreve), nota: notaContributo(t.importoRichiesto, t.contributoAmmesso) },
   ];
 }
 
@@ -89,7 +92,7 @@ export function kpiDelleAmmesse(t: TotaleAmmesse, x: Contesto): KpiProcedurale[]
 export function kpiInterventi(t: TotaleAmmesse): KpiProcedurale {
   return {
     chiave: 'interventi',
-    etichetta: 'Interventi attivati',
+    etichetta: ETICHETTE_KPI.interventi,
     valore: `${formatNumber(t.interventiAttivati)} su ${formatNumber(t.interventiPerimetroUfficiale)}`,
     nota: 'con almeno una domanda di sostegno, sul perimetro ufficiale (interventi selezionati, AT001 esclusa)',
   };
