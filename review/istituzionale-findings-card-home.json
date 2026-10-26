@@ -1,0 +1,58 @@
+[
+  {
+    "id": "A-01",
+    "severity": "MINORE",
+    "file": "tests/anteprime-home.test.tsx:205",
+    "titolo": "I test 'nessuna lettura' delle card senza grant non registrano le richieste: una lettura di TX-0016 senza grant, o di TX-0017 (vietata da OP-IS-11), li lascerebbe verdi (assorbe V-01; declassato da MAGGIORE come A4 dell'istituzionale)",
+    "fix": "Prima del render registrare le letture (`lettura(...)` del file, `lettureProcedurale()`) e asserire che restano vuote: :205 verifica-smp-non-sigc e output-regionale; output-regionale vuota anche in :190 coi due grant; :67 superficie-ammissibile; :142 `lette.ammesse` e `lette.sostegno`; in :114 `lette.filtri`/`lette.statiArea` = 0 e `lette.riepilogo` = []; stessa asserzione in tests/app-aree.test.tsx:283. Aggiungere un test della Home coi grant di p4-responsabile-procedimento-ada e p5-amministratore-funzionale del catalogo (nessuno dei due legge TX-0016). Togliere '(MSW la rifiuterebbe)' dal titolo di :67."
+  },
+  {
+    "id": "A-02",
+    "severity": "MINORE",
+    "file": "src/shared/ui/anteprima/AnteprimaArea.tsx:86",
+    "titolo": "Attesa della card aria-hidden e senza testo: il gruppo con nome resta vuoto per i lettori di schermo, mentre i tre wireframe approvati vogliono role=status con 'Caricamento in corso' (assorbe V-02)",
+    "fix": "AttesaArea: `<div className=\"ui-skeleton ui-ambito__attesa\" role=\"status\"><span className=\"visually-hidden\">Caricamento in corso…</span></div>`, come Caricamento di StatiVista.tsx:9-14 (wireframes/istituzionale/verifica-smp-non-sigc/home.html:101). Test: nella card istituzionale con la lettura trattenuta asserire il role=status col testo."
+  },
+  {
+    "id": "H1",
+    "severity": "COSMETICO",
+    "file": "src/shared/ui/anteprima/AnteprimaArea.tsx:10",
+    "titolo": "Il kit ridichiara NON_DISPONIBILE (gia' in shared/lib/grafici/primitive.ts:6) e lo riesporta senza consumatori; NumeroArea riscrive numeroDi (declassato da MINORE)",
+    "fix": "In AnteprimaArea.tsx importare NON_DISPONIBILE e numeroDi da '../../lib', togliere la `export const` di riga 10 e NON_DISPONIBILE dalla riesportazione di src/shared/ui/index.ts:51; riga 43: `const presente = numeroDi(valore) !== null`."
+  },
+  {
+    "id": "H2",
+    "severity": "MINORE",
+    "file": "src/shared/ui/anteprima/AnteprimaArea.tsx:60",
+    "titolo": "Nel kit la prop 'quota' ha due unita': 0-1 in Kpi (Kpi.tsx:25), 0-100 in AvanzamentoArea; nessun tipo distingue l'uso sbagliato",
+    "fix": "Rinominare la prop di AvanzamentoArea in `percentuale` (0-100) e aggiornare i quattro chiamanti: AnteprimaFinanziario.tsx:34, AnteprimaFisico.tsx:31, AnteprimaProcedurale.tsx:29, AnteprimaIstituzionale.tsx:29."
+  },
+  {
+    "id": "H3",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/ui/AnteprimaIstituzionale.tsx:17",
+    "titolo": "La cache comune fra card e verifica senza filtri vale solo perche' il letterale `{}` delle card coincide coi criteri vuoti delle pagine; nessun test ne prova la chiave",
+    "fix": "In ogni lib/criteri esportare i criteri senza filtri dalla stessa funzione delle pagine (istituzionale `criteriVerifica({}, undefined)`, fisico `criteriDaRicerca('')`, procedurale `criteriDelReport(criteriDaRicerca(''))`) e usarli in AnteprimaIstituzionale.tsx:17, AnteprimaFisico.tsx:17, AnteprimaProcedurale.tsx:16 e :38. Test L2 in tests/app-aree.test.tsx con lo stesso client: Home, poi la pagina d'ingresso senza filtri, una sola richiesta per TX-0016, TX-0018, TX-0026 e TX-0027."
+  },
+  {
+    "id": "X1",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/api/index.ts:62",
+    "titolo": "Entrando nell'area mentre la lettura della card e' in corso, React Query la annulla (segnale consumato) e la pagina la rifa' da capo dietro i posti ancora occupati: lettura doppia e attesa piu' lunga (declassato da MAGGIORE; decisione D2)",
+    "fix": "Secondo la decisione D2 del judge.md. (a) Opzione `{ anteprima: true }` negli wrapper usati dalle card (useVerificaSmpNonSigc, useSuperfici, useDomandeAmmesse, useStatiSostegno; per coerenza useSpesaPerIntervento e useTotaleDomande) con una queryFn che non consuma il segnale, una corsia a bassa priorita' nel mutator per le letture delle card e un test L2 con trattenuta() e clic su 'Entra in Istituzionale' (una sola richiesta). (b) Accettare il limite: registrare la deviazione 'stessa cache a lettura finita' nei deviations_reviewed dei tre gate wireframe."
+  },
+  {
+    "id": "H4",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/lib/anteprima.ts:52",
+    "titolo": "totaleDellaColonna e quotaSpesa copiano la regola 'mai una somma parziale' di finanziario/lib/aggregati.ts:24 e le copie divergono gia' (insieme vuoto: 0 qui, 'non calcolabile' nel finanziario; motivo unico in una copia sola)",
+    "fix": "Portare la regola in entities/importo/lib come funzione generica (es. `totaleMotivato(righe, dato, { vuoto: 'zero' | 'non-calcolabile' })` che restituisce `{ valore, motivo? }` col testo 'Non calcolabile: manca per N interventi (codici)') e usarla da finanziario/lib/aggregati.ts:24 e istituzionale/lib/anteprima.ts:52, con la politica dell'insieme vuoto esplicita per chiamante; i test di entrambe le feature restano come guardia."
+  },
+  {
+    "id": "V-04",
+    "severity": "COSMETICO",
+    "file": "plan/dossier-card-home.md:73",
+    "titolo": "L'esempio del dossier approvato ('2,57 %') e il segnaposto 'n,nn %' di home.html:91 non sono la resa vera: la quota esce con un decimale da 1 % in su ('2,6 %')",
+    "fix": "Correggere l'esempio della riga 73 in '2,6 %' (il dossier e' fuori dall'hash). Alla prossima riapprovazione del flusso verifica-smp-non-sigc portare il segnaposto di wireframes/istituzionale/verifica-smp-non-sigc/home.html:91 a 'n,n %'. Il codice non cambia."
+  }
+]

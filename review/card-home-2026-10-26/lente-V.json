@@ -1,0 +1,38 @@
+[
+  {
+    "id": "V-01",
+    "feature": "comune",
+    "severity": "MAGGIORE",
+    "file": "tests/anteprime-home.test.tsx:67",
+    "titolo": "Nessun test verifica davvero l'assenza di letture: i tre test 'senza grant: nessuna lettura' e la regola 'nessuna lettura di TX-0017' non sono provati",
+    "evidenza": "Fisico (righe 67-72): conRuoli(['csr.tx-0020.read']), nessun handler di /api/fisico/superficie-ammissibile; il titolo dice 'nessuna lettura (MSW la rifiuterebbe)', ma con onUnhandledRequest 'error' (src/shared/test/setup.ts:18) una richiesta non dichiarata viene solo rifiutata (la fetch rigetta, come prova tests/msw-armed.test.ts:19): React Query va in errore e il test resta verde. Si controlla solo che compaia `altrimenti`. Stesso schema per il procedurale senza i due grant (142-146: nessuna asserzione sulle letture) e per l'istituzionale col solo csr.tx-0017.read (205-209). La regola del wireframe approvato e di OP-IS-11 'Nessuna lettura di TX-0017' (home.html:53, verifica-smp-non-sigc.md:169) non la asserisce nessun test: il test 190-203 da' anche csr.tx-0017.read ma non registra /api/istituzionale/output-regionale, e una lettura verrebbe rifiutata in silenzio. Nel procedurale (114-129) lettureProcedurale monta e risponde a TX-0024, TX-0025 e TX-0029, ma si asserisce solo `lette.pagamento` vuoto: la regola 'Nessuna lettura di TX-0024, TX-0025, TX-0028, TX-0029' (panoramica.md:123) e' provata solo per TX-0028. Oggi il codice e' corretto: gli hook stanno nei figli montati solo col grant. Pero' una regressione che sposti la lettura nel genitore lasciando `altrimenti`, o che aggiunga TX-0017 o la pill di TX-0024 alla card, passerebbe i test.",
+    "fix": "Registrare handler che contano le richieste, come `lettura()` del file o `lette` di lettureProcedurale, e asserire: fisico `query` = [] senza csr.tx-0018.read; procedurale `lette.ammesse` e `lette.sostegno` = [] senza i due grant; istituzionale nessuna richiesta a verifica-smp-non-sigc ne' a output-regionale col solo csr.tx-0017.read, e nessuna a output-regionale anche con i due grant (test di riga 190); procedurale `lette.filtri` = 0, `lette.statiArea` = 0, `lette.riepilogo` = [] nel test di riga 114. Togliere '(MSW la rifiuterebbe)' dal titolo o renderlo vero."
+  },
+  {
+    "id": "V-02",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/anteprima/AnteprimaArea.tsx:85",
+    "titolo": "Lo scheletro della card e' aria-hidden e vuoto: durante il caricamento il gruppo con nome non dice nulla, mentre il wireframe approvato lo mette in role=status",
+    "evidenza": "AttesaArea rende `<div className=\"ui-skeleton ui-ambito__attesa\" aria-hidden=\"true\" />` (righe 85-87), senza testo. Nei tre wireframe approvati lo 'Stato: caricamento' della card e' `<div class=\"ui-skeleton\" role=\"status\" aria-live=\"polite\">Caricamento in corso ...</div>` (fisico/superfici/home.html:101, procedurale/panoramica/home.html:100, istituzionale/verifica-smp-non-sigc/home.html:101). E' anche la forma del kit `Caricamento` (shared/ui/stati/StatiVista.tsx:9-15: role=status col testo in visually-hidden). Effetto: chi usa un lettore di schermo trova 'Il fisico in cifre, gruppo' vuoto finche' la lettura non finisce (sei letture in coda sulla Home di un P1). Lo stesso vale per il 'nessuna superficie' del fisico, reso come `<p>` mentre il wireframe usa role=status (home.html:106). La scelta approvata 'nessuna regione live' riguarda gli errori, non l'attesa.",
+    "fix": "In AttesaArea mettere un testo 'Caricamento in corso' in visually-hidden, oppure usare il `Caricamento` del kit (role=status) come nel wireframe. Se si vuole evitare quattro regioni live sulla Home, il solo testo nascosto senza role basta a non lasciare vuoto il gruppo. Ne beneficia anche la card del finanziario."
+  },
+  {
+    "id": "V-03",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/AnteprimaFinanziario.tsx:46",
+    "titolo": "Card del finanziario rifatta sui pezzi del kit: il cambio dichiarato (TX-0009 in errore con un dato in cache) e gli stati d'errore non hanno test",
+    "evidenza": "Riga 46: `valore={isError ? null : data?.presentate}`. Prima, con TX-0009 in errore e un dato vecchio in cache, si vedeva il numero con la nota 'Conteggio non disponibile in questo momento.'. Ora si vede 'non disponibile' con la nota. E' coerente con Spesa (riga 26: con isError la frase, anche con un dato in cache), con la regola 'un errore ... dice che il numero non e' disponibile' e con la DomandeSostegno del procedurale, quindi il comportamento non e' un finding. Pero' nessun test lo fissa: in tutto il repo nessun test cerca 'Dotazione e pagamenti non disponibili in questo momento.' o 'Conteggio non disponibile in questo momento.'. Della card del finanziario esistono solo i casi con dati e il perimetro ADA (tests/app-aree.test.tsx:166-192). Il refactor della card su AttesaArea, NotaArea e NumeroArea e' quindi coperto solo per il ramo con dati.",
+    "fix": "Aggiungere in tests/anteprime-home.test.tsx (o in app-aree) i casi della card del finanziario: TX-0002 in errore (la frase, Domande resta); TX-0009 in errore ('non disponibile' e la nota); TX-0009 in errore dopo un primo dato in cache (stesso QueryClient, refetch con 503): 'non disponibile', non il numero vecchio."
+  },
+  {
+    "id": "V-04",
+    "feature": "comune",
+    "severity": "COSMETICO",
+    "file": "plan/dossier-card-home.md:38",
+    "titolo": "Gli esempi del dossier del gate (8,06 % e 2,57 %) e i segnaposto 'n,nn %' non sono la resa vera: la quota esce con un decimale, come nella pagina",
+    "evidenza": "Il dossier presentato all'approvazione da' come esempi del DB locale '8,06 %' per il fisico (riga 38) e '2,57 %' per l'istituzionale (riga 73). I wireframe approvati hanno 'n,nn %' (fisico/superfici/home.html:77, istituzionale/verifica-smp-non-sigc/home.html:91). quotaDpOltreDs e quotaSpesa usano pero' `percentuale` (shared/lib/grafici/primitive.ts:35), che da 1 % in su arrotonda a un decimale (arrotondaPercentuale). La card mostra quindi '8,1 %' e '2,6 %'. E' la stessa resa del KPI della pagina delle superfici (testoQuotaOltreDs), quindi la coerenza con l'ambito, cioe' la richiesta dell'utente, e' rispettata. Chi ha approvato sul dossier pero' si aspetta due decimali.",
+    "fix": "Correggere gli esempi nel dossier ('8,1 %', '2,6 %'). Il dossier e' in plan/, fuori dall'hash dei wireframe. Alla prossima riapprovazione dei flussi superfici e verifica-smp-non-sigc, portare il segnaposto a 'n,n %' come nel procedurale. Il codice non cambia."
+  }
+]

@@ -1,0 +1,38 @@
+[
+  {
+    "id": "H1",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/anteprima/AnteprimaArea.tsx:10",
+    "titolo": "Il kit ridefinisce NON_DISPONIBILE e il controllo di numeroDi, che shared/lib esporta gia'",
+    "evidenza": "AnteprimaArea.tsx:10 dichiara `export const NON_DISPONIBILE = 'non disponibile'` e shared/ui/index.ts:51 la riesporta, ma la stessa costante con lo stesso valore esiste gia' in shared/lib/grafici/primitive.ts:6 ed e' nel barrel di shared/lib (la usano finanziario/lib/formato.ts:4 e i builder dei grafici). Il segmento shared espone cosi' due NON_DISPONIBILE da due barrel diversi, che possono divergere; nessun modulo usa quella di shared/ui (grep). Lo stesso file importa gia' da '../../lib' (riga 7). Anche NumeroArea (riga 43) riscrive `typeof valore === 'number' && Number.isFinite(valore)`, cioe' `numeroDi(valore) !== null` di primitive.ts:12.",
+    "fix": "In AnteprimaArea.tsx importare `NON_DISPONIBILE` e `numeroDi` da '../../lib' insieme a formatPercentuale, togliere la `export const` alla riga 10 e `NON_DISPONIBILE` dalla riesportazione di shared/ui/index.ts:51; in NumeroArea usare `const presente = numeroDi(valore) !== null`."
+  },
+  {
+    "id": "H2",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/anteprima/AnteprimaArea.tsx:60",
+    "titolo": "Nel kit 'quota' ha due unita' diverse: 0-1 in Kpi, 0-100 in AvanzamentoArea",
+    "evidenza": "AvanzamentoArea prende `quota` in centesimi (righe 59-60, `Math.min(100, ...)` alla 67 e `formatPercentuale(quota)` alla 75). La prop omonima di Kpi nello stesso kit (shared/ui/kpi/Kpi.tsx:25-26, BarraQuota alla 63) e' invece fra 0 e 1. Nel fisico lo stesso quotaDpOltreDs va diviso per 100 per la tessera della pagina (lib/report.ts:73, `quota / 100`) e passato cosi' com'e' alla card (ui/AnteprimaFisico.tsx:31). Chi riusa il pezzo del kit passando il valore nel formato di Kpi ottiene una barra quasi vuota e '0,33 %' al posto di '33,3 %', e nessun tipo lo segnala.",
+    "fix": "Rinominare la prop di AvanzamentoArea in `percentuale` (0-100, la stessa unita' di formatPercentuale) e aggiornare i quattro chiamanti (AnteprimaFinanziario.tsx:34,AnteprimaFisico.tsx:31, AnteprimaProcedurale.tsx:29, AnteprimaIstituzionale.tsx:29). Il nome dice l'unita' e la distingue dalla `quota` 0-1 di Kpi."
+  },
+  {
+    "id": "H3",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/features/fisico/ui/AnteprimaFisico.tsx:17",
+    "titolo": "La cache condivisa fra card e pagina e' vera solo perche' coincidono due letterali, e nessun test la protegge",
+    "evidenza": "I wireframe approvati (sezione 'Card della Home' di superfici.md, panoramica.md e verifica-smp-non-sigc.md) promettono 'stessa cache: chi ha gia' aperto la pagina ha gia' il dato, e viceversa'. Le card passano il letterale `{}` (AnteprimaFisico.tsx:17, AnteprimaProcedurale.tsx:16 e 38, AnteprimaIstituzionale.tsx:17). Le pagine invece costruiscono i criteri dalla pipeline di lib/criteri: fisico/lib/criteri.ts:28 via useFiltriProgrammaNellIndirizzo, istituzionale/lib/criteri.ts:47 `criteriVerifica`, procedurale/lib/criteri.ts:74 `criteriDelReport`. Oggi senza filtri le pipeline danno `{}`, quindi la chiave e' la stessa (`[url, {}]`, getTx0018QueryKey in generated/fisico/fisico/fisico.ts:164). Basterebbe pero' un default o un array vuoto (es. `{ intervento: [] }`) per raddoppiare in silenzio le letture. I test L2 (tests/anteprime-home.test.tsx, `expect(query).toEqual([''])`) provano solo l'URL senza parametri, non la chiave: un `{ intervento: [] }` serializzato darebbe lo stesso URL vuoto con una chiave diversa. Per un'altra promessa di 'stessa cache' il progetto ha gia' un test 'una sola lettura' (review istituzionale X2).",
+    "fix": "Far derivare i parametri delle card dalla stessa funzione delle pagine: in ogni lib/criteri esportare i criteri senza filtri, per esempio `CRITERI_SENZA_FILTRI` ottenuto da `criteriDaRicerca('')` (fisico), `criteriVerifica({}, undefined)` (istituzionale) e `criteriDelReport(criteriDaRicerca(''))` (procedurale), e usarli nelle card. Poi un test L2 in tests/app-aree.test.tsx, con lo stesso clientApp(): Home, poi navigazione alla pagina d'ingresso senza filtri, e il contatore di lettura di TX-0018, TX-0026, TX-0027 e TX-0016 resta a una voce."
+  },
+  {
+    "id": "H4",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/lib/anteprima.ts:52",
+    "titolo": "Il 'totale per intervento mai parziale' e' copiato dal finanziario, e le due copie divergono gia'",
+    "evidenza": "totaleDellaColonna (righe 52-60) e quotaSpesa (63-70) riscrivono finanziario/lib/aggregati.ts. totaleImporti (24-32) usa la stessa regola: sommaSeCompleta, poi 'Non calcolabile: manca per N interventi' con i codici fino a tre (`<= 3` in entrambe, aggregati.ts:28 e anteprima.ts:56). La quota di kpiSpesa (53-61) ha lo stesso 'manca il totale X e Y'. I tipi sono gli stessi: ImportoLike = DatoMotivatoLike<number> (entities/importo) e le righe hanno codiceIntervento. Il brief ha portato nel kit sommaSeCompleta ma non questa regola, e le copie gia' divergono: con nessuna riga totaleImporti dice 'Non calcolabile: nessun intervento nella selezione', mentre totaleDellaColonna somma un insieme vuoto e da' 0 (sommaSeCompleta([]) = 0, provato in tests/istituzionale-lib.test.ts 'zeri veri'). Il suffisso '; <motivo>' c'e' in una copia sola.",
+    "fix": "Portare la regola in entities/importo/lib (dove gia' stanno DatoMotivatoLike, descriviAssenza e testoConNota) come funzione generica, per esempio `totaleMotivato(righe, dato, { vuoto: 'zero' | 'non-calcolabile', motivoUnico?: boolean })`, che restituisce `{ valore, motivo? }` col testo 'Non calcolabile: manca per N interventi (codici)'. Usarla da finanziario/lib/aggregati.ts:24 e istituzionale/lib/anteprima.ts:52, con la politica dell'insieme vuoto esplicita per chiamante. I test esistenti di entrambe le feature restano come guardia."
+  }
+]

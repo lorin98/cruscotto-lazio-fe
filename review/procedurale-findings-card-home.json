@@ -1,0 +1,51 @@
+[
+  {
+    "id": "A-01",
+    "severity": "MINORE",
+    "file": "tests/anteprime-home.test.tsx:142",
+    "titolo": "I test 'nessuna lettura' delle card senza grant non registrano le richieste: una lettura senza grant li lascerebbe verdi; nel test di :114 si prova solo l'assenza di TX-0028 (assorbe V-01; declassato da MAGGIORE come A4 dell'istituzionale)",
+    "fix": "Prima del render registrare le letture (`lettureProcedurale()`, `lettura(...)`) e asserire che restano vuote: :142 `lette.ammesse` e `lette.sostegno`; in :114 `lette.filtri`/`lette.statiArea` = 0 e `lette.riepilogo` = []; :67 superficie-ammissibile; :205 verifica-smp-non-sigc e output-regionale, output-regionale vuota anche in :190; stessa asserzione in tests/app-aree.test.tsx:283. Aggiungere un test della Home coi grant di p4-responsabile-procedimento-ada e p5-amministratore-funzionale del catalogo (p4: solo TX-0026 e TX-0027; p5: solo TX-0018 fra le tre aree). Togliere '(MSW la rifiuterebbe)' dal titolo di :67."
+  },
+  {
+    "id": "A-02",
+    "severity": "MINORE",
+    "file": "src/shared/ui/anteprima/AnteprimaArea.tsx:86",
+    "titolo": "Attesa della card aria-hidden e senza testo: il gruppo con nome resta vuoto per i lettori di schermo, mentre i tre wireframe approvati vogliono role=status con 'Caricamento in corso' (assorbe V-02)",
+    "fix": "AttesaArea: `<div className=\"ui-skeleton ui-ambito__attesa\" role=\"status\"><span className=\"visually-hidden\">Caricamento in corso…</span></div>`, come Caricamento di StatiVista.tsx:9-14 (wireframes/procedurale/panoramica/home.html:100). Test: nella card procedurale con una lettura trattenuta asserire il role=status col testo."
+  },
+  {
+    "id": "H1",
+    "severity": "COSMETICO",
+    "file": "src/shared/ui/anteprima/AnteprimaArea.tsx:10",
+    "titolo": "Il kit ridichiara NON_DISPONIBILE (gia' in shared/lib/grafici/primitive.ts:6) e lo riesporta senza consumatori; NumeroArea riscrive numeroDi (declassato da MINORE)",
+    "fix": "In AnteprimaArea.tsx importare NON_DISPONIBILE e numeroDi da '../../lib', togliere la `export const` di riga 10 e NON_DISPONIBILE dalla riesportazione di src/shared/ui/index.ts:51; riga 43: `const presente = numeroDi(valore) !== null`."
+  },
+  {
+    "id": "H2",
+    "severity": "MINORE",
+    "file": "src/shared/ui/anteprima/AnteprimaArea.tsx:60",
+    "titolo": "Nel kit la prop 'quota' ha due unita': 0-1 in Kpi (Kpi.tsx:25), 0-100 in AvanzamentoArea; nessun tipo distingue l'uso sbagliato",
+    "fix": "Rinominare la prop di AvanzamentoArea in `percentuale` (0-100) e aggiornare i quattro chiamanti: AnteprimaFinanziario.tsx:34, AnteprimaFisico.tsx:31, AnteprimaProcedurale.tsx:29, AnteprimaIstituzionale.tsx:29."
+  },
+  {
+    "id": "H3",
+    "severity": "MINORE",
+    "file": "src/features/procedurale/ui/AnteprimaProcedurale.tsx:16",
+    "titolo": "La cache comune fra card e panoramica senza filtri vale solo perche' il letterale `{}` delle card coincide coi criteri vuoti delle pagine; nessun test ne prova la chiave",
+    "fix": "In ogni lib/criteri esportare i criteri senza filtri dalla stessa funzione delle pagine (procedurale `criteriDelReport(criteriDaRicerca(''))`, fisico `criteriDaRicerca('')`, istituzionale `criteriVerifica({}, undefined)`) e usarli in AnteprimaProcedurale.tsx:16 e :38, AnteprimaFisico.tsx:17, AnteprimaIstituzionale.tsx:17. Test L2 in tests/app-aree.test.tsx con lo stesso client: Home, poi la pagina d'ingresso senza filtri, una sola richiesta per TX-0026, TX-0027, TX-0018 e TX-0016."
+  },
+  {
+    "id": "X1",
+    "severity": "MINORE",
+    "file": "src/features/procedurale/api/index.ts:91",
+    "titolo": "Entrando nell'area mentre la lettura della card e' in corso, React Query la annulla (segnale consumato) e la pagina la rifa' da capo dietro i posti ancora occupati: lettura doppia e attesa piu' lunga (declassato da MAGGIORE; decisione D2)",
+    "fix": "Secondo la decisione D2 del judge.md. (a) Opzione `{ anteprima: true }` negli wrapper usati dalle card (useDomandeAmmesse, useStatiSostegno, useSuperfici, useVerificaSmpNonSigc; per coerenza useSpesaPerIntervento e useTotaleDomande) con una queryFn che non consuma il segnale, una corsia a bassa priorita' nel mutator per le letture delle card e un test L2 con trattenuta() e clic su 'Entra in Procedurale' (una sola richiesta). (b) Accettare il limite: registrare la deviazione 'stessa cache a lettura finita' nei deviations_reviewed dei tre gate wireframe."
+  },
+  {
+    "id": "X2",
+    "severity": "MINORE",
+    "file": "src/features/procedurale/lib/anteprima.ts:35",
+    "titolo": "Il contributo ammesso della card e' il totale del backend, che per SC-PC_AMMESSE esclude i contributi mancanti, ed e' mostrato senza dirlo, contro la regola comune approvata del dossier 'mai uno 0 o una somma parziale' (decisione D1)",
+    "fix": "Secondo la decisione D1 del judge.md. (a) In anteprimaAmmesse contare le righe con domandeAmmesse > 0 e contributoAmmesso.valore == null e dirlo ('Non calcolabile: manca per N interventi (codici)', oppure il valore con la nota 'manca per N interventi'), stessa nota in notaContributo (lib/kpi.ts:43) per la panoramica, test sulla fixture SRA01; open point a green-be per le mancanze dentro un intervento. (b) Accettare il totale del pack: correggere plan/dossier-card-home.md:17-18 e registrare nei deviations_reviewed del gate wireframe della panoramica 'contributo = somma dei contributi valorizzati (SC-PC_AMMESSE)'."
+  }
+]
