@@ -12,6 +12,7 @@ import { server } from '../src/shared/api/mock/server';
 import { rispondi } from '../src/shared/testing/msw';
 import { formatNumber } from '../src/shared/lib';
 import * as F from '../src/features/finanziario/testing/fixture';
+import { SUPERFICI } from '../src/features/fisico/testing/fixture';
 import { lettureProcedurale } from '../src/features/procedurale/testing/letture';
 import * as catalogo from '../src/app/aree';
 import { AMBITI, AREE, areeVisibili } from '../src/app/aree';
@@ -189,12 +190,16 @@ describe('Home e menu dallo stesso catalogo', () => {
     expect(within(cifre).queryByText('20 %')).toBeNull();
   });
 
-  it('profilo del fisico: la card porta alle superfici e il menu ha le due pagine', async () => {
+  it('profilo del fisico: la card porta alle superfici coi numeri chiave e il menu ha le due pagine', async () => {
+    server.use(rispondi('/api/fisico/superficie-ammissibile', SUPERFICI));
     apriHomeCon(['csr.tx-0018.read', 'csr.tx-0020.read']);
     const card = await screen.findByRole('region', { name: 'Fisico' });
     expect(within(card).getByText('Disponibile')).toBeTruthy();
     expect(within(card).getByRole('link', { name: 'Entra in Fisico' }).getAttribute('href')).toBe('/fisico/superfici');
-    expect(within(card).getByText('Determine da cui una domanda prende le informazioni')).toBeTruthy();
+    // col grant di TX-0018 la card mostra i KPI della campagna piu' recente (OP-FIS-10), non piu' i contenuti
+    const cifre = await within(card).findByRole('group', { name: 'Il fisico in cifre' });
+    expect(await within(cifre).findByText('Campagna 2025')).toBeTruthy();
+    expect(within(card).queryByText('Determine da cui una domanda prende le informazioni')).toBeNull();
     const menu = screen.getByRole('navigation', { name: 'Navigazione principale' });
     const gruppo = within(menu).getByRole('button', { name: 'Fisico' });
     const sottomenu = document.getElementById(gruppo.getAttribute('aria-controls') ?? '') as HTMLElement;
@@ -213,7 +218,9 @@ describe('Home e menu dallo stesso catalogo', () => {
     const card = await screen.findByRole('region', { name: 'Procedurale' });
     expect(within(card).getByText('Disponibile')).toBeTruthy();
     expect(within(card).getByRole('link', { name: 'Entra in Procedurale' }).getAttribute('href')).toBe('/procedurale');
-    expect(within(card).getByText('Pagamenti per Unit Amount')).toBeTruthy();
+    // coi grant di TX-0026 e TX-0027 la card mostra i numeri della panoramica (OP-PR-10)
+    const cifre = await within(card).findByRole('group', { name: 'Il procedurale in cifre' });
+    expect(await within(cifre).findByText('2 su 3 (66,7 %)')).toBeTruthy();
     const menu = screen.getByRole('navigation', { name: 'Navigazione principale' });
     const gruppo = within(menu).getByRole('button', { name: 'Procedurale' });
     const sottomenu = document.getElementById(gruppo.getAttribute('aria-controls') ?? '') as HTMLElement;
@@ -258,7 +265,9 @@ describe('Home e menu dallo stesso catalogo', () => {
     const card = await screen.findByRole('region', { name: 'Istituzionale' });
     expect(within(card).getByText('Disponibile')).toBeTruthy();
     expect(within(card).getByRole('link', { name: 'Entra in Istituzionale' }).getAttribute('href')).toBe('/istituzionale/verifica-smp-non-sigc');
-    expect(within(card).getByText('Verifica SMP dei dati ASR non SIGC')).toBeTruthy();
+    // col grant di TX-0016 la card mostra i totali della verifica (OP-IS-11): qui nessun intervento, zeri veri
+    const cifre = await within(card).findByRole('group', { name: "L'istituzionale in cifre" });
+    expect(await within(cifre).findByText('Non SIGC, anno di riferimento 2025')).toBeTruthy();
     const menu = screen.getByRole('navigation', { name: 'Navigazione principale' });
     const gruppo = within(menu).getByRole('button', { name: 'Istituzionale' });
     const sottomenu = document.getElementById(gruppo.getAttribute('aria-controls') ?? '') as HTMLElement;
@@ -275,6 +284,9 @@ describe('Home e menu dallo stesso catalogo', () => {
     apriHomeCon(['csr.tx-0017.read']);
     const card = await screen.findByRole('region', { name: 'Istituzionale' });
     expect(within(card).getByRole('link', { name: 'Entra in Istituzionale' }).getAttribute('href')).toBe('/istituzionale/output-regionale');
+    // senza il grant di TX-0016 la card non legge (l'output non si somma) e dice cosa c'e' nell'area
+    expect(within(card).getByText('Verifica SMP dei dati ASR non SIGC')).toBeTruthy();
+    expect(within(card).queryByRole('group')).toBeNull();
     const menu = screen.getByRole('navigation', { name: 'Navigazione principale' });
     expect(within(menu).getAllByRole('link').map((l) => l.textContent)).toEqual(['Output regionale']);
   });

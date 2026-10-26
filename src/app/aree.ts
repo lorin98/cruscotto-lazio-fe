@@ -6,13 +6,15 @@
 // Gli ambiti sono quattro (finanziario, fisico, procedurale, istituzionale), ognuno col suo colore; i dati del primo
 // pilastro (Extra CSR) non hanno un ambito nel frontend (scelta dell'utente del 12/10/2026). Le card descrivono il
 // contenuto reale delle feature (decisione G1 dell'utente del 21/10/2026): ogni pagina sta nella feature della sua slice.
+// Dal 26/10/2026 (decisione dell'utente, OP-FIS-10, OP-PR-10, OP-IS-11) ogni ambito mostra i suoi numeri chiave nella card,
+// come il finanziario: l'Anteprima della feature, coi grant delle sue letture.
 import type { ComponentType, ReactNode } from 'react';
 import { ricercaDeiSoliFiltri } from '../entities/filtri';
 import { pagineVisibili as pagineElenco } from '../features/elenco-operativo';
 import { AnteprimaFinanziario, pagineVisibili as pagineFinanziario } from '../features/finanziario';
-import { pagineVisibili as pagineFisico } from '../features/fisico';
-import { pagineVisibili as pagineIstituzionale, ricercaConservata as ricercaIstituzionale } from '../features/istituzionale';
-import { pagineVisibili as pagineProcedurale, ricercaConservata as ricercaProcedurale } from '../features/procedurale';
+import { AnteprimaFisico, pagineVisibili as pagineFisico } from '../features/fisico';
+import { AnteprimaIstituzionale, pagineVisibili as pagineIstituzionale, ricercaConservata as ricercaIstituzionale } from '../features/istituzionale';
+import { AnteprimaProcedurale, pagineVisibili as pagineProcedurale, ricercaConservata as ricercaProcedurale } from '../features/procedurale';
 import type { NomeIcona } from '../shared/ui';
 
 /**
@@ -82,6 +84,7 @@ export const AREE: readonly DiAmbito<Area>[] = [
     tono: 'verde',
     contenuti: ['Superfici ammissibili di sostegno e di pagamento per intervento e campagna', 'Verifica incrociata fra superficie di pagamento e di sostegno', 'Determine da cui una domanda prende le informazioni'],
     pagineVisibili: pagineFisico,
+    Anteprima: AnteprimaFisico,
   },
   {
     // G1: stati delle domande di sostegno e di pagamento (TX-0027, TX-0028), domande ammesse con atto e contributo
@@ -96,6 +99,7 @@ export const AREE: readonly DiAmbito<Area>[] = [
     contenuti: ['Stati e sottofasi delle domande', 'Domande ammesse con atto di concessione e contributo', 'Riepilogo per intervento', 'Pagamenti per Unit Amount'],
     pagineVisibili: pagineProcedurale,
     ricercaConservata: ricercaProcedurale,
+    Anteprima: AnteprimaProcedurale,
   },
   {
     // G1: verifica SMP non SIGC (TX-0016) e output regionale programmato e realizzato (TX-0017); i due report hanno gli
@@ -109,6 +113,7 @@ export const AREE: readonly DiAmbito<Area>[] = [
     contenuti: ['Verifica SMP dei dati ASR non SIGC', 'Output regionale programmato e realizzato per intervento e anno'],
     pagineVisibili: pagineIstituzionale,
     ricercaConservata: ricercaIstituzionale,
+    Anteprima: AnteprimaIstituzionale,
   },
 ];
 
