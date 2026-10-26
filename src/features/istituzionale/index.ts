@@ -5,3 +5,4 @@ export { VerificaSmpNonSigc } from './ui/VerificaSmpNonSigc';
 export { OutputRegionale } from './ui/OutputRegionale';
 export { DettaglioIntervento } from './ui/DettaglioIntervento';
 export { pagineVisibili, ricercaConservata } from './lib/pagine';
+export { AnteprimaIstituzionale } from './ui/AnteprimaIstituzionale';

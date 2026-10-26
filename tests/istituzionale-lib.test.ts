@@ -33,6 +33,8 @@ import { statoDelDettaglio, tutteRisposte } from '../src/shared/lib';
 import { SENZA_DATI, SENZA_UNIT_AMOUNT, TITOLI_SCHEDE, badgeIntervento, captionVociVerifica, kpiIntervento, schedeVisibili, testoAggiornamentoAnno, ultimoDatoInErrore, sopratitoloIntervento, titoloIntervento, ultimiDelDettaglio } from '../src/features/istituzionale/lib/intervento';
 import { TITOLO_SPESA, graficoOutputPerAnno, graficoSpesa } from '../src/features/istituzionale/lib/grafici';
 import { OUTPUT, SRA01_OUTPUT, SRD01, ULTIMI, VERIFICA, outputPer, righeDeiFiltri, verificaPer } from '../src/features/istituzionale/testing/fixture';
+import { anteprimaVerifica, etichetteAnteprima, riferimentoAnteprima } from '../src/features/istituzionale/lib/anteprima';
+import type { RigaVerifica } from '../src/features/istituzionale/lib/dto';
 
 const dato = (campo: DatoVerifica['campo']) => DATI_VERIFICA.find((d) => d.campo === campo) as DatoVerifica;
 const status = (roles: string[]) => ({ authenticated: true, user: { username: 'U', profile: 'p3-funzionario-area-ist', roles } });
@@ -394,5 +396,42 @@ describe('fixture: le risposte di prova filtrano come il backend (SC-IS_FILTRI, 
     expect(avviso.map((k) => sra2024[k].motivo)).toEqual(avviso.map(() => 'NON_VALORIZZATO'));
     // le righe in ordine di codice, come il backend
     expect(VERIFICA.righe.map((r) => r.codiceIntervento)).toEqual(['SRA01', 'SRA16', 'SRD01']);
+  });
+});
+
+describe('RF016: card della Home coi totali della verifica SMP non SIGC (OP-IS-11, decisione dell utente del 26/10/2026)', () => {
+  const assente = (motivo: string) => ({ valore: null, motivo, fonte: null });
+  const conSpesa = (spesa: (r: RigaVerifica) => RigaVerifica['spesaErogata']): RigaVerifica[] => VERIFICA.righe.map((r): RigaVerifica => ({ ...r, spesaErogata: spesa(r) }));
+
+  it('somme delle colonne fra gli interventi (SRA01 SIGC conta 0, conteggio vero) e la quota della spesa sul valore finanziato', () => {
+    expect(anteprimaVerifica(VERIFICA)).toEqual({ domandeFinanziate: 2, domandeRicevute: 4, spesaErogata: { valore: 91200.5 }, quotaSpesa: { valore: 57 } });
+  });
+
+  it('un dato motivato assente anche in una sola riga: totale non calcolabile col motivo, nessuna quota; i conteggi restano', () => {
+    const a = anteprimaVerifica({ righe: conSpesa((r) => (r.codiceIntervento === 'SRA16' ? assente('FONTE_AMBIGUA') : r.spesaErogata)) });
+    expect(a.spesaErogata).toEqual({ valore: null, motivo: 'Non calcolabile: manca per 1 intervento (SRA16); non attribuibile (riga presente sia nel monitoraggio SIGC sia nel non SIGC)' });
+    expect(a.quotaSpesa).toEqual({ valore: null, motivo: 'non calcolabile: manca il totale della spesa' });
+    expect([a.domandeFinanziate, a.domandeRicevute]).toEqual([2, 4]);
+  });
+
+  it('motivi diversi: quanti interventi e quali, senza un motivo unico; entrambi i totali assenti: lo dice la quota', () => {
+    const motivi: Record<string, string> = { SRA01: 'NON_VALORIZZATO', SRA16: 'FONTE_AMBIGUA' };
+    const righe = conSpesa((r) => (motivi[r.codiceIntervento] ? assente(motivi[r.codiceIntervento]) : r.spesaErogata)).map((r): RigaVerifica => ({ ...r, valoreDomandeFinanziate: assente('NON_VALORIZZATO') }));
+    const a = anteprimaVerifica({ righe });
+    expect(a.spesaErogata.motivo).toBe('Non calcolabile: manca per 2 interventi (SRA01, SRA16)');
+    expect(a.quotaSpesa.motivo).toBe('non calcolabile: manca il totale della spesa e del valore finanziato');
+  });
+
+  it('valore finanziato nullo: nessuna quota; spesa oltre il finanziato: la quota vera oltre 100; nessun intervento: zeri veri', () => {
+    expect(anteprimaVerifica({ righe: [] })).toEqual({ domandeFinanziate: 0, domandeRicevute: 0, spesaErogata: { valore: 0 }, quotaSpesa: { valore: null, motivo: 'nessun valore finanziato' } });
+    const oltre = conSpesa((r) => (r.codiceIntervento === 'SRD01' ? { valore: 200000, motivo: null, fonte: null } : r.spesaErogata));
+    expect(anteprimaVerifica({ righe: oltre }).quotaSpesa).toEqual({ valore: 125.8 });
+  });
+
+  it('riferimento dell anno del file e etichette col perimetro', () => {
+    expect(riferimentoAnteprima(2025)).toBe('Non SIGC, anno di riferimento 2025');
+    expect(riferimentoAnteprima(null)).toBe('Non SIGC, nessun file SMP non SIGC');
+    expect(etichetteAnteprima('REGIONALE')).toEqual({ finanziate: 'Domande finanziate', spesa: 'Spesa pubblica erogata', quota: 'Spesa erogata sul valore delle domande finanziate', ricevute: 'Domande ricevute' });
+    expect(etichetteAnteprima('ADA')).toMatchObject({ finanziate: 'Domande finanziate della tua area', spesa: 'Spesa pubblica erogata della tua area', ricevute: 'Domande ricevute della tua area' });
   });
 });
