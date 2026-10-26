@@ -10,6 +10,10 @@ valori dei filtri da TX-0060 (decisione G2), link alla verifica SMP SIGC del fin
 Aggiornato il 26/10/2026 con la card Istituzionale della Home (`home.html`, decisione dell'utente del 26/10/2026: totali
 della verifica SMP non SIGC). La pagina della verifica non cambia. Vedi "Card della Home".
 
+Aggiornato il 26/10/2026 con le decisioni dell'utente sulla review della card (`review/card-home-2026-10-26/judge.md`):
+D3, il riferimento dice che i valori sono cumulativi e l'anno e' quello dell'ultimo file; D2, la cache condivisa fra card e
+pagina vale a lettura finita.
+
 ## Route del flusso
 
 | route | kind | pattern | grant (verbatim dal catalogo) |
@@ -164,12 +168,15 @@ la card dell'area e' contenuto della feature (G1, OP-IS-05) e la monta lo step6 
 accanto a quella del finanziario (`AnteprimaFinanziario`), con la stessa forma: fascia colorata invariata (icona, stato,
 titolo, descrizione), numeri chiave nel corpo, "Entra in Istituzionale" nel piede.
 
-- Lettura: TX-0016 senza filtri e senza anno, la stessa della pagina aperta senza filtri (stessa cache). Grant:
+- Lettura: TX-0016 senza filtri e senza anno, la stessa della pagina aperta senza filtri (stessa cache, a lettura finita:
+  se si entra nell'area mentre la card sta ancora leggendo, la pagina rifa' la lettura; decisione D2). Grant:
   csr.tx-0016.read (p1-dirigente, p2-referente-adg, p3-funzionario-area-ist); senza il grant nessuna lettura e la card
   elenca i contenuti dell'area, come oggi. Nessuna lettura di TX-0017 (l'output ha unita' di misura diverse per
   intervento e non si somma, OP-IS-06) ne' di TX-0060.
-- Riferimento: "Non SIGC, anno di riferimento aaaa" dall'annoRiferimento della risposta (l'ultimo anno con un file); senza
-  file "Non SIGC, nessun file SMP non SIGC", e i numeri restano (domande e spesa vengono dalle pratiche).
+- Riferimento (decisione D3 del 26/10/2026): "Non SIGC, valori cumulativi (ultimo file SMP non SIGC: aaaa)" con
+  l'annoRiferimento della risposta (l'ultimo anno con un file): domande e spesa sono cumulative, l'anno e' quello del
+  file, non dei numeri. Senza file "Non SIGC, valori cumulativi (nessun file SMP non SIGC)", e i numeri restano (domande e
+  spesa vengono dalle pratiche).
 - Numeri: totali di quattro colonne della tabella, sommate fra gli interventi della risposta. Si sommano perche' ogni
   domanda e' una domanda di sostegno corrente di un solo intervento (D-02 Rev. 2) e la spesa erogata sono righe pagate
   non SIGC; gli interventi SIGC contano 0 (conteggio vero, vedi sopra). La pagina resta senza KPI.

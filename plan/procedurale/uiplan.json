@@ -1306,6 +1306,12 @@
       "name": "card della Home: perimetro delle due risposte (etichette 'della tua area' col perimetro ADA del P4)",
       "provenance": "spec",
       "source_ref": "openapi-procedurale.json#/components/schemas/DomandeAmmesse"
+    },
+    {
+      "route": "/procedurale",
+      "name": "card della Home e KPI Contributo ammesso della panoramica: righe[].codiceIntervento, righe[].domandeAmmesse e righe[].contributoAmmesso (interventi con domande ammesse senza contributo, decisione D1 del 26/10/2026)",
+      "provenance": "spec",
+      "source_ref": "openapi-procedurale.json#/components/schemas/DomandeAmmesseRiga"
     }
   ],
   "flows": [
@@ -1327,11 +1333,11 @@
         "Card della Home (home.html, decisione dell'utente del 26/10/2026): numeri in una lista di definizioni dentro un gruppo con nome ('Il procedurale in cifre'); numero animato letto solo nel valore finale e fermo con prefers-reduced-motion; barra degli interventi attivati nascosta ai lettori di schermo, 'n su m' e percentuale nel testo; contributo assente detto col motivo, mai 0; errore di una lettura detto in una frase senza fermare la Home."
       ],
       "approval": {
-        "approved_hash": "sha256:de56d106e8a0855a0d570ee07ed4f22fa7e6e4281ede1f94c01bf6bafc9770b5",
+        "approved_hash": "sha256:eec17f2e3d8f1f27d4422f85825b27f5eaf3146cccc873c877e451cb05ef3865",
         "baseline_ref": "./wireframes/procedurale/panoramica",
-        "approved_at": "2026-10-26T08:49:12Z",
-        "time_to_approve_s": 122,
-        "rework_rounds": 0
+        "approved_at": "2026-10-26T10:21:19Z",
+        "time_to_approve_s": 216,
+        "rework_rounds": 1
       }
     },
     {
@@ -1492,7 +1498,15 @@
     {
       "id": "OP-PR-10",
       "kind": "altro",
-      "detail": "Card della Home dinamica (decisione dell'utente del 26/10/2026, come la card del finanziario): la card Procedurale mostra i numeri della panoramica senza filtri, ognuno col grant della sua transazione: domande ammesse, contributo ammesso e interventi attivati sul perimetro ufficiale (barra) da TX-0026 (csr.tx-0026.read), domande di sostegno da TX-0027 (csr.tx-0027.read); stesse letture e cache della panoramica senza filtri. Col perimetro ADA le etichette dicono 'della tua area'. Senza nessuno dei due grant elenca i contenuti dell'area, come prima. La Home non e' una route della feature: il componente sta nella feature (G1, OP-PR-04) e lo monta lo step6 in src/app/aree.ts come Anteprima. Wireframe: home.html del flusso panoramica."
+      "detail": "Card della Home dinamica (decisione dell'utente del 26/10/2026, come la card del finanziario): la card Procedurale mostra i numeri della panoramica senza filtri, ognuno col grant della sua transazione: domande ammesse, contributo ammesso e interventi attivati sul perimetro ufficiale (barra) da TX-0026 (csr.tx-0026.read), domande di sostegno da TX-0027 (csr.tx-0027.read); stesse letture e cache della panoramica senza filtri. Col perimetro ADA le etichette dicono 'della tua area'. Senza nessuno dei due grant elenca i contenuti dell'area, come prima. La Home non e' una route della feature: il componente sta nella feature (G1, OP-PR-04) e lo monta lo step6 in src/app/aree.ts come Anteprima. Wireframe: home.html del flusso panoramica. Decisione D1 dell'utente del 26/10/2026 (review della card): il contributo ammesso del totale somma i soli contributi valorizzati; la card e il KPI della panoramica dicono quali interventi con domande ammesse non hanno il contributo ('manca il contributo di n interventi'). Decisione D2: la cache condivisa con la panoramica vale a lettura finita."
+    },
+    {
+      "id": "OP-PR-11",
+      "kind": "altro",
+      "detail": "Verso green-be (informativo, decisione D1 del 26/10/2026): il frontend vede solo gli interventi con domande ammesse e contributo assente (righe[].contributoAmmesso null). Se dentro un intervento alcune domande ammesse non hanno il contributo e altre si', la riga somma le sole valorizzate e il frontend non puo' dirlo: serve un conteggio delle domande ammesse senza contributo nel contratto di TX-0026 per dichiararlo.",
+      "blocks": [
+        "TX-0026"
+      ]
     }
   ]
 }

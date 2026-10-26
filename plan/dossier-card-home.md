@@ -35,7 +35,7 @@ dir, quindi la riapprovazione copre anche loro (contenuto invariato).
   p5-amministratore-funzionale).
 - Numeri (campagna piu' recente della risposta, detta in testo): superficie ammissibile DS e DP (somme dei
   `campagne[anno]` fra gli interventi), barra delle domande con DP oltre la DS sulle domande di pagamento, domande di
-  pagamento. Esempio sul DB locale: campagna 2026, DS 299.408,88 ha, DP 302.639,31 ha, 8,06 %, 14.558.
+  pagamento. Esempio sul DB locale: campagna 2026, DS 299.408,88 ha, DP 302.639,31 ha, 8,1 % (una cifra decimale come la pagina; corretto il 26/10 dopo la review, V-04), 14.558.
 - Stati: caricamento, errore, nessuna superficie, nessuna domanda di pagamento (frase al posto della barra), senza grant.
 - Open point: OP-FIS-10 (nuovo, questa card).
 - Hash prima: `sha256:f803b5cf0cdee87bcce162b1d9d3d8a4a3eea8fcd7763ab25a2fb4bfa9dac6bd`
@@ -70,7 +70,7 @@ dir, quindi la riapprovazione copre anche loro (contenuto invariato).
   p3-funzionario-area-ist). Nessuna lettura di TX-0017 (l'output non si somma, OP-IS-06).
 - Numeri (anno di riferimento della risposta, detto in testo): domande finanziate, spesa pubblica erogata, barra della
   spesa sul valore delle domande finanziate, domande ricevute; somme delle colonne fra gli interventi (ogni domanda e' di
-  un solo intervento, D-02 Rev. 2). Esempio sul DB locale: anno 2025, 500, 4,7 M euro, 2,57 %, 3.150.
+  un solo intervento, D-02 Rev. 2). Esempio sul DB locale: anno 2025, 500, 4,7 M euro, 2,6 % (corretto il 26/10 dopo la review, V-04), 3150.
 - Stati: caricamento, errore, nessun file SMP non SIGC (numeri presenti), dato motivato assente in una riga (totale non
   disponibile col motivo, niente quota), perimetro ADA, senza grant.
 - Open point: OP-IS-11 (nuovo, questa card).
@@ -83,3 +83,30 @@ Step2 (nessuna spec nuova: client orval invariato), step3 (letture gia' esistent
 (conti puri delle tre card con test L1), step5 (tre componenti `Anteprima<Area>` che riusano i pezzi della card del
 finanziario, portati nel kit), step6 (`aree.ts` e barrel), step7, step8 11/11 su tutte e cinque le feature (codice comune
 toccato), review step9 FULL sul delta per ambito.
+
+## Rework del 26/10/2026 dopo la review step9 (decisioni dell'utente D1-D4)
+
+Review FULL sul delta: PASS per i tre ambiti (`review/card-home-2026-10-26/judge.md`). Decisioni dell'utente sui residui:
+D1 (a2) contributo col valore del backend e la nota degli interventi senza contributo, in card e panoramica; D2 (b)
+cache condivisa "a lettura finita", registrata come deviazione nei tre gate; D3 (b) testo nuovo del riferimento
+dell'istituzionale; D4 (a) scheletro della card con role=status e testo nascosto, come gia' nei wireframe. D1 e D3
+cambiano due flussi, da riapprovare; il flusso superfici del fisico non cambia (la deviazione D2 va nel gate).
+
+### Flusso panoramica (procedurale): da riapprovare
+- Cambiati: `panoramica.html` (nota del KPI Contributo ammesso: "manca il contributo di n interventi (codici, fino a
+  tre)" se un intervento con domande ammesse non ha il contributo), `home.html` (stato nuovo con la stessa nota),
+  `panoramica.md` (KPI, Card della Home, cache a lettura finita). Uiplan: campo `righe[].contributoAmmesso`, OP-PR-10
+  aggiornato, OP-PR-11 nuovo verso green-be (mancanze dentro un intervento, che il frontend non vede).
+- Sui dati reali oggi nessun intervento con domande ammesse e' senza contributo: la nota non compare.
+- Hash prima: `sha256:de56d106e8a0855a0d570ee07ed4f22fa7e6e4281ede1f94c01bf6bafc9770b5`
+- **Hash da approvare**: `sha256:eec17f2e3d8f1f27d4422f85825b27f5eaf3146cccc873c877e451cb05ef3865`
+
+### Flusso verifica-smp-non-sigc (istituzionale): da riapprovare
+- Cambiati: `home.html` (riferimento "Non SIGC, valori cumulativi (ultimo file SMP non SIGC: aaaa)" e, senza file,
+  "Non SIGC, valori cumulativi (nessun file SMP non SIGC)"; segnaposto della percentuale con una cifra decimale),
+  `verifica-smp-non-sigc.md` (Riferimento, cache a lettura finita). Uiplan: OP-IS-11 aggiornato.
+- Hash prima: `sha256:bb59cdbaaf09749c1f4e96551c6094b56af2aa652fbcfd02bbd65929189310c9`
+- **Hash da approvare**: `sha256:dcb8a4bdd3edea0b1a12367e80c0111fb807a4a3d3a92debdc3d28fbf502778d`
+
+Controlli: `wireframe-lint.sh` (template v2) rc 0, `uiplan-validate.sh` rc 0, `fe-project-check.sh --feature --catalog`
+rc 0 sulle due feature.

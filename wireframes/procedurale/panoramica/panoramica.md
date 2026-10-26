@@ -21,6 +21,10 @@ TX-0032 ora accettano intervento e stato), nessun riferimento al parametro `azio
 Aggiornato il 26/10/2026 con la card Procedurale della Home (`home.html`, decisione dell'utente del 26/10/2026: domande
 ammesse, contributo ammesso, barra degli interventi attivati, domande di sostegno). Vedi "Card della Home".
 
+Aggiornato il 26/10/2026 con le decisioni dell'utente sulla review della card (`review/card-home-2026-10-26/judge.md`):
+D1, il contributo ammesso della panoramica e della card dice quali interventi con domande ammesse non hanno il contributo;
+D2, la cache condivisa fra card e pagina vale a lettura finita.
+
 ## Component tree (per pagina)
 
 Vocabolario del kit UI v2 (ADR 0027 di green-fe), lo stesso del finanziario (prototipo approvato `prototipo/finanziario/`).
@@ -49,6 +53,9 @@ Vocabolario del kit UI v2 (ADR 0027 di green-fe), lo stesso del finanziario (pro
 
 KPI: totali del DTO di TX-0026 (domandeAmmesse, conAttoConcessione, contributoAmmesso con importoRichiesto,
 interventiAttivati su interventiPerimetroUfficiale); la quota del contributo sul richiesto solo se entrambi valorizzati.
+Il contributo ammesso del totale somma i soli contributi valorizzati (SC-PC_AMMESSE): se un intervento con domande ammesse
+non ha il contributo, la nota lo aggiunge, "manca il contributo di n interventi (codici, fino a tre)" (decisione D1 del
+26/10/2026); la card della Home dice lo stesso.
 Il KPI con atto di concessione con FONTE_NON_ATTIVA ATTO_CONCESSIONE (nessun atto nel database: oggi e' il caso reale) e'
 "non disponibile" col motivo, senza link. Il "di cui non rilasciate" e' testo e colonna della tabella equivalente, non solo
 un segmento colorato.
@@ -117,7 +124,8 @@ la card dell'area e' contenuto della feature (G1, OP-PR-04) e la monta lo step6 
 accanto a quella del finanziario (`AnteprimaFinanziario`), con la stessa forma: fascia colorata invariata (icona, stato,
 titolo, descrizione), numeri chiave nel corpo, "Entra in Procedurale" nel piede.
 
-- Letture: TX-0026 e TX-0027 senza filtri, le stesse della panoramica aperta senza filtri (stessa cache). Ognuna col suo
+- Letture: TX-0026 e TX-0027 senza filtri, le stesse della panoramica aperta senza filtri (stessa cache, a lettura finita:
+  se si entra nell'area mentre la card sta ancora leggendo, la pagina rifa' la lettura; decisione D2). Ognuna col suo
   grant: csr.tx-0026.read per domande ammesse, contributo e interventi attivati; csr.tx-0027.read per le domande di
   sostegno (p1-dirigente, p2-referente-adg, p3-funzionario-area-pro, p4-responsabile-procedimento-ada hanno entrambi).
   Senza nessuno dei due nessuna lettura e la card elenca i contenuti dell'area, come oggi. Nessuna lettura di TX-0024,
@@ -127,7 +135,7 @@ titolo, descrizione), numeri chiave nel corpo, "Entra in Procedurale" nel piede.
 | numero | campo (provenance spec: openapi-procedurale.json) | resa |
 |---|---|---|
 | Domande ammesse | DomandeAmmesse.totale.domandeAmmesse | intero, numero animato (come il KPI della panoramica) |
-| Contributo ammesso | DomandeAmmesse.totale.contributoAmmesso (Importo motivato) | importo breve, numero animato; assente: "non disponibile" col motivo, mai 0 |
+| Contributo ammesso | DomandeAmmesse.totale.contributoAmmesso (Importo motivato) e righe[].contributoAmmesso delle righe con domande ammesse | importo breve, numero animato; con interventi con domande ammesse senza contributo la nota "Manca il contributo di n interventi (codici)" (D1); assente: "non disponibile" col motivo, mai 0 |
 | Interventi attivati | totale.interventiAttivati su totale.interventiPerimetroUfficiale | "n su m" e percentuale nel testo, barra a passi del 5 % (decorativa); con m = 0 il solo testo |
 | Domande di sostegno | StatiDomande.totale.totale di TX-0027 (voci, altri stati e non rilasciate comprese) | intero, numero animato (come il KPI della pagina degli stati) |
 

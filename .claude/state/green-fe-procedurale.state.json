@@ -32,14 +32,16 @@
           ]
         },
         "wireframe_panoramica": {
-          "approved_hash": "sha256:de56d106e8a0855a0d570ee07ed4f22fa7e6e4281ede1f94c01bf6bafc9770b5",
+          "approved_hash": "sha256:eec17f2e3d8f1f27d4422f85825b27f5eaf3146cccc873c877e451cb05ef3865",
           "baseline_ref": "./wireframes/procedurale/panoramica",
-          "approved_at": "2026-10-26T08:49:12Z",
-          "time_to_approve_s": 122,
+          "approved_at": "2026-10-26T10:21:19Z",
+          "time_to_approve_s": 216,
           "deviations_reviewed": [
             "Scelte di disegno approvate dall'utente il 22/10/2026: dettaglio procedurale dell'intervento con scheda Sottofasi; due pagine per gli stati di sostegno e di pagamento; card stato area programmazione da TX-0029; clic su una barra = filtro in pagina, Apri nell'elenco (n rilasciate) azione esplicita; di cui non rilasciate di In compilazione senza fonte = non disponibile; CSV/XLSX di una card = intero report; Unit Amount senza importo pagato = nota unica sopra la tabella",
             "D2 della review step9 FULL del procedurale v1 (23/10/2026, V5), approvata dall'utente: AT001 o un intervento fuori dal CSR: il backend risponde 200 senza righe (D-08 del finanziario), non 400; il dettaglio lo dice come senza dati con la nota su AT001; un 400 del backend resta un errore col messaggio del problem-type",
-            "Card della Home dinamica (OP-PR-10, decisione dell'utente del 26/10/2026: domande ammesse, contributo, barra degli interventi attivati, domande di sostegno): home.html del flusso; riapprovato dall'utente il 26/10/2026"
+            "Card della Home dinamica (OP-PR-10, decisione dell'utente del 26/10/2026: domande ammesse, contributo, barra degli interventi attivati, domande di sostegno): home.html del flusso; riapprovato dall'utente il 26/10/2026",
+            "D1 della review step9 della card della Home (26/10/2026): contributo ammesso col valore del backend e la nota 'manca il contributo di n interventi' in card e KPI della panoramica; riapprovato dall'utente il 26/10/2026",
+            "D2 della review step9 della card della Home (26/10/2026, decisione dell'utente): la cache condivisa fra card e pagina vale a lettura finita; se si entra nell'area mentre la card sta ancora leggendo, la pagina rifa' la lettura (X1). Correzione nel mutator solo se il ritardo si vede in prova."
           ]
         },
         "wireframe_riepilogo": {
