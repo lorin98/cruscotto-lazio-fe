@@ -2,6 +2,7 @@
 // backend per i totali (SC-FI_DISTRIBUZIONE): niente somme parziali. Se manca anche un solo valore il totale non e'
 // calcolabile e lo si dice con gli interventi che mancano; la quota pagata sulla dotazione e' la stessa media
 // ponderata del grafico dell'avanzamento (stessi interventi inclusi ed esclusi).
+import { totaleMotivato } from '../../../entities/importo';
 import type { ImportoLike } from '../../../entities/importo';
 import { formatEuro, plurale, sommaSeCompleta } from '../../../shared/lib';
 import { avanzamentoPonderato } from './avanzamento';
@@ -20,15 +21,12 @@ export interface Aggregato {
 /** Somma di numeri solo se ognuno e' noto (del kit: la usano anche le card della Home degli altri ambiti). */
 export { sommaSeCompleta };
 
-/** Totale di un Importo per intervento: "non calcolabile" con gli interventi senza valore, mai una somma parziale. */
+/**
+ * Totale di un Importo per intervento: "non calcolabile" con gli interventi senza valore, mai una somma parziale. La regola
+ * e' dell'entity importo (totaleMotivato, comune alla card dell'istituzionale); qui l'insieme vuoto e' non calcolabile.
+ */
 export function totaleImporti<T extends { codiceIntervento?: string }>(righe: readonly T[], importo: (r: T) => ImportoLike | null | undefined): Aggregato {
-  if (righe.length === 0) return { valore: null, motivo: 'Non calcolabile: nessun intervento nella selezione' };
-  const mancanti = righe.filter((r) => valoreDi(importo(r)) == null).map(codiceDi);
-  if (mancanti.length > 0) {
-    const elenco = mancanti.length <= 3 ? ` (${mancanti.join(', ')})` : '';
-    return { valore: null, motivo: `Non calcolabile: manca per ${plurale(mancanti.length, 'intervento', 'interventi')}${elenco}` };
-  }
-  return { valore: sommaSeCompleta(righe.map((r) => valoreDi(importo(r)))) };
+  return totaleMotivato(righe, importo, codiceDi, { vuoto: 'non-calcolabile' });
 }
 
 /** Quota pagata sulla dotazione (0-100): la media ponderata del grafico; col perimetro ADA non confrontabile. */

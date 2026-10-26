@@ -429,8 +429,8 @@ describe('RF016: card della Home coi totali della verifica SMP non SIGC (OP-IS-1
   });
 
   it('riferimento dell anno del file e etichette col perimetro', () => {
-    expect(riferimentoAnteprima(2025)).toBe('Non SIGC, anno di riferimento 2025');
-    expect(riferimentoAnteprima(null)).toBe('Non SIGC, nessun file SMP non SIGC');
+    expect(riferimentoAnteprima(2025)).toBe('Non SIGC, valori cumulativi (ultimo file SMP non SIGC: 2025)');
+    expect(riferimentoAnteprima(null)).toBe('Non SIGC, valori cumulativi (nessun file SMP non SIGC)');
     expect(etichetteAnteprima('REGIONALE')).toEqual({ finanziate: 'Domande finanziate', spesa: 'Spesa pubblica erogata', quota: 'Spesa erogata sul valore delle domande finanziate', ricevute: 'Domande ricevute' });
     expect(etichetteAnteprima('ADA')).toMatchObject({ finanziate: 'Domande finanziate della tua area', spesa: 'Spesa pubblica erogata della tua area', ricevute: 'Domande ricevute della tua area' });
   });

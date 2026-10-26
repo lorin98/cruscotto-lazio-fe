@@ -8,6 +8,7 @@ import { MAX_VALORI_PARAMETRO, leggiRipetuti, scriviRipetuti } from '../src/shar
 import { conStatoSalvato, leggiStatoSalvato } from '../src/shared/lib/stato-history';
 import { statoDelDettaglio, tutteRisposte } from '../src/shared/lib/dettaglio';
 import * as libComune from '../src/shared/lib';
+import { totaleMotivato } from '../src/entities/importo';
 import { isOpenEnded, isSentinelDate, SENTINEL_DATE_MAX } from '../src/shared/lib/sentinel-dates';
 import { isEditable, makeRolePredicate } from '../src/shared/lib/predicates';
 import type { AuthStatus } from '../src/shared/api/auth/auth-status';
@@ -277,5 +278,26 @@ describe('lib/dettaglio — lo stato di un dettaglio con piu letture (prima nell
 
   it('shared/lib non conosce campi di dominio: la riga dell intervento sta in entities/filtri (review H2 del procedurale)', () => {
     expect(Object.keys(libComune)).not.toContain('rigaDellIntervento');
+  });
+});
+
+describe('entities/importo: totaleMotivato, la regola dei totali senza somme parziali (review H4 della card della Home)', () => {
+  type Riga = { codice: string; dato: { valore: number | null; motivo: string | null; fonte: null } };
+  const riga = (codice: string, valore: number | null, motivo: string | null = null): Riga => ({ codice, dato: { valore, motivo, fonte: null } });
+  const totale = (righe: Riga[], conMotivo = false, vuoto: 'zero' | 'non-calcolabile' = 'zero') => totaleMotivato(righe, (r) => r.dato, (r) => r.codice, { vuoto, conMotivo });
+
+  it('la somma al centesimo se ogni riga ha il valore; l insieme vuoto lo decide chi chiama', () => {
+    expect(totale([riga('A', 0.1), riga('B', 0.2)])).toEqual({ valore: 0.3 });
+    expect(totale([])).toEqual({ valore: 0 });
+    expect(totale([], false, 'non-calcolabile')).toEqual({ valore: null, motivo: 'Non calcolabile: nessun intervento nella selezione' });
+  });
+
+  it('una riga senza valore: non calcolabile coi codici (fino a tre), il motivo unico solo se richiesto', () => {
+    const righe = [riga('A', 1), riga('B', null, 'FONTE_AMBIGUA')];
+    expect(totale(righe)).toEqual({ valore: null, motivo: 'Non calcolabile: manca per 1 intervento (B)' });
+    expect(totale(righe, true)).toEqual({ valore: null, motivo: 'Non calcolabile: manca per 1 intervento (B); non attribuibile (riga presente sia nel monitoraggio SIGC sia nel non SIGC)' });
+    // motivi diversi: nessun motivo unico; oltre tre righe solo il numero
+    expect(totale([riga('A', null, 'NON_VALORIZZATO'), riga('B', null, 'FONTE_AMBIGUA')], true).motivo).toBe('Non calcolabile: manca per 2 interventi (A, B)');
+    expect(totale(['A', 'B', 'C', 'D'].map((c) => riga(c, null))).motivo).toBe('Non calcolabile: manca per 4 interventi');
   });
 });

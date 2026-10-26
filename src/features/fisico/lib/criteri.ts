@@ -34,6 +34,11 @@ export function criteriDaRicerca(ricerca: string | URLSearchParams): Criteri {
   return campagna === undefined ? filtriDaRicerca(p) : { ...filtriDaRicerca(p), campagna };
 }
 
+/** I criteri della pagina delle superfici aperta senza filtri: la card della Home legge con questi, nella stessa cache. */
+export function criteriSenzaFiltri(): Criteri {
+  return criteriDaRicerca('');
+}
+
 /** Query string dei criteri (senza "?"): i filtri ripetuti come li vuole il backend, poi la campagna (una sola). */
 export function ricercaDaCriteri(criteri: Criteri): string {
   const filtri = ricercaDaFiltri(criteri);

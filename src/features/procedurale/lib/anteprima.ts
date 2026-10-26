@@ -1,13 +1,14 @@
 // anteprima.ts — i numeri della card Procedurale della Home come DATI (PURO, zero React; flusso panoramica approvato,
 // home.html, OP-PR-10): quelli della panoramica senza filtri. Da TX-0026 le domande ammesse, il contributo ammesso (dato
-// motivato: assente, la sua frase, mai uno 0) e gli interventi attivati sul perimetro ufficiale con la quota (nessuna
+// motivato: assente, la sua frase, mai uno 0; con interventi con domande ammesse senza contributo, la nota che lo dice
+// come nella panoramica, decisione D1 del 26/10/2026) e gli interventi attivati sul perimetro ufficiale con la quota (nessuna
 // quota se il perimetro e' vuoto); da TX-0027 il totale delle domande di sostegno (voci, altri stati e non rilasciate
 // comprese, come la pagina degli stati). Col perimetro ADA le etichette sono dell'area del profilo; il perimetro ufficiale
 // degli interventi resta quello del programma.
 import { assenzaInFrase } from '../../../entities/importo';
-import { etichettaDellArea, formatNumber, formatPercentuale, percentuale } from '../../../shared/lib';
+import { etichettaDellArea, formatNumber, formatPercentuale, maiuscolaIniziale, percentuale } from '../../../shared/lib';
 import type { Ammesse, Perimetro, Stati } from './dto';
-import { ETICHETTE_KPI } from './kpi';
+import { ETICHETTE_KPI, interventiSenzaContributo, testoSenzaContributo } from './kpi';
 import { diTipo } from './stati';
 
 export interface InterventiAttivati {
@@ -19,8 +20,8 @@ export interface InterventiAttivati {
 
 export interface AnteprimaAmmesse {
   domandeAmmesse: number;
-  /** Il contributo, oppure null col motivo in una frase. */
-  contributo: { valore: number | null; motivo?: string };
+  /** Il contributo, oppure null col motivo in una frase; `nota`: gli interventi che il totale non comprende (D1). */
+  contributo: { valore: number | null; motivo?: string; nota?: string };
   interventi: InterventiAttivati;
 }
 
@@ -30,9 +31,10 @@ export function anteprimaAmmesse(d: Ammesse): AnteprimaAmmesse | null {
   if (t?.domandeAmmesse == null || t.interventiAttivati == null || t.interventiPerimetroUfficiale == null) return null;
   const c = t.contributoAmmesso;
   const perimetroUfficiale = t.interventiPerimetroUfficiale;
+  const senza = testoSenzaContributo(interventiSenzaContributo(d.righe ?? []));
   return {
     domandeAmmesse: t.domandeAmmesse,
-    contributo: c?.valore != null ? { valore: c.valore } : { valore: null, motivo: assenzaInFrase(c) },
+    contributo: c?.valore != null ? { valore: c.valore, ...(senza ? { nota: `${maiuscolaIniziale(senza)}.` } : {}) } : { valore: null, motivo: assenzaInFrase(c) },
     interventi: { attivati: t.interventiAttivati, perimetroUfficiale, quota: perimetroUfficiale > 0 ? percentuale(t.interventiAttivati, perimetroUfficiale) : null },
   };
 }

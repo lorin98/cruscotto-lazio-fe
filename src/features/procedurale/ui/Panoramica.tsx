@@ -17,7 +17,7 @@ import { chiaveStatoValida, conFiltri, criteriDelReport } from '../lib/criteri';
 import type { CriteriProcedurali } from '../lib/criteri';
 import type { Ammesse, Riepilogo, Stati, TipoDomanda } from '../lib/dto';
 import { perimetroDelle, testoNessunIntervento, testoVuoto } from '../lib/formato';
-import { kpiDelleAmmesse, kpiInterventi } from '../lib/kpi';
+import { interventiSenzaContributo, kpiDelleAmmesse, kpiInterventi } from '../lib/kpi';
 import { diTipo, senzaDomande } from '../lib/stati';
 import type { VoceDistribuzione } from '../lib/stati';
 import { CardImporti } from './CardAmmesse';
@@ -60,7 +60,7 @@ function KpiPanoramica({ stato, criteri }: { stato: StatoQuery<Ammesse>; criteri
   const link = { ammesse: 'elenco-ammesse-panoramica', conAtto: 'elenco-con-atto-panoramica' } as const;
   return (
     <VistaQuery stato={stato} errorePersonalizzato={() => <ErroreNellaPagina />}>
-      {(d) => ((d.righe ?? []).length === 0 || !d.totale ? null : <TessereKpi kpi={[...kpiDelleAmmesse(d.totale, { criteri, link }), kpiInterventi(d.totale)]} criteri={criteri} />)}
+      {(d) => ((d.righe ?? []).length === 0 || !d.totale ? null : <TessereKpi kpi={[...kpiDelleAmmesse(d.totale, { criteri, link, senzaContributo: interventiSenzaContributo(d.righe ?? []) }), kpiInterventi(d.totale)]} criteri={criteri} />)}
     </VistaQuery>
   );
 }

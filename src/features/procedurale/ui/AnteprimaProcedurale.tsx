@@ -1,19 +1,21 @@
 // AnteprimaProcedurale — i numeri chiave del procedurale nella card dell'area della Home (flusso panoramica approvato,
 // home.html, OP-PR-10, decisione dell'utente del 26/10/2026): domande ammesse, contributo ammesso e interventi attivati sul
-// perimetro ufficiale (barra) da TX-0026, domande di sostegno da TX-0027 (lib/anteprima), senza filtri: le stesse letture
-// in cache della panoramica senza filtri. Ogni gruppo di numeri si legge solo col grant della sua transazione; senza
-// nessuno dei due, `altrimenti` (cosa c'e' nell'area). Un errore non ferma la Home: la lettura dice che il dato non e'
-// disponibile e l'altra resta. Pezzi del kit (AnteprimaArea) come la card del finanziario; nessun react-aria.
+// perimetro ufficiale (barra) da TX-0026, con la nota degli interventi senza contributo (D1), domande di sostegno da TX-0027
+// (lib/anteprima), coi criteri della panoramica senza filtri (lib/criteri: stessa cache, a lettura finita, D2). Ogni
+// gruppo di numeri si legge solo col grant della sua transazione; senza nessuno dei due, `altrimenti` (cosa c'e'
+// nell'area). Un errore non ferma la Home: la lettura dice che il dato non e' disponibile e l'altra resta. Pezzi del kit
+// (AnteprimaArea) come la card del finanziario; nessun react-aria.
 import type { ReactNode } from 'react';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { importoBreve, intero } from '../../../shared/lib';
 import { AnteprimaArea, AttesaArea, AvanzamentoArea, NotaArea, NumeriArea, NumeroArea } from '../../../shared/ui';
 import { useDomandeAmmesse, useStatiSostegno } from '../api';
 import { anteprimaAmmesse, domandeDiSostegno, etichetteAnteprima, testoInterventi } from '../lib/anteprima';
+import { criteriSenzaFiltri } from '../lib/criteri';
 import { puoLeggere } from '../lib/grant';
 
 function Ammesse() {
-  const { data, isPending, isError } = useDomandeAmmesse({});
+  const { data, isPending, isError } = useDomandeAmmesse(criteriSenzaFiltri());
   if (isPending) return <AttesaArea />;
   const a = isError || !data ? null : anteprimaAmmesse(data);
   if (!a) return <NotaArea>Domande ammesse e contributo non disponibili in questo momento.</NotaArea>;
@@ -23,10 +25,10 @@ function Ammesse() {
     <>
       <NumeriArea>
         <NumeroArea etichetta={e.ammesse} valore={a.domandeAmmesse} formato={intero} />
-        <NumeroArea etichetta={e.contributo} valore={a.contributo.valore} motivo={a.contributo.motivo} formato={importoBreve} />
+        <NumeroArea etichetta={e.contributo} valore={a.contributo.valore} motivo={a.contributo.motivo} nota={a.contributo.nota} formato={importoBreve} />
       </NumeriArea>
       {interventi.quota !== null ? (
-        <AvanzamentoArea etichetta={e.interventi} quota={interventi.quota} testo={testoInterventi(interventi)} />
+        <AvanzamentoArea etichetta={e.interventi} percentuale={interventi.quota} testo={testoInterventi(interventi)} />
       ) : (
         <NotaArea>{`${e.interventi}: ${testoInterventi(interventi)}`}</NotaArea>
       )}
@@ -35,7 +37,7 @@ function Ammesse() {
 }
 
 function DomandeSostegno() {
-  const { data, isPending, isError } = useStatiSostegno({});
+  const { data, isPending, isError } = useStatiSostegno(criteriSenzaFiltri());
   if (isPending) return <AttesaArea />;
   return (
     <NumeriArea>

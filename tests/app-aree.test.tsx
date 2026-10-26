@@ -3,7 +3,8 @@
 // Gli ambiti sono quattro, ognuno col suo colore; il primo pilastro non ha un ambito nel frontend (12/10/2026).
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { createMemoryRouter, matchPath, RouterProvider } from 'react-router';
@@ -13,6 +14,7 @@ import { rispondi } from '../src/shared/testing/msw';
 import { formatNumber } from '../src/shared/lib';
 import * as F from '../src/features/finanziario/testing/fixture';
 import { SUPERFICI } from '../src/features/fisico/testing/fixture';
+import { VERIFICA } from '../src/features/istituzionale/testing/fixture';
 import { lettureProcedurale } from '../src/features/procedurale/testing/letture';
 import * as catalogo from '../src/app/aree';
 import { AMBITI, AREE, areeVisibili } from '../src/app/aree';
@@ -30,6 +32,20 @@ import { PAGINE_PROCEDURALE } from '../src/features/procedurale/lib/pagine';
 import { VERIFICA_SMP_SIGC } from '../src/features/istituzionale/lib/collegamenti';
 import { GRANT as GRANT_ISTITUZIONALE } from '../src/features/istituzionale/lib/grant';
 import { clientApp } from './app-client';
+
+/** Conta le letture di ogni percorso: "nessuna lettura" e' un conteggio, non un'assenza di errori (review A-01). */
+function registra(percorsi: readonly string[], corpi: Record<string, object> = {}): Record<string, number> {
+  const conteggi: Record<string, number> = Object.fromEntries(percorsi.map((p) => [p, 0]));
+  server.use(
+    ...percorsi.map((p) =>
+      http.get(`*${p}`, () => {
+        conteggi[p] += 1;
+        return HttpResponse.json(corpi[p] ?? {});
+      }),
+    ),
+  );
+  return conteggi;
+}
 
 function apriHomeCon(ruoli: string[], indirizzo = '/') {
   server.use(http.get('*/auth/status', () => HttpResponse.json({ authenticated: true, user: { username: 'U', roles: ruoli } })));
@@ -267,7 +283,7 @@ describe('Home e menu dallo stesso catalogo', () => {
     expect(within(card).getByRole('link', { name: 'Entra in Istituzionale' }).getAttribute('href')).toBe('/istituzionale/verifica-smp-non-sigc');
     // col grant di TX-0016 la card mostra i totali della verifica (OP-IS-11): qui nessun intervento, zeri veri
     const cifre = await within(card).findByRole('group', { name: "L'istituzionale in cifre" });
-    expect(await within(cifre).findByText('Non SIGC, anno di riferimento 2025')).toBeTruthy();
+    expect(await within(cifre).findByText('Non SIGC, valori cumulativi (ultimo file SMP non SIGC: 2025)')).toBeTruthy();
     const menu = screen.getByRole('navigation', { name: 'Navigazione principale' });
     const gruppo = within(menu).getByRole('button', { name: 'Istituzionale' });
     const sottomenu = document.getElementById(gruppo.getAttribute('aria-controls') ?? '') as HTMLElement;
@@ -281,12 +297,14 @@ describe('Home e menu dallo stesso catalogo', () => {
   });
 
   it('profilo col solo output regionale: la card porta all output, il menu ha la sola voce', async () => {
+    const letture = registra(['/api/istituzionale/verifica-smp-non-sigc', '/api/istituzionale/output-regionale']);
     apriHomeCon(['csr.tx-0017.read']);
     const card = await screen.findByRole('region', { name: 'Istituzionale' });
     expect(within(card).getByRole('link', { name: 'Entra in Istituzionale' }).getAttribute('href')).toBe('/istituzionale/output-regionale');
     // senza il grant di TX-0016 la card non legge (l'output non si somma) e dice cosa c'e' nell'area
     expect(within(card).getByText('Verifica SMP dei dati ASR non SIGC')).toBeTruthy();
     expect(within(card).queryByRole('group')).toBeNull();
+    expect(letture).toEqual({ '/api/istituzionale/verifica-smp-non-sigc': 0, '/api/istituzionale/output-regionale': 0 });
     const menu = screen.getByRole('navigation', { name: 'Navigazione principale' });
     expect(within(menu).getAllByRole('link').map((l) => l.textContent)).toEqual(['Output regionale']);
   });
@@ -327,5 +345,76 @@ describe('Home e menu dallo stesso catalogo', () => {
     expect(within(menu).queryAllByRole('button')).toHaveLength(0);
     expect(within(menu).queryAllByRole('link')).toHaveLength(0);
     expect(menu.textContent).not.toContain('presto');
+  });
+});
+
+describe('RF016, RF018, RF026 e RF027: le card della Home coi profili del catalogo e la cache condivisa con le pagine (review A-01, H3)', () => {
+  const catalogo = JSON.parse(readFileSync(resolve(__dirname, '../handover/authz-catalog.json'), 'utf8')) as { profiles: { id: string; grants: string[] }[] };
+  const grantDi = (profilo: string) => catalogo.profiles.find((p) => p.id === profilo)?.grants ?? [];
+  const FINANZIARIO = { '/api/finanziario/spesa-per-intervento': F.SPESA, '/api/finanziario/totale-domande': F.TOTALE_DOMANDE };
+
+  it('p4-responsabile-procedimento-ada: legge solo le card del finanziario e del procedurale, mai superfici e verifica', async () => {
+    const { handlers, lette } = lettureProcedurale();
+    server.use(...handlers);
+    const letture = registra([...Object.keys(FINANZIARIO), '/api/fisico/superficie-ammissibile', '/api/istituzionale/verifica-smp-non-sigc', '/api/istituzionale/output-regionale'], FINANZIARIO);
+    apriHomeCon(grantDi('p4-responsabile-procedimento-ada'));
+    const procedurale = await screen.findByRole('region', { name: 'Procedurale' });
+    expect(await within(procedurale).findByText('2 su 3 (66,7 %)')).toBeTruthy();
+    await waitFor(() => expect(lette.sostegno).toEqual(['']));
+    await waitFor(() => expect(letture['/api/finanziario/totale-domande']).toBe(1));
+    expect(lette.ammesse).toEqual(['']);
+    expect(letture['/api/fisico/superficie-ammissibile']).toBe(0);
+    expect(letture['/api/istituzionale/verifica-smp-non-sigc']).toBe(0);
+    expect(letture['/api/istituzionale/output-regionale']).toBe(0);
+    expect(within(screen.getByRole('region', { name: 'Fisico' })).getByText('Non disponibile per il tuo profilo')).toBeTruthy();
+  });
+
+  it('p5-amministratore-funzionale: legge solo le card del finanziario e del fisico, mai procedurale e verifica', async () => {
+    const { handlers, lette } = lettureProcedurale();
+    server.use(...handlers);
+    const letture = registra([...Object.keys(FINANZIARIO), '/api/fisico/superficie-ammissibile', '/api/istituzionale/verifica-smp-non-sigc'], { ...FINANZIARIO, '/api/fisico/superficie-ammissibile': SUPERFICI });
+    apriHomeCon(grantDi('p5-amministratore-funzionale'));
+    const fisico = await screen.findByRole('region', { name: 'Fisico' });
+    expect(await within(fisico).findByText('Campagna 2025')).toBeTruthy();
+    await waitFor(() => expect(letture['/api/finanziario/totale-domande']).toBe(1));
+    expect(letture['/api/fisico/superficie-ammissibile']).toBe(1);
+    expect(letture['/api/istituzionale/verifica-smp-non-sigc']).toBe(0);
+    expect([lette.ammesse, lette.sostegno]).toEqual([[], []]);
+  });
+
+  it('fisico: dalla Home alla pagina delle superfici senza filtri, a lettura finita, una sola lettura di TX-0018 (stessa cache)', async () => {
+    const letture = registra(['/api/fisico/superficie-ammissibile'], { '/api/fisico/superficie-ammissibile': SUPERFICI });
+    apriHomeCon(['csr.tx-0018.read']);
+    const card = await screen.findByRole('region', { name: 'Fisico' });
+    expect(await within(card).findByText('Campagna 2025')).toBeTruthy();
+    await userEvent.click(within(card).getByRole('link', { name: 'Entra in Fisico' }));
+    expect(await screen.findByRole('heading', { level: 1, name: 'Fisico: superfici ammissibili per intervento' })).toBeTruthy();
+    expect(await screen.findAllByText('Superficie ammissibile DS')).not.toHaveLength(0);
+    expect(letture['/api/fisico/superficie-ammissibile']).toBe(1);
+  });
+
+  it('procedurale: dalla Home alla panoramica senza filtri, a lettura finita, una sola lettura di TX-0026 e di TX-0027', async () => {
+    const { handlers, lette } = lettureProcedurale();
+    server.use(...handlers);
+    apriHomeCon(['csr.tx-0026.read', 'csr.tx-0027.read']);
+    const card = await screen.findByRole('region', { name: 'Procedurale' });
+    expect(await within(card).findByText('2 su 3 (66,7 %)')).toBeTruthy();
+    await waitFor(() => expect(lette.sostegno).toEqual(['']));
+    await userEvent.click(within(card).getByRole('link', { name: 'Entra in Procedurale' }));
+    expect(await screen.findByRole('heading', { level: 1, name: 'Procedurale: panoramica' })).toBeTruthy();
+    expect(await screen.findByRole('region', { name: 'Domande ammesse' })).toBeTruthy();
+    expect(lette.ammesse).toEqual(['']);
+    expect(lette.sostegno).toEqual(['']);
+  });
+
+  it('istituzionale: dalla Home alla verifica senza filtri ne anno, a lettura finita, una sola lettura di TX-0016', async () => {
+    const letture = registra(['/api/istituzionale/verifica-smp-non-sigc'], { '/api/istituzionale/verifica-smp-non-sigc': VERIFICA });
+    apriHomeCon(['csr.tx-0016.read']);
+    const card = await screen.findByRole('region', { name: 'Istituzionale' });
+    expect(await within(card).findByText('Non SIGC, valori cumulativi (ultimo file SMP non SIGC: 2025)')).toBeTruthy();
+    await userEvent.click(within(card).getByRole('link', { name: 'Entra in Istituzionale' }));
+    expect(await screen.findByRole('heading', { level: 1, name: 'Istituzionale: verifica SMP non SIGC' })).toBeTruthy();
+    expect(await screen.findByRole('rowheader', { name: 'SRD01' })).toBeTruthy();
+    expect(letture['/api/istituzionale/verifica-smp-non-sigc']).toBe(1);
   });
 });

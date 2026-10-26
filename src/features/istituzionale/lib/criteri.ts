@@ -5,7 +5,7 @@
 // e' un parametro della pagina, non un filtro: si sceglie col selettore, non ha un chip e resta quando i filtri cambiano
 // (come l'esercizio della verifica SMP del finanziario). Il codice dell'intervento del percorso del dettaglio e' quello
 // comune di entities/filtri (codiceDelPercorso).
-import { filtriAttivi, filtriNellaBarra, ricercaDaFiltri } from '../../../entities/filtri';
+import { filtriAttivi, filtriDaRicerca, filtriNellaBarra, ricercaDaFiltri } from '../../../entities/filtri';
 import type { Filtri } from '../../../entities/filtri';
 import { anniProposti, isAnnoValido } from '../../../shared/lib';
 
@@ -46,6 +46,11 @@ export function conFiltri(filtri: Filtri): boolean {
 /** Criteri di TX-0016: i filtri e l'anno scelto, se c'e'. */
 export function criteriVerifica(filtri: Filtri, anno: number | undefined): CriteriDellaVerifica {
   return anno === undefined ? filtri : { ...filtri, anno };
+}
+
+/** I criteri della verifica aperta senza filtri ne' anno: la card della Home legge con questi, nella stessa cache. */
+export function criteriVerificaSenzaFiltri(): CriteriDellaVerifica {
+  return criteriVerifica(filtriDaRicerca(''), undefined);
 }
 
 /** "Etichetta: valore" di ogni filtro e dell'anno scelto, per l'intestazione del PNG dei grafici (filtri applicati, NFR-50). */

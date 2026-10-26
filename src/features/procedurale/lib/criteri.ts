@@ -75,6 +75,11 @@ export function criteriDelReport(c: CriteriProcedurali): CriteriProcedurali {
   return { ...soloProgramma(c), ...conStato(c.stato) };
 }
 
+/** I criteri dei report della panoramica aperta senza filtri: la card della Home legge con questi, nella stessa cache. */
+export function criteriSenzaFiltri(): CriteriProcedurali {
+  return criteriDelReport(criteriDaRicerca(''));
+}
+
 /** I criteri di TX-0030: intervento e obiettivi, senza lo stato (che resta nell'indirizzo per le altre pagine). */
 export function criteriUnitAmount(c: CriteriProcedurali): Filtri {
   return soloProgramma(c);

@@ -63,7 +63,7 @@ import {
   vociDellArea,
 } from '../src/features/procedurale/lib/stati';
 import type { VoceDistribuzione } from '../src/features/procedurale/lib/stati';
-import { kpiDegliStati, kpiDelleAmmesse, kpiDomandeDellIntervento, kpiInterventi, notaContributo } from '../src/features/procedurale/lib/kpi';
+import { interventiSenzaContributo, kpiDegliStati, kpiDelleAmmesse, kpiDomandeDellIntervento, kpiInterventi, notaContributo, testoSenzaContributo } from '../src/features/procedurale/lib/kpi';
 import { altreSottofasi, anagraficaVuota, etichettaVoce, righeVoci, senzaDomandeNeiFiltri, testoCensita } from '../src/features/procedurale/lib/sottofasi';
 import { CAMPI_PAGATO, TITOLI_PAGATO, assenzaPagato, chiaveUnitAmount, etichettaUnitAmount, notaPagato, valoreDi } from '../src/features/procedurale/lib/unitAmount';
 import { TITOLI_SEZIONI, codiceDellaRiga, colonneVoci, distribuzioneDi, domandeDellaVoce, righeRiepilogo, senzaStatoDi, testoConNonRilasciate, voceDellaColonna } from '../src/features/procedurale/lib/riepilogo';
@@ -622,7 +622,8 @@ describe('RF026 e RF027: card della Home coi numeri della panoramica (OP-PR-10, 
   it('domande ammesse, contributo e interventi attivati sul perimetro ufficiale, come i KPI della panoramica', () => {
     const d = ammessePer(senzaFiltri);
     const a = anteprimaAmmesse(d);
-    expect(a).toEqual({ domandeAmmesse: 3, contributo: { valore: 800 }, interventi: { attivati: 2, perimetroUfficiale: 3, quota: 66.7 } });
+    // SRA01 ha una domanda ammessa senza contributo: il totale del backend (800) non la comprende e la nota lo dice (D1)
+    expect(a).toEqual({ domandeAmmesse: 3, contributo: { valore: 800, nota: 'Manca il contributo di 1 intervento (SRA01).' }, interventi: { attivati: 2, perimetroUfficiale: 3, quota: 66.7 } });
     expect(a && testoInterventi(a.interventi)).toBe('2 su 3 (66,7 %)');
     // lo stesso "n su m" del KPI Interventi attivati della panoramica
     expect(d.totale && kpiInterventi(d.totale).valore).toBe('2 su 3');
@@ -652,5 +653,37 @@ describe('RF026 e RF027: card della Home coi numeri della panoramica (OP-PR-10, 
       sostegno: 'Domande di sostegno della tua area',
     });
     expect(etichetteAnteprima('REGIONALE')).toEqual({ ammesse: 'Domande ammesse', contributo: 'Contributo ammesso', interventi: 'Interventi attivati', sostegno: 'Domande di sostegno' });
+  });
+});
+
+describe('RF026: contributo ammesso con interventi senza contributo (decisione D1 dell utente del 26/10/2026)', () => {
+  const senzaFiltri = new URLSearchParams();
+  const link = { ammesse: 'elenco-ammesse-panoramica', conAtto: 'elenco-con-atto-panoramica' } as const;
+
+  it('gli interventi con domande ammesse e contributo assente, non quelli senza ammesse', () => {
+    const d = ammessePer(senzaFiltri);
+    expect(interventiSenzaContributo(d.righe ?? [])).toEqual(['SRA01']);
+    // SRD02 non ha domande: contributo 0, non e' una mancanza
+    expect((d.righe ?? []).find((r) => r.codiceIntervento === 'SRD02')?.contributoAmmesso.valore).toBe(0);
+    expect(testoSenzaContributo([])).toBe('');
+    expect(testoSenzaContributo(['SRA01', 'SRA02'])).toBe('manca il contributo di 2 interventi (SRA01, SRA02)');
+    // oltre tre interventi solo il numero
+    expect(testoSenzaContributo(['A', 'B', 'C', 'D'])).toBe('manca il contributo di 4 interventi');
+  });
+
+  it('la nota del KPI Contributo della panoramica aggiunge gli interventi senza contributo; senza, resta quella di prima', () => {
+    const d = ammessePer(senzaFiltri);
+    const totale = d.totale ?? {};
+    const contributo = (senzaContributo?: readonly string[]) => kpiDelleAmmesse(totale, { criteri: {}, link, senzaContributo }).find((k) => k.chiave === 'contributo');
+    const prima = notaContributo(totale.importoRichiesto, totale.contributoAmmesso);
+    expect(contributo()?.nota).toBe(prima);
+    expect(contributo([])?.nota).toBe(prima);
+    expect(contributo(interventiSenzaContributo(d.righe ?? []))?.nota).toBe(`${prima}; manca il contributo di 1 intervento (SRA01)`);
+  });
+
+  it('la card non mette la nota quando ogni intervento con domande ammesse ha il contributo', () => {
+    const d: Ammesse = ammessePer(senzaFiltri);
+    const righe = (d.righe ?? []).map((r) => (r.contributoAmmesso.valore == null ? { ...r, contributoAmmesso: { valore: 100, motivo: null, fonte: null } } : r));
+    expect(anteprimaAmmesse({ ...d, righe })?.contributo).toEqual({ valore: 800 });
   });
 });

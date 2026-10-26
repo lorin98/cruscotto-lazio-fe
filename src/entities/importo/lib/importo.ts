@@ -4,7 +4,7 @@
 // FUORI_PERIMETRO; nei report istituzionali anche ANNO_NON_CONSERVATO e FONTE_AMBIGUA, testi approvati coi wireframe
 // dell'istituzionale il 22/10/2026, OP-IS-08). Regola di resa: un dato assente non e' mai uno zero ne' un "no"; l'assenza
 // si dice sempre allo stesso modo, qualunque sia il tipo del valore (review delta 21/10 H1).
-import { formatEuro, maiuscolaIniziale } from '../../../shared/lib';
+import { formatEuro, maiuscolaIniziale, numeroDi, plurale, sommaSeCompleta } from '../../../shared/lib';
 
 /**
  * Forma strutturale di un dato col motivo dell'assenza (Importo, ConteggioFinanziario, SiNoFinanziario della spec; il
@@ -114,4 +114,34 @@ export function testoMotivato<T>(dato: DatoMotivatoLike<T> | null | undefined, r
 export function assenzaInFrase(dato: Pick<DatoMotivatoLike<unknown>, 'motivo' | 'fonte'> | null | undefined, aggregato = false): string {
   const r = descriviAssenza(dato, aggregato);
   return `${maiuscolaIniziale(r.testo)}${r.nota ? `: ${r.nota}` : ''}`;
+}
+
+/** Un totale su piu' interventi: il valore, oppure null col motivo in una frase. */
+export interface TotaleMotivato {
+  valore: number | null;
+  motivo?: string;
+}
+
+interface RegoleTotale {
+  /** Cosa vale l'insieme senza righe: lo zero vero (un conteggio di domande che non ci sono) o non calcolabile. */
+  vuoto: 'zero' | 'non-calcolabile';
+  /** Se mancano tutti per lo stesso motivo, aggiungerlo alla frase ("; non attribuibile (...)"). */
+  conMotivo?: boolean;
+}
+
+/**
+ * Totale di un dato motivato fra gli interventi, mai una somma parziale (regola dei totali del backend, SC-FI_DISTRIBUZIONE):
+ * la somma al centesimo se ogni riga ha il valore; altrimenti null con "Non calcolabile: manca per 2 interventi (SRA01,
+ * SRA16)" (i codici fino a tre). Prima scritta nel finanziario (totaleImporti) e, di nuovo, nella card dell'istituzionale
+ * (review H4 della card della Home): l'insieme vuoto lo decide chi chiama.
+ */
+export function totaleMotivato<T>(righe: readonly T[], dato: (r: T) => DatoMotivatoLike<number> | null | undefined, codice: (r: T) => string, regole: RegoleTotale): TotaleMotivato {
+  if (righe.length === 0) return regole.vuoto === 'zero' ? { valore: 0 } : { valore: null, motivo: 'Non calcolabile: nessun intervento nella selezione' };
+  const somma = sommaSeCompleta(righe.map((r) => numeroDi(dato(r)?.valore)));
+  if (somma !== null) return { valore: somma };
+  const mancanti = righe.filter((r) => numeroDi(dato(r)?.valore) === null);
+  const codici = mancanti.length <= 3 ? ` (${mancanti.map(codice).join(', ')})` : '';
+  const motivi = new Set(mancanti.map((r) => dato(r)?.motivo ?? null));
+  const motivo = regole.conMotivo && motivi.size === 1 ? `; ${testoConNota(descriviAssenza(dato(mancanti[0])))}` : '';
+  return { valore: null, motivo: `Non calcolabile: manca per ${plurale(mancanti.length, 'intervento', 'interventi')}${codici}${motivo}` };
 }

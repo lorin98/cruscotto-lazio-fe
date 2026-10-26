@@ -5,11 +5,11 @@
 // sul richiesto c'e' solo se entrambi sono valorizzati. Ogni KPI che apre l'elenco porta il link dello uiplan: chi lo
 // rende ne controlla il grant di arrivo.
 import { assenzaInFrase, testoMotivato } from '../../../entities/importo';
-import { formatNumber, formatPercentuale, importoBreve, percentuale } from '../../../shared/lib';
+import { formatNumber, formatPercentuale, importoBreve, percentuale, plurale } from '../../../shared/lib';
 import { apreConAtto, apreLeAmmesse, VOCE_AMMESSA } from './collegamenti';
 import type { IdLinkElenco, PuntoElenco } from './collegamenti';
 import type { CriteriProcedurali } from './criteri';
-import type { Dato, Distribuzione, TipoDomanda, TotaleAmmesse } from './dto';
+import type { Dato, Distribuzione, RigaAmmesse, TipoDomanda, TotaleAmmesse } from './dto';
 import { NOTA_NON_RILASCIATE } from './formato';
 import { diTipo } from './stati';
 
@@ -47,6 +47,21 @@ export function notaContributo(richiesto: Dato | undefined, contributo: Dato | u
   return `importo richiesto: ${testoMotivato(richiesto, importoBreve)}`;
 }
 
+/**
+ * Gli interventi con domande ammesse e contributo assente: il contributo del totale del backend somma i soli valorizzati
+ * (SC-PC_AMMESSE), quindi non li comprende (decisione D1 dell'utente del 26/10/2026, review della card della Home).
+ */
+export function interventiSenzaContributo(righe: readonly RigaAmmesse[]): string[] {
+  return righe.filter((r) => r.domandeAmmesse > 0 && r.contributoAmmesso.valore == null).map((r) => r.codiceIntervento);
+}
+
+/** "manca il contributo di 2 interventi (SRA01, SRA16)", coi codici fino a tre; vuoto senza interventi. */
+export function testoSenzaContributo(codici: readonly string[]): string {
+  if (codici.length === 0) return '';
+  const elenco = codici.length <= 3 ? ` (${codici.join(', ')})` : '';
+  return `manca il contributo di ${plurale(codici.length, 'intervento', 'interventi')}${elenco}`;
+}
+
 /** Dove aprono i KPI delle ammesse e dell'atto: la pagina (coi filtri) o il dettaglio (l'intervento della route). */
 interface Contesto {
   criteri: CriteriProcedurali;
@@ -54,6 +69,8 @@ interface Contesto {
   link: { ammesse: IdLinkElenco; conAtto: IdLinkElenco };
   /** L'intervento del dettaglio, nel punto del link e nei nomi accessibili. */
   intervento?: string;
+  /** Gli interventi del totale senza contributo (D1): la panoramica li dice nella nota del contributo. */
+  senzaContributo?: readonly string[];
 }
 
 const dellIntervento = (codice: string | undefined) => (codice ? ` di ${codice}` : '');
@@ -84,7 +101,7 @@ export function kpiDelleAmmesse(t: TotaleAmmesse, x: Contesto): KpiProcedurale[]
   return [
     kpiAmmesse(t, x),
     kpiConAtto(t, x),
-    { chiave: 'contributo', etichetta: ETICHETTE_KPI.contributo, ...valoreOAssenza(t.contributoAmmesso, importoBreve), nota: notaContributo(t.importoRichiesto, t.contributoAmmesso) },
+    { chiave: 'contributo', etichetta: ETICHETTE_KPI.contributo, ...valoreOAssenza(t.contributoAmmesso, importoBreve), nota: [notaContributo(t.importoRichiesto, t.contributoAmmesso), testoSenzaContributo(x.senzaContributo ?? [])].filter(Boolean).join('; ') },
   ];
 }
 

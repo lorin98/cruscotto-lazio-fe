@@ -138,6 +138,19 @@ describe('RF026: domande ammesse, atto di concessione e contributo nella panoram
     expect(testo(screen.getByRole('region', { name: 'Interventi attivati' }).textContent)).toContain('2 su 3');
   });
 
+  it('contributo ammesso: la nota dice gli interventi con domande ammesse senza contributo, che il totale non comprende (D1)', async () => {
+    servi();
+    apri();
+    const contributo = await screen.findByRole('region', { name: 'Contributo ammesso' });
+    // SRA01 ha una domanda ammessa senza contributo (SC-PC_AMMESSE): il totale del backend somma i soli valorizzati
+    expect(testo(contributo.textContent)).toContain('manca il contributo di 1 intervento (SRA01)');
+    // con un filtro che lascia fuori SRA01 la nota non c'e'
+    const solo = apri(`${PERCORSO}?intervento=SRD01`);
+    const filtrato = (await within(solo.container).findAllByRole('region', { name: 'Contributo ammesso' }))[0];
+    await waitFor(() => expect(testo(filtrato.textContent)).toContain('su importo richiesto'));
+    expect(testo(filtrato.textContent)).not.toContain('manca il contributo');
+  });
+
   it('il clic su una barra degli importi apre il dettaglio dell intervento con lo stato della pagina', async () => {
     servi();
     const { router } = apri(`${PERCORSO}?stato=AMMESSA`);

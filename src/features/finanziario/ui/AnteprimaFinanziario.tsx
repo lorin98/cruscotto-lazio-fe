@@ -31,7 +31,7 @@ function Spesa() {
         <Importo etichetta={etichettaDiProgramma('Dotazione', data.perimetro)} a={k.dotazione} />
         <Importo etichetta={etichettaDellArea(PAGAMENTI_LORDI_BREVE, data.perimetro)} a={k.pagato} />
       </NumeriArea>
-      {k.quota.valore !== null ? <AvanzamentoArea etichetta={PAGATO_LORDO_SULLA_DOTAZIONE} quota={k.quota.valore} /> : k.quota.motivo && <NotaArea>{`${PAGATO_LORDO_SULLA_DOTAZIONE}: ${k.quota.motivo}`}</NotaArea>}
+      {k.quota.valore !== null ? <AvanzamentoArea etichetta={PAGATO_LORDO_SULLA_DOTAZIONE} percentuale={k.quota.valore} /> : k.quota.motivo && <NotaArea>{`${PAGATO_LORDO_SULLA_DOTAZIONE}: ${k.quota.motivo}`}</NotaArea>}
     </>
   );
 }

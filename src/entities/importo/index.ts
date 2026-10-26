@@ -1,5 +1,5 @@
 // entities/importo — public API (barrel): resa degli importi dei report e degli altri dati col motivo dell'assenza.
-export { assenzaInFrase, descriviAssenza, descriviImporto, etichettaFonte, testoConNota, testoMotivato } from './lib/importo';
-export type { DatoMotivatoLike, ImportoLike, ImportoResa } from './lib/importo';
+export { assenzaInFrase, descriviAssenza, descriviImporto, etichettaFonte, testoConNota, testoMotivato, totaleMotivato } from './lib/importo';
+export type { DatoMotivatoLike, ImportoLike, ImportoResa, TotaleMotivato } from './lib/importo';
 export { ValoreImporto } from './ui/ValoreImporto';
 export { AssenzaMotivata, BadgeAssenza, ValoreMotivato } from './ui/ValoreMotivato';
