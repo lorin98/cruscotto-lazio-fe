@@ -35,7 +35,7 @@
         "description": "Conteggio, oppure null con il motivo dell'assenza",
         "properties": {
           "fonte": {
-            "description": "Fonte attesa, solo con FONTE_NON_ATTIVA: PAGATO_PER_UNIT_AMOUNT, SOTTOFASI_DOMANDA, DOMANDE_IN_COMPILAZIONE, ATTO_CONCESSIONE",
+            "description": "Fonte attesa, solo con FONTE_NON_ATTIVA: SOTTOFASI_DOMANDA, DOMANDE_IN_COMPILAZIONE, ATTO_CONCESSIONE",
             "type": [
               "string",
               "null"
@@ -60,6 +60,109 @@
           "valore",
           "motivo",
           "fonte"
+        ],
+        "type": "object"
+      },
+      "DeterminaCorrente": {
+        "description": "La determina piu' recente, oppure null con il motivo NON_VALORIZZATO se la domanda non ne ha",
+        "properties": {
+          "motivo": {
+            "description": "NON_VALORIZZATO se la domanda non ha determine aperte, altrimenti null",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "valore": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DeterminaDellaDomanda"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "valore",
+          "motivo"
+        ],
+        "type": "object"
+      },
+      "DeterminaDellaDomanda": {
+        "properties": {
+          "codice": {
+            "description": "Codice della determina",
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/LocalDate",
+            "description": "Data della determina",
+            "type": "string"
+          },
+          "fonteComparto": {
+            "description": "Il comparto della domanda viene da questa determina",
+            "type": "boolean"
+          },
+          "fonteStatoAreaProgrammazione": {
+            "description": "Lo stato della domanda nell'area programmazione viene da questa determina",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "codice",
+          "data",
+          "fonteStatoAreaProgrammazione",
+          "fonteComparto"
+        ],
+        "type": "object"
+      },
+      "DetermineDomanda": {
+        "description": "TX-0020: codice e data delle determine da cui la domanda prende le informazioni",
+        "properties": {
+          "codiceABarre": {
+            "description": "Codice a barre della domanda, sole cifre",
+            "type": "string"
+          },
+          "corrente": {
+            "$ref": "#/components/schemas/DeterminaCorrente"
+          },
+          "domandaChiusa": {
+            "description": "La domanda non e' piu' nelle fonti SIAN (chiusa)",
+            "type": "boolean"
+          },
+          "elenco": {
+            "description": "Determine con riga aperta per la domanda, dalla piu' recente (data, poi codice)",
+            "items": {
+              "$ref": "#/components/schemas/DeterminaDellaDomanda"
+            },
+            "type": "array"
+          },
+          "perimetro": {
+            "description": "REGIONALE, oppure ADA se le domande sono ristrette ai perimetri ADA del chiamante (P4)",
+            "enum": [
+              "REGIONALE",
+              "ADA"
+            ],
+            "type": "string"
+          },
+          "tipoDomanda": {
+            "description": "Tipo della domanda scelta: prima quella con determine agganciate (righe aperte), a parita' prima l'aperta e fra le aperte la PAGAMENTO",
+            "enum": [
+              "PAGAMENTO",
+              "SOSTEGNO"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "codiceABarre",
+          "tipoDomanda",
+          "domandaChiusa",
+          "perimetro",
+          "corrente",
+          "elenco"
         ],
         "type": "object"
       },
@@ -282,62 +385,12 @@
         "format": "date-time",
         "type": "string"
       },
-      "PagamentiUnitAmount": {
-        "description": "TX-0030: anagrafica Unit Amount con il pagato per UA (OP-010)",
-        "properties": {
-          "perimetro": {
-            "enum": [
-              "REGIONALE"
-            ],
-            "type": "string"
-          },
-          "righe": {
-            "items": {
-              "$ref": "#/components/schemas/PagamentiUnitAmountRiga"
-            },
-            "type": "array"
-          }
-        },
-        "type": "object"
-      },
-      "PagamentiUnitAmountRiga": {
-        "properties": {
-          "baseStorica": {
-            "$ref": "#/components/schemas/QuantitaProcedurale",
-            "description": "Base storica per la previsione: la percentuale pagata della stessa Unit Amount nell'esercizio precedente; FONTE_NON_ATTIVA PAGATO_PER_UNIT_AMOUNT come il pagato, NON_VALORIZZATO se manca",
-            "type": "object"
-          },
-          "codiceIntervento": {
-            "type": "string"
-          },
-          "codiceUnitAmount": {
-            "type": "string"
-          },
-          "esercizio": {
-            "format": "int32",
-            "type": "integer"
-          },
-          "gruppoColturale": {
-            "type": "string"
-          },
-          "importoPagato": {
-            "$ref": "#/components/schemas/Importo",
-            "description": "Importo pagato per UA: FONTE_NON_ATTIVA PAGATO_PER_UNIT_AMOUNT se nessuna Unit Amount ha il pagato, NON_VALORIZZATO se manca nella riga",
-            "type": "object"
-          },
-          "importoUnitario": {
-            "$ref": "#/components/schemas/Importo"
-          },
-          "outputPrevisto": {
-            "$ref": "#/components/schemas/QuantitaProcedurale"
-          },
-          "percentualePagata": {
-            "$ref": "#/components/schemas/QuantitaProcedurale",
-            "description": "Percentuale pagata sul richiesto: FONTE_NON_ATTIVA PAGATO_PER_UNIT_AMOUNT se nessuna Unit Amount ha il pagato, NON_VALORIZZATO se manca nella riga",
-            "type": "object"
-          }
-        },
-        "type": "object"
+      "LocalDate": {
+        "examples": [
+          "2022-03-10"
+        ],
+        "format": "date",
+        "type": "string"
       },
       "Problema": {
         "description": "Errore in formato problem+json (RFC 9457)",
@@ -384,37 +437,6 @@
           "title",
           "status",
           "errorCode"
-        ],
-        "type": "object"
-      },
-      "QuantitaProcedurale": {
-        "description": "Quantita', oppure null con il motivo dell'assenza",
-        "properties": {
-          "fonte": {
-            "description": "Fonte attesa, solo con FONTE_NON_ATTIVA: PAGATO_PER_UNIT_AMOUNT, SOTTOFASI_DOMANDA, DOMANDE_IN_COMPILAZIONE, ATTO_CONCESSIONE",
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "motivo": {
-            "description": "Motivo dell'assenza, null se c'e' il valore: FONTE_NON_ATTIVA, NON_VALORIZZATO",
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "valore": {
-            "type": [
-              "number",
-              "null"
-            ]
-          }
-        },
-        "required": [
-          "valore",
-          "motivo",
-          "fonte"
         ],
         "type": "object"
       },
@@ -710,7 +732,7 @@
             "type": "integer"
           },
           "fonte": {
-            "description": "Fonte attesa, solo con FONTE_NON_ATTIVA: PAGATO_PER_UNIT_AMOUNT, SOTTOFASI_DOMANDA, DOMANDE_IN_COMPILAZIONE, ATTO_CONCESSIONE",
+            "description": "Fonte attesa, solo con FONTE_NON_ATTIVA: SOTTOFASI_DOMANDA, DOMANDE_IN_COMPILAZIONE, ATTO_CONCESSIONE",
             "type": [
               "string",
               "null"
@@ -1076,6 +1098,122 @@
           }
         ],
         "summary": "TX-0026 in CSV o XLSX (esportazione, D-08 di nfr-conformance, D-10 di procedurale)",
+        "tags": [
+          "Procedurale"
+        ]
+      }
+    },
+    "/api/procedurale/domande/{codice}/determina": {
+      "get": {
+        "operationId": "TX-0020",
+        "parameters": [
+          {
+            "description": "Codice a barre della domanda, sole cifre (al piu' 30)",
+            "example": "54810769585",
+            "in": "path",
+            "name": "codice",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetermineDomanda"
+                }
+              }
+            },
+            "description": "La determina corrente e le determine con riga aperta"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Criteri non validi (DATO_NON_VALIDO)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Non autenticato"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Senza il grant della transazione; RICHIESTA_NON_AMMESSA se la richiesta non viene dall'applicazione: partita da un altro sito (Sec-Fetch-Site) oppure, per scritture ed export, senza X-Requested-With o da un'origine non ammessa"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Nessuna domanda con quel codice a barre nel perimetro del chiamante: inesistente o fuori dal perimetro, con lo stesso corpo (NOT_FOUND)"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Troppe richieste dello stesso utente in un minuto, o troppe autenticazioni con bearer fallite dallo stesso indirizzo (TROPPE_RICHIESTE): riprovare dopo i secondi di Retry-After",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Da riprovare (header Retry-After): troppe letture di report in corso, in tutto o dello stesso utente (CAPACITA_ESAURITA), o lettura oltre il tetto di durata (TEMPO_SCADUTO)",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SecurityScheme": [
+              "csr.tx-0020.read"
+            ]
+          }
+        ],
+        "summary": "TX-0020: codice e data delle determine da cui la domanda prende le informazioni",
         "tags": [
           "Procedurale"
         ]
@@ -3067,312 +3205,6 @@
           "Procedurale"
         ]
       }
-    },
-    "/api/procedurale/unit-amount": {
-      "get": {
-        "operationId": "TX-0030",
-        "parameters": [
-          {
-            "description": "Codice intervento (ripetibile); l'Assistenza tecnica AT001 non e' selezionabile",
-            "in": "query",
-            "name": "intervento",
-            "schema": {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            }
-          },
-          {
-            "description": "Obiettivo generale, testo della gerarchia (ripetibile)",
-            "in": "query",
-            "name": "og",
-            "schema": {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            }
-          },
-          {
-            "description": "Obiettivo di policy, testo della gerarchia (ripetibile)",
-            "in": "query",
-            "name": "op",
-            "schema": {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            }
-          },
-          {
-            "description": "Codice dell'obiettivo specifico (ripetibile): seleziona gli interventi collegati, ognuno una volta",
-            "in": "query",
-            "name": "os",
-            "schema": {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PagamentiUnitAmount"
-                }
-              }
-            },
-            "description": "Una riga per Unit Amount, per intervento, esercizio e codice"
-          },
-          "400": {
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problema"
-                }
-              }
-            },
-            "description": "Criteri non validi (DATO_NON_VALIDO)"
-          },
-          "401": {
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problema"
-                }
-              }
-            },
-            "description": "Non autenticato"
-          },
-          "403": {
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problema"
-                }
-              }
-            },
-            "description": "Senza il grant della transazione; RICHIESTA_NON_AMMESSA se la richiesta non viene dall'applicazione: partita da un altro sito (Sec-Fetch-Site) oppure, per scritture ed export, senza X-Requested-With o da un'origine non ammessa"
-          },
-          "429": {
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problema"
-                }
-              }
-            },
-            "description": "Troppe richieste dello stesso utente in un minuto, o troppe autenticazioni con bearer fallite dallo stesso indirizzo (TROPPE_RICHIESTE): riprovare dopo i secondi di Retry-After",
-            "headers": {
-              "Retry-After": {
-                "description": "Secondi da attendere prima di riprovare",
-                "schema": {
-                  "type": "integer"
-                }
-              }
-            }
-          },
-          "503": {
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problema"
-                }
-              }
-            },
-            "description": "Da riprovare (header Retry-After): troppe letture di report in corso, in tutto o dello stesso utente (CAPACITA_ESAURITA), o lettura oltre il tetto di durata (TEMPO_SCADUTO)",
-            "headers": {
-              "Retry-After": {
-                "description": "Secondi da attendere prima di riprovare",
-                "schema": {
-                  "type": "integer"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "SecurityScheme": [
-              "csr.tx-0030.read"
-            ]
-          }
-        ],
-        "summary": "TX-0030: Unit Amount degli interventi selezionati con importo pagato, percentuale e base storica",
-        "tags": [
-          "Procedurale"
-        ]
-      }
-    },
-    "/api/procedurale/unit-amount/{formato}": {
-      "get": {
-        "parameters": [
-          {
-            "description": "Formato del file: csv (UTF-8 con BOM, punto e virgola) o xlsx (foglio Office Open XML: numeri come numeri, testi mai formule)",
-            "in": "path",
-            "name": "formato",
-            "required": true,
-            "schema": {
-              "enum": [
-                "csv",
-                "xlsx"
-              ]
-            }
-          },
-          {
-            "description": "Codice intervento (ripetibile); l'Assistenza tecnica AT001 non e' selezionabile",
-            "in": "query",
-            "name": "intervento",
-            "schema": {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            }
-          },
-          {
-            "description": "Obiettivo generale, testo della gerarchia (ripetibile)",
-            "in": "query",
-            "name": "og",
-            "schema": {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            }
-          },
-          {
-            "description": "Obiettivo di policy, testo della gerarchia (ripetibile)",
-            "in": "query",
-            "name": "op",
-            "schema": {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            }
-          },
-          {
-            "description": "Codice dell'obiettivo specifico (ripetibile): seleziona gli interventi collegati, ognuno una volta",
-            "in": "query",
-            "name": "os",
-            "schema": {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
-                "schema": {
-                  "format": "binary",
-                  "type": "string"
-                }
-              },
-              "text/csv; charset=UTF-8": {
-                "schema": {
-                  "format": "binary",
-                  "type": "string"
-                }
-              }
-            },
-            "description": "File CSV (UTF-8 con BOM, separatore punto e virgola, virgola decimale, testi tra virgolette) o XLSX (un foglio, stesso contenuto): intestazione con fonte, filtri, data di estrazione, profili, ultimo dato sincronizzato per flusso e uso interno, poi la tabella. Registrato in AUDIT_ESPORTAZIONE col formato",
-            "headers": {
-              "Content-Disposition": {
-                "description": "attachment, con il nome del file CSV o XLSX da salvare",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "400": {
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problema"
-                }
-              }
-            },
-            "description": "Filtri non validi, oppure tabella oltre il limite dell'export sincrono di 5.000 righe o 50.000 celle (DATO_NON_VALIDO: restringere i filtri)"
-          },
-          "401": {
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problema"
-                }
-              }
-            },
-            "description": "Non autenticato"
-          },
-          "403": {
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problema"
-                }
-              }
-            },
-            "description": "Senza il grant della transazione (ACCESSO_NEGATO), oppure richiesta senza l'header X-Requested-With (o un bearer) o da un'origine non ammessa (RICHIESTA_NON_AMMESSA): l'export si scarica con una richiesta dell'applicazione, non con un collegamento"
-          },
-          "429": {
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problema"
-                }
-              }
-            },
-            "description": "Troppe richieste dello stesso utente in un minuto, o troppe autenticazioni con bearer fallite dallo stesso indirizzo (TROPPE_RICHIESTE): riprovare dopo i secondi di Retry-After",
-            "headers": {
-              "Retry-After": {
-                "description": "Secondi da attendere prima di riprovare",
-                "schema": {
-                  "type": "integer"
-                }
-              }
-            }
-          },
-          "503": {
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problema"
-                }
-              }
-            },
-            "description": "Da riprovare (header Retry-After): troppe letture in corso (CAPACITA_ESAURITA), lettura oltre il tetto di durata (TEMPO_SCADUTO) o esportazione non registrata nel registro di audit (ESPORTAZIONE_NON_REGISTRATA)",
-            "headers": {
-              "Retry-After": {
-                "description": "Secondi da attendere prima di riprovare",
-                "schema": {
-                  "type": "integer"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "SecurityScheme": [
-              "csr.tx-0030.read"
-            ]
-          }
-        ],
-        "summary": "TX-0030 in CSV o XLSX (esportazione, D-08 di nfr-conformance, D-10 di procedurale)",
-        "tags": [
-          "Procedurale"
-        ]
-      }
     }
   },
   "servers": [
@@ -3387,7 +3219,7 @@
   ],
   "tags": [
     {
-      "description": "Letture dell'area procedurale (TX-0024..TX-0032)",
+      "description": "Letture dell'area procedurale (TX-0020, TX-0024..TX-0029, TX-0031, TX-0032)",
       "name": "Procedurale"
     }
   ]

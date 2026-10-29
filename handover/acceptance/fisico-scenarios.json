@@ -81,79 +81,121 @@
       "role": "p3-funzionario-area"
     },
     {
+      "scenario_id": "SC-FS_OUTPUT_ANNI",
+      "req_uids": [
+        "RU-00000017"
+      ],
+      "given": "SRA01 con riga PROGRAMMATO di CSR-OUT all'anno 2029 valore 1500 (indicatore O.14, unita' di misura ettari), Unit Amount UA01 e UA02 con output previsto 2024 = 300 e 200 e importo unitario 250,00 e 180,00, UA01 2025 con importo unitario 260,00 e output previsto vuoto; output EROGATO SIGC 2023 = 400 (presenza ASR2 SIGC aperta); configurazione anni 2023-2029",
+      "when": "chiama GET /api/fisico/output-regionale; poi il vecchio indirizzo GET /api/istituzionale/output-regionale",
+      "then": "200, perimetro REGIONALE, annoInizio 2023 e annoFine 2029, una riga per intervento: SRA01 con indicatore O.14, unita' di misura ettari, target di fine periodo 1500 all'anno 2029, sette anni in ordine: 2024 programmato 500 (somma delle UA, D-03 di istituzionale), gli altri anni programmato null con motivo NON_VALORIZZATO; realizzatoNonSigcCumulativo true; 2023 realizzato SIGC 400, realizzato non SIGC null con motivo NON_VALORIZZATO; dal 2024 realizzati null con motivo NON_VALORIZZATO; importi unitari UA01 2024 250.00, UA02 2024 180.00, UA01 2025 260.00 (ordinati per esercizio e codice); il 2025 ha programmato null con motivo NON_VALORIZZATO (output previsto vuoto); il vecchio indirizzo risponde 404, nessun alias (D-07)",
+      "kind": "positive",
+      "test_tag": "SC-FS_OUTPUT_ANNI",
+      "approved": true,
+      "role": "p1-dirigente"
+    },
+    {
+      "scenario_id": "SC-FS_OUTPUT_STRUTTURALE",
+      "req_uids": [
+        "RU-00000017"
+      ],
+      "given": "SRD01 con il solo target di CSR-OUT (nessuna Unit Amount) e output EROGATO NOSIGC 2025 = 12",
+      "when": "chiama GET /api/fisico/output-regionale?intervento=SRD01",
+      "then": "una riga SRD01 con target ed anno del target, programmato null con motivo NON_VALORIZZATO in ogni anno, realizzato non SIGC 2025 = 12 (valore del file, cumulativo: D-04 di istituzionale), nessun importo unitario; un intervento senza riga PROGRAMMATO ha target e anno del target null (null con motivo NON_VALORIZZATO)",
+      "kind": "positive",
+      "test_tag": "SC-FS_OUTPUT_STRUTTURALE",
+      "approved": true,
+      "role": "p2-referente-adg"
+    },
+    {
+      "scenario_id": "SC-FS_OUTPUT_AMBIGUO",
+      "req_uids": [
+        "RU-00000017"
+      ],
+      "given": "SRA16 presente per il 2027 sia nel monitoraggio SMP SIGC sia nel NOSIGC: una sola riga OUTPUTINTERVENTO EROGATO (chiave intervento, anno, tipo) con il valore dell'ultimo import e due presenze aperte",
+      "when": "chiama GET /api/fisico/output-regionale",
+      "then": "realizzato SIGC e non SIGC del 2027 di TX-0017 null con motivo FONTE_AMBIGUA, mai lo stesso valore in entrambi gli ambiti (D-04 Rev. 2 di istituzionale); lo stesso per una riga chiusa da un tracciato che l'altro vede ancora (D-04 Rev. 3 di istituzionale); gli anni con un solo tracciato restano valorizzati",
+      "kind": "positive",
+      "test_tag": "SC-FS_OUTPUT_AMBIGUO",
+      "approved": true,
+      "role": "p1-dirigente"
+    },
+    {
+      "scenario_id": "SC-FS_OUTPUT_ANNI_CONFIGURATI",
+      "req_uids": [
+        "RU-00000017"
+      ],
+      "given": "cruscottocsr.programmazione.anno-fine-periodo = 2030 (OP-005: un bando triennale aperto nel 2027)",
+      "when": "chiama GET /api/fisico/output-regionale",
+      "then": "ogni riga elenca gli otto anni 2023..2030, l'anno senza dati con null con motivo NON_VALORIZZATO",
+      "kind": "positive",
+      "test_tag": "SC-FS_OUTPUT_ANNI_CONFIGURATI",
+      "approved": true,
+      "role": "p1-dirigente"
+    },
+    {
+      "scenario_id": "SC-FS_UNIT_AMOUNT",
+      "req_uids": [
+        "RU-00000030"
+      ],
+      "given": "SRD01 con le Unit Amount UA1 (seminativi, esercizio 2025, importo unitario 150,00, output 10, importo pagato 1,00), UA2 (esercizio 2024, importo unitario non valorizzato) e UA1 dell'esercizio 2024 con percentuale pagata 40; AT001 con una Unit Amount",
+      "when": "chiama GET /api/fisico/unit-amount e GET /api/fisico/unit-amount?intervento=SRD01; poi il vecchio indirizzo GET /api/procedurale/unit-amount",
+      "then": "200, perimetro REGIONALE, per intervento, esercizio e codice (UA1 2024, UA2 2024, UA1 2025): UA2 con importo unitario e importo pagato null NON_VALORIZZATO; UA1 2025 con importo pagato 1,00, percentuale pagata NON_VALORIZZATO e base storica 40 (la percentuale di UA1 nel 2024); UA1 2024 con base storica NON_VALORIZZATO; senza alcun pagato nel database importo pagato, percentuale e base storica sono null con FONTE_NON_ATTIVA PAGATO_PER_UNIT_AMOUNT (D-06 Rev. 2 di procedurale, OP-010); AT001 mai; il vecchio indirizzo risponde 404, nessun alias (D-07)",
+      "kind": "positive",
+      "test_tag": "SC-FS_UNIT_AMOUNT",
+      "approved": true,
+      "role": "p1-dirigente"
+    },
+    {
+      "scenario_id": "SC-FS_UNIT_AMOUNT_AZIONE",
+      "req_uids": [
+        "RU-00000030"
+      ],
+      "given": "SRD01 collegato all'azione portante AP1 (INTERVENTOAZIONE) e SRA01 non collegato, entrambi con Unit Amount dell'esercizio 2025; un'azione portante AP2 senza interventi collegati",
+      "when": "chiama GET /api/fisico/unit-amount con ?azione=<id di AP1>, con ?azione=<id di AP1>&azione=<id di AP2>, con ?azione=<id di AP2> e con ?azione=abc; poi GET /api/fisico/unit-amount/csv?azione=<id di AP1> con l'header X-Requested-With",
+      "then": "con AP1 le sole Unit Amount di SRD01; con AP1 e AP2 le stesse (valori della stessa dimensione in OR); con AP2 nessuna riga; con un'azione non numerica 400 DATO_NON_VALIDO col nome del parametro (azione), nessuna lettura, la consultazione registrata in AUDIT_CONSULTAZIONE con esito FALLIMENTO e il valore come e' arrivato; il file ha le stesse righe della risposta e l'azione tra i filtri applicati dell'intestazione. E' il filtro dei report fisici (FiltriQuery, D-04 di fisico, D-07), non piu' il 400 dei report procedurali (D-01 Rev. 1 di procedurale)",
+      "kind": "positive",
+      "test_tag": "SC-FS_UNIT_AMOUNT_AZIONE",
+      "approved": true,
+      "role": "p3-funzionario-area"
+    },
+    {
       "scenario_id": "SC-FS_FILTRI",
       "req_uids": [
-        "RU-00000018"
+        "RU-00000017",
+        "RU-00000018",
+        "RU-00000030"
       ],
-      "given": "SRB01 collegato a OS4, SRA29 a OS5, AT001 censito con una domanda di pagamento con superfici; INTERVENTOAZIONE vuota",
-      "when": "chiama GET /api/fisico/superficie-ammissibile senza filtri, con ?os=OS4, con ?intervento=AT001 e con ?azione=<id di un'azione portante>",
-      "then": "con os=OS4 solo SRB01; AT001 non compare mai (D-08 di finanziario), ne' senza filtri ne' richiesta esplicitamente; con il filtro sulle azioni nessuna riga; filtri come nei report finanziari (dimensioni in AND, valori in OR)",
+      "given": "SRB01 collegato a OS4, SRA29 a OS5, AT001 censito con una domanda di pagamento con superfici; SRB01 e AT001 con una Unit Amount; INTERVENTOAZIONE vuota",
+      "when": "chiama GET /api/fisico/superficie-ammissibile, GET /api/fisico/output-regionale e GET /api/fisico/unit-amount senza filtri, con ?os=OS4, con ?intervento=AT001 e con ?azione=<id di un'azione portante>",
+      "then": "con os=OS4 solo SRB01 (nelle superfici, nell'output regionale e nelle Unit Amount); AT001 non compare mai (D-08 di finanziario), ne' senza filtri ne' richiesta esplicitamente; con il filtro sulle azioni nessuna riga; filtri come nei report finanziari (dimensioni in AND, valori in OR)",
       "kind": "positive",
       "test_tag": "SC-FS_FILTRI",
       "approved": true,
       "role": "p1-dirigente"
     },
     {
-      "scenario_id": "SC-FS_DETERMINA",
+      "scenario_id": "SC-FS_STORICO",
       "req_uids": [
-        "RU-00000020"
+        "RU-00000017"
       ],
-      "given": "domanda di PAGAMENTO 54810769585 corrente con righe DETERMINADOMANDA aperte: G00001 del 2025-01-10 (stato area programmazione AMMESSA, comparto C1), G00002 del 2025-06-30 (solo comparto C2), G00003 del 2025-06-30 (nessuno dei due); una riga chiusa della determina G00000 del 2025-09-01",
-      "when": "chiama GET /api/fisico/domande/54810769585/determina",
-      "then": "200 con codice a barre 54810769585, tipo PAGAMENTO, domanda non chiusa; determina corrente G00003 del 2025-06-30 (data, poi codice: D-05 di acquisizione-prosa); elenco G00003, G00002, G00001 in quest'ordine, con fonte dello stato area programmazione su G00001 e fonte del comparto su G00002 (la piu' recente che valorizza il campo, D-03); G00000 (riga chiusa) assente",
+      "given": "per un intervento del periodo configurato un output EROGATO NOSIGC chiuso da un'istantanea successiva e, in un altro anno, un output EROGATO con la sola presenza NOSIGC chiusa; un terzo anno con un output EROGATO NOSIGC corrente",
+      "when": "chiama GET /api/fisico/output-regionale",
+      "then": "le righe chiuse non contano: i primi due anni hanno il realizzato non SIGC null con motivo NON_VALORIZZATO, il terzo il valore del file; TX-0017 legge solo lo stato corrente (D-05 di finanziario) e il realizzato non SIGC dalle righe con una presenza NOSIGC aperta (D-04 di istituzionale), come nell'istituzionale (SC-IS_STORICO)",
       "kind": "positive",
-      "test_tag": "SC-FS_DETERMINA",
-      "approved": true,
-      "role": "p1-dirigente"
-    },
-    {
-      "scenario_id": "SC-FS_DETERMINA_TIPO",
-      "req_uids": [
-        "RU-00000020"
-      ],
-      "given": "il codice 34810022870 e' sia di una domanda di SOSTEGNO (determina G00010) sia di una di PAGAMENTO (determina G00011); il codice 44810208247 e' solo di una domanda di SOSTEGNO (determina G00012); il codice 34810063734 e' di una domanda di PAGAMENTO chiusa e di una di SOSTEGNO aperta (determina G00015, agganciata dall'import alla SOSTEGNO); il codice 34810063735 e' di una domanda di PAGAMENTO a cui l'import ha agganciato la determina G00016 e che poi si e' chiusa (la riga resta aperta) e di una SOSTEGNO aperta senza righe; il codice 34810063736 e' di una SOSTEGNO con la determina G00017 e di una PAGAMENTO aperta arrivata dopo, senza righe; il codice 34810063737 e' di una PAGAMENTO chiusa con la determina G00018 e di una SOSTEGNO aperta con la determina G00019",
-      "when": "chiama GET /api/fisico/domande/{codice}/determina con 34810022870, con 44810208247, con %2044810208247%20, con 34810063734, con 34810063735, con 34810063736 e con 34810063737",
-      "then": "per 34810022870 la domanda di PAGAMENTO con G00011 (fra le aperte la PAGAMENTO); per 44810208247 la domanda di SOSTEGNO con G00012, anche con gli spazi ai lati (tolti); per 34810063734 la SOSTEGNO aperta con G00015, non la PAGAMENTO chiusa (prima le aperte: la regola dell'aggancio, D-07 Rev. 4 di acquisizione-prosa, D-03 Rev. 2); per 34810063735 la PAGAMENTO chiusa con G00016 e per 34810063736 la SOSTEGNO con G00017: prima la domanda con righe aperte, dove l'import ha agganciato (D-03 Rev. 3); per 34810063737, righe su entrambe, la SOSTEGNO aperta con G00019 (a parita' la regola dell'aggancio)",
-      "kind": "positive",
-      "test_tag": "SC-FS_DETERMINA_TIPO",
-      "approved": true,
-      "role": "p5-amministratore-funzionale"
-    },
-    {
-      "scenario_id": "SC-FS_DETERMINA_NESSUNA",
-      "req_uids": [
-        "RU-00000020"
-      ],
-      "given": "una domanda di PAGAMENTO senza righe DETERMINADOMANDA aperte (una sola riga chiusa) e una domanda chiusa con una riga aperta",
-      "when": "chiama GET /api/fisico/domande/{codice}/determina per le due domande",
-      "then": "200 per entrambe: la prima con determina corrente null e motivo NON_VALORIZZATO ed elenco vuoto; la seconda con domanda chiusa true e la sua determina",
-      "kind": "positive",
-      "test_tag": "SC-FS_DETERMINA_NESSUNA",
-      "approved": true,
-      "role": "p2-referente-adg"
-    },
-    {
-      "scenario_id": "SC-FS_DETERMINA_ASSENTE",
-      "req_uids": [
-        "RU-00000020"
-      ],
-      "given": "nessuna domanda con il codice 99999999999",
-      "when": "chiama GET /api/fisico/domande/{codice}/determina con 99999999999, con 5481A, con 5481-0769, con 31 cifre e con %20",
-      "then": "404 problem+json NOT_FOUND per 99999999999; 400 problem+json DATO_NON_VALIDO (codiceABarre) per gli altri (sole cifre, al piu' 30, D-03); nessuna lettura per i 400; tutte le consultazioni in AUDIT_CONSULTAZIONE con esito FALLIMENTO",
-      "kind": "negative",
-      "test_tag": "SC-FS_DETERMINA_ASSENTE",
+      "test_tag": "SC-FS_STORICO",
       "approved": true,
       "role": "p1-dirigente"
     },
     {
       "scenario_id": "SC-FS_DENY",
       "req_uids": [
+        "RU-00000017",
         "RU-00000018",
-        "RU-00000020"
+        "RU-00000030"
       ],
       "given": "un utente P4, P6 o P7, un P3 delle aree finanziaria, istituzionale, procedurale o primo pilastro, e un utente non autenticato",
-      "when": "chiama GET /api/fisico/superficie-ammissibile o GET /api/fisico/domande/{codice}/determina",
-      "then": "403 problem+json ACCESSO_NEGATO per P4, P6, P7 e per i P3 delle altre aree (il catalogo concede TX-0018 e TX-0020 a P1, P2, P5 e al solo P3 dell'area fisica), 401 senza autenticazione; nessuna lettura; nessuna riga di AUDIT_CONSULTAZIONE per l'anonimo",
+      "when": "chiama GET /api/fisico/superficie-ammissibile, GET /api/fisico/output-regionale o GET /api/fisico/unit-amount",
+      "then": "403 problem+json ACCESSO_NEGATO per P4, P6, P7 e per i P3 delle altre aree (il catalogo rev. 4 concede TX-0017, TX-0018 e TX-0030 a P1, P2, P5 e al solo P3 dell'area fisica: il P3 dell'area istituzionale non ha piu' TX-0017, P4 e il P3 dell'area procedurale non hanno piu' TX-0030, MIN-20261029 A-2), 401 senza autenticazione; nessuna lettura; nessuna riga di AUDIT_CONSULTAZIONE per l'anonimo",
       "kind": "negative",
       "test_tag": "SC-FS_DENY",
       "approved": true,
@@ -162,10 +204,12 @@
     {
       "scenario_id": "SC-FS_PARAMETRO_NON_VALIDO",
       "req_uids": [
-        "RU-00000018"
+        "RU-00000017",
+        "RU-00000018",
+        "RU-00000030"
       ],
       "given": "un P1",
-      "when": "chiama GET /api/fisico/superficie-ammissibile con un filtro vuoto (intervento=%20 o intervento= senza valore, anche os, og, op), con piu' di 100 valori in una dimensione, con un'azione non numerica, con campagna vuota, non numerica, fuori da 2000-2100 o ripetuta (campagna=2025&campagna=2024)",
+      "when": "chiama GET /api/fisico/superficie-ammissibile, GET /api/fisico/output-regionale o GET /api/fisico/unit-amount con un filtro vuoto (intervento=%20 o intervento= senza valore, anche os, og, op), con piu' di 100 valori in una dimensione, con un'azione non numerica, con campagna (TX-0018) vuota, non numerica, fuori da 2000-2100 o ripetuta (campagna=2025&campagna=2024)",
       "then": "400 problem+json DATO_NON_VALIDO con il nome del parametro (intervento, os, og, op, azione, campagna) nel dettaglio, 'ripetuto' per la campagna ripetuta; nessuna lettura; la consultazione e' registrata in AUDIT_CONSULTAZIONE con esito FALLIMENTO e il valore come e' arrivato",
       "kind": "negative",
       "test_tag": "SC-FS_PARAMETRO_NON_VALIDO",
@@ -175,12 +219,13 @@
     {
       "scenario_id": "SC-FS_CAPACITA",
       "req_uids": [
+        "RU-00000017",
         "RU-00000018",
-        "RU-00000020"
+        "RU-00000030"
       ],
-      "given": "le letture concorrenti dei report gia' al limite configurato, in tutto (condiviso con i report finanziari e istituzionali) oppure dell'utente; oppure una lettura che supera il tetto di durata",
-      "when": "chiama GET /api/fisico/superficie-ammissibile o GET /api/fisico/domande/{codice}/determina",
-      "then": "503 problem+json CAPACITA_ESAURITA con Retry-After, registrato in audit come FALLIMENTO; una lettura oltre il tetto di durata 503 TEMPO_SCADUTO, anche per le letture per chiave di TX-0020 (D-04 Rev. 2)",
+      "given": "le letture concorrenti dei report gia' al limite configurato, in tutto (condiviso con gli altri report) oppure dell'utente; oppure una lettura che supera il tetto di durata",
+      "when": "chiama GET /api/fisico/superficie-ammissibile, GET /api/fisico/output-regionale o GET /api/fisico/unit-amount",
+      "then": "503 problem+json CAPACITA_ESAURITA con Retry-After, registrato in audit come FALLIMENTO; una lettura oltre il tetto di durata 503 TEMPO_SCADUTO",
       "kind": "negative",
       "test_tag": "SC-FS_CAPACITA",
       "approved": true,
@@ -189,12 +234,13 @@
     {
       "scenario_id": "SC-FS_AUDIT",
       "req_uids": [
+        "RU-00000017",
         "RU-00000018",
-        "RU-00000020"
+        "RU-00000030"
       ],
       "given": "un P1 e un P5",
-      "when": "consultano i due report, anche con esito negativo (400, 404)",
-      "then": "una riga in AUDIT_CONSULTAZIONE per consultazione, con operazione TX-0018 o TX-0020, utente, profili, esito e parametri come sono arrivati: per TX-0018 i filtri (intervento, os, og, op, azione) e campagna; per TX-0020 codiceABarre, sostituito dal segnaposto <omesso> quando ha 11 cifre come una partita IVA (NFR-84, D-04); mai superfici ne' dati personali; nella catena di impronte",
+      "when": "consultano i tre report, anche con esito negativo (400)",
+      "then": "una riga in AUDIT_CONSULTAZIONE per consultazione, con operazione TX-0017, TX-0018 o TX-0030, utente, profili, esito e parametri come sono arrivati: i filtri (intervento, os, og, op, azione) e, per TX-0018, campagna; mai superfici, importi ne' dati personali; nella catena di impronte",
       "kind": "positive",
       "test_tag": "SC-FS_AUDIT",
       "approved": true,
@@ -203,11 +249,13 @@
     {
       "scenario_id": "SC-FS_ULTIMO_DATO",
       "req_uids": [
-        "RU-00000018"
+        "RU-00000017",
+        "RU-00000018",
+        "RU-00000030"
       ],
       "given": "[NFR-25] un'esecuzione d'import SUCCESS di un flusso proprio conclusa il 2026-03-02 alle 09:30 UTC; un P3 dell'area fisica (senza il grant di TX-0001) e un utente che legge anche TX-0001",
-      "when": "GET /api/fisico/superficie-ammissibile",
-      "then": "200 con la superficie ammissibile e ultimiDatiSincronizzati: per ogni flusso d'import con un'esecuzione conclusa la conclusione della piu' recente, il flusso proprio con 2026-03-02T09:30:00Z, lo stesso elenco di GET /api/finanziario/filtri (TX-0001) per chi lo puo' leggere, anche al P3 dell'area, che TX-0001 non lo legge (403); letto fuori dal tetto delle letture e fuori dall'audit: per ogni richiesta una sola riga di AUDIT_CONSULTAZIONE, quella del report (D-01 Rev. 3)",
+      "when": "GET /api/fisico/superficie-ammissibile, GET /api/fisico/output-regionale e GET /api/fisico/unit-amount",
+      "then": "200 con ciascuno dei tre report e ultimiDatiSincronizzati: per ogni flusso d'import con un'esecuzione conclusa la conclusione della piu' recente, il flusso proprio con 2026-03-02T09:30:00Z, lo stesso elenco di GET /api/finanziario/filtri (TX-0001) per chi lo puo' leggere, anche al P3 dell'area, che TX-0001 non lo legge (403); letto fuori dal tetto delle letture e fuori dall'audit: per ogni richiesta una sola riga di AUDIT_CONSULTAZIONE, quella del report (D-01 Rev. 3; D-05 Rev. 5 di istituzionale per TX-0017; D-07 per TX-0030)",
       "kind": "positive",
       "test_tag": "SC-FS_ULTIMO_DATO",
       "approved": true,
@@ -216,11 +264,13 @@
     {
       "scenario_id": "SC-FS_ESPORTA",
       "req_uids": [
-        "RU-00000018"
+        "RU-00000017",
+        "RU-00000018",
+        "RU-00000030"
       ],
-      "given": "[NFR-06, NFR-34, NFR-50] un intervento A con tre domande di pagamento ASR2-20 in ettari: due del 2025 della stessa domanda di sostegno (DS 10,50 e 10,50, DP 9,00 e 1,20) e una del 2024 (DS 5,00, DP 6,00); un intervento B senza superfici; un'acquisizione conclusa; un P3 dell'area fisica, un P1 e un P4 (senza il grant di TX-0018)",
-      "when": "GET /api/fisico/superficie-ammissibile/csv e /xlsx con ?intervento=A&intervento=B e l'header X-Requested-With, poi con &campagna=2025; poi senza l'header, con HEAD, con /pdf, con ?campagna=abc e da un P4",
-      "then": "200 con allegato (text/csv o XLSX, Content-Disposition attachment tx-0018-<data>.csv|xlsx, Cache-Control no-store): una riga per intervento e campagna con gli stessi numeri della risposta JSON di GET /api/fisico/superficie-ammissibile con gli stessi filtri (A 2024: 1 pagamento, DS 5,00, DP 6,00, differenza 1,00, 1 DP oltre la DS; A 2025: 2 pagamenti e 1 sostegno, DS 10,50, DP 10,20, differenza -0,30; la quantita' a premio FONTE_NON_ATTIVA (QUANTITA_RICHIESTA_PREMIO)), B con la campagna vuota e NON_VALORIZZATO nelle superfici; intestazione con titolo TX-0018, fonte, filtri applicati, perimetro REGIONALE, campagna ('tutte le campagne presenti' o 2025, che lascia le sole righe del 2025), ultimo dato sincronizzato per flusso e dicitura d'uso interno; una riga di AUDIT_ESPORTAZIONE per file (area A3, requisito TX-0018, formato CSV o XLSX, righe e colonne della tabella, campi identificativi falso, impronta dei byte) e la consultazione di TX-0018 in AUDIT_CONSULTAZIONE; senza X-Requested-With 403 RICHIESTA_NON_AMMESSA, HEAD 405, formato sconosciuto 404, campagna non valida 400 DATO_NON_VALIDO, P4 403 ACCESSO_NEGATO: nessun file e nessuna riga di AUDIT_ESPORTAZIONE (D-06)",
+      "given": "[NFR-06, NFR-34, NFR-50] un intervento A con tre domande di pagamento ASR2-20 in ettari: due del 2025 della stessa domanda di sostegno (DS 10,50 e 10,50, DP 9,00 e 1,20) e una del 2024 (DS 5,00, DP 6,00); per A anche il target 2029 di 1.500 ettari e una Unit Amount 2024 (Seminativi, importo unitario 250,00, output previsto 300); un intervento B senza superfici; un'acquisizione conclusa; un P3 dell'area fisica, un P1 e un P4 (senza i grant di TX-0017, TX-0018 e TX-0030)",
+      "when": "GET /api/fisico/superficie-ammissibile/csv e /xlsx con ?intervento=A&intervento=B e l'header X-Requested-With, poi con &campagna=2025; GET /api/fisico/output-regionale/csv e /xlsx e GET /api/fisico/unit-amount/csv e /xlsx con ?intervento=A&intervento=B e l'header; poi senza l'header, con HEAD, con /pdf, con ?campagna=abc e da un P4",
+      "then": "200 con allegato (text/csv o XLSX, Content-Disposition attachment tx-0017-, tx-0018- o tx-0030-<data>.csv|xlsx, Cache-Control no-store): una riga per intervento e campagna con gli stessi numeri della risposta JSON di GET /api/fisico/superficie-ammissibile con gli stessi filtri (A 2024: 1 pagamento, DS 5,00, DP 6,00, differenza 1,00, 1 DP oltre la DS; A 2025: 2 pagamenti e 1 sostegno, DS 10,50, DP 10,20, differenza -0,30; la quantita' a premio FONTE_NON_ATTIVA (QUANTITA_RICHIESTA_PREMIO)), B con la campagna vuota e NON_VALORIZZATO nelle superfici; intestazione con titolo TX-0018, fonte, filtri applicati, perimetro REGIONALE, campagna ('tutte le campagne presenti' o 2025, che lascia le sole righe del 2025), ultimo dato sincronizzato per flusso e dicitura d'uso interno; TX-0017 per ogni intervento una riga 'Output dell'anno' per anno del periodo (A 2024: programmato 300, target 1500 ettari al 2029) e una riga 'Importo unitario' per Unit Amount (A: 2024, Seminativi, 250,00), periodo nell'intestazione (D-07 di istituzionale); TX-0030 una riga per Unit Amount (A: 2024, 250,00; D-10 di procedurale); una riga di AUDIT_ESPORTAZIONE per file (area A3, anche per TX-0017 e TX-0030 che erano A2 e A4, requisito TX-0017, TX-0018 o TX-0030, formato CSV o XLSX, righe e colonne della tabella, campi identificativi falso, impronta dei byte) e la consultazione del report in AUDIT_CONSULTAZIONE; senza X-Requested-With 403 RICHIESTA_NON_AMMESSA, HEAD 405, formato sconosciuto 404, campagna non valida 400 DATO_NON_VALIDO, P4 403 ACCESSO_NEGATO per ogni export: nessun file e nessuna riga di AUDIT_ESPORTAZIONE (D-06, D-07)",
       "kind": "positive",
       "test_tag": "SC-FS_ESPORTA",
       "approved": true,

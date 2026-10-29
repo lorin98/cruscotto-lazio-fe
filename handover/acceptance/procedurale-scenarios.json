@@ -110,15 +110,54 @@
       "role": "p2-referente-adg"
     },
     {
-      "scenario_id": "SC-PC_UNIT_AMOUNT",
+      "scenario_id": "SC-PC_DETERMINA",
       "req_uids": [
-        "RU-00000030"
+        "RU-00000020"
       ],
-      "given": "SRD01 con le Unit Amount UA1 (seminativi, esercizio 2025, importo unitario 150,00, output 10, importo pagato 1,00), UA2 (esercizio 2024, importo unitario non valorizzato) e UA1 dell'esercizio 2024 con percentuale pagata 40; AT001 con una Unit Amount",
-      "when": "chiama GET /api/procedurale/unit-amount e GET /api/procedurale/unit-amount?intervento=SRD01",
-      "then": "200, perimetro REGIONALE, per intervento, esercizio e codice (UA1 2024, UA2 2024, UA1 2025): UA2 con importo unitario e importo pagato null NON_VALORIZZATO; UA1 2025 con importo pagato 1,00, percentuale pagata NON_VALORIZZATO e base storica 40 (la percentuale di UA1 nel 2024); UA1 2024 con base storica NON_VALORIZZATO; senza alcun pagato nel database importo pagato, percentuale e base storica sono null con FONTE_NON_ATTIVA PAGATO_PER_UNIT_AMOUNT (D-06 Rev. 2, OP-010); AT001 mai",
+      "given": "domanda di PAGAMENTO 54810769585 corrente con righe DETERMINADOMANDA aperte: G00001 del 2025-01-10 (stato area programmazione AMMESSA, comparto C1), G00002 del 2025-06-30 (solo comparto C2), G00003 del 2025-06-30 (nessuno dei due); una riga chiusa della determina G00000 del 2025-09-01",
+      "when": "chiama GET /api/procedurale/domande/54810769585/determina; poi il vecchio indirizzo GET /api/fisico/domande/54810769585/determina",
+      "then": "200 con codice a barre 54810769585, tipo PAGAMENTO, domanda non chiusa, perimetro REGIONALE (D-11); determina corrente G00003 del 2025-06-30 (data, poi codice: D-05 di acquisizione-prosa); elenco G00003, G00002, G00001 in quest'ordine, con fonte dello stato area programmazione su G00001 e fonte del comparto su G00002 (la piu' recente che valorizza il campo, D-03 di fisico); G00000 (riga chiusa) assente; il vecchio indirizzo risponde 404, nessun alias (D-11)",
       "kind": "positive",
-      "test_tag": "SC-PC_UNIT_AMOUNT",
+      "test_tag": "SC-PC_DETERMINA",
+      "approved": true,
+      "role": "p1-dirigente"
+    },
+    {
+      "scenario_id": "SC-PC_DETERMINA_TIPO",
+      "req_uids": [
+        "RU-00000020"
+      ],
+      "given": "il codice 34810022870 e' sia di una domanda di SOSTEGNO (determina G00010) sia di una di PAGAMENTO (determina G00011); il codice 44810208247 e' solo di una domanda di SOSTEGNO (determina G00012); il codice 34810063734 e' di una domanda di PAGAMENTO chiusa e di una di SOSTEGNO aperta (determina G00015, agganciata dall'import alla SOSTEGNO); il codice 34810063735 e' di una domanda di PAGAMENTO a cui l'import ha agganciato la determina G00016 e che poi si e' chiusa (la riga resta aperta) e di una SOSTEGNO aperta senza righe; il codice 34810063736 e' di una SOSTEGNO con la determina G00017 e di una PAGAMENTO aperta arrivata dopo, senza righe; il codice 34810063737 e' di una PAGAMENTO chiusa con la determina G00018 e di una SOSTEGNO aperta con la determina G00019",
+      "when": "chiama GET /api/procedurale/domande/{codice}/determina con 34810022870, con 44810208247, con %2044810208247%20, con 34810063734, con 34810063735, con 34810063736 e con 34810063737",
+      "then": "per 34810022870 la domanda di PAGAMENTO con G00011 (fra le aperte la PAGAMENTO); per 44810208247 la domanda di SOSTEGNO con G00012, anche con gli spazi ai lati (tolti); per 34810063734 la SOSTEGNO aperta con G00015, non la PAGAMENTO chiusa (prima le aperte: la regola dell'aggancio, D-07 Rev. 4 di acquisizione-prosa, D-03 Rev. 2 di fisico); per 34810063735 la PAGAMENTO chiusa con G00016 e per 34810063736 la SOSTEGNO con G00017: prima la domanda con righe aperte, dove l'import ha agganciato (D-03 Rev. 3 di fisico); per 34810063737, righe su entrambe, la SOSTEGNO aperta con G00019 (a parita' la regola dell'aggancio)",
+      "kind": "positive",
+      "test_tag": "SC-PC_DETERMINA_TIPO",
+      "approved": true,
+      "role": "p3-funzionario-area"
+    },
+    {
+      "scenario_id": "SC-PC_DETERMINA_NESSUNA",
+      "req_uids": [
+        "RU-00000020"
+      ],
+      "given": "una domanda di PAGAMENTO senza righe DETERMINADOMANDA aperte (una sola riga chiusa) e una domanda chiusa con una riga aperta",
+      "when": "chiama GET /api/procedurale/domande/{codice}/determina per le due domande",
+      "then": "200 per entrambe: la prima con determina corrente null e motivo NON_VALORIZZATO ed elenco vuoto; la seconda con domanda chiusa true e la sua determina",
+      "kind": "positive",
+      "test_tag": "SC-PC_DETERMINA_NESSUNA",
+      "approved": true,
+      "role": "p2-referente-adg"
+    },
+    {
+      "scenario_id": "SC-PC_DETERMINA_ASSENTE",
+      "req_uids": [
+        "RU-00000020"
+      ],
+      "given": "nessuna domanda con il codice 99999999999",
+      "when": "chiama GET /api/procedurale/domande/{codice}/determina con 99999999999, con 5481A, con 5481-0769, con 31 cifre e con %20",
+      "then": "404 problem+json NOT_FOUND per 99999999999; 400 problem+json DATO_NON_VALIDO (codiceABarre) per gli altri (sole cifre, al piu' 30, D-03 di fisico); nessuna lettura per i 400; tutte le consultazioni in AUDIT_CONSULTAZIONE con esito FALLIMENTO",
+      "kind": "negative",
+      "test_tag": "SC-PC_DETERMINA_ASSENTE",
       "approved": true,
       "role": "p1-dirigente"
     },
@@ -145,29 +184,42 @@
         "RU-00000029"
       ],
       "given": "SRD01 (perimetro 'SIGC no') e SRA01 collegati a OS4, SRD02 collegato a OS5 senza domande; domande correnti di SRD01: S1 SOSTEGNO RILASCIATO ADA Latina, stato area programmazione AMMESSA, determina corrente G2 del 2025-06-30 con contributo richiesto 1000,00 e ammesso 800,00 (riga piu' vecchia G1 del 2025-01-10 con 900,00 e 700,00); S2 SOSTEGNO 'ISTRUITA CON ESITO POSITIVO SU TUTTE LE MISURE' ADA Frosinone, AMMESSA, determina G3 con richiesto 500,00 e ammesso non valorizzato; S3 SOSTEGNO RILASCIATO ADA Latina senza determina; P1 PAGAMENTO CSR-DP 'PROPOSTO AL PAGAMENTO - DA REVISIONARE' ADA Latina, stato area programmazione REVOCATA (codice PROSA fuori catalogo); domande di SRA01: S4 SOSTEGNO 'SOSPESA' (stato SIAN fuori catalogo) ADA Latina, AMMESSA, determina G4 senza contributi; un P4 di Latina; un P4 senza alcun gruppo ADA; per le domande non rilasciate due righe DOMANDANONRILASCIATA di sostegno di SRD01 IN COMPILAZIONE, una di Latina e una di Frosinone (ente delegato e provincia della riga)",
-      "when": "chiamano GET /api/procedurale/domande-ammesse, /stati-sostegno, /stati-pagamento, /riepilogo, /unit-amount e /sottofasi-pagamento",
-      "then": "il P4 di Latina vede perimetro ADA e le sole domande di Latina (ammesse SRD01 1 con richiesto 1000.00, mai S2 di Frosinone; stati sostegno RILASCIATO 2; stati pagamento senza P2 di Frosinone; riepilogo con gli stessi numeri ristretti), gli interventi del perimetro ufficiale e le Unit Amount regionali; nelle sottofasi di pagamento perimetro ADA e Antimafia con 1 domanda (P1, non P2 di Frosinone, D-07 Rev. 1); il P4 senza gruppi ADA vede zero domande (deny-by-default), non un errore; nessun parametro della richiesta cambia il perimetro (D-07); delle non rilasciate il P4 di Latina conta la sola di Latina (IN_COMPILAZIONE 1 per SRD01 e nel totale, nei report per stato e nel riepilogo) e il P4 senza gruppi ADA IN_COMPILAZIONE 0, non FONTE_NON_ATTIVA (D-04 Rev. 4: perimetro su ente e provincia della riga)",
+      "when": "chiamano GET /api/procedurale/domande-ammesse, /stati-sostegno, /stati-pagamento, /riepilogo e /sottofasi-pagamento",
+      "then": "il P4 di Latina vede perimetro ADA e le sole domande di Latina (ammesse SRD01 1 con richiesto 1000.00, mai S2 di Frosinone; stati sostegno RILASCIATO 2; stati pagamento senza P2 di Frosinone; riepilogo con gli stessi numeri ristretti), gli interventi del perimetro ufficiale; nelle sottofasi di pagamento perimetro ADA e Antimafia con 1 domanda (P1, non P2 di Frosinone, D-07 Rev. 1); il P4 senza gruppi ADA vede zero domande (deny-by-default), non un errore; nessun parametro della richiesta cambia il perimetro (D-07); delle non rilasciate il P4 di Latina conta la sola di Latina (IN_COMPILAZIONE 1 per SRD01 e nel totale, nei report per stato e nel riepilogo) e il P4 senza gruppi ADA IN_COMPILAZIONE 0, non FONTE_NON_ATTIVA (D-04 Rev. 4: perimetro su ente e provincia della riga)",
       "kind": "negative",
       "test_tag": "SC-PC_SCOPE_P4",
       "approved": true,
       "role": "p4-responsabile-procedimento-ada"
     },
     {
+      "scenario_id": "SC-PC_DETERMINA_SCOPE_P4",
+      "req_uids": [
+        "RU-00000020"
+      ],
+      "given": "domanda di PAGAMENTO 54810769585 corrente dell'ADA di Latina (ente delegato e provincia) con la riga DETERMINADOMANDA aperta della determina G00001 del 2025-01-10; domanda di PAGAMENTO 54810769586 dell'ADA di Frosinone con la determina G00002; domanda di PAGAMENTO 54810769587 senza ente delegato con la determina G00003; il codice 54810769588 di una domanda di PAGAMENTO aperta dell'ADA di Frosinone con la determina G00004 e di una domanda di SOSTEGNO aperta dell'ADA di Latina con la determina G00005; nessuna domanda con il codice 99999999999; un P1, un P4 di Latina, un P4 senza alcun gruppo ADA e un utente con i gruppi di P1 e di P4 Latina",
+      "when": "chiamano GET /api/procedurale/domande/{codice}/determina con 54810769585, 54810769586, 54810769587, 54810769588 e 99999999999",
+      "then": "il P4 di Latina: 200 con perimetro ADA per 54810769585 (determina G00001) e per 54810769588, dove vede la domanda di SOSTEGNO di Latina con G00005 anche se fra tutte le domande con il codice la regola dell'aggancio sceglierebbe la PAGAMENTO di Frosinone (la scelta di D-03 di fisico si fa solo fra le domande del suo perimetro, D-11); 404 problem+json NOT_FOUND per 54810769586 (fuori dal suo perimetro), per 54810769587 (senza ente delegato: in nessun perimetro ADA, D-03 di finanziario) e per 99999999999 (inesistente), con lo stesso corpo: un P4 non scopre l'esistenza di domande di altre aree (regola di TX-0058, D-06 di elenco-operativo); il P4 senza gruppi ADA 404 per tutte (deny-by-default), mai 403 (D-04 Rev. 2 A1 di fisico superata per TX-0020); il P1 e l'utente con i gruppi di P1 e di P4 Latina hanno perimetro REGIONALE (il grant arriva anche da un profilo non scoped), vedono anche 54810769586 e per 54810769588 la PAGAMENTO di Frosinone con G00004 (a parita' di righe aperte, fra le aperte la PAGAMENTO: D-03 Rev. 3 di fisico); nessun parametro della richiesta cambia il perimetro; ogni consultazione in AUDIT_CONSULTAZIONE con operazione TX-0020, i 404 con esito FALLIMENTO uguali per la domanda fuori perimetro e per quella inesistente, il codice a barre col segnaposto della regola comune (NFR-84)",
+      "kind": "negative",
+      "test_tag": "SC-PC_DETERMINA_SCOPE_P4",
+      "approved": true,
+      "role": "p4-responsabile-procedimento-ada"
+    },
+    {
       "scenario_id": "SC-PC_DENY",
       "req_uids": [
+        "RU-00000020",
         "RU-00000024",
         "RU-00000025",
         "RU-00000026",
         "RU-00000027",
         "RU-00000028",
         "RU-00000029",
-        "RU-00000030",
         "RU-00000031",
         "RU-00000032"
       ],
       "given": "un utente P5, P6 o P7, un P3 delle aree finanziaria, istituzionale, fisica o primo pilastro, e un utente non autenticato",
       "when": "chiama uno qualsiasi dei 9 endpoint GET /api/procedurale/...",
-      "then": "403 problem+json ACCESSO_NEGATO per P5, P6, P7 e per i P3 delle altre aree (il catalogo concede TX-0024..TX-0032 a P1, P2, al P3 dell'area procedurale e a P4 con perimetro), 401 senza autenticazione; nessuna lettura; nessuna riga di AUDIT_CONSULTAZIONE per l'anonimo",
+      "then": "403 problem+json ACCESSO_NEGATO per P5, P6, P7 e per i P3 delle altre aree (il catalogo rev. 4 concede TX-0020, TX-0024..TX-0029, TX-0031 e TX-0032 a P1, P2, al P3 dell'area procedurale e a P4 con perimetro: P5 e il P3 dell'area fisica non hanno piu' TX-0020, MIN-20261029 A-2), 401 senza autenticazione; nessuna lettura; nessuna riga di AUDIT_CONSULTAZIONE per l'anonimo",
       "kind": "negative",
       "test_tag": "SC-PC_DENY",
       "approved": true,
@@ -179,8 +231,7 @@
         "RU-00000026",
         "RU-00000027",
         "RU-00000028",
-        "RU-00000029",
-        "RU-00000030"
+        "RU-00000029"
       ],
       "given": "un P1",
       "when": "chiama un report con un filtro vuoto (intervento=%20 o stato= senza valore, anche os, og, op), con piu' di 100 valori in una dimensione, con ?stato=BOH, con ?stato= un codice PROSA abbinato da una voce (va chiesto con la voce), con ?azione=1",
@@ -209,19 +260,19 @@
     {
       "scenario_id": "SC-PC_CAPACITA",
       "req_uids": [
+        "RU-00000020",
         "RU-00000024",
         "RU-00000025",
         "RU-00000026",
         "RU-00000027",
         "RU-00000028",
         "RU-00000029",
-        "RU-00000030",
         "RU-00000031",
         "RU-00000032"
       ],
       "given": "le letture concorrenti dei report gia' al limite configurato (condiviso con gli altri report) oppure dell'utente; oppure una lettura che supera il tetto di durata",
       "when": "chiama un endpoint GET /api/procedurale/...",
-      "then": "503 problem+json CAPACITA_ESAURITA con Retry-After, registrato in audit come FALLIMENTO; oltre il tetto di durata 503 TEMPO_SCADUTO (D-07)",
+      "then": "503 problem+json CAPACITA_ESAURITA con Retry-After, registrato in audit come FALLIMENTO; oltre il tetto di durata 503 TEMPO_SCADUTO (D-07), anche per le letture per chiave di TX-0020 (D-04 Rev. 2 di fisico, D-11)",
       "kind": "negative",
       "test_tag": "SC-PC_CAPACITA",
       "approved": true,
@@ -230,19 +281,19 @@
     {
       "scenario_id": "SC-PC_AUDIT",
       "req_uids": [
+        "RU-00000020",
         "RU-00000024",
         "RU-00000025",
         "RU-00000026",
         "RU-00000027",
         "RU-00000028",
         "RU-00000029",
-        "RU-00000030",
         "RU-00000031",
         "RU-00000032"
       ],
       "given": "un P1 e un P4",
-      "when": "consultano i report, anche con esito negativo (400)",
-      "then": "una riga in AUDIT_CONSULTAZIONE per consultazione, con operazione TX-00nn, utente, profili, esito e parametri come sono arrivati (intervento, os, og, op, azione, stato; nessun parametro per filtri e stati, TX-0024 e TX-0025; le sottofasi, TX-0031 e TX-0032, registrano i filtri come i report, D-06 Rev. 6), mai importi ne' dati personali; nella catena di impronte",
+      "when": "consultano i report, anche con esito negativo (400, 404)",
+      "then": "una riga in AUDIT_CONSULTAZIONE per consultazione, con operazione TX-00nn, utente, profili, esito e parametri come sono arrivati (intervento, os, og, op, azione, stato; nessun parametro per filtri e stati, TX-0024 e TX-0025; le sottofasi, TX-0031 e TX-0032, registrano i filtri come i report, D-06 Rev. 6; TX-0020 registra codiceABarre, sostituito dal segnaposto <omesso> quando ha 11 cifre come una partita IVA, NFR-84 e D-04 di fisico), mai importi ne' dati personali; nella catena di impronte",
       "kind": "positive",
       "test_tag": "SC-PC_AUDIT",
       "approved": true,
@@ -284,13 +335,12 @@
         "RU-00000027",
         "RU-00000028",
         "RU-00000029",
-        "RU-00000030",
         "RU-00000031",
         "RU-00000032"
       ],
-      "given": "[NFR-06, NFR-34, NFR-50] un intervento P (perimetro 'SIGC no') con S1 SOSTEGNO RILASCIATO di Latina, AMMESSA, determina con richiesto 1000,00 e ammesso 800,00, S2 SOSTEGNO 'SOSPESA' (fuori catalogo) di Frosinone senza stato area programmazione, D1 PAGAMENTO CSR-DP 'PROPOSTO AL PAGAMENTO - DA REVISIONARE' di Latina e una Unit Amount 2025 (importo unitario 150,00); un intervento Q senza domande; per la prova delle sottofasi D1 legata alla sottofase Antimafia; un P1, un P3 dell'area procedurale, un P4 di Latina e un P5 (senza grant procedurali)",
-      "when": "GET /api/procedurale/domande-ammesse, /stati-sostegno, /stati-pagamento, /riepilogo, /unit-amount, /sottofasi-sostegno e /sottofasi-pagamento seguiti da /csv o /xlsx, con ?intervento=P&intervento=Q e l'header X-Requested-With; /riepilogo/csv anche come indirizzo storico; poi senza l'header, con HEAD, con /pdf, con ?stato=BOH, con ?azione=1, con un intervento vuoto e da un P5",
-      "then": "200 con allegato (text/csv o XLSX, Content-Disposition attachment tx-00nn-<data>, Cache-Control no-store) per ognuno, con gli stessi numeri della risposta JSON con gli stessi filtri: TX-0026 una riga per intervento (P: si', 1 ammessa, 1000,00 e 800,00) e la riga 'Totale' (1 su 2 interventi attivati); TX-0027 e TX-0028 una riga per intervento e stato (P: RILASCIATO 1, SOSPESA tra gli altri stati, totale 2) con il di cui non rilasciate e le righe del totale; TX-0029 nei due formati con le stesse righe e colonne, riepilogo/csv invariato; TX-0030 una riga per Unit Amount (150,00); TX-0032 le voci di SR-01 e le sottofasi fuori catalogo, con ?intervento=P la voce Antimafia a 1 (D1); intestazione con titolo della TX, fonte, filtri applicati, perimetro (REGIONALE, ADA per il P4, che esporta solo le domande di Latina), tipo di domanda per stati e sottofasi, ultimo dato sincronizzato per flusso e dicitura d'uso interno; una riga di AUDIT_ESPORTAZIONE per file (area A4, requisito TX-0026..TX-0032, formato, campi identificativi falso, impronta dei byte, filtri come arrivati) e la consultazione del report in AUDIT_CONSULTAZIONE; senza X-Requested-With 403 RICHIESTA_NON_AMMESSA, HEAD 405, formato sconosciuto 404, stato fuori dominio, azione (D-01 Rev. 1) o intervento vuoto 400 DATO_NON_VALIDO, P5 403 ACCESSO_NEGATO per ogni export: nessun file e nessuna riga di AUDIT_ESPORTAZIONE (D-10)",
+      "given": "[NFR-06, NFR-34, NFR-50] un intervento P (perimetro 'SIGC no') con S1 SOSTEGNO RILASCIATO di Latina, AMMESSA, determina con richiesto 1000,00 e ammesso 800,00, S2 SOSTEGNO 'SOSPESA' (fuori catalogo) di Frosinone senza stato area programmazione, D1 PAGAMENTO CSR-DP 'PROPOSTO AL PAGAMENTO - DA REVISIONARE' di Latina; un intervento Q senza domande; per la prova delle sottofasi D1 legata alla sottofase Antimafia; un P1, un P3 dell'area procedurale, un P4 di Latina e un P5 (senza grant procedurali)",
+      "when": "GET /api/procedurale/domande-ammesse, /stati-sostegno, /stati-pagamento, /riepilogo, /sottofasi-sostegno e /sottofasi-pagamento seguiti da /csv o /xlsx, con ?intervento=P&intervento=Q e l'header X-Requested-With; /riepilogo/csv anche come indirizzo storico; poi senza l'header, con HEAD, con /pdf, con ?stato=BOH, con ?azione=1, con un intervento vuoto e da un P5",
+      "then": "200 con allegato (text/csv o XLSX, Content-Disposition attachment tx-00nn-<data>, Cache-Control no-store) per ognuno, con gli stessi numeri della risposta JSON con gli stessi filtri: TX-0026 una riga per intervento (P: si', 1 ammessa, 1000,00 e 800,00) e la riga 'Totale' (1 su 2 interventi attivati); TX-0027 e TX-0028 una riga per intervento e stato (P: RILASCIATO 1, SOSPESA tra gli altri stati, totale 2) con il di cui non rilasciate e le righe del totale; TX-0029 nei due formati con le stesse righe e colonne, riepilogo/csv invariato; TX-0032 le voci di SR-01 e le sottofasi fuori catalogo, con ?intervento=P la voce Antimafia a 1 (D1); intestazione con titolo della TX, fonte, filtri applicati, perimetro (REGIONALE, ADA per il P4, che esporta solo le domande di Latina), tipo di domanda per stati e sottofasi, ultimo dato sincronizzato per flusso e dicitura d'uso interno; una riga di AUDIT_ESPORTAZIONE per file (area A4, requisito TX-0026..TX-0029, TX-0031 o TX-0032, formato, campi identificativi falso, impronta dei byte, filtri come arrivati) e la consultazione del report in AUDIT_CONSULTAZIONE; senza X-Requested-With 403 RICHIESTA_NON_AMMESSA, HEAD 405, formato sconosciuto 404, stato fuori dominio, azione (D-01 Rev. 1) o intervento vuoto 400 DATO_NON_VALIDO, P5 403 ACCESSO_NEGATO per ogni export: nessun file e nessuna riga di AUDIT_ESPORTAZIONE (D-10)",
       "kind": "positive",
       "test_tag": "SC-PC_ESPORTA",
       "approved": true,

@@ -5,7 +5,7 @@
       "ownership": "fisico",
       "path": "slice-plan.json",
       "role": "artifact",
-      "sha256": "sha256:935a43ee226abbe35670bc754707aaa4c3b837a43fae33a64a27db29ee282ccd",
+      "sha256": "sha256:aafd98dc39648da14efc7d7142328e8d4365d388959ea391f1763bd81fbe3d10",
       "step": "step1-import"
     },
     {
@@ -13,7 +13,7 @@
       "ownership": "fisico",
       "path": "authz-catalog.json",
       "role": "authz-catalog",
-      "sha256": "sha256:fa3d4c0b70016dce6e238dba4e8a4a8607ea35d7104cbead5c74fbdb175e2df8",
+      "sha256": "sha256:e7a2a1224b88ca94d4fdd0ec6eb74e71e2a86d9e090f7f5322b36ba950ff809f",
       "step": "authz-catalog"
     },
     {
@@ -29,7 +29,7 @@
       "ownership": "fisico",
       "path": "./datamodel/fisico-decisions.json",
       "role": "migration",
-      "sha256": "sha256:7a8a9b1276d9836cf6faab6ceaf41be842dc55d39eaab9e56fcf01810990a26c",
+      "sha256": "sha256:b768d74a9d450eaf89fa4e5411caebf22d7ccd2cdded30f912a8e47adeb67da4",
       "step": "step2-datamodel"
     },
     {
@@ -37,7 +37,7 @@
       "ownership": "fisico",
       "path": "./acceptance/fisico-scenarios.json",
       "role": "application",
-      "sha256": "sha256:048688017a46c79f3884fef5c3e5b437c6af9a82a585d4e68d72d58798603fbf",
+      "sha256": "sha256:7e06e27857d81d6eae8660489be9ee319f267d887c94712459d5350ed776e234",
       "step": "step5-service"
     },
     {
@@ -45,24 +45,24 @@
       "ownership": "fisico",
       "path": "./openapi/openapi-fisico.json",
       "role": "adapter-in-rest",
-      "sha256": "sha256:8558e1f4d278f2e97fc873a3eebbdaffdd54d8e390d245b0c8784dd35822c861",
+      "sha256": "sha256:189c634c3b86c825c924c454737f79daf2406d5ccc24a4f1f50866bb83b4ea3f",
       "step": "step8-rest"
     }
   ],
   "authz_catalog": {
-    "hash": "sha256:fa3d4c0b70016dce6e238dba4e8a4a8607ea35d7104cbead5c74fbdb175e2df8",
+    "hash": "sha256:e7a2a1224b88ca94d4fdd0ec6eb74e71e2a86d9e090f7f5322b36ba950ff809f",
     "path": "authz-catalog.json"
   },
   "gates": {
     "authz-catalog.authz_approved": {
-      "approved_at": "2026-10-12T15:52:46Z",
-      "approved_hash": "sha256:fa3d4c0b70016dce6e238dba4e8a4a8607ea35d7104cbead5c74fbdb175e2df8",
-      "baseline_ref": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
+      "approved_at": "2026-10-29T08:48:37Z",
+      "approved_hash": "sha256:e7a2a1224b88ca94d4fdd0ec6eb74e71e2a86d9e090f7f5322b36ba950ff809f",
+      "baseline_ref": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7"
     },
     "step1-import.plan_approved": {
-      "approved_at": "2026-10-12T15:52:43Z",
-      "approved_hash": "sha256:935a43ee226abbe35670bc754707aaa4c3b837a43fae33a64a27db29ee282ccd",
-      "baseline_ref": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
+      "approved_at": "2026-10-29T08:48:37Z",
+      "approved_hash": "sha256:aafd98dc39648da14efc7d7142328e8d4365d388959ea391f1763bd81fbe3d10",
+      "baseline_ref": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7"
     },
     "step10-gate.acceptance": "pass",
     "step10-gate.assumptions": "pass",
@@ -76,17 +76,17 @@
     "step11-review.review": "pass",
     "step1b-scaffold.reactor_compiles": "pass",
     "step2-datamodel.ddl_approved": {
-      "approved_at": "2026-10-21T21:45:02Z",
-      "approved_hash": "sha256:7a8a9b1276d9836cf6faab6ceaf41be842dc55d39eaab9e56fcf01810990a26c",
-      "baseline_ref": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
+      "approved_at": "2026-10-29T10:54:14Z",
+      "approved_hash": "sha256:b768d74a9d450eaf89fa4e5411caebf22d7ccd2cdded30f912a8e47adeb67da4",
+      "baseline_ref": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7"
     },
     "step3-domain.domain_compiles": "pass",
     "step3-domain.domain_pure": "pass",
     "step4-ports.ports_pure": "pass",
     "step5-service.acceptance_approved": {
-      "approved_at": "2026-10-21T14:49:00Z",
-      "approved_hash": "sha256:048688017a46c79f3884fef5c3e5b437c6af9a82a585d4e68d72d58798603fbf",
-      "baseline_ref": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
+      "approved_at": "2026-10-29T10:55:20Z",
+      "approved_hash": "sha256:7e06e27857d81d6eae8660489be9ee319f267d887c94712459d5350ed776e234",
+      "baseline_ref": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7"
     },
     "step5-service.authz_import_zero": "pass",
     "step6-adapter-pg.adapter_pg_compiles": "pass",
@@ -96,19 +96,21 @@
     "step9-functions.functions": "pass"
   },
   "openapi": {
-    "hash": "sha256:8558e1f4d278f2e97fc873a3eebbdaffdd54d8e390d245b0c8784dd35822c861",
+    "hash": "sha256:189c634c3b86c825c924c454737f79daf2406d5ccc24a4f1f50866bb83b4ea3f",
     "path": "./openapi/openapi-fisico.json"
   },
-  "pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb",
-  "pack_version": "1.3.0",
+  "pack_hash": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7",
+  "pack_version": "1.4.0",
   "reqs": [
+    "RU-00000017",
     "RU-00000018",
-    "RU-00000020"
+    "RU-00000030"
   ],
   "slice": "fisico",
   "slice_type": "transactional",
   "transactions": [
+    "TX-0017",
     "TX-0018",
-    "TX-0020"
+    "TX-0030"
   ]
 }

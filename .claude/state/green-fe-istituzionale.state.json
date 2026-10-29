@@ -13,9 +13,9 @@
       ],
       "gates": {
         "handover_verified": {
-          "approved_hash": "sha256:7328f8b2b6eaeba2620fcb7c132c367c784c0338c4264248569835256a601286",
+          "approved_hash": "sha256:9563f32120d34fd2d2f429809656d45f6b2e0f081ed997ace1a13c6bda021baa",
           "baseline_ref": "./plan/istituzionale/handover.json",
-          "approved_at": "2026-10-22T08:42:20Z"
+          "approved_at": "2026-10-29T17:10:43Z"
         }
       }
     },

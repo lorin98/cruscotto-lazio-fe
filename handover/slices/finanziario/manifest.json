@@ -5,7 +5,7 @@
       "ownership": "finanziario",
       "path": "slice-plan.json",
       "role": "artifact",
-      "sha256": "sha256:935a43ee226abbe35670bc754707aaa4c3b837a43fae33a64a27db29ee282ccd",
+      "sha256": "sha256:aafd98dc39648da14efc7d7142328e8d4365d388959ea391f1763bd81fbe3d10",
       "step": "step1-import"
     },
     {
@@ -13,7 +13,7 @@
       "ownership": "finanziario",
       "path": "authz-catalog.json",
       "role": "authz-catalog",
-      "sha256": "sha256:fa3d4c0b70016dce6e238dba4e8a4a8607ea35d7104cbead5c74fbdb175e2df8",
+      "sha256": "sha256:e7a2a1224b88ca94d4fdd0ec6eb74e71e2a86d9e090f7f5322b36ba950ff809f",
       "step": "authz-catalog"
     },
     {
@@ -29,7 +29,7 @@
       "ownership": "finanziario",
       "path": "./datamodel/finanziario-decisions.json",
       "role": "migration",
-      "sha256": "sha256:2c886472e21d42a1be40a40ee820bd69a780a26f37e1ffc31871d89f3b75426f",
+      "sha256": "sha256:1158f83e6831e985a3da27b0b7d201a987ab9e24dfe5d5604dc4bf82edcdfafb",
       "step": "step2-datamodel"
     },
     {
@@ -45,7 +45,7 @@
       "ownership": "finanziario",
       "path": "./acceptance/finanziario-scenarios.json",
       "role": "application",
-      "sha256": "sha256:72c222e5e33062b4848b072ec6e742f69ce633835eb20de422d13dc9ccdf42eb",
+      "sha256": "sha256:27f0486f26d326ab2a84db80d5a6150346bad3e52386bc9767c69411d4163a9e",
       "step": "step5-service"
     },
     {
@@ -53,24 +53,24 @@
       "ownership": "finanziario",
       "path": "./openapi/openapi-finanziario.json",
       "role": "adapter-in-rest",
-      "sha256": "sha256:e65fc85f2168bfeab95480909afb72a557537cded2355c0bce6500170c42dbbb",
+      "sha256": "sha256:f540db815eaa900ae43004c4488617a4a3c0c907d12b8f5da779d20b82c8439b",
       "step": "step8-rest"
     }
   ],
   "authz_catalog": {
-    "hash": "sha256:fa3d4c0b70016dce6e238dba4e8a4a8607ea35d7104cbead5c74fbdb175e2df8",
+    "hash": "sha256:e7a2a1224b88ca94d4fdd0ec6eb74e71e2a86d9e090f7f5322b36ba950ff809f",
     "path": "authz-catalog.json"
   },
   "gates": {
     "authz-catalog.authz_approved": {
-      "approved_at": "2026-10-12T15:52:46Z",
-      "approved_hash": "sha256:fa3d4c0b70016dce6e238dba4e8a4a8607ea35d7104cbead5c74fbdb175e2df8",
-      "baseline_ref": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
+      "approved_at": "2026-10-29T08:48:37Z",
+      "approved_hash": "sha256:e7a2a1224b88ca94d4fdd0ec6eb74e71e2a86d9e090f7f5322b36ba950ff809f",
+      "baseline_ref": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7"
     },
     "step1-import.plan_approved": {
-      "approved_at": "2026-10-12T15:52:43Z",
-      "approved_hash": "sha256:935a43ee226abbe35670bc754707aaa4c3b837a43fae33a64a27db29ee282ccd",
-      "baseline_ref": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
+      "approved_at": "2026-10-29T08:48:37Z",
+      "approved_hash": "sha256:aafd98dc39648da14efc7d7142328e8d4365d388959ea391f1763bd81fbe3d10",
+      "baseline_ref": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7"
     },
     "step10-gate.acceptance": "pass",
     "step10-gate.assumptions": "pass",
@@ -84,17 +84,17 @@
     "step11-review.review": "pass",
     "step1b-scaffold.reactor_compiles": "pass",
     "step2-datamodel.ddl_approved": {
-      "approved_at": "2026-10-20T08:27:25Z",
-      "approved_hash": "sha256:2c886472e21d42a1be40a40ee820bd69a780a26f37e1ffc31871d89f3b75426f",
-      "baseline_ref": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
+      "approved_at": "2026-10-29T10:53:56Z",
+      "approved_hash": "sha256:1158f83e6831e985a3da27b0b7d201a987ab9e24dfe5d5604dc4bf82edcdfafb",
+      "baseline_ref": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7"
     },
     "step3-domain.domain_compiles": "pass",
     "step3-domain.domain_pure": "pass",
     "step4-ports.ports_pure": "pass",
     "step5-service.acceptance_approved": {
-      "approved_at": "2026-10-20T08:27:25Z",
-      "approved_hash": "sha256:72c222e5e33062b4848b072ec6e742f69ce633835eb20de422d13dc9ccdf42eb",
-      "baseline_ref": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
+      "approved_at": "2026-10-29T10:55:15Z",
+      "approved_hash": "sha256:27f0486f26d326ab2a84db80d5a6150346bad3e52386bc9767c69411d4163a9e",
+      "baseline_ref": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7"
     },
     "step5-service.authz_import_zero": "pass",
     "step6-adapter-pg.adapter_pg_compiles": "pass",
@@ -104,11 +104,11 @@
     "step9-functions.functions": "pass"
   },
   "openapi": {
-    "hash": "sha256:e65fc85f2168bfeab95480909afb72a557537cded2355c0bce6500170c42dbbb",
+    "hash": "sha256:f540db815eaa900ae43004c4488617a4a3c0c907d12b8f5da779d20b82c8439b",
     "path": "openapi/openapi-finanziario.json"
   },
-  "pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb",
-  "pack_version": "1.3.0",
+  "pack_hash": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7",
+  "pack_version": "1.4.0",
   "reqs": [
     "RU-00000001",
     "RU-00000002",
@@ -123,8 +123,7 @@
     "RU-00000011",
     "RU-00000012",
     "RU-00000013",
-    "RU-00000014",
-    "RU-00000015"
+    "RU-00000014"
   ],
   "slice": "finanziario",
   "slice_type": "transactional",
@@ -142,7 +141,6 @@
     "TX-0011",
     "TX-0012",
     "TX-0013",
-    "TX-0014",
-    "TX-0015"
+    "TX-0014"
   ]
 }

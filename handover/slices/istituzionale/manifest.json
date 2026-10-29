@@ -5,7 +5,7 @@
       "ownership": "istituzionale",
       "path": "slice-plan.json",
       "role": "artifact",
-      "sha256": "sha256:935a43ee226abbe35670bc754707aaa4c3b837a43fae33a64a27db29ee282ccd",
+      "sha256": "sha256:aafd98dc39648da14efc7d7142328e8d4365d388959ea391f1763bd81fbe3d10",
       "step": "step1-import"
     },
     {
@@ -13,7 +13,7 @@
       "ownership": "istituzionale",
       "path": "authz-catalog.json",
       "role": "authz-catalog",
-      "sha256": "sha256:fa3d4c0b70016dce6e238dba4e8a4a8607ea35d7104cbead5c74fbdb175e2df8",
+      "sha256": "sha256:e7a2a1224b88ca94d4fdd0ec6eb74e71e2a86d9e090f7f5322b36ba950ff809f",
       "step": "authz-catalog"
     },
     {
@@ -29,7 +29,7 @@
       "ownership": "istituzionale",
       "path": "./datamodel/istituzionale-decisions.json",
       "role": "migration",
-      "sha256": "sha256:7a4b1e5b8bde18ef6939f6a0a352fb5f70a316afdf9da67e4a482afdcc0072f6",
+      "sha256": "sha256:087f6e2e121ec72354679377a17ed943229a47d63783945cc335b0d30ac71eaf",
       "step": "step2-datamodel"
     },
     {
@@ -37,7 +37,7 @@
       "ownership": "istituzionale",
       "path": "./acceptance/istituzionale-scenarios.json",
       "role": "application",
-      "sha256": "sha256:d336be8163a0b0979fd47b4de33fbfb76523892a281ebefea4a9b071a53ef82b",
+      "sha256": "sha256:60982ee3ef39d4bab8f5deac1d120c5a068dde6c1983d9e5c71289740bbf9cd4",
       "step": "step5-service"
     },
     {
@@ -45,24 +45,24 @@
       "ownership": "istituzionale",
       "path": "./openapi/openapi-istituzionale.json",
       "role": "adapter-in-rest",
-      "sha256": "sha256:b0c069cf6b6874cc5bcdd6baaa6597db8438bd313c233d22ff7444aa9cb3c288",
+      "sha256": "sha256:e29f8ac4e5d99c287d8398aa419acb19c2c6f6167d1cbf22240a1e66cc7e3489",
       "step": "step8-rest"
     }
   ],
   "authz_catalog": {
-    "hash": "sha256:fa3d4c0b70016dce6e238dba4e8a4a8607ea35d7104cbead5c74fbdb175e2df8",
+    "hash": "sha256:e7a2a1224b88ca94d4fdd0ec6eb74e71e2a86d9e090f7f5322b36ba950ff809f",
     "path": "authz-catalog.json"
   },
   "gates": {
     "authz-catalog.authz_approved": {
-      "approved_at": "2026-10-12T15:52:46Z",
-      "approved_hash": "sha256:fa3d4c0b70016dce6e238dba4e8a4a8607ea35d7104cbead5c74fbdb175e2df8",
-      "baseline_ref": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
+      "approved_at": "2026-10-29T08:48:37Z",
+      "approved_hash": "sha256:e7a2a1224b88ca94d4fdd0ec6eb74e71e2a86d9e090f7f5322b36ba950ff809f",
+      "baseline_ref": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7"
     },
     "step1-import.plan_approved": {
-      "approved_at": "2026-10-12T15:52:43Z",
-      "approved_hash": "sha256:935a43ee226abbe35670bc754707aaa4c3b837a43fae33a64a27db29ee282ccd",
-      "baseline_ref": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
+      "approved_at": "2026-10-29T08:48:37Z",
+      "approved_hash": "sha256:aafd98dc39648da14efc7d7142328e8d4365d388959ea391f1763bd81fbe3d10",
+      "baseline_ref": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7"
     },
     "step10-gate.acceptance": "pass",
     "step10-gate.assumptions": "pass",
@@ -76,17 +76,17 @@
     "step11-review.review": "pass",
     "step1b-scaffold.reactor_compiles": "pass",
     "step2-datamodel.ddl_approved": {
-      "approved_at": "2026-10-21T21:45:02Z",
-      "approved_hash": "sha256:7a4b1e5b8bde18ef6939f6a0a352fb5f70a316afdf9da67e4a482afdcc0072f6",
-      "baseline_ref": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
+      "approved_at": "2026-10-29T10:54:05Z",
+      "approved_hash": "sha256:087f6e2e121ec72354679377a17ed943229a47d63783945cc335b0d30ac71eaf",
+      "baseline_ref": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7"
     },
     "step3-domain.domain_compiles": "pass",
     "step3-domain.domain_pure": "pass",
     "step4-ports.ports_pure": "pass",
     "step5-service.acceptance_approved": {
-      "approved_at": "2026-10-21T14:49:00Z",
-      "approved_hash": "sha256:d336be8163a0b0979fd47b4de33fbfb76523892a281ebefea4a9b071a53ef82b",
-      "baseline_ref": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
+      "approved_at": "2026-10-29T10:55:18Z",
+      "approved_hash": "sha256:60982ee3ef39d4bab8f5deac1d120c5a068dde6c1983d9e5c71289740bbf9cd4",
+      "baseline_ref": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7"
     },
     "step5-service.authz_import_zero": "pass",
     "step6-adapter-pg.adapter_pg_compiles": "pass",
@@ -96,19 +96,19 @@
     "step9-functions.functions": "pass"
   },
   "openapi": {
-    "hash": "sha256:b0c069cf6b6874cc5bcdd6baaa6597db8438bd313c233d22ff7444aa9cb3c288",
+    "hash": "sha256:e29f8ac4e5d99c287d8398aa419acb19c2c6f6167d1cbf22240a1e66cc7e3489",
     "path": "./openapi/openapi-istituzionale.json"
   },
-  "pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb",
-  "pack_version": "1.3.0",
+  "pack_hash": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7",
+  "pack_version": "1.4.0",
   "reqs": [
-    "RU-00000016",
-    "RU-00000017"
+    "RU-00000015",
+    "RU-00000016"
   ],
   "slice": "istituzionale",
   "slice_type": "transactional",
   "transactions": [
-    "TX-0016",
-    "TX-0017"
+    "TX-0015",
+    "TX-0016"
   ]
 }
