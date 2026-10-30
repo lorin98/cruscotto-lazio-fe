@@ -18,7 +18,7 @@ import { Link, useLocation } from 'react-router';
 import { useState } from 'react';
 import type { Ref } from 'react';
 import { ID_TITOLO_INTERVENTO, InterventoNonValido, codiceDelPercorso, descrizioneIntervento, rigaDellIntervento } from '../../../entities/filtri';
-import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
+import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { perimetroDelDettaglio, testoPerimetro, ultimiDelDettaglio, ultimoDatoInErrore } from '../../../shared/lib';
 import type { StatoDettaglio } from '../../../shared/lib';
 import { AvvisoPagina, BarraRiferimenti, Briciole, ContestoIntestazione, CorpoDelDettaglio, ErroriDelleLetture, Griglia, Kpi, TestataDettaglio, Vuoto, useFocusTitolo, useRigheContesto, useStatoDelDettaglio } from '../../../shared/ui';
@@ -31,15 +31,9 @@ import { puoLeggere } from '../lib/grant';
 import type { Lettura } from '../lib/grant';
 import { NOTA_CAMPAGNA_KPI, SENZA_DATI, badgeIntervento, eIdScheda, kpiIntervento, ritornoSenzaDati, schedaAttiva, schedeVisibili, sopratitoloIntervento, titoloIntervento } from '../lib/intervento';
 import type { ChiaveKpi, IdScheda } from '../lib/intervento';
-import { pagineVisibili } from '../lib/pagine';
+import { useIngressoArea } from './navigazione';
 import { SchedeIntervento } from './SchedeIntervento';
 import type { PropsSchede } from './SchedeIntervento';
-
-/** L'indirizzo della voce "Fisico" del percorso: la prima pagina dell'area che il profilo puo' aprire. */
-function useIngressoArea(): string | undefined {
-  const auth = useAuthStatus().data;
-  return pagineVisibili((g) => hasGrant(auth, g))[0]?.percorso;
-}
 
 /** Il predicato delle letture del profilo (gate di UX: il backend ridecide). */
 function usePuoLeggere(): (l: Lettura) => boolean {

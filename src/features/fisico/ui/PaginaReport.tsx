@@ -3,7 +3,8 @@
 // dei filtri del kit (PaginaConFiltri). La pagina tiene i filtri con useFiltriDellaPagina, legge il suo report e passa qui
 // solo cio' che cambia: i testi della testata, la pill della risposta, il testo dello stato vuoto, i codici degli
 // interventi della risposta e il report. Qui: i chip e le pill del perimetro della risposta (sempre regionale), della
-// risposta e "Dati al" (ultimiDatiSincronizzati della risposta, G3); il percorso; lo stato dei valori dei filtri non
+// risposta e "Dati al" (ultimiDatiSincronizzati della risposta, G3); il percorso (la voce "Fisico" e' la prima pagina
+// dell'area che il profilo apre, review FIS-02); lo stato dei valori dei filtri non
 // disponibili; le righe di contesto dei PNG (NFR-50); il corpo (l'attesa del legame con le azioni, la lettura, il vuoto
 // con "Modifica i filtri": coi criteri cambiati dal pannello il focus va sull'h1); il pannello dei filtri del programma con
 // le voci di TX-0060, azione portante compresa in entrambe le pagine (dal 30/10/2026 anche le Unit Amount,
@@ -17,7 +18,7 @@ import type { UltimoDato } from '../../../shared/lib';
 import { Caricamento, ContestoIntestazione, PaginaConFiltri, PillDatiAl, VistaQuery, VuotoConFiltri, useRigheContesto } from '../../../shared/ui';
 import type { StatoQuery } from '../../../shared/ui';
 import { conFiltriDelProgramma, testiCriteri } from '../lib/criteri';
-import { PERCORSI } from '../lib/pagine';
+import { useIngressoArea } from './navigazione';
 import type { FiltriDellaPagina } from './useFiltriNellIndirizzo';
 
 const NOTA_PANNELLO = "Voci di Intervento, obiettivi e azioni portanti da TX-0060 dell'elenco operativo (valori regionali).";
@@ -84,7 +85,7 @@ export function PaginaReport<D extends RispostaReport>({ pagina, stato, briciola
   return (
     <PaginaConFiltri
       barra={barra}
-      briciole={[{ etichetta: 'Fisico', a: PERCORSI.superfici }, { etichetta: briciola }]}
+      briciole={[{ etichetta: 'Fisico', a: useIngressoArea() }, { etichetta: briciola }]}
       testa={{ titolo, titoloDocumento, sottotitolo, refTitolo: h1 }}
       sopra={<ValoriFiltriNonDisponibili letture={[valori]} h1={h1} />}
       pannello={pannelloFiltri}

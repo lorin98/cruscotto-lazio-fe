@@ -236,6 +236,8 @@ describe("RA006: valori dei filtri dell'output regionale da TX-0060 dell'elenco 
     await tabella();
     expect(lette.filtri).toBe(0);
     expect(screen.queryByText(/^Valori dei filtri non disponibili: /)).toBeNull();
+    // senza csr.tx-0018.read la voce Fisico del percorso porta alla prima pagina dell'area che il profilo apre (review FIS-02)
+    expect(within(screen.getByRole('navigation', { name: 'Percorso' })).getByRole('link', { name: 'Fisico' }).getAttribute('href')).toBe('/fisico/output-regionale');
   });
 
   it('TX-0060 in errore: lo stato della pagina col motivo e Riprova, i chip dell indirizzo restano', async () => {

@@ -95,6 +95,21 @@ describe('RF030: pagamenti per Unit Amount degli interventi selezionati (TX-0030
     await waitFor(() => expect(document.activeElement).toBe(within(screen.getByRole('table', { name: /^Unit Amount degli interventi selezionati/ })).getByRole('row', { name: "Apri l'anteprima della Unit Amount UA2 di SRD01, esercizio 2024" })));
   });
 
+  it('la voce Fisico del percorso segue il grant (review FIS-02): le superfici col profilo completo, le Unit Amount col solo csr.tx-0030.read', async () => {
+    servi();
+    const { unmount } = apri();
+    await tabella();
+    const percorso = () => within(screen.getByRole('navigation', { name: 'Percorso' })).getByRole('link', { name: 'Fisico' });
+    expect(percorso().getAttribute('href')).toBe('/fisico/superfici');
+    unmount();
+
+    server.use(http.get('*/auth/status', () => HttpResponse.json({ authenticated: true, user: { username: 'U', profile: 'p3-funzionario-area-fis', roles: ['csr.tx-0030.read'] } })));
+    servi();
+    apri();
+    await tabella();
+    expect(percorso().getAttribute('href')).toBe('/fisico/unit-amount');
+  });
+
   it('CSV e XLSX dal backend con intervento e obiettivi della pagina, con X-Requested-With', async () => {
     const lette = servi();
     URL.createObjectURL = vi.fn(() => 'blob:prova');
