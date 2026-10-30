@@ -64,11 +64,20 @@ meglio di qualunque tipo del catalogo; i KPI riassumono la corrente e la fonte d
 |---|---|---|---|---|---|
 | /procedurale/determine/:codice? | cerca-domanda | Cerca nel modulo (anche dallo stato senza codice) | procedurale: /procedurale/determine/:codice? | codice (sole cifre del testo scritto) | - |
 | /procedurale/determine/:codice? | scheda-domanda | "Apri la scheda della domanda" nella testata | elenco-operativo: /elenco-operativo/domande/:tipo/:codiceABarre | tipo = tipoDomanda, codiceABarre = codiceABarre della risposta | - |
+| /procedurale/determine/:codice? | scheda-di-partenza | "Apri la scheda della domanda di <tipo>, scheda Determine" nell'avviso "domanda dell'altro tipo" | elenco-operativo: /elenco-operativo/domande/:tipo/:codiceABarre | tipo = tipo portato dal link della scheda (state), codiceABarre = codice cercato | - |
 
 `scheda-domanda` si vede solo con il grant csr.tx-0058.read (gate di UX: tutti i profili con csr.tx-0020.read lo hanno; per
 il P4 anche TX-0058 e' sul perimetro ADA, quindi la scheda della domanda trovata qui si apre) e con la domanda non chiusa
 (`domandaChiusa` falso): la scheda dell'elenco risponde 404 per le domande chiuse. Il passaggio inverso, dalla scheda
-dell'elenco a questa pagina, lo dichiarerebbe la feature elenco-operativo (OP-PR-14).
+dell'elenco a questa pagina, lo dichiara la feature elenco-operativo (`determine-della-domanda`, OP-EO-07).
+
+In arrivo da `determine-della-domanda` (decisione D1 dell'utente del 30/10/2026, review step9 EO-01): il link porta il tipo
+della scheda nello state della navigazione, mai nell'indirizzo. TX-0020 ha solo il codice a barre e sceglie la domanda con
+la regola dell'aggancio, quindi un codice di due domande (SOSTEGNO e PAGAMENTO, scenario SC-PC_DETERMINA_TIPO) puo' dare
+la domanda dell'altro tipo: se `tipoDomanda` della risposta e' diverso dal tipo portato dal link, la pagina lo dice in un
+avviso `role="status"` sopra la testata e offre il link `scheda-di-partenza` alla scheda della domanda di partenza
+(elenco-operativo: /elenco-operativo/domande/:tipo/:codiceABarre, tipo = tipo portato dal link, codiceABarre = codice
+cercato; visibile con csr.tx-0058.read). Senza state (ricarica, indirizzo condiviso, ricerca dal modulo) nessun avviso.
 
 ## Filtri nell'URL (url_params)
 
@@ -92,6 +101,9 @@ Nessun parametro di query: TX-0020 ha solo il codice a barre, nel path.
 ## Stati resi (obbligatori)
 
 - senza codice (vuoto iniziale): "Scrivi il codice a barre di una domanda..." e il solo modulo, nessuna lettura
+- domanda dell'altro tipo (solo in arrivo dalla scheda dell'elenco con un tipo diverso da `tipoDomanda`): `role="status"`,
+  "Il codice a barre N e' anche di una domanda di <tipo della risposta>: qui ci sono le sue determine. Quelle della domanda
+  di <tipo della scheda> sono nella sua scheda." con il link alla scheda di partenza
 - vuoto: determina corrente null con motivo NON_VALORIZZATO ed elenco vuoto: "Nessuna determina aperta per la domanda ...
   (non valorizzato)", mai una tabella vuota senza spiegazione
 - domanda chiusa: badge in testo "Domanda chiusa: non e' piu' nelle fonti SIAN", niente link alla scheda; determine visibili

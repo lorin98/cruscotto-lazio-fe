@@ -336,7 +336,7 @@
         },
         {
           "id": "determine-della-domanda",
-          "trigger": "'Apri le determine della domanda nell'area Procedurale' sotto la tabella della scheda Determine: solo con csr.tx-0020.read; codice = codiceABarre della scheda",
+          "trigger": "'Apri le determine della domanda nell'area Procedurale' sotto la tabella della scheda Determine: solo con csr.tx-0020.read; codice = codiceABarre della scheda; il tipo della scheda va nello state della navigazione (mai nell'URL) per l'avviso 'domanda dell'altro tipo' della pagina d'arrivo (decisione D1 dell'utente del 30/10/2026)",
           "target_feature": "procedurale",
           "target": "/procedurale/determine/:codice?",
           "path_params": [
@@ -1646,11 +1646,11 @@
         "Il link alle determine dice nel testo dove porta, area compresa ('nell'area Procedurale'): scopo chiaro dal solo testo (WCAG 2.4.4), cambio di area annunciato prima del clic"
       ],
       "approval": {
-        "approved_hash": "sha256:dc32487d566419c1ad5c67940fb25fe2166ada677fa5ae718b894234a229ed12",
+        "approved_hash": "sha256:fc22acf7e94c41bfa38f0ab4bf9d8a8a5c20c61a5e64e1f2877590f1f30e2698",
         "baseline_ref": "./wireframes/elenco-operativo/dettaglio-domanda",
-        "approved_at": "2026-10-30T07:26:41Z",
-        "time_to_approve_s": 408,
-        "rework_rounds": 0
+        "approved_at": "2026-10-30T11:52:21Z",
+        "time_to_approve_s": 324,
+        "rework_rounds": 1
       }
     },
     {

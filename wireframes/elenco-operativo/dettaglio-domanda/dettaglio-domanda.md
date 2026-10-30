@@ -45,8 +45,12 @@ delle liste del DTO.
 | /elenco-operativo/domande/:tipo/:codiceABarre | torna-all-elenco-dei-pagamenti | "Torna all'elenco", la briciola "Pagamenti" o il link dell'avviso, con la scheda aperta dall'elenco dei pagamenti | elenco-operativo: /elenco-operativo/pagamenti | - | gli url_params dell'elenco dei pagamenti (la ricerca di partenza) |
 | /elenco-operativo/domande/:tipo/:codiceABarre | determine-della-domanda | "Apri le determine della domanda nell'area Procedurale" sotto la tabella della scheda Determine (solo con csr.tx-0020.read) | procedurale: /procedurale/determine/:codice? | codice = codiceABarre della scheda | - |
 
-Il link determine-della-domanda porta alla stessa domanda (il codice a barre della scheda), non a un insieme da
-riprodurre coi filtri. Lo vedono i profili con csr.tx-0020.read (p1-dirigente, p2-referente-adg,
+Il link determine-della-domanda porta alle determine del codice a barre della scheda, non a un insieme da riprodurre coi
+filtri. TX-0020 ha solo il codice e sceglie la domanda con la regola dell'aggancio: se lo stesso codice e' anche di una
+domanda dell'altro tipo (SOSTEGNO e PAGAMENTO, scenario SC-PC_DETERMINA_TIPO) puo' mostrare quella. Per questo il link
+porta il tipo della scheda nello state della navigazione (mai nell'indirizzo) e la pagina delle determine avvisa quando
+la domanda mostrata e' dell'altro tipo, con il ritorno a questa scheda (decisione D1 dell'utente del 30/10/2026, review
+step9 EO-01). Lo vedono i profili con csr.tx-0020.read (p1-dirigente, p2-referente-adg,
 p3-funzionario-area-pro, p4-responsabile-procedimento-ada sul proprio perimetro); la scheda e' gia' nel perimetro del
 P4, quindi l'arrivo non risponde 404. Finche' il flusso determine del procedurale non e' approvato il link non si rende
 (OP-EO-07).

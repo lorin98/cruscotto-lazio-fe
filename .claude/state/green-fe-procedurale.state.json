@@ -59,10 +59,10 @@
           ]
         },
         "wireframe_determine": {
-          "approved_hash": "sha256:22068d00d0180e70251c67261ee7080336451e0c5fa09851b63a1f26d8fd25f6",
+          "approved_hash": "sha256:52f08e1f09ea17b65633241db48f367e2606b6407d9d72e584f33b23690f7654",
           "baseline_ref": "./wireframes/procedurale/determine",
-          "approved_at": "2026-10-30T07:26:41Z",
-          "time_to_approve_s": 408,
+          "approved_at": "2026-10-30T11:52:21Z",
+          "time_to_approve_s": 324,
           "deviations_reviewed": []
         },
         "wireframe_panoramica": {

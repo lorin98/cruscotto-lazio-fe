@@ -742,6 +742,17 @@
             "codiceABarre"
           ],
           "query": []
+        },
+        {
+          "id": "scheda-di-partenza",
+          "trigger": "Apri la scheda della domanda di <tipo>, scheda Determine (avviso 'domanda dell'altro tipo'): solo in arrivo da determine-della-domanda dell'elenco con un tipo, portato nello state della navigazione, diverso da tipoDomanda della risposta, e solo con csr.tx-0058.read; tipo = tipo portato dal link, codiceABarre = codice cercato (decisione D1 dell'utente del 30/10/2026)",
+          "target_feature": "elenco-operativo",
+          "target": "/elenco-operativo/domande/:tipo/:codiceABarre",
+          "path_params": [
+            "tipo",
+            "codiceABarre"
+          ],
+          "query": []
         }
       ]
     }
@@ -1441,11 +1452,11 @@
         "Residuo manuale: ordine di lettura di testata, riquadri e tabella; comprensibilita' di 'stato area programmazione', 'comparto' e del messaggio 'fra quelle che puoi consultare'; contrasto della resa finale"
       ],
       "approval": {
-        "approved_hash": "sha256:22068d00d0180e70251c67261ee7080336451e0c5fa09851b63a1f26d8fd25f6",
+        "approved_hash": "sha256:52f08e1f09ea17b65633241db48f367e2606b6407d9d72e584f33b23690f7654",
         "baseline_ref": "./wireframes/procedurale/determine",
-        "approved_at": "2026-10-30T07:26:41Z",
-        "time_to_approve_s": 408,
-        "rework_rounds": 0
+        "approved_at": "2026-10-30T11:52:21Z",
+        "time_to_approve_s": 324,
+        "rework_rounds": 1
       }
     }
   ],
