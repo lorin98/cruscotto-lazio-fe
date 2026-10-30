@@ -1,7 +1,14 @@
 // collegamenti.ts — indirizzi dei link dichiarati nello uiplan della feature (PURO): scheda della domanda, elenco dei
-// pagamenti delle domande filtrate e ritorno, altre domande del beneficiario, ricerca di partenza della scheda. Ogni link
-// porta i parametri della sua `query` nello uiplan (i filtri della domanda, drill-down procedurale compreso).
-import { PERCORSO_ELENCO_DOMANDE, PERCORSO_ELENCO_PAGAMENTI, percorsoSchedaDomanda, riferimentoDomandaValido } from '../../../entities/domanda';
+// pagamenti delle domande filtrate e ritorno, altre domande del beneficiario, ricerca di partenza della scheda, determine
+// della domanda nel procedurale. Ogni link porta i parametri della sua `query` nello uiplan (i filtri della domanda,
+// drill-down procedurale compreso).
+import {
+  PERCORSO_ELENCO_DOMANDE,
+  PERCORSO_ELENCO_PAGAMENTI,
+  percorsoDetermineDellaDomanda,
+  percorsoSchedaDomanda,
+  riferimentoDomandaValido,
+} from '../../../entities/domanda';
 import { conStatoSalvato, leggiStatoSalvato } from '../../../shared/lib';
 import type { StatoSalvato } from '../../../shared/lib';
 import type { Criteri } from './criteri';
@@ -27,6 +34,17 @@ export function percorsoPagamentiDelleDomande(criteri: Criteri): string {
 /** Link domande-dei-pagamenti: l'elenco delle domande con i filtri della domanda (decreto ed esito restano ai pagamenti). */
 export function percorsoDomandeDeiPagamenti(criteri: Criteri): string {
   return `${PERCORSO_DOMANDE}${ricercaDaCriteri(filtriDellaDomanda(criteri), 'domande')}`;
+}
+
+/**
+ * Link determine-della-domanda (scelta S-3 b dell'utente del 30/10/2026, OP-EO-07): le determine della domanda della scheda
+ * nell'area Procedurale (/procedurale/determine/<codice a barre>), solo col grant della loro lettura (puoAprireLeDetermine,
+ * csr.tx-0020.read). L'indirizzo e' del contratto condiviso (entities/domanda): nessun import dalla feature procedurale.
+ * Gate di UX, l'enforcement e' del backend (per il P4 la scheda e' gia' nel suo perimetro: l'arrivo non risponde 404).
+ * null = nessun link.
+ */
+export function percorsoDetermine(codiceABarre: string | null | undefined, conGrantDetermine: boolean): string | null {
+  return conGrantDetermine ? percorsoDetermineDellaDomanda(codiceABarre) : null;
 }
 
 /** Link domande-del-beneficiario: le domande col CUAA nel testo libero; null senza CUAA (o troppo corto per la ricerca). */

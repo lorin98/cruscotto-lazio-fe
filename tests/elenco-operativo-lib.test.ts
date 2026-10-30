@@ -52,6 +52,7 @@ import { chipDeiCriteri, valoreLeggibile } from '../src/features/elenco-operativ
 import { ORDINAMENTO_COLONNA, ORDINAMENTO_COLONNA_PAGAMENTI, VISTE, vistaDi } from '../src/features/elenco-operativo/lib/viste';
 import { filtroDalClic, filtroDellaVoce, graficoAmmessoPagato, graficoRipartizione, nomeVoce } from '../src/features/elenco-operativo/lib/grafici';
 import {
+  percorsoDetermine,
   percorsoDettaglio,
   percorsoDomandeDeiPagamenti,
   percorsoDomandeDelBeneficiario,
@@ -61,9 +62,14 @@ import {
   statoDiRitorno,
   statoElencoValido,
 } from '../src/features/elenco-operativo/lib/collegamenti';
+import { puoAprireLeDetermine } from '../src/features/elenco-operativo/lib/grant';
+import { GRANT_DETERMINE_DELLA_DOMANDA, PERCORSO_DETERMINE_DELLA_DOMANDA, percorsoDetermineDellaDomanda } from '../src/entities/domanda';
 import { menoRecente, testoUltimiDati } from '../src/shared/lib/aggiornamento';
 import { righeContesto } from '../src/shared/lib';
 import uiplanElenco from '../plan/elenco-operativo/uiplan.json';
+import uiplanProcedurale from '../plan/procedurale/uiplan.json';
+import routeTable from '../src/app/route-table.json';
+import { matchPath } from 'react-router';
 import { formatEuro } from '../src/shared/lib/format';
 
 const euro = (valore: number | null, motivo: string | null = null) => ({ valore, motivo, fonte: null });
@@ -514,5 +520,39 @@ describe('elenco operativo, link della scheda e fra elenchi (review v1 A-01, V-0
       expect(ritornoAllElenco({ ricerca: partenza })).toBe(partenza);
       expect(parametri(ritornoAllElenco({ ricerca: partenza }))).toEqual(query(id));
     }
+  });
+});
+
+// link determine-della-domanda della scheda (scelta S-3 b dell'utente del 30/10/2026, OP-EO-07): l'indirizzo e il grant
+// sono del contratto condiviso (entities/domanda), la route e' della feature procedurale (nessun import da li')
+describe('elenco operativo, link della scheda verso le determine del procedurale (OP-EO-07)', () => {
+  it('le determine della domanda: codice a barre di sole cifre nel percorso, niente separatori', () => {
+    expect(PERCORSO_DETERMINE_DELLA_DOMANDA).toBe('/procedurale/determine');
+    expect(percorsoDetermineDellaDomanda('54230000001')).toBe('/procedurale/determine/54230000001');
+    for (const codice of ['../../domande', '0423%2F1', '0423 0001', '0423ABC', '1'.repeat(31), '', null, undefined]) {
+      expect(percorsoDetermineDellaDomanda(codice), String(codice)).toBeNull();
+    }
+  });
+
+  it('col grant di TX-0020 il link, senza nessun link (gate di UX); grant verbatim del catalogo', () => {
+    expect(GRANT_DETERMINE_DELLA_DOMANDA).toBe('csr.tx-0020.read');
+    expect(percorsoDetermine('54230000001', true)).toBe('/procedurale/determine/54230000001');
+    expect(percorsoDetermine('54230000001', false)).toBeNull();
+    expect(percorsoDetermine('0423ABC', true)).toBeNull();
+    expect(percorsoDetermine(null, true)).toBeNull();
+    const conDetermine = { authenticated: true, user: { username: 'U', roles: ['csr.tx-0058.read', 'csr.tx-0020.read'] } };
+    const senzaDetermine = { authenticated: true, user: { username: 'U', roles: ['csr.tx-0058.read'] } };
+    expect(puoAprireLeDetermine(conDetermine)).toBe(true);
+    expect(puoAprireLeDetermine(senzaDetermine)).toBe(false);
+    expect(puoAprireLeDetermine(undefined)).toBe(false);
+  });
+
+  it("l'indirizzo e' quello dichiarato nello uiplan, una route del procedurale aperta dallo stesso grant", () => {
+    const link = uiplanElenco.routes.flatMap((r) => r.links ?? []).find((l) => l.id === 'determine-della-domanda');
+    expect(link).toMatchObject({ target: '/procedurale/determine/:codice?', target_feature: 'procedurale', path_params: ['codice'], query: [] });
+    const target = link?.target ?? '';
+    expect(matchPath(target, percorsoDetermineDellaDomanda('54230000001') ?? '')?.params).toEqual({ codice: '54230000001' });
+    expect(uiplanProcedurale.routes.some((r) => r.path === target)).toBe(true);
+    expect(routeTable.routes.find((r) => r.path === target)?.visibility).toContain(GRANT_DETERMINE_DELLA_DOMANDA);
   });
 });
