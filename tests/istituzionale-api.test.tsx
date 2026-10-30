@@ -129,6 +129,21 @@ describe('feature istituzionale: i dati di prima durante la lettura di un altro 
     senza.rerender({ anno: 2022 });
     expect(senza.result.current.data).toBeUndefined();
   });
+
+  it('la scheda SIGC del dettaglio: con mantieniDati la risposta dell esercizio di prima resta finche arriva la nuova', async () => {
+    server.use(http.get('*/api/istituzionale/verifica-smp-sigc', ({ request }) => HttpResponse.json({ ...VERIFICA_SIGC, esercizio: Number(new URL(request.url).searchParams.get('esercizio')) })));
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const con = renderHook((p: { esercizio: number }) => useVerificaSmpSigc({ intervento: ['SRA01'] }, p.esercizio, { mantieniDati: true }), { initialProps: { esercizio: 2025 }, wrapper: wrapper(client) });
+    await waitFor(() => expect(con.result.current.data?.esercizio).toBe(2025));
+    con.rerender({ esercizio: 2024 });
+    expect(con.result.current.data?.esercizio).toBe(2025);
+    expect(con.result.current.isPlaceholderData).toBe(true);
+    await waitFor(() => expect(con.result.current.data?.esercizio).toBe(2024));
+    const senza = renderHook((p: { esercizio: number }) => useVerificaSmpSigc({ intervento: ['SRA01'] }, p.esercizio), { initialProps: { esercizio: 2023 }, wrapper: wrapper(client) });
+    await waitFor(() => expect(senza.result.current.data?.esercizio).toBe(2023));
+    senza.rerender({ esercizio: 2026 });
+    expect(senza.result.current.data).toBeUndefined();
+  });
 });
 
 // il mock del dev server risponde come il backend: righe dei filtri, anno con i dati dell'avviso del file piu' recente
