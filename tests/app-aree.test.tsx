@@ -185,6 +185,9 @@ describe('Home e menu dallo stesso catalogo', () => {
     expect(within(card).getByRole('link', { name: 'Entra in Finanziario' }).getAttribute('href')).toBe('/finanziario/riepilogo');
     // senza i grant dei numeri chiave (TX-0002, TX-0009) la card dice cosa c'e' nell'area
     expect(within(card).getByText('Domande e importi per anno di raccolta')).toBeTruthy();
+    // dal 29/10/2026 la verifica SMP SIGC e' dell'istituzionale (OP-FE-10): la card dice solo SIGC e riserva
+    expect(within(card).getByText('SIGC e riserva di efficacia')).toBeTruthy();
+    expect(within(card).queryByText(/verifica SMP/i)).toBeNull();
     const menu = screen.getByRole('navigation', { name: 'Navigazione principale' });
     expect(within(menu).getAllByRole('link').map((l) => l.textContent)).toEqual(['Riepilogo per intervento']);
     // i quattro ambiti stanno nella stessa griglia, nell'ordine fisso del catalogo

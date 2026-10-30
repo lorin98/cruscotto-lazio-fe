@@ -70,7 +70,8 @@ export const AREE: readonly DiAmbito<Area>[] = [
     descrizione: 'Dotazione, pagamenti, domande e SIGC per intervento, con il dettaglio di ogni intervento.',
     icona: 'it-chart-line',
     tono: 'blu',
-    contenuti: ['Dotazione, impegni e pagamenti per intervento', 'Domande e importi per anno di raccolta', 'SIGC, riserva di efficacia e verifica SMP'],
+    // la verifica SMP SIGC (TX-0015) e' dell'istituzionale dal riallineamento degli ambiti del 29/10/2026 (OP-FE-10)
+    contenuti: ['Dotazione, impegni e pagamenti per intervento', 'Domande e importi per anno di raccolta', 'SIGC e riserva di efficacia'],
     pagineVisibili: pagineFinanziario,
     ricercaConservata: ricercaDeiSoliFiltri,
     Anteprima: AnteprimaFinanziario,
