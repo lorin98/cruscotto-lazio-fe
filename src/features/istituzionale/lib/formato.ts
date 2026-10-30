@@ -1,8 +1,9 @@
 // formato.ts — testi PURI dell'istituzionale (zero React): perimetro, anno di riferimento del file ed esercizio della
-// barra, quantita' con la loro unita' di misura (mai un numero senza unita', note WCAG dello uiplan), si'/no, stati vuoti e
-// note sulle definizioni del backend (OP-IS-07: note fisse, non un dato). I testi sono quelli dei wireframe approvati del
-// 22/10/2026, con le lettere accentate; quelli della verifica SMP SIGC vengono dalla pagina del finanziario (29/10/2026).
-// Il perimetro in parole e' di shared/lib (review H7). I testi dell'output regionale sono del fisico dal 29/10/2026.
+// barra (l'esercizio coi suoi estremi), quantita' di output col codice dell'indicatore accanto (l'unita' di misura veniva
+// da TX-0017, ora del fisico: OP-IS-12), si'/no, stati vuoti e note sulle definizioni del backend (OP-IS-07: note fisse,
+// non un dato). I testi sono quelli dei wireframe approvati (22/10/2026 e, per le due verifiche e il dettaglio, 30/10/2026),
+// con le lettere accentate. Il perimetro in parole e' di shared/lib (review H7). I testi dell'output regionale sono del
+// fisico dal 29/10/2026.
 import { NON_DISPONIBILE, formatNumber, testoPerimetro } from '../../../shared/lib';
 
 /** Pill della barra: i report istituzionali hanno sempre il perimetro regionale (spec: enum REGIONALE). */
@@ -16,9 +17,14 @@ export function pillAnnoDelFile(anno: number | null): string {
   return `Anno di riferimento del file SMP non SIGC: ${anno ?? 'nessun file'}`;
 }
 
-/** Pill dell'esercizio della verifica SMP SIGC (esercizio della risposta). */
+/** Gli estremi dell'esercizio finanziario n: "dal 16/10/2024 al 15/10/2025" (esercizio 2025). */
+export function periodoEsercizio(esercizio: number): string {
+  return `dal 16/10/${esercizio - 1} al 15/10/${esercizio}`;
+}
+
+/** Pill dell'esercizio della verifica SMP SIGC (esercizio della risposta), coi suoi estremi. */
 export function pillEsercizio(esercizio: number | undefined): string {
-  return `Esercizio finanziario: ${esercizio ?? 'non indicato'}`;
+  return `Esercizio finanziario: ${esercizio === undefined ? 'non indicato' : `${esercizio} (${periodoEsercizio(esercizio)})`}`;
 }
 
 /** L'anno di riferimento nei riferimenti della risposta: quello scelto, oppure l'ultimo con un file; null = nessun file. */
@@ -45,9 +51,12 @@ export function siNo(v: boolean): string {
   return v ? 'sì' : 'no';
 }
 
-/** Una quantita' di output con l'unita' di misura dell'indicatore accanto: "1.500 ettari"; senza unita' il solo numero. */
-export function quantita(v: number, unita: string | null | undefined): string {
-  return unita ? `${formatNumber(v)} ${unita}` : formatNumber(v);
+/**
+ * Una quantita' di output col codice dell'indicatore accanto (OP-IS-12, wireframe intervento approvato): "40 (indicatore
+ * O.20)"; senza indicatore il solo numero. L'unita' di misura non c'e' nelle due verifiche e non si ricava dal codice.
+ */
+export function quantitaConIndicatore(v: number, indicatore: string | null | undefined): string {
+  return indicatore?.trim() ? `${formatNumber(v)} (indicatore ${indicatore.trim()})` : formatNumber(v);
 }
 
 /** Definizioni del backend accanto alla tabella della verifica (D-02, D-04, D-05; da confermare: OP-IS-07). */
@@ -57,8 +66,15 @@ export const DEFINIZIONI_VERIFICA =
 /** La verifica SMP SIGC senza l'esercizio: la pagina non legge e chiede di sceglierlo (TX-0015, esercizio obbligatorio). */
 export const SCEGLI_ESERCIZIO = "Scegli l'esercizio finanziario da consultare.";
 
-/** La verifica SMP SIGC senza righe per l'esercizio scelto. */
-export const NESSUN_DATO_SIGC = "Nessun dato SIGC per l'esercizio scelto. Scegli un altro esercizio.";
+/** La verifica SMP SIGC senza righe per l'esercizio e i filtri scelti: segue il pulsante "Modifica i filtri" (wireframe). */
+export const NESSUN_DATO_SIGC = "Nessun dato SIGC per l'esercizio e i filtri scelti. Scegli un altro esercizio oppure";
+
+/**
+ * Definizioni del backend accanto alla tabella della verifica SMP SIGC (decisioni di finanziario richiamate da
+ * istituzionale: D-05 Rev. 4, D-09 Rev. 1, D-11; da confermare: OP-IS-07), dal wireframe verifica-smp-sigc approvato.
+ */
+export const DEFINIZIONI_VERIFICA_SIGC =
+  "Definizioni del backend (decisioni di finanziario richiamate da istituzionale): esercizio n = dal 16/10/n-1 al 15/10/n, estremi compresi; domande ricevute e finanziate = domande SIGC della campagna n-1 (finanziate: importo ammesso maggiore di zero), quelle senza importo richiesto contate ma escluse dal valore; domande pagate e spesa erogata = pagamenti SIGC autorizzati nell'esercizio, la spesa divisa fra la campagna n-1 e le campagne anteriori (D-05 Rev. 4); i pagamenti senza data di autorizzazione sono esclusi e contati nei riferimenti; avvisi attivati = numero del report SMP, mai ricavato dallo stato (D-09 Rev. 1); output erogato = solo SIGC (RF015); previsione di pagamento = sì/no del monitoraggio SMP (D-11).";
 
 /** Un dato facoltativo della verifica SMP SIGC (TX-0015, campi facoltativi nella spec): assente = "non disponibile". */
 export function numeroOpzionale(v: number | null | undefined): string {

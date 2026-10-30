@@ -42,11 +42,42 @@ export interface Verifica {
 }
 
 /**
- * Riga di VerificaSmp di TX-0015 per il grafico (verifica SMP SIGC, dal finanziario): il codice e la spesa erogata nella
- * campagna precedente; la previsione di pagamento e' un si'/no (D-11 del backend) e sta nella tabella. I campi sono
- * facoltativi come nella spec.
+ * VerificaSmpRiga di TX-0015 (verifica SMP SIGC, dal finanziario il 29/10/2026): i venti dati di un intervento per
+ * l'esercizio n, letti dalla tabella della pagina, dalla scheda SIGC del dettaglio, dal grafico e dalla card della Home.
+ * I campi sono facoltativi come nella spec; avvisi e azioni attivate sono conteggi col motivo (ConteggioFinanziario), il
+ * top-up incluso e la previsione di pagamento si'/no col motivo (SiNoFinanziario, D-11 del backend), le quantita' e gli
+ * indicatori null senza motivo ("non disponibile").
  */
 export interface RigaVerificaSigc {
   codiceIntervento?: string;
+  avvisiAttivati?: DatoMotivatoLike<number>;
+  azioniAttivate?: DatoMotivatoLike<number>;
+  domandeRicevute?: number;
+  domandeRicevuteSenzaRichiesto?: number;
+  valoreDomandeRicevute?: DatoMotivatoLike<number>;
+  domandeFinanziate?: number;
+  valoreDomandeFinanziate?: DatoMotivatoLike<number>;
+  dotazioneAnnoPrecedente?: DatoMotivatoLike<number>;
+  dotazionePeriodoImpegno?: DatoMotivatoLike<number>;
+  domandePagateEsercizio?: number;
   spesaErogataCampagnaPrecedente?: DatoMotivatoLike<number>;
+  spesaErogataCampagneAnteriori?: DatoMotivatoLike<number>;
+  previsionePagamentoEsercizio?: DatoMotivatoLike<boolean>;
+  importoTopUp?: DatoMotivatoLike<number>;
+  includeTopUp?: DatoMotivatoLike<boolean>;
+  ettariUbaRichiesti?: number | null;
+  outputAttesoFinanziate?: number | null;
+  outputErogatoEsercizio?: number | null;
+  indicatoreOutput?: string | null;
+  indicatoreRisultato?: string | null;
+}
+
+/** VerificaSmp di TX-0015: esercizio n, anno delle domande (n-1), pagamenti senza data esclusi, perimetro sempre REGIONALE. */
+export interface VerificaSigc {
+  annoDomande?: number;
+  esercizio?: number;
+  pagamentiSenzaData?: number;
+  perimetro?: string;
+  righe?: RigaVerificaSigc[];
+  ultimiDatiSincronizzati?: UltimoDato[];
 }

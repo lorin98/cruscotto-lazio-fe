@@ -167,14 +167,14 @@ describe('TabellaVerifica e CellaDato (i ventuno dati di TX-0016)', () => {
               <CellaDato r={SRD01} d={d('includeTopUp')} puo={puo} />
             </td>
             <td>
-              <CellaDato r={SRD01} d={d('outputAttesoFinanziate')} unita="ettari" puo={() => true} />
+              <CellaDato r={SRD01} d={d('outputAttesoFinanziate')} indicatore="O.20" puo={() => true} />
             </td>
           </tr>
         </tbody>
       </table>,
     );
     expect(screen.queryByRole('link')).toBeNull();
-    expect(screen.getAllByRole('cell').map((c) => c.textContent)).toEqual(['3', 'sì', '40 ettari']);
+    expect(screen.getAllByRole('cell').map((c) => c.textContent)).toEqual(['3', 'sì', '40 (indicatore O.20)']);
   });
 });
 
@@ -230,11 +230,8 @@ describe('DettaglioIntervento e SchedeIntervento (dettaglio dell intervento)', (
     expect(await screen.findByRole('heading', { level: 1, name: 'Investimenti produttivi agricoli per la competitività' })).toBeTruthy();
     expect(screen.getByText('Istituzionale - intervento SRD01')).toBeTruthy();
     await screen.findByRole('region', { name: 'Domande ricevute non SIGC' });
-    expect(within(screen.getByRole('list', { name: 'Dati principali' })).getAllByRole('listitem').map((l) => l.textContent)).toEqual([
-      'Perimetro regionale',
-      'Indicatore di output O.20',
-      'Indicatore di risultato R.9',
-    ]);
+    // gli indicatori stanno nelle voci di ogni scheda (dipendono dall'anno o dall'esercizio): nella testata il solo perimetro
+    expect(within(screen.getByRole('list', { name: 'Dati principali' })).getAllByRole('listitem').map((l) => l.textContent)).toEqual(['Perimetro regionale']);
     expect(screen.getByRole('link', { name: 'Verifica SMP non SIGC filtrata su questo intervento' }).getAttribute('href')).toBe('/istituzionale/verifica-smp-non-sigc?intervento=SRD01');
     // l'output regionale (TX-0017: schede Output per anno e Importi unitari, KPI del target) e' del fisico dal 29/10/2026
     expect(screen.queryByRole('link', { name: 'Output regionale filtrato su questo intervento' })).toBeNull();

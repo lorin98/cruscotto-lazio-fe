@@ -13,20 +13,23 @@ import type { DatoVerifica, LinkDato } from '../lib/verifica';
 
 const monospace = (testo: string) => <span className="font-monospace">{testo}</span>;
 
-/** Il valore di un dato della verifica: un conteggio sempre valorizzato, un importo, o un dato col motivo dell'assenza. */
-export function ValoreDelDato({ r, d, unita }: { r: RigaVerifica; d: DatoVerifica; unita?: string | null }) {
+/**
+ * Il valore di un dato della verifica: un conteggio sempre valorizzato, un importo, o un dato col motivo dell'assenza; una
+ * quantita' col codice dell'indicatore accanto quando chi la rende lo da' (voci del dettaglio, OP-IS-12).
+ */
+export function ValoreDelDato({ r, d, indicatore }: { r: RigaVerifica; d: DatoVerifica; indicatore?: string | null }) {
   const v = r[d.campo];
   if (typeof v === 'number') return monospace(formatNumber(v));
   if (d.tipo === 'importo') return <ValoreImporto importo={v as DatoMotivatoLike<number>} />;
-  return <ValoreMotivato dato={v} resa={(x: number | string | boolean) => testoValore(d.tipo, x, unita)} />;
+  return <ValoreMotivato dato={v} resa={(x: number | string | boolean) => testoValore(d.tipo, x, indicatore)} />;
 }
 
 /** La cella (o la voce) di un dato: il valore e, per domande ricevute e spesa erogata, il link verso l'elenco (OP-IS-09). */
-export function CellaDato({ r, d, unita, puo }: { r: RigaVerifica; d: DatoVerifica; unita?: string | null; puo: (l: LinkDato) => boolean }) {
+export function CellaDato({ r, d, indicatore, puo }: { r: RigaVerifica; d: DatoVerifica; indicatore?: string | null; puo: (l: LinkDato) => boolean }) {
   const indirizzo = indirizzoDelDato(r, d, puo);
   return (
     <>
-      <ValoreDelDato r={r} d={d} unita={unita} />
+      <ValoreDelDato r={r} d={d} indicatore={indicatore} />
       {indirizzo && d.link && <ApriNellElenco variante="testo" indirizzo={indirizzo} {...TESTI_LINK[d.link](r.codiceIntervento)} />}
     </>
   );

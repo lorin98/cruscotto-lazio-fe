@@ -26,7 +26,7 @@ import { PARAMETRO_ANNO, criteriVerifica, soloIntervento, testiCriteri } from '.
 import type { RigaVerifica } from '../lib/dto';
 import { PERIMETRO_IN_PAROLE, PILL_PERIMETRO } from '../lib/formato';
 import { puoLeggere } from '../lib/grant';
-import { SENZA_DATI, badgeIntervento, kpiIntervento, sopratitoloIntervento, titoloIntervento, ultimiDelDettaglio, ultimoDatoInErrore } from '../lib/intervento';
+import { BADGE_INTERVENTO, SENZA_DATI, kpiVerifica, sopratitoloIntervento, titoloIntervento, ultimiDelDettaglio, ultimoDatoInErrore } from '../lib/intervento';
 import type { ChiaveKpi, IdScheda } from '../lib/intervento';
 import { PERCORSI } from '../lib/pagine';
 import { useIngressoArea } from './navigazione';
@@ -61,7 +61,7 @@ function BarraRiferimenti({ ultimi, inErrore }: { ultimi: ReturnType<typeof ulti
 }
 
 /** La testata: sopratitolo, h1, badge in testo e il pulsante verso la verifica filtrata (link dello uiplan). */
-function TestataIntervento({ h1, codice, titolo, badge, anno }: { h1: Ref<HTMLHeadingElement>; codice: string; titolo: string; badge: string[]; anno: number | undefined }) {
+function TestataIntervento({ h1, codice, titolo, badge, anno }: { h1: Ref<HTMLHeadingElement>; codice: string; titolo: string; badge: readonly string[]; anno: number | undefined }) {
   const auth = useAuthStatus().data;
   const azioni = puoLeggere(auth, 'verifica') && (
     <Link className="btn btn-light btn-sm" to={verificaDellIntervento(codice, anno)}>
@@ -79,7 +79,7 @@ const ASPETTO_KPI: Record<ChiaveKpi, { icona: NomeIcona; tono: TonoKpi }> = {
 
 /** I KPI del dettaglio (lib/intervento): quelli della lettura fatta, nessuna quota calcolata. */
 function KpiDettaglio({ verifica }: { verifica: RigaVerifica | undefined }) {
-  const kpi = kpiIntervento(verifica);
+  const kpi = verifica ? kpiVerifica(verifica) : [];
   if (kpi.length === 0) return null;
   return (
     <Griglia colonne={4}>
@@ -130,11 +130,11 @@ function Dettaglio({ codice }: { codice: string }) {
   // il titolo del documento dal codice, come nel wireframe approvato (review V8): la descrizione che arriva dopo non
   // riporta il focus sull'h1
   const h1 = useFocusTitolo<HTMLHeadingElement>(`Intervento ${codice} - Istituzionale`);
-  const ultimi = ultimiDelDettaglio(verifica?.data);
+  const ultimi = ultimiDelDettaglio([verifica]);
   // l'intestazione dei file e dei PNG coi criteri dell'intervento (review A1, NFR-50): la pagina non ha grafici, la scheda
   // della verifica scarica i file del backend
   const contesto = useRigheContesto(testiCriteri(soloIntervento(codice)), ultimi, PERIMETRO_IN_PAROLE);
-  const badge = badgeIntervento(rigaDellIntervento(verifica?.data?.righe, codice));
+  const badge = BADGE_INTERVENTO;
   return (
     <ContestoIntestazione.Provider value={contesto}>
       <BarraRiferimenti ultimi={ultimi} inErrore={ultimoDatoInErrore(letture)} />

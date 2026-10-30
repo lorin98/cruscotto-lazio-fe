@@ -35,7 +35,7 @@ function VociVerifica({ d, codice, anno }: { d: Verifica; codice: string; anno: 
   const puo = usePuoAprireElenco();
   const r = rigaDellIntervento(d.righe, codice);
   if (!r) return <Vuoto>Nessun dato della verifica SMP non SIGC per questo intervento.</Vuoto>;
-  const voci = DATI_VERIFICA.map((x) => ({ etichetta: titoloDato(x, 'voce', d.outputCumulativo), valore: <CellaDato r={r} d={x} unita={null} puo={puo} /> }));
+  const voci = DATI_VERIFICA.map((x) => ({ etichetta: titoloDato(x, 'voce', d.outputCumulativo), valore: <CellaDato r={r} d={x} indicatore={r.indicatoreOutput.valore} puo={puo} /> }));
   return (
     <>
       {d.annoRiferimento === null && <Vuoto>{NESSUN_FILE}</Vuoto>}
@@ -104,7 +104,7 @@ function ListaSchede({ schede }: { schede: readonly IdScheda[] }) {
 }
 
 export function SchedeIntervento({ codice, anno, onAnno, verifica, scheda, onScheda }: PropsSchede) {
-  const schede = schedeVisibili(verifica !== null);
+  const schede = schedeVisibili(verifica !== null, false);
   return (
     <Tabs selectedKey={schedaAttiva(schede, scheda)} onSelectionChange={(k) => onScheda(String(k) as IdScheda)}>
       <ListaSchede schede={schede} />

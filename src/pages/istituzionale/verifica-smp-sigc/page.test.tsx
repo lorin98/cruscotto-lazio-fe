@@ -66,7 +66,7 @@ describe('RF015: i dati ASR dell ambito SIGC per il confronto con SMP - Data Pla
     // la barra: perimetro regionale, esercizio della risposta e "Dati al" della risposta di TX-0015
     const barra = screen.getByRole('region', { name: 'Filtri attivi' });
     expect(within(barra).getByText('Perimetro: regionale (i report istituzionali non hanno perimetro ADA)')).toBeTruthy();
-    expect(within(barra).getByText('Esercizio finanziario: 2025')).toBeTruthy();
+    expect(within(barra).getByText('Esercizio finanziario: 2025 (dal 16/10/2024 al 15/10/2025)')).toBeTruthy();
     expect(within(barra).getByRole('button', { name: /^Ultimo dato sincronizzato: dati al 02\/03\/2026/ })).toBeTruthy();
   });
 
@@ -131,7 +131,7 @@ describe('RF015: i dati ASR dell ambito SIGC per il confronto con SMP - Data Pla
   it("nessuna riga per l'esercizio: lo stato vuoto (status) con Modifica i filtri, nessun grafico", async () => {
     servi({ verificaSigc: { ...VERIFICA_SMP, righe: [] } });
     apri(`${PERCORSO}?esercizio=2023`);
-    const vuoto = await screen.findByText(/Nessun dato SIGC per l'esercizio scelto/);
+    const vuoto = await screen.findByText(/^Nessun dato SIGC per l'esercizio e i filtri scelti/);
     expect(vuoto.closest('[role="status"]')).not.toBeNull();
     expect(within(vuoto.closest('[role="status"]') as HTMLElement).getByRole('button', { name: 'Modifica i filtri' })).toBeTruthy();
     expect(graficiVivi()).toHaveLength(0);
