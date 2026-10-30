@@ -4,7 +4,8 @@
 // lettura (TX-0058). Le schede sono Tabs di react-aria (frecce da tastiera, aria-selected); tabelle con caption e th scope
 // (TabelleScheda). Tipo e codice del percorso si convalidano prima di leggere: con un riferimento non valido nessuna
 // richiesta (review v1 A-01). Un 404 ha lo stesso messaggio per domanda inesistente, chiusa o fuori perimetro (D-06).
-// Link dichiarati: domanda collegata, altre domande del beneficiario, torna all'elenco (alla ricerca di partenza).
+// Link dichiarati: domanda collegata, altre domande del beneficiario, torna all'elenco (alla ricerca di partenza), le
+// determine della domanda nell'area Procedurale sotto la scheda Determine (solo con csr.tx-0020.read, OP-EO-07).
 // L'atto di concessione della sintesi legge attoConcessioneDisponibile di TX-0060 (stessa lettura e cache del pannello dei
 // filtri, col suo grant), che parte insieme a TX-0058: una domanda senza l'atto dice "nessun atto" solo con la fonte attiva,
 // l'assenza con la fonte senza la fonte (F1), "non disponibile" finche' TX-0060 non e' letto (review delta 21/10 passata 2 V1).
@@ -17,11 +18,20 @@ import { formatNumber, formatPercentuale, righeContesto } from '../../../shared/
 import { AvvisoPagina, CardGrafico, ContestoIntestazione, Griglia, Kpi, Sezione, TestataDettaglio, VistaQuery, useFocusTitolo } from '../../../shared/ui';
 import { rispostaDomandaAssente, rispostaRiferimentoNonValido, useDettaglioDomanda, useValoriFiltri } from '../api';
 import type { DettaglioDomanda, DomandaElenco } from '../api';
-import { PERCORSO_DOMANDE, PERCORSO_PAGAMENTI, percorsoDettaglio, percorsoDomandeDelBeneficiario, riferimentoValido, ritornoAllElenco, statoDiRitorno } from '../lib/collegamenti';
+import {
+  PERCORSO_DOMANDE,
+  PERCORSO_PAGAMENTI,
+  percorsoDetermine,
+  percorsoDettaglio,
+  percorsoDomandeDelBeneficiario,
+  riferimentoValido,
+  ritornoAllElenco,
+  statoDiRitorno,
+} from '../lib/collegamenti';
 import type { StatoRitorno, StatoScheda } from '../lib/collegamenti';
 import { cellaImporto, etichettaTipo, perimetroDellaRisposta, quotaSu } from '../lib/formato';
 import { graficoAmmessoPagato } from '../lib/grafici';
-import { puoLeggere } from '../lib/grant';
+import { puoAprireLeDetermine, puoLeggere } from '../lib/grant';
 import { badgeDellaDomanda, sopratitoloDomanda, vociSintesi } from '../lib/voci';
 import { ElencoVoci } from './anteprime';
 import { TabellaAnomalie, TabellaCollegate, TabellaDetermine, TabellaPagamentiDomanda, TabellaRecuperi } from './TabelleScheda';
@@ -123,13 +133,15 @@ function useAttoConcessioneDisponibile(valido: boolean): boolean | undefined {
   return useValoriFiltri(valido && puoLeggere(auth.data, 'filtri')).data?.attoConcessioneDisponibile;
 }
 
-/** Le parti della scheda che non vengono da TX-0058: la ricerca di partenza e la disponibilita' dell'atto (TX-0060). */
+/** Le parti della scheda che non vengono da TX-0058: la ricerca di partenza, la disponibilita' dell'atto (TX-0060) e il
+ *  grant delle determine del procedurale (link determine-della-domanda, gate di UX). */
 interface DaFuori {
   ricerca: StatoScheda | undefined;
   attoConcessioneDisponibile: boolean | undefined;
+  conDetermine: boolean;
 }
 
-function Sintesi({ d, scheda, ricerca, attoConcessioneDisponibile }: { d: DomandaElenco; scheda: DettaglioDomanda } & DaFuori) {
+function Sintesi({ d, scheda, ricerca, attoConcessioneDisponibile }: { d: DomandaElenco; scheda: DettaglioDomanda } & Omit<DaFuori, 'conDetermine'>) {
   const grafico = useMemo(() => graficoAmmessoPagato(d), [d]);
   return (
     <Griglia colonne={2}>
@@ -161,7 +173,7 @@ function listeDi(scheda: DettaglioDomanda) {
   };
 }
 
-function Schede({ d, scheda, ricerca, attoConcessioneDisponibile }: { d: DomandaElenco; scheda: DettaglioDomanda } & DaFuori) {
+function Schede({ d, scheda, ricerca, attoConcessioneDisponibile, conDetermine }: { d: DomandaElenco; scheda: DettaglioDomanda } & DaFuori) {
   const l = listeDi(scheda);
   return (
     <Tabs>
@@ -182,7 +194,7 @@ function Schede({ d, scheda, ricerca, attoConcessioneDisponibile }: { d: Domanda
         <TabellaCollegate collegate={l.collegate} ricerca={ricerca} />
       </TabPanel>
       <TabPanel id="determine">
-        <TabellaDetermine determine={l.determine} />
+        <TabellaDetermine determine={l.determine} determineDellaDomanda={percorsoDetermine(d.codiceABarre, conDetermine)} />
       </TabPanel>
       <TabPanel id="pagamenti">
         <TabellaPagamentiDomanda pagamenti={l.pagamenti} />
@@ -289,7 +301,7 @@ export function SchedaDomanda({ tipo, codiceABarre }: { tipo: string | undefined
       />
       <ContestoIntestazione.Provider value={contesto}>
         <AvvisoPagina>
-          <Corpo esito={esito} stato={stato} r={r} ricerca={r.ricerca} attoConcessioneDisponibile={attoConcessioneDisponibile} />
+          <Corpo esito={esito} stato={stato} r={r} ricerca={r.ricerca} attoConcessioneDisponibile={attoConcessioneDisponibile} conDetermine={puoAprireLeDetermine(auth.data)} />
         </AvvisoPagina>
       </ContestoIntestazione.Provider>
     </main>

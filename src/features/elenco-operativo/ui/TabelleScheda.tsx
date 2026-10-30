@@ -3,7 +3,8 @@
 // importi assenti col motivo (mai zero). Le colonne sono quelle del wireframe approvato: visibili di partenza e "a
 // scelta" dal bottone Colonne del kit (review v1 V-02). La colonna del responsabile del procedimento dice perche' manca
 // (OP-008: NON_ESPOSTO ai profili senza l'area procedurale). Il codice di una domanda collegata apre la sua scheda
-// portando la ricerca di partenza (torna all'elenco).
+// portando la ricerca di partenza (torna all'elenco). Sotto la scheda Determine il link determine-della-domanda verso
+// l'area Procedurale (scelta S-3 b del 30/10/2026, OP-EO-07), anche con la scheda vuota.
 import { Link } from 'react-router';
 import { formatDate } from '../../../shared/lib';
 import { TabellaStatica, Vuoto } from '../../../shared/ui';
@@ -62,8 +63,24 @@ const COLONNE_DETERMINE: readonly ColonnaStatica<DeterminaDellaDomandaElenco>[] 
   { chiave: 'spesaAmmessa', titolo: 'Spesa imponibile ammessa', resa: (t) => cellaImporto(t.spesaImponibileAmmessa), numerica: true, nascosta: true },
 ];
 
-export function TabellaDetermine({ determine }: { determine: DeterminaDellaDomandaElenco[] }) {
-  return <Tabella caption="Determine della domanda (righe aperte, dalla più recente)" colonne={COLONNE_DETERMINE} righe={determine} vuoto="Nessuna determina per questa domanda." />;
+/**
+ * La scheda Determine: la tabella (o il suo stato vuoto) e sotto il link determine-della-domanda, le determine della
+ * domanda nell'area Procedurale. `determineDellaDomanda` e' l'indirizzo costruito da lib (percorsoDetermine: null senza il
+ * grant csr.tx-0020.read, e allora nessun link: gate di UX). Il link resta anche con la scheda vuota (la pagina del
+ * procedurale dice il motivo, wireframe approvato); il testo dice dove porta, area compresa (WCAG 2.4.4).
+ */
+export function TabellaDetermine({ determine, determineDellaDomanda }: { determine: DeterminaDellaDomandaElenco[]; determineDellaDomanda: string | null }) {
+  return (
+    <>
+      <Tabella caption="Determine della domanda (righe aperte, dalla più recente)" colonne={COLONNE_DETERMINE} righe={determine} vuoto="Nessuna determina per questa domanda." />
+      {determineDellaDomanda && (
+        <p className="mt-3 mb-0">
+          <Link to={determineDellaDomanda}>{"Apri le determine della domanda nell'area Procedurale"}</Link>
+          {': la determina corrente e quella da cui vengono stato area programmazione e comparto.'}
+        </p>
+      )}
+    </>
+  );
 }
 
 /** Riga esclusa: i motivi di esclusione al posto degli importi (wireframe approvato); gli altri importi non si mostrano. */
