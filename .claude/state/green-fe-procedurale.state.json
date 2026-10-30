@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "procedurale",
-  "current_step": 7,
+  "current_step": 8,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -137,14 +137,17 @@
       }
     },
     "step7-test": {
-      "status": "in_progress",
-      "completed_at": "2026-10-23T11:58:22Z",
+      "status": "done",
+      "completed_at": "2026-10-30T09:54:51Z",
       "artifacts": [
         "./src/shared/test",
         "./src/shared/api/mock",
         "./src/shared/testing/axe.ts"
       ],
-      "gates": {}
+      "gates": {
+        "tests_generated": "pass",
+        "msw_fail_closed": "pass"
+      }
     },
     "step8-gate": {
       "status": "in_progress",

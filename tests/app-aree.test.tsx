@@ -338,6 +338,34 @@ describe('Home e menu dallo stesso catalogo', () => {
     expect(within(menu).getByRole('link', { name: 'Riepilogo per intervento' }).getAttribute('aria-current')).toBeNull();
   });
 
+  it('dal menu le determine di una domanda non prendono i criteri dei report (senza filtri, scelta del 30/10/2026); senza csr.tx-0020.read la voce non c e', async () => {
+    const { handlers } = lettureProcedurale();
+    server.use(...handlers);
+    const ruoli = ['csr.tx-0020.read', 'csr.tx-0024.read', 'csr.tx-0025.read', 'csr.tx-0027.read', 'csr.tx-0029.read'];
+    const conGrant = apriHomeCon(ruoli, '/procedurale/stati-sostegno?intervento=SRD01&stato=AMMESSA');
+    expect(await screen.findByRole('heading', { level: 1, name: 'Procedurale: stati delle domande di sostegno' })).toBeTruthy();
+    const menu = screen.getByRole('navigation', { name: 'Navigazione principale' });
+    expect(within(menu).getByRole('link', { name: 'Determine di una domanda' }).getAttribute('href')).toBe('/procedurale/determine');
+    expect(within(menu).getByRole('link', { name: 'Riepilogo per intervento' }).getAttribute('href')).toBe('/procedurale/riepilogo?intervento=SRD01&stato=AMMESSA');
+    conGrant.unmount();
+    apriHomeCon(ruoli.filter((r) => r !== 'csr.tx-0020.read'), '/procedurale/stati-sostegno?intervento=SRD01');
+    expect(await screen.findByRole('heading', { level: 1, name: 'Procedurale: stati delle domande di sostegno' })).toBeTruthy();
+    const senza = screen.getByRole('navigation', { name: 'Navigazione principale' });
+    expect(within(senza).queryByRole('link', { name: 'Determine di una domanda' })).toBeNull();
+  });
+
+  it('profilo con le sole determine: la card Procedurale elenca i contenuti con le determine, senza letture, e porta alle determine', async () => {
+    const letture = registra(['/api/procedurale/domande-ammesse', '/api/procedurale/stati-sostegno']);
+    apriHomeCon(['csr.tx-0020.read']);
+    const card = await screen.findByRole('region', { name: 'Procedurale' });
+    expect(within(card).getByText('Stati e sottofasi delle domande di sostegno e di pagamento, domande ammesse con atto di concessione e contributo, riepilogo per intervento e determine di una domanda.')).toBeTruthy();
+    expect(within(card).getAllByRole('listitem').map((l) => l.textContent)).toEqual(['Stati e sottofasi delle domande', 'Domande ammesse con atto di concessione e contributo', 'Riepilogo per intervento', 'Determine di una domanda']);
+    expect(within(card).queryByText(/Unit Amount/)).toBeNull();
+    expect(within(card).queryByRole('group')).toBeNull();
+    expect(within(card).getByRole('link', { name: 'Entra in Procedurale' }).getAttribute('href')).toBe('/procedurale/determine');
+    expect(letture).toEqual({ '/api/procedurale/domande-ammesse': 0, '/api/procedurale/stati-sostegno': 0 });
+  });
+
   it('profilo senza pagine in nessuna area: la Home lo dice, il menu non ha voci', async () => {
     apriHomeCon(['altro']);
     expect(await screen.findByText('Il tuo profilo non ha ancora aree del cruscotto da consultare.')).toBeTruthy();

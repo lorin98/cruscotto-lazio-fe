@@ -1,8 +1,9 @@
 // Pagina /procedurale/determine/:codice? (green-fe step7; dal fisico col riallineamento degli ambiti del 29/10/2026, con
-// gli stessi casi della pagina /procedurale/determine/:codice?): describe taggato col REQ della route (RF020), dati dagli scenari
+// gli stessi casi della pagina /fisico/determine/:codice?): describe taggato col REQ della route (RF020), dati dagli scenari
 // del backend (SC-FS_DETERMINA, SC-FS_DETERMINA_NESSUNA, SC-FS_DETERMINA_ASSENTE), MSW seminato con onUnhandledRequest
-// 'error' (ogni lettura dichiarata qui), axe-core diretto, tastiera e focus del modulo di ricerca. Il badge del perimetro e
-// il messaggio unico del 404 del wireframe del procedurale sono dei passi successivi.
+// 'error' (ogni lettura dichiarata qui), axe-core diretto, tastiera e focus del modulo di ricerca. Dal wireframe del
+// procedurale approvato il 30/10/2026: il badge del perimetro della risposta (regionale, ADA del P4) e un solo messaggio,
+// stato e focus per la domanda inesistente e per quella fuori dal perimetro del P4 (404 con lo stesso corpo).
 import { describe, expect, it } from 'vitest';
 import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -159,6 +160,66 @@ describe("RF020: codice e data delle determine da cui la domanda prende l'inform
     expect(avviso.textContent).toContain('Il servizio è occupato da altre letture');
     await userEvent.click(within(avviso).getByRole('button', { name: 'Riprova' }));
     expect(await screen.findByRole('table', { name: /^Determine da cui la domanda 54810769585/ })).toBeTruthy();
+  });
+});
+
+describe('RF020: perimetro della risposta e domanda non trovata (wireframe del procedurale approvato il 30/10/2026)', () => {
+  const profiloP4 = () =>
+    server.use(
+      http.get('*/auth/status', () =>
+        HttpResponse.json({ authenticated: true, user: { username: 'U', profile: 'p4-responsabile-procedimento-ada', roles: ['csr.tx-0020.read', 'csr.tx-0058.read'] } }),
+      ),
+    );
+
+  it('P4: la testata dice in testo il perimetro ADA; la scheda della domanda trovata si apre (TX-0058 sullo stesso perimetro); nessuna violazione axe', async () => {
+    profiloP4();
+    servi({ [DETERMINE.codiceABarre]: { ...DETERMINE, perimetro: 'ADA' } });
+    const { container } = apri('/procedurale/determine/54810769585');
+    await screen.findByRole('table', { name: /^Determine da cui la domanda 54810769585/ });
+    const badge = within(screen.getByRole('list', { name: 'Dati principali' })).getAllByRole('listitem').map((l) => l.textContent);
+    expect(badge).toEqual(['Domanda di pagamento', 'Domanda corrente', '3 determine con riga aperta', 'Perimetro: ADA, domande della tua area']);
+    expect(screen.queryByText('Perimetro: regionale')).toBeNull();
+    expect(screen.getByRole('link', { name: 'Apri la scheda della domanda' }).getAttribute('href')).toBe('/elenco-operativo/domande/PAGAMENTO/54810769585');
+    await expectNoA11yViolations(container);
+  });
+
+  it('404 fuori dal perimetro del P4 e 404 di una domanda inesistente: stesso messaggio, stesso stato, stesso focus', async () => {
+    // regionale: il codice non esiste
+    servi({});
+    const regionale = apri('/procedurale/determine/54810769585');
+    const avvisoRegionale = await screen.findByRole('alert');
+    const comeRegionale = { testo: avvisoRegionale.textContent, classi: avvisoRegionale.className, focus: document.activeElement?.textContent, titolo: document.title };
+    regionale.unmount();
+    // P4: la stessa domanda esiste ma e' di un'altra area, il backend risponde 404 con lo stesso corpo
+    profiloP4();
+    servi({});
+    apri('/procedurale/determine/54810769585');
+    const avvisoP4 = await screen.findByRole('alert');
+    expect({ testo: avvisoP4.textContent, classi: avvisoP4.className, focus: document.activeElement?.textContent, titolo: document.title }).toEqual(comeRegionale);
+    expect(comeRegionale.testo).toBe('Domanda non trovata: nessuna domanda con il codice a barre 54810769585 fra quelle che puoi consultare. Cerca un altro codice');
+    expect(comeRegionale.focus).toBe('Determine della domanda 54810769585');
+    // niente testata coi badge, KPI o tabella: la pagina non dice altro della domanda
+    expect(screen.queryByRole('list', { name: 'Dati principali' })).toBeNull();
+    expect(screen.queryByRole('table')).toBeNull();
+  });
+
+  it('404: "Cerca un altro codice" porta il focus al campo del modulo, anche da tastiera; nessuna violazione axe', async () => {
+    servi({});
+    const { container } = apri('/procedurale/determine/99999999999');
+    const avviso = await screen.findByRole('alert');
+    expect(avviso.classList.contains('alert-danger')).toBe(true);
+    await expectNoA11yViolations(container);
+    within(avviso).getByRole('link', { name: 'Cerca un altro codice' }).focus();
+    await userEvent.keyboard('{Enter}');
+    expect(document.activeElement).toBe(campo());
+  });
+
+  it('un errore diverso dal 404 (403 ACCESSO_NEGATO) resta l avviso della pagina, mai il messaggio della domanda non trovata', async () => {
+    server.use(http.get('*/api/procedurale/domande/:codice/determina', () => HttpResponse.json(problema(403, 'ACCESSO_NEGATO'), { status: 403 })));
+    apri('/procedurale/determine/54810769585');
+    const avviso = await screen.findByRole('alert');
+    expect(avviso.textContent).not.toContain('Domanda non trovata');
+    expect(screen.queryByRole('link', { name: 'Cerca un altro codice' })).toBeNull();
   });
 });
 
