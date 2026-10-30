@@ -38,7 +38,8 @@ della card, testo del flusso); lint e uiplan-validate verdi.
   "Verifica SMP SIGC" (TX-0015, nuova), KPI per scheda, nessun grafico (scelta 2).
 - **Verifica SMP non SIGC**: il link G4 verso `/finanziario/sigc/verifica-smp` (decisione superata dal verbale) diventa
   un link intra-feature verso la verifica SIGC coi filtri comuni, con lo speculare dalla pagina SIGC (scelta 1); menu
-  dell'area con le due verifiche (scelta 4); card della Home con descrizione e contenuti nuovi, numeri invariati (scelta 3).
+  dell'area con le due verifiche (scelta 4); card della Home con descrizione e contenuti nuovi, numeri non SIGC invariati
+  (scelta 3) e, dopo il rework 1 chiesto dall'utente al gate, il blocco SIGC sull'ultimo esercizio chiuso.
 - **Handover e uiplan**: `pack_hash` del pack 1.4.0 (sha256:141380bd...), `spec_pins` copiati da `plan/istituzionale/handover.json`
   (istituzionale sha256:e29f8ac4..., elenco-operativo sha256:7532fe3b... invariata). Uiplan: 3 route, 126 campi tutti con
   provenance `spec`, 3 flussi, 12 open point.
@@ -184,7 +185,7 @@ hanno quindi lo stesso pubblico. Perimetro sempre regionale.
 | OP-IS-08 | aperto | utente (step4-lib) | testi dei motivi ANNO_NON_CONSERVATO e FONTE_AMBIGUA (solo TX-0016) |
 | OP-IS-09 | aperto | utente / green-be | link verso l'elenco senza scenario di coincidenza |
 | OP-IS-10 | delega (informativo) | elenco-operativo | TX-0056..TX-0059 restano dell'elenco |
-| OP-IS-11 | aggiornato | step6 | card della Home: numeri invariati, testi nuovi, nessuna lettura di TX-0015 |
+| OP-IS-11 | aggiornato | step6 | card della Home: numeri non SIGC invariati, testi nuovi; dopo il rework 1 anche il blocco SIGC (TX-0015, ultimo esercizio chiuso) |
 | OP-IS-12 | **nuovo**, aperto | green-be (non bloccante) | unita' di misura dell'output assente dalle due verifiche (prima da TX-0017) |
 
 ## Cosa dovra' cambiare a step6 (non toccato qui)
