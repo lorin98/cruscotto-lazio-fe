@@ -70,7 +70,7 @@ function useSchede(conVerifica: boolean, conSigc: boolean, anno: number | undefi
 
 /** Il codice dell'indirizzo non e' un codice di intervento: nessuna richiesta, lo dice la pagina (InterventoNonValido dell'entity). */
 function CodiceNonValido() {
-  return <InterventoNonValido area="Istituzionale" ingresso={useIngressoArea()} suggerimento="Scegli l'intervento dalla verifica SMP non SIGC." titoloDocumento="Intervento non valido - Istituzionale" />;
+  return <InterventoNonValido area="Istituzionale" ingresso={useIngressoArea()} suggerimento="Scegli l'intervento dalla verifica SMP non SIGC o dalla verifica SMP SIGC." titoloDocumento="Intervento non valido - Istituzionale" />;
 }
 
 /** Perimetro (sempre regionale) e ultimo dato sincronizzato, nella barra dei riferimenti (il dettaglio non ha filtri). */

@@ -142,13 +142,16 @@ describe("RF016: la verifica SMP non SIGC dell'intervento (TX-0016 filtrata sull
     expect(risultati.getAttribute('aria-busy')).toBeNull();
   });
 
-  it('il codice del percorso e codificato: un valore con / non manda richieste e la pagina lo dice', async () => {
+  it('il codice del percorso e codificato: un valore con / non manda richieste e la pagina lo dice, con le due verifiche da cui sceglierlo', async () => {
     const lette = servi();
     apri('/istituzionale/interventi/SR%2F..%2FA01');
     expect(screen.getByRole('heading', { level: 1, name: 'Intervento non valido' })).toBeTruthy();
     expect(screen.getByRole('alert').textContent).toMatch(/^Il codice nell'indirizzo non è un codice di intervento/);
+    // al dettaglio si arriva da entrambe le verifiche (review del riallineamento IST-09)
+    expect(screen.getByRole('alert').textContent?.endsWith("Scegli l'intervento dalla verifica SMP non SIGC o dalla verifica SMP SIGC.")).toBe(true);
     await act(async () => new Promise((r) => setTimeout(r, 30)));
     expect(lette.verifica).toEqual([]);
+    expect(lette.verificaSigc).toEqual([]);
     expect(lette.filtri).toBe(0);
   });
 
