@@ -1,6 +1,6 @@
 {
   "feature": "procedurale",
-  "pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb",
+  "pack_hash": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7",
   "routes": [
     {
       "actions": [
@@ -81,11 +81,6 @@
         },
         {
           "gating": "hide-by-role",
-          "grant": "csr.tx-0030.read",
-          "operationId": "TX-0030"
-        },
-        {
-          "gating": "hide-by-role",
           "grant": "csr.tx-0031.read",
           "operationId": "TX-0031"
         },
@@ -104,7 +99,6 @@
         "csr.tx-0027.read",
         "csr.tx-0028.read",
         "csr.tx-0029.read",
-        "csr.tx-0030.read",
         "csr.tx-0031.read",
         "csr.tx-0032.read"
       ]
@@ -232,27 +226,6 @@
         },
         {
           "gating": "hide-by-role",
-          "grant": "csr.tx-0030.read",
-          "operationId": "TX-0030"
-        }
-      ],
-      "component": "src/pages/procedurale/unit-amount/page.tsx",
-      "flow": "unit-amount",
-      "path": "/procedurale/unit-amount",
-      "visibility": [
-        "csr.tx-0024.read",
-        "csr.tx-0030.read"
-      ]
-    },
-    {
-      "actions": [
-        {
-          "gating": "hide-by-role",
-          "grant": "csr.tx-0024.read",
-          "operationId": "TX-0024"
-        },
-        {
-          "gating": "hide-by-role",
           "grant": "csr.tx-0025.read",
           "operationId": "TX-0025"
         },
@@ -270,6 +243,21 @@
         "csr.tx-0025.read",
         "csr.tx-0029.read"
       ]
+    },
+    {
+      "actions": [
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0020.read",
+          "operationId": "TX-0020"
+        }
+      ],
+      "component": "src/pages/procedurale/determine/page.tsx",
+      "flow": "determine",
+      "path": "/procedurale/determine/:codice?",
+      "visibility": [
+        "csr.tx-0020.read"
+      ]
     }
   ],
   "schema_version": "1.0",
@@ -277,7 +265,7 @@
     {
       "manifest_hash_match": true,
       "path": "handover/openapi-procedurale.json",
-      "sha256": "sha256:22da01896b49d117841f2ed5de405709e0854ac17aa7b2ca3841deebdf848ab0",
+      "sha256": "sha256:2d600037ef21b6a04f24f7690cd20ba7492fed4da7bcce11f134b733ea570a33",
       "slice": "procedurale"
     }
   ]

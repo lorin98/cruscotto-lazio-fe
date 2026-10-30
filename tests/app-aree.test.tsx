@@ -117,9 +117,11 @@ describe('catalogo delle aree', () => {
     expect(fisico?.contenuti.join(' ')).toMatch(/Superfici ammissibili/);
     expect(fisico?.contenuti.join(' ')).toMatch(/Determine/);
     expect(fisico?.contenuti.join(' ')).not.toMatch(/Output programmato|Unit Amount/);
-    // G1 e dossier dei wireframe: stati e sottofasi, ammesse con atto e contributo, riepilogo, Unit Amount (TX-0024..TX-0032)
+    // G1 e dossier dei wireframe (home.html approvata il 30/10/2026): stati e sottofasi, ammesse con atto e contributo,
+    // riepilogo, determine di una domanda (TX-0020; le Unit Amount sono del fisico)
     const procedurale = AREE.find((a) => a.chiave === 'procedurale');
-    expect(procedurale?.contenuti).toEqual(['Stati e sottofasi delle domande', 'Domande ammesse con atto di concessione e contributo', 'Riepilogo per intervento', 'Pagamenti per Unit Amount']);
+    expect(procedurale?.contenuti).toEqual(['Stati e sottofasi delle domande', 'Domande ammesse con atto di concessione e contributo', 'Riepilogo per intervento', 'Determine di una domanda']);
+    expect(procedurale?.descrizione).toBe('Stati e sottofasi delle domande di sostegno e di pagamento, domande ammesse con atto di concessione e contributo, riepilogo per intervento e determine di una domanda.');
     expect(procedurale?.contenuti.join(' ')).not.toMatch(/Determine, responsabili/);
     // G1: istituzionale = verifica SMP non SIGC e output regionale programmato e realizzato (TX-0016, TX-0017)
     const istituzionale = AREE.find((a) => a.chiave === 'istituzionale');
