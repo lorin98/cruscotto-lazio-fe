@@ -1532,7 +1532,7 @@
     {
       "id": "OP-PR-14",
       "kind": "altro",
-      "detail": "Ingresso alla pagina delle determine dall'elenco operativo (era OP-FIS-08 del fisico): un link dalla scheda della domanda (scheda Determine) verso /procedurale/determine/:codice? lo dichiarerebbe la feature elenco-operativo nel suo uiplan (target_feature procedurale) quando il flusso determine e' approvato; finche' manca, si entra dal menu e si scrive il codice. Il passaggio inverso, dalla pagina delle determine alla scheda della domanda, e' il link scheda-domanda di questa feature (verso una route dell'elenco gia' approvata, nessun pin della slice elenco-operativo)."
+      "detail": "Ingresso alla pagina delle determine dall'elenco operativo (era OP-FIS-08 del fisico): un link dalla scheda della domanda (scheda Determine) verso /procedurale/determine/:codice? lo dichiarerebbe la feature elenco-operativo nel suo uiplan (target_feature procedurale) quando il flusso determine e' approvato; finche' manca, si entra dal menu e si scrive il codice. Il passaggio inverso, dalla pagina delle determine alla scheda della domanda, e' il link scheda-domanda di questa feature (verso una route dell'elenco gia' approvata, nessun pin della slice elenco-operativo). Chiuso il 30/10/2026: link determine-della-domanda dell'elenco operativo (OP-EO-07), visibile con csr.tx-0020.read; porta il tipo della scheda nello state della navigazione e, se la domanda trovata e' dell'altro tipo, questa pagina lo avvisa col link scheda-di-partenza verso la scheda di partenza, visibile con csr.tx-0058.read (decisione D1 dell'utente del 30/10/2026, review step9 EO-01)."
     }
   ]
 }

@@ -44,9 +44,9 @@ export function testoNessunIntervento(conFiltri: boolean): string {
   return `Nessun intervento${conFiltri ? ' per i filtri scelti' : ''}.`;
 }
 
-/** "sì" / "no" di un valore presente (attivato). */
-export function siNo(v: boolean): string {
-  return v ? 'sì' : 'no';
+/** "sì" / "no" in testo, mai solo un'icona (attivato, colonne delle determine); il sì facoltativo (es. "sì, corrente"). */
+export function siNo(v: boolean, siTesto = 'sì'): string {
+  return v ? siTesto : 'no';
 }
 
 // ---------------------------------------------------------------- note fisse (regole del dato del backend)

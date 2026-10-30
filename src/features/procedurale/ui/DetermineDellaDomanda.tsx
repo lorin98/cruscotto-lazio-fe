@@ -11,31 +11,42 @@
 // riga aperta (si'/no in testo). Niente pill "Dati al" ne' download: TX-0020 non li ha (G3). Stati: senza codice, nessuna
 // determina, domanda chiusa, caricamento, domanda non trovata (404 sul problem-type: un solo messaggio, stato e focus per
 // la domanda inesistente e per quella fuori dal perimetro del P4, scelta 3, con "Cerca un altro codice" che porta il
-// focus al campo), codice non valido (400 sul problem-type, sotto il campo), il resto con l'avviso della pagina.
+// focus al campo), codice non valido (400 sul problem-type, sotto il campo), il resto (403, 429, 503) con l'avviso della
+// pagina: Riprova come nelle altre pagine e "Cerca un altro codice" col focus al campo, come nel 404 (decisione D2
+// dell'utente del 30/10/2026, review step9 PRO-02). In arrivo dalla scheda dell'elenco (link determine-della-domanda, il
+// tipo della scheda nello state della navigazione, convalidato) con un tipo diverso da tipoDomanda della risposta, sopra
+// la testata l'avviso "domanda dell'altro tipo" in role=status col link scheda-di-partenza (decisione D1 dell'utente del
+// 30/10/2026, review step9 EO-01); senza state, con lo stesso tipo o dopo una ricerca dal modulo nessun avviso.
 // Design system: classi bootstrap-italia e del kit v2 (hero, badge, KPI, tabella statica nativa); nessun primitivo
 // react-aria, che qui non serve (nessun dialogo, nessuna scheda).
 import { useRef } from 'react';
 import type { MouseEvent, Ref, RefObject } from 'react';
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
+import { tipoDellaSchedaDiPartenza } from '../../../entities/domanda';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { formatDate, formatNumber } from '../../../shared/lib';
 import { AvvisoPagina, Briciole, Griglia, Kpi, Sezione, TabellaStatica, TestataDettaglio, VistaQuery, Vuoto, useFocusTitolo } from '../../../shared/ui';
 import type { ColonnaStatica } from '../../../shared/ui';
 import { rispostaDatoNonValido, rispostaDomandaAssente, useDetermine } from '../api';
 import {
+  ARRIVO_SU_DETERMINE,
   badgeDetermine,
   codiceDalPercorso,
   eCorrente,
   fonteDi,
+  messaggioAltroTipo,
   messaggioDomandaNonTrovata,
   percorsoDetermine,
   percorsoSchedaDellaDomanda,
-  siNo,
+  percorsoSchedaDiPartenza,
   sopratitoloDetermine,
+  testoSchedaDiPartenza,
+  tipoDiPartenzaDiverso,
   titoloDetermine,
 } from '../lib/determine';
 import type { CodiceDelPercorso } from '../lib/determine';
 import type { Determina, Determine } from '../lib/dto';
+import { siNo } from '../lib/formato';
 import { puoLeggere } from '../lib/grant';
 import { useIngressoArea } from './navigazione';
 import { CercaDomanda } from './CercaDomanda';
@@ -52,6 +63,44 @@ function Testata({ h1, titolo, d, scheda }: { h1: Ref<HTMLHeadingElement>; titol
     </Link>
   );
   return <TestataDettaglio idTitolo="t-determine" titolo={titolo} h1={h1} sopratitolo={d && sopratitoloDetermine(d)} badge={d && badgeDetermine(d)} azioni={azioni} />;
+}
+
+/**
+ * Il testo dell'avviso "domanda dell'altro tipo" e il link scheda-di-partenza (solo col grant della scheda), che apre la
+ * scheda della domanda sulla scheda Determine (state della navigazione).
+ */
+function TestoAltroTipo({ codice, tipoDellaRisposta, tipoDellaScheda, conGrantScheda }: { codice: string; tipoDellaRisposta: string; tipoDellaScheda: string; conGrantScheda: boolean }) {
+  const scheda = percorsoSchedaDiPartenza(tipoDellaScheda, codice, conGrantScheda);
+  return (
+    <>
+      {messaggioAltroTipo(codice, tipoDellaRisposta, tipoDellaScheda)}
+      {scheda && (
+        <>
+          {' '}
+          <Link to={scheda} state={ARRIVO_SU_DETERMINE}>
+            {testoSchedaDiPartenza(tipoDellaScheda)}
+          </Link>
+        </>
+      )}
+    </>
+  );
+}
+
+/**
+ * Avviso "domanda dell'altro tipo" (decisione D1), sopra la testata: solo in arrivo dalla scheda dell'elenco (il tipo della
+ * scheda nello state della navigazione, convalidato; una ricerca dal modulo lo toglie) e con un codice valido; se la
+ * risposta e' dell'altro tipo lo dice. La regione role=status c'e' dall'arrivo, vuota e nascosta, e si riempie con la
+ * risposta: una regione live inserita gia' piena non si annuncia.
+ */
+function DomandaDellAltroTipo({ codice, d, conGrantScheda }: { codice: CodiceDelPercorso; d: Determine | undefined; conGrantScheda: boolean }) {
+  const partenza = tipoDellaSchedaDiPartenza(useLocation().state);
+  if (partenza === null || codice.stato !== 'valido') return null;
+  const tipo = tipoDiPartenzaDiverso(partenza, d);
+  return (
+    <div className={tipo === null ? 'visually-hidden' : 'alert alert-info my-3'} role="status">
+      {tipo !== null && d && <TestoAltroTipo codice={codice.codice} tipoDellaRisposta={d.tipoDomanda} tipoDellaScheda={tipo} conGrantScheda={conGrantScheda} />}
+    </div>
+  );
 }
 
 /** KPI di una determina che fa da fonte, oppure l'assenza in testo. */
@@ -125,21 +174,28 @@ function Contenuto({ d }: { d: Determine }) {
 }
 
 /**
- * Domanda non trovata (404): lo stesso messaggio per la domanda inesistente e per quella fuori dal perimetro del P4.
- * "Cerca un altro codice" porta il focus al campo del modulo (senza contare sulla navigazione al frammento del browser).
+ * "Cerca un altro codice" (404 e avviso della pagina per 403, 429 e 503): porta il focus al campo del modulo, senza contare
+ * sulla navigazione al frammento del browser.
  */
-function DomandaNonTrovata({ codice, campo }: { codice: string; campo: RefObject<HTMLInputElement | null> }) {
+function CercaUnAltroCodice({ campo }: { campo: RefObject<HTMLInputElement | null> }) {
   const alCampo = (e: MouseEvent<HTMLAnchorElement>) => {
     if (!campo.current) return;
     e.preventDefault();
     campo.current.focus();
   };
   return (
+    <a href={`#${ID_CAMPO}`} onClick={alCampo}>
+      Cerca un altro codice
+    </a>
+  );
+}
+
+/** Domanda non trovata (404): lo stesso messaggio per la domanda inesistente e per quella fuori dal perimetro del P4. */
+function DomandaNonTrovata({ codice, campo }: { codice: string; campo: RefObject<HTMLInputElement | null> }) {
+  return (
     <div className="alert alert-danger" role="alert">
       {`${messaggioDomandaNonTrovata(codice)} `}
-      <a href={`#${ID_CAMPO}`} onClick={alCampo}>
-        Cerca un altro codice
-      </a>
+      <CercaUnAltroCodice campo={campo} />
     </div>
   );
 }
@@ -177,7 +233,8 @@ export function DetermineDellaDomanda({ codice: parametro }: { codice: string | 
   const titolo = codice.stato === 'valido' ? titoloDetermine(codice.codice) : TITOLO_PAGINA;
   const h1 = useFocusTitolo<HTMLHeadingElement>(`${titolo} - Procedurale`);
   const d = codice.stato === 'valido' ? stato.data : undefined;
-  const scheda = d ? percorsoSchedaDellaDomanda(d, puoLeggere(auth.data, 'schedaDomanda')) : null;
+  const conGrantScheda = puoLeggere(auth.data, 'schedaDomanda');
+  const scheda = d ? percorsoSchedaDellaDomanda(d, conGrantScheda) : null;
   const campo = useRef<HTMLInputElement>(null);
   const ingresso = useIngressoArea({});
   const briciole = [
@@ -192,8 +249,9 @@ export function DetermineDellaDomanda({ codice: parametro }: { codice: string | 
         {/* il modulo riparte dal codice dell'indirizzo a ogni cambio di route */}
         <CercaDomanda key={parametro ?? ''} idCampo={ID_CAMPO} campo={campo} codiceIniziale={parametro ?? ''} erroreEsterno={erroreDelCampo(codice, stato)} />
       </Sezione>
+      <DomandaDellAltroTipo codice={codice} d={d} conGrantScheda={conGrantScheda} />
       <Testata h1={h1} titolo={titolo} d={d} scheda={scheda} />
-      <AvvisoPagina>
+      <AvvisoPagina azioni={<CercaUnAltroCodice campo={campo} />}>
         <Corpo codice={codice} stato={stato} campo={campo} />
       </AvvisoPagina>
     </main>

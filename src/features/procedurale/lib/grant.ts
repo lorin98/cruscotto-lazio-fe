@@ -2,7 +2,7 @@
 // GATE DI UX (hide-by-role), MAI enforcement: il backend ridecide su ogni lettura (403 ACCESSO_NEGATO). Il predicato e'
 // hasGrant: il grant e' fra i roles[] di /auth/status (come nel fisico, nell'istituzionale e nell'elenco operativo).
 // Gli export hanno il grant della loro lettura (D-10 del backend).
-import { GRANT_ELENCO } from '../../../entities/domanda';
+import { GRANT_DETERMINE_DELLA_DOMANDA, GRANT_ELENCO } from '../../../entities/domanda';
 import { hasGrant } from '../../../shared/api/auth/stato';
 import type { AuthStatus } from '../../../shared/api/auth/stato';
 
@@ -19,8 +19,11 @@ export const GRANT = {
   statiPagamento: 'csr.tx-0028.read',
   /** TX-0029 (RF029): riepilogo per intervento e stato area programmazione. */
   riepilogo: 'csr.tx-0029.read',
-  /** TX-0020 (RF020): determine di una domanda (dal fisico il 29/10/2026); apre la pagina delle determine. */
-  determine: 'csr.tx-0020.read',
+  /**
+   * TX-0020 (RF020): determine di una domanda (dal fisico il 29/10/2026); apre la pagina delle determine. Dal contratto
+   * condiviso dell'indirizzo (entities/domanda), lo stesso del link dell'elenco operativo.
+   */
+  determine: GRANT_DETERMINE_DELLA_DOMANDA,
   /** TX-0031 (RF031): sottofasi di ammissibilita' della domanda di sostegno. */
   sottofasiSostegno: 'csr.tx-0031.read',
   /** TX-0032 (RF032): sottofasi di ammissibilita' della domanda di pagamento. */

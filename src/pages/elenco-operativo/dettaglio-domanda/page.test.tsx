@@ -1,14 +1,18 @@
 // Pagina /elenco-operativo/domande/:tipo/:codiceABarre (green-fe step7): describe taggati col REQ della route (RA004).
 // Dal riallineamento degli ambiti (flusso dettaglio-domanda approvato il 30/10/2026, scelta S-3 b, OP-EO-07): sotto la
 // tabella della scheda Determine il link "Apri le determine della domanda nell'area Procedurale" verso
-// /procedurale/determine/<codice a barre della scheda>, solo con csr.tx-0020.read; anche con la scheda vuota. Le altre
-// route finiscono sul segnaposto di renderPagina: l'arrivo si guarda nel router.
+// /procedurale/determine/<codice a barre della scheda>, solo con csr.tx-0020.read; anche con la scheda vuota; il tipo della
+// scheda nello state della navigazione (decisione D1 del 30/10/2026). Le altre route finiscono sul segnaposto di
+// renderPagina: l'arrivo si guarda nel router.
 import { describe, expect, it } from 'vitest';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
+import { createMemoryRouter, RouterProvider } from 'react-router';
+import { SCHEDE_DELLA_DOMANDA } from '../../../entities/domanda';
 import { server } from '../../../shared/api/mock/server';
 import { expectNoA11yViolations } from '../../../shared/testing/axe';
+import { renderConQuery } from '../../../shared/testing/render';
 import { renderPagina } from '../../../shared/testing/render-pagina';
 import { DETTAGLIO, VALORI } from '../../../features/elenco-operativo/testing/fixture';
 import Pagina from './page';
@@ -65,6 +69,22 @@ describe("RA004: link alle determine della domanda nell'area Procedurale (OP-EO-
     await userEvent.click(link);
     await waitFor(() => expect(router.state.location.pathname).toBe('/procedurale/determine/54230000001'));
     expect(screen.getByText('altra pagina')).toBeTruthy();
+    expect(router.state.location.state).toEqual({ tipoDellaScheda: 'PAGAMENTO' });
+  });
+
+  // decisione D1 dell'utente del 30/10/2026 (review step9 EO-01): TX-0020 ha solo il codice a barre e, per un codice di due
+  // domande, sceglie con la regola dell'aggancio (SC-PC_DETERMINA_TIPO: 34810022870 e' SOSTEGNO e PAGAMENTO, risponde la
+  // PAGAMENTO); il link porta il tipo della scheda nello state, e la pagina delle determine avvisa se mostra l'altra
+  it('scheda SOSTEGNO 34810022870 (SC-PC_DETERMINA_TIPO): il link porta il tipo della scheda nello state, mai nell indirizzo', async () => {
+    const sostegno = { ...DETTAGLIO, domanda: { ...DETTAGLIO.domanda, tipo: 'SOSTEGNO' as const, codiceABarre: '34810022870' } };
+    servi(CON_DETERMINE, sostegno);
+    const { router } = renderPagina(Pagina, ROUTE, '/elenco-operativo/domande/SOSTEGNO/34810022870');
+    const link = within(await apriDetermine()).getByRole('link', { name: LINK });
+    expect(link.getAttribute('href')).toBe('/procedurale/determine/34810022870');
+    await userEvent.click(link);
+    await waitFor(() => expect(router.state.location.pathname).toBe('/procedurale/determine/34810022870'));
+    expect(router.state.location.search).toBe('');
+    expect(router.state.location.state).toEqual({ tipoDellaScheda: 'SOSTEGNO' });
   });
 
   it('senza csr.tx-0020.read (es. p5) la scheda Determine resta com era: nessun link verso il procedurale', async () => {
@@ -109,5 +129,63 @@ describe("RA004: link alle determine della domanda nell'area Procedurale (OP-EO-
     const pannello = await apriDetermine();
     expect(within(pannello).getByRole('link', { name: LINK })).toBeTruthy();
     await expectNoA11yViolations(container);
+  });
+});
+
+// decisione D1 dell'utente del 30/10/2026 (review step9 EO-01): il link scheda-di-partenza delle determine del procedurale
+// promette "scheda Determine" e porta { schedaIniziale: 'determine' } nello state della navigazione, mai nell'indirizzo
+describe('RA004: scheda iniziale dallo state della navigazione (link scheda-di-partenza delle determine, decisione D1)', () => {
+  /** La scheda nel router dei test, arrivando con lo state dato. */
+  function apriConState(state: unknown) {
+    const router = createMemoryRouter(
+      [
+        { path: ROUTE, Component: Pagina },
+        { path: '*', element: <p>altra pagina</p> },
+      ],
+      { initialEntries: [{ pathname: SCHEDA, state }] },
+    );
+    return { ...renderConQuery(<RouterProvider router={router} />), router };
+  }
+  const selezionate = () => screen.getAllByRole('tab').filter((t) => t.getAttribute('aria-selected') === 'true').map((t) => t.textContent);
+
+  it('con schedaIniziale determine la scheda si apre su Determine, senza nulla nell indirizzo; il focus va sul titolo come in ogni arrivo; nessuna violazione axe', async () => {
+    servi(CON_DETERMINE);
+    const { container, router } = apriConState({ schedaIniziale: 'determine' });
+    const h1 = await screen.findByRole('heading', { level: 1, name: 'COOPERATIVA VERDI' });
+    expect(selezionate()).toEqual(['Determine (1)']);
+    const pannello = screen.getByRole('tabpanel', { name: 'Determine (1)' });
+    expect(within(pannello).getByRole('table', { name: /^Determine della domanda/ })).toBeTruthy();
+    expect(router.state.location.pathname + router.state.location.search).toBe(SCHEDA);
+    expect(document.activeElement).toBe(h1);
+    await expectNoA11yViolations(container);
+    // le frecce da tastiera ripartono dalla scheda Determine, come dopo un cambio di scheda
+    screen.getByRole('tab', { name: 'Determine (1)' }).focus();
+    await userEvent.keyboard('{ArrowRight}');
+    expect(selezionate()).toEqual(['Pagamenti (1)']);
+  });
+
+  it('ogni scheda dell elenco chiuso si apre dallo state (gli identificativi sono quelli dei Tab)', async () => {
+    servi(CON_DETERMINE);
+    const etichette = ['Sintesi', 'Domande collegate (1)', 'Determine (1)', 'Pagamenti (1)', 'Recuperi (1)', 'Anomalie (0)'];
+    for (const [i, scheda] of SCHEDE_DELLA_DOMANDA.entries()) {
+      const pagina = apriConState({ schedaIniziale: scheda });
+      await screen.findByRole('heading', { level: 1, name: 'COOPERATIVA VERDI' });
+      expect(selezionate(), scheda).toEqual([etichette[i]]);
+      pagina.unmount();
+    }
+  });
+
+  it('state non valido, o l arrivo di sempre (dall elenco, senza state): la Sintesi, come prima', async () => {
+    servi(CON_DETERMINE);
+    const stati = [{ schedaIniziale: 'Determine' }, { schedaIniziale: 'altro' }, { schedaIniziale: ['determine'] }, { scheda: 'determine' }, 'determine', null, { ricerca: '/elenco-operativo/domande?testo=VERDI' }];
+    for (const state of stati) {
+      const pagina = apriConState(state);
+      await screen.findByRole('heading', { level: 1, name: 'COOPERATIVA VERDI' });
+      expect(selezionate(), JSON.stringify(state)).toEqual(['Sintesi']);
+      pagina.unmount();
+    }
+    renderPagina(Pagina, ROUTE, SCHEDA);
+    await screen.findByRole('heading', { level: 1, name: 'COOPERATIVA VERDI' });
+    expect(selezionate()).toEqual(['Sintesi']);
   });
 });

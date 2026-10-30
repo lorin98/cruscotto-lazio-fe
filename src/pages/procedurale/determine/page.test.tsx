@@ -1,18 +1,20 @@
 // Pagina /procedurale/determine/:codice? (green-fe step7; dal fisico col riallineamento degli ambiti del 29/10/2026, con
 // gli stessi casi della pagina /fisico/determine/:codice?): describe taggato col REQ della route (RF020), dati dagli scenari
-// del backend (SC-FS_DETERMINA, SC-FS_DETERMINA_NESSUNA, SC-FS_DETERMINA_ASSENTE), MSW seminato con onUnhandledRequest
-// 'error' (ogni lettura dichiarata qui), axe-core diretto, tastiera e focus del modulo di ricerca. Dal wireframe del
-// procedurale approvato il 30/10/2026: il badge del perimetro della risposta (regionale, ADA del P4) e un solo messaggio,
-// stato e focus per la domanda inesistente e per quella fuori dal perimetro del P4 (404 con lo stesso corpo).
+// del backend (SC-PC_DETERMINA, SC-PC_DETERMINA_NESSUNA, SC-PC_DETERMINA_ASSENTE, SC-PC_DETERMINA_SCOPE_P4), MSW seminato
+// con onUnhandledRequest 'error' (ogni lettura dichiarata qui), axe-core diretto, tastiera e focus del modulo di ricerca.
+// Dal wireframe del procedurale approvato il 30/10/2026: il badge del perimetro della risposta (regionale, ADA del P4) e
+// un solo messaggio, stato e focus per la domanda inesistente e per quella fuori dal perimetro del P4 (404 con lo stesso
+// corpo).
 import { describe, expect, it } from 'vitest';
 import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
+import { createMemoryRouter, RouterProvider } from 'react-router';
 import { server } from '../../../shared/api/mock/server';
 import { expectNoA11yViolations } from '../../../shared/testing/axe';
 import { problema, trattenuta } from '../../../shared/testing/msw';
-import { renderPagina } from '../../../shared/testing/render-pagina';
-import { DETERMINE, DETERMINE_CHIUSA, DETERMINE_NESSUNA } from '../../../features/procedurale/testing/fixture';
+import { renderConQuery } from '../../../shared/testing/render';
+import { DETERMINE, DETERMINE_CHIUSA, DETERMINE_NESSUNA, DETERMINE_TIPO } from '../../../features/procedurale/testing/fixture';
 import Pagina from './page';
 
 const ROUTE = '/procedurale/determine/:codice?';
@@ -33,7 +35,17 @@ function servi(risposte: Record<string, object> = { [DETERMINE.codiceABarre]: DE
   return lette;
 }
 
-const apri = (indirizzo: string) => renderPagina(Pagina, ROUTE, indirizzo);
+/** La pagina nel router dei test; l'indirizzo puo' portare lo state della navigazione (il link della scheda dell'elenco). */
+function apri(indirizzo: string | { pathname: string; state: unknown }) {
+  const router = createMemoryRouter(
+    [
+      { path: ROUTE, Component: Pagina },
+      { path: '*', element: <p>altra pagina</p> },
+    ],
+    { initialEntries: [indirizzo] },
+  );
+  return { ...renderConQuery(<RouterProvider router={router} />), router };
+}
 const campo = () => screen.getByRole('searchbox', { name: 'Codice a barre della domanda' });
 
 describe("RF020: codice e data delle determine da cui la domanda prende l'informazione (TX-0020)", () => {
@@ -45,8 +57,11 @@ describe("RF020: codice e data delle determine da cui la domanda prende l'inform
     expect(document.title).toBe('Determine di una domanda - Procedurale - Cruscotto CSR 2023-2027');
     expect(screen.getByRole('status').textContent).toBe('Scrivi il codice a barre di una domanda per vedere da quali determine prende le informazioni.');
     expect(screen.queryByRole('link', { name: 'Apri la scheda della domanda' })).toBeNull();
-    expect(lette).toEqual([]);
     await expectNoA11yViolations(container);
+    // il conteggio si chiude con una ricerca valida: una lettura partita senza codice sarebbe gia' registrata (review step9 PRO-01)
+    await userEvent.type(campo(), '54810769585{Enter}');
+    await screen.findByRole('table', { name: /^Determine da cui la domanda 54810769585/ });
+    expect(lette).toEqual(['54810769585']);
   });
 
   it('con il codice: la corrente, le determine con riga aperta e da dove vengono i campi, in testo; nessuna violazione axe', async () => {
@@ -137,7 +152,11 @@ describe("RF020: codice e data delle determine da cui la domanda prende l'inform
     const errore = screen.getByRole('alert');
     expect(errore.textContent).toBe('Codice a barre non valido: contano solo le cifre, fino a 30.');
     expect(c.getAttribute('aria-describedby')?.split(' ')).toContain(errore.id);
-    expect(lette).toEqual([]);
+    // il conteggio si chiude con una ricerca valida: una lettura del codice non valido sarebbe gia' registrata (review step9 PRO-01)
+    await userEvent.clear(c);
+    await userEvent.type(c, '54810769585{Enter}');
+    await screen.findByRole('table', { name: /^Determine da cui la domanda 54810769585/ });
+    expect(lette).toEqual(['54810769585']);
   });
 
   it('400 DATO_NON_VALIDO del backend: detto sotto il campo, nessun altro avviso', async () => {
@@ -147,7 +166,7 @@ describe("RF020: codice e data delle determine da cui la domanda prende l'inform
     expect(screen.getAllByRole('alert').map((a) => a.textContent)).toEqual(['Codice a barre non valido: contano solo le cifre, fino a 30.']);
   });
 
-  it('503 CAPACITA_ESAURITA: un solo avviso della pagina con Riprova', async () => {
+  it('503 CAPACITA_ESAURITA: un solo avviso della pagina con Riprova (e "Cerca un altro codice")', async () => {
     let tentativi = 0;
     server.use(
       http.get('*/api/procedurale/domande/:codice/determina', () => {
@@ -158,12 +177,13 @@ describe("RF020: codice e data delle determine da cui la domanda prende l'inform
     apri('/procedurale/determine/54810769585');
     const avviso = await screen.findByRole('alert');
     expect(avviso.textContent).toContain('Il servizio è occupato da altre letture');
+    expect(within(avviso).getByRole('link', { name: 'Cerca un altro codice' })).toBeTruthy();
     await userEvent.click(within(avviso).getByRole('button', { name: 'Riprova' }));
     expect(await screen.findByRole('table', { name: /^Determine da cui la domanda 54810769585/ })).toBeTruthy();
   });
 });
 
-describe('RF020: perimetro della risposta e domanda non trovata (wireframe del procedurale approvato il 30/10/2026)', () => {
+describe('RF020: perimetro della risposta e domanda non trovata, SC-PC_DETERMINA_SCOPE_P4 (wireframe del procedurale approvato il 30/10/2026)', () => {
   const profiloP4 = () =>
     server.use(
       http.get('*/auth/status', () =>
@@ -214,12 +234,32 @@ describe('RF020: perimetro della risposta e domanda non trovata (wireframe del p
     expect(document.activeElement).toBe(campo());
   });
 
-  it('un errore diverso dal 404 (403 ACCESSO_NEGATO) resta l avviso della pagina, mai il messaggio della domanda non trovata', async () => {
+  // decisione D2 dell'utente del 30/10/2026 (review step9 PRO-02): come nel wireframe approvato, "Cerca un altro codice"
+  // anche nell'avviso degli errori diversi da 404 e 400; Riprova resta, come nelle altre pagine
+  it('403, 429 e 503: l avviso della pagina con Riprova e "Cerca un altro codice", mai il messaggio della domanda non trovata', async () => {
+    for (const [status, codice] of [
+      [403, 'ACCESSO_NEGATO'],
+      [429, 'TROPPE_RICHIESTE'],
+      [503, 'TEMPO_SCADUTO'],
+    ] as const) {
+      server.use(http.get('*/api/procedurale/domande/:codice/determina', () => HttpResponse.json(problema(status, codice), { status })));
+      const pagina = apri('/procedurale/determine/54810769585');
+      const avviso = await screen.findByRole('alert');
+      expect(avviso.textContent, codice).not.toContain('Domanda non trovata');
+      expect(within(avviso).getByRole('button', { name: 'Riprova' })).toBeTruthy();
+      expect(within(avviso).getByRole('link', { name: 'Cerca un altro codice' }).getAttribute('href')).toBe(`#${campo().id}`);
+      pagina.unmount();
+    }
+  });
+
+  it('403 ACCESSO_NEGATO: "Cerca un altro codice" porta il focus al campo del modulo, anche da tastiera; nessuna violazione axe', async () => {
     server.use(http.get('*/api/procedurale/domande/:codice/determina', () => HttpResponse.json(problema(403, 'ACCESSO_NEGATO'), { status: 403 })));
-    apri('/procedurale/determine/54810769585');
+    const { container } = apri('/procedurale/determine/54810769585');
     const avviso = await screen.findByRole('alert');
-    expect(avviso.textContent).not.toContain('Domanda non trovata');
-    expect(screen.queryByRole('link', { name: 'Cerca un altro codice' })).toBeNull();
+    await expectNoA11yViolations(container);
+    within(avviso).getByRole('link', { name: 'Cerca un altro codice' }).focus();
+    await userEvent.keyboard('{Enter}');
+    expect(document.activeElement).toBe(campo());
   });
 });
 
@@ -249,5 +289,115 @@ describe('RF020: ricerca per codice a barre (accessibilita da tastiera)', () => 
     await userEvent.type(campo(), '1'.repeat(31));
     await userEvent.click(screen.getByRole('button', { name: 'Cerca' }));
     expect((await screen.findByRole('alert')).textContent).toBe('Il codice a barre ha al più 30 cifre: ne hai scritte 31.');
+  });
+});
+
+// decisione D1 dell'utente del 30/10/2026 (review step9 EO-01, flusso determine riapprovato): il link della scheda
+// dell'elenco porta il tipo della scheda nello state della navigazione. TX-0020 sceglie fra le domande del codice con la
+// regola dell'aggancio: in SC-PC_DETERMINA_TIPO 34810022870 e' SOSTEGNO (G00010) e PAGAMENTO (G00011), la risposta e' la
+// PAGAMENTO. Il link scheda-di-partenza finisce sul segnaposto del router: l'arrivo si guarda nel router.
+describe("RF020: domanda dell'altro tipo in arrivo dalla scheda dell'elenco, SC-PC_DETERMINA_TIPO (decisione D1 del 30/10/2026)", () => {
+  const INDIRIZZO = '/procedurale/determine/34810022870';
+  const dallaScheda = (tipoDellaScheda: unknown) => ({ pathname: INDIRIZZO, state: { tipoDellaScheda } });
+  const AVVISO = 'Il codice a barre 34810022870 è anche di una domanda di pagamento: qui ci sono le sue determine. Quelle della domanda di sostegno sono nella sua scheda.';
+  const PARTENZA = 'Apri la scheda della domanda di sostegno, scheda Determine';
+  const tabella = () => screen.findByRole('table', { name: /^Determine da cui la domanda 34810022870/ });
+  /** La regione dell'avviso: role=status col testo dell'avviso (le altre regioni di stato della pagina hanno altri testi). */
+  const avviso = () => screen.queryAllByRole('status').find((s) => s.textContent?.startsWith('Il codice a barre')) ?? null;
+
+  it('dalla scheda SOSTEGNO con la risposta PAGAMENTO: avviso role=status sopra la testata e link alla scheda di partenza; nessuna violazione axe', async () => {
+    servi({ [DETERMINE_TIPO.codiceABarre]: DETERMINE_TIPO });
+    const { container, router } = apri(dallaScheda('SOSTEGNO'));
+    await tabella();
+    const regione = avviso() as HTMLElement;
+    expect(regione.textContent).toBe(`${AVVISO} ${PARTENZA}`);
+    const link = within(regione).getByRole('link', { name: PARTENZA });
+    expect(link.getAttribute('href')).toBe('/elenco-operativo/domande/SOSTEGNO/34810022870');
+    // sopra la testata, che dice il tipo della risposta e apre la scheda della PAGAMENTO
+    const h1 = screen.getByRole('heading', { level: 1, name: 'Determine della domanda 34810022870' });
+    expect(regione.compareDocumentPosition(h1) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByText('Domanda di pagamento 34810022870 - fonte delle informazioni')).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Apri la scheda della domanda' }).getAttribute('href')).toBe('/elenco-operativo/domande/PAGAMENTO/34810022870');
+    // il tipo non e' mai nell'indirizzo
+    expect(`${router.state.location.pathname}${router.state.location.search}`).toBe(INDIRIZZO);
+    await expectNoA11yViolations(container);
+    await userEvent.click(link);
+    await waitFor(() => expect(router.state.location.pathname).toBe('/elenco-operativo/domande/SOSTEGNO/34810022870'));
+    expect(screen.getByText('altra pagina')).toBeTruthy();
+    // la scheda della domanda si apre sulla scheda Determine (state della navigazione, mai nell'indirizzo)
+    expect(router.state.location.state).toEqual({ schedaIniziale: 'determine' });
+    expect(router.state.location.search).toBe('');
+  });
+
+  it('la regione role=status c e gia in caricamento, vuota e nascosta, e si riempie con la risposta (si annuncia)', async () => {
+    const t = trattenuta();
+    server.use(
+      http.get('*/api/procedurale/domande/:codice/determina', async () => {
+        await t.attesa;
+        return HttpResponse.json(DETERMINE_TIPO);
+      }),
+    );
+    const { container } = apri(dallaScheda('SOSTEGNO'));
+    await screen.findByText('Caricamento in corso…');
+    const regione = container.querySelector('.visually-hidden[role="status"]');
+    expect(regione?.textContent).toBe('');
+    await act(async () => t.libera());
+    await tabella();
+    expect(avviso()).toBe(regione);
+    expect(regione?.className).toBe('alert alert-info my-3');
+  });
+
+  it('stesso tipo (scheda PAGAMENTO, risposta PAGAMENTO): nessun avviso', async () => {
+    servi({ [DETERMINE_TIPO.codiceABarre]: DETERMINE_TIPO });
+    apri(dallaScheda('PAGAMENTO'));
+    await tabella();
+    expect(avviso()).toBeNull();
+    expect(screen.queryByRole('link', { name: /scheda Determine$/ })).toBeNull();
+  });
+
+  it('senza state (ricarica o indirizzo condiviso): nessun avviso', async () => {
+    servi({ [DETERMINE_TIPO.codiceABarre]: DETERMINE_TIPO });
+    apri(INDIRIZZO);
+    await tabella();
+    expect(avviso()).toBeNull();
+    expect(screen.queryByRole('link', { name: /scheda Determine$/ })).toBeNull();
+  });
+
+  it('state non valido (fuori dall elenco chiuso SOSTEGNO, PAGAMENTO): ignorato, nessun avviso', async () => {
+    servi({ [DETERMINE_TIPO.codiceABarre]: DETERMINE_TIPO });
+    for (const state of [{ tipoDellaScheda: 'ALTRO' }, { tipoDellaScheda: 'sostegno' }, { tipoDellaScheda: ['SOSTEGNO'] }, { tipo: 'SOSTEGNO' }, 'SOSTEGNO', null]) {
+      const pagina = apri({ pathname: INDIRIZZO, state });
+      await tabella();
+      expect(avviso(), JSON.stringify(state)).toBeNull();
+      expect(screen.queryByRole('link', { name: /scheda Determine$/ })).toBeNull();
+      pagina.unmount();
+    }
+  });
+
+  it('senza csr.tx-0058.read: l avviso senza il link alla scheda di partenza (gate di UX)', async () => {
+    profilo(['csr.tx-0020.read']);
+    servi({ [DETERMINE_TIPO.codiceABarre]: DETERMINE_TIPO });
+    apri(dallaScheda('SOSTEGNO'));
+    await tabella();
+    expect(avviso()?.textContent).toBe(AVVISO);
+    expect(screen.queryByRole('link', { name: PARTENZA })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Apri la scheda della domanda' })).toBeNull();
+  });
+
+  it('dopo una nuova ricerca dal modulo, anche dello stesso codice, l avviso non c e piu', async () => {
+    const lette = servi({ [DETERMINE_TIPO.codiceABarre]: DETERMINE_TIPO, [DETERMINE.codiceABarre]: DETERMINE });
+    const { router } = apri(dallaScheda('SOSTEGNO'));
+    await tabella();
+    expect(avviso()).not.toBeNull();
+    await userEvent.clear(campo());
+    await userEvent.type(campo(), '34810022870{Enter}');
+    await waitFor(() => expect(router.state.location.state).toBeNull());
+    expect(avviso()).toBeNull();
+    expect(router.state.location.pathname).toBe(INDIRIZZO);
+    await userEvent.clear(campo());
+    await userEvent.type(campo(), '54810769585{Enter}');
+    await screen.findByRole('table', { name: /^Determine da cui la domanda 54810769585/ });
+    expect(avviso()).toBeNull();
+    expect(lette).toEqual(['34810022870', '54810769585']);
   });
 });

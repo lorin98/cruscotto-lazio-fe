@@ -5,6 +5,7 @@
 import {
   PERCORSO_ELENCO_DOMANDE,
   PERCORSO_ELENCO_PAGAMENTI,
+  arrivoDallaScheda,
   percorsoDetermineDellaDomanda,
   percorsoSchedaDomanda,
   riferimentoDomandaValido,
@@ -46,6 +47,13 @@ export function percorsoDomandeDeiPagamenti(criteri: Criteri): string {
 export function percorsoDetermine(codiceABarre: string | null | undefined, conGrantDetermine: boolean): string | null {
   return conGrantDetermine ? percorsoDetermineDellaDomanda(codiceABarre) : null;
 }
+
+/**
+ * State del link determine-della-domanda (decisione D1 dell'utente del 30/10/2026, review step9 EO-01): il tipo della
+ * scheda, mai nell'indirizzo. TX-0020 ha solo il codice a barre: con un codice di due domande la pagina delle determine
+ * avvisa se mostra quella dell'altro tipo. Contratto condiviso (entities/domanda): nessun import dal procedurale.
+ */
+export const statoDetermine = arrivoDallaScheda;
 
 /** Link domande-del-beneficiario: le domande col CUAA nel testo libero; null senza CUAA (o troppo corto per la ricerca). */
 export function percorsoDomandeDelBeneficiario(cuaa: string | null | undefined): string | null {
