@@ -11,9 +11,6 @@ import { isAnnoValido, scriviRipetuti } from '../../../shared/lib';
 import { PARAMETRO_ANNO, PARAMETRO_ESERCIZIO } from './criteri';
 import { PERCORSI } from './pagine';
 
-/** La route della verifica SMP SIGC, destinazione di link:verifica-smp-sigc (nell'istituzionale dal 29/10/2026). */
-export const VERIFICA_SMP_SIGC = PERCORSI.verificaSigc;
-
 /** Percorso con la query delle chiavi date, nell'ordine dato; senza valori il solo percorso. */
 function conQuery(percorso: string, chiavi: readonly string[], valori: Record<string, string | undefined>): string {
   const query = scriviRipetuti(chiavi, (k) => {

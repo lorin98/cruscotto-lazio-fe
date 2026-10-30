@@ -27,9 +27,8 @@ import { pagineVisibili as pagineIstituzionale, ricercaConservata as ricercaIsti
 import { pagineVisibili as pagineProcedurale, ricercaConservata as ricercaProcedurale } from '../src/features/procedurale';
 import { PAGINE_FINANZIARIO } from '../src/features/finanziario/lib/report';
 import { GRANT_DETTAGLIO as GRANT_DETTAGLIO_FISICO, PAGINE_FISICO } from '../src/features/fisico/lib/pagine';
-import { GRANT_DETTAGLIO as GRANT_DETTAGLIO_ISTITUZIONALE, PAGINE_ISTITUZIONALE } from '../src/features/istituzionale/lib/pagine';
+import { GRANT_DETTAGLIO as GRANT_DETTAGLIO_ISTITUZIONALE, PAGINE_ISTITUZIONALE, PERCORSI as PERCORSI_ISTITUZIONALE } from '../src/features/istituzionale/lib/pagine';
 import { PAGINE_PROCEDURALE } from '../src/features/procedurale/lib/pagine';
-import { VERIFICA_SMP_SIGC } from '../src/features/istituzionale/lib/collegamenti';
 import { GRANT as GRANT_ISTITUZIONALE } from '../src/features/istituzionale/lib/grant';
 import { clientApp } from './app-client';
 
@@ -110,8 +109,8 @@ describe('catalogo delle aree', () => {
 
   it('link G4 dell istituzionale: la verifica SMP SIGC (nell istituzionale dal 29/10/2026) e una route col grant che mostra la frase (review H8)', () => {
     // un cambio della route o del grant porterebbe la frase a un 404 o al profilo sbagliato; la route del finanziario non c'e' piu' (nessun alias)
-    const route = routeTable.routes.find((r) => r.path === VERIFICA_SMP_SIGC);
-    expect(route?.component, VERIFICA_SMP_SIGC).toBe('src/pages/istituzionale/verifica-smp-sigc/page.tsx');
+    const route = routeTable.routes.find((r) => r.path === PERCORSI_ISTITUZIONALE.verificaSigc);
+    expect(route?.component, PERCORSI_ISTITUZIONALE.verificaSigc).toBe('src/pages/istituzionale/verifica-smp-sigc/page.tsx');
     expect(route?.visibility).toEqual([GRANT_ISTITUZIONALE.verificaSigc]);
     expect(routeTable.routes.find((r) => r.path === '/finanziario/sigc/verifica-smp')).toBeUndefined();
   });

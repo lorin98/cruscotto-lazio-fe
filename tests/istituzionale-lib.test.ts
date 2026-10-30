@@ -6,11 +6,10 @@ import type { BarSeriesOption } from 'echarts';
 import { describe, expect, it } from 'vitest';
 import { GRANT, puoLeggere } from '../src/features/istituzionale/lib/grant';
 import { GRANT_DETTAGLIO, PAGINE_ISTITUZIONALE, PERCORSI, pagineVisibili, ricercaConservata } from '../src/features/istituzionale/lib/pagine';
-import { ANNI_DEL_PERIODO, ESERCIZI, anniDiRiferimento, conFiltri, criteriVerifica, criteriVerificaSigc, esercizioUltimoChiuso, eserciziProposti, filtriVerificaSigcSenzaFiltri, ricercaConAnno, ricercaConParametro, soloIntervento, testiCriteri, testiCriteriSigc } from '../src/features/istituzionale/lib/criteri';
+import { ANNI_DEL_PERIODO, ESERCIZI, PARAMETRO_ANNO, anniDiRiferimento, conFiltri, criteriVerifica, criteriVerificaSigc, esercizioUltimoChiuso, eserciziProposti, filtriVerificaSigcSenzaFiltri, ricercaConParametro, soloIntervento, testiCriteri, testiCriteriSigc } from '../src/features/istituzionale/lib/criteri';
 import { codiceDelPercorso } from '../src/entities/filtri';
 import { assenzaInFrase, testoMotivato } from '../src/entities/importo';
 import {
-  VERIFICA_SMP_SIGC,
   conValore,
   elencoRicevute,
   elencoSpesa,
@@ -112,6 +111,7 @@ describe('RF016: criteri nell indirizzo (filtri del programma e anno di riferime
   });
 
   it('i filtri riscritti tengono l anno valido della ricerca corrente; un anno non valido si perde', () => {
+    const ricercaConAnno = ricercaConParametro(PARAMETRO_ANNO);
     expect(ricercaConAnno({ intervento: ['SRD01'] }, '?anno=2024&intervento=SRA01')).toBe('intervento=SRD01&anno=2024');
     expect(ricercaConAnno({}, '?anno=2024')).toBe('anno=2024');
     expect(ricercaConAnno({ os: ['OS4'] }, '?anno=abc')).toBe('os=OS4');
@@ -162,7 +162,6 @@ describe('RF016 e RF015: i link dello uiplan (dettaglio, report filtrati, elenco
   it('la verifica filtrata sull intervento, nell ordine della query dello uiplan; la verifica SIGC nella stessa area (G4)', () => {
     expect(verificaDellIntervento('SRA01', 2024)).toBe('/istituzionale/verifica-smp-non-sigc?intervento=SRA01&anno=2024');
     expect(verificaDellIntervento('SRA01')).toBe('/istituzionale/verifica-smp-non-sigc?intervento=SRA01');
-    expect(VERIFICA_SMP_SIGC).toBe('/istituzionale/verifica-smp-sigc');
     // link:verifica-smp-sigc-intervento: intervento ed esercizio, nell'ordine della query dello uiplan
     expect(verificaSigcDellIntervento('SRA01', 2025)).toBe('/istituzionale/verifica-smp-sigc?intervento=SRA01&esercizio=2025');
     expect(verificaSigcDellIntervento('SR/A01')).toBe('/istituzionale/verifica-smp-sigc?intervento=SR%2FA01');

@@ -82,9 +82,6 @@ export function ricercaConParametro(parametro: ParametroDiPagina): (filtri: Filt
   };
 }
 
-/** Query string dei filtri (senza "?") con l'anno della ricerca corrente: l'anno resta quando i filtri cambiano. */
-export const ricercaConAnno = ricercaConParametro(PARAMETRO_ANNO);
-
 /** Vero se c'e' almeno un filtro del programma: lo stato vuoto parla dei filtri solo allora. */
 export function conFiltri(filtri: Filtri): boolean {
   return filtriAttivi(filtri).length > 0;
