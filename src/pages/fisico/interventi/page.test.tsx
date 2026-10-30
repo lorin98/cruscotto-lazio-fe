@@ -390,6 +390,26 @@ describe('RA006: descrizione da TX-0060 e stati del dettaglio (caricamento, erro
     await kpi('Target di fine periodo');
   });
 
+  it('dal drawer delle Unit Amount con TX-0017 e TX-0018 in errore insieme: la scheda Unit Amount gia letta resta, un solo avviso, le altre schede col testo statico (review FIS-04)', async () => {
+    const lette = servi();
+    const errore = () => HttpResponse.json(problema(503, 'CAPACITA_ESAURITA'), { status: 503 });
+    server.use(http.get('*/api/fisico/output-regionale', errore), http.get('*/api/fisico/superficie-ammissibile', errore));
+    apri({ pathname: '/fisico/interventi/SRD01', state: { scheda: 'unitAmount' } });
+    const avviso = await screen.findByRole('alert');
+    expect(avviso.textContent).toContain('2 sezioni della pagina non si sono caricate.');
+    expect(await screen.findByRole('table', { name: iniziaCon(TABELLA_UA) })).toBeTruthy();
+    expect(screen.getByRole('tab', { name: 'Unit Amount' }).getAttribute('aria-selected')).toBe('true');
+    expect(screen.getAllByRole('alert')).toHaveLength(1);
+    expect(lette.unitAmount).toEqual(['?intervento=SRD01']);
+    // la risposta di TX-0030 da' anche l'ultimo dato della barra
+    expect(within(screen.getByRole('region', { name: 'Riferimenti dei dati' })).getByRole('button', { name: /^Ultimo dato sincronizzato: dati al/ })).toBeTruthy();
+    for (const nome of ['Output per anno', 'Superfici per campagna']) {
+      await userEvent.click(screen.getByRole('tab', { name: nome }));
+      expect(within(screen.getByRole('tabpanel', { name: nome })).getByText(NON_CARICATI)).toBeTruthy();
+    }
+    expect(screen.getAllByRole('alert')).toHaveLength(1);
+  });
+
   it('errore di TX-0018: i dati di TX-0017 restano; la scheda Superfici dice il testo statico e l avviso una sezione', async () => {
     servi();
     server.use(http.get('*/api/fisico/superficie-ammissibile', () => HttpResponse.json(problema(403, 'ACCESSO_NEGATO'), { status: 403 })));

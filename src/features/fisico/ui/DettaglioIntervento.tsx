@@ -172,7 +172,9 @@ function Dettaglio({ codice }: { codice: string }) {
   const [unitAmountAperta, setUnitAmountAperta] = useState(attiva === 'unitAmount');
   if (attiva === 'unitAmount' && !unitAmountAperta) setUnitAmountAperta(true);
   const { output, superfici, unitAmount, soloUnitAmount, descrizione } = useLettureDelDettaglio(codice, unitAmountAperta);
-  const letture = (soloUnitAmount ? [unitAmount] : [output, superfici]).filter((s) => s !== null);
+  // TX-0030 decide lo stato della pagina da quando la sua scheda e' aperta: una sua risposta tiene la pagina coi dati anche
+  // se TX-0017 e TX-0018 falliscono insieme (l'errore di una scheda non ferma le altre, review del riallineamento FIS-04)
+  const letture = (soloUnitAmount ? [unitAmount] : [output, superfici, unitAmountAperta ? unitAmount : null]).filter((s) => s !== null);
   const stato = useStatoDelDettaglio(letture);
   // il titolo del documento dal codice, come nel wireframe approvato: la descrizione che arriva dopo non riporta il focus sull'h1
   const h1 = useFocusTitolo<HTMLHeadingElement>(`Intervento ${codice} - Fisico`);
