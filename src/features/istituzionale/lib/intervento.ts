@@ -98,10 +98,11 @@ export function ultimoDatoInErrore(letture: ReadonlyArray<{ isError: boolean }>)
  * Le letture che decidono lo stato della pagina (statoDelDettaglio del kit): quelle partite (null = senza il grant o non
  * ancora partita). La verifica SIGC e' di un esercizio: senza la riga dell'intervento lo dice la sua scheda, che resta
  * col selettore per sceglierne un altro; il vuoto della pagina ("Nessun dato per questo intervento", es. AT001) lo decide
- * la sola verifica non SIGC. Per lo stato la risposta SIGC conta quindi solo come risposta, non per le sue righe.
+ * la sola verifica non SIGC. Per lo stato la risposta SIGC conta quindi solo come risposta, non per le sue righe: lo dice
+ * l'opzione del kit `decideIlVuoto` (review del riallineamento IST-07: prima la risposta impacchettata in `righe`).
  */
 export function lettureDelloStato(verifica: LetturaDettaglio | null, sigc: LetturaDettaglio | null): LetturaDettaglio[] {
-  const rispostaSigc = sigc && { isError: sigc.isError, data: sigc.data === undefined ? undefined : { righe: [sigc.data] } };
+  const rispostaSigc: LetturaDettaglio | null = sigc && { isError: sigc.isError, data: sigc.data, decideIlVuoto: false };
   return [verifica, rispostaSigc].filter((l): l is LetturaDettaglio => l !== null);
 }
 

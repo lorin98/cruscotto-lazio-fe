@@ -7,6 +7,11 @@
 export interface LetturaDettaglio {
   data?: { righe?: readonly unknown[] } | undefined;
   isError: boolean;
+  /**
+   * false: la lettura conta solo come risposta, non decide il vuoto della pagina (la sua parte dice da se' di non avere
+   * la riga, es. la scheda SIGC dell'istituzionale, di un esercizio). Assente = decide (review del riallineamento IST-07).
+   */
+  decideIlVuoto?: false;
 }
 
 /** Una lettura col suo errore e il modo di riprovarla (l'avviso della pagina lo dice). */
@@ -37,12 +42,14 @@ export type StatoDettaglio = 'caricamento' | 'errore' | 'vuoto' | 'dati';
  *   una coi dati (Riprova, un altro anno o un altro filtro dopo un errore) mostra lo scheletro nella sua parte: KPI,
  *   schede e scheda attiva restano (review H1/X1 dell'istituzionale);
  * - 'errore' se nessuna ha risposto coi dati (l'avviso della pagina lo dice);
- * - 'vuoto' se tutte hanno risposto senza la riga dell'intervento (es. AT001, che i report escludono);
+ * - 'vuoto' se tutte hanno risposto senza la riga dell'intervento (es. AT001, che i report escludono); una lettura con
+ *   `decideIlVuoto` falso non e' mai vuota per la pagina;
  * - altrimenti 'dati' (anche con una sola lettura riuscita: l'altra parte dice il suo errore o il suo caricamento).
  */
 export function statoDelDettaglio(letture: readonly LetturaDettaglio[], giaRisposte: boolean): StatoDettaglio {
   if (letture.length === 0 || !(giaRisposte || tutteRisposte(letture))) return 'caricamento';
   const conDati = letture.filter((l) => l.data !== undefined);
   if (conDati.length === 0) return letture.every((l) => l.isError) ? 'errore' : 'caricamento';
-  return conDati.length === letture.length && conDati.every((l) => (l.data?.righe ?? []).length === 0) ? 'vuoto' : 'dati';
+  const vuota = (l: LetturaDettaglio) => l.decideIlVuoto !== false && (l.data?.righe ?? []).length === 0;
+  return conDati.length === letture.length && conDati.every(vuota) ? 'vuoto' : 'dati';
 }

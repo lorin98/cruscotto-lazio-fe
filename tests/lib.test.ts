@@ -277,6 +277,16 @@ describe('lib/dettaglio — lo stato di un dettaglio con piu letture (prima nell
     expect(tutteRisposte([ok({}), { data: undefined, isError: true }])).toBe(true);
   });
 
+  it('una lettura con decideIlVuoto falso conta come risposta ma non fa il vuoto della pagina (review del riallineamento IST-07)', () => {
+    const parte = (data: { righe?: readonly unknown[] }) => ({ data, isError: false, decideIlVuoto: false as const });
+    expect(statoDelDettaglio([parte({ righe: [] })], false)).toBe('dati');
+    expect(statoDelDettaglio([ok({ righe: [] }), parte({})], false)).toBe('dati');
+    expect(statoDelDettaglio([ok({}), ok({ righe: [] })], false)).toBe('vuoto');
+    // per l'errore e l'attesa conta come le altre
+    expect(statoDelDettaglio([{ data: undefined, isError: true, decideIlVuoto: false }], false)).toBe('errore');
+    expect(statoDelDettaglio([ok({ righe: [] }), { data: undefined, isError: false, decideIlVuoto: false }], false)).toBe('caricamento');
+  });
+
   it('shared/lib non conosce campi di dominio: la riga dell intervento sta in entities/filtri (review H2 del procedurale)', () => {
     expect(Object.keys(libComune)).not.toContain('rigaDellIntervento');
   });

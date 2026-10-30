@@ -394,7 +394,9 @@ describe('RF016 e RF015: il dettaglio dell intervento (testata, schede, KPI per 
     expect(statoDelDettaglio(lettureDelloStato(vuota, vuota), false)).toBe('dati');
     expect(statoDelDettaglio(lettureDelloStato(null, errore), false)).toBe('errore');
     expect(lettureDelloStato(null, null)).toEqual([]);
-    expect(lettureDelloStato(null, { data: undefined, isError: false })).toEqual([{ data: undefined, isError: false }]);
+    // la risposta SIGC passa com'e', con l'opzione del kit che la toglie dal vuoto della pagina (review IST-07)
+    expect(lettureDelloStato(null, { data: undefined, isError: false })).toEqual([{ data: undefined, isError: false, decideIlVuoto: false }]);
+    expect(lettureDelloStato(vuota, vuota)).toEqual([vuota, { ...vuota, decideIlVuoto: false }]);
     // la scheda SIGC aperta senza esercizio non legge: le schede, non lo scheletro; senza schede (profilo in caricamento) lo scheletro
     expect(statoDellaPagina('caricamento', 0, 1)).toBe('dati');
     expect(statoDellaPagina('caricamento', 0, 0)).toBe('caricamento');
