@@ -17,8 +17,8 @@ type Segnala = (id: string, errore: ErroreSezione | null) => void;
 
 const ContestoAvviso = createContext<Segnala | null>(null);
 
-/** L'avviso unico: i messaggi distinti, quante sezioni non si sono caricate, "Riprova" per tutte. */
-function ElencoErrori({ errori }: { errori: ReadonlyMap<string, ErroreSezione> }) {
+/** L'avviso unico: i messaggi distinti, quante sezioni non si sono caricate, "Riprova" per tutte e le azioni della pagina. */
+function ElencoErrori({ errori, azioni }: { errori: ReadonlyMap<string, ErroreSezione>; azioni: ReactNode }) {
   const messaggi = [...new Set([...errori.values()].map((e) => e.messaggio))];
   return (
     <div className="alert alert-danger my-3" role="alert">
@@ -31,11 +31,16 @@ function ElencoErrori({ errori }: { errori: ReadonlyMap<string, ErroreSezione> }
       <button type="button" className="btn btn-outline-danger btn-sm" onClick={() => errori.forEach((e) => e.riprova())}>
         Riprova
       </button>
+      {azioni && <span className="ms-3">{azioni}</span>}
     </div>
   );
 }
 
-export function AvvisoPagina({ children }: { children: ReactNode }) {
+/**
+ * `azioni`: un contenuto della pagina in coda all'avviso, dopo "Riprova", solo quando l'avviso c'e' (es. "Cerca un altro
+ * codice" delle determine di una domanda, decisione D2 dell'utente del 30/10/2026).
+ */
+export function AvvisoPagina({ children, azioni }: { children: ReactNode; azioni?: ReactNode }) {
   const [errori, setErrori] = useState<ReadonlyMap<string, ErroreSezione>>(new Map());
   const segnala = useCallback<Segnala>((id, errore) => {
     setErrori((prima) => {
@@ -52,7 +57,7 @@ export function AvvisoPagina({ children }: { children: ReactNode }) {
   return (
     <ContestoAvviso.Provider value={segnala}>
       <div ref={contenitore} tabIndex={-1} className="ui-avviso-pagina">
-        {errori.size > 0 && <ElencoErrori errori={errori} />}
+        {errori.size > 0 && <ElencoErrori errori={errori} azioni={azioni} />}
         {children}
       </div>
     </ContestoAvviso.Provider>

@@ -11,7 +11,9 @@
 // riga aperta (si'/no in testo). Niente pill "Dati al" ne' download: TX-0020 non li ha (G3). Stati: senza codice, nessuna
 // determina, domanda chiusa, caricamento, domanda non trovata (404 sul problem-type: un solo messaggio, stato e focus per
 // la domanda inesistente e per quella fuori dal perimetro del P4, scelta 3, con "Cerca un altro codice" che porta il
-// focus al campo), codice non valido (400 sul problem-type, sotto il campo), il resto con l'avviso della pagina.
+// focus al campo), codice non valido (400 sul problem-type, sotto il campo), il resto (403, 429, 503) con l'avviso della
+// pagina: Riprova come nelle altre pagine e "Cerca un altro codice" col focus al campo, come nel 404 (decisione D2
+// dell'utente del 30/10/2026, review step9 PRO-02).
 // Design system: classi bootstrap-italia e del kit v2 (hero, badge, KPI, tabella statica nativa); nessun primitivo
 // react-aria, che qui non serve (nessun dialogo, nessuna scheda).
 import { useRef } from 'react';
@@ -125,21 +127,28 @@ function Contenuto({ d }: { d: Determine }) {
 }
 
 /**
- * Domanda non trovata (404): lo stesso messaggio per la domanda inesistente e per quella fuori dal perimetro del P4.
- * "Cerca un altro codice" porta il focus al campo del modulo (senza contare sulla navigazione al frammento del browser).
+ * "Cerca un altro codice" (404 e avviso della pagina per 403, 429 e 503): porta il focus al campo del modulo, senza contare
+ * sulla navigazione al frammento del browser.
  */
-function DomandaNonTrovata({ codice, campo }: { codice: string; campo: RefObject<HTMLInputElement | null> }) {
+function CercaUnAltroCodice({ campo }: { campo: RefObject<HTMLInputElement | null> }) {
   const alCampo = (e: MouseEvent<HTMLAnchorElement>) => {
     if (!campo.current) return;
     e.preventDefault();
     campo.current.focus();
   };
   return (
+    <a href={`#${ID_CAMPO}`} onClick={alCampo}>
+      Cerca un altro codice
+    </a>
+  );
+}
+
+/** Domanda non trovata (404): lo stesso messaggio per la domanda inesistente e per quella fuori dal perimetro del P4. */
+function DomandaNonTrovata({ codice, campo }: { codice: string; campo: RefObject<HTMLInputElement | null> }) {
+  return (
     <div className="alert alert-danger" role="alert">
       {`${messaggioDomandaNonTrovata(codice)} `}
-      <a href={`#${ID_CAMPO}`} onClick={alCampo}>
-        Cerca un altro codice
-      </a>
+      <CercaUnAltroCodice campo={campo} />
     </div>
   );
 }
@@ -193,7 +202,7 @@ export function DetermineDellaDomanda({ codice: parametro }: { codice: string | 
         <CercaDomanda key={parametro ?? ''} idCampo={ID_CAMPO} campo={campo} codiceIniziale={parametro ?? ''} erroreEsterno={erroreDelCampo(codice, stato)} />
       </Sezione>
       <Testata h1={h1} titolo={titolo} d={d} scheda={scheda} />
-      <AvvisoPagina>
+      <AvvisoPagina azioni={<CercaUnAltroCodice campo={campo} />}>
         <Corpo codice={codice} stato={stato} campo={campo} />
       </AvvisoPagina>
     </main>

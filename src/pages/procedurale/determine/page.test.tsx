@@ -154,7 +154,7 @@ describe("RF020: codice e data delle determine da cui la domanda prende l'inform
     expect(screen.getAllByRole('alert').map((a) => a.textContent)).toEqual(['Codice a barre non valido: contano solo le cifre, fino a 30.']);
   });
 
-  it('503 CAPACITA_ESAURITA: un solo avviso della pagina con Riprova', async () => {
+  it('503 CAPACITA_ESAURITA: un solo avviso della pagina con Riprova (e "Cerca un altro codice")', async () => {
     let tentativi = 0;
     server.use(
       http.get('*/api/procedurale/domande/:codice/determina', () => {
@@ -165,6 +165,7 @@ describe("RF020: codice e data delle determine da cui la domanda prende l'inform
     apri('/procedurale/determine/54810769585');
     const avviso = await screen.findByRole('alert');
     expect(avviso.textContent).toContain('Il servizio è occupato da altre letture');
+    expect(within(avviso).getByRole('link', { name: 'Cerca un altro codice' })).toBeTruthy();
     await userEvent.click(within(avviso).getByRole('button', { name: 'Riprova' }));
     expect(await screen.findByRole('table', { name: /^Determine da cui la domanda 54810769585/ })).toBeTruthy();
   });
@@ -221,12 +222,32 @@ describe('RF020: perimetro della risposta e domanda non trovata (wireframe del p
     expect(document.activeElement).toBe(campo());
   });
 
-  it('un errore diverso dal 404 (403 ACCESSO_NEGATO) resta l avviso della pagina, mai il messaggio della domanda non trovata', async () => {
+  // decisione D2 dell'utente del 30/10/2026 (review step9 PRO-02): come nel wireframe approvato, "Cerca un altro codice"
+  // anche nell'avviso degli errori diversi da 404 e 400; Riprova resta, come nelle altre pagine
+  it('403, 429 e 503: l avviso della pagina con Riprova e "Cerca un altro codice", mai il messaggio della domanda non trovata', async () => {
+    for (const [status, codice] of [
+      [403, 'ACCESSO_NEGATO'],
+      [429, 'TROPPE_RICHIESTE'],
+      [503, 'TEMPO_SCADUTO'],
+    ] as const) {
+      server.use(http.get('*/api/procedurale/domande/:codice/determina', () => HttpResponse.json(problema(status, codice), { status })));
+      const pagina = apri('/procedurale/determine/54810769585');
+      const avviso = await screen.findByRole('alert');
+      expect(avviso.textContent, codice).not.toContain('Domanda non trovata');
+      expect(within(avviso).getByRole('button', { name: 'Riprova' })).toBeTruthy();
+      expect(within(avviso).getByRole('link', { name: 'Cerca un altro codice' }).getAttribute('href')).toBe(`#${campo().id}`);
+      pagina.unmount();
+    }
+  });
+
+  it('403 ACCESSO_NEGATO: "Cerca un altro codice" porta il focus al campo del modulo, anche da tastiera; nessuna violazione axe', async () => {
     server.use(http.get('*/api/procedurale/domande/:codice/determina', () => HttpResponse.json(problema(403, 'ACCESSO_NEGATO'), { status: 403 })));
-    apri('/procedurale/determine/54810769585');
+    const { container } = apri('/procedurale/determine/54810769585');
     const avviso = await screen.findByRole('alert');
-    expect(avviso.textContent).not.toContain('Domanda non trovata');
-    expect(screen.queryByRole('link', { name: 'Cerca un altro codice' })).toBeNull();
+    await expectNoA11yViolations(container);
+    within(avviso).getByRole('link', { name: 'Cerca un altro codice' }).focus();
+    await userEvent.keyboard('{Enter}');
+    expect(document.activeElement).toBe(campo());
   });
 });
 

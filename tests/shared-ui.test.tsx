@@ -152,4 +152,20 @@ describe('AvvisoPagina: un solo avviso d errore per la pagina (A-07)', () => {
     expect(document.activeElement).not.toBe(document.body);
     expect(document.activeElement?.textContent).toBe('dati a');
   });
+
+  // le azioni della pagina in coda all'avviso (decisione D2 del 30/10/2026: "Cerca un altro codice" delle determine)
+  it('azioni della pagina: dopo Riprova, nell avviso, solo quando l avviso c e', async () => {
+    const azioni = <a href="#campo">Cerca un altro codice</a>;
+    const { rerender } = render(<AvvisoPagina azioni={azioni}>{sezione('a', 503, [])}</AvvisoPagina>);
+    const avviso = await screen.findByRole('alert');
+    const link = within(avviso).getByRole('link', { name: 'Cerca un altro codice' });
+    expect(within(avviso).getByRole('button', { name: 'Riprova' }).compareDocumentPosition(link) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    rerender(
+      <AvvisoPagina azioni={azioni}>
+        <VistaQuery stato={stato({ data: [1] })}>{() => <p>dati a</p>}</VistaQuery>
+      </AvvisoPagina>,
+    );
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Cerca un altro codice' })).toBeNull();
+  });
 });
