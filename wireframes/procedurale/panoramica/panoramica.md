@@ -9,7 +9,7 @@
 | route | kind | pattern | grant (verbatim dal catalogo) |
 |---|---|---|---|
 | /procedurale | cruscotto | cruscotto (KPI + grafici + pannello dei filtri) | csr.tx-0024.read, csr.tx-0025.read, csr.tx-0026.read, csr.tx-0027.read, csr.tx-0028.read, csr.tx-0029.read |
-| /procedurale/interventi/:codice | dettaglio | dettaglio (testata + KPI + schede) | csr.tx-0024.read, csr.tx-0026.read, csr.tx-0027.read, csr.tx-0028.read, csr.tx-0029.read, csr.tx-0030.read, csr.tx-0031.read, csr.tx-0032.read |
+| /procedurale/interventi/:codice | dettaglio | dettaglio (testata + KPI + schede) | csr.tx-0024.read, csr.tx-0026.read, csr.tx-0027.read, csr.tx-0028.read, csr.tx-0029.read, csr.tx-0031.read, csr.tx-0032.read |
 
 Profili che detengono i grant (catalogo): p1-dirigente, p2-referente-adg, p3-funzionario-area-pro, p4-responsabile-procedimento-ada
 (P4 con perimetro ADA). Ogni card e ogni scheda compare solo con il grant della sua transazione (gate di UX, mai sicurezza).
@@ -25,6 +25,13 @@ Aggiornato il 26/10/2026 con le decisioni dell'utente sulla review della card (`
 D1, il contributo ammesso della panoramica e della card dice quali interventi con domande ammesse non hanno il contributo;
 D2, la cache condivisa fra card e pagina vale a lettura finita.
 
+Aggiornato il 30/10/2026 (riallineamento degli ambiti, MIN-20261029 A-1 e A-5): TX-0030 (Unit Amount) passa alla feature
+fisico e TX-0020 (determine di una domanda) entra nel procedurale. Nel flusso: menu del procedurale senza "Unit Amount" e
+con "Determine di una domanda" come ultima voce; dettaglio dell'intervento senza la scheda Unit Amount (TX-0030 e
+csr.tx-0030.read escono da transazioni e grant della route); pannello dei filtri senza la frase sulle Unit Amount; card
+Procedurale della Home con "determine di una domanda" al posto di "pagamenti per Unit Amount" (G1: la card descrive il
+contenuto reale della feature). Numeri della card, letture e grant della card invariati.
+
 ## Component tree (per pagina)
 
 Vocabolario del kit UI v2 (ADR 0027 di green-fe), lo stesso del finanziario (prototipo approvato `prototipo/finanziario/`).
@@ -36,7 +43,7 @@ Vocabolario del kit UI v2 (ADR 0027 di green-fe), lo stesso del finanziario (pro
   filtri (TX-0024, TX-0025) > Stati
 - /procedurale/interventi/:codice: Shell > Barra filtri (stato area programmazione, perimetro, "Dati al") > Breadcrumb >
   Testata (codice, descrizione, perimetro, attivato, azioni) > KPI x4 > Schede: Stati delle domande (barre DS e DP) | Area
-  programmazione (barre) | Sottofasi (tabelle DS e DP, grafico con la fonte attiva) | Unit Amount (tabella) > Stati
+  programmazione (barre) | Sottofasi (tabelle DS e DP, grafico con la fonte attiva) > Stati
 
 ## Grafici del flusso
 
@@ -73,7 +80,7 @@ l'export del report da cui viene:
 | Domande di pagamento per stato | GET /api/procedurale/stati-pagamento/{formato} (TX-0028) |
 | Domande per stato area programmazione | GET /api/procedurale/riepilogo/{formato} (TX-0029; per csv e' lo stesso indirizzo storico riepilogo/csv) |
 | Importo richiesto e contributo ammesso per intervento | GET /api/procedurale/domande-ammesse/{formato} (TX-0026) |
-| dettaglio: schede Stati, Area programmazione, Sottofasi, Unit Amount | gli stessi export con intervento=:codice (e lo stato, tranne Unit Amount): stati-sostegno, stati-pagamento, riepilogo, sottofasi-sostegno, sottofasi-pagamento, unit-amount |
+| dettaglio: schede Stati, Area programmazione, Sottofasi | gli stessi export con intervento=:codice e lo stato: stati-sostegno, stati-pagamento, riepilogo, sottofasi-sostegno, sottofasi-pagamento |
 
 Un file alla volta; esito in `role="status"`, errore in `role="alert"` col motivo (400 oltre 5.000 righe o 50.000 celle:
 restringere i filtri; 503 ESPORTAZIONE_NON_REGISTRATA o capacita': riprovare). I KPI non hanno download.
@@ -103,14 +110,14 @@ passa all'elenco come `voceProgrammazione`; le azioni portanti non sono un filtr
 I link per stato aprono la parte rilasciata della voce (domande meno di cui non rilasciate, D-04 Rev. 5 e decisione D1 del
 backend): l'etichetta lo dice ("Apri nell'elenco (n rilasciate)") quando la voce ha domande non rilasciate, e il link non c'e'
 per una voce senza domande rilasciate. Non collegati: importi (l'elenco ha gli importi della domanda, non quelli della
-determina corrente), interventi attivati e perimetro ufficiale (non sono insiemi di domande), Unit Amount.
+determina corrente), interventi attivati e perimetro ufficiale (non sono insiemi di domande).
 
 ## Filtri nell'URL (url_params)
 
 | pagina | parametro | fonte (operationId.parametro) | multiplo | obbligatorio |
 |---|---|---|---|---|
 | /procedurale | intervento, os, og, op, stato | TX-0026.intervento, TX-0026.os, TX-0026.og, TX-0026.op, TX-0026.stato (gli stessi parametri di TX-0027, TX-0028, TX-0029) | si' | no |
-| /procedurale/interventi/:codice | stato | TX-0026.stato (l'intervento e' il segmento :codice, mandato come intervento=:codice; lo stato va anche a TX-0027, TX-0028, TX-0029, TX-0031, TX-0032, non a TX-0030) | si' | no |
+| /procedurale/interventi/:codice | stato | TX-0026.stato (l'intervento e' il segmento :codice, mandato come intervento=:codice; lo stato va anche a TX-0027, TX-0028, TX-0029, TX-0031, TX-0032) | si' | no |
 
 Il pannello dei filtri (TX-0024: interventi senza AT001, OS, OG, OP; TX-0025: dieci voci di RF025, stati osservati, senza stato)
 si apre da ogni pagina; la panoramica lo ospita nel wireframe. Bottone "Applica i filtri" (nessun conteggio dal vivo: il
@@ -147,6 +154,10 @@ titolo, descrizione), numeri chiave nel corpo, "Entra in Procedurale" nel piede.
   momento."; la Home non si ferma, nessun avviso della pagina); risposta di TX-0026 senza totale (la frase dell'errore);
   contributo senza fonte (assenza motivata); nessun intervento nel perimetro ufficiale (testo senza barra); profilo senza
   grant (contenuti dell'area); un solo grant (il solo gruppo di numeri di quella lettura).
+- Testo della fascia (G1, aggiornato il 30/10/2026): "Stati e sottofasi delle domande di sostegno e di pagamento, domande
+  ammesse con atto di concessione e contributo, riepilogo per intervento e determine di una domanda." Senza grant la card
+  elenca: stati e sottofasi delle domande; domande ammesse con atto di concessione e contributo; riepilogo per intervento;
+  determine di una domanda. "Pagamenti per Unit Amount" esce (TX-0030 e' del fisico).
 - Nessun link verso l'elenco dalla card: l'ingresso e' "Entra in Procedurale" (i link dei KPI restano nella panoramica).
 - WCAG: numeri in una lista di definizioni (dt, dd) in un gruppo con nome ("Il procedurale in cifre"); il numero animato
   e' letto solo nel valore finale e non si anima con prefers-reduced-motion (kit `NumeroAnimato`); la barra e' nascosta ai
@@ -183,6 +194,9 @@ titolo, descrizione), numeri chiave nel corpo, "Entra in Procedurale" nel piede.
 - OP-PR-08: regole del drill-down (parte rilasciata, voceProgrammazione, cosa non si collega).
 - OP-PR-10: card della Home coi numeri chiave della panoramica (decisione dell'utente del 26/10/2026), vedi "Card della
   Home"; la monta lo step6 in `src/app/aree.ts`.
+- OP-PR-12: Unit Amount (TX-0030) esce dal procedurale col riallineamento degli ambiti: voce di menu, scheda del dettaglio e
+  frase del pannello tolte; lo step6 toglie route, pagina e codice.
+- OP-PR-13: determine di una domanda (TX-0020) entrano nel procedurale: voce di menu e card della Home allo step6.
 - Chiusi col giro G3 e con G1 (22/10/2026): OP-PR-01 (ultimo dato sincronizzato da TX-0024), OP-PR-02 (parametro `azione`
   uscito dal contratto), OP-PR-03 (sottofasi con i filtri; Unit Amount senza lo stato per decisione del backend), OP-PR-04
   (card della Home = contenuto reale della feature, la riscrive step6), OP-PR-05 (export CSV e XLSX di TX-0026..TX-0032).

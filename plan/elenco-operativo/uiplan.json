@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "feature": "elenco-operativo",
-  "pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb",
+  "pack_hash": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7",
   "spec_pins": [
     {
       "slice": "elenco-operativo",
@@ -333,6 +333,16 @@
             "tipo",
             "voceProgrammazione"
           ]
+        },
+        {
+          "id": "determine-della-domanda",
+          "trigger": "'Apri le determine della domanda nell'area Procedurale' sotto la tabella della scheda Determine: solo con csr.tx-0020.read; codice = codiceABarre della scheda",
+          "target_feature": "procedurale",
+          "target": "/procedurale/determine/:codice?",
+          "path_params": [
+            "codice"
+          ],
+          "query": []
         }
       ]
     },
@@ -1632,15 +1642,9 @@
         "Un solo h1 (denominazione del beneficiario o, se assente, il codice a barre); focus sul titolo dopo il cambio di route",
         "Schede con role tablist/tab/tabpanel e frecce da tastiera; ogni tabella ha caption e intestazioni con scope",
         "Grafico a cascata con la tabella equivalente e la didascalia; importi assenti dichiarati col motivo, mai a zero",
-        "Residuo manuale: ordine di lettura della testata, comprensibilita' dei badge di stato, contrasto della resa finale"
-      ],
-      "approval": {
-        "approved_hash": "sha256:563cfad178758ac266d88972435957233494418368e98a1da7ec73d41a343376",
-        "baseline_ref": "./wireframes/elenco-operativo/dettaglio-domanda",
-        "approved_at": "2026-10-13T18:18:09Z",
-        "time_to_approve_s": 761,
-        "rework_rounds": 1
-      }
+        "Residuo manuale: ordine di lettura della testata, comprensibilita' dei badge di stato, contrasto della resa finale",
+        "Il link alle determine dice nel testo dove porta, area compresa ('nell'area Procedurale'): scopo chiaro dal solo testo (WCAG 2.4.4), cambio di area annunciato prima del clic"
+      ]
     },
     {
       "name": "pagamenti",
@@ -1690,6 +1694,14 @@
       "id": "OP-EO-06",
       "kind": "altro",
       "detail": "Deviazione accettata (decisione F3 dell'utente del 21/10/2026, review step9 sul delta FE, finding V7): nel pannello dei filtri dei flussi domande e pagamenti, con attoConcessioneDisponibile di TX-0060 falso (nessuna domanda del database ha l'atto: D-02 Rev. 5-6 e D11 del backend) il controllo 'Atto di concessione' e' sostituito dalla nota 'Atto di concessione non disponibile finche' nessuna domanda ha un atto di concessione.', con il pulsante 'Togli il filtro Atto di concessione' se il filtro arriva gia' dall'indirizzo (review V3); e' lo stesso trattamento della nota delle azioni portanti con legameAzioniDisponibile falso. Lo stato non e' disegnato nei wireframe approvati di domande (domande.html) e pagamenti (pagamenti.html), come non lo e' la nota delle azioni portanti: i due flussi restano approvati senza modifiche. Collegato (decisione F1, finding X2): con la stessa fonte non attiva la colonna 'Atto di concessione' della vista procedurale e la sintesi della scheda (flusso dettaglio-domanda) dicono l'assenza con la fonte ('non disponibile', fonte atto di concessione non attiva) secondo la regola comune delle assenze, mai 'nessun atto'; per questo la scheda legge anche TX-0060 col suo grant (stessa lettura del pannello, nessuna lettura senza csr.tx-0060.read), senza cambiare transazioni e grant dichiarati della route. Decisione dell'utente del 21/10/2026 (review passata 2, finding V1): 'nessun atto' solo con attoConcessioneDisponibile vero; finche' TX-0060 non e' letto (in attesa, in errore, senza il grant) l'atto mancante dice 'non disponibile' senza nota, mai 'nessun atto'; nella scheda la lettura di TX-0060 parte insieme a TX-0058."
+    },
+    {
+      "id": "OP-EO-07",
+      "kind": "altro",
+      "detail": "Ingresso alle determine dalla scheda della domanda (eredita OP-FIS-08 del fisico, 22/10/2026; scelta dell'utente del 30/10/2026). Con il riallineamento degli ambiti (decisioni A-1 e A-3 dell'utente del 29/10/2026, MIN-20261029) TX-0020 e' del procedurale: il link determine-della-domanda della scheda (scheda Determine, 'Apri le determine della domanda nell'area Procedurale', codice = codiceABarre della scheda) porta a /procedurale/determine/:codice? ed e' visibile solo con csr.tx-0020.read (catalogo rev. 4: p1-dirigente, p2-referente-adg, p3-funzionario-area-pro, p4-responsabile-procedimento-ada sul proprio perimetro; non piu' p5): la scheda e' gia' nel perimetro del P4, quindi l'arrivo non risponde 404. Il link non si rende finche' il flusso determine della feature procedurale non e' approvato (uiplan-patterns 8, link in attesa): chiudere questo open point (o togliere blocks) dopo quell'approvazione. Il passaggio inverso e' il link scheda-domanda della feature procedurale.",
+      "blocks": [
+        "link:determine-della-domanda"
+      ]
     }
   ]
 }

@@ -14,11 +14,20 @@ Aggiornato il 26/10/2026 con le decisioni dell'utente sulla review della card (`
 D3, il riferimento dice che i valori sono cumulativi e l'anno e' quello dell'ultimo file; D2, la cache condivisa fra card e
 pagina vale a lettura finita.
 
+Aggiornato il 30/10/2026 per il riallineamento degli ambiti (decisione dell'utente del 29/10/2026,
+`cruscotto-lazio-spec/decisioni/MIN-20261029-riallineamento-ambiti.md`; pack 1.4.0, spec sha256:e29f8ac4..., catalogo
+rev. 4). TX-0015 (verifica SMP SIGC) e' ora di questa feature (flusso verifica-smp-sigc) e TX-0017 (output regionale) e'
+passato al fisico. Cambia: la frase sotto il titolo porta alla verifica SMP SIGC della stessa area, coi filtri comuni
+(link:verifica-smp-sigc, intra-feature; la decisione G4 del 21/10 e' superata); il menu dell'area ha le voci "Verifica
+SMP non SIGC" e "Verifica SMP SIGC" (non piu' "Output regionale"), e le altre aree sono voci attive (non piu' "presto");
+la card della Home ha descrizione e contenuti nuovi (le due verifiche), con gli stessi numeri. Non cambiano TX-0016, le
+colonne, il grafico, i filtri, i link verso il dettaglio e verso l'elenco.
+
 ## Route del flusso
 
 | route | kind | pattern | grant (verbatim dal catalogo) |
 |---|---|---|---|
-| /istituzionale/verifica-smp-non-sigc | report | report v2 (selettore, grafico a barre, tabella interattiva), come /finanziario/sigc/verifica-smp | csr.tx-0016.read |
+| /istituzionale/verifica-smp-non-sigc | report | report v2 (selettore, grafico a barre, tabella interattiva), come /istituzionale/verifica-smp-sigc | csr.tx-0016.read |
 
 Letture della pagina: TX-0016 (report), il suo export `GET /api/istituzionale/verifica-smp-non-sigc/{formato}` (csv,
 xlsx; stesso grant, senza operationId, con X-Requested-With) e TX-0060 dell'elenco operativo per le voci del pannello
@@ -34,15 +43,15 @@ Vocabolario del kit UI v2 (ADR 0027): Shell (fascia ente, barra, menu a gruppi, 
 [Tabella interattiva (+ Totali dal server)] > [Drawer di anteprima] > [Schede] > Stati.
 
 - /istituzionale/verifica-smp-non-sigc: Shell > Barra filtri (chip, perimetro regionale, anno di riferimento del file,
-  "Dati al") > Breadcrumb > Titolo (con la frase verso la verifica SMP SIGC, solo con csr.tx-0015.read) > Pannello filtri
+  "Dati al") > Breadcrumb > Titolo (con la frase verso la verifica SMP SIGC, coi filtri correnti) > Pannello filtri
   (valori da TX-0060) > Selettore dell'anno di riferimento (facoltativo, pulsante Mostra) > Riferimenti della risposta
   (anno, output cumulativo, perimetro) > Card spesa pubblica erogata per intervento (barre; PNG, CSV, XLSX) > Card tabella
   dei 21 dati (cerca, colonne, ordinamento; CSV, XLSX) con le note sulle definizioni > Stati
 
-Stessa resa della verifica SMP SIGC del finanziario (TX-0015, flusso sigc): nessun KPI (i dati sono per intervento),
-selettore d'anno con Mostra, una card a barre, la tabella dei dati con l'intervento come intestazione di riga, i si'/no
-come colonne di testo, il clic su barra o riga che apre il dettaglio dell'intervento, un pulsante per formato. Differenze
-dovute al contratto: l'anno di TX-0016 e' facoltativo (assente = l'ultimo anno con un file), e' l'anno di riferimento del
+Stessa resa della verifica SMP SIGC (TX-0015, flusso verifica-smp-sigc di questa feature, prima nel finanziario):
+nessun KPI (i dati sono per intervento), selettore d'anno con Mostra, una card a barre, la tabella dei dati con
+l'intervento come intestazione di riga, i si'/no come colonne di testo, il clic su barra o riga che apre il dettaglio
+dell'intervento, un pulsante per formato. Differenze dovute al contratto: l'anno di TX-0016 e' facoltativo (assente = l'ultimo anno con un file), e' l'anno di riferimento del
 file SMP non SIGC e non l'esercizio finanziario; domande e spesa sono cumulative.
 
 ## Barra dei filtri e "Dati al"
@@ -141,12 +150,17 @@ o TEMPO_SCADUTO (riprovare dopo Retry-After).
 | /istituzionale/verifica-smp-non-sigc | dettaglio-intervento-smp | barra del grafico, clic o Invio su una riga | istituzionale: /istituzionale/interventi/:codice | codice | anno (se scelto) |
 | /istituzionale/verifica-smp-non-sigc | elenco-ricevute-riga | "Apri nell'elenco" nella cella Domande ricevute | elenco-operativo: /elenco-operativo/domande | - | tipo=SOSTEGNO, intervento della riga |
 | /istituzionale/verifica-smp-non-sigc | elenco-spesa-riga | "Apri nei pagamenti" nella cella Spesa erogata | elenco-operativo: /elenco-operativo/pagamenti | - | esito=PAGATA, sigc=false, intervento della riga |
-| /istituzionale/verifica-smp-non-sigc | verifica-smp-sigc | link "Verifica SMP SIGC" nella frase sotto il titolo, solo con csr.tx-0015.read (p1, p2) | finanziario: /finanziario/sigc/verifica-smp (flusso sigc, approvato) | - | nessuna (G4: esercizio e anno di riferimento non si traducono) |
+| /istituzionale/verifica-smp-non-sigc | verifica-smp-sigc | link "Verifica SMP SIGC" nella frase sotto il titolo (con csr.tx-0015.read) | istituzionale: /istituzionale/verifica-smp-sigc | - | intervento, os, og, op, azione (i filtri correnti; non l'anno, che non si traduce nell'esercizio) |
 
 I due link verso l'elenco valgono per definizione (D-05 del backend), senza uno scenario che lo verifichi: OP-IS-09.
-Non collegati: finanziate, pagate (saldate) e anticipi, che l'elenco non riproduce. Il link verso il finanziario (G4) e'
-in una sola direzione: il finanziario non cambia. Per chi non ha csr.tx-0015.read (p3-funzionario-area-ist) la frase non
-si rende affatto (gate di UX; il backend negherebbe comunque TX-0015 con 403).
+Non collegati: finanziate, pagate (saldate) e anticipi, che l'elenco non riproduce. Il link verso la verifica SIGC ha
+il suo speculare (link:verifica-smp-non-sigc del flusso verifica-smp-sigc, scelta di disegno 1): le due verifiche
+stanno nella stessa area e hanno gli stessi filtri (FiltriQuery). L'anno di riferimento del file SMP non SIGC non si
+traduce nell'esercizio finanziario di TX-0015 (obbligatorio): la verifica SIGC si apre coi filtri e chiede l'esercizio.
+La frase si rende con csr.tx-0015.read; nel catalogo rev. 4 lo hanno tutti i profili con csr.tx-0016.read
+(p1-dirigente, p2-referente-adg, p3-funzionario-area-ist), quindi oggi la vedono tutti; il controllo resta come gate di
+UX (il backend negherebbe TX-0015 con 403). Il vecchio link verso `/finanziario/sigc/verifica-smp` non c'e' piu': quella
+route non esiste (A-4, nessun alias).
 
 ## Filtri nell'URL (url_params)
 
@@ -171,8 +185,13 @@ titolo, descrizione), numeri chiave nel corpo, "Entra in Istituzionale" nel pied
 - Lettura: TX-0016 senza filtri e senza anno, la stessa della pagina aperta senza filtri (stessa cache, a lettura finita:
   se si entra nell'area mentre la card sta ancora leggendo, la pagina rifa' la lettura; decisione D2). Grant:
   csr.tx-0016.read (p1-dirigente, p2-referente-adg, p3-funzionario-area-ist); senza il grant nessuna lettura e la card
-  elenca i contenuti dell'area, come oggi. Nessuna lettura di TX-0017 (l'output ha unita' di misura diverse per
-  intervento e non si somma, OP-IS-06) ne' di TX-0060.
+  elenca i contenuti dell'area, come oggi. Nessuna lettura di TX-0015 (la verifica SIGC chiede l'esercizio finanziario,
+  che la Home non ha: scelta di disegno 3 del dossier) ne' di TX-0060. TX-0017 (output regionale) e' passato al fisico
+  il 29/10/2026.
+- Testi della fascia (aggiornati il 30/10/2026, riallineamento): descrizione "Dati ASR SIGC e non SIGC per intervento,
+  da confrontare con SMP - Data Platform."; contenuti (senza il grant) "Verifica SMP dei dati ASR non SIGC" e "Verifica
+  SMP dei dati ASR SIGC per esercizio finanziario" (prima: non SIGC e output regionale). Li applica lo step6 in
+  `src/app/aree.ts`.
 - Riferimento (decisione D3 del 26/10/2026): "Non SIGC, valori cumulativi (ultimo file SMP non SIGC: aaaa)" con
   l'annoRiferimento della risposta (l'ultimo anno con un file): domande e spesa sono cumulative, l'anno e' quello del
   file, non dei numeri. Senza file "Non SIGC, valori cumulativi (nessun file SMP non SIGC)", e i numeri restano (domande e
@@ -192,7 +211,7 @@ titolo, descrizione), numeri chiave nel corpo, "Entra in Istituzionale" nel pied
 - Stati: caricamento (scheletro al posto dei numeri); errore ("Dati della verifica SMP non SIGC non disponibili in questo
   momento.": la Home non si ferma, nessun avviso della pagina); nessun file SMP non SIGC (riferimento senza anno, numeri
   presenti); dato motivato assente in una riga (totale non disponibile col motivo, quota assente); profilo senza
-  csr.tx-0016.read (contenuti dell'area, anche col solo csr.tx-0017.read).
+  csr.tx-0016.read (contenuti dell'area; nel catalogo rev. 4 nessun profilo ha csr.tx-0015.read senza csr.tx-0016.read).
 - WCAG: numeri in una lista di definizioni (dt, dd) in un gruppo con nome ("L'istituzionale in cifre"); il numero
   animato e' letto solo nel valore finale e non si anima con prefers-reduced-motion (kit `NumeroAnimato`); la barra e'
   nascosta ai lettori di schermo e la percentuale e' nel testo. RESIDUO umano: ordine di lettura della card, comprensibilita'
@@ -216,12 +235,13 @@ titolo, descrizione), numeri chiave nel corpo, "Entra in Istituzionale" nel pied
   la preparazione aria-disabled col focus sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert.
 - Pill "Dati al": bottone col nome accessibile completo ("Ultimo dato sincronizzato: dati al ... per tutti i flussi.
   Mostra il dettaglio per flusso") e popover con le voci per flusso.
-- RESIDUO umano da verificare qui: ordine di lettura (filtri, titolo con la frase verso il SIGC, anno, riferimenti,
+- RESIDUO umano da verificare qui: ordine di lettura (filtri, titolo con la frase verso la verifica SIGC, anno, riferimenti,
   grafico, tabella), didascalia del grafico, comprensibilita' delle etichette delle colonne e delle note sulle definizioni,
   contrasto della resa finale (il low-fi non fa fede sul colore).
 - RESIDUO umano: bersagli dei link "Apri nell'elenco" e "Apri nei pagamenti" nelle celle (minimo 24 px, WCAG 2.5.8) e
-  loro allineamento nelle celle numeriche; testi lunghi delle assenze nelle celle (a capo, larghezza delle colonne); il
-  link "Verifica SMP SIGC" deve dire che porta a un'altra area (testo della frase).
+  loro allineamento nelle celle numeriche; testi lunghi delle assenze nelle celle (a capo, larghezza delle colonne); la
+  frase con il link "Verifica SMP SIGC" deve dire che e' la stessa verifica per i dati SIGC e che porta i filtri, non
+  l'anno.
 
 ## Punti aperti che toccano questo flusso
 
@@ -232,4 +252,5 @@ titolo, descrizione), numeri chiave nel corpo, "Entra in Istituzionale" nel pied
 - OP-IS-11: card della Home coi totali della verifica SMP non SIGC (decisione dell'utente del 26/10/2026), vedi "Card
   della Home"; la monta lo step6 in `src/app/aree.ts`.
 - Chiusi il 22/10/2026: OP-IS-01 (G2, valori da TX-0060), OP-IS-02 (G3, ultimiDatiSincronizzati), OP-IS-03 (G3, export
-  CSV e XLSX), OP-IS-04 (G4, link verso la verifica SMP SIGC).
+  CSV e XLSX). OP-IS-04 (G4, link verso la verifica SMP SIGC del finanziario) superato il 29/10/2026 dal riallineamento:
+  link reciproci fra le due verifiche dell'area. OP-IS-05 (G1) aggiornato: card e menu dell'area = le due verifiche.

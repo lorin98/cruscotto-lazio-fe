@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
   "feature": "fisico",
-  "pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb",
+  "pack_hash": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7",
   "spec_pins": [
     {
       "slice": "fisico",
       "path": "handover/openapi-fisico.json",
-      "sha256": "sha256:8558e1f4d278f2e97fc873a3eebbdaffdd54d8e390d245b0c8784dd35822c861",
+      "sha256": "sha256:189c634c3b86c825c924c454737f79daf2406d5ccc24a4f1f50866bb83b4ea3f",
       "manifest_hash_match": true
     },
     {
@@ -63,41 +63,174 @@
           "source": "TX-0018.campagna"
         }
       ],
-      "links": []
-    },
-    {
-      "path": "/fisico/determine/:codice?",
-      "kind": "dettaglio",
-      "transactions": [
-        "TX-0020"
-      ],
-      "reqs": [
-        "RF020"
-      ],
-      "roles": [
-        "csr.tx-0020.read"
-      ],
-      "flow": "determine",
       "links": [
         {
-          "id": "cerca-domanda",
-          "trigger": "Cerca nel modulo 'Codice a barre della domanda' (anche dallo stato iniziale senza codice): stessa pagina con il codice ridotto alle sole cifre",
-          "target": "/fisico/determine/:codice?",
+          "id": "dettaglio-intervento-superfici",
+          "trigger": "Pulsante 'Apri il dettaglio dell'intervento' del drawer di anteprima (aperto dal clic su una barra o su una riga); codice = codiceIntervento dell'anteprima",
+          "target": "/fisico/interventi/:codice",
           "path_params": [
             "codice"
           ],
           "query": []
+        }
+      ]
+    },
+    {
+      "path": "/fisico/output-regionale",
+      "kind": "report",
+      "transactions": [
+        "TX-0017",
+        "TX-0060"
+      ],
+      "reqs": [
+        "RF017",
+        "RA006"
+      ],
+      "roles": [
+        "csr.tx-0017.read"
+      ],
+      "flow": "output-regionale",
+      "url_params": [
+        {
+          "name": "intervento",
+          "source": "TX-0017.intervento",
+          "multi": true
         },
         {
-          "id": "scheda-domanda",
-          "trigger": "Apri la scheda della domanda (testata): solo con csr.tx-0058.read e domanda non chiusa (domandaChiusa falso); tipo = tipoDomanda, codiceABarre = codiceABarre della risposta",
-          "target_feature": "elenco-operativo",
-          "target": "/elenco-operativo/domande/:tipo/:codiceABarre",
+          "name": "os",
+          "source": "TX-0017.os",
+          "multi": true
+        },
+        {
+          "name": "og",
+          "source": "TX-0017.og",
+          "multi": true
+        },
+        {
+          "name": "op",
+          "source": "TX-0017.op",
+          "multi": true
+        },
+        {
+          "name": "azione",
+          "source": "TX-0017.azione",
+          "multi": true
+        }
+      ],
+      "links": [
+        {
+          "id": "dettaglio-intervento-output",
+          "trigger": "Pulsante 'Apri il dettaglio' del drawer di anteprima di una riga (clic o Invio sulla riga apre il drawer); codice = codiceIntervento della riga",
+          "target": "/fisico/interventi/:codice",
           "path_params": [
-            "tipo",
-            "codiceABarre"
+            "codice"
           ],
           "query": []
+        }
+      ]
+    },
+    {
+      "path": "/fisico/unit-amount",
+      "kind": "report",
+      "transactions": [
+        "TX-0030",
+        "TX-0060"
+      ],
+      "reqs": [
+        "RF030",
+        "RA006"
+      ],
+      "roles": [
+        "csr.tx-0030.read"
+      ],
+      "flow": "unit-amount",
+      "url_params": [
+        {
+          "name": "intervento",
+          "source": "TX-0030.intervento",
+          "multi": true
+        },
+        {
+          "name": "os",
+          "source": "TX-0030.os",
+          "multi": true
+        },
+        {
+          "name": "og",
+          "source": "TX-0030.og",
+          "multi": true
+        },
+        {
+          "name": "op",
+          "source": "TX-0030.op",
+          "multi": true
+        },
+        {
+          "name": "azione",
+          "source": "TX-0030.azione",
+          "multi": true
+        }
+      ],
+      "links": [
+        {
+          "id": "dettaglio-intervento-unit-amount",
+          "trigger": "Pulsante 'Apri il dettaglio dell'intervento' del drawer di anteprima di una riga (Unit Amount); codice = codiceIntervento della riga",
+          "target": "/fisico/interventi/:codice",
+          "path_params": [
+            "codice"
+          ],
+          "query": []
+        }
+      ]
+    },
+    {
+      "path": "/fisico/interventi/:codice",
+      "kind": "dettaglio",
+      "transactions": [
+        "TX-0017",
+        "TX-0018",
+        "TX-0030",
+        "TX-0060"
+      ],
+      "reqs": [
+        "RF017",
+        "RF018",
+        "RF030",
+        "RA006"
+      ],
+      "roles": [
+        "csr.tx-0017.read",
+        "csr.tx-0018.read",
+        "csr.tx-0030.read"
+      ],
+      "flow": "intervento",
+      "links": [
+        {
+          "id": "output-regionale-intervento",
+          "trigger": "Pulsante della testata 'Output regionale filtrato su questo intervento' (intervento = codice della route); solo con csr.tx-0017.read",
+          "target": "/fisico/output-regionale",
+          "path_params": [],
+          "query": [
+            "intervento"
+          ]
+        },
+        {
+          "id": "superfici-intervento",
+          "trigger": "Pulsante della testata 'Superfici ammissibili filtrate su questo intervento' (intervento = codice della route); solo con csr.tx-0018.read",
+          "target": "/fisico/superfici",
+          "path_params": [],
+          "query": [
+            "intervento"
+          ]
+        },
+        {
+          "id": "unit-amount-intervento",
+          "trigger": "Pulsante della testata 'Unit Amount di questo intervento' (intervento = codice della route); solo con csr.tx-0030.read",
+          "target": "/fisico/unit-amount",
+          "path_params": [],
+          "query": [
+            "intervento"
+          ]
         }
       ]
     }
@@ -254,66 +387,6 @@
       "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
     },
     {
-      "route": "/fisico/determine/:codice?",
-      "name": "codiceABarre",
-      "provenance": "spec",
-      "source_ref": "openapi-fisico.json#/components/schemas/DetermineDomanda"
-    },
-    {
-      "route": "/fisico/determine/:codice?",
-      "name": "tipoDomanda",
-      "provenance": "spec",
-      "source_ref": "openapi-fisico.json#/components/schemas/DetermineDomanda"
-    },
-    {
-      "route": "/fisico/determine/:codice?",
-      "name": "domandaChiusa",
-      "provenance": "spec",
-      "source_ref": "openapi-fisico.json#/components/schemas/DetermineDomanda"
-    },
-    {
-      "route": "/fisico/determine/:codice?",
-      "name": "corrente.motivo",
-      "provenance": "spec",
-      "source_ref": "openapi-fisico.json#/components/schemas/DeterminaCorrente"
-    },
-    {
-      "route": "/fisico/determine/:codice?",
-      "name": "corrente.valore.codice",
-      "provenance": "spec",
-      "source_ref": "openapi-fisico.json#/components/schemas/DeterminaDellaDomanda"
-    },
-    {
-      "route": "/fisico/determine/:codice?",
-      "name": "corrente.valore.data",
-      "provenance": "spec",
-      "source_ref": "openapi-fisico.json#/components/schemas/DeterminaDellaDomanda"
-    },
-    {
-      "route": "/fisico/determine/:codice?",
-      "name": "elenco[].codice",
-      "provenance": "spec",
-      "source_ref": "openapi-fisico.json#/components/schemas/DeterminaDellaDomanda"
-    },
-    {
-      "route": "/fisico/determine/:codice?",
-      "name": "elenco[].data",
-      "provenance": "spec",
-      "source_ref": "openapi-fisico.json#/components/schemas/DeterminaDellaDomanda"
-    },
-    {
-      "route": "/fisico/determine/:codice?",
-      "name": "elenco[].fonteStatoAreaProgrammazione",
-      "provenance": "spec",
-      "source_ref": "openapi-fisico.json#/components/schemas/DeterminaDellaDomanda"
-    },
-    {
-      "route": "/fisico/determine/:codice?",
-      "name": "elenco[].fonteComparto",
-      "provenance": "spec",
-      "source_ref": "openapi-fisico.json#/components/schemas/DeterminaDellaDomanda"
-    },
-    {
       "route": "/fisico/superfici",
       "name": "card della Home: superficieDs, superficieDp, domandePagamento, domandeDpOltreDs di righe[].campagne[] della campagna piu' recente (somme fra gli interventi)",
       "provenance": "spec",
@@ -324,6 +397,342 @@
       "name": "card della Home: perimetro della risposta (etichette 'della tua area' col perimetro ADA)",
       "provenance": "spec",
       "source_ref": "openapi-fisico.json#/components/schemas/SuperficieAmmissibile"
+    },
+    {
+      "route": "/fisico/output-regionale",
+      "name": "annoInizio",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/fisico/output-regionale",
+      "name": "annoFine",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/fisico/output-regionale",
+      "name": "perimetro",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/fisico/output-regionale",
+      "name": "realizzatoNonSigcCumulativo",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/fisico/output-regionale",
+      "name": "righe[].codiceIntervento",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/MonitoraggioOutputRiga"
+    },
+    {
+      "route": "/fisico/output-regionale",
+      "name": "righe[].indicatoreOutput",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/MonitoraggioOutputRiga"
+    },
+    {
+      "route": "/fisico/output-regionale",
+      "name": "righe[].unitaMisura",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/MonitoraggioOutputRiga"
+    },
+    {
+      "route": "/fisico/output-regionale",
+      "name": "righe[].targetFinePeriodo (valore, motivo, fonte)",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/Quantita"
+    },
+    {
+      "route": "/fisico/output-regionale",
+      "name": "righe[].annoTarget",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/MonitoraggioOutputRiga"
+    },
+    {
+      "route": "/fisico/output-regionale",
+      "name": "righe[].anni[].anno",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/MonitoraggioOutputAnno"
+    },
+    {
+      "route": "/fisico/output-regionale",
+      "name": "righe[].anni[].programmato (valore, motivo, fonte)",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/MonitoraggioOutputAnno"
+    },
+    {
+      "route": "/fisico/output-regionale",
+      "name": "righe[].anni[].realizzatoSigc (valore, motivo, fonte)",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/MonitoraggioOutputAnno"
+    },
+    {
+      "route": "/fisico/output-regionale",
+      "name": "righe[].anni[].realizzatoNonSigc (valore, motivo, fonte)",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/MonitoraggioOutputAnno"
+    },
+    {
+      "route": "/fisico/output-regionale",
+      "name": "ultimiDatiSincronizzati[].flusso",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/UltimoDatoSincronizzato"
+    },
+    {
+      "route": "/fisico/output-regionale",
+      "name": "ultimiDatiSincronizzati[].conclusoIl",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/UltimoDatoSincronizzato"
+    },
+    {
+      "route": "/fisico/output-regionale",
+      "name": "filtri.interventi[].chiave",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/fisico/output-regionale",
+      "name": "filtri.interventi[].descrizione",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/fisico/output-regionale",
+      "name": "filtri.obiettiviSpecifici[].chiave",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/fisico/output-regionale",
+      "name": "filtri.obiettiviGenerali[]",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/fisico/output-regionale",
+      "name": "filtri.obiettiviPolicy[]",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/fisico/output-regionale",
+      "name": "filtri.azioniPortanti[].chiave",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/fisico/output-regionale",
+      "name": "filtri.azioniPortanti[].descrizione",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/fisico/output-regionale",
+      "name": "filtri.legameAzioniDisponibile",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/fisico/unit-amount",
+      "name": "perimetro",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/PagamentiUnitAmount"
+    },
+    {
+      "route": "/fisico/unit-amount",
+      "name": "righe[].codiceIntervento",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/PagamentiUnitAmountRiga"
+    },
+    {
+      "route": "/fisico/unit-amount",
+      "name": "righe[].codiceUnitAmount",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/PagamentiUnitAmountRiga"
+    },
+    {
+      "route": "/fisico/unit-amount",
+      "name": "righe[].gruppoColturale",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/PagamentiUnitAmountRiga"
+    },
+    {
+      "route": "/fisico/unit-amount",
+      "name": "righe[].esercizio",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/PagamentiUnitAmountRiga"
+    },
+    {
+      "route": "/fisico/unit-amount",
+      "name": "righe[].importoUnitario (valore, motivo, fonte)",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/Importo"
+    },
+    {
+      "route": "/fisico/unit-amount",
+      "name": "righe[].outputPrevisto (valore, motivo, fonte)",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/QuantitaProcedurale"
+    },
+    {
+      "route": "/fisico/unit-amount",
+      "name": "righe[].importoPagato (valore, motivo, fonte)",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/Importo"
+    },
+    {
+      "route": "/fisico/unit-amount",
+      "name": "righe[].percentualePagata (valore, motivo, fonte)",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/QuantitaProcedurale"
+    },
+    {
+      "route": "/fisico/unit-amount",
+      "name": "righe[].baseStorica (valore, motivo, fonte)",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/QuantitaProcedurale"
+    },
+    {
+      "route": "/fisico/unit-amount",
+      "name": "ultimiDatiSincronizzati[].flusso",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/UltimoDatoSincronizzato"
+    },
+    {
+      "route": "/fisico/unit-amount",
+      "name": "ultimiDatiSincronizzati[].conclusoIl",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/UltimoDatoSincronizzato"
+    },
+    {
+      "route": "/fisico/unit-amount",
+      "name": "filtri.interventi[].chiave",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/fisico/unit-amount",
+      "name": "filtri.interventi[].descrizione",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/fisico/unit-amount",
+      "name": "filtri.obiettiviSpecifici[].chiave",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/fisico/unit-amount",
+      "name": "filtri.obiettiviGenerali[]",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/fisico/unit-amount",
+      "name": "filtri.obiettiviPolicy[]",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/fisico/unit-amount",
+      "name": "filtri.azioniPortanti[].chiave",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/fisico/unit-amount",
+      "name": "filtri.azioniPortanti[].descrizione",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/fisico/unit-amount",
+      "name": "filtri.legameAzioniDisponibile",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/fisico/interventi/:codice",
+      "name": "TX-0017: annoInizio, annoFine, perimetro, realizzatoNonSigcCumulativo",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/MonitoraggioOutput"
+    },
+    {
+      "route": "/fisico/interventi/:codice",
+      "name": "TX-0017: righe[].indicatoreOutput, righe[].unitaMisura (badge della testata)",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/MonitoraggioOutputRiga"
+    },
+    {
+      "route": "/fisico/interventi/:codice",
+      "name": "TX-0017: righe[].targetFinePeriodo (valore, motivo, fonte), righe[].annoTarget (KPI e riga del target)",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/MonitoraggioOutputRiga"
+    },
+    {
+      "route": "/fisico/interventi/:codice",
+      "name": "TX-0017: righe[].anni[].anno, programmato, realizzatoSigc, realizzatoNonSigc (valore, motivo, fonte)",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/MonitoraggioOutputAnno"
+    },
+    {
+      "route": "/fisico/interventi/:codice",
+      "name": "TX-0018: righe[].motivo",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/SuperficieIntervento"
+    },
+    {
+      "route": "/fisico/interventi/:codice",
+      "name": "TX-0018: righe[].campagne[].anno, domandePagamento, domandeSostegno",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/SuperficieCampagna"
+    },
+    {
+      "route": "/fisico/interventi/:codice",
+      "name": "TX-0018: righe[].campagne[].superficieDs, superficieDp, differenzaDpDs, domandeDpOltreDs (KPI della campagna di riferimento e scheda Superfici per campagna)",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/SuperficieCampagna"
+    },
+    {
+      "route": "/fisico/interventi/:codice",
+      "name": "TX-0018: righe[].campagne[].quantitaRichiestaPremio (valore, motivo, fonte)",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/QuantitaRichiestaPremio"
+    },
+    {
+      "route": "/fisico/interventi/:codice",
+      "name": "TX-0030: righe[].codiceUnitAmount, gruppoColturale, esercizio",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/PagamentiUnitAmountRiga"
+    },
+    {
+      "route": "/fisico/interventi/:codice",
+      "name": "TX-0030: righe[].importoUnitario, importoPagato (valore, motivo, fonte)",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/Importo"
+    },
+    {
+      "route": "/fisico/interventi/:codice",
+      "name": "TX-0030: righe[].outputPrevisto, percentualePagata, baseStorica (valore, motivo, fonte)",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/QuantitaProcedurale"
+    },
+    {
+      "route": "/fisico/interventi/:codice",
+      "name": "ultimiDatiSincronizzati[].flusso, ultimiDatiSincronizzati[].conclusoIl (prima risposta fra TX-0017, TX-0018 e TX-0030)",
+      "provenance": "spec",
+      "source_ref": "openapi-fisico.json#/components/schemas/UltimoDatoSincronizzato"
+    },
+    {
+      "route": "/fisico/interventi/:codice",
+      "name": "filtri.interventi[].chiave, filtri.interventi[].descrizione (titolo della testata)",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
     }
   ],
   "flows": [
@@ -342,78 +751,93 @@
         "Pill 'Dati al' come pulsante col nome accessibile completo ('Ultimo dato sincronizzato: dati al gg/mm/aaaa per tutti i flussi. Mostra il dettaglio per flusso'); il dettaglio per flusso e' un dialogo con nome; elenco vuoto o errore detti in testo",
         "Pannello dei filtri senza le voci di TX-0060 (errore o grant assente): lo stato lo dice in testo (role=status) e il report resta leggibile; i chip dei filtri arrivati con l'indirizzo restano rimovibili",
         "Residuo manuale: ordine di lettura di KPI, card e tabella; comprensibilita' di 'DS', 'DP' e 'differenza DP - DS' (sciolte per esteso alla prima occorrenza) e della differenza fra il file di una card della campagna di riferimento e quello della tabella (tutte le campagne); contrasto della resa finale",
-        "Card della Home (home.html, decisione dell'utente del 26/10/2026): numeri in una lista di definizioni dentro un gruppo con nome ('Il fisico in cifre'); numero animato letto solo nel valore finale e fermo con prefers-reduced-motion; barra delle domande con DP oltre la DS nascosta ai lettori di schermo, percentuale nel testo; errore detto in una frase senza fermare la Home."
-      ],
-      "approval": {
-        "approved_hash": "sha256:199cd655ea694dd53c53bc67bcf83fcb132e8da272304d8f195f3c67ddf66596",
-        "baseline_ref": "./wireframes/fisico/superfici",
-        "approved_at": "2026-10-26T08:49:12Z",
-        "time_to_approve_s": 122,
-        "rework_rounds": 0
-      }
+        "Card della Home (home.html, decisione dell'utente del 26/10/2026): numeri in una lista di definizioni dentro un gruppo con nome ('Il fisico in cifre'); numero animato letto solo nel valore finale e fermo con prefers-reduced-motion; barra delle domande con DP oltre la DS nascosta ai lettori di schermo, percentuale nel testo; errore detto in una frase senza fermare la Home.",
+        "Link 'Apri il dettaglio dell'intervento' nel drawer (30/10/2026): e' un link vero (cambia route), col focus sul titolo del dettaglio dopo il cambio di route; il drawer resta un dialogo con nome e il focus torna all'innesco se si chiude senza navigare"
+      ]
     },
     {
-      "name": "determine",
+      "name": "output-regionale",
       "routes": [
-        "/fisico/determine/:codice?"
+        "/fisico/output-regionale"
       ],
-      "wireframe_dir": "wireframes/fisico/determine",
+      "wireframe_dir": "wireframes/fisico/output-regionale",
       "wcag_notes": [
-        "Un solo h1 (il codice a barre della domanda o, senza codice, il titolo della pagina); focus sul titolo dopo il cambio di route e dopo una ricerca",
-        "Modulo di ricerca con role=search, label esplicita e messaggio d'errore collegato al campo (aria-describedby) per un codice senza cifre",
-        "Le colonne si/no della tabella delle determine sono testo, non solo icone o colore; la determina corrente e' dichiarata in testo nella riga",
-        "Nessuna pill 'Dati al' e nessun download: TX-0020 non porta l'ultimo dato sincronizzato e non ha export (D-01 Rev. 3 e D-06 del backend), nulla da annunciare",
-        "Residuo manuale: ordine di lettura di testata, riquadri e tabella; comprensibilita' di 'stato area programmazione' e 'comparto'; contrasto della resa finale"
+        "Un solo h1; focus sul titolo dopo il cambio di route; interruttore della misura (Programmato | Realizzato SIGC | Realizzato non SIGC cumulativo) con aria-pressed e didascalia della tabella che dice la misura mostrata",
+        "Report tabellare senza grafici in pagina (unita' di misura diverse fra interventi, OP-FIS-11): il mini grafico per anno del drawer ha la tabella equivalente per i lettori di schermo; assenze dette in testo nelle celle (non valorizzato, non attribuibile), mai a zero",
+        "Pulsanti CSV e XLSX: sigla visibile contenuta nel nome accessibile completo (2.5.3); aria-disabled e focus sul pulsante durante la preparazione (2.4.3); esito in role=status, errore in role=alert col motivo",
+        "Pill 'Dati al' come pulsante col nome accessibile completo; dettaglio per flusso in un dialogo con nome; pannello dei filtri senza voci di TX-0060 detto in testo (role=status), report comunque leggibile",
+        "Residuo manuale: tabella larga a 320 px (scorrimento della sola tabella, 1.4.10), unita' di misura leggibile accanto ai valori, ordine di lettura, contrasto della resa finale; axe deferito a step8"
+      ]
+    },
+    {
+      "name": "unit-amount",
+      "routes": [
+        "/fisico/unit-amount"
       ],
-      "approval": {
-        "approved_hash": "sha256:c797793a40a02c16b021bf98496a77e808dd8072184e3ab4847e8581da535d32",
-        "baseline_ref": "./wireframes/fisico/determine",
-        "approved_at": "2026-10-22T08:51:29Z",
-        "time_to_approve_s": 218,
-        "rework_rounds": 1
-      }
+      "wireframe_dir": "wireframes/fisico/unit-amount",
+      "wcag_notes": [
+        "Un solo h1; focus sul titolo dopo il cambio di route; card del grafico con interruttore Grafico | Tabella (aria-pressed): con la fonte del pagato non attiva il grafico non c'e', la card lo dice in testo e mostra la tabella",
+        "Assenze dette in testo nelle celle ('non disponibile (fonte non attiva)', 'non valorizzato'), mai uno zero; nessun totale (il DTO non lo porta)",
+        "Download per formato con la sigla nel nome accessibile (2.5.3), aria-disabled e focus sul pulsante durante la preparazione (2.4.3), esito in role=status ed errore in role=alert col motivo",
+        "Pill 'Dati al' (da TX-0030) come pulsante col nome accessibile completo; pannello dei filtri con focus-trap e ritorno del focus al bottone Filtri; voci di TX-0060 assenti dette in testo",
+        "Residuo manuale: tabella di nove colonne a 320 px (1.4.10); ripetizione di 'non disponibile (fonte non attiva)' in tre colonne per riga; contrasto della resa finale; axe deferito a step8"
+      ]
+    },
+    {
+      "name": "intervento",
+      "routes": [
+        "/fisico/interventi/:codice"
+      ],
+      "wireframe_dir": "wireframes/fisico/intervento",
+      "wcag_notes": [
+        "Un solo h1 (la descrizione dell'intervento o 'Intervento <codice>'); focus sul titolo dopo il cambio di route; schede con role=tablist, tab e tabpanel, frecce fra le schede",
+        "Ogni grafico (output per anno, superfici per campagna) ha la tabella equivalente a un clic e la didascalia; il target di fine periodo ha anche la forma testuale (riga della tabella equivalente), non solo la linea",
+        "Assenze dette in testo, mai a zero: anni senza output (non valorizzato, non attribuibile), intervento senza superfici o senza Unit Amount dichiarato nella sua scheda; valori negativi della differenza DP - DS col segno meno",
+        "Download per formato con la sigla e l'intervento nel nome accessibile (2.5.3), aria-disabled e focus sul pulsante durante la preparazione (2.4.3), esito in role=status, errore in role=alert; l'errore di una scheda resta nella scheda",
+        "Residuo manuale: ordine di lettura di testata, KPI e schede; comprensibilita' di DS, DP e 'campagna di riferimento' nei KPI; tabella delle Unit Amount di otto colonne a 320 px (1.4.10); contrasto della resa finale; axe deferito a step8"
+      ]
     }
   ],
   "open_points": [
     {
       "id": "OP-FIS-01",
       "kind": "altro",
-      "detail": "RISOLTO il 22/10/2026 (decisione G2 dell'utente del 21/10/2026, alternativa (a)): i valori del pannello dei filtri vengono da TX-0060 dell'elenco operativo (GET /api/elenco-operativo/filtri: interventi con descrizione senza AT001, obiettivi specifici, generali e di policy, azioni portanti, legameAzioniDisponibile; nessun campo nuovo nel contratto di fisico). La route /fisico/superfici dichiara TX-0060 fra le sue transazioni (RA006) e la slice elenco-operativo e' pinnata nell'handover e in spec_pins (riconciliata col suo manifest; le altre transazioni di quella slice restano dell'elenco: OP-FIS-09). Visibilita' della route: il solo csr.tx-0018.read, perche' csr.tx-0060.read e' di tutti gli 11 profili e la visibilita' e' 'almeno un grant' (la aprirebbe a chi non legge TX-0018); la lettura di TX-0060 e' un'azione hide-by-role con csr.tx-0060.read (step6), che hanno tutti i profili con csr.tx-0018.read (P1, P2, P3 area fisica, P5: nessuno con perimetro ADA, quindi voci regionali). Senza quel grant o con TX-0060 in errore: Intervento coi codici della risposta senza descrizione, obiettivi e azioni senza voci, report comunque leggibile. Campagna: campagne della risposta di TX-0018. La descrizione dell'intervento dell'anteprima viene dalle stesse voci. Testo originale: Valori del pannello dei filtri: TX-0018 accetta intervento, os, og, op, azione e campagna (stesse regole dei report finanziari, D-04 del backend), ma la slice fisico non espone l'elenco dei valori (il finanziario li legge da TX-0001, che il P3 dell'area fisica non ha; la risposta di TX-0018 porta solo i codici degli interventi, senza descrizione). Proposta da far decidere all'utente: (a) leggere i valori da TX-0060 dell'elenco operativo (csr.tx-0060.read, che hanno tutti i profili con csr.tx-0018.read: P1, P2, P3 area fisica, P5), lettura dichiarata nella route senza cambiare transazioni e grant di TX-0018; (b) campo additivo sulla risposta di TX-0018 con i valori dei filtri (risigillo della sola slice fisico, green-be); (c) solo il filtro Intervento con i codici della risposta, senza descrizioni ne' obiettivi e azioni. Campagna (un solo anno, parametro non ripetibile): valori = campagne presenti nella risposta letta senza campagna. Il wireframe disegna il pannello come nel finanziario (intervento, obiettivi, azione portante, campagna)."
+      "detail": "RISOLTO il 22/10/2026 (decisione G2 dell'utente del 21/10/2026, alternativa (a)), esteso il 30/10/2026 alle pagine entrate col riallineamento degli ambiti: i valori dei pannelli dei filtri di /fisico/superfici, /fisico/output-regionale e /fisico/unit-amount e la descrizione dell'intervento (anteprime e testata di /fisico/interventi/:codice) vengono da TX-0060 dell'elenco operativo (GET /api/elenco-operativo/filtri: interventi con descrizione senza AT001, obiettivi specifici, generali e di policy, azioni portanti, legameAzioniDisponibile; nessun campo nuovo nel contratto di fisico). Ogni route dichiara TX-0060 fra le sue transazioni (RA006) e la slice elenco-operativo e' pinnata nell'handover e in spec_pins (le altre transazioni di quella slice restano dell'elenco: OP-FIS-09). Visibilita' delle route: il solo grant della transazione del report (csr.tx-0018.read, csr.tx-0017.read, csr.tx-0030.read; i tre per il dettaglio), perche' csr.tx-0060.read e' di tutti gli 11 profili e la visibilita' e' 'almeno un grant'; la lettura di TX-0060 e' un'azione hide-by-role con csr.tx-0060.read (step6), che hanno tutti i profili coi grant del fisico (P1, P2, P3 area fisica, P5: nessuno con perimetro ADA, quindi voci regionali). Senza quel grant o con TX-0060 in errore: Intervento coi codici della risposta senza descrizione, obiettivi e azioni senza voci, report comunque leggibile. Campagna (solo superfici): campagne della risposta di TX-0018. Per TX-0030 il filtro azione e' ora quello dei report fisici (SC-FS_UNIT_AMOUNT_AZIONE), non piu' escluso come nel procedurale (OP-PR-02 del procedurale)."
     },
     {
       "id": "OP-FIS-02",
       "kind": "altro",
-      "detail": "RISOLTO il 22/10/2026 (decisione G3, D-01 Rev. 3 del backend fisico): la risposta di TX-0018 porta ultimiDatiSincronizzati (UltimoDatoSincronizzato: flusso, conclusoIl), nella forma di TX-0001 del finanziario e di TX-0057/TX-0059 dell'elenco; la pagina delle superfici la mostra come la pill 'Dati al' del finanziario e dell'elenco (conclusione meno recente fra i flussi, dettaglio per flusso), anche al P3 dell'area fisica che non ha TX-0001. TX-0020 non la porta (e' la scheda delle determine di una domanda, come TX-0058 dell'elenco): la pagina delle determine non ha la pill. Restano fuori, come nel finanziario, il marcatore 'dato non aggiornato da N giorni' (NFR-25 c) e il 'da consolidare' (NFR-25 d). Testo originale: Ultimo dato sincronizzato (NFR-25 b): nessun DTO della slice fisico lo porta (nel finanziario viene da TX-0001, nell'elenco da TX-0057 e TX-0059). La barra dei filtri delle pagine del fisico non lo mostra. Alternative da far decidere all'utente: accettare l'assenza; mostrarlo a chi ha csr.tx-0001.read leggendo TX-0001 (il P3 dell'area fisica non lo vedrebbe); oppure campo additivo ultimiDatiSincronizzati sulla risposta di TX-0018 (green-be, risigillo della slice fisico)."
+      "detail": "RISOLTO il 22/10/2026 (decisione G3, D-01 Rev. 3 del backend fisico), esteso il 30/10/2026: TX-0017, TX-0018 e TX-0030 portano ultimiDatiSincronizzati (UltimoDatoSincronizzato: flusso, conclusoIl), lo stesso elenco di TX-0001 anche per il P3 dell'area fisica che TX-0001 non lo legge (SC-FS_ULTIMO_DATO). Ogni pagina del fisico mostra la pill 'Dati al' come il finanziario e l'elenco (conclusione meno recente fra i flussi, dettaglio per flusso): superfici da TX-0018, output regionale da TX-0017, Unit Amount da TX-0030 stessa (nel procedurale veniva da TX-0024), dettaglio dell'intervento dalla prima risposta arrivata fra le tre. La pagina delle determine, che non l'aveva, e' uscita dalla feature (TX-0020 al procedurale, verbale del 29/10/2026). Restano fuori, come nel finanziario, il marcatore 'dato non aggiornato da N giorni' (NFR-25 c) e il 'da consolidare' (NFR-25 d, vedi OP-FIS-12)."
     },
     {
       "id": "OP-FIS-03",
       "kind": "altro",
-      "detail": "RISOLTO il 22/10/2026 (decisione G3, D-06 del backend fisico): GET /api/fisico/superficie-ammissibile/{formato}, csv o xlsx, senza operationId come gli export del finanziario, grant csr.tx-0018.read, header X-Requested-With, stessi parametri della lettura; intestazione di D-08 (fonte, filtri, perimetro, data di estrazione, profili, ultimo dato sincronizzato per flusso, uso interno) e una riga di AUDIT_ESPORTAZIONE per file; una riga per intervento e campagna, nessun totale; oltre 5.000 righe o 50.000 celle 400 DATO_NON_VALIDO (il messaggio invita a restringere i filtri), 503 ESPORTAZIONE_NON_REGISTRATA da riprovare. Download per formato come nel finanziario: PNG, CSV e XLSX in ogni card grafico (CSV e XLSX con la campagna della card nelle due card della campagna di riferimento, coi filtri della pagina nella serie per campagna) e CSV e XLSX negli strumenti della vista Tabella. Il PNG resta del frontend, non registrato in AUDIT_ESPORTAZIONE (OP-FE-08 del finanziario). TX-0020 non ha export. Testo originale: Esportazioni: la spec fisico non ha endpoint di export (nel finanziario e nell'elenco GET .../{formato} con l'audit NFR-34 e l'intestazione NFR-50). Le card offrono solo il PNG del grafico, generato nel browser e non registrato in AUDIT_ESPORTAZIONE (stesso limite di OP-FE-08); la vista Tabella non ha 'Esporta CSV/XLSX'. Se serve l'export della tabella delle superfici: endpoint additivo del backend (es. GET /api/fisico/superficie-ammissibile/{formato}, csv e xlsx, stessi filtri, X-Requested-With), risigillo della slice fisico."
+      "detail": "RISOLTO il 22/10/2026 (decisione G3, D-06 del backend fisico), esteso il 30/10/2026 (D-07 del fisico, SC-FS_ESPORTA): GET /api/fisico/superficie-ammissibile/{formato}, /api/fisico/output-regionale/{formato} e /api/fisico/unit-amount/{formato}, csv o xlsx, senza operationId come gli export del finanziario, col grant della transazione, header X-Requested-With, stessi parametri della lettura; intestazione di D-08 (fonte, filtri, perimetro, data di estrazione, profili, ultimo dato sincronizzato per flusso, uso interno) e una riga di AUDIT_ESPORTAZIONE per file (area A3 anche per TX-0017 e TX-0030); oltre 5.000 righe o 50.000 celle 400 DATO_NON_VALIDO, 503 ESPORTAZIONE_NON_REGISTRATA da riprovare. Superfici: PNG, CSV e XLSX in ogni card grafico e CSV e XLSX nella vista Tabella. Output regionale: CSV e XLSX nella card della tabella (nessun PNG: nessun grafico in pagina). Unit Amount: CSV e XLSX nella card e nella tabella, PNG solo col grafico disegnato. Dettaglio dell'intervento: gli stessi export con intervento = :codice, PNG dei due grafici. Il PNG resta del frontend, non registrato in AUDIT_ESPORTAZIONE (OP-FE-08 del finanziario)."
     },
     {
       "id": "OP-FIS-04",
       "kind": "altro",
-      "detail": "Quantita' richiesta a premio (terzo dato di TX-0018, 'confronto/verifica incrociata'): esce sempre null con motivo FONTE_NON_ATTIVA e fonte QUANTITA_RICHIESTA_PREMIO (D-02 del backend: l'import di ASR2-08 non la salva). La UI la dichiara 'non disponibile (fonte non attiva: quantita' richiesta a premio)' in colonna e nel riquadro della verifica incrociata, che intanto mostra la differenza DP - DS e le domande con DP oltre la DS (discrepanza della minuta del 17/07/2026, da chiarire con AGEA). Quando acquisizione-sian la salvera', il confronto si estende senza cambiare il layout."
+      "detail": "Quantita' richiesta a premio (terzo dato di TX-0018, 'confronto/verifica incrociata'): esce sempre null con motivo FONTE_NON_ATTIVA e fonte QUANTITA_RICHIESTA_PREMIO (D-02 del backend: l'import di ASR2-08 non la salva). La UI la dichiara 'non disponibile (fonte non attiva: quantita' richiesta a premio)' in colonna, nel riquadro della verifica incrociata e nella scheda Superfici del dettaglio dell'intervento, che intanto mostrano la differenza DP - DS e le domande con DP oltre la DS (discrepanza della minuta del 17/07/2026, da chiarire con AGEA). Quando acquisizione-sian la salvera', il confronto si estende senza cambiare il layout."
     },
     {
       "id": "OP-FIS-05",
       "kind": "altro",
-      "detail": "Nessun drill-down dal report delle superfici verso l'elenco operativo: l'insieme di domande di TX-0018 (domande di PAGAMENTO correnti con presenza ASR2-20 aperta e superficie in ettari, campagna = anno di campagna o perimetro della presenza ASR2-20, D-01 del backend) non si riproduce con i parametri di TX-0056 (sigc = presenza ASR2-08 o ASR2-20; anno = anno di raccolta, cioe' campagna o anno di rilascio della domanda di sostegno; nessun filtro 'con superficie'): il numero non coinciderebbe. Se l'utente vuole il passaggio: parametro additivo di TX-0056/TX-0059 (es. presenza ASR2-20 con superficie e campagna con la regola di D-01), risigillo della slice elenco-operativo, poi link dichiarato qui."
+      "detail": "Nessun drill-down dai report del fisico verso l'elenco operativo. Superfici: l'insieme di domande di TX-0018 (domande di PAGAMENTO correnti con presenza ASR2-20 aperta e superficie in ettari, campagna = anno di campagna o perimetro della presenza ASR2-20, D-01 del backend) non si riproduce con i parametri di TX-0056 (sigc = presenza ASR2-08 o ASR2-20; anno = anno di raccolta, cioe' campagna o anno di rilascio della domanda di sostegno; nessun filtro 'con superficie'): il numero non coinciderebbe. Output regionale (TX-0017) e Unit Amount (TX-0030) non sono insiemi di domande. Se l'utente vuole il passaggio dalle superfici: parametro additivo di TX-0056/TX-0059 (es. presenza ASR2-20 con superficie e campagna con la regola di D-01), risigillo della slice elenco-operativo, poi link dichiarato qui."
     },
     {
       "id": "OP-FIS-06",
       "kind": "altro",
-      "detail": "RISOLTO il 22/10/2026 (decisione G1 dell'utente del 21/10/2026: card della Home = contenuto reale delle feature): la card Fisico descrive superfici ammissibili (TX-0018) e determine di una domanda (TX-0020); l'output programmato e realizzato (TX-0017) e' della card Istituzionale e i pagamenti per Unit Amount (TX-0030) della card Procedurale, come le loro feature; la pagina delle determine resta nella feature fisico e nel menu Fisico. La card in src/app/aree.ts la allinea lo step6 (layer app/, fuori da questa feature: uiplan-patterns 7). Testo originale: Card dell'ambito Fisico in src/app/aree.ts (AREE_FUTURE) diversa dalla slice: 'Output programmato e realizzato dal 2023 al 2029' e' TX-0017 (RF017, slice istituzionale, gia' nella card Istituzionale come 'Output regionale per intervento'); 'Pagamenti per Unit Amount' e' TX-0030 (RF030, slice procedurale); TX-0020 della slice fisico (RF020, area 'P - Procedurale' nella SR) non e' nella card Fisico e la card Procedurale cita 'Determine, responsabili e ADA di riferimento'. Da far decidere all'utente (non risolto qui): testo della card Fisico, area di menu della pagina delle determine e dove stanno TX-0017 e TX-0030. Questa feature copre solo TX-0018 e TX-0020; la card la tocca lo step6."
+      "detail": "SUPERATO il 29/10/2026 dal verbale dell'utente sul riallineamento degli ambiti (MIN-20261029-riallineamento-ambiti, A-1 e A-5): la card Fisico della Home descrive output regionale programmato e realizzato (TX-0017), superfici ammissibili con la verifica incrociata (TX-0018) e pagamenti per Unit Amount (TX-0030); le determine di una domanda (TX-0020) escono dalla feature e dal menu Fisico (le porta il procedurale). Testo della card e contenuti dell'area: dossier dei wireframe del 30/10/2026 e home.html del flusso superfici; li applica lo step6 in src/app/aree.ts (layer app/, uiplan-patterns 7). Storia: risolto il 22/10/2026 con la decisione G1 (card = contenuto reale della feature: allora superfici e determine; TX-0017 era della card Istituzionale e TX-0030 della card Procedurale); in origine la card citava 'Output programmato e realizzato dal 2023 al 2029' e 'Pagamenti per Unit Amount', che col verbale tornano nel fisico."
     },
     {
       "id": "OP-FIS-07",
       "kind": "altro",
-      "detail": "Voci di menu e Home: l'area Fisico passa da AREE_FUTURE ad AREE in src/app/aree.ts allo step6 (layer app/, fuori dalle feature, uiplan-patterns 7), con le voci 'Superfici ammissibili' (/fisico/superfici, grant csr.tx-0018.read) e 'Determine di una domanda' (/fisico/determine, grant csr.tx-0020.read), visibili solo col grant della route; il testo della card e' quello di G1 (OP-FIS-06)."
+      "detail": "Voci di menu e Home (step6, layer app/, uiplan-patterns 7; aggiornato il 30/10/2026): l'area Fisico in src/app/aree.ts ha le voci 'Superfici ammissibili' (/fisico/superfici, csr.tx-0018.read), 'Output regionale' (/fisico/output-regionale, csr.tx-0017.read) e 'Unit Amount' (/fisico/unit-amount, csr.tx-0030.read), in quest'ordine se l'utente conferma la scelta di disegno 2 (la prima voce e' l'ingresso dalla Home); ognuna visibile solo col grant della sua route. La voce 'Determine di una domanda' (/fisico/determine) esce (la porta il procedurale) e con lei conSottopercorsi. Il dettaglio dell'intervento (/fisico/interventi/:codice) non e' una voce di menu: ci si arriva dai report (come nelle altre aree). Le tre pagine hanno ora gli stessi filtri dei report fisici (intervento, os, og, op, azione; la campagna solo nelle superfici): lo step6 puo' dare all'area ricercaConservata come il finanziario e l'istituzionale (scelta di disegno 4). Descrizione e contenuti della card: OP-FIS-06 e OP-FIS-10."
     },
     {
       "id": "OP-FIS-08",
       "kind": "altro",
-      "detail": "Ingresso alla pagina delle determine dall'elenco operativo: un link dalla scheda della domanda (scheda Determine) verso /fisico/determine/:codice? lo dichiarerebbe la feature elenco-operativo nel suo refresh (target_feature fisico), come OP-EO-03 per il finanziario; finche' manca, si entra dal menu e si scrive il codice. Il passaggio inverso (da qui alla scheda della domanda) e' il link scheda-domanda di questa feature."
+      "detail": "SUPERATO il 29/10/2026 dal verbale sul riallineamento degli ambiti: la pagina delle determine di una domanda (TX-0020) esce dalla feature fisico e passa al procedurale, che decide l'eventuale ingresso dalla scheda della domanda dell'elenco operativo. Nessun link fra il fisico e l'elenco resta da dichiarare. Testo originale: ingresso alla pagina delle determine dall'elenco operativo, un link dalla scheda della domanda verso /fisico/determine/:codice? dichiarato dalla feature elenco-operativo nel suo refresh."
     },
     {
       "id": "OP-FIS-09",
@@ -425,12 +849,37 @@
         "TX-0058",
         "TX-0059"
       ],
-      "detail": "La slice elenco-operativo e' pinnata da questa feature solo per TX-0060, fonte dei valori del pannello dei filtri delle superfici (G2, OP-FIS-01). Le sue altre transazioni le rende la feature elenco-operativo nei suoi flussi approvati: TX-0056 e TX-0057 (domande), TX-0058 (dettaglio-domanda), TX-0059 (pagamenti). Il link scheda-domanda della pagina delle determine verso /elenco-operativo/domande/:tipo/:codiceABarre (TX-0058) resta un link dichiarato verso quella feature, non una route di questa. Effetto del pin: un cambio del contratto dell'elenco operativo rende STALE anche questa feature (refresh)."
+      "detail": "La slice elenco-operativo e' pinnata da questa feature solo per TX-0060, fonte dei valori dei pannelli dei filtri e della descrizione dell'intervento (G2, OP-FIS-01). Le sue altre transazioni le rende la feature elenco-operativo nei suoi flussi: TX-0056 e TX-0057 (domande), TX-0058 (dettaglio-domanda), TX-0059 (pagamenti). Dal 30/10/2026 il fisico non ha piu' link verso l'elenco (il link scheda-domanda era della pagina delle determine, uscita col verbale del 29/10/2026). Effetto del pin: un cambio del contratto dell'elenco operativo rende STALE anche questa feature (refresh)."
     },
     {
       "id": "OP-FIS-10",
       "kind": "altro",
-      "detail": "Card della Home dinamica (decisione dell'utente del 26/10/2026, come la card del finanziario): coi grant csr.tx-0018.read la card Fisico mostra i KPI della pagina Superfici per la campagna di riferimento senza filtro (la piu' recente della risposta di TX-0018 letta senza filtri, stessa cache della pagina): superficie ammissibile DS e DP, quota delle domande con DP oltre la DS (barra), domande di pagamento. Senza il grant elenca i contenuti dell'area, come prima. La Home non e' una route della feature: il componente sta nella feature (G1) e lo monta lo step6 in src/app/aree.ts come Anteprima. Wireframe: home.html del flusso superfici."
+      "detail": "Card della Home dinamica (decisione dell'utente del 26/10/2026, come la card del finanziario; testo aggiornato il 30/10/2026): coi grant csr.tx-0018.read la card Fisico mostra i KPI della pagina Superfici per la campagna di riferimento senza filtro (la piu' recente della risposta di TX-0018 letta senza filtri, stessa cache della pagina): superficie ammissibile DS e DP, quota delle domande con DP oltre la DS (barra), domande di pagamento. Testo della card: 'Output regionale programmato e realizzato, superfici ammissibili delle domande di sostegno e di pagamento e pagamenti per Unit Amount, per intervento.' L'output regionale e le Unit Amount non danno numeri da card (unita' diverse fra interventi, OP-FIS-11; nessun totale e pagato con fonte non attiva, OP-FIS-14): scelta di disegno 3. Senza il grant elenca i contenuti dell'area (output regionale, superfici, verifica incrociata, Unit Amount); nel catalogo rev. 4 chi non ha csr.tx-0018.read non ha nessuna pagina del fisico e vede 'Non nel tuo profilo'. La Home non e' una route della feature: il componente sta nella feature (G1) e lo monta lo step6 in src/app/aree.ts come Anteprima. Wireframe: home.html del flusso superfici."
+    },
+    {
+      "id": "OP-FIS-11",
+      "kind": "altro",
+      "detail": "Grafico dell'output regionale fra interventi (era OP-IS-06 dell'istituzionale, portato il 30/10/2026 con TX-0017): ogni intervento ha il suo indicatore e la sua unita' di misura (ettari, UBA, numero di beneficiari, operazioni...), quindi un grafico che metta a confronto le quantita' di interventi diversi mescolerebbe unita' diverse. La pagina /fisico/output-regionale e' tabellare (pattern lista-filtri, uiplan-patterns 1: report tabellare) con un mini grafico per anno nel drawer della riga; il grafico per anno in grande sta nel dettaglio dell'intervento /fisico/interventi/:codice (una sola unita'; scelta di disegno 1). Per un grafico fra interventi servirebbe una grandezza senza unita' calcolata dal backend (es. quota del target di fine periodo gia' realizzata, campo additivo su MonitoraggioOutputRiga, green-be): il frontend non la calcola, perche' il realizzato SIGC e' annuale e quello non SIGC cumulativo (D-04) e la loro somma non e' definita."
+    },
+    {
+      "id": "OP-FIS-12",
+      "kind": "altro",
+      "detail": "Valori da consolidare (NFR-25 d) e definizioni da confermare (era OP-IS-07 dell'istituzionale, portato il 30/10/2026 con TX-0017): NFR-25 (d) chiede di marcare 'da consolidare' i valori il cui tracciamento fuori dalla piattaforma nazionale non e' definito (flussi alternativi di UC017, ora dell'ambito fisico), ma la spec non ha un marcatore del genere (motivi di Quantita: FONTE_NON_ATTIVA, NON_VALORIZZATO, ANNO_NON_CONSERVATO, FONTE_AMBIGUA). Il backend dichiara da confermare, per TX-0017: realizzato non SIGC come valore del file cumulativo per anno di riferimento (D-04 di istituzionale, con ARSIAL e AGEA) e programmato per anno come somma dell'output previsto delle Unit Amount (D-03). La UI le dichiara come note fisse accanto alla tabella e nel dettaglio (testo dalle decisioni del backend, non un dato). Da chiarire con green-spec e green-be se NFR-25 (d) chiede un campo della risposta."
+    },
+    {
+      "id": "OP-FIS-13",
+      "kind": "altro",
+      "detail": "Resa dei motivi FONTE_AMBIGUA e ANNO_NON_CONSERVATO (era OP-IS-08 dell'istituzionale, portato il 30/10/2026 con TX-0017; informativo): lo schema Quantita di TX-0017 li ammette; i testi sono gia' nel kit (entities/importo, descriviAssenza: FONTE_AMBIGUA -> 'non attribuibile (riga presente sia nel monitoraggio SIGC sia nel non SIGC)', ANNO_NON_CONSERVATO -> 'non disponibile per l'anno scelto'), approvati coi wireframe dell'istituzionale del 22/10/2026. Per TX-0017 conta FONTE_AMBIGUA (SC-FS_OUTPUT_AMBIGUO); nessuna estensione del kit richiesta."
+    },
+    {
+      "id": "OP-FIS-14",
+      "kind": "altro",
+      "detail": "Pagato per Unit Amount con la fonte non attiva (informativo, portato il 30/10/2026 con TX-0030): finche' nessuna Unit Amount ha l'importo pagato, importoPagato, percentualePagata e baseStorica di TX-0030 sono null con motivo FONTE_NON_ATTIVA e fonte PAGATO_PER_UNIT_AMOUNT (D-06 Rev. 2 di procedurale ripresa da D-07 del fisico, OP-010 del pack, SC-FS_UNIT_AMOUNT). La card 'Percentuale pagata per Unit Amount' dice in testo che il grafico non e' disponibile e mostra la tabella; con la fonte attiva la vista iniziale torna il Grafico senza cambiare il layout. Nessun numero nella card della Home (OP-FIS-10)."
+    },
+    {
+      "id": "OP-FIS-15",
+      "kind": "altro",
+      "detail": "Importi unitari in due transazioni dell'area (informativo, 30/10/2026): TX-0017 porta righe[].importiUnitari[] (codice Unit Amount, gruppo colturale, esercizio, importo unitario) e TX-0030 le stesse Unit Amount con importo unitario, output previsto, pagato, percentuale e base storica (stessa anagrafica UNITAMOUNT, SC-FS_ESPORTA). Nell'istituzionale gli importi unitari di TX-0017 avevano una scheda nel dettaglio dell'intervento; nel fisico la UI li mostra da TX-0030 (pagina Unit Amount e scheda Unit Amount del dettaglio), che ne e' un sovrainsieme, e quelli di TX-0017 restano nei suoi file CSV e XLSX. Nessun campo mancante: se l'utente li vuole anche nella pagina dell'output regionale, colonna o drawer da TX-0017 senza giro green-be."
     }
   ]
 }

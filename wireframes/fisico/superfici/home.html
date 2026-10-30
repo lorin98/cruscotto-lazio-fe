@@ -2,7 +2,9 @@
 <!-- Wireframe v2 (template wireframe-v2 di green-fe, ADR 0027), feature fisico, flusso superfici: la card Fisico della Home
      coi numeri chiave delle superfici (decisione dell'utente del 26/10/2026). La Home non e' una route della feature: la card
      e' contenuto della feature (G1) e la monta lo step6 in src/app/aree.ts, come quella del finanziario. Valori di esempio,
-     nessun dato reale. -->
+     nessun dato reale. Aggiornato il 30/10/2026 col riallineamento degli ambiti (verbale del 29/10/2026): testo della card
+     e contenuti dell'area con output regionale (TX-0017) e Unit Amount (TX-0030) al posto delle determine (TX-0020, ora
+     del procedurale); i numeri chiave restano quelli delle superfici. -->
 <html lang="it">
 <head>
 <meta charset="utf-8">
@@ -51,7 +53,7 @@
       <p>Monitoraggio del Complemento di Sviluppo Rurale 2023-2027 della Regione Lazio: scegli un ambito per entrare.</p>
     </div>
     <p class="wf-note">Card Fisico. Ruoli (grant verbatim): csr.tx-0018.read - Transazione: TX-0018, letta senza filtri (la stessa lettura della pagina Superfici aperta senza filtri, in cache condivisa). Senza il grant la card non legge nulla e mostra i contenuti dell'area (gate di UX, mai sicurezza). Le altre tre card sono fuori da questo flusso.</p>
-    <p class="wf-note">I numeri sono i KPI della pagina Superfici per la campagna di riferimento senza filtro: la piu' recente presente nella risposta. Le superfici di campagne diverse non si sommano (D-01 del backend); dentro una campagna si sommano fra gli interventi.</p>
+    <p class="wf-note">I numeri sono i KPI della pagina Superfici per la campagna di riferimento senza filtro: la piu' recente presente nella risposta. Le superfici di campagne diverse non si sommano (D-01 del backend); dentro una campagna si sommano fra gli interventi. L'output regionale (TX-0017) e le Unit Amount (TX-0030), entrati nell'area il 30/10/2026, non danno numeri da card: l'output ha un'unita' di misura per intervento e non si somma fra interventi (OP-FIS-11), le Unit Amount non hanno totali nel DTO e il pagato ha la fonte non attiva (OP-FIS-14). La card li nomina nel testo.</p>
     <div class="ui-griglia ui-griglia--4">
       <section class="ui-card" aria-labelledby="area-finanziario">
         <div class="ui-card__testa">
@@ -65,7 +67,7 @@
           <h2 id="area-fisico">Fisico</h2>
           <span class="badge">Disponibile</span>
         </div>
-        <p>Superfici ammissibili delle domande di sostegno e di pagamento per intervento e campagna, e determine di una domanda.</p>
+        <p>Output regionale programmato e realizzato, superfici ammissibili delle domande di sostegno e di pagamento e pagamenti per Unit Amount, per intervento.</p>
         <div role="group" aria-label="Il fisico in cifre">
           <p class="ui-eyebrow">Campagna aaaa</p>
           <dl>
@@ -110,11 +112,12 @@
     <p class="wf-note">Senza domande di pagamento la quota non esiste: la frase al posto della barra (stesso testo del KPI della pagina), mai uno 0 %.</p>
     <h2>Stato: profilo senza csr.tx-0018.read</h2>
     <ul>
+      <li>Output regionale programmato e realizzato per intervento e anno</li>
       <li>Superfici ammissibili di sostegno e di pagamento per intervento e campagna</li>
       <li>Verifica incrociata fra superficie di pagamento e di sostegno</li>
-      <li>Determine da cui una domanda prende le informazioni</li>
+      <li>Pagamenti per Unit Amount</li>
     </ul>
-    <p class="wf-note">Nessuna lettura: la card elenca cosa c'e' nell'area, come oggi. Se il profilo non ha nessuna pagina del fisico la card dice "Non nel tuo profilo" (home.tsx, invariato).</p>
+    <p class="wf-note">Nessuna lettura: la card elenca cosa c'e' nell'area, come oggi. Se il profilo non ha nessuna pagina del fisico la card dice "Non nel tuo profilo" (home.tsx, invariato). Nel catalogo rev. 4 csr.tx-0017.read, csr.tx-0018.read e csr.tx-0030.read hanno gli stessi profili: chi non ha csr.tx-0018.read non ha nessuna pagina del fisico e vede "Non nel tuo profilo"; l'elenco resta come ripiego se il catalogo cambia.</p>
   </main>
 </div>
 <footer class="ui-footer">

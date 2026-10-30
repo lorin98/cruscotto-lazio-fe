@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
   "feature": "procedurale",
-  "pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb",
+  "pack_hash": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7",
   "spec_pins": [
     {
       "slice": "procedurale",
       "path": "handover/openapi-procedurale.json",
-      "sha256": "sha256:22da01896b49d117841f2ed5de405709e0854ac17aa7b2ca3841deebdf848ab0",
+      "sha256": "sha256:2d600037ef21b6a04f24f7690cd20ba7492fed4da7bcce11f134b733ea570a33",
       "manifest_hash_match": true
     }
   ],
@@ -163,7 +163,6 @@
         "TX-0027",
         "TX-0028",
         "TX-0029",
-        "TX-0030",
         "TX-0031",
         "TX-0032"
       ],
@@ -174,7 +173,6 @@
         "RF027",
         "RF028",
         "RF029",
-        "RF030",
         "RF031",
         "RF032"
       ],
@@ -184,7 +182,6 @@
         "csr.tx-0027.read",
         "csr.tx-0028.read",
         "csr.tx-0029.read",
-        "csr.tx-0030.read",
         "csr.tx-0031.read",
         "csr.tx-0032.read"
       ],
@@ -623,56 +620,6 @@
       "links": []
     },
     {
-      "path": "/procedurale/unit-amount",
-      "kind": "report",
-      "transactions": [
-        "TX-0024",
-        "TX-0030"
-      ],
-      "reqs": [
-        "RF024",
-        "RF030"
-      ],
-      "roles": [
-        "csr.tx-0024.read",
-        "csr.tx-0030.read"
-      ],
-      "flow": "unit-amount",
-      "url_params": [
-        {
-          "name": "intervento",
-          "source": "TX-0030.intervento",
-          "multi": true
-        },
-        {
-          "name": "os",
-          "source": "TX-0030.os",
-          "multi": true
-        },
-        {
-          "name": "og",
-          "source": "TX-0030.og",
-          "multi": true
-        },
-        {
-          "name": "op",
-          "source": "TX-0030.op",
-          "multi": true
-        }
-      ],
-      "links": [
-        {
-          "id": "dettaglio-intervento-unit-amount",
-          "trigger": "Apri il dettaglio dell'intervento dall'anteprima della riga (Unit Amount)",
-          "target": "/procedurale/interventi/:codice",
-          "path_params": [
-            "codice"
-          ],
-          "query": []
-        }
-      ]
-    },
-    {
       "path": "/procedurale/riepilogo",
       "kind": "report",
       "transactions": [
@@ -756,6 +703,45 @@
           "query": [
             "stato"
           ]
+        }
+      ]
+    },
+    {
+      "path": "/procedurale/determine/:codice?",
+      "kind": "dettaglio",
+      "transactions": [
+        "TX-0020"
+      ],
+      "reqs": [
+        "RF020"
+      ],
+      "roles": [
+        "csr.tx-0020.read"
+      ],
+      "scope_filters": [
+        "territoriale-ada"
+      ],
+      "flow": "determine",
+      "links": [
+        {
+          "id": "cerca-domanda",
+          "trigger": "Cerca nel modulo 'Codice a barre della domanda' (anche dallo stato iniziale senza codice): stessa pagina con il codice ridotto alle sole cifre",
+          "target": "/procedurale/determine/:codice?",
+          "path_params": [
+            "codice"
+          ],
+          "query": []
+        },
+        {
+          "id": "scheda-domanda",
+          "trigger": "Apri la scheda della domanda (testata): solo con csr.tx-0058.read e domanda non chiusa (domandaChiusa falso); tipo = tipoDomanda, codiceABarre = codiceABarre della risposta",
+          "target_feature": "elenco-operativo",
+          "target": "/elenco-operativo/domande/:tipo/:codiceABarre",
+          "path_params": [
+            "tipo",
+            "codiceABarre"
+          ],
+          "query": []
         }
       ]
     }
@@ -913,12 +899,6 @@
     },
     {
       "route": "/procedurale/interventi/:codice",
-      "name": "unit amount (TX-0030): righe[] (codiceUnitAmount, gruppoColturale, esercizio, importoUnitario, outputPrevisto, importoPagato, percentualePagata, baseStorica)",
-      "provenance": "spec",
-      "source_ref": "openapi-procedurale.json#/components/schemas/PagamentiUnitAmountRiga"
-    },
-    {
-      "route": "/procedurale/interventi/:codice",
       "name": "Dati al (NFR-25 b): ultimiDatiSincronizzati[].flusso, ultimiDatiSincronizzati[].conclusoIl",
       "provenance": "spec",
       "source_ref": "openapi-procedurale.json#/components/schemas/FiltriProcedurali"
@@ -970,12 +950,6 @@
       "name": "esportazione (D-10 del backend, senza operationId): scheda Sottofasi, pagamento: CSV, XLSX con intervento=:codice - GET /api/procedurale/sottofasi-pagamento/{formato}",
       "provenance": "spec",
       "source_ref": "openapi-procedurale.json#/paths/~1api~1procedurale~1sottofasi-pagamento~1{formato}"
-    },
-    {
-      "route": "/procedurale/interventi/:codice",
-      "name": "esportazione (D-10 del backend, senza operationId): scheda Unit Amount: CSV, XLSX con intervento=:codice (senza stato) - GET /api/procedurale/unit-amount/{formato}",
-      "provenance": "spec",
-      "source_ref": "openapi-procedurale.json#/paths/~1api~1procedurale~1unit-amount~1{formato}"
     },
     {
       "route": "/procedurale/stati-sostegno",
@@ -1194,48 +1168,6 @@
       "source_ref": "openapi-procedurale.json#/paths/~1api~1procedurale~1sottofasi-pagamento~1{formato}"
     },
     {
-      "route": "/procedurale/unit-amount",
-      "name": "filtri: interventi[], obiettiviSpecifici[], obiettiviGenerali[], obiettiviPolicy[]",
-      "provenance": "spec",
-      "source_ref": "openapi-procedurale.json#/components/schemas/FiltriProcedurali"
-    },
-    {
-      "route": "/procedurale/unit-amount",
-      "name": "perimetro",
-      "provenance": "spec",
-      "source_ref": "openapi-procedurale.json#/components/schemas/PagamentiUnitAmount"
-    },
-    {
-      "route": "/procedurale/unit-amount",
-      "name": "righe[].codiceIntervento, righe[].codiceUnitAmount, righe[].gruppoColturale, righe[].esercizio",
-      "provenance": "spec",
-      "source_ref": "openapi-procedurale.json#/components/schemas/PagamentiUnitAmountRiga"
-    },
-    {
-      "route": "/procedurale/unit-amount",
-      "name": "righe[].importoUnitario, righe[].importoPagato (valore, motivo, fonte)",
-      "provenance": "spec",
-      "source_ref": "openapi-procedurale.json#/components/schemas/PagamentiUnitAmountRiga"
-    },
-    {
-      "route": "/procedurale/unit-amount",
-      "name": "righe[].outputPrevisto, righe[].percentualePagata, righe[].baseStorica (valore, motivo, fonte)",
-      "provenance": "spec",
-      "source_ref": "openapi-procedurale.json#/components/schemas/PagamentiUnitAmountRiga"
-    },
-    {
-      "route": "/procedurale/unit-amount",
-      "name": "Dati al (NFR-25 b): ultimiDatiSincronizzati[].flusso, ultimiDatiSincronizzati[].conclusoIl",
-      "provenance": "spec",
-      "source_ref": "openapi-procedurale.json#/components/schemas/FiltriProcedurali"
-    },
-    {
-      "route": "/procedurale/unit-amount",
-      "name": "esportazione (D-10 del backend, senza operationId): card e tabella delle Unit Amount: CSV, XLSX (intervento e obiettivi, mai lo stato) - GET /api/procedurale/unit-amount/{formato}",
-      "provenance": "spec",
-      "source_ref": "openapi-procedurale.json#/paths/~1api~1procedurale~1unit-amount~1{formato}"
-    },
-    {
       "route": "/procedurale/riepilogo",
       "name": "filtri: interventi[], obiettiviSpecifici[], obiettiviGenerali[], obiettiviPolicy[]",
       "provenance": "spec",
@@ -1312,6 +1244,72 @@
       "name": "card della Home e KPI Contributo ammesso della panoramica: righe[].codiceIntervento, righe[].domandeAmmesse e righe[].contributoAmmesso (interventi con domande ammesse senza contributo, decisione D1 del 26/10/2026)",
       "provenance": "spec",
       "source_ref": "openapi-procedurale.json#/components/schemas/DomandeAmmesseRiga"
+    },
+    {
+      "route": "/procedurale/determine/:codice?",
+      "name": "codiceABarre",
+      "provenance": "spec",
+      "source_ref": "openapi-procedurale.json#/components/schemas/DetermineDomanda"
+    },
+    {
+      "route": "/procedurale/determine/:codice?",
+      "name": "tipoDomanda",
+      "provenance": "spec",
+      "source_ref": "openapi-procedurale.json#/components/schemas/DetermineDomanda"
+    },
+    {
+      "route": "/procedurale/determine/:codice?",
+      "name": "domandaChiusa",
+      "provenance": "spec",
+      "source_ref": "openapi-procedurale.json#/components/schemas/DetermineDomanda"
+    },
+    {
+      "route": "/procedurale/determine/:codice?",
+      "name": "perimetro",
+      "provenance": "spec",
+      "source_ref": "openapi-procedurale.json#/components/schemas/DetermineDomanda"
+    },
+    {
+      "route": "/procedurale/determine/:codice?",
+      "name": "corrente.motivo",
+      "provenance": "spec",
+      "source_ref": "openapi-procedurale.json#/components/schemas/DeterminaCorrente"
+    },
+    {
+      "route": "/procedurale/determine/:codice?",
+      "name": "corrente.valore.codice",
+      "provenance": "spec",
+      "source_ref": "openapi-procedurale.json#/components/schemas/DeterminaDellaDomanda"
+    },
+    {
+      "route": "/procedurale/determine/:codice?",
+      "name": "corrente.valore.data",
+      "provenance": "spec",
+      "source_ref": "openapi-procedurale.json#/components/schemas/DeterminaDellaDomanda"
+    },
+    {
+      "route": "/procedurale/determine/:codice?",
+      "name": "elenco[].codice",
+      "provenance": "spec",
+      "source_ref": "openapi-procedurale.json#/components/schemas/DeterminaDellaDomanda"
+    },
+    {
+      "route": "/procedurale/determine/:codice?",
+      "name": "elenco[].data",
+      "provenance": "spec",
+      "source_ref": "openapi-procedurale.json#/components/schemas/DeterminaDellaDomanda"
+    },
+    {
+      "route": "/procedurale/determine/:codice?",
+      "name": "elenco[].fonteStatoAreaProgrammazione",
+      "provenance": "spec",
+      "source_ref": "openapi-procedurale.json#/components/schemas/DeterminaDellaDomanda"
+    },
+    {
+      "route": "/procedurale/determine/:codice?",
+      "name": "elenco[].fonteComparto",
+      "provenance": "spec",
+      "source_ref": "openapi-procedurale.json#/components/schemas/DeterminaDellaDomanda"
     }
   ],
   "flows": [
@@ -1331,14 +1329,7 @@
         "Download per formato (PNG, CSV, XLSX) come nel finanziario: un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo (400 oltre 5.000 righe o 50.000 celle: restringere i filtri; 503 ESPORTAZIONE_NON_REGISTRATA). PNG solo per i grafici disegnati, nella vista Grafico.",
         "Residuo manuale: ordine di lettura di KPI e card, comprensibilita' delle didascalie, contrasto della resa finale; axe deferito al gate di step8.",
         "Card della Home (home.html, decisione dell'utente del 26/10/2026): numeri in una lista di definizioni dentro un gruppo con nome ('Il procedurale in cifre'); numero animato letto solo nel valore finale e fermo con prefers-reduced-motion; barra degli interventi attivati nascosta ai lettori di schermo, 'n su m' e percentuale nel testo; contributo assente detto col motivo, mai 0; errore di una lettura detto in una frase senza fermare la Home."
-      ],
-      "approval": {
-        "approved_hash": "sha256:eec17f2e3d8f1f27d4422f85825b27f5eaf3146cccc873c877e451cb05ef3865",
-        "baseline_ref": "./wireframes/procedurale/panoramica",
-        "approved_at": "2026-10-26T10:21:19Z",
-        "time_to_approve_s": 216,
-        "rework_rounds": 1
-      }
+      ]
     },
     {
       "name": "stati",
@@ -1407,27 +1398,6 @@
       }
     },
     {
-      "name": "unit-amount",
-      "routes": [
-        "/procedurale/unit-amount"
-      ],
-      "wireframe_dir": "wireframes/procedurale/unit-amount",
-      "wcag_notes": [
-        "Importo pagato, percentuale e base storica con fonte non attiva: testo col motivo in ogni cella e grafico non disponibile dichiarato, tabella mostrata subito.",
-        "Il filtro per stato area programmazione non si applica alle Unit Amount: la barra dei filtri lo dice in testo.",
-        "Pill 'Dati al gg/mm/aaaa' (ultimiDatiSincronizzati di TX-0024, la conclusione meno recente fra i flussi): bottone con nome accessibile completo e popover con una voce per flusso; senza acquisizioni concluse e' testo, mai una data vuota.",
-        "Download per formato (PNG, CSV, XLSX) come nel finanziario: un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo (400 oltre 5.000 righe o 50.000 celle: restringere i filtri; 503 ESPORTAZIONE_NON_REGISTRATA). PNG solo per i grafici disegnati, nella vista Grafico.",
-        "Residuo manuale: contrasto della resa finale, ordine di lettura della tabella; axe deferito al gate di step8."
-      ],
-      "approval": {
-        "approved_hash": "sha256:dd0ab7020fdf39f25b23e6678acf9f4182ca5c788f343ad1733a32636daace55",
-        "baseline_ref": "./wireframes/procedurale/unit-amount",
-        "approved_at": "2026-10-22T08:51:29Z",
-        "time_to_approve_s": 218,
-        "rework_rounds": 1
-      }
-    },
-    {
       "name": "riepilogo",
       "routes": [
         "/procedurale/riepilogo"
@@ -1447,6 +1417,22 @@
         "time_to_approve_s": 218,
         "rework_rounds": 1
       }
+    },
+    {
+      "name": "determine",
+      "routes": [
+        "/procedurale/determine/:codice?"
+      ],
+      "wireframe_dir": "wireframes/procedurale/determine",
+      "wcag_notes": [
+        "Un solo h1 (il codice a barre della domanda o, senza codice, il titolo della pagina); focus sul titolo dopo il cambio di route e dopo una ricerca",
+        "Modulo di ricerca con role=search, label esplicita e messaggio d'errore collegato al campo (aria-describedby) per un codice senza cifre",
+        "Perimetro della risposta (REGIONALE o ADA) detto in un badge di testo della testata ('Perimetro: ADA, domande della tua area'), non solo col colore",
+        "Domanda non trovata (404): stesso messaggio, stesso stato e stesso focus per la domanda inesistente e per quella fuori dal perimetro del P4, con 'Cerca un altro codice' che porta al campo",
+        "Le colonne si/no della tabella delle determine sono testo, non solo icone o colore; la determina corrente e' dichiarata in testo nella riga",
+        "Nessuna pill 'Dati al' e nessun download: TX-0020 non porta l'ultimo dato sincronizzato e non ha export, nulla da annunciare",
+        "Residuo manuale: ordine di lettura di testata, riquadri e tabella; comprensibilita' di 'stato area programmazione', 'comparto' e del messaggio 'fra quelle che puoi consultare'; contrasto della resa finale"
+      ]
     }
   ],
   "open_points": [
@@ -1463,22 +1449,22 @@
     {
       "id": "OP-PR-03",
       "kind": "altro",
-      "detail": "RISOLTO il 22/10/2026 (giro G3 del backend, D-06 Rev. 6 di procedurale): TX-0031 e TX-0032 accettano intervento, OS, OG, OP e stato come i report per domanda (url_params della route /procedurale/sottofasi da TX-0031; il dettaglio dell'intervento ha la scheda Sottofasi con intervento=:codice). TX-0030 resta senza stato per decisione del backend (RF030 e' dell'area F2 - Fisico nel pack, le Unit Amount sono dati di programma senza domande): la pagina Unit Amount lo dichiara in testo. Testo originale: RF024 chiede i filtri per intervento, OS, OP, OG e stato domanda area programmazione su tutto l'ambito procedurale, ma TX-0030 (GET /api/procedurale/unit-amount) non accetta stato (le Unit Amount sono dati di programma) e TX-0031/TX-0032 (sottofasi) non accettano alcun parametro. Le pagine lo dichiarano invece di mostrare filtri che non si applicano (come OP-FE-03 per la riserva del finanziario). Da chiarire con green-spec (requisito) e green-be (contratto): eccezione di RF024 o filtri da aggiungere agli endpoint."
+      "detail": "RISOLTO il 22/10/2026 (giro G3 del backend, D-06 Rev. 6 di procedurale): TX-0031 e TX-0032 accettano intervento, OS, OG, OP e stato come i report per domanda (url_params della route /procedurale/sottofasi da TX-0031; il dettaglio dell'intervento ha la scheda Sottofasi con intervento=:codice). TX-0030 resta senza stato per decisione del backend (RF030 e' dell'area F2 - Fisico nel pack, le Unit Amount sono dati di programma senza domande): la pagina Unit Amount lo dichiara in testo. Testo originale: RF024 chiede i filtri per intervento, OS, OP, OG e stato domanda area programmazione su tutto l'ambito procedurale, ma TX-0030 (GET /api/procedurale/unit-amount) non accetta stato (le Unit Amount sono dati di programma) e TX-0031/TX-0032 (sottofasi) non accettano alcun parametro. Le pagine lo dichiarano invece di mostrare filtri che non si applicano (come OP-FE-03 per la riserva del finanziario). Da chiarire con green-spec (requisito) e green-be (contratto): eccezione di RF024 o filtri da aggiungere agli endpoint. AGGIORNATO il 30/10/2026: TX-0030 e la pagina Unit Amount sono passate alla feature fisico (riallineamento degli ambiti, MIN-20261029 A-1; OP-PR-12)."
     },
     {
       "id": "OP-PR-04",
       "kind": "altro",
-      "detail": "RISOLTO il 22/10/2026 (decisione dell'utente G1, MIN-20261022-decisioni-utente-altri-ambiti): le card di src/app/aree.ts descrivono il contenuto reale delle feature. Card Procedurale: stati delle domande, domande ammesse con atto e contributo, riepilogo, sottofasi, pagamenti per Unit Amount (TX-0024..TX-0032); la voce 'Determine, responsabili e ADA di riferimento' esce; la card Fisico non cita piu' le Unit Amount (Fisico = TX-0018 e TX-0020). La pagina Unit Amount resta in questa feature (la feature della sua slice; la visibilita' la danno i grant). Da fare in step6 (la Home e' dell'app, fuori da questo uiplan): riscrivere le due card in src/app/aree.ts. Testo originale: Card dell'ambito in src/app/aree.ts (da segnalare all'utente, non risolto qui; la card la tocca step6): (a) la voce 'Determine, responsabili e ADA di riferimento' della card Procedurale non corrisponde a nessuna transazione della slice: TX-0026 usa la determina corrente solo come fonte di importo richiesto e contributo ammesso (D-03), determine e responsabile del procedimento per domanda sono nella scheda della domanda dell'elenco operativo (TX-0058) e codice e data determina in TX-0020 (slice fisico), TX-0021..TX-0023 sono import PROSA (acquisizione-prosa, nessuna UI); l'ADA e' il perimetro P4 dichiarato da ogni risposta. (b) la card Fisico cita 'Pagamenti per Unit Amount', che e' TX-0030 di questa slice: nel pack RU-00000030 ha area F2 - Fisico, ma la transazione e' nello slice-group A4 Procedurale e csr.tx-0030.read e' concesso a P1, P2, P3 dell'area procedurale e P4, non al P3 dell'area fisica. La pagina Unit Amount e' quindi un flusso a se' di questa feature (unit-amount), approvabile o sospendibile senza toccare gli altri."
+      "detail": "SUPERATO in parte il 30/10/2026 dal verbale MIN-20261029 (A-1, A-5: ogni pagina sta nell'ambito del suo requisito): TX-0030 (Unit Amount) passa alla feature fisico e TX-0020 (determine di una domanda) entra in questa feature (OP-PR-12, OP-PR-13). Resta valido G1: la card Procedurale descrive il contenuto reale della feature, ora 'stati e sottofasi delle domande, domande ammesse con atto e contributo, riepilogo per intervento, determine di una domanda'; la riscrive lo step6 in src/app/aree.ts. RISOLTO il 22/10/2026 (decisione dell'utente G1, MIN-20261022-decisioni-utente-altri-ambiti): le card di src/app/aree.ts descrivono il contenuto reale delle feature. Card Procedurale: stati delle domande, domande ammesse con atto e contributo, riepilogo, sottofasi, pagamenti per Unit Amount (TX-0024..TX-0032); la voce 'Determine, responsabili e ADA di riferimento' esce; la card Fisico non cita piu' le Unit Amount (Fisico = TX-0018 e TX-0020). La pagina Unit Amount resta in questa feature (la feature della sua slice; la visibilita' la danno i grant). Da fare in step6 (la Home e' dell'app, fuori da questo uiplan): riscrivere le due card in src/app/aree.ts. Testo originale: Card dell'ambito in src/app/aree.ts (da segnalare all'utente, non risolto qui; la card la tocca step6): (a) la voce 'Determine, responsabili e ADA di riferimento' della card Procedurale non corrisponde a nessuna transazione della slice: TX-0026 usa la determina corrente solo come fonte di importo richiesto e contributo ammesso (D-03), determine e responsabile del procedimento per domanda sono nella scheda della domanda dell'elenco operativo (TX-0058) e codice e data determina in TX-0020 (slice fisico), TX-0021..TX-0023 sono import PROSA (acquisizione-prosa, nessuna UI); l'ADA e' il perimetro P4 dichiarato da ogni risposta. (b) la card Fisico cita 'Pagamenti per Unit Amount', che e' TX-0030 di questa slice: nel pack RU-00000030 ha area F2 - Fisico, ma la transazione e' nello slice-group A4 Procedurale e csr.tx-0030.read e' concesso a P1, P2, P3 dell'area procedurale e P4, non al P3 dell'area fisica. La pagina Unit Amount e' quindi un flusso a se' di questa feature (unit-amount), approvabile o sospendibile senza toccare gli altri."
     },
     {
       "id": "OP-PR-05",
       "kind": "altro",
-      "detail": "RISOLTO il 22/10/2026 (giro G3 del backend, D-10 di procedurale): GET /api/procedurale/<report>/{formato} (csv, xlsx; senza operationId come gli export del finanziario) per domande-ammesse (TX-0026), stati-sostegno (TX-0027), stati-pagamento (TX-0028), riepilogo (TX-0029, ora anche XLSX; riepilogo/csv resta invariato, stesso file), unit-amount (TX-0030), sottofasi-sostegno (TX-0031) e sottofasi-pagamento (TX-0032), con i parametri della lettura, X-Requested-With, AUDIT_ESPORTAZIONE e il limite di 5.000 righe o 50.000 celle. Nei wireframe ogni card ha PNG, CSV, XLSX (PNG solo per i grafici disegnati) e ogni tabella CSV e XLSX, come nel finanziario. Il PNG resta del frontend e non e' registrato in audit (come OP-FE-08 del finanziario). Nessun export per TX-0024 e TX-0025 (valori dei filtri). Testo originale: Esportazioni: solo TX-0029 ha l'export del backend (GET /api/procedurale/riepilogo/csv, senza operationId come gli export del finanziario e dell'elenco, OP-EO-05), solo in CSV (niente XLSX), con X-Requested-With, gli stessi filtri e il limite dell'export sincrono di 5.000 righe o 50.000 celle (400: restringere i filtri). Gli altri report procedurali non hanno export: le card offrono il PNG del grafico (intestazione di NFR-50, non registrato in AUDIT_ESPORTAZIONE: OP-FE-08) e la tabella equivalente; i dati delle card di ammesse, stato area programmazione e stati DS e DP si scaricano dalla tabella di riepilogo in CSV. Sottofasi (TX-0031/TX-0032) e Unit Amount (TX-0030) non sono nel riepilogo, benche' RF029 chieda una tabella di riepilogo di tutti i dati dei grafici dell'ambito: per loro nessun export dei dati. Da confermare se servono CSV/XLSX per i singoli report (D-08 di nfr-conformance) o le sezioni mancanti nel riepilogo."
+      "detail": "RISOLTO il 22/10/2026 (giro G3 del backend, D-10 di procedurale): GET /api/procedurale/<report>/{formato} (csv, xlsx; senza operationId come gli export del finanziario) per domande-ammesse (TX-0026), stati-sostegno (TX-0027), stati-pagamento (TX-0028), riepilogo (TX-0029, ora anche XLSX; riepilogo/csv resta invariato, stesso file), unit-amount (TX-0030), sottofasi-sostegno (TX-0031) e sottofasi-pagamento (TX-0032), con i parametri della lettura, X-Requested-With, AUDIT_ESPORTAZIONE e il limite di 5.000 righe o 50.000 celle. Nei wireframe ogni card ha PNG, CSV, XLSX (PNG solo per i grafici disegnati) e ogni tabella CSV e XLSX, come nel finanziario. Il PNG resta del frontend e non e' registrato in audit (come OP-FE-08 del finanziario). Nessun export per TX-0024 e TX-0025 (valori dei filtri). Testo originale: Esportazioni: solo TX-0029 ha l'export del backend (GET /api/procedurale/riepilogo/csv, senza operationId come gli export del finanziario e dell'elenco, OP-EO-05), solo in CSV (niente XLSX), con X-Requested-With, gli stessi filtri e il limite dell'export sincrono di 5.000 righe o 50.000 celle (400: restringere i filtri). Gli altri report procedurali non hanno export: le card offrono il PNG del grafico (intestazione di NFR-50, non registrato in AUDIT_ESPORTAZIONE: OP-FE-08) e la tabella equivalente; i dati delle card di ammesse, stato area programmazione e stati DS e DP si scaricano dalla tabella di riepilogo in CSV. Sottofasi (TX-0031/TX-0032) e Unit Amount (TX-0030) non sono nel riepilogo, benche' RF029 chieda una tabella di riepilogo di tutti i dati dei grafici dell'ambito: per loro nessun export dei dati. Da confermare se servono CSV/XLSX per i singoli report (D-08 di nfr-conformance) o le sezioni mancanti nel riepilogo. AGGIORNATO il 30/10/2026: l'export unit-amount/{formato} e' uscito da questa slice con TX-0030 (ora GET /api/fisico/unit-amount/{formato}, feature fisico); TX-0020 non ha export."
     },
     {
       "id": "OP-PR-06",
       "kind": "altro",
-      "detail": "Profili misti e drill-down (come OP-FE-09 del finanziario): il backend risolve il perimetro grant per grant, quindi per un utente P4 che ha anche un profilo regionale (P3 di un'altra area, P5, P6 o P7 con csr.tx-0056.read) i report procedurali sono ADA mentre l'elenco operativo aperto dai link e' regionale, e il numero non coincide. Limite noto, da chiedere ad ARSIAL se questi profili misti esistono."
+      "detail": "Profili misti e drill-down (come OP-FE-09 del finanziario): il backend risolve il perimetro grant per grant, quindi per un utente P4 che ha anche un profilo regionale (P3 di un'altra area, P5, P6 o P7 con csr.tx-0056.read) i report procedurali sono ADA mentre l'elenco operativo aperto dai link e' regionale, e il numero non coincide. Limite noto, da chiedere ad ARSIAL se questi profili misti esistono. Vale anche per TX-0020 (30/10/2026): il backend da' il perimetro regionale a chi ha il grant anche da un profilo non scoped (SC-PC_DETERMINA_SCOPE_P4), la pagina mostra il perimetro della risposta."
     },
     {
       "id": "OP-PR-07",
@@ -1488,7 +1474,7 @@
     {
       "id": "OP-PR-08",
       "kind": "altro",
-      "detail": "Drill-down e 'di cui non rilasciate' (D-04 Rev. 5, decisione D1 del backend): l'elenco operativo ha le sole domande rilasciate, quindi i link per stato (statoSostegno, statoPagamento) aprono la parte rilasciata della voce, domande meno di cui non rilasciate; il link lo dice nell'etichetta e non compare per una voce senza domande rilasciate o con la fonte non attiva (IN_COMPILAZIONE con FONTE_NON_ATTIVA DOMANDE_IN_COMPILAZIONE). Il filtro per stato area programmazione passa all'elenco come voceProgrammazione (stesse chiavi di TX-0025). Nessun link per importi (richiesto e contributo ammesso: l'elenco ha gli importi della domanda, non quelli della determina corrente di D-03), per le sottofasi (l'elenco non ha un filtro per sottofase, anche ora che le sottofasi accettano i filtri) e per le Unit Amount (non sono insiemi di domande)."
+      "detail": "Drill-down e 'di cui non rilasciate' (D-04 Rev. 5, decisione D1 del backend): l'elenco operativo ha le sole domande rilasciate, quindi i link per stato (statoSostegno, statoPagamento) aprono la parte rilasciata della voce, domande meno di cui non rilasciate; il link lo dice nell'etichetta e non compare per una voce senza domande rilasciate o con la fonte non attiva (IN_COMPILAZIONE con FONTE_NON_ATTIVA DOMANDE_IN_COMPILAZIONE). Il filtro per stato area programmazione passa all'elenco come voceProgrammazione (stesse chiavi di TX-0025). Nessun link per importi (richiesto e contributo ammesso: l'elenco ha gli importi della domanda, non quelli della determina corrente di D-03), e per le sottofasi (l'elenco non ha un filtro per sottofase, anche ora che le sottofasi accettano i filtri). La pagina delle determine (TX-0020) non apre l'elenco: e' una sola domanda e porta alla sua scheda (link scheda-domanda). Aggiornato il 30/10/2026: le Unit Amount non sono piu' di questa feature (OP-PR-12)."
     },
     {
       "id": "OP-PR-09",
@@ -1498,7 +1484,7 @@
     {
       "id": "OP-PR-10",
       "kind": "altro",
-      "detail": "Card della Home dinamica (decisione dell'utente del 26/10/2026, come la card del finanziario): la card Procedurale mostra i numeri della panoramica senza filtri, ognuno col grant della sua transazione: domande ammesse, contributo ammesso e interventi attivati sul perimetro ufficiale (barra) da TX-0026 (csr.tx-0026.read), domande di sostegno da TX-0027 (csr.tx-0027.read); stesse letture e cache della panoramica senza filtri. Col perimetro ADA le etichette dicono 'della tua area'. Senza nessuno dei due grant elenca i contenuti dell'area, come prima. La Home non e' una route della feature: il componente sta nella feature (G1, OP-PR-04) e lo monta lo step6 in src/app/aree.ts come Anteprima. Wireframe: home.html del flusso panoramica. Decisione D1 dell'utente del 26/10/2026 (review della card): il contributo ammesso del totale somma i soli contributi valorizzati; la card e il KPI della panoramica dicono quali interventi con domande ammesse non hanno il contributo ('manca il contributo di n interventi'). Decisione D2: la cache condivisa con la panoramica vale a lettura finita."
+      "detail": "Card della Home dinamica (decisione dell'utente del 26/10/2026, come la card del finanziario): la card Procedurale mostra i numeri della panoramica senza filtri, ognuno col grant della sua transazione: domande ammesse, contributo ammesso e interventi attivati sul perimetro ufficiale (barra) da TX-0026 (csr.tx-0026.read), domande di sostegno da TX-0027 (csr.tx-0027.read); stesse letture e cache della panoramica senza filtri. Col perimetro ADA le etichette dicono 'della tua area'. Senza nessuno dei due grant elenca i contenuti dell'area, come prima. La Home non e' una route della feature: il componente sta nella feature (G1, OP-PR-04) e lo monta lo step6 in src/app/aree.ts come Anteprima. Wireframe: home.html del flusso panoramica. Decisione D1 dell'utente del 26/10/2026 (review della card): il contributo ammesso del totale somma i soli contributi valorizzati; la card e il KPI della panoramica dicono quali interventi con domande ammesse non hanno il contributo ('manca il contributo di n interventi'). Decisione D2: la cache condivisa con la panoramica vale a lettura finita. Aggiornato il 30/10/2026 (riallineamento degli ambiti): il testo della card e l'elenco dei contenuti senza grant dicono 'determine di una domanda' al posto di 'pagamenti per Unit Amount' (OP-PR-12, OP-PR-13); numeri, letture e grant della card invariati."
     },
     {
       "id": "OP-PR-11",
@@ -1507,6 +1493,21 @@
       "blocks": [
         "TX-0026"
       ]
+    },
+    {
+      "id": "OP-PR-12",
+      "kind": "altro",
+      "detail": "Riallineamento degli ambiti (MIN-20261029 A-1, A-4, A-5; pack 1.4.0, catalogo rev. 4): TX-0030 (Unit Amount, RF030) passa alla slice e alla feature fisico (GET /api/fisico/unit-amount). Da questo uiplan escono la route /procedurale/unit-amount col flusso unit-amount (dir wireframes/procedurale/unit-amount tolta: il fisico la porta da git HEAD), la scheda Unit Amount del dettaglio dell'intervento (TX-0030, RF030 e csr.tx-0030.read tolti dalla route /procedurale/interventi/:codice), i loro campi e l'export unit-amount/{formato}; nel menu dei wireframe la voce 'Unit Amount' esce. Nessun alias della vecchia route (A-4). Da fare allo step6 (layer app/ e codice, fuori da questo step): togliere la voce 'Unit Amount' dal menu Procedurale in src/app/aree.ts, la route /procedurale/unit-amount dalla route-table e dal route-manifest della feature, la pagina in src/pages/procedurale e le parti della feature procedurale (api, lib, ui, mock, test) che leggono TX-0030, la scheda Unit Amount del dettaglio dell'intervento e la frase del pannello dei filtri sulle Unit Amount."
+    },
+    {
+      "id": "OP-PR-13",
+      "kind": "altro",
+      "detail": "Riallineamento degli ambiti (MIN-20261029 A-1, A-2, A-5): TX-0020 (determine di una domanda, RF020) entra nella feature con la route /procedurale/determine/:codice? (flusso determine, portato dal flusso determine del fisico approvato il 22/10/2026), GET /api/procedurale/domande/{codice}/determina, grant csr.tx-0020.read (P1, P2, P3 dell'area procedurale; P4 scoped sul perimetro ADA: la risposta dichiara perimetro, una domanda fuori perimetro risponde 404 con lo stesso corpo di una inesistente e la pagina mostra lo stesso messaggio). Nessun export e nessun ultimo dato sincronizzato, come prima. Da fare allo step6: voce 'Determine di una domanda' (/procedurale/determine, grant csr.tx-0020.read) come ultima voce del menu Procedurale in src/app/aree.ts; card Procedurale della Home col testo nuovo (OP-PR-10); la route nella route-table e nel route-manifest della feature; la pagina in src/pages/procedurale e la lettura nella feature procedurale. La voce e la route /fisico/determine escono dalla feature fisico, senza alias (A-4)."
+    },
+    {
+      "id": "OP-PR-14",
+      "kind": "altro",
+      "detail": "Ingresso alla pagina delle determine dall'elenco operativo (era OP-FIS-08 del fisico): un link dalla scheda della domanda (scheda Determine) verso /procedurale/determine/:codice? lo dichiarerebbe la feature elenco-operativo nel suo uiplan (target_feature procedurale) quando il flusso determine e' approvato; finche' manca, si entra dal menu e si scrive il codice. Il passaggio inverso, dalla pagina delle determine alla scheda della domanda, e' il link scheda-domanda di questa feature (verso una route dell'elenco gia' approvata, nessun pin della slice elenco-operativo)."
     }
   ]
 }

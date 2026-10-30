@@ -1,0 +1,23 @@
+{
+  "wireframe_determine": {
+    "approved_hash": "sha256:c797793a40a02c16b021bf98496a77e808dd8072184e3ab4847e8581da535d32",
+    "baseline_ref": "./wireframes/fisico/determine",
+    "approved_at": "2026-10-22T08:51:29Z",
+    "time_to_approve_s": 218,
+    "deviations_reviewed": [
+      "Scelte di disegno approvate dall'utente il 22/10/2026: CSV/XLSX delle card legate a una campagna = campagna della card; campagna di riferimento = filtro o la piu' recente; una sola route /fisico/determine/:codice?; nessun drill-down superfici->elenco (OP-FIS-05); link dalla scheda dell'elenco alle determine nel refresh dell'elenco (OP-FIS-08); campagne del pannello con campagna nell'indirizzo = quella o tutte"
+    ]
+  },
+  "wireframe_superfici": {
+    "approved_hash": "sha256:199cd655ea694dd53c53bc67bcf83fcb132e8da272304d8f195f3c67ddf66596",
+    "baseline_ref": "./wireframes/fisico/superfici",
+    "approved_at": "2026-10-26T08:49:12Z",
+    "time_to_approve_s": 122,
+    "deviations_reviewed": [
+      "Scelte di disegno approvate dall'utente il 22/10/2026: CSV/XLSX delle card legate a una campagna = campagna della card; campagna di riferimento = filtro o la piu' recente; una sola route /fisico/determine/:codice?; nessun drill-down superfici->elenco (OP-FIS-05); link dalla scheda dell'elenco alle determine nel refresh dell'elenco (OP-FIS-08); campagne del pannello con campagna nell'indirizzo = quella o tutte",
+      "D1 della review step9 FULL del fisico v1 (22/10/2026): con il filtro Campagna lo stato vuoto e le note dicono 'nessuna superficie nella campagna N (non valorizzato)', anteprima senza mini linea con il filtro; riapprovato dall'utente il 22/10/2026",
+      "Card della Home dinamica (OP-FIS-10, decisione dell'utente del 26/10/2026: i KPI della pagina per la campagna piu' recente): home.html del flusso; riapprovato dall'utente il 26/10/2026",
+      "D2 della review step9 della card della Home (26/10/2026, decisione dell'utente): la cache condivisa fra card e pagina vale a lettura finita; se si entra nell'area mentre la card sta ancora leggendo, la pagina rifa' la lettura (X1). Correzione nel mutator solo se il ritardo si vede in prova."
+    ]
+  }
+}

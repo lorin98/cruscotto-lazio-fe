@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
   "feature": "istituzionale",
-  "pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb",
+  "pack_hash": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7",
   "spec_pins": [
     {
       "slice": "istituzionale",
       "path": "handover/openapi-istituzionale.json",
-      "sha256": "sha256:b0c069cf6b6874cc5bcdd6baaa6597db8438bd313c233d22ff7444aa9cb3c288",
+      "sha256": "sha256:e29f8ac4e5d99c287d8398aa419acb19c2c6f6167d1cbf22240a1e66cc7e3489",
       "manifest_hash_match": true
     },
     {
@@ -100,65 +100,89 @@
         },
         {
           "id": "verifica-smp-sigc",
-          "trigger": "Link 'Verifica SMP SIGC' nella frase sotto il titolo ('I dati SIGC per lo stesso confronto sono nel Finanziario'), reso solo a chi ha anche csr.tx-0015.read (p1-dirigente, p2-referente-adg; non a p3-funzionario-area-ist). Decisione G4 dell'utente: nessun filtro portato, perche' l'esercizio finanziario (obbligatorio per TX-0015) e l'anno di riferimento del file (TX-0016) non si traducono e la route del finanziario non dichiara url_params; il finanziario non cambia",
-          "target_feature": "finanziario",
-          "target": "/finanziario/sigc/verifica-smp",
+          "trigger": "Link 'Verifica SMP SIGC' nella frase sotto il titolo ('La stessa verifica per i dati SIGC, per esercizio finanziario e con gli stessi filtri'), reso con csr.tx-0015.read (nel catalogo rev. 4 lo hanno tutti i profili con csr.tx-0016.read: p1-dirigente, p2-referente-adg, p3-funzionario-area-ist). Porta i filtri comuni alle due transazioni, non l'anno: l'anno di riferimento del file SMP non SIGC non si traduce nell'esercizio finanziario, obbligatorio per TX-0015, che la verifica SIGC chiede col suo selettore. Riallineamento del 29/10/2026 (MIN-20261029): sostituisce il link G4 verso /finanziario/sigc/verifica-smp, che non esiste piu' (A-4); speculare di verifica-smp-non-sigc",
+          "target": "/istituzionale/verifica-smp-sigc",
           "path_params": [],
-          "query": []
+          "query": [
+            "intervento",
+            "os",
+            "og",
+            "op",
+            "azione"
+          ]
         }
       ]
     },
     {
-      "path": "/istituzionale/output-regionale",
+      "path": "/istituzionale/verifica-smp-sigc",
       "kind": "report",
       "transactions": [
-        "TX-0017",
+        "TX-0015",
         "TX-0060"
       ],
       "reqs": [
-        "RF017",
+        "RF015",
         "RA006"
       ],
       "roles": [
-        "csr.tx-0017.read"
+        "csr.tx-0015.read"
       ],
-      "flow": "output-regionale",
+      "flow": "verifica-smp-sigc",
       "url_params": [
         {
+          "name": "esercizio",
+          "source": "TX-0015.esercizio"
+        },
+        {
           "name": "intervento",
-          "source": "TX-0017.intervento",
+          "source": "TX-0015.intervento",
           "multi": true
         },
         {
           "name": "os",
-          "source": "TX-0017.os",
+          "source": "TX-0015.os",
           "multi": true
         },
         {
           "name": "og",
-          "source": "TX-0017.og",
+          "source": "TX-0015.og",
           "multi": true
         },
         {
           "name": "op",
-          "source": "TX-0017.op",
+          "source": "TX-0015.op",
           "multi": true
         },
         {
           "name": "azione",
-          "source": "TX-0017.azione",
+          "source": "TX-0015.azione",
           "multi": true
         }
       ],
       "links": [
         {
-          "id": "dettaglio-intervento-output",
-          "trigger": "Pulsante 'Apri il dettaglio' del drawer di anteprima di una riga (clic o Invio sulla riga apre il drawer)",
+          "id": "dettaglio-intervento-smp-sigc",
+          "trigger": "Clic su una barra di Spesa erogata nella campagna precedente per intervento, oppure clic o Invio su una riga della tabella: il dettaglio dell'intervento con l'esercizio scelto, aperto sulla scheda Verifica SMP SIGC",
           "target": "/istituzionale/interventi/:codice",
           "path_params": [
             "codice"
           ],
-          "query": []
+          "query": [
+            "esercizio"
+          ]
+        },
+        {
+          "id": "verifica-smp-non-sigc",
+          "trigger": "Link 'Verifica SMP non SIGC' nella frase sotto il titolo ('La stessa verifica per i dati ASR non SIGC, con gli stessi filtri'), reso con csr.tx-0016.read (nel catalogo rev. 4 lo hanno tutti i profili con csr.tx-0015.read). Porta i filtri comuni, non l'esercizio (non si traduce nell'anno di riferimento del file SMP non SIGC). Speculare di verifica-smp-sigc (scelta di disegno 1)",
+          "target": "/istituzionale/verifica-smp-non-sigc",
+          "path_params": [],
+          "query": [
+            "intervento",
+            "os",
+            "og",
+            "op",
+            "azione"
+          ]
         }
       ]
     },
@@ -167,29 +191,33 @@
       "kind": "dettaglio",
       "transactions": [
         "TX-0016",
-        "TX-0017",
+        "TX-0015",
         "TX-0060"
       ],
       "reqs": [
         "RF016",
-        "RF017",
+        "RF015",
         "RA006"
       ],
       "roles": [
         "csr.tx-0016.read",
-        "csr.tx-0017.read"
+        "csr.tx-0015.read"
       ],
       "flow": "intervento",
       "url_params": [
         {
           "name": "anno",
           "source": "TX-0016.anno"
+        },
+        {
+          "name": "esercizio",
+          "source": "TX-0015.esercizio"
         }
       ],
       "links": [
         {
           "id": "verifica-smp-intervento",
-          "trigger": "Pulsante della testata 'Verifica SMP non SIGC filtrata su questo intervento' (intervento = codice della route, con l'anno di riferimento scelto)",
+          "trigger": "Pulsante della testata 'Verifica SMP non SIGC filtrata su questo intervento' (intervento = codice della route, con l'anno di riferimento scelto nella scheda non SIGC), reso con csr.tx-0016.read",
           "target": "/istituzionale/verifica-smp-non-sigc",
           "path_params": [],
           "query": [
@@ -198,12 +226,13 @@
           ]
         },
         {
-          "id": "output-regionale-intervento",
-          "trigger": "Pulsante della testata 'Output regionale filtrato su questo intervento' (intervento = codice della route)",
-          "target": "/istituzionale/output-regionale",
+          "id": "verifica-smp-sigc-intervento",
+          "trigger": "Pulsante della testata 'Verifica SMP SIGC filtrata su questo intervento' (intervento = codice della route, con l'esercizio scelto nella scheda SIGC), reso con csr.tx-0015.read",
+          "target": "/istituzionale/verifica-smp-sigc",
           "path_params": [],
           "query": [
-            "intervento"
+            "intervento",
+            "esercizio"
           ]
         },
         {
@@ -438,139 +467,211 @@
       "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
     },
     {
-      "route": "/istituzionale/output-regionale",
-      "name": "annoInizio",
+      "route": "/istituzionale/verifica-smp-sigc",
+      "name": "esercizio",
       "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
     },
     {
-      "route": "/istituzionale/output-regionale",
-      "name": "annoFine",
+      "route": "/istituzionale/verifica-smp-sigc",
+      "name": "annoDomande",
       "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
     },
     {
-      "route": "/istituzionale/output-regionale",
+      "route": "/istituzionale/verifica-smp-sigc",
+      "name": "pagamentiSenzaData",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-sigc",
       "name": "perimetro",
       "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
     },
     {
-      "route": "/istituzionale/output-regionale",
-      "name": "realizzatoNonSigcCumulativo",
-      "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
-    },
-    {
-      "route": "/istituzionale/output-regionale",
+      "route": "/istituzionale/verifica-smp-sigc",
       "name": "righe[].codiceIntervento",
       "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
     },
     {
-      "route": "/istituzionale/output-regionale",
+      "route": "/istituzionale/verifica-smp-sigc",
+      "name": "righe[].avvisiAttivati",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-sigc",
+      "name": "righe[].azioniAttivate",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-sigc",
+      "name": "righe[].domandeRicevute",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-sigc",
+      "name": "righe[].domandeRicevuteSenzaRichiesto",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-sigc",
+      "name": "righe[].valoreDomandeRicevute",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-sigc",
+      "name": "righe[].domandeFinanziate",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-sigc",
+      "name": "righe[].valoreDomandeFinanziate",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-sigc",
+      "name": "righe[].dotazioneAnnoPrecedente",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-sigc",
+      "name": "righe[].dotazionePeriodoImpegno",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-sigc",
+      "name": "righe[].domandePagateEsercizio",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-sigc",
+      "name": "righe[].spesaErogataCampagnaPrecedente",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-sigc",
+      "name": "righe[].spesaErogataCampagneAnteriori",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-sigc",
+      "name": "righe[].previsionePagamentoEsercizio",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-sigc",
+      "name": "righe[].importoTopUp",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-sigc",
+      "name": "righe[].includeTopUp",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-sigc",
+      "name": "righe[].ettariUbaRichiesti",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-sigc",
+      "name": "righe[].outputAttesoFinanziate",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-sigc",
+      "name": "righe[].outputErogatoEsercizio",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-sigc",
       "name": "righe[].indicatoreOutput",
       "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
     },
     {
-      "route": "/istituzionale/output-regionale",
-      "name": "righe[].unitaMisura",
+      "route": "/istituzionale/verifica-smp-sigc",
+      "name": "righe[].indicatoreRisultato",
       "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
     },
     {
-      "route": "/istituzionale/output-regionale",
-      "name": "righe[].targetFinePeriodo",
-      "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
-    },
-    {
-      "route": "/istituzionale/output-regionale",
-      "name": "righe[].annoTarget",
-      "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
-    },
-    {
-      "route": "/istituzionale/output-regionale",
-      "name": "righe[].anni[].anno",
-      "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
-    },
-    {
-      "route": "/istituzionale/output-regionale",
-      "name": "righe[].anni[].programmato",
-      "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
-    },
-    {
-      "route": "/istituzionale/output-regionale",
-      "name": "righe[].anni[].realizzatoSigc",
-      "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
-    },
-    {
-      "route": "/istituzionale/output-regionale",
-      "name": "righe[].anni[].realizzatoNonSigc",
-      "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
-    },
-    {
-      "route": "/istituzionale/output-regionale",
+      "route": "/istituzionale/verifica-smp-sigc",
       "name": "ultimiDatiSincronizzati[].flusso",
       "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
     },
     {
-      "route": "/istituzionale/output-regionale",
+      "route": "/istituzionale/verifica-smp-sigc",
       "name": "ultimiDatiSincronizzati[].conclusoIl",
       "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
     },
     {
-      "route": "/istituzionale/output-regionale",
+      "route": "/istituzionale/verifica-smp-sigc",
       "name": "interventi[].chiave",
       "provenance": "spec",
       "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
     },
     {
-      "route": "/istituzionale/output-regionale",
+      "route": "/istituzionale/verifica-smp-sigc",
       "name": "interventi[].descrizione",
       "provenance": "spec",
       "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
     },
     {
-      "route": "/istituzionale/output-regionale",
+      "route": "/istituzionale/verifica-smp-sigc",
       "name": "obiettiviSpecifici[].chiave",
       "provenance": "spec",
       "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
     },
     {
-      "route": "/istituzionale/output-regionale",
+      "route": "/istituzionale/verifica-smp-sigc",
       "name": "obiettiviGenerali[]",
       "provenance": "spec",
       "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
     },
     {
-      "route": "/istituzionale/output-regionale",
+      "route": "/istituzionale/verifica-smp-sigc",
       "name": "obiettiviPolicy[]",
       "provenance": "spec",
       "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
     },
     {
-      "route": "/istituzionale/output-regionale",
+      "route": "/istituzionale/verifica-smp-sigc",
       "name": "azioniPortanti[].chiave",
       "provenance": "spec",
       "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
     },
     {
-      "route": "/istituzionale/output-regionale",
+      "route": "/istituzionale/verifica-smp-sigc",
       "name": "azioniPortanti[].descrizione",
       "provenance": "spec",
       "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
     },
     {
-      "route": "/istituzionale/output-regionale",
+      "route": "/istituzionale/verifica-smp-sigc",
       "name": "legameAzioniDisponibile",
       "provenance": "spec",
       "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
@@ -721,129 +822,177 @@
     },
     {
       "route": "/istituzionale/interventi/:codice",
-      "name": "annoInizio",
+      "name": "ultimiDatiSincronizzati[].flusso",
       "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
     },
     {
       "route": "/istituzionale/interventi/:codice",
-      "name": "annoFine",
+      "name": "ultimiDatiSincronizzati[].conclusoIl",
       "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "esercizio",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "annoDomande",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "pagamentiSenzaData",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
     },
     {
       "route": "/istituzionale/interventi/:codice",
       "name": "perimetro",
       "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
-    },
-    {
-      "route": "/istituzionale/interventi/:codice",
-      "name": "realizzatoNonSigcCumulativo",
-      "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
     },
     {
       "route": "/istituzionale/interventi/:codice",
       "name": "righe[].codiceIntervento",
       "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].avvisiAttivati",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].azioniAttivate",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].domandeRicevute",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].domandeRicevuteSenzaRichiesto",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].valoreDomandeRicevute",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].domandeFinanziate",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].valoreDomandeFinanziate",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].dotazioneAnnoPrecedente",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].dotazionePeriodoImpegno",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].domandePagateEsercizio",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].spesaErogataCampagnaPrecedente",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].spesaErogataCampagneAnteriori",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].previsionePagamentoEsercizio",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].importoTopUp",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].includeTopUp",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].ettariUbaRichiesti",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].outputAttesoFinanziate",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "righe[].outputErogatoEsercizio",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
     },
     {
       "route": "/istituzionale/interventi/:codice",
       "name": "righe[].indicatoreOutput",
       "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
     },
     {
       "route": "/istituzionale/interventi/:codice",
-      "name": "righe[].unitaMisura",
+      "name": "righe[].indicatoreRisultato",
       "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
-    },
-    {
-      "route": "/istituzionale/interventi/:codice",
-      "name": "righe[].targetFinePeriodo",
-      "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
-    },
-    {
-      "route": "/istituzionale/interventi/:codice",
-      "name": "righe[].annoTarget",
-      "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
-    },
-    {
-      "route": "/istituzionale/interventi/:codice",
-      "name": "righe[].anni[].anno",
-      "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
-    },
-    {
-      "route": "/istituzionale/interventi/:codice",
-      "name": "righe[].anni[].programmato",
-      "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
-    },
-    {
-      "route": "/istituzionale/interventi/:codice",
-      "name": "righe[].anni[].realizzatoSigc",
-      "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
-    },
-    {
-      "route": "/istituzionale/interventi/:codice",
-      "name": "righe[].anni[].realizzatoNonSigc",
-      "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
-    },
-    {
-      "route": "/istituzionale/interventi/:codice",
-      "name": "righe[].importiUnitari[].codiceUnitAmount",
-      "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
-    },
-    {
-      "route": "/istituzionale/interventi/:codice",
-      "name": "righe[].importiUnitari[].gruppoColturale",
-      "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
-    },
-    {
-      "route": "/istituzionale/interventi/:codice",
-      "name": "righe[].importiUnitari[].esercizio",
-      "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
-    },
-    {
-      "route": "/istituzionale/interventi/:codice",
-      "name": "righe[].importiUnitari[].importoUnitario",
-      "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
     },
     {
       "route": "/istituzionale/interventi/:codice",
       "name": "ultimiDatiSincronizzati[].flusso",
       "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
     },
     {
       "route": "/istituzionale/interventi/:codice",
       "name": "ultimiDatiSincronizzati[].conclusoIl",
       "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
-    },
-    {
-      "route": "/istituzionale/interventi/:codice",
-      "name": "ultimiDatiSincronizzati[].flusso",
-      "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
-    },
-    {
-      "route": "/istituzionale/interventi/:codice",
-      "name": "ultimiDatiSincronizzati[].conclusoIl",
-      "provenance": "spec",
-      "source_ref": "openapi-istituzionale.json#/components/schemas/MonitoraggioOutput"
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
     },
     {
       "route": "/istituzionale/interventi/:codice",
@@ -885,40 +1034,27 @@
         "Link 'Apri nell'elenco' e 'Apri nei pagamenti' nelle celle: bersaglio minimo 24 px (WCAG 2.5.8) e testo che dice dove portano",
         "Scaricamenti per formato come nel finanziario (PNG, CSV e XLSX nella card del grafico, CSV e XLSX in quella della tabella): sigla visibile contenuta nel nome accessibile completo (WCAG 2.5.3); durante la preparazione aria-disabled col focus sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo",
         "Pill 'Dati al' (ultimiDatiSincronizzati) come bottone col nome accessibile completo ('Ultimo dato sincronizzato: dati al ... per tutti i flussi. Mostra il dettaglio per flusso') e popover con una voce per flusso",
-        "Frase verso la verifica SMP SIGC del finanziario resa solo con csr.tx-0015.read (mai un link che porta a un 403); il testo dice l'area di arrivo",
+        "Frase verso la verifica SMP SIGC della stessa area resa con csr.tx-0015.read (mai un link che porta a un 403; nel catalogo rev. 4 lo hanno tutti i profili della pagina); il testo dice che porta i filtri e non l'anno",
         "Residuo manuale: ordine di lettura (filtri, anno, grafico, tabella), comprensibilita delle note sulle definizioni, contrasto della resa finale; axe rinviato allo step8",
         "Card della Home (home.html, decisione dell'utente del 26/10/2026): numeri in una lista di definizioni dentro un gruppo con nome (\"L'istituzionale in cifre\"); numero animato letto solo nel valore finale e fermo con prefers-reduced-motion; barra della spesa sul valore finanziato nascosta ai lettori di schermo, percentuale nel testo; totale di un dato motivato assente in una riga detto 'non disponibile' col motivo, mai una somma parziale; errore detto in una frase senza fermare la Home."
-      ],
-      "approval": {
-        "approved_hash": "sha256:dcb8a4bdd3edea0b1a12367e80c0111fb807a4a3d3a92debdc3d28fbf502778d",
-        "baseline_ref": "./wireframes/istituzionale/verifica-smp-non-sigc",
-        "approved_at": "2026-10-26T10:21:19Z",
-        "time_to_approve_s": 216,
-        "rework_rounds": 1
-      }
+      ]
     },
     {
-      "name": "output-regionale",
+      "name": "verifica-smp-sigc",
       "routes": [
-        "/istituzionale/output-regionale"
+        "/istituzionale/verifica-smp-sigc"
       ],
-      "wireframe_dir": "wireframes/istituzionale/output-regionale",
+      "wireframe_dir": "wireframes/istituzionale/verifica-smp-sigc",
       "wcag_notes": [
-        "Interruttore della misura (Programmato | Realizzato SIGC | Realizzato non SIGC) come gruppo di bottoni con aria-pressed; il cambio non sposta il focus e la didascalia della tabella dice quale misura e' mostrata",
-        "Colonne degli anni dalla risposta (annoInizio..annoFine), intestazioni di colonna con scope; l'intervento e' l'intestazione di riga",
-        "Drawer di anteprima con focus-trap e ritorno del focus alla riga; il mini grafico ha la tabella equivalente per i lettori di schermo",
-        "Unita' di misura sempre accanto al valore (mai un numero senza unita')",
-        "Scaricamenti per formato come nel finanziario (CSV e XLSX nella card della tabella; nessun PNG: la pagina non ha grafici): sigla visibile contenuta nel nome accessibile completo (WCAG 2.5.3); durante la preparazione aria-disabled col focus sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo",
-        "Pill 'Dati al' (ultimiDatiSincronizzati) come bottone col nome accessibile completo ('Ultimo dato sincronizzato: dati al ... per tutti i flussi. Mostra il dettaglio per flusso') e popover con una voce per flusso",
-        "Residuo manuale: leggibilita della tabella larga con scorrimento orizzontale (WCAG 1.4.10 reflow), ordine di lettura, contrasto della resa finale; axe rinviato allo step8"
-      ],
-      "approval": {
-        "approved_hash": "sha256:4b7342bfd3870e169d098ff86e16b94921f91bde4782a1bddeb9e565fa90f302",
-        "baseline_ref": "./wireframes/istituzionale/output-regionale",
-        "approved_at": "2026-10-22T08:51:29Z",
-        "time_to_approve_s": 218,
-        "rework_rounds": 1
-      }
+        "Tabella equivalente del grafico a un clic (Grafico | Tabella), stessi valori; i valori assenti sono omessi dal grafico ed elencati sotto col motivo",
+        "Ogni dato mancante e' un testo col motivo (non valorizzato, non disponibile con la fonte attesa), mai uno 0 o un 'no' inventati e mai il solo colore",
+        "Tabella larga (21 colonne): intestazione di riga sul codice intervento, scorrimento orizzontale del solo contenitore, intestazioni ordinabili come bottoni con lo stato annunciato, righe apribili con Invio",
+        "Selettore dell'esercizio con etichetta e testo d'aiuto collegati (aria-describedby); la scelta si applica col pulsante Mostra; senza esercizio uno stato che chiede di sceglierlo (nessuna lettura)",
+        "Scaricamenti per formato (PNG, CSV e XLSX nella card del grafico, CSV e XLSX in quella della tabella): sigla visibile contenuta nel nome accessibile completo, che dice anche l'esercizio (WCAG 2.5.3); durante la preparazione aria-disabled col focus sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo",
+        "Pill 'Dati al' (ultimiDatiSincronizzati di TX-0015) come bottone col nome accessibile completo ('Ultimo dato sincronizzato: dati al ... per tutti i flussi. Mostra il dettaglio per flusso') e popover con una voce per flusso",
+        "Frase verso la verifica SMP non SIGC resa con csr.tx-0016.read (mai un link che porta a un 403); il testo dice che porta i filtri e non l'esercizio",
+        "Residuo manuale: ordine di lettura (filtri, titolo, esercizio, riferimenti, grafico, tabella), comprensibilita' delle note sulle definizioni, testi lunghi delle assenze nelle celle, contrasto della resa finale; axe rinviato allo step8"
+      ]
     },
     {
       "name": "intervento",
@@ -927,62 +1063,56 @@
       ],
       "wireframe_dir": "wireframes/istituzionale/intervento",
       "wcag_notes": [
-        "Schede come tablist con frecce da tastiera; il focus va al titolo dopo il cambio di route",
-        "Grafico per anno con la tabella equivalente (anno per anno, valori assenti col motivo); il target di fine periodo e' anche una voce di testo, non solo la linea di riferimento",
-        "Voci della verifica SMP come tabella a due colonne con intestazione di riga",
-        "Scaricamenti per formato come nel finanziario (PNG, CSV e XLSX nella scheda Output per anno, CSV e XLSX nella scheda Verifica; il nome accessibile dice anche l'intervento): sigla visibile contenuta nel nome accessibile completo (WCAG 2.5.3); durante la preparazione aria-disabled col focus sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo",
+        "Schede come tablist con frecce da tastiera; il focus va al titolo dopo il cambio di route; la scheda iniziale e' quella della pagina di partenza",
+        "Voci delle due verifiche come tabelle a due colonne con intestazione di riga; la caption dice periodo e intervento",
+        "KPI di ogni scheda col periodo nel testo (cumulative; campagna n-1 ed esercizio n), non solo nel titolo della scheda",
+        "Selettori dell'anno e dell'esercizio con etichetta e testo d'aiuto collegati (aria-describedby); la scheda SIGC senza esercizio dice di sceglierlo",
+        "Scaricamenti per formato (CSV e XLSX in ogni scheda; il nome accessibile dice l'intervento e, per la scheda SIGC, l'esercizio): sigla visibile contenuta nel nome accessibile completo (WCAG 2.5.3); durante la preparazione aria-disabled col focus sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo",
         "Pill 'Dati al' (ultimiDatiSincronizzati) come bottone col nome accessibile completo ('Ultimo dato sincronizzato: dati al ... per tutti i flussi. Mostra il dettaglio per flusso') e popover con una voce per flusso",
-        "Residuo manuale: ordine di lettura di testata, KPI e schede; comprensibilita delle note sulle definizioni; contrasto della resa finale; axe rinviato allo step8"
-      ],
-      "approval": {
-        "approved_hash": "sha256:1932cee77819cb6b6333e61f8e65b1c45c2f22393985d85fd427c4b56ee79a1b",
-        "baseline_ref": "./wireframes/istituzionale/intervento",
-        "approved_at": "2026-10-22T08:51:29Z",
-        "time_to_approve_s": 218,
-        "rework_rounds": 1
-      }
+        "Residuo manuale: ordine di lettura di testata e schede; comprensibilita' della differenza di periodo fra le due schede; etichette lunghe delle voci; contrasto della resa finale; axe rinviato allo step8"
+      ]
     }
   ],
   "open_points": [
     {
       "id": "OP-IS-01",
       "kind": "campo-assente-dalla-spec",
-      "detail": "CHIUSO il 22/10/2026 con la decisione G2 dell'utente (21/10/2026, cruscotto-lazio-spec/decisioni/MIN-20261022-decisioni-utente-altri-ambiti.md): le voci del pannello dei filtri (interventi con descrizione, senza l'Assistenza tecnica AT001; obiettivi specifici, generali e di policy; azioni portanti con legameAzioniDisponibile) e la descrizione dell'intervento nella testata del dettaglio vengono da TX-0060 dell'elenco operativo (GET /api/elenco-operativo/filtri, ValoriFiltriElenco, RA006). Nessun campo nuovo nel contratto istituzionale. Come nel fisico (OP-FIS-01): le tre route dichiarano TX-0060 fra le loro transazioni e la slice elenco-operativo e' pinnata nell'handover e in spec_pins (riconciliata col suo manifest, spec sha256:7532fe3b... invariata dal backend); le altre transazioni di quella slice restano dell'elenco (OP-IS-10). Visibilita' delle route invariata (csr.tx-0016.read, csr.tx-0017.read): csr.tx-0060.read e' di tutti gli 11 profili e la visibilita' e' 'almeno un grant', quindi aggiungerlo ai roles aprirebbe le pagine a chi non legge i report; la lettura di TX-0060 e' un'azione hide-by-role con csr.tx-0060.read (step6), che hanno tutti i profili con csr.tx-0016.read o csr.tx-0017.read (p1-dirigente, p2-referente-adg, p3-funzionario-area-ist: perimetro regionale, voci regionali). Realizzazione (step3-api): client generato di TX-0060 in src/shared/api/generated/elenco-operativo, usato da shared senza importare da features/elenco-operativo (uiplan-patterns 7). Se TX-0060 non risponde, i filtri dell'indirizzo restano chip rimovibili, il report si legge lo stesso e la testata del dettaglio mostra il codice. Testo originale in sintesi: voci dei filtri e descrizione dell'intervento assenti dalla spec istituzionale, p3-funzionario-area-ist senza TX-0001; ripiego proposto con le sole voci di Intervento prese dalle righe della risposta."
+      "detail": "CHIUSO il 22/10/2026 con la decisione G2 dell'utente (21/10/2026, cruscotto-lazio-spec/decisioni/MIN-20261022-decisioni-utente-altri-ambiti.md): le voci del pannello dei filtri (interventi con descrizione, senza l'Assistenza tecnica AT001; obiettivi specifici, generali e di policy; azioni portanti con legameAzioniDisponibile) e la descrizione dell'intervento nella testata del dettaglio vengono da TX-0060 dell'elenco operativo (GET /api/elenco-operativo/filtri, ValoriFiltriElenco, RA006). Nessun campo nuovo nel contratto istituzionale. Come nel fisico (OP-FIS-01): le tre route dichiarano TX-0060 fra le loro transazioni e la slice elenco-operativo e' pinnata nell'handover e in spec_pins (riconciliata col suo manifest, spec sha256:7532fe3b... invariata dal backend); le altre transazioni di quella slice restano dell'elenco (OP-IS-10). Visibilita' delle route invariata (csr.tx-0016.read, csr.tx-0017.read): csr.tx-0060.read e' di tutti gli 11 profili e la visibilita' e' 'almeno un grant', quindi aggiungerlo ai roles aprirebbe le pagine a chi non legge i report; la lettura di TX-0060 e' un'azione hide-by-role con csr.tx-0060.read (step6), che hanno tutti i profili con csr.tx-0016.read o csr.tx-0017.read (p1-dirigente, p2-referente-adg, p3-funzionario-area-ist: perimetro regionale, voci regionali). Realizzazione (step3-api): client generato di TX-0060 in src/shared/api/generated/elenco-operativo, usato da shared senza importare da features/elenco-operativo (uiplan-patterns 7). Se TX-0060 non risponde, i filtri dell'indirizzo restano chip rimovibili, il report si legge lo stesso e la testata del dettaglio mostra il codice. Testo originale in sintesi: voci dei filtri e descrizione dell'intervento assenti dalla spec istituzionale, p3-funzionario-area-ist senza TX-0001; ripiego proposto con le sole voci di Intervento prese dalle righe della risposta. Aggiornato il 30/10/2026 (riallineamento degli ambiti, MIN-20261029): TX-0060 serve anche la verifica SMP SIGC (TX-0015, csr.tx-0015.read: p1-dirigente, p2-referente-adg, p3-funzionario-area-ist, che hanno csr.tx-0060.read) e il dettaglio ricomposto; TX-0017 e la route dell'output regionale sono passati al fisico. Le tre route della feature sono ora la verifica SMP non SIGC, la verifica SMP SIGC e il dettaglio dell'intervento."
     },
     {
       "id": "OP-IS-02",
       "kind": "campo-assente-dalla-spec",
-      "detail": "CHIUSO il 22/10/2026 dal giro G3 del backend (decisione G3): TX-0016 e TX-0017 portano ultimiDatiSincronizzati (UltimoDatoSincronizzato: flusso, conclusoIl), lo stesso elenco di TX-0001 anche per p3-funzionario-area-ist che TX-0001 non lo legge (SC-IS_ULTIMO_DATO). Ogni pagina della feature mostra la pill 'Dati al' come il finanziario e l'elenco (la conclusione meno recente, popover per flusso; 'nessuna acquisizione conclusa' con l'elenco vuoto); il dettaglio la prende dalla prima risposta arrivata fra TX-0016 e TX-0017. Resta fuori, come nel finanziario (OP-FE-04), il marcatore 'dato non aggiornato da N giorni' di NFR-25 (c). Testo originale in sintesi: nessun DTO della slice portava ultimiDatiSincronizzati; la barra mostrava solo anno di riferimento e periodo."
+      "detail": "CHIUSO il 22/10/2026 dal giro G3 del backend (decisione G3): TX-0016 e TX-0017 portano ultimiDatiSincronizzati (UltimoDatoSincronizzato: flusso, conclusoIl), lo stesso elenco di TX-0001 anche per p3-funzionario-area-ist che TX-0001 non lo legge (SC-IS_ULTIMO_DATO). Ogni pagina della feature mostra la pill 'Dati al' come il finanziario e l'elenco (la conclusione meno recente, popover per flusso; 'nessuna acquisizione conclusa' con l'elenco vuoto); il dettaglio la prende dalla prima risposta arrivata fra TX-0016 e TX-0017. Resta fuori, come nel finanziario (OP-FE-04), il marcatore 'dato non aggiornato da N giorni' di NFR-25 (c). Testo originale in sintesi: nessun DTO della slice portava ultimiDatiSincronizzati; la barra mostrava solo anno di riferimento e periodo. Aggiornato il 30/10/2026 (pack 1.4.0): anche TX-0015 porta ultimiDatiSincronizzati (SC-IS_ULTIMO_DATO): la verifica SMP SIGC prende il 'Dati al' dalla sua risposta, non piu' da TX-0001 del finanziario; il dettaglio lo prende dalla prima risposta arrivata fra TX-0016 e TX-0015. TX-0017 e' passato al fisico."
     },
     {
       "id": "OP-IS-03",
       "kind": "altro",
-      "detail": "CHIUSO il 22/10/2026 dal giro G3 del backend: GET /api/istituzionale/verifica-smp-non-sigc/{formato} e /api/istituzionale/output-regionale/{formato} (csv, xlsx; stessi filtri e stesso grant della transazione; X-Requested-With; intestazione di NFR-50 con l'ultimo dato sincronizzato; una riga di AUDIT_ESPORTAZIONE per file; D-07 di istituzionale, SC-IS_ESPORTA). Come nel finanziario un pulsante per formato: PNG solo per i grafici (card della verifica, scheda Output per anno del dettaglio), disegnato nel browser con l'intestazione e non registrato in audit (stesso limite accettato di OP-FE-08); CSV e XLSX nelle card dei grafici e delle tabelle; l'output regionale, senza grafico in pagina, ha solo CSV e XLSX. I file contengono tutti gli interventi dei filtri (non la sola ricerca) e, per TX-0017, le tre misure per anno e gli importi unitari. Testo originale in sintesi: nessuna esportazione nella spec, proposto il solo PNG."
+      "detail": "CHIUSO il 22/10/2026 dal giro G3 del backend: GET /api/istituzionale/verifica-smp-non-sigc/{formato} e /api/istituzionale/output-regionale/{formato} (csv, xlsx; stessi filtri e stesso grant della transazione; X-Requested-With; intestazione di NFR-50 con l'ultimo dato sincronizzato; una riga di AUDIT_ESPORTAZIONE per file; D-07 di istituzionale, SC-IS_ESPORTA). Come nel finanziario un pulsante per formato: PNG solo per i grafici (card della verifica, scheda Output per anno del dettaglio), disegnato nel browser con l'intestazione e non registrato in audit (stesso limite accettato di OP-FE-08); CSV e XLSX nelle card dei grafici e delle tabelle; l'output regionale, senza grafico in pagina, ha solo CSV e XLSX. I file contengono tutti gli interventi dei filtri (non la sola ricerca) e, per TX-0017, le tre misure per anno e gli importi unitari. Testo originale in sintesi: nessuna esportazione nella spec, proposto il solo PNG. Aggiornato il 30/10/2026: si aggiunge GET /api/istituzionale/verifica-smp-sigc/{formato} (TX-0015 con l'esercizio e i filtri; PNG del grafico della pagina come nel finanziario); l'export dell'output regionale e' passato al fisico con TX-0017; il dettaglio non ha piu' grafici ne' PNG (CSV e XLSX per scheda)."
     },
     {
       "id": "OP-IS-04",
       "kind": "altro",
-      "detail": "CHIUSO il 22/10/2026 con la decisione G4 dell'utente (opzione A): link verifica-smp-sigc dalla verifica SMP non SIGC verso /finanziario/sigc/verifica-smp (feature finanziario, flusso sigc approvato), in una frase sotto il titolo resa solo a chi ha anche csr.tx-0015.read (p1-dirigente, p2-referente-adg; non a p3-funzionario-area-ist); query vuota, perche' l'esercizio finanziario (obbligatorio per TX-0015) e l'anno di riferimento del file (facoltativo per TX-0016) non si traducono e la route del finanziario non dichiara url_params. Il finanziario non cambia: nessun link di ritorno, nessuna riapprovazione del flusso sigc. Testo originale in sintesi: collegamento fra le due verifiche SMP da far decidere, opzioni A (solo da qui), B (nei due sensi, refresh del finanziario), C (nessun link)."
+      "detail": "SUPERATO il 29/10/2026 dal riallineamento degli ambiti (cruscotto-lazio-spec/decisioni/MIN-20261029-riallineamento-ambiti.md: G4 superata, le due verifiche stanno nello stesso ambito). La verifica SMP SIGC e' ora la route /istituzionale/verifica-smp-sigc di questa feature (flusso verifica-smp-sigc); il link verifica-smp-sigc punta li' coi filtri comuni (intervento, os, og, op, azione) e senza l'anno, e ha lo speculare verifica-smp-non-sigc (scelta di disegno 1 del dossier del 30/10/2026: link reciproci fra due pagine). Testo del 22/10/2026: chiuso con la decisione G4 dell'utente (opzione A): link verifica-smp-sigc dalla verifica SMP non SIGC verso /finanziario/sigc/verifica-smp (feature finanziario, flusso sigc approvato), in una frase sotto il titolo resa solo a chi ha anche csr.tx-0015.read (p1-dirigente, p2-referente-adg; non a p3-funzionario-area-ist); query vuota, perche' l'esercizio finanziario (obbligatorio per TX-0015) e l'anno di riferimento del file (facoltativo per TX-0016) non si traducono e la route del finanziario non dichiara url_params. Il finanziario non cambia: nessun link di ritorno, nessuna riapprovazione del flusso sigc. Testo originale in sintesi: collegamento fra le due verifiche SMP da far decidere, opzioni A (solo da qui), B (nei due sensi, refresh del finanziario), C (nessun link)."
     },
     {
       "id": "OP-IS-05",
       "kind": "altro",
-      "detail": "CHIUSO il 22/10/2026 con la decisione G1 dell'utente: le card della Home in src/app/aree.ts descrivono il contenuto reale delle feature. Istituzionale = verifica SMP non SIGC (TX-0016) e output regionale programmato e realizzato (TX-0017); i dati SIGC da confrontare con SMP restano nella feature e nella card Finanziario (TX-0015), raggiungibili dal link G4; la card del Fisico non elenca piu' l'output programmato e realizzato (Fisico = superfici TX-0018 e determine TX-0020). La Home e' del layer app/: la modifica la fa lo step6 (uiplan-patterns 7), non questa feature; le voci di menu dell'area (Verifica SMP non SIGC, Output regionale) vengono dalle route della feature. Testo originale in sintesi: testi delle card Istituzionale e Fisico diversi dalle slice (SIGC nel finanziario, RF017 dell'area F2 nel pack ma TX-0017 nella slice istituzionale)."
+      "detail": "AGGIORNATO il 30/10/2026 per il riallineamento degli ambiti (MIN-20261029); la decisione G1 resta valida. Istituzionale = verifica SMP non SIGC (TX-0016) e verifica SMP SIGC (TX-0015); l'output regionale (TX-0017) e' del fisico. Cosa dovra' cambiare a step6 (layer app/, fuori da questa feature: uiplan-patterns 7): in src/app/aree.ts la descrizione della card ('Dati ASR SIGC e non SIGC per intervento, da confrontare con SMP - Data Platform.'), i contenuti ('Verifica SMP dei dati ASR non SIGC', 'Verifica SMP dei dati ASR SIGC per esercizio finanziario') e il commento G1; nella feature (lib/pagine.ts, lib/grant.ts) le voci di menu 'Verifica SMP non SIGC' (ingresso dalla Home) e 'Verifica SMP SIGC', in quest'ordine (scelta di disegno 4), al posto di 'Output regionale'; il dettaglio resta fuori dal menu; ricercaConservata invariata (stessi cinque filtri nei due report; anno ed esercizio non passano). La voce 'Verifica SMP' del finanziario e la frase G4 spariscono con le loro route. Testo del 22/10/2026: chiuso con la decisione G1 dell'utente: le card della Home in src/app/aree.ts descrivono il contenuto reale delle feature. Istituzionale = verifica SMP non SIGC (TX-0016) e output regionale programmato e realizzato (TX-0017); i dati SIGC da confrontare con SMP restano nella feature e nella card Finanziario (TX-0015), raggiungibili dal link G4; la card del Fisico non elenca piu' l'output programmato e realizzato (Fisico = superfici TX-0018 e determine TX-0020). La Home e' del layer app/: la modifica la fa lo step6 (uiplan-patterns 7), non questa feature; le voci di menu dell'area (Verifica SMP non SIGC, Output regionale) vengono dalle route della feature. Testo originale in sintesi: testi delle card Istituzionale e Fisico diversi dalle slice (SIGC nel finanziario, RF017 dell'area F2 nel pack ma TX-0017 nella slice istituzionale)."
     },
     {
       "id": "OP-IS-06",
       "kind": "altro",
-      "detail": "Grafico dell'output regionale fra interventi: ogni intervento ha il suo indicatore e la sua unita' di misura (ettari, UBA, numero di beneficiari, operazioni...), quindi un grafico che metta a confronto le quantita' di interventi diversi mescolerebbe unita' diverse. La pagina del report e' tabellare (pattern lista-filtri, uiplan-patterns 1: report tabellare) con un mini grafico per anno nel drawer della riga; il grafico per anno sta nel dettaglio dell'intervento (una sola unita'). Per un grafico fra interventi servirebbe una grandezza senza unita' calcolata dal backend (es. quota del target di fine periodo gia' realizzata, campo additivo su MonitoraggioOutputRiga, green-be): il frontend non la calcola, perche' il realizzato SIGC e' annuale e quello non SIGC cumulativo (D-04) e la loro somma non e' definita."
+      "detail": "CHIUSO per questa feature il 30/10/2026: TX-0017 (output regionale) e' passato al fisico (MIN-20261029, A-1) e il punto segue il flusso output-regionale nella feature fisico. Nell'istituzionale non resta alcun output per anno: il dettaglio dell'intervento non ha piu' grafici. Testo originale: Grafico dell'output regionale fra interventi: ogni intervento ha il suo indicatore e la sua unita' di misura (ettari, UBA, numero di beneficiari, operazioni...), quindi un grafico che metta a confronto le quantita' di interventi diversi mescolerebbe unita' diverse. La pagina del report e' tabellare (pattern lista-filtri, uiplan-patterns 1: report tabellare) con un mini grafico per anno nel drawer della riga; il grafico per anno sta nel dettaglio dell'intervento (una sola unita'). Per un grafico fra interventi servirebbe una grandezza senza unita' calcolata dal backend (es. quota del target di fine periodo gia' realizzata, campo additivo su MonitoraggioOutputRiga, green-be): il frontend non la calcola, perche' il realizzato SIGC e' annuale e quello non SIGC cumulativo (D-04) e la loro somma non e' definita."
     },
     {
       "id": "OP-IS-07",
       "kind": "altro",
-      "detail": "Valori da consolidare (NFR-25 d) e definizioni da confermare: NFR-25 (d) chiede di marcare 'da consolidare' i valori dell'area Istituzionale il cui tracciamento fuori dalla piattaforma nazionale non e' definito (flussi alternativi di UC016 e UC017), ma la spec non ha un marcatore del genere (motivi: FONTE_NON_ATTIVA, NON_VALORIZZATO, ANNO_NON_CONSERVATO, FONTE_AMBIGUA). Il backend dichiara da confermare: domande pagate 'solo saldate al 100%' (D-02, definizione DUBBIA nella MTX-01, con ARSIAL), realizzato non SIGC come valore del file cumulativo per anno di riferimento (D-04, con ARSIAL e AGEA), programmato per anno come somma dell'output previsto delle Unit Amount (D-03). La UI le dichiara come note fisse accanto alle colonne (testo dalle decisioni del backend, non un dato). Da chiarire con green-spec e green-be se NFR-25 (d) chiede un campo della risposta."
+      "detail": "Valori da consolidare (NFR-25 d) e definizioni da confermare: NFR-25 (d) chiede di marcare 'da consolidare' i valori dell'area Istituzionale il cui tracciamento fuori dalla piattaforma nazionale non e' definito (flussi alternativi di UC016), ma la spec non ha un marcatore del genere (motivi: FONTE_NON_ATTIVA, NON_VALORIZZATO, ANNO_NON_CONSERVATO, FONTE_AMBIGUA). Il backend dichiara da confermare: domande pagate 'solo saldate al 100%' (D-02, definizione DUBBIA nella MTX-01, con ARSIAL), output erogato non SIGC come valore del file cumulativo per anno di riferimento (D-04, con ARSIAL e AGEA). Per TX-0015, arrivato dal finanziario il 29/10/2026, valgono le decisioni di finanziario richiamate dalla slice (D-05 Rev. 4 spesa e domande pagate nell'esercizio, D-09 Rev. 1 e Rev. 3 avvisi, azioni e top-up, D-11 previsione di pagamento). Il programmato per anno (D-03) e' uscito con TX-0017. La UI dichiara le definizioni come note fisse sotto le tabelle (testo dalle decisioni del backend, non un dato). Da chiarire con green-spec e green-be se NFR-25 (d) chiede un campo della risposta."
     },
     {
       "id": "OP-IS-08",
       "kind": "altro",
-      "detail": "Resa dei due motivi nuovi della slice: il kit (descriviAssenza in entities/importo) conosce FONTE_NON_ATTIVA, NON_VALORIZZATO e FUORI_PERIMETRO; ANNO_NON_CONSERVATO e FONTE_AMBIGUA cadrebbero nel generico 'non disponibile' senza nota. Proposta per lo step4-lib (estensione additiva, stessa forma testoConNota): ANNO_NON_CONSERVATO -> 'non disponibile per l'anno scelto (l'avviso porta i dati del file piu' recente)'; FONTE_AMBIGUA -> 'non attribuibile (riga presente sia nel monitoraggio SIGC sia nel non SIGC)'. I testi si approvano coi wireframe."
+      "detail": "Resa dei due motivi nuovi della slice: il kit (descriviAssenza in entities/importo) conosce FONTE_NON_ATTIVA, NON_VALORIZZATO e FUORI_PERIMETRO; ANNO_NON_CONSERVATO e FONTE_AMBIGUA cadrebbero nel generico 'non disponibile' senza nota. Proposta per lo step4-lib (estensione additiva, stessa forma testoConNota): ANNO_NON_CONSERVATO -> 'non disponibile per l'anno scelto (l'avviso porta i dati del file piu' recente)'; FONTE_AMBIGUA -> 'non attribuibile (riga presente sia nel monitoraggio SIGC sia nel non SIGC)'. I testi si approvano coi wireframe. Aggiornato il 30/10/2026: TX-0015 usa solo FONTE_NON_ATTIVA e NON_VALORIZZATO (ConteggioFinanziario, SiNoFinanziario), gia' noti al kit; i due motivi nuovi restano di TX-0016."
     },
     {
       "id": "OP-IS-09",
@@ -1004,7 +1134,12 @@
     {
       "id": "OP-IS-11",
       "kind": "altro",
-      "detail": "Card della Home dinamica (decisione dell'utente del 26/10/2026, come la card del finanziario): coi grant csr.tx-0016.read la card Istituzionale mostra i totali della verifica SMP non SIGC letta senza filtri e senza anno (stessa cache della pagina): domande finanziate, spesa pubblica erogata, quota della spesa sul valore delle domande finanziate (barra), domande ricevute, con l'anno di riferimento della risposta. Somme fra interventi lecite: ogni domanda e' di un solo intervento (D-02 Rev. 2), la spesa sono righe pagate non SIGC; un dato motivato assente in una riga rende il totale non disponibile col motivo. Nessuna lettura di TX-0017 (OP-IS-06). La pagina resta senza KPI. La Home non e' una route della feature: il componente sta nella feature (G1, OP-IS-05) e lo monta lo step6 in src/app/aree.ts come Anteprima. Wireframe: home.html del flusso verifica-smp-non-sigc. Decisione D3 dell'utente del 26/10/2026 (review della card): il riferimento dice 'Non SIGC, valori cumulativi (ultimo file SMP non SIGC: aaaa)', perche' domande e spesa sono cumulative e l'anno e' quello del file. Decisione D2: la cache condivisa con la pagina vale a lettura finita."
+      "detail": "Card della Home dinamica (decisione dell'utente del 26/10/2026, come la card del finanziario): coi grant csr.tx-0016.read la card Istituzionale mostra i totali della verifica SMP non SIGC letta senza filtri e senza anno (stessa cache della pagina): domande finanziate, spesa pubblica erogata, quota della spesa sul valore delle domande finanziate (barra), domande ricevute, con l'anno di riferimento della risposta. Somme fra interventi lecite: ogni domanda e' di un solo intervento (D-02 Rev. 2), la spesa sono righe pagate non SIGC; un dato motivato assente in una riga rende il totale non disponibile col motivo. Nessuna lettura di TX-0015 (richiede l'esercizio finanziario, che la Home non ha) ne' di TX-0017 (passato al fisico il 29/10/2026). La pagina resta senza KPI. La Home non e' una route della feature: il componente sta nella feature (G1, OP-IS-05) e lo monta lo step6 in src/app/aree.ts come Anteprima. Wireframe: home.html del flusso verifica-smp-non-sigc. Decisione D3 dell'utente del 26/10/2026 (review della card): il riferimento dice 'Non SIGC, valori cumulativi (ultimo file SMP non SIGC: aaaa)', perche' domande e spesa sono cumulative e l'anno e' quello del file. Decisione D2: la cache condivisa con la pagina vale a lettura finita. Aggiornato il 30/10/2026 (riallineamento degli ambiti): i numeri della card non cambiano; cambiano la descrizione e i contenuti (le due verifiche SMP, OP-IS-05), nel wireframe home.html del flusso verifica-smp-non-sigc. Scelta di disegno 3 del dossier: nessun numero SIGC nella card (servirebbe un esercizio predefinito, che il contratto non da')."
+    },
+    {
+      "id": "OP-IS-12",
+      "kind": "altro",
+      "detail": "Unita' di misura dell'output nella verifica SMP (aperto il 30/10/2026): TX-0016 e TX-0015 portano quantita' (outputAttesoFinanziate, outputErogato, outputErogatoEsercizio, ettariUbaRichiesti) e indicatoreOutput, ma non l'unita' di misura, che il dettaglio dell'intervento prendeva da TX-0017 (MonitoraggioOutputRiga.unitaMisura), passato al fisico il 29/10/2026. Il frontend non la ricava dal codice dell'indicatore. Oggi: la quantita' col codice dell'indicatore accanto (es. 'n (indicatore O.14)'), come nella tabella delle due pagine. Se serve l'unita': campo additivo unitaMisura sulle righe di VerificaSmpNonSigc e VerificaSmp (green-be, slice istituzionale). Non blocca nessun flusso."
     }
   ]
 }

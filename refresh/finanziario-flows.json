@@ -1,0 +1,32 @@
+[
+  {
+    "name": "domande",
+    "decision": "carried_over",
+    "expected": "sha256:67bb6e94750c9514d15c72bb2480ad9b68596156bef3a4d4968ff4c71ee97313",
+    "current": "sha256:67bb6e94750c9514d15c72bb2480ad9b68596156bef3a4d4968ff4c71ee97313"
+  },
+  {
+    "name": "dotazione-avanzamento",
+    "decision": "carried_over",
+    "expected": "sha256:ead559227a1e9ae2ffc680cd48943ee02bf23af206b3918efc799feb6092636c",
+    "current": "sha256:ead559227a1e9ae2ffc680cd48943ee02bf23af206b3918efc799feb6092636c"
+  },
+  {
+    "name": "panoramica",
+    "decision": "carried_over",
+    "expected": "sha256:62847ef999d2117747d48ade82cec4c30d0962fd65ef67fc7172f2931fa3ba82",
+    "current": "sha256:62847ef999d2117747d48ade82cec4c30d0962fd65ef67fc7172f2931fa3ba82"
+  },
+  {
+    "name": "riepilogo",
+    "decision": "carried_over",
+    "expected": "sha256:8d3e3739ae6f988cf64e6a6cd38a05299388742a85ffe1a6d8b0596d7bdfe2d1",
+    "current": "sha256:8d3e3739ae6f988cf64e6a6cd38a05299388742a85ffe1a6d8b0596d7bdfe2d1"
+  },
+  {
+    "name": "sigc",
+    "decision": "revoked",
+    "expected": "sha256:bff0fa0c53ba29b2431992ad0b611e270261a750e6bd9f253b6b754dc1744db5",
+    "current": "sha256:8189d3aa39192515b10f93dd9c087b24a95b335ade329052113204612766b0cf"
+  }
+]

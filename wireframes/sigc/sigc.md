@@ -4,13 +4,19 @@
 > `wireframes/sigc/` (hash da `wireframe-hash.sh`): modificare un file qui invalida
 > l'approvazione del flusso (e solo di questo flusso).
 
+Rivisto il 30/10/2026 per il riallineamento degli ambiti (decisioni A-1, A-4 e A-5 dell'utente del 29/10/2026,
+MIN-20261029; pack 1.4.0, catalogo rev. 4): la verifica SMP SIGC (TX-0015, RF015) e' un requisito dell'ambito
+istituzionale e la rende la feature istituzionale. Escono dal flusso la pagina `verifica-smp.html`, la route
+`/finanziario/sigc/verifica-smp` (nessun alias: A-4) e la voce "Verifica SMP" del menu delle due pagine rimaste. Nessun
+collegamento da queste pagine verso la verifica dell'istituzionale: ci si arriva dal menu Istituzionale. Il resto delle
+due pagine non cambia.
+
 ## Route del flusso
 
 | route | kind | pattern | grant (verbatim dal catalogo) |
 |---|---|---|---|
 | /finanziario/sigc | report | report v2 (KPI, grafici, tabella interattiva) | csr.tx-0012.read, csr.tx-0013.read |
 | /finanziario/sigc/riserva | report | report v2 (KPI, grafici, tabella interattiva) | csr.tx-0014.read |
-| /finanziario/sigc/verifica-smp | report | report v2 (KPI, grafici, tabella interattiva) | csr.tx-0015.read |
 
 ## Component tree (per pagina)
 
@@ -18,7 +24,6 @@ Vocabolario del kit UI v2 (ADR 0027 di green-fe), resa approvata nel prototipo `
 
 - /finanziario/sigc: Shell > Barra filtri > Breadcrumb > Titolo > Card domande SIGC (barre orizzontali) + Card importi SIGC (cascata) > Stati
 - /finanziario/sigc/riserva: Shell (senza barra filtri: dato regionale) > Breadcrumb > Titolo > Selettore anno > KPI x4 > Card utilizzo progressivo (linea con zoom) > Stati
-- /finanziario/sigc/verifica-smp: Shell > Barra filtri > Breadcrumb > Titolo > Selettore esercizio > Card spesa erogata nella campagna precedente (barre) > Card tabella 20 dati (cerca, colonne) > Stati
 
 ## Grafici del flusso
 
@@ -27,7 +32,6 @@ Vocabolario del kit UI v2 (ADR 0027 di green-fe), resa approvata nel prototipo `
 | /finanziario/sigc | Domande SIGC | barre orizzontali (pagate e da pagare si sovrappongono) | TX-0012 | link:elenco-sigc (elenco-operativo: /elenco-operativo/domande) | nessuno (conteggi) |
 | /finanziario/sigc | Importi SIGC | cascata | TX-0013 | link:elenco-sigc-importi (elenco-operativo: /elenco-operativo/domande) | importo assente: passo omesso |
 | /finanziario/sigc/riserva | Utilizzo progressivo della riserva | linea | TX-0014 | nessuno | punti assenti omessi e dichiarati |
-| /finanziario/sigc/verifica-smp | Spesa erogata nella campagna precedente (la previsione di pagamento si'/no sta in tabella, D-11) | barre | TX-0015 | dettaglio dell'intervento | 'non disponibile' in tabella |
 
 La riserva e' un dato regionale: i filtri non si applicano (OP-FE-03).
 
@@ -47,8 +51,8 @@ questi profili misti esistono; se si', un parametro del backend restringera' l'e
 | /finanziario/sigc | elenco-sigc | passo di Domande SIGC | elenco-operativo: /elenco-operativo/domande | - | sigc=true e, per pagate, da pagare e senza importi, pagamento=PAGATA, DA_PAGARE, SENZA_IMPORTI + filtri correnti |
 | /finanziario/sigc | elenco-sigc-importi | Importi SIGC | elenco-operativo: /elenco-operativo/domande | - | sigc=true + filtri correnti (il sinottico dell'elenco riporta richiesto, ammesso, pagato e ancora da pagare) |
 
-Non collegati: Utilizzo progressivo della riserva (TX-0014, dato regionale, non e' un insieme di domande) e Spesa erogata
-nella campagna precedente (TX-0015, per intervento ed esercizio).
+Non collegato: Utilizzo progressivo della riserva (TX-0014, dato regionale, non e' un insieme di domande). Nessun link
+verso altri ambiti: la verifica SMP SIGC (TX-0015) e' dell'istituzionale (OP-FE-10).
 
 ## Stati resi (obbligatori)
 
@@ -73,3 +77,5 @@ nella campagna precedente (TX-0015, per intervento ed esercizio).
   ne toglie le rettifiche; il decretato viene dagli elenchi di liquidazione. Resta da confermare con ARSIAL quale fonte fa
   fede per il pagato a regime.
 - OP-FE-09: profili misti (P4 con un profilo regionale): il report e' ADA, l'elenco aperto dal link e' regionale.
+- OP-FE-10 (nuovo, 30/10/2026): la verifica SMP SIGC esce dal finanziario; voce di menu, route-table, card della Home e
+  codice della pagina li allinea lo step6.

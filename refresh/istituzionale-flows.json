@@ -1,0 +1,19 @@
+[
+  {
+    "name": "intervento",
+    "decision": "revoked",
+    "expected": "sha256:1932cee77819cb6b6333e61f8e65b1c45c2f22393985d85fd427c4b56ee79a1b",
+    "current": "sha256:23b9de7b0f94771300578493b9c590f0c25364dc8adf236ed775bbdfcf3fcd9c"
+  },
+  {
+    "name": "output-regionale",
+    "decision": "revoked",
+    "expected": "sha256:4b7342bfd3870e169d098ff86e16b94921f91bde4782a1bddeb9e565fa90f302"
+  },
+  {
+    "name": "verifica-smp-non-sigc",
+    "decision": "revoked",
+    "expected": "sha256:dcb8a4bdd3edea0b1a12367e80c0111fb807a4a3d3a92debdc3d28fbf502778d",
+    "current": "sha256:a947ba1b2995bf6641cbf41291b8d56d925acd87bfe8cd07fb370b5460d3e49b"
+  }
+]

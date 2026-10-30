@@ -1,0 +1,60 @@
+{
+  "wireframe_ammesse": {
+    "approved_hash": "sha256:6cbddd380343f94fc5bbbdba8b32b14f7b86eda5a7eaedf7e46caacdb3966eaf",
+    "baseline_ref": "./wireframes/procedurale/ammesse",
+    "approved_at": "2026-10-22T08:51:29Z",
+    "time_to_approve_s": 218,
+    "deviations_reviewed": [
+      "Scelte di disegno approvate dall'utente il 22/10/2026: dettaglio procedurale dell'intervento con scheda Sottofasi; due pagine per gli stati di sostegno e di pagamento; card stato area programmazione da TX-0029; clic su una barra = filtro in pagina, Apri nell'elenco (n rilasciate) azione esplicita; di cui non rilasciate di In compilazione senza fonte = non disponibile; CSV/XLSX di una card = intero report; Unit Amount senza importo pagato = nota unica sopra la tabella"
+    ]
+  },
+  "wireframe_panoramica": {
+    "approved_hash": "sha256:eec17f2e3d8f1f27d4422f85825b27f5eaf3146cccc873c877e451cb05ef3865",
+    "baseline_ref": "./wireframes/procedurale/panoramica",
+    "approved_at": "2026-10-26T10:21:19Z",
+    "time_to_approve_s": 216,
+    "deviations_reviewed": [
+      "Scelte di disegno approvate dall'utente il 22/10/2026: dettaglio procedurale dell'intervento con scheda Sottofasi; due pagine per gli stati di sostegno e di pagamento; card stato area programmazione da TX-0029; clic su una barra = filtro in pagina, Apri nell'elenco (n rilasciate) azione esplicita; di cui non rilasciate di In compilazione senza fonte = non disponibile; CSV/XLSX di una card = intero report; Unit Amount senza importo pagato = nota unica sopra la tabella",
+      "D2 della review step9 FULL del procedurale v1 (23/10/2026, V5), approvata dall'utente: AT001 o un intervento fuori dal CSR: il backend risponde 200 senza righe (D-08 del finanziario), non 400; il dettaglio lo dice come senza dati con la nota su AT001; un 400 del backend resta un errore col messaggio del problem-type",
+      "Card della Home dinamica (OP-PR-10, decisione dell'utente del 26/10/2026: domande ammesse, contributo, barra degli interventi attivati, domande di sostegno): home.html del flusso; riapprovato dall'utente il 26/10/2026",
+      "D1 della review step9 della card della Home (26/10/2026): contributo ammesso col valore del backend e la nota 'manca il contributo di n interventi' in card e KPI della panoramica; riapprovato dall'utente il 26/10/2026",
+      "D2 della review step9 della card della Home (26/10/2026, decisione dell'utente): la cache condivisa fra card e pagina vale a lettura finita; se si entra nell'area mentre la card sta ancora leggendo, la pagina rifa' la lettura (X1). Correzione nel mutator solo se il ritardo si vede in prova."
+    ]
+  },
+  "wireframe_riepilogo": {
+    "approved_hash": "sha256:77f2d54bff90fd1378528ce1a5e081df40180c83a64aa9c3542358583e9d46d1",
+    "baseline_ref": "./wireframes/procedurale/riepilogo",
+    "approved_at": "2026-10-22T08:51:29Z",
+    "time_to_approve_s": 218,
+    "deviations_reviewed": [
+      "Scelte di disegno approvate dall'utente il 22/10/2026: dettaglio procedurale dell'intervento con scheda Sottofasi; due pagine per gli stati di sostegno e di pagamento; card stato area programmazione da TX-0029; clic su una barra = filtro in pagina, Apri nell'elenco (n rilasciate) azione esplicita; di cui non rilasciate di In compilazione senza fonte = non disponibile; CSV/XLSX di una card = intero report; Unit Amount senza importo pagato = nota unica sopra la tabella"
+    ]
+  },
+  "wireframe_sottofasi": {
+    "approved_hash": "sha256:d73403d3633be07461f7ea03219b6530d6d776e0a61eea7bc4e4f28c4e813b49",
+    "baseline_ref": "./wireframes/procedurale/sottofasi",
+    "approved_at": "2026-10-22T08:51:29Z",
+    "time_to_approve_s": 218,
+    "deviations_reviewed": [
+      "Scelte di disegno approvate dall'utente il 22/10/2026: dettaglio procedurale dell'intervento con scheda Sottofasi; due pagine per gli stati di sostegno e di pagamento; card stato area programmazione da TX-0029; clic su una barra = filtro in pagina, Apri nell'elenco (n rilasciate) azione esplicita; di cui non rilasciate di In compilazione senza fonte = non disponibile; CSV/XLSX di una card = intero report; Unit Amount senza importo pagato = nota unica sopra la tabella"
+    ]
+  },
+  "wireframe_stati": {
+    "approved_hash": "sha256:21fcddefe1beea7d44d9de7cb1aa85faea32641771f9d196c7b636b470f1a294",
+    "baseline_ref": "./wireframes/procedurale/stati",
+    "approved_at": "2026-10-22T08:51:29Z",
+    "time_to_approve_s": 218,
+    "deviations_reviewed": [
+      "Scelte di disegno approvate dall'utente il 22/10/2026: dettaglio procedurale dell'intervento con scheda Sottofasi; due pagine per gli stati di sostegno e di pagamento; card stato area programmazione da TX-0029; clic su una barra = filtro in pagina, Apri nell'elenco (n rilasciate) azione esplicita; di cui non rilasciate di In compilazione senza fonte = non disponibile; CSV/XLSX di una card = intero report; Unit Amount senza importo pagato = nota unica sopra la tabella"
+    ]
+  },
+  "wireframe_unit-amount": {
+    "approved_hash": "sha256:dd0ab7020fdf39f25b23e6678acf9f4182ca5c788f343ad1733a32636daace55",
+    "baseline_ref": "./wireframes/procedurale/unit-amount",
+    "approved_at": "2026-10-22T08:51:29Z",
+    "time_to_approve_s": 218,
+    "deviations_reviewed": [
+      "Scelte di disegno approvate dall'utente il 22/10/2026: dettaglio procedurale dell'intervento con scheda Sottofasi; due pagine per gli stati di sostegno e di pagamento; card stato area programmazione da TX-0029; clic su una barra = filtro in pagina, Apri nell'elenco (n rilasciate) azione esplicita; di cui non rilasciate di In compilazione senza fonte = non disponibile; CSV/XLSX di una card = intero report; Unit Amount senza importo pagato = nota unica sopra la tabella"
+    ]
+  }
+}

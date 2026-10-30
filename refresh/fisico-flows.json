@@ -1,0 +1,13 @@
+[
+  {
+    "name": "determine",
+    "decision": "revoked",
+    "expected": "sha256:c797793a40a02c16b021bf98496a77e808dd8072184e3ab4847e8581da535d32"
+  },
+  {
+    "name": "superfici",
+    "decision": "revoked",
+    "expected": "sha256:199cd655ea694dd53c53bc67bcf83fcb132e8da272304d8f195f3c67ddf66596",
+    "current": "sha256:27c926339771b223dbc33c7042587e18a6841a2a6b2d701504095feb25e69d24"
+  }
+]

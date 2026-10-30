@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "finanziario",
-  "current_step": 9,
+  "current_step": 1,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -20,8 +20,26 @@
       }
     },
     "step1-uiplan": {
-      "status": "done",
+      "status": "in_progress",
       "gates": {
+        "wireframe_domande": {
+          "approved_hash": "sha256:67bb6e94750c9514d15c72bb2480ad9b68596156bef3a4d4968ff4c71ee97313",
+          "baseline_ref": "./wireframes/domande",
+          "approved_at": "2026-10-13T17:26:04Z",
+          "time_to_approve_s": 418,
+          "deviations_reviewed": [
+            "V-07 (review step9 v3, download per formato chiesto dall utente il 09/10/2026, deviazione confermata il 12/10/2026): al posto del solo Scarica per card e di Esporta CSV per le tabelle, un pulsante per formato con la sigla visibile; PNG del grafico come si vede con l intestazione di NFR-50 (V-01), CSV e XLSX scritti dal backend (D-08). Il PNG non e registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08, scelta dell utente del 12/10/2026"
+          ]
+        },
+        "wireframe_dotazione-avanzamento": {
+          "approved_hash": "sha256:ead559227a1e9ae2ffc680cd48943ee02bf23af206b3918efc799feb6092636c",
+          "baseline_ref": "./wireframes/dotazione-avanzamento",
+          "approved_at": "2026-10-13T16:01:07Z",
+          "time_to_approve_s": 189,
+          "deviations_reviewed": [
+            "V-07 (review step9 v3, download per formato chiesto dall utente il 09/10/2026, deviazione confermata il 12/10/2026): al posto del solo Scarica per card e di Esporta CSV per le tabelle, un pulsante per formato con la sigla visibile; PNG del grafico come si vede con l intestazione di NFR-50 (V-01), CSV e XLSX scritti dal backend (D-08). Il PNG non e registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08, scelta dell utente del 12/10/2026"
+          ]
+        },
         "wireframe_panoramica": {
           "approved_hash": "sha256:62847ef999d2117747d48ade82cec4c30d0962fd65ef67fc7172f2931fa3ba82",
           "baseline_ref": "./wireframes/panoramica",
@@ -41,35 +59,6 @@
             "V-07 (review step9 v3, download per formato chiesto dall utente il 09/10/2026, deviazione confermata il 12/10/2026): al posto del solo Scarica per card e di Esporta CSV per le tabelle, un pulsante per formato con la sigla visibile; PNG del grafico come si vede con l intestazione di NFR-50 (V-01), CSV e XLSX scritti dal backend (D-08). Il PNG non e registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08, scelta dell utente del 12/10/2026",
             "F2 della review FULL sul delta FE (21/10/2026): vista iniziale a grafico con interruttore di pagina Grafico | Tabella, tabella approvata invariata nella vista Tabella; due interruttori nella vista Grafico nello stesso ordine; riapprovato dall'utente il 21/10/2026"
           ]
-        },
-        "wireframe_dotazione-avanzamento": {
-          "approved_hash": "sha256:ead559227a1e9ae2ffc680cd48943ee02bf23af206b3918efc799feb6092636c",
-          "baseline_ref": "./wireframes/dotazione-avanzamento",
-          "approved_at": "2026-10-13T16:01:07Z",
-          "time_to_approve_s": 189,
-          "deviations_reviewed": [
-            "V-07 (review step9 v3, download per formato chiesto dall utente il 09/10/2026, deviazione confermata il 12/10/2026): al posto del solo Scarica per card e di Esporta CSV per le tabelle, un pulsante per formato con la sigla visibile; PNG del grafico come si vede con l intestazione di NFR-50 (V-01), CSV e XLSX scritti dal backend (D-08). Il PNG non e registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08, scelta dell utente del 12/10/2026"
-          ]
-        },
-        "wireframe_domande": {
-          "approved_hash": "sha256:67bb6e94750c9514d15c72bb2480ad9b68596156bef3a4d4968ff4c71ee97313",
-          "baseline_ref": "./wireframes/domande",
-          "approved_at": "2026-10-13T17:26:04Z",
-          "time_to_approve_s": 418,
-          "deviations_reviewed": [
-            "V-07 (review step9 v3, download per formato chiesto dall utente il 09/10/2026, deviazione confermata il 12/10/2026): al posto del solo Scarica per card e di Esporta CSV per le tabelle, un pulsante per formato con la sigla visibile; PNG del grafico come si vede con l intestazione di NFR-50 (V-01), CSV e XLSX scritti dal backend (D-08). Il PNG non e registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08, scelta dell utente del 12/10/2026"
-          ]
-        },
-        "wireframe_sigc": {
-          "approved_hash": "sha256:bff0fa0c53ba29b2431992ad0b611e270261a750e6bd9f253b6b754dc1744db5",
-          "baseline_ref": "./wireframes/sigc",
-          "approved_at": "2026-10-21T10:57:26Z",
-          "time_to_approve_s": 418,
-          "deviations_reviewed": [
-            "V-07 (review step9 v3, download per formato chiesto dall utente il 09/10/2026, deviazione confermata il 12/10/2026): al posto del solo Scarica per card e di Esporta CSV per le tabelle, un pulsante per formato con la sigla visibile; PNG del grafico come si vede con l intestazione di NFR-50 (V-01), CSV e XLSX scritti dal backend (D-08). Il PNG non e registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08, scelta dell utente del 12/10/2026",
-            "D-11 del backend (19/10/2026): previsione di pagamento si'/no in tabella, grafico della sola spesa erogata; riapprovato dall'utente il 19/10/2026",
-            "V8 della review FULL sul delta FE (21/10/2026): testi di sigc.md allineati alla card della sola spesa erogata; riapprovato dall'utente il 21/10/2026"
-          ]
         }
       },
       "completed_at": "2026-10-13T09:30:04Z",
@@ -78,102 +67,69 @@
       ]
     },
     "step2-codegen": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-21T09:09:45Z",
       "artifacts": [
         "./specs/.spec-lock.json",
         "./src/shared/api/generated"
       ],
-      "gates": {
-        "codegen_compiles": "pass",
-        "orval_types": "pass",
-        "csrf_static": "pass"
-      }
+      "gates": {}
     },
     "step3-api": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-21T09:10:50Z",
       "artifacts": [
         "./src/features"
       ],
-      "gates": {
-        "api_wrappers_compile": "pass",
-        "querykey_from_factory": "pass"
-      }
+      "gates": {}
     },
     "step4-lib": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-21T09:11:41Z",
       "artifacts": [
         "./src/shared/lib"
       ],
-      "gates": {
-        "lib_pure_compile": "pass",
-        "lib_zero_react": "pass"
-      }
+      "gates": {}
     },
     "step5-ui": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-21T09:13:26Z",
       "artifacts": [
         "./src/features"
       ],
-      "gates": {
-        "ui_components_compile": "pass",
-        "ui_a11y_axe": "pass"
-      }
+      "gates": {}
     },
     "step6-page": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-21T09:14:41Z",
       "artifacts": [
         "./src/pages",
         "./route-manifest.json"
       ],
-      "gates": {
-        "pages_compile": "pass",
-        "route_manifest_valid": "pass"
-      }
+      "gates": {}
     },
     "step7-test": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-21T09:15:20Z",
       "artifacts": [
         "./src/shared/test",
         "./src/shared/api/mock",
         "./src/shared/testing/axe.ts"
       ],
-      "gates": {
-        "tests_generated": "pass",
-        "msw_fail_closed": "pass"
-      }
+      "gates": {}
     },
     "step8-gate": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-26T10:39:39Z",
       "artifacts": [
         "./fe-gate-report.json"
       ],
-      "gates": {
-        "lint": "pass",
-        "typecheck": "pass",
-        "test": "pass",
-        "a11y": "pass",
-        "build": "pass",
-        "fsd_import": "pass",
-        "orval_types": "pass",
-        "security": "pass",
-        "authz": "pass",
-        "wireframe_approved": "pass",
-        "req_coverage_ui": "pass"
-      }
+      "gates": {}
     },
     "step9-review": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-21T12:04:03Z",
-      "gates": {
-        "review": "pass"
-      }
+      "gates": {}
     }
   },
   "open_blockers": [],
@@ -194,6 +150,6 @@
     "gate_budget": 8
   },
   "didactic_level": "standard",
-  "pack_version": "1.3.0",
-  "pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
+  "pack_version": "1.4.0",
+  "pack_hash": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7"
 }

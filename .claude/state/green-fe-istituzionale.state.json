@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "istituzionale",
-  "current_step": 9,
+  "current_step": 1,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -20,144 +20,77 @@
       }
     },
     "step1-uiplan": {
-      "status": "done",
-      "gates": {
-        "wireframe_intervento": {
-          "approved_hash": "sha256:1932cee77819cb6b6333e61f8e65b1c45c2f22393985d85fd427c4b56ee79a1b",
-          "baseline_ref": "./wireframes/istituzionale/intervento",
-          "approved_at": "2026-10-22T08:51:29Z",
-          "time_to_approve_s": 218,
-          "deviations_reviewed": [
-            "Scelte di disegno approvate dall'utente il 22/10/2026: quattro link verso l'elenco tenuti, scenario di coincidenza da chiedere a green-be (OP-IS-09); testi proposti per ANNO_NON_CONSERVATO e FONTE_AMBIGUA (OP-IS-08); output regionale con interruttore della misura e mini grafico nel drawer (OP-IS-06); dettaglio dell'intervento come terzo flusso",
-            "D2 della review step9 FULL dell'istituzionale v1 (22/10/2026, X2), approvata dall'utente: TX-0016 e TX-0017 si leggono all'apertura della pagina, non della scheda: KPI e badge della testata le usano; le schede leggono dalla stessa cache, nessuna lettura in piu'"
-          ]
-        },
-        "wireframe_output-regionale": {
-          "approved_hash": "sha256:4b7342bfd3870e169d098ff86e16b94921f91bde4782a1bddeb9e565fa90f302",
-          "baseline_ref": "./wireframes/istituzionale/output-regionale",
-          "approved_at": "2026-10-22T08:51:29Z",
-          "time_to_approve_s": 218,
-          "deviations_reviewed": [
-            "Scelte di disegno approvate dall'utente il 22/10/2026: quattro link verso l'elenco tenuti, scenario di coincidenza da chiedere a green-be (OP-IS-09); testi proposti per ANNO_NON_CONSERVATO e FONTE_AMBIGUA (OP-IS-08); output regionale con interruttore della misura e mini grafico nel drawer (OP-IS-06); dettaglio dell'intervento come terzo flusso",
-            "D1 della review step9 FULL dell'istituzionale v1 (22/10/2026, V5), approvata dall'utente: chip dei filtri col codice, come nel low-fi approvato e nelle barre di finanziario e fisico; la descrizione e' nel pannello e nella testata del dettaglio"
-          ]
-        },
-        "wireframe_verifica-smp-non-sigc": {
-          "approved_hash": "sha256:dcb8a4bdd3edea0b1a12367e80c0111fb807a4a3d3a92debdc3d28fbf502778d",
-          "baseline_ref": "./wireframes/istituzionale/verifica-smp-non-sigc",
-          "approved_at": "2026-10-26T10:21:19Z",
-          "time_to_approve_s": 216,
-          "deviations_reviewed": [
-            "Scelte di disegno approvate dall'utente il 22/10/2026: quattro link verso l'elenco tenuti, scenario di coincidenza da chiedere a green-be (OP-IS-09); testi proposti per ANNO_NON_CONSERVATO e FONTE_AMBIGUA (OP-IS-08); output regionale con interruttore della misura e mini grafico nel drawer (OP-IS-06); dettaglio dell'intervento come terzo flusso",
-            "D1 della review step9 FULL dell'istituzionale v1 (22/10/2026, V5), approvata dall'utente: chip dei filtri col codice, come nel low-fi approvato e nelle barre di finanziario e fisico; la descrizione e' nel pannello e nella testata del dettaglio",
-            "Card della Home dinamica (OP-IS-11, decisione dell'utente del 26/10/2026: totali della verifica SMP non SIGC, nessuna lettura di TX-0017): home.html del flusso; riapprovato dall'utente il 26/10/2026",
-            "D3 della review step9 della card della Home (26/10/2026): riferimento 'Non SIGC, valori cumulativi (ultimo file SMP non SIGC: aaaa)'; D4: scheletro della card con role=status come nel wireframe; riapprovato dall'utente il 26/10/2026",
-            "D2 della review step9 della card della Home (26/10/2026, decisione dell'utente): la cache condivisa fra card e pagina vale a lettura finita; se si entra nell'area mentre la card sta ancora leggendo, la pagina rifa' la lettura (X1). Correzione nel mutator solo se il ritardo si vede in prova."
-          ]
-        }
-      },
+      "status": "in_progress",
+      "gates": {},
       "completed_at": "2026-10-22T08:53:27Z",
       "artifacts": [
         "./plan/istituzionale/uiplan.json"
       ]
     },
     "step2-codegen": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-22T13:41:01Z",
       "artifacts": [
         "./specs/.spec-lock.json",
         "./src/shared/api/generated"
       ],
-      "gates": {
-        "codegen_compiles": "pass",
-        "orval_types": "pass",
-        "csrf_static": "pass"
-      }
+      "gates": {}
     },
     "step3-api": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-22T13:48:18Z",
       "artifacts": [
         "./src/features"
       ],
-      "gates": {
-        "api_wrappers_compile": "pass",
-        "querykey_from_factory": "pass"
-      }
+      "gates": {}
     },
     "step4-lib": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-22T14:10:23Z",
       "artifacts": [
         "./src/shared/lib"
       ],
-      "gates": {
-        "lib_pure_compile": "pass",
-        "lib_zero_react": "pass"
-      }
+      "gates": {}
     },
     "step5-ui": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-22T14:30:14Z",
       "artifacts": [
         "./src/features"
       ],
-      "gates": {
-        "ui_components_compile": "pass",
-        "ui_a11y_axe": "pass"
-      }
+      "gates": {}
     },
     "step6-page": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-22T14:36:14Z",
       "artifacts": [
         "./src/pages",
         "./plan/istituzionale/route-manifest.json"
       ],
-      "gates": {
-        "pages_compile": "pass",
-        "route_manifest_valid": "pass"
-      }
+      "gates": {}
     },
     "step7-test": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-22T14:45:50Z",
       "artifacts": [
         "./src/shared/test",
         "./src/shared/api/mock",
         "./src/shared/testing/axe.ts"
       ],
-      "gates": {
-        "tests_generated": "pass",
-        "msw_fail_closed": "pass"
-      }
+      "gates": {}
     },
     "step8-gate": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-26T10:39:39Z",
       "artifacts": [
         "./plan/istituzionale/fe-gate-report.json"
       ],
-      "gates": {
-        "lint": "pass",
-        "typecheck": "pass",
-        "test": "pass",
-        "a11y": "pass",
-        "build": "pass",
-        "fsd_import": "pass",
-        "orval_types": "pass",
-        "security": "pass",
-        "authz": "pass",
-        "wireframe_approved": "pass",
-        "req_coverage_ui": "pass"
-      }
+      "gates": {}
     },
     "step9-review": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-26T10:10:46Z",
-      "gates": {
-        "review": "pass"
-      }
+      "gates": {}
     }
   },
   "open_blockers": [],
@@ -178,6 +111,6 @@
     "gate_budget": 8
   },
   "didactic_level": "standard",
-  "pack_version": "1.3.0",
-  "pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
+  "pack_version": "1.4.0",
+  "pack_hash": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7"
 }

@@ -1,175 +1,236 @@
 # Dossier del gate wireframe - feature istituzionale (green-fe step1-uiplan)
 
-Preparato il 22/10/2026 (08:45 UTC) per il gate umano per flusso, dopo il giro G3 del backend e le decisioni dell'utente
-G1-G4 del 21/10/2026. **Nessuna approvazione registrata** (ne' nello stato ne' nello uiplan): si approva flusso per
-flusso, sull'hash qui sotto; ogni modifica a un file della dir del flusso cambia l'hash e richiede di ripresentarlo. Gli
-hash del 21/10 non valgono piu'.
+Preparato il 30/10/2026 (06:56 UTC) per il gate umano per flusso, dopo il riallineamento degli ambiti deciso dall'utente
+il 29/10/2026 (`cruscotto-lazio-spec/decisioni/MIN-20261029-riallineamento-ambiti.md`, A-1..A-7). **Nessuna
+approvazione registrata** (ne' nello stato ne' nello uiplan): nello uiplan ho tolto le `approval` dei due flussi
+cambiati, perche' i loro hash non valgono piu'; lo stato non l'ho toccato. Si approva flusso per flusso, sull'hash qui
+sotto; ogni modifica a un file della dir del flusso cambia l'hash. Il dossier del 22/10/2026 e' nella storia di git.
 
-## Cosa e' cambiato dal 21/10/2026
+## Scelte dell'utente (30/10/2026) e carry-over
 
-- **Handover nuovo**: spec istituzionale del giro G3 (sha256:b0c069cf...; prima 061d52ef...), manifest e scenari della
-  slice ricopiati dal backend; per la decisione G2 l'handover pinna anche la slice **elenco-operativo** (spec
-  sha256:7532fe3b..., identica al backend, non ricopiata), come il fisico. `fe-handover-check.sh` rc 0 sulle due slice.
-- **Ultimo dato sincronizzato (G3)**: TX-0016 e TX-0017 portano `ultimiDatiSincronizzati`; ogni pagina ha la pill
-  "Dati al" come il finanziario (la conclusione meno recente, popover per flusso). Il dettaglio ha ora una barra con
-  perimetro e "Dati al", come il dettaglio finanziario.
-- **Export (G3)**: `verifica-smp-non-sigc/{formato}` e `output-regionale/{formato}` (csv, xlsx). Un pulsante per formato
-  come nel finanziario: PNG solo per i grafici (card della verifica, scheda Output per anno del dettaglio), CSV e XLSX
-  nelle card dei grafici e delle tabelle; l'output regionale, senza grafico in pagina, ha solo CSV e XLSX.
-- **Filtri da TX-0060 (G2)**: il pannello ha le voci dell'elenco operativo (interventi con descrizione, OS, OG, OP,
-  azioni portanti con `legameAzioniDisponibile`), come il finanziario; la testata del dettaglio mostra la descrizione
-  dell'intervento. TX-0060 (RA006) e' fra le transazioni delle tre route; la visibilita' resta csr.tx-0016.read e
-  csr.tx-0017.read (csr.tx-0060.read e' di tutti i profili: la lettura e' un'azione col controllo del grant, step6).
-  Le altre transazioni dell'elenco (TX-0056..TX-0059) restano della feature elenco-operativo (OP-IS-10).
-- **Link alla verifica SMP SIGC (G4)**: dalla verifica SMP non SIGC una frase con il link a `/finanziario/sigc/verifica-smp`,
-  resa solo a chi ha anche csr.tx-0015.read (p1, p2), senza filtri portati; il finanziario non cambia.
-- **Card della Home (G1)**: la tocca lo step6 in `src/app/aree.ts`, non questa feature (annotato in OP-IS-05).
-- Chiusi OP-IS-01, 02, 03, 04, 05; aperto OP-IS-10 (delega informativa); restano aperti OP-IS-06, 07, 08, 09.
+Scelte dell'utente del 30/10/2026, tutte le raccomandazioni: due pagine per le verifiche SMP con link reciproci che portano i
+filtri comuni (non anno ne' esercizio); dettaglio dell'intervento con TX-0016 e TX-0015 in due schede; card della Home con i
+numeri di oggi e testi nuovi; menu: prima la verifica non SIGC, poi la SIGC. Nessun carry-over (`refresh/istituzionale-flows.json`):
+da approvare verifica-smp-non-sigc (CAMBIATO, `sha256:a947ba1b2995bf6641cbf41291b8d56d925acd87bfe8cd07fb370b5460d3e49b`),
+verifica-smp-sigc (NUOVO, `sha256:46cf705caa939048eece9f1c5fa78062f600df47739d93e1f0e54f7bd42ef218`) e intervento (CAMBIATO,
+`sha256:23b9de7b0f94771300578493b9c590f0c25364dc8adf236ed775bbdfcf3fcd9c`); output-regionale tolto (revocato senza dir).
 
-## Scelte di disegno da far decidere all'utente (una riga ciascuna, con la mia raccomandazione)
+## Cosa cambia per il riallineamento (29/10/2026)
 
-1. **Link verso l'elenco operativo (OP-IS-09)**: tenere i quattro link (ricevute -> `tipo=SOSTEGNO`, spesa ->
-   `esito=PAGATA&sigc=false`) o bloccarli finche' green-be non estende SC-EO_DRILLDOWN. **Raccomando: tenerli**, la
-   coincidenza vale per definizione (D-05, stessi predicati), con richiesta non bloccante a green-be per lo scenario.
-2. **Testi dei motivi nuovi (OP-IS-08)**: "non disponibile per l'anno scelto (l'avviso porta i dati del file piu'
-   recente)" e "non attribuibile (riga presente sia nel monitoraggio SIGC sia nel non SIGC)". **Raccomando: approvarli**.
-3. **Output regionale (OP-IS-06)**: tabella con interruttore della misura e mini grafico nel drawer, senza grafico in
-   pagina, oppure tutte le misure in colonne raggruppate per anno. **Raccomando l'interruttore** (12 colonne invece di
-   21-24; il confronto programmato-realizzato sta nel drawer e nel dettaglio).
-4. **Dettaglio dell'intervento come terzo flusso** (`/istituzionale/interventi/:codice`): approvarlo o toglierlo (allora
-   il clic su barre e righe non porterebbe a nessuna pagina). **Raccomando: approvarlo**, e' l'unico posto dove l'output
-   per anno si disegna con una sola unita' di misura.
+- **Entra TX-0015, verifica SMP SIGC (RF015)**: dal finanziario all'istituzionale (A-1). Flusso nuovo
+  `verifica-smp-sigc`, route `/istituzionale/verifica-smp-sigc`, portato da `wireframes/sigc/verifica-smp.html` di HEAD
+  (e0f6cb7) e reso come la verifica non SIGC della stessa area. API `GET /api/istituzionale/verifica-smp-sigc` e
+  `/{formato}`; "Dati al" da `ultimiDatiSincronizzati` di TX-0015 (non piu' TX-0001); filtri intervento, OS, OG, OP,
+  azione con le voci da TX-0060 (G2) ed esercizio obbligatorio; perimetro sempre REGIONALE; grant `csr.tx-0015.read`
+  (p1-dirigente, p2-referente-adg, p3-funzionario-area-ist: catalogo rev. 4, P4 e P5 non lo hanno piu').
+- **Esce TX-0017, output regionale (RF017)**: passa al fisico (A-1). Tolti il flusso `output-regionale` (dir e voce dello
+  uiplan), la route `/istituzionale/output-regionale`, i suoi campi e il link `dettaglio-intervento-output`. La porta il
+  fisico da git HEAD.
+- **Dettaglio dell'intervento ricomposto** senza TX-0017: due schede, "Verifica SMP non SIGC" (TX-0016, invariata) e
+  "Verifica SMP SIGC" (TX-0015, nuova), KPI per scheda, nessun grafico (scelta 2).
+- **Verifica SMP non SIGC**: il link G4 verso `/finanziario/sigc/verifica-smp` (decisione superata dal verbale) diventa
+  un link intra-feature verso la verifica SIGC coi filtri comuni, con lo speculare dalla pagina SIGC (scelta 1); menu
+  dell'area con le due verifiche (scelta 4); card della Home con descrizione e contenuti nuovi, numeri invariati (scelta 3).
+- **Handover e uiplan**: `pack_hash` del pack 1.4.0 (sha256:141380bd...), `spec_pins` copiati da `plan/istituzionale/handover.json`
+  (istituzionale sha256:e29f8ac4..., elenco-operativo sha256:7532fe3b... invariata). Uiplan: 3 route, 126 campi tutti con
+  provenance `spec`, 3 flussi, 12 open point.
+- **Open point**: superati o chiusi OP-IS-04 (G4), OP-IS-06 (passa al fisico); aggiornati OP-IS-01, 02, 03, 05, 07, 08, 11;
+  aperto OP-IS-12 (unita' di misura dell'output). Restano aperti OP-IS-07, 08, 09; OP-IS-10 informativo.
 
-OP-IS-07 (definizioni da confermare e marcatore "da consolidare") non e' una scelta di disegno: va a green-spec e green-be;
-nel frattempo le definizioni restano note fisse accanto alle colonne.
+## Esito dei controlli meccanici
 
-## Stato
+- `uiplan-validate.sh plan/istituzionale/uiplan.json handover/slices handover/authz-catalog.json`: **rc 0** (7
+  transazioni attese: TX-0015, TX-0016 della slice istituzionale e TX-0056..TX-0060 dell'elenco; 3 route, 3 flussi).
+- `fe-project-check.sh . --feature istituzionale --catalog handover/authz-catalog.json`: **rc 0** (nessuna collisione di
+  path o di dir, link verso l'elenco raggiungibili, delega OP-IS-10 risolta). Il controllo e' sullo stato di adesso delle
+  altre feature, che altri agenti stanno cambiando in parallelo: va ripetuto prima del gate.
+- `wireframe-lint.sh` (template v2) **rc 0** sui tre flussi. **axe: deferred-to-step8** (il lint di step1 non ha un DOM;
+  axe vero e' bloccante nel gate 11/11).
 
-- **step0 (handover rifatto)**: `plan/istituzionale/handover.json` = slice istituzionale (spec sha256:b0c069cf... =
-  manifest.openapi.hash, gate del backend superati) + elenco-operativo (sha256:7532fe3b..., gate superati), pack 1.3.0,
-  authz-catalog invariato (sha256:fa3d4c0b...), style-guide invariata. `fe-handover-check.sh` rc 0. Gate meccanico
-  `handover_verified` registrato di nuovo con `state-set.sh`:
-  sha256:7328f8b2b6eaeba2620fcb7c132c367c784c0338c4264248569835256a601286. Configurazione invariata, step corrente 1.
-- **step1 al gate umano**: `plan/istituzionale/uiplan.json` (3 route, 104 campi tutti con provenance `spec`, 3 flussi,
-  10 open point di cui 5 chiusi). Controlli meccanici: `uiplan-validate.sh` rc 0 (7 transazioni attese: TX-0016, TX-0017
-  e le cinque dell'elenco), `fe-project-check.sh --feature istituzionale --catalog` rc 0 (link verso il finanziario e
-  verso l'elenco raggiungibili, destinazioni in flussi approvati, delega OP-IS-10 risolta), `wireframe-lint.sh` rc 0 sui
-  tre flussi. **axe: deferred-to-step8** (il lint di step1 non ha un DOM; axe vero e' bloccante nel gate 11/11).
+## Flussi
+
+| flusso | esito | hash da approvare | hash approvato prima |
+|---|---|---|---|
+| verifica-smp-non-sigc | CAMBIATO | `sha256:a947ba1b2995bf6641cbf41291b8d56d925acd87bfe8cd07fb370b5460d3e49b` | sha256:dcb8a4bd... (26/10) |
+| verifica-smp-sigc | NUOVO | `sha256:46cf705caa939048eece9f1c5fa78062f600df47739d93e1f0e54f7bd42ef218` | - (era il flusso sigc del finanziario, sha256:bff0fa0c...) |
+| intervento | CAMBIATO | `sha256:23b9de7b0f94771300578493b9c590f0c25364dc8adf236ed775bbdfcf3fcd9c` | sha256:1932cee7... (22/10) |
+| output-regionale | TOLTO (al fisico) | - | sha256:4b7342bf... (22/10) |
+
+Nessun flusso INVARIATO: nell'istituzionale non c'e' carry-over.
+
+### Flusso verifica-smp-non-sigc - CAMBIATO
+
+- **Da aprire nel browser**:
+  `C:\Users\lorin\Desktop\Lorenzo\sian-ng\progetti\arsial\arsial-cruscotto\cruscotto-lazio-fe\wireframes\istituzionale\verifica-smp-non-sigc\verifica-smp-non-sigc.html`
+  e `...\verifica-smp-non-sigc\home.html` (doc: `...\verifica-smp-non-sigc\verifica-smp-non-sigc.md`)
+- **Hash**: `sha256:a947ba1b2995bf6641cbf41291b8d56d925acd87bfe8cd07fb370b5460d3e49b`
+- **Route e pattern**: `/istituzionale/verifica-smp-non-sigc`, kind `report`, report v2 (selettore dell'anno, barre,
+  tabella delle 21 colonne), invariato.
+- **Cosa cambia**: la frase sotto il titolo porta a `/istituzionale/verifica-smp-sigc` ("La stessa verifica per i dati
+  SIGC, per esercizio finanziario e con gli stessi filtri") al posto del finanziario; il menu dell'area ha "Verifica SMP
+  non SIGC" e "Verifica SMP SIGC" (non piu' "Output regionale") e le altre aree attive (non piu' "presto"); in
+  `home.html` descrizione "Dati ASR SIGC e non SIGC per intervento, da confrontare con SMP - Data Platform." e contenuti
+  senza grant "Verifica SMP dei dati ASR non SIGC", "Verifica SMP dei dati ASR SIGC per esercizio finanziario"; note
+  aggiornate (nessuna lettura di TX-0015 nella card). Non cambiano TX-0016, colonne, grafico, filtri, numeri della card.
+- **Grant (verbatim)**: visibilita' `csr.tx-0016.read`; valori dei filtri `csr.tx-0060.read`; frase verso la verifica
+  SIGC `csr.tx-0015.read` (nel catalogo rev. 4 lo hanno tutti i profili della pagina: oggi la vedono tutti).
+  Transazioni: TX-0016, TX-0060.
+- **Campi**: invariati (36, provenance spec: VerificaSmpNonSigc, ValoriFiltriElenco; due voci per la card della Home).
+- **url_params** (invariati): anno, intervento, os, og, op, azione (TX-0016.*).
+- **Link**: `dettaglio-intervento-smp`, `elenco-ricevute-riga`, `elenco-spesa-riga` invariati; `verifica-smp-sigc` ora
+  intra-feature verso `/istituzionale/verifica-smp-sigc` con query intervento, os, og, op, azione (prima: finanziario,
+  query vuota, solo con csr.tx-0015.read).
+- **Note WCAG** (residuo dichiarato): come il 26/10; la frase dice che porta i filtri e non l'anno. Residuo umano: ordine
+  di lettura, note sulle definizioni, bersagli dei link nelle celle (24 px), testi lunghi delle assenze, contrasto. axe
+  rinviato allo step8.
+- **Open point**: OP-IS-07, 08, 09, 10, 11; OP-IS-04 superato, OP-IS-05 aggiornato.
+
+### Flusso verifica-smp-sigc - NUOVO
+
+- **Da aprire nel browser**:
+  `C:\Users\lorin\Desktop\Lorenzo\sian-ng\progetti\arsial\arsial-cruscotto\cruscotto-lazio-fe\wireframes\istituzionale\verifica-smp-sigc\verifica-smp-sigc.html`
+  (doc: `...\verifica-smp-sigc\verifica-smp-sigc.md`)
+- **Hash**: `sha256:46cf705caa939048eece9f1c5fa78062f600df47739d93e1f0e54f7bd42ef218`
+- **Route e pattern**: `/istituzionale/verifica-smp-sigc`, kind `report`, report v2 come la verifica non SIGC: barra
+  filtri (chip, perimetro regionale, esercizio, "Dati al"), titolo con la frase verso la verifica non SIGC, pannello dei
+  filtri da TX-0060, selettore dell'esercizio (obbligatorio, Mostra; esercizi 2023-2030 come nel finanziario),
+  riferimenti della risposta (esercizio, anno delle domande, pagamenti senza data, perimetro), card "Spesa erogata nella
+  campagna precedente per intervento" (barre con zoom; PNG, CSV, XLSX), tabella delle 21 colonne (cerca, colonne,
+  ordinamento; CSV, XLSX) con le definizioni; stati esercizio non scelto, caricamento, vuoto, valori dei filtri non
+  disponibili, errore, file non scaricato.
+- **Grant (verbatim)**: visibilita' `csr.tx-0015.read`; valori dei filtri `csr.tx-0060.read`; frase verso la verifica non
+  SIGC `csr.tx-0016.read`. Transazioni: TX-0015, TX-0060. Nessun `scope_filters` (perimetro sempre REGIONALE).
+- **Campi (35, provenance spec)**: `esercizio`, `annoDomande`, `pagamentiSenzaData`, `perimetro`, `righe[]` (codice e 20
+  dati), `ultimiDatiSincronizzati[].flusso`/`.conclusoIl` (`openapi-istituzionale.json#/components/schemas/VerificaSmp`);
+  le otto voci di TX-0060 (`ValoriFiltriElenco`).
+- **url_params**: esercizio (TX-0015.esercizio, non `required` per la route: senza, la pagina chiede di sceglierlo e non
+  legge), intervento, os, og, op, azione (TX-0015.*, multipli). Prima la route del finanziario non ne dichiarava.
+- **Link**: `dettaglio-intervento-smp-sigc` (barra o riga -> `/istituzionale/interventi/:codice?esercizio=`, scheda SIGC),
+  `verifica-smp-non-sigc` (frase -> `/istituzionale/verifica-smp-non-sigc` coi filtri). Nessun link verso l'elenco, come
+  nel finanziario.
+- **Scaricamenti**: `GET /api/istituzionale/verifica-smp-sigc/{formato}` con esercizio e filtri (AUDIT_ESPORTAZIONE); PNG
+  del grafico dal browser.
+- **Note WCAG** (residuo dichiarato): tabella equivalente del grafico; assenze testuali col motivo e la fonte attesa;
+  tabella larga con intestazione di riga e righe apribili con Invio; selettore con aiuto collegato; pulsanti per formato
+  col nome che dice l'esercizio (2.5.3, 2.4.3); pill "Dati al"; frase resa solo col grant. Residuo umano: ordine di
+  lettura, definizioni, testi lunghi delle assenze, contrasto. axe rinviato allo step8.
+- **Open point**: OP-IS-07 (definizioni di TX-0015), OP-IS-10.
+
+### Flusso intervento - CAMBIATO
+
+- **Da aprire nel browser**:
+  `C:\Users\lorin\Desktop\Lorenzo\sian-ng\progetti\arsial\arsial-cruscotto\cruscotto-lazio-fe\wireframes\istituzionale\intervento\intervento.html`
+  (doc: `...\intervento\intervento.md`)
+- **Hash**: `sha256:23b9de7b0f94771300578493b9c590f0c25364dc8adf236ed775bbdfcf3fcd9c`
+- **Route e pattern**: `/istituzionale/interventi/:codice`, kind `dettaglio`: barra (perimetro, "Dati al" dalla prima
+  risposta fra TX-0016 e TX-0015), testata (codice, descrizione da TX-0060, pulsanti verso le due verifiche filtrate),
+  schede "Verifica SMP non SIGC" (anno, KPI x3 cumulative, 20 voci; CSV, XLSX) e "Verifica SMP SIGC" (esercizio, KPI x3
+  della campagna n-1, riferimenti e 20 voci; CSV, XLSX). Scheda iniziale = quella della pagina di partenza (con
+  l'esercizio e senza l'anno, la SIGC). Tolti: scheda Output per anno (grafico e target), scheda Importi unitari, KPI del
+  target, pulsante verso l'output regionale, unita' di misura (OP-IS-12).
+- **Grant (verbatim)**: visibilita' `csr.tx-0016.read`, `csr.tx-0015.read` (ogni scheda col grant della sua transazione;
+  oggi li hanno insieme p1, p2, p3-ist); descrizione `csr.tx-0060.read`. Transazioni: TX-0016, TX-0015, TX-0060.
+- **Campi (55, provenance spec)**: i 24 di TX-0016 e i 2 di ultimo dato (VerificaSmpNonSigc), invariati; nuovi i 25 di
+  TX-0015 e i 2 di ultimo dato (VerificaSmp); descrizione da TX-0060 (2). Tolti i 19 di MonitoraggioOutput (17 dati e 2 di ultimo dato).
+- **url_params**: anno (TX-0016.anno, invariato), esercizio (TX-0015.esercizio, nuovo).
+- **Link**: `verifica-smp-intervento`, `elenco-ricevute-intervento`, `elenco-spesa-intervento` invariati (salvo il testo
+  dell'innesco); nuovo `verifica-smp-sigc-intervento` (query intervento, esercizio); tolto `output-regionale-intervento`.
+- **Note WCAG** (residuo dichiarato): tablist con frecce; voci come tabelle con intestazione di riga e caption col periodo;
+  KPI col periodo nel testo; selettori con aiuto collegato; pulsanti per formato col nome che dice intervento ed
+  esercizio; pill "Dati al". Residuo umano: ordine di lettura, differenza di periodo fra le schede, etichette lunghe,
+  contrasto. axe rinviato allo step8.
+- **Open point**: OP-IS-07, 08, 09, 10, 12.
+
+### Flusso output-regionale - TOLTO
+
+- Dir `wireframes/istituzionale/output-regionale/` cancellata dal working tree (resta in git HEAD per il fisico), flusso,
+  route, 23 campi e link `dettaglio-intervento-output` tolti dallo uiplan. Era approvato il 22/10/2026
+  (sha256:4b7342bf...). Il clic del drawer verso il dettaglio dell'intervento lo decide il fisico (puo' puntare al suo
+  dettaglio o, come link cross-feature, a `/istituzionale/interventi/:codice`: in quel caso solo per chi ha anche
+  csr.tx-0015.read o csr.tx-0016.read, cioe' p1 e p2, non p3-funzionario-area-fis ne' P5).
 
 ## Transazioni coperte
 
 | transazione | requisito | route | flusso |
 |---|---|---|---|
-| TX-0016 - dati di verifica SMP per APR (non SIGC), con export CSV/XLSX | RF016 (RU-00000016) | /istituzionale/verifica-smp-non-sigc, /istituzionale/interventi/:codice | verifica-smp-non-sigc, intervento |
-| TX-0017 - output regionale realizzato e programmato, con export CSV/XLSX | RF017 (RU-00000017) | /istituzionale/output-regionale, /istituzionale/interventi/:codice | output-regionale, intervento |
-| TX-0060 - valori dei filtri (slice elenco-operativo) | RA006 (RU-00000061) | le tre route (pannello e descrizione dell'intervento) | tutti |
+| TX-0015 - dati SIGC per il confronto con SMP, con export CSV/XLSX | RF015 (RU-00000015) | /istituzionale/verifica-smp-sigc, /istituzionale/interventi/:codice | verifica-smp-sigc, intervento |
+| TX-0016 - dati di verifica SMP non SIGC, con export CSV/XLSX | RF016 (RU-00000016) | /istituzionale/verifica-smp-non-sigc, /istituzionale/interventi/:codice | verifica-smp-non-sigc, intervento |
+| TX-0060 - valori dei filtri (slice elenco-operativo) | RA006 | le tre route (pannello e descrizione dell'intervento) | tutti |
 | TX-0056..TX-0059 (slice elenco-operativo) | - | delegate alla feature elenco-operativo (OP-IS-10) | - |
 
-Visibilita' dal catalogo: p1-dirigente, p2-referente-adg e p3-funzionario-area-ist hanno csr.tx-0016.read,
-csr.tx-0017.read e csr.tx-0060.read; p3 delle altre aree, p4, p5, p6 e p7 non hanno i grant dei report (SC-IS_DENY: 403).
-Perimetro sempre regionale. Il link G4 lo vedono solo p1 e p2 (csr.tx-0015.read).
+Visibilita' dal catalogo rev. 4: p1-dirigente, p2-referente-adg e p3-funzionario-area-ist hanno csr.tx-0015.read,
+csr.tx-0016.read e csr.tx-0060.read; gli altri profili non hanno i grant dei due report (SC-IS_DENY: 403). Le due verifiche
+hanno quindi lo stesso pubblico. Perimetro sempre regionale.
 
 ## Punti aperti (in uiplan.json)
 
 | id | stato | verso | in breve |
 |---|---|---|---|
-| OP-IS-01 | chiuso (G2) | - | voci dei filtri e descrizione dell'intervento da TX-0060; slice elenco-operativo pinnata come nel fisico |
-| OP-IS-02 | chiuso (G3) | - | ultimiDatiSincronizzati su TX-0016 e TX-0017: pill "Dati al" su ogni pagina |
-| OP-IS-03 | chiuso (G3) | - | export CSV e XLSX dal backend; PNG dei grafici come nel finanziario (non in audit, limite di OP-FE-08) |
-| OP-IS-04 | chiuso (G4) | - | link verifica-smp-sigc verso il finanziario, solo con csr.tx-0015.read, senza filtri |
-| OP-IS-05 | chiuso (G1) | step6 | card della Home: Istituzionale = verifica SMP non SIGC e output regionale; la applica lo step6 in aree.ts |
-| OP-IS-06 | aperto | utente / green-be | nessun grafico fra interventi per l'output (unita' diverse): scelta 3 |
-| OP-IS-07 | aperto | green-spec / green-be | marcatore "da consolidare" di NFR-25 (d) assente; definizioni D-02, D-03, D-04 come note fisse |
-| OP-IS-08 | aperto | utente (step4-lib) | testi dei motivi ANNO_NON_CONSERVATO e FONTE_AMBIGUA: scelta 2 |
-| OP-IS-09 | aperto | utente / green-be | link verso l'elenco senza scenario di coincidenza: scelta 1 |
-| OP-IS-10 | delega (informativo) | elenco-operativo | TX-0056..TX-0059 della slice pinnata per TX-0060 restano dell'elenco (come OP-FIS-09) |
+| OP-IS-01 | chiuso (G2), aggiornato | - | valori dei filtri e descrizione da TX-0060, ora anche per TX-0015 |
+| OP-IS-02 | chiuso (G3), aggiornato | - | "Dati al" da ultimiDatiSincronizzati, ora anche di TX-0015 (non piu' TX-0001) |
+| OP-IS-03 | chiuso (G3), aggiornato | - | export CSV e XLSX, ora verifica-smp-sigc/{formato}; quello dell'output al fisico |
+| OP-IS-04 | superato (29/10) | - | link G4 verso il finanziario sostituito dai link reciproci (scelta 1) |
+| OP-IS-05 | chiuso (G1), aggiornato | step6 | card e menu dell'area = le due verifiche; cosa cambia a step6 (sotto) |
+| OP-IS-06 | chiuso qui | fisico | grafico dell'output fra interventi: segue TX-0017 nel fisico |
+| OP-IS-07 | aperto, aggiornato | green-spec / green-be | marcatore "da consolidare" e definizioni (D-02, D-04 e quelle di TX-0015) |
+| OP-IS-08 | aperto | utente (step4-lib) | testi dei motivi ANNO_NON_CONSERVATO e FONTE_AMBIGUA (solo TX-0016) |
+| OP-IS-09 | aperto | utente / green-be | link verso l'elenco senza scenario di coincidenza |
+| OP-IS-10 | delega (informativo) | elenco-operativo | TX-0056..TX-0059 restano dell'elenco |
+| OP-IS-11 | aggiornato | step6 | card della Home: numeri invariati, testi nuovi, nessuna lettura di TX-0015 |
+| OP-IS-12 | **nuovo**, aperto | green-be (non bloccante) | unita' di misura dell'output assente dalle due verifiche (prima da TX-0017) |
 
-## Flusso 1 - verifica-smp-non-sigc
+## Cosa dovra' cambiare a step6 (non toccato qui)
 
-- **Da aprire nel browser**:
-  `C:\Users\lorin\Desktop\Lorenzo\sian-ng\progetti\arsial\arsial-cruscotto\cruscotto-lazio-fe\wireframes\istituzionale\verifica-smp-non-sigc\verifica-smp-non-sigc.html`
-  (doc del flusso: `...\verifica-smp-non-sigc\verifica-smp-non-sigc.md`)
-- **Hash del wireframe**: `sha256:4a53048a290b2708318e4d74613ba4e82eb9b7bc02484ddafb2d4e2c4af91909`
-  (21/10: sha256:d6b1435e..., non piu' valido)
-- **Route e pattern**: `/istituzionale/verifica-smp-non-sigc`, kind `report`, pattern report v2 come
-  `/finanziario/sigc/verifica-smp`: barra filtri (chip, perimetro, anno del file, "Dati al"), titolo con la frase verso la
-  verifica SMP SIGC, pannello dei filtri da TX-0060, selettore d'anno con Mostra, card a barre (Grafico | Tabella; PNG,
-  CSV, XLSX), tabella dei 21 dati con cerca, colonne, ordinamento e CSV, XLSX; nessun KPI, come nel finanziario.
-- **Grant (verbatim)**: visibilita' `csr.tx-0016.read`; lettura dei valori dei filtri con `csr.tx-0060.read`; frase e
-  link G4 con `csr.tx-0015.read`. Transazioni della route: TX-0016, TX-0060.
-- **Campi nuovi (provenance spec)**: `ultimiDatiSincronizzati[].flusso`, `ultimiDatiSincronizzati[].conclusoIl`
-  (`openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc`); `interventi[].chiave`, `interventi[].descrizione`,
-  `obiettiviSpecifici[].chiave`, `obiettiviGenerali[]`, `obiettiviPolicy[]`, `azioniPortanti[].chiave`,
-  `azioniPortanti[].descrizione`, `legameAzioniDisponibile` (`openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco`).
-  Invariati i 24 campi del 21/10 (testa e 21 colonne).
-- **Scaricamenti**: export `GET /api/istituzionale/verifica-smp-non-sigc/{formato}` con gli stessi filtri e anno (una
-  riga per intervento con i 21 dati, intestazione con ultimo dato per flusso, AUDIT_ESPORTAZIONE); PNG del grafico dal
-  browser. I file contengono tutti gli interventi dei filtri, non solo la ricerca.
-- **url_params** (invariati): anno (TX-0016.anno), intervento, os, og, op, azione (TX-0016.*, multipli).
-- **Link**: `dettaglio-intervento-smp`, `elenco-ricevute-riga`, `elenco-spesa-riga` (invariati); nuovo
-  `verifica-smp-sigc` (finanziario: /finanziario/sigc/verifica-smp, query vuota, solo con csr.tx-0015.read).
-- **Note WCAG** (residuo dichiarato): tabella equivalente del grafico a un clic; assenze sempre testuali; righe apribili
-  con Invio; selettore con aiuto collegato; pulsanti per formato con la sigla nel nome accessibile (2.5.3) e focus
-  tenuto durante la preparazione (2.4.3); pill "Dati al" come bottone col nome completo; frase G4 resa solo col grant.
-  Residuo umano: ordine di lettura, note sulle definizioni, bersagli dei link nelle celle (24 px), testi lunghi delle
-  assenze, testo del link verso un'altra area, contrasto della resa finale. axe rinviato allo step8.
-- **Open point**: OP-IS-07, 08, 09, 10 (chiusi qui: 01, 02, 03, 04).
+- `src/app/aree.ts`, card Istituzionale: descrizione "Dati ASR SIGC e non SIGC per intervento, da confrontare con SMP -
+  Data Platform."; contenuti "Verifica SMP dei dati ASR non SIGC", "Verifica SMP dei dati ASR SIGC per esercizio
+  finanziario"; commento G1 (niente piu' TX-0017). `Anteprima` invariata (TX-0016).
+- Menu dell'area (`features/istituzionale/lib/pagine.ts`, `grant.ts`): voci "Verifica SMP non SIGC" (ingresso) e
+  "Verifica SMP SIGC", al posto di "Output regionale"; `GRANT_DETTAGLIO` = csr.tx-0016.read, csr.tx-0015.read;
+  `ricercaConservata` invariata. Il finanziario perde la voce "Verifica SMP" (sua feature).
+- `src/app/route-table.json`: aggiungere `/istituzionale/verifica-smp-sigc` (flusso verifica-smp-sigc, csr.tx-0015.read);
+  togliere `/istituzionale/output-regionale` (la riporta il fisico col suo path); roles del dettaglio =
+  csr.tx-0016.read, csr.tx-0015.read. `/finanziario/sigc/verifica-smp` la toglie il finanziario. Nessun alias (A-4).
+- Link: `verifica-smp-sigc` intra-feature coi filtri; nuovi `verifica-smp-non-sigc`, `dettaglio-intervento-smp-sigc`,
+  `verifica-smp-sigc-intervento`; tolti `output-regionale-intervento` e l'arrivo `dettaglio-intervento-output`.
+- `plan/istituzionale/route-manifest.json` rigenerato allo step6.
 
-## Flusso 2 - output-regionale
+## Scelte di disegno da far decidere all'utente
 
-- **Da aprire nel browser**:
-  `C:\Users\lorin\Desktop\Lorenzo\sian-ng\progetti\arsial\arsial-cruscotto\cruscotto-lazio-fe\wireframes\istituzionale\output-regionale\output-regionale.html`
-  (doc del flusso: `...\output-regionale\output-regionale.md`)
-- **Hash del wireframe**: `sha256:4b7342bfd3870e169d098ff86e16b94921f91bde4782a1bddeb9e565fa90f302`
-  (21/10: sha256:66836187..., non piu' valido)
-- **Route e pattern**: `/istituzionale/output-regionale`, kind `report`, pattern report tabellare v2 (`lista-filtri`:
-  barra a chip con periodo e "Dati al", pannello da TX-0060, tabella interattiva con interruttore Programmato |
-  Realizzato SIGC | Realizzato non SIGC (cumulativo) e CSV, XLSX, drawer di anteprima col mini grafico per anno). Nessuna
-  card grafico in pagina (OP-IS-06), quindi nessun PNG.
-- **Grant (verbatim)**: visibilita' `csr.tx-0017.read`; lettura dei valori dei filtri con `csr.tx-0060.read`.
-  Transazioni della route: TX-0017, TX-0060.
-- **Campi nuovi (provenance spec)**: `ultimiDatiSincronizzati[].flusso`, `ultimiDatiSincronizzati[].conclusoIl`
-  (`MonitoraggioOutput`); le otto voci di TX-0060 come nel flusso 1 (`ValoriFiltriElenco`). Invariati i 13 campi del 21/10.
-- **Scaricamenti**: export `GET /api/istituzionale/output-regionale/{formato}`: per intervento una riga "Output dell'anno"
-  per anno (le tre misure, qualunque sia quella mostrata) e una riga "Importo unitario" per Unit Amount, periodo
-  nell'intestazione, AUDIT_ESPORTAZIONE.
-- **url_params** (invariati): intervento, os, og, op, azione (TX-0017.*, multipli). La misura dell'interruttore e' stato
-  della pagina.
-- **Link**: `dettaglio-intervento-output` (invariato).
-- **Note WCAG** (residuo dichiarato): interruttore con aria-pressed e didascalia che dice la misura; drawer con
-  focus-trap; unita' sempre accanto ai valori; pulsanti CSV e XLSX con la sigla nel nome accessibile; pill "Dati al".
-  Residuo umano: tabella larga a 320 px (WCAG 1.4.10), ordine di lettura, contrasto. axe rinviato allo step8.
-- **Open point**: OP-IS-06, 07, 08 (chiusi qui: 01, 02, 03, 05).
+1. **Presentazione delle due verifiche SMP.**
+   (a) Due pagine, due route e due flussi, con una frase sotto il titolo di ciascuna che porta all'altra coi filtri
+   comuni (non l'anno ne' l'esercizio, che non si traducono); (b) una pagina "Verifica SMP" con due schede (non SIGC |
+   SIGC) sulla stessa route; (c) due pagine collegate solo dal menu (che gia' conserva i filtri).
+   **Raccomando (a)**: resta il pattern report del kit (le schede in un report sarebbero un layout nuovo e una route con
+   due periodi diversi), ogni verifica ha il suo indirizzo, e la frase dice la relazione fra le due meta' del confronto
+   con SMP; le due pagine hanno lo stesso pubblico, quindi i link non si nascondono mai.
+2. **Composizione del dettaglio dell'intervento.**
+   (a) TX-0016 + TX-0015 filtrati sull'intervento, una scheda per verifica col suo periodo e i suoi KPI, nessun grafico;
+   (b) solo TX-0016 (la scheda non SIGC di oggi); (c) togliere il dettaglio (barre e righe senza destinazione).
+   **Raccomando (a)**: i due report dell'area hanno righe dello stesso oggetto (uiplan-patterns 6), il clic di entrambe
+   le pagine porta qui, e i 20 dati si leggono meglio in verticale che nella tabella a 21 colonne; con (b) il clic dalla
+   verifica SIGC non avrebbe dove andare. Seguito non bloccante: quando il fisico avra' approvato la sua route
+   dell'output regionale, un pulsante "Output dell'intervento nel Fisico" (solo con csr.tx-0017.read: p1, p2) al posto
+   del grafico per anno tolto.
+3. **Card Istituzionale della Home.**
+   (a) Numeri invariati (TX-0016: domande finanziate, spesa erogata, quota, domande ricevute) e testi nuovi (le due
+   verifiche); (b) aggiungere numeri SIGC da TX-0015 per un esercizio predefinito (per esempio quello in corso calcolato
+   dalla data); (c) card solo testuale.
+   **Raccomando (a)**: TX-0015 vuole l'esercizio obbligatorio e il contratto non ne da' uno predefinito, che il frontend
+   dovrebbe inventare; mettere in una card dati cumulativi e dati di un esercizio confonde i periodi; nessuna lettura in
+   piu' sulla Home.
+4. **Voci di menu dell'area.**
+   (a) "Verifica SMP non SIGC" e poi "Verifica SMP SIGC"; (b) l'ordine dei requisiti, prima SIGC (RF015) e poi non SIGC
+   (RF016); (c) una sola voce "Verifica SMP" che apre la non SIGC, con la SIGC raggiungibile dalla frase.
+   **Raccomando (a)**: la prima voce e' l'ingresso dalla Home e la non SIGC mostra subito i dati (anno facoltativo) ed e'
+   la stessa lettura della card; con (b) dalla Home si entrerebbe in una pagina che chiede l'esercizio prima di mostrare
+   qualcosa; con (c) una pagina resterebbe senza voce di menu.
 
-## Flusso 3 - intervento
-
-- **Da aprire nel browser**:
-  `C:\Users\lorin\Desktop\Lorenzo\sian-ng\progetti\arsial\arsial-cruscotto\cruscotto-lazio-fe\wireframes\istituzionale\intervento\intervento.html`
-  (doc del flusso: `...\intervento\intervento.md`)
-- **Hash del wireframe**: `sha256:1932cee77819cb6b6333e61f8e65b1c45c2f22393985d85fd427c4b56ee79a1b`
-  (21/10: sha256:550a15bc..., non piu' valido)
-- **Route e pattern**: `/istituzionale/interventi/:codice`, kind `dettaglio`, pattern dettaglio v2 (barra con perimetro
-  e "Dati al", testata con codice e descrizione da TX-0060, KPI x4, schede "Output per anno" con barre raggruppate,
-  target come riferimento e PNG, CSV, XLSX, "Verifica SMP non SIGC" con selettore d'anno, le 21 voci e CSV, XLSX,
-  "Importi unitari"). Compone TX-0016 e TX-0017 filtrate sull'intervento, nessuna transazione nuova del report.
-- **Grant (verbatim)**: visibilita' `csr.tx-0016.read`, `csr.tx-0017.read` (ogni scheda col grant della sua
-  transazione); descrizione con `csr.tx-0060.read`. Transazioni della route: TX-0016, TX-0017, TX-0060.
-- **Campi nuovi (provenance spec)**: `ultimiDatiSincronizzati[].flusso` e `.conclusoIl` (VerificaSmpNonSigc e
-  MonitoraggioOutput); `interventi[].chiave`, `interventi[].descrizione` (ValoriFiltriElenco). Invariati i 41 campi del 21/10.
-- **Scaricamenti**: CSV e XLSX di TX-0017 con `intervento = :codice` (output per anno e importi unitari) e di TX-0016
-  con l'intervento e l'anno scelto; PNG del grafico per anno.
-- **url_params** (invariati): anno (TX-0016.anno).
-- **Link** (invariati): `verifica-smp-intervento`, `output-regionale-intervento`, `elenco-ricevute-intervento`,
-  `elenco-spesa-intervento`. Nessun link verso il finanziario da qui (G4 lo limita alla verifica SMP non SIGC).
-- **Note WCAG** (residuo dichiarato): tablist con frecce; grafico con tabella equivalente e target anche come riga di
-  testo; voci come tabella con intestazione di riga; pulsanti per formato col nome accessibile che dice l'intervento;
-  pill "Dati al". Residuo umano: ordine di lettura di barra, testata, KPI e schede; etichette lunghe; contrasto. axe
-  rinviato allo step8.
-- **Open point**: OP-IS-06, 07, 08, 09, 10 (chiusi qui: 01, 02, 03).
+Non e' una scelta ma va detto: la verifica SIGC non ha un esercizio predefinito, come oggi nel finanziario (senza
+esercizio chiede di sceglierlo). OP-IS-07 (definizioni e marcatore "da consolidare") resta verso green-spec e green-be.
 
 ## Dopo il gate
 
 Per ogni flusso approvato lo stato riceve `steps["step1-uiplan"].gates["wireframe_<flusso>"]` con l'hash qui sopra e lo
-uiplan la `flows[].approval` corrispondente (lo fa la sessione che raccoglie la tua decisione, via `state-set.sh`); il
-primo flusso approvato chiude lo step1 e sblocca lo step2. Un rework rigenera, rilinta e ripresenta col nuovo hash
-(budget di rework: 2; il rifacimento del 22/10 sui contratti nuovi non e' un rework chiesto al gate).
+uiplan la `flows[].approval` corrispondente (lo fa la sessione che raccoglie la decisione, via `state-set.sh`); il gate
+`wireframe_output-regionale` dello stato va tolto, perche' il flusso non e' piu' di questa feature. Una scelta di disegno
+diversa dalla raccomandazione rigenera il flusso, lo rilinta e lo ripresenta col nuovo hash.

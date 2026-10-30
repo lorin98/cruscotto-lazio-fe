@@ -15,6 +15,18 @@ titolo dopo un comando che sparisce col report (A1). Vedi "Filtro Campagna e int
 Aggiornato il 26/10/2026 con la card Fisico della Home (`home.html`, decisione dell'utente del 26/10/2026: i KPI della
 pagina per la campagna piu' recente). Vedi "Card della Home".
 
+Aggiornato il 30/10/2026 col riallineamento degli ambiti (verbale dell'utente del 29/10/2026,
+`cruscotto-lazio-spec/decisioni/MIN-20261029-riallineamento-ambiti.md`, A-1 e A-5): nell'area fisica entrano l'output
+regionale (TX-0017) e le Unit Amount (TX-0030), escono le determine di una domanda (TX-0020, ora del procedurale). Il
+report delle superfici, i suoi dati, i filtri, gli export e gli stati NON cambiano (TX-0018 ha lo stesso contratto: la spec
+nuova ha gli stessi schemi e parametri per la superficie ammissibile). Cambiano solo:
+
+- `superfici.html`: il menu dell'area (Superfici ammissibili, Output regionale, Unit Amount; le altre aree come voci
+  attive, non piu' "presto") e, nell'anteprima, il link "Apri il dettaglio dell'intervento" verso il dettaglio
+  dell'intervento del fisico (link:dettaglio-intervento-superfici, flusso intervento; scelta di disegno 1 del dossier);
+- `home.html`: testo della card Fisico e contenuti dell'area (output regionale, superfici, verifica incrociata, Unit
+  Amount; niente piu' determine). I numeri chiave restano quelli delle superfici (scelta di disegno 3 del dossier).
+
 ## Route del flusso
 
 | route | kind | pattern | grant (verbatim dal catalogo) |
@@ -108,13 +120,18 @@ PNG non e' registrato in AUDIT_ESPORTAZIONE (stesso limite di OP-FE-08 del finan
 
 ## Link del flusso (drill-down dichiarati)
 
-Nessun link che cambia pagina. Il clic su una barra o su una riga apre il drawer; dal drawer "Mostra solo <intervento>" mette
-il filtro Intervento (stessa route, chip nella barra). Nessun drill-down verso l'elenco operativo: l'insieme di domande di
-TX-0018 non si riproduce con i parametri di TX-0056 (OP-FIS-05).
+Il clic su una barra o su una riga apre il drawer; dal drawer "Mostra solo <intervento>" mette il filtro Intervento
+(stessa route, chip nella barra) e, dal 30/10/2026, "Apri il dettaglio dell'intervento" porta al dettaglio dell'intervento
+del fisico (output per anno, superfici per campagna e Unit Amount dell'intervento; uiplan-patterns 6: l'oggetto ricorrente
+dei report ha un dettaglio raggiungibile da grafici e righe). Nessun drill-down verso l'elenco operativo: l'insieme di
+domande di TX-0018 non si riproduce con i parametri di TX-0056 (OP-FIS-05).
 
 | pagina | link (id) | innesco | arrivo (feature: route) | parametri di path | query |
 |---|---|---|---|---|---|
-| /fisico/superfici | nessuno | - | - | - | - |
+| /fisico/superfici | dettaglio-intervento-superfici | "Apri il dettaglio dell'intervento" nel drawer di anteprima (aperto dal clic su una barra o su una riga) | fisico: /fisico/interventi/:codice | codice | - |
+
+Se l'utente non vuole il dettaglio dell'intervento nel fisico (scelta di disegno 1 del dossier, opzione B), il link si
+toglie e il drawer torna com'era.
 
 ## Filtri nell'URL (url_params)
 
@@ -153,6 +170,16 @@ Pagina: `home.html` di questa dir. La Home non e' una route della feature (resta
 la card dell'area e' contenuto della feature (G1) e la monta lo step6 in `src/app/aree.ts` come `Anteprima`, accanto a
 quella del finanziario (`AnteprimaFinanziario`), con la stessa forma: fascia colorata invariata (icona, stato, titolo,
 descrizione), numeri chiave nel corpo, "Entra in Fisico" nel piede.
+
+- Testo (dal 30/10/2026, riallineamento degli ambiti): "Output regionale programmato e realizzato, superfici ammissibili
+  delle domande di sostegno e di pagamento e pagamenti per Unit Amount, per intervento." Contenuti dell'area (profilo
+  senza csr.tx-0018.read): output regionale programmato e realizzato per intervento e anno; superfici ammissibili di
+  sostegno e di pagamento per intervento e campagna; verifica incrociata fra superficie di pagamento e di sostegno;
+  pagamenti per Unit Amount. Le determine di una domanda escono (procedurale). Step6 aggiorna `descrizione` e `contenuti`
+  della voce `fisico` in `src/app/aree.ts`.
+- Perche' i numeri restano quelli delle superfici: l'output regionale ha un'unita' di misura per intervento e non si somma
+  fra interventi (OP-FIS-11); le Unit Amount non hanno totali nel DTO e il pagato ha la fonte non attiva (OP-FIS-14).
+  "Entra in Fisico" resta sulla pagina Superfici, prima voce del menu dell'area (scelta di disegno 2 del dossier).
 
 - Lettura: TX-0018 senza filtri, la stessa della pagina Superfici aperta senza filtri (stessa cache: chi ha gia' aperto
   la pagina ha gia' il dato, e viceversa). Nessuna lettura di TX-0060. Grant: csr.tx-0018.read (p1-dirigente,
@@ -217,9 +244,11 @@ descrizione), numeri chiave nel corpo, "Entra in Fisico" nel piede.
 - OP-FIS-01, OP-FIS-02, OP-FIS-03: risolti il 22/10/2026 (G2: voci da TX-0060; G3: ultimo dato ed export di TX-0018).
 - OP-FIS-04: quantita' richiesta a premio sempre FONTE_NON_ATTIVA (D-02 del backend), informativo.
 - OP-FIS-05: nessun drill-down verso l'elenco operativo (insieme di domande non riproducibile).
-- OP-FIS-06: risolto (G1: la card Fisico della Home elenca superfici e determine; la allinea lo step6).
-- OP-FIS-07: voci di menu e Home nel layer app/ (step6), informativo.
+- OP-FIS-06: superato dal verbale del 29/10/2026 (la card Fisico elencava superfici e determine; ora output regionale,
+  superfici e Unit Amount; la allinea lo step6).
+- OP-FIS-07: voci di menu (Superfici ammissibili, Output regionale, Unit Amount) e Home nel layer app/ (step6),
+  informativo.
 - OP-FIS-09: TX-0056, TX-0057, TX-0058 e TX-0059 della slice elenco-operativo, pinnata per TX-0060, restano rese
   dall'elenco operativo (copertura per delega).
 - OP-FIS-10: card della Home coi numeri chiave delle superfici (decisione dell'utente del 26/10/2026), vedi "Card della
-  Home"; la monta lo step6 in `src/app/aree.ts`.
+  Home"; testo aggiornato il 30/10/2026; la monta lo step6 in `src/app/aree.ts`.

@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
   "feature": "finanziario",
-  "pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb",
+  "pack_hash": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7",
   "spec_pins": [
     {
       "slice": "finanziario",
       "path": "handover/openapi-finanziario.json",
-      "sha256": "sha256:e65fc85f2168bfeab95480909afb72a557537cded2355c0bce6500170c42dbbb",
+      "sha256": "sha256:f540db815eaa900ae43004c4488617a4a3c0c907d12b8f5da779d20b82c8439b",
       "manifest_hash_match": true
     }
   ],
@@ -379,23 +379,6 @@
       ],
       "roles": [
         "csr.tx-0014.read"
-      ],
-      "flow": "sigc"
-    },
-    {
-      "path": "/finanziario/sigc/verifica-smp",
-      "kind": "report",
-      "transactions": [
-        "TX-0015"
-      ],
-      "reqs": [
-        "RF015"
-      ],
-      "roles": [
-        "csr.tx-0015.read"
-      ],
-      "scope_filters": [
-        "territoriale-ada"
       ],
       "flow": "sigc"
     }
@@ -960,156 +943,6 @@
       "source_ref": "openapi-finanziario.json#/components/schemas/MonitoraggioRiserva"
     },
     {
-      "route": "/finanziario/sigc/verifica-smp",
-      "name": "perimetro",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/VerificaSmp"
-    },
-    {
-      "route": "/finanziario/sigc/verifica-smp",
-      "name": "esercizio",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/VerificaSmp"
-    },
-    {
-      "route": "/finanziario/sigc/verifica-smp",
-      "name": "annoDomande",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/VerificaSmp"
-    },
-    {
-      "route": "/finanziario/sigc/verifica-smp",
-      "name": "pagamentiSenzaData",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/VerificaSmp"
-    },
-    {
-      "route": "/finanziario/sigc/verifica-smp",
-      "name": "righe[].codiceIntervento",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/VerificaSmp"
-    },
-    {
-      "route": "/finanziario/sigc/verifica-smp",
-      "name": "righe[].avvisiAttivati",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/VerificaSmp"
-    },
-    {
-      "route": "/finanziario/sigc/verifica-smp",
-      "name": "righe[].azioniAttivate",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/VerificaSmp"
-    },
-    {
-      "route": "/finanziario/sigc/verifica-smp",
-      "name": "righe[].domandeRicevute",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/VerificaSmp"
-    },
-    {
-      "route": "/finanziario/sigc/verifica-smp",
-      "name": "righe[].domandeRicevuteSenzaRichiesto",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/VerificaSmp"
-    },
-    {
-      "route": "/finanziario/sigc/verifica-smp",
-      "name": "righe[].valoreDomandeRicevute",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/VerificaSmp"
-    },
-    {
-      "route": "/finanziario/sigc/verifica-smp",
-      "name": "righe[].domandeFinanziate",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/VerificaSmp"
-    },
-    {
-      "route": "/finanziario/sigc/verifica-smp",
-      "name": "righe[].valoreDomandeFinanziate",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/VerificaSmp"
-    },
-    {
-      "route": "/finanziario/sigc/verifica-smp",
-      "name": "righe[].dotazioneAnnoPrecedente",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/VerificaSmp"
-    },
-    {
-      "route": "/finanziario/sigc/verifica-smp",
-      "name": "righe[].dotazionePeriodoImpegno",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/VerificaSmp"
-    },
-    {
-      "route": "/finanziario/sigc/verifica-smp",
-      "name": "righe[].domandePagateEsercizio",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/VerificaSmp"
-    },
-    {
-      "route": "/finanziario/sigc/verifica-smp",
-      "name": "righe[].spesaErogataCampagnaPrecedente",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/VerificaSmp"
-    },
-    {
-      "route": "/finanziario/sigc/verifica-smp",
-      "name": "righe[].spesaErogataCampagneAnteriori",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/VerificaSmp"
-    },
-    {
-      "route": "/finanziario/sigc/verifica-smp",
-      "name": "righe[].previsionePagamentoEsercizio",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/VerificaSmp"
-    },
-    {
-      "route": "/finanziario/sigc/verifica-smp",
-      "name": "righe[].importoTopUp",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/VerificaSmp"
-    },
-    {
-      "route": "/finanziario/sigc/verifica-smp",
-      "name": "righe[].includeTopUp",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/VerificaSmp"
-    },
-    {
-      "route": "/finanziario/sigc/verifica-smp",
-      "name": "righe[].ettariUbaRichiesti",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/VerificaSmp"
-    },
-    {
-      "route": "/finanziario/sigc/verifica-smp",
-      "name": "righe[].outputAttesoFinanziate",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/VerificaSmp"
-    },
-    {
-      "route": "/finanziario/sigc/verifica-smp",
-      "name": "righe[].outputErogatoEsercizio",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/VerificaSmp"
-    },
-    {
-      "route": "/finanziario/sigc/verifica-smp",
-      "name": "righe[].indicatoreOutput",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/VerificaSmp"
-    },
-    {
-      "route": "/finanziario/sigc/verifica-smp",
-      "name": "righe[].indicatoreRisultato",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/VerificaSmp"
-    },
-    {
       "route": "/finanziario",
       "name": "ultimiDatiSincronizzati[].flusso",
       "provenance": "spec",
@@ -1469,25 +1302,16 @@
       "name": "sigc",
       "routes": [
         "/finanziario/sigc",
-        "/finanziario/sigc/riserva",
-        "/finanziario/sigc/verifica-smp"
+        "/finanziario/sigc/riserva"
       ],
       "wireframe_dir": "wireframes/sigc",
       "wcag_notes": [
         "Ogni grafico ha la tabella equivalente subito sotto (canale primario, WCAG 1.1.1 e 1.4.1): il grafico e' un complemento.",
         "Importi non disponibili resi come testo (motivo e fonte attesa dalla spec), mai come cella vuota o zero.",
         "Perimetro (REGIONALE o ADA) dichiarato in testa alla pagina con testo, non solo con colore.",
-        "Selettori di anno (riserva) ed esercizio (verifica SMP) con label; il 404 della riserva e' uno stato vuoto spiegato, non un errore.",
-        "Tabella della verifica SMP larga (19 dati): intestazioni di riga sul codice intervento, scorrimento orizzontale del solo contenitore della tabella.",
+        "Selettore dell'anno della riserva con label; il 404 della riserva e' uno stato vuoto spiegato, non un errore.",
         "Download per formato (PNG, CSV, XLSX): un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo. Deviazione rivista V-07."
-      ],
-      "approval": {
-        "approved_hash": "sha256:bff0fa0c53ba29b2431992ad0b611e270261a750e6bd9f253b6b754dc1744db5",
-        "baseline_ref": "./wireframes/sigc",
-        "approved_at": "2026-10-21T10:57:26Z",
-        "time_to_approve_s": 418,
-        "rework_rounds": 5
-      }
+      ]
     }
   ],
   "open_points": [
@@ -1524,7 +1348,7 @@
     {
       "id": "OP-FE-06",
       "kind": "altro",
-      "detail": "Risolto in parte il 13/10/2026 (bc02c20, D-11 Rev. 9 e 10 di nfr-conformance): dopo una sessione scaduta (401) o con Accedi la SPA porta a /auth/login?ritorno=<pagina con la query>, il BFF lo convalida e dopo il login riporta li': pagina, filtri, anno della riserva, esercizio della verifica SMP e scheda del dettaglio (nell'indirizzo) si ritrovano. Restano fuori le scelte salvate nello state della history del browser, che il login a pagina intera non conserva: anno della tabella delle domande; ricerca, ordine, pagina e vista del riepilogo; vista delle card del dettaglio. Prima: limite accettato l'08/10/2026 (review step9 R-01)."
+      "detail": "Risolto in parte il 13/10/2026 (bc02c20, D-11 Rev. 9 e 10 di nfr-conformance): dopo una sessione scaduta (401) o con Accedi la SPA porta a /auth/login?ritorno=<pagina con la query>, il BFF lo convalida e dopo il login riporta li': pagina, filtri, anno della riserva e scheda del dettaglio (nell'indirizzo) si ritrovano. Restano fuori le scelte salvate nello state della history del browser, che il login a pagina intera non conserva: anno della tabella delle domande; ricerca, ordine, pagina e vista del riepilogo; vista delle card del dettaglio. Prima: limite accettato l'08/10/2026 (review step9 R-01)."
     },
     {
       "id": "OP-FE-07",
@@ -1535,6 +1359,11 @@
       "id": "OP-FE-08",
       "kind": "altro",
       "detail": "Il PNG di un grafico e' generato nel browser: porta l'intestazione di NFR-50 (fonte, filtri applicati, data e ora di estrazione, ultimo dato sincronizzato, profilo, uso interno) ma non e' registrato in AUDIT_ESPORTAZIONE (NFR-34), che il backend scrive per CSV e XLSX. Per registrarlo serve un endpoint del backend (es. una riga d'audit con formato PNG, requisito, filtri e impronta del file), con risigillo della slice finanziario. Scelta dell'utente del 12/10/2026 (review step9 v3 V-01): intestazione nel PNG, audit come punto aperto."
+    },
+    {
+      "id": "OP-FE-10",
+      "kind": "altro",
+      "detail": "Riallineamento degli ambiti (decisioni A-1, A-4 e A-5 dell'utente del 29/10/2026, MIN-20261029; pack 1.4.0, catalogo rev. 4): la verifica SMP SIGC (TX-0015, RF015) e' dell'ambito istituzionale e la rende la feature istituzionale (GET /api/istituzionale/verifica-smp-sigc). Escono dal finanziario la route /finanziario/sigc/verifica-smp (nessun alias, A-4), la pagina verifica-smp.html del flusso sigc e i suoi campi; nessun collegamento dalle pagine del finanziario verso la verifica dell'istituzionale (scelta di disegno del dossier del 30/10/2026, da confermare all'approvazione del flusso sigc). Da allineare allo step6, fuori dai wireframe: voce di menu 'Verifica SMP' del finanziario (REPORT_FINANZIARIO, PERCORSI.verificaSmp e GRANT.verificaSmp in lib/report.ts), route-table e route-manifest senza /finanziario/sigc/verifica-smp, contenuti della card Finanziario della Home in src/app/aree.ts ('SIGC, riserva di efficacia e verifica SMP' diventa 'SIGC e riserva di efficacia'), pagina VerificaSmpReport e lettura di TX-0015 nel client del finanziario. I menu dei wireframe approvati degli altri flussi del finanziario (panoramica, riepilogo, dotazione-avanzamento, domande) mostrano ancora la voce 'Verifica SMP': e' la shell del 13/10/2026 (uiplan-patterns 7, il menu e' del layer app/) e quei flussi restano invariati per il carry-over; fa fede il menu costruito allo step6."
     }
   ]
 }

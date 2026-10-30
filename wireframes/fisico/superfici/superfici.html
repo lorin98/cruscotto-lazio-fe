@@ -3,7 +3,10 @@
      dagli scenari di accettazione del backend (fisico-scenarios.json), nessun dato reale. Rifatto il 22/10/2026 dopo il
      giro G3 del backend (ultimo dato sincronizzato ed export di TX-0018) e la decisione G2 (valori dei filtri da TX-0060).
      Aggiornato il 22/10/2026 con la decisione D1 della review step9 (V1: interventi senza superfici con il filtro Campagna,
-     stato vuoto con la campagna, mini linea dell'anteprima) e il focus dopo un comando che sparisce col report (A1). -->
+     stato vuoto con la campagna, mini linea dell'anteprima) e il focus dopo un comando che sparisce col report (A1).
+     Aggiornato il 30/10/2026 col riallineamento degli ambiti (verbale del 29/10/2026): menu dell'area con output regionale
+     e Unit Amount al posto delle determine (uscite verso il procedurale), le altre aree come voci attive, e il link
+     "Apri il dettaglio dell'intervento" nell'anteprima. Il resto della pagina e' invariato. -->
 <html lang="it">
 <head>
 <meta charset="utf-8">
@@ -34,11 +37,12 @@
       <li><a class="ui-menu__gruppo" href="superfici.html">Fisico</a>
         <ul class="ui-menu__sub">
           <li><a href="superfici.html" aria-current="page">Superfici ammissibili</a></li>
-          <li><a href="../determine/determine.html">Determine di una domanda</a></li>
+          <li><a href="../output-regionale/output-regionale.html">Output regionale</a></li>
+          <li><a href="../unit-amount/unit-amount.html">Unit Amount</a></li>
         </ul>
       </li>
-      <li><span class="ui-menu__presto">Procedurale (presto)</span></li>
-      <li><span class="ui-menu__presto">Istituzionale (presto)</span></li>
+      <li><a class="ui-menu__gruppo" href="../../procedurale/panoramica/panoramica.html">Procedurale</a></li>
+      <li><a class="ui-menu__gruppo" href="../../istituzionale/verifica-smp-non-sigc/verifica-smp-non-sigc.html">Istituzionale</a></li>
     </ul>
     <p class="ui-menu__sezione">Strumenti</p>
     <ul class="ui-menu">
@@ -200,9 +204,10 @@
       <figure class="ui-grafico ui-grafico--linea ui-grafico--mini">
         <figcaption>Mini linea: superficie DS e DP dell'intervento per campagna, con la tabella equivalente per i lettori di schermo.</figcaption>
       </figure>
-      <button class="btn btn-primary" type="button">Mostra solo SRB01</button>
+      <button class="btn btn-primary" type="button">Mostra solo SRB01</button> <a class="btn" href="../intervento/intervento.html">Apri il dettaglio dell'intervento</a>
     </aside>
     <p class="form-text">"Mostra solo SRB01" mette il filtro Intervento sull'intervento (chip nella barra dei filtri) e chiude l'anteprima: resta sulla stessa pagina, e il focus va sul titolo della pagina (la riga o la barra che ha aperto l'anteprima sparisce col report). La descrizione dell'intervento viene dalle voci di TX-0060; senza, l'anteprima mostra il solo codice.</p>
+    <p class="wf-note">"Apri il dettaglio dell'intervento" = link dettaglio-intervento-superfici verso /fisico/interventi/:codice (flusso intervento: output per anno, superfici per campagna e Unit Amount dell'intervento). Aggiunto il 30/10/2026; si toglie se l'utente non vuole il dettaglio dell'intervento nel fisico (scelta di disegno 1 del dossier).</p>
     <p class="wf-note">Anteprima con il filtro Campagna (D1, V1): la risposta ha la sola campagna filtrata, quindi l'anteprima non elenca altre campagne e la mini linea per campagna non si disegna: la card dice "Grafico non disponibile: con il filtro Campagna la serie non si disegna: togli il filtro Campagna per vedere tutte le campagne", con la fonte "Fonte: TX-0018 con il filtro Campagna 2024: l'anteprima mostra solo la campagna 2024." e la tabella equivalente della sola campagna. Nessuna seconda lettura di TX-0018 (una lettura per pagina). Un intervento senza superfici nella campagna filtrata: "Superfici: nessuna superficie nella campagna 2024 (non valorizzato)".</p>
     <aside class="ui-pannello" id="pannello-filtri" aria-label="Pannello dei filtri">
       <h2>Filtri delle superfici ammissibili</h2>

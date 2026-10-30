@@ -1,0 +1,37 @@
+[
+  {
+    "name": "ammesse",
+    "decision": "carried_over",
+    "expected": "sha256:6cbddd380343f94fc5bbbdba8b32b14f7b86eda5a7eaedf7e46caacdb3966eaf",
+    "current": "sha256:6cbddd380343f94fc5bbbdba8b32b14f7b86eda5a7eaedf7e46caacdb3966eaf"
+  },
+  {
+    "name": "panoramica",
+    "decision": "revoked",
+    "expected": "sha256:eec17f2e3d8f1f27d4422f85825b27f5eaf3146cccc873c877e451cb05ef3865",
+    "current": "sha256:cad72afc59598c543c6e81996500de0435f50585521bffb7d3257b712044184b"
+  },
+  {
+    "name": "riepilogo",
+    "decision": "carried_over",
+    "expected": "sha256:77f2d54bff90fd1378528ce1a5e081df40180c83a64aa9c3542358583e9d46d1",
+    "current": "sha256:77f2d54bff90fd1378528ce1a5e081df40180c83a64aa9c3542358583e9d46d1"
+  },
+  {
+    "name": "sottofasi",
+    "decision": "carried_over",
+    "expected": "sha256:d73403d3633be07461f7ea03219b6530d6d776e0a61eea7bc4e4f28c4e813b49",
+    "current": "sha256:d73403d3633be07461f7ea03219b6530d6d776e0a61eea7bc4e4f28c4e813b49"
+  },
+  {
+    "name": "stati",
+    "decision": "carried_over",
+    "expected": "sha256:21fcddefe1beea7d44d9de7cb1aa85faea32641771f9d196c7b636b470f1a294",
+    "current": "sha256:21fcddefe1beea7d44d9de7cb1aa85faea32641771f9d196c7b636b470f1a294"
+  },
+  {
+    "name": "unit-amount",
+    "decision": "revoked",
+    "expected": "sha256:dd0ab7020fdf39f25b23e6678acf9f4182ca5c788f343ad1733a32636daace55"
+  }
+]

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<!-- Wireframe v2 (template dettaglio di green-fe, ADR 0027): dettaglio dell'intervento dell'area fisica, composto dai tre
+     report del fisico filtrati sull'intervento (nessuna transazione nuova). Creato il 30/10/2026 per il riallineamento
+     degli ambiti (verbale del 29/10/2026): la scheda Output per anno e' portata dal dettaglio dell'intervento
+     dell'istituzionale (approvato il 22/10/2026), unico posto dove l'output per anno di TX-0017 si disegna (una sola unita'
+     di misura). Valori di esempio presi dagli scenari di accettazione del backend (fisico-scenarios.json), nessun dato reale. -->
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Intervento SRA01 - Fisico - Cruscotto CSR 2023-2027</title>
+<link rel="stylesheet" href="wireframe.css">
+</head>
+<body>
+<a class="skip-link" href="#contenuto">Salta al contenuto</a>
+<header class="ui-testata">
+  <div class="ui-ente">
+    <span class="ui-logo">Regione Lazio</span>
+    <span class="ui-logo">ARSIAL</span>
+  </div>
+  <div class="ui-appbar">
+    <a class="ui-appbar__nome" href="../../panoramica/panoramica.html">Cruscotto CSR 2023-2027</a>
+    <form class="ui-cerca" action="#" method="get" role="search">
+      <label class="form-label" for="cerca-app">Cerca un intervento</label>
+      <input class="form-control" type="search" id="cerca-app" name="q">
+    </form>
+    <span class="ui-utente">Nome Cognome - <a href="#contenuto">Esci</a></span>
+  </div>
+</header>
+<div class="ui-layout">
+  <nav class="ui-sidebar" aria-label="Navigazione principale">
+    <p class="ui-menu__sezione">Aree del cruscotto</p>
+    <ul class="ui-menu">
+      <li><a class="ui-menu__gruppo" href="../../panoramica/panoramica.html">Finanziario</a></li>
+      <li><a class="ui-menu__gruppo" href="../superfici/superfici.html">Fisico</a>
+        <ul class="ui-menu__sub">
+          <li><a href="../superfici/superfici.html">Superfici ammissibili</a></li>
+          <li><a href="../output-regionale/output-regionale.html">Output regionale</a></li>
+          <li><a href="../unit-amount/unit-amount.html">Unit Amount</a></li>
+        </ul>
+      </li>
+      <li><a class="ui-menu__gruppo" href="../../procedurale/panoramica/panoramica.html">Procedurale</a></li>
+      <li><a class="ui-menu__gruppo" href="../../istituzionale/verifica-smp-non-sigc/verifica-smp-non-sigc.html">Istituzionale</a></li>
+    </ul>
+    <p class="ui-menu__sezione">Strumenti</p>
+    <ul class="ui-menu">
+      <li><a class="ui-menu__gruppo" href="../../elenco-operativo/domande/domande.html">Elenco operativo</a></li>
+    </ul>
+  </nav>
+  <main class="ui-main" id="contenuto">
+    <div class="ui-filtri" role="region" aria-label="Riferimenti dei dati">
+      <span class="ui-pill">Perimetro: regionale, sempre (nessun perimetro ADA per le letture del fisico)</span>
+      <button class="ui-pill" type="button" aria-label="Ultimo dato sincronizzato: dati al 02/03/2026 per tutti i flussi. Mostra il dettaglio per flusso">Dati al 02/03/2026</button>
+    </div>
+    <nav class="breadcrumb-container" aria-label="Percorso">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="../../panoramica/panoramica.html">Home</a></li>
+        <li class="breadcrumb-item"><a href="../superfici/superfici.html">Fisico</a></li>
+        <li class="breadcrumb-item" aria-current="page">SRA01</li>
+      </ol>
+    </nav>
+    <section class="ui-hero">
+      <p class="ui-eyebrow">Fisico - intervento SRA01</p>
+      <h1>Descrizione dell'intervento (da TX-0060)</h1>
+      <p><span class="badge">Perimetro regionale</span> <span class="badge">Indicatore di output O.14 (ettari)</span></p>
+      <a class="btn btn-primary" href="../output-regionale/output-regionale.html">Output regionale filtrato su questo intervento</a> <a class="btn" href="../superfici/superfici.html">Superfici ammissibili filtrate su questo intervento</a> <a class="btn" href="../unit-amount/unit-amount.html">Unit Amount di questo intervento</a>
+    </section>
+    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0017.read, csr.tx-0018.read, csr.tx-0030.read - Transazioni: TX-0017, TX-0018 e TX-0030 filtrate su intervento = codice della route (nessuna transazione nuova). Nel catalogo rev. 4 i tre grant hanno gli stessi profili (p1-dirigente, p2-referente-adg, p3-funzionario-area-fis, p5-amministratore-funzionale); ogni scheda e ogni KPI compare comunque solo col grant della sua transazione e le schede leggono i dati solo quando si aprono. Descrizione dell'intervento da TX-0060 dell'elenco operativo (interventi[].descrizione della voce con chiave = codice; csr.tx-0060.read, decisione G2); se TX-0060 non risponde il titolo e' "Intervento SRA01". "Dati al" = ultimiDatiSincronizzati della prima risposta arrivata fra TX-0017, TX-0018 e TX-0030 (stesso elenco, SC-FS_ULTIMO_DATO). Esempio composito: le schede mostrano insieme casi che in un intervento reale non convivono.</p>
+    <div class="ui-griglia ui-griglia--4">
+      <section class="ui-kpi" aria-label="Target di fine periodo">
+        <p>Target di fine periodo</p>
+        <p class="ui-kpi__valore">1.500 ettari al 2029</p>
+        <p class="ui-barra">TX-0017</p>
+      </section>
+      <section class="ui-kpi" aria-label="Superficie ammissibile delle domande di sostegno, campagna 2025">
+        <p>Superficie ammissibile DS, campagna 2025</p>
+        <p class="ui-kpi__valore">10,50 ha</p>
+        <p class="ui-barra">TX-0018, 1 domanda di sostegno</p>
+      </section>
+      <section class="ui-kpi" aria-label="Superficie ammissibile delle domande di pagamento, campagna 2025">
+        <p>Superficie ammissibile DP, campagna 2025</p>
+        <p class="ui-kpi__valore">10,20 ha</p>
+        <p class="ui-barra">TX-0018, 2 domande di pagamento</p>
+      </section>
+      <section class="ui-kpi" aria-label="Domande di pagamento con superficie DP oltre la DS, campagna 2025">
+        <p>Domande con DP oltre la DS, campagna 2025</p>
+        <p class="ui-kpi__valore">0</p>
+        <p class="ui-barra">TX-0018, su 2 domande di pagamento</p>
+      </section>
+    </div>
+    <p class="form-text">Campagna di riferimento dei KPI delle superfici: la piu' recente della risposta di TX-0018 (le superfici di campagne diverse non si sommano, D-01). Un intervento senza superfici (non a superficie o non SIGC) ha i tre KPI "non valorizzato", mai zero.</p>
+    <div class="ui-tabs" role="tablist" aria-label="Sezioni dell'intervento">
+      <button class="btn" type="button" role="tab" aria-selected="true">Output per anno</button> <button class="btn" type="button" role="tab" aria-selected="false">Superfici per campagna</button> <button class="btn" type="button" role="tab" aria-selected="false">Unit Amount</button>
+    </div>
+    <section role="tabpanel" aria-label="Output per anno">
+      <section class="ui-card" aria-labelledby="g-anni">
+        <div class="ui-card__testa">
+          <h2 id="g-anni">Output programmato e realizzato per anno (ettari)</h2>
+          <div class="ui-seg" role="group" aria-label="Vista di Output programmato e realizzato per anno"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button></div>
+          <div class="ui-strumenti"><button class="btn" type="button" aria-label="Scarica il grafico Output programmato e realizzato per anno in PNG">PNG</button> <button class="btn" type="button" aria-label="Scarica l'output e gli importi unitari dell'intervento SRA01 in CSV">CSV</button> <button class="btn" type="button" aria-label="Scarica l'output e gli importi unitari dell'intervento SRA01 in XLSX">XLSX</button></div>
+        </div>
+        <figure class="ui-grafico ui-grafico--barre">
+          <figcaption>Barre raggruppate per anno: programmato, realizzato SIGC, realizzato non SIGC (cumulativo), nell'unita' dell'indicatore; il target di fine periodo e' la linea di riferimento. Gli anni senza valore sono omessi e dichiarati sotto il grafico col motivo. Nessun clic: i valori e la tabella bastano.</figcaption>
+        </figure>
+        <p class="ui-fonte">Fonte: TX-0017. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati. PNG: immagine del grafico disegnata nel browser con l'intestazione, non registrata in audit; CSV e XLSX: export di TX-0017 con intervento = SRA01 (output per anno e importi unitari), registrato in AUDIT_ESPORTAZIONE.</p>
+        <table class="ui-tabella">
+          <caption>Tabella equivalente: output dell'intervento SRA01 per anno, in ettari</caption>
+          <thead>
+            <tr>
+              <th scope="col">Anno</th>
+              <th scope="col" class="ui-num">Programmato</th>
+              <th scope="col" class="ui-num">Realizzato SIGC</th>
+              <th scope="col" class="ui-num">Realizzato non SIGC (cumulativo)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">2023</th><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td><td class="ui-num">400</td><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td></tr>
+            <tr><th scope="row">2024</th><td class="ui-num">500</td><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td></tr>
+            <tr><th scope="row">2027</th><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td><td class="ui-num"><span class="badge">non attribuibile</span> riga presente sia nel monitoraggio SIGC sia nel non SIGC</td><td class="ui-num"><span class="badge">non attribuibile</span> riga presente sia nel monitoraggio SIGC sia nel non SIGC</td></tr>
+          </tbody>
+          <tfoot>
+            <tr><th scope="row">Target di fine periodo</th><td class="ui-num">1.500 (anno 2029)</td><td></td><td></td></tr>
+          </tfoot>
+        </table>
+      </section>
+    </section>
+    <section role="tabpanel" aria-label="Superfici per campagna">
+      <section class="ui-card" aria-labelledby="g-camp">
+        <div class="ui-card__testa">
+          <h2 id="g-camp">Superficie DS e DP per campagna (ettari)</h2>
+          <div class="ui-seg" role="group" aria-label="Vista di Superficie DS e DP per campagna"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button></div>
+          <div class="ui-strumenti"><button class="btn" type="button" aria-label="Scarica il grafico Superficie DS e DP per campagna in PNG">PNG</button> <button class="btn" type="button" aria-label="Scarica le superfici dell'intervento SRA01 in CSV">CSV</button> <button class="btn" type="button" aria-label="Scarica le superfici dell'intervento SRA01 in XLSX">XLSX</button></div>
+        </div>
+        <figure class="ui-grafico ui-grafico--linea">
+          <figcaption>Linea: superficie DS e superficie DP dell'intervento campagna per campagna (mai sommate fra campagne). Nessun clic: la pagina Superfici filtrata su questo intervento ha le card per campagna.</figcaption>
+        </figure>
+        <p class="ui-fonte">Fonte: TX-0018 con intervento = SRA01, tutte le campagne. Quantita' richiesta a premio: non disponibile (fonte non attiva: quantita' richiesta a premio, OP-FIS-04). PNG: immagine del grafico; CSV e XLSX: export di TX-0018 con intervento = SRA01 (una riga per campagna), registrato in AUDIT_ESPORTAZIONE.</p>
+        <table class="ui-tabella">
+          <caption>Tabella equivalente: superfici dell'intervento SRA01 per campagna, dalla piu' recente</caption>
+          <thead>
+            <tr>
+              <th scope="col">Campagna</th>
+              <th scope="col" class="ui-num">Domande di pagamento</th>
+              <th scope="col" class="ui-num">Domande di sostegno</th>
+              <th scope="col" class="ui-num">Superficie DS (ha)</th>
+              <th scope="col" class="ui-num">Superficie DP (ha)</th>
+              <th scope="col" class="ui-num">Differenza DP - DS (ha)</th>
+              <th scope="col" class="ui-num">Domande con DP oltre la DS</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">2025</th><td class="ui-num">2</td><td class="ui-num">1</td><td class="ui-num">10,50</td><td class="ui-num">10,20</td><td class="ui-num">-0,30</td><td class="ui-num">0</td></tr>
+            <tr><th scope="row">2024</th><td class="ui-num">1</td><td class="ui-num">1</td><td class="ui-num">5,00</td><td class="ui-num">6,00</td><td class="ui-num">+1,00</td><td class="ui-num">1</td></tr>
+          </tbody>
+        </table>
+        <div class="ui-vuoto" role="status">Intervento senza superfici (non a superficie o non SIGC, per esempio un intervento strutturale): nessuna superficie in nessuna campagna (non valorizzato).</div>
+      </section>
+    </section>
+    <section role="tabpanel" aria-label="Unit Amount">
+      <div class="ui-strumenti"><button class="btn" type="button" aria-label="Scarica le Unit Amount dell'intervento SRA01 in CSV">CSV</button> <button class="btn" type="button" aria-label="Scarica le Unit Amount dell'intervento SRA01 in XLSX">XLSX</button></div>
+      <table class="ui-tabella">
+        <caption>Unit Amount dell'intervento SRA01 per esercizio e codice: importo unitario, output previsto, pagato e base storica</caption>
+        <thead>
+          <tr>
+            <th scope="col">Unit Amount</th>
+            <th scope="col">Gruppo colturale</th>
+            <th scope="col" class="ui-num">Esercizio</th>
+            <th scope="col" class="ui-num">Importo unitario</th>
+            <th scope="col" class="ui-num">Output previsto</th>
+            <th scope="col" class="ui-num">Importo pagato</th>
+            <th scope="col" class="ui-num">Pagato sul richiesto</th>
+            <th scope="col" class="ui-num">Base storica</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">UA01</th><td>Seminativi</td><td class="ui-num">2024</td><td class="ui-num">250,00 euro</td><td class="ui-num">300</td><td>non disponibile (fonte non attiva)</td><td>non disponibile (fonte non attiva)</td><td>non disponibile (fonte non attiva)</td></tr>
+          <tr><th scope="row">UA02</th><td>gruppo colturale</td><td class="ui-num">2024</td><td class="ui-num">180,00 euro</td><td class="ui-num">200</td><td>non disponibile (fonte non attiva)</td><td>non disponibile (fonte non attiva)</td><td>non disponibile (fonte non attiva)</td></tr>
+          <tr><th scope="row">UA01</th><td>Seminativi</td><td class="ui-num">2025</td><td class="ui-num">260,00 euro</td><td><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td><td>non disponibile (fonte non attiva)</td><td>non disponibile (fonte non attiva)</td><td>non disponibile (fonte non attiva)</td></tr>
+        </tbody>
+      </table>
+      <p class="ui-fonte">Fonte: TX-0030 con intervento = SRA01 (pagato per Unit Amount: fonte non attiva, OP-FIS-14). CSV e XLSX: export di TX-0030 con intervento = SRA01, registrato in AUDIT_ESPORTAZIONE. Il grafico della percentuale pagata e' nella pagina Unit Amount, quando la fonte sara' attiva.</p>
+      <div class="ui-vuoto" role="status">Intervento senza Unit Amount (per esempio un intervento strutturale): nessuna Unit Amount; il programmato per anno e' non valorizzato e vale il solo target.</div>
+    </section>
+    <h2>Stato: caricamento</h2>
+    <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro della testata, dei KPI e della scheda aperta)</div>
+    <h2>Stato: intervento senza dati</h2>
+    <div class="ui-vuoto" role="status">Nessun dato per questo intervento nei report del fisico (l'Assistenza tecnica AT001 non e' nei report). <a class="btn btn-primary" href="../output-regionale/output-regionale.html">Torna all'output regionale</a></div>
+    <h2>Stato: errore</h2>
+    <div class="alert alert-danger" role="alert">Intervento non disponibile (codice non valido: 400 dato non valido; accesso negato: 403; 503 capacita' esaurita o tempo scaduto, con Riprova).</div>
+    <h2>Stato: file non scaricato</h2>
+    <div class="alert alert-danger" role="alert">File CSV non scaricato: messaggio dal problem-type (503 esportazione non registrata nel registro di audit o capacita' esaurita: riprova dopo Retry-After). L'esito riuscito si annuncia in role=status: "File CSV scaricato."</div>
+  </main>
+</div>
+<footer class="ui-footer">
+  <ul>
+    <li><a href="#contenuto">Dichiarazione di accessibilita' (indirizzo da definire)</a></li>
+    <li><a href="#contenuto">Privacy (indirizzo da definire)</a></li>
+    <li><a href="#contenuto">Note legali (indirizzo da definire)</a></li>
+    <li>Regione Lazio - ARSIAL</li>
+  </ul>
+</footer>
+</body>
+</html>

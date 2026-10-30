@@ -1,10 +1,12 @@
 <!DOCTYPE html>
-<!-- Wireframe v2 (template lista-filtri di green-fe, ADR 0027): report tabellare con drawer di anteprima.
-     Rework del 22/10/2026 dopo il giro G3 del backend e la decisione G2. Valori di esempio, nessun dato reale. -->
+<!-- Wireframe v2 (template lista-filtri di green-fe, ADR 0027): report tabellare con drawer di anteprima, feature fisico.
+     Portato il 30/10/2026 dal flusso output-regionale dell'istituzionale (approvato il 22/10/2026) per il riallineamento
+     degli ambiti (verbale del 29/10/2026, A-1 e A-5: TX-0017 e' dell'ambito fisico). Valori di esempio presi dagli scenari
+     di accettazione del backend (fisico-scenarios.json), nessun dato reale. -->
 <html lang="it">
 <head>
 <meta charset="utf-8">
-<title>Output regionale - Istituzionale - Cruscotto CSR 2023-2027</title>
+<title>Output regionale - Fisico - Cruscotto CSR 2023-2027</title>
 <link rel="stylesheet" href="wireframe.css">
 </head>
 <body>
@@ -28,14 +30,15 @@
     <p class="ui-menu__sezione">Aree del cruscotto</p>
     <ul class="ui-menu">
       <li><a class="ui-menu__gruppo" href="../../panoramica/panoramica.html">Finanziario</a></li>
-      <li><span class="ui-menu__presto">Fisico (presto)</span></li>
-      <li><span class="ui-menu__presto">Procedurale (presto)</span></li>
-      <li><a class="ui-menu__gruppo" href="../verifica-smp-non-sigc/verifica-smp-non-sigc.html">Istituzionale</a>
+      <li><a class="ui-menu__gruppo" href="../superfici/superfici.html">Fisico</a>
         <ul class="ui-menu__sub">
-          <li><a href="../verifica-smp-non-sigc/verifica-smp-non-sigc.html">Verifica SMP non SIGC</a></li>
+          <li><a href="../superfici/superfici.html">Superfici ammissibili</a></li>
           <li><a href="output-regionale.html" aria-current="page">Output regionale</a></li>
+          <li><a href="../unit-amount/unit-amount.html">Unit Amount</a></li>
         </ul>
       </li>
+      <li><a class="ui-menu__gruppo" href="../../procedurale/panoramica/panoramica.html">Procedurale</a></li>
+      <li><a class="ui-menu__gruppo" href="../../istituzionale/verifica-smp-non-sigc/verifica-smp-non-sigc.html">Istituzionale</a></li>
     </ul>
     <p class="ui-menu__sezione">Strumenti</p>
     <ul class="ui-menu">
@@ -45,24 +48,24 @@
   <main class="ui-main" id="contenuto">
     <div class="ui-filtri" role="region" aria-label="Filtri attivi">
       <a class="btn btn-primary" href="#pannello-filtri">Filtri (0)</a>
-      <span class="ui-pill">Perimetro: regionale (i report istituzionali non hanno perimetro ADA)</span>
-      <span class="ui-pill">Periodo: aaaa - aaaa (dalla risposta; predefinito 2023 - 2029)</span>
-      <button class="ui-pill" type="button" aria-label="Ultimo dato sincronizzato: dati al gg/mm/aaaa per tutti i flussi. Mostra il dettaglio per flusso">Dati al gg/mm/aaaa</button>
+      <span class="ui-pill">Perimetro: regionale, sempre (nessun perimetro ADA per le letture del fisico)</span>
+      <span class="ui-pill">Periodo: 2023 - 2029 (dalla risposta)</span>
+      <button class="ui-pill" type="button" aria-label="Ultimo dato sincronizzato: dati al 02/03/2026 per tutti i flussi. Mostra il dettaglio per flusso">Dati al 02/03/2026</button>
     </div>
     <nav class="breadcrumb-container" aria-label="Percorso">
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="../../panoramica/panoramica.html">Home</a></li>
-        <li class="breadcrumb-item"><a href="../verifica-smp-non-sigc/verifica-smp-non-sigc.html">Istituzionale</a></li>
+        <li class="breadcrumb-item"><a href="../superfici/superfici.html">Fisico</a></li>
         <li class="breadcrumb-item" aria-current="page">Output regionale</li>
       </ol>
     </nav>
     <div class="ui-titolo">
-      <h1>Istituzionale: output regionale programmato e realizzato</h1>
+      <h1>Fisico: output regionale programmato e realizzato</h1>
       <p>Per ogni intervento l'output programmato e realizzato della Regione Lazio, anno per anno, nell'unita' di misura del suo indicatore. Clic su una riga per l'anteprima.</p>
     </div>
-    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0017.read - Transazioni: TX-0017 (RF017) e il suo export CSV o XLSX (GET /api/istituzionale/output-regionale/{formato}, senza operationId, con X-Requested-With); valori dei filtri da TX-0060 dell'elenco operativo (csr.tx-0060.read, che hanno tutti i profili con csr.tx-0017.read: decisione G2). Report tabellare: le quantita' di interventi diversi hanno unita' diverse e non stanno in un solo grafico (OP-IS-06); il grafico per anno e' nel drawer e nel dettaglio dell'intervento. "Dati al" = ultimiDatiSincronizzati della risposta di TX-0017.</p>
+    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0017.read (p1-dirigente, p2-referente-adg, p3-funzionario-area-fis, p5-amministratore-funzionale) - Transazioni: TX-0017 (RF017) e il suo export CSV o XLSX (GET /api/fisico/output-regionale/{formato}, senza operationId, con X-Requested-With); valori dei filtri da TX-0060 dell'elenco operativo (csr.tx-0060.read, che hanno tutti i profili con csr.tx-0017.read: decisione G2). Report tabellare: le quantita' di interventi diversi hanno unita' diverse e non stanno in un solo grafico (OP-FIS-11); il grafico per anno e' nel drawer e nel dettaglio dell'intervento. "Dati al" = ultimiDatiSincronizzati della risposta di TX-0017.</p>
     <aside class="ui-pannello" id="pannello-filtri" aria-label="Pannello dei filtri">
-      <h2>Filtri dei report istituzionali</h2>
+      <h2>Filtri dei report fisici</h2>
       <details class="ui-gruppo-filtro" open>
         <summary>Intervento</summary>
         <label class="form-label" for="f-cerca">Cerca per codice o descrizione</label>
@@ -78,7 +81,7 @@
         <summary>Azione portante</summary>
         <p class="form-text">Non disponibile finche' nessun intervento e' collegato a un'azione portante (legameAzioniDisponibile = falso in TX-0060); altrimenti le azioni portanti con la descrizione.</p>
       </details>
-      <p class="form-text">Valori da TX-0060 dell'elenco operativo: gli interventi del CSR con la descrizione (senza l'Assistenza tecnica AT001), gli obiettivi e le azioni portanti. Voci dello stesso filtro in alternativa (O); filtri diversi insieme (E). I filtri restano nell'indirizzo della pagina.</p>
+      <p class="form-text">Valori da TX-0060 dell'elenco operativo: gli interventi del CSR con la descrizione (senza l'Assistenza tecnica AT001), gli obiettivi e le azioni portanti (valori regionali: nessun profilo con csr.tx-0017.read ha un perimetro ADA). Voci dello stesso filtro in alternativa (O); filtri diversi insieme (E). I filtri restano nell'indirizzo della pagina.</p>
       <button class="btn" type="button">Azzera</button> <button class="btn btn-primary" type="button">Applica i filtri</button>
     </aside>
     <section class="ui-card" aria-labelledby="t-output">
@@ -112,19 +115,20 @@
           </tr>
         </thead>
         <tbody>
-          <tr class="ui-riga"><th scope="row">SRA01</th><td>O.14</td><td>ettari</td><td class="ui-num">n</td><td class="ui-num">2029</td><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td><td class="ui-num">n</td><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td><td class="ui-num">n</td><td class="ui-num">n</td><td class="ui-num">n</td><td class="ui-num">n</td></tr>
+          <tr class="ui-riga"><th scope="row">SRA01</th><td>O.14</td><td>ettari</td><td class="ui-num">1.500</td><td class="ui-num">2029</td><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td><td class="ui-num">500</td><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td></tr>
           <tr class="ui-riga"><th scope="row">SRD01</th><td>O.20</td><td>numero di operazioni</td><td class="ui-num">n</td><td class="ui-num">2029</td><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td></tr>
           <tr class="ui-riga"><th scope="row">SRG01</th><td><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td><td><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td><td class="ui-num"><span class="badge">non valorizzato</span> nessun target</td><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td></tr>
         </tbody>
       </table>
       <nav class="ui-paginazione" aria-label="Pagine della tabella"><button class="btn" type="button" aria-current="page">1</button> <button class="btn" type="button">2</button></nav>
-      <p class="ui-fonte">Fonte: TX-0017. Programmato per anno = somma dell'output previsto delle Unit Amount dell'esercizio (D-03): gli interventi senza Unit Amount valorizzate hanno il solo target di fine periodo. Realizzato SIGC = output erogato dell'anno campagna; realizzato non SIGC = valore del file non SIGC per anno di riferimento, cumulativo (da confermare con ARSIAL e AGEA). Una riga presente in entrambi i monitoraggi e' "non attribuibile (riga presente sia nel monitoraggio SIGC sia nel non SIGC)".</p>
+      <p class="ui-fonte">Fonte: TX-0017. Programmato per anno = somma dell'output previsto delle Unit Amount dell'esercizio (D-03 di istituzionale, valida per TX-0017 anche nel fisico): gli interventi senza Unit Amount valorizzate, come gli strutturali, hanno il solo target di fine periodo. Realizzato SIGC = output erogato dell'anno campagna; realizzato non SIGC = valore del file non SIGC per anno di riferimento, cumulativo (D-04, da confermare con ARSIAL e AGEA). Una riga presente in entrambi i monitoraggi e' "non attribuibile (riga presente sia nel monitoraggio SIGC sia nel non SIGC)". Gli importi unitari per Unit Amount sono nei file CSV e XLSX; in pagina li mostra la pagina Unit Amount, con output previsto e pagato (TX-0030).</p>
     </section>
     <aside class="ui-drawer" aria-label="Anteprima di SRA01">
       <h2>Anteprima: SRA01</h2>
+      <p>SRA01 - descrizione dell'intervento (da TX-0060)</p>
       <dl>
         <dt>Indicatore di output</dt><dd>O.14 (ettari)</dd>
-        <dt>Target di fine periodo</dt><dd>n ettari al 2029</dd>
+        <dt>Target di fine periodo</dt><dd>1.500 ettari al 2029</dd>
         <dt>Realizzato non SIGC</dt><dd>cumulativo per anno di riferimento</dd>
       </dl>
       <figure class="ui-grafico ui-grafico--barre ui-grafico--mini">
@@ -132,6 +136,7 @@
       </figure>
       <a class="btn btn-primary" href="../intervento/intervento.html">Apri il dettaglio</a>
     </aside>
+    <p class="wf-note">Apri il dettaglio = link dettaglio-intervento-output verso /fisico/interventi/:codice (flusso intervento, scheda Output per anno). Nessun link verso l'elenco operativo: l'output non e' un insieme di domande.</p>
     <h2>Stato: caricamento</h2>
     <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro della tabella)</div>
     <h2>Stato: vuoto</h2>

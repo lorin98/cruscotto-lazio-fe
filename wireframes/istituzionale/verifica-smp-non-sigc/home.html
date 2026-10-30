@@ -2,7 +2,8 @@
 <!-- Wireframe v2 (template wireframe-v2 di green-fe, ADR 0027), feature istituzionale, flusso verifica-smp-non-sigc: la card
      Istituzionale della Home coi totali della verifica SMP non SIGC (decisione dell'utente del 26/10/2026). La Home non e'
      una route della feature: la card e' contenuto della feature (G1) e la monta lo step6 in src/app/aree.ts, come quella del
-     finanziario. Valori di esempio, nessun dato reale. -->
+     finanziario. Aggiornato il 30/10/2026 per il riallineamento degli ambiti (MIN-20261029): descrizione e contenuti
+     dell'area = le due verifiche SMP (SIGC e non SIGC); i numeri non cambiano. Valori di esempio, nessun dato reale. -->
 <html lang="it">
 <head>
 <meta charset="utf-8">
@@ -50,7 +51,7 @@
       <h1>Cruscotto CSR 2023-2027</h1>
       <p>Monitoraggio del Complemento di Sviluppo Rurale 2023-2027 della Regione Lazio: scegli un ambito per entrare.</p>
     </div>
-    <p class="wf-note">Card Istituzionale. Ruoli (grant verbatim): csr.tx-0016.read - Transazione: TX-0016, letta senza filtri e senza anno (la stessa lettura della pagina Verifica SMP non SIGC aperta senza filtri, in cache condivisa). Nessuna lettura di TX-0017: l'output regionale ha unita' di misura diverse per intervento e non si somma (OP-IS-06). Senza il grant la card non legge nulla e mostra i contenuti dell'area (gate di UX, mai sicurezza). Le altre tre card sono fuori da questo flusso.</p>
+    <p class="wf-note">Card Istituzionale. Ruoli (grant verbatim): csr.tx-0016.read - Transazione: TX-0016, letta senza filtri e senza anno (la stessa lettura della pagina Verifica SMP non SIGC aperta senza filtri, in cache condivisa). Nessuna lettura di TX-0015: la verifica SIGC chiede l'esercizio finanziario, che la Home non ha (scelta di disegno 3 del dossier: nessun esercizio predefinito inventato). L'output regionale (TX-0017) e' passato al fisico (MIN-20261029). Senza il grant la card non legge nulla e mostra i contenuti dell'area (gate di UX, mai sicurezza). Le altre tre card sono fuori da questo flusso.</p>
     <p class="wf-note">I numeri sono i totali di quattro colonne della tabella della verifica, sommate fra gli interventi della risposta. Si sommano perche' ogni domanda e' una domanda di sostegno corrente di un solo intervento (D-02 Rev. 2 del backend) e la spesa erogata sono righe pagate non SIGC (anticipi inclusi, al lordo dei recuperi). Se in una riga un dato motivato manca, il totale e' "non disponibile" col motivo: mai una somma parziale. La pagina della verifica non cambia (resta senza KPI).</p>
     <div class="ui-griglia ui-griglia--4">
       <section class="ui-card" aria-labelledby="area-finanziario">
@@ -79,7 +80,7 @@
           <h2 id="area-istituzionale">Istituzionale</h2>
           <span class="badge">Disponibile</span>
         </div>
-        <p>Dati ASR non SIGC a confronto con SMP - Data Platform e output regionale programmato e realizzato.</p>
+        <p>Dati ASR SIGC e non SIGC per intervento, da confrontare con SMP - Data Platform.</p>
         <div role="group" aria-label="L'istituzionale in cifre">
           <p class="ui-eyebrow">Non SIGC, valori cumulativi (ultimo file SMP non SIGC: aaaa)</p>
           <dl>
@@ -118,9 +119,9 @@
     <h2>Stato: profilo senza csr.tx-0016.read</h2>
     <ul>
       <li>Verifica SMP dei dati ASR non SIGC</li>
-      <li>Output regionale programmato e realizzato per intervento e anno</li>
+      <li>Verifica SMP dei dati ASR SIGC per esercizio finanziario</li>
     </ul>
-    <p class="wf-note">Nessuna lettura: la card elenca cosa c'e' nell'area, come oggi, anche per chi ha il solo csr.tx-0017.read (la card non legge l'output).</p>
+    <p class="wf-note">Nessuna lettura: la card elenca cosa c'e' nell'area, come oggi. Nel catalogo rev. 4 i profili con csr.tx-0015.read (p1-dirigente, p2-referente-adg, p3-funzionario-area-ist) hanno anche csr.tx-0016.read: oggi nessuno entra nell'area senza i numeri della card.</p>
   </main>
 </div>
 <footer class="ui-footer">

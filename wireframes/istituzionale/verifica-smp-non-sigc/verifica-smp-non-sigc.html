@@ -1,7 +1,9 @@
 <!DOCTYPE html>
-<!-- Wireframe v2 (template wireframe-v2 di green-fe, ADR 0027): pattern report come la verifica SMP SIGC del finanziario
-     (wireframes/sigc/verifica-smp.html). Rework del 22/10/2026 dopo il giro G3 del backend e le decisioni G2 e G4.
-     Valori di esempio, nessun dato reale. -->
+<!-- Wireframe v2 (template wireframe-v2 di green-fe, ADR 0027): pattern report come la verifica SMP SIGC
+     (wireframes/istituzionale/verifica-smp-sigc/verifica-smp-sigc.html, prima nel finanziario). Rework del 22/10/2026 dopo
+     il giro G3 del backend e le decisioni G2 e G4; aggiornato il 30/10/2026 per il riallineamento degli ambiti
+     (MIN-20261029): la verifica SMP SIGC e' nella stessa area, link reciproci al posto del link G4, l'output regionale e'
+     passato al fisico. Valori di esempio, nessun dato reale. -->
 <html lang="it">
 <head>
 <meta charset="utf-8">
@@ -29,12 +31,12 @@
     <p class="ui-menu__sezione">Aree del cruscotto</p>
     <ul class="ui-menu">
       <li><a class="ui-menu__gruppo" href="../../panoramica/panoramica.html">Finanziario</a></li>
-      <li><span class="ui-menu__presto">Fisico (presto)</span></li>
-      <li><span class="ui-menu__presto">Procedurale (presto)</span></li>
+      <li><a class="ui-menu__gruppo" href="../../fisico/superfici/superfici.html">Fisico</a></li>
+      <li><a class="ui-menu__gruppo" href="../../procedurale/panoramica/panoramica.html">Procedurale</a></li>
       <li><a class="ui-menu__gruppo" href="verifica-smp-non-sigc.html">Istituzionale</a>
         <ul class="ui-menu__sub">
           <li><a href="verifica-smp-non-sigc.html" aria-current="page">Verifica SMP non SIGC</a></li>
-          <li><a href="../output-regionale/output-regionale.html">Output regionale</a></li>
+          <li><a href="../verifica-smp-sigc/verifica-smp-sigc.html">Verifica SMP SIGC</a></li>
         </ul>
       </li>
     </ul>
@@ -61,10 +63,10 @@
     <div class="ui-titolo">
       <h1>Istituzionale: verifica SMP non SIGC</h1>
       <p>I dati dei file ASR non SIGC per intervento, da confrontare con SMP - Data Platform.</p>
-      <p>I dati SIGC per lo stesso confronto sono nel Finanziario: <a href="../../sigc/verifica-smp.html">Verifica SMP SIGC</a>.</p>
+      <p>La stessa verifica per i dati SIGC, per esercizio finanziario e con gli stessi filtri: <a href="../verifica-smp-sigc/verifica-smp-sigc.html">Verifica SMP SIGC</a>.</p>
     </div>
-    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0016.read - Transazioni: TX-0016 (RF016) e il suo export CSV o XLSX (GET /api/istituzionale/verifica-smp-non-sigc/{formato}, senza operationId, con X-Requested-With); valori dei filtri da TX-0060 dell'elenco operativo (csr.tx-0060.read, che hanno tutti i profili con csr.tx-0016.read: decisione G2). Stesso aspetto della verifica SMP SIGC del finanziario (TX-0015): selettore, grafico a barre, tabella dei dati per intervento. Perimetro sempre regionale. "Dati al" = ultimiDatiSincronizzati della risposta di TX-0016 (la conclusione meno recente; nel popover una voce per flusso d'import). Clic su barra o riga: link:dettaglio-intervento-smp.</p>
-    <p class="wf-note">Collegamento con il finanziario (decisione G4, link:verifica-smp-sigc): la frase sotto il titolo e il link compaiono solo a chi ha anche csr.tx-0015.read (p1-dirigente, p2-referente-adg); per p3-funzionario-area-ist la frase non c'e'. Nessun filtro portato: l'esercizio finanziario (obbligatorio per TX-0015) e l'anno di riferimento del file (facoltativo per TX-0016) non si traducono e la route del finanziario non dichiara parametri; la verifica SIGC si apre col selettore dell'esercizio, come dal menu. Il finanziario non cambia (nessun link di ritorno).</p>
+    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0016.read - Transazioni: TX-0016 (RF016) e il suo export CSV o XLSX (GET /api/istituzionale/verifica-smp-non-sigc/{formato}, senza operationId, con X-Requested-With); valori dei filtri da TX-0060 dell'elenco operativo (csr.tx-0060.read, che hanno tutti i profili con csr.tx-0016.read: decisione G2). Stesso aspetto della verifica SMP SIGC della stessa area (TX-0015, /istituzionale/verifica-smp-sigc): selettore, grafico a barre, tabella dei dati per intervento. Perimetro sempre regionale. "Dati al" = ultimiDatiSincronizzati della risposta di TX-0016 (la conclusione meno recente; nel popover una voce per flusso d'import). Clic su barra o riga: link:dettaglio-intervento-smp.</p>
+    <p class="wf-note">Collegamento con la verifica SMP SIGC (link:verifica-smp-sigc, scelta di disegno 1; la decisione G4 del 21/10, link verso il finanziario, e' superata dal riallineamento del 29/10/2026): la frase sotto il titolo porta i filtri comuni alle due transazioni (intervento, os, og, op, azione), non l'anno: l'anno di riferimento del file (facoltativo per TX-0016) non si traduce nell'esercizio finanziario (obbligatorio per TX-0015), che la verifica SIGC chiede col suo selettore. Resa con csr.tx-0015.read, che nel catalogo rev. 4 hanno tutti i profili con csr.tx-0016.read (p1-dirigente, p2-referente-adg, p3-funzionario-area-ist): oggi la vedono tutti; il controllo resta come gate di UX. Nella verifica SIGC c'e' la frase speculare (link:verifica-smp-non-sigc).</p>
     <aside class="ui-pannello" id="pannello-filtri" aria-label="Pannello dei filtri">
       <h2>Filtri dei report istituzionali</h2>
       <details class="ui-gruppo-filtro" open>

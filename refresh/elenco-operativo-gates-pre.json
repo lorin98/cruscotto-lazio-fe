@@ -1,0 +1,27 @@
+{
+  "wireframe_domande": {
+    "approved_hash": "sha256:c8a117471712ad00e67e456b346e6eda3f752b0f373c014cca4105b8d3d52fcd",
+    "baseline_ref": "./wireframes/elenco-operativo/domande",
+    "approved_at": "2026-10-13T18:18:09Z",
+    "time_to_approve_s": 761,
+    "deviations_reviewed": [
+      "F3 della review FULL sul delta FE (21/10/2026, decisione dell'utente): stato 'atto di concessione non disponibile' non disegnato nel wireframe, come la nota delle azioni portanti; registrato come OP-EO-06 nello uiplan"
+    ]
+  },
+  "wireframe_dettaglio-domanda": {
+    "approved_hash": "sha256:563cfad178758ac266d88972435957233494418368e98a1da7ec73d41a343376",
+    "baseline_ref": "./wireframes/elenco-operativo/dettaglio-domanda",
+    "approved_at": "2026-10-13T18:18:09Z",
+    "time_to_approve_s": 761,
+    "deviations_reviewed": []
+  },
+  "wireframe_pagamenti": {
+    "approved_hash": "sha256:e9639ac808de662d2456e707d8d2a0872bcd41328ae4f3133a2ac8f6afdc1f55",
+    "baseline_ref": "./wireframes/elenco-operativo/pagamenti",
+    "approved_at": "2026-10-13T18:18:09Z",
+    "time_to_approve_s": 761,
+    "deviations_reviewed": [
+      "F3 della review FULL sul delta FE (21/10/2026, decisione dell'utente): stato 'atto di concessione non disponibile' non disegnato nel wireframe, come la nota delle azioni portanti; registrato come OP-EO-06 nello uiplan"
+    ]
+  }
+}

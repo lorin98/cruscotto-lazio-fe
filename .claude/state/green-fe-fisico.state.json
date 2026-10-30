@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "fisico",
-  "current_step": 9,
+  "current_step": 1,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -20,132 +20,77 @@
       }
     },
     "step1-uiplan": {
-      "status": "done",
-      "gates": {
-        "wireframe_determine": {
-          "approved_hash": "sha256:c797793a40a02c16b021bf98496a77e808dd8072184e3ab4847e8581da535d32",
-          "baseline_ref": "./wireframes/fisico/determine",
-          "approved_at": "2026-10-22T08:51:29Z",
-          "time_to_approve_s": 218,
-          "deviations_reviewed": [
-            "Scelte di disegno approvate dall'utente il 22/10/2026: CSV/XLSX delle card legate a una campagna = campagna della card; campagna di riferimento = filtro o la piu' recente; una sola route /fisico/determine/:codice?; nessun drill-down superfici->elenco (OP-FIS-05); link dalla scheda dell'elenco alle determine nel refresh dell'elenco (OP-FIS-08); campagne del pannello con campagna nell'indirizzo = quella o tutte"
-          ]
-        },
-        "wireframe_superfici": {
-          "approved_hash": "sha256:199cd655ea694dd53c53bc67bcf83fcb132e8da272304d8f195f3c67ddf66596",
-          "baseline_ref": "./wireframes/fisico/superfici",
-          "approved_at": "2026-10-26T08:49:12Z",
-          "time_to_approve_s": 122,
-          "deviations_reviewed": [
-            "Scelte di disegno approvate dall'utente il 22/10/2026: CSV/XLSX delle card legate a una campagna = campagna della card; campagna di riferimento = filtro o la piu' recente; una sola route /fisico/determine/:codice?; nessun drill-down superfici->elenco (OP-FIS-05); link dalla scheda dell'elenco alle determine nel refresh dell'elenco (OP-FIS-08); campagne del pannello con campagna nell'indirizzo = quella o tutte",
-            "D1 della review step9 FULL del fisico v1 (22/10/2026): con il filtro Campagna lo stato vuoto e le note dicono 'nessuna superficie nella campagna N (non valorizzato)', anteprima senza mini linea con il filtro; riapprovato dall'utente il 22/10/2026",
-            "Card della Home dinamica (OP-FIS-10, decisione dell'utente del 26/10/2026: i KPI della pagina per la campagna piu' recente): home.html del flusso; riapprovato dall'utente il 26/10/2026",
-            "D2 della review step9 della card della Home (26/10/2026, decisione dell'utente): la cache condivisa fra card e pagina vale a lettura finita; se si entra nell'area mentre la card sta ancora leggendo, la pagina rifa' la lettura (X1). Correzione nel mutator solo se il ritardo si vede in prova."
-          ]
-        }
-      },
+      "status": "in_progress",
+      "gates": {},
       "completed_at": "2026-10-22T08:53:23Z",
       "artifacts": [
         "./plan/fisico/uiplan.json"
       ]
     },
     "step2-codegen": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-22T09:03:15Z",
       "artifacts": [
         "./specs/.spec-lock.json",
         "./src/shared/api/generated"
       ],
-      "gates": {
-        "codegen_compiles": "pass",
-        "orval_types": "pass",
-        "csrf_static": "pass"
-      }
+      "gates": {}
     },
     "step3-api": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-22T09:07:25Z",
       "artifacts": [
         "./src/features"
       ],
-      "gates": {
-        "api_wrappers_compile": "pass",
-        "querykey_from_factory": "pass"
-      }
+      "gates": {}
     },
     "step4-lib": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-22T09:20:15Z",
       "artifacts": [
         "./src/shared/lib"
       ],
-      "gates": {
-        "lib_pure_compile": "pass",
-        "lib_zero_react": "pass"
-      }
+      "gates": {}
     },
     "step5-ui": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-22T09:37:17Z",
       "artifacts": [
         "./src/features"
       ],
-      "gates": {
-        "ui_components_compile": "pass",
-        "ui_a11y_axe": "pass"
-      }
+      "gates": {}
     },
     "step6-page": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-22T09:42:00Z",
       "artifacts": [
         "./src/pages",
         "./plan/fisico/route-manifest.json"
       ],
-      "gates": {
-        "pages_compile": "pass",
-        "route_manifest_valid": "pass"
-      }
+      "gates": {}
     },
     "step7-test": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-22T09:49:34Z",
       "artifacts": [
         "./src/shared/test",
         "./src/shared/api/mock",
         "./src/shared/testing/axe.ts"
       ],
-      "gates": {
-        "tests_generated": "pass",
-        "msw_fail_closed": "pass"
-      }
+      "gates": {}
     },
     "step8-gate": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-26T10:39:39Z",
       "artifacts": [
         "./plan/fisico/fe-gate-report.json"
       ],
-      "gates": {
-        "lint": "pass",
-        "typecheck": "pass",
-        "test": "pass",
-        "a11y": "pass",
-        "build": "pass",
-        "fsd_import": "pass",
-        "orval_types": "pass",
-        "security": "pass",
-        "authz": "pass",
-        "wireframe_approved": "pass",
-        "req_coverage_ui": "pass"
-      }
+      "gates": {}
     },
     "step9-review": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-26T10:10:46Z",
-      "gates": {
-        "review": "pass"
-      }
+      "gates": {}
     }
   },
   "open_blockers": [],
@@ -166,6 +111,6 @@
     "gate_budget": 8
   },
   "didactic_level": "standard",
-  "pack_version": "1.3.0",
-  "pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
+  "pack_version": "1.4.0",
+  "pack_hash": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7"
 }

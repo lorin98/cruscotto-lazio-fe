@@ -1,0 +1,35 @@
+{
+  "wireframe_intervento": {
+    "approved_hash": "sha256:1932cee77819cb6b6333e61f8e65b1c45c2f22393985d85fd427c4b56ee79a1b",
+    "baseline_ref": "./wireframes/istituzionale/intervento",
+    "approved_at": "2026-10-22T08:51:29Z",
+    "time_to_approve_s": 218,
+    "deviations_reviewed": [
+      "Scelte di disegno approvate dall'utente il 22/10/2026: quattro link verso l'elenco tenuti, scenario di coincidenza da chiedere a green-be (OP-IS-09); testi proposti per ANNO_NON_CONSERVATO e FONTE_AMBIGUA (OP-IS-08); output regionale con interruttore della misura e mini grafico nel drawer (OP-IS-06); dettaglio dell'intervento come terzo flusso",
+      "D2 della review step9 FULL dell'istituzionale v1 (22/10/2026, X2), approvata dall'utente: TX-0016 e TX-0017 si leggono all'apertura della pagina, non della scheda: KPI e badge della testata le usano; le schede leggono dalla stessa cache, nessuna lettura in piu'"
+    ]
+  },
+  "wireframe_output-regionale": {
+    "approved_hash": "sha256:4b7342bfd3870e169d098ff86e16b94921f91bde4782a1bddeb9e565fa90f302",
+    "baseline_ref": "./wireframes/istituzionale/output-regionale",
+    "approved_at": "2026-10-22T08:51:29Z",
+    "time_to_approve_s": 218,
+    "deviations_reviewed": [
+      "Scelte di disegno approvate dall'utente il 22/10/2026: quattro link verso l'elenco tenuti, scenario di coincidenza da chiedere a green-be (OP-IS-09); testi proposti per ANNO_NON_CONSERVATO e FONTE_AMBIGUA (OP-IS-08); output regionale con interruttore della misura e mini grafico nel drawer (OP-IS-06); dettaglio dell'intervento come terzo flusso",
+      "D1 della review step9 FULL dell'istituzionale v1 (22/10/2026, V5), approvata dall'utente: chip dei filtri col codice, come nel low-fi approvato e nelle barre di finanziario e fisico; la descrizione e' nel pannello e nella testata del dettaglio"
+    ]
+  },
+  "wireframe_verifica-smp-non-sigc": {
+    "approved_hash": "sha256:dcb8a4bdd3edea0b1a12367e80c0111fb807a4a3d3a92debdc3d28fbf502778d",
+    "baseline_ref": "./wireframes/istituzionale/verifica-smp-non-sigc",
+    "approved_at": "2026-10-26T10:21:19Z",
+    "time_to_approve_s": 216,
+    "deviations_reviewed": [
+      "Scelte di disegno approvate dall'utente il 22/10/2026: quattro link verso l'elenco tenuti, scenario di coincidenza da chiedere a green-be (OP-IS-09); testi proposti per ANNO_NON_CONSERVATO e FONTE_AMBIGUA (OP-IS-08); output regionale con interruttore della misura e mini grafico nel drawer (OP-IS-06); dettaglio dell'intervento come terzo flusso",
+      "D1 della review step9 FULL dell'istituzionale v1 (22/10/2026, V5), approvata dall'utente: chip dei filtri col codice, come nel low-fi approvato e nelle barre di finanziario e fisico; la descrizione e' nel pannello e nella testata del dettaglio",
+      "Card della Home dinamica (OP-IS-11, decisione dell'utente del 26/10/2026: totali della verifica SMP non SIGC, nessuna lettura di TX-0017): home.html del flusso; riapprovato dall'utente il 26/10/2026",
+      "D3 della review step9 della card della Home (26/10/2026): riferimento 'Non SIGC, valori cumulativi (ultimo file SMP non SIGC: aaaa)'; D4: scheletro della card con role=status come nel wireframe; riapprovato dall'utente il 26/10/2026",
+      "D2 della review step9 della card della Home (26/10/2026, decisione dell'utente): la cache condivisa fra card e pagina vale a lettura finita; se si entra nell'area mentre la card sta ancora leggendo, la pagina rifa' la lettura (X1). Correzione nel mutator solo se il ritardo si vede in prova."
+    ]
+  }
+}

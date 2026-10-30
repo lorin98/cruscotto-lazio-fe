@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<!-- Wireframe v2 (template wireframe-v2 di green-fe, ADR 0027): pattern report. Pagina portata dal flusso sigc del
+     finanziario (wireframes/sigc/verifica-smp.html di HEAD e0f6cb7, approvato il 21/10/2026) per il riallineamento degli
+     ambiti del 29/10/2026 (MIN-20261029, A-1 e A-5: TX-0015 sta nell'ambito istituzionale) e resa come la verifica SMP
+     non SIGC della stessa area. Valori di esempio, nessun dato reale. -->
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Verifica SMP SIGC - Istituzionale - Cruscotto CSR 2023-2027</title>
+<link rel="stylesheet" href="wireframe.css">
+</head>
+<body>
+<a class="skip-link" href="#contenuto">Salta al contenuto</a>
+<header class="ui-testata">
+  <div class="ui-ente">
+    <span class="ui-logo">Regione Lazio</span>
+    <span class="ui-logo">ARSIAL</span>
+  </div>
+  <div class="ui-appbar">
+    <a class="ui-appbar__nome" href="../verifica-smp-non-sigc/home.html">Cruscotto CSR 2023-2027</a>
+    <form class="ui-cerca" action="#" method="get" role="search">
+      <label class="form-label" for="cerca-app">Cerca un intervento</label>
+      <input class="form-control" type="search" id="cerca-app" name="q">
+    </form>
+    <span class="ui-utente">Nome Cognome - <a href="#contenuto">Esci</a></span>
+  </div>
+</header>
+<div class="ui-layout">
+  <nav class="ui-sidebar" aria-label="Navigazione principale">
+    <p class="ui-menu__sezione">Aree del cruscotto</p>
+    <ul class="ui-menu">
+      <li><a class="ui-menu__gruppo" href="../../panoramica/panoramica.html">Finanziario</a></li>
+      <li><a class="ui-menu__gruppo" href="../../fisico/superfici/superfici.html">Fisico</a></li>
+      <li><a class="ui-menu__gruppo" href="../../procedurale/panoramica/panoramica.html">Procedurale</a></li>
+      <li><a class="ui-menu__gruppo" href="../verifica-smp-non-sigc/verifica-smp-non-sigc.html">Istituzionale</a>
+        <ul class="ui-menu__sub">
+          <li><a href="../verifica-smp-non-sigc/verifica-smp-non-sigc.html">Verifica SMP non SIGC</a></li>
+          <li><a href="verifica-smp-sigc.html" aria-current="page">Verifica SMP SIGC</a></li>
+        </ul>
+      </li>
+    </ul>
+    <p class="ui-menu__sezione">Strumenti</p>
+    <ul class="ui-menu">
+      <li><a class="ui-menu__gruppo" href="../../elenco-operativo/domande/domande.html">Elenco operativo</a></li>
+    </ul>
+  </nav>
+  <main class="ui-main" id="contenuto">
+    <div class="ui-filtri" role="region" aria-label="Filtri attivi">
+      <a class="btn btn-primary" href="#pannello-filtri">Filtri (1)</a>
+      <span class="ui-chip">Intervento: SRA01 <button class="btn" type="button" aria-label="Togli il filtro Intervento SRA01">x</button></span>
+      <span class="ui-pill">Perimetro: regionale (i report istituzionali non hanno perimetro ADA)</span>
+      <span class="ui-pill">Esercizio finanziario: aaaa (dal 16/10/aaaa-1 al 15/10/aaaa)</span>
+      <button class="ui-pill" type="button" aria-label="Ultimo dato sincronizzato: dati al gg/mm/aaaa per tutti i flussi. Mostra il dettaglio per flusso">Dati al gg/mm/aaaa</button>
+    </div>
+    <nav class="breadcrumb-container" aria-label="Percorso">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="../verifica-smp-non-sigc/home.html">Home</a></li>
+        <li class="breadcrumb-item"><a href="../verifica-smp-non-sigc/verifica-smp-non-sigc.html">Istituzionale</a></li>
+        <li class="breadcrumb-item" aria-current="page">Verifica SMP SIGC</li>
+      </ol>
+    </nav>
+    <div class="ui-titolo">
+      <h1>Istituzionale: verifica SMP SIGC</h1>
+      <p>I dati SIGC per intervento dell'esercizio scelto, da confrontare con SMP - Data Platform.</p>
+      <p>La stessa verifica per i dati ASR non SIGC, con gli stessi filtri: <a href="../verifica-smp-non-sigc/verifica-smp-non-sigc.html">Verifica SMP non SIGC</a>.</p>
+    </div>
+    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0015.read - Transazioni: TX-0015 (RF015) e il suo export CSV o XLSX (GET /api/istituzionale/verifica-smp-sigc/{formato}, senza operationId, con X-Requested-With); valori dei filtri da TX-0060 dell'elenco operativo (csr.tx-0060.read, che hanno tutti i profili con csr.tx-0015.read: p1-dirigente, p2-referente-adg, p3-funzionario-area-ist; decisione G2). Pagina portata dal finanziario (/finanziario/sigc/verifica-smp, che non resta come alias: A-4). Perimetro sempre regionale: nessun profilo con il grant e' limitato a un'ADA (D-08 di istituzionale; nel catalogo rev. 4 P4 non ha piu' TX-0015). "Dati al" = ultimiDatiSincronizzati della risposta di TX-0015 (la conclusione meno recente; nel popover una voce per flusso d'import), non piu' TX-0001. Clic su barra o riga: link:dettaglio-intervento-smp-sigc.</p>
+    <p class="wf-note">Collegamento con la verifica non SIGC (link:verifica-smp-non-sigc, scelta di disegno 1): la frase sotto il titolo porta i filtri comuni alle due transazioni (intervento, os, og, op, azione), non l'esercizio, che non si traduce nell'anno di riferimento del file SMP non SIGC. Resa con csr.tx-0016.read, che hanno tutti i profili con csr.tx-0015.read (catalogo rev. 4): oggi la vedono tutti quelli che aprono la pagina; il controllo resta come gate di UX. Nella verifica non SIGC c'e' la frase speculare (link:verifica-smp-sigc).</p>
+    <aside class="ui-pannello" id="pannello-filtri" aria-label="Pannello dei filtri">
+      <h2>Filtri dei report istituzionali</h2>
+      <details class="ui-gruppo-filtro" open>
+        <summary>Intervento</summary>
+        <label class="form-label" for="f-cerca">Cerca per codice o descrizione</label>
+        <input class="form-control" type="search" id="f-cerca" name="cerca">
+        <label class="ui-opzione" for="f-sra01"><input type="checkbox" id="f-sra01" name="intervento" checked> SRA01 - descrizione da TX-0060</label>
+        <label class="ui-opzione" for="f-srd01"><input type="checkbox" id="f-srd01" name="intervento"> SRD01 - descrizione da TX-0060</label>
+      </details>
+      <details class="ui-gruppo-filtro">
+        <summary>Obiettivo generale (OG), specifico (OS), di policy (OP)</summary>
+        <button class="ui-toggle-chip" type="button" aria-pressed="false">OG - testo da TX-0060</button> <button class="ui-toggle-chip" type="button" aria-pressed="false">OS4</button> <button class="ui-toggle-chip" type="button" aria-pressed="false">OP - testo da TX-0060</button>
+      </details>
+      <details class="ui-gruppo-filtro">
+        <summary>Azione portante</summary>
+        <p class="form-text">Non disponibile finche' nessun intervento e' collegato a un'azione portante (legameAzioniDisponibile = falso in TX-0060); altrimenti le azioni portanti con la descrizione.</p>
+      </details>
+      <p class="form-text">Valori da TX-0060 dell'elenco operativo: gli interventi del CSR con la descrizione (senza l'Assistenza tecnica AT001), gli obiettivi e le azioni portanti. Voci dello stesso filtro in alternativa (O); filtri diversi insieme (E). I filtri restano nell'indirizzo della pagina e passando all'altra verifica dell'area.</p>
+      <button class="btn" type="button">Azzera</button> <button class="btn btn-primary" type="button">Applica i filtri</button>
+    </aside>
+    <form action="#" method="get">
+      <label class="form-label" for="esercizio">Esercizio finanziario</label>
+      <select class="form-select" id="esercizio" name="esercizio" aria-describedby="esercizio-aiuto"><option>Scegli un anno</option><option>aaaa</option></select>
+      <p class="form-text" id="esercizio-aiuto">Obbligatorio. Esercizio n dal 16 ottobre n-1 al 15 ottobre n; le domande sono quelle dell'anno n-1. Esercizi del periodo CSR, dal 2023 al 2030, come nel finanziario.</p>
+      <button class="btn btn-primary" type="submit">Mostra</button>
+    </form>
+    <table class="ui-tabella">
+      <caption>Riferimenti della risposta</caption>
+      <tbody>
+        <tr><th scope="row">Esercizio</th><td>aaaa (dal 16/10/aaaa-1 al 15/10/aaaa, estremi compresi)</td></tr>
+        <tr><th scope="row">Anno delle domande</th><td>aaaa-1</td></tr>
+        <tr><th scope="row">Pagamenti senza data di autorizzazione (esclusi dall'esercizio)</th><td>n</td></tr>
+        <tr><th scope="row">Perimetro</th><td>regionale</td></tr>
+      </tbody>
+    </table>
+      <section class="ui-card" aria-labelledby="g-smp">
+        <div class="ui-card__testa">
+          <h2 id="g-smp">Spesa erogata nella campagna precedente per intervento</h2>
+          <div class="ui-seg" role="group" aria-label="Vista di Spesa erogata nella campagna precedente per intervento"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button></div>
+          <div class="ui-strumenti"><button class="btn" type="button" aria-label="Scarica il grafico Spesa erogata nella campagna precedente per intervento in PNG">PNG</button> <button class="btn" type="button" aria-label="Scarica i dati della verifica SMP SIGC, esercizio aaaa, in CSV">CSV</button> <button class="btn" type="button" aria-label="Scarica i dati della verifica SMP SIGC, esercizio aaaa, in XLSX">XLSX</button></div>
+        </div>
+        <figure class="ui-grafico ui-grafico--barre">
+          <figcaption>Barre con zoom: spesa erogata nell'esercizio per le domande della campagna precedente (anno n-1), per intervento. La spesa per le campagne anteriori e la previsione di pagamento (si'/no del monitoraggio SMP, D-11 di finanziario) stanno nella tabella. Gli interventi senza valore sono omessi ed elencati sotto il grafico col motivo. Clic su una barra: dettaglio dell'intervento.</figcaption>
+        </figure>
+        <p class="ui-fonte">Fonte: TX-0015, esercizio aaaa. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati. PNG: l'immagine del grafico disegnata nel browser, con l'intestazione (fonte, filtri, esercizio, data di estrazione, ultimo dato sincronizzato, profilo, uso interno), non registrata in audit. CSV e XLSX: i dati del report scritti dal backend con gli stessi filtri e lo stesso esercizio, registrati in AUDIT_ESPORTAZIONE.</p>
+      </section>
+    <section class="ui-card" aria-labelledby="t-smp">
+      <div class="ui-card__testa"><h2 id="t-smp">Dati per intervento</h2></div>
+      <div class="ui-strumenti">
+        <label class="form-label" for="s-cerca">Cerca nella tabella</label>
+        <input class="form-control" type="search" id="s-cerca" name="s">
+        <button class="btn" type="button">Colonne (21)</button>
+        <button class="btn" type="button" aria-label="Scarica i dati della verifica SMP SIGC, esercizio aaaa, in CSV">CSV</button> <button class="btn" type="button" aria-label="Scarica i dati della verifica SMP SIGC, esercizio aaaa, in XLSX">XLSX</button>
+      </div>
+      <p class="form-text">I file CSV e XLSX contengono tutti gli interventi dei filtri e tutte le 21 colonne, non solo quelli trovati dalla ricerca o le colonne scelte.</p>
+      <table class="ui-tabella">
+        <caption>Verifica SMP SIGC, esercizio aaaa: l'intervento e' l'intestazione di riga; un dato mancante dice il motivo, mai uno 0 o un "no" inventati. Altre colonne con Colonne (21).</caption>
+        <thead>
+          <tr>
+            <th scope="col"><button class="btn" type="button">Intervento</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Avvisi attivati</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Azioni attivate</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Domande ricevute</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Domande finanziate</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Domande pagate nell'esercizio</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Spesa erogata campagna precedente</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Spesa erogata campagne anteriori</button></th>
+            <th scope="col"><button class="btn" type="button">Si prevede di pagare nell'esercizio</button></th>
+            <th scope="col"><button class="btn" type="button">Include top-up</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Output erogato nell'esercizio</button></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="ui-riga"><th scope="row">SRA01</th><td class="ui-num">n</td><td class="ui-num">n</td><td class="ui-num">n</td><td class="ui-num">n</td><td class="ui-num">n</td><td class="ui-num">n,nn euro</td><td class="ui-num">n,nn euro</td><td>si'</td><td>si'</td><td class="ui-num">n</td></tr>
+          <tr class="ui-riga"><th scope="row">SRA02</th><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td><td class="ui-num"><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td><td class="ui-num">n</td><td class="ui-num">n</td><td class="ui-num">n</td><td class="ui-num">n,nn euro</td><td class="ui-num">0,00 euro</td><td><span class="badge">non disponibile</span> fonte non attiva: previsione di pagamento</td><td><span class="badge">non valorizzato</span> il dato non e' presente nella fonte</td><td class="ui-num">non disponibile</td></tr>
+        </tbody>
+      </table>
+      <nav class="ui-paginazione" aria-label="Pagine della tabella"><button class="btn" type="button" aria-current="page">1</button></nav>
+      <p class="ui-fonte">Definizioni del backend (decisioni di finanziario richiamate da istituzionale): esercizio n = dal 16/10/n-1 al 15/10/n, estremi compresi; domande ricevute e finanziate = domande SIGC della campagna n-1 (finanziate: importo ammesso maggiore di zero), quelle senza importo richiesto contate ma escluse dal valore; domande pagate e spesa erogata = pagamenti SIGC autorizzati nell'esercizio, la spesa divisa fra la campagna n-1 e le campagne anteriori (D-05 Rev. 4); i pagamenti senza data di autorizzazione sono esclusi e contati nei riferimenti; avvisi attivati = numero del report SMP, mai ricavato dallo stato (D-09 Rev. 1); output erogato = solo SIGC (RF015); previsione di pagamento = si'/no del monitoraggio SMP (D-11).</p>
+    </section>
+    <h2>Stato: esercizio non scelto</h2>
+    <div class="ui-vuoto" role="status">Scegli l'esercizio finanziario da consultare. (Nessuna lettura finche' l'esercizio manca: per TX-0015 e' obbligatorio; e' anche il caso di chi arriva dalla verifica SMP non SIGC, che porta i soli filtri.)</div>
+    <h2>Stato: caricamento</h2>
+    <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro delle card): le letture partono al piu' due alla volta</div>
+    <h2>Stato: vuoto</h2>
+    <div class="ui-vuoto" role="status">Nessun dato SIGC per l'esercizio e i filtri scelti. Scegli un altro esercizio oppure <a class="btn btn-primary" href="#pannello-filtri">Modifica i filtri</a></div>
+    <h2>Stato: valori dei filtri non disponibili</h2>
+    <div class="ui-vuoto" role="status">Valori dei filtri non disponibili (lettura di TX-0060 non riuscita: messaggio dal problem-type). I filtri dell'indirizzo restano applicati come chip rimovibili e il report si legge lo stesso. <a href="#pannello-filtri">Riprova</a></div>
+    <h2>Stato: errore</h2>
+    <div class="alert alert-danger" role="alert">Dati non disponibili: messaggio dal problem-type (400 dato non valido col nome del parametro, per esempio un esercizio fuori da 2000-2100; 403 accesso negato; 503 capacita' esaurita con nuovo tentativo dopo Retry-After; 503 tempo scaduto). <a href="#contenuto">Riprova</a></div>
+    <h2>Stato: file non scaricato</h2>
+    <div class="alert alert-danger" role="alert">File CSV non scaricato: messaggio dal problem-type (400 oltre il limite dell'export di 5.000 righe o 50.000 celle: restringi i filtri; 503 esportazione non registrata nel registro di audit o capacita' esaurita: riprova dopo Retry-After). L'esito riuscito si annuncia in role=status: "File CSV scaricato."</div>
+  </main>
+</div>
+<footer class="ui-footer">
+  <ul>
+    <li><a href="#contenuto">Dichiarazione di accessibilita' (indirizzo da definire)</a></li>
+    <li><a href="#contenuto">Privacy (indirizzo da definire)</a></li>
+    <li><a href="#contenuto">Note legali (indirizzo da definire)</a></li>
+    <li>Regione Lazio - ARSIAL</li>
+  </ul>
+</footer>
+</body>
+</html>

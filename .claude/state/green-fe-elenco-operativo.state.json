@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "elenco-operativo",
-  "current_step": 9,
+  "current_step": 1,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -20,7 +20,7 @@
       }
     },
     "step1-uiplan": {
-      "status": "done",
+      "status": "in_progress",
       "gates": {
         "wireframe_domande": {
           "approved_hash": "sha256:c8a117471712ad00e67e456b346e6eda3f752b0f373c014cca4105b8d3d52fcd",
@@ -30,13 +30,6 @@
           "deviations_reviewed": [
             "F3 della review FULL sul delta FE (21/10/2026, decisione dell'utente): stato 'atto di concessione non disponibile' non disegnato nel wireframe, come la nota delle azioni portanti; registrato come OP-EO-06 nello uiplan"
           ]
-        },
-        "wireframe_dettaglio-domanda": {
-          "approved_hash": "sha256:563cfad178758ac266d88972435957233494418368e98a1da7ec73d41a343376",
-          "baseline_ref": "./wireframes/elenco-operativo/dettaglio-domanda",
-          "approved_at": "2026-10-13T18:18:09Z",
-          "time_to_approve_s": 761,
-          "deviations_reviewed": []
         },
         "wireframe_pagamenti": {
           "approved_hash": "sha256:e9639ac808de662d2456e707d8d2a0872bcd41328ae4f3133a2ac8f6afdc1f55",
@@ -54,102 +47,69 @@
       ]
     },
     "step2-codegen": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-21T09:18:33Z",
       "artifacts": [
         "./specs/.spec-lock.json",
         "./src/shared/api/generated"
       ],
-      "gates": {
-        "codegen_compiles": "pass",
-        "orval_types": "pass",
-        "csrf_static": "pass"
-      }
+      "gates": {}
     },
     "step3-api": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-21T09:20:42Z",
       "artifacts": [
         "./src/features"
       ],
-      "gates": {
-        "api_wrappers_compile": "pass",
-        "querykey_from_factory": "pass"
-      }
+      "gates": {}
     },
     "step4-lib": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-21T09:21:30Z",
       "artifacts": [
         "./src/shared/lib"
       ],
-      "gates": {
-        "lib_pure_compile": "pass",
-        "lib_zero_react": "pass"
-      }
+      "gates": {}
     },
     "step5-ui": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-21T09:25:24Z",
       "artifacts": [
         "./src/features"
       ],
-      "gates": {
-        "ui_components_compile": "pass",
-        "ui_a11y_axe": "pass"
-      }
+      "gates": {}
     },
     "step6-page": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-21T09:26:42Z",
       "artifacts": [
         "./src/pages",
         "./plan/elenco-operativo/route-manifest.json"
       ],
-      "gates": {
-        "pages_compile": "pass",
-        "route_manifest_valid": "pass"
-      }
+      "gates": {}
     },
     "step7-test": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-21T09:27:12Z",
       "artifacts": [
         "./src/shared/test",
         "./src/shared/api/mock",
         "./src/shared/testing/axe.ts"
       ],
-      "gates": {
-        "tests_generated": "pass",
-        "msw_fail_closed": "pass"
-      }
+      "gates": {}
     },
     "step8-gate": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-26T10:39:39Z",
       "artifacts": [
         "./plan/elenco-operativo/fe-gate-report.json"
       ],
-      "gates": {
-        "lint": "pass",
-        "typecheck": "pass",
-        "test": "pass",
-        "a11y": "pass",
-        "build": "pass",
-        "fsd_import": "pass",
-        "orval_types": "pass",
-        "security": "pass",
-        "authz": "pass",
-        "wireframe_approved": "pass",
-        "req_coverage_ui": "pass"
-      }
+      "gates": {}
     },
     "step9-review": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-21T12:04:04Z",
-      "gates": {
-        "review": "pass"
-      }
+      "gates": {}
     }
   },
   "open_blockers": [],
@@ -170,6 +130,6 @@
     "gate_budget": 8
   },
   "didactic_level": "standard",
-  "pack_version": "1.3.0",
-  "pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
+  "pack_version": "1.4.0",
+  "pack_hash": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7"
 }

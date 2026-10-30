@@ -1,0 +1,51 @@
+{
+  "wireframe_panoramica": {
+    "approved_hash": "sha256:62847ef999d2117747d48ade82cec4c30d0962fd65ef67fc7172f2931fa3ba82",
+    "baseline_ref": "./wireframes/panoramica",
+    "approved_at": "2026-10-13T17:26:04Z",
+    "time_to_approve_s": 418,
+    "deviations_reviewed": [
+      "V-22 (review step9 v2, scelta dell utente del 09/10/2026): il pulsante del pannello dei filtri resta Applica i filtri e non Mostra n interventi; il conteggio richiede il legame intervento-OS-OG-OP (OP-FE-07), che TX-0001 non espone",
+      "V-07 (review step9 v3, download per formato chiesto dall utente il 09/10/2026, deviazione confermata il 12/10/2026): al posto del solo Scarica per card e di Esporta CSV per le tabelle, un pulsante per formato con la sigla visibile; PNG del grafico come si vede con l intestazione di NFR-50 (V-01), CSV e XLSX scritti dal backend (D-08). Il PNG non e registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08, scelta dell utente del 12/10/2026"
+    ]
+  },
+  "wireframe_riepilogo": {
+    "approved_hash": "sha256:8d3e3739ae6f988cf64e6a6cd38a05299388742a85ffe1a6d8b0596d7bdfe2d1",
+    "baseline_ref": "./wireframes/riepilogo",
+    "approved_at": "2026-10-21T10:57:26Z",
+    "time_to_approve_s": 418,
+    "deviations_reviewed": [
+      "V-07 (review step9 v3, download per formato chiesto dall utente il 09/10/2026, deviazione confermata il 12/10/2026): al posto del solo Scarica per card e di Esporta CSV per le tabelle, un pulsante per formato con la sigla visibile; PNG del grafico come si vede con l intestazione di NFR-50 (V-01), CSV e XLSX scritti dal backend (D-08). Il PNG non e registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08, scelta dell utente del 12/10/2026",
+      "F2 della review FULL sul delta FE (21/10/2026): vista iniziale a grafico con interruttore di pagina Grafico | Tabella, tabella approvata invariata nella vista Tabella; due interruttori nella vista Grafico nello stesso ordine; riapprovato dall'utente il 21/10/2026"
+    ]
+  },
+  "wireframe_dotazione-avanzamento": {
+    "approved_hash": "sha256:ead559227a1e9ae2ffc680cd48943ee02bf23af206b3918efc799feb6092636c",
+    "baseline_ref": "./wireframes/dotazione-avanzamento",
+    "approved_at": "2026-10-13T16:01:07Z",
+    "time_to_approve_s": 189,
+    "deviations_reviewed": [
+      "V-07 (review step9 v3, download per formato chiesto dall utente il 09/10/2026, deviazione confermata il 12/10/2026): al posto del solo Scarica per card e di Esporta CSV per le tabelle, un pulsante per formato con la sigla visibile; PNG del grafico come si vede con l intestazione di NFR-50 (V-01), CSV e XLSX scritti dal backend (D-08). Il PNG non e registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08, scelta dell utente del 12/10/2026"
+    ]
+  },
+  "wireframe_domande": {
+    "approved_hash": "sha256:67bb6e94750c9514d15c72bb2480ad9b68596156bef3a4d4968ff4c71ee97313",
+    "baseline_ref": "./wireframes/domande",
+    "approved_at": "2026-10-13T17:26:04Z",
+    "time_to_approve_s": 418,
+    "deviations_reviewed": [
+      "V-07 (review step9 v3, download per formato chiesto dall utente il 09/10/2026, deviazione confermata il 12/10/2026): al posto del solo Scarica per card e di Esporta CSV per le tabelle, un pulsante per formato con la sigla visibile; PNG del grafico come si vede con l intestazione di NFR-50 (V-01), CSV e XLSX scritti dal backend (D-08). Il PNG non e registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08, scelta dell utente del 12/10/2026"
+    ]
+  },
+  "wireframe_sigc": {
+    "approved_hash": "sha256:bff0fa0c53ba29b2431992ad0b611e270261a750e6bd9f253b6b754dc1744db5",
+    "baseline_ref": "./wireframes/sigc",
+    "approved_at": "2026-10-21T10:57:26Z",
+    "time_to_approve_s": 418,
+    "deviations_reviewed": [
+      "V-07 (review step9 v3, download per formato chiesto dall utente il 09/10/2026, deviazione confermata il 12/10/2026): al posto del solo Scarica per card e di Esporta CSV per le tabelle, un pulsante per formato con la sigla visibile; PNG del grafico come si vede con l intestazione di NFR-50 (V-01), CSV e XLSX scritti dal backend (D-08). Il PNG non e registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08, scelta dell utente del 12/10/2026",
+      "D-11 del backend (19/10/2026): previsione di pagamento si'/no in tabella, grafico della sola spesa erogata; riapprovato dall'utente il 19/10/2026",
+      "V8 della review FULL sul delta FE (21/10/2026): testi di sigc.md allineati alla card della sola spesa erogata; riapprovato dall'utente il 21/10/2026"
+    ]
+  }
+}
