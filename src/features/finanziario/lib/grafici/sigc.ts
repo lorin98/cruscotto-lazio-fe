@@ -1,7 +1,7 @@
 // sigc.ts — grafici SIGC: barre delle domande (TX-0012: presentate, pagate, da pagare e senza importi, insiemi che si
 // sovrappongono), cascata degli importi (TX-0013: dall'ammesso all'ancora da pagare con i valori del contratto, con le
-// domande senza uno degli importi dichiarate: le somme sono parziali), barre della spesa erogata della verifica SMP per
-// intervento (TX-0015; la previsione di pagamento e' un si'/no, D-11 del backend: sta nella tabella, non nel grafico).
+// domande senza uno degli importi dichiarate: le somme sono parziali). La verifica SMP SIGC (TX-0015) e' dell'istituzionale
+// dal riallineamento degli ambiti del 29/10/2026.
 // Gli importi SIGC sono somme per domanda: NON_VALORIZZATO vuol dire che l'importo manca su tutte le domande della
 // selezione (D-09 del backend), quindi si rende come il dato assente nella fonte, non come un totale per intervento.
 import type { EChartsOption } from 'echarts';
@@ -12,7 +12,6 @@ import {
   NON_CALCOLABILE,
   NON_DISPONIBILE,
   aria,
-  barreRaggruppate,
   centesimi,
   descrizioneCascata,
   etichettaDato,
@@ -28,9 +27,9 @@ import {
   tooltipDettaglio,
 } from '../../../../shared/lib';
 import type { DatiGrafico, DatoSerie, PassoCascata } from '../../../../shared/lib';
-import type { DomandeSigcLike, ImportiSigcLike, RigaSmp } from '../dto';
+import type { DomandeSigcLike, ImportiSigcLike } from '../dto';
 import { numeroOpzionale } from '../formato';
-import { assenzaImporto, cellaImporto, codiceDi, valoreDi } from '../importi';
+import { assenzaImporto, cellaImporto, valoreDi } from '../importi';
 
 // ---------------------------------------------------------------- 1. domande SIGC
 
@@ -206,26 +205,4 @@ export function graficoCascataSigc(i: ImportiSigcLike): DatiGrafico {
     { nome: 'Ancora da pagare', valore: daPagare, base: 0, colore: COLORI.primario },
   ];
   return { opzioni: opzioniCascata(passi, descrizioneCascata('Cascata degli importi SIGC', passi, omessi)), tabella, omessi };
-}
-
-// ---------------------------------------------------------------- 3. verifica SMP
-
-/** Barre per intervento della spesa erogata nella campagna precedente (la previsione di pagamento e' un si'/no: D-11). */
-export function graficoSmp(righe: RigaSmp[]): DatiGrafico {
-  const voci = righe.map((r) => {
-    const importi = [r.spesaErogataCampagnaPrecedente];
-    const codice = codiceDi(r);
-    return { categoria: codice, codice, valori: importi.map(valoreDi), celle: importi.map((x) => cellaImporto(x)) };
-  });
-  return barreRaggruppate(
-    voci,
-    [{ nome: 'Spesa erogata nella campagna precedente', soggetto: 'spesa erogata nella campagna precedente' }],
-    {
-      caption: 'Spesa erogata nella campagna precedente per intervento',
-      colonne: ['Intervento', 'Spesa erogata nella campagna precedente'],
-      titolo: 'Barre della spesa erogata nella campagna precedente',
-      vuoto: 'nessun intervento con spesa erogata valorizzata',
-      unita: ['intervento', 'interventi'],
-    },
-  );
 }

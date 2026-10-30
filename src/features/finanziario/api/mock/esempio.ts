@@ -18,8 +18,7 @@ function generatore(seme: number) {
 
 const caso = generatore(2023);
 const ANNI = [2023, 2024, 2025];
-// Un solo costruttore dei dati col motivo dell'assenza (Importo, ConteggioFinanziario, SiNoFinanziario: D3, D15 del
-// backend; review delta 21/10 H4): il valore, oppure null col motivo e la fonte attesa. Importi e assenze ne derivano.
+// Un solo costruttore dei dati col motivo dell'assenza (Importo: review delta 21/10 H4): il valore, oppure null col motivo e la fonte attesa. Importi e assenze ne derivano.
 const dato = <T>(v: T | null, motivo: string | null = null, fonte: string | null = null) => ({ valore: v, motivo: v === null ? motivo : null, fonte: v === null ? fonte : null });
 const euro = (v: number | null) => dato(v);
 const fna = (fonte: string) => dato(null, 'FONTE_NON_ATTIVA', fonte);
@@ -243,38 +242,6 @@ export const handlersEsempio: RequestHandler[] = [
       importoResiduoDisponibile: 8.2e6,
       regolaN2: fna('REGOLA_N2'),
       utilizzoProgressivo: utilizzi.map((u) => ({ ...u, cumulato: (cumulato += u.importo) })),
-    });
-  }),
-  http.get(`${B}/sigc/verifica-smp`, ({ request }) => {
-    const esercizio = Number(new URL(request.url).searchParams.get('esercizio') ?? 2025);
-    return HttpResponse.json({
-      perimetro: PERIMETRO,
-      esercizio,
-      annoDomande: esercizio - 1,
-      pagamentiSenzaData: 3,
-      righe: selezione(request.url).map((i) => ({
-        codiceIntervento: i.codice,
-        avvisiAttivati: dato(2),
-        azioniAttivate: dato(null, 'NON_VALORIZZATO'),
-        domandeRicevute: i.domande[2],
-        domandeRicevuteSenzaRichiesto: 4,
-        valoreDomandeRicevute: euro(tondo(i.dotazione * 0.3)),
-        domandeFinanziate: Math.round(i.domande[2] * 0.6),
-        valoreDomandeFinanziate: euro(tondo(i.dotazione * 0.2)),
-        dotazioneAnnoPrecedente: euro(tondo(i.dotazione * 0.25)),
-        dotazionePeriodoImpegno: euro(i.dotazione),
-        domandePagateEsercizio: Math.round(i.domande[2] * 0.4),
-        spesaErogataCampagnaPrecedente: euro(tondo(i.pagato * 0.4)),
-        spesaErogataCampagneAnteriori: euro(tondo(i.pagato * 0.3)),
-        previsionePagamentoEsercizio: fna('PREVISIONE_PAGAMENTO'),
-        importoTopUp: euro(0),
-        includeTopUp: dato(false),
-        ettariUbaRichiesti: null,
-        outputAttesoFinanziate: null,
-        outputErogatoEsercizio: null,
-        indicatoreOutput: null,
-        indicatoreRisultato: null,
-      })),
     });
   }),
 ];

@@ -217,21 +217,6 @@
       ]
     },
     {
-      "path": "/finanziario/sigc/verifica-smp",
-      "flow": "sigc",
-      "component": "src/pages/finanziario/sigc/verifica-smp/page.tsx",
-      "visibility": [
-        "csr.tx-0015.read"
-      ],
-      "actions": [
-        {
-          "operationId": "TX-0015",
-          "gating": "hide-by-role",
-          "grant": "csr.tx-0015.read"
-        }
-      ]
-    },
-    {
       "path": "/elenco-operativo/domande",
       "flow": "domande",
       "component": "src/pages/elenco-operativo/domande/page.tsx",

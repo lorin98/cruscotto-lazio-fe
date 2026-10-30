@@ -208,15 +208,15 @@ describe('chip dei filtri e parametri di pagina', () => {
     expect(ETICHETTE_FILTRO.os).toEqual({ breve: 'OS', estesa: 'Obiettivo specifico (OS)' });
     expect(ETICHETTE_FILTRO.azione.breve).toBe('Azione portante');
   });
-  it('ricercaConParametri: i filtri nuovi e i parametri di pagina della ricerca corrente (anno, esercizio)', () => {
-    expect(PARAMETRI_DI_PAGINA).toEqual(['anno', 'esercizio', 'scheda']);
+  it('ricercaConParametri: i filtri nuovi e i parametri di pagina della ricerca corrente (anno, scheda)', () => {
+    expect(PARAMETRI_DI_PAGINA).toEqual(['anno', 'scheda']);
     expect(ricercaConParametri('scheda=sigc&x=1', {})).toBe('scheda=sigc');
     expect(ricercaConParametri('anno=2025&intervento=SRA01&x=1', { os: ['OS4'] })).toBe('os=OS4&anno=2025');
-    expect(ricercaConParametri('?esercizio=2026&anno=2025', { intervento: ['SRA01'] })).toBe('intervento=SRA01&anno=2025&esercizio=2026');
+    expect(ricercaConParametri('?esercizio=2026&anno=2025', { intervento: ['SRA01'] })).toBe('intervento=SRA01&anno=2025');
     expect(ricercaConParametri('intervento=SRA01', {})).toBe('');
     expect(ricercaConParametri('', { intervento: ['SRA01'] })).toBe('intervento=SRA01');
     expect(ricercaConParametri('anno=2025', {})).toBe('anno=2025');
-    expect(ricercaConParametri('anno=&esercizio=', {})).toBe('');
+    expect(ricercaConParametri('anno=&scheda=', {})).toBe('');
   });
 });
 
@@ -247,9 +247,8 @@ describe('etichette e anni', () => {
     expect(isAnnoValido(2025.5)).toBe(false);
     expect(isAnnoValido(undefined)).toBe(false);
   });
-  it('anniSelezionabili: riserva fino al 2029, esercizio fino al 2030, anno corrente valido sempre presente', () => {
+  it('anniSelezionabili: riserva fino al 2029, anno corrente valido sempre presente', () => {
     expect(anniSelezionabili('riserva')).toEqual([2023, 2024, 2025, 2026, 2027, 2028, 2029]);
-    expect(anniSelezionabili('esercizio').at(-1)).toBe(2030);
     expect(anniSelezionabili('riserva', 2031).at(-1)).toBe(2031);
     expect(anniSelezionabili('riserva', 2025)).toHaveLength(7);
     expect(anniSelezionabili('riserva', 1999)).toHaveLength(7);
@@ -289,14 +288,22 @@ describe('catalogo delle pagine (UI v2)', () => {
     expect(voceDi('/altro')).toBeUndefined();
     expect(titoloH1('Riserva di efficacia (5%)')).toBe('Finanziario: riserva di efficacia (5%)');
   });
-  it('titoli nuovi dei wireframe approvati: riserva di efficacia e verifica SMP (le sigle restano maiuscole)', () => {
+  it('titoli dei wireframe approvati: riserva di efficacia (le sigle restano maiuscole); senza la verifica SMP dal 29/10/2026', () => {
     const riserva = voceDi(PERCORSI.riserva);
     expect(riserva?.titolo).toBe('Riserva di efficacia (5%)');
     expect(riserva?.voceMenu).toBe('Riserva di efficacia');
-    const smp = voceDi(PERCORSI.verificaSmp);
-    expect(smp?.titolo).toBe('Verifica SMP');
-    expect(smp?.voceMenu).toBe('Verifica SMP');
-    expect(titoloH1('Verifica SMP')).toBe('Finanziario: verifica SMP');
+    expect(titoloH1('Domande e importi SIGC')).toBe('Finanziario: domande e importi SIGC');
+    // la verifica SMP SIGC (TX-0015) e' dell'istituzionale: il menu del finanziario resta di sette voci, nessun alias
+    expect(voceDi('/finanziario/sigc/verifica-smp')).toBeUndefined();
+    expect(PAGINE_FINANZIARIO.map((p) => p.voceMenu)).toEqual([
+      'Panoramica',
+      'Riepilogo per intervento',
+      'Dotazione e spesa',
+      'Avanzamento',
+      'Domande e importi',
+      'SIGC: domande e importi',
+      'Riserva di efficacia',
+    ]);
   });
   it('ogni pagina del menu ha la voce e il sottotitolo; il dettaglio non ha sottotitolo', () => {
     for (const p of PAGINE_FINANZIARIO) {
@@ -305,10 +312,10 @@ describe('catalogo delle pagine (UI v2)', () => {
     }
     expect(DETTAGLIO_INTERVENTO.sottotitolo).toBeUndefined();
   });
-  it('GRANT: gli stessi grant della route-table, uno per transazione da TX-0001 a TX-0015', () => {
+  it('GRANT: gli stessi grant della route-table, uno per transazione da TX-0001 a TX-0014', () => {
     const daTabella = new Set(ROTTE_FINANZIARIO.flatMap((r) => r.actions.map((a) => a.grant)));
     expect([...daTabella].sort()).toEqual(Object.values(GRANT).sort());
-    expect(Object.values(GRANT)).toEqual(Array.from({ length: 15 }, (_, k) => `csr.tx-${String(k + 1).padStart(4, '0')}.read`));
+    expect(Object.values(GRANT)).toEqual(Array.from({ length: 14 }, (_, k) => `csr.tx-${String(k + 1).padStart(4, '0')}.read`));
     // ogni azione della route-table usa il grant della sua transazione
     for (const a of ROTTE_FINANZIARIO.flatMap((r) => r.actions)) expect(a.grant).toBe(`csr.${a.operationId.toLowerCase()}.read`);
   });

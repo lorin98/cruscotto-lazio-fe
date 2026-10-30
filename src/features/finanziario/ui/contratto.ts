@@ -1,7 +1,7 @@
 // contratto.ts — controlli STATICI (solo tipi, nessun codice a runtime) tra i tipi scritti a mano nei layer puri e i
 // DTO della spec sigillata: se la spec rinomina un campo, la compilazione fallisce invece di mostrare "non disponibile"
 // ovunque (review step9 H-17 e H-24). Sta in ui/ perche' i layer puri (lib, entities) non importano dal confine api/.
-import type { DatoMotivatoLike, ImportoLike } from '../../../entities/importo';
+import type { ImportoLike } from '../../../entities/importo';
 import type {
   AvanzamentoPagamenti,
   DistribuzioneDotazione,
@@ -17,7 +17,6 @@ import type {
   RiepilogoFinanziarioRiga,
   SpesaPerInterventoRiga,
   UtilizzoRiserva,
-  VerificaSmpRiga,
 } from '../api';
 import type {
   AvanzamentoPagamentiLike,
@@ -29,7 +28,6 @@ import type {
   RigaDomandeAnno,
   RigaImportiAnno,
   RigaRiepilogo,
-  RigaSmp,
   RigaSpesa,
   RiservaLike,
 } from '../lib/grafici';
@@ -39,13 +37,6 @@ import type { FaseRiserva } from '../lib/riserva';
 type Uguali<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
 /** Ogni campo della forma scritta a mano esiste nel DTO (la forma puo' leggerne solo una parte). */
 type Contenuta<Forma, Dto> = [Exclude<keyof Forma, keyof Dto>] extends [never] ? true : false;
-/**
- * Il campo del DTO e' un dato motivato con gli stessi campi di DatoMotivatoLike e il valore del tipo atteso: i campi della
- * forma sono tutti facoltativi, quindi senza questo controllo un `motivo` rinominato nella spec passerebbe (review delta
- * 21/10 H2, come H-17 e H-24).
- */
-type DatoMotivatoDi<Campo, T> =
-  Uguali<keyof NonNullable<Campo>, keyof DatoMotivatoLike<T>> extends true ? (NonNullable<Campo> extends { valore?: infer V } ? Uguali<NonNullable<V>, T> : false) : false;
 
 export const CONTRATTO_IMPORTO: Uguali<keyof Importo, keyof ImportoLike> = true;
 export const CONTRATTO_FASE: Uguali<NonNullable<MonitoraggioRiserva['fase']>, FaseRiserva> = true;
@@ -64,9 +55,3 @@ export const CONTRATTO_RESIDUO_PAGAMENTI: Contenuta<ResiduoSuPagamentiLike, Resi
 export const CONTRATTO_DISTRIBUZIONE: Contenuta<DistribuzioneDotazioneLike, DistribuzioneDotazione> = true;
 export const CONTRATTO_RISERVA: Contenuta<RiservaLike, MonitoraggioRiserva> = true;
 export const CONTRATTO_UTILIZZO: Contenuta<NonNullable<RiservaLike['utilizzoProgressivo']>[number], UtilizzoRiserva> = true;
-export const CONTRATTO_RIGA_SMP: Contenuta<RigaSmp, VerificaSmpRiga> = true;
-// ConteggioFinanziario e SiNoFinanziario (D3, D15, D-11 del backend), letti da VerificaSmpReport con DatoMotivatoLike
-export const CONTRATTO_CONTEGGIO: DatoMotivatoDi<VerificaSmpRiga['avvisiAttivati'], number> = true;
-export const CONTRATTO_CONTEGGIO_AZIONI: DatoMotivatoDi<VerificaSmpRiga['azioniAttivate'], number> = true;
-export const CONTRATTO_SI_NO: DatoMotivatoDi<VerificaSmpRiga['includeTopUp'], boolean> = true;
-export const CONTRATTO_SI_NO_PREVISIONE: DatoMotivatoDi<VerificaSmpRiga['previsionePagamentoEsercizio'], boolean> = true;

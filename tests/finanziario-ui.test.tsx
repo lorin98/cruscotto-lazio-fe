@@ -29,7 +29,6 @@ import {
   RiservaReport,
   SigcReport,
   UltimoAggiornamento,
-  VerificaSmpReport,
 } from '../src/features/finanziario';
 import type { Filtri } from '../src/features/finanziario';
 import { graficoQuotaFeasr } from '../src/features/finanziario/lib/grafici';
@@ -1837,127 +1836,6 @@ describe('RiservaReport (TX-0014)', () => {
     server.use(rispondi('/api/finanziario/riserva/2025', F.RISERVA));
     const { container } = renderConQuery(<RiservaReport anno={2025} onCambiaAnno={nessunaAzione} />);
     await screen.findByRole('table', { name: 'Utilizzo progressivo' });
-    await expectNoA11yViolations(container);
-  });
-});
-
-describe('VerificaSmpReport (TX-0015)', () => {
-  const TABELLA_SMP = /^I dati ASR per intervento da confrontare con SMP/;
-  const GRAFICO_SMP = 'Spesa erogata nella campagna precedente per intervento';
-
-  it("CSV e XLSX dal backend coi filtri e l'esercizio", async () => {
-    let query = '';
-    server.use(
-      rispondi('/api/finanziario/sigc/verifica-smp', F.VERIFICA_SMP),
-      http.get('*/api/finanziario/sigc/verifica-smp/csv', ({ request }) => {
-        query = new URL(request.url).search;
-        return new HttpResponse('dati', { headers: { 'Content-Type': 'text/csv' } });
-      }),
-    );
-    URL.createObjectURL = vi.fn(() => 'blob:prova');
-    URL.revokeObjectURL = vi.fn();
-    const clic = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
-    conRouter(<VerificaSmpReport filtri={{ intervento: ['SRA01'] }} esercizio={2025} onCambiaEsercizio={nessunaAzione} />);
-    await userEvent.click(await screen.findByRole('button', { name: 'Scarica i dati SIGC per il confronto con SMP, esercizio 2025 in CSV' }));
-    await waitFor(() => expect(query).toBe('?intervento=SRA01&esercizio=2025'));
-    expect((clic.mock.contexts[0] as HTMLAnchorElement).download).toBe('verifica-smp-esercizio-2025-tx-0015.csv');
-    clic.mockRestore();
-  });
-
-  it('ricerca nella tabella: nota che i file hanno tutti gli interventi dei filtri (review v3 X-04)', async () => {
-    server.use(rispondi('/api/finanziario/sigc/verifica-smp', F.VERIFICA_SMP));
-    conRouter(<VerificaSmpReport filtri={{}} esercizio={2025} onCambiaEsercizio={nessunaAzione} />);
-    await screen.findByRole('table', { name: TABELLA_SMP });
-    const nota = 'I file CSV e XLSX contengono tutti gli interventi dei filtri, non solo quelli trovati dalla ricerca.';
-    expect(screen.queryByText(nota)).toBeNull();
-    await userEvent.type(ricerca(), 'SRA');
-    expect(screen.getByText(nota)).toBeTruthy();
-  });
-
-  it("senza esercizio chiede di sceglierlo; l'esercizio 2030 e selezionabile", () => {
-    renderConQuery(<VerificaSmpReport filtri={{}} esercizio={undefined} onCambiaEsercizio={nessunaAzione} />);
-    expect(screen.getByRole('status').textContent).toBe("Scegli l'esercizio finanziario da consultare.");
-    expect(within(screen.getByLabelText('Esercizio finanziario')).getByRole('option', { name: '2030' })).toBeTruthy();
-  });
-
-  it("tabella con l'intervento come intestazione di riga, 20 colonne di dati, mancanti 'non disponibile'; filtri ed esercizio al backend", async () => {
-    let query = '';
-    server.use(
-      http.get('*/api/finanziario/sigc/verifica-smp', ({ request }) => {
-        query = new URL(request.url).search;
-        return HttpResponse.json(F.VERIFICA_SMP);
-      }),
-    );
-    conRouter(<VerificaSmpReport filtri={{ intervento: ['SRA01'] }} esercizio={2025} onCambiaEsercizio={nessunaAzione} />);
-    const tabella = await screen.findByRole('table', { name: TABELLA_SMP });
-    expect(within(tabella).getAllByRole('columnheader')).toHaveLength(21);
-    expect(within(tabella).getByRole('rowheader').textContent).toBe('SRA01');
-    expect(tabella.textContent).toContain('non disponibile');
-    expect(tabella.textContent).not.toContain('non indicato');
-    expect(query).toBe('?intervento=SRA01&esercizio=2025');
-    expect(valoreDi(screen.getByRole('table', { name: 'Esercizio' }), 'Anno delle domande')).toBe('2024');
-  });
-
-  // V-16: TabellaInterattiva con ricerca e scelta delle colonne, come nel wireframe verifica-smp
-  it('tabella interattiva: Intervento fisso, scelta delle altre 20 colonne, ricerca per codice o indicatore, 20 righe per pagina', async () => {
-    const righe = Array.from({ length: 25 }, (_, n) => ({ ...F.VERIFICA_SMP.righe[0], codiceIntervento: `SRB${10 + n}`, indicatoreRisultato: n === 24 ? 'R.1' : null }));
-    server.use(rispondi('/api/finanziario/sigc/verifica-smp', { ...F.VERIFICA_SMP, righe }));
-    conRouter(<VerificaSmpReport filtri={{}} esercizio={2025} onCambiaEsercizio={nessunaAzione} />);
-    const t = await screen.findByRole('table', { name: TABELLA_SMP });
-    expect(righeCorpo(t)).toHaveLength(20);
-    expect(screen.getByRole('navigation', { name: 'Pagine della tabella' }).textContent).toContain('Pagina 1 di 2');
-    const colonne = within(screen.getByRole('group', { name: 'Colonne visibili' }));
-    expect(colonne.getAllByRole('checkbox')).toHaveLength(20);
-    expect(colonne.queryByRole('checkbox', { name: 'Intervento' })).toBeNull();
-    await userEvent.click(screen.getByText('Colonne'));
-    await userEvent.click(colonne.getByRole('checkbox', { name: 'Indicatore di risultato' }));
-    expect(within(t).getAllByRole('columnheader')).toHaveLength(20);
-    expect(within(t).queryByRole('columnheader', { name: 'Indicatore di risultato' })).toBeNull();
-    expect(ricerca().placeholder).toBe('Cerca per codice o indicatore');
-    await userEvent.type(ricerca(), 'r.1');
-    expect(righeCorpo(t)).toEqual(['SRB34']);
-    await userEvent.clear(ricerca());
-    await userEvent.type(ricerca(), 'srb3');
-    expect(righeCorpo(t)).toEqual(['SRB30', 'SRB31', 'SRB32', 'SRB33', 'SRB34']);
-    expect(screen.queryByRole('navigation', { name: 'Pagine della tabella' })).toBeNull();
-  });
-
-  it("clic su una barra del grafico: dettaglio dell'intervento, con la selezione nell'indirizzo", async () => {
-    server.use(rispondi('/api/finanziario/sigc/verifica-smp', F.VERIFICA_SMP));
-    const { router } = conRouter(<VerificaSmpReport filtri={{ og: ['OG2'] }} esercizio={2025} onCambiaEsercizio={nessunaAzione} />);
-    await waitFor(() => expect(graficoDi(GRAFICO_SMP).opzioni.length).toBeGreaterThan(0));
-    act(() => clicSu(graficoDi(GRAFICO_SMP), { name: 'SRA01', dataIndex: 0, data: { codice: 'SRA01' } }));
-    await waitFor(() => expect(indirizzo(router)).toBe('/finanziario/interventi/SRA01?og=OG2'));
-    expect(screen.getByText('pagina del dettaglio')).toBeTruthy();
-  });
-
-  // N-14: il dettaglio si apre anche da tastiera, dalla riga della tabella
-  it("Invio su una riga della tabella: dettaglio dell'intervento, come il clic sulla barra", async () => {
-    server.use(rispondi('/api/finanziario/sigc/verifica-smp', F.VERIFICA_SMP));
-    const { router } = conRouter(<VerificaSmpReport filtri={{ og: ['OG2'] }} esercizio={2025} onCambiaEsercizio={nessunaAzione} />);
-    const riga = await screen.findByRole('row', { name: "Apri il dettaglio dell'intervento SRA01" });
-    act(() => riga.focus());
-    await userEvent.keyboard('{Enter}');
-    await waitFor(() => expect(indirizzo(router)).toBe('/finanziario/interventi/SRA01?og=OG2'));
-  });
-
-  // i valori si'/no della previsione li prova il test della pagina verifica-smp (review delta 21/10 V1)
-  it("grafico della spesa erogata montato; la previsione di pagamento (D-11) non è nel grafico ma nella tabella, assente con la sua fonte", async () => {
-    server.use(rispondi('/api/finanziario/sigc/verifica-smp', F.VERIFICA_SMP));
-    conRouter(<VerificaSmpReport filtri={{}} esercizio={2025} onCambiaEsercizio={nessunaAzione} />);
-    const titolo = 'Spesa erogata nella campagna precedente per intervento';
-    await waitFor(() => expect(graficoDi(titolo).opzioni.length).toBeGreaterThan(0));
-    const c = card(titolo);
-    expect(within(c).queryByText(/previsione di pagamento/)).toBeNull();
-    expect(within(c).getByText('Fonte: TX-0015, esercizio 2025')).toBeTruthy();
-    const t = screen.getByRole('table', { name: TABELLA_SMP });
-    expect(t.textContent).toContain('fonte previsione di pagamento non attiva');
-  });
-
-  it('a11y: zero violazioni axe', async () => {
-    server.use(rispondi('/api/finanziario/sigc/verifica-smp', F.VERIFICA_SMP));
-    const { container } = conRouter(<VerificaSmpReport filtri={{}} esercizio={2025} onCambiaEsercizio={nessunaAzione} />);
-    await screen.findByRole('table', { name: TABELLA_SMP });
     await expectNoA11yViolations(container);
   });
 });

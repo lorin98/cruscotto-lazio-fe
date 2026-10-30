@@ -2,11 +2,9 @@
 // importo preso dall'ambiente con i dati reali). I codici di intervento e obiettivo sono quelli pubblici del CSR.
 // Stanno nella feature (review v2 H-20): li importano i test (tests/ e i test delle pagine), mai il codice di produzione
 // (Z-02, eslint.config.js).
-import type { VerificaSmp, VerificaSmpRiga } from '../api';
-
-// Dati col motivo dell'assenza (Importo, ConteggioFinanziario, SiNoFinanziario: stessa forma): il valore, la fonte non
-// attiva, il dato non valorizzato. Li usano queste fixture e i test della verifica SMP e dei casi limite della previsione
+// Dati col motivo dell'assenza (Importo): il valore, la fonte non attiva, il dato non valorizzato. Li usano queste fixture
 // (review delta 21/10 H4); i test anteriori tengono ancora i propri costruttori (euro, nv, NON_VALORIZZATO; passata 2 H4).
+// La verifica SMP SIGC (TX-0015) e le sue fixture sono dell'istituzionale dal riallineamento degli ambiti del 29/10/2026.
 export const dato = <T>(valore: T) => ({ valore, motivo: null, fonte: null });
 export const nd = (fonte: string) => ({ valore: null, motivo: 'FONTE_NON_ATTIVA', fonte });
 export const nv = () => ({ valore: null, motivo: 'NON_VALORIZZATO', fonte: null });
@@ -137,38 +135,3 @@ export const RISERVA = {
     { data: '2026-09-10', importo: 200, cumulato: 300 },
   ],
 };
-export const VERIFICA_SMP = {
-  perimetro: 'REGIONALE',
-  esercizio: 2025,
-  annoDomande: 2024,
-  pagamentiSenzaData: 3,
-  righe: [
-    {
-      codiceIntervento: 'SRA01',
-      avvisiAttivati: dato(1),
-      azioniAttivate: nv(),
-      domandeRicevute: 120,
-      domandeRicevuteSenzaRichiesto: 2,
-      valoreDomandeRicevute: euro(1500000),
-      domandeFinanziate: 100,
-      valoreDomandeFinanziate: euro(1200000),
-      dotazioneAnnoPrecedente: euro(1000000),
-      dotazionePeriodoImpegno: euro(1000000),
-      domandePagateEsercizio: 80,
-      spesaErogataCampagnaPrecedente: euro(400000),
-      spesaErogataCampagneAnteriori: euro(0),
-      previsionePagamentoEsercizio: nd('PREVISIONE_PAGAMENTO'),
-      importoTopUp: euro(0),
-      includeTopUp: dato(false),
-      ettariUbaRichiesti: 350.5,
-      outputAttesoFinanziate: null,
-      outputErogatoEsercizio: null,
-      indicatoreOutput: 'O.14',
-      indicatoreRisultato: null,
-    },
-  ],
-} satisfies VerificaSmp;
-
-/** Una riga della verifica SMP (la prima di VERIFICA_SMP) con i campi dati: tipizzata sul DTO, cosi' un campo rinominato
- *  nella spec fa fallire la compilazione dei test (review delta 21/10 V1). */
-export const rigaSmp = (campi: Partial<VerificaSmpRiga>): VerificaSmpRiga => ({ ...VERIFICA_SMP.righe[0], ...campi });

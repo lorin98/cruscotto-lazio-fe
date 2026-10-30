@@ -22,7 +22,6 @@ export const GRANT = {
   sigcDomande: 'csr.tx-0012.read',
   sigcImporti: 'csr.tx-0013.read',
   riserva: 'csr.tx-0014.read',
-  verificaSmp: 'csr.tx-0015.read',
 } as const;
 
 /** Lettura del finanziario con dati da scaricare (tutte tranne i filtri, TX-0001). */
@@ -42,7 +41,6 @@ export const PERCORSI = {
   domande: '/finanziario/domande',
   sigc: '/finanziario/sigc',
   riserva: '/finanziario/sigc/riserva',
-  verificaSmp: '/finanziario/sigc/verifica-smp',
 } as const;
 
 export interface VoceReport {
@@ -118,13 +116,6 @@ export const REPORT_FINANZIARIO: VoceReport[] = [
     voceMenu: 'Riserva di efficacia',
     sottotitolo: "Accumulato, congelato, utilizzato e residuo della riserva per l'anno scelto.",
     grant: [G.riserva],
-  },
-  {
-    percorso: PERCORSI.verificaSmp,
-    titolo: 'Verifica SMP',
-    voceMenu: 'Verifica SMP',
-    sottotitolo: "Venti dati per intervento per l'esercizio scelto.",
-    grant: [G.verificaSmp],
   },
 ];
 

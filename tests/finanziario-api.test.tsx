@@ -9,7 +9,6 @@ import {
   useFiltri,
   useRiepilogo,
   useRiserva,
-  useVerificaSmp,
 } from '../src/features/finanziario/api';
 
 function wrapper() {
@@ -55,10 +54,5 @@ describe('feature finanziario, wrapper api (step3) su MSW', () => {
     const { result } = renderHook(() => useRiserva(2025), { wrapper: wrapper() });
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(rispostaRiservaAssente(result.current.error)).toBe(true);
-  });
-
-  it('useVerificaSmp senza esercizio non chiama il backend (TX-0015)', () => {
-    const { result } = renderHook(() => useVerificaSmp({}, undefined), { wrapper: wrapper() });
-    expect(result.current.fetchStatus).toBe('idle');
   });
 });

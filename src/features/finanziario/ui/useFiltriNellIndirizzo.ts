@@ -1,5 +1,5 @@
 // useFiltriNellIndirizzo — i filtri di RF001 vivono nella query string: li legge, li applica conservando i parametri di
-// pagina (anno, esercizio), li toglie uno per volta o tutti e prepara i chip della barra. La regola del filtro per azione
+// pagina (anno, scheda), li toglie uno per volta o tutti e prepara i chip della barra. La regola del filtro per azione
 // portante senza il legame interventi - azioni (chip "non applicato", attesa X-03 finche' TX-0001 non risponde) e' quella
 // comune di entities/filtri (useFiltriProgrammaNellIndirizzo, review del fisico H2): qui la lettura dei valori (TX-0001,
 // col grant del pannello) e la scrittura dell'indirizzo coi parametri di pagina.

@@ -13,7 +13,6 @@ export { AvanzamentoReport } from './ui/AvanzamentoReport';
 export { DomandeReport } from './ui/DomandeReport';
 export { SigcReport } from './ui/SigcReport';
 export { RiservaReport } from './ui/RiservaReport';
-export { VerificaSmpReport } from './ui/VerificaSmpReport';
 export { useFiltriNellIndirizzo } from './ui/useFiltriNellIndirizzo';
 export { useDescrizioneIntervento } from './ui/useDescrizioneIntervento';
 export { useRigheIntestazione } from './ui/useRigheIntestazione';

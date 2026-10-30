@@ -20,7 +20,6 @@ import {
   graficoPartiImporto,
   graficoQuotaFeasr,
   graficoSankey,
-  graficoSmp,
   graficoUtilizzoRiserva,
   sottotitoloFlusso,
   vociIntervento,
@@ -1266,39 +1265,6 @@ describe('graficoUtilizzoRiserva', () => {
   });
 });
 
-// ---------------------------------------------------------------- 15. SMP
-
-describe('graficoSmp', () => {
-  const righe = [
-    { codiceIntervento: 'SRA01', spesaErogataCampagnaPrecedente: imp(2_000_000) },
-    { codiceIntervento: 'SRA02', spesaErogataCampagnaPrecedente: assente('NON_VALORIZZATO') },
-  ];
-
-  it('barre della spesa erogata per intervento con il codice nel dato, assenti vuoti e dichiarati (D-11: niente previsione)', () => {
-    const g = graficoSmp(righe);
-    const o = opzioniDi(g);
-    controllaAria(o);
-    expect(o.series.map((s) => [s.type, s.name])).toEqual([['bar', 'Spesa erogata nella campagna precedente']]);
-    // l'intervento senza spesa non ha barre: resta fuori dall'asse e si dichiara tra gli omessi
-    expect(o.xAxis?.data).toEqual(['SRA01']);
-    expect(item(o.series[0].data?.[0]).codice).toBe('SRA01');
-    expect(g.omessi).toEqual(['SRA02, spesa erogata nella campagna precedente: non valorizzato (il dato non è presente nella fonte)']);
-    expect(g.tabella.colonne).toEqual(['Intervento', 'Spesa erogata nella campagna precedente']);
-    expect(righeN(g)[0]).toEqual(['SRA01', '2.000.000,00 €']);
-  });
-
-  it('oltre 12 interventi: zoom interno e cursore', () => {
-    const molte = Array.from({ length: 13 }, (_, k) => ({ codiceIntervento: `SRC${k + 10}`, spesaErogataCampagnaPrecedente: imp(1_000_000) }));
-    expect(opzioniDi(graficoSmp(molte)).dataZoom?.map((z) => z.type)).toEqual(['inside', 'slider']);
-  });
-
-  it('nessun valore: non disegnabile', () => {
-    const g = graficoSmp([{ codiceIntervento: 'SRA09' }]);
-    controllaNonDisegnabile(g, 'nessun intervento con spesa erogata valorizzata');
-    expect(g.omessi).toEqual(['SRA09, spesa erogata nella campagna precedente: non disponibile']);
-  });
-});
-
 // ---------------------------------------------------------------- regola dei motivi
 
 describe('regola dei motivi: segue "Grafico non disponibile: ", iniziale minuscola salvo sigle e codici', () => {
@@ -1321,7 +1287,6 @@ describe('regola dei motivi: segue "Grafico non disponibile: ", iniziale minusco
     ['cascata SIGC, importo assente', graficoCascataSigc({ ...sigcBase, pagato: assente('NON_VALORIZZATO') })],
     ['cascata SIGC, importi negativi', graficoCascataSigc({ ...sigcBase, pagato: imp(-1) })],
     ['cascata SIGC, valori che non tornano', graficoCascataSigc({ ...sigcBase, pagato: imp(9_000_000) })],
-    ['SMP, nessun valore', graficoSmp([{ codiceIntervento: 'SRA09' }])],
     ['domande per anno, nessuna riga', graficoDomandePerAnno([])],
     ['domande per anno, nessun numero', graficoDomandePerAnno([{ annoRaccolta: 2024 }])],
     ['importi per anno, nessuna riga', graficoImportiPerAnno([])],

@@ -12,7 +12,6 @@ import PaginaDotazione from '../src/pages/finanziario/dotazione/page';
 import PaginaRiepilogo from '../src/pages/finanziario/riepilogo/page';
 import PaginaRiserva from '../src/pages/finanziario/sigc/riserva/page';
 import { pngDelGrafico } from '../src/shared/ui/grafici/echarts';
-import PaginaVerificaSmp from '../src/pages/finanziario/sigc/verifica-smp/page';
 
 // la route-table e' del progetto (piu' feature, ADR 0028): qui solo le route del finanziario, dai path del suo uiplan
 import { ROTTE_FINANZIARIO } from './rotte-finanziario';
@@ -23,7 +22,7 @@ import { tabellaDelRiepilogo } from '../src/features/finanziario/testing/riepilo
 // route-table. I comportamenti di ogni pagina sono nei page.test.tsx accanto alle pagine; menu e intestazione nei test
 // della shell.
 describe('pagine del finanziario (step6)', () => {
-  it('route-table: le 9 route dello uiplan v2, ognuna col suo modulo pagina', () => {
+  it('route-table: le 8 route dello uiplan v2, ognuna col suo modulo pagina', () => {
     expect(ROTTE_FINANZIARIO.map((r) => [r.path, r.component])).toEqual([
       ['/finanziario', 'src/pages/finanziario/panoramica/page.tsx'],
       ['/finanziario/interventi/:codice', 'src/pages/finanziario/interventi/page.tsx'],
@@ -33,7 +32,6 @@ describe('pagine del finanziario (step6)', () => {
       ['/finanziario/domande', 'src/pages/finanziario/domande/page.tsx'],
       ['/finanziario/sigc', 'src/pages/finanziario/sigc/page.tsx'],
       ['/finanziario/sigc/riserva', 'src/pages/finanziario/sigc/riserva/page.tsx'],
-      ['/finanziario/sigc/verifica-smp', 'src/pages/finanziario/sigc/verifica-smp/page.tsx'],
     ]);
   });
 
@@ -72,25 +70,27 @@ describe('pagine del finanziario (step6)', () => {
     expect(within(briciole).getByText('Riepilogo per intervento').getAttribute('aria-current')).toBe('page');
   });
 
-  it('togliere un filtro o tutti conserva i parametri di pagina (esercizio della verifica SMP)', async () => {
-    server.use(rispondi('/api/finanziario/filtri', F.FILTRI), rispondi('/api/finanziario/sigc/verifica-smp', F.VERIFICA_SMP));
-    const { router } = renderPagina(PaginaVerificaSmp, '/finanziario/sigc/verifica-smp', '/finanziario/sigc/verifica-smp?intervento=SRA01&og=OG2&esercizio=2025');
+  // dal 29/10/2026 la verifica SMP SIGC (che aveva l'esercizio) e' dell'istituzionale: il parametro di pagina della prova
+  // e' l'anno, sulla pagina del riepilogo (la regola dell'indirizzo e' la stessa per ogni pagina con la barra)
+  it('togliere un filtro o tutti conserva i parametri di pagina (anno)', async () => {
+    server.use(rispondi('/api/finanziario/filtri', F.FILTRI), rispondi('/api/finanziario/riepilogo', F.RIEPILOGO));
+    const { router } = renderPagina(PaginaRiepilogo, '/finanziario/riepilogo', '/finanziario/riepilogo?intervento=SRA01&og=OG2&anno=2025');
     const barra = screen.getByRole('region', { name: 'Filtri attivi' });
     await userEvent.click(within(barra).getByRole('button', { name: 'Togli il filtro OG OG2' }));
-    await waitFor(() => expect(router.state.location.search).toBe('?intervento=SRA01&esercizio=2025'));
+    await waitFor(() => expect(router.state.location.search).toBe('?intervento=SRA01&anno=2025'));
     await userEvent.click(within(barra).getByRole('button', { name: 'Togli tutti' }));
-    await waitFor(() => expect(router.state.location.search).toBe('?esercizio=2025'));
+    await waitFor(() => expect(router.state.location.search).toBe('?anno=2025'));
     expect(within(barra).getByText('Nessun filtro: tutti gli interventi del perimetro')).toBeTruthy();
   });
 
   it('Applica dal pannello dei filtri conserva i parametri di pagina', async () => {
-    server.use(rispondi('/api/finanziario/filtri', F.FILTRI), rispondi('/api/finanziario/sigc/verifica-smp', F.VERIFICA_SMP));
-    const { router } = renderPagina(PaginaVerificaSmp, '/finanziario/sigc/verifica-smp', '/finanziario/sigc/verifica-smp?esercizio=2025');
+    server.use(rispondi('/api/finanziario/filtri', F.FILTRI), rispondi('/api/finanziario/riepilogo', F.RIEPILOGO));
+    const { router } = renderPagina(PaginaRiepilogo, '/finanziario/riepilogo', '/finanziario/riepilogo?anno=2025');
     await userEvent.click(await screen.findByRole('button', { name: /^Filtri/ }));
     const pannello = await screen.findByRole('dialog', { name: 'Filtri' });
     await userEvent.click(await within(pannello).findByRole('checkbox', { name: 'SRA01 Intervento di prova A' }));
     await userEvent.click(within(pannello).getByRole('button', { name: 'Applica i filtri' }));
-    await waitFor(() => expect(router.state.location.search).toBe('?intervento=SRA01&esercizio=2025'));
+    await waitFor(() => expect(router.state.location.search).toBe('?intervento=SRA01&anno=2025'));
   });
 
   it("PNG di un grafico con l'intestazione di NFR-50: filtri della barra, profilo, ultimo dato sincronizzato (review v3 V-01)", async () => {

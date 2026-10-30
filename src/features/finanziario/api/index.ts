@@ -1,5 +1,5 @@
 // api/index.ts — confine api/ della feature finanziario (green-fe step3): wrapper React Query sopra il client orval
-// sigillato della slice finanziario (TX-0001..TX-0015, tutte letture; gli hook generati portano l'operationId TX-00NN).
+// sigillato della slice finanziario (TX-0001..TX-0014, tutte letture; gli hook generati portano l'operationId TX-00NN).
 // I componenti importano da qui, mai dal generato.
 // - Query-key: quelle delle factory generate (dentro gli hook orval). Nessuna mutation: le esportazioni (CSV e XLSX di
 //   ogni report, dal backend) sono funzioni che restituiscono il file; l'esito lo mostra chi le chiama.
@@ -25,7 +25,6 @@ import {
   getApiFinanziarioRiservaAnnoFormato,
   getApiFinanziarioSigcDomandeFormato,
   getApiFinanziarioSigcImportiFormato,
-  getApiFinanziarioSigcVerificaSmpFormato,
   getApiFinanziarioSpesaPerInterventoFormato,
   getApiFinanziarioStanziatoFormato,
   getApiFinanziarioTotaleDomandeFormato,
@@ -42,7 +41,6 @@ import {
   getTx0012QueryKey,
   getTx0013QueryKey,
   getTx0014QueryKey,
-  getTx0015QueryKey,
   useTx0001,
   useTx0002,
   useTx0003,
@@ -57,7 +55,6 @@ import {
   useTx0012,
   useTx0013,
   useTx0014,
-  useTx0015,
 } from '../../../shared/api/generated/finanziario/finanziario/finanziario';
 import type {
   AvanzamentoPagamenti,
@@ -74,7 +71,6 @@ import type {
   SpesaPerIntervento,
   TotaleDomande,
   Tx0011Params,
-  VerificaSmp,
 } from '../../../shared/api/generated/finanziario/aRSCSRBootstrapPostgresAPI.schemas';
 
 export type {
@@ -99,8 +95,6 @@ export type {
   SpesaPerInterventoRiga,
   TotaleDomande,
   UtilizzoRiserva,
-  VerificaSmp,
-  VerificaSmpRiga,
   VoceFiltro,
 } from '../../../shared/api/generated/finanziario/aRSCSRBootstrapPostgresAPI.schemas';
 
@@ -144,10 +138,6 @@ export function rispostaRiservaAssente(errore: unknown): boolean {
   return eProblema(errore, 'not-found');
 }
 
-// TX-0015 (RF015): esercizio obbligatorio; senza esercizio nessuna richiesta (enabled guard).
-export const useVerificaSmp = (filtri: FiltriReport, esercizio: number | undefined) =>
-  useTx0015({ ...filtri, esercizio: esercizio ?? 0 }, { query: { enabled: esercizio !== undefined } });
-
 // Esportazioni (D-08 di nfr-conformance; ogni report dal 09/10/2026): il file CSV o XLSX lo scrive il backend, con gli
 // stessi filtri della consultazione, l'intestazione (fonte, filtri, data, uso interno) e la registrazione in
 // AUDIT_ESPORTAZIONE. Funzioni e non mutation: l'esito e l'errore li mostra chi le chiama (PulsantiScarica), accanto ai
@@ -173,9 +163,6 @@ export const esportaReport = (report: ReportEsportabile, formato: FormatoEsporta
   ESPORTA[report](formato, filtri);
 /** TX-0014: la riserva dell'anno n (dato regionale, senza filtri). */
 export const esportaRiserva = (anno: number, formato: FormatoEsportazione): Promise<Blob> => getApiFinanziarioRiservaAnnoFormato(anno, formato);
-/** TX-0015: i filtri e l'esercizio n. */
-export const esportaVerificaSmp = (filtri: FiltriReport, esercizio: number, formato: FormatoEsportazione): Promise<Blob> =>
-  getApiFinanziarioSigcVerificaSmpFormato(formato, { ...filtri, esercizio });
 
 // Risposte che dichiarano il perimetro: tutte le letture tranne i filtri (TX-0001).
 type RispostaConPerimetro =
@@ -191,8 +178,7 @@ type RispostaConPerimetro =
   | RiepilogoFinanziario
   | DomandeSigc
   | ImportiSigc
-  | MonitoraggioRiserva
-  | VerificaSmp;
+  | MonitoraggioRiserva;
 
 // Chiavi generate senza parametri: prefisso delle chiavi di ogni combinazione di filtri della stessa lettura.
 const prefissiConPerimetro = () => [
@@ -208,7 +194,6 @@ const prefissiConPerimetro = () => [
   getTx0011QueryKey(),
   getTx0012QueryKey(),
   getTx0013QueryKey(),
-  getTx0015QueryKey(),
 ];
 
 // TX-0014: l'anno sta nel percorso, quindi la chiave non fa da prefisso. Una query e' della riserva se la factory,

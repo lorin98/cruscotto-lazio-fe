@@ -53,7 +53,7 @@ function Testata({ percorso, briciole, titolo, titoloDocumento, sottotitolo, azi
 /**
  * La modalita' della barra si decide una volta: i chip fissi (dettaglio), oppure i filtri dell'indirizzo con il pannello.
  * Restituisce anche le righe della pagina per l'intestazione dei PNG: i filtri della barra e i parametri della pagina
- * (anno della riserva, esercizio della verifica SMP), come i filtri applicati dei file del backend (NFR-50, V-01, N-02).
+ * (anno della riserva), come i filtri applicati dei file del backend (NFR-50, V-01, N-02).
  */
 function useBarraFiltri(conBarraFiltri: boolean, chipFissi: ChipFiltro[] | undefined, parametri: readonly string[]) {
   const { filtri, inAttesa, chip, applica, togliTutti, conPannello } = useFiltriNellIndirizzo();

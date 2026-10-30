@@ -12,7 +12,7 @@ import { server } from '../src/shared/api/mock/server';
 import { rispondi } from '../src/shared/testing/msw';
 import { renderConQuery } from '../src/shared/testing/render';
 import { AvanzamentoReport, DettaglioIntervento, DomandeReport, DotazioneReport, Panoramica } from '../src/features/finanziario';
-import { esportaReport, esportaRiserva, esportaVerificaSmp } from '../src/features/finanziario/api';
+import { esportaReport, esportaRiserva } from '../src/features/finanziario/api';
 import type { ReportEsportabile } from '../src/features/finanziario/api';
 import * as F from '../src/features/finanziario/testing/fixture';
 
@@ -31,7 +31,6 @@ const TX_DEL_PERCORSO: Record<string, string> = {
   'sigc/domande': 'tx-0012',
   'sigc/importi': 'tx-0013',
   'riserva/2025': 'tx-0014',
-  'sigc/verifica-smp': 'tx-0015',
 };
 
 const ESPORTAZIONE = /\/api\/finanziario\/(.+)\/(csv|xlsx)(\?.*)?$/;
@@ -97,14 +96,10 @@ describe('esportaReport: ogni chiave chiama l endpoint della sua transazione (re
     await esportaReport(chiave, 'xlsx', { intervento: ['SRA01'], os: ['OS4'] });
     expect(richieste).toEqual([{ report: percorso, query: '?intervento=SRA01&os=OS4', formato: 'xlsx', xrw: 'XMLHttpRequest' }]);
   });
-  it('riserva dell anno (TX-0014) e verifica SMP con l esercizio (TX-0015)', async () => {
+  it('riserva dell anno (TX-0014)', async () => {
     const richieste = registraEsportazioni();
     await esportaRiserva(2025, 'csv');
-    await esportaVerificaSmp({ intervento: ['SRA01'] }, 2025, 'csv');
-    expect(richieste.map((r) => [r.report, r.query])).toEqual([
-      ['riserva/2025', ''],
-      ['sigc/verifica-smp', '?intervento=SRA01&esercizio=2025'],
-    ]);
+    expect(richieste.map((r) => [r.report, r.query])).toEqual([['riserva/2025', '']]);
   });
 });
 

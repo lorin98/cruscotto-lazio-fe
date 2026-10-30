@@ -18,25 +18,25 @@ export {
 } from '../../../entities/filtri';
 export type { ChiaveFiltro, Filtri } from '../../../entities/filtri';
 
-// anno della riserva ed esercizio della verifica SMP: la regola dell'anno dei parametri del contratto (shared/lib/anni),
-// la stessa della campagna del fisico
+// anno della riserva: la regola dell'anno dei parametri del contratto (shared/lib/anni), la stessa della campagna del
+// fisico
 export { isAnnoValido } from '../../../shared/lib';
 
-// Periodo di programmazione CSR 2023-2027 con la regola n+2: la riserva riguarda gli anni 2023-2029; l'esercizio n va
-// dal 16/10/n-1 al 15/10/n, quindi i pagamenti ammessi fino al 31/12/2029 cadono nell'esercizio 2030.
+// Periodo di programmazione CSR 2023-2027 con la regola n+2: la riserva riguarda gli anni 2023-2029. L'esercizio della
+// verifica SMP SIGC (TX-0015) e' dell'istituzionale dal riallineamento degli ambiti del 29/10/2026.
 const PRIMO_ANNO_CSR = 2023;
-const ULTIMO_ANNO: Record<'riserva' | 'esercizio', number> = { riserva: 2029, esercizio: 2030 };
+const ULTIMO_ANNO: Record<'riserva', number> = { riserva: 2029 };
 
 /** Anni da proporre nel selettore; un anno valido gia' scelto (es. dall'indirizzo) resta sempre selezionabile. */
-export function anniSelezionabili(tipo: 'riserva' | 'esercizio', corrente?: number): number[] {
+export function anniSelezionabili(tipo: 'riserva', corrente?: number): number[] {
   return anniProposti(PRIMO_ANNO_CSR, ULTIMO_ANNO[tipo], corrente);
 }
 
 /**
- * Parametri di pagina (non filtri) che restano nell'indirizzo quando i filtri cambiano: anno della riserva, esercizio SMP,
- * scheda del dettaglio dell'intervento (cosi' tornando indietro dall'elenco operativo la scheda si ritrova).
+ * Parametri di pagina (non filtri) che restano nell'indirizzo quando i filtri cambiano: anno della riserva, scheda del
+ * dettaglio dell'intervento (cosi' tornando indietro dall'elenco operativo la scheda si ritrova).
  */
-export const PARAMETRI_DI_PAGINA = ['anno', 'esercizio', 'scheda'] as const;
+export const PARAMETRI_DI_PAGINA = ['anno', 'scheda'] as const;
 
 /** Imposta (o toglie, con null) un parametro di pagina, lasciando gli altri. */
 export function conParametroDiPagina(ricerca: URLSearchParams, chiave: (typeof PARAMETRI_DI_PAGINA)[number], valore: string | null): URLSearchParams {
@@ -46,7 +46,7 @@ export function conParametroDiPagina(ricerca: URLSearchParams, chiave: (typeof P
   return nuova;
 }
 
-/** Query string con i filtri dati e i parametri di pagina della ricerca corrente (anno della riserva, esercizio SMP). */
+/** Query string con i filtri dati e i parametri di pagina della ricerca corrente (anno della riserva, scheda). */
 export function ricercaConParametri(ricercaCorrente: string, filtri: Filtri): string {
   const corrente = new URLSearchParams(ricercaCorrente);
   const pagina = new URLSearchParams();

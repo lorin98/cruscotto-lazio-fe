@@ -20,7 +20,6 @@ import {
   RiservaReport,
   SigcReport,
   UltimoAggiornamento,
-  VerificaSmpReport,
 } from '../src/features/finanziario';
 import type { Filtri } from '../src/features/finanziario';
 import * as F from '../src/features/finanziario/testing/fixture';
@@ -509,36 +508,5 @@ describe('RiservaReport: casi limite', () => {
     renderConQuery(<RiservaReport anno={2025} onCambiaAnno={nessunaAzione} />);
     const t = await screen.findByRole('table', { name: 'Utilizzo progressivo' });
     expect(within(t).getByRole('rowheader').textContent).not.toBe('');
-  });
-});
-
-describe('VerificaSmpReport: casi limite', () => {
-  it("nessuna riga per l'esercizio: stato vuoto informativo (status), nessun grafico", async () => {
-    server.use(rispondi('/api/finanziario/sigc/verifica-smp', { esercizio: 2023, righe: [] }));
-    conRouter(<VerificaSmpReport filtri={{}} esercizio={2023} onCambiaEsercizio={nessunaAzione} />);
-    expect(ruolo(await screen.findByText(/Nessun dato SIGC per l'esercizio scelto/))).toBe('status');
-    expect(graficiVivi()).toHaveLength(0);
-  });
-
-  it('valori facoltativi valorizzati e assenti nella stessa tabella; intervento senza importi omesso dal grafico', async () => {
-    const riga = F.rigaSmp({ azioniAttivate: F.dato(2), includeTopUp: F.dato(true), indicatoreRisultato: 'R.1', outputErogatoEsercizio: 10 });
-    server.use(rispondi('/api/finanziario/sigc/verifica-smp', { righe: [riga, { codiceIntervento: 'SRA03' }] }));
-    conRouter(<VerificaSmpReport filtri={{}} esercizio={2025} onCambiaEsercizio={nessunaAzione} />);
-    const t = await screen.findByRole('table', { name: /^I dati ASR per intervento da confrontare con SMP/ });
-    expect(within(t).getAllByRole('rowheader').map((c) => c.textContent)).toEqual(['SRA01', 'SRA03']);
-    expect(t.textContent).toContain('sì');
-    expect(t.textContent).toContain('R.1');
-    expect(t.textContent).toContain('non disponibile');
-    const esercizio = screen.getByRole('table', { name: 'Esercizio' });
-    expect(valoreDi(esercizio, 'Esercizio')).toBe('2025');
-    expect(valoreDi(esercizio, 'Anno delle domande')).toBe('non disponibile');
-    const c = await trovaCard('Spesa erogata nella campagna precedente per intervento');
-    expect(within(c).getByText('SRA03, spesa erogata nella campagna precedente: non disponibile')).toBeTruthy();
-    // D-11: la previsione di pagamento e' un si'/no nella tabella; con la fonte non attiva lo dice, senza il campo resta
-    // "non disponibile", mai un "no" (review delta 21/10 V1: la cella, non un "non disponibile" qualunque della pagina)
-    const previsione = "Si prevede di pagare nell'esercizio";
-    expect(cella(t, "Apri il dettaglio dell'intervento SRA01", previsione)).toBe('non disponibilefonte previsione di pagamento non attiva');
-    expect(cella(t, "Apri il dettaglio dell'intervento SRA03", previsione)).toBe('non disponibile');
-    expect(cella(t, "Apri il dettaglio dell'intervento SRA01", 'Include top-up')).toBe('sì');
   });
 });
