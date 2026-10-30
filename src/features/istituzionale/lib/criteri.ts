@@ -61,6 +61,17 @@ export function eserciziProposti(scelto: number | undefined): number[] {
 }
 
 /**
+ * L'ultimo esercizio finanziario chiuso alla data data (card della Home, scelta dell'utente del 30/10/2026): l'esercizio n
+ * va dal 16/10/n-1 al 15/10/n, quindi dal 16 ottobre di un anno l'ultimo chiuso e' quello dell'anno, prima e' quello
+ * dell'anno precedente. La data e' quella del calendario locale (ottobre = mese 9 di Date).
+ */
+export function esercizioUltimoChiuso(oggi: Date): number {
+  const anno = oggi.getFullYear();
+  const dopoLaChiusura = oggi.getMonth() > 9 || (oggi.getMonth() === 9 && oggi.getDate() >= 16);
+  return dopoLaChiusura ? anno : anno - 1;
+}
+
+/**
  * Query string dei filtri (senza "?") col parametro di pagina della ricerca corrente (l'anno o l'esercizio, se valido):
  * il parametro resta quando i filtri cambiano.
  */
@@ -92,6 +103,14 @@ export function criteriVerificaSigc(filtri: Filtri, esercizio: number): CriteriD
 /** I criteri della verifica aperta senza filtri ne' anno: la card della Home legge con questi, nella stessa cache. */
 export function criteriVerificaSenzaFiltri(): CriteriDellaVerifica {
   return criteriVerifica(filtriDaRicerca(''), undefined);
+}
+
+/**
+ * I filtri della verifica SMP SIGC aperta senza filtri: la card della Home legge TX-0015 con questi e l'ultimo esercizio
+ * chiuso, la stessa lettura (e cache) della pagina aperta con quell'esercizio.
+ */
+export function filtriVerificaSigcSenzaFiltri(): Filtri {
+  return filtriDaRicerca('');
 }
 
 /** "Etichetta: valore" di ogni filtro e dell'anno scelto, per l'intestazione del PNG dei grafici (filtri applicati, NFR-50). */

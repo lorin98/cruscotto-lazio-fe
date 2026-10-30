@@ -6,12 +6,24 @@ import type { BarSeriesOption } from 'echarts';
 import { describe, expect, it } from 'vitest';
 import { GRANT, puoLeggere } from '../src/features/istituzionale/lib/grant';
 import { GRANT_DETTAGLIO, PAGINE_ISTITUZIONALE, PERCORSI, pagineVisibili, ricercaConservata } from '../src/features/istituzionale/lib/pagine';
-import { ANNI_DEL_PERIODO, ESERCIZI, anniDiRiferimento, conFiltri, criteriVerifica, criteriVerificaSigc, eserciziProposti, ricercaConAnno, ricercaConParametro, soloIntervento, testiCriteri, testiCriteriSigc } from '../src/features/istituzionale/lib/criteri';
+import { ANNI_DEL_PERIODO, ESERCIZI, anniDiRiferimento, conFiltri, criteriVerifica, criteriVerificaSigc, esercizioUltimoChiuso, eserciziProposti, filtriVerificaSigcSenzaFiltri, ricercaConAnno, ricercaConParametro, soloIntervento, testiCriteri, testiCriteriSigc } from '../src/features/istituzionale/lib/criteri';
 import { codiceDelPercorso } from '../src/entities/filtri';
 import { assenzaInFrase, testoMotivato } from '../src/entities/importo';
-import { VERIFICA_SMP_SIGC, conValore, elencoRicevute, elencoSpesa, percorsoIntervento, verificaDellIntervento } from '../src/features/istituzionale/lib/collegamenti';
+import {
+  VERIFICA_SMP_SIGC,
+  conValore,
+  elencoRicevute,
+  elencoSpesa,
+  percorsoIntervento,
+  percorsoInterventoSigc,
+  verificaDellIntervento,
+  verificaNonSigcConFiltri,
+  verificaSigcConFiltri,
+  verificaSigcDellIntervento,
+} from '../src/features/istituzionale/lib/collegamenti';
 import {
   DEFINIZIONI_VERIFICA,
+  DEFINIZIONI_VERIFICA_SIGC,
   NESSUN_DATO_SIGC,
   NESSUN_FILE,
   PERIMETRO_IN_PAROLE,
@@ -19,9 +31,10 @@ import {
   SCEGLI_ESERCIZIO,
   annoOpzionale,
   numeroOpzionale,
+  periodoEsercizio,
   pillAnnoDelFile,
   pillEsercizio,
-  quantita,
+  quantitaConIndicatore,
   siNo,
   testoAnnoDiRiferimento,
   testoOpzionale,
@@ -31,10 +44,32 @@ import {
 import { DATI_VERIFICA, TESTI_LINK, indirizzoDelDato, testoRicerca, testoValore, titoloDato, valoreOrdinabile, vociRiferimenti } from '../src/features/istituzionale/lib/verifica';
 import type { DatoVerifica } from '../src/features/istituzionale/lib/verifica';
 import { statoDelDettaglio, tutteRisposte } from '../src/shared/lib';
-import { SENZA_DATI, TITOLI_SCHEDE, badgeIntervento, captionVociVerifica, kpiIntervento, schedeVisibili, testoAggiornamentoAnno, ultimoDatoInErrore, sopratitoloIntervento, titoloIntervento, ultimiDelDettaglio } from '../src/features/istituzionale/lib/intervento';
+import {
+  BADGE_INTERVENTO,
+  SENZA_DATI,
+  SENZA_DATI_SIGC,
+  TITOLI_SCHEDE,
+  captionVociVerifica,
+  captionVociVerificaSigc,
+  kpiVerifica,
+  kpiVerificaSigc,
+  lettureDelloStato,
+  schedaAttiva,
+  schedaIniziale,
+  schedeVisibili,
+  statoDellaPagina,
+  testoAggiornamentoAnno,
+  testoAggiornamentoEsercizio,
+  ultimoDatoInErrore,
+  sopratitoloIntervento,
+  titoloIntervento,
+  ultimiDelDettaglio,
+} from '../src/features/istituzionale/lib/intervento';
+import { DATI_VERIFICA_SIGC, testoEsercizio, testoRicercaSigc, valoreOrdinabileSigc, vociRiferimentiSigc, vociRiferimentiSigcIntervento } from '../src/features/istituzionale/lib/verificaSigc';
+import type { DatoVerificaSigc } from '../src/features/istituzionale/lib/verificaSigc';
 import { TITOLO_SPESA, TITOLO_SPESA_SIGC, graficoSpesa, graficoSpesaSigc } from '../src/features/istituzionale/lib/grafici';
-import { SRD01, ULTIMI, VERIFICA, VERIFICA_SMP, righeDeiFiltri, verificaPer, verificaSigcPer } from '../src/features/istituzionale/testing/fixture';
-import { anteprimaVerifica, etichetteAnteprima, riferimentoAnteprima } from '../src/features/istituzionale/lib/anteprima';
+import { SRD01, ULTIMI, VERIFICA, VERIFICA_SMP, dato as datoSmp, nd, nv, rigaSmp, righeDeiFiltri, verificaPer, verificaSigcPer } from '../src/features/istituzionale/testing/fixture';
+import { anteprimaVerifica, anteprimaVerificaSigc, etichetteAnteprima, etichetteAnteprimaSigc, nomeGruppoSigc, riferimentoAnteprima, riferimentoAnteprimaSigc } from '../src/features/istituzionale/lib/anteprima';
 import type { RigaVerifica } from '../src/features/istituzionale/lib/dto';
 
 const dato = (campo: DatoVerifica['campo']) => DATI_VERIFICA.find((d) => d.campo === campo) as DatoVerifica;
@@ -63,7 +98,8 @@ describe('RF016 e RF015: grant e pagine dell istituzionale (menu e Home)', () =>
     expect(pagineVisibili(() => false)).toEqual([]);
     // l'output regionale (TX-0017) e' del fisico dal 29/10/2026: nessuna pagina dell'istituzionale col suo grant
     expect(pagineVisibili((g) => g === 'csr.tx-0017.read')).toEqual([]);
-    expect(GRANT_DETTAGLIO).toEqual(['csr.tx-0016.read']);
+    // il dettaglio si apre con una delle due verifiche (una scheda ciascuna)
+    expect(GRANT_DETTAGLIO).toEqual(['csr.tx-0016.read', 'csr.tx-0015.read']);
     expect(ricercaConservata('?intervento=SRD01&anno=2024&os=OS4&x=1')).toBe('intervento=SRD01&os=OS4');
     expect(ricercaConservata('?esercizio=2025&og=OG1')).toBe('og=OG1');
     expect(ricercaConservata('')).toBe('');
@@ -96,6 +132,17 @@ describe('RF016: criteri nell indirizzo (filtri del programma e anno di riferime
     expect(testiCriteriSigc({ intervento: ['SRD01'] }, 2025)).toEqual(['Intervento: SRD01', 'Esercizio: 2025']);
   });
 
+  it('l ultimo esercizio chiuso (card della Home, scelta del 30/10/2026): dal 16 ottobre quello dell anno, prima quello precedente', () => {
+    expect(esercizioUltimoChiuso(new Date(2026, 9, 15, 23, 59))).toBe(2025);
+    expect(esercizioUltimoChiuso(new Date(2026, 9, 16, 0, 0))).toBe(2026);
+    expect(esercizioUltimoChiuso(new Date(2026, 9, 30))).toBe(2026);
+    expect(esercizioUltimoChiuso(new Date(2026, 11, 31))).toBe(2026);
+    expect(esercizioUltimoChiuso(new Date(2027, 0, 1))).toBe(2026);
+    expect(esercizioUltimoChiuso(new Date(2026, 8, 30))).toBe(2025);
+    // la card legge come la pagina aperta senza filtri (stessa query, stessa cache)
+    expect(filtriVerificaSigcSenzaFiltri()).toEqual({});
+  });
+
   it('criteri di TX-0016, testi del PNG, codice del percorso e filtri del dettaglio', () => {
     expect(criteriVerifica({ os: ['OS4'] }, 2024)).toEqual({ os: ['OS4'], anno: 2024 });
     expect(criteriVerifica({ os: ['OS4'] }, undefined)).toEqual({ os: ['OS4'] });
@@ -119,6 +166,22 @@ describe('RF016 e RF015: i link dello uiplan (dettaglio, report filtrati, elenco
     expect(verificaDellIntervento('SRA01', 2024)).toBe('/istituzionale/verifica-smp-non-sigc?intervento=SRA01&anno=2024');
     expect(verificaDellIntervento('SRA01')).toBe('/istituzionale/verifica-smp-non-sigc?intervento=SRA01');
     expect(VERIFICA_SMP_SIGC).toBe('/istituzionale/verifica-smp-sigc');
+    // link:verifica-smp-sigc-intervento: intervento ed esercizio, nell'ordine della query dello uiplan
+    expect(verificaSigcDellIntervento('SRA01', 2025)).toBe('/istituzionale/verifica-smp-sigc?intervento=SRA01&esercizio=2025');
+    expect(verificaSigcDellIntervento('SR/A01')).toBe('/istituzionale/verifica-smp-sigc?intervento=SR%2FA01');
+  });
+
+  it('link:dettaglio-intervento-smp-sigc: il dettaglio col codice codificato e l esercizio solo se valido', () => {
+    expect(percorsoInterventoSigc('SRA01', 2025)).toBe('/istituzionale/interventi/SRA01?esercizio=2025');
+    expect(percorsoInterventoSigc('SR/../A01', 1999)).toBe('/istituzionale/interventi/SR%2F..%2FA01');
+    expect(percorsoInterventoSigc('SRA01')).toBe('/istituzionale/interventi/SRA01');
+  });
+
+  it('link reciproci fra le due verifiche (scelta di disegno 1): i filtri comuni nell ordine dello uiplan, mai l anno ne l esercizio', () => {
+    const filtri = { azione: ['3'], intervento: ['SRD01', 'SRA01'], og: ['OG1'], os: ['OS4'], op: ['OP1'] };
+    expect(verificaSigcConFiltri(filtri)).toBe('/istituzionale/verifica-smp-sigc?intervento=SRD01&intervento=SRA01&os=OS4&og=OG1&op=OP1&azione=3');
+    expect(verificaNonSigcConFiltri(filtri)).toBe('/istituzionale/verifica-smp-non-sigc?intervento=SRD01&intervento=SRA01&os=OS4&og=OG1&op=OP1&azione=3');
+    expect([verificaSigcConFiltri({}), verificaNonSigcConFiltri({})]).toEqual(['/istituzionale/verifica-smp-sigc', '/istituzionale/verifica-smp-non-sigc']);
   });
 
   it('elenco operativo: ricevute = domande di sostegno, spesa = righe PAGATA non SIGC (D-05); link solo con un valore positivo', () => {
@@ -134,7 +197,8 @@ describe('RF016 e RF015: testi (perimetro, anno, esercizio, quantita, assenze, d
     expect(PERIMETRO_IN_PAROLE).toBe('regionale');
     expect(pillAnnoDelFile(2025)).toBe('Anno di riferimento del file SMP non SIGC: 2025');
     expect(pillAnnoDelFile(null)).toBe('Anno di riferimento del file SMP non SIGC: nessun file');
-    expect(pillEsercizio(2025)).toBe('Esercizio finanziario: 2025');
+    expect(pillEsercizio(2025)).toBe('Esercizio finanziario: 2025 (dal 16/10/2024 al 15/10/2025)');
+    expect(periodoEsercizio(2023)).toBe('dal 16/10/2022 al 15/10/2023');
     expect(pillEsercizio(undefined)).toBe('Esercizio finanziario: non indicato');
     expect(testoAnnoDiRiferimento(2025, undefined)).toBe('2025 (ultimo anno con un file SMP non SIGC presente)');
     expect(testoAnnoDiRiferimento(2024, 2024)).toBe('2024');
@@ -143,7 +207,8 @@ describe('RF016 e RF015: testi (perimetro, anno, esercizio, quantita, assenze, d
   });
 
   it('quantita con l unita, si e no, dati motivati e facoltativi; mai uno zero al posto di un assente', () => {
-    expect([quantita(1500, 'ettari'), quantita(12, null), quantita(12345, 'UBA')]).toEqual(['1500 ettari', '12', '12.345 UBA']);
+    // OP-IS-12: l'unita' di misura non c'e' nelle due verifiche, la quantita' ha accanto il codice dell'indicatore
+    expect([quantitaConIndicatore(40, 'O.20'), quantitaConIndicatore(12, null), quantitaConIndicatore(12345, ' '), quantitaConIndicatore(12345, 'O.14')]).toEqual(['40 (indicatore O.20)', '12', '12.345', '12.345 (indicatore O.14)']);
     expect([siNo(true), siNo(false)]).toEqual(['sì', 'no']);
     expect(testoMotivato({ valore: 7, motivo: null }, String)).toBe('7');
     expect(testoMotivato({ valore: null, motivo: 'ANNO_NON_CONSERVATO' }, String)).toBe("non disponibile per l'anno scelto (l'avviso porta i dati del file più recente)");
@@ -162,7 +227,9 @@ describe('RF016 e RF015: testi (perimetro, anno, esercizio, quantita, assenze, d
     expect(NESSUN_FILE).toMatch(/^Nessun file SMP non SIGC acquisito: /);
     expect(DEFINIZIONI_VERIFICA).toContain('solo saldate al 100% (definizione da confermare con ARSIAL)');
     expect(SCEGLI_ESERCIZIO).toBe("Scegli l'esercizio finanziario da consultare.");
-    expect(NESSUN_DATO_SIGC).toBe("Nessun dato SIGC per l'esercizio scelto. Scegli un altro esercizio.");
+    expect(NESSUN_DATO_SIGC).toBe("Nessun dato SIGC per l'esercizio e i filtri scelti. Scegli un altro esercizio oppure");
+    expect(DEFINIZIONI_VERIFICA_SIGC).toMatch(/^Definizioni del backend \(decisioni di finanziario richiamate da istituzionale\): esercizio n = dal 16\/10\/n-1 al 15\/10\/n/);
+    expect(DEFINIZIONI_VERIFICA_SIGC).toContain('previsione di pagamento = sì/no del monitoraggio SMP (D-11)');
   });
 });
 
@@ -203,7 +270,8 @@ describe('RF016: i ventuno dati della verifica SMP non SIGC (TX-0016)', () => {
     expect(testoValore('importo', 2000000)).toBe(new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }).format(2000000));
     expect(testoValore('data', '2025-03-31')).toBe('31/03/2025');
     expect(testoValore('siNo', false)).toBe('no');
-    expect(testoValore('quantita', 40, 'ettari')).toBe('40 ettari');
+    expect(testoValore('quantita', 40, 'O.20')).toBe('40 (indicatore O.20)');
+    expect(testoValore('quantita', 40)).toBe('40');
     expect(testoValore('conteggio', 12345)).toBe('12.345');
     expect(testoValore('testo', 'O.20')).toBe('O.20');
   });
@@ -237,28 +305,47 @@ describe('RF016: i ventuno dati della verifica SMP non SIGC (TX-0016)', () => {
   });
 });
 
-describe('RF016: il dettaglio dell intervento (testata, KPI, ultimo dato, esito)', () => {
-  it('titolo dalla descrizione di TX-0060 o dal codice; sopratitolo; badge dagli indicatori letti', () => {
+describe('RF016 e RF015: il dettaglio dell intervento (testata, schede, KPI per scheda, ultimo dato, esito)', () => {
+  const euro = (v: number) => new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }).format(v);
+
+  it('titolo dalla descrizione di TX-0060 o dal codice; sopratitolo; il solo badge del perimetro (gli indicatori sono nelle voci)', () => {
     expect(titoloIntervento('SRA01', 'Produzione integrata')).toBe('Produzione integrata');
     expect(titoloIntervento('SRA01', undefined)).toBe('Intervento SRA01');
     expect(sopratitoloIntervento('SRA01')).toBe('Istituzionale - intervento SRA01');
-    expect(badgeIntervento(SRD01)).toEqual(['Perimetro regionale', 'Indicatore di output O.20', 'Indicatore di risultato R.9']);
-    expect(badgeIntervento(undefined)).toEqual(['Perimetro regionale']);
+    expect(BADGE_INTERVENTO).toEqual(['Perimetro regionale']);
   });
 
-  it('KPI: domande e spesa da TX-0016, solo con la riga della lettura; assenze in frase (il target di TX-0017 e del fisico)', () => {
-    expect(kpiIntervento(SRD01).map((k) => [k.etichetta, k.valore ?? k.assente, k.nota])).toEqual([
-      ['Domande ricevute non SIGC', '3', 'TX-0016'],
-      ['Domande finanziate non SIGC', '2', 'TX-0016'],
-      ['Spesa pubblica erogata non SIGC', new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }).format(90000), 'TX-0016, anticipi inclusi'],
+  it('KPI della scheda non SIGC: domande e spesa cumulative da TX-0016, col periodo nella nota; assenze in frase', () => {
+    expect(kpiVerifica(SRD01).map((k) => [k.etichetta, k.valore ?? k.assente, k.nota])).toEqual([
+      ['Domande ricevute non SIGC', '3', 'TX-0016, cumulative'],
+      ['Domande finanziate non SIGC', '2', 'TX-0016, cumulative'],
+      ['Spesa pubblica erogata non SIGC', euro(90000), 'TX-0016, anticipi inclusi, cumulativa'],
     ]);
-    expect(kpiIntervento({ ...SRD01, spesaErogata: { valore: null, motivo: 'NON_VALORIZZATO', fonte: null } }).at(-1)?.assente).toBe('Non valorizzato: il dato non è presente nella fonte');
-    expect(kpiIntervento(undefined)).toEqual([]);
+    expect(kpiVerifica({ ...SRD01, spesaErogata: { valore: null, motivo: 'NON_VALORIZZATO', fonte: null } }).at(-1)?.assente).toBe('Non valorizzato: il dato non è presente nella fonte');
   });
 
-  it('ultimo dato della risposta; stato: caricamento, errore, vuoto (AT001), dati anche con una sola lettura riuscita', () => {
-    expect(ultimiDelDettaglio(VERIFICA)).toEqual(ULTIMI);
-    expect(ultimiDelDettaglio(undefined)).toBeUndefined();
+  it('KPI della scheda SIGC: ricevute e finanziate della campagna n-1, spesa della campagna precedente pagata nell esercizio n', () => {
+    expect(kpiVerificaSigc(VERIFICA_SMP.righe[0], 2025, 2024).map((k) => [k.chiave, k.etichetta, k.valore ?? k.assente, k.nota])).toEqual([
+      ['ricevute', 'Domande ricevute SIGC (campagna 2024)', '120', 'TX-0015, esercizio 2025'],
+      ['finanziate', 'Domande finanziate SIGC (campagna 2024)', '100', 'TX-0015, esercizio 2025'],
+      ['spesa', 'Spesa erogata SIGC, campagna 2024', euro(400000), "TX-0015, pagata nell'esercizio 2025"],
+    ]);
+    // campi facoltativi della spec: un conteggio assente e' "Non disponibile", una spesa assente dice il motivo, mai uno zero
+    const senza = kpiVerificaSigc({ codiceIntervento: 'SRA03', spesaErogataCampagnaPrecedente: nd('IMPEGNI') }, 2025, 2024);
+    expect(senza.map((k) => k.assente)).toEqual(['Non disponibile', 'Non disponibile', 'Non disponibile: fonte impegni non attiva']);
+  });
+
+  it('ultimo dato della prima risposta arrivata fra TX-0016 e TX-0015; le letture senza risposta non contano', () => {
+    const non = { data: VERIFICA, dataUpdatedAt: 20 };
+    const sigc = { data: { ...VERIFICA_SMP, ultimiDatiSincronizzati: [ULTIMI[1]] }, dataUpdatedAt: 10 };
+    expect(ultimiDelDettaglio([non, sigc])).toEqual([ULTIMI[1]]);
+    expect(ultimiDelDettaglio([non, null])).toEqual(ULTIMI);
+    expect(ultimiDelDettaglio([{ data: undefined, dataUpdatedAt: 0 }, sigc])).toEqual([ULTIMI[1]]);
+    expect(ultimiDelDettaglio([null, null])).toBeUndefined();
+    expect(ultimiDelDettaglio([])).toBeUndefined();
+  });
+
+  it('stato del kit: caricamento, errore, vuoto (AT001), dati anche con una sola lettura riuscita', () => {
     const ok = (data: { righe: readonly unknown[] }) => ({ data, isError: false });
     const inCorso = { data: undefined, isError: false };
     const errore = { data: undefined, isError: true };
@@ -287,18 +374,104 @@ describe('RF016: il dettaglio dell intervento (testata, KPI, ultimo dato, esito)
     expect([ultimoDatoInErrore([errore, errore]), ultimoDatoInErrore([errore, ok(VERIFICA)]), ultimoDatoInErrore([])]).toEqual([true, false, false]);
   });
 
-  it('schede per grant (la verifica SMP non SIGC; output e importi unitari sono del fisico); didascalia delle voci; testi degli stati', () => {
-    expect(schedeVisibili(true).map((s) => TITOLI_SCHEDE[s])).toEqual(['Verifica SMP non SIGC']);
-    expect(schedeVisibili(false)).toEqual([]);
+  it('stato della pagina: la verifica SIGC senza la riga non fa il vuoto della pagina (lo dice la sua scheda); senza letture partite le schede', () => {
+    const vuota = { data: { righe: [] }, isError: false };
+    const errore = { data: undefined, isError: true };
+    // dal clic della verifica SIGC (la sola lettura partita) senza la riga dell'intervento: la pagina ha le schede
+    expect(statoDelDettaglio(lettureDelloStato(null, vuota), false)).toBe('dati');
+    // la verifica non SIGC senza righe (AT001) e' il vuoto della pagina
+    expect(statoDelDettaglio(lettureDelloStato(vuota, null), false)).toBe('vuoto');
+    expect(statoDelDettaglio(lettureDelloStato(vuota, vuota), false)).toBe('dati');
+    expect(statoDelDettaglio(lettureDelloStato(null, errore), false)).toBe('errore');
+    expect(lettureDelloStato(null, null)).toEqual([]);
+    expect(lettureDelloStato(null, { data: undefined, isError: false })).toEqual([{ data: undefined, isError: false }]);
+    // la scheda SIGC aperta senza esercizio non legge: le schede, non lo scheletro; senza schede (profilo in caricamento) lo scheletro
+    expect(statoDellaPagina('caricamento', 0, 1)).toBe('dati');
+    expect(statoDellaPagina('caricamento', 0, 0)).toBe('caricamento');
+    expect(statoDellaPagina('caricamento', 1, 2)).toBe('caricamento');
+    expect(statoDellaPagina('vuoto', 1, 2)).toBe('vuoto');
+  });
+
+  it('schede per grant nell ordine del wireframe; la scheda iniziale dalla pagina di partenza; la scheda attiva fra le visibili', () => {
+    expect(schedeVisibili(true, true).map((s) => TITOLI_SCHEDE[s])).toEqual(['Verifica SMP non SIGC', 'Verifica SMP SIGC']);
+    expect(schedeVisibili(false, true)).toEqual(['verificaSigc']);
+    expect(schedeVisibili(true, false)).toEqual(['verifica']);
+    expect(schedeVisibili(false, false)).toEqual([]);
+    // con l'esercizio e senza l'anno (dalla verifica SIGC) la SIGC; altrimenti la non SIGC
+    expect([schedaIniziale(undefined, 2025), schedaIniziale(2024, 2025), schedaIniziale(2024, undefined), schedaIniziale(undefined, undefined)]).toEqual(['verificaSigc', 'verifica', 'verifica', 'verifica']);
+    expect(schedaAttiva(['verifica', 'verificaSigc'], 'verificaSigc')).toBe('verificaSigc');
+    expect(schedaAttiva(['verifica'], 'verificaSigc')).toBe('verifica');
+    expect(schedaAttiva([], 'verifica')).toBeUndefined();
+  });
+
+  it('didascalie delle voci col periodo; testi degli stati e dell aggiornamento', () => {
     expect(captionVociVerifica(2025)).toBe("I dati ASR non SIGC dell'intervento da confrontare con SMP (anno di riferimento 2025), con i valori assenti e il loro motivo");
     expect(captionVociVerifica(null)).toContain('(anno di riferimento nessun file)');
+    expect(captionVociVerificaSigc(2025, 2024)).toBe("I dati SIGC dell'intervento da confrontare con SMP (esercizio 2025, domande della campagna 2024), con i valori assenti e il loro motivo");
     // lo stato dice l'anno dei dati che restano, lo stesso della didascalia (review X1): indietro, avanti, senza file
     expect(testoAggiornamentoAnno(2024, 2025)).toBe("Lettura dell'anno 2024 in corso: restano i dati dell'anno di riferimento 2025.");
     expect(testoAggiornamentoAnno(2025, 2024)).toBe("Lettura dell'anno 2025 in corso: restano i dati dell'anno di riferimento 2024.");
     expect(testoAggiornamentoAnno(undefined, 2023)).toBe("Lettura dell'ultimo anno con un file in corso: restano i dati dell'anno di riferimento 2023.");
     expect(testoAggiornamentoAnno(2024, null)).toBe("Lettura dell'anno 2024 in corso: restano i dati di prima (nessun file).");
     expect(testoAggiornamentoAnno(2024, undefined)).toBe("Lettura dell'anno 2024 in corso: restano i dati di prima.");
-    expect(SENZA_DATI).toContain('AT001');
+    expect(testoAggiornamentoEsercizio(2024, 2025)).toBe("Lettura dell'esercizio 2024 in corso: restano i dati dell'esercizio 2025.");
+    expect(testoAggiornamentoEsercizio(2024, undefined)).toBe("Lettura dell'esercizio 2024 in corso: restano i dati di prima.");
+    expect(SENZA_DATI).toBe("Nessun dato per questo intervento nella verifica SMP (l'Assistenza tecnica AT001 non è nei report).");
+    expect(SENZA_DATI_SIGC).toBe("Nessun dato SIGC per questo intervento nell'esercizio scelto. Scegli un altro esercizio.");
+  });
+});
+
+describe('RF015: i venti dati della verifica SMP SIGC (TX-0015) nella tabella e nella scheda del dettaglio', () => {
+  const datoSigc = (campo: DatoVerificaSigc['campo']) => DATI_VERIFICA_SIGC.find((d) => d.campo === campo) as DatoVerificaSigc;
+
+  it('ordine e titoli della pagina; visibili di partenza le colonne del low-fi; voci del wireframe intervento', () => {
+    expect(DATI_VERIFICA_SIGC).toHaveLength(20);
+    expect(DATI_VERIFICA_SIGC.filter((d) => !d.nascosta).map((d) => d.colonna)).toEqual([
+      'Avvisi attivati',
+      'Azioni attivate',
+      'Domande ricevute',
+      'Domande finanziate',
+      "Domande pagate nell'esercizio",
+      'Spesa erogata campagna precedente',
+      'Spesa erogata campagne anteriori',
+      "Si prevede di pagare nell'esercizio",
+      'Include top-up',
+      "Output erogato nell'esercizio",
+    ]);
+    expect(datoSigc('previsionePagamentoEsercizio').voce).toBe("Si prevede di pagare importi entro l'esercizio");
+    expect(datoSigc('outputErogatoEsercizio').voce).toBe("Output erogato nell'esercizio (solo SIGC)");
+    expect(new Set(DATI_VERIFICA_SIGC.map((d) => d.campo)).size).toBe(20);
+  });
+
+  it('valori per l ordinamento: numeri, si e no come testo, testi; assenti = null', () => {
+    const r = rigaSmp({ avvisiAttivati: datoSmp(3), azioniAttivate: nv(), includeTopUp: datoSmp(true) });
+    expect(valoreOrdinabileSigc(r, datoSigc('avvisiAttivati'))).toBe(3);
+    expect(valoreOrdinabileSigc(r, datoSigc('azioniAttivate'))).toBeNull();
+    expect(valoreOrdinabileSigc(r, datoSigc('includeTopUp'))).toBe('sì');
+    expect(valoreOrdinabileSigc(r, datoSigc('domandeRicevute'))).toBe(120);
+    expect(valoreOrdinabileSigc(r, datoSigc('spesaErogataCampagnaPrecedente'))).toBe(400000);
+    expect(valoreOrdinabileSigc(r, datoSigc('indicatoreOutput'))).toBe('O.14');
+    expect(valoreOrdinabileSigc(r, datoSigc('outputErogatoEsercizio'))).toBeNull();
+    expect(valoreOrdinabileSigc({ codiceIntervento: 'SRA03' }, datoSigc('domandeRicevute'))).toBeNull();
+    expect(testoRicercaSigc(r)).toBe('SRA01 O.14 ');
+    expect(testoRicercaSigc({})).toBe('  ');
+  });
+
+  it('riferimenti della risposta: esercizio con gli estremi, anno delle domande, pagamenti senza data, perimetro', () => {
+    expect(testoEsercizio(2025)).toBe('2025 (dal 16/10/2024 al 15/10/2025)');
+    expect(testoEsercizio(2025, true)).toBe('2025 (dal 16/10/2024 al 15/10/2025, estremi compresi)');
+    expect(vociRiferimentiSigc(VERIFICA_SMP, 2025)).toEqual([
+      { etichetta: 'Esercizio', valore: '2025 (dal 16/10/2024 al 15/10/2025, estremi compresi)' },
+      { etichetta: 'Anno delle domande', valore: '2024' },
+      { etichetta: "Pagamenti senza data di autorizzazione (esclusi dall'esercizio)", valore: '3' },
+      { etichetta: 'Perimetro', valore: 'regionale' },
+    ]);
+    expect(vociRiferimentiSigc({}, 2026).map((v) => v.valore)).toEqual(['2026 (dal 16/10/2025 al 15/10/2026, estremi compresi)', 'non disponibile', 'non disponibile', 'regionale']);
+    expect(vociRiferimentiSigcIntervento({ ...VERIFICA_SMP, pagamentiSenzaData: 12345 }, 2025)).toEqual([
+      { etichetta: 'Esercizio', valore: '2025 (dal 16/10/2024 al 15/10/2025)' },
+      { etichetta: 'Anno delle domande', valore: '2024' },
+      { etichetta: "Pagamenti dell'intervento senza data di autorizzazione (esclusi dall'esercizio)", valore: '12.345' },
+    ]);
   });
 });
 
@@ -412,5 +585,42 @@ describe('RF016: card della Home coi totali della verifica SMP non SIGC (OP-IS-1
     expect(riferimentoAnteprima(null)).toBe('Non SIGC, valori cumulativi (nessun file SMP non SIGC)');
     expect(etichetteAnteprima('REGIONALE')).toEqual({ finanziate: 'Domande finanziate', spesa: 'Spesa pubblica erogata', quota: 'Spesa erogata sul valore delle domande finanziate', ricevute: 'Domande ricevute' });
     expect(etichetteAnteprima('ADA')).toMatchObject({ finanziate: 'Domande finanziate della tua area', spesa: 'Spesa pubblica erogata della tua area', ricevute: 'Domande ricevute della tua area' });
+  });
+});
+
+describe('RF015: blocco SIGC della card della Home (rework 1 della card, scelta dell utente del 30/10/2026)', () => {
+  const importo = (valore: number) => ({ valore, motivo: null, fonte: null });
+  const riga = (codiceIntervento: string, campi: Parameters<typeof rigaSmp>[0] = {}) => rigaSmp({ codiceIntervento, ...campi });
+
+  it('somme fra gli interventi: finanziate, pagate e ricevute; spesa nell esercizio = campagna precedente + campagne anteriori; nessuna quota', () => {
+    const righe = [riga('SRA01'), riga('SRA03', { domandeRicevute: 30, domandeFinanziate: 20, domandePagateEsercizio: 5, spesaErogataCampagnaPrecedente: importo(1000.1), spesaErogataCampagneAnteriori: importo(250.25) })];
+    expect(anteprimaVerificaSigc({ righe })).toEqual({
+      domandeFinanziate: { valore: 120 },
+      spesaErogata: { valore: 401250.35 },
+      domandePagate: { valore: 85 },
+      domandeRicevute: { valore: 150 },
+    });
+    expect(Object.keys(anteprimaVerificaSigc({ righe }))).not.toContain('quota');
+  });
+
+  it('una parte della spesa assente in una riga: totale non calcolabile col motivo, mai una somma parziale; i conteggi restano', () => {
+    const righe = [riga('SRA01'), riga('SRA03', { spesaErogataCampagneAnteriori: nd('IMPEGNI') })];
+    const a = anteprimaVerificaSigc({ righe });
+    expect(a.spesaErogata).toEqual({ valore: null, motivo: 'Non calcolabile: manca per 1 intervento (SRA03); non disponibile (fonte impegni non attiva)' });
+    expect(a.domandeRicevute).toEqual({ valore: 240 });
+  });
+
+  it('nessun intervento (o righe assenti): zeri veri; un conteggio assente nella spec: non calcolabile', () => {
+    const zeri = { domandeFinanziate: { valore: 0 }, spesaErogata: { valore: 0 }, domandePagate: { valore: 0 }, domandeRicevute: { valore: 0 } };
+    expect(anteprimaVerificaSigc({ righe: [] })).toEqual(zeri);
+    expect(anteprimaVerificaSigc({})).toEqual(zeri);
+    expect(anteprimaVerificaSigc({ righe: [{ codiceIntervento: 'SRA03' }] }).domandePagate).toEqual({ valore: null, motivo: 'Non calcolabile: manca per 1 intervento (SRA03)' });
+  });
+
+  it('nome del gruppo, riferimento con esercizio, periodo e anno delle domande; etichette col perimetro', () => {
+    expect(nomeGruppoSigc(2026)).toBe('SIGC, esercizio 2026');
+    expect(riferimentoAnteprimaSigc(2026, 2025)).toBe("SIGC, esercizio 2026 (16/10/2025 - 15/10/2026; domande dell'anno 2025)");
+    expect(etichetteAnteprimaSigc('REGIONALE')).toEqual({ finanziate: 'Domande finanziate', spesa: "Spesa pubblica erogata nell'esercizio", pagate: "Domande pagate nell'esercizio", ricevute: 'Domande ricevute' });
+    expect(etichetteAnteprimaSigc('ADA').pagate).toBe("Domande pagate nell'esercizio della tua area");
   });
 });

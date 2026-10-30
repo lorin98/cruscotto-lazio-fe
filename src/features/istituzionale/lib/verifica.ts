@@ -8,7 +8,7 @@ import { formatDate, formatEuro, formatNumber, testoPerimetro } from '../../../s
 import type { ValoreOrdinabile } from '../../../shared/lib';
 import { conValore, elencoRicevute, elencoSpesa } from './collegamenti';
 import type { RigaVerifica, Verifica } from './dto';
-import { quantita, siNo, testoAnnoDiRiferimento, testoOutputErogato } from './formato';
+import { quantitaConIndicatore, siNo, testoAnnoDiRiferimento, testoOutputErogato } from './formato';
 
 /** Il tipo del valore di un dato: conteggio, importo, data, si'/no, quantita' e testo col motivo; numero sempre valorizzato. */
 export type TipoDato = 'conteggio' | 'importo' | 'data' | 'siNo' | 'quantita' | 'testo' | 'numero';
@@ -72,12 +72,15 @@ export function valoreOrdinabile(r: RigaVerifica, d: DatoVerifica): ValoreOrdina
   return typeof v === 'number' || typeof v === 'string' ? v : null;
 }
 
-/** Il testo di un valore presente del tipo dato: conteggi in italiano, euro al centesimo, date gg/mm/aaaa, quantita' con l'unita'. */
-export function testoValore(tipo: TipoDato, v: number | string | boolean, unita?: string | null): string {
+/**
+ * Il testo di un valore presente del tipo dato: conteggi in italiano, euro al centesimo, date gg/mm/aaaa, quantita' col
+ * codice dell'indicatore accanto quando chi la rende lo da' (le voci del dettaglio dell'intervento, OP-IS-12).
+ */
+export function testoValore(tipo: TipoDato, v: number | string | boolean, indicatore?: string | null): string {
   if (typeof v === 'boolean') return siNo(v);
   if (typeof v === 'string') return tipo === 'data' ? formatDate(v) : v;
   if (tipo === 'importo') return formatEuro(v);
-  return tipo === 'quantita' ? quantita(v, unita) : formatNumber(v);
+  return tipo === 'quantita' ? quantitaConIndicatore(v, indicatore) : formatNumber(v);
 }
 
 /** Il nome accessibile e il testo visibile di un link verso l'elenco, per il codice dell'intervento. */

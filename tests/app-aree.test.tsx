@@ -27,7 +27,7 @@ import { pagineVisibili as pagineIstituzionale, ricercaConservata as ricercaIsti
 import { pagineVisibili as pagineProcedurale, ricercaConservata as ricercaProcedurale } from '../src/features/procedurale';
 import { PAGINE_FINANZIARIO } from '../src/features/finanziario/lib/report';
 import { GRANT_DETTAGLIO as GRANT_DETTAGLIO_FISICO, PAGINE_FISICO } from '../src/features/fisico/lib/pagine';
-import { PAGINE_ISTITUZIONALE } from '../src/features/istituzionale/lib/pagine';
+import { GRANT_DETTAGLIO as GRANT_DETTAGLIO_ISTITUZIONALE, PAGINE_ISTITUZIONALE } from '../src/features/istituzionale/lib/pagine';
 import { PAGINE_PROCEDURALE } from '../src/features/procedurale/lib/pagine';
 import { VERIFICA_SMP_SIGC } from '../src/features/istituzionale/lib/collegamenti';
 import { GRANT as GRANT_ISTITUZIONALE } from '../src/features/istituzionale/lib/grant';
@@ -80,8 +80,9 @@ describe('catalogo delle aree', () => {
       const route = routeTable.routes.find((r) => matchPath(r.path, p.percorso));
       expect(route?.visibility, p.percorso).toEqual([p.grant]);
     }
-    // il dettaglio dell'intervento non e' una voce di menu: si apre col grant della verifica SMP non SIGC (TX-0017 al fisico)
-    expect(routeTable.routes.find((r) => r.path === '/istituzionale/interventi/:codice')?.visibility).toEqual(['csr.tx-0016.read']);
+    // il dettaglio dell'intervento non e' una voce di menu: si apre col grant di una delle due verifiche (una scheda ciascuna)
+    expect(routeTable.routes.find((r) => r.path === '/istituzionale/interventi/:codice')?.visibility).toEqual(['csr.tx-0016.read', 'csr.tx-0015.read']);
+    expect(routeTable.routes.find((r) => r.path === '/istituzionale/interventi/:codice')?.visibility).toEqual([...GRANT_DETTAGLIO_ISTITUZIONALE]);
     // quello del fisico (flusso intervento del 30/10/2026) con almeno uno dei grant delle tre letture che compone
     expect(PAGINE_FISICO.some((p) => p.percorso.startsWith('/fisico/interventi'))).toBe(false);
     expect(routeTable.routes.find((r) => r.path === '/fisico/interventi/:codice')?.visibility).toEqual([...GRANT_DETTAGLIO_FISICO]);
@@ -133,10 +134,10 @@ describe('catalogo delle aree', () => {
     expect(procedurale?.contenuti).toEqual(['Stati e sottofasi delle domande', 'Domande ammesse con atto di concessione e contributo', 'Riepilogo per intervento', 'Determine di una domanda']);
     expect(procedurale?.descrizione).toBe('Stati e sottofasi delle domande di sostegno e di pagamento, domande ammesse con atto di concessione e contributo, riepilogo per intervento e determine di una domanda.');
     expect(procedurale?.contenuti.join(' ')).not.toMatch(/Determine, responsabili/);
-    // G1: istituzionale = verifica SMP non SIGC e output regionale programmato e realizzato (TX-0016, TX-0017)
+    // G1 e riallineamento del 29/10/2026: istituzionale = le due verifiche SMP (TX-0016, TX-0015), testi del dossier dei wireframe
     const istituzionale = AREE.find((a) => a.chiave === 'istituzionale');
-    expect(istituzionale?.contenuti).toEqual(['Verifica SMP dei dati ASR non SIGC', 'Output regionale programmato e realizzato per intervento e anno']);
-    expect(istituzionale?.descrizione).toBe('Dati ASR non SIGC a confronto con SMP - Data Platform e output regionale programmato e realizzato.');
+    expect(istituzionale?.contenuti).toEqual(['Verifica SMP dei dati ASR non SIGC', 'Verifica SMP dei dati ASR SIGC per esercizio finanziario']);
+    expect(istituzionale?.descrizione).toBe('Dati ASR SIGC e non SIGC per intervento, da confrontare con SMP - Data Platform.');
   });
 
   it('una ricerca conservata porta solo i criteri dell area: del finanziario, del fisico senza la campagna, dell istituzionale senza l anno, del procedurale con lo stato', () => {
@@ -296,6 +297,7 @@ describe('Home e menu dallo stesso catalogo', () => {
   it('profilo dell istituzionale: la card porta alla verifica SMP non SIGC e il menu ha le due verifiche, prima la non SIGC', async () => {
     server.use(
       http.get('*/api/istituzionale/verifica-smp-non-sigc', () => HttpResponse.json({ annoRiferimento: 2025, perimetro: 'REGIONALE', outputCumulativo: true, righe: [], ultimiDatiSincronizzati: [] })),
+      http.get('*/api/istituzionale/verifica-smp-sigc', ({ request }) => HttpResponse.json({ perimetro: 'REGIONALE', esercizio: Number(new URL(request.url).searchParams.get('esercizio')), righe: [], ultimiDatiSincronizzati: [] })),
       http.get('*/api/elenco-operativo/filtri', () => HttpResponse.json({ perimetro: 'REGIONALE', interventi: [] })),
     );
     apriHomeCon(['csr.tx-0015.read', 'csr.tx-0016.read', 'csr.tx-0060.read']);
@@ -317,15 +319,15 @@ describe('Home e menu dallo stesso catalogo', () => {
     expect(within(menu).queryByRole('button', { name: 'Procedurale' })).toBeNull();
   });
 
-  it('profilo con la sola verifica SMP SIGC: la card porta alla verifica SIGC senza letture, il menu ha la sola voce', async () => {
-    const letture = registra(['/api/istituzionale/verifica-smp-non-sigc', '/api/istituzionale/verifica-smp-sigc']);
+  it('profilo con la sola verifica SMP SIGC: la card porta alla verifica SIGC e ne mostra il solo blocco SIGC, il menu ha la sola voce', async () => {
+    const letture = registra(['/api/istituzionale/verifica-smp-non-sigc', '/api/istituzionale/verifica-smp-sigc'], { '/api/istituzionale/verifica-smp-sigc': { perimetro: 'REGIONALE', righe: [], ultimiDatiSincronizzati: [] } });
     apriHomeCon(['csr.tx-0015.read']);
     const card = await screen.findByRole('region', { name: 'Istituzionale' });
     expect(within(card).getByRole('link', { name: 'Entra in Istituzionale' }).getAttribute('href')).toBe('/istituzionale/verifica-smp-sigc');
-    // senza il grant di TX-0016 la card non legge e dice cosa c'e' nell'area
-    expect(within(card).getByText('Verifica SMP dei dati ASR non SIGC')).toBeTruthy();
-    expect(within(card).queryByRole('group')).toBeNull();
-    expect(letture).toEqual({ '/api/istituzionale/verifica-smp-non-sigc': 0, '/api/istituzionale/verifica-smp-sigc': 0 });
+    // col grant di TX-0015 la card legge la verifica SIGC (rework 1 del 30/10/2026); senza quello di TX-0016 niente blocco non SIGC
+    expect(await within(card).findByRole('group', { name: /^SIGC, esercizio \d{4}$/ })).toBeTruthy();
+    expect(within(card).queryByText(/^Non SIGC, valori cumulativi/)).toBeNull();
+    await waitFor(() => expect(letture).toEqual({ '/api/istituzionale/verifica-smp-non-sigc': 0, '/api/istituzionale/verifica-smp-sigc': 1 }));
     const menu = screen.getByRole('navigation', { name: 'Navigazione principale' });
     expect(within(menu).getAllByRole('link').map((l) => l.textContent)).toEqual(['Verifica SMP SIGC']);
   });

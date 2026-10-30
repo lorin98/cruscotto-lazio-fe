@@ -43,7 +43,7 @@ interface PropsPagina<D extends RispostaReport> {
   titolo: string;
   titoloDocumento: string;
   sottotitolo: string;
-  /** Sotto il sottotitolo (la frase verso la verifica SMP SIGC, G4). */
+  /** Sotto il sottotitolo (la frase verso l'altra verifica dell'area, coi filtri comuni). */
   nota?: ReactNode;
   /** Al posto del report quando la pagina non legge (la verifica SMP SIGC senza l'esercizio): un testo, nessuna lettura. */
   senzaLettura?: ReactNode;

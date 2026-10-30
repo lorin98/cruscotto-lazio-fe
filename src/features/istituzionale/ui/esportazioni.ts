@@ -9,10 +9,8 @@ import type { Scaricamento } from '../../../shared/ui';
 import { esportaVerificaSmpNonSigc, esportaVerificaSmpSigc } from '../api';
 import type { CriteriVerifica, CriteriVerificaSigc } from '../api';
 
-/** La nota sotto gli strumenti delle tabelle: i file non applicano la ricerca ne' la scelta delle colonne. */
+/** La nota sotto gli strumenti delle tabelle delle due verifiche: i file non applicano la ricerca ne' la scelta delle colonne. */
 export const NOTA_FILE_VERIFICA = 'I file CSV e XLSX contengono tutti gli interventi dei filtri e tutte le 21 colonne, non solo quelli trovati dalla ricerca o le colonne scelte.';
-/** La nota della tabella della verifica SMP SIGC con la ricerca (come nel finanziario, review v3 X-04). */
-export const NOTA_FILE_VERIFICA_SIGC = 'I file CSV e XLSX contengono tutti gli interventi dei filtri, non solo quelli trovati dalla ricerca.';
 
 /** I file di TX-0016 della pagina della verifica nei nomi dei pulsanti, nella card del grafico e nella tabella (low-fi approvato). */
 export const OGGETTO_FILE_VERIFICA = 'i dati della verifica SMP non SIGC';

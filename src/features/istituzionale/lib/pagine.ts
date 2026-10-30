@@ -25,10 +25,10 @@ export const PAGINE_ISTITUZIONALE: readonly PaginaIstituzionale[] = [
 ];
 
 /**
- * Il dettaglio dell'intervento si apre col grant della verifica SMP non SIGC, l'unica lettura che compone (visibility della
- * route); la scheda della verifica SIGC (TX-0015) e' dei passi successivi.
+ * Il dettaglio dell'intervento si apre con almeno uno dei grant delle due verifiche che compone, una scheda ciascuna
+ * (visibility della route, wireframe intervento del 30/10/2026): TX-0016 e TX-0015.
  */
-export const GRANT_DETTAGLIO: readonly string[] = [GRANT.verifica];
+export const GRANT_DETTAGLIO: readonly string[] = [GRANT.verifica, GRANT.verificaSigc];
 
 /** Le pagine che il profilo puo' aprire, nell'ordine del menu. */
 export function pagineVisibili(haGrant: (grant: string) => boolean): PaginaIstituzionale[] {

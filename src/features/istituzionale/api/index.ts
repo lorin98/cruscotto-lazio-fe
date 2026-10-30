@@ -65,9 +65,19 @@ export const useVerificaSmpNonSigc = (criteri: CriteriVerifica, { abilitato = tr
   useTx0016(criteri, { query: { enabled: abilitato, ...(mantieniDati ? { placeholderData: keepPreviousData } : {}) } });
 
 // TX-0015 (RF015): i dati SIGC per intervento da confrontare con SMP, per l'esercizio scelto (obbligatorio); senza
-// esercizio nessuna richiesta (come nel finanziario, da cui la pagina viene).
-export const useVerificaSmpSigc = (filtri: Omit<CriteriVerificaSigc, 'esercizio'>, esercizio: number | undefined, { abilitato = true }: Opzioni = {}) =>
-  useTx0015({ ...filtri, esercizio: esercizio ?? 0 }, { query: { enabled: abilitato && esercizio !== undefined } });
+// esercizio nessuna richiesta (come nel finanziario, da cui la pagina viene). La pagina la legge coi criteri
+// dell'indirizzo, la card della Home senza filtri con l'ultimo esercizio chiuso, la scheda SIGC del dettaglio
+// dell'intervento col solo intervento della route e, con `mantieniDati`, durante la lettura di un altro esercizio coi
+// dati di prima (come la scheda non SIGC: il selettore resta montato e il focus resta sul suo "Mostra").
+export const useVerificaSmpSigc = (
+  filtri: Omit<CriteriVerificaSigc, 'esercizio'>,
+  esercizio: number | undefined,
+  { abilitato = true, mantieniDati = false }: Opzioni & { mantieniDati?: boolean } = {},
+) =>
+  useTx0015(
+    { ...filtri, esercizio: esercizio ?? 0 },
+    { query: { enabled: abilitato && esercizio !== undefined, ...(mantieniDati ? { placeholderData: keepPreviousData } : {}) } },
+  );
 
 // Esportazioni (D-07 del backend istituzionale, D-08 di nfr-conformance): il file CSV o XLSX lo scrive il backend, con
 // gli stessi criteri della lettura, l'intestazione (fonte, filtri, anno di riferimento o esercizio, perimetro, data,

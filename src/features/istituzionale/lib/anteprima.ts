@@ -6,10 +6,15 @@
 // disponibile col motivo (totaleMotivato dell'entity importo: mai una somma parziale) e la quota che lo usa non c'e'.
 // Domande e spesa sono cumulative: il riferimento lo dice, con l'anno del file (decisione D3 dell'utente del 26/10/2026).
 // La pagina della verifica resta senza KPI.
+// Blocco SIGC (rework 1 della card, richiesta e scelta dell'utente del 30/10/2026): i totali di quattro colonne della
+// verifica SMP SIGC letta senza filtri con l'ultimo esercizio chiuso (lib/criteri), sommate fra gli interventi con la
+// stessa regola: domande ricevute e finanziate (domande dell'anno n-1), domande pagate nell'esercizio, spesa pubblica
+// erogata nell'esercizio = spesa della campagna precedente + quella delle campagne anteriori. Nessuna quota: la spesa
+// dell'esercizio comprende campagne anteriori e non si confronta col valore delle domande dell'anno n-1.
 import { totaleMotivato } from '../../../entities/importo';
 import type { DatoMotivatoLike, TotaleMotivato } from '../../../entities/importo';
-import { etichettaDellArea, percentuale } from '../../../shared/lib';
-import type { RigaVerifica, Verifica } from './dto';
+import { etichettaDellArea, numeroDi, percentuale, sommaSeCompleta } from '../../../shared/lib';
+import type { RigaVerifica, RigaVerificaSigc, Verifica, VerificaSigc } from './dto';
 
 export interface AnteprimaVerifica {
   domandeFinanziate: number;
@@ -65,5 +70,67 @@ export function anteprimaVerifica(d: Pick<Verifica, 'righe'>): AnteprimaVerifica
     domandeRicevute: d.righe.reduce((n, r) => n + r.domandeRicevute, 0),
     spesaErogata,
     quotaSpesa: quotaSpesa(spesaErogata, valoreFinanziato),
+  };
+}
+
+export interface AnteprimaVerificaSigc {
+  domandeFinanziate: TotaleMotivato;
+  spesaErogata: TotaleMotivato;
+  domandePagate: TotaleMotivato;
+  domandeRicevute: TotaleMotivato;
+}
+
+const ETICHETTE_SIGC = {
+  finanziate: 'Domande finanziate',
+  spesa: "Spesa pubblica erogata nell'esercizio",
+  pagate: "Domande pagate nell'esercizio",
+  ricevute: 'Domande ricevute',
+} as const;
+
+/** Le etichette del blocco SIGC, col perimetro della risposta (ADA: "della tua area"; oggi sempre REGIONALE). */
+export function etichetteAnteprimaSigc(perimetro: string | null | undefined): Record<keyof typeof ETICHETTE_SIGC, string> {
+  return {
+    finanziate: etichettaDellArea(ETICHETTE_SIGC.finanziate, perimetro),
+    spesa: etichettaDellArea(ETICHETTE_SIGC.spesa, perimetro),
+    pagate: etichettaDellArea(ETICHETTE_SIGC.pagate, perimetro),
+    ricevute: etichettaDellArea(ETICHETTE_SIGC.ricevute, perimetro),
+  };
+}
+
+/** Il nome del gruppo del blocco SIGC: "SIGC, esercizio 2026". */
+export function nomeGruppoSigc(esercizio: number): string {
+  return `SIGC, esercizio ${esercizio}`;
+}
+
+/** "SIGC, esercizio 2026 (16/10/2025 - 15/10/2026; domande dell'anno 2025)": esercizio, periodo e anno delle domande. */
+export function riferimentoAnteprimaSigc(esercizio: number, annoDomande: number): string {
+  return `SIGC, esercizio ${esercizio} (16/10/${esercizio - 1} - 15/10/${esercizio}; domande dell'anno ${annoDomande})`;
+}
+
+/**
+ * La spesa erogata nell'esercizio di una riga: campagna precedente + campagne anteriori se ci sono entrambe; altrimenti la
+ * prima assente, col suo motivo (il totale della card non e' mai una somma parziale).
+ */
+function spesaNellEsercizio(r: RigaVerificaSigc): DatoMotivatoLike<number> | undefined {
+  const parti = [r.spesaErogataCampagnaPrecedente, r.spesaErogataCampagneAnteriori];
+  const somma = sommaSeCompleta(parti.map((p) => p?.valore));
+  return somma !== null ? { valore: somma } : parti.find((p) => numeroDi(p?.valore) === null);
+}
+
+const codiceSigc = (r: RigaVerificaSigc) => r.codiceIntervento ?? 'senza codice';
+
+/** Totale di un conteggio facoltativo della spec: la somma, oppure non calcolabile con gli interventi che non lo hanno. */
+function totaleConteggio(righe: readonly RigaVerificaSigc[], conteggio: (r: RigaVerificaSigc) => number | undefined): TotaleMotivato {
+  return totaleMotivato(righe, (r) => ({ valore: conteggio(r) }), codiceSigc, { vuoto: 'zero' });
+}
+
+/** I numeri del blocco SIGC dalla risposta di TX-0015 (righe facoltative come nella spec: assenti = nessun intervento). */
+export function anteprimaVerificaSigc(d: Pick<VerificaSigc, 'righe'>): AnteprimaVerificaSigc {
+  const righe = d.righe ?? [];
+  return {
+    domandeFinanziate: totaleConteggio(righe, (r) => r.domandeFinanziate),
+    spesaErogata: totaleMotivato(righe, spesaNellEsercizio, codiceSigc, { vuoto: 'zero', conMotivo: true }),
+    domandePagate: totaleConteggio(righe, (r) => r.domandePagateEsercizio),
+    domandeRicevute: totaleConteggio(righe, (r) => r.domandeRicevute),
   };
 }

@@ -416,13 +416,19 @@
       "flow": "intervento",
       "component": "src/pages/istituzionale/interventi/page.tsx",
       "visibility": [
-        "csr.tx-0016.read"
+        "csr.tx-0016.read",
+        "csr.tx-0015.read"
       ],
       "actions": [
         {
           "operationId": "TX-0016",
           "gating": "hide-by-role",
           "grant": "csr.tx-0016.read"
+        },
+        {
+          "operationId": "TX-0015",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0015.read"
         },
         {
           "operationId": "TX-0060",

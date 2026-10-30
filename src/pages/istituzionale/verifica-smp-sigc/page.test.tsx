@@ -1,23 +1,26 @@
-// Pagina /istituzionale/verifica-smp-sigc (green-fe step7; dal finanziario col riallineamento degli ambiti del 29/10/2026):
-// describe taggati coi REQ della route (RF015, RA006). I casi sono quelli della pagina /finanziario/sigc/verifica-smp e di
-// VerificaSmpReport (stesso comportamento), sull'impaginazione dei report istituzionali; letture che rispondono ai
-// parametri della query, MSW seminato con onUnhandledRequest 'error' (ogni lettura e' dichiarata qui), axe-core diretto.
-// ECharts e' il grafico finto del setup.
+// Pagina /istituzionale/verifica-smp-sigc (green-fe step7; dal finanziario col riallineamento degli ambiti del 29/10/2026,
+// wireframe verifica-smp-sigc approvato il 30/10/2026): describe taggati coi REQ della route (RF015, RA006). I casi sono
+// quelli della pagina /finanziario/sigc/verifica-smp e di VerificaSmpReport, sulla resa della verifica non SIGC della
+// stessa area (riferimenti, card del grafico, tabella "Dati per intervento"); letture che rispondono ai parametri della
+// query, MSW seminato con onUnhandledRequest 'error' (ogni lettura e' dichiarata qui), axe-core diretto. ECharts e' il
+// grafico finto del setup.
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { http, HttpResponse } from 'msw';
 import { server } from '../../../shared/api/mock/server';
 import { expectNoA11yViolations } from '../../../shared/testing/axe';
 import { graficoDi, opzioniDi, trovaCard } from '../../../shared/testing/card-grafico';
 import { clicSulDato, graficiVivi } from '../../../shared/testing/grafico-finto';
+import { problema, trattenuta } from '../../../shared/testing/msw';
 import { renderPagina } from '../../../shared/testing/render-pagina';
-import { VERIFICA_SMP, dato, nd, nv, rigaSmp } from '../../../features/istituzionale/testing/fixture';
+import { VERIFICA_SMP, dato, nd, nv, rigaSmp, verificaSigcPer } from '../../../features/istituzionale/testing/fixture';
 import { lettureIstituzionale } from '../../../features/istituzionale/testing/letture';
 import Pagina from './page';
 
 const PERCORSO = '/istituzionale/verifica-smp-sigc';
 const CARD = 'Spesa erogata nella campagna precedente per intervento';
-const TABELLA = /^I dati ASR per intervento da confrontare con SMP/;
+const TABELLA = /^Verifica SMP SIGC, esercizio \d{4}: /;
 const testo = (s: string | null | undefined) => (s ?? '').replace(/\s/g, ' ');
 
 function servi(basi?: Parameters<typeof lettureIstituzionale>[0]) {
@@ -52,21 +55,36 @@ describe('RF015: i dati ASR dell ambito SIGC per il confronto con SMP - Data Pla
     expect(lette.verificaSigc).toEqual(['?intervento=SRA01&esercizio=2025']);
   });
 
-  it("tabella con l'intervento come intestazione di riga, 20 colonne di dati, mancanti 'non disponibile'; i riferimenti dell'esercizio", async () => {
+  it("tabella con l'intervento come intestazione di riga, visibili le 11 colonne del low-fi (le altre da Colonne), mancanti 'non disponibile'; i riferimenti della risposta", async () => {
     servi();
     apri(`${PERCORSO}?esercizio=2025`);
     const t = await tabella();
-    expect(within(t).getAllByRole('columnheader')).toHaveLength(21);
+    // il titolo senza l'indicatore dell'ordinamento
+    expect(within(t).getAllByRole('columnheader').map((h) => (h.textContent ?? '').replace(/[▲▼↕]/g, ''))).toEqual([
+      'Intervento',
+      'Avvisi attivati',
+      'Azioni attivate',
+      'Domande ricevute',
+      'Domande finanziate',
+      "Domande pagate nell'esercizio",
+      'Spesa erogata campagna precedente',
+      'Spesa erogata campagne anteriori',
+      "Si prevede di pagare nell'esercizio",
+      'Include top-up',
+      "Output erogato nell'esercizio",
+    ]);
     expect(within(t).getByRole('rowheader').textContent).toBe('SRA01');
     expect(t.textContent).toContain('fonte previsione di pagamento non attiva');
     expect(t.textContent).not.toContain('non indicato');
-    const esercizio = screen.getByRole('table', { name: 'Esercizio' });
-    expect(valoreDi(esercizio, 'Esercizio')).toBe('2025');
-    expect(valoreDi(esercizio, 'Anno delle domande')).toBe('2024');
+    const riferimenti = screen.getByRole('table', { name: 'Riferimenti della risposta' });
+    expect(valoreDi(riferimenti, 'Esercizio')).toBe('2025 (dal 16/10/2024 al 15/10/2025, estremi compresi)');
+    expect(valoreDi(riferimenti, 'Anno delle domande')).toBe('2024');
+    expect(valoreDi(riferimenti, "Pagamenti senza data di autorizzazione (esclusi dall'esercizio)")).toBe('3');
+    expect(valoreDi(riferimenti, 'Perimetro')).toBe('regionale');
     // la barra: perimetro regionale, esercizio della risposta e "Dati al" della risposta di TX-0015
     const barra = screen.getByRole('region', { name: 'Filtri attivi' });
     expect(within(barra).getByText('Perimetro: regionale (i report istituzionali non hanno perimetro ADA)')).toBeTruthy();
-    expect(within(barra).getByText('Esercizio finanziario: 2025')).toBeTruthy();
+    expect(within(barra).getByText('Esercizio finanziario: 2025 (dal 16/10/2024 al 15/10/2025)')).toBeTruthy();
     expect(within(barra).getByRole('button', { name: /^Ultimo dato sincronizzato: dati al 02\/03\/2026/ })).toBeTruthy();
   });
 
@@ -122,7 +140,8 @@ describe('RF015: i dati ASR dell ambito SIGC per il confronto con SMP - Data Pla
     const t = await tabella();
     expect(within(t).getAllByRole('rowheader').map((c) => c.textContent)).toEqual(['SRA01', 'SRA03']);
     expect(t.textContent).toContain('sì');
-    expect(t.textContent).toContain('R.1');
+    // l'output erogato nell'esercizio e' l'ultima colonna visibile del low-fi; l'indicatore di risultato si vede da "Colonne"
+    expect(within(t).getByRole('rowheader', { name: 'SRA01' }).closest('tr')?.lastElementChild?.textContent).toBe('10');
     expect(t.textContent).toContain('non disponibile');
     const card = await trovaCard(CARD);
     expect(within(card).getByText('SRA03, spesa erogata nella campagna precedente: non disponibile')).toBeTruthy();
@@ -131,7 +150,7 @@ describe('RF015: i dati ASR dell ambito SIGC per il confronto con SMP - Data Pla
   it("nessuna riga per l'esercizio: lo stato vuoto (status) con Modifica i filtri, nessun grafico", async () => {
     servi({ verificaSigc: { ...VERIFICA_SMP, righe: [] } });
     apri(`${PERCORSO}?esercizio=2023`);
-    const vuoto = await screen.findByText(/Nessun dato SIGC per l'esercizio scelto/);
+    const vuoto = await screen.findByText(/^Nessun dato SIGC per l'esercizio e i filtri scelti/);
     expect(vuoto.closest('[role="status"]')).not.toBeNull();
     expect(within(vuoto.closest('[role="status"]') as HTMLElement).getByRole('button', { name: 'Modifica i filtri' })).toBeTruthy();
     expect(graficiVivi()).toHaveLength(0);
@@ -154,23 +173,25 @@ describe('RF015: i dati ASR dell ambito SIGC per il confronto con SMP - Data Pla
     URL.revokeObjectURL = vi.fn();
     const clic = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
     apri(`${PERCORSO}?intervento=SRA01&esercizio=2025`);
-    await userEvent.click(await screen.findByRole('button', { name: 'Scarica i dati SIGC per il confronto con SMP, esercizio 2025 in CSV' }));
+    // un pulsante per formato nella card del grafico e in quella della tabella, con lo stesso file
+    const csv = await screen.findAllByRole('button', { name: 'Scarica i dati della verifica SMP SIGC, esercizio 2025 in CSV' });
+    expect(csv).toHaveLength(2);
+    await userEvent.click(csv[1]);
     await waitFor(() => expect(lette.file).toEqual(['/api/istituzionale/verifica-smp-sigc/csv?intervento=SRA01&esercizio=2025 XMLHttpRequest']));
     expect((clic.mock.contexts[0] as HTMLAnchorElement).download).toBe('verifica-smp-sigc-esercizio-2025-tx-0015.csv');
   });
 
-  it('ricerca nella tabella: nota che i file hanno tutti gli interventi dei filtri (review v3 X-04 del finanziario)', async () => {
+  it('la nota sui file sopra la tabella, come nella verifica non SIGC (tutti gli interventi dei filtri e tutte le colonne); le definizioni sotto', async () => {
     servi();
     apri(`${PERCORSO}?esercizio=2025`);
     await tabella();
-    const nota = 'I file CSV e XLSX contengono tutti gli interventi dei filtri, non solo quelli trovati dalla ricerca.';
-    expect(screen.queryByText(nota)).toBeNull();
-    await userEvent.type(ricerca(), 'SRA');
+    const nota = 'I file CSV e XLSX contengono tutti gli interventi dei filtri e tutte le 21 colonne, non solo quelli trovati dalla ricerca o le colonne scelte.';
     expect(screen.getByText(nota)).toBeTruthy();
+    expect(screen.getByText(/^Definizioni del backend \(decisioni di finanziario richiamate da istituzionale\)/)).toBeTruthy();
   });
 
   // V-16 del finanziario: TabellaInterattiva con ricerca e scelta delle colonne, come nel wireframe verifica-smp
-  it('tabella interattiva: Intervento fisso, scelta delle altre 20 colonne, ricerca per codice o indicatore, 20 righe per pagina', async () => {
+  it('tabella interattiva: Intervento fisso, scelta delle altre 20 colonne (nascoste quelle fuori dal low-fi), ricerca per codice o indicatore, 20 righe per pagina', async () => {
     const righe = Array.from({ length: 25 }, (_, n) => ({ ...VERIFICA_SMP.righe[0], codiceIntervento: `SRB${10 + n}`, indicatoreRisultato: n === 24 ? 'R.1' : null }));
     servi({ verificaSigc: { ...VERIFICA_SMP, righe } });
     apri(`${PERCORSO}?esercizio=2025`);
@@ -181,8 +202,9 @@ describe('RF015: i dati ASR dell ambito SIGC per il confronto con SMP - Data Pla
     expect(colonne.getAllByRole('checkbox')).toHaveLength(20);
     expect(colonne.queryByRole('checkbox', { name: 'Intervento' })).toBeNull();
     await userEvent.click(screen.getByText('Colonne'));
+    expect((colonne.getByRole('checkbox', { name: 'Indicatore di risultato' }) as HTMLInputElement).checked).toBe(false);
     await userEvent.click(colonne.getByRole('checkbox', { name: 'Indicatore di risultato' }));
-    expect(within(t).getAllByRole('columnheader')).toHaveLength(20);
+    expect(within(t).getAllByRole('columnheader')).toHaveLength(12);
     expect(ricerca().placeholder).toBe('Cerca per codice o indicatore');
     await userEvent.type(ricerca(), 'r.1');
     expect(righeCorpo(t)).toEqual(['SRB34']);
@@ -197,17 +219,17 @@ describe('RF015: i dati ASR dell ambito SIGC per il confronto con SMP - Data Pla
     const card = await trovaCard(CARD);
     await waitFor(() => expect(opzioniDi(graficoDi(card))?.series?.length).toBeGreaterThan(0));
     expect(within(card).queryByText(/previsione di pagamento/)).toBeNull();
-    expect(within(card).getByText('Fonte: TX-0015, esercizio 2025')).toBeTruthy();
+    expect(within(card).getByText(/^Fonte: TX-0015, esercizio 2025\. La tabella equivalente mostra gli stessi valori/)).toBeTruthy();
     expect((await tabella()).textContent).toContain('fonte previsione di pagamento non attiva');
   });
 
-  it("clic su una barra del grafico: il dettaglio dell'intervento dell'area", async () => {
+  it("clic su una barra del grafico: il dettaglio dell'intervento dell'area con l'esercizio (link dettaglio-intervento-smp-sigc)", async () => {
     servi();
     const { router } = apri(`${PERCORSO}?og=OG1&esercizio=2025`);
     const grafico = graficoDi(await trovaCard(CARD));
     if (!grafico) throw new Error('grafico assente');
     act(() => clicSulDato(grafico, 0, 0));
-    await waitFor(() => expect(indirizzo(router)).toBe('/istituzionale/interventi/SRA01'));
+    await waitFor(() => expect(indirizzo(router)).toBe('/istituzionale/interventi/SRA01?esercizio=2025'));
   });
 
   // N-14 del finanziario: il dettaglio si apre anche da tastiera, dalla riga della tabella
@@ -217,7 +239,7 @@ describe('RF015: i dati ASR dell ambito SIGC per il confronto con SMP - Data Pla
     const riga = await screen.findByRole('row', { name: "Apri il dettaglio dell'intervento SRA01" });
     act(() => riga.focus());
     await userEvent.keyboard('{Enter}');
-    await waitFor(() => expect(indirizzo(router)).toBe('/istituzionale/interventi/SRA01'));
+    await waitFor(() => expect(indirizzo(router)).toBe('/istituzionale/interventi/SRA01?esercizio=2025'));
   });
 
   it('nessuna violazione axe', async () => {
@@ -225,5 +247,80 @@ describe('RF015: i dati ASR dell ambito SIGC per il confronto con SMP - Data Pla
     const { container } = apri(`${PERCORSO}?esercizio=2025`);
     await tabella();
     await expectNoA11yViolations(container);
+  });
+});
+
+describe('RF015: link reciproci e stati della verifica SMP SIGC (wireframe verifica-smp-sigc del 30/10/2026)', () => {
+  const profilo = (roles: string[]) =>
+    server.use(http.get('*/auth/status', () => HttpResponse.json({ authenticated: true, user: { username: 'U', profile: 'p3-funzionario-area-ist', roles } })));
+
+  it('link verifica-smp-non-sigc: col grant di TX-0016 la frase porta alla verifica non SIGC coi filtri comuni, non l esercizio; senza il grant non c e', async () => {
+    servi();
+    const { unmount } = apri(`${PERCORSO}?intervento=SRA01&op=OP1&esercizio=2025`);
+    await tabella();
+    const link = screen.getByRole('link', { name: 'Verifica SMP non SIGC' });
+    expect(link.getAttribute('href')).toBe('/istituzionale/verifica-smp-non-sigc?intervento=SRA01&op=OP1');
+    expect(link.closest('p')?.textContent).toBe('La stessa verifica per i dati ASR non SIGC, con gli stessi filtri: Verifica SMP non SIGC.');
+    unmount();
+
+    profilo(['csr.tx-0015.read', 'csr.tx-0060.read']);
+    servi();
+    apri(`${PERCORSO}?esercizio=2025`);
+    await tabella();
+    expect(screen.queryByRole('link', { name: 'Verifica SMP non SIGC' })).toBeNull();
+    expect(document.body.textContent).not.toContain('La stessa verifica per i dati ASR non SIGC');
+  });
+
+  it('caricamento con lo scheletro e aria-live, poi i dati; errore: un solo avviso con Riprova, "Dati al" non disponibile', async () => {
+    servi();
+    const t = trattenuta();
+    let tentativi = 0;
+    server.use(
+      http.get('*/api/istituzionale/verifica-smp-sigc', async ({ request }) => {
+        tentativi += 1;
+        await t.attesa;
+        if (tentativi === 1) return HttpResponse.json(problema(503, 'TEMPO_SCADUTO', 'lettura oltre il tetto di durata'), { status: 503 });
+        return HttpResponse.json(verificaSigcPer(VERIFICA_SMP, new URL(request.url).searchParams));
+      }),
+    );
+    apri(`${PERCORSO}?esercizio=2025`);
+    const caricamento = await screen.findByText('Caricamento in corso…');
+    expect(caricamento.closest('[role="status"]')?.getAttribute('aria-live')).toBe('polite');
+    await act(async () => t.libera());
+    const avviso = await screen.findByRole('alert');
+    expect(screen.getAllByRole('alert')).toHaveLength(1);
+    expect(within(screen.getByRole('region', { name: 'Filtri attivi' })).getByText('Ultimo dato sincronizzato: non disponibile')).toBeTruthy();
+    await userEvent.click(within(avviso).getByRole('button', { name: 'Riprova' }));
+    await tabella();
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('file non scaricato: oltre il limite dell export il motivo in role=alert, il report resta', async () => {
+    servi();
+    server.use(http.get('*/api/istituzionale/verifica-smp-sigc/:formato', () => HttpResponse.json(problema(400, 'DATO_NON_VALIDO', 'oltre il limite di 5.000 righe'), { status: 400 })));
+    apri(`${PERCORSO}?esercizio=2025`);
+    await tabella();
+    await userEvent.click(screen.getAllByRole('button', { name: 'Scarica i dati della verifica SMP SIGC, esercizio 2025 in CSV' })[1]);
+    expect((await screen.findByRole('alert')).textContent).toMatch(/^File CSV non scaricato/);
+    expect(screen.getByRole('table', { name: TABELLA })).toBeTruthy();
+  });
+});
+
+describe('RA006: i valori dei filtri della verifica SMP SIGC da TX-0060 dell elenco operativo (decisione G2)', () => {
+  it('chip con la descrizione dell intervento; TX-0060 in errore: lo stato col motivo e Riprova, i chip restano e il report si legge', async () => {
+    const lette = servi();
+    const { unmount } = apri(`${PERCORSO}?intervento=SRA01&esercizio=2025`);
+    await tabella();
+    const barra = screen.getByRole('region', { name: 'Filtri attivi' });
+    await waitFor(() => expect(within(barra).getByRole('button', { name: /^Togli il filtro Intervento SRA01/ })).toBeTruthy());
+    expect(lette.filtri).toBe(1);
+    unmount();
+
+    servi({ valori: null });
+    apri(`${PERCORSO}?intervento=SRA01&esercizio=2025`);
+    const stato = (await screen.findByText(/^Valori dei filtri non disponibili/)).closest('[role="status"]') as HTMLElement;
+    expect(within(stato).getByRole('button', { name: 'Riprova' })).toBeTruthy();
+    expect(within(screen.getByRole('region', { name: 'Filtri attivi' })).getByRole('button', { name: /^Togli il filtro Intervento SRA01/ })).toBeTruthy();
+    await tabella();
   });
 });

@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "istituzionale",
-  "current_step": 3,
+  "current_step": 8,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -63,47 +63,62 @@
       }
     },
     "step3-api": {
-      "status": "in_progress",
-      "completed_at": "2026-10-22T13:48:18Z",
+      "status": "done",
+      "completed_at": "2026-10-30T09:29:36Z",
       "artifacts": [
         "./src/features"
       ],
-      "gates": {}
+      "gates": {
+        "api_wrappers_compile": "pass",
+        "querykey_from_factory": "pass"
+      }
     },
     "step4-lib": {
-      "status": "in_progress",
-      "completed_at": "2026-10-22T14:10:23Z",
+      "status": "done",
+      "completed_at": "2026-10-30T09:44:54Z",
       "artifacts": [
         "./src/shared/lib"
       ],
-      "gates": {}
+      "gates": {
+        "lib_pure_compile": "pass",
+        "lib_zero_react": "pass"
+      }
     },
     "step5-ui": {
-      "status": "in_progress",
-      "completed_at": "2026-10-22T14:30:14Z",
+      "status": "done",
+      "completed_at": "2026-10-30T10:06:17Z",
       "artifacts": [
         "./src/features"
       ],
-      "gates": {}
+      "gates": {
+        "ui_components_compile": "pass",
+        "ui_a11y_axe": "pass"
+      }
     },
     "step6-page": {
-      "status": "in_progress",
-      "completed_at": "2026-10-22T14:36:14Z",
+      "status": "done",
+      "completed_at": "2026-10-30T10:09:50Z",
       "artifacts": [
         "./src/pages",
         "./plan/istituzionale/route-manifest.json"
       ],
-      "gates": {}
+      "gates": {
+        "pages_compile": "pass",
+        "route_manifest_valid": "pass"
+      }
     },
     "step7-test": {
-      "status": "in_progress",
-      "completed_at": "2026-10-22T14:45:50Z",
+      "status": "done",
+      "completed_at": "2026-10-30T10:15:38Z",
       "artifacts": [
         "./src/shared/test",
         "./src/shared/api/mock",
         "./src/shared/testing/axe.ts"
       ],
-      "gates": {}
+      "gates": {
+        "tests_generated": "pass",
+        "msw_fail_closed": "pass"
+      }
     },
     "step8-gate": {
       "status": "in_progress",
