@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "fisico",
-  "current_step": 2,
+  "current_step": 3,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -57,13 +57,17 @@
       ]
     },
     "step2-codegen": {
-      "status": "in_progress",
-      "completed_at": "2026-10-22T09:03:15Z",
+      "status": "done",
+      "completed_at": "2026-10-30T08:45:11Z",
       "artifacts": [
         "./specs/.spec-lock.json",
         "./src/shared/api/generated"
       ],
-      "gates": {}
+      "gates": {
+        "codegen_compiles": "pass",
+        "orval_types": "pass",
+        "csrf_static": "pass"
+      }
     },
     "step3-api": {
       "status": "in_progress",
