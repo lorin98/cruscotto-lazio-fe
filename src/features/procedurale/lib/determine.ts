@@ -5,7 +5,9 @@
 // operativo) e i testi della testata, dei riquadri e della tabella. I si'/no (siNo di lib/formato) e la determina corrente
 // sono in testo. Dal
 // wireframe del procedurale approvato il 30/10/2026: il perimetro della risposta in un badge di testo e un solo messaggio
-// per la domanda non trovata, inesistente o fuori dal perimetro ADA del P4 (scelte 2 e 3 del dossier).
+// per la domanda non trovata, inesistente o fuori dal perimetro ADA del P4 (scelte 2 e 3 del dossier). Dalla decisione D1
+// dell'utente del 30/10/2026 (review step9 EO-01, flusso riapprovato): l'avviso "domanda dell'altro tipo" e il link
+// scheda-di-partenza, in arrivo dalla scheda dell'elenco con un tipo diverso da quello della risposta.
 import { PERCORSO_DETERMINE_DELLA_DOMANDA, codiceABarreValido, etichettaTipoDomanda, percorsoSchedaDomanda } from '../../../entities/domanda';
 import type { Determina, Determine, Perimetro } from './dto';
 
@@ -52,9 +54,40 @@ export function percorsoSchedaDellaDomanda(d: Pick<Determine, 'tipoDomanda' | 'c
   return percorsoSchedaDomanda(d.tipoDomanda, d.codiceABarre);
 }
 
+/** Il tipo in parole, minuscolo: "pagamento", "sostegno". */
+const tipoInParole = (tipo: string) => etichettaTipoDomanda(tipo).toLowerCase();
+
 /** "Domanda di pagamento", "Domanda di sostegno". */
 export function testoTipoDomanda(tipo: string): string {
-  return `Domanda di ${etichettaTipoDomanda(tipo).toLowerCase()}`;
+  return `Domanda di ${tipoInParole(tipo)}`;
+}
+
+/**
+ * Domanda dell'altro tipo (decisione D1 dell'utente del 30/10/2026, review step9 EO-01): TX-0020 sceglie fra le domande
+ * del codice con la regola dell'aggancio (SC-PC_DETERMINA_TIPO), quindi in arrivo dalla scheda dell'elenco (il tipo della
+ * scheda nello state della navigazione) la risposta puo' essere dell'altro tipo. Il tipo della scheda di partenza se e'
+ * diverso da tipoDomanda della risposta; null (nessun avviso) senza tipo di partenza, senza risposta o con lo stesso tipo.
+ */
+export function tipoDiPartenzaDiverso(partenza: string | null, d: Pick<Determine, 'tipoDomanda'> | undefined): string | null {
+  return partenza !== null && d !== undefined && d.tipoDomanda !== partenza ? partenza : null;
+}
+
+/** L'avviso "domanda dell'altro tipo", col codice cercato, il tipo della risposta e quello della scheda di partenza. */
+export function messaggioAltroTipo(codice: string, tipoDellaRisposta: string, tipoDellaScheda: string): string {
+  return `Il codice a barre ${codice} è anche di una domanda di ${tipoInParole(tipoDellaRisposta)}: qui ci sono le sue determine. Quelle della domanda di ${tipoInParole(tipoDellaScheda)} sono nella sua scheda.`;
+}
+
+/** Testo del link scheda-di-partenza: "Apri la scheda della domanda di sostegno, scheda Determine". */
+export function testoSchedaDiPartenza(tipoDellaScheda: string): string {
+  return `Apri la scheda della domanda di ${tipoInParole(tipoDellaScheda)}, scheda Determine`;
+}
+
+/**
+ * Link scheda-di-partenza verso l'elenco operativo (/elenco-operativo/domande/:tipo/:codiceABarre: tipo portato dal link
+ * della scheda, codice cercato): solo con il grant della scheda (csr.tx-0058.read). Gate di UX. null = nessun link.
+ */
+export function percorsoSchedaDiPartenza(tipoDellaScheda: string, codice: string, conGrantScheda: boolean): string | null {
+  return conGrantScheda ? percorsoSchedaDomanda(tipoDellaScheda, codice) : null;
 }
 
 /**

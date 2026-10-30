@@ -13,12 +13,16 @@
 // la domanda inesistente e per quella fuori dal perimetro del P4, scelta 3, con "Cerca un altro codice" che porta il
 // focus al campo), codice non valido (400 sul problem-type, sotto il campo), il resto (403, 429, 503) con l'avviso della
 // pagina: Riprova come nelle altre pagine e "Cerca un altro codice" col focus al campo, come nel 404 (decisione D2
-// dell'utente del 30/10/2026, review step9 PRO-02).
+// dell'utente del 30/10/2026, review step9 PRO-02). In arrivo dalla scheda dell'elenco (link determine-della-domanda, il
+// tipo della scheda nello state della navigazione, convalidato) con un tipo diverso da tipoDomanda della risposta, sopra
+// la testata l'avviso "domanda dell'altro tipo" in role=status col link scheda-di-partenza (decisione D1 dell'utente del
+// 30/10/2026, review step9 EO-01); senza state, con lo stesso tipo o dopo una ricerca dal modulo nessun avviso.
 // Design system: classi bootstrap-italia e del kit v2 (hero, badge, KPI, tabella statica nativa); nessun primitivo
 // react-aria, che qui non serve (nessun dialogo, nessuna scheda).
 import { useRef } from 'react';
 import type { MouseEvent, Ref, RefObject } from 'react';
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
+import { tipoDellaSchedaDiPartenza } from '../../../entities/domanda';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { formatDate, formatNumber } from '../../../shared/lib';
 import { AvvisoPagina, Briciole, Griglia, Kpi, Sezione, TabellaStatica, TestataDettaglio, VistaQuery, Vuoto, useFocusTitolo } from '../../../shared/ui';
@@ -29,10 +33,14 @@ import {
   codiceDalPercorso,
   eCorrente,
   fonteDi,
+  messaggioAltroTipo,
   messaggioDomandaNonTrovata,
   percorsoDetermine,
   percorsoSchedaDellaDomanda,
+  percorsoSchedaDiPartenza,
   sopratitoloDetermine,
+  testoSchedaDiPartenza,
+  tipoDiPartenzaDiverso,
   titoloDetermine,
 } from '../lib/determine';
 import type { CodiceDelPercorso } from '../lib/determine';
@@ -54,6 +62,39 @@ function Testata({ h1, titolo, d, scheda }: { h1: Ref<HTMLHeadingElement>; titol
     </Link>
   );
   return <TestataDettaglio idTitolo="t-determine" titolo={titolo} h1={h1} sopratitolo={d && sopratitoloDetermine(d)} badge={d && badgeDetermine(d)} azioni={azioni} />;
+}
+
+/** Il testo dell'avviso "domanda dell'altro tipo" e il link scheda-di-partenza (solo col grant della scheda). */
+function TestoAltroTipo({ codice, tipoDellaRisposta, tipoDellaScheda, conGrantScheda }: { codice: string; tipoDellaRisposta: string; tipoDellaScheda: string; conGrantScheda: boolean }) {
+  const scheda = percorsoSchedaDiPartenza(tipoDellaScheda, codice, conGrantScheda);
+  return (
+    <>
+      {messaggioAltroTipo(codice, tipoDellaRisposta, tipoDellaScheda)}
+      {scheda && (
+        <>
+          {' '}
+          <Link to={scheda}>{testoSchedaDiPartenza(tipoDellaScheda)}</Link>
+        </>
+      )}
+    </>
+  );
+}
+
+/**
+ * Avviso "domanda dell'altro tipo" (decisione D1), sopra la testata: solo in arrivo dalla scheda dell'elenco (il tipo della
+ * scheda nello state della navigazione, convalidato; una ricerca dal modulo lo toglie) e con un codice valido; se la
+ * risposta e' dell'altro tipo lo dice. La regione role=status c'e' dall'arrivo, vuota e nascosta, e si riempie con la
+ * risposta: una regione live inserita gia' piena non si annuncia.
+ */
+function DomandaDellAltroTipo({ codice, d, conGrantScheda }: { codice: CodiceDelPercorso; d: Determine | undefined; conGrantScheda: boolean }) {
+  const partenza = tipoDellaSchedaDiPartenza(useLocation().state);
+  if (partenza === null || codice.stato !== 'valido') return null;
+  const tipo = tipoDiPartenzaDiverso(partenza, d);
+  return (
+    <div className={tipo === null ? 'visually-hidden' : 'alert alert-info my-3'} role="status">
+      {tipo !== null && d && <TestoAltroTipo codice={codice.codice} tipoDellaRisposta={d.tipoDomanda} tipoDellaScheda={tipo} conGrantScheda={conGrantScheda} />}
+    </div>
+  );
 }
 
 /** KPI di una determina che fa da fonte, oppure l'assenza in testo. */
@@ -186,7 +227,8 @@ export function DetermineDellaDomanda({ codice: parametro }: { codice: string | 
   const titolo = codice.stato === 'valido' ? titoloDetermine(codice.codice) : TITOLO_PAGINA;
   const h1 = useFocusTitolo<HTMLHeadingElement>(`${titolo} - Procedurale`);
   const d = codice.stato === 'valido' ? stato.data : undefined;
-  const scheda = d ? percorsoSchedaDellaDomanda(d, puoLeggere(auth.data, 'schedaDomanda')) : null;
+  const conGrantScheda = puoLeggere(auth.data, 'schedaDomanda');
+  const scheda = d ? percorsoSchedaDellaDomanda(d, conGrantScheda) : null;
   const campo = useRef<HTMLInputElement>(null);
   const ingresso = useIngressoArea({});
   const briciole = [
@@ -201,6 +243,7 @@ export function DetermineDellaDomanda({ codice: parametro }: { codice: string | 
         {/* il modulo riparte dal codice dell'indirizzo a ogni cambio di route */}
         <CercaDomanda key={parametro ?? ''} idCampo={ID_CAMPO} campo={campo} codiceIniziale={parametro ?? ''} erroreEsterno={erroreDelCampo(codice, stato)} />
       </Sezione>
+      <DomandaDellAltroTipo codice={codice} d={d} conGrantScheda={conGrantScheda} />
       <Testata h1={h1} titolo={titolo} d={d} scheda={scheda} />
       <AvvisoPagina azioni={<CercaUnAltroCodice campo={campo} />}>
         <Corpo codice={codice} stato={stato} campo={campo} />

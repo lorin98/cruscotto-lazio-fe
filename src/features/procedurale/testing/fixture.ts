@@ -1,12 +1,13 @@
-// fixture.ts — risposte di prova del procedurale nella forma del contratto (TX-0024..TX-0032), per i test dei componenti e
-// delle pagine e per il dev server. Le domande sono quelle degli scenari di accettazione del backend
-// (handover/acceptance/procedurale-scenarios.json: SC-PC_FILTRI, SC-PC_AMMESSE, SC-PC_STATI_SOSTEGNO, SC-PC_STATI_PAGAMENTO,
-// SC-PC_FILTRO_STATO, SC-PC_IN_COMPILAZIONE, SC-PC_SOTTOFASI, SC-PC_SOTTOFASI_FILTRI; per le determine di una domanda,
-// dal fisico il 29/10/2026, quelli di SC-PC_DETERMINA e SC-PC_DETERMINA_NESSUNA; le Unit Amount sono del fisico):
-// nessun dato reale. I report si calcolano da quelle domande coi parametri della query (intervento, os, og, op, stato), come il
-// backend: righe per intervento selezionato in ordine di codice, voci di SR-01 nell'ordine del catalogo, altri stati per
-// codice, totali del backend; cosi' i test di pagina non ricevono lo stesso corpo per ogni query (lezione della review
-// del fisico). Le varianti (non rilasciate, atto di concessione) sono opzioni dei calcoli.
+// fixture.ts — risposte di prova del procedurale nella forma del contratto (TX-0024..TX-0032), per i test dei
+// componenti e delle pagine e per il dev server. Le domande sono quelle degli scenari di accettazione del backend
+// (handover/acceptance/procedurale-scenarios.json: SC-PC_FILTRI, SC-PC_AMMESSE, SC-PC_STATI_SOSTEGNO,
+// SC-PC_STATI_PAGAMENTO, SC-PC_FILTRO_STATO, SC-PC_IN_COMPILAZIONE, SC-PC_SOTTOFASI, SC-PC_SOTTOFASI_FILTRI; per le
+// determine di una domanda, dal fisico il 29/10/2026, quelli di SC-PC_DETERMINA, SC-PC_DETERMINA_NESSUNA e
+// SC-PC_DETERMINA_TIPO; le Unit Amount sono del fisico): nessun dato reale. I report si calcolano da quelle domande coi
+// parametri della query (intervento, os, og, op, stato), come il backend: righe per intervento selezionato in ordine di
+// codice, voci di SR-01 nell'ordine del catalogo, altri stati per codice, totali del backend; cosi' i test di pagina
+// non ricevono lo stesso corpo per ogni query (lezione della review del fisico). Le varianti (non rilasciate, atto di
+// concessione) sono opzioni dei calcoli.
 import type {
   DetermineDomanda,
   DistribuzioneStati,
@@ -352,4 +353,17 @@ export const DETERMINE_CHIUSA: DetermineDomanda = {
   perimetro: 'REGIONALE',
   corrente: { valore: { codice: 'G00016', data: '2025-03-01', fonteStatoAreaProgrammazione: true, fonteComparto: true }, motivo: null },
   elenco: [{ codice: 'G00016', data: '2025-03-01', fonteStatoAreaProgrammazione: true, fonteComparto: true }],
+};
+
+/**
+ * SC-PC_DETERMINA_TIPO: il codice 34810022870 e' di una domanda di SOSTEGNO (G00010) e di una di PAGAMENTO (G00011);
+ * TX-0020 risponde con la PAGAMENTO (fra le aperte la PAGAMENTO). La data della determina non e' nello scenario.
+ */
+export const DETERMINE_TIPO: DetermineDomanda = {
+  codiceABarre: '34810022870',
+  tipoDomanda: 'PAGAMENTO',
+  domandaChiusa: false,
+  perimetro: 'REGIONALE',
+  corrente: { valore: { codice: 'G00011', data: '2025-05-20', fonteStatoAreaProgrammazione: true, fonteComparto: true }, motivo: null },
+  elenco: [{ codice: 'G00011', data: '2025-05-20', fonteStatoAreaProgrammazione: true, fonteComparto: true }],
 };

@@ -9,11 +9,12 @@ import { describe, expect, it } from 'vitest';
 import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
+import { createMemoryRouter, RouterProvider } from 'react-router';
 import { server } from '../../../shared/api/mock/server';
 import { expectNoA11yViolations } from '../../../shared/testing/axe';
 import { problema, trattenuta } from '../../../shared/testing/msw';
-import { renderPagina } from '../../../shared/testing/render-pagina';
-import { DETERMINE, DETERMINE_CHIUSA, DETERMINE_NESSUNA } from '../../../features/procedurale/testing/fixture';
+import { renderConQuery } from '../../../shared/testing/render';
+import { DETERMINE, DETERMINE_CHIUSA, DETERMINE_NESSUNA, DETERMINE_TIPO } from '../../../features/procedurale/testing/fixture';
 import Pagina from './page';
 
 const ROUTE = '/procedurale/determine/:codice?';
@@ -34,7 +35,17 @@ function servi(risposte: Record<string, object> = { [DETERMINE.codiceABarre]: DE
   return lette;
 }
 
-const apri = (indirizzo: string) => renderPagina(Pagina, ROUTE, indirizzo);
+/** La pagina nel router dei test; l'indirizzo puo' portare lo state della navigazione (il link della scheda dell'elenco). */
+function apri(indirizzo: string | { pathname: string; state: unknown }) {
+  const router = createMemoryRouter(
+    [
+      { path: ROUTE, Component: Pagina },
+      { path: '*', element: <p>altra pagina</p> },
+    ],
+    { initialEntries: [indirizzo] },
+  );
+  return { ...renderConQuery(<RouterProvider router={router} />), router };
+}
 const campo = () => screen.getByRole('searchbox', { name: 'Codice a barre della domanda' });
 
 describe("RF020: codice e data delle determine da cui la domanda prende l'informazione (TX-0020)", () => {
@@ -278,5 +289,112 @@ describe('RF020: ricerca per codice a barre (accessibilita da tastiera)', () => 
     await userEvent.type(campo(), '1'.repeat(31));
     await userEvent.click(screen.getByRole('button', { name: 'Cerca' }));
     expect((await screen.findByRole('alert')).textContent).toBe('Il codice a barre ha al più 30 cifre: ne hai scritte 31.');
+  });
+});
+
+// decisione D1 dell'utente del 30/10/2026 (review step9 EO-01, flusso determine riapprovato): il link della scheda
+// dell'elenco porta il tipo della scheda nello state della navigazione. TX-0020 sceglie fra le domande del codice con la
+// regola dell'aggancio: in SC-PC_DETERMINA_TIPO 34810022870 e' SOSTEGNO (G00010) e PAGAMENTO (G00011), la risposta e' la
+// PAGAMENTO. Il link scheda-di-partenza finisce sul segnaposto del router: l'arrivo si guarda nel router.
+describe("RF020: domanda dell'altro tipo in arrivo dalla scheda dell'elenco, SC-PC_DETERMINA_TIPO (decisione D1 del 30/10/2026)", () => {
+  const INDIRIZZO = '/procedurale/determine/34810022870';
+  const dallaScheda = (tipoDellaScheda: unknown) => ({ pathname: INDIRIZZO, state: { tipoDellaScheda } });
+  const AVVISO = 'Il codice a barre 34810022870 è anche di una domanda di pagamento: qui ci sono le sue determine. Quelle della domanda di sostegno sono nella sua scheda.';
+  const PARTENZA = 'Apri la scheda della domanda di sostegno, scheda Determine';
+  const tabella = () => screen.findByRole('table', { name: /^Determine da cui la domanda 34810022870/ });
+  /** La regione dell'avviso: role=status col testo dell'avviso (le altre regioni di stato della pagina hanno altri testi). */
+  const avviso = () => screen.queryAllByRole('status').find((s) => s.textContent?.startsWith('Il codice a barre')) ?? null;
+
+  it('dalla scheda SOSTEGNO con la risposta PAGAMENTO: avviso role=status sopra la testata e link alla scheda di partenza; nessuna violazione axe', async () => {
+    servi({ [DETERMINE_TIPO.codiceABarre]: DETERMINE_TIPO });
+    const { container, router } = apri(dallaScheda('SOSTEGNO'));
+    await tabella();
+    const regione = avviso() as HTMLElement;
+    expect(regione.textContent).toBe(`${AVVISO} ${PARTENZA}`);
+    const link = within(regione).getByRole('link', { name: PARTENZA });
+    expect(link.getAttribute('href')).toBe('/elenco-operativo/domande/SOSTEGNO/34810022870');
+    // sopra la testata, che dice il tipo della risposta e apre la scheda della PAGAMENTO
+    const h1 = screen.getByRole('heading', { level: 1, name: 'Determine della domanda 34810022870' });
+    expect(regione.compareDocumentPosition(h1) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByText('Domanda di pagamento 34810022870 - fonte delle informazioni')).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Apri la scheda della domanda' }).getAttribute('href')).toBe('/elenco-operativo/domande/PAGAMENTO/34810022870');
+    // il tipo non e' mai nell'indirizzo
+    expect(`${router.state.location.pathname}${router.state.location.search}`).toBe(INDIRIZZO);
+    await expectNoA11yViolations(container);
+    await userEvent.click(link);
+    await waitFor(() => expect(router.state.location.pathname).toBe('/elenco-operativo/domande/SOSTEGNO/34810022870'));
+    expect(screen.getByText('altra pagina')).toBeTruthy();
+  });
+
+  it('la regione role=status c e gia in caricamento, vuota e nascosta, e si riempie con la risposta (si annuncia)', async () => {
+    const t = trattenuta();
+    server.use(
+      http.get('*/api/procedurale/domande/:codice/determina', async () => {
+        await t.attesa;
+        return HttpResponse.json(DETERMINE_TIPO);
+      }),
+    );
+    const { container } = apri(dallaScheda('SOSTEGNO'));
+    await screen.findByText('Caricamento in corso…');
+    const regione = container.querySelector('.visually-hidden[role="status"]');
+    expect(regione?.textContent).toBe('');
+    await act(async () => t.libera());
+    await tabella();
+    expect(avviso()).toBe(regione);
+    expect(regione?.className).toBe('alert alert-info my-3');
+  });
+
+  it('stesso tipo (scheda PAGAMENTO, risposta PAGAMENTO): nessun avviso', async () => {
+    servi({ [DETERMINE_TIPO.codiceABarre]: DETERMINE_TIPO });
+    apri(dallaScheda('PAGAMENTO'));
+    await tabella();
+    expect(avviso()).toBeNull();
+    expect(screen.queryByRole('link', { name: /scheda Determine$/ })).toBeNull();
+  });
+
+  it('senza state (ricarica o indirizzo condiviso): nessun avviso', async () => {
+    servi({ [DETERMINE_TIPO.codiceABarre]: DETERMINE_TIPO });
+    apri(INDIRIZZO);
+    await tabella();
+    expect(avviso()).toBeNull();
+    expect(screen.queryByRole('link', { name: /scheda Determine$/ })).toBeNull();
+  });
+
+  it('state non valido (fuori dall elenco chiuso SOSTEGNO, PAGAMENTO): ignorato, nessun avviso', async () => {
+    servi({ [DETERMINE_TIPO.codiceABarre]: DETERMINE_TIPO });
+    for (const state of [{ tipoDellaScheda: 'ALTRO' }, { tipoDellaScheda: 'sostegno' }, { tipoDellaScheda: ['SOSTEGNO'] }, { tipo: 'SOSTEGNO' }, 'SOSTEGNO', null]) {
+      const pagina = apri({ pathname: INDIRIZZO, state });
+      await tabella();
+      expect(avviso(), JSON.stringify(state)).toBeNull();
+      expect(screen.queryByRole('link', { name: /scheda Determine$/ })).toBeNull();
+      pagina.unmount();
+    }
+  });
+
+  it('senza csr.tx-0058.read: l avviso senza il link alla scheda di partenza (gate di UX)', async () => {
+    profilo(['csr.tx-0020.read']);
+    servi({ [DETERMINE_TIPO.codiceABarre]: DETERMINE_TIPO });
+    apri(dallaScheda('SOSTEGNO'));
+    await tabella();
+    expect(avviso()?.textContent).toBe(AVVISO);
+    expect(screen.queryByRole('link', { name: PARTENZA })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Apri la scheda della domanda' })).toBeNull();
+  });
+
+  it('dopo una nuova ricerca dal modulo, anche dello stesso codice, l avviso non c e piu', async () => {
+    const lette = servi({ [DETERMINE_TIPO.codiceABarre]: DETERMINE_TIPO, [DETERMINE.codiceABarre]: DETERMINE });
+    const { router } = apri(dallaScheda('SOSTEGNO'));
+    await tabella();
+    expect(avviso()).not.toBeNull();
+    await userEvent.clear(campo());
+    await userEvent.type(campo(), '34810022870{Enter}');
+    await waitFor(() => expect(router.state.location.state).toBeNull());
+    expect(avviso()).toBeNull();
+    expect(router.state.location.pathname).toBe(INDIRIZZO);
+    await userEvent.clear(campo());
+    await userEvent.type(campo(), '54810769585{Enter}');
+    await screen.findByRole('table', { name: /^Determine da cui la domanda 54810769585/ });
+    expect(avviso()).toBeNull();
+    expect(lette).toEqual(['34810022870', '54810769585']);
   });
 });

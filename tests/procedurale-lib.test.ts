@@ -73,12 +73,16 @@ import {
   codiceDalPercorso,
   eCorrente,
   fonteDi,
+  messaggioAltroTipo,
   messaggioDomandaNonTrovata,
   percorsoDetermine,
   percorsoSchedaDellaDomanda,
+  percorsoSchedaDiPartenza,
   soloCifre,
   sopratitoloDetermine,
+  testoSchedaDiPartenza,
   testoTipoDomanda,
+  tipoDiPartenzaDiverso,
   titoloDetermine,
 } from '../src/features/procedurale/lib/determine';
 import { TITOLI_SEZIONI, codiceDellaRiga, colonneVoci, distribuzioneDi, domandeDellaVoce, righeRiepilogo, senzaStatoDi, testoConNonRilasciate, voceDellaColonna } from '../src/features/procedurale/lib/riepilogo';
@@ -110,7 +114,7 @@ import {
   testoImporto,
   testoNonRilasciate,
 } from '../src/features/procedurale/lib/grafici';
-import { DETERMINE, DETERMINE_CHIUSA, DETERMINE_NESSUNA, STATI_AREA, ammessePer, riepilogoPer, sottofasiPagamentoPer, sottofasiSostegnoPer, statiPer } from '../src/features/procedurale/testing/fixture';
+import { DETERMINE, DETERMINE_CHIUSA, DETERMINE_NESSUNA, DETERMINE_TIPO, STATI_AREA, ammessePer, riepilogoPer, sottofasiPagamentoPer, sottofasiSostegnoPer, statiPer } from '../src/features/procedurale/testing/fixture';
 import type { Ammesse, RigaAmmesse } from '../src/features/procedurale/lib/dto';
 import { anteprimaAmmesse, domandeDiSostegno, etichetteAnteprima, testoInterventi } from '../src/features/procedurale/lib/anteprima';
 import { GRIGLIA_CON_ETICHETTE, asseCategorieOrizzontale } from '../src/shared/lib';
@@ -721,5 +725,22 @@ describe('RF020: determine di una domanda (codice, link e testi)', () => {
     // un solo siNo nella lib (review step9 PRO-03), col sì facoltativo della colonna della corrente
     expect(siNo(true, 'sì, corrente')).toBe('sì, corrente');
     expect(siNo(false, 'sì, corrente')).toBe('no');
+  });
+
+  // decisione D1 dell'utente del 30/10/2026 (review step9 EO-01), SC-PC_DETERMINA_TIPO: dalla scheda SOSTEGNO 34810022870
+  // TX-0020 risponde con la PAGAMENTO
+  it('domanda dell altro tipo: avviso solo con un tipo di partenza diverso da quello della risposta, e il link scheda-di-partenza', () => {
+    expect(tipoDiPartenzaDiverso('SOSTEGNO', DETERMINE_TIPO)).toBe('SOSTEGNO');
+    expect(tipoDiPartenzaDiverso('PAGAMENTO', DETERMINE_TIPO)).toBeNull();
+    expect(tipoDiPartenzaDiverso(null, DETERMINE_TIPO)).toBeNull();
+    expect(tipoDiPartenzaDiverso('SOSTEGNO', undefined)).toBeNull();
+    expect(messaggioAltroTipo('34810022870', 'PAGAMENTO', 'SOSTEGNO')).toBe(
+      'Il codice a barre 34810022870 è anche di una domanda di pagamento: qui ci sono le sue determine. Quelle della domanda di sostegno sono nella sua scheda.',
+    );
+    expect(messaggioAltroTipo('1', 'SOSTEGNO', 'PAGAMENTO')).toBe('Il codice a barre 1 è anche di una domanda di sostegno: qui ci sono le sue determine. Quelle della domanda di pagamento sono nella sua scheda.');
+    expect(testoSchedaDiPartenza('SOSTEGNO')).toBe('Apri la scheda della domanda di sostegno, scheda Determine');
+    expect(percorsoSchedaDiPartenza('SOSTEGNO', '34810022870', true)).toBe('/elenco-operativo/domande/SOSTEGNO/34810022870');
+    expect(percorsoSchedaDiPartenza('SOSTEGNO', '34810022870', false)).toBeNull();
+    expect(percorsoSchedaDiPartenza('SOSTEGNO', '3481A', true)).toBeNull();
   });
 });
