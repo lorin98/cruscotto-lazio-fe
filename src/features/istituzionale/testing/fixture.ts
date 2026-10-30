@@ -1,10 +1,11 @@
-// fixture.ts — risposte di prova dell'istituzionale nella forma del contratto (TX-0016, TX-0017) e i valori dei filtri
+// fixture.ts — risposte di prova dell'istituzionale nella forma del contratto (TX-0016, TX-0015) e i valori dei filtri
 // (TX-0060 dell'elenco operativo), per i test dei componenti e delle pagine. I numeri sono quelli degli scenari di
 // accettazione del backend (handover/acceptance/istituzionale-scenarios.json: SC-IS_SMP_NONSIGC, SC-IS_SMP_ANNO,
-// SC-IS_OUTPUT_ANNI, SC-IS_OUTPUT_STRUTTURALE, SC-IS_OUTPUT_AMBIGUO, SC-IS_FILTRI): nessun dato reale. verificaPer e
-// outputPer rispondono come il backend ai parametri della query (intervento, os, og, op, azione e, per TX-0016, anno),
-// cosi' i test di pagina non ricevono lo stesso corpo per ogni query (lezione della review del fisico).
-import type { MonitoraggioOutput, MonitoraggioOutputAnno, MonitoraggioOutputRiga, ValoriFiltriElenco, VerificaSmpNonSigc, VerificaSmpNonSigcRiga } from '../api';
+// SC-IS_FILTRI) e, per TX-0015, quelli di prova della pagina del finanziario da cui la verifica SIGC viene: nessun dato
+// reale. verificaPer e verificaSigcPer rispondono come il backend ai parametri della query (intervento, os, og, op,
+// azione e l'anno o l'esercizio), cosi' i test di pagina non ricevono lo stesso corpo per ogni query (lezione della
+// review del fisico). L'output regionale (TX-0017) e le sue fixture sono del fisico dal 29/10/2026.
+import type { ValoriFiltriElenco, VerificaSmp, VerificaSmpNonSigc, VerificaSmpNonSigcRiga, VerificaSmpRiga } from '../api';
 
 type Dato<T> = { valore: T | null; motivo: string | null; fonte: string | null };
 const v = <T,>(valore: T): Dato<T> => ({ valore, motivo: null, fonte: null });
@@ -138,11 +139,11 @@ function conAnno(r: VerificaSmpNonSigcRiga, anno: number): VerificaSmpNonSigcRig
 const OBIETTIVI: Record<string, readonly string[]> = { SRA01: ['OS5', 'OG1', 'OP1'], SRA16: ['OS5', 'OG1'], SRD01: ['OS4', 'OG2', 'OP1'], SRD04: ['OS4', 'OG2'], SRG01: ['OS6'] };
 
 /** Le righe che il backend rende ai filtri della query: dimensioni insieme (E), valori dello stesso filtro in alternativa (O). */
-export function righeDeiFiltri<R extends { codiceIntervento: string }>(righe: readonly R[], p: URLSearchParams): R[] {
+export function righeDeiFiltri<R extends { codiceIntervento?: string }>(righe: readonly R[], p: URLSearchParams): R[] {
   if (p.getAll('azione').length > 0) return [];
   const interventi = p.getAll('intervento');
   const obiettivi = ['os', 'og', 'op'].map((k) => p.getAll(k)).filter((valori) => valori.length > 0);
-  return righe.filter((r) => (interventi.length === 0 || interventi.includes(r.codiceIntervento)) && obiettivi.every((valori) => valori.some((o) => (OBIETTIVI[r.codiceIntervento] ?? []).includes(o))));
+  return righe.filter((r) => (interventi.length === 0 || interventi.includes(r.codiceIntervento ?? '')) && obiettivi.every((valori) => valori.some((o) => (OBIETTIVI[r.codiceIntervento ?? ''] ?? []).includes(o))));
 }
 
 /** TX-0016 come il backend: righe dei filtri e, con l'anno, quell'anno di riferimento e i dati dell'avviso del 2025. */
@@ -153,44 +154,52 @@ export function verificaPer(base: VerificaSmpNonSigc, p: URLSearchParams): Verif
   return { ...base, annoRiferimento: Number(anno), righe: righe.map((r) => conAnno(r, Number(anno))) };
 }
 
-/** Gli anni 2023-2029 con le misure date per anno (le altre NON_VALORIZZATO). */
-function anni(misure: Record<number, Partial<MonitoraggioOutputAnno>> = {}): MonitoraggioOutputAnno[] {
-  return [2023, 2024, 2025, 2026, 2027, 2028, 2029].map((anno) => ({ anno, programmato: NV, realizzatoSigc: NV, realizzatoNonSigc: NV, ...misure[anno] }));
-}
+// TX-0015 (verifica SMP SIGC, dal finanziario il 29/10/2026): i dati col motivo dell'assenza (Importo,
+// ConteggioFinanziario, SiNoFinanziario: stessa forma), il valore, la fonte non attiva, il dato non valorizzato; la stessa
+// risposta di prova che il finanziario usava per la sua pagina (review delta 21/10 V1, H4).
+export const dato = <T,>(valore: T) => ({ valore, motivo: null, fonte: null });
+export const nd = (fonte: string) => ({ valore: null, motivo: 'FONTE_NON_ATTIVA', fonte });
+export const nv = () => ({ valore: null, motivo: 'NON_VALORIZZATO', fonte: null });
 
-/** SC-IS_OUTPUT_ANNI: SRA01 in ettari, programmato 2024 = 500 (somma delle Unit Amount), SIGC 2023 = 400, tre importi unitari. */
-export const SRA01_OUTPUT: MonitoraggioOutputRiga = {
-  codiceIntervento: 'SRA01',
-  indicatoreOutput: 'O.14',
-  unitaMisura: 'ettari',
-  targetFinePeriodo: v(1500),
-  annoTarget: 2029,
-  anni: anni({ 2023: { realizzatoSigc: v(400) }, 2024: { programmato: v(500) } }),
-  importiUnitari: [
-    { codiceUnitAmount: 'UA02', gruppoColturale: 'Seminativi', esercizio: 2024, importoUnitario: v(180) },
-    { codiceUnitAmount: 'UA01', gruppoColturale: 'Seminativi', esercizio: 2025, importoUnitario: v(260) },
-    { codiceUnitAmount: 'UA01', gruppoColturale: 'Seminativi', esercizio: 2024, importoUnitario: v(250) },
-  ],
-};
-
-export const OUTPUT: MonitoraggioOutput = {
-  annoInizio: 2023,
-  annoFine: 2029,
+export const VERIFICA_SMP = {
   perimetro: 'REGIONALE',
-  realizzatoNonSigcCumulativo: true,
+  esercizio: 2025,
+  annoDomande: 2024,
+  pagamentiSenzaData: 3,
   righe: [
-    SRA01_OUTPUT,
-    // SC-IS_OUTPUT_AMBIGUO: il 2027 in entrambi i monitoraggi
-    { codiceIntervento: 'SRA16', indicatoreOutput: 'O.14', unitaMisura: 'ettari', targetFinePeriodo: v(300), annoTarget: 2029, anni: anni({ 2027: { realizzatoSigc: AMBIGUA, realizzatoNonSigc: AMBIGUA } }), importiUnitari: [] },
-    // SC-IS_OUTPUT_STRUTTURALE: il solo target, nessuna Unit Amount, realizzato non SIGC 2025 = 12
-    { codiceIntervento: 'SRD01', indicatoreOutput: 'O.20', unitaMisura: 'numero di operazioni', targetFinePeriodo: v(10), annoTarget: 2029, anni: anni({ 2025: { realizzatoNonSigc: v(12) } }), importiUnitari: [] },
-    // senza riga PROGRAMMATO: indicatore, unita', target e anno del target assenti
-    { codiceIntervento: 'SRG01', indicatoreOutput: null, unitaMisura: null, targetFinePeriodo: NV, annoTarget: null, anni: anni(), importiUnitari: [] },
+    {
+      codiceIntervento: 'SRA01',
+      avvisiAttivati: dato(1),
+      azioniAttivate: nv(),
+      domandeRicevute: 120,
+      domandeRicevuteSenzaRichiesto: 2,
+      valoreDomandeRicevute: dato(1500000),
+      domandeFinanziate: 100,
+      valoreDomandeFinanziate: dato(1200000),
+      dotazioneAnnoPrecedente: dato(1000000),
+      dotazionePeriodoImpegno: dato(1000000),
+      domandePagateEsercizio: 80,
+      spesaErogataCampagnaPrecedente: dato(400000),
+      spesaErogataCampagneAnteriori: dato(0),
+      previsionePagamentoEsercizio: nd('PREVISIONE_PAGAMENTO'),
+      importoTopUp: dato(0),
+      includeTopUp: dato(false),
+      ettariUbaRichiesti: 350.5,
+      outputAttesoFinanziate: null,
+      outputErogatoEsercizio: null,
+      indicatoreOutput: 'O.14',
+      indicatoreRisultato: null,
+    },
   ],
   ultimiDatiSincronizzati: ULTIMI,
-};
+} satisfies VerificaSmp;
 
-/** TX-0017 come il backend: le righe dei filtri della query. */
-export function outputPer(base: MonitoraggioOutput, p: URLSearchParams): MonitoraggioOutput {
-  return { ...base, righe: righeDeiFiltri(base.righe, p) };
+/** Una riga della verifica SMP SIGC (la prima di VERIFICA_SMP) con i campi dati: tipizzata sul DTO, cosi' un campo
+ *  rinominato nella spec fa fallire la compilazione dei test (review delta 21/10 V1). */
+export const rigaSmp = (campi: Partial<VerificaSmpRiga>): VerificaSmpRiga => ({ ...VERIFICA_SMP.righe[0], ...campi });
+
+/** TX-0015 come il backend: le righe dei filtri della query e l'esercizio chiesto. */
+export function verificaSigcPer(base: VerificaSmp, p: URLSearchParams): VerificaSmp {
+  const esercizio = Number(p.get('esercizio'));
+  return { ...base, esercizio, annoDomande: esercizio - 1, righe: righeDeiFiltri(base.righe ?? [], p) };
 }

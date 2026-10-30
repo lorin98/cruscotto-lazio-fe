@@ -1,5 +1,5 @@
-// SelettoreAnno — form con select singola e pulsante "Mostra" per un anno della pagina (anno della riserva ed esercizio
-// della verifica SMP del finanziario, anno di riferimento del file della verifica SMP non SIGC dell'istituzionale): la
+// SelettoreAnno — form con select singola e pulsante "Mostra" per un anno della pagina (anno della riserva del finanziario,
+// esercizio della verifica SMP SIGC e anno di riferimento del file della verifica SMP non SIGC dell'istituzionale): la
 // scelta si applica solo al submit, cosi' scorrere gli anni con la tastiera non crea voci di cronologia ne' letture al
 // backend. Gli anni proposti e la voce senza anno li decide chi lo usa (il finanziario "Scegli un anno", l'istituzionale
 // l'ultimo anno con un file come predefinito); un anno valido gia' scelto resta selezionabile. Prima stava nel finanziario.

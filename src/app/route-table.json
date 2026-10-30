@@ -335,17 +335,17 @@
       ]
     },
     {
-      "path": "/istituzionale/output-regionale",
-      "flow": "output-regionale",
-      "component": "src/pages/istituzionale/output-regionale/page.tsx",
+      "path": "/istituzionale/verifica-smp-sigc",
+      "flow": "verifica-smp-sigc",
+      "component": "src/pages/istituzionale/verifica-smp-sigc/page.tsx",
       "visibility": [
-        "csr.tx-0017.read"
+        "csr.tx-0015.read"
       ],
       "actions": [
         {
-          "operationId": "TX-0017",
+          "operationId": "TX-0015",
           "gating": "hide-by-role",
-          "grant": "csr.tx-0017.read"
+          "grant": "csr.tx-0015.read"
         },
         {
           "operationId": "TX-0060",
@@ -359,19 +359,13 @@
       "flow": "intervento",
       "component": "src/pages/istituzionale/interventi/page.tsx",
       "visibility": [
-        "csr.tx-0016.read",
-        "csr.tx-0017.read"
+        "csr.tx-0016.read"
       ],
       "actions": [
         {
           "operationId": "TX-0016",
           "gating": "hide-by-role",
           "grant": "csr.tx-0016.read"
-        },
-        {
-          "operationId": "TX-0017",
-          "gating": "hide-by-role",
-          "grant": "csr.tx-0017.read"
         },
         {
           "operationId": "TX-0060",

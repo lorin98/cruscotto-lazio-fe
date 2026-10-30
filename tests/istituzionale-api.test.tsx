@@ -10,7 +10,7 @@ import { eProblema } from '../src/shared/api/problem/e-problema';
 import { OLTRE_IL_LIMITE_DELL_ESPORTAZIONE, messaggioOltreIlLimite } from '../src/shared/ui';
 import { handlersEsempio } from '../src/features/istituzionale/api/mock/esempio';
 import * as Api from '../src/features/istituzionale/api';
-import { esportaOutputRegionale, esportaVerificaSmpNonSigc, useOutputRegionale, useValoriFiltri, useVerificaSmpNonSigc } from '../src/features/istituzionale/api';
+import { esportaVerificaSmpNonSigc, esportaVerificaSmpSigc, useValoriFiltri, useVerificaSmpNonSigc, useVerificaSmpSigc } from '../src/features/istituzionale/api';
 import { useValoriFiltri as useValoriFiltriFisico } from '../src/features/fisico/api';
 
 function wrapper(client = new QueryClient({ defaultOptions: { queries: { retry: false } } })) {
@@ -18,7 +18,7 @@ function wrapper(client = new QueryClient({ defaultOptions: { queries: { retry: 
 }
 
 const VERIFICA = { annoRiferimento: 2025, perimetro: 'REGIONALE', outputCumulativo: true, righe: [], ultimiDatiSincronizzati: [] };
-const OUTPUT = { annoInizio: 2023, annoFine: 2029, perimetro: 'REGIONALE', realizzatoNonSigcCumulativo: true, righe: [], ultimiDatiSincronizzati: [] };
+const VERIFICA_SIGC = { perimetro: 'REGIONALE', esercizio: 2025, annoDomande: 2024, pagamentiSenzaData: 0, righe: [], ultimiDatiSincronizzati: [] };
 
 describe('feature istituzionale, wrapper api (step3) su MSW', () => {
   it('useVerificaSmpNonSigc manda i filtri ripetuti e l anno di riferimento (TX-0016)', async () => {
@@ -35,25 +35,27 @@ describe('feature istituzionale, wrapper api (step3) su MSW', () => {
     expect(result.current.data?.annoRiferimento).toBe(2025);
   });
 
-  it('useOutputRegionale manda i filtri ripetuti, senza anno (TX-0017)', async () => {
+  it('useVerificaSmpSigc manda i filtri ripetuti e l esercizio (TX-0015, dal finanziario il 29/10/2026)', async () => {
     let query = '';
     server.use(
-      http.get('*/api/istituzionale/output-regionale', ({ request }) => {
+      http.get('*/api/istituzionale/verifica-smp-sigc', ({ request }) => {
         query = new URL(request.url).search;
-        return HttpResponse.json(OUTPUT);
+        return HttpResponse.json(VERIFICA_SIGC);
       }),
     );
-    const { result } = renderHook(() => useOutputRegionale({ intervento: ['SRA01'], og: ['OG1'], op: ['OP2'], azione: ['3'] }), { wrapper: wrapper() });
+    const { result } = renderHook(() => useVerificaSmpSigc({ intervento: ['SRA01'], og: ['OG1'], op: ['OP2'], azione: ['3'] }, 2025), { wrapper: wrapper() });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(query).toBe('?intervento=SRA01&og=OG1&op=OP2&azione=3');
-    expect(result.current.data?.annoFine).toBe(2029);
+    expect(query).toBe('?intervento=SRA01&og=OG1&op=OP2&azione=3&esercizio=2025');
+    expect(result.current.data?.annoDomande).toBe(2024);
   });
 
-  it('le due letture non abilitate non chiamano il backend', () => {
+  it('le letture non abilitate, e la verifica SIGC senza esercizio, non chiamano il backend', () => {
     const verifica = renderHook(() => useVerificaSmpNonSigc({}, { abilitato: false }), { wrapper: wrapper() });
-    const output = renderHook(() => useOutputRegionale({}, { abilitato: false }), { wrapper: wrapper() });
+    const sigc = renderHook(() => useVerificaSmpSigc({}, 2025, { abilitato: false }), { wrapper: wrapper() });
+    const senzaEsercizio = renderHook(() => useVerificaSmpSigc({}, undefined), { wrapper: wrapper() });
     expect(verifica.result.current.fetchStatus).toBe('idle');
-    expect(output.result.current.fetchStatus).toBe('idle');
+    expect(sigc.result.current.fetchStatus).toBe('idle');
+    expect(senzaEsercizio.result.current.fetchStatus).toBe('idle');
   });
 
   it('il 400 DATO_NON_VALIDO si riconosce dal problem-type, non dal solo status', async () => {
@@ -62,8 +64,8 @@ describe('feature istituzionale, wrapper api (step3) su MSW', () => {
     await waitFor(() => expect(nonValido.result.current.isError).toBe(true));
     expect(eProblema(nonValido.result.current.error, 'invalid-data')).toBe(true);
     // un 400 senza il problem-type del contratto non e' DATO_NON_VALIDO
-    server.use(http.get('*/api/istituzionale/output-regionale', () => new HttpResponse(null, { status: 400 })));
-    const senzaTipo = renderHook(() => useOutputRegionale({}), { wrapper: wrapper() });
+    server.use(http.get('*/api/istituzionale/verifica-smp-sigc', () => new HttpResponse(null, { status: 400 })));
+    const senzaTipo = renderHook(() => useVerificaSmpSigc({}, 2025), { wrapper: wrapper() });
     await waitFor(() => expect(senzaTipo.result.current.isError).toBe(true));
     expect(eProblema(senzaTipo.result.current.error, 'invalid-data')).toBe(false);
     // review H3: il riconoscimento e' quello comune, la feature non ha un suo predicato senza consumatori
@@ -94,18 +96,18 @@ describe('feature istituzionale, wrapper api (step3) su MSW', () => {
       richieste.push(`${u.pathname}${u.search} ${request.headers.get('X-Requested-With') ?? ''}`);
       return new HttpResponse('a;b', { headers: { 'Content-Type': 'text/csv' } });
     };
-    server.use(http.get('*/api/istituzionale/verifica-smp-non-sigc/:formato', registra), http.get('*/api/istituzionale/output-regionale/:formato', registra));
+    server.use(http.get('*/api/istituzionale/verifica-smp-non-sigc/:formato', registra), http.get('*/api/istituzionale/verifica-smp-sigc/:formato', registra));
     expect(await esportaVerificaSmpNonSigc('csv', { intervento: ['SRD01'], anno: 2025 })).toBeInstanceOf(Blob);
-    expect(await esportaOutputRegionale('xlsx', { intervento: ['SRD01'], os: ['OS4'] })).toBeInstanceOf(Blob);
+    expect(await esportaVerificaSmpSigc('xlsx', { intervento: ['SRD01'], os: ['OS4'], esercizio: 2025 })).toBeInstanceOf(Blob);
     expect(richieste).toEqual([
       '/api/istituzionale/verifica-smp-non-sigc/csv?intervento=SRD01&anno=2025 XMLHttpRequest',
-      '/api/istituzionale/output-regionale/xlsx?intervento=SRD01&os=OS4 XMLHttpRequest',
+      '/api/istituzionale/verifica-smp-sigc/xlsx?intervento=SRD01&os=OS4&esercizio=2025 XMLHttpRequest',
     ]);
   });
 
   it("il 400 dell'esportazione oltre il limite si riconosce dal corpo JSON del Blob d'errore", async () => {
-    server.use(http.get('*/api/istituzionale/output-regionale/:formato', () => HttpResponse.json(problema(400, 'DATO_NON_VALIDO', 'oltre 5000 righe'), { status: 400 })));
-    const errore = await esportaOutputRegionale('csv', {}).catch((e: unknown) => e);
+    server.use(http.get('*/api/istituzionale/verifica-smp-sigc/:formato', () => HttpResponse.json(problema(400, 'DATO_NON_VALIDO', 'oltre 5000 righe'), { status: 400 })));
+    const errore = await esportaVerificaSmpSigc('csv', { esercizio: 2025 }).catch((e: unknown) => e);
     expect(eProblema(errore, 'invalid-data')).toBe(true);
     // il percorso che l'utente vede: il testo del kit sotto i pulsanti
     expect(messaggioOltreIlLimite(errore)).toBe(OLTRE_IL_LIMITE_DELL_ESPORTAZIONE);
@@ -135,11 +137,12 @@ describe('mock di esempio del dev server dell istituzionale', () => {
     server.use(...handlersEsempio);
     type Motivo = { motivo: string | null };
     type Riga = { codiceIntervento: string; dotazioneAvvisi?: Motivo; avvisiAttivati?: Motivo; avvisiChiusi?: Motivo; concessioniPreviste?: Motivo; indicatoreOutput?: Motivo; outputErogato?: Motivo };
-    const leggi = async (q: string) => (await (await fetch(`http://localhost/api/istituzionale/${q}`)).json()) as { righe: Riga[]; annoRiferimento?: number };
+    const leggi = async (q: string) => (await (await fetch(`http://localhost/api/istituzionale/${q}`)).json()) as { righe: Riga[]; annoRiferimento?: number; esercizio?: number };
 
     expect((await leggi('verifica-smp-non-sigc?os=OS4')).righe.map((r) => r.codiceIntervento)).toEqual(['SRD01']);
-    expect((await leggi('output-regionale?azione=3')).righe).toEqual([]);
-    expect((await leggi('output-regionale?intervento=SRA01&intervento=SRA16')).righe.map((r) => r.codiceIntervento)).toEqual(['SRA01', 'SRA16']);
+    expect((await leggi('verifica-smp-sigc?esercizio=2025&azione=3')).righe).toEqual([]);
+    const sigc = await leggi('verifica-smp-sigc?esercizio=2024&intervento=SRA01&intervento=SRA16');
+    expect([sigc.esercizio, ...sigc.righe.map((r) => r.codiceIntervento)]).toEqual([2024, 'SRA01', 'SRA16']);
     const anno2024 = await leggi('verifica-smp-non-sigc?anno=2024&intervento=SRD01');
     expect([anno2024.annoRiferimento, anno2024.righe[0].dotazioneAvvisi?.motivo]).toEqual([2024, 'ANNO_NON_CONSERVATO']);
     // SC-IS_SMP_ANNO (review V3): tutti i dati dell'avviso, anche avvisi e concessioni; senza file niente indicatori
@@ -151,6 +154,6 @@ describe('mock di esempio del dev server dell istituzionale', () => {
     const nonValido = await fetch('http://localhost/api/istituzionale/verifica-smp-non-sigc?anno=abc');
     expect(nonValido.status).toBe(400);
     expect(await nonValido.json()).toMatchObject({ type: PROBLEM_TYPES.DATO_NON_VALIDO });
-    expect((await fetch('http://localhost/api/istituzionale/output-regionale/csv')).status).toBe(200);
+    expect((await fetch('http://localhost/api/istituzionale/verifica-smp-sigc/csv?esercizio=2025')).status).toBe(200);
   });
 });

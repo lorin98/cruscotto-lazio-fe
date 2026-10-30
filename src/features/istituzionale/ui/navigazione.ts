@@ -1,7 +1,7 @@
 // navigazione.ts — i passaggi fra pagine dell'istituzionale come li vuole il profilo (gate di UX: il backend ridecide):
 // l'ingresso dell'area per il percorso (la prima pagina visibile), il dettaglio dell'intervento dal clic su una barra o
-// su una riga (link dettaglio-intervento-smp e dettaglio-intervento-output) e i link verso l'elenco operativo, solo col
-// grant della pagina di arrivo (OP-IS-09). Gli indirizzi li costruiscono le funzioni pure di lib/collegamenti.
+// su una riga delle due verifiche (link dettaglio-intervento-smp) e i link verso l'elenco operativo, solo col grant della
+// pagina di arrivo (OP-IS-09). Gli indirizzi li costruiscono le funzioni pure di lib/collegamenti.
 import { useNavigate } from 'react-router';
 import { codiceDelPercorso } from '../../../entities/filtri';
 import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
@@ -18,7 +18,7 @@ export function useIngressoArea(): string | undefined {
   return pagineVisibili((g) => hasGrant(auth, g))[0]?.percorso;
 }
 
-/** Il dettaglio dell'intervento (con l'anno di riferimento scelto, dalla verifica); un clic fuori dai codici non naviga. */
+/** Il dettaglio dell'intervento (con l'anno di riferimento scelto, dalla verifica non SIGC); un clic fuori dai codici non naviga. */
 export function useApriIntervento(anno?: number) {
   const naviga = useNavigate();
   const apri = (codice: string) => void naviga(percorsoIntervento(codice, anno));

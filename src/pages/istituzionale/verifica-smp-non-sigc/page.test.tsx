@@ -22,8 +22,9 @@ const CARD = 'Spesa pubblica erogata per intervento (anticipi inclusi)';
 const testo = (s: string | null | undefined) => (s ?? '').replace(/\s/g, ' ');
 const profilo = (roles: string[]) =>
   server.use(http.get('*/auth/status', () => HttpResponse.json({ authenticated: true, user: { username: 'U', profile: 'p3-funzionario-area-ist', roles } })));
-// p3-funzionario-area-ist: i report istituzionali e l'elenco, non TX-0015 (G4)
-const P3_IST = ['csr.tx-0016.read', 'csr.tx-0017.read', 'csr.tx-0056.read', 'csr.tx-0059.read', 'csr.tx-0060.read'];
+// p3-funzionario-area-ist (catalogo rev. 4): le due verifiche SMP e l'elenco; un profilo senza TX-0015 per la frase G4
+const P3_IST = ['csr.tx-0015.read', 'csr.tx-0016.read', 'csr.tx-0056.read', 'csr.tx-0059.read', 'csr.tx-0060.read'];
+const SENZA_SIGC = P3_IST.filter((g) => g !== 'csr.tx-0015.read');
 
 function servi(basi?: Parameters<typeof lettureIstituzionale>[0]) {
   const { handlers, lette } = lettureIstituzionale(basi);
@@ -102,16 +103,16 @@ describe('RF016: i dati ASR non SIGC per intervento, da confrontare con SMP - Da
     ]);
   });
 
-  it('decisione G4: con csr.tx-0015.read la frase col link alla verifica SMP SIGC del finanziario, senza filtri portati', async () => {
+  it('decisione G4: con csr.tx-0015.read la frase col link alla verifica SMP SIGC, nella stessa area dal 29/10/2026, senza filtri portati', async () => {
     servi();
     apri(`${PERCORSO}?intervento=SRD01&anno=2024`);
     const link = await screen.findByRole('link', { name: 'Verifica SMP SIGC' });
-    expect(link.getAttribute('href')).toBe('/finanziario/sigc/verifica-smp');
-    expect(link.closest('p')?.textContent).toBe('I dati SIGC per lo stesso confronto sono nel Finanziario: Verifica SMP SIGC.');
+    expect(link.getAttribute('href')).toBe('/istituzionale/verifica-smp-sigc');
+    expect(link.closest('p')?.textContent).toBe('I dati SIGC per lo stesso confronto sono nella pagina Verifica SMP SIGC.');
   });
 
-  it('decisione G4: senza csr.tx-0015.read (p3 dell area istituzionale) la frase non c e', async () => {
-    profilo(P3_IST);
+  it('decisione G4: senza csr.tx-0015.read la frase non c e', async () => {
+    profilo(SENZA_SIGC);
     servi();
     apri();
     await trovaCard(CARD);

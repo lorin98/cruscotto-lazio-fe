@@ -80,8 +80,8 @@ describe('catalogo delle aree', () => {
       const route = routeTable.routes.find((r) => matchPath(r.path, p.percorso));
       expect(route?.visibility, p.percorso).toEqual([p.grant]);
     }
-    // il dettaglio dell'intervento non e' una voce di menu: si apre con uno dei due grant dei report
-    expect(routeTable.routes.find((r) => r.path === '/istituzionale/interventi/:codice')?.visibility).toEqual(['csr.tx-0016.read', 'csr.tx-0017.read']);
+    // il dettaglio dell'intervento non e' una voce di menu: si apre col grant della verifica SMP non SIGC (TX-0017 al fisico)
+    expect(routeTable.routes.find((r) => r.path === '/istituzionale/interventi/:codice')?.visibility).toEqual(['csr.tx-0016.read']);
   });
 
   it('le pagine del procedurale compaiono col grant di uno dei loro report, sempre fra i grant della route', () => {
@@ -104,11 +104,12 @@ describe('catalogo delle aree', () => {
     ]);
   });
 
-  it('link G4 dell istituzionale: la verifica SMP SIGC del finanziario e una route col grant che mostra la frase (review H8)', () => {
-    // un cambio della route o del grant nel finanziario porterebbe la frase a un 404 o al profilo sbagliato
+  it('link G4 dell istituzionale: la verifica SMP SIGC (nell istituzionale dal 29/10/2026) e una route col grant che mostra la frase (review H8)', () => {
+    // un cambio della route o del grant porterebbe la frase a un 404 o al profilo sbagliato; la route del finanziario non c'e' piu' (nessun alias)
     const route = routeTable.routes.find((r) => r.path === VERIFICA_SMP_SIGC);
-    expect(route?.component, VERIFICA_SMP_SIGC).toBe('src/pages/finanziario/sigc/verifica-smp/page.tsx');
+    expect(route?.component, VERIFICA_SMP_SIGC).toBe('src/pages/istituzionale/verifica-smp-sigc/page.tsx');
     expect(route?.visibility).toEqual([GRANT_ISTITUZIONALE.verificaSigc]);
+    expect(routeTable.routes.find((r) => r.path === '/finanziario/sigc/verifica-smp')).toBeUndefined();
   });
 
   it('card della Home dal contenuto reale delle feature (decisione G1 del 21/10/2026)', () => {
@@ -272,12 +273,12 @@ describe('Home e menu dallo stesso catalogo', () => {
     expect(within(delDettaglio).getByRole('link', { name: 'Panoramica' }).getAttribute('aria-current')).toBeNull();
   });
 
-  it('profilo dell istituzionale: la card porta alla verifica SMP non SIGC e il menu ha i due report', async () => {
+  it('profilo dell istituzionale: la card porta alla verifica SMP non SIGC e il menu ha le due verifiche, prima la non SIGC', async () => {
     server.use(
       http.get('*/api/istituzionale/verifica-smp-non-sigc', () => HttpResponse.json({ annoRiferimento: 2025, perimetro: 'REGIONALE', outputCumulativo: true, righe: [], ultimiDatiSincronizzati: [] })),
       http.get('*/api/elenco-operativo/filtri', () => HttpResponse.json({ perimetro: 'REGIONALE', interventi: [] })),
     );
-    apriHomeCon(['csr.tx-0016.read', 'csr.tx-0017.read', 'csr.tx-0060.read']);
+    apriHomeCon(['csr.tx-0015.read', 'csr.tx-0016.read', 'csr.tx-0060.read']);
     const card = await screen.findByRole('region', { name: 'Istituzionale' });
     expect(within(card).getByText('Disponibile')).toBeTruthy();
     expect(within(card).getByRole('link', { name: 'Entra in Istituzionale' }).getAttribute('href')).toBe('/istituzionale/verifica-smp-non-sigc');
@@ -289,35 +290,35 @@ describe('Home e menu dallo stesso catalogo', () => {
     const sottomenu = document.getElementById(gruppo.getAttribute('aria-controls') ?? '') as HTMLElement;
     expect(within(sottomenu).getAllByRole('link').map((l) => [l.textContent, l.getAttribute('href')])).toEqual([
       ['Verifica SMP non SIGC', '/istituzionale/verifica-smp-non-sigc'],
-      ['Output regionale', '/istituzionale/output-regionale'],
+      ['Verifica SMP SIGC', '/istituzionale/verifica-smp-sigc'],
     ]);
     expect(menu.textContent).not.toContain('Istituzionalepresto');
     // senza le letture del procedurale il suo gruppo non c'e' (nessuna area e' piu' "presto")
     expect(within(menu).queryByRole('button', { name: 'Procedurale' })).toBeNull();
   });
 
-  it('profilo col solo output regionale: la card porta all output, il menu ha la sola voce', async () => {
-    const letture = registra(['/api/istituzionale/verifica-smp-non-sigc', '/api/istituzionale/output-regionale']);
-    apriHomeCon(['csr.tx-0017.read']);
+  it('profilo con la sola verifica SMP SIGC: la card porta alla verifica SIGC senza letture, il menu ha la sola voce', async () => {
+    const letture = registra(['/api/istituzionale/verifica-smp-non-sigc', '/api/istituzionale/verifica-smp-sigc']);
+    apriHomeCon(['csr.tx-0015.read']);
     const card = await screen.findByRole('region', { name: 'Istituzionale' });
-    expect(within(card).getByRole('link', { name: 'Entra in Istituzionale' }).getAttribute('href')).toBe('/istituzionale/output-regionale');
-    // senza il grant di TX-0016 la card non legge (l'output non si somma) e dice cosa c'e' nell'area
+    expect(within(card).getByRole('link', { name: 'Entra in Istituzionale' }).getAttribute('href')).toBe('/istituzionale/verifica-smp-sigc');
+    // senza il grant di TX-0016 la card non legge e dice cosa c'e' nell'area
     expect(within(card).getByText('Verifica SMP dei dati ASR non SIGC')).toBeTruthy();
     expect(within(card).queryByRole('group')).toBeNull();
-    expect(letture).toEqual({ '/api/istituzionale/verifica-smp-non-sigc': 0, '/api/istituzionale/output-regionale': 0 });
+    expect(letture).toEqual({ '/api/istituzionale/verifica-smp-non-sigc': 0, '/api/istituzionale/verifica-smp-sigc': 0 });
     const menu = screen.getByRole('navigation', { name: 'Navigazione principale' });
-    expect(within(menu).getAllByRole('link').map((l) => l.textContent)).toEqual(['Output regionale']);
+    expect(within(menu).getAllByRole('link').map((l) => l.textContent)).toEqual(['Verifica SMP SIGC']);
   });
 
-  it('dal menu i filtri dell istituzionale restano passando dalla verifica all output, senza l anno', async () => {
+  it('dal menu i filtri dell istituzionale restano passando dalla verifica non SIGC alla SIGC, senza l anno', async () => {
     server.use(
       http.get('*/api/istituzionale/verifica-smp-non-sigc', () => HttpResponse.json({ annoRiferimento: 2024, perimetro: 'REGIONALE', outputCumulativo: true, righe: [], ultimiDatiSincronizzati: [] })),
       http.get('*/api/elenco-operativo/filtri', () => HttpResponse.json({ perimetro: 'REGIONALE', interventi: [] })),
     );
-    apriHomeCon(['csr.tx-0016.read', 'csr.tx-0017.read', 'csr.tx-0060.read'], '/istituzionale/verifica-smp-non-sigc?intervento=SRD01&anno=2024');
+    apriHomeCon(['csr.tx-0015.read', 'csr.tx-0016.read', 'csr.tx-0060.read'], '/istituzionale/verifica-smp-non-sigc?intervento=SRD01&anno=2024');
     expect(await screen.findByRole('heading', { level: 1, name: 'Istituzionale: verifica SMP non SIGC' })).toBeTruthy();
     const menu = screen.getByRole('navigation', { name: 'Navigazione principale' });
-    expect(within(menu).getByRole('link', { name: 'Output regionale' }).getAttribute('href')).toBe('/istituzionale/output-regionale?intervento=SRD01');
+    expect(within(menu).getByRole('link', { name: 'Verifica SMP SIGC' }).getAttribute('href')).toBe('/istituzionale/verifica-smp-sigc?intervento=SRD01');
     expect(within(menu).getByRole('link', { name: 'Verifica SMP non SIGC' }).getAttribute('aria-current')).toBe('page');
   });
 
@@ -356,7 +357,7 @@ describe('RF016, RF018, RF026 e RF027: le card della Home coi profili del catalo
   it('p4-responsabile-procedimento-ada: legge solo le card del finanziario e del procedurale, mai superfici e verifica', async () => {
     const { handlers, lette } = lettureProcedurale();
     server.use(...handlers);
-    const letture = registra([...Object.keys(FINANZIARIO), '/api/fisico/superficie-ammissibile', '/api/istituzionale/verifica-smp-non-sigc', '/api/istituzionale/output-regionale'], FINANZIARIO);
+    const letture = registra([...Object.keys(FINANZIARIO), '/api/fisico/superficie-ammissibile', '/api/istituzionale/verifica-smp-non-sigc', '/api/istituzionale/verifica-smp-sigc'], FINANZIARIO);
     apriHomeCon(grantDi('p4-responsabile-procedimento-ada'));
     const procedurale = await screen.findByRole('region', { name: 'Procedurale' });
     expect(await within(procedurale).findByText('2 su 3 (66,7 %)')).toBeTruthy();
@@ -365,7 +366,7 @@ describe('RF016, RF018, RF026 e RF027: le card della Home coi profili del catalo
     expect(lette.ammesse).toEqual(['']);
     expect(letture['/api/fisico/superficie-ammissibile']).toBe(0);
     expect(letture['/api/istituzionale/verifica-smp-non-sigc']).toBe(0);
-    expect(letture['/api/istituzionale/output-regionale']).toBe(0);
+    expect(letture['/api/istituzionale/verifica-smp-sigc']).toBe(0);
     expect(within(screen.getByRole('region', { name: 'Fisico' })).getByText('Non disponibile per il tuo profilo')).toBeTruthy();
   });
 

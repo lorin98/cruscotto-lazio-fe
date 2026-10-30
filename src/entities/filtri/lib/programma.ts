@@ -1,8 +1,8 @@
 // programma.ts — funzioni PURE dei filtri sulle dimensioni del programma (zero React): intervento, obiettivo specifico,
 // generale e di policy, azione portante. Sono gli stessi cinque parametri ripetibili per i report del finanziario (RF001,
-// TX-0002..TX-0015) e per le superfici del fisico (TX-0018: "filtri come nei report finanziari", SC-FS_FILTRI): formato
-// ammesso, lettura e scrittura nell'indirizzo, etichette, chip. Prima stavano nel lib del finanziario; il fisico li usa
-// uguali, quindi sono qui (il finanziario li riesporta dal suo lib/filtri).
+// TX-0002..TX-0014, e TX-0015 della verifica SMP SIGC) e per le superfici del fisico (TX-0018: "filtri come nei report
+// finanziari", SC-FS_FILTRI): formato ammesso, lettura e scrittura nell'indirizzo, etichette, chip. Prima stavano nel lib
+// del finanziario; il fisico li usa uguali, quindi sono qui (il finanziario li riesporta dal suo lib/filtri).
 import { MAX_VALORI_PARAMETRO, leggiRipetuti, scriviRipetuti } from '../../../shared/lib';
 
 export const CHIAVI_FILTRO = ['intervento', 'os', 'og', 'op', 'azione'] as const;

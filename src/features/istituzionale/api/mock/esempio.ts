@@ -1,9 +1,11 @@
 // esempio.ts — dati DI ESEMPIO dell'istituzionale per il dev server con MSW (npm run dev): valori INVENTATI e
-// deterministici, nella forma dei DTO della spec (TX-0016, TX-0017), con le assenze dei dati reali (dati di programma
+// deterministici, nella forma dei DTO della spec (TX-0016, TX-0015), con le assenze dei dati reali (dati di programma
 // NON_VALORIZZATO di un intervento SIGC, ANNO_NON_CONSERVATO dell'avviso per un anno diverso dal file piu' recente,
-// indicatori e output NON_VALORIZZATO per un anno senza file, FONTE_AMBIGUA di una riga in entrambi i monitoraggi). Il
-// mock fa da server: righe in ordine di codice, filtrate per intervento e obiettivi (azione portante senza legame:
-// nessuna riga) e, per TX-0016, l'anno di riferimento (SC-IS_SMP_ANNO); i file CSV e XLSX sono un testo d'esempio.
+// indicatori e output NON_VALORIZZATO per un anno senza file, FONTE_AMBIGUA di una riga in entrambi i monitoraggi, la
+// previsione di pagamento SIGC da fonte non attiva). Il mock fa da server: righe in ordine di codice, filtrate per
+// intervento e obiettivi (azione portante senza legame: nessuna riga), per TX-0016 l'anno di riferimento
+// (SC-IS_SMP_ANNO) e per TX-0015 l'esercizio; i file CSV e XLSX sono un testo d'esempio. L'output regionale (TX-0017) e'
+// del fisico dal 29/10/2026.
 // I valori dei filtri (TX-0060) sono quelli d'esempio dell'elenco operativo. Solo il worker del browser li usa
 // (browser.ts li raccoglie per convenzione di percorso); i test hanno le loro fixture.
 import { http, HttpResponse } from 'msw';
@@ -82,26 +84,35 @@ function rigaDellAnno(r: (typeof VERIFICA)[number], anno: string): (typeof VERIF
   return { ...r, ...(r.dotazioneAvvisi.valore === null ? {} : AVVISO_DI_UN_ALTRO_ANNO), ...(anno === '2024' ? {} : SENZA_FILE_DELL_ANNO) };
 }
 
-function anni(misure: Record<number, Record<string, unknown>>) {
-  return [2023, 2024, 2025, 2026, 2027, 2028, 2029].map((anno) => ({ anno, programmato: NV, realizzatoSigc: NV, realizzatoNonSigc: NV, ...misure[anno] }));
-}
+/** Un dato col motivo FONTE_NON_ATTIVA e la fonte attesa (la previsione di pagamento di TX-0015, D-11 del backend). */
+const fna = (fonte: string) => ({ valore: null, motivo: 'FONTE_NON_ATTIVA', fonte });
 
-const OUTPUT = [
-  {
-    codiceIntervento: 'SRA01',
-    indicatoreOutput: 'O.14',
-    unitaMisura: 'ettari',
-    targetFinePeriodo: v(1500),
-    annoTarget: 2029,
-    anni: anni({ 2023: { realizzatoSigc: v(400) }, 2024: { programmato: v(500), realizzatoSigc: v(450) }, 2025: { programmato: v(520) } }),
-    importiUnitari: [
-      { codiceUnitAmount: 'UA01', gruppoColturale: 'Seminativi', esercizio: 2024, importoUnitario: v(250) },
-      { codiceUnitAmount: 'UA02', gruppoColturale: 'Seminativi', esercizio: 2024, importoUnitario: v(180) },
-    ],
-  },
-  { codiceIntervento: 'SRD01', indicatoreOutput: 'O.20', unitaMisura: 'numero di operazioni', targetFinePeriodo: v(10), annoTarget: 2029, anni: anni({ 2025: { realizzatoNonSigc: v(12) } }), importiUnitari: [] },
-  { codiceIntervento: 'SRA16', indicatoreOutput: 'O.14', unitaMisura: 'ettari', targetFinePeriodo: v(300), annoTarget: 2029, anni: anni({ 2027: { realizzatoSigc: AMBIGUA, realizzatoNonSigc: AMBIGUA } }), importiUnitari: [] },
-];
+/** TX-0015 (verifica SMP SIGC): una riga per intervento, i conteggi veri e i dati col motivo dell'assenza. */
+const sigc = (codiceIntervento: string, base: number) => ({
+  codiceIntervento,
+  avvisiAttivati: v(2),
+  azioniAttivate: NV,
+  domandeRicevute: base,
+  domandeRicevuteSenzaRichiesto: 4,
+  valoreDomandeRicevute: v(base * 3000),
+  domandeFinanziate: Math.round(base * 0.6),
+  valoreDomandeFinanziate: v(base * 2000),
+  dotazioneAnnoPrecedente: v(base * 2500),
+  dotazionePeriodoImpegno: v(base * 10000),
+  domandePagateEsercizio: Math.round(base * 0.4),
+  spesaErogataCampagnaPrecedente: v(base * 1200),
+  spesaErogataCampagneAnteriori: v(base * 900),
+  previsionePagamentoEsercizio: fna('PREVISIONE_PAGAMENTO'),
+  importoTopUp: v(0),
+  includeTopUp: v(false),
+  ettariUbaRichiesti: null,
+  outputAttesoFinanziate: null,
+  outputErogatoEsercizio: null,
+  indicatoreOutput: null,
+  indicatoreRisultato: null,
+});
+
+const VERIFICA_SIGC = [sigc('SRA01', 120), sigc('SRA16', 40), sigc('SRD01', 75)];
 
 /** Le righe dei filtri: dimensioni insieme, valori dello stesso filtro in alternativa; azione senza legame: nessuna. */
 function filtra<R extends { codiceIntervento: string }>(righe: readonly R[], p: URLSearchParams): R[] {
@@ -122,9 +133,11 @@ const file = () => new HttpResponse('Esempio;dati inventati\n', { headers: { 'Co
 
 export const handlersEsempio: RequestHandler[] = [
   http.get('*/api/istituzionale/verifica-smp-non-sigc/:formato', file),
-  http.get('*/api/istituzionale/output-regionale/:formato', file),
+  http.get('*/api/istituzionale/verifica-smp-sigc/:formato', file),
   http.get('*/api/istituzionale/verifica-smp-non-sigc', ({ request }) => rispostaVerifica(new URL(request.url).searchParams)),
-  http.get('*/api/istituzionale/output-regionale', ({ request }) =>
-    HttpResponse.json({ annoInizio: 2023, annoFine: 2029, perimetro: 'REGIONALE', realizzatoNonSigcCumulativo: true, righe: filtra(OUTPUT, new URL(request.url).searchParams), ultimiDatiSincronizzati: ULTIMI }),
-  ),
+  http.get('*/api/istituzionale/verifica-smp-sigc', ({ request }) => {
+    const p = new URL(request.url).searchParams;
+    const esercizio = Number(p.get('esercizio') ?? 2025);
+    return HttpResponse.json({ perimetro: 'REGIONALE', esercizio, annoDomande: esercizio - 1, pagamentiSenzaData: 3, righe: filtra(VERIFICA_SIGC, p), ultimiDatiSincronizzati: ULTIMI });
+  }),
 ];

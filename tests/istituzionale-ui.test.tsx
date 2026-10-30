@@ -11,19 +11,17 @@ import { http, HttpResponse } from 'msw';
 import { createMemoryRouter, RouterProvider, useParams } from 'react-router';
 import { server } from '../src/shared/api/mock/server';
 import { expectNoA11yViolations } from '../src/shared/testing/axe';
-import { graficoDi, tabellaDi, trovaCard } from '../src/shared/testing/card-grafico';
+import { graficoDi, trovaCard } from '../src/shared/testing/card-grafico';
 import { clicSulDato } from '../src/shared/testing/grafico-finto';
 import { problema } from '../src/shared/testing/msw';
 import { renderPagina } from '../src/shared/testing/render-pagina';
 import { renderConQuery } from '../src/shared/testing/render';
-import { DettaglioIntervento, OutputRegionale, VerificaSmpNonSigc } from '../src/features/istituzionale';
-import { OUTPUT, SRA01_OUTPUT, SRD01, VALORI, VERIFICA, outputPer, verificaPer } from '../src/features/istituzionale/testing/fixture';
-import { AnteprimaOutput } from '../src/features/istituzionale/ui/AnteprimaOutput';
+import { DettaglioIntervento, VerificaSmpNonSigc } from '../src/features/istituzionale';
+import { SRD01, VALORI, VERIFICA, VERIFICA_SMP, verificaPer, verificaSigcPer } from '../src/features/istituzionale/testing/fixture';
 import { CellaDato } from '../src/features/istituzionale/ui/comuni';
 import { ValoriFiltriNonDisponibili } from '../src/entities/filtri';
 import { PaginaReport } from '../src/features/istituzionale/ui/PaginaReport';
 import { useFiltriDellaPagina } from '../src/features/istituzionale/ui/useFiltriNellIndirizzo';
-import { TabellaOutput } from '../src/features/istituzionale/ui/TabellaOutput';
 import { TabellaVerifica } from '../src/features/istituzionale/ui/TabellaVerifica';
 import { DATI_VERIFICA } from '../src/features/istituzionale/lib/verifica';
 import type { StatoQuery } from '../src/shared/ui';
@@ -33,19 +31,19 @@ const testo = (s: string | null | undefined) => (s ?? '').replace(/\s/g, ' ');
 const profilo = (roles: string[]) =>
   server.use(http.get('*/auth/status', () => HttpResponse.json({ authenticated: true, user: { username: 'U', profile: 'p3-funzionario-area-ist', roles } })));
 
-/** TX-0016, TX-0017 e TX-0060 come il backend (le righe dei filtri della query); TX-0060 in errore con `valori` null. */
+/** TX-0016, TX-0015 e TX-0060 come il backend (le righe dei filtri della query); TX-0060 in errore con `valori` null. */
 function servi(valori: object | null = VALORI) {
-  const lette = { verifica: [] as string[], output: [] as string[], filtri: 0 };
+  const lette = { verifica: [] as string[], verificaSigc: [] as string[], filtri: 0 };
   server.use(
     http.get('*/api/istituzionale/verifica-smp-non-sigc', ({ request }) => {
       const u = new URL(request.url);
       lette.verifica.push(u.search);
       return HttpResponse.json(verificaPer(VERIFICA, u.searchParams));
     }),
-    http.get('*/api/istituzionale/output-regionale', ({ request }) => {
+    http.get('*/api/istituzionale/verifica-smp-sigc', ({ request }) => {
       const u = new URL(request.url);
-      lette.output.push(u.search);
-      return HttpResponse.json(outputPer(OUTPUT, u.searchParams));
+      lette.verificaSigc.push(u.search);
+      return HttpResponse.json(verificaSigcPer(VERIFICA_SMP, u.searchParams));
     }),
     http.get('*/api/elenco-operativo/filtri', () => {
       lette.filtri += 1;
@@ -86,7 +84,8 @@ describe('VerificaSmpNonSigc (pagina della verifica SMP non SIGC, componente)', 
     expect(within(barra).getByText('Perimetro: regionale (i report istituzionali non hanno perimetro ADA)')).toBeTruthy();
     expect(within(barra).getByText('Anno di riferimento del file SMP non SIGC: 2025')).toBeTruthy();
     expect(within(barra).getByRole('button', { name: /^Ultimo dato sincronizzato: dati al 02\/03\/2026 per tutti i flussi/ })).toBeTruthy();
-    expect(screen.getByRole('link', { name: 'Verifica SMP SIGC' }).getAttribute('href')).toBe('/finanziario/sigc/verifica-smp');
+    // il link G4 verso la verifica SMP SIGC, nella stessa area dal 29/10/2026 (i filtri comuni li porta lo step6)
+    expect(screen.getByRole('link', { name: 'Verifica SMP SIGC' }).getAttribute('href')).toBe('/istituzionale/verifica-smp-sigc');
     const riferimenti = screen.getByRole('table', { name: 'Riferimenti della risposta' });
     expect(testo(riferimenti.textContent)).toContain('2025 (ultimo anno con un file SMP non SIGC presente)');
     expect(within(card).getAllByRole('button', { name: /^Scarica / }).map((b) => b.textContent)).toEqual(['PNG', 'CSV', 'XLSX']);
@@ -224,68 +223,8 @@ describe('PannelloFiltriIstituzionale e ValoriFiltriNonDisponibili (entities/fil
   });
 });
 
-describe('OutputRegionale, TabellaOutput e AnteprimaOutput (output regionale)', () => {
-  it('barra con periodo, interruttore della misura con la didascalia, anni dalla risposta; nessuna violazione axe', async () => {
-    servi();
-    const { container } = renderPagina(OutputRegionale, '/istituzionale/output-regionale');
-    const misura = await screen.findByRole('group', { name: 'Misura mostrata negli anni' });
-    expect(within(screen.getByRole('region', { name: 'Filtri attivi' })).getByText('Periodo: 2023 - 2029')).toBeTruthy();
-    expect(within(misura).getAllByRole('button').map((b) => [b.textContent, b.getAttribute('aria-pressed')])).toEqual([
-      ['Programmato', 'true'],
-      ['Realizzato SIGC', 'false'],
-      ['Realizzato non SIGC (cumulativo)', 'false'],
-    ]);
-    const tabella = screen.getByRole('table', { name: /^Output programmato per anno/ });
-    expect(within(tabella).getAllByRole('columnheader').map((c) => c.textContent?.replace(/[▲▼↕]/g, '').trim())).toEqual([
-      'Intervento',
-      'Indicatore di output',
-      'Unità di misura',
-      'Target di fine periodo',
-      'Anno del target',
-      '2023',
-      '2024',
-      '2025',
-      '2026',
-      '2027',
-      '2028',
-      '2029',
-    ]);
-    const sra01 = within(tabella).getByRole('row', { name: "Apri l'anteprima dell'intervento SRA01" });
-    expect(testo(sra01.textContent)).toContain('1500 ettari');
-    expect(testo(sra01.textContent)).toContain('500 ettari');
-    await userEvent.click(within(misura).getByRole('button', { name: 'Realizzato SIGC' }));
-    expect(screen.getByRole('table', { name: /^Output realizzato SIGC per anno/ })).toBeTruthy();
-    expect(document.activeElement).toBe(within(misura).getByRole('button', { name: 'Realizzato SIGC' }));
-    await expectNoA11yViolations(container);
-  });
-
-  it('TabellaOutput: indicatore, unita, target e anno del target assenti in badge, mai uno zero', () => {
-    inRouter(<TabellaOutput d={OUTPUT} misura="realizzatoNonSigc" scaricamenti={[]} onRiga={() => undefined} />);
-    const srg01 = screen.getByRole('row', { name: "Apri l'anteprima dell'intervento SRG01" });
-    expect(testo(srg01.textContent)).toContain('non valorizzatonessun target');
-    expect(within(srg01).getAllByText('non valorizzato').length).toBeGreaterThanOrEqual(4);
-    const srd01 = screen.getByRole('row', { name: "Apri l'anteprima dell'intervento SRD01" });
-    expect(testo(srd01.textContent)).toContain('12 numero di operazioni');
-  });
-
-  it('AnteprimaOutput: voci, mini grafico senza PNG con la tabella equivalente, Apri il dettaglio; nessuna violazione axe', async () => {
-    const onChiudi = vi.fn();
-    inRouter(<AnteprimaOutput riga={SRA01_OUTPUT} cumulativo onChiudi={onChiudi} />);
-    const drawer = await screen.findByRole('dialog', { name: 'Anteprima: SRA01' });
-    expect(testo(drawer.textContent)).toContain('O.14 (ettari)');
-    expect(testo(drawer.textContent)).toContain('1500 ettari al 2029');
-    const card = await trovaCard('Output di SRA01 per anno');
-    expect(within(card).queryByRole('group', { name: /^Scarica/ })).toBeNull();
-    expect(within(await tabellaDi(card)).getAllByRole('rowheader').map((c) => c.textContent)).toContain('Target di fine periodo');
-    expect(within(drawer).getByRole('link', { name: 'Apri il dettaglio' }).getAttribute('href')).toBe('/istituzionale/interventi/SRA01');
-    await expectNoA11yViolations(drawer);
-    await userEvent.click(within(drawer).getByRole('button', { name: 'Chiudi: Anteprima: SRA01' }));
-    expect(onChiudi).toHaveBeenCalled();
-  });
-});
-
 describe('DettaglioIntervento e SchedeIntervento (dettaglio dell intervento)', () => {
-  it('testata con la descrizione di TX-0060, badge, pulsanti verso i report, KPI e tre schede; nessuna violazione axe', async () => {
+  it('testata con la descrizione di TX-0060, badge, pulsante verso la verifica, KPI e la scheda della verifica; nessuna violazione axe', async () => {
     const lette = servi();
     const { container } = apriDettaglio('/istituzionale/interventi/SRD01');
     expect(await screen.findByRole('heading', { level: 1, name: 'Investimenti produttivi agricoli per la competitività' })).toBeTruthy();
@@ -293,25 +232,22 @@ describe('DettaglioIntervento e SchedeIntervento (dettaglio dell intervento)', (
     await screen.findByRole('region', { name: 'Domande ricevute non SIGC' });
     expect(within(screen.getByRole('list', { name: 'Dati principali' })).getAllByRole('listitem').map((l) => l.textContent)).toEqual([
       'Perimetro regionale',
-      'Indicatore di output O.20 (numero di operazioni)',
+      'Indicatore di output O.20',
       'Indicatore di risultato R.9',
     ]);
     expect(screen.getByRole('link', { name: 'Verifica SMP non SIGC filtrata su questo intervento' }).getAttribute('href')).toBe('/istituzionale/verifica-smp-non-sigc?intervento=SRD01');
-    expect(screen.getByRole('link', { name: 'Output regionale filtrato su questo intervento' }).getAttribute('href')).toBe('/istituzionale/output-regionale?intervento=SRD01');
-    expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Output per anno', 'Verifica SMP non SIGC', 'Importi unitari']);
+    // l'output regionale (TX-0017: schede Output per anno e Importi unitari, KPI del target) e' del fisico dal 29/10/2026
+    expect(screen.queryByRole('link', { name: 'Output regionale filtrato su questo intervento' })).toBeNull();
+    expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Verifica SMP non SIGC']);
+    expect(screen.queryByRole('region', { name: 'Target di fine periodo' })).toBeNull();
     expect(lette.verifica).toEqual(['?intervento=SRD01']);
-    expect(lette.output).toEqual(['?intervento=SRD01']);
-    await trovaCard('Output programmato e realizzato per anno (numero di operazioni)');
+    await screen.findByRole('table', { name: /^I dati ASR non SIGC dell'intervento/ });
     await expectNoA11yViolations(container);
   });
 
-  it('scheda Verifica: le voci con i link e il selettore; scheda Importi: in ordine di esercizio e codice', async () => {
+  it('scheda Verifica: le voci con i link e il selettore', async () => {
     servi();
     apriDettaglio('/istituzionale/interventi/SRA01');
-    await userEvent.click(await screen.findByRole('tab', { name: 'Importi unitari' }));
-    const importi = await screen.findByRole('table', { name: /^Importo unitario per Unit Amount/ });
-    expect(within(importi).getAllByRole('rowheader').map((c) => c.textContent)).toEqual(['UA01', 'UA02', 'UA01']);
-    await userEvent.click(screen.getByRole('tab', { name: 'Verifica SMP non SIGC' }));
     const voci = await screen.findByRole('table', { name: /^I dati ASR non SIGC dell'intervento/ });
     expect(within(voci).getAllByRole('rowheader')).toHaveLength(20);
     expect(screen.getByRole('combobox', { name: 'Anno di riferimento del monitoraggio SMP non SIGC' })).toBeTruthy();
@@ -324,17 +260,15 @@ describe('DettaglioIntervento e SchedeIntervento (dettaglio dell intervento)', (
     expect(screen.getByRole('alert').textContent).toMatch(/^Il codice nell'indirizzo non è un codice di intervento/);
     await new Promise((r) => setTimeout(r, 50));
     expect(lette.verifica).toEqual([]);
-    expect(lette.output).toEqual([]);
   });
 
-  it('solo col grant di TX-0016: la sola scheda Verifica, nessuna lettura di TX-0017 ne pulsante verso l output', async () => {
-    profilo(['csr.tx-0016.read', 'csr.tx-0060.read']);
+  it('col grant di TX-0016 (P3 dell area istituzionale): la scheda Verifica; la verifica SIGC non si legge nel dettaglio (passi successivi)', async () => {
+    profilo(['csr.tx-0015.read', 'csr.tx-0016.read', 'csr.tx-0060.read']);
     const lette = servi();
     apriDettaglio('/istituzionale/interventi/SRD01');
     await screen.findByRole('table', { name: /^I dati ASR non SIGC dell'intervento/ });
     expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Verifica SMP non SIGC']);
-    expect(screen.queryByRole('link', { name: 'Output regionale filtrato su questo intervento' })).toBeNull();
-    expect(lette.output).toEqual([]);
+    expect(lette.verificaSigc).toEqual([]);
   });
 });
 
@@ -347,7 +281,7 @@ describe('PaginaReport e useFiltriDellaPagina: l impaginazione comune dei due re
   /** Un report di prova: la pagina passa solo testi, la pill della risposta, cosa sta sopra e il report. */
   const provaCon = (s: StatoQuery<Risposta>) =>
     function Prova() {
-      const pagina = useFiltriDellaPagina(false);
+      const pagina = useFiltriDellaPagina('anno');
       return (
         <PaginaReport pagina={pagina} stato={s} briciola="Prova" titolo="Istituzionale: prova" titoloDocumento="Prova - Istituzionale" sottotitolo="Il sottotitolo." nota="La nota." pill={(d) => `Righe della risposta: ${d.righe.length}`} sopra={<p>sopra il report</p>}>
           {(d) => <p>{`report di ${d.righe.map((r) => r.codiceIntervento).join(', ')}`}</p>}

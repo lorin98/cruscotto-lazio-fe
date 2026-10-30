@@ -1,49 +1,49 @@
 // Test L1 delle funzioni PURE dell'istituzionale (lib/): grant e pagine, criteri nell'indirizzo, link dello uiplan, testi,
-// i ventuno dati della verifica, l'output regionale, il dettaglio dell'intervento e i builder dei grafici. Chiamate
-// dirette, niente render; i dati sono quelli degli scenari del backend (fixture dell'istituzionale).
+// i ventuno dati della verifica, il dettaglio dell'intervento e i builder dei grafici (anche quello della verifica SMP
+// SIGC, dal finanziario il 29/10/2026; l'output regionale e i suoi test sono del fisico). Chiamate dirette, niente
+// render; i dati sono quelli degli scenari del backend (fixture dell'istituzionale).
 import type { BarSeriesOption } from 'echarts';
 import { describe, expect, it } from 'vitest';
 import { GRANT, puoLeggere } from '../src/features/istituzionale/lib/grant';
 import { GRANT_DETTAGLIO, PAGINE_ISTITUZIONALE, PERCORSI, pagineVisibili, ricercaConservata } from '../src/features/istituzionale/lib/pagine';
-import { ANNI_DEL_PERIODO, anniDiRiferimento, conFiltri, criteriVerifica, ricercaConAnno, soloIntervento, testiCriteri } from '../src/features/istituzionale/lib/criteri';
+import { ANNI_DEL_PERIODO, ESERCIZI, anniDiRiferimento, conFiltri, criteriVerifica, criteriVerificaSigc, eserciziProposti, ricercaConAnno, ricercaConParametro, soloIntervento, testiCriteri, testiCriteriSigc } from '../src/features/istituzionale/lib/criteri';
 import { codiceDelPercorso } from '../src/entities/filtri';
 import { assenzaInFrase, testoMotivato } from '../src/entities/importo';
-import { conValore, elencoRicevute, elencoSpesa, outputDellIntervento, percorsoIntervento, verificaDellIntervento } from '../src/features/istituzionale/lib/collegamenti';
+import { VERIFICA_SMP_SIGC, conValore, elencoRicevute, elencoSpesa, percorsoIntervento, verificaDellIntervento } from '../src/features/istituzionale/lib/collegamenti';
 import {
-  ANNO_TARGET_ASSENTE,
-  DEFINIZIONI_OUTPUT,
   DEFINIZIONI_VERIFICA,
+  NESSUN_DATO_SIGC,
   NESSUN_FILE,
   PERIMETRO_IN_PAROLE,
   PILL_PERIMETRO,
-  TESTO_ASSENTE,
+  SCEGLI_ESERCIZIO,
+  annoOpzionale,
+  numeroOpzionale,
   pillAnnoDelFile,
-  pillPeriodo,
+  pillEsercizio,
   quantita,
   siNo,
   testoAnnoDiRiferimento,
+  testoOpzionale,
   testoOutputErogato,
-  testoTarget,
   testoVuoto,
 } from '../src/features/istituzionale/lib/formato';
 import { DATI_VERIFICA, TESTI_LINK, indirizzoDelDato, testoRicerca, testoValore, titoloDato, valoreOrdinabile, vociRiferimenti } from '../src/features/istituzionale/lib/verifica';
 import type { DatoVerifica } from '../src/features/istituzionale/lib/verifica';
-import { MISURE, anniDelPeriodo, captionOutput, datoDellAnno, etichettaMisura, importiOrdinati, opzioniMisura, ordinabileDellAnno, testoRicercaOutput, vociAnteprima } from '../src/features/istituzionale/lib/output';
 import { statoDelDettaglio, tutteRisposte } from '../src/shared/lib';
-import { SENZA_DATI, SENZA_UNIT_AMOUNT, TITOLI_SCHEDE, badgeIntervento, captionVociVerifica, kpiIntervento, schedeVisibili, testoAggiornamentoAnno, ultimoDatoInErrore, sopratitoloIntervento, titoloIntervento, ultimiDelDettaglio } from '../src/features/istituzionale/lib/intervento';
-import { TITOLO_SPESA, graficoOutputPerAnno, graficoSpesa } from '../src/features/istituzionale/lib/grafici';
-import { OUTPUT, SRA01_OUTPUT, SRD01, ULTIMI, VERIFICA, outputPer, righeDeiFiltri, verificaPer } from '../src/features/istituzionale/testing/fixture';
+import { SENZA_DATI, TITOLI_SCHEDE, badgeIntervento, captionVociVerifica, kpiIntervento, schedeVisibili, testoAggiornamentoAnno, ultimoDatoInErrore, sopratitoloIntervento, titoloIntervento, ultimiDelDettaglio } from '../src/features/istituzionale/lib/intervento';
+import { TITOLO_SPESA, TITOLO_SPESA_SIGC, graficoSpesa, graficoSpesaSigc } from '../src/features/istituzionale/lib/grafici';
+import { SRD01, ULTIMI, VERIFICA, VERIFICA_SMP, righeDeiFiltri, verificaPer, verificaSigcPer } from '../src/features/istituzionale/testing/fixture';
 import { anteprimaVerifica, etichetteAnteprima, riferimentoAnteprima } from '../src/features/istituzionale/lib/anteprima';
 import type { RigaVerifica } from '../src/features/istituzionale/lib/dto';
 
 const dato = (campo: DatoVerifica['campo']) => DATI_VERIFICA.find((d) => d.campo === campo) as DatoVerifica;
 const status = (roles: string[]) => ({ authenticated: true, user: { username: 'U', profile: 'p3-funzionario-area-ist', roles } });
 
-describe('RF016 e RF017: grant e pagine dell istituzionale (menu e Home)', () => {
+describe('RF016 e RF015: grant e pagine dell istituzionale (menu e Home)', () => {
   it('grant verbatim del catalogo; puoLeggere col solo hasGrant, senza stato no', () => {
     expect(GRANT).toEqual({
       verifica: 'csr.tx-0016.read',
-      output: 'csr.tx-0017.read',
       filtri: 'csr.tx-0060.read',
       elencoDomande: 'csr.tx-0056.read',
       elencoPagamenti: 'csr.tx-0059.read',
@@ -54,15 +54,18 @@ describe('RF016 e RF017: grant e pagine dell istituzionale (menu e Home)', () =>
     expect(puoLeggere(undefined, 'verifica')).toBe(false);
   });
 
-  it('le due pagine del menu per grant; il dettaglio con uno dei due grant; i filtri restano fra i due report, l anno no', () => {
+  it('le due verifiche nel menu per grant, prima la non SIGC; il dettaglio con la non SIGC; i filtri restano fra i due report, anno ed esercizio no', () => {
     expect(PAGINE_ISTITUZIONALE.map((p) => [p.percorso, p.voceMenu])).toEqual([
       ['/istituzionale/verifica-smp-non-sigc', 'Verifica SMP non SIGC'],
-      ['/istituzionale/output-regionale', 'Output regionale'],
+      ['/istituzionale/verifica-smp-sigc', 'Verifica SMP SIGC'],
     ]);
-    expect(pagineVisibili((g) => g === 'csr.tx-0017.read').map((p) => p.percorso)).toEqual([PERCORSI.output]);
+    expect(pagineVisibili((g) => g === 'csr.tx-0015.read').map((p) => p.percorso)).toEqual([PERCORSI.verificaSigc]);
     expect(pagineVisibili(() => false)).toEqual([]);
-    expect(GRANT_DETTAGLIO).toEqual(['csr.tx-0016.read', 'csr.tx-0017.read']);
+    // l'output regionale (TX-0017) e' del fisico dal 29/10/2026: nessuna pagina dell'istituzionale col suo grant
+    expect(pagineVisibili((g) => g === 'csr.tx-0017.read')).toEqual([]);
+    expect(GRANT_DETTAGLIO).toEqual(['csr.tx-0016.read']);
     expect(ricercaConservata('?intervento=SRD01&anno=2024&os=OS4&x=1')).toBe('intervento=SRD01&os=OS4');
+    expect(ricercaConservata('?esercizio=2025&og=OG1')).toBe('og=OG1');
     expect(ricercaConservata('')).toBe('');
   });
 });
@@ -82,6 +85,17 @@ describe('RF016: criteri nell indirizzo (filtri del programma e anno di riferime
     expect(ricercaConAnno({}, '')).toBe('');
   });
 
+  it('verifica SMP SIGC: l esercizio resta coi filtri nuovi; esercizi 2023-2030 (regola n+2) e quello scelto; criteri e testi del PNG', () => {
+    const conEsercizio = ricercaConParametro('esercizio');
+    expect(conEsercizio({ intervento: ['SRD01'] }, '?esercizio=2025&anno=2024')).toBe('intervento=SRD01&esercizio=2025');
+    expect(conEsercizio({}, '?esercizio=abc')).toBe('');
+    expect(ESERCIZI).toEqual({ primo: 2023, ultimo: 2030 });
+    expect(eserciziProposti(undefined)).toEqual([2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030]);
+    expect(eserciziProposti(2031).at(-1)).toBe(2031);
+    expect(criteriVerificaSigc({ os: ['OS4'] }, 2025)).toEqual({ os: ['OS4'], esercizio: 2025 });
+    expect(testiCriteriSigc({ intervento: ['SRD01'] }, 2025)).toEqual(['Intervento: SRD01', 'Esercizio: 2025']);
+  });
+
   it('criteri di TX-0016, testi del PNG, codice del percorso e filtri del dettaglio', () => {
     expect(criteriVerifica({ os: ['OS4'] }, 2024)).toEqual({ os: ['OS4'], anno: 2024 });
     expect(criteriVerifica({ os: ['OS4'] }, undefined)).toEqual({ os: ['OS4'] });
@@ -94,17 +108,17 @@ describe('RF016: criteri nell indirizzo (filtri del programma e anno di riferime
   });
 });
 
-describe('RF016 e RF017: i link dello uiplan (dettaglio, report filtrati, elenco operativo, verifica SMP SIGC)', () => {
+describe('RF016 e RF015: i link dello uiplan (dettaglio, report filtrati, elenco operativo, verifica SMP SIGC)', () => {
   it('il codice nel percorso del dettaglio e codificato: un valore con / resta un segmento; l anno solo se valido', () => {
     expect(percorsoIntervento('SRA01')).toBe('/istituzionale/interventi/SRA01');
     expect(percorsoIntervento('SRA01', 2024)).toBe('/istituzionale/interventi/SRA01?anno=2024');
     expect(percorsoIntervento('SR/../A01', 1999)).toBe('/istituzionale/interventi/SR%2F..%2FA01');
   });
 
-  it('i due report filtrati sull intervento, nell ordine della query dello uiplan', () => {
+  it('la verifica filtrata sull intervento, nell ordine della query dello uiplan; la verifica SIGC nella stessa area (G4)', () => {
     expect(verificaDellIntervento('SRA01', 2024)).toBe('/istituzionale/verifica-smp-non-sigc?intervento=SRA01&anno=2024');
     expect(verificaDellIntervento('SRA01')).toBe('/istituzionale/verifica-smp-non-sigc?intervento=SRA01');
-    expect(outputDellIntervento('SRA01')).toBe('/istituzionale/output-regionale?intervento=SRA01');
+    expect(VERIFICA_SMP_SIGC).toBe('/istituzionale/verifica-smp-sigc');
   });
 
   it('elenco operativo: ricevute = domande di sostegno, spesa = righe PAGATA non SIGC (D-05); link solo con un valore positivo', () => {
@@ -114,20 +128,21 @@ describe('RF016 e RF017: i link dello uiplan (dettaglio, report filtrati, elenco
   });
 });
 
-describe('RF016 e RF017: testi (perimetro, anno, quantita, assenze, definizioni)', () => {
-  it('perimetro, anno del file e periodo della barra', () => {
+describe('RF016 e RF015: testi (perimetro, anno, esercizio, quantita, assenze, definizioni)', () => {
+  it('perimetro, anno del file ed esercizio della barra', () => {
     expect(PILL_PERIMETRO).toBe('Perimetro: regionale (i report istituzionali non hanno perimetro ADA)');
     expect(PERIMETRO_IN_PAROLE).toBe('regionale');
     expect(pillAnnoDelFile(2025)).toBe('Anno di riferimento del file SMP non SIGC: 2025');
     expect(pillAnnoDelFile(null)).toBe('Anno di riferimento del file SMP non SIGC: nessun file');
-    expect(pillPeriodo(2023, 2029)).toBe('Periodo: 2023 - 2029');
+    expect(pillEsercizio(2025)).toBe('Esercizio finanziario: 2025');
+    expect(pillEsercizio(undefined)).toBe('Esercizio finanziario: non indicato');
     expect(testoAnnoDiRiferimento(2025, undefined)).toBe('2025 (ultimo anno con un file SMP non SIGC presente)');
     expect(testoAnnoDiRiferimento(2024, 2024)).toBe('2024');
     expect(testoAnnoDiRiferimento(null, 2023)).toBe('nessun file SMP non SIGC presente');
     expect([testoOutputErogato(true), testoOutputErogato(false)]).toEqual(['valore del file, cumulativo per anno di riferimento', 'valore del file per anno di riferimento']);
   });
 
-  it('quantita con l unita, si e no, dati motivati e target; mai uno zero al posto di un assente', () => {
+  it('quantita con l unita, si e no, dati motivati e facoltativi; mai uno zero al posto di un assente', () => {
     expect([quantita(1500, 'ettari'), quantita(12, null), quantita(12345, 'UBA')]).toEqual(['1500 ettari', '12', '12.345 UBA']);
     expect([siNo(true), siNo(false)]).toEqual(['sì', 'no']);
     expect(testoMotivato({ valore: 7, motivo: null }, String)).toBe('7');
@@ -135,11 +150,10 @@ describe('RF016 e RF017: testi (perimetro, anno, quantita, assenze, definizioni)
     expect(testoMotivato(undefined, String)).toBe('non disponibile');
     expect(assenzaInFrase({ motivo: 'NON_VALORIZZATO' })).toBe('Non valorizzato: il dato non è presente nella fonte');
     expect(assenzaInFrase(null)).toBe('Non disponibile');
-    expect(testoTarget({ valore: 1500 }, 2029, 'ettari')).toBe('1500 ettari al 2029');
-    expect(testoTarget({ valore: 10 }, null, null)).toBe('10');
-    expect(testoTarget({ valore: null, motivo: 'NON_VALORIZZATO' }, null, null)).toBe('non valorizzato (il dato non è presente nella fonte)');
-    expect(ANNO_TARGET_ASSENTE).toEqual({ disponibile: false, testo: 'non valorizzato', nota: 'nessun target' });
-    expect(TESTO_ASSENTE.motivo).toBe('NON_VALORIZZATO');
+    // i campi facoltativi della verifica SMP SIGC (TX-0015): "non disponibile", mai uno zero; anni senza separatore
+    expect([numeroOpzionale(null), numeroOpzionale(0), numeroOpzionale(350.5)]).toEqual(['non disponibile', '0', '350,5']);
+    expect([testoOpzionale(null), testoOpzionale('  '), testoOpzionale('O.14')]).toEqual(['non disponibile', 'non disponibile', 'O.14']);
+    expect([annoOpzionale(2024), annoOpzionale(undefined)]).toEqual(['2024', 'non disponibile']);
   });
 
   it('stati e definizioni dei wireframe approvati', () => {
@@ -147,7 +161,8 @@ describe('RF016 e RF017: testi (perimetro, anno, quantita, assenze, definizioni)
     expect(testoVuoto(false)).toBe('Nessun intervento nei report istituzionali.');
     expect(NESSUN_FILE).toMatch(/^Nessun file SMP non SIGC acquisito: /);
     expect(DEFINIZIONI_VERIFICA).toContain('solo saldate al 100% (definizione da confermare con ARSIAL)');
-    expect(DEFINIZIONI_OUTPUT).toContain('somma dell\'output previsto delle Unit Amount');
+    expect(SCEGLI_ESERCIZIO).toBe("Scegli l'esercizio finanziario da consultare.");
+    expect(NESSUN_DATO_SIGC).toBe("Nessun dato SIGC per l'esercizio scelto. Scegli un altro esercizio.");
   });
 });
 
@@ -222,65 +237,28 @@ describe('RF016: i ventuno dati della verifica SMP non SIGC (TX-0016)', () => {
   });
 });
 
-describe('RF017: l output regionale (TX-0017)', () => {
-  it('misure dell interruttore, anni del periodo e dato di un anno; un anno non elencato e non valorizzato', () => {
-    expect(MISURE.map((m) => etichettaMisura(m, true))).toEqual(['Programmato', 'Realizzato SIGC', 'Realizzato non SIGC (cumulativo)']);
-    expect(etichettaMisura('realizzatoNonSigc', false)).toBe('Realizzato non SIGC');
-    expect(opzioniMisura(true)).toEqual([
-      { valore: 'programmato', etichetta: 'Programmato' },
-      { valore: 'realizzatoSigc', etichetta: 'Realizzato SIGC' },
-      { valore: 'realizzatoNonSigc', etichetta: 'Realizzato non SIGC (cumulativo)' },
-    ]);
-    expect(anniDelPeriodo({ annoInizio: 2023, annoFine: 2030 })).toHaveLength(8);
-    expect(datoDellAnno(SRA01_OUTPUT, 2024, 'programmato').valore).toBe(500);
-    expect(datoDellAnno(SRA01_OUTPUT, 2031, 'programmato')).toEqual({ valore: null, motivo: 'NON_VALORIZZATO', fonte: null });
-    expect([ordinabileDellAnno(SRA01_OUTPUT, 2023, 'realizzatoSigc'), ordinabileDellAnno(SRA01_OUTPUT, 2023, 'programmato')]).toEqual([400, null]);
-  });
-
-  it('didascalia con la misura; voci del drawer; importi in ordine di esercizio e codice; riga e ricerca', () => {
-    expect(captionOutput('programmato', true)).toBe("Output programmato per anno (misura scelta sopra), l'intervento è l'intestazione di riga e gli anni vengono dalla risposta");
-    expect(captionOutput('realizzatoSigc', true)).toMatch(/^Output realizzato SIGC per anno/);
-    expect(vociAnteprima(SRA01_OUTPUT, true)).toEqual([
-      { termine: 'Indicatore di output', valore: 'O.14 (ettari)' },
-      { termine: 'Target di fine periodo', valore: '1500 ettari al 2029' },
-      { termine: 'Realizzato non SIGC', valore: 'cumulativo per anno di riferimento' },
-    ]);
-    const srg01 = OUTPUT.righe[3];
-    // l'indicatore assente con la resa unica delle assenze, come la tabella; senza l'unita' anche se c'e' (review V4)
-    expect(vociAnteprima(srg01, false).map((v) => v.valore)).toEqual(['non valorizzato (il dato non è presente nella fonte)', 'non valorizzato (il dato non è presente nella fonte)', 'annuale']);
-    expect(vociAnteprima({ ...srg01, unitaMisura: 'ettari' }, false)[0].valore).toBe('non valorizzato (il dato non è presente nella fonte)');
-    expect(importiOrdinati(SRA01_OUTPUT).map((i) => `${i.esercizio} ${i.codiceUnitAmount}`)).toEqual(['2024 UA01', '2024 UA02', '2025 UA01']);
-    expect(SRA01_OUTPUT.importiUnitari[0].codiceUnitAmount).toBe('UA02');
-    expect(testoRicercaOutput(SRA01_OUTPUT)).toBe('SRA01 O.14 ettari');
-  });
-});
-
-describe('RF016 e RF017: il dettaglio dell intervento (testata, KPI, ultimo dato, esito)', () => {
+describe('RF016: il dettaglio dell intervento (testata, KPI, ultimo dato, esito)', () => {
   it('titolo dalla descrizione di TX-0060 o dal codice; sopratitolo; badge dagli indicatori letti', () => {
     expect(titoloIntervento('SRA01', 'Produzione integrata')).toBe('Produzione integrata');
     expect(titoloIntervento('SRA01', undefined)).toBe('Intervento SRA01');
     expect(sopratitoloIntervento('SRA01')).toBe('Istituzionale - intervento SRA01');
-    expect(badgeIntervento(OUTPUT.righe[2], SRD01)).toEqual(['Perimetro regionale', 'Indicatore di output O.20 (numero di operazioni)', 'Indicatore di risultato R.9']);
-    expect(badgeIntervento(undefined, SRD01)).toEqual(['Perimetro regionale', 'Indicatore di output O.20', 'Indicatore di risultato R.9']);
-    expect(badgeIntervento(OUTPUT.righe[3], undefined)).toEqual(['Perimetro regionale']);
+    expect(badgeIntervento(SRD01)).toEqual(['Perimetro regionale', 'Indicatore di output O.20', 'Indicatore di risultato R.9']);
+    expect(badgeIntervento(undefined)).toEqual(['Perimetro regionale']);
   });
 
-  it('KPI: target da TX-0017, domande e spesa da TX-0016, solo con la riga della loro lettura; assenze in frase', () => {
-    expect(kpiIntervento(OUTPUT.righe[2], SRD01).map((k) => [k.etichetta, k.valore ?? k.assente, k.nota])).toEqual([
-      ['Target di fine periodo', '10 numero di operazioni al 2029', 'TX-0017'],
+  it('KPI: domande e spesa da TX-0016, solo con la riga della lettura; assenze in frase (il target di TX-0017 e del fisico)', () => {
+    expect(kpiIntervento(SRD01).map((k) => [k.etichetta, k.valore ?? k.assente, k.nota])).toEqual([
       ['Domande ricevute non SIGC', '3', 'TX-0016'],
       ['Domande finanziate non SIGC', '2', 'TX-0016'],
       ['Spesa pubblica erogata non SIGC', new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }).format(90000), 'TX-0016, anticipi inclusi'],
     ]);
-    expect(kpiIntervento(OUTPUT.righe[3], undefined)).toEqual([{ chiave: 'target', etichetta: 'Target di fine periodo', assente: 'Non valorizzato: il dato non è presente nella fonte', nota: 'TX-0017' }]);
-    expect(kpiIntervento(undefined, { ...SRD01, spesaErogata: { valore: null, motivo: 'NON_VALORIZZATO', fonte: null } }).at(-1)?.assente).toBe('Non valorizzato: il dato non è presente nella fonte');
-    expect(kpiIntervento(undefined, undefined)).toEqual([]);
+    expect(kpiIntervento({ ...SRD01, spesaErogata: { valore: null, motivo: 'NON_VALORIZZATO', fonte: null } }).at(-1)?.assente).toBe('Non valorizzato: il dato non è presente nella fonte');
+    expect(kpiIntervento(undefined)).toEqual([]);
   });
 
-  it('ultimo dato della prima risposta; stato: caricamento, errore, vuoto (AT001), dati anche con una sola lettura riuscita', () => {
-    expect(ultimiDelDettaglio(undefined, OUTPUT)).toBe(OUTPUT.ultimiDatiSincronizzati);
-    expect(ultimiDelDettaglio(VERIFICA, undefined)).toEqual(ULTIMI);
-    expect(ultimiDelDettaglio(undefined, undefined)).toBeUndefined();
+  it('ultimo dato della risposta; stato: caricamento, errore, vuoto (AT001), dati anche con una sola lettura riuscita', () => {
+    expect(ultimiDelDettaglio(VERIFICA)).toEqual(ULTIMI);
+    expect(ultimiDelDettaglio(undefined)).toBeUndefined();
     const ok = (data: { righe: readonly unknown[] }) => ({ data, isError: false });
     const inCorso = { data: undefined, isError: false };
     const errore = { data: undefined, isError: true };
@@ -290,13 +268,13 @@ describe('RF016 e RF017: il dettaglio dell intervento (testata, KPI, ultimo dato
     expect(statoDelDettaglio([errore, errore], false)).toBe('errore');
     expect(statoDelDettaglio([ok({ righe: [] }), ok({ righe: [] })], false)).toBe('vuoto');
     expect(statoDelDettaglio([ok({ righe: [] })], false)).toBe('vuoto');
-    expect(statoDelDettaglio([ok({ righe: [] }), ok(OUTPUT)], false)).toBe('dati');
-    expect(statoDelDettaglio([errore, ok(OUTPUT)], false)).toBe('dati');
+    expect(statoDelDettaglio([ok({ righe: [] }), ok(VERIFICA)], false)).toBe('dati');
+    expect(statoDelDettaglio([errore, ok(VERIFICA)], false)).toBe('dati');
     // una lettura in errore accanto a una riuscita senza righe: i dati, con l'errore nella sua scheda
     expect(statoDelDettaglio([errore, ok({ righe: [] })], false)).toBe('dati');
     // dopo la prima risposta una lettura che riparte (Riprova, un altro anno dopo un errore) accanto a una coi dati
     // lascia la pagina coi dati: lo scheletro e' nella sua scheda (review H1/X1)
-    expect(statoDelDettaglio([inCorso, ok(OUTPUT)], true)).toBe('dati');
+    expect(statoDelDettaglio([inCorso, ok(VERIFICA)], true)).toBe('dati');
     expect(statoDelDettaglio([inCorso, ok({ righe: [] })], true)).toBe('dati');
     // senza dati lo scheletro torna: Riprova dopo l'errore di tutte
     expect(statoDelDettaglio([inCorso, inCorso], true)).toBe('caricamento');
@@ -304,15 +282,14 @@ describe('RF016 e RF017: il dettaglio dell intervento (testata, KPI, ultimo dato
     // nessuna lettura abilitata: il profilo e' in caricamento
     expect(statoDelDettaglio([], false)).toBe('caricamento');
     expect(statoDelDettaglio([], true)).toBe('caricamento');
-    expect([tutteRisposte([errore, ok(OUTPUT)]), tutteRisposte([inCorso, ok(OUTPUT)]), tutteRisposte([])]).toEqual([true, false, false]);
+    expect([tutteRisposte([errore, ok(VERIFICA)]), tutteRisposte([inCorso, ok(VERIFICA)]), tutteRisposte([])]).toEqual([true, false, false]);
     // la pill "Dati al" e' in errore solo se tutte le letture fatte lo sono, mai senza letture
-    expect([ultimoDatoInErrore([errore, errore]), ultimoDatoInErrore([errore, ok(OUTPUT)]), ultimoDatoInErrore([])]).toEqual([true, false, false]);
+    expect([ultimoDatoInErrore([errore, errore]), ultimoDatoInErrore([errore, ok(VERIFICA)]), ultimoDatoInErrore([])]).toEqual([true, false, false]);
   });
 
-  it('schede per grant nell ordine del wireframe; didascalia delle voci; testi degli stati', () => {
-    expect(schedeVisibili(true, true).map((s) => TITOLI_SCHEDE[s])).toEqual(['Output per anno', 'Verifica SMP non SIGC', 'Importi unitari']);
-    expect(schedeVisibili(true, false)).toEqual(['verifica']);
-    expect(schedeVisibili(false, true)).toEqual(['output', 'importi']);
+  it('schede per grant (la verifica SMP non SIGC; output e importi unitari sono del fisico); didascalia delle voci; testi degli stati', () => {
+    expect(schedeVisibili(true).map((s) => TITOLI_SCHEDE[s])).toEqual(['Verifica SMP non SIGC']);
+    expect(schedeVisibili(false)).toEqual([]);
     expect(captionVociVerifica(2025)).toBe("I dati ASR non SIGC dell'intervento da confrontare con SMP (anno di riferimento 2025), con i valori assenti e il loro motivo");
     expect(captionVociVerifica(null)).toContain('(anno di riferimento nessun file)');
     // lo stato dice l'anno dei dati che restano, lo stesso della didascalia (review X1): indietro, avanti, senza file
@@ -321,12 +298,11 @@ describe('RF016 e RF017: il dettaglio dell intervento (testata, KPI, ultimo dato
     expect(testoAggiornamentoAnno(undefined, 2023)).toBe("Lettura dell'ultimo anno con un file in corso: restano i dati dell'anno di riferimento 2023.");
     expect(testoAggiornamentoAnno(2024, null)).toBe("Lettura dell'anno 2024 in corso: restano i dati di prima (nessun file).");
     expect(testoAggiornamentoAnno(2024, undefined)).toBe("Lettura dell'anno 2024 in corso: restano i dati di prima.");
-    expect(SENZA_UNIT_AMOUNT).toMatch(/^Intervento senza Unit Amount/);
     expect(SENZA_DATI).toContain('AT001');
   });
 });
 
-describe('RF016 e RF017: grafici (spesa per intervento, output per anno col target)', () => {
+describe('RF016 e RF015: grafici (spesa per intervento non SIGC e SIGC)', () => {
   it('spesa erogata: una barra per intervento con valore (lo zero e un valore vero), gli assenti omessi col motivo', () => {
     const conAssente = [...VERIFICA.righe, { ...SRD01, codiceIntervento: 'SRD04', spesaErogata: { valore: null, motivo: 'NON_VALORIZZATO', fonte: null } }];
     const g = graficoSpesa(conAssente);
@@ -342,41 +318,44 @@ describe('RF016 e RF017: grafici (spesa per intervento, output per anno col targ
     expect(graficoSpesa([]).opzioni).toBeNull();
   });
 
-  it('output per anno: tre serie nell unita dell indicatore, anni senza valore omessi col motivo, il target linea e riga', () => {
-    const g = graficoOutputPerAnno(SRA01_OUTPUT, true);
+  // verifica SMP SIGC (TX-0015): gli stessi casi del grafico della pagina del finanziario da cui viene
+  it('spesa erogata nella campagna precedente: barre per intervento col codice, assenti omessi e dichiarati (D-11: niente previsione)', () => {
+    const righe = [
+      { codiceIntervento: 'SRA01', spesaErogataCampagnaPrecedente: { valore: 2_000_000, motivo: null, fonte: null } },
+      { codiceIntervento: 'SRA02', spesaErogataCampagnaPrecedente: { valore: null, motivo: 'NON_VALORIZZATO', fonte: null } },
+    ];
+    const g = graficoSpesaSigc(righe);
+    expect(TITOLO_SPESA_SIGC).toBe('Spesa erogata nella campagna precedente per intervento');
     const serie = g.opzioni?.series as BarSeriesOption[];
-    expect(serie.map((s) => s.name)).toEqual(['Programmato', 'Realizzato SIGC', 'Realizzato non SIGC (cumulativo)']);
-    expect((g.opzioni?.xAxis as { data: string[] }).data).toEqual(['2023', '2024']);
-    expect(serie[0].markLine?.data).toEqual([{ name: 'Target 1500 ettari al 2029', yAxis: 1500 }]);
-    // il target supera le barre: l'asse lo contiene
-    expect((g.opzioni?.yAxis as { max?: number }).max).toBe(1500);
-    expect((g.opzioni?.aria as { label: { description: string } }).label.description).toMatch(/Target di fine periodo: 1500 ettari al 2029\.$/);
-    expect(g.tabella.caption).toBe("Tabella equivalente: output dell'intervento SRA01 per anno, in ettari");
-    expect(g.tabella.righe[1]).toEqual(['2024', '500 ettari', 'non valorizzato (il dato non è presente nella fonte)', 'non valorizzato (il dato non è presente nella fonte)']);
-    expect(g.tabella.righe.at(-1)).toEqual(['Target di fine periodo', '1500 ettari al 2029', '', '']);
-    expect(g.omessi).toContain('2027, realizzato SIGC: non valorizzato (il dato non è presente nella fonte)');
+    expect(serie.map((s) => [s.type, s.name])).toEqual([['bar', 'Spesa erogata nella campagna precedente']]);
+    expect((g.opzioni?.xAxis as { data: string[] }).data).toEqual(['SRA01']);
+    expect((serie[0].data as Array<{ codice: string }>)[0].codice).toBe('SRA01');
+    expect(g.omessi).toEqual(['SRA02, spesa erogata nella campagna precedente: non valorizzato (il dato non è presente nella fonte)']);
+    expect(g.tabella.colonne).toEqual(['Intervento', 'Spesa erogata nella campagna precedente']);
+    expect(g.tabella.righe[0][0]).toBe('SRA01');
   });
 
-  it('output per anno senza target ne valori: non disegnabile, la tabella resta con la riga del target', () => {
-    const g = graficoOutputPerAnno(OUTPUT.righe[3], false);
+  it('spesa erogata SIGC: oltre 12 interventi zoom interno e cursore; nessun valore non disegnabile', () => {
+    const molte = Array.from({ length: 13 }, (_, k) => ({ codiceIntervento: `SRC${k + 10}`, spesaErogataCampagnaPrecedente: { valore: 1_000_000 } }));
+    expect((graficoSpesaSigc(molte).opzioni?.dataZoom as Array<{ type: string }>).map((z) => z.type)).toEqual(['inside', 'slider']);
+    const g = graficoSpesaSigc([{ codiceIntervento: 'SRA09' }]);
     expect(g.opzioni).toBeNull();
-    expect(g.motivoAssenza).toBe("nessun anno con un valore dell'output");
-    expect(g.tabella.caption).toBe("Tabella equivalente: output dell'intervento SRG01 per anno");
-    expect(g.tabella.righe.at(-1)).toEqual(['Target di fine periodo', 'non valorizzato (il dato non è presente nella fonte)', '', '']);
-    const ambiguo = graficoOutputPerAnno(OUTPUT.righe[1], true);
-    expect(ambiguo.omessi).toContain('2027, realizzato SIGC: non attribuibile (riga presente sia nel monitoraggio SIGC sia nel non SIGC)');
+    expect(g.motivoAssenza).toBe('nessun intervento con spesa erogata valorizzata');
+    expect(g.omessi).toEqual(['SRA09, spesa erogata nella campagna precedente: non disponibile']);
   });
 });
 
 describe('fixture: le risposte di prova filtrano come il backend (SC-IS_FILTRI, SC-IS_SMP_ANNO)', () => {
   it('intervento, obiettivi (E fra dimensioni, O fra valori), azione senza legame: nessuna riga', () => {
-    const codici = (p: string) => righeDeiFiltri(OUTPUT.righe, new URLSearchParams(p)).map((r) => r.codiceIntervento);
-    expect(codici('')).toEqual(['SRA01', 'SRA16', 'SRD01', 'SRG01']);
+    const codici = (p: string) => righeDeiFiltri(VERIFICA.righe, new URLSearchParams(p)).map((r) => r.codiceIntervento);
+    expect(codici('')).toEqual(['SRA01', 'SRA16', 'SRD01']);
     expect(codici('os=OS4')).toEqual(['SRD01']);
     expect(codici('os=OS4&os=OS5')).toEqual(['SRA01', 'SRA16', 'SRD01']);
     expect(codici('og=OG1&op=OP1')).toEqual(['SRA01']);
     expect(codici('azione=3')).toEqual([]);
-    expect(outputPer(OUTPUT, new URLSearchParams('intervento=SRD01')).righe).toHaveLength(1);
+    const sigc = verificaSigcPer(VERIFICA_SMP, new URLSearchParams('esercizio=2026&intervento=SRA01'));
+    expect([sigc.esercizio, sigc.annoDomande, sigc.righe?.length]).toEqual([2026, 2025, 1]);
+    expect(verificaSigcPer(VERIFICA_SMP, new URLSearchParams('esercizio=2025&os=OS4')).righe).toEqual([]);
     const anno2024 = verificaPer(VERIFICA, new URLSearchParams('anno=2024&intervento=SRD01'));
     expect([anno2024.annoRiferimento, anno2024.righe[0].dotazioneAvvisi.motivo, anno2024.righe[0].outputErogato.valore, anno2024.righe[0].domandeRicevute]).toEqual([2024, 'ANNO_NON_CONSERVATO', 7, 3]);
   });

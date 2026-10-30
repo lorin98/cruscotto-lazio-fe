@@ -1,4 +1,4 @@
-// anni.ts — anno di un parametro del contratto (PURO): anno della riserva e esercizio della verifica SMP del finanziario,
+// anni.ts — anno di un parametro del contratto (PURO): anno della riserva del finanziario, esercizio della verifica SMP SIGC,
 // campagna delle superfici del fisico, anno di riferimento della verifica SMP non SIGC. Le spec li descrivono allo stesso
 // modo: intero fra 2000 e 2100. Poi gli anni proposti da un selettore d'anno (finanziario e istituzionale, review H7).
 

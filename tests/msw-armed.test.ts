@@ -34,7 +34,7 @@ test("MSW dei test: una lettura dell'elenco operativo non dichiarata dal test e'
 // lo stesso canarino per i mock generati dell'istituzionale (step3 della feature): esclusi dal server dei test
 test("MSW dei test: una lettura dell'istituzionale non dichiarata dal test e' rifiutata (H-16)", async () => {
   expect(handlers.some((h) => JSON.stringify(h.info).includes('/api/istituzionale'))).toBe(true);
-  for (const percorso of ['/api/istituzionale/verifica-smp-non-sigc', '/api/istituzionale/output-regionale', '/api/istituzionale/output-regionale/csv']) {
+  for (const percorso of ['/api/istituzionale/verifica-smp-non-sigc', '/api/istituzionale/verifica-smp-sigc?esercizio=2025', '/api/istituzionale/verifica-smp-sigc/csv?esercizio=2025']) {
     await expect(fetch(`http://localhost${percorso}`), percorso).rejects.toThrow(/\[MSW\]|Cannot bypass|error.{0,24}strateg/i);
   }
 });

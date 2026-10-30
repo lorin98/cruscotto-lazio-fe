@@ -1,8 +1,9 @@
 // VerificaSmpNonSigc — pagina /istituzionale/verifica-smp-non-sigc (flusso verifica-smp-non-sigc approvato, pattern report
 // v2 come la verifica SMP SIGC del finanziario, RF016): barra dei filtri a chip col pannello (voci da TX-0060, G2), le pill
 // del perimetro regionale, dell'anno di riferimento del file e "Dati al" (ultimiDatiSincronizzati di TX-0016, G3);
-// percorso e un solo h1 col focus, con sotto la frase verso la verifica SMP SIGC del finanziario resa solo a chi ha anche
-// csr.tx-0015.read (decisione G4: nessun filtro portato, il finanziario non cambia); lo stato dei valori dei filtri non
+// percorso e un solo h1 col focus, con sotto la frase verso la verifica SMP SIGC resa solo a chi ha anche csr.tx-0015.read
+// (decisione G4, nessun filtro portato; dal 29/10/2026 la pagina e' nella stessa area, i filtri comuni li porta lo step6); lo
+// stato dei valori dei filtri non
 // disponibili; il selettore dell'anno (facoltativo, si applica con "Mostra"); il report. UNA lettura di TX-0016 per
 // pagina, coi criteri dell'indirizzo. Stati: caricamento (scheletro), errore (un solo avviso della pagina, problem-type),
 // vuoto (con "Modifica i filtri": coi criteri cambiati dal pannello il focus va sull'h1), valori dei filtri non
@@ -25,18 +26,18 @@ import { useFiltriDellaPagina } from './useFiltriNellIndirizzo';
 const SOTTOTITOLO = 'I dati dei file ASR non SIGC per intervento, da confrontare con SMP - Data Platform.';
 const AIUTO_ANNO = "Facoltativo. Vale per indicatori, output e dati dell'avviso; domande e spesa sono cumulative (tutte le domande correnti).";
 
-/** link:verifica-smp-sigc (G4): la frase dice l'area di arrivo; chi la rende controlla prima il grant. */
+/** link:verifica-smp-sigc (G4): la frase dice la pagina di arrivo, nella stessa area; chi la rende controlla prima il grant. */
 function FraseVerificaSigc() {
   return (
     <>
-      {'I dati SIGC per lo stesso confronto sono nel Finanziario: '}
+      {'I dati SIGC per lo stesso confronto sono nella pagina '}
       <Link to={VERIFICA_SMP_SIGC}>Verifica SMP SIGC</Link>.
     </>
   );
 }
 
 export function VerificaSmpNonSigc() {
-  const pagina = useFiltriDellaPagina(true);
+  const pagina = useFiltriDellaPagina(PARAMETRO_ANNO);
   const [anno, impostaAnno] = useAnnoNellIndirizzo(PARAMETRO_ANNO);
   const stato = useVerificaSmpNonSigc(criteriVerifica(pagina.filtri, anno), { abilitato: !pagina.inAttesa });
   const nota = puoLeggere(useAuthStatus().data, 'verificaSigc') ? <FraseVerificaSigc /> : undefined;

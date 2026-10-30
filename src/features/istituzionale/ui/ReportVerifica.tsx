@@ -1,5 +1,5 @@
 // ReportVerifica — il report della verifica SMP non SIGC (flusso verifica-smp-non-sigc approvato, RF016; stessa resa della
-// verifica SMP SIGC del finanziario): lo stato "nessun file SMP non SIGC" quando l'anno di riferimento manca (i dati
+// verifica SMP SIGC della stessa area): lo stato "nessun file SMP non SIGC" quando l'anno di riferimento manca (i dati
 // restano: domande e spesa vengono dalle pratiche), i riferimenti della risposta (anno, come si legge l'output erogato,
 // perimetro), la card a barre della spesa pubblica erogata per intervento (zoom oltre 12; clic su una barra: il dettaglio
 // dell'intervento con l'anno scelto; PNG, CSV, XLSX) e la tabella dei ventuno dati. Nessun KPI: i dati sono per

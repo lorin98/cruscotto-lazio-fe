@@ -46,10 +46,10 @@ describe('SelettoreAnno del kit: select con Mostra, gli anni e la voce senza ann
   });
 
   it('il finanziario lo usa con gli anni del periodo CSR e "Scegli un anno" (stesso comportamento di prima)', () => {
-    render(<SelettoreFinanziario id="f-es" etichetta="Esercizio finanziario" aiuto="Obbligatorio." tipo="esercizio" anno={2031} onCambia={() => undefined} />);
+    render(<SelettoreFinanziario id="f-ri" etichetta="Anno di riferimento (anno n)" aiuto="Obbligatorio." tipo="riserva" anno={2031} onCambia={() => undefined} />);
     const voci = screen.getAllByRole('option').map((o) => o.textContent);
     expect(voci[0]).toBe('Scegli un anno');
-    expect(voci.slice(1)).toEqual(['2023', '2024', '2025', '2026', '2027', '2028', '2029', '2030', '2031']);
+    expect(voci.slice(1)).toEqual(['2023', '2024', '2025', '2026', '2027', '2028', '2029', '2031']);
   });
 });
 

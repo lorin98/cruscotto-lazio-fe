@@ -123,14 +123,14 @@ describe('coda delle letture: tetto per prefisso del percorso (review step9 H-21
       http.get('*/api/finanziario/lenta', lenta),
       http.get('*/api/elenco-operativo/domande', lenta),
       http.get('*/api/fisico/superficie-ammissibile', lenta),
-      http.get('*/api/istituzionale/output-regionale', lenta),
+      http.get('*/api/istituzionale/verifica-smp-non-sigc', lenta),
       http.get('*/api/procedurale/stati-sostegno', lenta),
     );
     await Promise.all([
       insieme('/api/finanziario/lenta', 'GET', 3),
       insieme('/api/elenco-operativo/domande', 'GET', 3),
       insieme('/api/fisico/superficie-ammissibile', 'GET', 3),
-      insieme('/api/istituzionale/output-regionale', 'GET', 3),
+      insieme('/api/istituzionale/verifica-smp-non-sigc', 'GET', 3),
       insieme('/api/procedurale/stati-sostegno', 'GET', 3),
     ]);
     expect(misura.massimo).toBe(LETTURE_IN_PARALLELO);

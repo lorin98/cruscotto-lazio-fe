@@ -1,5 +1,5 @@
 // PannelloFiltriIstituzionale — pannello laterale dei filtri dei due report istituzionali (wireframe verifica-smp-non-sigc
-// e output-regionale approvati): il pannello comune di entities/filtri (PannelloFiltriProgramma, lo stesso del fisico)
+// e verifica-smp-sigc approvati): il pannello comune di entities/filtri (PannelloFiltriProgramma, lo stesso del fisico)
 // con le voci di TX-0060 dell'elenco operativo (decisione G2): interventi con la descrizione (senza AT001), obiettivi
 // specifico, generale e di policy, azione portante disabilitata finche' manca il legame. Senza il grant di TX-0060 o con
 // TX-0060 in errore Intervento propone i codici delle righe della risposta e lo stato lo dice (role=status). La scelta e'

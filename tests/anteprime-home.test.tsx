@@ -20,7 +20,7 @@ import * as F from '../src/features/finanziario/testing/fixture';
 import { SUPERFICI, SUPERFICI_SENZA, campagna } from '../src/features/fisico/testing/fixture';
 import { ammessePer, statiPer } from '../src/features/procedurale/testing/fixture';
 import { lettureProcedurale } from '../src/features/procedurale/testing/letture';
-import { OUTPUT, VERIFICA } from '../src/features/istituzionale/testing/fixture';
+import { VERIFICA, VERIFICA_SMP } from '../src/features/istituzionale/testing/fixture';
 
 function conRuoli(roles: string[]) {
   server.use(http.get('*/auth/status', () => HttpResponse.json({ authenticated: true, user: { username: 'U', roles } })));
@@ -56,7 +56,7 @@ function notaDi(gruppo: HTMLElement, termine: string): string | undefined {
 
 const SUPERFICI_PATH = '/api/fisico/superficie-ammissibile';
 const VERIFICA_PATH = '/api/istituzionale/verifica-smp-non-sigc';
-const OUTPUT_PATH = '/api/istituzionale/output-regionale';
+const VERIFICA_SIGC_PATH = '/api/istituzionale/verifica-smp-sigc';
 
 describe('RF018: card Fisico della Home (OP-FIS-10)', () => {
   it('col grant di TX-0018: i KPI della campagna piu recente, da una lettura senza filtri, e nessuna violazione axe', async () => {
@@ -220,10 +220,11 @@ describe('RF026 e RF027: card Procedurale della Home (OP-PR-10)', () => {
 });
 
 describe('RF016: card Istituzionale della Home (OP-IS-11)', () => {
-  it('col grant di TX-0016: i totali della verifica, cumulativi con l anno dell ultimo file (D3), da una lettura senza filtri ne anno; nessuna lettura dell output', async () => {
-    conRuoli(['csr.tx-0016.read', 'csr.tx-0017.read']);
+  // l'output regionale (TX-0017) e' del fisico dal 29/10/2026; il blocco SIGC della card (TX-0015) e' dello step6
+  it('col grant di TX-0016: i totali della verifica, cumulativi con l anno dell ultimo file (D3), da una lettura senza filtri ne anno; nessun altra lettura', async () => {
+    conRuoli(['csr.tx-0015.read', 'csr.tx-0016.read']);
     const query = lettura(VERIFICA_PATH, VERIFICA);
-    const output = lettura(OUTPUT_PATH, OUTPUT);
+    const sigc = lettura(VERIFICA_SIGC_PATH, VERIFICA_SMP);
     const { container } = renderConQuery(<AnteprimaIstituzionale altrimenti={ALTRIMENTI} />);
     const cifre = await screen.findByRole('group', { name: "L'istituzionale in cifre" });
     expect(await within(cifre).findByText('Non SIGC, valori cumulativi (ultimo file SMP non SIGC: 2025)')).toBeTruthy();
@@ -233,17 +234,17 @@ describe('RF016: card Istituzionale della Home (OP-IS-11)', () => {
     expect(within(cifre).getByText('Spesa erogata sul valore delle domande finanziate')).toBeTruthy();
     expect(within(cifre).getByText(formatPercentuale(57))).toBeTruthy();
     expect(query).toEqual(['']);
-    expect(output).toEqual([]);
+    expect(sigc).toEqual([]);
     await expectNoA11yViolations(container);
   });
 
-  it('col solo grant dell output: nessuna lettura registrata (l output non si somma), la card dice cosa c e nell area', async () => {
-    conRuoli(['csr.tx-0017.read']);
+  it('col solo grant della verifica SIGC: nessuna lettura registrata, la card dice cosa c e nell area', async () => {
+    conRuoli(['csr.tx-0015.read']);
     const query = lettura(VERIFICA_PATH, VERIFICA);
-    const output = lettura(OUTPUT_PATH, OUTPUT);
+    const sigc = lettura(VERIFICA_SIGC_PATH, VERIFICA_SMP);
     renderConQuery(<AnteprimaIstituzionale altrimenti={ALTRIMENTI} />);
     expect(await screen.findByText("Contenuti dell'area")).toBeTruthy();
-    expect([query, output]).toEqual([[], []]);
+    expect([query, sigc]).toEqual([[], []]);
   });
 
   it('errore: una frase, nessun avviso; nessun file SMP non SIGC: i numeri restano', async () => {
