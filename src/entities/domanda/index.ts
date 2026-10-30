@@ -13,4 +13,6 @@ export {
   riferimentoDomandaValido,
 } from './lib/elenco';
 export type { DestinazioneElenco, EsitoRigaElenco } from './lib/elenco';
+// il contratto dell'indirizzo delle determine di una domanda (procedurale, TX-0020): il link della scheda dell'elenco
+export { GRANT_DETERMINE_DELLA_DOMANDA, PERCORSO_DETERMINE_DELLA_DOMANDA, percorsoDetermineDellaDomanda } from './lib/determine';
 export { ApriNellElenco } from './ui/ApriNellElenco';
