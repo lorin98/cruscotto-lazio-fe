@@ -54,6 +54,15 @@ function apri(indirizzo: InitialEntry, { client = clientDiTest(), prima }: { cli
   return { ...renderConQuery(<RouterProvider router={router} />, client), router, client };
 }
 const campo = () => screen.getByRole('searchbox', { name: 'Codice a barre della domanda' });
+/**
+ * La sessione (/auth/status) e' letta e React ne ha avuto la notifica (notifyManager la pianifica su un timer a 0): prima
+ * di asserire l'assenza di un link legato a un grant, che finche' la sessione non e' letta manca comunque (review step9
+ * PRO2-04, come sessioneLetta di tests/finanziario-ui.test.tsx).
+ */
+async function sessioneLetta(client: QueryClient) {
+  await waitFor(() => expect(client.getQueryState(AUTH_STATUS_QUERY_KEY)?.status).toBe('success'));
+  await act(() => new Promise<void>((r) => setTimeout(r, 20)));
+}
 
 describe("RF020: codice e data delle determine da cui la domanda prende l'informazione (TX-0020)", () => {
   it('senza codice (ingresso dal menu): il solo modulo e lo stato iniziale, nessuna lettura; nessuna violazione axe', async () => {
@@ -130,8 +139,9 @@ describe("RF020: codice e data delle determine da cui la domanda prende l'inform
   it('senza il grant della scheda (csr.tx-0058.read) il link alla scheda non si vede (gate di UX)', async () => {
     profilo(['csr.tx-0020.read']);
     servi();
-    apri('/procedurale/determine/54810769585');
+    const { client } = apri('/procedurale/determine/54810769585');
     await screen.findByRole('table', { name: /^Determine da cui la domanda 54810769585/ });
+    await sessioneLetta(client);
     expect(screen.queryByRole('link', { name: 'Apri la scheda della domanda' })).toBeNull();
   });
 
@@ -491,8 +501,9 @@ describe("RF020: domanda dell'altro tipo in arrivo dalla scheda dell'elenco, SC-
   it('senza csr.tx-0058.read: l avviso senza il link alla scheda di partenza (gate di UX)', async () => {
     profilo(['csr.tx-0020.read']);
     servi({ [DETERMINE_TIPO.codiceABarre]: DETERMINE_TIPO });
-    apri(dallaScheda('SOSTEGNO'));
+    const { client } = apri(dallaScheda('SOSTEGNO'));
     await tabella();
+    await sessioneLetta(client);
     expect(avviso()?.textContent).toBe(AVVISO);
     expect(screen.queryByRole('link', { name: PARTENZA })).toBeNull();
     expect(screen.queryByRole('link', { name: 'Apri la scheda della domanda' })).toBeNull();
