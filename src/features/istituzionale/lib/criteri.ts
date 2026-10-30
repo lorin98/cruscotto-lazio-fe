@@ -60,14 +60,21 @@ export function eserciziProposti(scelto: number | undefined): number[] {
   return anniProposti(ESERCIZI.primo, ESERCIZI.ultimo, scelto);
 }
 
+/** Giorno, mese (1-12) e anno di un istante nel calendario italiano, qualunque sia il fuso del browser. */
+const CALENDARIO_ITALIANO = new Intl.DateTimeFormat('it-IT', { timeZone: 'Europe/Rome', year: 'numeric', month: 'numeric', day: 'numeric' });
+
 /**
- * L'ultimo esercizio finanziario chiuso alla data data (card della Home, scelta dell'utente del 30/10/2026): l'esercizio n
- * va dal 16/10/n-1 al 15/10/n, quindi dal 16 ottobre di un anno l'ultimo chiuso e' quello dell'anno, prima e' quello
- * dell'anno precedente. La data e' quella del calendario locale (ottobre = mese 9 di Date).
+ * L'ultimo esercizio finanziario chiuso all'istante dato (card della Home, scelta dell'utente del 30/10/2026): l'esercizio
+ * n va dal 16/10/n-1 al 15/10/n, quindi dal 16 ottobre di un anno l'ultimo chiuso e' quello dell'anno, prima e' quello
+ * dell'anno precedente. Il giorno e' quello del calendario italiano (Europe/Rome), non del fuso del browser: a cavallo
+ * della mezzanotte fra il 15 e il 16/10 un browser in un altro fuso sbaglierebbe l'esercizio (decisione D3 del 30/10/2026,
+ * review del riallineamento IST-03).
  */
 export function esercizioUltimoChiuso(oggi: Date): number {
-  const anno = oggi.getFullYear();
-  const dopoLaChiusura = oggi.getMonth() > 9 || (oggi.getMonth() === 9 && oggi.getDate() >= 16);
+  const parti = CALENDARIO_ITALIANO.formatToParts(oggi);
+  const parte = (tipo: 'year' | 'month' | 'day') => Number(parti.find((p) => p.type === tipo)?.value);
+  const anno = parte('year');
+  const dopoLaChiusura = parte('month') > 10 || (parte('month') === 10 && parte('day') >= 16);
   return dopoLaChiusura ? anno : anno - 1;
 }
 

@@ -130,14 +130,31 @@ describe('RF016: criteri nell indirizzo (filtri del programma e anno di riferime
   });
 
   it('l ultimo esercizio chiuso (card della Home, scelta del 30/10/2026): dal 16 ottobre quello dell anno, prima quello precedente', () => {
-    expect(esercizioUltimoChiuso(new Date(2026, 9, 15, 23, 59))).toBe(2025);
-    expect(esercizioUltimoChiuso(new Date(2026, 9, 16, 0, 0))).toBe(2026);
-    expect(esercizioUltimoChiuso(new Date(2026, 9, 30))).toBe(2026);
-    expect(esercizioUltimoChiuso(new Date(2026, 11, 31))).toBe(2026);
-    expect(esercizioUltimoChiuso(new Date(2027, 0, 1))).toBe(2026);
-    expect(esercizioUltimoChiuso(new Date(2026, 8, 30))).toBe(2025);
+    // istanti espliciti, letti nel calendario italiano (ora legale in ottobre, UTC+2; solare a dicembre, UTC+1)
+    expect(esercizioUltimoChiuso(new Date('2026-10-15T21:59:00Z'))).toBe(2025); // 15/10 23:59 in Italia
+    expect(esercizioUltimoChiuso(new Date('2026-10-15T22:00:00Z'))).toBe(2026); // 16/10 00:00 in Italia
+    expect(esercizioUltimoChiuso(new Date('2026-10-30T12:00:00Z'))).toBe(2026);
+    expect(esercizioUltimoChiuso(new Date('2026-12-31T12:00:00Z'))).toBe(2026);
+    expect(esercizioUltimoChiuso(new Date('2026-12-31T23:30:00Z'))).toBe(2026); // 01/01/2027 00:30 in Italia
+    expect(esercizioUltimoChiuso(new Date('2026-09-30T12:00:00Z'))).toBe(2025);
     // la card legge come la pagina aperta senza filtri (stessa query, stessa cache)
     expect(filtriVerificaSigcSenzaFiltri()).toEqual({});
+  });
+
+  it('D3 (review IST-03): a cavallo del 16/10 conta il calendario italiano, non il fuso del processo (UTC, New York, Kiritimati)', () => {
+    const fuso = process.env.TZ;
+    try {
+      for (const tz of ['UTC', 'America/New_York', 'Pacific/Kiritimati', 'Europe/Rome']) {
+        process.env.TZ = tz;
+        // 15/10/2026 23:30 in Italia: in UTC e a New York e' ancora il 15, a Kiritimati gia' il 16
+        expect(esercizioUltimoChiuso(new Date('2026-10-15T21:30:00Z')), tz).toBe(2025);
+        // 16/10/2026 00:30 in Italia: in UTC e a New York e' ancora il 15
+        expect(esercizioUltimoChiuso(new Date('2026-10-15T22:30:00Z')), tz).toBe(2026);
+      }
+    } finally {
+      if (fuso === undefined) delete process.env.TZ;
+      else process.env.TZ = fuso;
+    }
   });
 
   it('criteri di TX-0016, testi del PNG, codice del percorso e filtri del dettaglio', () => {

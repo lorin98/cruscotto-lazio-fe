@@ -4,7 +4,7 @@
 // lettura registrata: "nessuna lettura" e' un conteggio, review A-01), l'attesa annunciata (D4), l'errore che non ferma la
 // card, le assenze col motivo, nessun dato, il perimetro ADA, axe. Il cablaggio nella Home (aree.ts), i profili del catalogo
 // e la cache condivisa con le pagine sono in app-aree.test.tsx.
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { act, screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { server } from '../src/shared/api/mock/server';
@@ -328,6 +328,34 @@ describe('RF016 e RF015: card Istituzionale della Home (OP-IS-11, rework 1 della
     expect(await screen.findByText('Dati della verifica SMP non SIGC non disponibili in questo momento.')).toBeTruthy();
     await waitFor(async () => expect(valoreDi(await gruppoSigc(), 'Domande ricevute')).toBe('120'));
     expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('D3 (review IST-03): l ultimo esercizio chiuso nel calendario italiano anche con l orologio in UTC, a cavallo della mezzanotte del 16/10', async () => {
+    conRuoli(['csr.tx-0015.read']);
+    const fuso = process.env.TZ;
+    process.env.TZ = 'UTC';
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      // 15/10/2026 23:30 in Italia (21:30 UTC): l'esercizio 2026 non e' ancora chiuso
+      vi.setSystemTime(new Date('2026-10-15T21:30:00Z'));
+      const prima = letturaSigc();
+      const vista = renderConQuery(<AnteprimaIstituzionale altrimenti={ALTRIMENTI} />);
+      const blocco = await screen.findByRole('group', { name: 'SIGC, esercizio 2025' });
+      expect(await within(blocco).findByText("SIGC, esercizio 2025 (16/10/2024 - 15/10/2025; domande dell'anno 2024)")).toBeTruthy();
+      expect(prima).toEqual(['?esercizio=2025']);
+      vista.unmount();
+
+      // 16/10/2026 00:30 in Italia (22:30 UTC, in UTC ancora il 15): l'ultimo chiuso e' il 2026
+      vi.setSystemTime(new Date('2026-10-15T22:30:00Z'));
+      const dopo = letturaSigc();
+      renderConQuery(<AnteprimaIstituzionale altrimenti={ALTRIMENTI} />);
+      expect(await screen.findByRole('group', { name: 'SIGC, esercizio 2026' })).toBeTruthy();
+      expect(dopo).toEqual(['?esercizio=2026']);
+    } finally {
+      vi.useRealTimers();
+      if (fuso === undefined) delete process.env.TZ;
+      else process.env.TZ = fuso;
+    }
   });
 
   it('blocco SIGC: una parte della spesa assente in una riga, non disponibile col motivo (mai una somma parziale); i conteggi restano', async () => {

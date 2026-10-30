@@ -8,8 +8,9 @@
 //   a lettura finita, D2);
 // - SIGC (csr.tx-0015.read), in un gruppo col nome dell'esercizio: domande finanziate, spesa pubblica erogata
 //   nell'esercizio (campagna precedente + campagne anteriori), domande pagate nell'esercizio, domande ricevute, da TX-0015
-//   senza filtri con l'ultimo esercizio chiuso (dal 16/10 di un anno quello dell'anno, prima quello precedente: la stessa
-//   lettura della pagina Verifica SMP SIGC aperta con quell'esercizio); nessuna quota.
+//   senza filtri con l'ultimo esercizio chiuso (dal 16/10 di un anno quello dell'anno, prima quello precedente, nel
+//   calendario italiano qualunque sia il fuso del browser: decisione D3; la stessa lettura della pagina Verifica SMP SIGC
+//   aperta con quell'esercizio); nessuna quota.
 // Nessuna lettura di TX-0017 (output regionale, del fisico dal 29/10/2026). Senza nessuno dei due grant, `altrimenti` (cosa
 // c'e' nell'area). Un errore non ferma la Home: la card resta l'ingresso all'area e dice che il dato non e' disponibile.
 // Pezzi del kit (AnteprimaArea) come la card del finanziario.
