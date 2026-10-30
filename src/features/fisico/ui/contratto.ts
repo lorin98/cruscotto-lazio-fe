@@ -36,7 +36,7 @@ export const ASSEGNABILE_OUTPUT: Assegnabile<MonitoraggioOutput, Output> = true;
 export const CONTRATTO_RIGA_UNIT_AMOUNT: Uguali<keyof RigaUnitAmount, keyof PagamentiUnitAmountRiga> = true;
 export const CONTRATTO_UNIT_AMOUNT: Uguali<keyof UnitAmount, keyof PagamentiUnitAmount> = true;
 export const ASSEGNABILE_UNIT_AMOUNT: Assegnabile<PagamentiUnitAmount, UnitAmount> = true;
-// i criteri delle letture: le chiavi dei filtri del programma sono i parametri della spec (TX-0030 ha anche l'azione,
-// che la pagina delle Unit Amount per ora non manda)
+// i criteri delle letture: le chiavi dei filtri del programma sono i parametri della spec (azione portante compresa,
+// anche per TX-0030 dal 30/10/2026)
 export const CONTRATTO_CRITERI_OUTPUT: Uguali<keyof Filtri, keyof CriteriOutput> = true;
 export const CONTRATTO_CRITERI_UNIT_AMOUNT: Uguali<keyof Filtri, keyof CriteriUnitAmount> = true;

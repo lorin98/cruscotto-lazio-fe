@@ -2,7 +2,8 @@
 // report finanziari (entities/filtri: SC-FS_FILTRI "filtri come nei report finanziari"), e la campagna, un solo anno
 // (TX-0018: campagna non ripetibile, 2000-2100; assente = tutte le campagne presenti). Sono gli url_params della route
 // /fisico/superfici dello uiplan: dall'indirizzo arrivano solo valori nel formato ammesso, e cosi' si riscrivono. Per
-// l'output regionale e le Unit Amount (dal 29/10/2026) i soli filtri del programma, le Unit Amount senza l'azione.
+// l'output regionale e le Unit Amount (dal 29/10/2026) i soli filtri del programma, azione portante compresa (dal
+// 30/10/2026 anche le Unit Amount, SC-FS_UNIT_AMOUNT_AZIONE); per il dettaglio dell'intervento il solo intervento.
 import { CHIAVI_FILTRO, filtriDaRicerca, filtriNellaBarra, ricercaDaFiltri } from '../../../entities/filtri';
 import type { ChiaveFiltro, Filtri, FiltroNellaBarra } from '../../../entities/filtri';
 import { isAnnoValido } from '../../../shared/lib';
@@ -82,14 +83,4 @@ export function testiCriteri(criteri: Criteri): string[] {
 /** Vero se c'e' almeno un filtro del programma (la campagna esclusa): serve a dire se il vuoto dipende dai filtri. */
 export function conFiltriDelProgramma(criteri: Criteri): boolean {
   return CHIAVI_FILTRO.some((k: ChiaveFiltro) => (criteri[k] ?? []).length > 0);
-}
-
-/**
- * I filtri delle Unit Amount dall'indirizzo: intervento e obiettivi, senza l'azione portante, come nella pagina del
- * procedurale da cui vengono (29/10/2026); il filtro per azione di TX-0030 e' dei passi successivi.
- */
-export function filtriSenzaAzione(ricerca: string | URLSearchParams): Filtri {
-  const filtri = filtriDaRicerca(ricerca);
-  delete filtri.azione;
-  return filtri;
 }

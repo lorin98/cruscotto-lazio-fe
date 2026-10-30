@@ -2,16 +2,23 @@
 // voci di TX-0060 (senza, il solo codice), superfici della campagna di riferimento con la verifica incrociata, superfici
 // delle altre campagne, quantita' richiesta a premio (assente: la resa unica, OP-FIS-04), mini linea per campagna con la
 // tabella equivalente (con il filtro Campagna la risposta ha la sola campagna filtrata: la linea non si disegna e lo dice,
-// e un intervento senza superfici e' "nessuna superficie nella campagna N", mai "in nessuna campagna"), e "Mostra solo <intervento>": il filtro Intervento sull'intervento, stessa pagina (nessun link verso
-// altre pagine: OP-FIS-05). PannelloLaterale di react-aria (dialogo: focus trap, Esc, ritorno del focus a cio' che l'ha
-// aperto); dentro, lista di definizioni e pulsante bootstrap-italia.
+// e un intervento senza superfici e' "nessuna superficie nella campagna N", mai "in nessuna campagna"), "Mostra solo
+// <intervento>" (il filtro Intervento sull'intervento, stessa pagina) e "Apri il dettaglio dell'intervento" (link
+// dettaglio-intervento-superfici verso il dettaglio del fisico, flusso intervento del 30/10/2026, solo col grant di una delle
+// sue letture: un link vero, il focus va sul titolo del dettaglio dopo il cambio di route). Nessun link verso l'elenco
+// operativo (OP-FIS-05). PannelloLaterale di react-aria (dialogo: focus trap, Esc, ritorno del focus a cio' che l'ha aperto
+// se si chiude senza navigare); dentro, lista di definizioni, pulsante e link bootstrap-italia.
 import type { ReactNode } from 'react';
+import { Link } from 'react-router';
 import { ValoreMotivato } from '../../../entities/importo';
+import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { ettari, formatNumber } from '../../../shared/lib';
 import { CardGrafico, PannelloLaterale } from '../../../shared/ui';
+import { percorsoIntervento } from '../lib/collegamenti';
 import type { CampagnaSuperficie, InterventoSuperficie } from '../lib/dto';
 import { fonteLineaIntervento, testoDifferenza, testoSenzaSuperfici } from '../lib/formato';
 import { graficoInterventoPerCampagna } from '../lib/grafici';
+import { puoAprireIntervento } from '../lib/grant';
 import { campagneDellAnteprima } from '../lib/superfici';
 
 function Voce({ termine, children }: { termine: string; children: ReactNode }) {
@@ -79,6 +86,7 @@ interface PropsAnteprima {
 
 export function AnteprimaIntervento({ riga, campagna, campagnaRisposta, descrizione, onMostraSolo, onChiudi }: PropsAnteprima) {
   const codice = riga?.codiceIntervento ?? '';
+  const conDettaglio = puoAprireIntervento(useAuthStatus().data);
   return (
     <PannelloLaterale aperto={riga !== null} onChiudi={onChiudi} titolo={codice} sopratitolo="Anteprima dell'intervento" stretto>
       {riga && (
@@ -98,6 +106,11 @@ export function AnteprimaIntervento({ riga, campagna, campagnaRisposta, descrizi
           <button type="button" className="btn btn-primary mt-3 w-100" onClick={() => onMostraSolo(codice)}>
             {`Mostra solo ${codice}`}
           </button>
+          {conDettaglio && (
+            <Link className="btn btn-outline-primary mt-2 w-100" to={percorsoIntervento(codice)}>
+              {"Apri il dettaglio dell'intervento"}
+            </Link>
+          )}
         </>
       )}
     </PannelloLaterale>

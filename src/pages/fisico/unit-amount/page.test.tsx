@@ -35,7 +35,7 @@ const tabella = () => screen.findByRole('table', { name: /^Unit Amount degli int
 afterEach(() => vi.restoreAllMocks());
 
 describe('RF030: pagamenti per Unit Amount degli interventi selezionati (TX-0030)', () => {
-  it('una lettura con intervento e obiettivi, senza l azione; un solo h1 col focus; perimetro e Dati al della risposta; nessuna violazione axe', async () => {
+  it('una lettura coi filtri dell indirizzo (l azione senza il legame non si applica e il chip lo dice); un solo h1 col focus; perimetro e Dati al della risposta; nessuna violazione axe', async () => {
     const lette = servi();
     const { container } = apri(`${PERCORSO}?intervento=SRD01&os=OS4&azione=3`);
     const t = await tabella();
@@ -46,7 +46,8 @@ describe('RF030: pagamenti per Unit Amount degli interventi selezionati (TX-0030
     const barra = screen.getByRole('region', { name: 'Filtri attivi' });
     expect(within(barra).getByText('Perimetro: regionale')).toBeTruthy();
     expect(within(barra).getByRole('button', { name: /^Ultimo dato sincronizzato: dati al 02\/03\/2026/ })).toBeTruthy();
-    expect(within(barra).queryByRole('button', { name: /^Togli il filtro Azione/ })).toBeNull();
+    // il legame interventi - azioni non c'e' (legameAzioniDisponibile falso in TX-0060): l'azione resta nell'indirizzo, non si applica
+    expect(within(barra).getByText(/3 \(non applicato: il legame con le azioni portanti viene da una fonte non attiva\)/)).toBeTruthy();
     await trovaCard(CARD);
     await expectNoA11yViolations(container);
   });
@@ -86,8 +87,8 @@ describe('RF030: pagamenti per Unit Amount degli interventi selezionati (TX-0030
     await userEvent.keyboard('{Enter}');
     const drawer = await screen.findByRole('dialog', { name: 'Anteprima: UA2 (SRD01, esercizio 2024)' });
     expect(testo(drawer.textContent)).toContain('Importo unitarionon valorizzatoil dato non è presente nella fonte');
-    // il dettaglio del procedurale non ha piu' le Unit Amount (29/10/2026): il dettaglio del fisico e' dei passi successivi
-    expect(within(drawer).queryByRole('link')).toBeNull();
+    // il dettaglio dell'intervento del fisico (link dettaglio-intervento-unit-amount, 30/10/2026)
+    expect(within(drawer).getByRole('link', { name: "Apri il dettaglio dell'intervento" }).getAttribute('href')).toBe('/fisico/interventi/SRD01');
     await userEvent.keyboard('{Escape}');
     await waitFor(() => expect(document.activeElement).toBe(within(screen.getByRole('table', { name: /^Unit Amount degli interventi selezionati/ })).getByRole('row', { name: "Apri l'anteprima della Unit Amount UA2 di SRD01, esercizio 2024" })));
   });
@@ -107,13 +108,13 @@ describe('RF030: pagamenti per Unit Amount degli interventi selezionati (TX-0030
 });
 
 describe('RA006: filtri della pagina delle Unit Amount (voci da TX-0060, decisione G2)', () => {
-  it('il pannello senza l azione portante; Azzera e Applica tolgono i filtri e rileggono', async () => {
+  it('il pannello dei report fisici con l azione portante (non disponibile senza il legame); Azzera e Applica tolgono i filtri e rileggono', async () => {
     const lette = servi();
     const { router } = apri(`${PERCORSO}?intervento=SRD01`);
     await tabella();
     await userEvent.click(screen.getByRole('button', { name: /^Filtri/ }));
-    const pannello = await screen.findByRole('dialog', { name: 'Filtri delle Unit Amount' });
-    expect(within(pannello).queryByRole('checkbox', { name: /Azione portante 3/ })).toBeNull();
+    const pannello = await screen.findByRole('dialog', { name: 'Filtri dei report fisici' });
+    expect(within(pannello).getByText("Non disponibile finché nessun intervento è collegato a un'azione portante.")).toBeTruthy();
     expect(within(pannello).getByRole('checkbox', { name: 'SRD01 Investimenti produttivi agricoli per la competitività' })).toBeTruthy();
     await userEvent.click(within(pannello).getByRole('button', { name: 'Azzera' }));
     await userEvent.click(within(pannello).getByRole('button', { name: 'Applica i filtri' }));
@@ -154,10 +155,10 @@ describe('RF030: stati della pagina delle Unit Amount (caricamento, errore, vuot
     expect(within(avviso).getByRole('button', { name: 'Riprova' })).toBeTruthy();
   });
 
-  it('vuoto: nessuna Unit Amount per gli interventi scelti, con Modifica i filtri; senza filtri non parla di interventi scelti', async () => {
+  it('vuoto: nessuna Unit Amount per i filtri scelti, con Modifica i filtri; senza filtri non parla di filtri', async () => {
     servi();
     const filtrata = apri(`${PERCORSO}?intervento=SRA01`);
-    const vuoto = (await screen.findByText('Nessuna Unit Amount per gli interventi scelti.')).closest('[role="status"]') as HTMLElement;
+    const vuoto = (await screen.findByText("Nessuna Unit Amount per i filtri scelti (per esempio un'azione portante senza interventi collegati).")).closest('[role="status"]') as HTMLElement;
     expect(within(vuoto).getByRole('button', { name: 'Modifica i filtri' })).toBeTruthy();
     filtrata.unmount();
     servi();

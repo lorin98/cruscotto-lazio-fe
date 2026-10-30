@@ -5,14 +5,14 @@
 // focus; lo stato dei valori dei filtri non disponibili; la card "Output per intervento e anno" con l'interruttore della
 // misura (Programmato | Realizzato SIGC | Realizzato non SIGC cumulativo: scelta approvata di OP-FIS-11; stato della
 // pagina, non dell'indirizzo; il cambio non sposta il focus), la tabella e le definizioni; il drawer di anteprima della
-// riga. Nessuna card grafico in pagina (unita' diverse fra interventi: OP-FIS-11), quindi nessun PNG. UNA lettura di
+// riga con "Apri il dettaglio" verso il dettaglio dell'intervento del fisico (dal 30/10/2026). Nessuna card grafico in pagina (unita' diverse fra interventi: OP-FIS-11), quindi nessun PNG. UNA lettura di
 // TX-0017 per pagina. Stati: caricamento, errore (un solo avviso), vuoto (con "Modifica i filtri"), valori dei filtri non
 // disponibili. Design system: classi bootstrap-italia e del kit v2 (card, interruttore con aria-pressed); react-aria solo
 // dentro il pannello, il drawer e il popover della pill del kit. La misura dell'interruttore sta nella pagina: resta
 // quando il report si rilegge coi filtri nuovi, un chip tolto o Riprova (wireframe approvato, review V1). Barra, testata,
 // stati e pannello sono l'impaginazione comune delle pagine del fisico venute dalle altre aree (PaginaReport).
 import { useState } from 'react';
-import { ricercaDaFiltri, rigaDellIntervento } from '../../../entities/filtri';
+import { descrizioneIntervento, ricercaDaFiltri, rigaDellIntervento } from '../../../entities/filtri';
 import type { Filtri } from '../../../entities/filtri';
 import { Interruttore, Sezione } from '../../../shared/ui';
 import { useOutputRegionale } from '../api';
@@ -32,8 +32,11 @@ const TITOLO_OUTPUT = 'Output per intervento e anno';
 /** La misura dell'interruttore, stato della pagina: il report la riceve e la cambia. */
 type PropsMisura = { misura: Misura; onMisura: (m: Misura) => void };
 
+/** La descrizione di un intervento dalle voci di TX-0060 (undefined senza le voci). */
+type PropsDescrizione = { descrizioneDi: (codice: string) => string | undefined };
+
 /** Il report: la card con l'interruttore della misura, la tabella e le definizioni, poi il drawer della riga aperta. */
-function ReportOutput({ d, filtri, misura, onMisura }: { d: Output; filtri: Filtri } & PropsMisura) {
+function ReportOutput({ d, filtri, misura, onMisura, descrizioneDi }: { d: Output; filtri: Filtri } & PropsMisura & PropsDescrizione) {
   const [aperto, setAperto] = useState<string | null>(null);
   const cumulativo = d.realizzatoNonSigcCumulativo;
   return (
@@ -43,13 +46,13 @@ function ReportOutput({ d, filtri, misura, onMisura }: { d: Output; filtri: Filt
         <TabellaOutput d={d} misura={misura} scaricamenti={fileOutput('Output regionale', filtri)} onRiga={setAperto} />
         <p className="ui-fonte">{DEFINIZIONI_OUTPUT}</p>
       </Sezione>
-      <AnteprimaOutput riga={aperto === null ? null : (rigaDellIntervento(d.righe, aperto) ?? null)} cumulativo={cumulativo} onChiudi={() => setAperto(null)} />
+      <AnteprimaOutput riga={aperto === null ? null : (rigaDellIntervento(d.righe, aperto) ?? null)} cumulativo={cumulativo} descrizione={aperto === null ? undefined : descrizioneDi(aperto)} onChiudi={() => setAperto(null)} />
     </>
   );
 }
 
 export function OutputRegionale() {
-  const pagina = useFiltriDellaPagina(false);
+  const pagina = useFiltriDellaPagina();
   const stato = useOutputRegionale(pagina.filtri, { abilitato: !pagina.inAttesa });
   const [misura, setMisura] = useState<Misura>('programmato');
   return (
@@ -60,12 +63,14 @@ export function OutputRegionale() {
       titolo="Fisico: output regionale programmato e realizzato"
       titoloDocumento="Output regionale - Fisico"
       sottotitolo={SOTTOTITOLO}
-      titoloPannello="Filtri dell'output regionale"
+      titoloPannello="Filtri dei report fisici"
       pill={(d) => pillPeriodo(d.annoInizio, d.annoFine)}
       testoVuoto={testoVuotoOutput}
       codiciRisposta={(stato.data?.righe ?? []).map((r) => r.codiceIntervento)}
     >
-      {(d) => <ReportOutput key={ricercaDaFiltri(pagina.filtri)} d={d} filtri={pagina.filtri} misura={misura} onMisura={setMisura} />}
+      {(d) => (
+        <ReportOutput key={ricercaDaFiltri(pagina.filtri)} d={d} filtri={pagina.filtri} misura={misura} onMisura={setMisura} descrizioneDi={(codice) => descrizioneIntervento(pagina.valori?.data?.interventi, codice)} />
+      )}
     </PaginaReport>
   );
 }

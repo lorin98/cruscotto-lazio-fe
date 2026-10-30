@@ -6,8 +6,8 @@
 // pagina, problem-type), vuoto (nessun intervento; nessuna superficie, mai una pagina di zeri: con il filtro Campagna detto
 // di quella campagna, D1) e valori dei filtri non disponibili (nel pannello). La campagna della risposta (null = letta
 // senza filtro) decide i testi degli interventi senza superfici in tabella, nelle note dei grafici e nell'anteprima (V1
-// della review del fisico). Nessun link verso altre pagine (OP-FIS-05): il clic apre l'anteprima o mette un filtro della
-// stessa pagina. Criteri nuovi = contenuto nuovo: un comando che sparisce col report ("Mostra solo", punto della serie per
+// della review del fisico). Il clic apre l'anteprima o mette un filtro della stessa pagina; dall'anteprima il link al
+// dettaglio dell'intervento del fisico (dal 30/10/2026); nessun link verso l'elenco operativo (OP-FIS-05). Criteri nuovi = contenuto nuovo: un comando che sparisce col report ("Mostra solo", punto della serie per
 // campagna, "Applica i filtri" con criteri cambiati dal pannello aperto dallo stato vuoto) porta il focus sull'h1 dopo la
 // chiusura del dialogo (A1, X2: WCAG 2.4.3); con criteri invariati il bottone che ha aperto il pannello resta e il focus
 // torna li' (A1 dell'iterazione 2).

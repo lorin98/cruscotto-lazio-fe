@@ -115,12 +115,15 @@ describe('RF017: output programmato e realizzato della Regione Lazio per interve
   });
 
   // il dettaglio dell'istituzionale non ha piu' l'output (29/10/2026): il dettaglio del fisico e il link sono dei passi successivi
-  it('il drawer non porta ancora a un dettaglio dell intervento', async () => {
+  it('il drawer porta al dettaglio dell intervento del fisico (link dettaglio-intervento-output)', async () => {
     servi();
-    apri(`${PERCORSO}?os=OS5`);
+    const { router } = apri(`${PERCORSO}?os=OS5`);
     await userEvent.click(within(await tabella()).getByRole('row', { name: "Apri l'anteprima dell'intervento SRA16" }));
     const drawer = await screen.findByRole('dialog', { name: 'Anteprima: SRA16' });
-    expect(within(drawer).queryByRole('link')).toBeNull();
+    expect(await within(drawer).findByText('SRA16 - Conservazione agrobiodiversità')).toBeTruthy();
+    await userEvent.click(within(drawer).getByRole('link', { name: 'Apri il dettaglio' }));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/fisico/interventi/SRA16'));
+    expect(router.state.location.search).toBe('');
   });
 
   it('CSV e XLSX dal backend coi filtri della pagina e tutte le misure, con X-Requested-With', async () => {
@@ -192,7 +195,7 @@ describe('RF017: output programmato e realizzato della Regione Lazio per interve
     const lette = servi({ output: { ...OUTPUT, righe: [] } });
     const { router } = apri(`${PERCORSO}?os=OS4`);
     await userEvent.click(await screen.findByRole('button', { name: 'Modifica i filtri' }));
-    const pannello = await screen.findByRole('dialog', { name: "Filtri dell'output regionale" });
+    const pannello = await screen.findByRole('dialog', { name: 'Filtri dei report fisici' });
     await userEvent.click(within(pannello).getByRole('button', { name: 'Azzera' }));
     await userEvent.click(within(pannello).getByRole('button', { name: 'Applica i filtri' }));
     await waitFor(() => expect(router.state.location.search).toBe(''));
@@ -207,7 +210,7 @@ describe("RA006: valori dei filtri dell'output regionale da TX-0060 dell'elenco 
     const { router } = apri();
     await tabella();
     await userEvent.click(screen.getByRole('button', { name: /^Filtri/ }));
-    const pannello = await screen.findByRole('dialog', { name: "Filtri dell'output regionale" });
+    const pannello = await screen.findByRole('dialog', { name: 'Filtri dei report fisici' });
     await userEvent.click(within(pannello).getByRole('checkbox', { name: 'SRD01 Investimenti produttivi agricoli per la competitività' }));
     await userEvent.click(within(pannello).getByRole('button', { name: 'Applica i filtri' }));
     await waitFor(() => expect(router.state.location.search).toBe('?intervento=SRD01'));

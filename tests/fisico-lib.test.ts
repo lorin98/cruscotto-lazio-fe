@@ -5,7 +5,7 @@
 import type { EChartsOption } from 'echarts';
 import { describe, expect, it } from 'vitest';
 import { COLORI, ettari, valoreEttari } from '../src/shared/lib';
-import { criteriAttivi, criteriDaRicerca, criteriDellIntervento, campagnaDaTesto, conCampagna, conFiltriDelProgramma, filtriSenzaAzione, ricercaDaCriteri, soloIntervento, testiCriteri } from '../src/features/fisico/lib/criteri';
+import { criteriAttivi, criteriDaRicerca, criteriDellIntervento, campagnaDaTesto, conCampagna, conFiltriDelProgramma, ricercaDaCriteri, soloIntervento, testiCriteri } from '../src/features/fisico/lib/criteri';
 import {
   campagnaDi,
   campagnaDiRiferimento,
@@ -539,7 +539,7 @@ describe('RF030: le Unit Amount (TX-0030)', () => {
     const [, ua2] = unitAmountPer(q(), { pagato: true }).righe ?? [];
     expect(assenzaPagato(ua2, 'importoPagato', true)).toEqual({ disponibile: false, testo: 'non valorizzato', nota: 'il dato non è presente nella fonte' });
     expect([valoreDi({ valore: 3 }), valoreDi({ valore: null }), valoreDi(undefined)]).toEqual([3, null, null]);
-    expect([testoVuotoUnitAmount(true), testoVuotoUnitAmount(false)]).toEqual(['Nessuna Unit Amount per gli interventi scelti.', 'Nessuna Unit Amount.']);
+    expect([testoVuotoUnitAmount(true), testoVuotoUnitAmount(false)]).toEqual(["Nessuna Unit Amount per i filtri scelti (per esempio un'azione portante senza interventi collegati).", 'Nessuna Unit Amount.']);
   });
 
   it('senza la fonte del pagato grafico non disponibile; con la fonte barre orizzontali raggruppate', () => {
@@ -562,8 +562,8 @@ describe('RF030: le Unit Amount (TX-0030)', () => {
     expect(o.series[0].data[0]).toMatchObject({ value: 40, codice: 'SRD01|UA1|2024' });
   });
 
-  it('filtri delle Unit Amount: intervento e obiettivi, senza l azione portante; righe dei filtri come il backend', () => {
-    expect(filtriSenzaAzione('?intervento=SRD01&os=OS4&azione=3')).toEqual({ intervento: ['SRD01'], os: ['OS4'] });
+  it('righe dei filtri come il backend: intervento, obiettivi e azione portante (SC-FS_UNIT_AMOUNT_AZIONE, senza legame nessuna riga)', () => {
+    expect((unitAmountPer(q('azione=3')).righe ?? [])).toEqual([]);
     expect((unitAmountPer(q('os=OS5')).righe ?? []).map((r) => r.codiceIntervento)).toEqual([]);
     expect((unitAmountPer(q('intervento=SRD01')).righe ?? [])).toHaveLength(3);
   });

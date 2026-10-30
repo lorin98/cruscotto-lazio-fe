@@ -5,9 +5,10 @@
 // interventi della risposta e il report. Qui: i chip e le pill del perimetro della risposta (sempre regionale), della
 // risposta e "Dati al" (ultimiDatiSincronizzati della risposta, G3); il percorso; lo stato dei valori dei filtri non
 // disponibili; le righe di contesto dei PNG (NFR-50); il corpo (l'attesa del legame con le azioni, la lettura, il vuoto
-// con "Modifica i filtri": coi criteri cambiati dal pannello il focus va sull'h1); il pannello dei filtri del programma con le voci di TX-0060 (senza l'azione
-// portante per le Unit Amount). Le superfici hanno la loro impaginazione (con la campagna). Classi bootstrap-italia e del
-// kit v2; react-aria solo dentro il pannello e il popover della pill del kit.
+// con "Modifica i filtri": coi criteri cambiati dal pannello il focus va sull'h1); il pannello dei filtri del programma con
+// le voci di TX-0060, azione portante compresa in entrambe le pagine (dal 30/10/2026 anche le Unit Amount,
+// SC-FS_UNIT_AMOUNT_AZIONE). Le superfici hanno la loro impaginazione (con la campagna). Classi bootstrap-italia e del kit
+// v2; react-aria solo dentro il pannello e il popover della pill del kit.
 import type { ReactNode } from 'react';
 import { PannelloFiltriProgramma, ValoriFiltriNonDisponibili } from '../../../entities/filtri';
 import type { Filtri } from '../../../entities/filtri';
@@ -20,7 +21,6 @@ import { PERCORSI } from '../lib/pagine';
 import type { FiltriDellaPagina } from './useFiltriNellIndirizzo';
 
 const NOTA_PANNELLO = "Voci di Intervento, obiettivi e azioni portanti da TX-0060 dell'elenco operativo (valori regionali).";
-const NOTA_PANNELLO_SENZA_AZIONE = "Voci di Intervento e obiettivi da TX-0060 dell'elenco operativo (valori regionali); le Unit Amount non si filtrano per azione portante.";
 
 /** La risposta di un report del fisico, per quanto serve all'impaginazione: il perimetro, le righe e l'ultimo dato. */
 export interface RispostaReport {
@@ -62,7 +62,7 @@ function PillDellaBarra<D extends RispostaReport>({ d, inErrore, pill }: { d: D 
 }
 
 export function PaginaReport<D extends RispostaReport>({ pagina, stato, briciola, titolo, titoloDocumento, sottotitolo, titoloPannello, pill, testoVuoto, codiciRisposta, children }: PropsPagina<D>) {
-  const { filtri, inAttesa, chip, togliTutti, valori, senzaAzione, h1, pannello, apri, chiudi, onApplica } = pagina;
+  const { filtri, inAttesa, chip, togliTutti, valori, h1, pannello, apri, chiudi, onApplica } = pagina;
   // righe di contesto del PNG dei grafici (NFR-50, hook del kit): filtri applicati, perimetro, profilo, ultimo dato
   const d = stato.data;
   const contesto = useRigheContesto(testiCriteri(filtri), d?.ultimiDatiSincronizzati, d?.perimetro ? testoPerimetro(d.perimetro) : null);
@@ -78,8 +78,7 @@ export function PaginaReport<D extends RispostaReport>({ pagina, stato, briciola
       nessuno={{}}
       onApplica={onApplica}
       onChiudi={chiudi}
-      nota={senzaAzione ? NOTA_PANNELLO_SENZA_AZIONE : NOTA_PANNELLO}
-      senzaAzione={senzaAzione}
+      nota={NOTA_PANNELLO}
     />
   );
   return (

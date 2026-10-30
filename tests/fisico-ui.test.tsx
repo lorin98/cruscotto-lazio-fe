@@ -1,20 +1,21 @@
 // Test dei componenti del fisico (green-fe step5): un test L2 per componente (render su MSW, ruoli e stati accessibili) e
-// un test a11y con axe-core diretto. Dal 29/10/2026 anche l'output regionale e le Unit Amount; le determine di una domanda
-// sono del procedurale. ECharts e' il grafico finto di src/shared/test/setup.ts (jsdom non disegna). Le
+// un test a11y con axe-core diretto. Dal 29/10/2026 anche l'output regionale e le Unit Amount; dal 30/10/2026 il dettaglio
+// dell'intervento (flusso intervento) e i link dei drawer verso di lui. Le determine di una domanda sono del procedurale. ECharts e' il grafico finto di src/shared/test/setup.ts (jsdom non disegna). Le
 // letture sono dichiarate da ogni test (il server dei test non monta i mock generati del fisico e dell'elenco).
 import type { ReactElement } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
-import { createMemoryRouter, RouterProvider } from 'react-router';
+import { createMemoryRouter, RouterProvider, useParams } from 'react-router';
 import { server } from '../src/shared/api/mock/server';
 import { expectNoA11yViolations } from '../src/shared/testing/axe';
 import { graficoDi, tabellaDi, trovaCard } from '../src/shared/testing/card-grafico';
 import { clicSulCodice, clicSulDato } from '../src/shared/testing/grafico-finto';
 import { problema } from '../src/shared/testing/msw';
 import { renderPagina } from '../src/shared/testing/render-pagina';
-import { OutputRegionale, SuperficiAmmissibili, UnitAmount } from '../src/features/fisico';
+import { renderConQuery } from '../src/shared/testing/render';
+import { DettaglioIntervento, OutputRegionale, SuperficiAmmissibili, UnitAmount } from '../src/features/fisico';
 import { OUTPUT, SRA01_OUTPUT, SUPERFICI, VALORI, superficiPer } from '../src/features/fisico/testing/fixture';
 import { lettureFisico } from '../src/features/fisico/testing/letture';
 import { AnteprimaOutput } from '../src/features/fisico/ui/AnteprimaOutput';
@@ -41,6 +42,14 @@ function inRouter(ui: ReactElement) {
   const router = createMemoryRouter([{ path: '*', element: ui }], { initialEntries: ['/'] });
   return { ...render(<RouterProvider router={router} />), router };
 }
+
+/** Un componente che legge il profilo (useAuthStatus) in un router, con il QueryClient dei test. */
+function inRouterConQuery(ui: ReactElement) {
+  const router = createMemoryRouter([{ path: '*', element: ui }], { initialEntries: ['/'] });
+  return { ...renderConQuery(<RouterProvider router={router} />), router };
+}
+
+const profilo = (roles: string[]) => server.use(http.get('*/auth/status', () => HttpResponse.json({ authenticated: true, user: { username: 'U', profile: 'p3-funzionario-area-fis', roles } })));
 
 describe('SuperficiAmmissibili (pagina delle superfici, componente)', () => {
   it('barra coi chip e le pill, KPI della campagna di riferimento, tre card grafico e nessuna violazione axe', async () => {
@@ -131,6 +140,8 @@ describe('AnteprimaIntervento (componente)', () => {
     expect(anteprima.textContent).toContain('SRB01 - Sostegno zone con svantaggi naturali montagna');
     expect(testo(anteprima.textContent)).toContain('Superficie DS, campagna 202515,50 ha');
     expect(anteprima.textContent).toContain('fonte quantità richiesta a premio non attiva');
+    // link dettaglio-intervento-superfici (30/10/2026): il dettaglio dell'intervento del fisico
+    expect((await within(anteprima).findByRole('link', { name: "Apri il dettaglio dell'intervento" })).getAttribute('href')).toBe('/fisico/interventi/SRB01');
     await expectNoA11yViolations(anteprima);
     await userEvent.click(within(anteprima).getByRole('button', { name: 'Mostra solo SRB01' }));
     await waitFor(() => expect(router.state.location.search).toBe('?intervento=SRB01'));
@@ -185,19 +196,29 @@ describe('OutputRegionale, TabellaOutput e AnteprimaOutput (output regionale)', 
     expect(testo(srd01.textContent)).toContain('12 numero di operazioni');
   });
 
-  it('AnteprimaOutput: voci, mini grafico senza PNG con la tabella equivalente, nessun link (il dettaglio del fisico e dei passi successivi); nessuna violazione axe', async () => {
+  it('AnteprimaOutput: descrizione, voci, mini grafico senza PNG con la tabella equivalente e Apri il dettaglio (dettaglio-intervento-output); nessuna violazione axe', async () => {
     const onChiudi = vi.fn();
-    inRouter(<AnteprimaOutput riga={SRA01_OUTPUT} cumulativo onChiudi={onChiudi} />);
+    inRouterConQuery(<AnteprimaOutput riga={SRA01_OUTPUT} cumulativo descrizione="Produzione integrata" onChiudi={onChiudi} />);
     const drawer = await screen.findByRole('dialog', { name: 'Anteprima: SRA01' });
+    expect(within(drawer).getByText('SRA01 - Produzione integrata')).toBeTruthy();
     expect(testo(drawer.textContent)).toContain('O.14 (ettari)');
     expect(testo(drawer.textContent)).toContain('1500 ettari al 2029');
     const card = await trovaCard('Output di SRA01 per anno');
     expect(within(card).queryByRole('group', { name: /^Scarica/ })).toBeNull();
     expect(within(await tabellaDi(card)).getAllByRole('rowheader').map((c) => c.textContent)).toContain('Target di fine periodo');
-    expect(within(drawer).queryByRole('link')).toBeNull();
+    expect((await within(drawer).findByRole('link', { name: 'Apri il dettaglio' })).getAttribute('href')).toBe('/fisico/interventi/SRA01');
     await expectNoA11yViolations(drawer);
     await userEvent.click(within(drawer).getByRole('button', { name: 'Chiudi: Anteprima: SRA01' }));
     expect(onChiudi).toHaveBeenCalled();
+  });
+
+  it('AnteprimaOutput senza nessuno dei grant del dettaglio: niente link; senza le voci di TX-0060 il solo codice', async () => {
+    profilo(['csr.tx-0060.read']);
+    inRouterConQuery(<AnteprimaOutput riga={SRA01_OUTPUT} cumulativo onChiudi={() => undefined} />);
+    const drawer = await screen.findByRole('dialog', { name: 'Anteprima: SRA01' });
+    await trovaCard('Output di SRA01 per anno');
+    expect(within(drawer).getByText('SRA01')).toBeTruthy();
+    expect(within(drawer).queryByRole('link')).toBeNull();
   });
 });
 
@@ -218,12 +239,95 @@ describe('UnitAmount, TabellaUnitAmount e l anteprima della Unit Amount', () => 
     await expectNoA11yViolations(container);
   });
 
-  it('col pagato: il clic su una barra apre l anteprima della riga; nessuna violazione axe', async () => {
+  it('col pagato: il clic su una barra apre l anteprima della riga con la descrizione dell intervento; nessuna violazione axe', async () => {
     server.use(...lettureFisico({ pagato: true }).handlers);
     renderPagina(UnitAmount, '/fisico/unit-amount');
     clicSulCodice(graficoDi(await trovaCard('Percentuale pagata per Unit Amount')), 'SRD01|UA1|2024');
     const drawer = await screen.findByRole('dialog', { name: 'Anteprima: UA1 (SRD01, esercizio 2024)' });
     expect(testo(drawer.textContent)).toContain('Gruppo colturaleSeminativi');
+    expect(await within(drawer).findByText('SRD01 - Investimenti produttivi agricoli per la competitività')).toBeTruthy();
     await expectNoA11yViolations(drawer);
+  });
+
+  it("Apri il dettaglio dell'intervento (dettaglio-intervento-unit-amount): il dettaglio sulla scheda Unit Amount, con lo state della navigazione", async () => {
+    server.use(...lettureFisico().handlers);
+    const { router } = renderPagina(UnitAmount, '/fisico/unit-amount');
+    const riga = within(await screen.findByRole('table', { name: /^Unit Amount degli interventi selezionati/ })).getByRole('row', { name: "Apri l'anteprima della Unit Amount UA1 di SRD01, esercizio 2025" });
+    await userEvent.click(riga);
+    const drawer = await screen.findByRole('dialog', { name: 'Anteprima: UA1 (SRD01, esercizio 2025)' });
+    const link = within(drawer).getByRole('link', { name: "Apri il dettaglio dell'intervento" });
+    expect(link.getAttribute('href')).toBe('/fisico/interventi/SRD01');
+    await userEvent.click(link);
+    await waitFor(() => expect(router.state.location.pathname).toBe('/fisico/interventi/SRD01'));
+    expect(router.state.location.state).toEqual({ scheda: 'unitAmount' });
+    expect(router.state.location.search).toBe('');
+  });
+});
+
+/** La pagina del dettaglio nei test: il codice dal percorso, come src/pages/fisico/interventi/page.tsx. */
+function PaginaDettaglio() {
+  const { codice } = useParams();
+  return <DettaglioIntervento codice={codice} />;
+}
+
+const apriDettaglio = (indirizzo: string | { pathname: string; state: unknown }) => {
+  const router = createMemoryRouter(
+    [
+      { path: '/fisico/interventi/:codice', Component: PaginaDettaglio },
+      { path: '*', element: <p>altra pagina</p> },
+    ],
+    { initialEntries: [indirizzo] },
+  );
+  return { ...renderConQuery(<RouterProvider router={router} />), router };
+};
+
+describe('DettaglioIntervento e SchedeIntervento (dettaglio dell intervento del fisico, flusso intervento)', () => {
+  it('testata, badge, quattro KPI, tre schede; la scheda Output col grafico per anno; nessuna violazione axe', async () => {
+    const { lette, handlers } = lettureFisico();
+    server.use(...handlers);
+    const { container } = apriDettaglio('/fisico/interventi/SRA01');
+    expect(await screen.findByRole('heading', { level: 1, name: 'Produzione integrata' })).toBeTruthy();
+    expect(screen.getByText('Fisico - intervento SRA01')).toBeTruthy();
+    expect(within(screen.getByRole('list', { name: 'Dati principali' })).getAllByRole('listitem').map((l) => l.textContent)).toEqual(['Perimetro regionale', 'Indicatore di output O.14 (ettari)']);
+    expect(testo((await screen.findByRole('region', { name: 'Target di fine periodo' })).textContent)).toContain('1500 ettari al 2029');
+    expect(testo(screen.getByRole('region', { name: 'Superficie ammissibile DS, campagna 2025: superficie delle domande di sostegno' }).textContent)).toContain('10,50 ha');
+    expect(screen.getAllByRole('tab').map((t) => [t.textContent, t.getAttribute('aria-selected')])).toEqual([
+      ['Output per anno', 'true'],
+      ['Superfici per campagna', 'false'],
+      ['Unit Amount', 'false'],
+    ]);
+    const card = await trovaCard('Output programmato e realizzato per anno (ettari)');
+    expect(within(card).getAllByRole('button', { name: /^Scarica / }).map((b) => b.getAttribute('aria-label'))).toEqual([
+      'Scarica il grafico Output programmato e realizzato per anno in PNG',
+      "Scarica l'output e gli importi unitari dell'intervento SRA01 in CSV",
+      "Scarica l'output e gli importi unitari dell'intervento SRA01 in XLSX",
+    ]);
+    // TX-0030 si legge solo aprendo la sua scheda
+    expect(lette.unitAmount).toEqual([]);
+    await expectNoA11yViolations(container);
+  });
+
+  it('scheda Superfici per campagna: la linea e la tabella equivalente dalla campagna piu recente; scheda Unit Amount di un intervento senza Unit Amount', async () => {
+    const { lette, handlers } = lettureFisico();
+    server.use(...handlers);
+    apriDettaglio('/fisico/interventi/SRA01');
+    await userEvent.click(await screen.findByRole('tab', { name: 'Superfici per campagna' }));
+    const card = await trovaCard('Superficie DS e DP per campagna (ettari)');
+    const t = await tabellaDi(card);
+    expect(within(t).getAllByRole('rowheader').map((c) => c.textContent)).toEqual(['2025', '2024']);
+    await userEvent.click(screen.getByRole('tab', { name: 'Unit Amount' }));
+    expect((await screen.findByText(/^Intervento senza Unit Amount/)).closest('[role="status"]')).not.toBeNull();
+    expect(lette.unitAmount).toEqual(['?intervento=SRA01']);
+  });
+
+  it('scheda Unit Amount: otto colonne, la Unit Amount intestazione di riga, la nota unica del pagato; nessuna violazione axe', async () => {
+    server.use(...lettureFisico().handlers);
+    const { container } = apriDettaglio({ pathname: '/fisico/interventi/SRD01', state: { scheda: 'unitAmount' } });
+    const t = await screen.findByRole('table', { name: /^Unit Amount dell'intervento SRD01 per esercizio e codice/ });
+    expect(within(t).getAllByRole('columnheader').map((c) => c.textContent)).toEqual(['Unit Amount', 'Gruppo colturale', 'Esercizio', 'Importo unitario', 'Output previsto', 'Importo pagato', 'Pagato sul richiesto', 'Base storica']);
+    expect(within(t).getAllByRole('rowheader').map((c) => c.textContent)).toEqual(['UA1', 'UA2', 'UA1']);
+    expect(screen.getByText(/^Importo pagato, percentuale pagata sul richiesto e base storica: non disponibili per tutte le Unit Amount/)).toBeTruthy();
+    expect(screen.getByRole('tab', { name: 'Unit Amount' }).getAttribute('aria-selected')).toBe('true');
+    await expectNoA11yViolations(container);
   });
 });

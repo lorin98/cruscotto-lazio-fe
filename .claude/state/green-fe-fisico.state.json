@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "fisico",
-  "current_step": 5,
+  "current_step": 6,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -92,12 +92,15 @@
       }
     },
     "step5-ui": {
-      "status": "in_progress",
-      "completed_at": "2026-10-22T09:37:17Z",
+      "status": "done",
+      "completed_at": "2026-10-30T09:20:52Z",
       "artifacts": [
         "./src/features"
       ],
-      "gates": {}
+      "gates": {
+        "ui_components_compile": "pass",
+        "ui_a11y_axe": "pass"
+      }
     },
     "step6-page": {
       "status": "in_progress",

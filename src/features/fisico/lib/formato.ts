@@ -141,9 +141,12 @@ export function testoVuotoOutput(conFiltri: boolean): string {
   return conFiltri ? "Nessun intervento per i filtri scelti (per esempio un'azione portante senza interventi collegati)." : "Nessun intervento nell'output regionale.";
 }
 
-/** Definizioni del backend sotto la tabella dell'output regionale (D-03, D-04; da confermare: OP-FIS-12). */
+/**
+ * Definizioni del backend sotto la tabella dell'output regionale (D-03, D-04; da confermare: OP-FIS-12), col rimando alla
+ * pagina Unit Amount per gli importi unitari (OP-FIS-15): il testo del wireframe output-regionale approvato il 30/10/2026.
+ */
 export const DEFINIZIONI_OUTPUT =
-  'Fonte: TX-0017. Programmato per anno = somma dell\'output previsto delle Unit Amount dell\'esercizio (D-03): gli interventi senza Unit Amount valorizzate hanno il solo target di fine periodo. Realizzato SIGC = output erogato dell\'anno campagna; realizzato non SIGC = valore del file non SIGC per anno di riferimento, cumulativo (da confermare con ARSIAL e AGEA). Una riga presente in entrambi i monitoraggi è "non attribuibile (riga presente sia nel monitoraggio SIGC sia nel non SIGC)".';
+  'Fonte: TX-0017. Programmato per anno = somma dell\'output previsto delle Unit Amount dell\'esercizio (D-03 di istituzionale, valida per TX-0017 anche nel fisico): gli interventi senza Unit Amount valorizzate, come gli strutturali, hanno il solo target di fine periodo. Realizzato SIGC = output erogato dell\'anno campagna; realizzato non SIGC = valore del file non SIGC per anno di riferimento, cumulativo (D-04, da confermare con ARSIAL e AGEA). Una riga presente in entrambi i monitoraggi è "non attribuibile (riga presente sia nel monitoraggio SIGC sia nel non SIGC)". Gli importi unitari per Unit Amount sono nei file CSV e XLSX; in pagina li mostra la pagina Unit Amount, con output previsto e pagato (TX-0030).';
 
 // ---------------------------------------------------------------- Unit Amount (TX-0030, dal procedurale il 29/10/2026)
 
@@ -155,9 +158,9 @@ export function resaAssenza(dato: Pick<DatoMotivatoLike<unknown>, 'motivo' | 'fo
   return breveSenzaFonte && dato?.motivo === 'FONTE_NON_ATTIVA' ? NON_DISPONIBILE_BREVE : descriviAssenza(dato);
 }
 
-/** Lo stato vuoto delle Unit Amount: coi filtri dice gli interventi scelti. */
+/** Lo stato vuoto delle Unit Amount: coi filtri lo dice dei filtri scelti, azione portante compresa (wireframe del 30/10/2026). */
 export function testoVuotoUnitAmount(conFiltri: boolean): string {
-  return conFiltri ? 'Nessuna Unit Amount per gli interventi scelti.' : 'Nessuna Unit Amount.';
+  return conFiltri ? "Nessuna Unit Amount per i filtri scelti (per esempio un'azione portante senza interventi collegati)." : 'Nessuna Unit Amount.';
 }
 
 /** Le Unit Amount non sono domande: nessun totale (il DTO non lo porta) e nessun link verso l'elenco. */
