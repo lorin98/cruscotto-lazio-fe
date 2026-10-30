@@ -1,0 +1,12 @@
+[
+  {
+    "id": "EO-01",
+    "feature": "elenco-operativo",
+    "severity": "MAGGIORE",
+    "file": "src/features/elenco-operativo/ui/SchedaDomanda.tsx:197",
+    "titolo": "Con un codice a barre condiviso fra SOSTEGNO e PAGAMENTO, il link alle determine apre quelle dell'altra domanda, contro il wireframe che promette 'la stessa domanda'",
+    "evidenza": "Il link passa solo il codice (percorsoDetermine(d.codiceABarre, conDetermine), :197; entities/domanda/lib/determine.ts:16-17). TX-0020 non ha un parametro tipo (handover/openapi-procedurale.json): sceglie la domanda con la regola dell'aggancio e la dichiara in tipoDomanda. Casi del pack: SC-PC_DETERMINA_TIPO (34810022870, SOSTEGNO con G00010 e PAGAMENTO con G00011) e SC-PC_DETERMINA_SCOPE_P4 (54810769588 per il P1). Dalla scheda SOSTEGNO il link apre le determine della PAGAMENTO e 'Apri la scheda della domanda' porta alla scheda PAGAMENTO. Questo contraddice wireframes/elenco-operativo/dettaglio-domanda/dettaglio-domanda.md:48 ('porta alla stessa domanda'), e nessun test usa un codice condiviso.",
+    "fix": "Serve la decisione D1 dell'utente. (a) Il link porta il tipo della scheda nello state della navigazione; se tipoDomanda e' diverso, la pagina delle determine lo dice in role=status (va riapprovato il flusso determine del procedurale). (b) Etichetta onesta ('Apri le determine del codice a barre nell'area Procedurale') e frase di dettaglio-domanda.md:48 corretta (va riapprovato dettaglio-domanda). (c) Open point a green-be per un parametro tipo di TX-0020. In ogni caso serve un test con la scheda SOSTEGNO 34810022870 e la risposta PAGAMENTO.",
+    "fonti": ["ANT-01"]
+  }
+]

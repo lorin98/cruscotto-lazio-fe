@@ -1,0 +1,22 @@
+[
+  {
+    "id": "FIN-01",
+    "feature": "finanziario",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/lib/formato.ts:12",
+    "titolo": "siNo e annoOpzionale senza consumatori di produzione dopo l'uscita della verifica SMP",
+    "evidenza": "Tolto VerificaSmpReport, siNo (:12-15) e annoOpzionale (:35-37) non sono importati da nessun file di src/ (grep): li usano solo tests/finanziario-lib.test.ts:22, :26, :263-265 e :276-277. E' codice morto della vecchia collocazione, tenuto vivo da test senza valore.",
+    "fix": "Togliere siNo e annoOpzionale da finanziario/lib/formato.ts e le asserzioni di tests/finanziario-lib.test.ts:263-265 e :276-277. Con IST-06 annoOpzionale passa in shared/lib e si testa li'.",
+    "fonti": ["H-09"]
+  },
+  {
+    "id": "FIN-02",
+    "feature": "finanziario",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/lib/filtri.ts:30",
+    "titolo": "Il parametro tipo di anniSelezionabili e di SelettoreAnno ha un solo valore ('riserva')",
+    "evidenza": "ULTIMO_ANNO: Record<'riserva', number> (:27), anniSelezionabili(tipo: 'riserva', corrente?) (:30) e SelettoreAnno({ tipo: 'riserva' }) (ui/SelettoreAnno.tsx:7): il discriminante non discrimina piu'. Il resoconto (scelta 1, punto aperto 4) rimandava la pulizia a dopo la fusione, che c'e' stata (13a7f07).",
+    "fix": "anniDellaRiserva(corrente?) senza tipo e SelettoreAnno senza la prop tipo; aggiornare RiservaReport.tsx:123, tests/finanziario-lib.test.ts:251-254 e tests/kit-comune-istituzionale.test.tsx:49.",
+    "fonti": ["H-10"]
+  }
+]

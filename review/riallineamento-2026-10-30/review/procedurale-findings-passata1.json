@@ -1,0 +1,52 @@
+[
+  {
+    "id": "PRO-01",
+    "feature": "procedurale",
+    "severity": "MINORE",
+    "file": "src/pages/procedurale/determine/page.test.tsx:48",
+    "titolo": "Determine: le asserzioni 'nessuna lettura' (senza codice e con codice non valido) sono sincrone e non possono vedere una lettura",
+    "evidenza": "Nei test di :48 e :140, expect(lette).toEqual([]) segue apri() senza await. L'handler MSW che riempie lette gira dopo, quindi una lettura partita per errore non sarebbe ancora contata. Col codice non valido non la rivelerebbe nemmeno il DOM: Corpo restituisce null (DetermineDellaDomanda.tsx:151). Il cablaggio useDetermine(codice.stato === 'valido' ? codice.codice : null) (:175) non e' quindi provato a livello di pagina; e' lo stesso difetto di IST-02.",
+    "fix": "Prima di expect(lette).toEqual([]) aggiungere await act(async () => new Promise((r) => setTimeout(r, 30))). Meglio: chiudere i due test con una ricerca valida (54810769585 + Invio, attesa della tabella) e asserire lette = ['54810769585'], come src/pages/istituzionale/verifica-smp-sigc/page.test.tsx:42-55.",
+    "fonti": ["A-01", "ANT-04"]
+  },
+  {
+    "id": "PRO-02",
+    "feature": "procedurale",
+    "severity": "MINORE",
+    "file": "src/features/procedurale/ui/DetermineDellaDomanda.tsx:158",
+    "titolo": "Stato 'errore' delle determine (403/429/503) senza 'Cerca un altro codice' del wireframe approvato; il test fissa lo scostamento",
+    "evidenza": "Il wireframe approvato il 30/10 mette 'Cerca un altro codice' anche nello stato d'errore (wireframes/procedurale/determine/determine.html:141). errorePersonalizzato invece restituisce null per tutto cio' che non e' 404 o 400 (:157-158), e l'errore va nell'avviso generico con Riprova; per il 403 Riprova ripete la richiesta negata. Lo scostamento e' dichiarato nel resoconto e c'era gia' nel fisico, ma non e' mai stato registrato come deviazione. Il test src/pages/procedurale/determine/page.test.tsx:222 ne asserisce l'assenza.",
+    "fix": "Serve la decisione D2 dell'utente. (a) Per gli errori diversi da 404 e 400, mettere nell'avviso il link 'Cerca un altro codice' che porta il focus al campo (come DomandaNonTrovata), con Riprova secondo la politica comune; il test :217 verifica link e focus. (b) Registrare la deviazione nello uiplan del procedurale, come open point o deviations_reviewed, e scrivere nel test :217 che e' la deviazione approvata.",
+    "fonti": ["V2-01"]
+  },
+  {
+    "id": "PRO-03",
+    "feature": "procedurale",
+    "severity": "MINORE",
+    "file": "src/features/procedurale/lib/pagine.ts:19",
+    "titolo": "Percorso e grant delle determine riscritti come letterali fuori dal contratto condiviso di entities/domanda; due siNo nella stessa lib",
+    "evidenza": "Percorso e grant delle determine stanno nel contratto condiviso entities/domanda/lib/determine.ts:9 e :12, usato dal link dell'elenco. Il procedurale li riscrive come letterali (lib/pagine.ts:19, lib/grant.ts:23) e ricostruisce l'indirizzo (lib/determine.ts:38-40), mentre per le altre destinazioni usa GRANT_ELENCO dell'entity (grant.ts:29-31). Basta cambiare un solo posto per separare la voce di menu dal link dell'elenco. Inoltre lib/determine.ts:104 esporta un secondo siNo, con firma diversa da quello di lib/formato.ts.",
+    "fix": "PERCORSI.determine = PERCORSO_DETERMINE_DELLA_DOMANDA e GRANT.determine = GRANT_DETERMINE_DELLA_DOMANDA, importati da entities/domanda. percorsoDetermine(codice) composto su PERCORSO_DETERMINE_DELLA_DOMANDA. Un solo siNo in lib/formato.ts col testo del si' facoltativo, importato da DetermineDellaDomanda.tsx.",
+    "fonti": ["H-14"]
+  },
+  {
+    "id": "PRO-04",
+    "feature": "procedurale",
+    "severity": "COSMETICO",
+    "file": "src/features/procedurale/testing/fixture.ts:323",
+    "titolo": "Fixture e test delle determine citano scenari SC-FS_DETERMINA* che l'handover non ha piu'; lo scenario P4 non e' nominato",
+    "evidenza": "handover/acceptance/procedurale-scenarios.json ha SC-PC_DETERMINA, _TIPO, _NESSUNA, _ASSENTE e _SCOPE_P4, e nessun file di acceptance contiene piu' SC-FS_DETERMINA. I commenti li citano ancora: fixture.ts:5, :323, :337 e :347, letture.ts:42, page.test.tsx:3. Il describe P4 (page.test.tsx:166) prova SC-PC_DETERMINA_SCOPE_P4 senza nominarlo.",
+    "fix": "Sostituire SC-FS_DETERMINA, _NESSUNA e _ASSENTE con SC-PC_DETERMINA, _NESSUNA e _ASSENTE in fixture.ts, letture.ts e nel commento di page.test.tsx. Citare DETERMINE_CHIUSA come SC-PC_DETERMINA_NESSUNA ed etichettare il describe di :166 con SC-PC_DETERMINA_SCOPE_P4.",
+    "fonti": ["V2-02"]
+  },
+  {
+    "id": "PRO-05",
+    "feature": "procedurale",
+    "severity": "COSMETICO",
+    "file": "plan/procedurale/uiplan.json:1522",
+    "titolo": "OP-PR-14 non aggiornato: dice che il link dall'elenco alle determine manca ancora, ma e' fatto e OP-EO-07 e' chiuso",
+    "evidenza": "OP-PR-14 dice 'finche' manca, si entra dal menu e si scrive il codice'. Il link determine-della-domanda pero' c'e' nello uiplan dell'elenco (OP-EO-07, 'Chiuso il 30/10/2026: ... link sbloccato') e nel codice (SchedaDomanda.tsx:197). Il wireframe determine.md lo cita al condizionale e non va toccato.",
+    "fix": "Aggiornare il detail di OP-PR-14 nello uiplan del procedurale (non il wireframe): 'Chiuso il 30/10/2026: link determine-della-domanda dell'elenco operativo (OP-EO-07), visibile con csr.tx-0020.read'. Poi rifare il gate step8 del procedurale.",
+    "fonti": ["V2-03"]
+  }
+]

@@ -1,0 +1,47 @@
+[
+  {
+    "id": "ANT-01",
+    "feature": "elenco-operativo",
+    "severity": "MAGGIORE",
+    "file": "src/features/elenco-operativo/ui/SchedaDomanda.tsx:197",
+    "titolo": "Il link 'Apri le determine della domanda nell'area Procedurale' puo' aprire le determine di un'altra domanda con lo stesso codice a barre (SC-PC_DETERMINA_TIPO, SC-PC_DETERMINA_SCOPE_P4), contro il wireframe che promette 'la stessa domanda'",
+    "evidenza": "La scheda e' identificata da tipo e codice (/elenco-operativo/domande/:tipo/:codiceABarre), ma il link passa il solo codice: TabellaDetermine riceve percorsoDetermine(d.codiceABarre, conDetermine) (SchedaDomanda.tsx:197, lib/collegamenti.ts:46, entities/domanda/lib/determine.ts:16-17), nessun tipo ne' state. TX-0020 sceglie la domanda dal solo codice con la regola dell'aggancio: per il pack (handover/acceptance/procedurale-scenarios.json) 34810022870 e' SOSTEGNO con G00010 e PAGAMENTO con G00011 e TX-0020 risponde con la PAGAMENTO (SC-PC_DETERMINA_TIPO, ruolo p3-funzionario-area); 54810769588 e' PAGAMENTO di Frosinone (G00004) e SOSTEGNO di Latina (G00005), e al P1 TX-0020 da' la PAGAMENTO (SC-PC_DETERMINA_SCOPE_P4). Dalla scheda SOSTEGNO/34810022870, la cui scheda Determine elenca G00010, il link porta a una pagina 'Determine della domanda 34810022870' con G00011 corrente e il suo 'Apri la scheda della domanda' porta alla scheda PAGAMENTO, non a quella di partenza. Il wireframe approvato dice il contrario: wireframes/elenco-operativo/dettaglio-domanda/dettaglio-domanda.md:48 'Il link determine-della-domanda porta alla stessa domanda (il codice a barre della scheda)', mentre quello del procedurale (wireframes/procedurale/determine/determine.md:85-86) ammette che lo stesso codice sia di due domande. Le quattro lenti hanno dato per buona l'equivalenza codice = domanda; i test (src/pages/elenco-operativo/dettaglio-domanda/page.test.tsx, fixture PAGAMENTO/54230000001) controllano solo l'href e non hanno un caso col codice condiviso fra due tipi.",
+    "fix": "Decisione dell'utente su una delle strade, poi test: (a) il link porta nello state della navigazione il tipo della scheda (come la scheda d'arrivo delle Unit Amount, mai nell'URL) e la pagina delle determine, se tipoDomanda della risposta e' diverso, lo dice in role=status ('Il codice a barre 34810022870 e' anche di una domanda di pagamento: TX-0020 mostra le determine di quella; le determine della domanda di sostegno sono nella sua scheda, scheda Determine'); (b) etichetta onesta del link ('Apri le determine del codice a barre nell'area Procedurale') e frase del wireframe corretta; (c) open point verso il backend per un parametro tipo di TX-0020. In ogni caso un test con la scheda SOSTEGNO e la risposta di TX-0020 PAGAMENTO."
+  },
+  {
+    "id": "ANT-02",
+    "feature": "fisico",
+    "severity": "MINORE",
+    "file": "src/features/fisico/ui/DettaglioIntervento.tsx:187",
+    "titolo": "Dettaglio dell'intervento: se TX-0017 e TX-0018 falliscono insieme la pagina nasconde tutte le schede, anche quella Unit Amount gia' letta arrivando dal drawer; il wireframe vuole l'errore dentro la scheda",
+    "evidenza": "Lo stato della pagina si decide sulle sole letture di TX-0017 e TX-0018 (letture = soloUnitAmount ? [unitAmount] : [output, superfici], riga 187): se entrambe sono in errore statoDelDettaglio da' 'errore' e CorpoDelDettaglio (src/shared/ui/pagina/Dettaglio.tsx:37) mette al posto delle schede il solo testo statico. Arrivando dal drawer delle Unit Amount (state { scheda: 'unitAmount' }, UnitAmount.tsx:75) TX-0030 parte subito (riga 184-186, unitAmountAperta) e risponde, ma la sua tabella non si vede: l'utente ha solo Riprova sulle due letture che non ha chiesto. Lo stesso per un profilo senza TX-0017 (es. 0018 + 0030): un errore di TX-0018 rende irraggiungibile la scheda Unit Amount. Il wireframe approvato (wireframes/fisico/intervento/intervento.md:128-129) dice 'l'errore di una scheda resta nella scheda e non ferma le altre' e la scelta 4 del resoconto (fisico-step3-7.md) dichiara 'le altre schede funzionano'; il test src/pages/fisico/interventi/page.test.tsx:373 ('errore di entrambe le letture della pagina') prova solo l'avviso e Riprova, senza la scheda Unit Amount.",
+    "fix": "Contare TX-0030 fra le letture dello stato quando la sua scheda e' stata aperta (letture = [output, superfici, unitAmountAperta ? unitAmount : null]), cosi' una risposta di TX-0030 tiene la pagina in 'dati' con le schede e il testo statico nelle due in errore (il vuoto di AT001 resta: TX-0030 non ha AT001). Test: arrivo con state scheda unitAmount, TX-0017 e TX-0018 503, tabella Unit Amount visibile, un solo avviso con '2 sezioni', schede Output e Superfici col testo statico."
+  },
+  {
+    "id": "ANT-03",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/lib/intervento.ts:112",
+    "titolo": "Dettaglio istituzionale con le letture per scheda: l'errore della sola lettura partita nasconde schede e selettore (niente altro esercizio, niente scheda non SIGC); il test dice il contrario",
+    "evidenza": "Ogni scheda legge solo quando si apre (DettaglioIntervento.tsx:148-149): arrivando dalla verifica SIGC (?esercizio=2025) parte solo TX-0015, dalla non SIGC solo TX-0016. Se quella lettura fallisce (503 TEMPO_SCADUTO o CAPACITA_ESAURITA), statoDellaPagina (lib/intervento.ts:112-114) passa 'errore' perche' letture.length e' 1, e CorpoDelDettaglio mostra il solo testo statico: spariscono la tablist, quindi la scheda non SIGC che il profilo potrebbe aprire, e il selettore dell'esercizio (o dell'anno) che sta dentro la scheda; resta solo Riprova sulla stessa lettura. A e0f6cb7 il dettaglio leggeva TX-0016 e TX-0017 all'apertura (git show e0f6cb7:src/features/istituzionale/ui/DettaglioIntervento.tsx:40-41 e 141-142): l'errore di una lasciava schede e selettore. Il test src/pages/istituzionale/interventi/page.test.tsx:339 si intitola 'errore di TX-0015: ... la scheda dice il testo statico', ma in quello stato la scheda non c'e' (lo dice CorpoDelDettaglio) e il test non guarda ne' schede ne' selettore.",
+    "fix": "In statoDellaPagina, con stato 'errore' e almeno una scheda visibile, rendere le schede ('dati'): la scheda in errore mostra gia' il testo statico (VistaQuery con errorePersonalizzato nellaPagina in SchedeIntervento) col suo selettore, l'avviso della pagina tiene Riprova, l'altra scheda resta apribile. Correggere il test della riga 339 perche' verifichi tablist, selettore dell'esercizio e testo statico dentro la scheda SIGC; un caso speculare per TX-0016 in errore con ?anno."
+  },
+  {
+    "id": "ANT-04",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/pages/istituzionale/interventi/page.test.tsx:384",
+    "titolo": "Il test 'col solo grant di TX-0015 ... non legge nulla' conta le letture subito dopo il render: una lettura di TX-0016 partita senza grant ma non collegata alla pagina non verrebbe vista",
+    "evidenza": "expect([lette.verifica, lette.verificaSigc]).toEqual([[], []]) arriva subito dopo await findByText(\"Scegli l'esercizio finanziario da consultare.\"), che compare appena /auth/status risponde (statoDellaPagina da' 'dati' senza letture). Se useVerificaSmpNonSigc partisse col grant sbagliato (abilitato non legato a conVerifica, DettaglioIntervento.tsx:148-150) mentre verifica resta null (riga 152), la pagina non aspetterebbe la risposta e l'handler MSW registrerebbe la richiesta dopo l'asserzione: il test passerebbe. E' lo stesso difetto di A-01 (determine), che la lente A ha visto solo nel procedurale citando come buoni i test dell'istituzionale: questo, nuovo nel delta, non aspetta come quelli (tests/istituzionale-ui.test.tsx:321 attende 50 ms).",
+    "fix": "Prima dell'asserzione `await act(async () => new Promise((r) => setTimeout(r, 50)))`, oppure chiudere il test scegliendo l'esercizio con Mostra e asserire lette.verifica = [] e lette.verificaSigc = ['?intervento=SRA01&esercizio=2025'] dopo la tabella SIGC (una lettura spuria iniziale a quel punto e' registrata)."
+  },
+  {
+    "id": "ANT-05",
+    "feature": "istituzionale",
+    "severity": "COSMETICO",
+    "file": "src/features/istituzionale/ui/VerificaSmpNonSigc.tsx:46",
+    "titolo": "Link reciproci fra le due verifiche: senza il legame interventi-azioni la frase perde l'azione portante che il menu invece porta",
+    "evidenza": "La frase passa pagina.filtri (VerificaSmpNonSigc.tsx:46, VerificaSmpSigc.tsx:75), cioe' i filtri dopo senzaAzioneSeNonDisponibile (entities/filtri/ui/useFiltriProgrammaNellIndirizzo.ts:68): con legameAzioniDisponibile falso (il caso delle fixture e di SC-IS_FILTRI, INTERVENTOAZIONE vuota) ?azione=3 sparisce dal link. Il menu passa invece ricercaDeiSoliFiltri(search) sull'indirizzo grezzo (menu.tsx:21, aree.ts:131), quindi l'azione arriva con il chip 'non applicato'. Il wireframe approvato (wireframes/istituzionale/verifica-smp-sigc/verifica-smp-sigc.md:82-83) dice 'Gli stessi cinque filtri restano passando dal menu o dalla frase sotto il titolo all'altra verifica dell'area'. Nessun test della frase con il legame assente.",
+    "fix": "Costruire il link dai criteri dell'indirizzo (filtriDaRicerca(search) o ricercaDeiSoliFiltri come il menu) invece che da pagina.filtri; un test con ?intervento=SRD01&azione=3 e legameAzioniDisponibile falso: href con azione=3, come la voce di menu."
+  }
+]

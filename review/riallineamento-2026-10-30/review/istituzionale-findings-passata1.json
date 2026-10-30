@@ -1,0 +1,102 @@
+[
+  {
+    "id": "IST-01",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/lib/intervento.ts:112",
+    "titolo": "Dettaglio con le letture per scheda: l'errore dell'unica lettura partita nasconde schede e selettore, e il test dice il contrario",
+    "evidenza": "Le schede leggono solo quando si aprono (DettaglioIntervento.tsx:148-149): con ?esercizio parte solo TX-0015, dalla non SIGC solo TX-0016. Se quella lettura fallisce (503), statoDellaPagina (:112-114) lascia 'errore' e la pagina mostra solo il testo statico. Spariscono la tablist, l'altra scheda e il selettore dell'esercizio o dell'anno, e resta solo Riprova sulla stessa lettura. A e0f6cb7 le due letture partivano insieme, e l'errore di una lasciava schede e selettore. Il test src/pages/istituzionale/interventi/page.test.tsx:339 dichiara 'la scheda dice il testo statico', ma non guarda la scheda, che in quello stato non c'e'.",
+    "fix": "In statoDellaPagina, con stato 'errore' e almeno una scheda visibile, restituire 'dati': la scheda in errore mostra gia' il testo statico col suo selettore, e l'avviso tiene Riprova. Correggere il test :339 perche' verifichi tablist, selettore dell'esercizio e testo statico nella scheda SIGC; aggiungere il caso speculare con TX-0016 in errore e ?anno.",
+    "fonti": ["ANT-03"]
+  },
+  {
+    "id": "IST-02",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/pages/istituzionale/interventi/page.test.tsx:384",
+    "titolo": "Il test 'col solo grant di TX-0015 ... non legge nulla' conta le letture senza attendere: una lettura senza grant non verrebbe vista",
+    "evidenza": "expect([lette.verifica, lette.verificaSigc]).toEqual([[], []]) segue il findByText di :379, che compare appena risponde /auth/status. Una lettura di TX-0016 partita senza grant ma non collegata alla pagina (verifica resta null, DettaglioIntervento.tsx:152) arriverebbe all'handler MSW dopo l'asserzione, e il test passerebbe. tests/istituzionale-ui.test.tsx:321 per lo stesso caso aspetta 50 ms. E' lo stesso difetto di PRO-01.",
+    "fix": "Prima dell'asserzione aggiungere await act(async () => new Promise((r) => setTimeout(r, 50))). Meglio: chiudere il test scegliendo l'esercizio con Mostra e asserire, dopo la tabella SIGC, lette.verifica = [] e lette.verificaSigc = ['?intervento=SRA01&esercizio=2025'].",
+    "fonti": ["ANT-04", "A-01"]
+  },
+  {
+    "id": "IST-03",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/lib/criteri.ts:68",
+    "titolo": "L'ultimo esercizio chiuso della card si calcola nel fuso del browser, non nel calendario italiano dell'esercizio",
+    "evidenza": "esercizioUltimoChiuso usa getFullYear, getMonth e getDate del fuso del browser (:68-71) ed e' chiamata con new Date() (AnteprimaIstituzionale.tsx:66). Un browser con un fuso diverso da Europe/Rome sbaglia l'esercizio della card, e la lettura di TX-0015, per qualche ora a cavallo della mezzanotte fra il 15 e il 16/10. Il test della card ricalcola l'atteso con la stessa funzione (tests/anteprime-home.test.tsx:226), quindi non prova il confine.",
+    "fix": "Ricavare giorno, mese e anno nel fuso Europe/Rome (Intl.DateTimeFormat('it-IT', { timeZone: 'Europe/Rome', year: 'numeric', month: 'numeric', day: 'numeric' }).formatToParts) prima di applicare la regola del 16/10. Test: 2026-10-15T22:30:00Z deve dare 2026. In alternativa dichiarare il limite in OP-IS-11.",
+    "fonti": ["V1-05"]
+  },
+  {
+    "id": "IST-04",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/ui/AnteprimaIstituzionale.tsx:54",
+    "titolo": "La regola del periodo della verifica SIGC (esercizio della risposta, anno delle domande n-1, estremi) e' sparsa fra componenti e lib, con copie divergenti",
+    "evidenza": "d.esercizio ?? esercizio e d.annoDomande ?? n - 1 stanno nei componenti (AnteprimaIstituzionale.tsx:51 e :54, SchedeIntervento.tsx:105-106); vociRiferimentiSigc lo ripete in lib/verificaSigc.ts:80-95. Gli estremi stanno in formato.ts:21-23 e sono riscritti a mano in anteprima.ts:107. Nella scheda SIGC, KPI e caption usano annoDomande ?? n-1, mentre la voce 'Anno delle domande' dice 'non disponibile' (annoOpzionale(d.annoDomande)); annoDomande non e' required nel contratto.",
+    "fix": "In lib/verificaSigc.ts creare periodoDellaRisposta(d, chiesto): { esercizio, annoDomande }, usata da card, scheda SIGC e voci dei riferimenti. Creare una sola estremiEsercizio(n), usata da periodoEsercizio e da riferimentoAnteprimaSigc. Test L1 del ripiego n-1 e del testo del riferimento.",
+    "fonti": ["H-07"]
+  },
+  {
+    "id": "IST-05",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/ui/comuni.tsx:33",
+    "titolo": "ValoreDelDatoSigc sceglie la resa con cast non verificati: lo spostamento ha perso il controllo a compilazione del finanziario",
+    "evidenza": "Lo switch su d.tipo (:34-49) fa v as DatoMotivatoLike<number>, v as number, v as string: il compilatore non controlla il legame fra campo e tipo nella tabella DATI_VERIFICA_SIGC (lib/verificaSigc.ts:31-52). Nel finanziario, prima dello spostamento, ogni colonna aveva l'accessore tipizzato sul DTO. Sono stati portati i controlli sul DTO (ui/contratto.ts:27-28), non quello sulla resa: e' la stessa classe di H2 della review delta del 21/10.",
+    "fix": "Tipizzare la tabella come unione per campo, cosi' DATI_VERIFICA_SIGC non compila con un tipo sbagliato: { [C in CampoVerificaSigc]: { campo: C; tipo: TipoDi<RigaVerificaSigc[C]>; ... } }[CampoVerificaSigc]. In alternativa, un test L1 che per ogni voce verifica la forma del valore della fixture rispetto al tipo dichiarato.",
+    "fonti": ["H-11"]
+  },
+  {
+    "id": "IST-06",
+    "feature": "istituzionale",
+    "severity": "COSMETICO",
+    "file": "src/features/istituzionale/lib/formato.ts:80",
+    "titolo": "numeroOpzionale, testoOpzionale e annoOpzionale ricopiati dal finanziario con la verifica SMP SIGC",
+    "evidenza": "istituzionale/lib/formato.ts:80-93 e' identico a finanziario/lib/formato.ts:8-10, :17-19 e :35-37: tre funzioni di una riga, copiate invece di essere spostate (NON_DISPONIBILE sta gia' in shared/lib). Il finanziario usa ancora numeroOpzionale e testoOpzionale.",
+    "fix": "Portare numeroOpzionale, testoOpzionale e annoOpzionale in shared/lib accanto a NON_DISPONIBILE, esportati dal barrel. Usarli da finanziario e istituzionale togliendo le copie; un solo test L1 nel kit (vedi FIN-01).",
+    "fonti": ["H-08"]
+  },
+  {
+    "id": "IST-07",
+    "feature": "istituzionale",
+    "severity": "COSMETICO",
+    "file": "src/features/istituzionale/lib/intervento.ts:104",
+    "titolo": "lettureDelloStato fabbrica una risposta finta per aggirare la regola del vuoto del kit",
+    "evidenza": "data: { righe: [sigc.data] } impacchetta la risposta di TX-0015 in un array, perche' statoDelDettaglio (src/shared/lib/dettaglio.ts:43-48) la conti come 'con righe'. La scelta dichiarata (il vuoto lo decide solo la non SIGC) dipende cosi' da come il kit calcola il vuoto, non da un'opzione del kit.",
+    "fix": "Aggiungere a LetturaDettaglio del kit un campo facoltativo (es. decideIlVuoto?: false), rispettato da statoDelDettaglio. lettureDelloStato passa la lettura SIGC cosi' com'e' con quel campo; test L1 nel kit.",
+    "fonti": ["H-12"]
+  },
+  {
+    "id": "IST-08",
+    "feature": "istituzionale",
+    "severity": "COSMETICO",
+    "file": "src/features/istituzionale/lib/collegamenti.ts:15",
+    "titolo": "Residui della vecchia collocazione: VERIFICA_SMP_SIGC e ricercaConAnno senza consumatori di produzione",
+    "evidenza": "VERIFICA_SMP_SIGC (:15) e ricercaConAnno (lib/criteri.ts:86) non sono importati da nessun file di src/. Li usano solo tests/app-aree.test.tsx:32, :113 e tests/istituzionale-lib.test.ts:118-121 e :168.",
+    "fix": "Togliere i due export. Nei test usare PERCORSI.verificaSigc di lib/pagine e ricercaConParametro(PARAMETRO_ANNO), togliendo l'asserzione sul letterale.",
+    "fonti": ["H-13"]
+  },
+  {
+    "id": "IST-09",
+    "feature": "istituzionale",
+    "severity": "COSMETICO",
+    "file": "src/features/istituzionale/ui/DettaglioIntervento.tsx:73",
+    "titolo": "La pagina del codice non valido suggerisce solo la verifica SMP non SIGC, anche se ora al dettaglio si arriva anche dalla verifica SIGC",
+    "evidenza": "suggerimento=\"Scegli l'intervento dalla verifica SMP non SIGC.\": la verifica SMP SIGC, entrata nell'area col riallineamento, porta al dettaglio (link dettaglio-intervento-smp-sigc), ma il testo non la nomina. Per un profilo col solo csr.tx-0015.read il suggerimento indica una pagina che non puo' aprire. Il fisico nomina tutti i suoi report (DettaglioIntervento.tsx:73 del fisico).",
+    "fix": "\"Scegli l'intervento dalla verifica SMP non SIGC o dalla verifica SMP SIGC.\", oppure un testo che dipende dalle pagine visibili al profilo.",
+    "fonti": ["V1-06"]
+  },
+  {
+    "id": "IST-10",
+    "feature": "istituzionale",
+    "severity": "COSMETICO",
+    "file": "src/features/istituzionale/ui/VerificaSmpNonSigc.tsx:46",
+    "titolo": "Link reciproci fra le due verifiche: senza il legame interventi-azioni la frase perde l'azione portante, che il menu invece porta",
+    "evidenza": "La frase riceve pagina.filtri (:46; VerificaSmpSigc.tsx:75), cioe' i filtri dopo senzaAzioneSeNonDisponibile (entities/filtri/ui/useFiltriProgrammaNellIndirizzo.ts:68). Con legameAzioniDisponibile falso, ?azione sparisce dal link. Il menu passa invece la ricerca grezza (ricercaDeiSoliFiltri), e il wireframe verifica-smp-sigc.md:82-83 vuole 'gli stessi cinque filtri' dal menu e dalla frase.",
+    "fix": "Costruire il link dai criteri dell'indirizzo (filtriDaRicerca(search) o ricercaDeiSoliFiltri, come il menu) invece che da pagina.filtri. Test con ?intervento=SRD01&azione=3 e legame assente: l'href contiene azione=3.",
+    "fonti": ["ANT-05"]
+  }
+]

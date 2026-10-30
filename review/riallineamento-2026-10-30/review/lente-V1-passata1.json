@@ -1,0 +1,56 @@
+[
+  {
+    "id": "V1-01",
+    "feature": "fisico",
+    "severity": "MAGGIORE",
+    "file": "src/pages/fisico/unit-amount/page.test.tsx:127",
+    "titolo": "Il test di SC-FS_UNIT_AMOUNT_AZIONE dichiara che l'azione portante arriva al file ma non lo verifica, e nessun altro test copre l'azione nell'export di TX-0030",
+    "evidenza": "Il titolo del test e' \"col legame interventi - azioni l'azione portante va alla lettura e al file; ...\", ma le asserzioni (righe 128-138) controllano solo la lettura (lette.unitAmount = ['?intervento=SRD01&azione=3']), il chip e il pannello: la risposta e' vuota, quindi i pulsanti CSV/XLSX non ci sono e nessun file viene chiesto. L'unico test dell'export della pagina (riga 98, 'CSV e XLSX dal backend con intervento e obiettivi') usa ?intervento=SRD01 senza azione; tests/fisico-api.test.tsx:103 chiama esportaUnitAmount('csv', { intervento: ['SRD01'] }) senza azione, e useUnitAmount (riga 63) e' provato senza azione. Il filtro per azione nelle Unit Amount e' una novita' approvata del wireframe unit-amount (30/10/2026) e SC-FS_UNIT_AMOUNT_AZIONE chiede che 'il file abbia le stesse righe della risposta e l'azione tra i filtri applicati'. Oggi il codice passa pagina.filtri sia alla lettura sia a fileUnitAmount (UnitAmount.tsx:116 e :120), ma nessun test lo prova: una regressione nel passaggio dell'azione all'export non verrebbe rilevata, e il test dichiara una copertura che non ha.",
+    "fix": "Nello stesso test (o in uno nuovo) servire col legame vero una risposta con righe per ?intervento=SRD01&azione=3, cliccare 'Scarica la tabella Unit Amount degli interventi selezionati in CSV' e asserire lette.file = ['/api/fisico/unit-amount/csv?intervento=SRD01&azione=3 XMLHttpRequest']; in alternativa togliere 'e al file' dal titolo e aggiungere il caso con l'azione in tests/fisico-api.test.tsx (esportaUnitAmount e useUnitAmount con azione: ['3'])."
+  },
+  {
+    "id": "V1-02",
+    "feature": "fisico",
+    "severity": "MINORE",
+    "file": "src/features/fisico/ui/PaginaReport.tsx:57",
+    "titolo": "La pill del perimetro delle Unit Amount perde 'dati di programma, uguali per ogni profilo' del wireframe approvato e della pagina di prima, e compare solo a risposta arrivata",
+    "evidenza": "PillDellaBarra rende `Perimetro: ${testoPerimetro(d.perimetro)}` solo con la risposta (d?.perimetro): per le Unit Amount la barra dice 'Perimetro: regionale' (lo fissa anche src/pages/fisico/unit-amount/page.test.tsx:49). Il wireframe approvato wireframes/fisico/unit-amount/unit-amount.html:52 ha nella pill 'Perimetro: regionale, sempre (dati di programma, uguali per ogni profilo)', e la pagina spostata, a 1103ca7 (src/features/procedurale/ui/UnitAmount.tsx con perimetro=\"REGIONALE\" tipoPerimetro=\"programma\" e pillPerimetro di lib/formato.ts:15), mostrava sempre, anche in caricamento e in errore, 'Perimetro: regionale (dati di programma, uguali per ogni profilo)'. Il dossier del fisico elenca cosa cambia nel porto delle Unit Amount (route, API, grant, menu, percorso, titolo, azione, pannello, pill dello stato, 'Dati al') e non questa pill: e' un cambio di comportamento non approvato. Lo stesso vale per l'output regionale, che prima aveva sempre la pill del perimetro (PILL_PERIMETRO dell'istituzionale) e ora solo a risposta arrivata.",
+    "fix": "Dare a PaginaReport un testo della pill del perimetro deciso dalla pagina e reso sempre (come prima): per le Unit Amount 'Perimetro: regionale (dati di programma, uguali per ogni profilo)' (o il testo del wireframe), per l'output regionale il testo dei report fisici; aggiornare l'asserzione di unit-amount/page.test.tsx:49."
+  },
+  {
+    "id": "V1-03",
+    "feature": "fisico",
+    "severity": "MINORE",
+    "file": "src/features/fisico/ui/PaginaReport.tsx:87",
+    "titolo": "Nel percorso delle pagine spostate la voce 'Fisico' porta sempre alle superfici, anche a chi non le apre; prima era la prima pagina visibile al profilo",
+    "evidenza": "PaginaReport passa briciole={[{ etichetta: 'Fisico', a: PERCORSI.superfici }, ...]} a output regionale e Unit Amount. Nella stessa feature il dettaglio usa useIngressoArea() (DettaglioIntervento.tsx:39-42 e :201: la prima pagina dell'area che il profilo puo' aprire), e le pagine spostate a 1103ca7 facevano lo stesso: src/features/istituzionale/ui/PaginaReport.tsx:72 (useIngressoArea) e src/features/procedurale/ui/PaginaProcedurale.tsx:58-59 (ingresso dell'area). La route /fisico/superfici e' visibile solo con csr.tx-0018.read, mentre le due pagine si aprono con csr.tx-0017.read e csr.tx-0030.read: un profilo con questi ma senza csr.tx-0018.read avrebbe nel percorso un link verso una pagina che RequireGrant gli nega. Nel catalogo rev. 4 i tre grant hanno gli stessi profili, quindi oggi non si vede: e' un cambio di comportamento delle pagine spostate e un'incoerenza con la regola dei link solo col grant d'arrivo.",
+    "fix": "Spostare useIngressoArea del dettaglio in ui/ (es. ui/navigazione.ts, come nell'istituzionale) e usarlo anche in PaginaReport (e, per uniformita', nelle superfici); un test con un profilo senza csr.tx-0018.read che verifichi l'indirizzo della voce 'Fisico'."
+  },
+  {
+    "id": "V1-04",
+    "feature": "fisico",
+    "severity": "MINORE",
+    "file": "src/features/fisico/ui/DettaglioIntervento.tsx:57",
+    "titolo": "Il ramo del dettaglio col solo grant di TX-0030 (lettura subito, stato e vuoto decisi da TX-0030) non ha test",
+    "evidenza": "useLettureDelDettaglio ha un ramo dedicato: soloUnitAmount = !puo('output') && !puo('superfici') abilita TX-0030 all'apertura (riga 60) e, alla riga 187, lo stato della pagina si decide dalla sola TX-0030 (vuoto con 'Torna alle Unit Amount' da ritornoSenzaDati). Nessun test lo esercita: grep di csr.tx-0030.read nei test trova solo il predicato puoAprireIntervento (tests/fisico-lib.test.ts:762) e la Home; i test di pagina coprono il profilo completo e quello col solo csr.tx-0018.read (src/pages/fisico/interventi/page.test.tsx: 'solo col grant di TX-0018', 'intervento senza dati col solo grant di TX-0018'). Il wireframe intervento chiede che ogni scheda e KPI resti legato al grant della sua transazione 'cosi' un cambio futuro del catalogo non mostra dati a chi non li legge': e' proprio il caso di questo ramo.",
+    "fix": "Aggiungere in src/pages/fisico/interventi/page.test.tsx un test con profilo(['csr.tx-0030.read']): una sola scheda 'Unit Amount' selezionata, lette.unitAmount = ['?intervento=SRD01'] senza aprire nulla, lette.output e lette.superfici vuote, nessun KPI, pulsante della testata solo 'Unit Amount di questo intervento'; e per AT001 il vuoto con 'Torna alle Unit Amount'."
+  },
+  {
+    "id": "V1-05",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/lib/criteri.ts:68",
+    "titolo": "L'ultimo esercizio chiuso della card si calcola sul calendario locale del browser, non su quello italiano dell'esercizio",
+    "evidenza": "esercizioUltimoChiuso(oggi) usa getFullYear/getMonth/getDate della data locale e AnteprimaIstituzionale.tsx:66 la chiama con new Date(). L'esercizio n va dal 16/10/n-1 al 15/10/n secondo il calendario italiano (i pagamenti autorizzati nel backend); un browser con un altro fuso o con l'orologio spostato, a cavallo della mezzanotte del 15-16/10 (fino a qualche ora), mostra nella card l'esercizio precedente o quello successivo e legge TX-0015 con un esercizio diverso da quello della regola approvata ('dal 16/10 dell'anno Y e' Y'). E' la scelta 8 dichiarata nel resoconto ('dalla data locale del browser'), che il wireframe non prevede. Il test della card calcola l'atteso con la stessa funzione (tests/anteprime-home.test.tsx:226), quindi non prova il confine; il confine e' provato solo in tests/istituzionale-lib.test.ts:136-141, sempre in ora locale.",
+    "fix": "Ricavare giorno, mese e anno nel fuso Europe/Rome (Intl.DateTimeFormat('it-IT', { timeZone: 'Europe/Rome', year: 'numeric', month: 'numeric', day: 'numeric' }).formatToParts) prima di applicare la regola del 16/10, con un test su un istante UTC a cavallo (es. 2026-10-15T22:30:00Z deve dare 2026); in alternativa dichiarare il limite in OP-IS-11."
+  },
+  {
+    "id": "V1-06",
+    "feature": "istituzionale",
+    "severity": "COSMETICO",
+    "file": "src/features/istituzionale/ui/DettaglioIntervento.tsx:73",
+    "titolo": "La pagina del codice non valido suggerisce solo la verifica SMP non SIGC, anche se il dettaglio si apre ora anche dalla verifica SIGC",
+    "evidenza": "suggerimento=\"Scegli l'intervento dalla verifica SMP non SIGC.\": a 1103ca7 il testo nominava le due pagine d'ingresso dell'area di allora ('dalla verifica SMP non SIGC o dall'output regionale'); col riallineamento l'output regionale e' uscito ed e' entrata la verifica SMP SIGC, che porta al dettaglio (link dettaglio-intervento-smp-sigc), ma il testo nomina solo la non SIGC. Il fisico, nella stessa situazione, nomina tutti e tre i report (DettaglioIntervento.tsx del fisico, riga 73). Per un profilo col solo csr.tx-0015.read (route visibile con uno dei due grant) il suggerimento indica una pagina che non apre.",
+    "fix": "\"Scegli l'intervento dalla verifica SMP non SIGC o dalla verifica SMP SIGC.\" (o un testo che dipende dalle pagine visibili al profilo)."
+  }
+]

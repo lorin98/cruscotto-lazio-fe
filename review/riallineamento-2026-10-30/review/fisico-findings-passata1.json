@@ -1,0 +1,82 @@
+[
+  {
+    "id": "FIS-01",
+    "feature": "fisico",
+    "severity": "MINORE",
+    "file": "src/pages/fisico/unit-amount/page.test.tsx:127",
+    "titolo": "Il test di SC-FS_UNIT_AMOUNT_AZIONE dichiara che l'azione portante arriva al file, ma non lo verifica",
+    "evidenza": "Il titolo dice che l'azione 'va alla lettura e al file', ma le asserzioni (:128-138) guardano solo la lettura (?intervento=SRD01&azione=3), il chip e il pannello. La risposta e' vuota, quindi i pulsanti CSV e XLSX non ci sono. Nessun altro test porta l'azione all'export: :98 e tests/fisico-api.test.tsx:103 usano solo l'intervento. Lo scenario chiede invece il file con l'azione fra i filtri applicati. Il codice e' corretto: lettura e file ricevono lo stesso pagina.filtri (UnitAmount.tsx:105, :109, :119).",
+    "fix": "Nel test, servire col legame vero una risposta con righe per ?intervento=SRD01&azione=3, cliccare 'Scarica la tabella Unit Amount degli interventi selezionati in CSV' e asserire lette.file = ['/api/fisico/unit-amount/csv?intervento=SRD01&azione=3 XMLHttpRequest']. In alternativa, togliere 'e al file' dal titolo e aggiungere esportaUnitAmount('csv', { intervento: ['SRD01'], azione: ['3'] }) in tests/fisico-api.test.tsx:103.",
+    "fonti": ["V1-01"]
+  },
+  {
+    "id": "FIS-02",
+    "feature": "fisico",
+    "severity": "MINORE",
+    "file": "src/features/fisico/ui/PaginaReport.tsx:87",
+    "titolo": "Output regionale e Unit Amount: la voce 'Fisico' del percorso porta sempre alle superfici, anche senza csr.tx-0018.read",
+    "evidenza": "PaginaReport passa sempre { etichetta: 'Fisico', a: PERCORSI.superfici }. Le due pagine si aprono con csr.tx-0017.read o csr.tx-0030.read, mentre /fisico/superfici chiede csr.tx-0018.read. Prima dello spostamento la voce seguiva il grant (useIngressoArea dell'istituzionale a e0f6cb7:src/features/istituzionale/ui/PaginaReport.tsx:72, ingresso del procedurale), e il dettaglio del fisico lo fa ancora (DettaglioIntervento.tsx:39-42, :201). Nel catalogo rev. 4 chi ha 0017 o 0030 ha anche 0018, quindi oggi l'effetto non si vede.",
+    "fix": "Spostare useIngressoArea da DettaglioIntervento.tsx:39-42 in ui/navigazione.ts, come nell'istituzionale, e usarlo in PaginaReport.tsx:87 (senza link quando l'ingresso e' la pagina stessa). Test della pagina Unit Amount col solo csr.tx-0030.read: la voce 'Fisico' porta a /fisico/unit-amount, oppure non e' un link.",
+    "fonti": ["V1-03", "A-02", "H-02"]
+  },
+  {
+    "id": "FIS-03",
+    "feature": "fisico",
+    "severity": "MINORE",
+    "file": "src/features/fisico/ui/DettaglioIntervento.tsx:57",
+    "titolo": "Dettaglio dell'intervento: nessun test di pagina col solo csr.tx-0030.read (ramo soloUnitAmount) o col solo csr.tx-0017.read",
+    "evidenza": "Il ramo soloUnitAmount non ha test di pagina: legge TX-0030 subito (:57, :60), decide stato e vuoto dalla sola TX-0030 (:187) e offre il ritorno 'Torna alle Unit Amount'. Neanche il profilo col solo csr.tx-0017.read ha test. src/pages/fisico/interventi/page.test.tsx prova solo il profilo completo e quello col solo csr.tx-0018.read (:168, :346); tests/fisico-lib.test.ts:762 prova solo il predicato. Il wireframe intervento lega ogni scheda e KPI al grant della sua transazione proprio per i cambi futuri del catalogo.",
+    "fix": "In src/pages/fisico/interventi/page.test.tsx aggiungere due casi. Con profilo(['csr.tx-0030.read']): sola scheda Unit Amount, lette.unitAmount = ['?intervento=SRD01'] subito, lette.output e lette.superfici vuote, solo il pulsante 'Unit Amount di questo intervento'; per AT001 il vuoto con 'Torna alle Unit Amount'. Con profilo(['csr.tx-0017.read']): sola scheda Output, lette.superfici e lette.unitAmount vuote dopo await act con setTimeout.",
+    "fonti": ["V1-04", "A-03"]
+  },
+  {
+    "id": "FIS-04",
+    "feature": "fisico",
+    "severity": "MINORE",
+    "file": "src/features/fisico/ui/DettaglioIntervento.tsx:187",
+    "titolo": "Se TX-0017 e TX-0018 falliscono insieme, il dettaglio nasconde tutte le schede, anche la Unit Amount gia' letta arrivando dal drawer",
+    "evidenza": "Lo stato della pagina conta solo TX-0017 e TX-0018 (:187). Se falliscono entrambe, statoDelDettaglio da' 'errore' e CorpoDelDettaglio (src/shared/ui/pagina/Dettaglio.tsx:37) toglie tutte le schede, anche la Unit Amount gia' letta arrivando dal drawer (state scheda unitAmount, :184-186). Il wireframe approvato dice che 'l'errore di una scheda resta nella scheda e non ferma le altre' (wireframes/fisico/intervento/intervento.md:128-129). Il test src/pages/fisico/interventi/page.test.tsx:373 guarda solo l'avviso.",
+    "fix": "letture = soloUnitAmount ? [unitAmount] : [output, superfici, unitAmountAperta ? unitAmount : null], filtrate dai null: cosi' una risposta di TX-0030 tiene la pagina in 'dati'. Test: arrivo con state { scheda: 'unitAmount' }, TX-0017 e TX-0018 in 503, tabella Unit Amount visibile, un solo avviso, schede Output e Superfici col testo statico.",
+    "fonti": ["ANT-02"]
+  },
+  {
+    "id": "FIS-05",
+    "feature": "fisico",
+    "severity": "MINORE",
+    "file": "src/features/fisico/ui/PaginaReport.tsx:64",
+    "titolo": "Il PaginaReport del fisico ricopia lo scheletro di quello dell'istituzionale (circa 35 righe, oltre la soglia)",
+    "evidenza": "Il file e' nuovo nel delta e ripete l'istituzionale: PillDellaBarra (:54-62 / ist. :61-69), barra (:70 / :89), vuoto con VuotoConFiltri (:69 / :88), attesa X-03 con VistaQuery (:93-100 / CorpoReport :74-83), PaginaConFiltri con ValoriFiltriNonDisponibili (:85-102 / :92-107). Sono circa 35 righe dello stesso scheletro, sopra la soglia di 15 della checklist. Una correzione futura (pill, attesa del legame, vuoto, percorso come FIS-02) va fatta in due posti.",
+    "fix": "Creare in entities/filtri/ui un PaginaReportProgramma generico (props pagina, stato, briciole, testa, pill della barra, testoVuoto, senzaLettura?, sopra?, pannello, children), accanto a PannelloFiltriProgramma e ValoriFiltriNonDisponibili. I due PaginaReport diventano adattatori. Un test L2 nel kit delle entity; restano verdi i test delle quattro pagine.",
+    "fonti": ["H-01"]
+  },
+  {
+    "id": "FIS-06",
+    "feature": "fisico",
+    "severity": "MINORE",
+    "file": "src/features/fisico/lib/intervento.ts:107",
+    "titolo": "Le regole del dettaglio composto sono ricopiate dall'istituzionale, con un algoritmo diverso per l'ultimo dato sincronizzato",
+    "evidenza": "Nel fisico, ultimiDelDettaglio e perimetroDelDettaglio prendono la prima risposta nell'ordine delle schede (:106-119). L'istituzionale prende la prima arrivata per dataUpdatedAt (istituzionale/lib/intervento.ts:83-87), e la testata di DettaglioIntervento.tsx:4 dice 'della prima risposta arrivata'. Sono ricopiati anche ultimoDatoInErrore (:125 = ist. :93), titoloIntervento e BarraRiferimenti (DettaglioIntervento.tsx:77-86 = ist. :77-86), con copie che gia' divergono. Il kit ha gia' statoDelDettaglio, CorpoDelDettaglio ed ErroriDelleLetture per questo dettaglio.",
+    "fix": "Portare in src/shared/lib/dettaglio.ts ultimiDelDettaglio(letture), con la prima per dataUpdatedAt, e ultimoDatoInErrore. In src/shared/ui/pagina aggiungere BarraRiferimenti({ perimetro, ultimi, inErrore }). Fisico e istituzionale li usano (il fisico passa le letture, non i soli data). Test L1 e L2 nel kit, con due letture arrivate in ordine inverso a quello delle schede.",
+    "fonti": ["H-04"]
+  },
+  {
+    "id": "FIS-07",
+    "feature": "fisico",
+    "severity": "COSMETICO",
+    "file": "src/features/fisico/lib/formato.ts:154",
+    "titolo": "NON_DISPONIBILE_BREVE e resaAssenza copiati dal procedurale invece di stare nell'entity importo",
+    "evidenza": "fisico/lib/formato.ts:154-159 e' identico a procedurale/lib/formato.ts:54-59: stessa costante, stessa funzione di due righe, stesso commento. Il procedurale li usa ancora (CardSottofasi.tsx:16, comuni.tsx:17, grafici.ts:13); il fisico li usa per le Unit Amount (unitAmount.ts:9, grafici.ts:34).",
+    "fix": "Esportare NON_DISPONIBILE_BREVE e resaAssenza(dato, breveSenzaFonte) da entities/importo, accanto a descriviAssenza. Togliere le due copie e importarle nel fisico e nel procedurale; un solo test L1, nei test dell'entity.",
+    "fonti": ["H-03"]
+  },
+  {
+    "id": "FIS-08",
+    "feature": "fisico",
+    "severity": "COSMETICO",
+    "file": "src/features/fisico/ui/TabellaUnitAmount.tsx:41",
+    "titolo": "Residuo del procedurale in TabellaUnitAmount: onRiga facoltativo per una scheda che non la usa piu', e colonne ricopiate nella scheda",
+    "evidenza": "Il commento :41 dice che onRiga e' 'assente nella scheda del dettaglio', e i rami onRiga ? ... : undefined (:59-60) servivano alla scheda del procedurale. L'unico chiamante (UnitAmount.tsx:109) passa sempre onRiga. La scheda del dettaglio (SchedeIntervento.tsx:113-120) ridefinisce sette colonne con la stessa resa di COLONNE (:26-35).",
+    "fix": "Rendere onRiga obbligatorio, togliere i due rami e correggere il commento :41. Esportare da TabellaUnitAmount le rese comuni delle colonne, da comporre sia in COLONNE sia in COLONNE_UNIT_AMOUNT di SchedeIntervento.tsx.",
+    "fonti": ["H-05"]
+  }
+]

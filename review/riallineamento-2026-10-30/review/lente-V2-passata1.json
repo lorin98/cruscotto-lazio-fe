@@ -1,0 +1,29 @@
+[
+  {
+    "id": "V2-01",
+    "feature": "procedurale",
+    "severity": "MINORE",
+    "file": "src/features/procedurale/ui/DetermineDellaDomanda.tsx:156",
+    "titolo": "Stato 'errore' delle determine (403/429/503) senza 'Cerca un altro codice' del wireframe approvato; il test codifica lo scostamento",
+    "evidenza": "Il wireframe approvato il 30/10 (wireframes/procedurale/determine/determine.html, 'Stato: errore': 'Accesso negato (403); troppe richieste (429) o capacita' esaurita e tempo scaduto (503) con nuovo tentativo dopo Retry-After. <a href=\"#d-codice\">Cerca un altro codice</a>') mette il link al campo anche nello stato d'errore. Nel codice errorePersonalizzato (righe 156-160) restituisce null per tutto cio' che non e' 404/400, quindi l'errore finisce nell'avviso generico di AvvisoPagina (riga 196: messaggi, 'Una sezione della pagina non si e' caricata.', 'Riprova') senza il link. Per il 403 'Riprova' ripete la stessa richiesta negata. Lo scostamento e' dichiarato nel resoconto (procedurale-step3-7.md, 'Contraddizioni e scostamenti') ma non e' registrato in uiplan o dossier come deviazione accettata. Il test src/pages/procedurale/determine/page.test.tsx:217-223 asserisce l'assenza del link ('queryByRole(link, Cerca un altro codice) toBeNull'): fissa lo scostamento invece di provare il wireframe. Impatto basso: il modulo di ricerca resta sopra l'avviso.",
+    "fix": "Due strade, a scelta dell'utente. (a) Allineare al wireframe: per gli errori diversi da 404 e 400 aggiungere nell'avviso (o subito sotto, dentro AvvisoPagina) il link 'Cerca un altro codice' che porta il focus al campo, come DomandaNonTrovata (ref del campo, href #codice-domanda). 'Riprova' resta per 429/503 secondo la politica comune di retry. Aggiornare il test della riga 217 perche' verifichi il link e il focus al campo. (b) Tenere l'avviso con 'Riprova': registrarlo come deviazione accettata (open point nello uiplan del procedurale o nota del dossier, decisione dell'utente) e scrivere nel test che si tratta della deviazione approvata."
+  },
+  {
+    "id": "V2-02",
+    "feature": "procedurale",
+    "severity": "MINORE",
+    "file": "src/features/procedurale/testing/fixture.ts:323",
+    "titolo": "Fixture e test delle determine citano scenari SC-FS_DETERMINA* che non esistono piu' nell'handover; lo scenario P4 SC-PC_DETERMINA_SCOPE_P4 non e' tracciato",
+    "evidenza": "handover/acceptance/procedurale-scenarios.json ha per RF020 gli scenari SC-PC_DETERMINA, SC-PC_DETERMINA_TIPO, SC-PC_DETERMINA_NESSUNA, SC-PC_DETERMINA_ASSENTE e SC-PC_DETERMINA_SCOPE_P4. Nessun file di acceptance contiene piu' 'SC-FS_DETERMINA' (grep: 0 occorrenze in handover/acceptance/*.json). Il codice dei test cita ancora gli ID del fisico: fixture.ts:5, :323, :337, :347, letture.ts:42 e il commento di testa di src/pages/procedurale/determine/page.test.tsx:3 ('SC-FS_DETERMINA, SC-FS_DETERMINA_NESSUNA, SC-FS_DETERMINA_ASSENTE'). In src/ e tests/ nessun file cita SC-PC_DETERMINA*. Il describe dei casi P4 (page.test.tsx:166, perimetro ADA e 404 indistinguibili) prova lo scenario chiave del riallineamento (SC-PC_DETERMINA_SCOPE_P4) ma non lo nomina: dagli scenari del pack non si risale a quel test.",
+    "fix": "Sostituire SC-FS_DETERMINA, SC-FS_DETERMINA_NESSUNA e SC-FS_DETERMINA_ASSENTE con SC-PC_DETERMINA, SC-PC_DETERMINA_NESSUNA e SC-PC_DETERMINA_ASSENTE in fixture.ts, letture.ts e nel commento di page.test.tsx. DETERMINE_CHIUSA (34810063735) va citata come SC-PC_DETERMINA_TIPO/NESSUNA. Il describe 'RF020: perimetro della risposta e domanda non trovata' va etichettato con SC-PC_DETERMINA_SCOPE_P4."
+  },
+  {
+    "id": "V2-03",
+    "feature": "procedurale",
+    "severity": "COSMETICO",
+    "file": "plan/procedurale/uiplan.json:1522",
+    "titolo": "OP-PR-14 non aggiornato: dice che il link dall'elenco alle determine non c'e' ancora, mentre e' stato fatto e OP-EO-07 e' chiuso",
+    "evidenza": "OP-PR-14 dice: 'un link dalla scheda della domanda ... lo dichiarerebbe la feature elenco-operativo nel suo uiplan ... quando il flusso determine e' approvato; finche' manca, si entra dal menu e si scrive il codice'. Oggi il link determine-della-domanda c'e' nello uiplan dell'elenco (plan/elenco-operativo/uiplan.json, OP-EO-07 'Chiuso il 30/10/2026: ... link sbloccato') e nel codice (TabelleScheda.tsx, TabellaDetermine). Il resoconto del procedurale lo lascia fra i punti aperti dello uiplan. Il wireframe approvato determine.md lo cita al condizionale: va bene, non va toccato.",
+    "fix": "Aggiornare il detail di OP-PR-14 nello uiplan del procedurale (non il wireframe, per non invalidare l'approvazione): 'Chiuso il 30/10/2026: link determine-della-domanda dell'elenco operativo (OP-EO-07), visibile con csr.tx-0020.read'. In alternativa marcarlo come risolto, come gli altri OP-PR."
+  }
+]

@@ -1,0 +1,47 @@
+[
+  {
+    "id": "GATE",
+    "feature": "comune",
+    "severity": "INFO",
+    "file": "handover/authz-catalog.json:1",
+    "titolo": "Gate non declassabili del §2: PASS su tutte e cinque le feature (nessun CRITICO da gate)",
+    "evidenza": "Eseguiti il 30/10/2026 con CLAUDE_PLUGIN_ROOT=.../plugins/green-fe e tools/vendor in testa al PATH, percorsi da fe-paths.sh (spec_dir=handover dallo stato). check-ui-authz.sh <route-manifest> <uiplan> handover: finanziario (./route-manifest.json, ./uiplan.json) verdict pass, 8 route / 24 azioni, failures []; elenco-operativo (plan/elenco-operativo/) pass, 3 route / 6 azioni; fisico (plan/fisico/) pass, 4 route / 10 azioni; istituzionale (plan/istituzionale/) pass, 3 route / 7 azioni; procedurale (plan/procedurale/) pass, 8 route / 31 azioni. fe-project-check.sh . --built --feature <f> --catalog handover/authz-catalog.json: verdict pass, failures [] per tutte e cinque (features finanziario, elenco-operativo, fisico, istituzionale, procedurale). Tutti exit 0. Verifica manuale aggiuntiva: visibility e grant delle route nuove/spostate in src/app/route-table.json verbatim dal catalogo rev. 4 (TX-0015 -> /istituzionale/verifica-smp-sigc e dettaglio istituzionale 0016||0015; TX-0017/TX-0030 -> /fisico/output-regionale, /fisico/unit-amount, dettaglio fisico 0017||0018||0030; TX-0020 -> /procedurale/determine/:codice?), nessun residuo delle vecchie route; il mock auth-status.json coincide col catalogo per tutti gli 11 profili (a parte il ruolo coarse del profilo).",
+    "fix": "Nessuno."
+  },
+  {
+    "id": "A-01",
+    "feature": "procedurale",
+    "severity": "MAGGIORE",
+    "file": "src/pages/procedurale/determine/page.test.tsx:48",
+    "titolo": "Determine: le asserzioni 'nessuna lettura' (senza codice e con codice non valido) sono sincrone dopo il render e non possono vedere una lettura",
+    "evidenza": "Nei test 'senza codice (ingresso dal menu) ... nessuna lettura' (riga 48) e 'codice non valido nell indirizzo: nessuna lettura' (riga 140) `expect(lette).toEqual([])` arriva subito dopo apri(...) senza alcun await: l'array `lette` lo riempie l'handler MSW, che gira in modo asincrono dopo che React Query ha avviato la richiesta (effetti flushati da act, poi mutator/axios/interceptor MSW a microtask). Una lettura partita per errore (es. se la pagina passasse a useDetermine il parametro grezzo invece di null) non sarebbe ancora registrata e il test passerebbe lo stesso; nel caso del codice non valido nemmeno il DOM la tradirebbe (Corpo restituisce null per 'non-valido' qualunque sia l'esito). Il cablaggio `useDetermine(codice.stato === 'valido' ? codice.codice : null)` (DetermineDellaDomanda.tsx:175) non e' quindi provato a livello di pagina, che e' cio' che i test dichiarano; i test del fisico e dell'istituzionale per lo stesso caso aspettano invece 30-50 ms (src/pages/fisico/interventi/page.test.tsx:330, tests/istituzionale-ui.test.tsx:321). Portati senza modifiche da src/pages/fisico/determine/page.test.tsx (e0f6cb7, righe 45 e 136), ma ora nel delta e sulla pagina P4.",
+    "fix": "In entrambi i test, prima di `expect(lette).toEqual([])`, attendere che una lettura eventuale arrivi all'handler: `await act(async () => new Promise((r) => setTimeout(r, 30)))` come nel dettaglio del fisico; meglio ancora chiudere il test con una ricerca valida (digitare 54810769585 + Invio, attendere la tabella) e asserire `expect(lette).toEqual(['54810769585'])`, cosi' una lettura spuria iniziale fa fallire il test (stesso schema della verifica SMP SIGC, src/pages/istituzionale/verifica-smp-sigc/page.test.tsx:42-55)."
+  },
+  {
+    "id": "A-02",
+    "feature": "fisico",
+    "severity": "MINORE",
+    "file": "src/features/fisico/ui/PaginaReport.tsx:87",
+    "titolo": "Output regionale e Unit Amount: la briciola 'Fisico' porta sempre a /fisico/superfici, senza il grant csr.tx-0018.read",
+    "evidenza": "PaginaReport del fisico passa `briciole={[{ etichetta: 'Fisico', a: PERCORSI.superfici }, ...]}` a entrambe le pagine venute dalle altre aree, la cui route chiede solo csr.tx-0017.read o csr.tx-0030.read. Prima dello spostamento la stessa briciola era condizionata al grant della destinazione: nell'istituzionale `useIngressoArea()` (prima pagina visibile, git show e0f6cb7:src/features/istituzionale/ui/PaginaReport.tsx:72), nel procedurale `ingresso` di useIngressoArea, nelle determine del fisico `puoLeggere(auth.data, 'superfici') ? PERCORSI.superfici : undefined`; il dettaglio dell'intervento del fisico la condiziona ancora (DettaglioIntervento.tsx:38-42, 201). Con un ruolo che abbia 0017 o 0030 senza 0018 la briciola porta a 'Accesso non disponibile' (link verso una pagina senza grant, contro la regola dei link solo col grant della destinazione). Nel catalogo rev. 4 ogni profilo con 0017 o 0030 ha anche 0018 (p1, p2, p3-fis, p5): oggi nessun profilo del catalogo lo vede, da qui MINORE.",
+    "fix": "Usare in PaginaReport la stessa funzione del dettaglio (estrarre `useIngressoArea` di DettaglioIntervento.tsx in ui/navigazione.ts o simile: `pagineVisibili((g) => hasGrant(auth, g))[0]?.percorso`) e passare `{ etichetta: 'Fisico', a: ingresso === percorsoCorrente ? undefined : ingresso }`; aggiungere un test della pagina Unit Amount col solo csr.tx-0030.read che verifica la briciola 'Fisico' verso /fisico/unit-amount (o senza link)."
+  },
+  {
+    "id": "A-03",
+    "feature": "fisico",
+    "severity": "MINORE",
+    "file": "src/features/fisico/ui/DettaglioIntervento.tsx:57",
+    "titolo": "Dettaglio dell'intervento: nessun test col solo csr.tx-0030.read (ramo soloUnitAmount) ne' col solo csr.tx-0017.read",
+    "evidenza": "La route /fisico/interventi/:codice e' visibile con uno qualsiasi dei tre grant e il codice ha un ramo dedicato quando il profilo non legge ne' TX-0017 ne' TX-0018 (`soloUnitAmount`: TX-0030 letta subito, lo stato della pagina e il vuoto decisi dalla sola TX-0030, ritorno 'Torna alle Unit Amount'). I test di pagina contano le letture senza grant solo per il profilo col solo 0018 (src/pages/fisico/interventi/page.test.tsx:168 e :346); tests/fisico-lib.test.ts:762 prova solo `puoAprireIntervento` col solo 0030. Nessun test conta zero letture di TX-0017/TX-0018 col solo 0030, ne' zero letture di TX-0018/TX-0030 (finche' la scheda non si apre) col solo 0017. Nessun profilo del catalogo rev. 4 ha questi grant da soli, quindi e' una lacuna di copertura dell'authz di UX, non un comportamento sbagliato.",
+    "fix": "Aggiungere due casi a src/pages/fisico/interventi/page.test.tsx: profilo(['csr.tx-0030.read']) -> la sola scheda 'Unit Amount' attiva, `lette.unitAmount` = ['?intervento=SRD01'] subito, `lette.output` e `lette.superfici` = [], `lette.filtri` = 0, testata col solo pulsante 'Unit Amount di questo intervento'; profilo(['csr.tx-0017.read']) -> la sola scheda Output, `lette.superfici` e `lette.unitAmount` = [] dopo il caricamento della card."
+  },
+  {
+    "id": "A-INFO-01",
+    "feature": "comune",
+    "severity": "INFO",
+    "file": "src/features/procedurale/ui/DetermineDellaDomanda.tsx:131",
+    "titolo": "Valutazioni della lente A senza finding: P4/404, state della navigazione, scostamenti dichiarati, XSS, leakage, contextProjection",
+    "evidenza": "(1) 404 delle determine: testo (messaggioDomandaNonTrovata), classi, role=alert, focus (h1 della route), titolo del documento, briciole e modulo identici per inesistente e fuori perimetro; nessuna lettura aggiuntiva dopo il 404 (link alla scheda solo coi dati), retry del QueryClient solo su rete/503, cache rimossa al cambio d'identita' (app/utente-della-sessione.ts:33), nessun detail del problem mostrato (getErrorMessage mostra il detail solo per invalid-data/timeout/export); badge del perimetro dal campo `perimetro` della risposta (required nella spec). (2) Scostamento 403/429/503 con avviso della pagina e Riprova: il 403 dipende solo dal grant, 429/503 dal carico, mai dalla domanda: nessuna distinzione di perimetro. (3) Scheda d'arrivo nello state: valore `unknown` convalidato con eIdScheda (whitelist), mai nell'URL, nessun dato. (4) `?esercizio`/`?anno` convalidati 2000-2100; codici del percorso convalidati e codificati (encodeURIComponent) in tutti i link nuovi. (5) Nessun dangerouslySetInnerHTML/innerHTML/href dinamico nel delta; tooltip ECharts in richText. (6) Nessun uso di contextProjection; mutator/CSRF invariati. (7) Ogni lettura nuova parte col suo grant (Home istituzionale: blocco SIGC solo con 0015, nessuna lettura di TX-0017; letture del dettaglio istituzionale e fisico per scheda e per grant); link fra aree (elenco->determine con 0020, determine->scheda con 0058, link reciproci SIGC/non SIGC col grant della destinazione) tutti condizionati e provati nei test.",
+    "fix": "Nessuno."
+  }
+]
