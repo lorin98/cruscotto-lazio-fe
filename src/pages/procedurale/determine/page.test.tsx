@@ -45,8 +45,11 @@ describe("RF020: codice e data delle determine da cui la domanda prende l'inform
     expect(document.title).toBe('Determine di una domanda - Procedurale - Cruscotto CSR 2023-2027');
     expect(screen.getByRole('status').textContent).toBe('Scrivi il codice a barre di una domanda per vedere da quali determine prende le informazioni.');
     expect(screen.queryByRole('link', { name: 'Apri la scheda della domanda' })).toBeNull();
-    expect(lette).toEqual([]);
     await expectNoA11yViolations(container);
+    // il conteggio si chiude con una ricerca valida: una lettura partita senza codice sarebbe gia' registrata (review step9 PRO-01)
+    await userEvent.type(campo(), '54810769585{Enter}');
+    await screen.findByRole('table', { name: /^Determine da cui la domanda 54810769585/ });
+    expect(lette).toEqual(['54810769585']);
   });
 
   it('con il codice: la corrente, le determine con riga aperta e da dove vengono i campi, in testo; nessuna violazione axe', async () => {
@@ -137,7 +140,11 @@ describe("RF020: codice e data delle determine da cui la domanda prende l'inform
     const errore = screen.getByRole('alert');
     expect(errore.textContent).toBe('Codice a barre non valido: contano solo le cifre, fino a 30.');
     expect(c.getAttribute('aria-describedby')?.split(' ')).toContain(errore.id);
-    expect(lette).toEqual([]);
+    // il conteggio si chiude con una ricerca valida: una lettura del codice non valido sarebbe gia' registrata (review step9 PRO-01)
+    await userEvent.clear(c);
+    await userEvent.type(c, '54810769585{Enter}');
+    await screen.findByRole('table', { name: /^Determine da cui la domanda 54810769585/ });
+    expect(lette).toEqual(['54810769585']);
   });
 
   it('400 DATO_NON_VALIDO del backend: detto sotto il campo, nessun altro avviso', async () => {
