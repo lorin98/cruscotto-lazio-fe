@@ -17,7 +17,7 @@ import { server } from '../../../shared/api/mock/server';
 import { expectNoA11yViolations } from '../../../shared/testing/axe';
 import { problema, trattenuta } from '../../../shared/testing/msw';
 import { clientDiTest, renderConQuery } from '../../../shared/testing/render';
-import { DETERMINE, DETERMINE_CHIUSA, DETERMINE_NESSUNA, DETERMINE_TIPO, DETERMINE_TIPO_SOSTEGNO } from '../../../features/procedurale/testing/fixture';
+import { DETERMINE, DETERMINE_CHIUSA, DETERMINE_NESSUNA, DETERMINE_P4_SOSTEGNO, DETERMINE_TIPO, DETERMINE_TIPO_SOSTEGNO } from '../../../features/procedurale/testing/fixture';
 import Pagina from './page';
 
 const ROUTE = '/procedurale/determine/:codice?';
@@ -238,6 +238,57 @@ describe('RF020: perimetro della risposta e domanda non trovata, SC-PC_DETERMINA
     // niente testata coi badge, KPI o tabella: la pagina non dice altro della domanda
     expect(screen.queryByRole('list', { name: 'Dati principali' })).toBeNull();
     expect(screen.queryByRole('table')).toBeNull();
+  });
+
+  // review step9 PRO2-05: lo state della decisione D1 insieme al perimetro del P4; l'avviso non legge il perimetro
+  it('D-11, P4 di Latina dalla scheda SOSTEGNO 54810769588: la SOSTEGNO di Latina con perimetro ADA, nessun avviso', async () => {
+    profiloP4();
+    servi({ [DETERMINE_P4_SOSTEGNO.codiceABarre]: DETERMINE_P4_SOSTEGNO });
+    const { client, container } = apri({ pathname: '/procedurale/determine/54810769588', state: { tipoDellaScheda: 'SOSTEGNO' } });
+    await screen.findByRole('table', { name: /^Determine da cui la domanda 54810769588/ });
+    await sessioneLetta(client);
+    const badge = within(screen.getByRole('list', { name: 'Dati principali' })).getAllByRole('listitem').map((l) => l.textContent);
+    expect(badge).toEqual(['Domanda di sostegno', 'Domanda corrente', '1 determina con riga aperta', 'Perimetro: ADA, domande della tua area']);
+    // il tipo di partenza e' arrivato (la regione c'e'), ma la risposta e' dello stesso tipo: vuota e nascosta
+    expect(container.querySelector('.visually-hidden[role="status"]')?.textContent).toBe('');
+    expect(screen.queryAllByRole('status').filter((s) => s.textContent?.startsWith('Il codice a barre'))).toEqual([]);
+    expect(screen.queryByRole('link', { name: /scheda Determine$/ })).toBeNull();
+    expect(screen.getByRole('link', { name: 'Apri la scheda della domanda' }).getAttribute('href')).toBe('/elenco-operativo/domande/SOSTEGNO/54810769588');
+  });
+
+  it('404 con lo state della scheda SOSTEGNO: domanda inesistente (regionale) e fuori dal perimetro (P4) danno la stessa pagina', async () => {
+    const conState = { pathname: '/procedurale/determine/54810769586', state: { tipoDellaScheda: 'SOSTEGNO' } };
+    /** La pagina del 404 come la vede l'utente: avviso, focus, titolo e il main intero (gli id generati a parte). */
+    const comeAppare = async (client: QueryClient) => {
+      const avviso404 = await screen.findByRole('alert');
+      await sessioneLetta(client);
+      const main = document.querySelector('main') as HTMLElement;
+      return {
+        testo: avviso404.textContent,
+        classi: avviso404.className,
+        focus: document.activeElement?.textContent,
+        titolo: document.title,
+        // gli id di useId di React (_r_0_, _r_3_...) dipendono dall'ordine dei montaggi, non dalla risposta
+        main: main.innerHTML.replace(/_r_[0-9a-z]+_/g, 'ID'),
+        regione: main.querySelector('.visually-hidden[role="status"]')?.textContent,
+      };
+    };
+    // regionale (stessi grant del P4: il perimetro lo decide il backend): il 404 della domanda inesistente, simulato sullo
+    // stesso codice per confrontare la pagina intera
+    profilo(['csr.tx-0020.read', 'csr.tx-0058.read']);
+    servi({});
+    const regionale = apri(conState);
+    const comeRegionale = await comeAppare(regionale.client);
+    regionale.unmount();
+    // P4 di Latina: 54810769586 e' di Frosinone, il backend risponde 404 con lo stesso corpo
+    profiloP4();
+    servi({});
+    const p4 = apri(conState);
+    expect(await comeAppare(p4.client)).toEqual(comeRegionale);
+    expect(comeRegionale.testo).toBe('Domanda non trovata: nessuna domanda con il codice a barre 54810769586 fra quelle che puoi consultare. Cerca un altro codice');
+    expect(comeRegionale.focus).toBe('Determine della domanda 54810769586');
+    // lo state c'era: la regione dell'avviso e' montata, vuota, e non dice nulla dell'altra domanda
+    expect(comeRegionale.regione).toBe('');
   });
 
   it('404: "Cerca un altro codice" porta il focus al campo del modulo, anche da tastiera; nessuna violazione axe', async () => {

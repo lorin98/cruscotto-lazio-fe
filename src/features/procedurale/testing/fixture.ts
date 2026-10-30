@@ -380,3 +380,17 @@ export const DETERMINE_TIPO_SOSTEGNO: DetermineDomanda = {
   corrente: { valore: { codice: 'G00017', data: '2025-04-15', fonteStatoAreaProgrammazione: true, fonteComparto: true }, motivo: null },
   elenco: [{ codice: 'G00017', data: '2025-04-15', fonteStatoAreaProgrammazione: true, fonteComparto: true }],
 };
+
+/**
+ * SC-PC_DETERMINA_SCOPE_P4 (D-11): per il P4 di Latina il codice 54810769588 da' la SOSTEGNO aperta di Latina con la
+ * determina G00005 e perimetro ADA, anche se fra tutte le domande del codice la regola dell'aggancio sceglierebbe la
+ * PAGAMENTO di Frosinone (la scelta si fa solo fra le domande del suo perimetro). La data non e' nello scenario.
+ */
+export const DETERMINE_P4_SOSTEGNO: DetermineDomanda = {
+  codiceABarre: '54810769588',
+  tipoDomanda: 'SOSTEGNO',
+  domandaChiusa: false,
+  perimetro: 'ADA',
+  corrente: { valore: { codice: 'G00005', data: '2025-02-10', fonteStatoAreaProgrammazione: true, fonteComparto: true }, motivo: null },
+  elenco: [{ codice: 'G00005', data: '2025-02-10', fonteStatoAreaProgrammazione: true, fonteComparto: true }],
+};
