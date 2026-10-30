@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "procedurale",
-  "current_step": 8,
+  "current_step": 9,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -150,12 +150,24 @@
       }
     },
     "step8-gate": {
-      "status": "in_progress",
-      "completed_at": "2026-10-26T10:39:39Z",
+      "status": "done",
+      "completed_at": "2026-10-30T10:35:17Z",
       "artifacts": [
         "./plan/procedurale/fe-gate-report.json"
       ],
-      "gates": {}
+      "gates": {
+        "lint": "pass",
+        "typecheck": "pass",
+        "test": "pass",
+        "a11y": "pass",
+        "build": "pass",
+        "fsd_import": "pass",
+        "orval_types": "pass",
+        "security": "pass",
+        "authz": "pass",
+        "wireframe_approved": "pass",
+        "req_coverage_ui": "pass"
+      }
     },
     "step9-review": {
       "status": "in_progress",

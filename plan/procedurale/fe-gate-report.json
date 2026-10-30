@@ -16,12 +16,12 @@
     {
       "name": "test",
       "status": "pass",
-      "evidence": "vitest.json verde (total=1545) + coverage>=soglie (L90.1 S90.2 F90.46 B80.88 vs L80 S80 F80 B70)"
+      "evidence": "vitest.json verde (total=1635) + coverage>=soglie (L90.58 S90.7 F91.11 B81.44 vs L80 S80 F80 B70)"
     },
     {
       "name": "a11y",
       "status": "pass",
-      "evidence": "axe.json: 0 violations su 118 run (wcag2a/2aa/22aa); incomplete=97 dichiarato"
+      "evidence": "axe.json: 0 violations su 132 run (wcag2a/2aa/22aa); incomplete=111 dichiarato"
     },
     {
       "name": "build",
@@ -58,7 +58,7 @@
     {
       "name": "req_coverage_ui",
       "status": "pass",
-      "evidence": "coverage-matrix-fe: 6 must della feature coperti da describe verde",
+      "evidence": "coverage-matrix-fe: 7 must della feature coperti da describe verde",
       "exit_code": 0
     }
   ],
@@ -67,7 +67,7 @@
   "total": 11,
   "verdict": "pass",
   "a11y_residual": {
-    "incomplete": 97,
+    "incomplete": 111,
     "manual_checklist_ref": "wireframes/<flusso>.md note WCAG + review FULL"
   }
 }
