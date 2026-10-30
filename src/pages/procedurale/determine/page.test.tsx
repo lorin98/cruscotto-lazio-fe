@@ -1,9 +1,10 @@
 // Pagina /procedurale/determine/:codice? (green-fe step7; dal fisico col riallineamento degli ambiti del 29/10/2026, con
 // gli stessi casi della pagina /fisico/determine/:codice?): describe taggato col REQ della route (RF020), dati dagli scenari
-// del backend (SC-FS_DETERMINA, SC-FS_DETERMINA_NESSUNA, SC-FS_DETERMINA_ASSENTE), MSW seminato con onUnhandledRequest
-// 'error' (ogni lettura dichiarata qui), axe-core diretto, tastiera e focus del modulo di ricerca. Dal wireframe del
-// procedurale approvato il 30/10/2026: il badge del perimetro della risposta (regionale, ADA del P4) e un solo messaggio,
-// stato e focus per la domanda inesistente e per quella fuori dal perimetro del P4 (404 con lo stesso corpo).
+// del backend (SC-PC_DETERMINA, SC-PC_DETERMINA_NESSUNA, SC-PC_DETERMINA_ASSENTE, SC-PC_DETERMINA_SCOPE_P4), MSW seminato
+// con onUnhandledRequest 'error' (ogni lettura dichiarata qui), axe-core diretto, tastiera e focus del modulo di ricerca.
+// Dal wireframe del procedurale approvato il 30/10/2026: il badge del perimetro della risposta (regionale, ADA del P4) e
+// un solo messaggio, stato e focus per la domanda inesistente e per quella fuori dal perimetro del P4 (404 con lo stesso
+// corpo).
 import { describe, expect, it } from 'vitest';
 import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -171,7 +172,7 @@ describe("RF020: codice e data delle determine da cui la domanda prende l'inform
   });
 });
 
-describe('RF020: perimetro della risposta e domanda non trovata (wireframe del procedurale approvato il 30/10/2026)', () => {
+describe('RF020: perimetro della risposta e domanda non trovata, SC-PC_DETERMINA_SCOPE_P4 (wireframe del procedurale approvato il 30/10/2026)', () => {
   const profiloP4 = () =>
     server.use(
       http.get('*/auth/status', () =>

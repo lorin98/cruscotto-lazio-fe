@@ -2,8 +2,8 @@
 // delle pagine e per il dev server. Le domande sono quelle degli scenari di accettazione del backend
 // (handover/acceptance/procedurale-scenarios.json: SC-PC_FILTRI, SC-PC_AMMESSE, SC-PC_STATI_SOSTEGNO, SC-PC_STATI_PAGAMENTO,
 // SC-PC_FILTRO_STATO, SC-PC_IN_COMPILAZIONE, SC-PC_SOTTOFASI, SC-PC_SOTTOFASI_FILTRI; per le determine di una domanda,
-// dal fisico il 29/10/2026, quelli di SC-FS_DETERMINA; le Unit Amount sono del fisico): nessun dato
-// reale. I report si calcolano da quelle domande coi parametri della query (intervento, os, og, op, stato), come il
+// dal fisico il 29/10/2026, quelli di SC-PC_DETERMINA e SC-PC_DETERMINA_NESSUNA; le Unit Amount sono del fisico):
+// nessun dato reale. I report si calcolano da quelle domande coi parametri della query (intervento, os, og, op, stato), come il
 // backend: righe per intervento selezionato in ordine di codice, voci di SR-01 nell'ordine del catalogo, altri stati per
 // codice, totali del backend; cosi' i test di pagina non ricevono lo stesso corpo per ogni query (lezione della review
 // del fisico). Le varianti (non rilasciate, atto di concessione) sono opzioni dei calcoli.
@@ -320,7 +320,7 @@ export function sottofasiPagamentoPer(p: URLSearchParams): SottofasiAmmissibilit
 
 // ---------------------------------------------------------------- determine di una domanda (TX-0020, dal fisico il 29/10/2026)
 
-/** SC-FS_DETERMINA (ora del procedurale): G00003 corrente, G00002 fonte del comparto, G00001 fonte dello stato area programmazione. */
+/** SC-PC_DETERMINA: G00003 corrente, G00002 fonte del comparto, G00001 fonte dello stato area programmazione. */
 export const DETERMINE: DetermineDomanda = {
   codiceABarre: '54810769585',
   tipoDomanda: 'PAGAMENTO',
@@ -334,7 +334,7 @@ export const DETERMINE: DetermineDomanda = {
   ],
 };
 
-/** SC-FS_DETERMINA_NESSUNA: nessuna determina aperta. */
+/** SC-PC_DETERMINA_NESSUNA: nessuna determina aperta. */
 export const DETERMINE_NESSUNA: DetermineDomanda = {
   codiceABarre: '54810000001',
   tipoDomanda: 'PAGAMENTO',
@@ -344,7 +344,7 @@ export const DETERMINE_NESSUNA: DetermineDomanda = {
   elenco: [],
 };
 
-/** SC-FS_DETERMINA_NESSUNA, seconda domanda: chiusa con la sua determina. */
+/** SC-PC_DETERMINA_NESSUNA, seconda domanda: chiusa con la sua determina (la PAGAMENTO 34810063735 con G00016 di SC-PC_DETERMINA_TIPO). */
 export const DETERMINE_CHIUSA: DetermineDomanda = {
   codiceABarre: '34810063735',
   tipoDomanda: 'PAGAMENTO',

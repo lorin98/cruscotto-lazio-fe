@@ -39,7 +39,7 @@ export const indisponibile = () => HttpResponse.json({ type: 'urn:cruscottocsr:p
 
 const ESPORTAZIONI = ['domande-ammesse', 'stati-sostegno', 'stati-pagamento', 'riepilogo', 'sottofasi-sostegno', 'sottofasi-pagamento'];
 
-/** Le determine degli scenari per codice a barre (SC-FS_DETERMINA, SC-FS_DETERMINA_NESSUNA). */
+/** Le determine degli scenari per codice a barre (SC-PC_DETERMINA, SC-PC_DETERMINA_NESSUNA). */
 const DETERMINE_PER_CODICE: Record<string, object> = Object.fromEntries([DETERMINE, DETERMINE_NESSUNA, DETERMINE_CHIUSA].map((d) => [d.codiceABarre, d]));
 const problemaDi = (status: number, type: string, errorCode: string) => HttpResponse.json({ type, title: 'Errore', status, errorCode }, { status });
 
