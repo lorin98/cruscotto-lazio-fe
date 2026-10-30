@@ -1,0 +1,29 @@
+[
+  {
+    "id": "V-P2-01",
+    "feature": "procedurale",
+    "severity": "MINORE",
+    "file": "src/pages/procedurale/determine/page.test.tsx:358",
+    "titolo": "Dopo una ricarica l'avviso 'domanda dell'altro tipo' resta, contro il wireframe riapprovato; il test 'ricarica' prova un arrivo senza state, che una ricarica non produce",
+    "evidenza": "Il flusso riapprovato (a934a29, hash 52f08e1f verificato) mette la ricarica fra i casi senza avviso: determine.md:80 'Senza state (ricarica, indirizzo condiviso, ricerca dal modulo) nessun avviso' e determine.html:132. L'app usa createBrowserRouter (src/app/routes.tsx:69). Alla ricarica react-router rilegge history.state.usr (node_modules/react-router/dist/development/lib/router/history.js:144), e DomandaDellAltroTipo legge useLocation().state (src/features/procedurale/ui/DetermineDellaDomanda.tsx:96). Quindi dopo una ricarica l'avviso c'e' ancora. Lo scostamento e' dichiarato solo nel resoconto (correzioni-passata1-pef.md, 'EO-01, ricarica'). Non e' registrato nello uiplan del procedurale: nessun open point o nota in plan/procedurale/uiplan.json, e grep 'ricarica' non trova nulla. Il test di :358 si chiama 'senza state (ricarica o indirizzo condiviso): nessun avviso', ma apre la pagina con createMemoryRouter e un indirizzo senza state. Attribuisce alla ricarica il comportamento opposto a quello reale. Il comportamento in se' non e' falso (la domanda mostrata resta dell'altro tipo), ma tradisce il testo approvato senza una decisione registrata.",
+    "fix": "Serve una decisione dell'utente. (a) Accettare lo scostamento: annotarlo nello uiplan del procedurale (coda di OP-PR-14 o nota del flusso determine: 'dopo una ricarica il browser conserva lo state e l'avviso resta') e rinominare il test di :358 in 'senza state (indirizzo condiviso, nuova scheda del browser)'. (b) In alternativa, allinearsi al wireframe consumando lo state all'arrivo: tenere il tipo di partenza nello stato del componente, legato a location.key, poi navigate(pathname, { replace: true, state: null }). Aggiungere un test che rimonta la pagina sulla voce corrente e verifica che l'avviso non c'e'."
+  },
+  {
+    "id": "V-P2-02",
+    "feature": "procedurale",
+    "severity": "MINORE",
+    "file": "src/features/procedurale/ui/DetermineDellaDomanda.tsx:100",
+    "titolo": "Con la risposta di TX-0020 gia' in cache l'avviso 'domanda dell'altro tipo' nasce gia' pieno: la regione role=status non si annuncia, e il focus va sull'h1 che la segue",
+    "evidenza": "Il commento di :89-94 dice che la regione c'e' dall'arrivo, vuota e nascosta, e si riempie con la risposta. Questo vale solo per la prima lettura. Il QueryClient ha staleTime 5 minuti (src/app/query-client.ts:32) e useDetermine non lo cambia (src/features/procedurale/api/index.ts:111). Al secondo arrivo con lo state stato.data e' gia' definito al primo render, e DomandaDellAltroTipo monta la regione col testo gia' dentro. Succede con Indietro dalla scheda di partenza, o col giro scheda -> determine -> scheda-di-partenza -> 'Apri le determine della domanda nell'area Procedurale'. Per la regola del progetto una regione live inserita gia' piena non si annuncia (src/shared/ui/stati/StatiVista.tsx:42-44, lezione X-08). useFocusTitolo porta il focus sull'h1, che nel DOM viene dopo l'avviso (lo verifica page.test.tsx:318): chi usa un lettore di schermo e legge dal titolo in giu' perde l'avviso proprio nel caso che D1 vuole spiegare. Il test di page.test.tsx:332 copre solo la prima lettura (risposta trattenuta).",
+    "fix": "Montare la regione vuota al primo commit e riempirla dopo un effetto, per esempio const [pronta, setPronta] = useState(false); useEffect(() => setPronta(true), []), e testo solo con pronta. In alternativa, la regione sempre montata come AvvisoAggiornamento. Aggiungere un test con il QueryClient gia' seminato (client.setQueryData(getTx0020QueryKey('34810022870'), DETERMINE_TIPO) passato a renderConQuery) che verifica la regione vuota al montaggio e poi piena col testo dell'avviso."
+  },
+  {
+    "id": "V-P2-03",
+    "feature": "elenco-operativo",
+    "severity": "COSMETICO",
+    "file": "plan/elenco-operativo/uiplan.json:1706",
+    "titolo": "L'apertura della scheda della domanda su Determine dallo state schedaIniziale (correzione aggiuntiva 5b47c26) non e' tracciata ne' nello uiplan ne' nel flusso dettaglio-domanda",
+    "evidenza": "SchedaDomanda.tsx:184-192 sceglie la scheda iniziale dallo state { schedaIniziale }, convalidato contro SCHEDE_DELLA_DOMANDA (entities/domanda/lib/elenco.ts). Lo scrive il link scheda-di-partenza delle determine del procedurale (ARRIVO_SU_DETERMINE). Il comportamento e' corretto e coerente col testo approvato del link ('..., scheda Determine', determine.md). Il flusso della scheda pero' non lo dice: wireframes/elenco-operativo/dettaglio-domanda/dettaglio-domanda.md:58-61 ('In arrivo') elenca solo i due elenchi e scheda-domanda, ne' scheda-di-partenza ne' la scheda iniziale. Nemmeno lo uiplan dell'elenco ne parla: grep schedaIniziale in plan/elenco-operativo trova solo .gate-inbox, e OP-EO-07 non lo cita. Il contratto d'arrivo vive solo nei commenti del codice, e un refresh del flusso dettaglio-domanda non lo vedrebbe.",
+    "fix": "In coda al detail di OP-EO-07 (plan/elenco-operativo/uiplan.json), senza toccare il wireframe approvato, aggiungere: 'In arrivo da scheda-di-partenza delle determine del procedurale (decisione D1 del 30/10/2026) la scheda si apre su Determine: state { schedaIniziale } convalidato contro l'elenco chiuso delle schede, mai nell'indirizzo; senza state o con uno non valido la Sintesi'. Riportarlo nel paragrafo 'In arrivo' del wireframe dettaglio-domanda al prossimo rework del flusso."
+  }
+]

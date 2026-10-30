@@ -1,0 +1,56 @@
+[
+  {
+    "id": "H2-01",
+    "feature": "procedurale",
+    "severity": "MINORE",
+    "file": "src/pages/procedurale/determine/page.test.tsx:358",
+    "titolo": "Determine: il test 'senza state (ricarica o indirizzo condiviso)' parla di una ricarica che non simula, e lo scostamento dal wireframe non e' registrato nel piano",
+    "evidenza": "Il test apre l'indirizzo senza state e lo chiama ricarica. L'app pero' usa createBrowserRouter (src/app/routes.tsx:69), che tiene lo state in history.state anche dopo una ricarica. DomandaDellAltroTipo lo rilegge (src/features/procedurale/ui/DetermineDellaDomanda.tsx:96), quindi dopo una ricarica l'avviso resta. Il wireframe riapprovato dice il contrario: wireframes/procedurale/determine/determine.md:80 e determine.html:132 ('Senza state (ricarica, indirizzo condiviso, ricerca dal modulo) nessun avviso'). Lo scostamento e' scritto solo nel resoconto (correzioni-passata1-pef.md:231-236): non c'e' nello uiplan del procedurale (nessuna deviazione e nessun open point) ne' nel commento del componente (DetermineDellaDomanda.tsx:16-19). Il comportamento attuale si puo' difendere, perche' la domanda mostrata e' ancora dell'altro tipo. Il test pero' dichiara il contrario di cio' che succede nel browser.",
+    "fix": "Rinominare il test in 'senza state (indirizzo condiviso o aperto in una nuova scheda): nessun avviso'. Registrare lo scostamento in due punti: nello uiplan del procedurale (in coda a OP-PR-14 o in un open point nuovo: 'dopo una ricarica il browser conserva lo state e l'avviso resta') e nel commento di DomandaDellAltroTipo. Far correggere 'ricarica' nel wireframe determine alla prossima riapprovazione. Se invece l'utente vuole il wireframe alla lettera, lo state va letto una volta sola: si tiene il tipo nello stato del componente, si toglie lo state con navigate(pathname, { replace: true, state: null }) e un test prova che dopo la ricarica l'avviso non c'e' piu'."
+  },
+  {
+    "id": "H2-02",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/entities/domanda/lib/elenco.ts:31",
+    "titolo": "Gli elenchi chiusi del contratto D1 sono scritti due volte, e a tenerli allineati restano solo i test (tipi della domanda, schede della scheda)",
+    "evidenza": "Tipi della domanda: TIPI_DOMANDA e' un Set di stringhe (:31) e TipoDellaDomanda un'unione scritta a mano (:35). Il type guard tipoDomandaValido (:38) e' vero solo finche' i due elenchi coincidono. riferimentoDomandaValido (:53) ripete lo stesso controllo invece di chiamare tipoDomandaValido. Nello stesso file SCHEDE_DELLA_DOMANDA (:64) e' invece un array 'as const' col tipo derivato. Schede: gli id dei Tab della scheda sono letterali (src/features/elenco-operativo/ui/SchedaDomanda.tsx:194-201) e non sono legati a SchedaDellaDomanda; li allinea solo il test 'ogni scheda dell elenco chiuso' di src/pages/elenco-operativo/dettaglio-domanda/page.test.tsx. Uso del tipo: TipoDellaDomanda e' esportato dal barrel, ma nessuno lo usa fuori dall'entity. Il procedurale riporta a string il tipo che tipoDellaSchedaDiPartenza ha gia' convalidato: src/features/procedurale/lib/determine.ts:71 (tipoDiPartenzaDiverso), :81 e :89, e TestoAltroTipo (DetermineDellaDomanda.tsx:72).",
+    "fix": "Per i tipi della domanda: const TIPI_DOMANDA = ['SOSTEGNO', 'PAGAMENTO'] as const e export type TipoDellaDomanda = (typeof TIPI_DOMANDA)[number], come per SCHEDE_DELLA_DOMANDA. riferimentoDomandaValido diventa tipoDomandaValido(tipo) && codiceABarreValido(codiceABarre). Per le schede: Tab id={'determine' satisfies SchedaDellaDomanda}, oppure una mappa id -> etichetta tipizzata. Per il procedurale: tipoDiPartenzaDiverso, testoSchedaDiPartenza, percorsoSchedaDiPartenza e il prop tipoDellaScheda di TestoAltroTipo usano TipoDellaDomanda."
+  },
+  {
+    "id": "H2-03",
+    "feature": "procedurale",
+    "severity": "COSMETICO",
+    "file": "plan/procedurale/uiplan.json:748",
+    "titolo": "Lo state schedaIniziale del link scheda-di-partenza non e' dichiarato nei piani delle due feature",
+    "evidenza": "Il trigger di determine-della-domanda dichiara lo state che porta: plan/elenco-operativo/uiplan.json:339, 'il tipo della scheda va nello state della navigazione'. Il trigger di scheda-di-partenza (plan/procedurale/uiplan.json:748) nomina solo 'scheda Determine'. Non nomina lo state { schedaIniziale: 'determine' } che il codice scrive (ARRIVO_SU_DETERMINE, src/features/procedurale/lib/determine.ts:97). Neanche la route /elenco-operativo/domande/:tipo/:codiceABarre dello uiplan dell'elenco dice che legge quello state (useSchedaIniziale, SchedaDomanda.tsx:184 e :192). Fra i passaggi di state tra due feature, e' l'unico non tracciato nei piani. La regola e' uiplan-patterns §8: i passaggi fra pagine si dichiarano. La decisione D1 nomina questo state esplicitamente.",
+    "fix": "Aggiungere al trigger di scheda-di-partenza: '; porta { schedaIniziale: 'determine' } nello state della navigazione (mai nell'URL): la scheda si apre su Determine'. Nello uiplan dell'elenco operativo aggiungere una nota alla route della scheda: con uno state schedaIniziale valido si apre su quella scheda, altrimenti sulla Sintesi. E' solo testo, poi si rifa' lo step8 delle due feature."
+  },
+  {
+    "id": "H2-04",
+    "feature": "elenco-operativo",
+    "severity": "COSMETICO",
+    "file": "src/entities/domanda/lib/elenco.ts:3",
+    "titolo": "Tre commenti danno ancora al fisico le determine, che dal 29/10 sono del procedurale",
+    "evidenza": "I commenti sono in tre file. src/entities/domanda/lib/elenco.ts:3-4: 'il fisico il link alla scheda della domanda dalle determine'. src/features/elenco-operativo/lib/collegamenti.ts:25: 'condiviso con il fisico (entities/domanda, link scheda-domanda delle determine)'. src/features/elenco-operativo/lib/formato.ts:59: 'vocabolario della domanda, condiviso col fisico'; etichettaTipoDomanda pero' la usa il procedurale (lib/determine.ts:58), non il fisico. Inoltre l'intestazione di elenco.ts non nomina lo state della scheda aggiunto per EO-01 (SCHEDE_DELLA_DOMANDA, arrivoSullaScheda, schedaInizialeDalloState), che il procedurale scrive.",
+    "fix": "Nei tre commenti mettere 'procedurale' al posto di 'fisico'. Nell'intestazione di elenco.ts aggiungere lo state schedaIniziale, scritto dal link scheda-di-partenza del procedurale."
+  },
+  {
+    "id": "H2-05",
+    "feature": "procedurale",
+    "severity": "COSMETICO",
+    "file": "src/features/procedurale/lib/grafici.ts:29",
+    "titolo": "Il procedurale riscrive numeroOpzionale, appena portato in shared/lib come regola comune dei numeri facoltativi; il testo 'non disponibile' ha due costanti",
+    "evidenza": "La correzione IST-06 ha messo in shared/lib numeroOpzionale (src/shared/lib/grafici/primitive.ts:111): un numero null o undefined diventa NON_DISPONIBILE, gli altri passano da formatNumber. Il commento dice 'prima copiati nel finanziario e nell'istituzionale'. Il procedurale ha la stessa espressione in testoNonRilasciate (grafici.ts:29) e nelle celle di graficoRiepilogo (:164), scritta con NON_DISPONIBILE_BREVE.testo. NON_DISPONIBILE_BREVE, appena spostato nell'entity importo per FIS-07 (src/entities/importo/lib/importo.ts:91), riscrive il letterale 'non disponibile' invece di usare NON_DISPONIBILE di shared/lib (primitive.ts:6). Cosi' lo stesso testo ha due costanti, e nessuna delle due prende il testo dall'altra.",
+    "fix": "In grafici.ts:29 scrivere numeroOpzionale(v.nonRilasciate), e in grafici.ts:164 valori.map((v) => numeroOpzionale(v)). In importo.ts:91 scrivere NON_DISPONIBILE_BREVE = { disponibile: false, testo: NON_DISPONIBILE }, importato da shared/lib. Il test di tests/lib.test.ts:336 resta valido."
+  },
+  {
+    "id": "H2-06",
+    "feature": "comune",
+    "severity": "COSMETICO",
+    "file": "src/entities/domanda/lib/determine.ts:44",
+    "titolo": "La lettura di un campo dallo state della navigazione e' ricopiata in piu' punti, due dei quali nuovi in entities/domanda",
+    "evidenza": "L'espressione e' typeof stato === 'object' && stato !== null && '<chiave>' in stato ? stato.<chiave> : undefined. Le due copie nuove per EO-01 sono in src/entities/domanda/lib/determine.ts:44 e lib/elenco.ts:85. Una terza e' in src/features/fisico/ui/DettaglioIntervento.tsx:155-156: e' la scheda d'arrivo delle Unit Amount, letta nel componente. Una forma simile e' in src/features/elenco-operativo/lib/collegamenti.ts:113. shared/lib/stato-history.ts ha gia' il lettore dell'involucro {firma, valore} (leggiStatoSalvato), ma non quello di un campo semplice.",
+    "fix": "Aggiungere export function campoDelloState(stato: unknown, chiave: string): unknown in shared/lib/stato-history.ts. Con questa funzione tipoDellaSchedaDiPartenza e schedaInizialeDalloState si riducono alla sola convalida contro l'elenco chiuso. Il fisico puo' adottarla quando si riapre."
+  }
+]

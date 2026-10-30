@@ -1,0 +1,62 @@
+[
+  {
+    "id": "PRO2-01",
+    "feature": "procedurale",
+    "severity": "MINORE",
+    "file": "src/features/procedurale/ui/DetermineDellaDomanda.tsx:96",
+    "titolo": "L'avviso D1 rilegge lo state della voce a ogni montaggio: resta dopo una ricarica, contro il wireframe riapprovato, e dopo un cambio d'identita'; il test 'ricarica' prova un arrivo senza state",
+    "evidenza": "Il flusso riapprovato (a934a29) dice 'Senza state (ricarica, indirizzo condiviso, ricerca dal modulo) nessun avviso' (wireframes/procedurale/determine/determine.md:80, determine.html:132). L'app usa createBrowserRouter (src/app/routes.tsx:69), che a una ricarica rilegge history.state.usr, e DomandaDellAltroTipo legge useLocation().state a ogni montaggio (:96). Quindi l'avviso torna dopo una ricarica e dopo Indietro. Torna anche quando un'altra identita' entra nello stesso browser: un P4 a cui un P1 ha lasciato lo state vede l'avviso e un link scheda-di-partenza che gli risponde 404 (A2-01; l'informazione e' gia' nella cronologia di quella scheda del browser, quindi il rischio e' basso). Il test di src/pages/procedurale/determine/page.test.tsx:358 'senza state (ricarica o indirizzo condiviso)' monta un indirizzo senza state in createMemoryRouter, e attribuisce alla ricarica il comportamento opposto a quello reale. Lo scostamento e' scritto solo nel resoconto (correzioni-passata1-pef.md:231-236), non nello uiplan.",
+    "fix": "Allineare al wireframe consumando lo state all'arrivo:\n- leggere lo state una sola volta e tenere il tipo nello stato del componente, insieme al codice;\n- toglierlo dalla voce con navigate(pathname, { replace: true, state: null });\n- azzerarlo a una nuova ricerca dal modulo e quando cambia improntaIdentita(auth.data).\nTest: dopo l'arrivo router.state.location.state e' null, una pagina rimontata sulla stessa voce non ha l'avviso, e l'avviso sparisce quando cambia l'identita'. Rinominare il test di :358 in 'indirizzo condiviso'.",
+    "fonti": ["V-P2-01", "H2-01", "A2-01"]
+  },
+  {
+    "id": "PRO2-02",
+    "feature": "procedurale",
+    "severity": "MINORE",
+    "file": "src/features/procedurale/ui/DetermineDellaDomanda.tsx:100",
+    "titolo": "Con TX-0020 gia' in cache la regione role=status dell'avviso D1 nasce gia' piena, quindi non si annuncia; il focus va sull'h1, che nel DOM viene dopo",
+    "evidenza": "Lo staleTime e' di 5 minuti (src/app/query-client.ts:32) e useDetermine non lo cambia (src/features/procedurale/api/index.ts:111). Al secondo arrivo con lo state stato.data c'e' gia' al primo render, e la regione si monta col testo: succede con il giro scheda -> determine -> scheda-di-partenza -> di nuovo le determine, oppure con Indietro. Questo contraddice il commento di :89-94 e la regola X-08 del progetto (MINORE in elenco-operativo v1; src/shared/ui/stati/StatiVista.tsx:42-44). Il test di page.test.tsx:332 prova solo la prima lettura, con la risposta trattenuta.",
+    "fix": "Montare la regione vuota al primo commit e riempirla dopo il montaggio: const [pronta, setPronta] = useState(false); useEffect(() => setPronta(true), []), con il testo solo quando pronta e' vero. In alternativa, la regione sempre montata nella pagina, come AvvisoAggiornamento. Aggiungere un test con il QueryClient seminato, client.setQueryData(getTx0020QueryKey('34810022870'), DETERMINE_TIPO): al montaggio la regione e' vuota, poi si riempie col testo dell'avviso.",
+    "fonti": ["V-P2-02"]
+  },
+  {
+    "id": "PRO2-03",
+    "feature": "procedurale",
+    "severity": "MINORE",
+    "file": "src/features/procedurale/lib/determine.ts:77",
+    "titolo": "L'avviso D1 non e' vero quando la domanda di partenza non ha determine con riga aperta: rimanda a una scheda Determine vuota (34810063735 e 34810063736 di SC-PC_DETERMINA_TIPO)",
+    "evidenza": "TX-0020 sceglie 'prima quella con determine agganciate (righe aperte), a parita' prima l'aperta e fra le aperte la PAGAMENTO' (handover/openapi-procedurale.json:151). Per 34810063735 risponde la PAGAMENTO chiusa con G00016, perche' la SOSTEGNO aperta non ha righe; per 34810063736 la SOSTEGNO con G00017, perche' la PAGAMENTO aperta non ha righe. Dalla scheda senza righe l'avviso compare quindi sempre e dice 'Quelle della domanda di <tipo> sono nella sua scheda'. Il link pero' porta a una scheda Determine che dice 'Nessuna determina per questa domanda.': un giro chiuso. Il codice rende il testo approvato (wireframes/procedurale/determine/determine.md:104-106), ma questo caso del pack smentisce anche la nota approvata wireframes/elenco-operativo/dettaglio-domanda/dettaglio-domanda.html:123 ('la pagina del procedurale dice il motivo'). Nessun test usa lo state con questi codici, anche se DETERMINE_CHIUSA (src/features/procedurale/testing/fixture.ts:349) e' gia' la PAGAMENTO 34810063735.",
+    "fix": "Serve la decisione D4 dell'utente, perche' il testo e' approvato. Raccomandata (b): un solo testo, vero in ogni caso, per esempio 'Il codice a barre N e' anche di una domanda di <tipo della risposta>: questa pagina mostra quella domanda, non la domanda di <tipo della scheda> da cui arrivi.', con il link invariato; poi si riapprova il flusso determine. Test di pagina, qualunque sia la scelta:\n- DETERMINE_CHIUSA con lo state SOSTEGNO: avviso e link scheda-di-partenza, senza 'Apri la scheda della domanda';\n- una risposta SOSTEGNO 34810063736 con lo state PAGAMENTO.",
+    "fonti": ["ANT2-01"]
+  },
+  {
+    "id": "PRO2-04",
+    "feature": "procedurale",
+    "severity": "MINORE",
+    "file": "src/pages/procedurale/determine/page.test.tsx:377",
+    "titolo": "I test dei link nascosti senza csr.tx-0058.read asseriscono l'assenza prima che la sessione sia letta",
+    "evidenza": "Due test attendono solo la tabella prima di asserire l'assenza del link: quello di :377-385 (scheda-di-partenza, nuovo per D1) e quello di :123-129 (scheda-domanda, entrato nel delta con lo spostamento). Il link dipende da puoLeggere(auth.data, 'schedaDomanda') (DetermineDellaDomanda.tsx:236), che resta falso finche' /auth/status non e' letto (lib/grant.ts:39-41), e la lettura di TX-0020 parte prima (:231-232). Con un gate sbagliato il link comparirebbe solo dopo l'asserzione, e il test passerebbe lo stesso. E' la stessa classe di PRO-01 e IST-02 della passata 1.",
+    "fix": "Dare ad apri() un clientDiTest() e, prima delle asserzioni d'assenza, attendere la sessione: waitFor su client.getQueryState(AUTH_STATUS_QUERY_KEY)?.status === 'success', come sessioneLetta di tests/finanziario-ui.test.tsx:62. In alternativa, nello stesso test un controllo positivo col grant csr.tx-0058.read, a sessione letta.",
+    "fonti": ["A2-02"]
+  },
+  {
+    "id": "PRO2-05",
+    "feature": "procedurale",
+    "severity": "MINORE",
+    "file": "src/pages/procedurale/determine/page.test.tsx:206",
+    "titolo": "Nessun test unisce lo state di D1 e il perimetro del P4 (SC-PC_DETERMINA_SCOPE_P4): ne' il caso D-11 senza avviso ne' il 404 con lo state",
+    "evidenza": "Il describe del perimetro (:186-264) apre sempre indirizzi senza state. Quello di D1 (:299-403) usa solo il profilo regionale e DETERMINE_TIPO. Con lo state, nel 404 la pagina monta una regione role=status nascosta (DetermineDellaDomanda.tsx:100), e nessun test la confronta fra la domanda inesistente e quella fuori perimetro. Non e' provato nemmeno il caso del P4 di Latina che dalla scheda SOSTEGNO 54810769588 riceve la SOSTEGNO con perimetro ADA (D-11: nessun avviso). Il codice e' corretto, perche' l'avviso non legge il perimetro. Pero' un cambiamento che lo legasse al perimetro non farebbe fallire nessun test, proprio sul punto che D1 chiede di garantire.",
+    "fix": "Aggiungere due casi al describe SC-PC_DETERMINA_SCOPE_P4:\n(1) profiloP4, state { tipoDellaScheda: 'SOSTEGNO' } su 54810769588 e risposta SOSTEGNO con perimetro ADA: nessun avviso, e il badge 'Perimetro: ADA, domande della tua area';\n(2) 404 con lo state SOSTEGNO per il regionale (domanda inesistente) e per il P4 (domanda fuori perimetro): testo, classi, focus, titolo e innerHTML del main uguali.",
+    "fonti": ["A2-03"]
+  },
+  {
+    "id": "PRO2-06",
+    "feature": "procedurale",
+    "severity": "COSMETICO",
+    "file": "plan/procedurale/uiplan.json:748",
+    "titolo": "Il trigger di scheda-di-partenza non dichiara lo state { schedaIniziale: 'determine' } che il link porta",
+    "evidenza": "Il trigger nomina solo 'scheda Determine', mentre il codice scrive ARRIVO_SU_DETERMINE (src/features/procedurale/lib/determine.ts:97). Il trigger di determine-della-domanda dell'elenco operativo (plan/elenco-operativo/uiplan.json:339) dichiara invece il suo state. La regola uiplan-patterns §8 vuole dichiarati i passaggi fra le pagine.",
+    "fix": "Aggiungere al trigger: '; porta { schedaIniziale: 'determine' } nello state della navigazione (mai nell'URL): la scheda si apre su Determine'. E' solo testo; poi si rifa' lo step8 del procedurale.",
+    "fonti": ["H2-03"]
+  }
+]

@@ -43,3 +43,27 @@ accettati vengono corretti comunque.
    passata1.md`); wireframe di D1 da riapprovare prima del codice di EO-01.
 2. Step8 11/11 sulle feature toccate.
 3. Passata 2 per elenco-operativo e procedurale; step9 registrato alle PASS.
+
+## Correzioni della passata 1 (30/10/2026)
+Gruppo FI 2aee55e..1305564 (fisico, istituzionale, FIN-01; resoconto `review/riallineamento-2026-10-30/correzioni-passata1-fi.md`),
+gruppo PEF 5851b13..997797f fuso in c656cf7 (procedurale, EO-01 con D1, FIN-02; `correzioni-passata1-pef.md`); wireframe di D1
+riapprovati in a934a29. Step8 11/11 sulle cinque feature (79c1093, 1673 test).
+
+## Passata 2: elenco-operativo e procedurale
+Brief `review/riallineamento-2026-10-30/review/brief-passata2.md`; lenti V, H, A, antagonista e Judge `*-passata2.json`,
+`judge-passata2.md`. Gate non declassabili PASS. I sei finding della passata 1 (EO-01, PRO-01..PRO-05) sono chiusi.
+
+| feature | CRITICO | MAGGIORE | MINORE | COSMETICO | score | verdetto |
+|---|---|---|---|---|---|---|
+| elenco-operativo | 0 | 0 | 0 | 6 | 94 | PASS |
+| procedurale | 0 | 0 | 5 | 1 | 84 | PASS |
+
+Step9 registrato per le due feature (13:34Z): con la passata 2 le cinque feature hanno lo step9 done.
+
+Decisioni dell'utente dopo la passata 2:
+- **D4 (PRO2-03), (b) testo neutro:** quando TX-0020 da' la domanda dell'altro tipo (sceglie per prima quella con determine
+  aperte), l'avviso dice "Il codice a barre N e' anche di una domanda di <tipo della risposta>: questa pagina mostra quella
+  domanda, non la domanda di <tipo della scheda> da cui arrivi.", vero anche quando la scheda di partenza non ha determine
+  aperte; resta il link alla scheda di partenza. Wireframe `procedurale/determine` da riapprovare.
+- **Niente passata 3:** correzioni dei residui (D4; state letto una volta sola all'arrivo come dice il wireframe, PRO2-01 con
+  A2-01; annuncio con dati in cache PRO2-02; test PRO2-04/PRO2-05; cosmetici), poi step8 11/11, come nei giri precedenti.

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "EO2-01",
+    "feature": "elenco-operativo",
+    "severity": "COSMETICO",
+    "file": "plan/elenco-operativo/uiplan.json:1708",
+    "titolo": "L'apertura della scheda su Determine dallo state schedaIniziale non e' dichiarata ne' nello uiplan dell'elenco ne' nel flusso dettaglio-domanda",
+    "evidenza": "SchedaDomanda.tsx:184-192 legge lo state { schedaIniziale } e lo convalida contro SCHEDE_DELLA_DOMANDA. Lo scrive il link scheda-di-partenza del procedurale, come chiede la decisione D1. Pero' non ne parlano ne' OP-EO-07 ne' la route della scheda nello uiplan, e il paragrafo 'In arrivo' di wireframes/elenco-operativo/dettaglio-domanda/dettaglio-domanda.md:58-62 non elenca scheda-di-partenza. Il contratto d'arrivo e' scritto solo nei commenti del codice.",
+    "fix": "Aggiungere in coda al detail di OP-EO-07: 'In arrivo da scheda-di-partenza delle determine del procedurale (decisione D1 del 30/10/2026) la scheda si apre su Determine: state { schedaIniziale } convalidato contro l'elenco chiuso delle schede, mai nell'indirizzo; senza state o con uno non valido si apre la Sintesi'. Il paragrafo 'In arrivo' del wireframe si aggiorna al prossimo rework del flusso.",
+    "fonti": ["V-P2-03", "H2-03"]
+  },
+  {
+    "id": "EO2-02",
+    "feature": "elenco-operativo",
+    "severity": "COSMETICO",
+    "file": "src/entities/domanda/lib/elenco.ts:31",
+    "titolo": "Il contratto D1 scrive due volte il tipo della domanda (Set e unione), non lega gli id dei Tab a SchedaDellaDomanda, e il procedurale riporta il tipo a string",
+    "evidenza": "TIPI_DOMANDA (:31) e TipoDellaDomanda (:35) sono due elenchi separati. Il type guard tipoDomandaValido (:38) e' corretto solo finche' coincidono, e riferimentoDomandaValido (:53) ripete lo stesso controllo invece di chiamarlo. Gli id dei Tab (src/features/elenco-operativo/ui/SchedaDomanda.tsx:194-201) sono letterali, e li tiene allineati solo il test dell'elenco chiuso. Nel procedurale tipoDiPartenzaDiverso, testoSchedaDiPartenza e percorsoSchedaDiPartenza (lib/determine.ts:71, :81, :89) e TestoAltroTipo prendono string.",
+    "fix": "const TIPI_DOMANDA = ['SOSTEGNO', 'PAGAMENTO'] as const e type TipoDellaDomanda = (typeof TIPI_DOMANDA)[number]. riferimentoDomandaValido diventa tipoDomandaValido(tipo) && codiceABarreValido(codiceABarre). Per i Tab: id={'determine' satisfies SchedaDellaDomanda}, oppure una mappa tipizzata da id a etichetta. Le funzioni del procedurale prendono TipoDellaDomanda.",
+    "fonti": ["H2-02"]
+  },
+  {
+    "id": "EO2-03",
+    "feature": "elenco-operativo",
+    "severity": "COSMETICO",
+    "file": "src/features/elenco-operativo/lib/collegamenti.ts:25",
+    "titolo": "Tre commenti attribuiscono ancora al fisico le determine, che dal 29/10 sono del procedurale",
+    "evidenza": "Tre commenti parlano ancora del fisico: src/entities/domanda/lib/elenco.ts:3-4, src/features/elenco-operativo/lib/collegamenti.ts:25 e lib/formato.ts:59. etichettaTipoDomanda la usa invece il procedurale (lib/determine.ts:58). L'intestazione di elenco.ts non nomina nemmeno lo state schedaIniziale aggiunto per EO-01.",
+    "fix": "Nei tre commenti scrivere 'procedurale' al posto di 'fisico'. Nell'intestazione di elenco.ts aggiungere lo state schedaIniziale, che scrive il link scheda-di-partenza del procedurale.",
+    "fonti": ["H2-04"]
+  },
+  {
+    "id": "EO2-04",
+    "feature": "elenco-operativo",
+    "severity": "COSMETICO",
+    "file": "src/features/elenco-operativo/ui/SchedaDomanda.tsx:192",
+    "titolo": "La scheda iniziale vale solo al montaggio dei Tabs: con TX-0058 in cache, Indietro su una voce con schedaIniziale non riapre Determine",
+    "evidenza": "<Tabs defaultSelectedKey={iniziale}> non e' controllato. La pagina e VistaQuery non hanno key (src/shared/ui/stati/StatiVista.tsx:129-139) e la route riusa il componente. Con la risposta in cache Schede quindi resta montato e tiene la scheda della domanda di prima. Il commento di :9-12, riscritto da 5b47c26, promette a ogni arrivo la scheda dello state (o la Sintesi). I test di D1 (dettaglio-domanda/page.test.tsx:150-190) montano invece ogni volta una pagina nuova. La collegata gia' vista si comporta allo stesso modo, ma quello c'era gia' prima del delta.",
+    "fix": "In Schede: const { key } = useLocation() e <Tabs key={key} defaultSelectedKey={iniziale}> (la scheda non naviga con replace). Aggiungere un test col QueryClient seminato: arrivo con { schedaIniziale: 'determine' }, una collegata in cache che si apre sulla Sintesi, poi router.navigate(-1) che torna su Determine. In alternativa, scrivere nel commento che la scheda iniziale vale al primo montaggio.",
+    "fonti": ["ANT2-03"]
+  },
+  {
+    "id": "EO2-05",
+    "feature": "elenco-operativo",
+    "severity": "COSMETICO",
+    "file": "src/features/elenco-operativo/lib/collegamenti.ts:44",
+    "titolo": "'L'arrivo non risponde 404' e' falso per chi ha TX-0058 regionale da un altro profilo e TX-0020 solo dal P4",
+    "evidenza": "Il backend risolve il perimetro grant per grant (../cruscotto-lazio-be/review/approvazioni-ambiti-2026-10-29.md:196). Nel catalogo rev. 4 p3-funzionario-area-fin/ist/fis/pil, p5 e p6 hanno csr.tx-0058.read non scoped e non hanno csr.tx-0020.read. Chi ha uno di questi profili insieme al P4 di Latina ha la scheda REGIONALE e le determine ADA: il link su una scheda di Frosinone porta al 404, col messaggio unico. Il comportamento e' corretto. E' sbagliata l'assunzione scritta nel commento di :44, in OP-EO-07 (plan/elenco-operativo/uiplan.json:1708) e in dettaglio-domanda.md:54-55.",
+    "fix": "Correggere il commento di :44 e OP-EO-07: 'per il P4 la scheda e' nel suo perimetro; con TX-0058 regionale da un altro profilo e TX-0020 solo dal P4 l'arrivo puo' rispondere 404, col messaggio unico'. La frase del wireframe si corregge alla prossima riapprovazione.",
+    "fonti": ["ANT2-04"]
+  },
+  {
+    "id": "EO2-06",
+    "feature": "elenco-operativo",
+    "severity": "COSMETICO",
+    "file": "src/pages/elenco-operativo/dettaglio-domanda/page.test.tsx:161",
+    "titolo": "Il test 'le frecce ripartono dalla scheda Determine' porta il focus sul Tab a mano: passerebbe con qualunque scheda iniziale",
+    "evidenza": "Con l'attivazione automatica da tastiera di react-aria, il focus su un Tab lo seleziona. Quindi .focus() su Determine seguito da Freccia destra da' Pagamenti in ogni caso (:161-164). La selezione all'arrivo e' provata (:155). Non e' provato invece che il Tab dall'h1 entri nella TabList sul Tab Determine.",
+    "fix": "Partire dall'h1, che ha il focus all'arrivo, e premere userEvent.tab() finche' il focus non e' su un role=tab, come nel test di :108-125. Asserire che il Tab col focus e' 'Determine (1)', e solo dopo premere Freccia destra.",
+    "fonti": ["ANT2-05"]
+  }
+]
