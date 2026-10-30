@@ -16,14 +16,17 @@
 // dell'utente del 30/10/2026, review step9 PRO-02). In arrivo dalla scheda dell'elenco (link determine-della-domanda, il
 // tipo della scheda nello state della navigazione, convalidato) con un tipo diverso da tipoDomanda della risposta, sopra
 // la testata l'avviso "domanda dell'altro tipo" in role=status col link scheda-di-partenza (decisione D1 dell'utente del
-// 30/10/2026, review step9 EO-01); senza state, con lo stesso tipo o dopo una ricerca dal modulo nessun avviso.
+// 30/10/2026, review step9 EO-01; testo neutro della decisione D4). Il tipo si legge una volta sola all'arrivo e lo state
+// lascia subito la voce della cronologia (review step9 PRO2-01): senza state (ricarica, Indietro o Avanti, indirizzo
+// condiviso), con lo stesso tipo, dopo una ricerca dal modulo o un cambio d'utente nessun avviso.
 // Design system: classi bootstrap-italia e del kit v2 (hero, badge, KPI, tabella statica nativa); nessun primitivo
 // react-aria, che qui non serve (nessun dialogo, nessuna scheda).
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { MouseEvent, Ref, RefObject } from 'react';
-import { Link, useLocation } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { tipoDellaSchedaDiPartenza } from '../../../entities/domanda';
-import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
+import type { TipoDellaDomanda } from '../../../entities/domanda';
+import { improntaIdentita, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { formatDate, formatNumber } from '../../../shared/lib';
 import { AvvisoPagina, Briciole, Griglia, Kpi, Sezione, TabellaStatica, TestataDettaglio, VistaQuery, Vuoto, useFocusTitolo } from '../../../shared/ui';
 import type { ColonnaStatica } from '../../../shared/ui';
@@ -86,21 +89,67 @@ function TestoAltroTipo({ codice, tipoDellaRisposta, tipoDellaScheda, conGrantSc
   );
 }
 
+/** Il tipo della scheda di partenza letto all'arrivo, col codice d'arrivo: vale solo finche' la pagina mostra quel codice. */
+interface Arrivo {
+  tipo: TipoDellaDomanda;
+  codice: string;
+}
+
 /**
- * Avviso "domanda dell'altro tipo" (decisione D1), sopra la testata: solo in arrivo dalla scheda dell'elenco (il tipo della
- * scheda nello state della navigazione, convalidato; una ricerca dal modulo lo toglie) e con un codice valido; se la
- * risposta e' dell'altro tipo lo dice. La regione role=status c'e' dall'arrivo, vuota e nascosta, e si riempie con la
- * risposta: una regione live inserita gia' piena non si annuncia.
+ * Il tipo della scheda di partenza (decisione D1; review step9 PRO2-01, come il flusso riapprovato): si legge UNA volta
+ * all'arrivo dallo state della navigazione (convalidato) e resta nel componente insieme al codice; lo state lascia subito
+ * la voce della cronologia (navigazione replace, stesso indirizzo), cosi' ricarica, Indietro o Avanti e indirizzo
+ * condiviso non riportano l'avviso. Si azzera con `azzera` (una nuova ricerca dal modulo, anche dello stesso codice) e
+ * quando cambia l'identita' della sessione senza ricarica: la shell (app/utente-della-sessione.ts) svuota la cache, ma lo
+ * stato del componente resta. improntaIdentita qui decide solo cosa dimenticare, mai un accesso.
  */
-function DomandaDellAltroTipo({ codice, d, conGrantScheda }: { codice: CodiceDelPercorso; d: Determine | undefined; conGrantScheda: boolean }) {
-  const partenza = tipoDellaSchedaDiPartenza(useLocation().state);
-  if (partenza === null || codice.stato !== 'valido') return null;
-  const tipo = tipoDiPartenzaDiverso(partenza, d);
+function useTipoDiPartenza(codice: CodiceDelPercorso, impronta: string | undefined): { arrivo: Arrivo | null; azzera: () => void } {
+  const { state, pathname, search, hash } = useLocation();
+  const naviga = useNavigate();
+  const [arrivo, setArrivo] = useState<Arrivo | null>(() => {
+    const tipo = tipoDellaSchedaDiPartenza(state);
+    return tipo !== null && codice.stato === 'valido' ? { tipo, codice: codice.codice } : null;
+  });
+  const daTogliere = tipoDellaSchedaDiPartenza(state) !== null;
+  useEffect(() => {
+    if (daTogliere) void naviga({ pathname, search, hash }, { replace: true, state: null });
+  }, [daTogliere, naviga, pathname, search, hash]);
+  // un'altra identita' (non la prima lettura della sessione): il tipo letto per la precedente non vale piu'
+  const [identita, setIdentita] = useState(impronta);
+  if (impronta !== identita) {
+    setIdentita(impronta);
+    if (identita !== undefined) setArrivo(null);
+  }
+  const valido = arrivo !== null && codice.stato === 'valido' && arrivo.codice === codice.codice;
+  return { arrivo: valido ? arrivo : null, azzera: () => setArrivo(null) };
+}
+
+interface PropsAltroTipo {
+  d: Determine | undefined;
+  conGrantScheda: boolean;
+}
+
+/**
+ * La regione dell'avviso: si monta vuota e nascosta e si riempie dopo il montaggio, anche con TX-0020 gia' in cache
+ * (review step9 PRO2-02): una regione live inserita gia' piena non si annuncia (review v1 X-08 dell'elenco).
+ */
+function RegioneAltroTipo({ arrivo, d, conGrantScheda }: PropsAltroTipo & { arrivo: Arrivo }) {
+  const [montata, setMontata] = useState(false);
+  useEffect(() => setMontata(true), []);
+  const tipo = montata ? tipoDiPartenzaDiverso(arrivo.tipo, d) : null;
   return (
     <div className={tipo === null ? 'visually-hidden' : 'alert alert-info my-3'} role="status">
-      {tipo !== null && d && <TestoAltroTipo codice={codice.codice} tipoDellaRisposta={d.tipoDomanda} tipoDellaScheda={tipo} conGrantScheda={conGrantScheda} />}
+      {tipo !== null && d && <TestoAltroTipo codice={arrivo.codice} tipoDellaRisposta={d.tipoDomanda} tipoDellaScheda={tipo} conGrantScheda={conGrantScheda} />}
     </div>
   );
+}
+
+/**
+ * Avviso "domanda dell'altro tipo" (decisione D1), sopra la testata: solo in arrivo dalla scheda dell'elenco (il tipo
+ * della scheda letto all'arrivo col codice, useTipoDiPartenza); se la risposta e' dell'altro tipo lo dice.
+ */
+function DomandaDellAltroTipo({ arrivo, ...props }: PropsAltroTipo & { arrivo: Arrivo | null }) {
+  return arrivo === null ? null : <RegioneAltroTipo arrivo={arrivo} {...props} />;
 }
 
 /** KPI di una determina che fa da fonte, oppure l'assenza in testo. */
@@ -235,6 +284,7 @@ export function DetermineDellaDomanda({ codice: parametro }: { codice: string | 
   const d = codice.stato === 'valido' ? stato.data : undefined;
   const conGrantScheda = puoLeggere(auth.data, 'schedaDomanda');
   const scheda = d ? percorsoSchedaDellaDomanda(d, conGrantScheda) : null;
+  const partenza = useTipoDiPartenza(codice, improntaIdentita(auth.data));
   const campo = useRef<HTMLInputElement>(null);
   const ingresso = useIngressoArea({});
   const briciole = [
@@ -247,9 +297,9 @@ export function DetermineDellaDomanda({ codice: parametro }: { codice: string | 
       <Briciole voci={briciole} />
       <Sezione titolo="Cerca le determine di una domanda">
         {/* il modulo riparte dal codice dell'indirizzo a ogni cambio di route */}
-        <CercaDomanda key={parametro ?? ''} idCampo={ID_CAMPO} campo={campo} codiceIniziale={parametro ?? ''} erroreEsterno={erroreDelCampo(codice, stato)} />
+        <CercaDomanda key={parametro ?? ''} idCampo={ID_CAMPO} campo={campo} codiceIniziale={parametro ?? ''} erroreEsterno={erroreDelCampo(codice, stato)} onCerca={partenza.azzera} />
       </Sezione>
-      <DomandaDellAltroTipo codice={codice} d={d} conGrantScheda={conGrantScheda} />
+      <DomandaDellAltroTipo arrivo={partenza.arrivo} d={d} conGrantScheda={conGrantScheda} />
       <Testata h1={h1} titolo={titolo} d={d} scheda={scheda} />
       <AvvisoPagina azioni={<CercaUnAltroCodice campo={campo} />}>
         <Corpo codice={codice} stato={stato} campo={campo} />

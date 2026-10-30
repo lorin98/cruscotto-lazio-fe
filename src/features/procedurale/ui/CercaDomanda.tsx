@@ -3,6 +3,8 @@
 // (aria-describedby, aria-invalid, invalid-feedback in role=alert) e focus sul campo all'errore. Il codice si riduce alle
 // sole cifre (lib/determine) e la ricerca porta alla stessa route col codice nel percorso; nessuna lettura da qui. Un
 // errore che arriva da fuori (codice dell'indirizzo non valido, 400 DATO_NON_VALIDO del backend) si dice sotto il campo.
+// Una ricerca valida lo dice alla pagina (onCerca), prima di navigare: la pagina azzera cio' che valeva per l'arrivo (il
+// tipo della scheda di partenza, review step9 PRO2-01).
 // Nessun primitivo react-aria: un campo e un bottone nativi bastano (niente combobox ne' autocompletamento).
 import { useId, useRef, useState } from 'react';
 import type { FormEvent, RefObject } from 'react';
@@ -55,9 +57,11 @@ interface PropsCercaDomanda {
   idCampo?: string;
   /** Il ref del campo, se la pagina ci porta il focus (il link "Cerca un altro codice" della domanda non trovata). */
   campo?: RefObject<HTMLInputElement | null>;
+  /** Una ricerca valida, prima della navigazione (anche dello stesso codice). */
+  onCerca?: () => void;
 }
 
-export function CercaDomanda({ codiceIniziale = '', erroreEsterno, idCampo, campo: esterno }: PropsCercaDomanda) {
+export function CercaDomanda({ codiceIniziale = '', erroreEsterno, idCampo, campo: esterno, onCerca }: PropsCercaDomanda) {
   const generato = useId();
   const proprio = useRef<HTMLInputElement>(null);
   const campo = esterno ?? proprio;
@@ -73,6 +77,7 @@ export function CercaDomanda({ codiceIniziale = '', erroreEsterno, idCampo, camp
       return;
     }
     setErrore(null);
+    onCerca?.();
     void naviga(percorsoDetermine(esito.codice));
   };
   return (

@@ -9,11 +9,14 @@ import { describe, expect, it } from 'vitest';
 import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
+import type { QueryClient } from '@tanstack/react-query';
 import { createMemoryRouter, RouterProvider } from 'react-router';
+import type { InitialEntry } from 'react-router';
+import { AUTH_STATUS_QUERY_KEY } from '../../../shared/api/auth/auth-status';
 import { server } from '../../../shared/api/mock/server';
 import { expectNoA11yViolations } from '../../../shared/testing/axe';
 import { problema, trattenuta } from '../../../shared/testing/msw';
-import { renderConQuery } from '../../../shared/testing/render';
+import { clientDiTest, renderConQuery } from '../../../shared/testing/render';
 import { DETERMINE, DETERMINE_CHIUSA, DETERMINE_NESSUNA, DETERMINE_TIPO, DETERMINE_TIPO_SOSTEGNO } from '../../../features/procedurale/testing/fixture';
 import Pagina from './page';
 
@@ -35,16 +38,20 @@ function servi(risposte: Record<string, object> = { [DETERMINE.codiceABarre]: DE
   return lette;
 }
 
-/** La pagina nel router dei test; l'indirizzo puo' portare lo state della navigazione (il link della scheda dell'elenco). */
-function apri(indirizzo: string | { pathname: string; state: unknown }) {
+/**
+ * La pagina nel router dei test; l'indirizzo puo' portare lo state della navigazione (il link della scheda dell'elenco).
+ * `prima` e' la voce della cronologia che la precede (la scheda di partenza, per Indietro e Avanti); `client` il
+ * QueryClient, per seminarlo o per rileggere la sessione.
+ */
+function apri(indirizzo: InitialEntry, { client = clientDiTest(), prima }: { client?: QueryClient; prima?: string } = {}) {
   const router = createMemoryRouter(
     [
       { path: ROUTE, Component: Pagina },
       { path: '*', element: <p>altra pagina</p> },
     ],
-    { initialEntries: [indirizzo] },
+    prima ? { initialEntries: [prima, indirizzo], initialIndex: 1 } : { initialEntries: [indirizzo] },
   );
-  return { ...renderConQuery(<RouterProvider router={router} />), router };
+  return { ...renderConQuery(<RouterProvider router={router} />, client), router, client };
 }
 const campo = () => screen.getByRole('searchbox', { name: 'Codice a barre della domanda' });
 
@@ -373,6 +380,87 @@ describe("RF020: domanda dell'altro tipo in arrivo dalla scheda dell'elenco, SC-
     expect(screen.getByRole('link', { name: 'Apri la scheda della domanda' }).getAttribute('href')).toBe('/elenco-operativo/domande/SOSTEGNO/34810063736');
   });
 
+  // review step9 PRO2-01 (flusso riapprovato: "il tipo si legge una volta sola all'arrivo"): createBrowserRouter rilegge lo
+  // state della voce a una ricarica e con Indietro o Avanti, quindi la pagina lo toglie dalla voce appena arrivata
+  it('il tipo si legge una volta sola: lo state lascia la voce (replace, stesso indirizzo) e l avviso resta; una ricarica della voce non ha l avviso', async () => {
+    servi({ [DETERMINE_TIPO.codiceABarre]: DETERMINE_TIPO });
+    const arrivo = apri(dallaScheda('SOSTEGNO'));
+    await tabella();
+    await waitFor(() => expect(arrivo.router.state.location.state).toBeNull());
+    expect(arrivo.router.state.historyAction).toBe('REPLACE');
+    expect(`${arrivo.router.state.location.pathname}${arrivo.router.state.location.search}`).toBe(INDIRIZZO);
+    expect(avviso()?.textContent).toBe(`${AVVISO} ${PARTENZA}`);
+    // ricarica: il browser rimonta l'app sulla stessa voce della cronologia, con lo state che la voce ha adesso
+    const voce = arrivo.router.state.location;
+    arrivo.unmount();
+    apri(voce);
+    await tabella();
+    expect(avviso()).toBeNull();
+    expect(screen.queryByRole('link', { name: PARTENZA })).toBeNull();
+  });
+
+  it('Indietro e Avanti: la voce delle determine torna senza state, nessun avviso; il consumo non aggiunge voci alla cronologia', async () => {
+    servi({ [DETERMINE_TIPO.codiceABarre]: DETERMINE_TIPO });
+    const { router } = apri(dallaScheda('SOSTEGNO'), { prima: '/elenco-operativo/domande/SOSTEGNO/34810022870' });
+    await tabella();
+    await waitFor(() => expect(router.state.location.state).toBeNull());
+    expect(avviso()).not.toBeNull();
+    // Indietro porta alla scheda di partenza (la voce che precede), non a una copia della pagina
+    await act(async () => router.navigate(-1));
+    expect(router.state.location.pathname).toBe('/elenco-operativo/domande/SOSTEGNO/34810022870');
+    expect(screen.getByText('altra pagina')).toBeTruthy();
+    await act(async () => router.navigate(1));
+    expect(router.state.location.pathname).toBe(INDIRIZZO);
+    await tabella();
+    expect(avviso()).toBeNull();
+  });
+
+  it('cambio d identita senza ricarica (la pagina resta montata, la shell rilegge la sessione): l avviso sparisce', async () => {
+    servi({ [DETERMINE_TIPO.codiceABarre]: DETERMINE_TIPO });
+    const { client } = apri(dallaScheda('SOSTEGNO'));
+    await tabella();
+    // il link della scheda di partenza c'e': la prima lettura della sessione non azzera il tipo
+    expect(within(avviso() as HTMLElement).getByRole('link', { name: PARTENZA })).toBeTruthy();
+    // un altro utente entra nello stesso browser: la nuova lettura di /auth/status trova un'altra identita'
+    server.use(
+      http.get('*/auth/status', () =>
+        HttpResponse.json({ authenticated: true, user: { username: 'ALTRO', profile: 'p4-responsabile-procedimento-ada', roles: ['csr.tx-0020.read', 'csr.tx-0058.read'] } }),
+      ),
+    );
+    await act(async () => client.invalidateQueries({ queryKey: AUTH_STATUS_QUERY_KEY }));
+    await waitFor(() => expect(avviso()).toBeNull());
+    expect(client.getQueryData<{ user?: { username: string } }>(AUTH_STATUS_QUERY_KEY)?.user?.username).toBe('ALTRO');
+    expect(screen.queryByRole('link', { name: PARTENZA })).toBeNull();
+  });
+
+  // review step9 PRO2-02: con TX-0020 gia' in cache (staleTime di 5 minuti nell'app) la risposta c'e' al primo render; la
+  // regione deve comunque nascere vuota e riempirsi dopo, o non si annuncia (review v1 X-08 dell'elenco)
+  it('con TX-0020 gia in cache la regione role=status nasce vuota e si riempie dopo il montaggio (si annuncia)', async () => {
+    servi({ [DETERMINE_TIPO.codiceABarre]: DETERMINE_TIPO });
+    // anche la sessione gia' letta: al primo render ci sono la risposta e il link della scheda di partenza
+    const sessione = { authenticated: true, user: { username: 'U', profile: 'p2-referente-adg', roles: ['csr.tx-0020.read', 'csr.tx-0058.read'] } };
+    server.use(http.get('*/auth/status', () => HttpResponse.json(sessione)));
+    const client = clientDiTest();
+    client.setQueryData(AUTH_STATUS_QUERY_KEY, sessione);
+    // la chiave di TX-0020 (getTx0020QueryKey del generato, che i componenti non importano)
+    client.setQueryData(['/api/procedurale/domande/34810022870/determina'], DETERMINE_TIPO);
+    // le regioni role=status a cui si aggiunge un contenuto quando sono gia' nel DOM
+    const riempite: Node[] = [];
+    const osservatore = new MutationObserver((mutazioni) => {
+      for (const m of mutazioni) if (m.addedNodes.length > 0 && m.target instanceof HTMLElement && m.target.getAttribute('role') === 'status') riempite.push(m.target);
+    });
+    osservatore.observe(document.body, { childList: true, subtree: true });
+    try {
+      apri(dallaScheda('SOSTEGNO'), { client });
+      // la risposta dalla cache: la tabella c'e' gia' al primo render
+      expect(screen.getByRole('table', { name: /^Determine da cui la domanda 34810022870/ })).toBeTruthy();
+      await waitFor(() => expect(avviso()?.textContent).toBe(`${AVVISO} ${PARTENZA}`));
+      await waitFor(() => expect(riempite).toContain(avviso()));
+    } finally {
+      osservatore.disconnect();
+    }
+  });
+
   it('stesso tipo (scheda PAGAMENTO, risposta PAGAMENTO): nessun avviso', async () => {
     servi({ [DETERMINE_TIPO.codiceABarre]: DETERMINE_TIPO });
     apri(dallaScheda('PAGAMENTO'));
@@ -381,7 +469,7 @@ describe("RF020: domanda dell'altro tipo in arrivo dalla scheda dell'elenco, SC-
     expect(screen.queryByRole('link', { name: /scheda Determine$/ })).toBeNull();
   });
 
-  it('senza state (ricarica o indirizzo condiviso): nessun avviso', async () => {
+  it('senza state (indirizzo condiviso): nessun avviso', async () => {
     servi({ [DETERMINE_TIPO.codiceABarre]: DETERMINE_TIPO });
     apri(INDIRIZZO);
     await tabella();
@@ -415,9 +503,12 @@ describe("RF020: domanda dell'altro tipo in arrivo dalla scheda dell'elenco, SC-
     const { router } = apri(dallaScheda('SOSTEGNO'));
     await tabella();
     expect(avviso()).not.toBeNull();
+    const voce = router.state.location.key;
     await userEvent.clear(campo());
     await userEvent.type(campo(), '34810022870{Enter}');
-    await waitFor(() => expect(router.state.location.state).toBeNull());
+    // la ricerca e' una voce nuova della cronologia, senza state
+    await waitFor(() => expect(router.state.location.key).not.toBe(voce));
+    expect(router.state.location.state).toBeNull();
     expect(avviso()).toBeNull();
     expect(router.state.location.pathname).toBe(INDIRIZZO);
     await userEvent.clear(campo());
