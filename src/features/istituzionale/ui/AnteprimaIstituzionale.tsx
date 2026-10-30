@@ -23,6 +23,7 @@ import type { VerificaSmp } from '../api';
 import { anteprimaVerifica, anteprimaVerificaSigc, etichetteAnteprima, etichetteAnteprimaSigc, nomeGruppoSigc, riferimentoAnteprima, riferimentoAnteprimaSigc } from '../lib/anteprima';
 import { criteriVerificaSenzaFiltri, esercizioUltimoChiuso, filtriVerificaSigcSenzaFiltri } from '../lib/criteri';
 import { puoLeggere } from '../lib/grant';
+import { periodoDellaRisposta } from '../lib/verificaSigc';
 
 function Verifica() {
   const { data, isPending, isError } = useVerificaSmpNonSigc(criteriVerificaSenzaFiltri());
@@ -49,10 +50,10 @@ function Verifica() {
 function NumeriSigc({ d, esercizio }: { d: VerificaSmp; esercizio: number }) {
   const a = anteprimaVerificaSigc(d);
   const e = etichetteAnteprimaSigc(d.perimetro);
-  const n = d.esercizio ?? esercizio;
+  const p = periodoDellaRisposta(d, esercizio);
   return (
     <>
-      <RiferimentoArea>{riferimentoAnteprimaSigc(n, d.annoDomande ?? n - 1)}</RiferimentoArea>
+      <RiferimentoArea>{riferimentoAnteprimaSigc(p.esercizio, p.annoDomande)}</RiferimentoArea>
       <NumeriArea>
         <NumeroArea etichetta={e.finanziate} valore={a.domandeFinanziate.valore} motivo={a.domandeFinanziate.motivo} formato={intero} />
         <NumeroArea etichetta={e.spesa} valore={a.spesaErogata.valore} motivo={a.spesaErogata.motivo} formato={importoBreve} />

@@ -3,8 +3,8 @@
 // da TX-0017, ora del fisico: OP-IS-12), si'/no, stati vuoti e note sulle definizioni del backend (OP-IS-07: note fisse,
 // non un dato). I testi sono quelli dei wireframe approvati (22/10/2026 e, per le due verifiche e il dettaglio, 30/10/2026),
 // con le lettere accentate. Il perimetro in parole e' di shared/lib (review H7), come i campi facoltativi della verifica
-// SMP SIGC (numeroOpzionale, testoOpzionale, annoOpzionale: review del riallineamento IST-06). I testi dell'output
-// regionale sono del fisico dal 29/10/2026.
+// SMP SIGC (numeroOpzionale, testoOpzionale: review del riallineamento IST-06). I testi dell'output regionale sono del
+// fisico dal 29/10/2026.
 import { formatNumber, testoPerimetro } from '../../../shared/lib';
 
 /** Pill della barra: i report istituzionali hanno sempre il perimetro regionale (spec: enum REGIONALE). */
@@ -18,9 +18,18 @@ export function pillAnnoDelFile(anno: number | null): string {
   return `Anno di riferimento del file SMP non SIGC: ${anno ?? 'nessun file'}`;
 }
 
+/**
+ * Gli estremi dell'esercizio finanziario n, dal 16/10/n-1 al 15/10/n: una sola regola per le voci, la pill e la card della
+ * Home (review del riallineamento IST-04, prima riscritta a mano nella card).
+ */
+export function estremiEsercizio(esercizio: number): { inizio: string; fine: string } {
+  return { inizio: `16/10/${esercizio - 1}`, fine: `15/10/${esercizio}` };
+}
+
 /** Gli estremi dell'esercizio finanziario n: "dal 16/10/2024 al 15/10/2025" (esercizio 2025). */
 export function periodoEsercizio(esercizio: number): string {
-  return `dal 16/10/${esercizio - 1} al 15/10/${esercizio}`;
+  const { inizio, fine } = estremiEsercizio(esercizio);
+  return `dal ${inizio} al ${fine}`;
 }
 
 /** Pill dell'esercizio della verifica SMP SIGC (esercizio della risposta), coi suoi estremi. */

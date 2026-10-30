@@ -15,6 +15,7 @@ import { totaleMotivato } from '../../../entities/importo';
 import type { DatoMotivatoLike, TotaleMotivato } from '../../../entities/importo';
 import { etichettaDellArea, numeroDi, percentuale, sommaSeCompleta } from '../../../shared/lib';
 import type { RigaVerifica, RigaVerificaSigc, Verifica, VerificaSigc } from './dto';
+import { estremiEsercizio } from './formato';
 
 export interface AnteprimaVerifica {
   domandeFinanziate: number;
@@ -104,7 +105,8 @@ export function nomeGruppoSigc(esercizio: number): string {
 
 /** "SIGC, esercizio 2026 (16/10/2025 - 15/10/2026; domande dell'anno 2025)": esercizio, periodo e anno delle domande. */
 export function riferimentoAnteprimaSigc(esercizio: number, annoDomande: number): string {
-  return `SIGC, esercizio ${esercizio} (16/10/${esercizio - 1} - 15/10/${esercizio}; domande dell'anno ${annoDomande})`;
+  const { inizio, fine } = estremiEsercizio(esercizio);
+  return `SIGC, esercizio ${esercizio} (${inizio} - ${fine}; domande dell'anno ${annoDomande})`;
 }
 
 /**

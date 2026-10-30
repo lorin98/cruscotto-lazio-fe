@@ -23,7 +23,7 @@ import { DEFINIZIONI_VERIFICA, DEFINIZIONI_VERIFICA_SIGC, NESSUN_FILE, SCEGLI_ES
 import { SENZA_DATI_SIGC, TITOLI_SCHEDE, captionVociVerifica, captionVociVerificaSigc, kpiVerifica, kpiVerificaSigc, testoAggiornamentoAnno, testoAggiornamentoEsercizio } from '../lib/intervento';
 import type { ChiaveKpi, IdScheda, KpiIntervento } from '../lib/intervento';
 import { DATI_VERIFICA, titoloDato } from '../lib/verifica';
-import { DATI_VERIFICA_SIGC, vociRiferimentiSigcIntervento } from '../lib/verificaSigc';
+import { DATI_VERIFICA_SIGC, periodoDellaRisposta, vociRiferimentiSigcIntervento } from '../lib/verificaSigc';
 import { CellaDato, ValoreDelDatoSigc } from './comuni';
 import { fileVerifica, fileVerificaSigc } from './esportazioni';
 import { usePuoAprireElenco } from './navigazione';
@@ -102,8 +102,7 @@ function SchedaVerifica({ stato, codice, anno, onAnno }: PropsVerifica) {
 function VociVerificaSigc({ d, codice, esercizio }: { d: VerificaSmp; codice: string; esercizio: number }) {
   const r = rigaDellIntervento(d.righe, codice);
   if (!r) return <Vuoto>{SENZA_DATI_SIGC}</Vuoto>;
-  const n = d.esercizio ?? esercizio;
-  const annoDomande = d.annoDomande ?? n - 1;
+  const { esercizio: n, annoDomande } = periodoDellaRisposta(d, esercizio);
   const voci = [
     ...vociRiferimentiSigcIntervento(d, esercizio),
     ...DATI_VERIFICA_SIGC.map((x) => ({ etichetta: x.voce, valore: <ValoreDelDatoSigc r={r} d={x} indicatore={r.indicatoreOutput} /> })),

@@ -2,9 +2,10 @@
 // 30/10/2026): i venti dati di TX-0015 per intervento nell'ordine della pagina del finanziario da cui viene, col titolo
 // della colonna (tabella della pagina) e della voce (scheda Verifica SMP SIGC del dettaglio), il tipo del valore e le
 // colonne nascoste di partenza (visibili quelle del low-fi, le altre da "Colonne", come nella verifica non SIGC); il valore
-// per l'ordinamento, il testo della ricerca e i riferimenti della risposta (pagina e scheda). I componenti li rendono con
-// un map: qui nessun calcolo resta nei componenti.
-import { annoOpzionale, numeroOpzionale, testoPerimetro } from '../../../shared/lib';
+// per l'ordinamento, il testo della ricerca, il periodo della risposta (esercizio e anno delle domande, anche per la card
+// della Home) e i riferimenti della risposta (pagina e scheda). I componenti li rendono con un map: qui nessun calcolo
+// resta nei componenti.
+import { numeroOpzionale, testoPerimetro } from '../../../shared/lib';
 import type { ValoreOrdinabile } from '../../../shared/lib';
 import type { RigaVerificaSigc, VerificaSigc } from './dto';
 import { periodoEsercizio, siNo } from './formato';
@@ -70,17 +71,36 @@ export function testoEsercizio(esercizio: number, compresi = false): string {
   return `${esercizio} (${periodoEsercizio(esercizio)}${compresi ? ', estremi compresi' : ''})`;
 }
 
+/** Il periodo di una risposta di TX-0015: l'esercizio n e l'anno delle domande (n-1). */
+export interface PeriodoSigc {
+  esercizio: number;
+  annoDomande: number;
+}
+
+/**
+ * Il periodo della risposta di TX-0015 (spec: "esercizio n e domande dell'anno n-1"; i due campi sono facoltativi):
+ * l'esercizio della risposta, oppure quello chiesto; l'anno delle domande della risposta, oppure n-1. Una sola regola per
+ * la card della Home, la scheda SIGC del dettaglio (KPI e didascalia) e le voci dei riferimenti (review del riallineamento
+ * IST-04: prima ripetuta nei componenti, e la voce "Anno delle domande" diceva "non disponibile" dove la didascalia della
+ * stessa scheda diceva n-1).
+ */
+export function periodoDellaRisposta(d: Pick<VerificaSigc, 'esercizio' | 'annoDomande'>, chiesto: number): PeriodoSigc {
+  const esercizio = d.esercizio ?? chiesto;
+  return { esercizio, annoDomande: d.annoDomande ?? esercizio - 1 };
+}
+
 type Riferimenti = Pick<VerificaSigc, 'esercizio' | 'annoDomande' | 'pagamentiSenzaData' | 'perimetro'>;
 
 /**
  * I riferimenti della risposta della pagina (tabella sopra la card): esercizio con gli estremi, anno delle domande,
- * pagamenti senza data di autorizzazione (esclusi dall'esercizio e contati), perimetro. L'esercizio e' quello della
- * risposta, oppure quello chiesto.
+ * pagamenti senza data di autorizzazione (esclusi dall'esercizio e contati), perimetro. Esercizio e anno delle domande sono
+ * quelli del periodo della risposta (periodoDellaRisposta).
  */
 export function vociRiferimentiSigc(d: Riferimenti, chiesto: number): { etichetta: string; valore: string }[] {
+  const p = periodoDellaRisposta(d, chiesto);
   return [
-    { etichetta: 'Esercizio', valore: testoEsercizio(d.esercizio ?? chiesto, true) },
-    { etichetta: 'Anno delle domande', valore: annoOpzionale(d.annoDomande) },
+    { etichetta: 'Esercizio', valore: testoEsercizio(p.esercizio, true) },
+    { etichetta: 'Anno delle domande', valore: String(p.annoDomande) },
     { etichetta: "Pagamenti senza data di autorizzazione (esclusi dall'esercizio)", valore: numeroOpzionale(d.pagamentiSenzaData) },
     { etichetta: 'Perimetro', valore: testoPerimetro(d.perimetro ?? 'REGIONALE') },
   ];
@@ -88,9 +108,10 @@ export function vociRiferimentiSigc(d: Riferimenti, chiesto: number): { etichett
 
 /** I riferimenti in testa alle voci della scheda SIGC del dettaglio: esercizio, anno delle domande, pagamenti senza data. */
 export function vociRiferimentiSigcIntervento(d: Riferimenti, chiesto: number): { etichetta: string; valore: string }[] {
+  const p = periodoDellaRisposta(d, chiesto);
   return [
-    { etichetta: 'Esercizio', valore: testoEsercizio(d.esercizio ?? chiesto) },
-    { etichetta: 'Anno delle domande', valore: annoOpzionale(d.annoDomande) },
+    { etichetta: 'Esercizio', valore: testoEsercizio(p.esercizio) },
+    { etichetta: 'Anno delle domande', valore: String(p.annoDomande) },
     { etichetta: "Pagamenti dell'intervento senza data di autorizzazione (esclusi dall'esercizio)", valore: numeroOpzionale(d.pagamentiSenzaData) },
   ];
 }

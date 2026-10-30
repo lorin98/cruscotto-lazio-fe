@@ -104,7 +104,8 @@ export function valorePercentuale(v: unknown): string {
 }
 
 // I campi facoltativi senza motivo dell'assenza (nella spec il dato manca e basta): assente = "non disponibile", mai uno
-// zero ne' una cella vuota. Prima copiati nel finanziario e nell'istituzionale (review del riallineamento IST-06).
+// zero ne' una cella vuota. Prima copiati nel finanziario e nell'istituzionale (review del riallineamento IST-06; l'anno
+// facoltativo, annoOpzionale, non serve piu': l'anno delle domande della verifica SMP SIGC ha il ripiego n-1, IST-04).
 
 /** Un numero facoltativo (conteggi, ettari o UBA): assente = "non disponibile". */
 export function numeroOpzionale(v: number | null | undefined): string {
@@ -114,11 +115,6 @@ export function numeroOpzionale(v: number | null | undefined): string {
 /** Un testo facoltativo (date gia' formattate, indicatori): assente o vuoto = "non disponibile". */
 export function testoOpzionale(v: string | null | undefined): string {
   return v == null || v.trim() === '' ? NON_DISPONIBILE : v;
-}
-
-/** Un anno facoltativo, senza separatore delle migliaia: assente = "non disponibile". */
-export function annoOpzionale(v: number | null | undefined): string {
-  return v == null ? NON_DISPONIBILE : String(v);
 }
 
 export function assePercentuale(v: number): string {

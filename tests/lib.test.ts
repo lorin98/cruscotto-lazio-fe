@@ -9,7 +9,7 @@ import { conStatoSalvato, leggiStatoSalvato } from '../src/shared/lib/stato-hist
 import { statoDelDettaglio, tutteRisposte } from '../src/shared/lib/dettaglio';
 import * as libComune from '../src/shared/lib';
 import { NON_DISPONIBILE_BREVE, resaAssenza, totaleMotivato } from '../src/entities/importo';
-import { annoOpzionale, numeroOpzionale, testoOpzionale } from '../src/shared/lib/grafici/primitive';
+import { numeroOpzionale, testoOpzionale } from '../src/shared/lib/grafici/primitive';
 import { isOpenEnded, isSentinelDate, SENTINEL_DATE_MAX } from '../src/shared/lib/sentinel-dates';
 import { isEditable, makeRolePredicate } from '../src/shared/lib/predicates';
 import type { AuthStatus } from '../src/shared/api/auth/auth-status';
@@ -314,11 +314,10 @@ describe("entities/importo: resaAssenza, l'assenza in breve dove il motivo e det
 });
 
 describe('lib/grafici — campi facoltativi senza motivo (review del riallineamento IST-06 e FIN-01, prima nel finanziario e nell istituzionale)', () => {
-  it('assenti come "non disponibile", mai uno zero ne una cella vuota; anni senza separatore delle migliaia', () => {
+  it('assenti come "non disponibile", mai uno zero ne una cella vuota', () => {
     expect([numeroOpzionale(null), numeroOpzionale(undefined), numeroOpzionale(0), numeroOpzionale(350.5)]).toEqual(['non disponibile', 'non disponibile', '0', '350,5']);
     expect([testoOpzionale(null), testoOpzionale('  '), testoOpzionale('O.14')]).toEqual(['non disponibile', 'non disponibile', 'O.14']);
-    expect([annoOpzionale(2024), annoOpzionale(null), annoOpzionale(undefined)]).toEqual(['2024', 'non disponibile', 'non disponibile']);
     // dal barrel del kit, come gli altri mattoni
-    expect([libComune.numeroOpzionale, libComune.testoOpzionale, libComune.annoOpzionale]).toEqual([numeroOpzionale, testoOpzionale, annoOpzionale]);
+    expect([libComune.numeroOpzionale, libComune.testoOpzionale]).toEqual([numeroOpzionale, testoOpzionale]);
   });
 });

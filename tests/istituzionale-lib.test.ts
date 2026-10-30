@@ -28,6 +28,7 @@ import {
   PERIMETRO_IN_PAROLE,
   PILL_PERIMETRO,
   SCEGLI_ESERCIZIO,
+  estremiEsercizio,
   periodoEsercizio,
   pillAnnoDelFile,
   pillEsercizio,
@@ -61,7 +62,7 @@ import {
   titoloIntervento,
   ultimiDelDettaglio,
 } from '../src/features/istituzionale/lib/intervento';
-import { DATI_VERIFICA_SIGC, testoEsercizio, testoRicercaSigc, valoreOrdinabileSigc, vociRiferimentiSigc, vociRiferimentiSigcIntervento } from '../src/features/istituzionale/lib/verificaSigc';
+import { DATI_VERIFICA_SIGC, periodoDellaRisposta, testoEsercizio, testoRicercaSigc, valoreOrdinabileSigc, vociRiferimentiSigc, vociRiferimentiSigcIntervento } from '../src/features/istituzionale/lib/verificaSigc';
 import type { DatoVerificaSigc } from '../src/features/istituzionale/lib/verificaSigc';
 import { TITOLO_SPESA, TITOLO_SPESA_SIGC, graficoSpesa, graficoSpesaSigc } from '../src/features/istituzionale/lib/grafici';
 import { SRD01, ULTIMI, VERIFICA, VERIFICA_SMP, dato as datoSmp, nd, nv, rigaSmp, righeDeiFiltri, verificaPer, verificaSigcPer } from '../src/features/istituzionale/testing/fixture';
@@ -466,6 +467,18 @@ describe('RF015: i venti dati della verifica SMP SIGC (TX-0015) nella tabella e 
     expect(testoRicercaSigc({})).toBe('  ');
   });
 
+  it('il periodo della risposta (review IST-04): esercizio della risposta o quello chiesto, anno delle domande della risposta o n-1', () => {
+    expect(periodoDellaRisposta({ esercizio: 2025, annoDomande: 2024 }, 2026)).toEqual({ esercizio: 2025, annoDomande: 2024 });
+    expect(periodoDellaRisposta({}, 2026)).toEqual({ esercizio: 2026, annoDomande: 2025 });
+    // il ripiego n-1 parte dall'esercizio della risposta, non da quello chiesto
+    expect(periodoDellaRisposta({ esercizio: 2024 }, 2026)).toEqual({ esercizio: 2024, annoDomande: 2023 });
+    expect(periodoDellaRisposta({ annoDomande: 2020 }, 2026)).toEqual({ esercizio: 2026, annoDomande: 2020 });
+    // una sola regola per gli estremi: voci, pill e card della Home
+    expect(estremiEsercizio(2026)).toEqual({ inizio: '16/10/2025', fine: '15/10/2026' });
+    expect(periodoEsercizio(2026)).toBe('dal 16/10/2025 al 15/10/2026');
+    expect(riferimentoAnteprimaSigc(2026, 2025)).toBe("SIGC, esercizio 2026 (16/10/2025 - 15/10/2026; domande dell'anno 2025)");
+  });
+
   it('riferimenti della risposta: esercizio con gli estremi, anno delle domande, pagamenti senza data, perimetro', () => {
     expect(testoEsercizio(2025)).toBe('2025 (dal 16/10/2024 al 15/10/2025)');
     expect(testoEsercizio(2025, true)).toBe('2025 (dal 16/10/2024 al 15/10/2025, estremi compresi)');
@@ -475,7 +488,9 @@ describe('RF015: i venti dati della verifica SMP SIGC (TX-0015) nella tabella e 
       { etichetta: "Pagamenti senza data di autorizzazione (esclusi dall'esercizio)", valore: '3' },
       { etichetta: 'Perimetro', valore: 'regionale' },
     ]);
-    expect(vociRiferimentiSigc({}, 2026).map((v) => v.valore)).toEqual(['2026 (dal 16/10/2025 al 15/10/2026, estremi compresi)', 'non disponibile', 'non disponibile', 'regionale']);
+    // senza esercizio ne anno delle domande nella risposta: l'esercizio chiesto e le domande dell'anno n-1, come KPI e didascalia
+    expect(vociRiferimentiSigc({}, 2026).map((v) => v.valore)).toEqual(['2026 (dal 16/10/2025 al 15/10/2026, estremi compresi)', '2025', 'non disponibile', 'regionale']);
+    expect(vociRiferimentiSigcIntervento({ esercizio: 2024 }, 2026).map((v) => v.valore).slice(0, 2)).toEqual(['2024 (dal 16/10/2023 al 15/10/2024)', '2023']);
     expect(vociRiferimentiSigcIntervento({ ...VERIFICA_SMP, pagamentiSenzaData: 12345 }, 2025)).toEqual([
       { etichetta: 'Esercizio', valore: '2025 (dal 16/10/2024 al 15/10/2025)' },
       { etichetta: 'Anno delle domande', valore: '2024' },

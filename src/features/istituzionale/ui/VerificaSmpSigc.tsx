@@ -25,7 +25,7 @@ import { PARAMETRO_ESERCIZIO, criteriVerificaSigc, eserciziProposti, testiCriter
 import { NESSUN_DATO_SIGC, PERIMETRO_IN_PAROLE, SCEGLI_ESERCIZIO, pillEsercizio } from '../lib/formato';
 import { TITOLO_SPESA_SIGC, graficoSpesaSigc } from '../lib/grafici';
 import { puoLeggere } from '../lib/grant';
-import { vociRiferimentiSigc } from '../lib/verificaSigc';
+import { periodoDellaRisposta, vociRiferimentiSigc } from '../lib/verificaSigc';
 import { fileVerificaSigc } from './esportazioni';
 import { useApriIntervento } from './navigazione';
 import { PaginaReport } from './PaginaReport';
@@ -62,7 +62,7 @@ function ReportVerificaSigc({ d, filtri, esercizio }: { d: VerificaSmp; filtri: 
   return (
     <ContestoIntestazione.Provider value={contesto}>
       <TabellaVoci caption="Riferimenti della risposta" voci={vociRiferimentiSigc(d, esercizio)} />
-      <CardGrafico titolo={TITOLO_SPESA_SIGC} sottotitolo={SOTTOTITOLO_GRAFICO} dati={dati} fonte={fonte(d.esercizio ?? esercizio)} livello={2} altezza="alto" onClic={dalClic} scaricamenti={file} oggettoDati={oggetto} />
+      <CardGrafico titolo={TITOLO_SPESA_SIGC} sottotitolo={SOTTOTITOLO_GRAFICO} dati={dati} fonte={fonte(periodoDellaRisposta(d, esercizio).esercizio)} livello={2} altezza="alto" onClic={dalClic} scaricamenti={file} oggettoDati={oggetto} />
       <TabellaVerificaSigc righe={righe} esercizio={esercizio} scaricamenti={file} oggetto={oggetto} onRiga={apri} />
     </ContestoIntestazione.Provider>
   );
