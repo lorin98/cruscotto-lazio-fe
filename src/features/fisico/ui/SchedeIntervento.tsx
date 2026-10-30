@@ -13,10 +13,7 @@
 import { useMemo } from 'react';
 import { Tab, TabList, TabPanel, Tabs } from 'react-aria-components';
 import { rigaDellIntervento } from '../../../entities/filtri';
-import { ValoreImporto, ValoreMotivato } from '../../../entities/importo';
-import { formatNumber } from '../../../shared/lib';
 import { CardGrafico, ErroreNellaPagina, PulsantiScarica, TabellaStatica, VistaQuery, Vuoto } from '../../../shared/ui';
-import type { ColonnaStatica } from '../../../shared/ui';
 import type { useOutputRegionale, useSuperfici, useUnitAmount } from '../api';
 import { criteriDellIntervento } from '../lib/criteri';
 import type { InterventoSuperficie, RigaOutput, RigaUnitAmount } from '../lib/dto';
@@ -41,9 +38,9 @@ import {
   titoloOutputIntervento,
 } from '../lib/intervento';
 import type { IdScheda } from '../lib/intervento';
-import { CAMPI_PAGATO, TITOLI_PAGATO, chiaveUnitAmount, notaPagato } from '../lib/unitAmount';
+import { chiaveUnitAmount, notaPagato } from '../lib/unitAmount';
 import { fileOutput, fileUnitAmount, scaricamentiSuperfici } from './esportazioni';
-import { DatoPagato } from './TabellaUnitAmount';
+import { COLONNE_UNIT_AMOUNT } from './TabellaUnitAmount';
 
 type StatoOutput = ReturnType<typeof useOutputRegionale>;
 type StatoSuperfici = ReturnType<typeof useSuperfici>;
@@ -109,17 +106,10 @@ function SchedaSuperfici({ stato, codice }: { stato: StatoSuperfici; codice: str
   );
 }
 
-/** Le otto colonne della tabella delle Unit Amount dell'intervento: la Unit Amount e' l'intestazione di riga. */
-const COLONNE_UNIT_AMOUNT: readonly ColonnaStatica<RigaUnitAmount>[] = [
-  { chiave: 'ua', titolo: 'Unit Amount', resa: (r) => r.codiceUnitAmount ?? '' },
-  { chiave: 'gruppo', titolo: 'Gruppo colturale', resa: (r) => r.gruppoColturale ?? '' },
-  { chiave: 'esercizio', titolo: 'Esercizio', resa: (r) => (r.esercizio === undefined ? '' : String(r.esercizio)), numerica: true },
-  { chiave: 'unitario', titolo: 'Importo unitario', resa: (r) => <ValoreImporto importo={r.importoUnitario} />, numerica: true },
-  { chiave: 'output', titolo: 'Output previsto', resa: (r) => <ValoreMotivato dato={r.outputPrevisto} resa={formatNumber} />, numerica: true },
-  ...CAMPI_PAGATO.map((campo) => ({ chiave: campo, titolo: TITOLI_PAGATO[campo], resa: (r: RigaUnitAmount) => <DatoPagato r={r} campo={campo} breve />, numerica: true })),
-];
-
-/** Le Unit Amount dell'intervento: CSV e XLSX di TX-0030, la nota unica del pagato senza fonte, la tabella, la fonte. */
+/**
+ * Le Unit Amount dell'intervento: CSV e XLSX di TX-0030, la nota unica del pagato senza fonte, la tabella (le otto colonne
+ * della pagina Unit Amount, COLONNE_UNIT_AMOUNT: la Unit Amount e' l'intestazione di riga), la fonte.
+ */
 function TabellaUnitAmountIntervento({ righe, codice }: { righe: readonly RigaUnitAmount[]; codice: string }) {
   const nota = notaPagato(righe);
   return (

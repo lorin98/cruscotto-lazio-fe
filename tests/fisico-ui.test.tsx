@@ -249,6 +249,30 @@ describe('UnitAmount, TabellaUnitAmount e l anteprima della Unit Amount', () => 
     await expectNoA11yViolations(drawer);
   });
 
+  it('la scheda Unit Amount del dettaglio compone le colonne della pagina (review FIS-08): stessi titoli e stesse celle, senza l Intervento; ogni riga della pagina si apre', async () => {
+    server.use(...lettureFisico().handlers);
+    const pagina = renderPagina(UnitAmount, '/fisico/unit-amount');
+    const tabella = await screen.findByRole('table', { name: /^Unit Amount degli interventi selezionati/ });
+    const titoliPagina = intestazioni(tabella);
+    const cellePagina = within(tabella)
+      .getAllByRole('row')
+      .slice(1)
+      .map((r) => Array.from(r.children).slice(1).map((c) => testo(c.textContent)));
+    expect(within(tabella).getAllByRole('row', { name: /^Apri l'anteprima della Unit Amount / })).toHaveLength(3);
+    pagina.unmount();
+
+    server.use(...lettureFisico().handlers);
+    apriDettaglio({ pathname: '/fisico/interventi/SRD01', state: { scheda: 'unitAmount' } });
+    const scheda = await screen.findByRole('table', { name: /^Unit Amount dell'intervento SRD01/ });
+    expect(intestazioni(scheda)).toEqual(titoliPagina.slice(1));
+    expect(
+      within(scheda)
+        .getAllByRole('row')
+        .slice(1)
+        .map((r) => Array.from(r.children).map((c) => testo(c.textContent))),
+    ).toEqual(cellePagina);
+  });
+
   it("Apri il dettaglio dell'intervento (dettaglio-intervento-unit-amount): il dettaglio sulla scheda Unit Amount, con lo state della navigazione", async () => {
     server.use(...lettureFisico().handlers);
     const { router } = renderPagina(UnitAmount, '/fisico/unit-amount');
