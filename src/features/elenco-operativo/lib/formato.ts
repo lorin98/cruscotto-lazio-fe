@@ -56,7 +56,7 @@ export function testoQuotaPagata(quota: number | null | undefined): string {
   return quota == null ? 'non calcolabile' : formatPercentuale(quota);
 }
 
-/** "Sostegno", "Pagamento"; un codice nuovo resta il codice (vocabolario della domanda, condiviso col fisico). */
+/** "Sostegno", "Pagamento"; un codice nuovo resta il codice (vocabolario della domanda, condiviso col procedurale). */
 export const etichettaTipo = etichettaTipoDomanda;
 
 const ESITI: Record<string, string> = ETICHETTE_ESITO_RIGA;

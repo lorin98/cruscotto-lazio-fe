@@ -9,6 +9,7 @@
 // dell'utente del 30/10/2026 (review step9 EO-01, flusso riapprovato): l'avviso "domanda dell'altro tipo" e il link
 // scheda-di-partenza, in arrivo dalla scheda dell'elenco con un tipo diverso da quello della risposta.
 import { PERCORSO_DETERMINE_DELLA_DOMANDA, arrivoSullaScheda, codiceABarreValido, etichettaTipoDomanda, percorsoSchedaDomanda } from '../../../entities/domanda';
+import type { TipoDellaDomanda } from '../../../entities/domanda';
 import type { Determina, Determine, Perimetro } from './dto';
 
 /** Il codice del percorso: nessuno (ingresso dal menu), valido (si legge), oppure non valido (nessuna lettura). */
@@ -68,7 +69,7 @@ export function testoTipoDomanda(tipo: string): string {
  * scheda nello state della navigazione) la risposta puo' essere dell'altro tipo. Il tipo della scheda di partenza se e'
  * diverso da tipoDomanda della risposta; null (nessun avviso) senza tipo di partenza, senza risposta o con lo stesso tipo.
  */
-export function tipoDiPartenzaDiverso(partenza: string | null, d: Pick<Determine, 'tipoDomanda'> | undefined): string | null {
+export function tipoDiPartenzaDiverso(partenza: TipoDellaDomanda | null, d: Pick<Determine, 'tipoDomanda'> | undefined): TipoDellaDomanda | null {
   return partenza !== null && d !== undefined && d.tipoDomanda !== partenza ? partenza : null;
 }
 
@@ -78,12 +79,12 @@ export function tipoDiPartenzaDiverso(partenza: string | null, d: Pick<Determine
  * domanda con determine aperte, quindi la domanda di partenza puo' non averne (34810063735 e 34810063736 di
  * SC-PC_DETERMINA_TIPO), e l'avviso non dice dove sono le sue.
  */
-export function messaggioAltroTipo(codice: string, tipoDellaRisposta: string, tipoDellaScheda: string): string {
+export function messaggioAltroTipo(codice: string, tipoDellaRisposta: string, tipoDellaScheda: TipoDellaDomanda): string {
   return `Il codice a barre ${codice} è anche di una domanda di ${tipoInParole(tipoDellaRisposta)}: questa pagina mostra quella domanda, non la domanda di ${tipoInParole(tipoDellaScheda)} da cui arrivi.`;
 }
 
 /** Testo del link scheda-di-partenza: "Apri la scheda della domanda di sostegno, scheda Determine". */
-export function testoSchedaDiPartenza(tipoDellaScheda: string): string {
+export function testoSchedaDiPartenza(tipoDellaScheda: TipoDellaDomanda): string {
   return `Apri la scheda della domanda di ${tipoInParole(tipoDellaScheda)}, scheda Determine`;
 }
 
@@ -91,7 +92,7 @@ export function testoSchedaDiPartenza(tipoDellaScheda: string): string {
  * Link scheda-di-partenza verso l'elenco operativo (/elenco-operativo/domande/:tipo/:codiceABarre: tipo portato dal link
  * della scheda, codice cercato): solo con il grant della scheda (csr.tx-0058.read). Gate di UX. null = nessun link.
  */
-export function percorsoSchedaDiPartenza(tipoDellaScheda: string, codice: string, conGrantScheda: boolean): string | null {
+export function percorsoSchedaDiPartenza(tipoDellaScheda: TipoDellaDomanda, codice: string, conGrantScheda: boolean): string | null {
   return conGrantScheda ? percorsoSchedaDomanda(tipoDellaScheda, codice) : null;
 }
 

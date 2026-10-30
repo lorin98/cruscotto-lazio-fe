@@ -72,7 +72,7 @@ function Testata({ h1, titolo, d, scheda }: { h1: Ref<HTMLHeadingElement>; titol
  * Il testo dell'avviso "domanda dell'altro tipo" e il link scheda-di-partenza (solo col grant della scheda), che apre la
  * scheda della domanda sulla scheda Determine (state della navigazione).
  */
-function TestoAltroTipo({ codice, tipoDellaRisposta, tipoDellaScheda, conGrantScheda }: { codice: string; tipoDellaRisposta: string; tipoDellaScheda: string; conGrantScheda: boolean }) {
+function TestoAltroTipo({ codice, tipoDellaRisposta, tipoDellaScheda, conGrantScheda }: { codice: string; tipoDellaRisposta: string; tipoDellaScheda: TipoDellaDomanda; conGrantScheda: boolean }) {
   const scheda = percorsoSchedaDiPartenza(tipoDellaScheda, codice, conGrantScheda);
   return (
     <>

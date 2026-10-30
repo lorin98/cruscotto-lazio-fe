@@ -1,8 +1,9 @@
 // elenco.ts — il contratto dell'indirizzo dell'elenco operativo, condiviso dalle feature (review v1 H-09): i percorsi delle
 // due pagine e della scheda della domanda, i grant delle loro letture principali (VERBATIM dall'authz-catalog) e i codici
-// dell'esito di una riga di elenco di liquidazione. Il finanziario ci costruisce i link di drill-down, il fisico il link
-// alla scheda della domanda dalle determine, l'elenco operativo le sue pagine e i suoi link: una sola fonte, nessuna copia
-// per feature.
+// dell'esito di una riga di elenco di liquidazione. Il finanziario ci costruisce i link di drill-down, il procedurale il
+// link alla scheda della domanda dalle determine, l'elenco operativo le sue pagine e i suoi link: una sola fonte, nessuna
+// copia per feature. Anche lo state della navigazione che apre la scheda su una delle sue schede (schedaIniziale): lo
+// scrive il link scheda-di-partenza delle determine del procedurale, lo legge la scheda della domanda.
 
 export const PERCORSO_ELENCO_DOMANDE = '/elenco-operativo/domande';
 export const PERCORSO_ELENCO_PAGAMENTI = '/elenco-operativo/pagamenti';
@@ -27,16 +28,16 @@ export const GRANT_DELLA_PAGINA: Readonly<Record<DestinazioneElenco, string>> = 
 export type EsitoRigaElenco = 'PAGATA' | 'ESCLUSA';
 export const ETICHETTE_ESITO_RIGA: Readonly<Record<EsitoRigaElenco, string>> = { PAGATA: 'Pagata', ESCLUSA: 'Esclusa' };
 
-/** Tipi della domanda nel percorso della scheda (TX-0058) e nelle risposte (TX-0020: tipoDomanda). */
-const TIPI_DOMANDA = new Set(['SOSTEGNO', 'PAGAMENTO']);
+/** Tipi della domanda nel percorso della scheda (TX-0058) e nelle risposte (TX-0020: tipoDomanda): un elenco chiuso. */
+const TIPI_DOMANDA = ['SOSTEGNO', 'PAGAMENTO'] as const;
 const CODICE_A_BARRE = /^\d{1,30}$/;
 
-/** Tipo della domanda dell'elenco chiuso (SOSTEGNO, PAGAMENTO). */
-export type TipoDellaDomanda = 'SOSTEGNO' | 'PAGAMENTO';
+/** Tipo della domanda dell'elenco chiuso (SOSTEGNO, PAGAMENTO), dallo stesso elenco del controllo (review step9 EO2-02). */
+export type TipoDellaDomanda = (typeof TIPI_DOMANDA)[number];
 
 /** Un tipo della domanda dell'elenco chiuso: per un valore che arriva da fuori (es. lo state della navigazione, `unknown`). */
 export function tipoDomandaValido(tipo: unknown): tipo is TipoDellaDomanda {
-  return typeof tipo === 'string' && TIPI_DOMANDA.has(tipo);
+  return TIPI_DOMANDA.some((t) => t === tipo);
 }
 
 /** Codice a barre di una domanda come lo vogliono i percorsi del backend: sole cifre, al piu' 30 (TX-0058, TX-0020). */
@@ -50,7 +51,7 @@ export function codiceABarreValido(codice: string | null | undefined): codice is
  * un valore diverso non entra mai nell'URL di una lettura (review v1 A-01: niente '/', '..', '%' nel percorso dell'API).
  */
 export function riferimentoDomandaValido(tipo: string | null | undefined, codiceABarre: string | null | undefined): boolean {
-  return Boolean(tipo && TIPI_DOMANDA.has(tipo) && codiceABarreValido(codiceABarre));
+  return tipoDomandaValido(tipo) && codiceABarreValido(codiceABarre);
 }
 
 /** La scheda della domanda nell'elenco operativo (/elenco-operativo/domande/:tipo/:codiceABarre); null se tipo o codice

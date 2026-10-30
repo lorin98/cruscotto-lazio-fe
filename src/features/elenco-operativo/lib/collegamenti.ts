@@ -22,7 +22,7 @@ export const PERCORSO_PAGAMENTI = PERCORSO_ELENCO_PAGAMENTI;
 /**
  * Tipo e codice a barre utilizzabili come riferimento della scheda (TX-0058), e la scheda della domanda (link
  * dettaglio-domanda, domanda-collegata, dettaglio-domanda-del-pagamento; null se il riferimento non e' valido): sono del
- * contratto dell'indirizzo condiviso con il fisico (entities/domanda, link scheda-domanda delle determine).
+ * contratto dell'indirizzo condiviso con il procedurale (entities/domanda, link scheda-domanda delle determine).
  */
 export const riferimentoValido = riferimentoDomandaValido;
 export const percorsoDettaglio = percorsoSchedaDomanda;

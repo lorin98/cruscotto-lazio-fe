@@ -180,6 +180,10 @@ function listeDi(scheda: DettaglioDomanda) {
   };
 }
 
+/** L'id di un Tab e del suo pannello, dall'elenco chiuso delle schede: lo stesso dello state schedaIniziale (review step9
+ *  EO2-02). */
+const idScheda = (id: SchedaDellaDomanda): SchedaDellaDomanda => id;
+
 /** La scheda da cui partire: quella che porta il link d'arrivo nello state della navigazione (se valida), o la Sintesi. */
 function useSchedaIniziale(): SchedaDellaDomanda {
   return schedaInizialeDalloState(useLocation().state) ?? 'sintesi';
@@ -191,31 +195,31 @@ function Schede({ d, scheda, ricerca, attoConcessioneDisponibile, conDetermine }
   return (
     <Tabs defaultSelectedKey={iniziale}>
       <TabList aria-label="Sezioni della domanda" className="ui-tabs">
-        <Tab id="sintesi" className="ui-tab">
+        <Tab id={idScheda('sintesi')} className="ui-tab">
           Sintesi
         </Tab>
-        <Tab id="collegate" className="ui-tab">{conta('Domande collegate', l.collegate.length)}</Tab>
-        <Tab id="determine" className="ui-tab">{conta('Determine', l.determine.length)}</Tab>
-        <Tab id="pagamenti" className="ui-tab">{conta('Pagamenti', l.pagamenti.length)}</Tab>
-        <Tab id="recuperi" className="ui-tab">{conta('Recuperi', l.recuperi.length)}</Tab>
-        <Tab id="anomalie" className="ui-tab">{conta('Anomalie', l.anomalie.length)}</Tab>
+        <Tab id={idScheda('collegate')} className="ui-tab">{conta('Domande collegate', l.collegate.length)}</Tab>
+        <Tab id={idScheda('determine')} className="ui-tab">{conta('Determine', l.determine.length)}</Tab>
+        <Tab id={idScheda('pagamenti')} className="ui-tab">{conta('Pagamenti', l.pagamenti.length)}</Tab>
+        <Tab id={idScheda('recuperi')} className="ui-tab">{conta('Recuperi', l.recuperi.length)}</Tab>
+        <Tab id={idScheda('anomalie')} className="ui-tab">{conta('Anomalie', l.anomalie.length)}</Tab>
       </TabList>
-      <TabPanel id="sintesi">
+      <TabPanel id={idScheda('sintesi')}>
         <Sintesi d={d} scheda={scheda} ricerca={ricerca} attoConcessioneDisponibile={attoConcessioneDisponibile} />
       </TabPanel>
-      <TabPanel id="collegate">
+      <TabPanel id={idScheda('collegate')}>
         <TabellaCollegate collegate={l.collegate} ricerca={ricerca} />
       </TabPanel>
-      <TabPanel id="determine">
+      <TabPanel id={idScheda('determine')}>
         <TabellaDetermine determine={l.determine} determineDellaDomanda={percorsoDetermine(d.codiceABarre, conDetermine)} statoDetermine={statoDetermine(d.tipo)} />
       </TabPanel>
-      <TabPanel id="pagamenti">
+      <TabPanel id={idScheda('pagamenti')}>
         <TabellaPagamentiDomanda pagamenti={l.pagamenti} />
       </TabPanel>
-      <TabPanel id="recuperi">
+      <TabPanel id={idScheda('recuperi')}>
         <TabellaRecuperi recuperi={l.recuperi} />
       </TabPanel>
-      <TabPanel id="anomalie">
+      <TabPanel id={idScheda('anomalie')}>
         <TabellaAnomalie anomalie={l.anomalie} />
       </TabPanel>
     </Tabs>
