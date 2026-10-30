@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb",
+  "pack_hash": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7",
   "authz_strategy": "two-tier",
   "claim_mapping": {
     "role_claim_path": "resource_access/cruscotto-csr/roles",
@@ -147,7 +147,6 @@
         "csr.tx-0012.read",
         "csr.tx-0013.read",
         "csr.tx-0014.read",
-        "csr.tx-0015.read",
         "csr.tx-0056.read",
         "csr.tx-0057.read",
         "csr.tx-0058.read",
@@ -158,8 +157,8 @@
     {
       "id": "p3-funzionario-area-ist",
       "grants": [
+        "csr.tx-0015.read",
         "csr.tx-0016.read",
-        "csr.tx-0017.read",
         "csr.tx-0056.read",
         "csr.tx-0057.read",
         "csr.tx-0058.read",
@@ -170,8 +169,9 @@
     {
       "id": "p3-funzionario-area-fis",
       "grants": [
+        "csr.tx-0017.read",
         "csr.tx-0018.read",
-        "csr.tx-0020.read",
+        "csr.tx-0030.read",
         "csr.tx-0056.read",
         "csr.tx-0057.read",
         "csr.tx-0058.read",
@@ -182,13 +182,13 @@
     {
       "id": "p3-funzionario-area-pro",
       "grants": [
+        "csr.tx-0020.read",
         "csr.tx-0024.read",
         "csr.tx-0025.read",
         "csr.tx-0026.read",
         "csr.tx-0027.read",
         "csr.tx-0028.read",
         "csr.tx-0029.read",
-        "csr.tx-0030.read",
         "csr.tx-0031.read",
         "csr.tx-0032.read",
         "csr.tx-0056.read",
@@ -248,14 +248,13 @@
         "csr.tx-0012.read",
         "csr.tx-0013.read",
         "csr.tx-0014.read",
-        "csr.tx-0015.read",
+        "csr.tx-0020.read",
         "csr.tx-0024.read",
         "csr.tx-0025.read",
         "csr.tx-0026.read",
         "csr.tx-0027.read",
         "csr.tx-0028.read",
         "csr.tx-0029.read",
-        "csr.tx-0030.read",
         "csr.tx-0031.read",
         "csr.tx-0032.read",
         "csr.tx-0056.read",
@@ -283,9 +282,9 @@
         "csr.tx-0012.read",
         "csr.tx-0013.read",
         "csr.tx-0014.read",
-        "csr.tx-0015.read",
+        "csr.tx-0017.read",
         "csr.tx-0018.read",
-        "csr.tx-0020.read",
+        "csr.tx-0030.read",
         "csr.tx-1008.write",
         "csr.tx-1009.write",
         "csr.tx-0056.read",
@@ -2135,9 +2134,8 @@
     {
       "role": "p4-responsabile-procedimento-ada",
       "transaction": "TX-0015",
-      "access": "allow",
-      "grant": "csr.tx-0015.read",
-      "scoped": true
+      "access": "deny",
+      "scoped": false
     },
     {
       "role": "p4-responsabile-procedimento-ada",
@@ -2166,8 +2164,9 @@
     {
       "role": "p4-responsabile-procedimento-ada",
       "transaction": "TX-0020",
-      "access": "deny",
-      "scoped": false
+      "access": "allow",
+      "grant": "csr.tx-0020.read",
+      "scoped": true
     },
     {
       "role": "p4-responsabile-procedimento-ada",
@@ -2232,9 +2231,8 @@
     {
       "role": "p4-responsabile-procedimento-ada",
       "transaction": "TX-0030",
-      "access": "allow",
-      "grant": "csr.tx-0030.read",
-      "scoped": true
+      "access": "deny",
+      "scoped": false
     },
     {
       "role": "p4-responsabile-procedimento-ada",
@@ -2578,8 +2576,7 @@
     {
       "role": "p5-amministratore-funzionale",
       "transaction": "TX-0015",
-      "access": "allow",
-      "grant": "csr.tx-0015.read",
+      "access": "deny",
       "scoped": false
     },
     {
@@ -2591,7 +2588,8 @@
     {
       "role": "p5-amministratore-funzionale",
       "transaction": "TX-0017",
-      "access": "deny",
+      "access": "allow",
+      "grant": "csr.tx-0017.read",
       "scoped": false
     },
     {
@@ -2610,8 +2608,7 @@
     {
       "role": "p5-amministratore-funzionale",
       "transaction": "TX-0020",
-      "access": "allow",
-      "grant": "csr.tx-0020.read",
+      "access": "deny",
       "scoped": false
     },
     {
@@ -2671,7 +2668,8 @@
     {
       "role": "p5-amministratore-funzionale",
       "transaction": "TX-0030",
-      "access": "deny",
+      "access": "allow",
+      "grant": "csr.tx-0030.read",
       "scoped": false
     },
     {

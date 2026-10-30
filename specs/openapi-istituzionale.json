@@ -33,6 +33,39 @@
         ],
         "type": "object"
       },
+      "ConteggioFinanziario": {
+        "description": "Conteggio, oppure null con il motivo dell'assenza",
+        "properties": {
+          "fonte": {
+            "description": "Fonte attesa, solo con FONTE_NON_ATTIVA",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "motivo": {
+            "description": "Motivo dell'assenza, null se c'e' il valore: FONTE_NON_ATTIVA, NON_VALORIZZATO",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "valore": {
+            "description": "Numero; null se il dato non e' disponibile",
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "valore",
+          "motivo",
+          "fonte"
+        ],
+        "type": "object"
+      },
       "Data": {
         "description": "Data, oppure null con il motivo dell'assenza",
         "properties": {
@@ -72,6 +105,33 @@
         ],
         "type": "object"
       },
+      "Importo": {
+        "description": "Importo al centesimo, oppure null con il motivo dell'assenza",
+        "properties": {
+          "fonte": {
+            "description": "Fonte attesa, solo con FONTE_NON_ATTIVA (es. IMPEGNI, QUADRO_SINOTTICO)",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "motivo": {
+            "description": "Motivo dell'assenza, null se c'e' il valore: FONTE_NON_ATTIVA, NON_VALORIZZATO, FUORI_PERIMETRO",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "valore": {
+            "description": "Valore in euro, due decimali; null se il dato non e' disponibile",
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      },
       "ImportoIstituzionale": {
         "description": "Importo al centesimo, oppure null con il motivo dell'assenza",
         "properties": {
@@ -104,30 +164,6 @@
         ],
         "type": "object"
       },
-      "ImportoUnitarioUnitAmount": {
-        "properties": {
-          "codiceUnitAmount": {
-            "type": "string"
-          },
-          "esercizio": {
-            "format": "int32",
-            "type": "integer"
-          },
-          "gruppoColturale": {
-            "type": "string"
-          },
-          "importoUnitario": {
-            "$ref": "#/components/schemas/ImportoIstituzionale"
-          }
-        },
-        "required": [
-          "codiceUnitAmount",
-          "gruppoColturale",
-          "esercizio",
-          "importoUnitario"
-        ],
-        "type": "object"
-      },
       "Instant": {
         "examples": [
           "2022-03-10T16:15:50Z"
@@ -141,137 +177,6 @@
         ],
         "format": "date",
         "type": "string"
-      },
-      "MonitoraggioOutput": {
-        "description": "TX-0017: output regionale programmato e realizzato per intervento e anno",
-        "properties": {
-          "annoFine": {
-            "format": "int32",
-            "type": "integer"
-          },
-          "annoInizio": {
-            "format": "int32",
-            "type": "integer"
-          },
-          "perimetro": {
-            "description": "Sempre REGIONALE: i report istituzionali non hanno perimetro ADA",
-            "enum": [
-              "REGIONALE"
-            ],
-            "type": "string"
-          },
-          "realizzatoNonSigcCumulativo": {
-            "description": "Il realizzato non SIGC e' il valore del file NOSIGC, cumulativo per anno di riferimento",
-            "type": "boolean"
-          },
-          "righe": {
-            "items": {
-              "$ref": "#/components/schemas/MonitoraggioOutputRiga"
-            },
-            "type": "array"
-          },
-          "ultimiDatiSincronizzati": {
-            "description": "Come TX-0001 (NFR-25 b): per ogni flusso d'import con almeno un'esecuzione conclusa (SUCCESS o PARTIAL), la conclusione della piu' recente, in ordine di flusso; la stessa data dell'intestazione degli export. Vuoto finche' nessuna acquisizione e' conclusa",
-            "items": {
-              "$ref": "#/components/schemas/UltimoDatoSincronizzato"
-            },
-            "type": "array"
-          }
-        },
-        "required": [
-          "annoInizio",
-          "annoFine",
-          "perimetro",
-          "realizzatoNonSigcCumulativo",
-          "righe",
-          "ultimiDatiSincronizzati"
-        ],
-        "type": "object"
-      },
-      "MonitoraggioOutputAnno": {
-        "properties": {
-          "anno": {
-            "format": "int32",
-            "type": "integer"
-          },
-          "programmato": {
-            "$ref": "#/components/schemas/Quantita",
-            "description": "Somma dell'output previsto delle Unit Amount dell'esercizio",
-            "type": "object"
-          },
-          "realizzatoNonSigc": {
-            "$ref": "#/components/schemas/Quantita",
-            "description": "Output erogato non SIGC dell'anno di riferimento (valore del file, cumulativo)",
-            "type": "object"
-          },
-          "realizzatoSigc": {
-            "$ref": "#/components/schemas/Quantita",
-            "description": "Output erogato SIGC dell'anno campagna",
-            "type": "object"
-          }
-        },
-        "required": [
-          "anno",
-          "programmato",
-          "realizzatoSigc",
-          "realizzatoNonSigc"
-        ],
-        "type": "object"
-      },
-      "MonitoraggioOutputRiga": {
-        "properties": {
-          "anni": {
-            "description": "Tutti gli anni da annoInizio ad annoFine, in ordine",
-            "items": {
-              "$ref": "#/components/schemas/MonitoraggioOutputAnno"
-            },
-            "type": "array"
-          },
-          "annoTarget": {
-            "description": "Anno del target, null se il target manca",
-            "format": "int32",
-            "type": [
-              "integer",
-              "null"
-            ]
-          },
-          "codiceIntervento": {
-            "type": "string"
-          },
-          "importiUnitari": {
-            "items": {
-              "$ref": "#/components/schemas/ImportoUnitarioUnitAmount"
-            },
-            "type": "array"
-          },
-          "indicatoreOutput": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "targetFinePeriodo": {
-            "$ref": "#/components/schemas/Quantita",
-            "description": "Target di fine periodo del CSR",
-            "type": "object"
-          },
-          "unitaMisura": {
-            "type": [
-              "string",
-              "null"
-            ]
-          }
-        },
-        "required": [
-          "codiceIntervento",
-          "indicatoreOutput",
-          "unitaMisura",
-          "targetFinePeriodo",
-          "annoTarget",
-          "anni",
-          "importiUnitari"
-        ],
-        "type": "object"
       },
       "Problema": {
         "description": "Errore in formato problem+json (RFC 9457)",
@@ -383,6 +288,33 @@
         ],
         "type": "object"
       },
+      "SiNoFinanziario": {
+        "description": "Si'/no, oppure null con il motivo dell'assenza",
+        "properties": {
+          "fonte": {
+            "description": "Fonte attesa, solo con FONTE_NON_ATTIVA (es. PREVISIONE_PAGAMENTO)",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "motivo": {
+            "description": "Motivo dell'assenza, null se c'e' il valore: FONTE_NON_ATTIVA, NON_VALORIZZATO",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "valore": {
+            "description": "Valore si'/no; null se il dato non e' disponibile",
+            "type": [
+              "boolean",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      },
       "TestoIstituzionale": {
         "description": "Testo, oppure null con il motivo dell'assenza",
         "properties": {
@@ -425,6 +357,46 @@
           "flusso": {
             "description": "Flusso d'import del registro IMPORT_RUN, es. PROSA_DS04",
             "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "VerificaSmp": {
+        "description": "TX-0015: dati SIGC per il confronto con SMP, esercizio n e domande dell'anno n-1",
+        "properties": {
+          "annoDomande": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "esercizio": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "pagamentiSenzaData": {
+            "description": "Pagamenti senza data di autorizzazione, esclusi dall'esercizio",
+            "format": "int64",
+            "type": "integer"
+          },
+          "perimetro": {
+            "description": "Sempre REGIONALE: i report istituzionali non hanno perimetro ADA",
+            "enum": [
+              "REGIONALE",
+              "ADA"
+            ],
+            "type": "string"
+          },
+          "righe": {
+            "items": {
+              "$ref": "#/components/schemas/VerificaSmpRiga"
+            },
+            "type": "array"
+          },
+          "ultimiDatiSincronizzati": {
+            "description": "Come TX-0001 (NFR-25 b): per ogni flusso d'import con almeno un'esecuzione conclusa (SUCCESS o PARTIAL), la conclusione della piu' recente, in ordine di flusso; la stessa data dell'intestazione degli export. Vuoto finche' nessuna acquisizione e' conclusa",
+            "items": {
+              "$ref": "#/components/schemas/UltimoDatoSincronizzato"
+            },
+            "type": "array"
           }
         },
         "type": "object"
@@ -572,6 +544,102 @@
           "concessioniPreviste"
         ],
         "type": "object"
+      },
+      "VerificaSmpRiga": {
+        "properties": {
+          "avvisiAttivati": {
+            "$ref": "#/components/schemas/ConteggioFinanziario",
+            "description": "Avvisi pubblici attivati del monitoraggio SMP SIGC (numero del report): NON_VALORIZZATO senza il numero, mai ricavato dallo stato (D-09 Rev. 1)",
+            "type": "object"
+          },
+          "azioniAttivate": {
+            "$ref": "#/components/schemas/ConteggioFinanziario",
+            "description": "Azioni attivate dell'avviso SIGC: NON_VALORIZZATO senza il dato o senza l'avviso, come in TX-0016 (D-09 Rev. 3)",
+            "type": "object"
+          },
+          "codiceIntervento": {
+            "type": "string"
+          },
+          "domandeFinanziate": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "domandePagateEsercizio": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "domandeRicevute": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "domandeRicevuteSenzaRichiesto": {
+            "description": "Domande ricevute senza importo richiesto nella fonte, escluse dal valore",
+            "format": "int64",
+            "type": "integer"
+          },
+          "dotazioneAnnoPrecedente": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "dotazionePeriodoImpegno": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "ettariUbaRichiesti": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "importoTopUp": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "includeTopUp": {
+            "$ref": "#/components/schemas/SiNoFinanziario",
+            "description": "La dotazione dell'avviso SIGC include il top-up: NON_VALORIZZATO senza il dato o senza l'avviso, come in TX-0016 (D-09 Rev. 3)",
+            "type": "object"
+          },
+          "indicatoreOutput": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "indicatoreRisultato": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "outputAttesoFinanziate": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "outputErogatoEsercizio": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "previsionePagamentoEsercizio": {
+            "$ref": "#/components/schemas/SiNoFinanziario",
+            "description": "Si prevede di pagare importi entro l'esercizio n (monitoraggio SMP, D-11)",
+            "type": "object"
+          },
+          "spesaErogataCampagnaPrecedente": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "spesaErogataCampagneAnteriori": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "valoreDomandeFinanziate": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "valoreDomandeRicevute": {
+            "$ref": "#/components/schemas/Importo"
+          }
+        },
+        "type": "object"
       }
     },
     "securitySchemes": {
@@ -588,334 +656,6 @@
   },
   "openapi": "3.1.0",
   "paths": {
-    "/api/istituzionale/output-regionale": {
-      "get": {
-        "operationId": "TX-0017",
-        "parameters": [
-          {
-            "description": "Id dell'azione portante (ripetibile, numerico)",
-            "in": "query",
-            "name": "azione",
-            "schema": {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            }
-          },
-          {
-            "description": "Codice intervento (ripetibile); l'Assistenza tecnica AT001 non e' selezionabile",
-            "in": "query",
-            "name": "intervento",
-            "schema": {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            }
-          },
-          {
-            "description": "Obiettivo generale, testo della gerarchia (ripetibile)",
-            "in": "query",
-            "name": "og",
-            "schema": {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            }
-          },
-          {
-            "description": "Obiettivo di policy, testo della gerarchia (ripetibile)",
-            "in": "query",
-            "name": "op",
-            "schema": {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            }
-          },
-          {
-            "description": "Codice dell'obiettivo specifico (ripetibile): seleziona gli interventi collegati, ognuno una volta",
-            "in": "query",
-            "name": "os",
-            "schema": {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MonitoraggioOutput"
-                }
-              }
-            },
-            "description": "Una riga per intervento selezionato, con tutti gli anni del periodo"
-          },
-          "400": {
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problema"
-                }
-              }
-            },
-            "description": "Filtri o anno non validi (DATO_NON_VALIDO)"
-          },
-          "401": {
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problema"
-                }
-              }
-            },
-            "description": "Non autenticato"
-          },
-          "403": {
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problema"
-                }
-              }
-            },
-            "description": "Senza il grant della transazione; RICHIESTA_NON_AMMESSA se la richiesta non viene dall'applicazione: partita da un altro sito (Sec-Fetch-Site) oppure, per scritture ed export, senza X-Requested-With o da un'origine non ammessa"
-          },
-          "429": {
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problema"
-                }
-              }
-            },
-            "description": "Troppe richieste dello stesso utente in un minuto, o troppe autenticazioni con bearer fallite dallo stesso indirizzo (TROPPE_RICHIESTE): riprovare dopo i secondi di Retry-After",
-            "headers": {
-              "Retry-After": {
-                "description": "Secondi da attendere prima di riprovare",
-                "schema": {
-                  "type": "integer"
-                }
-              }
-            }
-          },
-          "503": {
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problema"
-                }
-              }
-            },
-            "description": "Da riprovare (header Retry-After): troppe letture di report in corso, in tutto o dello stesso utente (CAPACITA_ESAURITA), o lettura oltre il tetto di durata (TEMPO_SCADUTO)",
-            "headers": {
-              "Retry-After": {
-                "description": "Secondi da attendere prima di riprovare",
-                "schema": {
-                  "type": "integer"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "SecurityScheme": [
-              "csr.tx-0017.read"
-            ]
-          }
-        ],
-        "summary": "TX-0017: output regionale programmato e realizzato per intervento e anno",
-        "tags": [
-          "Istituzionale"
-        ]
-      }
-    },
-    "/api/istituzionale/output-regionale/{formato}": {
-      "get": {
-        "parameters": [
-          {
-            "description": "Formato del file: csv (UTF-8 con BOM, punto e virgola) o xlsx (foglio Office Open XML: numeri come numeri, testi mai formule)",
-            "in": "path",
-            "name": "formato",
-            "required": true,
-            "schema": {
-              "enum": [
-                "csv",
-                "xlsx"
-              ]
-            }
-          },
-          {
-            "description": "Id dell'azione portante (ripetibile, numerico)",
-            "in": "query",
-            "name": "azione",
-            "schema": {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            }
-          },
-          {
-            "description": "Codice intervento (ripetibile); l'Assistenza tecnica AT001 non e' selezionabile",
-            "in": "query",
-            "name": "intervento",
-            "schema": {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            }
-          },
-          {
-            "description": "Obiettivo generale, testo della gerarchia (ripetibile)",
-            "in": "query",
-            "name": "og",
-            "schema": {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            }
-          },
-          {
-            "description": "Obiettivo di policy, testo della gerarchia (ripetibile)",
-            "in": "query",
-            "name": "op",
-            "schema": {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            }
-          },
-          {
-            "description": "Codice dell'obiettivo specifico (ripetibile): seleziona gli interventi collegati, ognuno una volta",
-            "in": "query",
-            "name": "os",
-            "schema": {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
-                "schema": {
-                  "format": "binary",
-                  "type": "string"
-                }
-              },
-              "text/csv; charset=UTF-8": {
-                "schema": {
-                  "format": "binary",
-                  "type": "string"
-                }
-              }
-            },
-            "description": "File CSV (UTF-8 con BOM, separatore punto e virgola, virgola decimale, testi tra virgolette) o XLSX (un foglio, stesso contenuto): intestazione con fonte, filtri, data di estrazione, profili, ultimo dato sincronizzato per flusso e uso interno, poi la tabella. Registrato in AUDIT_ESPORTAZIONE col formato",
-            "headers": {
-              "Content-Disposition": {
-                "description": "attachment, con il nome del file CSV o XLSX da salvare",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "400": {
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problema"
-                }
-              }
-            },
-            "description": "Filtri non validi, oppure tabella oltre il limite dell'export sincrono di 5.000 righe o 50.000 celle (DATO_NON_VALIDO: restringere i filtri)"
-          },
-          "401": {
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problema"
-                }
-              }
-            },
-            "description": "Non autenticato"
-          },
-          "403": {
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problema"
-                }
-              }
-            },
-            "description": "Senza il grant della transazione (ACCESSO_NEGATO), oppure richiesta senza l'header X-Requested-With (o un bearer) o da un'origine non ammessa (RICHIESTA_NON_AMMESSA): l'export si scarica con una richiesta dell'applicazione, non con un collegamento"
-          },
-          "429": {
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problema"
-                }
-              }
-            },
-            "description": "Troppe richieste dello stesso utente in un minuto, o troppe autenticazioni con bearer fallite dallo stesso indirizzo (TROPPE_RICHIESTE): riprovare dopo i secondi di Retry-After",
-            "headers": {
-              "Retry-After": {
-                "description": "Secondi da attendere prima di riprovare",
-                "schema": {
-                  "type": "integer"
-                }
-              }
-            }
-          },
-          "503": {
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problema"
-                }
-              }
-            },
-            "description": "Da riprovare (header Retry-After): troppe letture in corso (CAPACITA_ESAURITA), lettura oltre il tetto di durata (TEMPO_SCADUTO) o esportazione non registrata nel registro di audit (ESPORTAZIONE_NON_REGISTRATA)",
-            "headers": {
-              "Retry-After": {
-                "description": "Secondi da attendere prima di riprovare",
-                "schema": {
-                  "type": "integer"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "SecurityScheme": [
-              "csr.tx-0017.read"
-            ]
-          }
-        ],
-        "summary": "TX-0017 in CSV o XLSX (esportazione, D-08 di nfr-conformance, D-07 di istituzionale)",
-        "tags": [
-          "Istituzionale"
-        ]
-      }
-    },
     "/api/istituzionale/verifica-smp-non-sigc": {
       "get": {
         "operationId": "TX-0016",
@@ -1261,6 +1001,354 @@
           "Istituzionale"
         ]
       }
+    },
+    "/api/istituzionale/verifica-smp-sigc": {
+      "get": {
+        "operationId": "TX-0015",
+        "parameters": [
+          {
+            "description": "Id dell'azione portante (ripetibile, numerico)",
+            "in": "query",
+            "name": "azione",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Esercizio finanziario n (16/10/n-1 - 15/10/n), 2000-2100",
+            "example": 2025,
+            "in": "query",
+            "name": "esercizio",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Codice intervento (ripetibile); l'Assistenza tecnica AT001 non e' selezionabile",
+            "in": "query",
+            "name": "intervento",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Obiettivo generale, testo della gerarchia (ripetibile)",
+            "in": "query",
+            "name": "og",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Obiettivo di policy, testo della gerarchia (ripetibile)",
+            "in": "query",
+            "name": "op",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Codice dell'obiettivo specifico (ripetibile): seleziona gli interventi collegati, ognuno una volta",
+            "in": "query",
+            "name": "os",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificaSmp"
+                }
+              }
+            },
+            "description": "Una riga per intervento"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Filtri non validi (DATO_NON_VALIDO)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Non autenticato"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Senza il grant della transazione; RICHIESTA_NON_AMMESSA se la richiesta non viene dall'applicazione: partita da un altro sito (Sec-Fetch-Site) oppure, per scritture ed export, senza X-Requested-With o da un'origine non ammessa"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Troppe richieste dello stesso utente in un minuto, o troppe autenticazioni con bearer fallite dallo stesso indirizzo (TROPPE_RICHIESTE): riprovare dopo i secondi di Retry-After",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Da riprovare (header Retry-After): troppe letture di report in corso, in tutto o dello stesso utente (CAPACITA_ESAURITA), o lettura oltre il tetto di durata (TEMPO_SCADUTO)",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SecurityScheme": [
+              "csr.tx-0015.read"
+            ]
+          }
+        ],
+        "summary": "TX-0015: dati SIGC per il confronto con SMP - Data Platform",
+        "tags": [
+          "Istituzionale"
+        ]
+      }
+    },
+    "/api/istituzionale/verifica-smp-sigc/{formato}": {
+      "get": {
+        "parameters": [
+          {
+            "description": "Formato del file: csv (UTF-8 con BOM, punto e virgola) o xlsx (foglio Office Open XML: numeri come numeri, testi mai formule)",
+            "in": "path",
+            "name": "formato",
+            "required": true,
+            "schema": {
+              "enum": [
+                "csv",
+                "xlsx"
+              ]
+            }
+          },
+          {
+            "description": "Id dell'azione portante (ripetibile, numerico)",
+            "in": "query",
+            "name": "azione",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Esercizio finanziario n (16/10/n-1 - 15/10/n), 2000-2100",
+            "example": 2025,
+            "in": "query",
+            "name": "esercizio",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Codice intervento (ripetibile); l'Assistenza tecnica AT001 non e' selezionabile",
+            "in": "query",
+            "name": "intervento",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Obiettivo generale, testo della gerarchia (ripetibile)",
+            "in": "query",
+            "name": "og",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Obiettivo di policy, testo della gerarchia (ripetibile)",
+            "in": "query",
+            "name": "op",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Codice dell'obiettivo specifico (ripetibile): seleziona gli interventi collegati, ognuno una volta",
+            "in": "query",
+            "name": "os",
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              },
+              "text/csv; charset=UTF-8": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "File CSV (UTF-8 con BOM, separatore punto e virgola, virgola decimale, testi tra virgolette) o XLSX (un foglio, stesso contenuto): intestazione con fonte, filtri, data di estrazione, profili, ultimo dato sincronizzato per flusso e uso interno, poi la tabella. Registrato in AUDIT_ESPORTAZIONE col formato",
+            "headers": {
+              "Content-Disposition": {
+                "description": "attachment, con il nome del file CSV o XLSX da salvare",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Filtri non validi, oppure tabella oltre il limite dell'export sincrono di 5.000 righe o 50.000 celle (DATO_NON_VALIDO: restringere i filtri)"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Non autenticato"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Senza il grant della transazione (ACCESSO_NEGATO), oppure richiesta senza l'header X-Requested-With (o un bearer) o da un'origine non ammessa (RICHIESTA_NON_AMMESSA): l'export si scarica con una richiesta dell'applicazione, non con un collegamento"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Troppe richieste dello stesso utente in un minuto, o troppe autenticazioni con bearer fallite dallo stesso indirizzo (TROPPE_RICHIESTE): riprovare dopo i secondi di Retry-After",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            },
+            "description": "Da riprovare (header Retry-After): troppe letture in corso (CAPACITA_ESAURITA), lettura oltre il tetto di durata (TEMPO_SCADUTO) o esportazione non registrata nel registro di audit (ESPORTAZIONE_NON_REGISTRATA)",
+            "headers": {
+              "Retry-After": {
+                "description": "Secondi da attendere prima di riprovare",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SecurityScheme": [
+              "csr.tx-0015.read"
+            ]
+          }
+        ],
+        "summary": "TX-0015 in CSV o XLSX (esportazione, D-08 di nfr-conformance, D-08 di istituzionale)",
+        "tags": [
+          "Istituzionale"
+        ]
+      }
     }
   },
   "servers": [
@@ -1275,7 +1363,7 @@
   ],
   "tags": [
     {
-      "description": "Report dell'area istituzionale (TX-0016, TX-0017)",
+      "description": "Report dell'area istituzionale (TX-0015, TX-0016)",
       "name": "Istituzionale"
     }
   ]
