@@ -6,6 +6,7 @@ import type { BarSeriesOption } from 'echarts';
 import { describe, expect, it } from 'vitest';
 import { GRANT, puoLeggere } from '../src/features/procedurale/lib/grant';
 import { PAGINE_PROCEDURALE, PERCORSI, pagineVisibili, ricercaConservata } from '../src/features/procedurale/lib/pagine';
+import { GRANT_DETERMINE_DELLA_DOMANDA, PERCORSO_DETERMINE_DELLA_DOMANDA } from '../src/entities/domanda';
 import {
   ETICHETTA_STATO,
   chiaveStatoValida,
@@ -75,7 +76,6 @@ import {
   messaggioDomandaNonTrovata,
   percorsoDetermine,
   percorsoSchedaDellaDomanda,
-  siNo as siNoDetermine,
   soloCifre,
   sopratitoloDetermine,
   testoTipoDomanda,
@@ -162,6 +162,13 @@ describe('procedurale: grant e pagine (menu e Home, G1)', () => {
     expect(pagineVisibili(() => false)).toEqual([]);
     expect(ricercaConservata('?intervento=SRD01&azione=3&stato=AMMESSA&campagna=2025')).toBe('intervento=SRD01&stato=AMMESSA');
     expect(PERCORSI.interventi).toBe('/procedurale/interventi');
+  });
+
+  it('voce di menu e grant delle determine dal contratto condiviso dell elenco operativo, nessuna copia (review step9 PRO-03)', () => {
+    expect(PERCORSI.determine).toBe(PERCORSO_DETERMINE_DELLA_DOMANDA);
+    expect(GRANT.determine).toBe(GRANT_DETERMINE_DELLA_DOMANDA);
+    expect(percorsoDetermine()).toBe(PERCORSO_DETERMINE_DELLA_DOMANDA);
+    expect(percorsoDetermine('54810769585')).toBe(`${PERCORSO_DETERMINE_DELLA_DOMANDA}/54810769585`);
   });
 });
 
@@ -711,7 +718,8 @@ describe('RF020: determine di una domanda (codice, link e testi)', () => {
     expect(fonteDi(DETERMINE.elenco, 'fonteStatoAreaProgrammazione')?.codice).toBe('G00001');
     expect(fonteDi(DETERMINE.elenco, 'fonteComparto')?.codice).toBe('G00002');
     expect(fonteDi(DETERMINE_NESSUNA.elenco, 'fonteComparto')).toBeUndefined();
-    expect(siNoDetermine(true, 'sì, corrente')).toBe('sì, corrente');
-    expect(siNoDetermine(false)).toBe('no');
+    // un solo siNo nella lib (review step9 PRO-03), col sì facoltativo della colonna della corrente
+    expect(siNo(true, 'sì, corrente')).toBe('sì, corrente');
+    expect(siNo(false, 'sì, corrente')).toBe('no');
   });
 });

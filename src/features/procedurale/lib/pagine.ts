@@ -5,6 +5,7 @@
 // dell'intervento non e' una voce di menu: ci si arriva dai report. Col riallineamento degli ambiti del 29/10/2026 esce
 // Unit Amount (al fisico) ed entrano, ultima voce, le determine di una domanda (dal fisico): senza filtri, la voce non
 // prende i criteri dei report (scelta raccomandata dal dossier dei wireframe e presa dall'utente il 30/10/2026). PURO.
+import { PERCORSO_DETERMINE_DELLA_DOMANDA } from '../../../entities/domanda';
 import { ricercaDeiCriteri } from './criteri';
 import { GRANT } from './grant';
 
@@ -15,8 +16,11 @@ export const PERCORSI = {
   ammesse: '/procedurale/ammesse',
   sottofasi: '/procedurale/sottofasi',
   riepilogo: '/procedurale/riepilogo',
-  /** Ingresso dal menu della route /procedurale/determine/:codice? (il codice e' facoltativo: senza, il solo modulo di ricerca). */
-  determine: '/procedurale/determine',
+  /**
+   * Ingresso dal menu della route /procedurale/determine/:codice? (il codice e' facoltativo: senza, il solo modulo di
+   * ricerca): dal contratto condiviso dell'indirizzo (entities/domanda), lo stesso del link dell'elenco operativo.
+   */
+  determine: PERCORSO_DETERMINE_DELLA_DOMANDA,
   /** Base della route /procedurale/interventi/:codice (il dettaglio dell'intervento). */
   interventi: '/procedurale/interventi',
 } as const;

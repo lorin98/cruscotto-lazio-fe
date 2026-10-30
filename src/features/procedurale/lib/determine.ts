@@ -2,12 +2,12 @@
 // del 29/10/2026): il codice a barre del percorso e del
 // modulo di ricerca (sole cifre, al piu' 30: descrizione del parametro nella spec, la stessa della scheda dell'elenco), gli
 // indirizzi dei due link dichiarati nello uiplan (cerca-domanda verso la stessa route, scheda-domanda verso l'elenco
-// operativo) e i testi della testata, dei riquadri e della tabella. I si'/no e la determina corrente sono in testo. Dal
+// operativo) e i testi della testata, dei riquadri e della tabella. I si'/no (siNo di lib/formato) e la determina corrente
+// sono in testo. Dal
 // wireframe del procedurale approvato il 30/10/2026: il perimetro della risposta in un badge di testo e un solo messaggio
 // per la domanda non trovata, inesistente o fuori dal perimetro ADA del P4 (scelte 2 e 3 del dossier).
-import { codiceABarreValido, etichettaTipoDomanda, percorsoSchedaDomanda } from '../../../entities/domanda';
+import { PERCORSO_DETERMINE_DELLA_DOMANDA, codiceABarreValido, etichettaTipoDomanda, percorsoSchedaDomanda } from '../../../entities/domanda';
 import type { Determina, Determine, Perimetro } from './dto';
-import { PERCORSI } from './pagine';
 
 /** Il codice del percorso: nessuno (ingresso dal menu), valido (si legge), oppure non valido (nessuna lettura). */
 export type CodiceDelPercorso = { stato: 'assente' } | { stato: 'valido'; codice: string } | { stato: 'non-valido' };
@@ -34,9 +34,12 @@ export function codiceDaCercare(testo: string): CodiceCercato {
   return { codice: cifre };
 }
 
-/** Link cerca-domanda (stessa route /procedurale/determine/:codice?): senza codice l'ingresso dal menu. */
+/**
+ * Link cerca-domanda (stessa route /procedurale/determine/:codice?): senza codice l'ingresso dal menu. L'indirizzo e' del
+ * contratto condiviso (entities/domanda), lo stesso della voce di menu e del link dell'elenco operativo.
+ */
 export function percorsoDetermine(codice?: string): string {
-  return codice ? `${PERCORSI.determine}/${encodeURIComponent(codice)}` : PERCORSI.determine;
+  return codice ? `${PERCORSO_DETERMINE_DELLA_DOMANDA}/${encodeURIComponent(codice)}` : PERCORSO_DETERMINE_DELLA_DOMANDA;
 }
 
 /**
@@ -98,9 +101,4 @@ export function eCorrente(determina: Determina, corrente: Determine['corrente'])
 /** La determina da cui viene un campo della domanda: la piu' recente dell'elenco che lo valorizza (D-03 del backend). */
 export function fonteDi(elenco: readonly Determina[], campo: 'fonteStatoAreaProgrammazione' | 'fonteComparto'): Determina | undefined {
   return elenco.find((d) => d[campo]);
-}
-
-/** Si'/no in testo, mai solo un'icona. La colonna della corrente dice "sì, corrente". */
-export function siNo(v: boolean, siTesto = 'sì'): string {
-  return v ? siTesto : 'no';
 }

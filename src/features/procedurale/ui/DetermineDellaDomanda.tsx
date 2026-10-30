@@ -30,12 +30,12 @@ import {
   messaggioDomandaNonTrovata,
   percorsoDetermine,
   percorsoSchedaDellaDomanda,
-  siNo,
   sopratitoloDetermine,
   titoloDetermine,
 } from '../lib/determine';
 import type { CodiceDelPercorso } from '../lib/determine';
 import type { Determina, Determine } from '../lib/dto';
+import { siNo } from '../lib/formato';
 import { puoLeggere } from '../lib/grant';
 import { useIngressoArea } from './navigazione';
 import { CercaDomanda } from './CercaDomanda';
