@@ -16,7 +16,6 @@ import {
   criteriDellIntervento,
   criteriNellaBarra,
   etichettaStatoArea,
-  nessunFiltro,
   notaStatiEsclusi,
   ricercaDaCriteri,
   ricercaDeiCriteri,
@@ -44,7 +43,7 @@ import {
   testiLinkConAtto,
   testiLinkStato,
 } from '../src/features/procedurale/lib/collegamenti';
-import { NON_DISPONIBILE_BREVE, STATO_NON_APPLICATO, nellaTuaArea, perimetroDelle, pillPerimetro, resaAssenza, siNo, testoNessunIntervento, testoVuoto } from '../src/features/procedurale/lib/formato';
+import { NON_DISPONIBILE_BREVE, nellaTuaArea, perimetroDelle, pillPerimetro, resaAssenza, siNo, testoNessunIntervento, testoVuoto } from '../src/features/procedurale/lib/formato';
 import {
   SENZA_STATO,
   VOCE_TOLTA,
@@ -68,10 +67,12 @@ import { altreSottofasi, anagraficaVuota, etichettaVoce, righeVoci, senzaDomande
 import {
   MAX_CIFRE,
   badgeDetermine,
+  badgePerimetro,
   codiceDaCercare,
   codiceDalPercorso,
   eCorrente,
   fonteDi,
+  messaggioDomandaNonTrovata,
   percorsoDetermine,
   percorsoSchedaDellaDomanda,
   siNo as siNoDetermine,
@@ -180,12 +181,11 @@ describe('procedurale: criteri nell indirizzo (RF024: intervento, OS, OG, OP e s
     for (const no of ['', ' AMMESSA', 'AMMESSA ', '<x>', 'a'.repeat(101), null, undefined]) expect(chiaveStatoValida(no)).toBe(false);
   });
 
-  it('criteri delle letture: i cinque filtri dei report, quelli del dettaglio; Azzera', () => {
+  it('criteri delle letture: i cinque filtri dei report, quelli del dettaglio', () => {
     const c = { intervento: ['SRD01'], os: ['OS4'], azione: ['3'], stato: ['AMMESSA'] };
     expect(criteriDelReport(c)).toEqual({ intervento: ['SRD01'], os: ['OS4'], stato: ['AMMESSA'] });
     expect(criteriDellIntervento('SRD01', ['REVOCATA'])).toEqual({ intervento: ['SRD01'], stato: ['REVOCATA'] });
     expect(criteriDellIntervento('SRD01', [])).toEqual({ intervento: ['SRD01'] });
-    expect([nessunFiltro(c, false), nessunFiltro(c, true), nessunFiltro({ os: ['OS4'] }, true)]).toEqual([{}, { stato: ['AMMESSA'] }, {}]);
   });
 
   it('chip della barra: il programma col codice, lo stato con la descrizione di TX-0025; ogni chip coi criteri senza di lui', () => {
@@ -198,9 +198,7 @@ describe('procedurale: criteri nell indirizzo (RF024: intervento, OS, OG, OP e s
     expect(chip.map((c) => c.senza)).toEqual([{ stato: ['AMMESSA', 'REVOCATA'] }, { intervento: ['SRD01'], stato: ['REVOCATA'] }, { intervento: ['SRD01'], stato: ['AMMESSA'] }]);
     expect(criteriNellaBarra({ stato: ['AMMESSA'] }, undefined)[0].valore).toBe('AMMESSA');
     expect(criteriNellaBarra({ stato: ['AMMESSA'] }, undefined)[0].senza).toEqual({});
-    expect(criteriNellaBarra({ os: ['OS4'], stato: ['AMMESSA'] }, undefined, false).map((c) => c.chiave)).toEqual(['os:OS4']);
     expect(testiCriteri({ op: ['OP1'], stato: ['SENZA_STATO'] }, STATI_AREA.valori)).toEqual(['OP: OP1', 'Stato area programmazione: Senza stato area programmazione']);
-    expect(testiCriteri({ op: ['OP1'], stato: ['SENZA_STATO'] }, STATI_AREA.valori, false)).toEqual(['OP: OP1']);
   });
 
   it('voci di TX-0025 nel pannello e nei chip; il filtro per stato ammette una voce (vuoto = tutte, maiuscole indifferenti)', () => {
@@ -376,16 +374,14 @@ describe('procedurale: distribuzioni per stato (SC-PC_STATI_SOSTEGNO, SC-PC_STAT
 });
 
 describe('procedurale: testi, KPI e assenze', () => {
-  it('pill del perimetro per le domande, le sottofasi e i dati di programma; il filtro per stato non applicato', () => {
-    expect([pillPerimetro('REGIONALE', 'domande'), pillPerimetro('ADA', 'domande'), pillPerimetro('ADA', 'sottofasi'), pillPerimetro(undefined, 'domande'), pillPerimetro(undefined, 'programma')]).toEqual([
+  it('pill del perimetro per le domande e le sottofasi (le Unit Amount, dati di programma, sono del fisico)', () => {
+    expect([pillPerimetro('REGIONALE', 'domande'), pillPerimetro('ADA', 'domande'), pillPerimetro('ADA', 'sottofasi'), pillPerimetro(undefined, 'domande')]).toEqual([
       'Perimetro: regionale',
       'Perimetro: ADA del tuo profilo (solo le domande della tua ADA)',
       'Perimetro: ADA del tuo profilo per le domande; anagrafica delle sottofasi regionale',
       null,
-      'Perimetro: regionale (dati di programma, uguali per ogni profilo)',
     ]);
     expect([perimetroDelle([undefined, 'ADA', 'REGIONALE']), perimetroDelle([undefined])]).toEqual(['ADA', undefined]);
-    expect(STATO_NON_APPLICATO).toBe('Il filtro per stato area programmazione non si applica alle Unit Amount');
   });
 
   it('stati vuoti: coi filtri dicono di cambiarli, senza no; col perimetro ADA le domande dicono la propria area', () => {
@@ -689,12 +685,24 @@ describe('RF020: determine di una domanda (codice, link e testi)', () => {
     expect(percorsoSchedaDellaDomanda(DETERMINE_CHIUSA, true)).toBeNull();
   });
 
-  it('testata: tipo, corrente o chiusa, numero di determine', () => {
+  it('testata: tipo, corrente o chiusa, numero di determine, perimetro della risposta in testo', () => {
     expect(testoTipoDomanda('SOSTEGNO')).toBe('Domanda di sostegno');
-    expect(badgeDetermine(DETERMINE)).toEqual(['Domanda di pagamento', 'Domanda corrente', '3 determine con riga aperta']);
-    expect(badgeDetermine(DETERMINE_CHIUSA)).toEqual(['Domanda di pagamento', 'Domanda chiusa: non è più nelle fonti SIAN', '1 determina con riga aperta']);
+    expect(badgeDetermine(DETERMINE)).toEqual(['Domanda di pagamento', 'Domanda corrente', '3 determine con riga aperta', 'Perimetro: regionale']);
+    expect(badgeDetermine(DETERMINE_CHIUSA)).toEqual(['Domanda di pagamento', 'Domanda chiusa: non è più nelle fonti SIAN', '1 determina con riga aperta', 'Perimetro: regionale']);
+    expect(badgeDetermine({ ...DETERMINE_NESSUNA, perimetro: 'ADA' })).toEqual(['Domanda di pagamento', 'Domanda corrente', '0 determine con riga aperta', 'Perimetro: ADA, domande della tua area']);
     expect(sopratitoloDetermine(DETERMINE)).toBe('Domanda di pagamento 54810769585 - fonte delle informazioni');
     expect(titoloDetermine('54810769585')).toBe('Determine della domanda 54810769585');
+  });
+
+  it('perimetro (scelta 2 del dossier): regionale, oppure ADA con le sole domande della propria area', () => {
+    expect(badgePerimetro('REGIONALE')).toBe('Perimetro: regionale');
+    expect(badgePerimetro('ADA')).toBe('Perimetro: ADA, domande della tua area');
+  });
+
+  it('domanda non trovata (scelta 3 del dossier): un solo messaggio, inesistente o fuori dal perimetro del P4', () => {
+    expect(messaggioDomandaNonTrovata('99999999999')).toBe('Domanda non trovata: nessuna domanda con il codice a barre 99999999999 fra quelle che puoi consultare.');
+    // il testo non nomina il perimetro: non distingue i due casi e vale anche per i profili regionali
+    expect(messaggioDomandaNonTrovata('1')).not.toMatch(/perimetro|ADA|area/i);
   });
 
   it('determina corrente, fonti dei campi (la piu recente che li valorizza) e si/no in testo', () => {

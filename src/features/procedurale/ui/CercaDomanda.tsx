@@ -48,10 +48,19 @@ function CampoCodice({ id, campo, testo, onTesto, messaggio }: PropsCampo) {
   );
 }
 
-/** `idCampo`: id del campo, per un link "Cerca un altro codice" della pagina che ci porta il focus. */
-export function CercaDomanda({ codiceIniziale = '', erroreEsterno, idCampo }: { codiceIniziale?: string; erroreEsterno?: string; idCampo?: string }) {
+interface PropsCercaDomanda {
+  codiceIniziale?: string;
+  erroreEsterno?: string;
+  /** Id del campo, per un link "Cerca un altro codice" della pagina che ci porta il focus. */
+  idCampo?: string;
+  /** Il ref del campo, se la pagina ci porta il focus (il link "Cerca un altro codice" della domanda non trovata). */
+  campo?: RefObject<HTMLInputElement | null>;
+}
+
+export function CercaDomanda({ codiceIniziale = '', erroreEsterno, idCampo, campo: esterno }: PropsCercaDomanda) {
   const generato = useId();
-  const campo = useRef<HTMLInputElement>(null);
+  const proprio = useRef<HTMLInputElement>(null);
+  const campo = esterno ?? proprio;
   const naviga = useNavigate();
   const [testo, setTesto] = useState(codiceIniziale);
   const [errore, setErrore] = useState<string | null>(null);

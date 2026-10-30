@@ -3,8 +3,10 @@
 // istituzionale) con le voci di TX-0024 della slice (interventi senza AT001, OS, OG, OP) e senza l'azione portante
 // (RF024), poi il gruppo dello stato domanda area programmazione con le voci di TX-0025 (le dieci di RF025, gli stati
 // osservati, la voce senza stato; non uno stato osservato con un codice che l'indirizzo non esprime, detto in una nota).
-// La forma senza il gruppo dello stato era delle Unit Amount (TX-0030, del fisico dal 29/10/2026); il dettaglio
-// dell'intervento ha il solo gruppo dello stato. La scelta e' una bozza: "Applica i filtri" la porta
+// Il dettaglio dell'intervento ha il solo gruppo dello stato (la forma senza il gruppo dello stato era delle Unit Amount,
+// TX-0030, del fisico dal 29/10/2026: tolta). La nota dice che i filtri valgono per tutte le pagine dei report del
+// procedurale e che le determine di una domanda si cercano per codice a barre, senza filtri (wireframe panoramica
+// approvato il 30/10/2026). La scelta e' una bozza: "Applica i filtri" la porta
 // nell'indirizzo, "Azzera" la svuota. PannelloLaterale di react-aria (focus trap, Esc, ritorno del focus); controlli
 // bootstrap-italia nativi del kit.
 import { useId } from 'react';
@@ -12,13 +14,13 @@ import type { Dispatch, SetStateAction } from 'react';
 import { PannelloFiltriProgramma, useBozzaFiltri } from '../../../entities/filtri';
 import { Caricamento, Caselle, Gruppo, PannelloLaterale } from '../../../shared/ui';
 import type { StatoQuery } from '../../../shared/ui';
-import { etichettaStatoArea, nessunFiltro, notaStatiEsclusi, vociDelloStatoNelPannello } from '../lib/criteri';
+import { etichettaStatoArea, notaStatiEsclusi, vociDelloStatoNelPannello } from '../lib/criteri';
 import type { CriteriProcedurali } from '../lib/criteri';
 import type { ValoriFiltri, ValoriStatiArea } from '../lib/dto';
 import type { FormaCriteri } from './useCriteriNellIndirizzo';
 
 const NOTA =
-  "I filtri restano nell'indirizzo della pagina e valgono per tutte le pagine del procedurale, sottofasi comprese. Voci da TX-0024 e TX-0025 (dati di programma, regionali).";
+  "I filtri restano nell'indirizzo della pagina e valgono per tutte le pagine dei report del procedurale, sottofasi comprese; le determine di una domanda si cercano per codice a barre, senza filtri. Voci da TX-0024 e TX-0025 (dati di programma, regionali).";
 const TITOLO_STATO = 'Stato domanda area programmazione';
 
 interface PropsStato {
@@ -63,7 +65,7 @@ export interface PropsPannello {
   criteri: CriteriProcedurali;
   /** La lettura di TX-0024; null senza il grant csr.tx-0024.read. */
   valori: StatoQuery<ValoriFiltri> | null;
-  /** La lettura di TX-0025; null senza il grant csr.tx-0025.read o dove lo stato non si applica. */
+  /** La lettura di TX-0025; null senza il grant csr.tx-0025.read. */
   statiArea: StatoQuery<ValoriStatiArea> | null;
   /** Codici degli interventi della risposta del report: le voci di Intervento senza TX-0024. */
   codiciRisposta: readonly string[];
@@ -94,6 +96,6 @@ function PannelloDelloStato({ aperto, criteri, statiArea, onApplica, onChiudi }:
 export function PannelloFiltriProcedurale(props: PropsPannello) {
   const { forma, criteri, statiArea, ...pannello } = props;
   if (forma === 'soloStato') return <PannelloDelloStato {...props} />;
-  const altriGruppi = forma === 'tutti' ? (bozza: CriteriProcedurali, setBozza: Dispatch<SetStateAction<CriteriProcedurali>>) => <GruppoStato statiArea={statiArea} bozza={bozza} setBozza={setBozza} /> : undefined;
-  return <PannelloFiltriProgramma<CriteriProcedurali> {...pannello} criteri={criteri} titolo="Filtri dei report procedurali" nessuno={nessunFiltro(criteri, forma === 'senzaStato')} nota={NOTA} senzaAzione altriGruppi={altriGruppi} />;
+  const altriGruppi = (bozza: CriteriProcedurali, setBozza: Dispatch<SetStateAction<CriteriProcedurali>>) => <GruppoStato statiArea={statiArea} bozza={bozza} setBozza={setBozza} />;
+  return <PannelloFiltriProgramma<CriteriProcedurali> {...pannello} criteri={criteri} titolo="Filtri dei report procedurali" nessuno={{}} nota={NOTA} senzaAzione altriGruppi={altriGruppi} />;
 }

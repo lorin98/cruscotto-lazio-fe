@@ -10,8 +10,9 @@
 //   nell'istituzionale; l'esito lo mostra chi le chiama.
 // - Errori: nessun onError qui. I componenti li rendono con getErrorMessage (problem-type del backend); il 400
 //   DATO_NON_VALIDO di un file oltre il limite dell'export si riconosce sul problem-type con messaggioOltreIlLimite del
-//   kit, mai sul solo status; per TX-0020 il 404 NOT_FOUND (nessuna domanda con quel codice) e il 400 DATO_NON_VALIDO
-//   (codice senza cifre) si riconoscono sul problem-type.
+//   kit, mai sul solo status; per TX-0020 il 404 NOT_FOUND (nessuna domanda con quel codice fra quelle che il profilo
+//   puo' consultare: inesistente o, per il P4, fuori dal perimetro ADA, con lo stesso corpo) e il 400 DATO_NON_VALIDO
+//   (codice senza cifre) si riconoscono sul problem-type. Il perimetro della risposta (REGIONALE o ADA) e' nel DTO.
 // - Parametri: i cinque filtri ripetibili dei report (intervento, os, og, op, stato; mai `azione`, uscito dal contratto
 //   con D-01 Rev. 1); TX-0020 ha il solo codice a barre nel percorso. Il mutator li serializza ripetuti e mette in coda le
 //   letture oltre il tetto per utente, nella stessa coda delle altre aree (app/tetti-letture, SC-PC_CAPACITA).
@@ -109,7 +110,11 @@ export const useSottofasiPagamento = (criteri: CriteriReport, opzioni: Opzioni =
 // indirizzo costruito ad arte non porta la richiesta verso un altro endpoint.
 export const useDetermine = (codice: string | null) => useTx0020(codice === null ? '' : encodeURIComponent(codice), { query: { enabled: codice !== null } });
 
-/** Vero se l'errore di TX-0020 e' il 404 NOT_FOUND (problem-type, non il solo status): nessuna domanda con quel codice. */
+/**
+ * Vero se l'errore di TX-0020 e' il 404 NOT_FOUND (problem-type, non il solo status): nessuna domanda con quel codice fra
+ * quelle che il profilo puo' consultare. Il backend non distingue la domanda inesistente da quella fuori dal perimetro ADA
+ * del P4 (stesso corpo), e nemmeno la pagina.
+ */
 export function rispostaDomandaAssente(errore: unknown): boolean {
   return eProblema(errore, 'not-found');
 }

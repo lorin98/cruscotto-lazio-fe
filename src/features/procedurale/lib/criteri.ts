@@ -2,9 +2,7 @@
 // (intervento, OS, OG, OP: formato, lettura e chip di entities/filtri, senza l'azione portante, che RF024 non prevede e il
 // contratto rifiuta con 400, D-01 Rev. 1) e lo stato area programmazione (`stato`, chiavi di TX-0025). Sono gli
 // url_params delle route dello uiplan, gli stessi in tutte le pagine (passano dal menu); il dettaglio dell'intervento
-// prende dall'indirizzo il solo stato. La forma "senza lo stato" (che resta nell'indirizzo per le altre pagine) era delle
-// Unit Amount (TX-0030), del fisico dal riallineamento degli ambiti del 29/10/2026; le determine di una domanda non
-// hanno criteri (il codice a barre e' nel percorso).
+// prende dall'indirizzo il solo stato. Le determine di una domanda non hanno criteri (il codice a barre e' nel percorso).
 import { filtriDaRicerca, filtriNellaBarra, ricercaDaFiltri } from '../../../entities/filtri';
 import type { Filtri, FiltroNellaBarra } from '../../../entities/filtri';
 import { leggiRipetuti, maiuscolaIniziale, scriviRipetuti } from '../../../shared/lib';
@@ -86,11 +84,6 @@ export function criteriDellIntervento(codice: string, stato: readonly string[] |
   return { intervento: [codice], ...conStato(stato) };
 }
 
-/** I criteri dopo "Azzera" o "Togli tutti": nessun filtro; le Unit Amount tengono lo stato, che non mostrano. */
-export function nessunFiltro(c: CriteriProcedurali, tieniStato: boolean): CriteriProcedurali {
-  return tieniStato ? conStato(c.stato) : {};
-}
-
 /** La descrizione di una voce di TX-0025 com'e' nei chip ("Ammessa"); senza i valori, la chiave. */
 export function testoStato(chiave: string, valori: readonly StatoArea[] | undefined): string {
   const voce = valori?.find((v) => v.chiave === chiave);
@@ -127,10 +120,10 @@ function senzaLoStato(c: CriteriProcedurali, valore: string): CriteriProcedurali
 
 /**
  * I criteri attivi come voci della barra, nell'ordine dei parametri: i filtri del programma (chip di entities/filtri, col
- * codice come nei wireframe) e, se `conLoStato`, lo stato con la descrizione di TX-0025; ogni voce coi criteri senza di lei.
+ * codice come nei wireframe) e lo stato con la descrizione di TX-0025; ogni voce coi criteri senza di lei.
  */
-export function criteriNellaBarra(c: CriteriProcedurali, valori: readonly StatoArea[] | undefined, conLoStato = true): FiltroNellaBarra<CriteriProcedurali>[] {
-  const stati = (conLoStato ? (c.stato ?? []) : []).map((s) => ({
+export function criteriNellaBarra(c: CriteriProcedurali, valori: readonly StatoArea[] | undefined): FiltroNellaBarra<CriteriProcedurali>[] {
+  const stati = (c.stato ?? []).map((s) => ({
     chiave: `${PARAMETRO_STATO}:${s}`,
     etichetta: ETICHETTA_STATO,
     valore: testoStato(s, valori),
@@ -141,8 +134,8 @@ export function criteriNellaBarra(c: CriteriProcedurali, valori: readonly StatoA
 }
 
 /** "Etichetta: valore" di ogni criterio applicato alla lettura, per l'intestazione del PNG dei grafici (NFR-50). */
-export function testiCriteri(c: CriteriProcedurali, valori: readonly StatoArea[] | undefined, conLoStato = true): string[] {
-  return criteriNellaBarra(c, valori, conLoStato).map((f) => `${f.etichetta}: ${f.valore}`);
+export function testiCriteri(c: CriteriProcedurali, valori: readonly StatoArea[] | undefined): string[] {
+  return criteriNellaBarra(c, valori).map((f) => `${f.etichetta}: ${f.valore}`);
 }
 
 /** Il filtro per stato ammette la voce (vuoto = tutte): il link delle domande ammesse c'e' solo se ammette AMMESSA. */

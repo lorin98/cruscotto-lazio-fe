@@ -1,6 +1,7 @@
 // menu.tsx — menu laterale dell'applicazione (UI v2): aree del cruscotto con gruppi e sottomenu, dal catalogo unico delle
 // aree (aree.ts, review step9 H-22). Le voci di un'area sono le sue pagine visibili per i grant dell'utente (solo UX);
-// passando da una pagina all'altra della stessa area la sua parte dell'indirizzo (i filtri) resta. Solo dalla stessa
+// passando da una pagina all'altra della stessa area la sua parte dell'indirizzo (i filtri) resta, salvo per le voci che
+// non la prendono (le determine di una domanda del procedurale, senza filtri). Solo dalla stessa
 // area: i filtri di un'altra area non entrano nei suoi link (review v1 H-10, una navigazione che nessun link dichiara).
 // I quattro ambiti stanno nell'ordine fisso del catalogo (aree.ts: AMBITI), ognuno con le sole pagine visibili; gli
 // strumenti trasversali (elenco operativo) hanno una sezione propria, con le sole pagine visibili. Una voce e' corrente sul suo percorso, o anche nei sottopercorsi se
@@ -28,7 +29,7 @@ function GruppoArea({ area, pagine, onNaviga }: { area: Area; pagine: PaginaArea
       <ul id={`${id}-${area.chiave}`} className="ui-menu__sub" hidden={!aperto}>
         {pagine.map((p) => (
           <li key={p.percorso}>
-            <NavLink to={query ? `${p.percorso}?${query}` : p.percorso} end={!p.conSottopercorsi} onClick={onNaviga}>
+            <NavLink to={query && !p.senzaRicercaConservata ? `${p.percorso}?${query}` : p.percorso} end={!p.conSottopercorsi} onClick={onNaviga}>
               {p.voceMenu}
             </NavLink>
           </li>

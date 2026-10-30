@@ -20,7 +20,7 @@ import type { ChiaveKpi, KpiProcedurale } from '../lib/kpi';
 import type { VoceDistribuzione } from '../lib/stati';
 import { useLinkElenco } from './navigazione';
 
-/** La pill del perimetro della barra, dalla risposta; niente finche' non e' arrivata (le Unit Amount: sempre regionale). */
+/** La pill del perimetro della barra, dalla risposta; niente finche' non e' arrivata. */
 export function PillPerimetro({ perimetro, tipo }: { perimetro: Perimetro | undefined; tipo: TipoPerimetro }) {
   const testo = pillPerimetro(perimetro, tipo);
   if (!testo) return null;

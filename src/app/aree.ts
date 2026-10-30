@@ -33,6 +33,8 @@ export interface PaginaArea {
   voceMenu: string;
   /** La voce del menu e' corrente anche nei sottopercorsi (es. /procedurale/determine/<codice>); di norma solo sul percorso. */
   conSottopercorsi?: boolean;
+  /** La voce non porta la parte dell'indirizzo che l'area conserva (es. le determine di una domanda: nessun filtro). */
+  senzaRicercaConservata?: boolean;
 }
 
 /** Colore dell'ambito nella Home (classi ui-ambito--<tono> di tema.css). */
@@ -99,15 +101,17 @@ export const AREE: readonly DiAmbito<Area>[] = [
   },
   {
     // G1: stati delle domande di sostegno e di pagamento (TX-0027, TX-0028), domande ammesse con atto e contributo
-    // (TX-0026), sottofasi (TX-0031, TX-0032), pagamenti per Unit Amount (TX-0030) e riepilogo (TX-0029), coi valori dei
-    // filtri della slice (TX-0024, TX-0025); i criteri restano passando da una pagina all'altra. Il dettaglio
-    // dell'intervento non e' una voce di menu: ci si arriva dai report. Testo della card dal dossier dei wireframe.
+    // (TX-0026), sottofasi (TX-0031, TX-0032), riepilogo (TX-0029) e determine di una domanda (TX-0020, dal fisico col
+    // riallineamento degli ambiti del 29/10/2026; le Unit Amount, TX-0030, sono del fisico), coi valori dei filtri della
+    // slice (TX-0024, TX-0025); i criteri dei report restano passando da una pagina all'altra, non vanno alle determine
+    // (senza filtri). Il dettaglio dell'intervento non e' una voce di menu: ci si arriva dai report. Testo della card dal
+    // dossier dei wireframe (home.html del flusso panoramica approvata il 30/10/2026, OP-PR-10, OP-PR-13).
     chiave: 'procedurale',
     titolo: 'Procedurale',
-    descrizione: 'Stati e sottofasi delle domande di sostegno e di pagamento, domande ammesse con atto di concessione e contributo, riepilogo per intervento e pagamenti per Unit Amount.',
+    descrizione: 'Stati e sottofasi delle domande di sostegno e di pagamento, domande ammesse con atto di concessione e contributo, riepilogo per intervento e determine di una domanda.',
     icona: 'it-file-signed',
     tono: 'arancio',
-    contenuti: ['Stati e sottofasi delle domande', 'Domande ammesse con atto di concessione e contributo', 'Riepilogo per intervento', 'Pagamenti per Unit Amount'],
+    contenuti: ['Stati e sottofasi delle domande', 'Domande ammesse con atto di concessione e contributo', 'Riepilogo per intervento', 'Determine di una domanda'],
     pagineVisibili: pagineProcedurale,
     ricercaConservata: ricercaProcedurale,
     Anteprima: AnteprimaProcedurale,
