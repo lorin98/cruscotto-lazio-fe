@@ -59,6 +59,7 @@ describe("RF020: codice e data delle determine da cui la domanda prende l'inform
       'Domanda di pagamento',
       'Domanda corrente',
       '3 determine con riga aperta',
+      'Perimetro: regionale',
     ]);
     expect(testo(screen.getByRole('region', { name: 'Determina corrente' }).textContent)).toContain('G00003del 30/06/2025 (la più recente con riga aperta: data, poi codice)');
     expect(testo(screen.getByRole('region', { name: /^Stato area programmazione da:/ }).textContent)).toContain('G00001del 10/01/2025');

@@ -30,8 +30,6 @@ import type { CriteriProcedurali } from '../lib/criteri';
 import type * as Dto from '../lib/dto';
 
 type Uguali<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
-/** Ogni campo della forma scritta a mano esiste nel DTO (la forma puo' leggerne solo una parte). */
-type Contenuta<Forma, Dto> = [Exclude<keyof Forma, keyof Dto>] extends [never] ? true : false;
 /** Il DTO si puo' passare dove serve la forma (i tipi dei campi sono compatibili). */
 type Assegnabile<Generato, Forma> = [Generato] extends [Forma] ? true : false;
 
@@ -49,10 +47,10 @@ export const CONTRATTO_RIEPILOGO: Uguali<keyof Dto.Riepilogo, keyof RiepilogoPro
 export const CONTRATTO_CENSITA: Uguali<keyof Dto.SottofaseCensita, keyof SottofaseCensita> = true;
 export const CONTRATTO_VOCE_SOTTOFASE: Uguali<keyof Dto.VoceSottofase, keyof SottofaseVoce> = true;
 export const CONTRATTO_SOTTOFASI: Uguali<keyof Dto.Sottofasi, keyof SottofasiAmmissibilita> = true;
-// TX-0020 (determine di una domanda, dal fisico): la determina e le determine della domanda (il perimetro della risposta lo
-// leggera' la pagina coi passi successivi)
+// TX-0020 (determine di una domanda, dal fisico): la determina e le determine della domanda, col perimetro della risposta
+// (badge della testata)
 export const CONTRATTO_DETERMINA: Uguali<keyof Dto.Determina, keyof DeterminaDellaDomanda> = true;
-export const CONTRATTO_DETERMINE: Contenuta<Dto.Determine, DetermineDomanda> = true;
+export const CONTRATTO_DETERMINE: Uguali<keyof Dto.Determine, keyof DetermineDomanda> = true;
 export const CONTRATTO_STATO_AREA: Uguali<keyof Dto.StatoArea, keyof StatoAreaProgrammazione> = true;
 export const CONTRATTO_VALORI_STATI_AREA: Uguali<keyof Dto.ValoriStatiArea, keyof StatiAreaProgrammazione> = true;
 export const CONTRATTO_VALORI_FILTRI: Uguali<keyof Dto.ValoriFiltri, keyof FiltriProcedurali> = true;

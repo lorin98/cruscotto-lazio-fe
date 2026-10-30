@@ -68,10 +68,12 @@ import { altreSottofasi, anagraficaVuota, etichettaVoce, righeVoci, senzaDomande
 import {
   MAX_CIFRE,
   badgeDetermine,
+  badgePerimetro,
   codiceDaCercare,
   codiceDalPercorso,
   eCorrente,
   fonteDi,
+  messaggioDomandaNonTrovata,
   percorsoDetermine,
   percorsoSchedaDellaDomanda,
   siNo as siNoDetermine,
@@ -689,12 +691,24 @@ describe('RF020: determine di una domanda (codice, link e testi)', () => {
     expect(percorsoSchedaDellaDomanda(DETERMINE_CHIUSA, true)).toBeNull();
   });
 
-  it('testata: tipo, corrente o chiusa, numero di determine', () => {
+  it('testata: tipo, corrente o chiusa, numero di determine, perimetro della risposta in testo', () => {
     expect(testoTipoDomanda('SOSTEGNO')).toBe('Domanda di sostegno');
-    expect(badgeDetermine(DETERMINE)).toEqual(['Domanda di pagamento', 'Domanda corrente', '3 determine con riga aperta']);
-    expect(badgeDetermine(DETERMINE_CHIUSA)).toEqual(['Domanda di pagamento', 'Domanda chiusa: non è più nelle fonti SIAN', '1 determina con riga aperta']);
+    expect(badgeDetermine(DETERMINE)).toEqual(['Domanda di pagamento', 'Domanda corrente', '3 determine con riga aperta', 'Perimetro: regionale']);
+    expect(badgeDetermine(DETERMINE_CHIUSA)).toEqual(['Domanda di pagamento', 'Domanda chiusa: non è più nelle fonti SIAN', '1 determina con riga aperta', 'Perimetro: regionale']);
+    expect(badgeDetermine({ ...DETERMINE_NESSUNA, perimetro: 'ADA' })).toEqual(['Domanda di pagamento', 'Domanda corrente', '0 determine con riga aperta', 'Perimetro: ADA, domande della tua area']);
     expect(sopratitoloDetermine(DETERMINE)).toBe('Domanda di pagamento 54810769585 - fonte delle informazioni');
     expect(titoloDetermine('54810769585')).toBe('Determine della domanda 54810769585');
+  });
+
+  it('perimetro (scelta 2 del dossier): regionale, oppure ADA con le sole domande della propria area', () => {
+    expect(badgePerimetro('REGIONALE')).toBe('Perimetro: regionale');
+    expect(badgePerimetro('ADA')).toBe('Perimetro: ADA, domande della tua area');
+  });
+
+  it('domanda non trovata (scelta 3 del dossier): un solo messaggio, inesistente o fuori dal perimetro del P4', () => {
+    expect(messaggioDomandaNonTrovata('99999999999')).toBe('Domanda non trovata: nessuna domanda con il codice a barre 99999999999 fra quelle che puoi consultare.');
+    // il testo non nomina il perimetro: non distingue i due casi e vale anche per i profili regionali
+    expect(messaggioDomandaNonTrovata('1')).not.toMatch(/perimetro|ADA|area/i);
   });
 
   it('determina corrente, fonti dei campi (la piu recente che li valorizza) e si/no in testo', () => {

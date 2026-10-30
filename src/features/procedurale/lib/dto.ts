@@ -161,11 +161,15 @@ export interface Determina {
   fonteComparto: boolean;
 }
 
-/** DetermineDomanda di TX-0020: la determina corrente (oppure null con NON_VALORIZZATO) e quelle con riga aperta. */
+/**
+ * DetermineDomanda di TX-0020: la determina corrente (oppure null con NON_VALORIZZATO), quelle con riga aperta e il
+ * perimetro della risposta (REGIONALE, oppure ADA per il P4: le sole domande della sua area).
+ */
 export interface Determine {
   codiceABarre: string;
   tipoDomanda: string;
   domandaChiusa: boolean;
+  perimetro: Perimetro;
   corrente: { valore: Determina | null; motivo: string | null };
   elenco: Determina[];
 }
