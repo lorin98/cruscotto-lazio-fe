@@ -1452,11 +1452,11 @@
         "Residuo manuale: ordine di lettura di testata, riquadri e tabella; comprensibilita' di 'stato area programmazione', 'comparto' e del messaggio 'fra quelle che puoi consultare'; contrasto della resa finale"
       ],
       "approval": {
-        "approved_hash": "sha256:52f08e1f09ea17b65633241db48f367e2606b6407d9d72e584f33b23690f7654",
+        "approved_hash": "sha256:72cac7a76d4909b42659dc76578903c786ae139aa0ff0d3ce2b660976bce5c9d",
         "baseline_ref": "./wireframes/procedurale/determine",
-        "approved_at": "2026-10-30T11:52:21Z",
-        "time_to_approve_s": 324,
-        "rework_rounds": 1
+        "approved_at": "2026-10-30T13:37:31Z",
+        "time_to_approve_s": 122,
+        "rework_rounds": 2
       }
     }
   ],

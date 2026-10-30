@@ -73,11 +73,14 @@ dell'elenco a questa pagina, lo dichiara la feature elenco-operativo (`determine
 
 In arrivo da `determine-della-domanda` (decisione D1 dell'utente del 30/10/2026, review step9 EO-01): il link porta il tipo
 della scheda nello state della navigazione, mai nell'indirizzo. TX-0020 ha solo il codice a barre e sceglie la domanda con
-la regola dell'aggancio, quindi un codice di due domande (SOSTEGNO e PAGAMENTO, scenario SC-PC_DETERMINA_TIPO) puo' dare
-la domanda dell'altro tipo: se `tipoDomanda` della risposta e' diverso dal tipo portato dal link, la pagina lo dice in un
-avviso `role="status"` sopra la testata e offre il link `scheda-di-partenza` alla scheda della domanda di partenza
+la regola dell'aggancio (per prima la domanda con determine aperte), quindi un codice di due domande (SOSTEGNO e PAGAMENTO,
+scenario SC-PC_DETERMINA_TIPO) puo' dare la domanda dell'altro tipo, anche quando la domanda di partenza non ha determine
+aperte: se `tipoDomanda` della risposta e' diverso dal tipo portato dal link, la pagina lo dice in un avviso
+`role="status"` sopra la testata, con un testo vero in ogni caso (decisione D4 dell'utente del 30/10/2026, review step9
+passata 2), e offre il link `scheda-di-partenza` alla scheda della domanda di partenza aperta sulla scheda Determine
 (elenco-operativo: /elenco-operativo/domande/:tipo/:codiceABarre, tipo = tipo portato dal link, codiceABarre = codice
-cercato; visibile con csr.tx-0058.read). Senza state (ricarica, indirizzo condiviso, ricerca dal modulo) nessun avviso.
+cercato; visibile con csr.tx-0058.read). Il tipo si legge una volta sola all'arrivo: senza state (ricarica, Indietro o
+Avanti del browser, indirizzo condiviso, ricerca dal modulo) o dopo un cambio d'utente nessun avviso.
 
 ## Filtri nell'URL (url_params)
 
@@ -102,8 +105,8 @@ Nessun parametro di query: TX-0020 ha solo il codice a barre, nel path.
 
 - senza codice (vuoto iniziale): "Scrivi il codice a barre di una domanda..." e il solo modulo, nessuna lettura
 - domanda dell'altro tipo (solo in arrivo dalla scheda dell'elenco con un tipo diverso da `tipoDomanda`): `role="status"`,
-  "Il codice a barre N e' anche di una domanda di <tipo della risposta>: qui ci sono le sue determine. Quelle della domanda
-  di <tipo della scheda> sono nella sua scheda." con il link alla scheda di partenza
+  "Il codice a barre N e' anche di una domanda di <tipo della risposta>: questa pagina mostra quella domanda, non la domanda
+  di <tipo della scheda> da cui arrivi." con il link alla scheda di partenza
 - vuoto: determina corrente null con motivo NON_VALORIZZATO ed elenco vuoto: "Nessuna determina aperta per la domanda ...
   (non valorizzato)", mai una tabella vuota senza spiegazione
 - domanda chiusa: badge in testo "Domanda chiusa: non e' piu' nelle fonti SIAN", niente link alla scheda; determine visibili
