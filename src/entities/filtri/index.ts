@@ -2,8 +2,9 @@
 // comuni ai report del finanziario, del fisico e dell'istituzionale (lib nell'indirizzo, regola dell'azione senza legame
 // e bozza del pannello, gruppi del pannello, pannello con le voci di TX-0060, pannello della pagina col focus dopo
 // "Applica i filtri"), i valori dei filtri letti da TX-0060 dell'elenco operativo, condivisi dalle feature che ne
-// compongono il pannello (elenco operativo, fisico, istituzionale), e la pagina del dettaglio dell'intervento col codice
-// del percorso non valido (istituzionale e procedurale).
+// compongono il pannello (elenco operativo, fisico, istituzionale), l'impaginazione dei report coi filtri del programma
+// nella barra (istituzionale e fisico, review del riallineamento FIS-05) e la pagina del dettaglio dell'intervento col
+// codice del percorso non valido (istituzionale e procedurale).
 export { useValoriFiltri } from './api';
 export type { ValoriFiltriElenco, VoceFiltro } from './api';
 export {
@@ -27,6 +28,8 @@ export {
 export type { ChiaveFiltro, Filtri, FiltroAttivo, FiltroNellaBarra, ValoriProgramma } from './lib/programma';
 export { GruppiProgramma } from './ui/GruppiProgramma';
 export { ID_TITOLO_INTERVENTO, InterventoNonValido } from './ui/InterventoNonValido';
+export { PaginaReportProgramma } from './ui/PaginaReportProgramma';
+export type { PaginaDelReport, RispostaReportProgramma } from './ui/PaginaReportProgramma';
 export { PannelloFiltriProgramma } from './ui/PannelloFiltriProgramma';
 export type { PropsPannelloProgramma } from './ui/PannelloFiltriProgramma';
 export { useBozzaFiltri, useFiltriProgrammaNellIndirizzo } from './ui/useFiltriProgrammaNellIndirizzo';

@@ -2,7 +2,8 @@
 // useBozzaFiltri), il solo test della regola X-03 (review del fisico H2): finanziario, fisico e istituzionale la
 // compongono con la loro lettura dei valori (TX-0001, TX-0060) e la loro scrittura dell'indirizzo. Poi il pannello comune
 // con le voci di TX-0060 (fisico, istituzionale), il pannello della pagina col focus dopo "Applica i filtri" e la pagina
-// del dettaglio dell'intervento col codice non valido. Profilo dal server MSW dei test.
+// del dettaglio dell'intervento col codice non valido, e l'impaginazione comune dei report coi filtri del programma
+// (PaginaReportProgramma, review del riallineamento FIS-05). Profilo dal server MSW dei test.
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { ReactNode } from 'react';
@@ -12,8 +13,8 @@ import { act, cleanup, render, renderHook, screen, waitFor, within } from '@test
 import userEvent from '@testing-library/user-event';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, RouterProvider, createMemoryRouter, useLocation } from 'react-router';
-import { ID_TITOLO_INTERVENTO, InterventoNonValido, PannelloFiltriProgramma, ValoriFiltriNonDisponibili, filtriDaRicerca, filtriNellaBarra, ricercaDaFiltri, useBozzaFiltri, useFiltriProgrammaNellIndirizzo, usePannelloConFocus } from '../src/entities/filtri';
-import type { Filtri, LetturaValoriFiltri, ValoriProgramma } from '../src/entities/filtri';
+import { ID_TITOLO_INTERVENTO, InterventoNonValido, PaginaReportProgramma, PannelloFiltriProgramma, ValoriFiltriNonDisponibili, filtriDaRicerca, filtriNellaBarra, ricercaDaFiltri, useBozzaFiltri, useFiltriProgrammaNellIndirizzo, usePannelloConFocus } from '../src/entities/filtri';
+import type { Filtri, LetturaValoriFiltri, PaginaDelReport, RispostaReportProgramma, ValoriProgramma } from '../src/entities/filtri';
 import { expectNoA11yViolations } from '../src/shared/testing/axe';
 import { clientDiTest, renderConQuery } from '../src/shared/testing/render';
 
@@ -288,5 +289,79 @@ describe('InterventoNonValido: la pagina del dettaglio dell intervento col codic
   it('sta nell entity accanto a codiceDelPercorso: il kit non la esporta piu', async () => {
     expect(ID_TITOLO_INTERVENTO).toBe('t-intervento');
     expect(Object.keys(await import('../src/shared/ui'))).not.toContain('IntestazioneNonValida');
+  });
+});
+
+describe('PaginaReportProgramma: l impaginazione comune dei report coi filtri del programma (review del riallineamento FIS-05, prima nell istituzionale e ricopiata nel fisico)', () => {
+  type Risposta = RispostaReportProgramma & { righe: string[] };
+  const ULTIMI = [{ flusso: 'PROSA_DS04', conclusoIl: '2026-03-02T10:00:00Z' }];
+  const lettura = <T,>(data: T | undefined, campi: { isError?: boolean; isPending?: boolean } = {}) => ({ data, isPending: false, isError: false, fetchStatus: 'idle' as const, error: null, refetch: vi.fn(), ...campi });
+  const pagina = (campi: Partial<PaginaDelReport> = {}): PaginaDelReport => ({
+    inAttesa: false,
+    chip: [{ chiave: 'intervento', etichetta: 'Intervento', valore: 'SRD01', onTogli: vi.fn() }],
+    togliTutti: vi.fn(),
+    valori: null,
+    h1: createRef<HTMLHeadingElement>(),
+    apri: vi.fn(),
+    ...campi,
+  });
+
+  function mostra(p: PaginaDelReport, stato: ReturnType<typeof lettura<Risposta>>, extra: { senzaLettura?: string; sopra?: ReactNode } = {}) {
+    const ui = (
+      <PaginaReportProgramma<Risposta>
+        pagina={p}
+        stato={stato}
+        briciole={[{ etichetta: 'Area', a: '/area' }, { etichetta: 'Report' }]}
+        testa={{ titolo: 'Area: report', titoloDocumento: 'Report - Area', sottotitolo: 'Sotto', nota: 'La riga sotto' }}
+        pillDellaBarra={(d) => <span className="ui-pill">{d ? `Righe: ${d.righe.length}` : 'Perimetro: regionale'}</span>}
+        testoVuoto="Nessun intervento per i filtri scelti."
+        senzaLettura={extra.senzaLettura}
+        sopra={extra.sopra}
+        pannello={<p>Il pannello</p>}
+      >
+        {(d) => <p>{`Report di ${d.righe.join(', ')}`}</p>}
+      </PaginaReportProgramma>
+    );
+    const router = createMemoryRouter([{ path: '/', element: ui }], { initialEntries: ['/'] });
+    return renderConQuery(<RouterProvider router={router} />);
+  }
+
+  it('barra coi chip, le pill della risposta e "Dati al"; percorso, un solo h1, la riga sotto, cio che sta sopra, il report e il pannello; nessuna violazione axe', async () => {
+    const { container } = mostra(pagina(), lettura<Risposta>({ righe: ['SRD01'], ultimiDatiSincronizzati: ULTIMI }), { sopra: <p>Il selettore</p> });
+    const barra = screen.getByRole('region', { name: 'Filtri attivi' });
+    expect(within(barra).getByRole('button', { name: 'Togli il filtro Intervento SRD01' })).toBeTruthy();
+    expect(within(barra).getByText('Righe: 1')).toBeTruthy();
+    expect(within(barra).getByRole('button', { name: /^Ultimo dato sincronizzato: dati al 02\/03\/2026/ })).toBeTruthy();
+    expect(screen.getByRole('navigation', { name: 'Percorso' }).textContent).toBe('HomeAreaReport');
+    expect(screen.getAllByRole('heading', { level: 1 }).map((h) => h.textContent)).toEqual(['Area: report']);
+    expect(document.title).toBe('Report - Area - Cruscotto CSR 2023-2027');
+    expect(screen.getByText('La riga sotto')).toBeTruthy();
+    expect(screen.getByText('Il selettore')).toBeTruthy();
+    expect(screen.getByText('Report di SRD01')).toBeTruthy();
+    expect(screen.getByText('Il pannello').closest('main')).toBeNull();
+    await expectNoA11yViolations(container);
+  });
+
+  it('il vuoto col suo testo e "Modifica i filtri", che apre il pannello dallo stato vuoto; Filtri della barra lo apre dalla barra', async () => {
+    const p = pagina();
+    mostra(p, lettura<Risposta>({ righe: [] }));
+    const vuoto = screen.getByText('Nessun intervento per i filtri scelti.').closest('[role="status"]') as HTMLElement;
+    await userEvent.click(within(vuoto).getByRole('button', { name: 'Modifica i filtri' }));
+    await userEvent.click(within(screen.getByRole('region', { name: 'Filtri attivi' })).getByRole('button', { name: /^Filtri/ }));
+    expect(vi.mocked(p.apri).mock.calls).toEqual([['vuoto'], ['barra']]);
+    expect(screen.queryByText(/^Report di/)).toBeNull();
+  });
+
+  it('senza lettura il testo al posto del report; in attesa del legame con le azioni la verifica dei filtri; i valori dei filtri in errore detti sopra', () => {
+    const { unmount } = mostra(pagina(), lettura<Risposta>(undefined), { senzaLettura: "Scegli l'esercizio." });
+    expect(screen.getByText("Scegli l'esercizio.").closest('[role="status"]')).not.toBeNull();
+    // prima della risposta la pill della barra c'e' lo stesso (es. il perimetro regionale dell'istituzionale)
+    expect(within(screen.getByRole('region', { name: 'Filtri attivi' })).getByText('Perimetro: regionale')).toBeTruthy();
+    unmount();
+
+    mostra(pagina({ inAttesa: true, valori: lettura<unknown>(undefined, { isError: true }) }), lettura<Risposta>({ righe: ['SRD01'] }));
+    expect(screen.getByText('Verifica dei filtri in corso…')).toBeTruthy();
+    expect(screen.queryByText('Report di SRD01')).toBeNull();
+    expect(screen.getByText(/^Valori dei filtri non disponibili: /).closest('[role="status"]')).not.toBeNull();
   });
 });
