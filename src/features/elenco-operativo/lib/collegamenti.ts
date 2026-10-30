@@ -41,8 +41,9 @@ export function percorsoDomandeDeiPagamenti(criteri: Criteri): string {
  * Link determine-della-domanda (scelta S-3 b dell'utente del 30/10/2026, OP-EO-07): le determine della domanda della scheda
  * nell'area Procedurale (/procedurale/determine/<codice a barre>), solo col grant della loro lettura (puoAprireLeDetermine,
  * csr.tx-0020.read). L'indirizzo e' del contratto condiviso (entities/domanda): nessun import dalla feature procedurale.
- * Gate di UX, l'enforcement e' del backend (per il P4 la scheda e' gia' nel suo perimetro: l'arrivo non risponde 404).
- * null = nessun link.
+ * Gate di UX, l'enforcement e' del backend: per il P4 la scheda e' nel suo perimetro; con TX-0058 regionale da un altro
+ * profilo e TX-0020 solo dal P4 l'arrivo puo' rispondere 404, col messaggio unico (review step9 EO2-05). null = nessun
+ * link.
  */
 export function percorsoDetermine(codiceABarre: string | null | undefined, conGrantDetermine: boolean): string | null {
   return conGrantDetermine ? percorsoDetermineDellaDomanda(codiceABarre) : null;
