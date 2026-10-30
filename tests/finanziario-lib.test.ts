@@ -8,7 +8,7 @@ import {
   ETICHETTE_FILTRO,
   MAX_VALORI_FILTRO,
   PARAMETRI_DI_PAGINA,
-  anniSelezionabili,
+  anniDellaRiserva,
   filtriDaRicerca,
   isAnnoValido,
   ricercaConParametri,
@@ -247,11 +247,11 @@ describe('etichette e anni', () => {
     expect(isAnnoValido(2025.5)).toBe(false);
     expect(isAnnoValido(undefined)).toBe(false);
   });
-  it('anniSelezionabili: riserva fino al 2029, anno corrente valido sempre presente', () => {
-    expect(anniSelezionabili('riserva')).toEqual([2023, 2024, 2025, 2026, 2027, 2028, 2029]);
-    expect(anniSelezionabili('riserva', 2031).at(-1)).toBe(2031);
-    expect(anniSelezionabili('riserva', 2025)).toHaveLength(7);
-    expect(anniSelezionabili('riserva', 1999)).toHaveLength(7);
+  it('anniDellaRiserva: fino al 2029, anno corrente valido sempre presente', () => {
+    expect(anniDellaRiserva()).toEqual([2023, 2024, 2025, 2026, 2027, 2028, 2029]);
+    expect(anniDellaRiserva(2031).at(-1)).toBe(2031);
+    expect(anniDellaRiserva(2025)).toHaveLength(7);
+    expect(anniDellaRiserva(1999)).toHaveLength(7);
   });
 });
 

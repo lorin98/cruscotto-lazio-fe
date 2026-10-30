@@ -120,7 +120,7 @@ export function RiservaReport({ anno, onCambiaAnno }: { anno: number | undefined
   return (
     <>
       <p className="mb-2">Dato regionale: i filtri del finanziario non si applicano alla riserva.</p>
-      <SelettoreAnno id="f-anno-riserva" etichetta="Anno di riferimento (anno n)" aiuto={aiutoRiserva(anno)} tipo="riserva" anno={anno} onCambia={onCambiaAnno} />
+      <SelettoreAnno id="f-anno-riserva" etichetta="Anno di riferimento (anno n)" aiuto={aiutoRiserva(anno)} anno={anno} onCambia={onCambiaAnno} />
       {anno === undefined ? <Vuoto>{"Scegli l'anno della riserva da consultare."}</Vuoto> : <Riserva anno={anno} />}
     </>
   );

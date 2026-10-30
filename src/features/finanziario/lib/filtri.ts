@@ -25,11 +25,11 @@ export { isAnnoValido } from '../../../shared/lib';
 // Periodo di programmazione CSR 2023-2027 con la regola n+2: la riserva riguarda gli anni 2023-2029. L'esercizio della
 // verifica SMP SIGC (TX-0015) e' dell'istituzionale dal riallineamento degli ambiti del 29/10/2026.
 const PRIMO_ANNO_CSR = 2023;
-const ULTIMO_ANNO: Record<'riserva', number> = { riserva: 2029 };
+const ULTIMO_ANNO_RISERVA = 2029;
 
-/** Anni da proporre nel selettore; un anno valido gia' scelto (es. dall'indirizzo) resta sempre selezionabile. */
-export function anniSelezionabili(tipo: 'riserva', corrente?: number): number[] {
-  return anniProposti(PRIMO_ANNO_CSR, ULTIMO_ANNO[tipo], corrente);
+/** Anni della riserva per il selettore; un anno valido gia' scelto (es. dall'indirizzo) resta sempre selezionabile. */
+export function anniDellaRiserva(corrente?: number): number[] {
+  return anniProposti(PRIMO_ANNO_CSR, ULTIMO_ANNO_RISERVA, corrente);
 }
 
 /**
