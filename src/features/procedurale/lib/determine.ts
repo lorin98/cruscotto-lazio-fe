@@ -72,9 +72,14 @@ export function tipoDiPartenzaDiverso(partenza: string | null, d: Pick<Determine
   return partenza !== null && d !== undefined && d.tipoDomanda !== partenza ? partenza : null;
 }
 
-/** L'avviso "domanda dell'altro tipo", col codice cercato, il tipo della risposta e quello della scheda di partenza. */
+/**
+ * L'avviso "domanda dell'altro tipo", col codice cercato, il tipo della risposta e quello della scheda di partenza. Testo
+ * neutro, vero in ogni caso (decisione D4 dell'utente del 30/10/2026, review step9 PRO2-03): TX-0020 sceglie per prima la
+ * domanda con determine aperte, quindi la domanda di partenza puo' non averne (34810063735 e 34810063736 di
+ * SC-PC_DETERMINA_TIPO), e l'avviso non dice dove sono le sue.
+ */
 export function messaggioAltroTipo(codice: string, tipoDellaRisposta: string, tipoDellaScheda: string): string {
-  return `Il codice a barre ${codice} è anche di una domanda di ${tipoInParole(tipoDellaRisposta)}: qui ci sono le sue determine. Quelle della domanda di ${tipoInParole(tipoDellaScheda)} sono nella sua scheda.`;
+  return `Il codice a barre ${codice} è anche di una domanda di ${tipoInParole(tipoDellaRisposta)}: questa pagina mostra quella domanda, non la domanda di ${tipoInParole(tipoDellaScheda)} da cui arrivi.`;
 }
 
 /** Testo del link scheda-di-partenza: "Apri la scheda della domanda di sostegno, scheda Determine". */

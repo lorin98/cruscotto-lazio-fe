@@ -732,10 +732,11 @@ describe('RF020: determine di una domanda (codice, link e testi)', () => {
     expect(tipoDiPartenzaDiverso('PAGAMENTO', DETERMINE_TIPO)).toBeNull();
     expect(tipoDiPartenzaDiverso(null, DETERMINE_TIPO)).toBeNull();
     expect(tipoDiPartenzaDiverso('SOSTEGNO', undefined)).toBeNull();
+    // testo neutro, vero anche quando la domanda di partenza non ha determine aperte (decisione D4 del 30/10/2026)
     expect(messaggioAltroTipo('34810022870', 'PAGAMENTO', 'SOSTEGNO')).toBe(
-      'Il codice a barre 34810022870 è anche di una domanda di pagamento: qui ci sono le sue determine. Quelle della domanda di sostegno sono nella sua scheda.',
+      'Il codice a barre 34810022870 è anche di una domanda di pagamento: questa pagina mostra quella domanda, non la domanda di sostegno da cui arrivi.',
     );
-    expect(messaggioAltroTipo('1', 'SOSTEGNO', 'PAGAMENTO')).toBe('Il codice a barre 1 è anche di una domanda di sostegno: qui ci sono le sue determine. Quelle della domanda di pagamento sono nella sua scheda.');
+    expect(messaggioAltroTipo('1', 'SOSTEGNO', 'PAGAMENTO')).toBe('Il codice a barre 1 è anche di una domanda di sostegno: questa pagina mostra quella domanda, non la domanda di pagamento da cui arrivi.');
     expect(testoSchedaDiPartenza('SOSTEGNO')).toBe('Apri la scheda della domanda di sostegno, scheda Determine');
     expect(percorsoSchedaDiPartenza('SOSTEGNO', '34810022870', true)).toBe('/elenco-operativo/domande/SOSTEGNO/34810022870');
     expect(percorsoSchedaDiPartenza('SOSTEGNO', '34810022870', false)).toBeNull();

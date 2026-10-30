@@ -367,3 +367,16 @@ export const DETERMINE_TIPO: DetermineDomanda = {
   corrente: { valore: { codice: 'G00011', data: '2025-05-20', fonteStatoAreaProgrammazione: true, fonteComparto: true }, motivo: null },
   elenco: [{ codice: 'G00011', data: '2025-05-20', fonteStatoAreaProgrammazione: true, fonteComparto: true }],
 };
+
+/**
+ * SC-PC_DETERMINA_TIPO: il codice 34810063736 e' di una SOSTEGNO con la determina G00017 e di una PAGAMENTO aperta arrivata
+ * dopo, senza righe; TX-0020 risponde con la SOSTEGNO (prima la domanda con righe aperte). La data non e' nello scenario.
+ */
+export const DETERMINE_TIPO_SOSTEGNO: DetermineDomanda = {
+  codiceABarre: '34810063736',
+  tipoDomanda: 'SOSTEGNO',
+  domandaChiusa: false,
+  perimetro: 'REGIONALE',
+  corrente: { valore: { codice: 'G00017', data: '2025-04-15', fonteStatoAreaProgrammazione: true, fonteComparto: true }, motivo: null },
+  elenco: [{ codice: 'G00017', data: '2025-04-15', fonteStatoAreaProgrammazione: true, fonteComparto: true }],
+};

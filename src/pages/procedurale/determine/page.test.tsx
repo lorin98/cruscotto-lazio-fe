@@ -14,7 +14,7 @@ import { server } from '../../../shared/api/mock/server';
 import { expectNoA11yViolations } from '../../../shared/testing/axe';
 import { problema, trattenuta } from '../../../shared/testing/msw';
 import { renderConQuery } from '../../../shared/testing/render';
-import { DETERMINE, DETERMINE_CHIUSA, DETERMINE_NESSUNA, DETERMINE_TIPO } from '../../../features/procedurale/testing/fixture';
+import { DETERMINE, DETERMINE_CHIUSA, DETERMINE_NESSUNA, DETERMINE_TIPO, DETERMINE_TIPO_SOSTEGNO } from '../../../features/procedurale/testing/fixture';
 import Pagina from './page';
 
 const ROUTE = '/procedurale/determine/:codice?';
@@ -299,7 +299,7 @@ describe('RF020: ricerca per codice a barre (accessibilita da tastiera)', () => 
 describe("RF020: domanda dell'altro tipo in arrivo dalla scheda dell'elenco, SC-PC_DETERMINA_TIPO (decisione D1 del 30/10/2026)", () => {
   const INDIRIZZO = '/procedurale/determine/34810022870';
   const dallaScheda = (tipoDellaScheda: unknown) => ({ pathname: INDIRIZZO, state: { tipoDellaScheda } });
-  const AVVISO = 'Il codice a barre 34810022870 è anche di una domanda di pagamento: qui ci sono le sue determine. Quelle della domanda di sostegno sono nella sua scheda.';
+  const AVVISO = 'Il codice a barre 34810022870 è anche di una domanda di pagamento: questa pagina mostra quella domanda, non la domanda di sostegno da cui arrivi.';
   const PARTENZA = 'Apri la scheda della domanda di sostegno, scheda Determine';
   const tabella = () => screen.findByRole('table', { name: /^Determine da cui la domanda 34810022870/ });
   /** La regione dell'avviso: role=status col testo dell'avviso (le altre regioni di stato della pagina hanno altri testi). */
@@ -345,6 +345,32 @@ describe("RF020: domanda dell'altro tipo in arrivo dalla scheda dell'elenco, SC-
     await tabella();
     expect(avviso()).toBe(regione);
     expect(regione?.className).toBe('alert alert-info my-3');
+  });
+
+  // decisione D4 dell'utente del 30/10/2026 (review step9 PRO2-03): TX-0020 sceglie per prima la domanda con determine
+  // aperte, quindi da una scheda senza determine aperte la pagina mostra sempre l'altra domanda; il testo neutro resta vero
+  it('dalla scheda SOSTEGNO senza determine aperte (34810063735): la PAGAMENTO chiusa con G00016, avviso neutro e scheda di partenza, niente scheda della risposta', async () => {
+    servi({ [DETERMINE_CHIUSA.codiceABarre]: DETERMINE_CHIUSA });
+    apri({ pathname: '/procedurale/determine/34810063735', state: { tipoDellaScheda: 'SOSTEGNO' } });
+    await screen.findByRole('table', { name: /^Determine da cui la domanda 34810063735/ });
+    const regione = avviso() as HTMLElement;
+    expect(regione.textContent).toBe(`Il codice a barre 34810063735 è anche di una domanda di pagamento: questa pagina mostra quella domanda, non la domanda di sostegno da cui arrivi. ${PARTENZA}`);
+    expect(within(regione).getByRole('link', { name: PARTENZA }).getAttribute('href')).toBe('/elenco-operativo/domande/SOSTEGNO/34810063735');
+    expect(screen.getByText('Domanda chiusa: non è più nelle fonti SIAN')).toBeTruthy();
+    // la PAGAMENTO e' chiusa: la scheda della risposta non si offre (la scheda risponde solo per le domande correnti)
+    expect(screen.queryByRole('link', { name: 'Apri la scheda della domanda' })).toBeNull();
+  });
+
+  it('dalla scheda PAGAMENTO senza determine aperte (34810063736): la SOSTEGNO con G00017, avviso neutro e scheda di partenza', async () => {
+    servi({ [DETERMINE_TIPO_SOSTEGNO.codiceABarre]: DETERMINE_TIPO_SOSTEGNO });
+    apri({ pathname: '/procedurale/determine/34810063736', state: { tipoDellaScheda: 'PAGAMENTO' } });
+    await screen.findByRole('table', { name: /^Determine da cui la domanda 34810063736/ });
+    const regione = avviso() as HTMLElement;
+    const partenza = 'Apri la scheda della domanda di pagamento, scheda Determine';
+    expect(regione.textContent).toBe(`Il codice a barre 34810063736 è anche di una domanda di sostegno: questa pagina mostra quella domanda, non la domanda di pagamento da cui arrivi. ${partenza}`);
+    expect(within(regione).getByRole('link', { name: partenza }).getAttribute('href')).toBe('/elenco-operativo/domande/PAGAMENTO/34810063736');
+    expect(screen.getByText('Domanda di sostegno 34810063736 - fonte delle informazioni')).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Apri la scheda della domanda' }).getAttribute('href')).toBe('/elenco-operativo/domande/SOSTEGNO/34810063736');
   });
 
   it('stesso tipo (scheda PAGAMENTO, risposta PAGAMENTO): nessun avviso', async () => {
