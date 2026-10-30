@@ -68,9 +68,9 @@ aperta.
 - **Errori delle risposte binarie.** Per gli export CSV e XLSX (`responseType: 'blob'`) il mutator rilegge come JSON il
   corpo d'errore, cosi' anche il problem+json dell'export viene classificato.
 - **Export dal backend (D-08).** Ogni report del finanziario si scarica in CSV o XLSX da `<report>/{formato}` (TX-0002..
-  TX-0015; `riepilogo/csv` resta lo stesso indirizzo): stessi filtri e grant della consultazione, intestazione con fonte,
-  filtri, data e uso interno, una riga di `AUDIT_ESPORTAZIONE` per file. Nel FE: `esportaReport`, `esportaRiserva`,
-  `esportaVerificaSmp` (`features/finanziario/api`) e `datiDelReport` (`ui/esportazioni.ts`), che i grafici e le tabelle
+  TX-0014; `riepilogo/csv` resta lo stesso indirizzo): stessi filtri e grant della consultazione, intestazione con fonte,
+  filtri, data e uso interno, una riga di `AUDIT_ESPORTAZIONE` per file. Nel FE: `esportaReport`, `esportaRiserva`
+  (`features/finanziario/api`) e `datiDelReport` (`ui/esportazioni.ts`), che i grafici e le tabelle
   passano a `PulsantiScarica`. Ogni dato in schermata si scarica (NFR-75): ogni grafico o tabella di una sola TX ha i
   file della sua TX, le tessere di TX-0009 (pagina delle domande e panoramica) i loro pulsanti; i grafici di piu' TX
   hanno il PNG e, se una loro TX non si scarica da un'altra card della pagina, i file di quella (il gauge del dettaglio:
