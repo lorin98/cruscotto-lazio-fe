@@ -76,14 +76,24 @@ export const AREE: readonly DiAmbito<Area>[] = [
     Anteprima: AnteprimaFinanziario,
   },
   {
-    // G1: superfici ammissibili (TX-0018) e determine di una domanda (TX-0020); le due pagine non condividono filtri
+    // G1 col riallineamento degli ambiti (verbale del 29/10/2026, dossier del 30/10/2026): output regionale programmato e
+    // realizzato (TX-0017), superfici ammissibili (TX-0018) e pagamenti per Unit Amount (TX-0030); le determine di una
+    // domanda sono del procedurale. Le tre pagine hanno gli stessi filtri dei report fisici, che restano passando dall'una
+    // all'altra (scelta 4, come nel finanziario; la campagna resta solo nelle superfici). Il dettaglio dell'intervento non
+    // e' una voce di menu: ci si arriva dai drawer dei report. I numeri della card restano quelli delle superfici (scelta 3).
     chiave: 'fisico',
     titolo: 'Fisico',
-    descrizione: 'Superfici ammissibili delle domande di sostegno e di pagamento per intervento e campagna, e determine di una domanda.',
+    descrizione: 'Output regionale programmato e realizzato, superfici ammissibili delle domande di sostegno e di pagamento e pagamenti per Unit Amount, per intervento.',
     icona: 'it-map-marker',
     tono: 'verde',
-    contenuti: ['Superfici ammissibili di sostegno e di pagamento per intervento e campagna', 'Verifica incrociata fra superficie di pagamento e di sostegno', 'Determine da cui una domanda prende le informazioni'],
+    contenuti: [
+      'Output regionale programmato e realizzato per intervento e anno',
+      'Superfici ammissibili di sostegno e di pagamento per intervento e campagna',
+      'Verifica incrociata fra superficie di pagamento e di sostegno',
+      'Pagamenti per Unit Amount',
+    ],
     pagineVisibili: pagineFisico,
+    ricercaConservata: ricercaDeiSoliFiltri,
     Anteprima: AnteprimaFisico,
   },
   {

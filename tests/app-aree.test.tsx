@@ -26,7 +26,7 @@ import { pagineVisibili as pagineFisico } from '../src/features/fisico';
 import { pagineVisibili as pagineIstituzionale, ricercaConservata as ricercaIstituzionale } from '../src/features/istituzionale';
 import { pagineVisibili as pagineProcedurale, ricercaConservata as ricercaProcedurale } from '../src/features/procedurale';
 import { PAGINE_FINANZIARIO } from '../src/features/finanziario/lib/report';
-import { PAGINE_FISICO } from '../src/features/fisico/lib/pagine';
+import { GRANT_DETTAGLIO as GRANT_DETTAGLIO_FISICO, PAGINE_FISICO } from '../src/features/fisico/lib/pagine';
 import { PAGINE_ISTITUZIONALE } from '../src/features/istituzionale/lib/pagine';
 import { PAGINE_PROCEDURALE } from '../src/features/procedurale/lib/pagine';
 import { VERIFICA_SMP_SIGC } from '../src/features/istituzionale/lib/collegamenti';
@@ -82,6 +82,9 @@ describe('catalogo delle aree', () => {
     }
     // il dettaglio dell'intervento non e' una voce di menu: si apre col grant della verifica SMP non SIGC (TX-0017 al fisico)
     expect(routeTable.routes.find((r) => r.path === '/istituzionale/interventi/:codice')?.visibility).toEqual(['csr.tx-0016.read']);
+    // quello del fisico (flusso intervento del 30/10/2026) con almeno uno dei grant delle tre letture che compone
+    expect(PAGINE_FISICO.some((p) => p.percorso.startsWith('/fisico/interventi'))).toBe(false);
+    expect(routeTable.routes.find((r) => r.path === '/fisico/interventi/:codice')?.visibility).toEqual([...GRANT_DETTAGLIO_FISICO]);
   });
 
   it('le pagine del procedurale compaiono col grant di uno dei loro report, sempre fra i grant della route', () => {
@@ -113,10 +116,17 @@ describe('catalogo delle aree', () => {
   });
 
   it('card della Home dal contenuto reale delle feature (decisione G1 del 21/10/2026)', () => {
+    // riallineamento degli ambiti (verbale del 29/10/2026, home.html del flusso superfici approvato il 30/10/2026): output
+    // regionale, superfici e Unit Amount; le determine al procedurale
     const fisico = AREE.find((a) => a.chiave === 'fisico');
-    expect(fisico?.contenuti.join(' ')).toMatch(/Superfici ammissibili/);
-    expect(fisico?.contenuti.join(' ')).toMatch(/Determine/);
-    expect(fisico?.contenuti.join(' ')).not.toMatch(/Output programmato|Unit Amount/);
+    expect(fisico?.descrizione).toBe('Output regionale programmato e realizzato, superfici ammissibili delle domande di sostegno e di pagamento e pagamenti per Unit Amount, per intervento.');
+    expect(fisico?.contenuti).toEqual([
+      'Output regionale programmato e realizzato per intervento e anno',
+      'Superfici ammissibili di sostegno e di pagamento per intervento e campagna',
+      'Verifica incrociata fra superficie di pagamento e di sostegno',
+      'Pagamenti per Unit Amount',
+    ]);
+    expect(fisico?.contenuti.join(' ')).not.toMatch(/Determine/);
     // G1 e dossier dei wireframe: stati e sottofasi, ammesse con atto e contributo, riepilogo, Unit Amount (TX-0024..TX-0032)
     const procedurale = AREE.find((a) => a.chiave === 'procedurale');
     expect(procedurale?.contenuti).toEqual(['Stati e sottofasi delle domande', 'Domande ammesse con atto di concessione e contributo', 'Riepilogo per intervento', 'Pagamenti per Unit Amount']);
@@ -127,9 +137,13 @@ describe('catalogo delle aree', () => {
     expect(istituzionale?.descrizione).toBe('Dati ASR non SIGC a confronto con SMP - Data Platform e output regionale programmato e realizzato.');
   });
 
-  it('una ricerca conservata porta solo i criteri dell area: del finanziario, dell istituzionale senza l anno, del procedurale con lo stato', () => {
+  it('una ricerca conservata porta solo i criteri dell area: del finanziario, del fisico senza la campagna, dell istituzionale senza l anno, del procedurale con lo stato', () => {
     const finanziario = AREE.find((a) => a.chiave === 'finanziario');
     expect(finanziario?.ricercaConservata?.('?intervento=SRA01&pagina=3')).toBe('intervento=SRA01');
+    // scelta 4 del dossier del fisico (30/10/2026): i cinque filtri dei report fisici restano, la campagna solo nelle superfici
+    const fisico = AREE.find((a) => a.chiave === 'fisico');
+    expect(fisico?.ricercaConservata?.('?intervento=SRA01&os=OS4&azione=3&campagna=2025')).toBe('intervento=SRA01&os=OS4&azione=3');
+    expect(fisico?.ricercaConservata?.('?campagna=2025')).toBe('');
     const istituzionale = AREE.find((a) => a.chiave === 'istituzionale');
     expect(istituzionale?.ricercaConservata).toBe(ricercaIstituzionale);
     expect(istituzionale?.ricercaConservata?.('?intervento=SRD01&anno=2024')).toBe('intervento=SRD01');

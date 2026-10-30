@@ -4,7 +4,7 @@
 // area: i filtri di un'altra area non entrano nei suoi link (review v1 H-10, una navigazione che nessun link dichiara).
 // I quattro ambiti stanno nell'ordine fisso del catalogo (aree.ts: AMBITI), ognuno con le sole pagine visibili; gli
 // strumenti trasversali (elenco operativo) hanno una sezione propria, con le sole pagine visibili. Una voce e' corrente sul suo percorso, o anche nei sottopercorsi se
-// la pagina lo dichiara (le determine di una domanda: /fisico/determine/<codice>).
+// la pagina lo dichiara (le determine di una domanda: /procedurale/determine/<codice>).
 import { useId, useState } from 'react';
 import { NavLink, useLocation } from 'react-router';
 import { hasGrant, useAuthStatus } from '../shared/api/auth/use-auth-status';
