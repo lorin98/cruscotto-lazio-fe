@@ -5,7 +5,8 @@
 // (TabelleScheda). Tipo e codice del percorso si convalidano prima di leggere: con un riferimento non valido nessuna
 // richiesta (review v1 A-01). Un 404 ha lo stesso messaggio per domanda inesistente, chiusa o fuori perimetro (D-06).
 // Link dichiarati: domanda collegata, altre domande del beneficiario, torna all'elenco (alla ricerca di partenza), le
-// determine della domanda nell'area Procedurale sotto la scheda Determine (solo con csr.tx-0020.read, OP-EO-07).
+// determine della domanda nell'area Procedurale sotto la scheda Determine (solo con csr.tx-0020.read, OP-EO-07; il tipo
+// della scheda nello state della navigazione, decisione D1 dell'utente del 30/10/2026).
 // L'atto di concessione della sintesi legge attoConcessioneDisponibile di TX-0060 (stessa lettura e cache del pannello dei
 // filtri, col suo grant), che parte insieme a TX-0058: una domanda senza l'atto dice "nessun atto" solo con la fonte attiva,
 // l'assenza con la fonte senza la fonte (F1), "non disponibile" finche' TX-0060 non e' letto (review delta 21/10 passata 2 V1).
@@ -26,6 +27,7 @@ import {
   percorsoDomandeDelBeneficiario,
   riferimentoValido,
   ritornoAllElenco,
+  statoDetermine,
   statoDiRitorno,
 } from '../lib/collegamenti';
 import type { StatoRitorno, StatoScheda } from '../lib/collegamenti';
@@ -194,7 +196,7 @@ function Schede({ d, scheda, ricerca, attoConcessioneDisponibile, conDetermine }
         <TabellaCollegate collegate={l.collegate} ricerca={ricerca} />
       </TabPanel>
       <TabPanel id="determine">
-        <TabellaDetermine determine={l.determine} determineDellaDomanda={percorsoDetermine(d.codiceABarre, conDetermine)} />
+        <TabellaDetermine determine={l.determine} determineDellaDomanda={percorsoDetermine(d.codiceABarre, conDetermine)} statoDetermine={statoDetermine(d.tipo)} />
       </TabPanel>
       <TabPanel id="pagamenti">
         <TabellaPagamentiDomanda pagamenti={l.pagamenti} />

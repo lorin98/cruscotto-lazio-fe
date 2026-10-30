@@ -31,6 +31,14 @@ export const ETICHETTE_ESITO_RIGA: Readonly<Record<EsitoRigaElenco, string>> = {
 const TIPI_DOMANDA = new Set(['SOSTEGNO', 'PAGAMENTO']);
 const CODICE_A_BARRE = /^\d{1,30}$/;
 
+/** Tipo della domanda dell'elenco chiuso (SOSTEGNO, PAGAMENTO). */
+export type TipoDellaDomanda = 'SOSTEGNO' | 'PAGAMENTO';
+
+/** Un tipo della domanda dell'elenco chiuso: per un valore che arriva da fuori (es. lo state della navigazione, `unknown`). */
+export function tipoDomandaValido(tipo: unknown): tipo is TipoDellaDomanda {
+  return typeof tipo === 'string' && TIPI_DOMANDA.has(tipo);
+}
+
 /** Codice a barre di una domanda come lo vogliono i percorsi del backend: sole cifre, al piu' 30 (TX-0058, TX-0020). */
 export function codiceABarreValido(codice: string | null | undefined): codice is string {
   return typeof codice === 'string' && CODICE_A_BARRE.test(codice);

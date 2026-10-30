@@ -59,11 +59,19 @@ import {
   percorsoPagamentiDelleDomande,
   riferimentoValido,
   ritornoAllElenco,
+  statoDetermine,
   statoDiRitorno,
   statoElencoValido,
 } from '../src/features/elenco-operativo/lib/collegamenti';
 import { puoAprireLeDetermine } from '../src/features/elenco-operativo/lib/grant';
-import { GRANT_DETERMINE_DELLA_DOMANDA, PERCORSO_DETERMINE_DELLA_DOMANDA, percorsoDetermineDellaDomanda } from '../src/entities/domanda';
+import {
+  GRANT_DETERMINE_DELLA_DOMANDA,
+  PERCORSO_DETERMINE_DELLA_DOMANDA,
+  arrivoDallaScheda,
+  percorsoDetermineDellaDomanda,
+  tipoDellaSchedaDiPartenza,
+  tipoDomandaValido,
+} from '../src/entities/domanda';
 import { menoRecente, testoUltimiDati } from '../src/shared/lib/aggiornamento';
 import { righeContesto } from '../src/shared/lib';
 import uiplanElenco from '../plan/elenco-operativo/uiplan.json';
@@ -554,5 +562,20 @@ describe('elenco operativo, link della scheda verso le determine del procedurale
     expect(matchPath(target, percorsoDetermineDellaDomanda('54230000001') ?? '')?.params).toEqual({ codice: '54230000001' });
     expect(uiplanProcedurale.routes.some((r) => r.path === target)).toBe(true);
     expect(routeTable.routes.find((r) => r.path === target)?.visibility).toContain(GRANT_DETERMINE_DELLA_DOMANDA);
+  });
+
+  // decisione D1 dell'utente del 30/10/2026 (review step9 EO-01): il tipo della scheda nello state della navigazione, chi
+  // lo scrive (l'elenco) e chi lo legge (le determine del procedurale) passano dal contratto condiviso
+  it('state del link: il tipo della scheda, letto solo se e SOSTEGNO o PAGAMENTO (elenco chiuso)', () => {
+    expect(statoDetermine).toBe(arrivoDallaScheda);
+    expect(arrivoDallaScheda('SOSTEGNO')).toEqual({ tipoDellaScheda: 'SOSTEGNO' });
+    expect(arrivoDallaScheda('PAGAMENTO')).toEqual({ tipoDellaScheda: 'PAGAMENTO' });
+    for (const tipo of ['ALTRO', 'sostegno', '', null, undefined]) expect(arrivoDallaScheda(tipo), String(tipo)).toBeUndefined();
+    expect(tipoDellaSchedaDiPartenza(arrivoDallaScheda('SOSTEGNO'))).toBe('SOSTEGNO');
+    expect(tipoDellaSchedaDiPartenza({ tipoDellaScheda: 'PAGAMENTO', altro: 1 })).toBe('PAGAMENTO');
+    for (const stato of [null, undefined, 'SOSTEGNO', ['SOSTEGNO'], {}, { tipo: 'SOSTEGNO' }, { tipoDellaScheda: 'ALTRO' }, { tipoDellaScheda: 'sostegno' }, { tipoDellaScheda: ['SOSTEGNO'] }, { tipoDellaScheda: 1 }]) {
+      expect(tipoDellaSchedaDiPartenza(stato), JSON.stringify(stato)).toBeNull();
+    }
+    expect([tipoDomandaValido('SOSTEGNO'), tipoDomandaValido('PAGAMENTO'), tipoDomandaValido('ALTRO'), tipoDomandaValido(undefined)]).toEqual([true, true, false, false]);
   });
 });

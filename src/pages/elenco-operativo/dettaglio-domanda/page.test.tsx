@@ -1,8 +1,9 @@
 // Pagina /elenco-operativo/domande/:tipo/:codiceABarre (green-fe step7): describe taggati col REQ della route (RA004).
 // Dal riallineamento degli ambiti (flusso dettaglio-domanda approvato il 30/10/2026, scelta S-3 b, OP-EO-07): sotto la
 // tabella della scheda Determine il link "Apri le determine della domanda nell'area Procedurale" verso
-// /procedurale/determine/<codice a barre della scheda>, solo con csr.tx-0020.read; anche con la scheda vuota. Le altre
-// route finiscono sul segnaposto di renderPagina: l'arrivo si guarda nel router.
+// /procedurale/determine/<codice a barre della scheda>, solo con csr.tx-0020.read; anche con la scheda vuota; il tipo della
+// scheda nello state della navigazione (decisione D1 del 30/10/2026). Le altre route finiscono sul segnaposto di
+// renderPagina: l'arrivo si guarda nel router.
 import { describe, expect, it } from 'vitest';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -65,6 +66,22 @@ describe("RA004: link alle determine della domanda nell'area Procedurale (OP-EO-
     await userEvent.click(link);
     await waitFor(() => expect(router.state.location.pathname).toBe('/procedurale/determine/54230000001'));
     expect(screen.getByText('altra pagina')).toBeTruthy();
+    expect(router.state.location.state).toEqual({ tipoDellaScheda: 'PAGAMENTO' });
+  });
+
+  // decisione D1 dell'utente del 30/10/2026 (review step9 EO-01): TX-0020 ha solo il codice a barre e, per un codice di due
+  // domande, sceglie con la regola dell'aggancio (SC-PC_DETERMINA_TIPO: 34810022870 e' SOSTEGNO e PAGAMENTO, risponde la
+  // PAGAMENTO); il link porta il tipo della scheda nello state, e la pagina delle determine avvisa se mostra l'altra
+  it('scheda SOSTEGNO 34810022870 (SC-PC_DETERMINA_TIPO): il link porta il tipo della scheda nello state, mai nell indirizzo', async () => {
+    const sostegno = { ...DETTAGLIO, domanda: { ...DETTAGLIO.domanda, tipo: 'SOSTEGNO' as const, codiceABarre: '34810022870' } };
+    servi(CON_DETERMINE, sostegno);
+    const { router } = renderPagina(Pagina, ROUTE, '/elenco-operativo/domande/SOSTEGNO/34810022870');
+    const link = within(await apriDetermine()).getByRole('link', { name: LINK });
+    expect(link.getAttribute('href')).toBe('/procedurale/determine/34810022870');
+    await userEvent.click(link);
+    await waitFor(() => expect(router.state.location.pathname).toBe('/procedurale/determine/34810022870'));
+    expect(router.state.location.search).toBe('');
+    expect(router.state.location.state).toEqual({ tipoDellaScheda: 'SOSTEGNO' });
   });
 
   it('senza csr.tx-0020.read (es. p5) la scheda Determine resta com era: nessun link verso il procedurale', async () => {

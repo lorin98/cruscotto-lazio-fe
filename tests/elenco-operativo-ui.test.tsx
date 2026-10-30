@@ -10,6 +10,7 @@ import { expectNoA11yViolations } from '../src/shared/testing/axe';
 import { DETTAGLIO } from '../src/features/elenco-operativo/testing/fixture';
 import { TabellaDetermine } from '../src/features/elenco-operativo/ui/TabelleScheda';
 import type { DeterminaDellaDomandaElenco } from '../src/features/elenco-operativo/api';
+import type { ArrivoDallaScheda } from '../src/entities/domanda';
 
 const LINK = "Apri le determine della domanda nell'area Procedurale";
 
@@ -18,10 +19,10 @@ function Arrivo() {
   return <h1>{`Determine della domanda ${codice ?? ''}`}</h1>;
 }
 
-function apri(determine: DeterminaDellaDomandaElenco[], determineDellaDomanda: string | null) {
+function apri(determine: DeterminaDellaDomandaElenco[], determineDellaDomanda: string | null, statoDetermine?: ArrivoDallaScheda) {
   const router = createMemoryRouter(
     [
-      { path: '/scheda', element: <TabellaDetermine determine={determine} determineDellaDomanda={determineDellaDomanda} /> },
+      { path: '/scheda', element: <TabellaDetermine determine={determine} determineDellaDomanda={determineDellaDomanda} statoDetermine={statoDetermine} /> },
       { path: '/procedurale/determine/:codice?', Component: Arrivo },
     ],
     { initialEntries: ['/scheda'] },
@@ -30,8 +31,8 @@ function apri(determine: DeterminaDellaDomandaElenco[], determineDellaDomanda: s
 }
 
 describe('elenco operativo, scheda Determine col link alle determine del procedurale (OP-EO-07)', () => {
-  it('sotto la tabella il link col testo del wireframe porta alle determine della domanda', async () => {
-    const { router } = apri(DETTAGLIO.determine ?? [], '/procedurale/determine/54230000001');
+  it('sotto la tabella il link col testo del wireframe porta alle determine della domanda, col tipo della scheda nello state', async () => {
+    const { router } = apri(DETTAGLIO.determine ?? [], '/procedurale/determine/54230000001', { tipoDellaScheda: 'PAGAMENTO' });
     const tabella = screen.getByRole('table', { name: /^Determine della domanda/ });
     const link = screen.getByRole('link', { name: LINK });
     expect(link.getAttribute('href')).toBe('/procedurale/determine/54230000001');
@@ -41,6 +42,9 @@ describe('elenco operativo, scheda Determine col link alle determine del procedu
     await userEvent.click(link);
     expect(await screen.findByRole('heading', { level: 1, name: 'Determine della domanda 54230000001' })).toBeTruthy();
     expect(router.state.location.pathname).toBe('/procedurale/determine/54230000001');
+    // decisione D1 del 30/10/2026: il tipo della scheda nello state della navigazione, mai nell'indirizzo
+    expect(router.state.location.state).toEqual({ tipoDellaScheda: 'PAGAMENTO' });
+    expect(router.state.location.search).toBe('');
   });
 
   it('il link si raggiunge e si attiva da tastiera', async () => {
