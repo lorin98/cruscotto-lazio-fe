@@ -1,18 +1,21 @@
-// DetermineDellaDomanda — pagina /procedurale/determine/:codice? (flusso determine approvato, dettaglio v2 come la scheda
-// della domanda dell'elenco, RF020; dalla pagina /fisico/determine/:codice? col riallineamento degli ambiti del 29/10/2026,
-// A-1, A-5, nessun alias della vecchia route, con lo stesso comportamento: il badge del perimetro e il messaggio unico del
-// 404 del wireframe del procedurale sono dei passi successivi): una sola route col segmento facoltativo (scelta approvata
+// DetermineDellaDomanda — pagina /procedurale/determine/:codice? (flusso determine approvato il 30/10/2026, dettaglio v2
+// come la scheda della domanda dell'elenco, RF020; dalla pagina /fisico/determine/:codice? col riallineamento degli ambiti
+// del 29/10/2026, A-1, A-5, nessun alias della vecchia route): una sola route col segmento facoltativo (scelta approvata
 // il 22/10/2026). Senza codice (la
 // voce di menu) il solo modulo di ricerca e lo stato "senza codice", nessuna lettura; con un codice valido UNA lettura di
 // TX-0020. Percorso, modulo di ricerca (link cerca-domanda), testata con un solo h1 (le determine della domanda o, senza
-// codice, il titolo della pagina: focus a ogni cambio di route e dopo una ricerca), badge in testo e "Apri la scheda della
+// codice, il titolo della pagina: focus a ogni cambio di route e dopo una ricerca), badge in testo col perimetro della
+// risposta (regionale, o ADA per il P4: scelta 2 del dossier) e "Apri la scheda della
 // domanda" (link scheda-domanda verso l'elenco operativo: solo col grant di TX-0058 e con la domanda non chiusa), quattro
 // KPI (corrente, numero di determine, da dove vengono stato area programmazione e comparto), tabella delle determine con
 // riga aperta (si'/no in testo). Niente pill "Dati al" ne' download: TX-0020 non li ha (G3). Stati: senza codice, nessuna
-// determina, domanda chiusa, caricamento, errore (404 e 400 sul problem-type, il resto con l'avviso della pagina).
+// determina, domanda chiusa, caricamento, domanda non trovata (404 sul problem-type: un solo messaggio, stato e focus per
+// la domanda inesistente e per quella fuori dal perimetro del P4, scelta 3, con "Cerca un altro codice" che porta il
+// focus al campo), codice non valido (400 sul problem-type, sotto il campo), il resto con l'avviso della pagina.
 // Design system: classi bootstrap-italia e del kit v2 (hero, badge, KPI, tabella statica nativa); nessun primitivo
 // react-aria, che qui non serve (nessun dialogo, nessuna scheda).
-import type { Ref } from 'react';
+import { useRef } from 'react';
+import type { MouseEvent, Ref, RefObject } from 'react';
 import { Link } from 'react-router';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { formatDate, formatNumber } from '../../../shared/lib';
@@ -24,6 +27,7 @@ import {
   codiceDalPercorso,
   eCorrente,
   fonteDi,
+  messaggioDomandaNonTrovata,
   percorsoDetermine,
   percorsoSchedaDellaDomanda,
   siNo,
@@ -120,8 +124,28 @@ function Contenuto({ d }: { d: Determine }) {
   );
 }
 
+/**
+ * Domanda non trovata (404): lo stesso messaggio per la domanda inesistente e per quella fuori dal perimetro del P4.
+ * "Cerca un altro codice" porta il focus al campo del modulo (senza contare sulla navigazione al frammento del browser).
+ */
+function DomandaNonTrovata({ codice, campo }: { codice: string; campo: RefObject<HTMLInputElement | null> }) {
+  const alCampo = (e: MouseEvent<HTMLAnchorElement>) => {
+    if (!campo.current) return;
+    e.preventDefault();
+    campo.current.focus();
+  };
+  return (
+    <div className="alert alert-danger" role="alert">
+      {`${messaggioDomandaNonTrovata(codice)} `}
+      <a href={`#${ID_CAMPO}`} onClick={alCampo}>
+        Cerca un altro codice
+      </a>
+    </div>
+  );
+}
+
 /** Il corpo secondo il codice del percorso e la lettura: senza codice, codice non valido, 404, i dati. */
-function Corpo({ codice, stato }: { codice: CodiceDelPercorso; stato: ReturnType<typeof useDetermine> }) {
+function Corpo({ codice, stato, campo }: { codice: CodiceDelPercorso; stato: ReturnType<typeof useDetermine>; campo: RefObject<HTMLInputElement | null> }) {
   if (codice.stato === 'assente') return <Vuoto>Scrivi il codice a barre di una domanda per vedere da quali determine prende le informazioni.</Vuoto>;
   // codice non valido (dall'indirizzo o dal 400 del backend): lo dice il campo del modulo, nessun altro avviso
   if (codice.stato === 'non-valido') return null;
@@ -132,12 +156,7 @@ function Corpo({ codice, stato }: { codice: CodiceDelPercorso; stato: ReturnType
       errorePersonalizzato={(e) => {
         if (rispostaDatoNonValido(e)) return <></>;
         if (!rispostaDomandaAssente(e)) return null;
-        return (
-          <div className="alert alert-warning" role="alert">
-            {`Nessuna domanda con il codice a barre ${domanda}. `}
-            <a href={`#${ID_CAMPO}`}>Cerca un altro codice</a>
-          </div>
-        );
+        return <DomandaNonTrovata codice={domanda} campo={campo} />;
       }}
     >
       {(d) => <Contenuto d={d} />}
@@ -159,6 +178,7 @@ export function DetermineDellaDomanda({ codice: parametro }: { codice: string | 
   const h1 = useFocusTitolo<HTMLHeadingElement>(`${titolo} - Procedurale`);
   const d = codice.stato === 'valido' ? stato.data : undefined;
   const scheda = d ? percorsoSchedaDellaDomanda(d, puoLeggere(auth.data, 'schedaDomanda')) : null;
+  const campo = useRef<HTMLInputElement>(null);
   const ingresso = useIngressoArea({});
   const briciole = [
     { etichetta: 'Procedurale', a: ingresso === percorsoDetermine() ? undefined : ingresso },
@@ -170,11 +190,11 @@ export function DetermineDellaDomanda({ codice: parametro }: { codice: string | 
       <Briciole voci={briciole} />
       <Sezione titolo="Cerca le determine di una domanda">
         {/* il modulo riparte dal codice dell'indirizzo a ogni cambio di route */}
-        <CercaDomanda key={parametro ?? ''} idCampo={ID_CAMPO} codiceIniziale={parametro ?? ''} erroreEsterno={erroreDelCampo(codice, stato)} />
+        <CercaDomanda key={parametro ?? ''} idCampo={ID_CAMPO} campo={campo} codiceIniziale={parametro ?? ''} erroreEsterno={erroreDelCampo(codice, stato)} />
       </Sezione>
       <Testata h1={h1} titolo={titolo} d={d} scheda={scheda} />
       <AvvisoPagina>
-        <Corpo codice={codice} stato={stato} />
+        <Corpo codice={codice} stato={stato} campo={campo} />
       </AvvisoPagina>
     </main>
   );

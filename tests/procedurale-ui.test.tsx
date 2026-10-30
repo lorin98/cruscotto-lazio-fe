@@ -16,6 +16,7 @@ import { server } from '../src/shared/api/mock/server';
 import { expectNoA11yViolations } from '../src/shared/testing/axe';
 import { graficoDi, tabellaDi, trovaCard } from '../src/shared/testing/card-grafico';
 import { clicSulCodice } from '../src/shared/testing/grafico-finto';
+import { problema } from '../src/shared/testing/msw';
 import { renderPagina } from '../src/shared/testing/render-pagina';
 import { DettaglioIntervento, DetermineDellaDomanda, DomandeAmmesse, Panoramica, Riepilogo, Sottofasi, StatiPagamento, StatiSostegno } from '../src/features/procedurale';
 import { DETERMINE, STATI_AREA, ammessePer, sottofasiSostegnoPer, statiPer } from '../src/features/procedurale/testing/fixture';
@@ -90,6 +91,12 @@ describe('PaginaProcedurale e PannelloFiltriProcedurale (impaginazione e filtri 
     expect(within(pannello).queryByText(/azione portante/i)).toBeNull();
     expect(within(pannello).getByRole('checkbox', { name: 'Revocata (stato osservato fuori catalogo)' })).toBeTruthy();
     expect(within(pannello).getByRole('checkbox', { name: 'Senza stato area programmazione (nessuna determina aperta)' })).toBeTruthy();
+    // la nota del wireframe approvato il 30/10/2026: i filtri dei report, non le determine (si cercano per codice a barre)
+    expect(
+      within(pannello).getByText(
+        "I filtri restano nell'indirizzo della pagina e valgono per tutte le pagine dei report del procedurale, sottofasi comprese; le determine di una domanda si cercano per codice a barre, senza filtri. Voci da TX-0024 e TX-0025 (dati di programma, regionali).",
+      ),
+    ).toBeTruthy();
     await expectNoA11yViolations(pannello);
     await userEvent.click(within(pannello).getByRole('checkbox', { name: 'SRD01 Investimenti produttivi agricoli per la competitività' }));
     await userEvent.click(within(pannello).getByRole('checkbox', { name: 'Ammessa' }));
@@ -579,6 +586,26 @@ describe('CercaDomanda e DetermineDellaDomanda (componenti)', () => {
     const { container } = apriDetermine('/procedurale/determine/54810769585');
     expect(await screen.findByRole('table', { name: /^Determine da cui la domanda 54810769585 prende le informazioni/ })).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Apri la scheda della domanda' }).getAttribute('href')).toBe('/elenco-operativo/domande/PAGAMENTO/54810769585');
+    await expectNoA11yViolations(container);
+  });
+
+  it('perimetro della risposta in un badge di testo della testata: regionale, oppure ADA (P4); nessuna violazione axe', async () => {
+    server.use(http.get('*/api/procedurale/domande/:codice/determina', () => HttpResponse.json({ ...DETERMINE, perimetro: 'ADA' })));
+    const { container } = apriDetermine('/procedurale/determine/54810769585');
+    const badge = await screen.findByRole('list', { name: 'Dati principali' });
+    expect(within(badge).getAllByRole('listitem').map((l) => l.textContent)).toContain('Perimetro: ADA, domande della tua area');
+    expect(within(badge).queryByText('Perimetro: regionale')).toBeNull();
+    await expectNoA11yViolations(container);
+  });
+
+  it('domanda non trovata (404): un solo avviso, "Cerca un altro codice" porta il focus al campo; nessuna violazione axe', async () => {
+    server.use(http.get('*/api/procedurale/domande/:codice/determina', () => HttpResponse.json(problema(404, 'NOT_FOUND'), { status: 404 })));
+    const { container } = apriDetermine('/procedurale/determine/99999999999');
+    const avviso = await screen.findByRole('alert');
+    expect(avviso.textContent).toBe('Domanda non trovata: nessuna domanda con il codice a barre 99999999999 fra quelle che puoi consultare. Cerca un altro codice');
+    expect(avviso.classList.contains('alert-danger')).toBe(true);
+    await userEvent.click(within(avviso).getByRole('link', { name: 'Cerca un altro codice' }));
+    expect(document.activeElement).toBe(screen.getByRole('searchbox', { name: 'Codice a barre della domanda' }));
     await expectNoA11yViolations(container);
   });
 });

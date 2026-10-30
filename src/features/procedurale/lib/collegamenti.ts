@@ -27,7 +27,7 @@ function conQuery(percorso: string, chiavi: readonly string[], valori: Readonly<
 
 /**
  * link:dettaglio-intervento-* : il dettaglio dell'intervento, col codice nel percorso CODIFICATO (un valore con '/' resta
- * un solo segmento della route) e lo stato area programmazione della pagina (le Unit Amount non lo passano).
+ * un solo segmento della route) e lo stato area programmazione della pagina.
  */
 export function percorsoIntervento(codice: string, stato?: readonly string[]): string {
   return conQuery(`${PERCORSI.interventi}/${encodeURIComponent(codice)}`, [PARAMETRO_STATO], { [PARAMETRO_STATO]: stato });

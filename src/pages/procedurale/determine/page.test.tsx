@@ -120,11 +120,11 @@ describe("RF020: codice e data delle determine da cui la domanda prende l'inform
     expect(screen.getByText('0 determine con riga aperta')).toBeTruthy();
   });
 
-  it('404 NOT_FOUND: nessuna domanda con quel codice, col link che riporta al campo', async () => {
+  it('404 NOT_FOUND: domanda non trovata fra quelle che il profilo puo consultare, col link che riporta al campo', async () => {
     servi({});
     apri('/procedurale/determine/99999999999');
     const avviso = await screen.findByRole('alert');
-    expect(avviso.textContent).toBe('Nessuna domanda con il codice a barre 99999999999. Cerca un altro codice');
+    expect(avviso.textContent).toBe('Domanda non trovata: nessuna domanda con il codice a barre 99999999999 fra quelle che puoi consultare. Cerca un altro codice');
     expect(within(avviso).getByRole('link', { name: 'Cerca un altro codice' }).getAttribute('href')).toBe(`#${campo().id}`);
   });
 

@@ -1,4 +1,4 @@
-// formato.ts — testi PURI del procedurale (zero React): pill del perimetro e del filtro per stato non applicato, stati
+// formato.ts — testi PURI del procedurale (zero React): pill del perimetro, stati
 // vuoti (coi filtri dicono di cambiarli, senza non parlano di filtri; col perimetro ADA dicono la propria area), note
 // fisse dei wireframe approvati del 22/10/2026 (regole del dato del backend, D-03, D-04, D-06) e le assenze con la resa
 // unica dell'entity importo (mai uno zero al posto di un dato senza fonte). Il perimetro in parole e' di shared/lib.
@@ -7,12 +7,11 @@ import type { DatoMotivatoLike, ImportoResa } from '../../../entities/importo';
 import { testoPerimetro } from '../../../shared/lib';
 import type { Perimetro } from './dto';
 
-/** Cosa dichiara la pill del perimetro: domande per report (TX-0026..TX-0029), sottofasi (TX-0031, TX-0032), programma (TX-0030). */
-export type TipoPerimetro = 'domande' | 'sottofasi' | 'programma';
+/** Cosa dichiara la pill del perimetro: domande per report (TX-0026..TX-0029), sottofasi (TX-0031, TX-0032). */
+export type TipoPerimetro = 'domande' | 'sottofasi';
 
 /** La pill del perimetro della barra, dal perimetro della risposta (REGIONALE o ADA del P4); null finche' non e' arrivata. */
 export function pillPerimetro(perimetro: Perimetro | undefined, tipo: TipoPerimetro): string | null {
-  if (tipo === 'programma') return 'Perimetro: regionale (dati di programma, uguali per ogni profilo)';
   if (perimetro === undefined) return null;
   if (perimetro === 'REGIONALE') return `Perimetro: ${testoPerimetro(perimetro)}`;
   return tipo === 'sottofasi'
@@ -24,9 +23,6 @@ export function pillPerimetro(perimetro: Perimetro | undefined, tipo: TipoPerime
 export function perimetroDelle(perimetri: ReadonlyArray<Perimetro | undefined>): Perimetro | undefined {
   return perimetri.find((p) => p !== undefined);
 }
-
-/** Pill della barra delle Unit Amount: lo stato area programmazione non vi si applica (D-06 Rev. 6 del backend). */
-export const STATO_NON_APPLICATO = 'Il filtro per stato area programmazione non si applica alle Unit Amount';
 
 /**
  * " nella tua area (perimetro ADA)" col perimetro ADA, altrimenti niente: lo dicono solo i testi delle domande, perche' il

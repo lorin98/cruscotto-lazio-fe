@@ -1,6 +1,6 @@
 // PaginaProcedurale — l'impaginazione comune delle pagine di report del procedurale (wireframe approvati del 22/10/2026),
 // sull'impaginazione del kit (PaginaConFiltri): la barra dei filtri a chip col pannello (voci da TX-0024 e TX-0025), le
-// pill del perimetro della risposta (REGIONALE o ADA del P4), del filtro per stato che non si applica (Unit Amount) e
+// pill del perimetro della risposta (REGIONALE o ADA del P4) e
 // "Dati al" (ultimiDatiSincronizzati di TX-0024, G3: senza il suo grant la pill non c'e', in errore e' "non
 // disponibile"); il percorso Home > Procedurale > pagina; un solo h1 col focus e il titolo del documento; lo stato dei
 // valori dei filtri non disponibili (TX-0024 o TX-0025 in errore, Riprova); il corpo nell'avviso unico della pagina; le
@@ -12,7 +12,6 @@ import { testoPerimetro } from '../../../shared/lib';
 import { ContestoIntestazione, PaginaConFiltri, PillDatiAl, useRigheContesto } from '../../../shared/ui';
 import { testiCriteri } from '../lib/criteri';
 import type { Perimetro } from '../lib/dto';
-import { STATO_NON_APPLICATO } from '../lib/formato';
 import type { TipoPerimetro } from '../lib/formato';
 import { PillPerimetro } from './comuni';
 import { useIngressoArea } from './navigazione';
@@ -35,21 +34,20 @@ interface PropsPaginaProcedurale {
   children: ReactNode;
 }
 
-/** Perimetro, filtro per stato non applicato (Unit Amount) e "Dati al", a destra nella barra. */
+/** Perimetro e "Dati al", a destra nella barra. */
 function PillDellaBarra({ pagina, perimetro, tipoPerimetro }: Pick<PropsPaginaProcedurale, 'pagina' | 'perimetro' | 'tipoPerimetro'>) {
   const valori = pagina.valori;
   return (
     <>
       <PillPerimetro perimetro={perimetro} tipo={tipoPerimetro} />
-      {pagina.forma === 'senzaStato' && <span className="ui-pill">{STATO_NON_APPLICATO}</span>}
       {valori && <PillDatiAl voci={valori.data?.ultimiDatiSincronizzati} inErrore={valori.isError} />}
     </>
   );
 }
 
-/** Le righe di contesto del PNG: i criteri applicati alle letture (senza lo stato per le Unit Amount), perimetro, ultimo dato. */
+/** Le righe di contesto del PNG: i criteri applicati alle letture, perimetro, ultimo dato. */
 function useContesto(pagina: PaginaDeiCriteri, perimetro: Perimetro | undefined): readonly string[] {
-  const criteri = testiCriteri(pagina.filtri, pagina.statiArea?.data?.valori, pagina.forma !== 'senzaStato');
+  const criteri = testiCriteri(pagina.filtri, pagina.statiArea?.data?.valori);
   return useRigheContesto(criteri, pagina.valori?.data?.ultimiDatiSincronizzati, perimetro ? testoPerimetro(perimetro) : null);
 }
 
