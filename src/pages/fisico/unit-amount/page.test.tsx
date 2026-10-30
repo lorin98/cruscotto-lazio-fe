@@ -139,7 +139,7 @@ describe('RA006: filtri della pagina delle Unit Amount (voci da TX-0060, decisio
     await waitFor(() => expect(lette.unitAmount.at(-1)).toBe(''));
   });
 
-  it("SC-FS_UNIT_AMOUNT_AZIONE: col legame interventi - azioni l'azione portante va alla lettura e al file; senza Unit Amount collegate il vuoto lo dice", async () => {
+  it("SC-FS_UNIT_AMOUNT_AZIONE: col legame interventi - azioni l'azione portante va alla lettura; senza Unit Amount collegate il vuoto lo dice", async () => {
     const lette = servi({ valori: { ...VALORI_PROGRAMMA, legameAzioniDisponibile: true } });
     apri(`${PERCORSO}?intervento=SRD01&azione=3`);
     const vuoto = (await screen.findByText("Nessuna Unit Amount per i filtri scelti (per esempio un'azione portante senza interventi collegati).")).closest('[role="status"]') as HTMLElement;
@@ -150,6 +150,30 @@ describe('RA006: filtri della pagina delle Unit Amount (voci da TX-0060, decisio
     await userEvent.click(within(vuoto).getByRole('button', { name: 'Modifica i filtri' }));
     const pannello = await screen.findByRole('dialog', { name: 'Filtri dei report fisici' });
     expect((within(pannello).getByRole('checkbox', { name: /Azione portante 3/ }) as HTMLInputElement).checked).toBe(true);
+  });
+
+  it("SC-FS_UNIT_AMOUNT_AZIONE: col legame e Unit Amount collegate all'azione portante, l'azione va alla lettura e al file CSV (review FIS-01)", async () => {
+    const lette = servi({ valori: { ...VALORI_PROGRAMMA, legameAzioniDisponibile: true } });
+    // il backend col legame vero: SRD01 collegato all'azione portante 3 (le basi della fixture non hanno interventi collegati)
+    const letture: string[] = [];
+    server.use(
+      http.get('*/api/fisico/unit-amount', ({ request }) => {
+        const u = new URL(request.url);
+        letture.push(u.search);
+        const p = new URLSearchParams(u.search);
+        p.delete('azione');
+        return HttpResponse.json(unitAmountPer(p));
+      }),
+    );
+    URL.createObjectURL = vi.fn(() => 'blob:prova');
+    URL.revokeObjectURL = vi.fn();
+    const clic = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    apri(`${PERCORSO}?intervento=SRD01&azione=3`);
+    expect(within(await tabella()).getAllByRole('rowheader').map((c) => c.textContent)).toEqual(['UA1', 'UA2', 'UA1']);
+    expect(letture).toEqual(['?intervento=SRD01&azione=3']);
+    await userEvent.click(screen.getByRole('button', { name: 'Scarica la tabella Unit Amount degli interventi selezionati in CSV' }));
+    await waitFor(() => expect(clic).toHaveBeenCalledTimes(1));
+    expect(lette.file).toEqual(['/api/fisico/unit-amount/csv?intervento=SRD01&azione=3 XMLHttpRequest']);
   });
 
   it('TX-0060 in errore: lo stato dei valori con Riprova; le Unit Amount si leggono', async () => {
