@@ -67,3 +67,10 @@ Decisioni dell'utente dopo la passata 2:
   aperte; resta il link alla scheda di partenza. Wireframe `procedurale/determine` da riapprovare.
 - **Niente passata 3:** correzioni dei residui (D4; state letto una volta sola all'arrivo come dice il wireframe, PRO2-01 con
   A2-01; annuncio con dati in cache PRO2-02; test PRO2-04/PRO2-05; cosmetici), poi step8 11/11, come nei giri precedenti.
+
+## Residui della passata 2 e chiusura (30/10/2026)
+Correzioni f38834b..bdd94bd (D4 nel codice, tipo letto una volta sola all'arrivo e azzerato al cambio d'utente, avviso
+annunciato anche con dati in cache, test P4 e sessione, cosmetici; resoconto `review/riallineamento-2026-10-30/
+correzioni-passata2.md`). Step8 11/11 sulle cinque feature dopo i residui (1682 test, axe 0 su 137 run). Riallineamento
+degli ambiti del frontend CHIUSO: step1-9 done per finanziario, elenco-operativo, fisico, istituzionale, procedurale.
+Residuo umano: verifica con un lettore di schermo reale dell'annuncio dell'avviso "domanda dell'altro tipo".
