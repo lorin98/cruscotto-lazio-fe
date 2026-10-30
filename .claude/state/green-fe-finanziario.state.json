@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "finanziario",
-  "current_step": 1,
+  "current_step": 2,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -20,7 +20,7 @@
       }
     },
     "step1-uiplan": {
-      "status": "in_progress",
+      "status": "done",
       "gates": {
         "wireframe_domande": {
           "approved_hash": "sha256:67bb6e94750c9514d15c72bb2480ad9b68596156bef3a4d4968ff4c71ee97313",
@@ -59,9 +59,16 @@
             "V-07 (review step9 v3, download per formato chiesto dall utente il 09/10/2026, deviazione confermata il 12/10/2026): al posto del solo Scarica per card e di Esporta CSV per le tabelle, un pulsante per formato con la sigla visibile; PNG del grafico come si vede con l intestazione di NFR-50 (V-01), CSV e XLSX scritti dal backend (D-08). Il PNG non e registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08, scelta dell utente del 12/10/2026",
             "F2 della review FULL sul delta FE (21/10/2026): vista iniziale a grafico con interruttore di pagina Grafico | Tabella, tabella approvata invariata nella vista Tabella; due interruttori nella vista Grafico nello stesso ordine; riapprovato dall'utente il 21/10/2026"
           ]
+        },
+        "wireframe_sigc": {
+          "approved_hash": "sha256:8189d3aa39192515b10f93dd9c087b24a95b335ade329052113204612766b0cf",
+          "baseline_ref": "./wireframes/sigc",
+          "approved_at": "2026-10-30T07:26:41Z",
+          "time_to_approve_s": 408,
+          "deviations_reviewed": []
         }
       },
-      "completed_at": "2026-10-13T09:30:04Z",
+      "completed_at": "2026-10-30T07:29:22Z",
       "artifacts": [
         "./uiplan.json"
       ]

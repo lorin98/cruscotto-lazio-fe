@@ -51,8 +51,9 @@
       <h1>Cruscotto CSR 2023-2027</h1>
       <p>Monitoraggio del Complemento di Sviluppo Rurale 2023-2027 della Regione Lazio: scegli un ambito per entrare.</p>
     </div>
-    <p class="wf-note">Card Istituzionale. Ruoli (grant verbatim): csr.tx-0016.read - Transazione: TX-0016, letta senza filtri e senza anno (la stessa lettura della pagina Verifica SMP non SIGC aperta senza filtri, in cache condivisa). Nessuna lettura di TX-0015: la verifica SIGC chiede l'esercizio finanziario, che la Home non ha (scelta di disegno 3 del dossier: nessun esercizio predefinito inventato). L'output regionale (TX-0017) e' passato al fisico (MIN-20261029). Senza il grant la card non legge nulla e mostra i contenuti dell'area (gate di UX, mai sicurezza). Le altre tre card sono fuori da questo flusso.</p>
-    <p class="wf-note">I numeri sono i totali di quattro colonne della tabella della verifica, sommate fra gli interventi della risposta. Si sommano perche' ogni domanda e' una domanda di sostegno corrente di un solo intervento (D-02 Rev. 2 del backend) e la spesa erogata sono righe pagate non SIGC (anticipi inclusi, al lordo dei recuperi). Se in una riga un dato motivato manca, il totale e' "non disponibile" col motivo: mai una somma parziale. La pagina della verifica non cambia (resta senza KPI).</p>
+    <p class="wf-note">Card Istituzionale. Ruoli (grant verbatim): csr.tx-0016.read per il blocco non SIGC, csr.tx-0015.read per il blocco SIGC - Transazioni: TX-0016, letta senza filtri e senza anno (la stessa lettura della pagina Verifica SMP non SIGC aperta senza filtri, in cache condivisa); TX-0015, letta senza filtri con l'ultimo esercizio chiuso (scelta dell'utente del 30/10/2026: l'esercizio n va dal 16/10/n-1 al 15/10/n, quindi dal 16/10 di un anno l'ultimo chiuso e' quello dell'anno, prima e' quello dell'anno precedente; la stessa lettura della pagina Verifica SMP SIGC aperta con quell'esercizio). L'output regionale (TX-0017) e' passato al fisico (MIN-20261029). Senza un grant il suo blocco non legge nulla; senza nessuno dei due la card mostra i contenuti dell'area (gate di UX, mai sicurezza). Le altre tre card sono fuori da questo flusso.</p>
+    <p class="wf-note">Blocco non SIGC: i totali di quattro colonne della tabella della verifica, sommate fra gli interventi della risposta. Si sommano perche' ogni domanda e' una domanda di sostegno corrente di un solo intervento (D-02 Rev. 2 del backend) e la spesa erogata sono righe pagate non SIGC (anticipi inclusi, al lordo dei recuperi). Se in una riga un dato motivato manca, il totale e' "non disponibile" col motivo: mai una somma parziale. La pagina della verifica non cambia (resta senza KPI).</p>
+    <p class="wf-note">Blocco SIGC (richiesta dell'utente del 30/10/2026): i totali di quattro colonne della verifica SMP SIGC, sommate fra gli interventi della risposta con la stessa regola (ogni domanda e' di un solo intervento; un dato motivato assente in una riga rende il totale "non disponibile" col motivo): domande ricevute e domande finanziate (domande dell'anno n-1), domande pagate nell'esercizio, spesa pubblica erogata nell'esercizio (spesa della campagna precedente piu' quella delle campagne anteriori). Nessuna quota: la spesa dell'esercizio comprende campagne anteriori e non si confronta col valore delle domande dell'anno n-1. Il riferimento dice esercizio e periodo.</p>
     <div class="ui-griglia ui-griglia--4">
       <section class="ui-card" aria-labelledby="area-finanziario">
         <div class="ui-card__testa">
@@ -94,15 +95,29 @@
             <dt>Domande ricevute</dt>
             <dd class="ui-kpi__valore">n.nnn</dd>
           </dl>
+          <div role="group" aria-label="SIGC, esercizio aaaa">
+            <p class="ui-eyebrow">SIGC, esercizio aaaa (16/10/aaaa-1 - 15/10/aaaa; domande dell'anno aaaa-1)</p>
+            <dl>
+              <dt>Domande finanziate</dt>
+              <dd class="ui-kpi__valore">nnn</dd>
+              <dt>Spesa pubblica erogata nell'esercizio</dt>
+              <dd class="ui-kpi__valore">n,n M euro</dd>
+              <dt>Domande pagate nell'esercizio</dt>
+              <dd class="ui-kpi__valore">nnn</dd>
+              <dt>Domande ricevute</dt>
+              <dd class="ui-kpi__valore">n.nnn</dd>
+            </dl>
+          </div>
         </div>
         <a class="btn btn-primary" href="verifica-smp-non-sigc.html">Entra in Istituzionale</a>
       </section>
     </div>
     <h2>Stato: caricamento</h2>
-    <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro al posto dei numeri della card Istituzionale; fascia, testo e "Entra in Istituzionale" restano)</div>
+    <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro al posto dei numeri di ciascun blocco, non SIGC e SIGC, finche' la sua lettura non finisce; fascia, testo e "Entra in Istituzionale" restano)</div>
     <h2>Stato: errore</h2>
     <p class="ui-fonte">Dati della verifica SMP non SIGC non disponibili in questo momento.</p>
-    <p class="wf-note">Un errore non ferma la Home e non apre un avviso della pagina: la card resta l'ingresso all'area, come la card del finanziario.</p>
+    <p class="ui-fonte">Dati della verifica SMP SIGC non disponibili in questo momento.</p>
+    <p class="wf-note">Un errore non ferma la Home e non apre un avviso della pagina: la card resta l'ingresso all'area, come la card del finanziario. I due blocchi sono indipendenti: se una lettura fallisce, l'altro blocco resta coi suoi numeri.</p>
     <h2>Stato: nessun file SMP non SIGC</h2>
     <p class="ui-eyebrow">Non SIGC, valori cumulativi (nessun file SMP non SIGC)</p>
     <p class="wf-note">Senza anno di riferimento nella risposta i numeri restano: domande e spesa vengono dalle pratiche, non dal file SMP (come lo stato "nessun file SMP non SIGC" della pagina).</p>
@@ -121,7 +136,14 @@
       <li>Verifica SMP dei dati ASR non SIGC</li>
       <li>Verifica SMP dei dati ASR SIGC per esercizio finanziario</li>
     </ul>
-    <p class="wf-note">Nessuna lettura: la card elenca cosa c'e' nell'area, come oggi. Nel catalogo rev. 4 i profili con csr.tx-0015.read (p1-dirigente, p2-referente-adg, p3-funzionario-area-ist) hanno anche csr.tx-0016.read: oggi nessuno entra nell'area senza i numeri della card.</p>
+    <p class="wf-note">Nessuna lettura: la card elenca cosa c'e' nell'area, come oggi. Nel catalogo rev. 4 i profili con csr.tx-0015.read e quelli con csr.tx-0016.read sono gli stessi (p1-dirigente, p2-referente-adg, p3-funzionario-area-ist): oggi nessuno entra nell'area senza i numeri della card, e nessuno vede un solo blocco. Con un solo grant si vedrebbe solo il suo blocco.</p>
+    <h2>Stato: un dato motivato assente in una riga del blocco SIGC</h2>
+    <dl>
+      <dt>Spesa pubblica erogata nell'esercizio</dt>
+      <dd>non disponibile</dd>
+      <dd class="ui-fonte">non disponibile: fonte non attiva (spesa erogata)</dd>
+    </dl>
+    <p class="wf-note">Stessa regola del blocco non SIGC: il totale esiste solo se ogni riga ha il dato (spesa della campagna precedente e delle campagne anteriori), altrimenti "non disponibile" col motivo. Senza domande SIGC nell'esercizio i conteggi sono 0 (conteggio vero) e la spesa segue i motivi della risposta (TX-0015 non valorizza un importo senza importi nel database).</p>
   </main>
 </div>
 <footer class="ui-footer">

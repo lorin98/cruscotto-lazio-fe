@@ -1329,7 +1329,14 @@
         "Download per formato (PNG, CSV, XLSX) come nel finanziario: un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo (400 oltre 5.000 righe o 50.000 celle: restringere i filtri; 503 ESPORTAZIONE_NON_REGISTRATA). PNG solo per i grafici disegnati, nella vista Grafico.",
         "Residuo manuale: ordine di lettura di KPI e card, comprensibilita' delle didascalie, contrasto della resa finale; axe deferito al gate di step8.",
         "Card della Home (home.html, decisione dell'utente del 26/10/2026): numeri in una lista di definizioni dentro un gruppo con nome ('Il procedurale in cifre'); numero animato letto solo nel valore finale e fermo con prefers-reduced-motion; barra degli interventi attivati nascosta ai lettori di schermo, 'n su m' e percentuale nel testo; contributo assente detto col motivo, mai 0; errore di una lettura detto in una frase senza fermare la Home."
-      ]
+      ],
+      "approval": {
+        "approved_hash": "sha256:cad72afc59598c543c6e81996500de0435f50585521bffb7d3257b712044184b",
+        "baseline_ref": "./wireframes/procedurale/panoramica",
+        "approved_at": "2026-10-30T07:26:41Z",
+        "time_to_approve_s": 408,
+        "rework_rounds": 0
+      }
     },
     {
       "name": "stati",
@@ -1432,7 +1439,14 @@
         "Le colonne si/no della tabella delle determine sono testo, non solo icone o colore; la determina corrente e' dichiarata in testo nella riga",
         "Nessuna pill 'Dati al' e nessun download: TX-0020 non porta l'ultimo dato sincronizzato e non ha export, nulla da annunciare",
         "Residuo manuale: ordine di lettura di testata, riquadri e tabella; comprensibilita' di 'stato area programmazione', 'comparto' e del messaggio 'fra quelle che puoi consultare'; contrasto della resa finale"
-      ]
+      ],
+      "approval": {
+        "approved_hash": "sha256:22068d00d0180e70251c67261ee7080336451e0c5fa09851b63a1f26d8fd25f6",
+        "baseline_ref": "./wireframes/procedurale/determine",
+        "approved_at": "2026-10-30T07:26:41Z",
+        "time_to_approve_s": 408,
+        "rework_rounds": 0
+      }
     }
   ],
   "open_points": [

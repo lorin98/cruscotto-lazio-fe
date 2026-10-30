@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "procedurale",
-  "current_step": 1,
+  "current_step": 2,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -20,7 +20,7 @@
       }
     },
     "step1-uiplan": {
-      "status": "in_progress",
+      "status": "done",
       "gates": {
         "wireframe_ammesse": {
           "approved_hash": "sha256:6cbddd380343f94fc5bbbdba8b32b14f7b86eda5a7eaedf7e46caacdb3966eaf",
@@ -57,9 +57,23 @@
           "deviations_reviewed": [
             "Scelte di disegno approvate dall'utente il 22/10/2026: dettaglio procedurale dell'intervento con scheda Sottofasi; due pagine per gli stati di sostegno e di pagamento; card stato area programmazione da TX-0029; clic su una barra = filtro in pagina, Apri nell'elenco (n rilasciate) azione esplicita; di cui non rilasciate di In compilazione senza fonte = non disponibile; CSV/XLSX di una card = intero report; Unit Amount senza importo pagato = nota unica sopra la tabella"
           ]
+        },
+        "wireframe_determine": {
+          "approved_hash": "sha256:22068d00d0180e70251c67261ee7080336451e0c5fa09851b63a1f26d8fd25f6",
+          "baseline_ref": "./wireframes/procedurale/determine",
+          "approved_at": "2026-10-30T07:26:41Z",
+          "time_to_approve_s": 408,
+          "deviations_reviewed": []
+        },
+        "wireframe_panoramica": {
+          "approved_hash": "sha256:cad72afc59598c543c6e81996500de0435f50585521bffb7d3257b712044184b",
+          "baseline_ref": "./wireframes/procedurale/panoramica",
+          "approved_at": "2026-10-30T07:26:41Z",
+          "time_to_approve_s": 408,
+          "deviations_reviewed": []
         }
       },
-      "completed_at": "2026-10-22T08:53:33Z",
+      "completed_at": "2026-10-30T07:31:32Z",
       "artifacts": [
         "./plan/procedurale/uiplan.json"
       ]

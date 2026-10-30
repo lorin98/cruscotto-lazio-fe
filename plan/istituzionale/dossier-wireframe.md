@@ -11,9 +11,17 @@ sotto; ogni modifica a un file della dir del flusso cambia l'hash. Il dossier de
 Scelte dell'utente del 30/10/2026, tutte le raccomandazioni: due pagine per le verifiche SMP con link reciproci che portano i
 filtri comuni (non anno ne' esercizio); dettaglio dell'intervento con TX-0016 e TX-0015 in due schede; card della Home con i
 numeri di oggi e testi nuovi; menu: prima la verifica non SIGC, poi la SIGC. Nessun carry-over (`refresh/istituzionale-flows.json`):
-da approvare verifica-smp-non-sigc (CAMBIATO, `sha256:a947ba1b2995bf6641cbf41291b8d56d925acd87bfe8cd07fb370b5460d3e49b`),
+da approvare verifica-smp-non-sigc (CAMBIATO; dopo il rework 1 della card, `sha256:50b56a897a73b49c4d196a5efdb3a96a6fd6c237280bdfdca0528bed9079c3ce`),
 verifica-smp-sigc (NUOVO, `sha256:46cf705caa939048eece9f1c5fa78062f600df47739d93e1f0e54f7bd42ef218`) e intervento (CAMBIATO,
 `sha256:23b9de7b0f94771300578493b9c590f0c25364dc8adf236ed775bbdfcf3fcd9c`); output-regionale tolto (revocato senza dir).
+
+Rework 1 della card della Home (30/10/2026, al gate dei wireframe): l'utente chiede anche i dati SIGC nella card ("bisogna
+avere anche i sigc") e sceglie l'ULTIMO ESERCIZIO CHIUSO (dal 16/10 di un anno quello dell'anno, prima quello dell'anno
+precedente). La card ha ora due blocchi: non SIGC come prima e SIGC con TX-0015 senza filtri (domande finanziate, spesa
+pubblica erogata nell'esercizio = campagna precedente + campagne anteriori, domande pagate nell'esercizio, domande ricevute;
+nessuna quota), letture e stati indipendenti. Supera la scelta di disegno 3 di questo dossier ("numeri invariati") e la
+nota "nessun esercizio predefinito inventato". Cambiano `home.html`, `verifica-smp-non-sigc.md` e lo uiplan (due campi
+della card, testo del flusso); lint e uiplan-validate verdi.
 
 ## Cosa cambia per il riallineamento (29/10/2026)
 

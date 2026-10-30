@@ -1644,7 +1644,14 @@
         "Grafico a cascata con la tabella equivalente e la didascalia; importi assenti dichiarati col motivo, mai a zero",
         "Residuo manuale: ordine di lettura della testata, comprensibilita' dei badge di stato, contrasto della resa finale",
         "Il link alle determine dice nel testo dove porta, area compresa ('nell'area Procedurale'): scopo chiaro dal solo testo (WCAG 2.4.4), cambio di area annunciato prima del clic"
-      ]
+      ],
+      "approval": {
+        "approved_hash": "sha256:dc32487d566419c1ad5c67940fb25fe2166ada677fa5ae718b894234a229ed12",
+        "baseline_ref": "./wireframes/elenco-operativo/dettaglio-domanda",
+        "approved_at": "2026-10-30T07:26:41Z",
+        "time_to_approve_s": 408,
+        "rework_rounds": 0
+      }
     },
     {
       "name": "pagamenti",
@@ -1698,10 +1705,7 @@
     {
       "id": "OP-EO-07",
       "kind": "altro",
-      "detail": "Ingresso alle determine dalla scheda della domanda (eredita OP-FIS-08 del fisico, 22/10/2026; scelta dell'utente del 30/10/2026). Con il riallineamento degli ambiti (decisioni A-1 e A-3 dell'utente del 29/10/2026, MIN-20261029) TX-0020 e' del procedurale: il link determine-della-domanda della scheda (scheda Determine, 'Apri le determine della domanda nell'area Procedurale', codice = codiceABarre della scheda) porta a /procedurale/determine/:codice? ed e' visibile solo con csr.tx-0020.read (catalogo rev. 4: p1-dirigente, p2-referente-adg, p3-funzionario-area-pro, p4-responsabile-procedimento-ada sul proprio perimetro; non piu' p5): la scheda e' gia' nel perimetro del P4, quindi l'arrivo non risponde 404. Il link non si rende finche' il flusso determine della feature procedurale non e' approvato (uiplan-patterns 8, link in attesa): chiudere questo open point (o togliere blocks) dopo quell'approvazione. Il passaggio inverso e' il link scheda-domanda della feature procedurale.",
-      "blocks": [
-        "link:determine-della-domanda"
-      ]
+      "detail": "Ingresso alle determine dalla scheda della domanda (eredita OP-FIS-08 del fisico, 22/10/2026; scelta dell'utente del 30/10/2026). Con il riallineamento degli ambiti (decisioni A-1 e A-3 dell'utente del 29/10/2026, MIN-20261029) TX-0020 e' del procedurale: il link determine-della-domanda della scheda (scheda Determine, 'Apri le determine della domanda nell'area Procedurale', codice = codiceABarre della scheda) porta a /procedurale/determine/:codice? ed e' visibile solo con csr.tx-0020.read (catalogo rev. 4: p1-dirigente, p2-referente-adg, p3-funzionario-area-pro, p4-responsabile-procedimento-ada sul proprio perimetro; non piu' p5): la scheda e' gia' nel perimetro del P4, quindi l'arrivo non risponde 404. Il link non si rende finche' il flusso determine della feature procedurale non e' approvato (uiplan-patterns 8, link in attesa): chiudere questo open point (o togliere blocks) dopo quell'approvazione. Il passaggio inverso e' il link scheda-domanda della feature procedurale. Chiuso il 30/10/2026: flusso determine del procedurale e dettaglio-domanda approvati dall'utente insieme, link sbloccato."
     }
   ]
 }

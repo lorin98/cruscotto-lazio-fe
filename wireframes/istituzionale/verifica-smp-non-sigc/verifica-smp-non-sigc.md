@@ -185,9 +185,11 @@ titolo, descrizione), numeri chiave nel corpo, "Entra in Istituzionale" nel pied
 - Lettura: TX-0016 senza filtri e senza anno, la stessa della pagina aperta senza filtri (stessa cache, a lettura finita:
   se si entra nell'area mentre la card sta ancora leggendo, la pagina rifa' la lettura; decisione D2). Grant:
   csr.tx-0016.read (p1-dirigente, p2-referente-adg, p3-funzionario-area-ist); senza il grant nessuna lettura e la card
-  elenca i contenuti dell'area, come oggi. Nessuna lettura di TX-0015 (la verifica SIGC chiede l'esercizio finanziario,
-  che la Home non ha: scelta di disegno 3 del dossier) ne' di TX-0060. TX-0017 (output regionale) e' passato al fisico
-  il 29/10/2026.
+  elenca i contenuti dell'area, come oggi. Con csr.tx-0015.read la card legge anche TX-0015 senza filtri con l'ULTIMO
+  ESERCIZIO CHIUSO (richiesta e scelta dell'utente del 30/10/2026: l'esercizio n va dal 16/10/n-1 al 15/10/n, quindi dal
+  16/10 di un anno l'ultimo chiuso e' quello dell'anno, prima e' quello dell'anno precedente; la stessa lettura della
+  pagina Verifica SMP SIGC aperta con quell'esercizio). Nessuna lettura di TX-0060. TX-0017 (output regionale) e' passato
+  al fisico il 29/10/2026.
 - Testi della fascia (aggiornati il 30/10/2026, riallineamento): descrizione "Dati ASR SIGC e non SIGC per intervento,
   da confrontare con SMP - Data Platform."; contenuti (senza il grant) "Verifica SMP dei dati ASR non SIGC" e "Verifica
   SMP dei dati ASR SIGC per esercizio finanziario" (prima: non SIGC e output regionale). Li applica lo step6 in
@@ -207,6 +209,22 @@ titolo, descrizione), numeri chiave nel corpo, "Entra in Istituzionale" nel pied
 | Spesa erogata sul valore delle domande finanziate | somma di spesaErogata sulla somma di righe[].valoreDomandeFinanziate | percentuale nel testo, barra a passi del 5 % (decorativa, si ferma al 100 %); solo con entrambi i totali completi e il valore finanziato maggiore di 0 |
 | Domande ricevute | somma di righe[].domandeRicevute (sempre valorizzato) | intero, numero animato |
 
+- Blocco SIGC (30/10/2026), sotto il blocco non SIGC, in un gruppo con nome "SIGC, esercizio aaaa"; riferimento "SIGC,
+  esercizio aaaa (16/10/aaaa-1 - 15/10/aaaa; domande dell'anno aaaa-1)". Totali sommati fra gli interventi con la stessa
+  regola (ogni domanda e' di un solo intervento; un dato motivato assente in una riga: "non disponibile" col motivo, mai una
+  somma parziale). Nessuna quota: la spesa dell'esercizio comprende campagne anteriori e non si confronta col valore delle
+  domande dell'anno n-1.
+
+| numero | campo (provenance spec: openapi-istituzionale.json#/components/schemas/VerificaSmpRiga) | resa |
+|---|---|---|
+| Domande finanziate | somma di righe[].domandeFinanziate | intero, numero animato |
+| Spesa pubblica erogata nell'esercizio | somma di righe[].spesaErogataCampagnaPrecedente + righe[].spesaErogataCampagneAnteriori (importi motivati) | importo breve; un'assenza in una riga: "non disponibile" col motivo |
+| Domande pagate nell'esercizio | somma di righe[].domandePagateEsercizio | intero, numero animato |
+| Domande ricevute | somma di righe[].domandeRicevute | intero, numero animato |
+
+- I due blocchi leggono e falliscono in modo indipendente (scheletro e messaggio di errore per blocco: "Dati della verifica
+  SMP SIGC non disponibili in questo momento."); con un solo dei due grant si vede solo il suo blocco (oggi i profili sono
+  gli stessi).
 - Perimetro: con `perimetro` ADA le etichette dicono "della tua area" (oggi la risposta e' sempre REGIONALE).
 - Stati: caricamento (scheletro al posto dei numeri); errore ("Dati della verifica SMP non SIGC non disponibili in questo
   momento.": la Home non si ferma, nessun avviso della pagina); nessun file SMP non SIGC (riferimento senza anno, numeri

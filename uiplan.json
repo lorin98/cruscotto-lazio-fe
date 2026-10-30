@@ -1311,7 +1311,14 @@
         "Perimetro (REGIONALE o ADA) dichiarato in testa alla pagina con testo, non solo con colore.",
         "Selettore dell'anno della riserva con label; il 404 della riserva e' uno stato vuoto spiegato, non un errore.",
         "Download per formato (PNG, CSV, XLSX): un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo. Deviazione rivista V-07."
-      ]
+      ],
+      "approval": {
+        "approved_hash": "sha256:8189d3aa39192515b10f93dd9c087b24a95b335ade329052113204612766b0cf",
+        "baseline_ref": "./wireframes/sigc",
+        "approved_at": "2026-10-30T07:26:41Z",
+        "time_to_approve_s": 408,
+        "rework_rounds": 0
+      }
     }
   ],
   "open_points": [

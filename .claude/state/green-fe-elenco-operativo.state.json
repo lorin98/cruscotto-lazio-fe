@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "elenco-operativo",
-  "current_step": 1,
+  "current_step": 2,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -20,7 +20,7 @@
       }
     },
     "step1-uiplan": {
-      "status": "in_progress",
+      "status": "done",
       "gates": {
         "wireframe_domande": {
           "approved_hash": "sha256:c8a117471712ad00e67e456b346e6eda3f752b0f373c014cca4105b8d3d52fcd",
@@ -39,9 +39,16 @@
           "deviations_reviewed": [
             "F3 della review FULL sul delta FE (21/10/2026, decisione dell'utente): stato 'atto di concessione non disponibile' non disegnato nel wireframe, come la nota delle azioni portanti; registrato come OP-EO-06 nello uiplan"
           ]
+        },
+        "wireframe_dettaglio-domanda": {
+          "approved_hash": "sha256:dc32487d566419c1ad5c67940fb25fe2166ada677fa5ae718b894234a229ed12",
+          "baseline_ref": "./wireframes/elenco-operativo/dettaglio-domanda",
+          "approved_at": "2026-10-30T07:26:41Z",
+          "time_to_approve_s": 408,
+          "deviations_reviewed": []
         }
       },
-      "completed_at": "2026-10-13T08:11:38Z",
+      "completed_at": "2026-10-30T07:30:08Z",
       "artifacts": [
         "./plan/elenco-operativo/uiplan.json"
       ]

@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "istituzionale",
-  "current_step": 1,
+  "current_step": 2,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -20,9 +20,31 @@
       }
     },
     "step1-uiplan": {
-      "status": "in_progress",
-      "gates": {},
-      "completed_at": "2026-10-22T08:53:27Z",
+      "status": "done",
+      "gates": {
+        "wireframe_verifica-smp-non-sigc": {
+          "approved_hash": "sha256:50b56a897a73b49c4d196a5efdb3a96a6fd6c237280bdfdca0528bed9079c3ce",
+          "baseline_ref": "./wireframes/istituzionale/verifica-smp-non-sigc",
+          "approved_at": "2026-10-30T07:36:54Z",
+          "time_to_approve_s": 74,
+          "deviations_reviewed": []
+        },
+        "wireframe_verifica-smp-sigc": {
+          "approved_hash": "sha256:46cf705caa939048eece9f1c5fa78062f600df47739d93e1f0e54f7bd42ef218",
+          "baseline_ref": "./wireframes/istituzionale/verifica-smp-sigc",
+          "approved_at": "2026-10-30T07:36:54Z",
+          "time_to_approve_s": 74,
+          "deviations_reviewed": []
+        },
+        "wireframe_intervento": {
+          "approved_hash": "sha256:23b9de7b0f94771300578493b9c590f0c25364dc8adf236ed775bbdfcf3fcd9c",
+          "baseline_ref": "./wireframes/istituzionale/intervento",
+          "approved_at": "2026-10-30T07:36:54Z",
+          "time_to_approve_s": 74,
+          "deviations_reviewed": []
+        }
+      },
+      "completed_at": "2026-10-30T07:37:47Z",
       "artifacts": [
         "./plan/istituzionale/uiplan.json"
       ]

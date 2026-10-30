@@ -1017,6 +1017,18 @@
       "name": "card della Home: annoRiferimento e perimetro della risposta (anno di riferimento detto in testo; etichette 'della tua area' col perimetro ADA)",
       "provenance": "spec",
       "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "card della Home, blocco SIGC: somme fra gli interventi di righe[].domandeFinanziate, righe[].domandeRicevute, righe[].domandePagateEsercizio e righe[].spesaErogataCampagnaPrecedente + righe[].spesaErogataCampagneAnteriori di TX-0015 senza filtri con l'ultimo esercizio chiuso",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpRiga"
+    },
+    {
+      "route": "/istituzionale/verifica-smp-non-sigc",
+      "name": "card della Home, blocco SIGC: esercizio e annoDomande della risposta (riferimento 'SIGC, esercizio aaaa' col periodo)",
+      "provenance": "spec",
+      "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
     }
   ],
   "flows": [
@@ -1037,7 +1049,14 @@
         "Frase verso la verifica SMP SIGC della stessa area resa con csr.tx-0015.read (mai un link che porta a un 403; nel catalogo rev. 4 lo hanno tutti i profili della pagina); il testo dice che porta i filtri e non l'anno",
         "Residuo manuale: ordine di lettura (filtri, anno, grafico, tabella), comprensibilita delle note sulle definizioni, contrasto della resa finale; axe rinviato allo step8",
         "Card della Home (home.html, decisione dell'utente del 26/10/2026): numeri in una lista di definizioni dentro un gruppo con nome (\"L'istituzionale in cifre\"); numero animato letto solo nel valore finale e fermo con prefers-reduced-motion; barra della spesa sul valore finanziato nascosta ai lettori di schermo, percentuale nel testo; totale di un dato motivato assente in una riga detto 'non disponibile' col motivo, mai una somma parziale; errore detto in una frase senza fermare la Home."
-      ]
+      ],
+      "approval": {
+        "approved_hash": "sha256:50b56a897a73b49c4d196a5efdb3a96a6fd6c237280bdfdca0528bed9079c3ce",
+        "baseline_ref": "./wireframes/istituzionale/verifica-smp-non-sigc",
+        "approved_at": "2026-10-30T07:36:54Z",
+        "time_to_approve_s": 74,
+        "rework_rounds": 1
+      }
     },
     {
       "name": "verifica-smp-sigc",
@@ -1054,7 +1073,14 @@
         "Pill 'Dati al' (ultimiDatiSincronizzati di TX-0015) come bottone col nome accessibile completo ('Ultimo dato sincronizzato: dati al ... per tutti i flussi. Mostra il dettaglio per flusso') e popover con una voce per flusso",
         "Frase verso la verifica SMP non SIGC resa con csr.tx-0016.read (mai un link che porta a un 403); il testo dice che porta i filtri e non l'esercizio",
         "Residuo manuale: ordine di lettura (filtri, titolo, esercizio, riferimenti, grafico, tabella), comprensibilita' delle note sulle definizioni, testi lunghi delle assenze nelle celle, contrasto della resa finale; axe rinviato allo step8"
-      ]
+      ],
+      "approval": {
+        "approved_hash": "sha256:46cf705caa939048eece9f1c5fa78062f600df47739d93e1f0e54f7bd42ef218",
+        "baseline_ref": "./wireframes/istituzionale/verifica-smp-sigc",
+        "approved_at": "2026-10-30T07:36:54Z",
+        "time_to_approve_s": 74,
+        "rework_rounds": 0
+      }
     },
     {
       "name": "intervento",
@@ -1070,7 +1096,14 @@
         "Scaricamenti per formato (CSV e XLSX in ogni scheda; il nome accessibile dice l'intervento e, per la scheda SIGC, l'esercizio): sigla visibile contenuta nel nome accessibile completo (WCAG 2.5.3); durante la preparazione aria-disabled col focus sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo",
         "Pill 'Dati al' (ultimiDatiSincronizzati) come bottone col nome accessibile completo ('Ultimo dato sincronizzato: dati al ... per tutti i flussi. Mostra il dettaglio per flusso') e popover con una voce per flusso",
         "Residuo manuale: ordine di lettura di testata e schede; comprensibilita' della differenza di periodo fra le due schede; etichette lunghe delle voci; contrasto della resa finale; axe rinviato allo step8"
-      ]
+      ],
+      "approval": {
+        "approved_hash": "sha256:23b9de7b0f94771300578493b9c590f0c25364dc8adf236ed775bbdfcf3fcd9c",
+        "baseline_ref": "./wireframes/istituzionale/intervento",
+        "approved_at": "2026-10-30T07:36:54Z",
+        "time_to_approve_s": 74,
+        "rework_rounds": 0
+      }
     }
   ],
   "open_points": [
@@ -1134,7 +1167,7 @@
     {
       "id": "OP-IS-11",
       "kind": "altro",
-      "detail": "Card della Home dinamica (decisione dell'utente del 26/10/2026, come la card del finanziario): coi grant csr.tx-0016.read la card Istituzionale mostra i totali della verifica SMP non SIGC letta senza filtri e senza anno (stessa cache della pagina): domande finanziate, spesa pubblica erogata, quota della spesa sul valore delle domande finanziate (barra), domande ricevute, con l'anno di riferimento della risposta. Somme fra interventi lecite: ogni domanda e' di un solo intervento (D-02 Rev. 2), la spesa sono righe pagate non SIGC; un dato motivato assente in una riga rende il totale non disponibile col motivo. Nessuna lettura di TX-0015 (richiede l'esercizio finanziario, che la Home non ha) ne' di TX-0017 (passato al fisico il 29/10/2026). La pagina resta senza KPI. La Home non e' una route della feature: il componente sta nella feature (G1, OP-IS-05) e lo monta lo step6 in src/app/aree.ts come Anteprima. Wireframe: home.html del flusso verifica-smp-non-sigc. Decisione D3 dell'utente del 26/10/2026 (review della card): il riferimento dice 'Non SIGC, valori cumulativi (ultimo file SMP non SIGC: aaaa)', perche' domande e spesa sono cumulative e l'anno e' quello del file. Decisione D2: la cache condivisa con la pagina vale a lettura finita. Aggiornato il 30/10/2026 (riallineamento degli ambiti): i numeri della card non cambiano; cambiano la descrizione e i contenuti (le due verifiche SMP, OP-IS-05), nel wireframe home.html del flusso verifica-smp-non-sigc. Scelta di disegno 3 del dossier: nessun numero SIGC nella card (servirebbe un esercizio predefinito, che il contratto non da')."
+      "detail": "Card della Home dinamica (decisione dell'utente del 26/10/2026, come la card del finanziario): coi grant csr.tx-0016.read la card Istituzionale mostra i totali della verifica SMP non SIGC letta senza filtri e senza anno (stessa cache della pagina): domande finanziate, spesa pubblica erogata, quota della spesa sul valore delle domande finanziate (barra), domande ricevute, con l'anno di riferimento della risposta. Somme fra interventi lecite: ogni domanda e' di un solo intervento (D-02 Rev. 2), la spesa sono righe pagate non SIGC; un dato motivato assente in una riga rende il totale non disponibile col motivo. Con csr.tx-0015.read anche il blocco SIGC: TX-0015 senza filtri con l'ultimo esercizio chiuso (richiesta e scelta dell'utente del 30/10/2026), domande finanziate, spesa pubblica erogata nell'esercizio, domande pagate nell'esercizio, domande ricevute, sommate fra interventi, senza quota. Nessuna lettura di TX-0017 (passato al fisico il 29/10/2026). La pagina resta senza KPI. La Home non e' una route della feature: il componente sta nella feature (G1, OP-IS-05) e lo monta lo step6 in src/app/aree.ts come Anteprima. Wireframe: home.html del flusso verifica-smp-non-sigc. Decisione D3 dell'utente del 26/10/2026 (review della card): il riferimento dice 'Non SIGC, valori cumulativi (ultimo file SMP non SIGC: aaaa)', perche' domande e spesa sono cumulative e l'anno e' quello del file. Decisione D2: la cache condivisa con la pagina vale a lettura finita. Aggiornato il 30/10/2026 (riallineamento degli ambiti): i numeri della card non cambiano; cambiano la descrizione e i contenuti (le due verifiche SMP, OP-IS-05), nel wireframe home.html del flusso verifica-smp-non-sigc. Scelta di disegno 3 del dossier: nessun numero SIGC nella card (servirebbe un esercizio predefinito, che il contratto non da')."
     },
     {
       "id": "OP-IS-12",
