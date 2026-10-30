@@ -181,6 +181,23 @@ describe("RF017: output programmato e realizzato dell'intervento per anno (TX-00
     expect(lette.output).toEqual([]);
     expect(lette.unitAmount).toEqual([]);
   });
+
+  it('solo col grant di TX-0017 (review FIS-03): la sola scheda Output; nessuna lettura di TX-0018 e TX-0030, attesa dichiarata', async () => {
+    profilo(['csr.tx-0017.read']);
+    const lette = servi();
+    apri('/fisico/interventi/SRA01');
+    await trovaCard(OUTPUT_SRA01);
+    expect(schede()).toEqual(['Output per anno']);
+    expect(screen.getByRole('region', { name: 'Target di fine periodo' })).toBeTruthy();
+    expect(screen.queryByRole('region', { name: /^Superficie ammissibile DS/ })).toBeNull();
+    expect(screen.getByRole('link', { name: 'Output regionale filtrato su questo intervento' })).toBeTruthy();
+    expect(screen.queryByRole('link', { name: 'Superfici ammissibili filtrate su questo intervento' })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Unit Amount di questo intervento' })).toBeNull();
+    // una lettura partita senza grant arriverebbe all'handler in questo tempo
+    await act(async () => new Promise((r) => setTimeout(r, 50)));
+    expect(lette.output).toEqual(['?intervento=SRA01']);
+    expect([lette.superfici, lette.unitAmount]).toEqual([[], []]);
+  });
 });
 
 describe("RF018: superfici ammissibili dell'intervento per campagna (TX-0018 filtrata sull'intervento)", () => {
@@ -284,6 +301,32 @@ describe("RF030: Unit Amount dell'intervento (TX-0030 filtrata sull'intervento)"
     apri({ pathname: '/fisico/interventi/SRA01', state: { scheda: 'importi' } });
     await trovaCard(OUTPUT_SRA01);
     expect(screen.getByRole('tab', { name: 'Output per anno' }).getAttribute('aria-selected')).toBe('true');
+  });
+
+  it('solo col grant di TX-0030 (review FIS-03): la sola scheda Unit Amount, letta subito; nessuna lettura di TX-0017 e TX-0018, un solo pulsante; AT001 torna alle Unit Amount', async () => {
+    profilo(['csr.tx-0030.read']);
+    const lette = servi();
+    const { unmount } = apri('/fisico/interventi/SRD01');
+    // senza aprire la scheda: e' la sola lettura del profilo
+    await screen.findByRole('table', { name: iniziaCon(TABELLA_UA) });
+    expect(lette.unitAmount).toEqual(['?intervento=SRD01']);
+    expect(schede()).toEqual(['Unit Amount']);
+    expect(screen.getByRole('tab', { name: 'Unit Amount' }).getAttribute('aria-selected')).toBe('true');
+    expect(screen.getByRole('heading', { level: 1, name: 'Intervento SRD01' })).toBeTruthy();
+    expect(screen.queryAllByRole('region', { name: /^(Target di fine periodo|Superficie ammissibile)/ })).toHaveLength(0);
+    expect(screen.getByRole('link', { name: 'Unit Amount di questo intervento' })).toBeTruthy();
+    expect(screen.queryByRole('link', { name: 'Output regionale filtrato su questo intervento' })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Superfici ammissibili filtrate su questo intervento' })).toBeNull();
+    expect([lette.output, lette.superfici, lette.filtri]).toEqual([[], [], 0]);
+    unmount();
+
+    // l'intervento senza Unit Amount (AT001, escluso dai report): lo stato vuoto col ritorno alle Unit Amount
+    const altre = servi();
+    apri('/fisico/interventi/AT001');
+    const stato = (await screen.findByText(/^Nessun dato per questo intervento nei report del fisico/)).closest('[role="status"]') as HTMLElement;
+    expect(within(stato).getByRole('link', { name: 'Torna alle Unit Amount' }).getAttribute('href')).toBe('/fisico/unit-amount');
+    expect(screen.queryAllByRole('tab')).toHaveLength(0);
+    expect([altre.unitAmount, altre.output, altre.superfici]).toEqual([['?intervento=AT001'], [], []]);
   });
 
   it('link unit-amount-intervento: il pulsante della testata apre le Unit Amount filtrate sull intervento', async () => {
