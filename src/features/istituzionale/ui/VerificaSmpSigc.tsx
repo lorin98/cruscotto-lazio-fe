@@ -13,8 +13,8 @@
 // L'impaginazione e' quella dei report istituzionali (PaginaReport). Classi bootstrap-italia e del kit v2; nessun
 // react-aria fuori dal kit.
 import { useMemo } from 'react';
-import { Link } from 'react-router';
-import { ricercaDaFiltri } from '../../../entities/filtri';
+import { Link, useLocation } from 'react-router';
+import { filtriDaRicerca, ricercaDaFiltri } from '../../../entities/filtri';
 import type { Filtri } from '../../../entities/filtri';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { CardGrafico, ContestoIntestazione, SelettoreAnno, TabellaVoci, useAnnoNellIndirizzo, useRigheContesto } from '../../../shared/ui';
@@ -41,8 +41,13 @@ const SOTTOTITOLO_GRAFICO =
 const fonte = (esercizio: number) =>
   `Fonte: TX-0015, esercizio ${esercizio}. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati. PNG: l'immagine del grafico con l'intestazione, non registrata in audit come nel finanziario; CSV e XLSX: i dati del report scritti dal backend con gli stessi filtri e lo stesso esercizio.`;
 
-/** link:verifica-smp-non-sigc: la frase dice la pagina di arrivo e che porta i filtri; chi la rende controlla prima il grant. */
-function FraseVerificaNonSigc({ filtri }: { filtri: Filtri }) {
+/**
+ * link:verifica-smp-non-sigc: la frase dice la pagina di arrivo e che porta i filtri; chi la rende controlla prima il
+ * grant. I filtri sono quelli dell'indirizzo, come nel menu: l'azione portante resta anche quando qui non si applica
+ * (review del riallineamento IST-10).
+ */
+function FraseVerificaNonSigc() {
+  const filtri = filtriDaRicerca(useLocation().search);
   return (
     <>
       {'La stessa verifica per i dati ASR non SIGC, con gli stessi filtri: '}
@@ -72,7 +77,7 @@ export function VerificaSmpSigc() {
   const pagina = useFiltriDellaPagina(PARAMETRO_ESERCIZIO);
   const [esercizio, impostaEsercizio] = useAnnoNellIndirizzo(PARAMETRO_ESERCIZIO);
   const stato = useVerificaSmpSigc(pagina.filtri, esercizio, { abilitato: !pagina.inAttesa });
-  const nota = puoLeggere(useAuthStatus().data, 'verifica') ? <FraseVerificaNonSigc filtri={pagina.filtri} /> : undefined;
+  const nota = puoLeggere(useAuthStatus().data, 'verifica') ? <FraseVerificaNonSigc /> : undefined;
   const selettore = <SelettoreAnno id="f-esercizio" etichetta="Esercizio finanziario" aiuto={AIUTO_ESERCIZIO} anni={eserciziProposti(esercizio)} voceVuota="Scegli un anno" anno={esercizio} onCambia={impostaEsercizio} />;
   return (
     <PaginaReport

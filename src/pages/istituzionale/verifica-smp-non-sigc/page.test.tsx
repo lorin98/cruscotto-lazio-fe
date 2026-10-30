@@ -111,6 +111,15 @@ describe('RF016: i dati ASR non SIGC per intervento, da confrontare con SMP - Da
     expect(link.closest('p')?.textContent).toBe('La stessa verifica per i dati SIGC, per esercizio finanziario e con gli stessi filtri: Verifica SMP SIGC.');
   });
 
+  it('link verifica-smp-sigc senza il legame interventi-azioni: la frase porta l azione portante dell indirizzo, come il menu (review IST-10)', async () => {
+    const lette = servi();
+    apri(`${PERCORSO}?intervento=SRD01&azione=3`);
+    await tabella();
+    // qui l'azione non si applica (TX-0016 letta senza), ma resta nell'indirizzo e passa all'altra verifica
+    expect(lette.verifica).toEqual(['?intervento=SRD01']);
+    expect(screen.getByRole('link', { name: 'Verifica SMP SIGC' }).getAttribute('href')).toBe('/istituzionale/verifica-smp-sigc?intervento=SRD01&azione=3');
+  });
+
   it('link verifica-smp-sigc: senza csr.tx-0015.read la frase non c e', async () => {
     profilo(SENZA_SIGC);
     servi();

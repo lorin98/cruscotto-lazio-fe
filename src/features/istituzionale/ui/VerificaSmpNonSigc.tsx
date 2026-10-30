@@ -9,9 +9,8 @@
 // disponibili. Design system: classi bootstrap-italia e del kit v2; i primitivi react-aria stanno solo dentro i
 // componenti del kit che li richiedono (pannello modale, popover della pill). Barra, testata, stati e pannello sono
 // l'impaginazione comune dei due report (PaginaReport, review H6).
-import { Link } from 'react-router';
-import { ricercaDaFiltri } from '../../../entities/filtri';
-import type { Filtri } from '../../../entities/filtri';
+import { Link, useLocation } from 'react-router';
+import { filtriDaRicerca, ricercaDaFiltri } from '../../../entities/filtri';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { SelettoreAnno, useAnnoNellIndirizzo } from '../../../shared/ui';
 import { useVerificaSmpNonSigc } from '../api';
@@ -28,9 +27,12 @@ const AIUTO_ANNO = "Facoltativo. Vale per indicatori, output e dati dell'avviso;
 
 /**
  * link:verifica-smp-sigc: la frase dice che e' la stessa verifica per i dati SIGC e che porta i filtri, non l'anno (non si
- * traduce nell'esercizio, che la verifica SIGC chiede col suo selettore); chi la rende controlla prima il grant.
+ * traduce nell'esercizio, che la verifica SIGC chiede col suo selettore); chi la rende controlla prima il grant. I filtri
+ * sono quelli dell'indirizzo, come nel menu: l'azione portante resta anche quando qui non si applica (senza il legame con
+ * gli interventi), cosi' frase e menu portano gli stessi cinque filtri (review del riallineamento IST-10).
  */
-function FraseVerificaSigc({ filtri }: { filtri: Filtri }) {
+function FraseVerificaSigc() {
+  const filtri = filtriDaRicerca(useLocation().search);
   return (
     <>
       {'La stessa verifica per i dati SIGC, per esercizio finanziario e con gli stessi filtri: '}
@@ -43,7 +45,7 @@ export function VerificaSmpNonSigc() {
   const pagina = useFiltriDellaPagina(PARAMETRO_ANNO);
   const [anno, impostaAnno] = useAnnoNellIndirizzo(PARAMETRO_ANNO);
   const stato = useVerificaSmpNonSigc(criteriVerifica(pagina.filtri, anno), { abilitato: !pagina.inAttesa });
-  const nota = puoLeggere(useAuthStatus().data, 'verificaSigc') ? <FraseVerificaSigc filtri={pagina.filtri} /> : undefined;
+  const nota = puoLeggere(useAuthStatus().data, 'verificaSigc') ? <FraseVerificaSigc /> : undefined;
   const selettore = <SelettoreAnno id="f-anno-smp" etichetta="Anno di riferimento del monitoraggio SMP non SIGC" aiuto={AIUTO_ANNO} anni={anniDiRiferimento(stato.data?.annoRiferimento, anno)} voceVuota="Ultimo anno con un file (predefinito)" anno={anno} onCambia={impostaAnno} />;
   return (
     <PaginaReport pagina={pagina} stato={stato} briciola="Verifica SMP non SIGC" titolo="Istituzionale: verifica SMP non SIGC" titoloDocumento="Verifica SMP non SIGC - Istituzionale" sottotitolo={SOTTOTITOLO} nota={nota} pill={(d) => pillAnnoDelFile(d.annoRiferimento)} sopra={selettore}>

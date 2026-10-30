@@ -271,6 +271,15 @@ describe('RF015: link reciproci e stati della verifica SMP SIGC (wireframe verif
     expect(document.body.textContent).not.toContain('La stessa verifica per i dati ASR non SIGC');
   });
 
+  it('link verifica-smp-non-sigc senza il legame interventi-azioni: la frase porta l azione portante dell indirizzo, come il menu (review IST-10)', async () => {
+    const lette = servi();
+    apri(`${PERCORSO}?intervento=SRA01&azione=3&esercizio=2025`);
+    await tabella();
+    // qui l'azione non si applica (TX-0015 letta senza), ma resta nell'indirizzo e passa all'altra verifica
+    expect(lette.verificaSigc).toEqual(['?intervento=SRA01&esercizio=2025']);
+    expect(screen.getByRole('link', { name: 'Verifica SMP non SIGC' }).getAttribute('href')).toBe('/istituzionale/verifica-smp-non-sigc?intervento=SRA01&azione=3');
+  });
+
   it('caricamento con lo scheletro e aria-live, poi i dati; errore: un solo avviso con Riprova, "Dati al" non disponibile', async () => {
     servi();
     const t = trattenuta();
