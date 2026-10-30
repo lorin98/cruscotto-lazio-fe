@@ -94,7 +94,11 @@ Cosa e' cambiato:
 - `src/pages/procedurale/determine/page.test.tsx`.
 
 ### EO-01 (MAGGIORE, decisione D1 (a)): link alle determine col tipo della scheda e avviso "domanda dell'altro tipo"
-**Commit:** 9ec95fe (scheda dell'elenco e contratto condiviso) e c9e6cf1 (pagina delle determine).
+**Commit:**
+- 9ec95fe: scheda dell'elenco e contratto condiviso;
+- c9e6cf1: pagina delle determine;
+- 5b47c26, correzione aggiuntiva chiesta dalla sessione principale: `scheda-di-partenza` apre la scheda
+  Determine (sezione in fondo a questo finding).
 
 **Contratto condiviso in `entities/domanda`** (chi scrive lo state e chi lo legge stanno in due feature, quindi niente
 import fra feature):
@@ -151,11 +155,47 @@ import fra feature):
 Ho provato a mano il default del tipo forzato: i test senza state, con state non valido e con la nuova ricerca
 falliscono.
 
-**Scheda Determine:** il link `scheda-di-partenza` NON apre la scheda Determine. La scheda dell'elenco (`SchedaDomanda`,
-Tabs di react-aria senza `selectedKey`) non sceglie la scheda iniziale ne' dall'indirizzo ne' dallo state, quindi il
-link apre la scheda della domanda sulla Sintesi. Il testo del link resta quello approvato. Come dice il brief, non ho
-aggiunto la scelta della scheda: e' un comportamento nuovo della scheda, non dichiarato nel wireframe
-`dettaglio-domanda`.
+**Scheda Determine (correzione aggiuntiva chiesta dalla sessione principale):** il testo approvato del link
+`scheda-di-partenza` promette "scheda Determine", quindi la scheda dell'elenco ora si apre su Determine quando ci si
+arriva da quel link.
+- Prima della correzione la scheda dell'elenco (Tabs di react-aria non controllati) non sceglieva la scheda iniziale, e
+  il link apriva la Sintesi.
+- Contratto in `entities/domanda/lib/elenco.ts`:
+  - `SCHEDE_DELLA_DOMANDA` e' l'elenco chiuso degli identificativi dei Tab;
+  - `arrivoSullaScheda(scheda)` scrive lo state `{ schedaIniziale }`;
+  - `schedaInizialeDalloState(state)` lo legge e lo convalida contro l'elenco; con un valore assente o non valido
+    restituisce null.
+- `SchedaDomanda` passa a `Tabs` `defaultSelectedKey` = la scheda dello state, oppure `'sintesi'`.
+- Il link `scheda-di-partenza` porta `ARRIVO_SU_DETERMINE` (= `{ schedaIniziale: 'determine' }`, in
+  `procedurale/lib/determine.ts`).
+- Nessun parametro nell'URL, nessun cambio di wireframe.
+- Focus e annuncio: il kit non annuncia il cambio di scheda. All'arrivo il focus va sull'h1, come in ogni arrivo
+  (`useFocusTitolo`). La scheda Determine risulta selezionata (`aria-selected`) col suo pannello, e le frecce ripartono
+  da li'.
+
+**Test della correzione aggiuntiva:**
+- Con `{ schedaIniziale: 'determine' }` la scheda si apre su Determine:
+  - si vede la tabella delle determine;
+  - l'indirizzo non cambia;
+  - il focus e' sull'h1;
+  - axe senza violazioni;
+  - Freccia destra porta a Pagamenti.
+- Ogni valore dell'elenco chiuso seleziona il suo Tab: gli identificativi coincidono.
+- State non valido ('Determine', 'altro', array, chiave diversa, stringa, null) e arrivo di sempre (state con la
+  ricerca dell'elenco, o nessuno state): Sintesi.
+- Il clic su `scheda-di-partenza` porta `{ schedaIniziale: 'determine' }`.
+- Unita' del contratto.
+
+Ho provato a mano il codice senza `defaultSelectedKey`: i test dell'arrivo su Determine e dell'elenco chiuso falliscono.
+
+**File della correzione aggiuntiva:**
+- `src/entities/domanda/{lib/elenco.ts,index.ts}` (file comuni);
+- `src/features/elenco-operativo/ui/SchedaDomanda.tsx`;
+- `src/features/procedurale/lib/determine.ts` e `ui/DetermineDellaDomanda.tsx`;
+- `src/pages/elenco-operativo/dettaglio-domanda/page.test.tsx`;
+- `src/pages/procedurale/determine/page.test.tsx`;
+- `tests/elenco-operativo-lib.test.ts`;
+- `tests/procedurale-lib.test.ts`.
 
 ### PRO-05 (COSMETICO): OP-PR-14 chiuso nello uiplan del procedurale
 **Commit:** 800ff18.
@@ -187,14 +227,13 @@ Cosa e' cambiato:
 ## Fix non applicati
 Nessuno: i fix del Judge sono applicati come scritti, con le decisioni D1 (a) e D2 (a).
 
-Due note che non sono fix mancati:
-- **EO-01, scheda Determine:** l'arrivo apre la Sintesi (vedi sopra).
+Una nota che non e' un fix mancato:
 - **EO-01, ricarica:** il wireframe dice "Senza state (ricarica, indirizzo condiviso, ricerca dal modulo) nessun
   avviso". Con il router del browser pero' una ricarica conserva `history.state`, quindi dopo una ricarica l'avviso
   resta. Resta comunque vero, perche' la domanda mostrata e' ancora dell'altro tipo rispetto alla scheda di partenza.
   - Indirizzo condiviso e ricerca dal modulo non hanno state: per loro l'avviso non compare, e i test lo provano.
   - Nei test la ricarica si simula con l'indirizzo senza state.
-  - Non ho toccato il wireframe.
+  - Non ho toccato il wireframe. La sessione principale lo segnala all'utente.
 
 ## File comuni toccati
 Modifiche locali, senza riordini:
@@ -203,6 +242,7 @@ Modifiche locali, senza riordini:
 |---|---|---|
 | `src/shared/ui/stati/AvvisoPagina.tsx` | `ElencoErrori` e firma di `AvvisoPagina` | prop facoltativa `azioni` dopo Riprova (PRO-02) |
 | `src/entities/domanda/lib/elenco.ts` | dopo `CODICE_A_BARRE`, prima di `codiceABarreValido` | tipo `TipoDellaDomanda` e predicato `tipoDomandaValido` (EO-01); `riferimentoDomandaValido` invariato |
+| `src/entities/domanda/lib/elenco.ts` | coda del file | `SCHEDE_DELLA_DOMANDA`, `ArrivoSullaScheda`, `arrivoSullaScheda`, `schedaInizialeDalloState` (EO-01, scheda iniziale) |
 | `src/entities/domanda/lib/determine.ts` | commento di testa e coda del file | `ArrivoDallaScheda`, `arrivoDallaScheda`, `tipoDellaSchedaDiPartenza` (EO-01) |
 | `src/entities/domanda/index.ts` | export di `lib/elenco` e `lib/determine` | nuovi export (EO-01) |
 | `tests/shared-ui.test.tsx` | coda del describe di `AvvisoPagina` | un test delle `azioni` (PRO-02) |
@@ -224,8 +264,11 @@ Modifiche locali, senza riordini:
 ## Verifica finale
 - `npx tsc --noEmit`, `npm run lint` e `npx eslint . --max-warnings 0`: verdi.
 - `npx vitest run`, due volte di seguito: 78 file, 1648 test verdi. A a934a29 erano 1635: 13 nuovi.
+- Dopo la correzione aggiuntiva (scheda iniziale), rifatte `tsc`, `npm run lint` ed `eslint .`: verdi.
+- `npx vitest run`, di nuovo due volte di seguito: 78 file, 1652 test verdi.
 - `fe-project-check.sh . --feature <f> --catalog handover/authz-catalog.json`, anche con `--built`: rc 0 per
-  procedurale, elenco-operativo e finanziario.
+  procedurale, elenco-operativo e finanziario. Dopo la correzione aggiuntiva, rifatto per elenco-operativo e
+  procedurale: rc 0.
 - `check-ui-authz.sh`: rc 0 per le tre feature.
 - Plugin `CLAUDE_PLUGIN_ROOT=.../sian-green/plugins/green-fe` con `tools/vendor` in testa al PATH.
 - File in LF: `git ls-files --eol` su tutti i file toccati.
