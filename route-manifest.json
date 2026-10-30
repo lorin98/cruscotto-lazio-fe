@@ -1,6 +1,6 @@
 {
   "feature": "finanziario",
-  "pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb",
+  "pack_hash": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7",
   "routes": [
     {
       "actions": [
@@ -217,21 +217,6 @@
       "visibility": [
         "csr.tx-0014.read"
       ]
-    },
-    {
-      "actions": [
-        {
-          "gating": "hide-by-role",
-          "grant": "csr.tx-0015.read",
-          "operationId": "TX-0015"
-        }
-      ],
-      "component": "src/pages/finanziario/sigc/verifica-smp/page.tsx",
-      "flow": "sigc",
-      "path": "/finanziario/sigc/verifica-smp",
-      "visibility": [
-        "csr.tx-0015.read"
-      ]
     }
   ],
   "schema_version": "1.0",
@@ -239,7 +224,7 @@
     {
       "manifest_hash_match": true,
       "path": "handover/openapi-finanziario.json",
-      "sha256": "sha256:e65fc85f2168bfeab95480909afb72a557537cded2355c0bce6500170c42dbbb",
+      "sha256": "sha256:f540db815eaa900ae43004c4488617a4a3c0c907d12b8f5da779d20b82c8439b",
       "slice": "finanziario"
     }
   ]
