@@ -6,11 +6,10 @@
 // omessi e dichiarati col motivo, mai a zero; una fonte non attiva per tutto il grafico lo rende non disponibile, detto
 // in testo. Il dato di ogni barra porta il codice del drill-down (intervento, chiave della voce).
 import type { BarSeriesOption, EChartsOption } from 'echarts';
-import { descriviAssenza, testoConNota, testoMotivato } from '../../../entities/importo';
+import { NON_DISPONIBILE_BREVE, descriviAssenza, testoConNota, testoMotivato } from '../../../entities/importo';
 import { COLORI, GRIGLIA_CON_ETICHETTE, MISURA_EURO, MISURA_NUMERI, aria, asseCategorieOrizzontale, barreRaggruppate, formatEuro, formatNumber, nonDisegnabile, notaOmessi, plurale, tooltipDettaglio, valoreInNumero } from '../../../shared/lib';
 import type { DatiGrafico, DatoSerie, MisuraBarre, TabellaEquivalente, VoceRaggruppata } from '../../../shared/lib';
 import type { RigaAmmesse, RigaRiepilogo, Sottofasi, TipoDomanda } from './dto';
-import { NON_DISPONIBILE_BREVE } from './formato';
 import { etichettaVoce } from './sottofasi';
 import { diTipo, rilasciate } from './stati';
 import type { VoceDistribuzione } from './stati';

@@ -1,9 +1,8 @@
 // formato.ts — testi PURI del procedurale (zero React): pill del perimetro, stati
 // vuoti (coi filtri dicono di cambiarli, senza non parlano di filtri; col perimetro ADA dicono la propria area), note
-// fisse dei wireframe approvati del 22/10/2026 (regole del dato del backend, D-03, D-04, D-06) e le assenze con la resa
-// unica dell'entity importo (mai uno zero al posto di un dato senza fonte). Il perimetro in parole e' di shared/lib.
-import { descriviAssenza } from '../../../entities/importo';
-import type { DatoMotivatoLike, ImportoResa } from '../../../entities/importo';
+// fisse dei wireframe approvati del 22/10/2026 (regole del dato del backend, D-03, D-04, D-06). Le assenze hanno la resa
+// unica dell'entity importo, mai uno zero al posto di un dato senza fonte (anche quella breve, NON_DISPONIBILE_BREVE e
+// resaAssenza, prima qui: review del riallineamento FIS-07). Il perimetro in parole e' di shared/lib.
 import { testoPerimetro } from '../../../shared/lib';
 import type { Perimetro } from './dto';
 
@@ -48,14 +47,6 @@ export function testoNessunIntervento(conFiltri: boolean): string {
 /** "sì" / "no" di un valore presente (attivato). */
 export function siNo(v: boolean): string {
   return v ? 'sì' : 'no';
-}
-
-/** Una voce senza fonte in breve, dove la colonna accanto dice gia' il motivo (scelte 5 e 8 approvate: "non disponibile"). */
-export const NON_DISPONIBILE_BREVE: ImportoResa = { disponibile: false, testo: 'non disponibile' };
-
-/** La resa di un'assenza: breve con FONTE_NON_ATTIVA quando il motivo e' detto altrove, altrimenti completa. */
-export function resaAssenza(dato: Pick<DatoMotivatoLike<unknown>, 'motivo' | 'fonte'> | null | undefined, breveSenzaFonte: boolean): ImportoResa {
-  return breveSenzaFonte && dato?.motivo === 'FONTE_NON_ATTIVA' ? NON_DISPONIBILE_BREVE : descriviAssenza(dato);
 }
 
 // ---------------------------------------------------------------- note fisse (regole del dato del backend)

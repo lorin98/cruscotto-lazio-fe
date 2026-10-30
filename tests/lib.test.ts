@@ -8,7 +8,7 @@ import { MAX_VALORI_PARAMETRO, leggiRipetuti, scriviRipetuti } from '../src/shar
 import { conStatoSalvato, leggiStatoSalvato } from '../src/shared/lib/stato-history';
 import { statoDelDettaglio, tutteRisposte } from '../src/shared/lib/dettaglio';
 import * as libComune from '../src/shared/lib';
-import { totaleMotivato } from '../src/entities/importo';
+import { NON_DISPONIBILE_BREVE, resaAssenza, totaleMotivato } from '../src/entities/importo';
 import { isOpenEnded, isSentinelDate, SENTINEL_DATE_MAX } from '../src/shared/lib/sentinel-dates';
 import { isEditable, makeRolePredicate } from '../src/shared/lib/predicates';
 import type { AuthStatus } from '../src/shared/api/auth/auth-status';
@@ -299,5 +299,15 @@ describe('entities/importo: totaleMotivato, la regola dei totali senza somme par
     // motivi diversi: nessun motivo unico; oltre tre righe solo il numero
     expect(totale([riga('A', null, 'NON_VALORIZZATO'), riga('B', null, 'FONTE_AMBIGUA')], true).motivo).toBe('Non calcolabile: manca per 2 interventi (A, B)');
     expect(totale(['A', 'B', 'C', 'D'].map((c) => riga(c, null))).motivo).toBe('Non calcolabile: manca per 4 interventi');
+  });
+});
+
+describe("entities/importo: resaAssenza, l'assenza in breve dove il motivo e detto altrove (review del riallineamento FIS-07, prima nel procedurale e nel fisico)", () => {
+  it('breve con la fonte non attiva solo se chiesto; altrimenti, e con gli altri motivi, la resa completa', () => {
+    expect(resaAssenza({ motivo: 'FONTE_NON_ATTIVA', fonte: 'PAGATO_PER_UNIT_AMOUNT' }, true)).toBe(NON_DISPONIBILE_BREVE);
+    expect(NON_DISPONIBILE_BREVE).toEqual({ disponibile: false, testo: 'non disponibile' });
+    expect(resaAssenza({ motivo: 'FONTE_NON_ATTIVA', fonte: 'PAGATO_PER_UNIT_AMOUNT' }, false)).toEqual({ disponibile: false, testo: 'non disponibile', nota: 'fonte pagato per Unit Amount non attiva' });
+    expect(resaAssenza({ motivo: 'NON_VALORIZZATO' }, true)).toEqual({ disponibile: false, testo: 'non valorizzato', nota: 'il dato non è presente nella fonte' });
+    expect(resaAssenza(undefined, true)).toEqual({ disponibile: false, testo: 'non disponibile' });
   });
 });

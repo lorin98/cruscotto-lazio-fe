@@ -85,6 +85,17 @@ export function descriviAssenza(dato: Pick<DatoMotivatoLike<unknown>, 'motivo' |
 }
 
 /**
+ * Una voce senza fonte in breve, dove la nota o la colonna accanto dice gia' il motivo (scelte 5 e 8 approvate: "non
+ * disponibile"). Prima copiata nel procedurale e nel fisico (review del riallineamento FIS-07).
+ */
+export const NON_DISPONIBILE_BREVE: ImportoResa = { disponibile: false, testo: 'non disponibile' };
+
+/** La resa di un'assenza: breve con FONTE_NON_ATTIVA quando il motivo e' detto altrove, altrimenti completa (descriviAssenza). */
+export function resaAssenza(dato: Pick<DatoMotivatoLike<unknown>, 'motivo' | 'fonte'> | null | undefined, breveSenzaFonte: boolean): ImportoResa {
+  return breveSenzaFonte && dato?.motivo === 'FONTE_NON_ATTIVA' ? NON_DISPONIBILE_BREVE : descriviAssenza(dato);
+}
+
+/**
  * La resa in testo con la nota fra parentesi, per le voci, i testi e i motivi dei grafici: "non disponibile (fonte impegni
  * non attiva)"; senza nota il solo testo. Una sola forma testuale dell'assenza per tutte le feature (review delta 21/10
  * passata 2 H3); la forma a badge e' AssenzaMotivata.

@@ -6,7 +6,7 @@
 // delle domande ammesse e con atto di un intervento (tabella, tabella equivalente,
 // anteprima). Classi bootstrap-italia e del kit; nessun react-aria.
 import { ApriNellElenco } from '../../../entities/domanda';
-import { AssenzaMotivata, BadgeAssenza } from '../../../entities/importo';
+import { AssenzaMotivata, BadgeAssenza, NON_DISPONIBILE_BREVE } from '../../../entities/importo';
 import { formatNumber } from '../../../shared/lib';
 import { Griglia, Kpi, TabellaStatica } from '../../../shared/ui';
 import type { ColonnaStatica, NomeIcona, TonoKpi } from '../../../shared/ui';
@@ -14,7 +14,7 @@ import { VOCE_AMMESSA, apreConAtto, apreLeAmmesse, motivoSenzaLink, testiLinkAmm
 import type { IdLinkElenco, TestiLink } from '../lib/collegamenti';
 import type { CriteriProcedurali } from '../lib/criteri';
 import type { Perimetro, RigaAmmesse } from '../lib/dto';
-import { NON_DISPONIBILE_BREVE, pillPerimetro } from '../lib/formato';
+import { pillPerimetro } from '../lib/formato';
 import type { TipoPerimetro } from '../lib/formato';
 import type { ChiaveKpi, KpiProcedurale } from '../lib/kpi';
 import type { VoceDistribuzione } from '../lib/stati';

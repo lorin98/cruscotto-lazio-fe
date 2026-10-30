@@ -43,7 +43,7 @@ import {
   testiLinkConAtto,
   testiLinkStato,
 } from '../src/features/procedurale/lib/collegamenti';
-import { NON_DISPONIBILE_BREVE, nellaTuaArea, perimetroDelle, pillPerimetro, resaAssenza, siNo, testoNessunIntervento, testoVuoto } from '../src/features/procedurale/lib/formato';
+import { nellaTuaArea, perimetroDelle, pillPerimetro, siNo, testoNessunIntervento, testoVuoto } from '../src/features/procedurale/lib/formato';
 import {
   SENZA_STATO,
   VOCE_TOLTA,
@@ -395,11 +395,8 @@ describe('procedurale: testi, KPI e assenze', () => {
     expect([testoNessunIntervento(true), testoNessunIntervento(false)]).toEqual(['Nessun intervento per i filtri scelti.', 'Nessun intervento.']);
   });
 
-  it('si e no, e le assenze: brevi con la fonte non attiva dove il motivo e detto altrove, altrimenti complete', () => {
+  it('si e no (le assenze brevi sono dell entity importo: tests/lib.test.ts)', () => {
     expect([siNo(true), siNo(false)]).toEqual(['sì', 'no']);
-    expect(resaAssenza({ motivo: 'FONTE_NON_ATTIVA', fonte: 'PAGATO_PER_UNIT_AMOUNT' }, true)).toBe(NON_DISPONIBILE_BREVE);
-    expect(resaAssenza({ motivo: 'FONTE_NON_ATTIVA', fonte: 'PAGATO_PER_UNIT_AMOUNT' }, false)).toEqual({ disponibile: false, testo: 'non disponibile', nota: 'fonte pagato per Unit Amount non attiva' });
-    expect(resaAssenza({ motivo: 'NON_VALORIZZATO' }, true)).toEqual({ disponibile: false, testo: 'non valorizzato', nota: 'il dato non è presente nella fonte' });
   });
 
   it('KPI delle ammesse (SC-PC_AMMESSE): senza atto la fonte non attiva in una frase, la quota del contributo solo con i due importi', () => {

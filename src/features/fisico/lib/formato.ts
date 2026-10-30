@@ -149,14 +149,7 @@ export const DEFINIZIONI_OUTPUT =
   'Fonte: TX-0017. Programmato per anno = somma dell\'output previsto delle Unit Amount dell\'esercizio (D-03 di istituzionale, valida per TX-0017 anche nel fisico): gli interventi senza Unit Amount valorizzate, come gli strutturali, hanno il solo target di fine periodo. Realizzato SIGC = output erogato dell\'anno campagna; realizzato non SIGC = valore del file non SIGC per anno di riferimento, cumulativo (D-04, da confermare con ARSIAL e AGEA). Una riga presente in entrambi i monitoraggi è "non attribuibile (riga presente sia nel monitoraggio SIGC sia nel non SIGC)". Gli importi unitari per Unit Amount sono nei file CSV e XLSX; in pagina li mostra la pagina Unit Amount, con output previsto e pagato (TX-0030).';
 
 // ---------------------------------------------------------------- Unit Amount (TX-0030, dal procedurale il 29/10/2026)
-
-/** Una voce senza fonte in breve, dove la nota accanto dice gia' il motivo (scelta 8 approvata: "non disponibile"). */
-export const NON_DISPONIBILE_BREVE: ImportoResa = { disponibile: false, testo: 'non disponibile' };
-
-/** La resa di un'assenza: breve con FONTE_NON_ATTIVA quando il motivo e' detto altrove, altrimenti completa. */
-export function resaAssenza(dato: Pick<DatoMotivatoLike<unknown>, 'motivo' | 'fonte'> | null | undefined, breveSenzaFonte: boolean): ImportoResa {
-  return breveSenzaFonte && dato?.motivo === 'FONTE_NON_ATTIVA' ? NON_DISPONIBILE_BREVE : descriviAssenza(dato);
-}
+// (la resa breve dell'assenza, NON_DISPONIBILE_BREVE e resaAssenza, e' dell'entity importo: review del riallineamento FIS-07)
 
 /** Lo stato vuoto delle Unit Amount: coi filtri lo dice dei filtri scelti, azione portante compresa (wireframe del 30/10/2026). */
 export function testoVuotoUnitAmount(conFiltri: boolean): string {

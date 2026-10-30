@@ -7,13 +7,13 @@
 // dell'anagrafica vuota (nessun errore) e dell'insieme filtrato senza domande (voci a 0, "Modifica i filtri"). PNG solo col
 // grafico disegnato; CSV e XLSX: l'export del report coi filtri. CardGrafico e tabelle statiche del kit.
 import { useMemo } from 'react';
-import { AssenzaMotivata, BadgeAssenza, ValoreMotivato } from '../../../entities/importo';
+import { AssenzaMotivata, BadgeAssenza, ValoreMotivato, resaAssenza } from '../../../entities/importo';
 import { formatNumber } from '../../../shared/lib';
 import { CardGrafico, TabellaStatica, Vuoto, VuotoConFiltri } from '../../../shared/ui';
 import type { ColonnaStatica } from '../../../shared/ui';
 import type { CriteriProcedurali } from '../lib/criteri';
 import type { Dato, SottofaseCensita, Sottofasi, TipoDomanda } from '../lib/dto';
-import { ANAGRAFICA_VUOTA, resaAssenza } from '../lib/formato';
+import { ANAGRAFICA_VUOTA } from '../lib/formato';
 import { graficoSottofasi } from '../lib/grafici';
 import { altreSottofasi, anagraficaVuota, righeVoci, senzaDomandeNeiFiltri } from '../lib/sottofasi';
 import type { RigaVoceSottofase } from '../lib/sottofasi';

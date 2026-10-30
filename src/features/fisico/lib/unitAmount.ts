@@ -3,10 +3,9 @@
 // esercizi diversi), il valore per l'ordinamento dei dati motivati, la fonte non attiva del pagato (oggi il caso reale,
 // OP-FIS-14) detta UNA volta in una nota sopra la tabella, con le tre celle in breve (scelta 8 approvata il 22/10/2026),
 // e nel drawer col motivo. Nessun totale: il DTO non lo porta.
-import { descriviAssenza } from '../../../entities/importo';
+import { descriviAssenza, resaAssenza } from '../../../entities/importo';
 import type { ImportoResa } from '../../../entities/importo';
 import type { RigaUnitAmount } from './dto';
-import { resaAssenza } from './formato';
 
 /** La chiave stabile di una riga: intervento, codice ed esercizio (il codice si ripete fra gli esercizi). */
 export function chiaveUnitAmount(r: RigaUnitAmount): string {

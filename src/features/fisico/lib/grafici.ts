@@ -8,7 +8,7 @@
 // procedurale); dal 30/10/2026 la linea delle superfici di un intervento nel suo dettaglio, con tutti i dati della campagna
 // nella tabella equivalente.
 import type { BarSeriesOption, EChartsOption, LineSeriesOption } from 'echarts';
-import { descriviAssenza, testoConNota, testoMotivato } from '../../../entities/importo';
+import { descriviAssenza, resaAssenza, testoConNota, testoMotivato } from '../../../entities/importo';
 import {
   COLORI,
   MISURA_ETTARI,
@@ -31,7 +31,7 @@ import {
 } from '../../../shared/lib';
 import type { DatiGrafico, DatoSerie, MisuraBarre, TabellaEquivalente, VoceRaggruppata } from '../../../shared/lib';
 import type { InterventoSuperficie, RigaOutput, RigaUnitAmount } from './dto';
-import { ETICHETTE, SENZA_SUPERFICI, cellaDifferenza, cellaSuperficie, quantita, resaAssenza, testoDifferenza, testoNonInCampagna, testoNonNellaCampagnaFiltrata, testoQuantitaPremio, testoTarget } from './formato';
+import { ETICHETTE, SENZA_SUPERFICI, cellaDifferenza, cellaSuperficie, quantita, testoDifferenza, testoNonInCampagna, testoNonNellaCampagnaFiltrata, testoQuantitaPremio, testoTarget } from './formato';
 import { MISURE, etichettaMisura } from './output';
 import { campagnaDi, senzaSuperfici } from './superfici';
 import type { InterventoSenzaSuperfici, MotivoSenzaSuperfici } from './superfici';

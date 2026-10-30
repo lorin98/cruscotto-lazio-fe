@@ -5,6 +5,7 @@
 import type { EChartsOption } from 'echarts';
 import { describe, expect, it } from 'vitest';
 import { COLORI, ettari, valoreEttari } from '../src/shared/lib';
+import { NON_DISPONIBILE_BREVE } from '../src/entities/importo';
 import { criteriAttivi, criteriDaRicerca, criteriDellIntervento, campagnaDaTesto, conCampagna, conFiltriDelProgramma, ricercaDaCriteri, soloIntervento, testiCriteri } from '../src/features/fisico/lib/criteri';
 import {
   campagnaDi,
@@ -23,7 +24,6 @@ import {
 import {
   ANNO_TARGET_ASSENTE,
   DEFINIZIONI_OUTPUT,
-  NON_DISPONIBILE_BREVE,
   SENZA_SUPERFICI,
   TESTO_ASSENTE,
   cellaDifferenza,
