@@ -27,7 +27,8 @@ const numero = (v: number) => <Numero valore={v} />;
  * Il valore di un dato della verifica SMP SIGC (TX-0015): conteggi e importi, i dati col motivo dell'assenza
  * (ConteggioFinanziario, SiNoFinanziario: D3, D15, D-11 del backend) resi come quella di un importo, i campi facoltativi
  * senza motivo "non disponibile"; una quantita' di output col codice dell'indicatore accanto quando chi la rende lo da'
- * (voci del dettaglio, OP-IS-12). Mai uno 0 o un "no" inventati.
+ * (voci del dettaglio, OP-IS-12). Mai uno 0 o un "no" inventati. Le conversioni del valore per tipo sono garantite dalla
+ * tabella DATI_VERIFICA_SIGC, tipizzata per campo: un tipo che non e' quello del campo non compila (review IST-05).
  */
 export function ValoreDelDatoSigc({ r, d, indicatore }: { r: RigaVerificaSigc; d: DatoVerificaSigc; indicatore?: string | null }) {
   const v = r[d.campo];

@@ -63,7 +63,7 @@ import {
   ultimiDelDettaglio,
 } from '../src/features/istituzionale/lib/intervento';
 import { DATI_VERIFICA_SIGC, periodoDellaRisposta, testoEsercizio, testoRicercaSigc, valoreOrdinabileSigc, vociRiferimentiSigc, vociRiferimentiSigcIntervento } from '../src/features/istituzionale/lib/verificaSigc';
-import type { DatoVerificaSigc } from '../src/features/istituzionale/lib/verificaSigc';
+import type { DatoVerificaSigc, TipoDatoSigc } from '../src/features/istituzionale/lib/verificaSigc';
 import { TITOLO_SPESA, TITOLO_SPESA_SIGC, graficoSpesa, graficoSpesaSigc } from '../src/features/istituzionale/lib/grafici';
 import { SRD01, ULTIMI, VERIFICA, VERIFICA_SMP, dato as datoSmp, nd, nv, rigaSmp, righeDeiFiltri, verificaPer, verificaSigcPer } from '../src/features/istituzionale/testing/fixture';
 import { anteprimaVerifica, anteprimaVerificaSigc, etichetteAnteprima, etichetteAnteprimaSigc, nomeGruppoSigc, riferimentoAnteprima, riferimentoAnteprimaSigc } from '../src/features/istituzionale/lib/anteprima';
@@ -451,6 +451,23 @@ describe('RF015: i venti dati della verifica SMP SIGC (TX-0015) nella tabella e 
     expect(datoSigc('previsionePagamentoEsercizio').voce).toBe("Si prevede di pagare importi entro l'esercizio");
     expect(datoSigc('outputErogatoEsercizio').voce).toBe("Output erogato nell'esercizio (solo SIGC)");
     expect(new Set(DATI_VERIFICA_SIGC.map((d) => d.campo)).size).toBe(20);
+  });
+
+  it('la tabella e tipizzata per campo (review IST-05): un tipo che non e quello del campo non compila; i tipi dichiarati sono la forma dei valori', () => {
+    // @ts-expect-error: un conteggio sempre valorizzato non e' un si'/no
+    const siNoDiUnConteggio: DatoVerificaSigc = { campo: 'domandeRicevute', colonna: 'x', voce: 'x', tipo: 'siNo' };
+    // @ts-expect-error: un numero che puo' essere null non e' un conteggio (sarebbe "-" invece di "non disponibile")
+    const conteggioDiUnFacoltativo: DatoVerificaSigc = { campo: 'ettariUbaRichiesti', colonna: 'x', voce: 'x', tipo: 'conteggio' };
+    // @ts-expect-error: un importo col motivo non e' un testo
+    const testoDiUnImporto: DatoVerificaSigc = { campo: 'importoTopUp', colonna: 'x', voce: 'x', tipo: 'testo' };
+    // @ts-expect-error: un si'/no col motivo non e' un conteggio col motivo
+    const conteggioDiUnSiNo: DatoVerificaSigc = { campo: 'includeTopUp', colonna: 'x', voce: 'x', tipo: 'conteggioMotivato' };
+    expect([siNoDiUnConteggio, conteggioDiUnFacoltativo, testoDiUnImporto, conteggioDiUnSiNo].map((d) => d.tipo)).toEqual(['siNo', 'conteggio', 'testo', 'conteggioMotivato']);
+    // a runtime, sulla riga di prova (tutti i campi presenti; i dati motivati col valore): la forma del valore e' quella del tipo
+    const piena = rigaSmp({ azioniAttivate: datoSmp(2), previsionePagamentoEsercizio: datoSmp(true), outputAttesoFinanziate: 10, outputErogatoEsercizio: 5, indicatoreRisultato: 'R.1' });
+    const forma = (v: unknown): string => (typeof v === 'object' && v !== null && 'valore' in v ? `motivato ${typeof v.valore}` : typeof v);
+    const attese: Record<TipoDatoSigc, string> = { conteggioMotivato: 'motivato number', importo: 'motivato number', siNo: 'motivato boolean', conteggio: 'number', quantita: 'number', numero: 'number', testo: 'string' };
+    expect(DATI_VERIFICA_SIGC.filter((d) => forma(piena[d.campo]) !== attese[d.tipo]).map((d) => d.campo)).toEqual([]);
   });
 
   it('valori per l ordinamento: numeri, si e no come testo, testi; assenti = null', () => {

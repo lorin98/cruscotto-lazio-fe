@@ -5,6 +5,7 @@
 // per l'ordinamento, il testo della ricerca, il periodo della risposta (esercizio e anno delle domande, anche per la card
 // della Home) e i riferimenti della risposta (pagina e scheda). I componenti li rendono con un map: qui nessun calcolo
 // resta nei componenti.
+import type { DatoMotivatoLike } from '../../../entities/importo';
 import { numeroOpzionale, testoPerimetro } from '../../../shared/lib';
 import type { ValoreOrdinabile } from '../../../shared/lib';
 import type { RigaVerificaSigc, VerificaSigc } from './dto';
@@ -18,16 +19,41 @@ import { periodoEsercizio, siNo } from './formato';
 export type TipoDatoSigc = 'conteggioMotivato' | 'conteggio' | 'importo' | 'siNo' | 'quantita' | 'numero' | 'testo';
 export type CampoVerificaSigc = Exclude<keyof RigaVerificaSigc, 'codiceIntervento'>;
 
-export interface DatoVerificaSigc {
-  campo: CampoVerificaSigc;
+/**
+ * I tipi del valore ammessi per un campo, dalla sua forma nel DTO: testo per le stringhe; conteggio per i numeri sempre
+ * valorizzati, quantita' o numero facoltativo per quelli che possono essere null; si'/no per i dati motivati booleani;
+ * conteggio col motivo o importo per i dati motivati numerici.
+ */
+export type TipiDelCampo<V> = [NonNullable<V>] extends [string]
+  ? 'testo'
+  : [NonNullable<V>] extends [number]
+    ? null extends V
+      ? 'quantita' | 'numero'
+      : 'conteggio'
+    : [NonNullable<V>] extends [DatoMotivatoLike<boolean>]
+      ? 'siNo'
+      : [NonNullable<V>] extends [DatoMotivatoLike<number>]
+        ? 'conteggioMotivato' | 'importo'
+        : never;
+
+interface DatoDelCampo<C extends CampoVerificaSigc> {
+  campo: C;
   /** Titolo della colonna nella tabella della verifica SMP SIGC (quello della pagina del finanziario). */
   colonna: string;
   /** Etichetta della voce nella scheda Verifica SMP SIGC del dettaglio dell'intervento. */
   voce: string;
-  tipo: TipoDatoSigc;
+  /** Il tipo del valore, legato alla forma del campo: un tipo sbagliato non compila. */
+  tipo: TipiDelCampo<RigaVerificaSigc[C]>;
   /** Parte nascosta nella tabella (si mostra da "Colonne"): visibili quelle del wireframe approvato. */
   nascosta?: boolean;
 }
+
+/**
+ * Un dato della tabella, come unione per campo: il compilatore controlla il legame fra il campo e il tipo dichiarato, su
+ * cui ValoreDelDatoSigc sceglie la resa (review del riallineamento IST-05: nel finanziario, prima dello spostamento,
+ * ogni colonna aveva l'accessore tipizzato sul DTO).
+ */
+export type DatoVerificaSigc = { [C in CampoVerificaSigc]: DatoDelCampo<C> }[CampoVerificaSigc];
 
 /** I dati di TX-0015 nell'ordine della pagina e del wireframe (l'intervento e' l'intestazione di riga, a parte). */
 export const DATI_VERIFICA_SIGC: readonly DatoVerificaSigc[] = [
