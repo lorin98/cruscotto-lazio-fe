@@ -339,7 +339,7 @@ describe("RF015: la scheda Verifica SMP SIGC dell'intervento (TX-0015 filtrata s
     expect(await screen.findByText('File CSV scaricato.')).toBeTruthy();
   });
 
-  it('errore di TX-0015: un solo avviso della pagina con Riprova, la scheda dice il testo statico; "Dati al" non disponibile', async () => {
+  it('errore di TX-0015: un solo avviso della pagina con Riprova; restano tablist e selettore, la scheda SIGC dice il testo statico; "Dati al" non disponibile', async () => {
     servi();
     let tentativi = 0;
     server.use(
@@ -353,9 +353,58 @@ describe("RF015: la scheda Verifica SMP SIGC dell'intervento (TX-0015 filtrata s
     const avviso = await screen.findByRole('alert');
     expect(screen.getAllByRole('alert')).toHaveLength(1);
     expect(within(screen.getByRole('region', { name: 'Riferimenti dei dati' })).getByText('Ultimo dato sincronizzato: non disponibile')).toBeTruthy();
+    // l'errore dell'unica lettura partita resta nella sua scheda (review IST-01): tablist, selettore e testo statico
+    expect(screen.getAllByRole('tab').map((t) => [t.textContent, t.getAttribute('aria-selected')])).toEqual([
+      ['Verifica SMP non SIGC', 'false'],
+      ['Verifica SMP SIGC', 'true'],
+    ]);
+    const scheda = screen.getByRole('tabpanel', { name: 'Verifica SMP SIGC' });
+    expect(within(scheda).getByRole('combobox', { name: 'Esercizio finanziario' })).toBeTruthy();
+    expect(within(scheda).getByText(NON_CARICATI)).toBeTruthy();
+    expect(screen.getAllByText(NON_CARICATI)).toHaveLength(1);
     await userEvent.click(within(avviso).getByRole('button', { name: 'Riprova' }));
     await vociSigc();
     expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('errore di TX-0015 che si ripete (TEMPO_SCADUTO): dal selettore della scheda si sceglie un altro esercizio, che si legge', async () => {
+    const lette = servi();
+    server.use(
+      http.get('*/api/istituzionale/verifica-smp-sigc', ({ request }) => {
+        const p = new URL(request.url).searchParams;
+        if (p.get('esercizio') === '2025') return HttpResponse.json(problema(503, 'TEMPO_SCADUTO', 'lettura oltre il tetto di durata'), { status: 503 });
+        return HttpResponse.json(verificaSigcPer(VERIFICA_SMP, p));
+      }),
+    );
+    const { router } = apri('/istituzionale/interventi/SRA01?esercizio=2025');
+    await screen.findByRole('alert');
+    const scheda = screen.getByRole('tabpanel', { name: 'Verifica SMP SIGC' });
+    await userEvent.selectOptions(within(scheda).getByRole('combobox', { name: 'Esercizio finanziario' }), '2024');
+    await userEvent.click(within(scheda).getByRole('button', { name: 'Mostra' }));
+    await waitFor(() => expect(router.state.location.search).toBe('?esercizio=2024'));
+    await waitFor(async () => expect((await vociSigc()).querySelector('caption')?.textContent).toContain('(esercizio 2024, domande della campagna 2023)'));
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(lette.verifica).toEqual([]);
+  });
+
+  it('errore di TX-0016 con l anno (caso speculare): restano tablist e selettore dell anno, la scheda dice il testo statico e la scheda SIGC si apre', async () => {
+    const lette = servi();
+    server.use(http.get('*/api/istituzionale/verifica-smp-non-sigc', () => HttpResponse.json(problema(503, 'TEMPO_SCADUTO', 'lettura oltre il tetto di durata'), { status: 503 })));
+    apri('/istituzionale/interventi/SRA01?anno=2024');
+    expect((await screen.findByRole('alert')).textContent).toBeTruthy();
+    expect(screen.getAllByRole('tab').map((t) => [t.textContent, t.getAttribute('aria-selected')])).toEqual([
+      ['Verifica SMP non SIGC', 'true'],
+      ['Verifica SMP SIGC', 'false'],
+    ]);
+    const scheda = screen.getByRole('tabpanel', { name: 'Verifica SMP non SIGC' });
+    expect(within(scheda).getByRole('combobox', { name: 'Anno di riferimento del monitoraggio SMP non SIGC' })).toBeTruthy();
+    expect(within(scheda).getByText(NON_CARICATI)).toBeTruthy();
+    expect(screen.queryByRole('region', { name: 'Domande ricevute non SIGC' })).toBeNull();
+    // l'altra scheda resta raggiungibile: senza esercizio chiede di sceglierlo e non legge
+    await userEvent.click(screen.getByRole('tab', { name: 'Verifica SMP SIGC' }));
+    expect(within(screen.getByRole('tabpanel', { name: 'Verifica SMP SIGC' })).getByText("Scegli l'esercizio finanziario da consultare.")).toBeTruthy();
+    expect(lette.verificaSigc).toEqual([]);
+    expect(screen.getAllByRole('alert')).toHaveLength(1);
   });
 
   it('link verifica-smp-sigc-intervento: il pulsante della testata col grant di TX-0015 porta intervento ed esercizio; senza il grant ne pulsante ne scheda', async () => {
@@ -384,7 +433,12 @@ describe("RF015: la scheda Verifica SMP SIGC dell'intervento (TX-0015 filtrata s
     expect(screen.queryByText('Caricamento in corso…')).toBeNull();
     expect(screen.queryByRole('link', { name: 'Verifica SMP non SIGC filtrata su questo intervento' })).toBeNull();
     expect(screen.getByRole('link', { name: 'Verifica SMP SIGC filtrata su questo intervento' }).getAttribute('href')).toBe('/istituzionale/verifica-smp-sigc?intervento=SRA01');
-    expect([lette.verifica, lette.verificaSigc]).toEqual([[], []]);
+    // il conteggio dopo una lettura valida (review IST-02): una lettura di TX-0016 partita senza grant sarebbe gia' arrivata
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Esercizio finanziario' }), '2025');
+    await userEvent.click(screen.getByRole('button', { name: 'Mostra' }));
+    await vociSigc();
+    expect(lette.verifica).toEqual([]);
+    expect(lette.verificaSigc).toEqual(['?intervento=SRA01&esercizio=2025']);
   });
 });
 

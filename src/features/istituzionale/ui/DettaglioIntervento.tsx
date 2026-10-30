@@ -10,8 +10,9 @@
 // SIGC); poi la scheda attiva e' stato della pagina. Ogni lettura parte solo col grant della sua transazione e quando la
 // sua scheda si apre (la SIGC solo con un esercizio); anno ed esercizio stanno nell'indirizzo (?anno=, ?esercizio=).
 // Stati: caricamento (scheletro, alla prima apertura), errore (un solo avviso della pagina, problem-type, Riprova: ogni
-// lettura vi registra il suo errore una volta), intervento senza dati nella verifica non SIGC (es. AT001) con il ritorno
-// al report; la scheda SIGC dice da se' l'esercizio non scelto e l'intervento senza dati nell'esercizio.
+// lettura vi registra il suo errore una volta; tablist e selettori restano, la scheda in errore dice il testo statico),
+// intervento senza dati nella verifica non SIGC (es. AT001) con il ritorno al report; la scheda SIGC dice da se'
+// l'esercizio non scelto e l'intervento senza dati nell'esercizio.
 // Design system: classi bootstrap-italia e del kit v2 (hero, badge, KPI); react-aria solo nelle schede (tablist) e nel
 // popover della pill.
 import { Link } from 'react-router';

@@ -402,6 +402,9 @@ describe('RF016 e RF015: il dettaglio dell intervento (testata, schede, KPI per 
     expect(statoDellaPagina('caricamento', 0, 0)).toBe('caricamento');
     expect(statoDellaPagina('caricamento', 1, 2)).toBe('caricamento');
     expect(statoDellaPagina('vuoto', 1, 2)).toBe('vuoto');
+    // l'errore delle letture partite resta nelle schede (review IST-01): senza schede, l'errore della pagina
+    expect([statoDellaPagina('errore', 1, 2), statoDellaPagina('errore', 1, 1), statoDellaPagina('errore', 2, 2)]).toEqual(['dati', 'dati', 'dati']);
+    expect(statoDellaPagina('errore', 1, 0)).toBe('errore');
   });
 
   it('schede per grant nell ordine del wireframe; la scheda iniziale dalla pagina di partenza; la scheda attiva fra le visibili', () => {

@@ -107,11 +107,14 @@ export function lettureDelloStato(verifica: LetturaDettaglio | null, sigc: Lettu
 }
 
 /**
- * Lo stato della pagina: quello delle letture partite; senza nessuna lettura partita ma con una scheda visibile (la scheda
- * SIGC aperta senza esercizio, che non legge) le schede, non lo scheletro.
+ * Lo stato della pagina: quello delle letture partite; con una scheda visibile le schede, non lo scheletro, se nessuna
+ * lettura e' partita (la scheda SIGC aperta senza esercizio, che non legge), e non il solo testo statico se le letture
+ * partite sono in errore: le schede leggono quando si aprono, e l'errore dell'unica partita toglierebbe tablist, l'altra
+ * scheda e il selettore dell'anno o dell'esercizio. La scheda in errore dice il testo statico col suo selettore e l'avviso
+ * della pagina tiene Riprova (review del riallineamento IST-01).
  */
 export function statoDellaPagina(stato: StatoDettaglio, lettureFatte: number, schede: number): StatoDettaglio {
-  return lettureFatte === 0 && schede > 0 ? 'dati' : stato;
+  return schede > 0 && (lettureFatte === 0 || stato === 'errore') ? 'dati' : stato;
 }
 
 export type IdScheda = 'verifica' | 'verificaSigc';
