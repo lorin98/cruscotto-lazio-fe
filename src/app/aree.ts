@@ -31,7 +31,7 @@ export interface PaginaArea {
   percorso: string;
   /** Voce breve del menu laterale. */
   voceMenu: string;
-  /** La voce del menu e' corrente anche nei sottopercorsi (es. /fisico/determine/<codice>); di norma solo sul percorso. */
+  /** La voce del menu e' corrente anche nei sottopercorsi (es. /procedurale/determine/<codice>); di norma solo sul percorso. */
   conSottopercorsi?: boolean;
 }
 

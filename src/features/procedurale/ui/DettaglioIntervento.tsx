@@ -1,6 +1,7 @@
 // DettaglioIntervento — pagina /procedurale/interventi/:codice (flusso panoramica approvato, dettaglio v2, scelta 1
 // approvata: accanto a quello del finanziario; nessuna transazione nuova, gli stessi report filtrati sull'intervento della
-// route e sullo stato dell'indirizzo, TX-0030 senza lo stato). Il codice del percorso si convalida prima di leggere: un
+// route e sullo stato dell'indirizzo; le Unit Amount, TX-0030, sono del fisico dal 29/10/2026). Il codice del percorso si
+// convalida prima di leggere: un
 // valore fuori formato (anche con '/') non manda richieste e la pagina lo dice. Barra dei filtri col solo stato area
 // programmazione (chip e pannello), le pill del perimetro e "Dati al" (TX-0024); percorso; testata con un solo h1 (codice e
 // descrizione da TX-0024; focus a ogni cambio di route), badge in testo (perimetro dell'intervento e attivato, da TX-0026)

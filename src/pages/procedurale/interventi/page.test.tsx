@@ -182,18 +182,6 @@ describe('RF029: scheda Area programmazione dell intervento (TX-0029)', () => {
   });
 });
 
-describe('RF030: scheda Unit Amount dell intervento (TX-0030, senza lo stato)', () => {
-  it('legge col solo intervento quando si apre; la tabella con la nota unica del pagato', async () => {
-    const lette = servi();
-    apri(`${SRD01}?stato=AMMESSA`);
-    await userEvent.click(await screen.findByRole('tab', { name: 'Unit Amount' }));
-    const t = await screen.findByRole('table', { name: /^Unit Amount di SRD01/ });
-    expect(lette.unitAmount).toEqual(['?intervento=SRD01']);
-    expect(within(t).getAllByRole('rowheader').map((c) => c.textContent)).toEqual(['UA1', 'UA2', 'UA1']);
-    expect(screen.getByText(/^Importo pagato, percentuale pagata sul richiesto e base storica: non disponibili per tutte le Unit Amount/)).toBeTruthy();
-  });
-});
-
 describe('RF031 e RF032: scheda Sottofasi dell intervento (TX-0031, TX-0032)', () => {
   it('legge le due sottofasi con l intervento e lo stato quando si apre; le card senza clic', async () => {
     const lette = servi();
@@ -382,7 +370,7 @@ describe('RF024: stati del dettaglio (caricamento, errore, senza dati, nessuna d
     servi();
     apri(`${SRD01}?stato=DECADENZA_TOTALE`);
     const vuoto = (await screen.findByText('Nessuna domanda di SRD01 per lo stato area programmazione scelto.')).closest('[role="status"]') as HTMLElement;
-    expect(screen.getAllByRole('tab')).toHaveLength(4);
+    expect(screen.getAllByRole('tab')).toHaveLength(3);
     await userEvent.click(within(vuoto).getByRole('button', { name: 'Modifica i filtri' }));
     expect(await screen.findByRole('dialog', { name: "Filtri del dettaglio dell'intervento" })).toBeTruthy();
   });

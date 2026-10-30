@@ -1,9 +1,9 @@
 // intervento.ts — il dettaglio procedurale dell'intervento come DATI (PURO, zero React; flusso panoramica, scelta 1
 // approvata il 22/10/2026): titolo e sopratitolo della testata (descrizione da TX-0024), badge in testo (perimetro
 // dell'intervento e attivato, da TX-0026), le schede visibili per grant nell'ordine del wireframe (Stati delle domande |
-// Area programmazione | Sottofasi, scelta 6 | Unit Amount) e gli esiti "senza dati" e "nessuna domanda" (per lo stato
-// scelto, nella propria ADA). Nessuna transazione nuova: gli stessi report filtrati sull'intervento (lo stato tranne che
-// per TX-0030).
+// Area programmazione | Sottofasi, scelta 6; la scheda Unit Amount e' uscita col riallineamento degli ambiti del
+// 29/10/2026, TX-0030 al fisico) e gli esiti "senza dati" e "nessuna domanda" (per lo stato scelto, nella propria ADA).
+// Nessuna transazione nuova: gli stessi report filtrati sull'intervento e sullo stato.
 import type { Distribuzione, Perimetro, RigaAmmesse } from './dto';
 import { nellaTuaArea, siNo } from './formato';
 import type { Lettura } from './grant';
@@ -28,16 +28,15 @@ export function badgeIntervento(riga: RigaAmmesse | undefined): string[] {
   return riga ? [`Perimetro: ${riga.perimetroIntervento ?? 'non valorizzato'}`, `Attivato: ${siNo(riga.attivato)}`] : [];
 }
 
-export type IdScheda = 'stati' | 'area' | 'sottofasi' | 'unitAmount';
+export type IdScheda = 'stati' | 'area' | 'sottofasi';
 
 /** I titoli delle schede, nell'ordine del wireframe. */
-export const TITOLI_SCHEDE: Readonly<Record<IdScheda, string>> = { stati: 'Stati delle domande', area: 'Area programmazione', sottofasi: 'Sottofasi', unitAmount: 'Unit Amount' };
+export const TITOLI_SCHEDE: Readonly<Record<IdScheda, string>> = { stati: 'Stati delle domande', area: 'Area programmazione', sottofasi: 'Sottofasi' };
 
 const LETTURE_SCHEDE: Readonly<Record<IdScheda, readonly Lettura[]>> = {
   stati: ['statiSostegno', 'statiPagamento'],
   area: ['riepilogo'],
   sottofasi: ['sottofasiSostegno', 'sottofasiPagamento'],
-  unitAmount: ['unitAmount'],
 };
 
 /** Le schede che il profilo vede: ognuna con almeno una delle sue letture. */

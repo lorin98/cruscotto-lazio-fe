@@ -19,14 +19,16 @@ export const GRANT = {
   statiPagamento: 'csr.tx-0028.read',
   /** TX-0029 (RF029): riepilogo per intervento e stato area programmazione. */
   riepilogo: 'csr.tx-0029.read',
-  /** TX-0030 (RF030): pagamenti per Unit Amount. */
-  unitAmount: 'csr.tx-0030.read',
+  /** TX-0020 (RF020): determine di una domanda (dal fisico il 29/10/2026); apre la pagina delle determine. */
+  determine: 'csr.tx-0020.read',
   /** TX-0031 (RF031): sottofasi di ammissibilita' della domanda di sostegno. */
   sottofasiSostegno: 'csr.tx-0031.read',
   /** TX-0032 (RF032): sottofasi di ammissibilita' della domanda di pagamento. */
   sottofasiPagamento: 'csr.tx-0032.read',
   /** TX-0056 dell'elenco operativo: destinazione dei link "Apri nell'elenco" (drill-down, OP-PR-08). */
   elencoDomande: GRANT_ELENCO.domande,
+  /** TX-0058 dell'elenco operativo: la scheda della domanda, destinazione del link scheda-domanda delle determine. */
+  schedaDomanda: GRANT_ELENCO.dettaglio,
 } as const;
 
 export type Lettura = keyof typeof GRANT;

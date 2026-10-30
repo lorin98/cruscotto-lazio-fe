@@ -1,20 +1,19 @@
 // grafici.ts — builder PURI dei grafici del procedurale, dal catalogo dei tipi del kit (ADR 0027): barre orizzontali
 // impilate degli stati delle domande (rilasciate e non ancora rilasciate: il segmento delle non rilasciate ha anche un
 // motivo a tratteggio, non solo il colore), barre orizzontali dello stato area programmazione e delle sottofasi, barre
-// raggruppate per intervento (importi, ammesse e con atto, domande del riepilogo; zoom oltre 12) e barre orizzontali
-// raggruppate delle Unit Amount. Ogni grafico ha la tabella equivalente; i valori senza fonte o non valorizzati sono
+// raggruppate per intervento (importi, ammesse e con atto, domande del riepilogo; zoom oltre 12); le barre delle Unit Amount
+// sono del fisico dal 29/10/2026. Ogni grafico ha la tabella equivalente; i valori senza fonte o non valorizzati sono
 // omessi e dichiarati col motivo, mai a zero; una fonte non attiva per tutto il grafico lo rende non disponibile, detto
-// in testo. Il dato di ogni barra porta il codice del drill-down (intervento, chiave della voce, riga delle Unit Amount).
+// in testo. Il dato di ogni barra porta il codice del drill-down (intervento, chiave della voce).
 import type { BarSeriesOption, EChartsOption } from 'echarts';
 import { descriviAssenza, testoConNota, testoMotivato } from '../../../entities/importo';
-import { COLORI, GRIGLIA_CON_ETICHETTE, MISURA_EURO, MISURA_NUMERI, MISURA_PERCENTUALI, aria, asseCategorieOrizzontale, barreRaggruppate, formatEuro, formatNumber, formatPercentuale, nonDisegnabile, notaOmessi, plurale, tooltipDettaglio, valoreInNumero } from '../../../shared/lib';
+import { COLORI, GRIGLIA_CON_ETICHETTE, MISURA_EURO, MISURA_NUMERI, aria, asseCategorieOrizzontale, barreRaggruppate, formatEuro, formatNumber, nonDisegnabile, notaOmessi, plurale, tooltipDettaglio, valoreInNumero } from '../../../shared/lib';
 import type { DatiGrafico, DatoSerie, MisuraBarre, TabellaEquivalente, VoceRaggruppata } from '../../../shared/lib';
-import type { RigaAmmesse, RigaRiepilogo, RigaUnitAmount, Sottofasi, TipoDomanda } from './dto';
-import { NON_DISPONIBILE_BREVE, resaAssenza } from './formato';
+import type { RigaAmmesse, RigaRiepilogo, Sottofasi, TipoDomanda } from './dto';
+import { NON_DISPONIBILE_BREVE } from './formato';
 import { etichettaVoce } from './sottofasi';
 import { diTipo, rilasciate } from './stati';
 import type { VoceDistribuzione } from './stati';
-import { chiaveUnitAmount, etichettaUnitAmount } from './unitAmount';
 
 /** Conteggi di domande: i numeri del kit, con la descrizione accessibile che dice cosa contano. */
 export const MISURA_DOMANDE: MisuraBarre = { ...MISURA_NUMERI, descrizione: 'numeri di domande' };
@@ -192,38 +191,4 @@ export function graficoSottofasi(s: Sottofasi, tipo: TipoDomanda, titolo: string
   if (disegnate.length === 0) return nonDisegnabile('nessuna voce censita', tabella, omessi);
   const descrizione = `${titolo}: barre orizzontali per ${plurale(disegnate.length, 'voce', 'voci')}: ${disegnate.map((v) => `${v.etichetta} ${formatNumber(v.valore)}`).join(', ')}.${notaOmessi(omessi)}`;
   return { opzioni: barreOrizzontali(disegnate, 'Domande della voce', descrizione), tabella, omessi };
-}
-
-/** Il pagato delle Unit Amount non e' attivo (nessuna Unit Amount ha l'importo pagato: D-06 Rev. 2, OP-010). */
-export function pagatoSenzaFonte(righe: readonly RigaUnitAmount[]): boolean {
-  return righe.some((r) => r.importoPagato?.motivo === 'FONTE_NON_ATTIVA');
-}
-
-const percentuale = (d: RigaUnitAmount['percentualePagata']) => testoMotivato(d, formatPercentuale);
-
-/** Una percentuale del pagato in testo, con la fonte non attiva "non disponibile" in breve: il motivo lo dice la card. */
-const percentualeBreve = (d: RigaUnitAmount['percentualePagata']) => (d?.valore != null ? formatPercentuale(d.valore) : testoConNota(resaAssenza(d, true)));
-
-/**
- * Barre orizzontali raggruppate della percentuale pagata e della base storica per Unit Amount (TX-0030); senza la fonte
- * del pagato il grafico non e' disponibile e lo dice una volta nel testo della card, la tabella equivalente ha le celle
- * "non disponibile" in breve (scelta 8 approvata). Clic su una barra: l'anteprima della riga (codice = la riga).
- */
-export function graficoUnitAmount(righe: readonly RigaUnitAmount[], titolo: string): DatiGrafico {
-  const voci: VoceRaggruppata[] = righe.map((r) => ({
-    categoria: etichettaUnitAmount(r),
-    codice: chiaveUnitAmount(r),
-    valori: [r.percentualePagata?.valore ?? null, r.baseStorica?.valore ?? null],
-    celle: [percentuale(r.percentualePagata), percentuale(r.baseStorica)],
-  }));
-  const definizioni = [
-    { nome: 'Percentuale pagata', soggetto: 'percentuale pagata' },
-    { nome: 'Base storica', soggetto: 'base storica' },
-  ];
-  const testi = { caption: titolo, colonne: ['Unit Amount', 'Pagato sul richiesto', 'Base storica'], titolo, vuoto: 'nessuna percentuale valorizzata', unita: ['Unit Amount', 'Unit Amount'] as [string, string] };
-  if (pagatoSenzaFonte(righe)) {
-    const tabella: TabellaEquivalente = { caption: titolo, colonne: testi.colonne, righe: righe.map((r) => [etichettaUnitAmount(r), percentualeBreve(r.percentualePagata), percentualeBreve(r.baseStorica)]) };
-    return nonDisegnabile(`nessuna Unit Amount ha ancora l'importo pagato (${descriviAssenza(righe[0]?.importoPagato).nota ?? 'fonte non attiva'})`, tabella, []);
-  }
-  return barreRaggruppate(voci, definizioni, testi, { misura: MISURA_PERCENTUALI, orizzontale: true });
 }

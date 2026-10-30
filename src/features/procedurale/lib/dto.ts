@@ -1,5 +1,5 @@
 // dto.ts — forme minime dei DTO letti dalle funzioni pure del procedurale, con i nomi dei campi del contratto
-// (TX-0024..TX-0032). Sono strutturali (i layer puri non importano dal confine api/): ui/contratto.ts verifica a
+// (TX-0024..TX-0032; TX-0030 e' del fisico dal 29/10/2026) e TX-0020 (dal fisico). Sono strutturali (i layer puri non importano dal confine api/): ui/contratto.ts verifica a
 // compilazione che ogni campo esista nel DTO generato, cosi' un campo rinominato nella spec ferma la compilazione invece
 // di sparire in pagina. I conteggi e gli importi col motivo dell'assenza (ConteggioProcedurale, QuantitaProcedurale,
 // Importo) sono DatoMotivatoLike dell'entity importo: il valore, oppure null col motivo (FONTE_NON_ATTIVA con la fonte
@@ -130,25 +130,6 @@ export interface Sottofasi {
   altre?: SottofaseCensita[];
 }
 
-/** PagamentiUnitAmountRiga di TX-0030. */
-export interface RigaUnitAmount {
-  codiceIntervento?: string;
-  codiceUnitAmount?: string;
-  gruppoColturale?: string;
-  esercizio?: number;
-  importoUnitario?: Dato;
-  outputPrevisto?: Dato;
-  importoPagato?: Dato;
-  percentualePagata?: Dato;
-  baseStorica?: Dato;
-}
-
-/** PagamentiUnitAmount di TX-0030 (dati di programma: sempre regionali). */
-export interface UnitAmount {
-  perimetro?: 'REGIONALE';
-  righe?: RigaUnitAmount[];
-}
-
 /** StatoAreaProgrammazione di TX-0025: chiave da rimandare in ?stato=, descrizione, origine. */
 export interface StatoArea {
   chiave: string;
@@ -170,4 +151,21 @@ export interface ValoriFiltri {
   obiettiviGenerali?: string[];
   obiettiviPolicy?: string[];
   ultimiDatiSincronizzati?: UltimoDato[];
+}
+
+/** DeterminaDellaDomanda di TX-0020 (determine di una domanda, dal fisico col riallineamento degli ambiti del 29/10/2026). */
+export interface Determina {
+  codice: string;
+  data: string;
+  fonteStatoAreaProgrammazione: boolean;
+  fonteComparto: boolean;
+}
+
+/** DetermineDomanda di TX-0020: la determina corrente (oppure null con NON_VALORIZZATO) e quelle con riga aperta. */
+export interface Determine {
+  codiceABarre: string;
+  tipoDomanda: string;
+  domandaChiusa: boolean;
+  corrente: { valore: Determina | null; motivo: string | null };
+  elenco: Determina[];
 }

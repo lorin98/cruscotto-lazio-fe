@@ -1,5 +1,6 @@
 // Test L1 delle funzioni PURE del procedurale (lib/): grant e pagine, criteri nell'indirizzo, link dello uiplan, testi,
-// distribuzioni per stato, KPI, sottofasi, Unit Amount, riepilogo, dettaglio dell'intervento e builder dei grafici.
+// distribuzioni per stato, KPI, sottofasi, riepilogo, dettaglio dell'intervento, determine di una domanda (dal fisico il
+// 29/10/2026; le Unit Amount sono del fisico) e builder dei grafici.
 // Chiamate dirette, niente render; i dati sono quelli degli scenari del backend (fixture del procedurale).
 import type { BarSeriesOption } from 'echarts';
 import { describe, expect, it } from 'vitest';
@@ -14,7 +15,6 @@ import {
   criteriDelReport,
   criteriDellIntervento,
   criteriNellaBarra,
-  criteriUnitAmount,
   etichettaStatoArea,
   nessunFiltro,
   notaStatiEsclusi,
@@ -65,7 +65,21 @@ import {
 import type { VoceDistribuzione } from '../src/features/procedurale/lib/stati';
 import { interventiSenzaContributo, kpiDegliStati, kpiDelleAmmesse, kpiDomandeDellIntervento, kpiInterventi, notaContributo, testoSenzaContributo } from '../src/features/procedurale/lib/kpi';
 import { altreSottofasi, anagraficaVuota, etichettaVoce, righeVoci, senzaDomandeNeiFiltri, testoCensita } from '../src/features/procedurale/lib/sottofasi';
-import { CAMPI_PAGATO, TITOLI_PAGATO, assenzaPagato, chiaveUnitAmount, etichettaUnitAmount, notaPagato, valoreDi } from '../src/features/procedurale/lib/unitAmount';
+import {
+  MAX_CIFRE,
+  badgeDetermine,
+  codiceDaCercare,
+  codiceDalPercorso,
+  eCorrente,
+  fonteDi,
+  percorsoDetermine,
+  percorsoSchedaDellaDomanda,
+  siNo as siNoDetermine,
+  soloCifre,
+  sopratitoloDetermine,
+  testoTipoDomanda,
+  titoloDetermine,
+} from '../src/features/procedurale/lib/determine';
 import { TITOLI_SEZIONI, codiceDellaRiga, colonneVoci, distribuzioneDi, domandeDellaVoce, righeRiepilogo, senzaStatoDi, testoConNonRilasciate, voceDellaColonna } from '../src/features/procedurale/lib/riepilogo';
 import {
   SENZA_DATI,
@@ -89,15 +103,13 @@ import {
   graficoRiepilogo,
   graficoSottofasi,
   graficoStati,
-  graficoUnitAmount,
-  pagatoSenzaFonte,
   sottofasiSenzaFonte,
   tabellaStati,
   testoDomande,
   testoImporto,
   testoNonRilasciate,
 } from '../src/features/procedurale/lib/grafici';
-import { STATI_AREA, ammessePer, riepilogoPer, sottofasiPagamentoPer, sottofasiSostegnoPer, statiPer, unitAmountPer } from '../src/features/procedurale/testing/fixture';
+import { DETERMINE, DETERMINE_CHIUSA, DETERMINE_NESSUNA, STATI_AREA, ammessePer, riepilogoPer, sottofasiPagamentoPer, sottofasiSostegnoPer, statiPer } from '../src/features/procedurale/testing/fixture';
 import type { Ammesse, RigaAmmesse } from '../src/features/procedurale/lib/dto';
 import { anteprimaAmmesse, domandeDiSostegno, etichetteAnteprima, testoInterventi } from '../src/features/procedurale/lib/anteprima';
 import { GRIGLIA_CON_ETICHETTE, asseCategorieOrizzontale } from '../src/shared/lib';
@@ -120,10 +132,11 @@ describe('procedurale: grant e pagine (menu e Home, G1)', () => {
       'csr.tx-0027.read',
       'csr.tx-0028.read',
       'csr.tx-0029.read',
-      'csr.tx-0030.read',
+      'csr.tx-0020.read',
       'csr.tx-0031.read',
       'csr.tx-0032.read',
       'csr.tx-0056.read',
+      'csr.tx-0058.read',
     ]);
     const status = { authenticated: true, user: { username: 'u', profile: 'p', roles: ['csr.tx-0027.read'] } };
     expect([puoLeggere(status, 'statiSostegno'), puoLeggere(status, 'ammesse'), puoLeggere(undefined, 'statiSostegno')]).toEqual([true, false, false]);
@@ -136,9 +149,13 @@ describe('procedurale: grant e pagine (menu e Home, G1)', () => {
       ['Stati delle domande di pagamento', '/procedurale/stati-pagamento'],
       ['Domande ammesse', '/procedurale/ammesse'],
       ['Sottofasi di ammissibilità', '/procedurale/sottofasi'],
-      ['Unit Amount', '/procedurale/unit-amount'],
       ['Riepilogo per intervento', '/procedurale/riepilogo'],
+      ['Determine di una domanda', '/procedurale/determine'],
     ]);
+    // le determine sono l'ultima voce, corrente anche coi sottopercorsi (/procedurale/determine/<codice>); Unit Amount al fisico
+    expect(PAGINE_PROCEDURALE.at(-1)?.conSottopercorsi).toBe(true);
+    expect(pagineVisibili((g) => g === GRANT.determine).map((p) => p.percorso)).toEqual(['/procedurale/determine']);
+    expect(pagineVisibili((g) => g === 'csr.tx-0030.read')).toEqual([]);
     expect(pagineVisibili((g) => g === GRANT.statiPagamento).map((p) => p.percorso)).toEqual(['/procedurale', '/procedurale/stati-pagamento']);
     expect(pagineVisibili((g) => g === GRANT.sottofasiPagamento).map((p) => p.percorso)).toEqual(['/procedurale/sottofasi']);
     expect(pagineVisibili(() => false)).toEqual([]);
@@ -163,10 +180,9 @@ describe('procedurale: criteri nell indirizzo (RF024: intervento, OS, OG, OP e s
     for (const no of ['', ' AMMESSA', 'AMMESSA ', '<x>', 'a'.repeat(101), null, undefined]) expect(chiaveStatoValida(no)).toBe(false);
   });
 
-  it('criteri delle letture: i cinque filtri dei report, i quattro delle Unit Amount, quelli del dettaglio; Azzera', () => {
+  it('criteri delle letture: i cinque filtri dei report, quelli del dettaglio; Azzera', () => {
     const c = { intervento: ['SRD01'], os: ['OS4'], azione: ['3'], stato: ['AMMESSA'] };
     expect(criteriDelReport(c)).toEqual({ intervento: ['SRD01'], os: ['OS4'], stato: ['AMMESSA'] });
-    expect(criteriUnitAmount(c)).toEqual({ intervento: ['SRD01'], os: ['OS4'] });
     expect(criteriDellIntervento('SRD01', ['REVOCATA'])).toEqual({ intervento: ['SRD01'], stato: ['REVOCATA'] });
     expect(criteriDellIntervento('SRD01', [])).toEqual({ intervento: ['SRD01'] });
     expect([nessunFiltro(c, false), nessunFiltro(c, true), nessunFiltro({ os: ['OS4'] }, true)]).toEqual([{}, { stato: ['AMMESSA'] }, {}]);
@@ -426,7 +442,7 @@ describe('procedurale: testi, KPI e assenze', () => {
   });
 });
 
-describe('procedurale: sottofasi (SC-PC_SOTTOFASI, SC-PC_SOTTOFASI_FILTRI) e Unit Amount (SC-PC_UNIT_AMOUNT)', () => {
+describe('procedurale: sottofasi (SC-PC_SOTTOFASI, SC-PC_SOTTOFASI_FILTRI)', () => {
   it('righe delle voci e altre sottofasi nell ordine della risposta; la voce conta le domande distinte, la censita le sue', () => {
     const pag = sottofasiPagamentoPer(q());
     const righe = righeVoci(pag);
@@ -445,25 +461,6 @@ describe('procedurale: sottofasi (SC-PC_SOTTOFASI, SC-PC_SOTTOFASI_FILTRI) e Uni
     expect(senzaDomandeNeiFiltri(sottofasiPagamentoPer(q('intervento=SRD01')))).toBe(false);
     expect(senzaDomandeNeiFiltri(sottofasiSostegnoPer())).toBe(false);
     expect([sottofasiSenzaFonte(sottofasiSostegnoPer()), sottofasiSenzaFonte(sottofasiPagamentoPer(q('os=OS5')))]).toEqual([true, false]);
-  });
-
-  it('Unit Amount: chiave ed etichetta della riga; la nota unica e le celle brevi con la fonte del pagato non attiva (scelta 8)', () => {
-    const [r] = unitAmountPer(q()).righe ?? [];
-    expect([chiaveUnitAmount(r), etichettaUnitAmount(r)]).toEqual(['SRD01|UA1|2024', 'UA1 (SRD01, esercizio 2024)']);
-    expect(chiaveUnitAmount({})).toBe('||');
-    expect(CAMPI_PAGATO).toEqual(['importoPagato', 'percentualePagata', 'baseStorica']);
-    // una sola mappa dei nomi per la tabella e il drawer
-    expect(CAMPI_PAGATO.map((c) => TITOLI_PAGATO[c])).toEqual(['Importo pagato', 'Pagato sul richiesto', 'Base storica']);
-    expect(notaPagato(unitAmountPer(q()).righe ?? [])).toBe(
-      'Importo pagato, percentuale pagata sul richiesto e base storica: non disponibili per tutte le Unit Amount (fonte pagato per Unit Amount non attiva). Nelle celle: "non disponibile".',
-    );
-    expect(notaPagato(unitAmountPer(q(), { pagato: true }).righe ?? [])).toBeNull();
-    expect(assenzaPagato(r, 'baseStorica', true)).toBe(NON_DISPONIBILE_BREVE);
-    // il drawer non arriva alla nota della tabella: col motivo
-    expect(assenzaPagato(r, 'baseStorica', false)).toEqual({ disponibile: false, testo: 'non disponibile', nota: 'fonte pagato per Unit Amount non attiva' });
-    const [, ua2] = unitAmountPer(q(), { pagato: true }).righe ?? [];
-    expect(assenzaPagato(ua2, 'importoPagato', true)).toEqual({ disponibile: false, testo: 'non valorizzato', nota: 'il dato non è presente nella fonte' });
-    expect([valoreDi({ valore: 3 }), valoreDi({ valore: null }), valoreDi(undefined)]).toEqual([3, null, null]);
   });
 });
 
@@ -501,9 +498,10 @@ describe('procedurale: riepilogo per intervento (SC-PC_RIEPILOGO) e dettaglio de
     expect(badgeIntervento(RIGA('SRD01'))).toEqual(['Perimetro: SIGC no', 'Attivato: sì']);
     expect(badgeIntervento(RIGA('SRD02'))).toEqual(['Perimetro: non valorizzato', 'Attivato: no']);
     expect(badgeIntervento(undefined)).toEqual([]);
-    expect(Object.values(TITOLI_SCHEDE)).toEqual(['Stati delle domande', 'Area programmazione', 'Sottofasi', 'Unit Amount']);
-    expect(schedeVisibili(() => true)).toEqual(['stati', 'area', 'sottofasi', 'unitAmount']);
-    expect(schedeVisibili((l) => l === 'statiPagamento' || l === 'unitAmount')).toEqual(['stati', 'unitAmount']);
+    // la scheda Unit Amount e' uscita col riallineamento degli ambiti del 29/10/2026 (TX-0030 al fisico)
+    expect(Object.values(TITOLI_SCHEDE)).toEqual(['Stati delle domande', 'Area programmazione', 'Sottofasi']);
+    expect(schedeVisibili(() => true)).toEqual(['stati', 'area', 'sottofasi']);
+    expect(schedeVisibili((l) => l === 'statiPagamento' || l === 'riepilogo')).toEqual(['stati', 'area']);
     expect([schedaAttiva(['stati', 'area'], 'area'), schedaAttiva(['stati'], 'area'), schedaAttiva(['stati', 'area'], null), schedaAttiva([], null)]).toEqual(['area', 'stati', 'stati', undefined]);
     const zero = ammessePer(q('intervento=SRD02')).righe?.[0];
     expect(senzaDomandeDellIntervento(zero, statiPer('SOSTEGNO', q('intervento=SRD02')).righe?.[0]?.stati, undefined)).toBe(true);
@@ -593,27 +591,6 @@ describe('procedurale: builder dei grafici (tabella equivalente, valori assenti 
     expect(pagamento.omessi[0]).toBe("Congruenza e conformita' documenti allegati: non valorizzato (il dato non è presente nella fonte)");
     expect(graficoSottofasi({ voci: [] }, 'PAGAMENTO', 'T').motivoAssenza).toBe('nessuna voce censita');
   });
-
-  it('Unit Amount: senza la fonte del pagato grafico non disponibile; con la fonte barre orizzontali raggruppate', () => {
-    const righe = unitAmountPer(q()).righe ?? [];
-    const senza = graficoUnitAmount(righe, 'Percentuale pagata per Unit Amount');
-    expect(senza.motivoAssenza).toBe("nessuna Unit Amount ha ancora l'importo pagato (fonte pagato per Unit Amount non attiva)");
-    // il motivo e' detto una volta dal testo della card (motivoAssenza): nelle celle "non disponibile" in breve (scelta 8)
-    expect(senza.tabella.righe).toEqual([
-      ['UA1 (SRD01, esercizio 2024)', 'non disponibile', 'non disponibile'],
-      ['UA2 (SRD01, esercizio 2024)', 'non disponibile', 'non disponibile'],
-      ['UA1 (SRD01, esercizio 2025)', 'non disponibile', 'non disponibile'],
-    ]);
-    // un'altra assenza resta col motivo
-    const mista = graficoUnitAmount([righe[0], { ...righe[1], baseStorica: { valore: null, motivo: 'NON_VALORIZZATO', fonte: null } }], 'T');
-    expect(mista.tabella.righe[1]).toEqual(['UA2 (SRD01, esercizio 2024)', 'non disponibile', 'non valorizzato (il dato non è presente nella fonte)']);
-    expect(pagatoSenzaFonte(righe)).toBe(true);
-    const con = graficoUnitAmount(unitAmountPer(q(), { pagato: true }).righe ?? [], 'Percentuale pagata per Unit Amount');
-    const o = con.opzioni as { yAxis: { type: string; data: string[] } };
-    expect(o.yAxis.type).toBe('category');
-    expect(o.yAxis.data).toEqual(['UA1 (SRD01, esercizio 2024)', 'UA1 (SRD01, esercizio 2025)']);
-    expect(serie(con.opzioni)[0].data?.[0]).toMatchObject({ value: 40, codice: 'SRD01|UA1|2024' });
-  });
 });
 
 describe('RF026 e RF027: card della Home coi numeri della panoramica (OP-PR-10, decisione dell utente del 26/10/2026)', () => {
@@ -685,5 +662,48 @@ describe('RF026: contributo ammesso con interventi senza contributo (decisione D
     const d: Ammesse = ammessePer(senzaFiltri);
     const righe = (d.righe ?? []).map((r) => (r.contributoAmmesso.valore == null ? { ...r, contributoAmmesso: { valore: 100, motivo: null, fonte: null } } : r));
     expect(anteprimaAmmesse({ ...d, righe })?.contributo).toEqual({ valore: 800 });
+  });
+});
+
+// le determine di una domanda (TX-0020) sono del procedurale dal 29/10/2026: gli stessi casi del fisico, con la route nuova
+describe('RF020: determine di una domanda (codice, link e testi)', () => {
+  it('codice del percorso: assente, valido o non valido (nessuna lettura)', () => {
+    expect(codiceDalPercorso(undefined)).toEqual({ stato: 'assente' });
+    expect(codiceDalPercorso('')).toEqual({ stato: 'assente' });
+    expect(codiceDalPercorso('54810769585')).toEqual({ stato: 'valido', codice: '54810769585' });
+    expect(codiceDalPercorso('5481A')).toEqual({ stato: 'non-valido' });
+  });
+
+  it('modulo di ricerca: le sole cifre, almeno una e al piu 30', () => {
+    expect(soloCifre(' 5481-0769 585 ')).toBe('54810769585');
+    expect(codiceDaCercare(' 5481 0769585')).toEqual({ codice: '54810769585' });
+    expect(codiceDaCercare('abc')).toEqual({ errore: 'Scrivi il codice a barre della domanda: contano solo le cifre.' });
+    expect(codiceDaCercare('1'.repeat(MAX_CIFRE + 1))).toEqual({ errore: 'Il codice a barre ha al più 30 cifre: ne hai scritte 31.' });
+  });
+
+  it('link cerca-domanda (stessa route, nel procedurale) e scheda-domanda (elenco operativo, col grant e domanda non chiusa)', () => {
+    expect(percorsoDetermine()).toBe('/procedurale/determine');
+    expect(percorsoDetermine('54810769585')).toBe('/procedurale/determine/54810769585');
+    expect(percorsoSchedaDellaDomanda(DETERMINE, true)).toBe('/elenco-operativo/domande/PAGAMENTO/54810769585');
+    expect(percorsoSchedaDellaDomanda(DETERMINE, false)).toBeNull();
+    expect(percorsoSchedaDellaDomanda(DETERMINE_CHIUSA, true)).toBeNull();
+  });
+
+  it('testata: tipo, corrente o chiusa, numero di determine', () => {
+    expect(testoTipoDomanda('SOSTEGNO')).toBe('Domanda di sostegno');
+    expect(badgeDetermine(DETERMINE)).toEqual(['Domanda di pagamento', 'Domanda corrente', '3 determine con riga aperta']);
+    expect(badgeDetermine(DETERMINE_CHIUSA)).toEqual(['Domanda di pagamento', 'Domanda chiusa: non è più nelle fonti SIAN', '1 determina con riga aperta']);
+    expect(sopratitoloDetermine(DETERMINE)).toBe('Domanda di pagamento 54810769585 - fonte delle informazioni');
+    expect(titoloDetermine('54810769585')).toBe('Determine della domanda 54810769585');
+  });
+
+  it('determina corrente, fonti dei campi (la piu recente che li valorizza) e si/no in testo', () => {
+    expect(DETERMINE.elenco.map((d) => eCorrente(d, DETERMINE.corrente))).toEqual([true, false, false]);
+    expect(eCorrente(DETERMINE.elenco[0], DETERMINE_NESSUNA.corrente)).toBe(false);
+    expect(fonteDi(DETERMINE.elenco, 'fonteStatoAreaProgrammazione')?.codice).toBe('G00001');
+    expect(fonteDi(DETERMINE.elenco, 'fonteComparto')?.codice).toBe('G00002');
+    expect(fonteDi(DETERMINE_NESSUNA.elenco, 'fonteComparto')).toBeUndefined();
+    expect(siNoDetermine(true, 'sì, corrente')).toBe('sì, corrente');
+    expect(siNoDetermine(false)).toBe('no');
   });
 });

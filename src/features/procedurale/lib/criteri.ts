@@ -2,8 +2,9 @@
 // (intervento, OS, OG, OP: formato, lettura e chip di entities/filtri, senza l'azione portante, che RF024 non prevede e il
 // contratto rifiuta con 400, D-01 Rev. 1) e lo stato area programmazione (`stato`, chiavi di TX-0025). Sono gli
 // url_params delle route dello uiplan, gli stessi in tutte le pagine (passano dal menu); il dettaglio dell'intervento
-// prende dall'indirizzo il solo stato. TX-0030 non accetta lo stato: le Unit Amount non lo mandano ne' lo mostrano, ma lo
-// lasciano nell'indirizzo per le altre pagine (D-06 Rev. 6 del backend).
+// prende dall'indirizzo il solo stato. La forma "senza lo stato" (che resta nell'indirizzo per le altre pagine) era delle
+// Unit Amount (TX-0030), del fisico dal riallineamento degli ambiti del 29/10/2026; le determine di una domanda non
+// hanno criteri (il codice a barre e' nel percorso).
 import { filtriDaRicerca, filtriNellaBarra, ricercaDaFiltri } from '../../../entities/filtri';
 import type { Filtri, FiltroNellaBarra } from '../../../entities/filtri';
 import { leggiRipetuti, maiuscolaIniziale, scriviRipetuti } from '../../../shared/lib';
@@ -78,11 +79,6 @@ export function criteriDelReport(c: CriteriProcedurali): CriteriProcedurali {
 /** I criteri dei report della panoramica aperta senza filtri: la card della Home legge con questi, nella stessa cache. */
 export function criteriSenzaFiltri(): CriteriProcedurali {
   return criteriDelReport(criteriDaRicerca(''));
-}
-
-/** I criteri di TX-0030: intervento e obiettivi, senza lo stato (che resta nell'indirizzo per le altre pagine). */
-export function criteriUnitAmount(c: CriteriProcedurali): Filtri {
-  return soloProgramma(c);
 }
 
 /** I criteri del dettaglio dell'intervento: l'intervento della route e lo stato dell'indirizzo. */

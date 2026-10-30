@@ -17,8 +17,8 @@ import { expectNoA11yViolations } from '../src/shared/testing/axe';
 import { graficoDi, tabellaDi, trovaCard } from '../src/shared/testing/card-grafico';
 import { clicSulCodice } from '../src/shared/testing/grafico-finto';
 import { renderPagina } from '../src/shared/testing/render-pagina';
-import { DettaglioIntervento, DomandeAmmesse, Panoramica, Riepilogo, Sottofasi, StatiPagamento, StatiSostegno, UnitAmount } from '../src/features/procedurale';
-import { STATI_AREA, ammessePer, sottofasiSostegnoPer, statiPer } from '../src/features/procedurale/testing/fixture';
+import { DettaglioIntervento, DetermineDellaDomanda, DomandeAmmesse, Panoramica, Riepilogo, Sottofasi, StatiPagamento, StatiSostegno } from '../src/features/procedurale';
+import { DETERMINE, STATI_AREA, ammessePer, sottofasiSostegnoPer, statiPer } from '../src/features/procedurale/testing/fixture';
 import { lettureProcedurale } from '../src/features/procedurale/testing/letture';
 import type { Basi } from '../src/features/procedurale/testing/letture';
 import { apreLaVoce, indirizzoElenco, puntoDelloStato, testiLinkStato } from '../src/features/procedurale/lib/collegamenti';
@@ -32,7 +32,7 @@ const testo = (s: string | null | undefined) => (s ?? '').replace(/\s/g, ' ');
 const intestazioni = (t: HTMLElement) => within(t).getAllByRole('columnheader').map((c) => c.textContent?.replace(/[▲▼↕]/g, '').trim());
 
 /** I grant di lettura del procedurale (TX-0024..TX-0032). */
-const PROCEDURALE = ['24', '25', '26', '27', '28', '29', '30', '31', '32'].map((n) => `csr.tx-00${n}.read`);
+const PROCEDURALE = ['20', '24', '25', '26', '27', '28', '29', '31', '32'].map((n) => `csr.tx-00${n}.read`);
 
 const profilo = (roles: string[]) =>
   server.use(http.get('*/auth/status', () => HttpResponse.json({ authenticated: true, user: { username: 'U', profile: 'p3-funzionario-area-pro', roles } })));
@@ -117,24 +117,6 @@ describe('PaginaProcedurale e PannelloFiltriProcedurale (impaginazione e filtri 
     const delDettaglio = await screen.findByRole('dialog', { name: "Filtri del dettaglio dell'intervento" });
     expect(within(delDettaglio).queryByRole('checkbox', { name: /^Revocatà/ })).toBeNull();
     expect(within(delDettaglio).getByText(nota)).toBeTruthy();
-  });
-
-  it('Unit Amount: la pill dello stato non applicato, nessun gruppo dello stato; Azzera lascia lo stato nell indirizzo', async () => {
-    const lette = servi();
-    const { router } = renderPagina(UnitAmount, '/procedurale/unit-amount', '/procedurale/unit-amount?intervento=SRD01&stato=AMMESSA');
-    await screen.findByRole('table', { name: /^Unit Amount degli interventi selezionati/ });
-    const barra = screen.getByRole('region', { name: 'Filtri attivi' });
-    expect(within(barra).getByText('Il filtro per stato area programmazione non si applica alle Unit Amount')).toBeTruthy();
-    expect(within(barra).getByText('Perimetro: regionale (dati di programma, uguali per ogni profilo)')).toBeTruthy();
-    expect(within(barra).queryByRole('button', { name: /^Togli il filtro Stato area programmazione/ })).toBeNull();
-    expect(lette.unitAmount).toEqual(['?intervento=SRD01']);
-    expect(lette.statiArea).toBe(0);
-    await apriFiltri();
-    const pannello = await screen.findByRole('dialog', { name: 'Filtri dei report procedurali' });
-    expect(within(pannello).queryByRole('checkbox', { name: 'Ammessa' })).toBeNull();
-    await userEvent.click(within(pannello).getByRole('button', { name: 'Azzera' }));
-    await userEvent.click(within(pannello).getByRole('button', { name: 'Applica i filtri' }));
-    await waitFor(() => expect(dove(router)).toBe('/procedurale/unit-amount?stato=AMMESSA'));
   });
 
   it('TX-0024 e TX-0025 in errore: lo stato dei valori non disponibili con Riprova, le voci dalla risposta e dall indirizzo', async () => {
@@ -426,32 +408,6 @@ describe('Sottofasi e CardSottofasi (sottofasi di ammissibilita)', () => {
   });
 });
 
-describe('UnitAmount, TabellaUnitAmount e l anteprima della Unit Amount', () => {
-  it('la nota unica del pagato, le nove colonne in ordine di intervento, esercizio e codice; nessuna violazione axe', async () => {
-    servi();
-    const { container } = renderPagina(UnitAmount, '/procedurale/unit-amount');
-    const tabella = await screen.findByRole('table', { name: /^Unit Amount degli interventi selezionati/ });
-    expect(screen.getByText(/^Importo pagato, percentuale pagata sul richiesto e base storica: non disponibili per tutte le Unit Amount \(fonte pagato per Unit Amount non attiva\)/)).toBeTruthy();
-    expect(intestazioni(tabella)).toEqual(['Intervento', 'Unit Amount', 'Gruppo colturale', 'Esercizio', 'Importo unitario', 'Output previsto', 'Importo pagato', 'Pagato sul richiesto', 'Base storica']);
-    expect(within(tabella).getAllByRole('rowheader').map((c) => c.textContent)).toEqual(['UA1', 'UA2', 'UA1']);
-    const ua2 = within(tabella).getByRole('row', { name: "Apri l'anteprima della Unit Amount UA2 di SRD01, esercizio 2024" });
-    expect(testo(ua2.textContent)).toBe('SRD01UA2Ortive2024non valorizzatoil dato non è presente nella fonte5non disponibilenon disponibilenon disponibile');
-    const card = await trovaCard('Percentuale pagata per Unit Amount');
-    expect(testo(card.textContent)).toContain('Grafico non disponibile: nessuna Unit Amount ha ancora l\'importo pagato (fonte pagato per Unit Amount non attiva).');
-    await expectNoA11yViolations(container);
-  });
-
-  it('col pagato: il clic su una barra apre l anteprima della riga; il dettaglio dell intervento senza lo stato', async () => {
-    servi({ pagato: true });
-    renderPagina(UnitAmount, '/procedurale/unit-amount', '/procedurale/unit-amount?stato=AMMESSA');
-    clicSulCodice(graficoDi(await trovaCard('Percentuale pagata per Unit Amount')), 'SRD01|UA1|2024');
-    const drawer = await screen.findByRole('dialog', { name: 'Anteprima: UA1 (SRD01, esercizio 2024)' });
-    expect(testo(drawer.textContent)).toContain('Gruppo colturaleSeminativi');
-    expect(within(drawer).getByRole('link', { name: "Apri il dettaglio dell'intervento" }).getAttribute('href')).toBe('/procedurale/interventi/SRD01');
-    await expectNoA11yViolations(drawer);
-  });
-});
-
 describe('Riepilogo, TabellaRiepilogo e AnteprimaRiepilogo (riepilogo per intervento)', () => {
   it('vista Grafico di partenza: il clic su una barra apre il dettaglio; vista Tabella a sezioni col totale del backend', async () => {
     servi();
@@ -507,7 +463,7 @@ describe('useLettureColGrant: le letture di panoramica, sottofasi e dettaglio co
 });
 
 describe('DettaglioIntervento e SchedeIntervento (dettaglio procedurale dell intervento)', () => {
-  it('testata con la descrizione di TX-0024, badge, link verso la panoramica, KPI e quattro schede; nessuna violazione axe', async () => {
+  it('testata con la descrizione di TX-0024, badge, link verso la panoramica, KPI e tre schede (senza Unit Amount, al fisico); nessuna violazione axe', async () => {
     const lette = servi();
     const { container } = apriDettaglio('/procedurale/interventi/SRD01');
     expect(await screen.findByRole('heading', { level: 1, name: 'SRD01 - Investimenti produttivi agricoli per la competitività' })).toBeTruthy();
@@ -516,7 +472,7 @@ describe('DettaglioIntervento e SchedeIntervento (dettaglio procedurale dell int
     expect(screen.getByRole('link', { name: 'Filtra i report procedurali su questo intervento' }).getAttribute('href')).toBe('/procedurale?intervento=SRD01');
     expect(screen.getByRole('link', { name: 'Torna alla panoramica' }).getAttribute('href')).toBe('/procedurale');
     expect(testo(screen.getByRole('region', { name: 'Domande di sostegno' }).textContent)).toContain('di cui non rilasciate 0; domande di pagamento 3');
-    expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Stati delle domande', 'Area programmazione', 'Sottofasi', 'Unit Amount']);
+    expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Stati delle domande', 'Area programmazione', 'Sottofasi']);
     await trovaCard('Domande di sostegno per stato');
     expect(lette.ammesse).toEqual(['?intervento=SRD01']);
     expect(lette.sostegno).toEqual(['?intervento=SRD01']);
@@ -538,7 +494,7 @@ describe('DettaglioIntervento e SchedeIntervento (dettaglio procedurale dell int
     await waitFor(() => expect(dove(router)).toBe('/elenco-operativo/domande?statoSostegno=RILASCIATO&voceProgrammazione=AMMESSA&intervento=SRD01'));
   });
 
-  it('le schede Area, Sottofasi e Unit Amount leggono quando si aprono; Unit Amount senza lo stato', async () => {
+  it('le schede Area e Sottofasi leggono quando si aprono (la scheda Unit Amount e del fisico dal 29/10/2026)', async () => {
     const lette = servi();
     const { router } = apriDettaglio('/procedurale/interventi/SRD01?stato=SENZA_STATO');
     await userEvent.click(await screen.findByRole('tab', { name: 'Area programmazione' }));
@@ -547,9 +503,7 @@ describe('DettaglioIntervento e SchedeIntervento (dettaglio procedurale dell int
     await userEvent.click(await screen.findByRole('tab', { name: 'Sottofasi' }));
     await trovaCard('Domande di pagamento per sottofase di ammissibilità');
     expect(lette.sottofasiPagamento).toEqual(['?intervento=SRD01&stato=SENZA_STATO']);
-    await userEvent.click(screen.getByRole('tab', { name: 'Unit Amount' }));
-    expect(await screen.findByRole('table', { name: /^Unit Amount di SRD01/ })).toBeTruthy();
-    expect(lette.unitAmount).toEqual(['?intervento=SRD01']);
+    expect(screen.queryByRole('tab', { name: 'Unit Amount' })).toBeNull();
     await userEvent.click(screen.getByRole('tab', { name: 'Area programmazione' }));
     clicSulCodice(graficoDi(await trovaCard('Domande per stato area programmazione')), 'SENZA_STATO');
     expect(area).toBeTruthy();
@@ -567,12 +521,12 @@ describe('DettaglioIntervento e SchedeIntervento (dettaglio procedurale dell int
     expect(lette.pagamento).toEqual([]);
   });
 
-  it('solo coi grant di TX-0024, TX-0026 e TX-0030: la sola scheda Unit Amount, nessuna lettura degli stati', async () => {
-    profilo(['csr.tx-0024.read', 'csr.tx-0026.read', 'csr.tx-0030.read']);
+  it('solo coi grant di TX-0024, TX-0026 e TX-0029: la sola scheda Area programmazione, nessuna lettura degli stati', async () => {
+    profilo(['csr.tx-0024.read', 'csr.tx-0026.read', 'csr.tx-0029.read']);
     const lette = servi();
     apriDettaglio('/procedurale/interventi/SRD01');
     await screen.findByRole('region', { name: 'Domande ammesse' });
-    expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Unit Amount']);
+    expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Area programmazione']);
     expect(screen.queryByRole('region', { name: 'Domande di sostegno' })).toBeNull();
     // la panoramica si apre con TX-0026: il link resta
     expect(screen.getByRole('link', { name: 'Torna alla panoramica' })).toBeTruthy();
@@ -589,5 +543,42 @@ describe('DettaglioIntervento e SchedeIntervento (dettaglio procedurale dell int
     expect((within(pannello).getByRole('checkbox', { name: 'Decadenza totale' }) as HTMLInputElement).checked).toBe(true);
     expect(within(pannello).queryByRole('checkbox', { name: /^SRD01/ })).toBeNull();
     await expectNoA11yViolations(pannello);
+  });
+});
+
+// le determine di una domanda (TX-0020) sono del procedurale dal 29/10/2026: gli stessi casi dei componenti del fisico
+describe('CercaDomanda e DetermineDellaDomanda (componenti)', () => {
+  function PaginaDetermine() {
+    const { codice } = useParams();
+    return <DetermineDellaDomanda codice={codice} />;
+  }
+
+  function apriDetermine(indirizzo: string) {
+    const router = createMemoryRouter([{ path: '/procedurale/determine/:codice?', Component: PaginaDetermine }], { initialEntries: [indirizzo] });
+    return { ...render(<QueryClientProvider client={clientDiTest()}><RouterProvider router={router} /></QueryClientProvider>), router };
+  }
+
+  it('senza codice: il solo modulo e lo stato iniziale, nessuna lettura; nessuna violazione axe', async () => {
+    const { container } = apriDetermine('/procedurale/determine');
+    expect(screen.getByRole('heading', { level: 1, name: 'Determine di una domanda' })).toBeTruthy();
+    expect(screen.getByRole('search', { name: 'Cerca le determine di una domanda' })).toBeTruthy();
+    expect(screen.getByRole('status').textContent).toBe('Scrivi il codice a barre di una domanda per vedere da quali determine prende le informazioni.');
+    await expectNoA11yViolations(container);
+  });
+
+  it('il modulo riduce il testo alle cifre e porta alla stessa route col codice', async () => {
+    const { router } = apriDetermine('/procedurale/determine');
+    server.use(http.get('*/api/procedurale/domande/:codice/determina', () => HttpResponse.json(DETERMINE)));
+    await userEvent.type(screen.getByRole('searchbox', { name: 'Codice a barre della domanda' }), '5481 0769-585');
+    await userEvent.click(screen.getByRole('button', { name: 'Cerca' }));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/procedurale/determine/54810769585'));
+  });
+
+  it('con un codice: testata, KPI e tabella delle determine; nessuna violazione axe', async () => {
+    server.use(http.get('*/api/procedurale/domande/:codice/determina', () => HttpResponse.json(DETERMINE)));
+    const { container } = apriDetermine('/procedurale/determine/54810769585');
+    expect(await screen.findByRole('table', { name: /^Determine da cui la domanda 54810769585 prende le informazioni/ })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Apri la scheda della domanda' }).getAttribute('href')).toBe('/elenco-operativo/domande/PAGAMENTO/54810769585');
+    await expectNoA11yViolations(container);
   });
 });

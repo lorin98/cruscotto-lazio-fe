@@ -2,7 +2,8 @@
 // l'enforcement resta del backend. Percorsi e voci sono quelli dei wireframe approvati (menu del flusso panoramica); una
 // pagina compare con almeno una delle letture dei suoi report (la panoramica ne ha quattro, le sottofasi due), sempre fra
 // i grant della visibility della sua route in src/app/route-table.json (un test li confronta). Il dettaglio
-// dell'intervento non e' una voce di menu: ci si arriva dai report. PURO.
+// dell'intervento non e' una voce di menu: ci si arriva dai report. Col riallineamento degli ambiti del 29/10/2026 esce
+// Unit Amount (al fisico) ed entrano, ultima voce, le determine di una domanda (dal fisico). PURO.
 import { ricercaDeiCriteri } from './criteri';
 import { GRANT } from './grant';
 
@@ -12,8 +13,9 @@ export const PERCORSI = {
   statiPagamento: '/procedurale/stati-pagamento',
   ammesse: '/procedurale/ammesse',
   sottofasi: '/procedurale/sottofasi',
-  unitAmount: '/procedurale/unit-amount',
   riepilogo: '/procedurale/riepilogo',
+  /** Ingresso dal menu della route /procedurale/determine/:codice? (il codice e' facoltativo: senza, il solo modulo di ricerca). */
+  determine: '/procedurale/determine',
   /** Base della route /procedurale/interventi/:codice (il dettaglio dell'intervento). */
   interventi: '/procedurale/interventi',
 } as const;
@@ -23,6 +25,8 @@ export interface PaginaProcedurale {
   voceMenu: string;
   /** Le letture dei report della pagina: la voce compare col grant di almeno una. */
   grant: readonly string[];
+  /** La voce di menu vale anche per i sottopercorsi (le determine di una domanda: /procedurale/determine/<codice>). */
+  conSottopercorsi?: boolean;
 }
 
 /** Le pagine nell'ordine del menu dei wireframe approvati. */
@@ -32,8 +36,8 @@ export const PAGINE_PROCEDURALE: readonly PaginaProcedurale[] = [
   { percorso: PERCORSI.statiPagamento, voceMenu: 'Stati delle domande di pagamento', grant: [GRANT.statiPagamento] },
   { percorso: PERCORSI.ammesse, voceMenu: 'Domande ammesse', grant: [GRANT.ammesse] },
   { percorso: PERCORSI.sottofasi, voceMenu: 'Sottofasi di ammissibilità', grant: [GRANT.sottofasiSostegno, GRANT.sottofasiPagamento] },
-  { percorso: PERCORSI.unitAmount, voceMenu: 'Unit Amount', grant: [GRANT.unitAmount] },
   { percorso: PERCORSI.riepilogo, voceMenu: 'Riepilogo per intervento', grant: [GRANT.riepilogo] },
+  { percorso: PERCORSI.determine, voceMenu: 'Determine di una domanda', grant: [GRANT.determine], conSottopercorsi: true },
 ];
 
 /** Le pagine che il profilo puo' aprire, nell'ordine del menu. */

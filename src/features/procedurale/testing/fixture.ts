@@ -1,18 +1,18 @@
 // fixture.ts — risposte di prova del procedurale nella forma del contratto (TX-0024..TX-0032), per i test dei componenti e
 // delle pagine e per il dev server. Le domande sono quelle degli scenari di accettazione del backend
 // (handover/acceptance/procedurale-scenarios.json: SC-PC_FILTRI, SC-PC_AMMESSE, SC-PC_STATI_SOSTEGNO, SC-PC_STATI_PAGAMENTO,
-// SC-PC_FILTRO_STATO, SC-PC_IN_COMPILAZIONE, SC-PC_UNIT_AMOUNT, SC-PC_SOTTOFASI, SC-PC_SOTTOFASI_FILTRI): nessun dato
+// SC-PC_FILTRO_STATO, SC-PC_IN_COMPILAZIONE, SC-PC_SOTTOFASI, SC-PC_SOTTOFASI_FILTRI; per le determine di una domanda,
+// dal fisico il 29/10/2026, quelli di SC-FS_DETERMINA; le Unit Amount sono del fisico): nessun dato
 // reale. I report si calcolano da quelle domande coi parametri della query (intervento, os, og, op, stato), come il
 // backend: righe per intervento selezionato in ordine di codice, voci di SR-01 nell'ordine del catalogo, altri stati per
 // codice, totali del backend; cosi' i test di pagina non ricevono lo stesso corpo per ogni query (lezione della review
-// del fisico). Le varianti (non rilasciate, atto di concessione, pagato delle Unit Amount) sono opzioni dei calcoli.
+// del fisico). Le varianti (non rilasciate, atto di concessione) sono opzioni dei calcoli.
 import type {
+  DetermineDomanda,
   DistribuzioneStati,
   DomandeAmmesse,
   DomandeAmmesseRiga,
   FiltriProcedurali,
-  PagamentiUnitAmount,
-  PagamentiUnitAmountRiga,
   RiepilogoProcedurale,
   SottofasiAmmissibilita,
   StatiAreaProgrammazione,
@@ -262,20 +262,6 @@ export function riepilogoPer(p: URLSearchParams, x: Varianti = {}): RiepilogoPro
   return { perimetro: 'REGIONALE', righe, totale: { ammesse: ammesse.totale, statiAreaProgrammazione: somma(aree, distribuzioneArea([])), statiSostegno: sostegno.totale, statiPagamento: pagamento.totale } };
 }
 
-/** Il pagato delle Unit Amount: con la fonte attiva i valori di SC-PC_UNIT_AMOUNT, senza la fonte (il caso reale) FONTE_NON_ATTIVA. */
-const PAGATO = senzaFonte('PAGATO_PER_UNIT_AMOUNT');
-
-/** TX-0030 (SC-PC_UNIT_AMOUNT): SRD01 con UA1 2024, UA2 2024 e UA1 2025, per intervento, esercizio e codice; mai AT001. */
-export function unitAmountPer(p: URLSearchParams, { pagato = false }: { pagato?: boolean } = {}): PagamentiUnitAmount {
-  const righe: PagamentiUnitAmountRiga[] = [
-    { codiceIntervento: 'SRD01', codiceUnitAmount: 'UA1', gruppoColturale: 'Seminativi', esercizio: 2024, importoUnitario: v(140), outputPrevisto: v(8), importoPagato: pagato ? v(56) : PAGATO, percentualePagata: pagato ? v(40) : PAGATO, baseStorica: pagato ? NV : PAGATO },
-    { codiceIntervento: 'SRD01', codiceUnitAmount: 'UA2', gruppoColturale: 'Ortive', esercizio: 2024, importoUnitario: NV, outputPrevisto: v(5), importoPagato: pagato ? NV : PAGATO, percentualePagata: pagato ? NV : PAGATO, baseStorica: pagato ? NV : PAGATO },
-    { codiceIntervento: 'SRD01', codiceUnitAmount: 'UA1', gruppoColturale: 'Seminativi', esercizio: 2025, importoUnitario: v(150), outputPrevisto: v(10), importoPagato: pagato ? v(1) : PAGATO, percentualePagata: pagato ? NV : PAGATO, baseStorica: pagato ? v(40) : PAGATO },
-  ];
-  const selezionati = new Set<string>(interventiSelezionati(p).map((i) => i.codice));
-  return { perimetro: 'REGIONALE', righe: righe.filter((r) => selezionati.has(r.codiceIntervento ?? '')) };
-}
-
 /** Le sei voci di RF031 e le sette di RF032 col testo di SR-01. */
 const VOCI_SOTTOFASI_SOSTEGNO = [
   ['DS_DOCUMENTI_ALLEGATI', "congruenza e conformita' documenti allegati"],
@@ -331,3 +317,39 @@ export function sottofasiPagamentoPer(p: URLSearchParams): SottofasiAmmissibilit
     ],
   };
 }
+
+// ---------------------------------------------------------------- determine di una domanda (TX-0020, dal fisico il 29/10/2026)
+
+/** SC-FS_DETERMINA (ora del procedurale): G00003 corrente, G00002 fonte del comparto, G00001 fonte dello stato area programmazione. */
+export const DETERMINE: DetermineDomanda = {
+  codiceABarre: '54810769585',
+  tipoDomanda: 'PAGAMENTO',
+  domandaChiusa: false,
+  perimetro: 'REGIONALE',
+  corrente: { valore: { codice: 'G00003', data: '2025-06-30', fonteStatoAreaProgrammazione: false, fonteComparto: false }, motivo: null },
+  elenco: [
+    { codice: 'G00003', data: '2025-06-30', fonteStatoAreaProgrammazione: false, fonteComparto: false },
+    { codice: 'G00002', data: '2025-06-30', fonteStatoAreaProgrammazione: false, fonteComparto: true },
+    { codice: 'G00001', data: '2025-01-10', fonteStatoAreaProgrammazione: true, fonteComparto: false },
+  ],
+};
+
+/** SC-FS_DETERMINA_NESSUNA: nessuna determina aperta. */
+export const DETERMINE_NESSUNA: DetermineDomanda = {
+  codiceABarre: '54810000001',
+  tipoDomanda: 'PAGAMENTO',
+  domandaChiusa: false,
+  perimetro: 'REGIONALE',
+  corrente: { valore: null, motivo: 'NON_VALORIZZATO' },
+  elenco: [],
+};
+
+/** SC-FS_DETERMINA_NESSUNA, seconda domanda: chiusa con la sua determina. */
+export const DETERMINE_CHIUSA: DetermineDomanda = {
+  codiceABarre: '34810063735',
+  tipoDomanda: 'PAGAMENTO',
+  domandaChiusa: true,
+  perimetro: 'REGIONALE',
+  corrente: { valore: { codice: 'G00016', data: '2025-03-01', fonteStatoAreaProgrammazione: true, fonteComparto: true }, motivo: null },
+  elenco: [{ codice: 'G00016', data: '2025-03-01', fonteStatoAreaProgrammazione: true, fonteComparto: true }],
+};

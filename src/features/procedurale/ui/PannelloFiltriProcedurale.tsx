@@ -3,8 +3,8 @@
 // istituzionale) con le voci di TX-0024 della slice (interventi senza AT001, OS, OG, OP) e senza l'azione portante
 // (RF024), poi il gruppo dello stato domanda area programmazione con le voci di TX-0025 (le dieci di RF025, gli stati
 // osservati, la voce senza stato; non uno stato osservato con un codice che l'indirizzo non esprime, detto in una nota).
-// Le Unit Amount non hanno il gruppo dello stato (TX-0030 non lo accetta: lo stato dell'indirizzo resta per le altre
-// pagine); il dettaglio dell'intervento ha il solo gruppo dello stato. La scelta e' una bozza: "Applica i filtri" la porta
+// La forma senza il gruppo dello stato era delle Unit Amount (TX-0030, del fisico dal 29/10/2026); il dettaglio
+// dell'intervento ha il solo gruppo dello stato. La scelta e' una bozza: "Applica i filtri" la porta
 // nell'indirizzo, "Azzera" la svuota. PannelloLaterale di react-aria (focus trap, Esc, ritorno del focus); controlli
 // bootstrap-italia nativi del kit.
 import { useId } from 'react';
@@ -18,7 +18,7 @@ import type { ValoriFiltri, ValoriStatiArea } from '../lib/dto';
 import type { FormaCriteri } from './useCriteriNellIndirizzo';
 
 const NOTA =
-  "I filtri restano nell'indirizzo della pagina e valgono per tutte le pagine del procedurale, sottofasi comprese; le Unit Amount prendono intervento e obiettivi, non lo stato area programmazione. Voci da TX-0024 e TX-0025 (dati di programma, regionali).";
+  "I filtri restano nell'indirizzo della pagina e valgono per tutte le pagine del procedurale, sottofasi comprese. Voci da TX-0024 e TX-0025 (dati di programma, regionali).";
 const TITOLO_STATO = 'Stato domanda area programmazione';
 
 interface PropsStato {

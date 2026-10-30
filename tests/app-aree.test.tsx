@@ -86,7 +86,8 @@ describe('catalogo delle aree', () => {
 
   it('le pagine del procedurale compaiono col grant di uno dei loro report, sempre fra i grant della route', () => {
     for (const p of PAGINE_PROCEDURALE) {
-      const route = routeTable.routes.find((r) => r.path === p.percorso);
+      // le determine: la voce di menu e' l'ingresso della route col codice facoltativo (/procedurale/determine/:codice?)
+      const route = routeTable.routes.find((r) => matchPath(r.path, p.percorso));
       expect(route, p.percorso).toBeDefined();
       for (const g of p.grant) expect(route?.visibility, `${p.percorso} ${g}`).toContain(g);
     }
@@ -98,7 +99,6 @@ describe('catalogo delle aree', () => {
       'csr.tx-0027.read',
       'csr.tx-0028.read',
       'csr.tx-0029.read',
-      'csr.tx-0030.read',
       'csr.tx-0031.read',
       'csr.tx-0032.read',
     ]);
@@ -229,10 +229,10 @@ describe('Home e menu dallo stesso catalogo', () => {
     expect(menu.textContent).not.toContain('presto');
   });
 
-  it('profilo del procedurale: la card porta alla panoramica e il menu ha le sette pagine, coi criteri che restano', async () => {
+  it('profilo del procedurale: la card porta alla panoramica e il menu ha le sette pagine, le determine per ultime', async () => {
     const { handlers } = lettureProcedurale();
     server.use(...handlers);
-    apriHomeCon(['csr.tx-0024.read', 'csr.tx-0025.read', 'csr.tx-0026.read', 'csr.tx-0027.read', 'csr.tx-0028.read', 'csr.tx-0029.read', 'csr.tx-0030.read', 'csr.tx-0031.read', 'csr.tx-0032.read'], '/');
+    apriHomeCon(['csr.tx-0020.read', 'csr.tx-0024.read', 'csr.tx-0025.read', 'csr.tx-0026.read', 'csr.tx-0027.read', 'csr.tx-0028.read', 'csr.tx-0029.read', 'csr.tx-0031.read', 'csr.tx-0032.read'], '/');
     const card = await screen.findByRole('region', { name: 'Procedurale' });
     expect(within(card).getByText('Disponibile')).toBeTruthy();
     expect(within(card).getByRole('link', { name: 'Entra in Procedurale' }).getAttribute('href')).toBe('/procedurale');
@@ -248,8 +248,8 @@ describe('Home e menu dallo stesso catalogo', () => {
       ['Stati delle domande di pagamento', '/procedurale/stati-pagamento'],
       ['Domande ammesse', '/procedurale/ammesse'],
       ['Sottofasi di ammissibilità', '/procedurale/sottofasi'],
-      ['Unit Amount', '/procedurale/unit-amount'],
       ['Riepilogo per intervento', '/procedurale/riepilogo'],
+      ['Determine di una domanda', '/procedurale/determine'],
     ]);
     expect(menu.textContent).not.toContain('presto');
   });
@@ -257,13 +257,13 @@ describe('Home e menu dallo stesso catalogo', () => {
   it('dal menu i criteri del procedurale restano passando da una pagina all altra, anche dal dettaglio dell intervento', async () => {
     const { handlers } = lettureProcedurale();
     server.use(...handlers);
-    const ruoli = ['csr.tx-0024.read', 'csr.tx-0025.read', 'csr.tx-0027.read', 'csr.tx-0030.read'];
+    const ruoli = ['csr.tx-0024.read', 'csr.tx-0025.read', 'csr.tx-0027.read', 'csr.tx-0029.read'];
     const stati = apriHomeCon(ruoli, '/procedurale/stati-sostegno?intervento=SRD01&stato=AMMESSA');
     expect(await screen.findByRole('heading', { level: 1, name: 'Procedurale: stati delle domande di sostegno' })).toBeTruthy();
     const menu = screen.getByRole('navigation', { name: 'Navigazione principale' });
-    // la panoramica compare con uno dei suoi quattro report (qui gli stati di sostegno)
-    expect(within(menu).getAllByRole('link').map((l) => l.textContent)).toEqual(['Panoramica', 'Stati delle domande di sostegno', 'Unit Amount']);
-    expect(within(menu).getByRole('link', { name: 'Unit Amount' }).getAttribute('href')).toBe('/procedurale/unit-amount?intervento=SRD01&stato=AMMESSA');
+    // la panoramica compare con uno dei suoi quattro report (qui gli stati di sostegno e il riepilogo)
+    expect(within(menu).getAllByRole('link').map((l) => l.textContent)).toEqual(['Panoramica', 'Stati delle domande di sostegno', 'Riepilogo per intervento']);
+    expect(within(menu).getByRole('link', { name: 'Riepilogo per intervento' }).getAttribute('href')).toBe('/procedurale/riepilogo?intervento=SRD01&stato=AMMESSA');
     expect(within(menu).getByRole('link', { name: 'Stati delle domande di sostegno' }).getAttribute('aria-current')).toBe('page');
     stati.unmount();
     // dal dettaglio dell'intervento resta lo stato dell'indirizzo (l'intervento e' il segmento del percorso)
@@ -323,17 +323,17 @@ describe('Home e menu dallo stesso catalogo', () => {
     expect(within(menu).getByRole('link', { name: 'Verifica SMP non SIGC' }).getAttribute('aria-current')).toBe('page');
   });
 
-  it('la voce "Determine di una domanda" resta corrente con il codice nel percorso (sottopercorso)', async () => {
+  it('la voce "Determine di una domanda" (nel procedurale dal 29/10/2026) resta corrente con il codice nel percorso (sottopercorso)', async () => {
     server.use(
-      http.get('*/api/fisico/domande/:codice/determina', () =>
-        HttpResponse.json({ codiceABarre: '54810769585', tipoDomanda: 'PAGAMENTO', domandaChiusa: false, corrente: { valore: null, motivo: 'NON_VALORIZZATO' }, elenco: [] }),
+      http.get('*/api/procedurale/domande/:codice/determina', () =>
+        HttpResponse.json({ codiceABarre: '54810769585', tipoDomanda: 'PAGAMENTO', domandaChiusa: false, perimetro: 'REGIONALE', corrente: { valore: null, motivo: 'NON_VALORIZZATO' }, elenco: [] }),
       ),
     );
-    apriHomeCon(['csr.tx-0018.read', 'csr.tx-0020.read'], '/fisico/determine/54810769585');
+    apriHomeCon(['csr.tx-0020.read', 'csr.tx-0029.read'], '/procedurale/determine/54810769585');
     expect(await screen.findByRole('heading', { level: 1, name: 'Determine della domanda 54810769585' })).toBeTruthy();
     const menu = screen.getByRole('navigation', { name: 'Navigazione principale' });
     expect(within(menu).getByRole('link', { name: 'Determine di una domanda' }).getAttribute('aria-current')).toBe('page');
-    expect(within(menu).getByRole('link', { name: 'Superfici ammissibili' }).getAttribute('aria-current')).toBeNull();
+    expect(within(menu).getByRole('link', { name: 'Riepilogo per intervento' }).getAttribute('aria-current')).toBeNull();
   });
 
   it('profilo senza pagine in nessuna area: la Home lo dice, il menu non ha voci', async () => {

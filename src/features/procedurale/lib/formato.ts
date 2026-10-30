@@ -78,9 +78,6 @@ export const NOTA_AMMESSE =
 export const NOTA_SOTTOFASI =
   "La voce conta le domande distinte di tutte le sottofasi che la abbinano (una domanda in due sottofasi equivalenti conta una volta), la sottofase censita le sue sole domande: la voce può essere minore della somma, e la pagina non somma. I filtri restringono le domande contate; l'elenco delle sottofasi resta intero e regionale.";
 
-/** Le Unit Amount non sono domande: nessun totale (il DTO non lo porta) e nessun link verso l'elenco. */
-export const NOTA_UNIT_AMOUNT = "Dati di programma dall'import CSR-UA, regionali per ogni profilo; base storica = percentuale pagata della stessa Unit Amount dell'intervento nell'esercizio precedente. Nessun totale: la pagina non somma le righe. Mai l'Assistenza tecnica (AT001).";
-
 /** I file CSV e XLSX sono l'export dell'intero report della card o della tabella (scelta 7 approvata). */
 export const NOTA_FILE = 'I file CSV e XLSX contengono tutto il report coi filtri della pagina (tutte le righe e tutte le colonne), non solo quelle trovate dalla ricerca o scelte con Colonne.';
 

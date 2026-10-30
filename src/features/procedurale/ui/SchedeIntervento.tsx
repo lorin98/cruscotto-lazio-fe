@@ -2,21 +2,20 @@
 // intervento): "Stati delle domande" (le card degli stati di sostegno e di pagamento della riga dell'intervento: clic su
 // una barra, o "Apri nell'elenco" nella tabella equivalente, la parte rilasciata della voce nell'elenco), "Area
 // programmazione" (TX-0029 dell'intervento: clic o tabella, le domande di quello stato nell'elenco), "Sottofasi" (TX-0031 e
-// TX-0032 dell'intervento, scelta 6 approvata, senza link) e "Unit Amount" (TX-0030 dell'intervento, senza lo stato). Ogni
-// scheda c'e' solo col grant di una delle sue letture; le schede Area, Sottofasi e Unit Amount leggono solo quando si
-// aprono (react-aria monta il solo pannello scelto). La scheda attiva e' stato della pagina (in DettaglioIntervento).
+// TX-0032 dell'intervento, scelta 6 approvata, senza link); la scheda "Unit Amount" e' uscita col riallineamento degli
+// ambiti del 29/10/2026 (TX-0030 al fisico). Ogni scheda c'e' solo col grant di una delle sue letture; le schede Area e
+// Sottofasi leggono solo quando si aprono (react-aria monta il solo pannello scelto). La scheda attiva e' stato della pagina (in DettaglioIntervento).
 // L'errore delle letture della pagina (TX-0026..TX-0028) lo dice l'avviso della pagina: qui il testo statico; quello delle
 // letture delle schede lo registra la scheda. Tabs di react-aria-components; dentro, classi bootstrap-italia e del kit.
 import { useNavigate } from 'react-router';
 import type { ReactNode } from 'react';
 import { Tab, TabList, TabPanel, Tabs } from 'react-aria-components';
 import { rigaDellIntervento } from '../../../entities/filtri';
-import { ErroreNellaPagina, Griglia, Sezione, VistaQuery, Vuoto } from '../../../shared/ui';
+import { ErroreNellaPagina, Griglia, VistaQuery, Vuoto } from '../../../shared/ui';
 import type { StatoQuery } from '../../../shared/ui';
-import { useRiepilogo, useSottofasiPagamento, useSottofasiSostegno, useUnitAmount } from '../api';
+import { useRiepilogo, useSottofasiPagamento, useSottofasiSostegno } from '../api';
 import { LINK_STATO, apreLaVoce, apreLaVoceDellArea, puntoDelloStato, testiLinkArea, testiLinkStato } from '../lib/collegamenti';
 import type { IdLinkElenco, PuntoElenco, TestiLink } from '../lib/collegamenti';
-import { criteriUnitAmount } from '../lib/criteri';
 import type { CriteriProcedurali } from '../lib/criteri';
 import type { Distribuzione, Stati, TipoDomanda } from '../lib/dto';
 import { TITOLI_SCHEDE, schedaAttiva, schedeVisibili } from '../lib/intervento';
@@ -26,9 +25,8 @@ import { diTipo, vociDegliStati, vociDellArea } from '../lib/stati';
 import type { VoceDistribuzione } from '../lib/stati';
 import { CardArea, CardStati } from './CardDistribuzioni';
 import { CardSottofasi } from './CardSottofasi';
-import { OGGETTO_FILE, fileReport, fileUnitAmount } from './esportazioni';
+import { OGGETTO_FILE, fileReport } from './esportazioni';
 import { useLettureColGrant, useLinkElenco, usePuoAprireElenco } from './navigazione';
-import { TabellaUnitAmount } from './TabellaUnitAmount';
 
 /** L'errore delle letture della pagina nella scheda: il solo testo statico (lo registra l'avviso della pagina). */
 const nellaPagina = () => <ErroreNellaPagina />;
@@ -106,19 +104,6 @@ function SottofasiDellIntervento({ codice, criteri, onModifica }: PropsScheda) {
   );
 }
 
-/** Le Unit Amount dell'intervento (dati di programma, senza lo stato): legge TX-0030 quando la scheda si apre. */
-function UnitAmountDellIntervento({ codice, criteri }: PropsScheda) {
-  const stato = useUnitAmount(criteriUnitAmount(criteri));
-  const titolo = `Unit Amount di ${codice}`;
-  return (
-    <Sezione titolo={titolo}>
-      <VistaQuery stato={stato} eVuoto={(d) => (d.righe ?? []).length === 0} vuoto="Nessuna Unit Amount per questo intervento.">
-        {(d) => <TabellaUnitAmount titolo={titolo} righe={d.righe ?? []} scaricamenti={fileUnitAmount(titolo, criteri)} />}
-      </VistaQuery>
-    </Sezione>
-  );
-}
-
 export interface PropsSchede extends PropsScheda {
   sostegno: StatoQuery<Stati> | null;
   pagamento: StatoQuery<Stati> | null;
@@ -153,7 +138,6 @@ const PANNELLI: Readonly<Record<IdScheda, (p: PropsPannello) => ReactNode>> = {
   ),
   area: (p) => <AreaDellIntervento {...p} />,
   sottofasi: (p) => <SottofasiDellIntervento {...p} />,
-  unitAmount: (p) => <UnitAmountDellIntervento {...p} />,
 };
 
 export function SchedeIntervento({ scheda, onScheda, ...p }: PropsSchede) {

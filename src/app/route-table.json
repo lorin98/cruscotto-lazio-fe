@@ -454,7 +454,6 @@
         "csr.tx-0027.read",
         "csr.tx-0028.read",
         "csr.tx-0029.read",
-        "csr.tx-0030.read",
         "csr.tx-0031.read",
         "csr.tx-0032.read"
       ],
@@ -488,11 +487,6 @@
           "operationId": "TX-0029",
           "gating": "hide-by-role",
           "grant": "csr.tx-0029.read"
-        },
-        {
-          "operationId": "TX-0030",
-          "gating": "hide-by-role",
-          "grant": "csr.tx-0030.read"
         },
         {
           "operationId": "TX-0031",
@@ -621,27 +615,6 @@
       ]
     },
     {
-      "path": "/procedurale/unit-amount",
-      "flow": "unit-amount",
-      "component": "src/pages/procedurale/unit-amount/page.tsx",
-      "visibility": [
-        "csr.tx-0024.read",
-        "csr.tx-0030.read"
-      ],
-      "actions": [
-        {
-          "operationId": "TX-0024",
-          "gating": "hide-by-role",
-          "grant": "csr.tx-0024.read"
-        },
-        {
-          "operationId": "TX-0030",
-          "gating": "hide-by-role",
-          "grant": "csr.tx-0030.read"
-        }
-      ]
-    },
-    {
       "path": "/procedurale/riepilogo",
       "flow": "riepilogo",
       "component": "src/pages/procedurale/riepilogo/page.tsx",
@@ -665,6 +638,21 @@
           "operationId": "TX-0029",
           "gating": "hide-by-role",
           "grant": "csr.tx-0029.read"
+        }
+      ]
+    },
+    {
+      "path": "/procedurale/determine/:codice?",
+      "flow": "determine",
+      "component": "src/pages/procedurale/determine/page.tsx",
+      "visibility": [
+        "csr.tx-0020.read"
+      ],
+      "actions": [
+        {
+          "operationId": "TX-0020",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0020.read"
         }
       ]
     }
