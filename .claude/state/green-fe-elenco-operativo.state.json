@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "elenco-operativo",
-  "current_step": 3,
+  "current_step": 4,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -67,12 +67,15 @@
       }
     },
     "step3-api": {
-      "status": "in_progress",
-      "completed_at": "2026-10-21T09:20:42Z",
+      "status": "done",
+      "completed_at": "2026-10-30T09:48:11Z",
       "artifacts": [
         "./src/features"
       ],
-      "gates": {}
+      "gates": {
+        "api_wrappers_compile": "pass",
+        "querykey_from_factory": "pass"
+      }
     },
     "step4-lib": {
       "status": "in_progress",
