@@ -8,7 +8,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
-import { Briciole, Caselle, Gruppo, Kpi, PulsantiScarica, Scelte, TabellaInterattiva, TestaPagina, TestataDettaglio, scaricamentiDalBackend } from '../src/shared/ui';
+import { BarraRiferimenti, Briciole, Caselle, Gruppo, Kpi, PulsantiScarica, Scelte, TabellaInterattiva, TestaPagina, TestataDettaglio, scaricamentiDalBackend } from '../src/shared/ui';
 import type { ColonnaTabella } from '../src/shared/ui';
 import { GruppiProgramma } from '../src/entities/filtri';
 import { expectNoA11yViolations } from '../src/shared/testing/axe';
@@ -213,5 +213,26 @@ describe('Controlli del pannello dei filtri (kit: Gruppo, Caselle, Scelte)', () 
     expect(onCambia).toHaveBeenLastCalledWith(['2025']);
     await userEvent.click(screen.getByRole('button', { name: 'Tutte le campagne' }));
     expect(onCambia).toHaveBeenLastCalledWith([]);
+  });
+});
+
+describe('BarraRiferimenti: la barra dei riferimenti del dettaglio (review del riallineamento FIS-06, prima nel fisico e nell istituzionale)', () => {
+  const ULTIMI = [{ flusso: 'PROSA_DS04', conclusoIl: '2026-03-02T10:00:00Z' }];
+
+  it('la pill del perimetro e "Dati al" in una regione nominata, senza filtri; nessuna violazione axe', async () => {
+    const { container } = render(<BarraRiferimenti perimetro="Perimetro: regionale" ultimi={ULTIMI} inErrore={false} />);
+    const barra = screen.getByRole('region', { name: 'Riferimenti dei dati' });
+    expect(within(barra).getByText('Perimetro: regionale')).toBeTruthy();
+    expect(within(barra).getByRole('button', { name: /^Ultimo dato sincronizzato: dati al 02\/03\/2026/ })).toBeTruthy();
+    expect(within(barra).queryByRole('button', { name: /^Filtri/ })).toBeNull();
+    await expectNoA11yViolations(container);
+  });
+
+  it('prima delle risposte nessuna pill; con tutte le letture in errore "Dati al" dice che il dato non c e', () => {
+    const { rerender } = render(<BarraRiferimenti perimetro={undefined} ultimi={undefined} inErrore={false} />);
+    expect(screen.getByRole('region', { name: 'Riferimenti dei dati' }).textContent).toBe('');
+    rerender(<BarraRiferimenti perimetro="Perimetro: regionale (i report istituzionali non hanno perimetro ADA)" ultimi={undefined} inErrore />);
+    expect(screen.getByText('Perimetro: regionale (i report istituzionali non hanno perimetro ADA)')).toBeTruthy();
+    expect(screen.getByText('Ultimo dato sincronizzato: non disponibile')).toBeTruthy();
   });
 });

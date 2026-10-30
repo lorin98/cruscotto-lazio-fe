@@ -19,9 +19,9 @@ import { useState } from 'react';
 import type { Ref } from 'react';
 import { ID_TITOLO_INTERVENTO, InterventoNonValido, codiceDelPercorso, descrizioneIntervento, rigaDellIntervento } from '../../../entities/filtri';
 import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
-import { testoPerimetro } from '../../../shared/lib';
-import type { StatoDettaglio, UltimoDato } from '../../../shared/lib';
-import { AvvisoPagina, Briciole, ContestoIntestazione, CorpoDelDettaglio, ErroriDelleLetture, Griglia, Kpi, PillDatiAl, TestataDettaglio, Vuoto, useFocusTitolo, useRigheContesto, useStatoDelDettaglio } from '../../../shared/ui';
+import { perimetroDelDettaglio, testoPerimetro, ultimiDelDettaglio, ultimoDatoInErrore } from '../../../shared/lib';
+import type { StatoDettaglio } from '../../../shared/lib';
+import { AvvisoPagina, BarraRiferimenti, Briciole, ContestoIntestazione, CorpoDelDettaglio, ErroriDelleLetture, Griglia, Kpi, TestataDettaglio, Vuoto, useFocusTitolo, useRigheContesto, useStatoDelDettaglio } from '../../../shared/ui';
 import type { NomeIcona, TonoKpi } from '../../../shared/ui';
 import { useOutputRegionale, useSuperfici, useUnitAmount, useValoriFiltri } from '../api';
 import { outputDellIntervento, superficiDellIntervento, unitAmountDellIntervento } from '../lib/collegamenti';
@@ -29,7 +29,7 @@ import { criteriDellIntervento, testiCriteri } from '../lib/criteri';
 import type { InterventoSuperficie, RigaOutput } from '../lib/dto';
 import { puoLeggere } from '../lib/grant';
 import type { Lettura } from '../lib/grant';
-import { NOTA_CAMPAGNA_KPI, SENZA_DATI, badgeIntervento, eIdScheda, kpiIntervento, perimetroDelDettaglio, ritornoSenzaDati, schedaAttiva, schedeVisibili, sopratitoloIntervento, titoloIntervento, ultimiDelDettaglio, ultimoDatoInErrore } from '../lib/intervento';
+import { NOTA_CAMPAGNA_KPI, SENZA_DATI, badgeIntervento, eIdScheda, kpiIntervento, ritornoSenzaDati, schedaAttiva, schedeVisibili, sopratitoloIntervento, titoloIntervento } from '../lib/intervento';
 import type { ChiaveKpi, IdScheda } from '../lib/intervento';
 import { pagineVisibili } from '../lib/pagine';
 import { SchedeIntervento } from './SchedeIntervento';
@@ -71,18 +71,6 @@ function useLettureDelDettaglio(codice: string, unitAmountAperta: boolean) {
 /** Il codice dell'indirizzo non e' un codice di intervento: nessuna richiesta, lo dice la pagina (InterventoNonValido dell'entity). */
 function CodiceNonValido() {
   return <InterventoNonValido area="Fisico" ingresso={useIngressoArea()} suggerimento="Scegli l'intervento dalle superfici ammissibili, dall'output regionale o dalle Unit Amount." titoloDocumento="Intervento non valido - Fisico" />;
-}
-
-/** Perimetro (sempre regionale) e ultimo dato sincronizzato, nella barra dei riferimenti (il dettaglio non ha filtri). */
-function BarraRiferimenti({ perimetro, ultimi, inErrore }: { perimetro: string | undefined; ultimi: readonly UltimoDato[] | undefined; inErrore: boolean }) {
-  return (
-    <div className="ui-filtri" role="region" aria-label="Riferimenti dei dati">
-      <div className="ui-filtri__destra">
-        {perimetro && <span className="ui-pill">{`Perimetro: ${testoPerimetro(perimetro)}`}</span>}
-        <PillDatiAl voci={ultimi} inErrore={inErrore} />
-      </div>
-    </div>
-  );
 }
 
 /** La testata: sopratitolo, h1, badge in testo e i pulsanti verso i tre report filtrati (links dello uiplan). */
@@ -188,15 +176,15 @@ function Dettaglio({ codice }: { codice: string }) {
   const stato = useStatoDelDettaglio(letture);
   // il titolo del documento dal codice, come nel wireframe approvato: la descrizione che arriva dopo non riporta il focus sull'h1
   const h1 = useFocusTitolo<HTMLHeadingElement>(`Intervento ${codice} - Fisico`);
-  const risposte = [output?.data, superfici?.data, unitAmount?.data];
-  const ultimi = ultimiDelDettaglio(...risposte);
-  const perimetro = perimetroDelDettaglio(...risposte);
+  // perimetro e ultimo dato della prima risposta arrivata, non della prima scheda (regole del kit)
+  const ultimi = ultimiDelDettaglio([output, superfici, unitAmount]);
+  const perimetro = perimetroDelDettaglio([output, superfici, unitAmount]);
   // l'intestazione dei PNG (NFR-50): il solo filtro Intervento, il perimetro e l'ultimo dato della barra
   const contesto = useRigheContesto(testiCriteri(criteriDellIntervento(codice)), ultimi, perimetro ? testoPerimetro(perimetro) : null);
   const badge = badgeIntervento(rigaDellIntervento(output?.data?.righe, codice));
   return (
     <ContestoIntestazione.Provider value={contesto}>
-      <BarraRiferimenti perimetro={perimetro} ultimi={ultimi} inErrore={ultimoDatoInErrore(letture)} />
+      <BarraRiferimenti perimetro={perimetro && `Perimetro: ${testoPerimetro(perimetro)}`} ultimi={ultimi} inErrore={ultimoDatoInErrore(letture)} />
       <main className="ui-pagina" id="contenuto">
         <Briciole voci={[{ etichetta: 'Fisico', a: useIngressoArea() }, { etichetta: codice }]} />
         <TestataIntervento h1={h1} codice={codice} titolo={titoloIntervento(codice, descrizione)} badge={badge} />

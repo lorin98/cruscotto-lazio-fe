@@ -87,15 +87,12 @@ import {
   oggettoFileOutput,
   oggettoFileSuperfici,
   oggettoFileUnitAmount,
-  perimetroDelDettaglio,
   ritornoSenzaDati,
   schedaAttiva,
   schedeVisibili,
   sopratitoloIntervento,
   titoloIntervento,
   titoloOutputIntervento,
-  ultimiDelDettaglio,
-  ultimoDatoInErrore,
 } from '../src/features/fisico/lib/intervento';
 import {
   OUTPUT,
@@ -105,7 +102,6 @@ import {
   SUPERFICI_SENZA,
   SUPERFICI_TRE,
   SUPERFICI_TRE_2024,
-  ULTIMI,
   campagna,
   outputPer,
   righeDeiFiltri,
@@ -666,18 +662,6 @@ describe("RF017, RF018, RF030: il dettaglio dell'intervento come dati (flusso in
     const srg01 = OUTPUT.righe[3];
     expect(kpiIntervento(srg01, undefined)).toEqual([{ chiave: 'target', etichetta: 'Target di fine periodo', assente: 'Non valorizzato: il dato non è presente nella fonte', nota: 'TX-0017' }]);
     expect(kpiIntervento(undefined, undefined)).toEqual([]);
-  });
-
-  it('barra dei riferimenti: ultimo dato e perimetro della prima risposta arrivata; errore solo se tutte le letture lo sono', () => {
-    const altri = [{ flusso: 'X', conclusoIl: '2026-01-01T00:00:00Z' }];
-    expect(ultimiDelDettaglio(undefined, { ultimiDatiSincronizzati: ULTIMI }, { ultimiDatiSincronizzati: altri })).toBe(ULTIMI);
-    expect(ultimiDelDettaglio(undefined, undefined, { ultimiDatiSincronizzati: altri })).toBe(altri);
-    expect(ultimiDelDettaglio(undefined, undefined, undefined)).toBeUndefined();
-    expect(perimetroDelDettaglio(undefined, { perimetro: 'REGIONALE' })).toBe('REGIONALE');
-    expect(perimetroDelDettaglio()).toBeUndefined();
-    expect(ultimoDatoInErrore([{ isError: true }, { isError: true }])).toBe(true);
-    expect(ultimoDatoInErrore([{ isError: true }, { isError: false }])).toBe(false);
-    expect(ultimoDatoInErrore([])).toBe(false);
   });
 
   it('schede nell ordine del wireframe, ognuna col grant della sua lettura; la scelta vale se visibile', () => {

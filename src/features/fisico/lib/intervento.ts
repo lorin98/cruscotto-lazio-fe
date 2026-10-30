@@ -3,12 +3,12 @@
 // (perimetro, indicatore di output con l'unita' da TX-0017), i quattro KPI (target di fine periodo da TX-0017; superficie
 // DS, superficie DP e domande con DP oltre la DS della campagna di riferimento da TX-0018: la piu' recente della risposta,
 // una sola riga, nessuna somma fra interventi ne' fra campagne, nessuna quota oltre a quella della pagina Superfici, nel
-// testo), l'ultimo dato sincronizzato e il perimetro della prima risposta arrivata, le schede visibili per grant
-// nell'ordine del wireframe, il ritorno dell'intervento senza dati e i testi delle schede. Ogni KPI c'e' solo con la riga
+// testo), le schede visibili per grant nell'ordine del wireframe, il ritorno dell'intervento senza dati e i testi delle
+// schede (l'ultimo dato sincronizzato e il perimetro della prima risposta arrivata sono regole del kit, shared/lib:
+// review del riallineamento FIS-06). Ogni KPI c'e' solo con la riga
 // della sua transazione (cioe' col suo grant: le letture sono gated). Nessuna transazione nuova.
 import { assenzaInFrase } from '../../../entities/importo';
 import { ettari, formatNumber } from '../../../shared/lib';
-import type { UltimoDato } from '../../../shared/lib';
 import type { InterventoSuperficie, RigaOutput } from './dto';
 import { testoDomande, testoQuantitaPremio, testoQuotaOltreDs, testoTarget } from './formato';
 import type { Lettura } from './grant';
@@ -96,35 +96,6 @@ export function kpiIntervento(output: RigaOutput | undefined, superfici: Interve
 
 /** La nota sotto i KPI delle superfici: quale campagna e perche' una sola. */
 export const NOTA_CAMPAGNA_KPI = 'Campagna di riferimento dei KPI delle superfici: la più recente della risposta di TX-0018 (le superfici di campagne diverse non si sommano).';
-
-/** Quanto serve di una risposta per la barra dei riferimenti: il perimetro e l'ultimo dato sincronizzato. */
-interface RispostaDelDettaglio {
-  perimetro?: string;
-  ultimiDatiSincronizzati?: readonly UltimoDato[];
-}
-
-/** La prima risposta arrivata, nell'ordine delle schede (TX-0017, TX-0018, TX-0030: lo stesso elenco, SC-FS_ULTIMO_DATO). */
-function primaRisposta(risposte: readonly (RispostaDelDettaglio | undefined)[]): RispostaDelDettaglio | undefined {
-  return risposte.find((r) => r !== undefined);
-}
-
-/** L'ultimo dato sincronizzato del dettaglio: quello della prima risposta arrivata; undefined finche' nessuna e' arrivata. */
-export function ultimiDelDettaglio(...risposte: readonly (RispostaDelDettaglio | undefined)[]): readonly UltimoDato[] | undefined {
-  return primaRisposta(risposte)?.ultimiDatiSincronizzati;
-}
-
-/** Il perimetro della prima risposta arrivata (sempre REGIONALE nel fisico); undefined finche' nessuna e' arrivata. */
-export function perimetroDelDettaglio(...risposte: readonly (RispostaDelDettaglio | undefined)[]): string | undefined {
-  return primaRisposta(risposte)?.perimetro;
-}
-
-/**
- * L'ultimo dato sincronizzato non si conosce: tutte le letture fatte sono in errore. Nessuna lettura abilitata non e' un
- * errore: la pill semplicemente non c'e' ancora.
- */
-export function ultimoDatoInErrore(letture: ReadonlyArray<{ isError: boolean }>): boolean {
-  return letture.length > 0 && letture.every((l) => l.isError);
-}
 
 export type IdScheda = 'output' | 'superfici' | 'unitAmount';
 

@@ -1,14 +1,15 @@
 // intervento.ts — il dettaglio dell'intervento come DATI (PURO, zero React; flusso intervento approvato, ricomposto il
 // 30/10/2026): titolo e sopratitolo della testata (descrizione da TX-0060, senza il codice), il badge del perimetro, le due
 // schede "Verifica SMP non SIGC" (TX-0016) e "Verifica SMP SIGC" (TX-0015) con la scheda iniziale, i tre KPI di ogni scheda
-// col periodo nel testo (non SIGC: cumulative; SIGC: campagna n-1, esercizio n; nessuna quota calcolata), l'ultimo dato
-// sincronizzato della prima risposta arrivata, lo stato della pagina dalle letture partite e i testi degli stati. Nessun
+// col periodo nel testo (non SIGC: cumulative; SIGC: campagna n-1, esercizio n; nessuna quota calcolata), lo stato della
+// pagina dalle letture partite e i testi degli stati (l'ultimo dato sincronizzato della prima risposta arrivata e' una
+// regola del kit, shared/lib: review del riallineamento FIS-06). Nessun
 // KPI in testa: i numeri dipendono dalla scheda (periodi diversi). L'output per anno, il target e gli importi unitari di
 // TX-0017 sono del fisico dal riallineamento degli ambiti del 29/10/2026.
 import { assenzaInFrase } from '../../../entities/importo';
 import type { DatoMotivatoLike } from '../../../entities/importo';
 import { formatNumber, importoBreve } from '../../../shared/lib';
-import type { LetturaDettaglio, StatoDettaglio, UltimoDato } from '../../../shared/lib';
+import type { LetturaDettaglio, StatoDettaglio } from '../../../shared/lib';
 import type { RigaVerifica, RigaVerificaSigc } from './dto';
 
 /** Il titolo della testata (h1): la descrizione dell'intervento da TX-0060, altrimenti "Intervento <codice>". */
@@ -68,30 +69,6 @@ export function kpiVerificaSigc(r: RigaVerificaSigc, esercizio: number, annoDoma
     { chiave: 'finanziate', etichetta: `Domande finanziate SIGC (campagna ${annoDomande})`, ...conteggioOAssenza(r.domandeFinanziate), nota },
     { chiave: 'spesa', etichetta: `Spesa erogata SIGC, campagna ${annoDomande}`, ...importoOAssenza(r.spesaErogataCampagnaPrecedente), nota: `TX-0015, pagata nell'esercizio ${esercizio}` },
   ];
-}
-
-/** Una lettura del dettaglio per l'ultimo dato sincronizzato: la risposta e quando e' arrivata. */
-export interface LetturaConUltimi {
-  data?: { ultimiDatiSincronizzati?: UltimoDato[] } | undefined;
-  dataUpdatedAt?: number;
-}
-
-/**
- * L'ultimo dato sincronizzato del dettaglio: quello della prima risposta arrivata fra TX-0016 e TX-0015 (lo stesso elenco,
- * SC-IS_ULTIMO_DATO); undefined prima. Le letture null (senza il grant o non partite) non contano.
- */
-export function ultimiDelDettaglio(letture: readonly (LetturaConUltimi | null)[]): UltimoDato[] | undefined {
-  const arrivate = letture.filter((l): l is LetturaConUltimi => l?.data?.ultimiDatiSincronizzati !== undefined);
-  const prima = arrivate.reduce<LetturaConUltimi | undefined>((p, l) => (p === undefined || (l.dataUpdatedAt ?? 0) < (p.dataUpdatedAt ?? 0) ? l : p), undefined);
-  return prima?.data?.ultimiDatiSincronizzati;
-}
-
-/**
- * L'ultimo dato sincronizzato non si conosce: tutte le letture fatte sono in errore. Nessuna lettura abilitata (il profilo
- * in caricamento) non e' un errore: la pill semplicemente non c'e' ancora.
- */
-export function ultimoDatoInErrore(letture: ReadonlyArray<{ isError: boolean }>): boolean {
-  return letture.length > 0 && letture.every((l) => l.isError);
 }
 
 /**

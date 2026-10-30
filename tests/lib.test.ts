@@ -6,7 +6,7 @@ import { DICITURA_USO, aCapo, righeContesto, righeIntestazione, testoPerimetro }
 import { etichettaFlusso, menoRecente, testoUltimiDati } from '../src/shared/lib/aggiornamento';
 import { MAX_VALORI_PARAMETRO, leggiRipetuti, scriviRipetuti } from '../src/shared/lib/parametri-ripetuti';
 import { conStatoSalvato, leggiStatoSalvato } from '../src/shared/lib/stato-history';
-import { statoDelDettaglio, tutteRisposte } from '../src/shared/lib/dettaglio';
+import { perimetroDelDettaglio, statoDelDettaglio, tutteRisposte, ultimiDelDettaglio, ultimoDatoInErrore } from '../src/shared/lib/dettaglio';
 import * as libComune from '../src/shared/lib';
 import { NON_DISPONIBILE_BREVE, resaAssenza, totaleMotivato } from '../src/entities/importo';
 import { numeroOpzionale, testoOpzionale } from '../src/shared/lib/grafici/primitive';
@@ -285,6 +285,23 @@ describe('lib/dettaglio — lo stato di un dettaglio con piu letture (prima nell
     // per l'errore e l'attesa conta come le altre
     expect(statoDelDettaglio([{ data: undefined, isError: true, decideIlVuoto: false }], false)).toBe('errore');
     expect(statoDelDettaglio([ok({ righe: [] }), { data: undefined, isError: false, decideIlVuoto: false }], false)).toBe('caricamento');
+  });
+
+  it('barra dei riferimenti (review del riallineamento FIS-06): ultimo dato e perimetro della prima risposta arrivata, non della prima scheda', () => {
+    const primi = [{ flusso: 'PROSA_DS04', conclusoIl: '2026-03-02T10:00:00Z' }];
+    const altri = [{ flusso: 'X', conclusoIl: '2026-01-01T00:00:00Z' }];
+    // due letture arrivate in ordine inverso a quello delle schede: conta la prima arrivata (dataUpdatedAt piu' piccolo)
+    const primaScheda = { data: { perimetro: 'ADA', ultimiDatiSincronizzati: altri }, dataUpdatedAt: 20 };
+    const secondaScheda = { data: { perimetro: 'REGIONALE', ultimiDatiSincronizzati: primi }, dataUpdatedAt: 10 };
+    expect(ultimiDelDettaglio([primaScheda, secondaScheda])).toBe(primi);
+    expect(perimetroDelDettaglio([primaScheda, secondaScheda])).toBe('REGIONALE');
+    // senza grant (null), senza risposta o senza il campo (TX-0015 lo ha facoltativo): non conta
+    expect(ultimiDelDettaglio([null, { data: undefined, dataUpdatedAt: 0 }, primaScheda])).toBe(altri);
+    expect(ultimiDelDettaglio([{ data: {}, dataUpdatedAt: 1 }, primaScheda])).toBe(altri);
+    expect(perimetroDelDettaglio([{ data: { ultimiDatiSincronizzati: primi }, dataUpdatedAt: 1 }, primaScheda])).toBe('ADA');
+    expect([ultimiDelDettaglio([]), ultimiDelDettaglio([null, null]), perimetroDelDettaglio([])]).toEqual([undefined, undefined, undefined]);
+    // la pill "Dati al" e' in errore solo se tutte le letture fatte lo sono, mai senza letture
+    expect([ultimoDatoInErrore([{ isError: true }, { isError: true }]), ultimoDatoInErrore([{ isError: true }, { isError: false }]), ultimoDatoInErrore([])]).toEqual([true, false, false]);
   });
 
   it('shared/lib non conosce campi di dominio: la riga dell intervento sta in entities/filtri (review H2 del procedurale)', () => {

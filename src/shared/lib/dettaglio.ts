@@ -1,7 +1,10 @@
 // dettaglio.ts — lo stato di una pagina di dettaglio che compone piu' letture dei report filtrate sull'oggetto della route
-// (il dettaglio dell'intervento dell'istituzionale e del procedurale) (PURO). Prima nel lib dell'istituzionale (review
-// H1/X1 della sua v1): il dettaglio del procedurale ne ha bisogno uguale. La riga dell'intervento in una risposta, che
-// conosce il campo codiceIntervento, sta in entities/filtri (review H2 del procedurale).
+// (il dettaglio dell'intervento dell'istituzionale, del procedurale e del fisico) (PURO). Prima nel lib dell'istituzionale
+// (review H1/X1 della sua v1): il dettaglio del procedurale ne ha bisogno uguale. La riga dell'intervento in una risposta,
+// che conosce il campo codiceIntervento, sta in entities/filtri (review H2 del procedurale). Poi i riferimenti della barra
+// del dettaglio (perimetro e ultimo dato della prima risposta arrivata, la pill in errore), prima ricopiati nel fisico con
+// un algoritmo gia' diverso (review del riallineamento FIS-06).
+import type { UltimoDato } from './aggiornamento';
 
 /** Quanto serve di una lettura per lo stato del dettaglio: la risposta (righe; assenti = nessuna) se c'e', e se e' in errore. */
 export interface LetturaDettaglio {
@@ -52,4 +55,45 @@ export function statoDelDettaglio(letture: readonly LetturaDettaglio[], giaRispo
   if (conDati.length === 0) return letture.every((l) => l.isError) ? 'errore' : 'caricamento';
   const vuota = (l: LetturaDettaglio) => l.decideIlVuoto !== false && (l.data?.righe ?? []).length === 0;
   return conDati.length === letture.length && conDati.every(vuota) ? 'vuoto' : 'dati';
+}
+
+/** Quanto serve di una risposta per la barra dei riferimenti del dettaglio: il perimetro e l'ultimo dato sincronizzato. */
+export interface RiferimentiDellaRisposta {
+  perimetro?: string;
+  ultimiDatiSincronizzati?: readonly UltimoDato[];
+}
+
+/** Una lettura del dettaglio per la barra dei riferimenti: la risposta e quando e' arrivata (dataUpdatedAt di TanStack Query). */
+export interface LetturaConRiferimenti {
+  data?: RiferimentiDellaRisposta | undefined;
+  dataUpdatedAt?: number;
+}
+
+/** La prima risposta arrivata (dataUpdatedAt piu' piccolo) fra quelle col riferimento dato; le letture null non contano. */
+function primaArrivataCon(letture: readonly (LetturaConRiferimenti | null)[], ha: (d: RiferimentiDellaRisposta) => boolean): RiferimentiDellaRisposta | undefined {
+  const arrivate = letture.filter((l): l is LetturaConRiferimenti => l?.data !== undefined && ha(l.data));
+  const prima = arrivate.reduce<LetturaConRiferimenti | undefined>((p, l) => (p === undefined || (l.dataUpdatedAt ?? 0) < (p.dataUpdatedAt ?? 0) ? l : p), undefined);
+  return prima?.data;
+}
+
+/**
+ * L'ultimo dato sincronizzato del dettaglio: quello della prima risposta arrivata (le letture del dettaglio portano lo
+ * stesso elenco: SC-IS_ULTIMO_DATO, SC-FS_ULTIMO_DATO); undefined prima. Le letture null (senza il grant o non partite) e
+ * quelle senza risposta non contano, l'ordine in cui sono date (quello delle schede) nemmeno.
+ */
+export function ultimiDelDettaglio(letture: readonly (LetturaConRiferimenti | null)[]): readonly UltimoDato[] | undefined {
+  return primaArrivataCon(letture, (d) => d.ultimiDatiSincronizzati !== undefined)?.ultimiDatiSincronizzati;
+}
+
+/** Il perimetro della prima risposta arrivata che lo dichiara (come l'ultimo dato); undefined prima. */
+export function perimetroDelDettaglio(letture: readonly (LetturaConRiferimenti | null)[]): string | undefined {
+  return primaArrivataCon(letture, (d) => d.perimetro !== undefined)?.perimetro;
+}
+
+/**
+ * L'ultimo dato sincronizzato non si conosce: tutte le letture fatte sono in errore. Nessuna lettura abilitata (il profilo
+ * in caricamento) non e' un errore: la pill semplicemente non c'e' ancora.
+ */
+export function ultimoDatoInErrore(letture: ReadonlyArray<{ isError: boolean }>): boolean {
+  return letture.length > 0 && letture.every((l) => l.isError);
 }

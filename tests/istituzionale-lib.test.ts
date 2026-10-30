@@ -57,15 +57,13 @@ import {
   statoDellaPagina,
   testoAggiornamentoAnno,
   testoAggiornamentoEsercizio,
-  ultimoDatoInErrore,
   sopratitoloIntervento,
   titoloIntervento,
-  ultimiDelDettaglio,
 } from '../src/features/istituzionale/lib/intervento';
 import { DATI_VERIFICA_SIGC, periodoDellaRisposta, testoEsercizio, testoRicercaSigc, valoreOrdinabileSigc, vociRiferimentiSigc, vociRiferimentiSigcIntervento } from '../src/features/istituzionale/lib/verificaSigc';
 import type { DatoVerificaSigc, TipoDatoSigc } from '../src/features/istituzionale/lib/verificaSigc';
 import { TITOLO_SPESA, TITOLO_SPESA_SIGC, graficoSpesa, graficoSpesaSigc } from '../src/features/istituzionale/lib/grafici';
-import { SRD01, ULTIMI, VERIFICA, VERIFICA_SMP, dato as datoSmp, nd, nv, rigaSmp, righeDeiFiltri, verificaPer, verificaSigcPer } from '../src/features/istituzionale/testing/fixture';
+import { SRD01, VERIFICA, VERIFICA_SMP, dato as datoSmp, nd, nv, rigaSmp, righeDeiFiltri, verificaPer, verificaSigcPer } from '../src/features/istituzionale/testing/fixture';
 import { anteprimaVerifica, anteprimaVerificaSigc, etichetteAnteprima, etichetteAnteprimaSigc, nomeGruppoSigc, riferimentoAnteprima, riferimentoAnteprimaSigc } from '../src/features/istituzionale/lib/anteprima';
 import type { RigaVerifica } from '../src/features/istituzionale/lib/dto';
 
@@ -345,16 +343,6 @@ describe('RF016 e RF015: il dettaglio dell intervento (testata, schede, KPI per 
     expect(senza.map((k) => k.assente)).toEqual(['Non disponibile', 'Non disponibile', 'Non disponibile: fonte impegni non attiva']);
   });
 
-  it('ultimo dato della prima risposta arrivata fra TX-0016 e TX-0015; le letture senza risposta non contano', () => {
-    const non = { data: VERIFICA, dataUpdatedAt: 20 };
-    const sigc = { data: { ...VERIFICA_SMP, ultimiDatiSincronizzati: [ULTIMI[1]] }, dataUpdatedAt: 10 };
-    expect(ultimiDelDettaglio([non, sigc])).toEqual([ULTIMI[1]]);
-    expect(ultimiDelDettaglio([non, null])).toEqual(ULTIMI);
-    expect(ultimiDelDettaglio([{ data: undefined, dataUpdatedAt: 0 }, sigc])).toEqual([ULTIMI[1]]);
-    expect(ultimiDelDettaglio([null, null])).toBeUndefined();
-    expect(ultimiDelDettaglio([])).toBeUndefined();
-  });
-
   it('stato del kit: caricamento, errore, vuoto (AT001), dati anche con una sola lettura riuscita', () => {
     const ok = (data: { righe: readonly unknown[] }) => ({ data, isError: false });
     const inCorso = { data: undefined, isError: false };
@@ -380,8 +368,6 @@ describe('RF016 e RF015: il dettaglio dell intervento (testata, schede, KPI per 
     expect(statoDelDettaglio([], false)).toBe('caricamento');
     expect(statoDelDettaglio([], true)).toBe('caricamento');
     expect([tutteRisposte([errore, ok(VERIFICA)]), tutteRisposte([inCorso, ok(VERIFICA)]), tutteRisposte([])]).toEqual([true, false, false]);
-    // la pill "Dati al" e' in errore solo se tutte le letture fatte lo sono, mai senza letture
-    expect([ultimoDatoInErrore([errore, errore]), ultimoDatoInErrore([errore, ok(VERIFICA)]), ultimoDatoInErrore([])]).toEqual([true, false, false]);
   });
 
   it('stato della pagina: la verifica SIGC senza la riga non fa il vuoto della pagina (lo dice la sua scheda); senza letture partite le schede', () => {

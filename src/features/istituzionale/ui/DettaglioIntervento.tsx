@@ -20,8 +20,9 @@ import { useState } from 'react';
 import type { Ref } from 'react';
 import { ID_TITOLO_INTERVENTO, InterventoNonValido, codiceDelPercorso, descrizioneIntervento } from '../../../entities/filtri';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
+import { ultimiDelDettaglio, ultimoDatoInErrore } from '../../../shared/lib';
 import type { StatoDettaglio } from '../../../shared/lib';
-import { AvvisoPagina, Briciole, ContestoIntestazione, CorpoDelDettaglio, ErroriDelleLetture, PillDatiAl, TestataDettaglio, Vuoto, useAnnoNellIndirizzo, useFocusTitolo, useRigheContesto, useStatoDelDettaglio } from '../../../shared/ui';
+import { AvvisoPagina, BarraRiferimenti, Briciole, ContestoIntestazione, CorpoDelDettaglio, ErroriDelleLetture, TestataDettaglio, Vuoto, useAnnoNellIndirizzo, useFocusTitolo, useRigheContesto, useStatoDelDettaglio } from '../../../shared/ui';
 import { useValoriFiltri, useVerificaSmpNonSigc, useVerificaSmpSigc } from '../api';
 import { verificaDellIntervento, verificaSigcDellIntervento } from '../lib/collegamenti';
 import { PARAMETRO_ANNO, PARAMETRO_ESERCIZIO, criteriVerifica, soloIntervento, testiCriteri } from '../lib/criteri';
@@ -37,8 +38,6 @@ import {
   sopratitoloIntervento,
   statoDellaPagina,
   titoloIntervento,
-  ultimiDelDettaglio,
-  ultimoDatoInErrore,
 } from '../lib/intervento';
 import type { IdScheda } from '../lib/intervento';
 import { PERCORSI } from '../lib/pagine';
@@ -72,18 +71,6 @@ function useSchede(conVerifica: boolean, conSigc: boolean, anno: number | undefi
 /** Il codice dell'indirizzo non e' un codice di intervento: nessuna richiesta, lo dice la pagina (InterventoNonValido dell'entity). */
 function CodiceNonValido() {
   return <InterventoNonValido area="Istituzionale" ingresso={useIngressoArea()} suggerimento="Scegli l'intervento dalla verifica SMP non SIGC o dalla verifica SMP SIGC." titoloDocumento="Intervento non valido - Istituzionale" />;
-}
-
-/** Perimetro (sempre regionale) e ultimo dato sincronizzato, nella barra dei riferimenti (il dettaglio non ha filtri). */
-function BarraRiferimenti({ ultimi, inErrore }: { ultimi: ReturnType<typeof ultimiDelDettaglio>; inErrore: boolean }) {
-  return (
-    <div className="ui-filtri" role="region" aria-label="Riferimenti dei dati">
-      <div className="ui-filtri__destra">
-        <span className="ui-pill">{PILL_PERIMETRO}</span>
-        <PillDatiAl voci={ultimi} inErrore={inErrore} />
-      </div>
-    </div>
-  );
 }
 
 interface PropsTestata {
@@ -165,7 +152,7 @@ function Dettaglio({ codice }: { codice: string }) {
   const schedeProps = { codice, anno, onAnno: impostaAnno, esercizio, onEsercizio: impostaEsercizio, schede, attiva, onScheda, verifica, verificaSigc };
   return (
     <ContestoIntestazione.Provider value={contesto}>
-      <BarraRiferimenti ultimi={ultimi} inErrore={ultimoDatoInErrore(letture)} />
+      <BarraRiferimenti perimetro={PILL_PERIMETRO} ultimi={ultimi} inErrore={ultimoDatoInErrore(letture)} />
       <main className="ui-pagina" id="contenuto">
         <Briciole voci={[{ etichetta: 'Istituzionale', a: useIngressoArea() }, { etichetta: codice }]} />
         <TestataIntervento h1={h1} codice={codice} titolo={titoloIntervento(codice, descrizione)} anno={anno} esercizio={esercizio} conVerifica={conVerifica} conSigc={conSigc} />
