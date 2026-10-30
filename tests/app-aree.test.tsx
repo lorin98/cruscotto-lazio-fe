@@ -207,9 +207,9 @@ describe('Home e menu dallo stesso catalogo', () => {
     expect(within(cifre).queryByText('20 %')).toBeNull();
   });
 
-  it('profilo del fisico: la card porta alle superfici coi numeri chiave e il menu ha le due pagine', async () => {
+  it('profilo del fisico: la card porta alle superfici coi numeri chiave e il menu ha le tre pagine (superfici, output regionale, Unit Amount)', async () => {
     server.use(rispondi('/api/fisico/superficie-ammissibile', SUPERFICI));
-    apriHomeCon(['csr.tx-0018.read', 'csr.tx-0020.read']);
+    apriHomeCon(['csr.tx-0017.read', 'csr.tx-0018.read', 'csr.tx-0030.read']);
     const card = await screen.findByRole('region', { name: 'Fisico' });
     expect(within(card).getByText('Disponibile')).toBeTruthy();
     expect(within(card).getByRole('link', { name: 'Entra in Fisico' }).getAttribute('href')).toBe('/fisico/superfici');
@@ -222,7 +222,8 @@ describe('Home e menu dallo stesso catalogo', () => {
     const sottomenu = document.getElementById(gruppo.getAttribute('aria-controls') ?? '') as HTMLElement;
     expect(within(sottomenu).getAllByRole('link').map((l) => [l.textContent, l.getAttribute('href')])).toEqual([
       ['Superfici ammissibili', '/fisico/superfici'],
-      ['Determine di una domanda', '/fisico/determine'],
+      ['Output regionale', '/fisico/output-regionale'],
+      ['Unit Amount', '/fisico/unit-amount'],
     ]);
     expect(menu.textContent).not.toContain('Fisicopresto');
     expect(menu.textContent).not.toContain('presto');

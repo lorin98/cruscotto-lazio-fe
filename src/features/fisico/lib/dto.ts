@@ -1,4 +1,5 @@
-// dto.ts — forme minime dei DTO letti dalle funzioni pure del fisico, con i nomi dei campi del contratto (TX-0018, TX-0020).
+// dto.ts — forme minime dei DTO letti dalle funzioni pure del fisico, con i nomi dei campi del contratto (TX-0018, TX-0017
+// e TX-0030: l'output regionale e le Unit Amount sono del fisico dal riallineamento degli ambiti del 29/10/2026).
 // Sono strutturali (i layer puri non importano dal confine api/): ui/contratto.ts verifica a compilazione che ogni campo
 // esista nel DTO generato, cosi' un campo rinominato nella spec ferma la compilazione invece di sparire in pagina.
 import type { DatoMotivatoLike } from '../../../entities/importo';
@@ -33,19 +34,59 @@ export interface Superfici {
   ultimiDatiSincronizzati: UltimoDato[];
 }
 
-/** DeterminaDellaDomanda di TX-0020. */
-export interface Determina {
-  codice: string;
-  data: string;
-  fonteStatoAreaProgrammazione: boolean;
-  fonteComparto: boolean;
+/** MonitoraggioOutputAnno di TX-0017: le tre misure di un anno del periodo. */
+export interface AnnoOutput {
+  anno: number;
+  programmato: DatoMotivatoLike<number>;
+  realizzatoSigc: DatoMotivatoLike<number>;
+  realizzatoNonSigc: DatoMotivatoLike<number>;
 }
 
-/** DetermineDomanda di TX-0020: la determina corrente (oppure null con NON_VALORIZZATO) e quelle con riga aperta. */
-export interface Determine {
-  codiceABarre: string;
-  tipoDomanda: string;
-  domandaChiusa: boolean;
-  corrente: { valore: Determina | null; motivo: string | null };
-  elenco: Determina[];
+/** ImportoUnitarioUnitAmount di TX-0017. */
+export interface ImportoUnitario {
+  codiceUnitAmount: string;
+  gruppoColturale: string;
+  esercizio: number;
+  importoUnitario: DatoMotivatoLike<number>;
+}
+
+/** MonitoraggioOutputRiga di TX-0017: indicatore, unita' di misura, target e anni del periodo in ordine. */
+export interface RigaOutput {
+  codiceIntervento: string;
+  indicatoreOutput: string | null;
+  unitaMisura: string | null;
+  targetFinePeriodo: DatoMotivatoLike<number>;
+  annoTarget: number | null;
+  anni: AnnoOutput[];
+  importiUnitari: ImportoUnitario[];
+}
+
+/** MonitoraggioOutput di TX-0017: periodo (annoInizio..annoFine), perimetro sempre REGIONALE. */
+export interface Output {
+  annoInizio: number;
+  annoFine: number;
+  perimetro: string;
+  realizzatoNonSigcCumulativo: boolean;
+  righe: RigaOutput[];
+  ultimiDatiSincronizzati: UltimoDato[];
+}
+
+/** PagamentiUnitAmountRiga di TX-0030 (campi facoltativi come nella spec). */
+export interface RigaUnitAmount {
+  codiceIntervento?: string;
+  codiceUnitAmount?: string;
+  gruppoColturale?: string;
+  esercizio?: number;
+  importoUnitario?: DatoMotivatoLike<number>;
+  outputPrevisto?: DatoMotivatoLike<number>;
+  importoPagato?: DatoMotivatoLike<number>;
+  percentualePagata?: DatoMotivatoLike<number>;
+  baseStorica?: DatoMotivatoLike<number>;
+}
+
+/** PagamentiUnitAmount di TX-0030 (dati di programma: sempre regionali), con l'ultimo dato sincronizzato. */
+export interface UnitAmount {
+  perimetro?: 'REGIONALE';
+  righe?: RigaUnitAmount[];
+  ultimiDatiSincronizzati?: UltimoDato[];
 }

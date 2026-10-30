@@ -1,6 +1,9 @@
 // features/fisico — public API (barrel): le pagine, la Home e il menu compongono solo da qui. Superfici ammissibili
-// (TX-0018, con i valori dei filtri di TX-0060) e determine di una domanda (TX-0020).
+// (TX-0018), output regionale programmato e realizzato (TX-0017, dall'istituzionale) e pagamenti per Unit Amount (TX-0030,
+// dal procedurale) col riallineamento degli ambiti del 29/10/2026, coi valori dei filtri di TX-0060; le determine di una
+// domanda (TX-0020) sono del procedurale.
 export { SuperficiAmmissibili } from './ui/SuperficiAmmissibili';
-export { DetermineDellaDomanda } from './ui/DetermineDellaDomanda';
+export { OutputRegionale } from './ui/OutputRegionale';
+export { UnitAmount } from './ui/UnitAmount';
 export { pagineVisibili } from './lib/pagine';
 export { AnteprimaFisico } from './ui/AnteprimaFisico';

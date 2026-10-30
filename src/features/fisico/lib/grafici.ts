@@ -2,27 +2,39 @@
 // raggruppate per un confronto fra interventi (DS e DP nella campagna di riferimento, zoom oltre 12), linea per una serie
 // nel tempo (DS e DP per campagna), barre orizzontali con lo zero al centro per una differenza col segno (verifica
 // incrociata DP - DS). Ogni grafico ha la tabella equivalente; gli interventi senza superfici sono omessi e dichiarati,
-// mai a zero; i valori negativi hanno il segno meno nel testo (il colore non e' l'unico canale).
+// mai a zero; i valori negativi hanno il segno meno nel testo (il colore non e' l'unico canale). Dal riallineamento degli
+// ambiti del 29/10/2026 anche le barre raggruppate per anno dell'output di un intervento col target di fine periodo
+// (TX-0017, dall'istituzionale) e le barre orizzontali della percentuale pagata delle Unit Amount (TX-0030, dal
+// procedurale).
 import type { BarSeriesOption, EChartsOption, LineSeriesOption } from 'echarts';
+import { descriviAssenza, testoConNota, testoMotivato } from '../../../entities/importo';
 import {
   COLORI,
   MISURA_ETTARI,
+  MISURA_PERCENTUALI,
   aria,
   asseEttari,
   barreRaggruppate,
   ettari,
   etichettaDato,
+  formatNumber,
+  formatPercentuale,
+  minuscolaIniziale,
   nonDisegnabile,
   notaOmessi,
+  numeroDi,
   plurale,
   tooltipDettaglio,
   valoreEttari,
+  valoreInNumero,
 } from '../../../shared/lib';
-import type { DatiGrafico, DatoSerie, TabellaEquivalente, VoceRaggruppata } from '../../../shared/lib';
-import type { InterventoSuperficie } from './dto';
-import { ETICHETTE, SENZA_SUPERFICI, cellaDifferenza, cellaSuperficie, testoDifferenza, testoNonInCampagna, testoNonNellaCampagnaFiltrata, testoQuantitaPremio } from './formato';
+import type { DatiGrafico, DatoSerie, MisuraBarre, TabellaEquivalente, VoceRaggruppata } from '../../../shared/lib';
+import type { InterventoSuperficie, RigaOutput, RigaUnitAmount } from './dto';
+import { ETICHETTE, SENZA_SUPERFICI, cellaDifferenza, cellaSuperficie, quantita, resaAssenza, testoDifferenza, testoNonInCampagna, testoNonNellaCampagnaFiltrata, testoQuantitaPremio, testoTarget } from './formato';
+import { MISURE, etichettaMisura } from './output';
 import { campagnaDi, senzaSuperfici } from './superfici';
 import type { InterventoSenzaSuperfici, MotivoSenzaSuperfici } from './superfici';
+import { chiaveUnitAmount, etichettaUnitAmount } from './unitAmount';
 
 const SERIE_DS_DP = [
   { nome: 'Superficie DS', soggetto: 'superficie DS' },
@@ -196,4 +208,92 @@ export function graficoVerifica(righe: readonly InterventoSuperficie[], anno: nu
     series: [serie],
   };
   return { opzioni, tabella, omessi };
+}
+
+// ---------------------------------------------------------------- output regionale (TX-0017, dall'istituzionale il 29/10/2026)
+
+/**
+ * La misura delle barre dell'output: il testo dei valori con l'unita' dell'indicatore (solo nei testi gia' composti, mai
+ * in una funzione delle opzioni), tooltip e asse coi numeri in italiano senza dati catturati.
+ */
+function misuraOutput(unita: string | null): MisuraBarre {
+  return { breve: (v) => quantita(v, unita), valore: valoreInNumero, asse: formatNumber, descrizione: unita ? `quantità in ${unita}` : "quantità nell'unità di misura dell'indicatore" };
+}
+
+/** Il target come linea di riferimento sulla prima serie, con l'asse che lo contiene, e nella descrizione accessibile. */
+function conTarget(opzioni: EChartsOption, r: RigaOutput, testo: string): EChartsOption {
+  const target = numeroDi(r.targetFinePeriodo.valore);
+  const [prima, ...altre] = (opzioni.series ?? []) as BarSeriesOption[];
+  if (target === null || !prima) return opzioni;
+  const massimo = Math.max(0, ...r.anni.flatMap((a) => MISURE.map((m) => numeroDi(a[m].valore) ?? 0)));
+  const linea: BarSeriesOption['markLine'] = { symbol: 'none', silent: true, lineStyle: { type: 'dashed', color: COLORI.scuro }, label: { formatter: '{b}' }, data: [{ name: `Target ${testo}`, yAxis: target }] };
+  const descrizione = (opzioni.aria as { label?: { description?: string } } | undefined)?.label?.description ?? '';
+  return {
+    ...opzioni,
+    aria: aria(`${descrizione} Target di fine periodo: ${testo}.`),
+    yAxis: { ...(opzioni.yAxis as object), ...(target > massimo ? { max: target } : {}) },
+    series: [{ ...prima, markLine: linea }, ...altre],
+  };
+}
+
+/**
+ * Barre raggruppate per anno dell'output di un intervento: programmato, realizzato SIGC, realizzato non SIGC (cumulativo),
+ * nell'unita' dell'indicatore, col target di fine periodo; nessun clic. La tabella equivalente ha una riga per anno e
+ * una per il target. Il mini grafico del drawer dell'output regionale.
+ */
+export function graficoOutputPerAnno(r: RigaOutput, cumulativo: boolean): DatiGrafico {
+  const unita = r.unitaMisura;
+  const definizioni = MISURE.map((m) => ({ nome: etichettaMisura(m, cumulativo), soggetto: minuscolaIniziale(etichettaMisura(m, cumulativo)) }));
+  const voci: VoceRaggruppata[] = r.anni.map((a) => ({
+    categoria: String(a.anno),
+    valori: MISURE.map((m) => numeroDi(a[m].valore)),
+    celle: MISURE.map((m) => testoMotivato(a[m], (v) => quantita(v, unita))),
+  }));
+  const testi = {
+    caption: `Tabella equivalente: output dell'intervento ${r.codiceIntervento} per anno${unita ? `, in ${unita}` : ''}`,
+    colonne: ['Anno', ...definizioni.map((d) => d.nome)],
+    titolo: `Barre raggruppate dell'output di ${r.codiceIntervento}`,
+    vuoto: "nessun anno con un valore dell'output",
+    unita: ['anno', 'anni'] as [string, string],
+  };
+  const g = barreRaggruppate(voci, definizioni, testi, { misura: misuraOutput(unita) });
+  const target = testoTarget(r.targetFinePeriodo, r.annoTarget, unita);
+  const tabella = { ...g.tabella, righe: [...g.tabella.righe, ['Target di fine periodo', target, '', '']] };
+  return { ...g, tabella, opzioni: g.opzioni && conTarget(g.opzioni, r, target) };
+}
+
+// ---------------------------------------------------------------- Unit Amount (TX-0030, dal procedurale il 29/10/2026)
+
+/** Il pagato delle Unit Amount non e' attivo (nessuna Unit Amount ha l'importo pagato: OP-FIS-14). */
+export function pagatoSenzaFonte(righe: readonly RigaUnitAmount[]): boolean {
+  return righe.some((r) => r.importoPagato?.motivo === 'FONTE_NON_ATTIVA');
+}
+
+const percentuale = (d: RigaUnitAmount['percentualePagata']) => testoMotivato(d, formatPercentuale);
+
+/** Una percentuale del pagato in testo, con la fonte non attiva "non disponibile" in breve: il motivo lo dice la card. */
+const percentualeBreve = (d: RigaUnitAmount['percentualePagata']) => (d?.valore != null ? formatPercentuale(d.valore) : testoConNota(resaAssenza(d, true)));
+
+/**
+ * Barre orizzontali raggruppate della percentuale pagata e della base storica per Unit Amount (TX-0030); senza la fonte
+ * del pagato il grafico non e' disponibile e lo dice una volta nel testo della card, la tabella equivalente ha le celle
+ * "non disponibile" in breve (scelta 8 approvata). Clic su una barra: l'anteprima della riga (codice = la riga).
+ */
+export function graficoUnitAmount(righe: readonly RigaUnitAmount[], titolo: string): DatiGrafico {
+  const voci: VoceRaggruppata[] = righe.map((r) => ({
+    categoria: etichettaUnitAmount(r),
+    codice: chiaveUnitAmount(r),
+    valori: [r.percentualePagata?.valore ?? null, r.baseStorica?.valore ?? null],
+    celle: [percentuale(r.percentualePagata), percentuale(r.baseStorica)],
+  }));
+  const definizioni = [
+    { nome: 'Percentuale pagata', soggetto: 'percentuale pagata' },
+    { nome: 'Base storica', soggetto: 'base storica' },
+  ];
+  const testi = { caption: titolo, colonne: ['Unit Amount', 'Pagato sul richiesto', 'Base storica'], titolo, vuoto: 'nessuna percentuale valorizzata', unita: ['Unit Amount', 'Unit Amount'] as [string, string] };
+  if (pagatoSenzaFonte(righe)) {
+    const tabella: TabellaEquivalente = { caption: titolo, colonne: testi.colonne, righe: righe.map((r) => [etichettaUnitAmount(r), percentualeBreve(r.percentualePagata), percentualeBreve(r.baseStorica)]) };
+    return nonDisegnabile(`nessuna Unit Amount ha ancora l'importo pagato (${descriviAssenza(righe[0]?.importoPagato).nota ?? 'fonte non attiva'})`, tabella, []);
+  }
+  return barreRaggruppate(voci, definizioni, testi, { misura: MISURA_PERCENTUALI, orizzontale: true });
 }

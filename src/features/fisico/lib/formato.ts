@@ -2,9 +2,10 @@
 // due decimali e il segno meno scritto, D-01 Rev. 2; review H5), qui le differenze col segno, le celle senza unita', assenze dette con la resa unica
 // dell'entity importo (mai uno zero), etichette dei campi di TX-0018, conteggi delle domande e nota della quantita' a
 // premio (review H3: prima nei componenti; la descrizione dell'intervento dalle voci dei filtri ora e' di entities/filtri,
-// comune con l'istituzionale). I testi sono quelli dei wireframe approvati.
-import { descriviAssenza, testoConNota } from '../../../entities/importo';
-import type { DatoMotivatoLike } from '../../../entities/importo';
+// comune con l'istituzionale). I testi sono quelli dei wireframe approvati. Dal riallineamento degli ambiti del 29/10/2026
+// anche quelli dell'output regionale (TX-0017, dall'istituzionale) e delle Unit Amount (TX-0030, dal procedurale).
+import { descriviAssenza, testoConNota, testoMotivato } from '../../../entities/importo';
+import type { DatoMotivatoLike, ImportoResa } from '../../../entities/importo';
 import { formatEttari, formatNumber, formatPercentuale } from '../../../shared/lib';
 import type { InterventoSuperficie } from './dto';
 import { campagnaDi } from './superfici';
@@ -111,3 +112,56 @@ export const ETICHETTE = {
   sostegniDiscordanti: 'Sostegni con DS discordanti',
   quantitaRichiestaPremio: "Quantità richiesta a premio",
 } as const;
+
+// ---------------------------------------------------------------- output regionale (TX-0017, dall'istituzionale il 29/10/2026)
+
+/** Una quantita' di output con l'unita' di misura dell'indicatore accanto: "1.500 ettari"; senza unita' il solo numero. */
+export function quantita(v: number, unita: string | null | undefined): string {
+  return unita ? `${formatNumber(v)} ${unita}` : formatNumber(v);
+}
+
+/** Pill del periodo dell'output regionale (annoInizio..annoFine della risposta). */
+export function pillPeriodo(inizio: number, fine: number): string {
+  return `Periodo: ${inizio} - ${fine}`;
+}
+
+/** Il target di fine periodo: "1.500 ettari al 2029", oppure la sua assenza col motivo. */
+export function testoTarget(target: DatoMotivatoLike<number>, annoTarget: number | null, unita: string | null): string {
+  return testoMotivato(target, (v) => `${quantita(v, unita)}${annoTarget === null ? '' : ` al ${annoTarget}`}`);
+}
+
+/** L'anno del target assente (TX-0017: null se il target manca), in badge come le altre assenze. */
+export const ANNO_TARGET_ASSENTE: ImportoResa = { disponibile: false, testo: 'non valorizzato', nota: 'nessun target' };
+
+/** Un testo del contratto che puo' mancare (indicatore, unita' di misura di TX-0017): l'assenza come NON_VALORIZZATO. */
+export const TESTO_ASSENTE = { valore: null, motivo: 'NON_VALORIZZATO', fonte: null } as const;
+
+/** Lo stato vuoto dell'output regionale: coi filtri dice di cambiarli; senza filtri non parla di filtri. */
+export function testoVuotoOutput(conFiltri: boolean): string {
+  return conFiltri ? "Nessun intervento per i filtri scelti (per esempio un'azione portante senza interventi collegati)." : "Nessun intervento nell'output regionale.";
+}
+
+/** Definizioni del backend sotto la tabella dell'output regionale (D-03, D-04; da confermare: OP-FIS-12). */
+export const DEFINIZIONI_OUTPUT =
+  'Fonte: TX-0017. Programmato per anno = somma dell\'output previsto delle Unit Amount dell\'esercizio (D-03): gli interventi senza Unit Amount valorizzate hanno il solo target di fine periodo. Realizzato SIGC = output erogato dell\'anno campagna; realizzato non SIGC = valore del file non SIGC per anno di riferimento, cumulativo (da confermare con ARSIAL e AGEA). Una riga presente in entrambi i monitoraggi è "non attribuibile (riga presente sia nel monitoraggio SIGC sia nel non SIGC)".';
+
+// ---------------------------------------------------------------- Unit Amount (TX-0030, dal procedurale il 29/10/2026)
+
+/** Una voce senza fonte in breve, dove la nota accanto dice gia' il motivo (scelta 8 approvata: "non disponibile"). */
+export const NON_DISPONIBILE_BREVE: ImportoResa = { disponibile: false, testo: 'non disponibile' };
+
+/** La resa di un'assenza: breve con FONTE_NON_ATTIVA quando il motivo e' detto altrove, altrimenti completa. */
+export function resaAssenza(dato: Pick<DatoMotivatoLike<unknown>, 'motivo' | 'fonte'> | null | undefined, breveSenzaFonte: boolean): ImportoResa {
+  return breveSenzaFonte && dato?.motivo === 'FONTE_NON_ATTIVA' ? NON_DISPONIBILE_BREVE : descriviAssenza(dato);
+}
+
+/** Lo stato vuoto delle Unit Amount: coi filtri dice gli interventi scelti. */
+export function testoVuotoUnitAmount(conFiltri: boolean): string {
+  return conFiltri ? 'Nessuna Unit Amount per gli interventi scelti.' : 'Nessuna Unit Amount.';
+}
+
+/** Le Unit Amount non sono domande: nessun totale (il DTO non lo porta) e nessun link verso l'elenco. */
+export const NOTA_UNIT_AMOUNT = "Dati di programma dall'import CSR-UA, regionali per ogni profilo; base storica = percentuale pagata della stessa Unit Amount dell'intervento nell'esercizio precedente. Nessun totale: la pagina non somma le righe. Mai l'Assistenza tecnica (AT001).";
+
+/** I file CSV e XLSX sono l'export dell'intero report della tabella (scelta 7 approvata nel procedurale). */
+export const NOTA_FILE_UNIT_AMOUNT = 'I file CSV e XLSX contengono tutto il report coi filtri della pagina (tutte le righe e tutte le colonne), non solo quelle trovate dalla ricerca o scelte con Colonne.';

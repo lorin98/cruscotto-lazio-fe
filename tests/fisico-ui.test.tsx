@@ -1,20 +1,24 @@
 // Test dei componenti del fisico (green-fe step5): un test L2 per componente (render su MSW, ruoli e stati accessibili) e
-// un test a11y con axe-core diretto. ECharts e' il grafico finto di src/shared/test/setup.ts (jsdom non disegna). Le
+// un test a11y con axe-core diretto. Dal 29/10/2026 anche l'output regionale e le Unit Amount; le determine di una domanda
+// sono del procedurale. ECharts e' il grafico finto di src/shared/test/setup.ts (jsdom non disegna). Le
 // letture sono dichiarate da ogni test (il server dei test non monta i mock generati del fisico e dell'elenco).
-import { describe, expect, it } from 'vitest';
-import { screen, waitFor, within } from '@testing-library/react';
+import type { ReactElement } from 'react';
+import { describe, expect, it, vi } from 'vitest';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
-import { createMemoryRouter, RouterProvider, useParams } from 'react-router';
+import { createMemoryRouter, RouterProvider } from 'react-router';
 import { server } from '../src/shared/api/mock/server';
 import { expectNoA11yViolations } from '../src/shared/testing/axe';
-import { graficoDi, trovaCard } from '../src/shared/testing/card-grafico';
-import { clicSulDato } from '../src/shared/testing/grafico-finto';
+import { graficoDi, tabellaDi, trovaCard } from '../src/shared/testing/card-grafico';
+import { clicSulCodice, clicSulDato } from '../src/shared/testing/grafico-finto';
 import { problema } from '../src/shared/testing/msw';
 import { renderPagina } from '../src/shared/testing/render-pagina';
-import { renderConQuery } from '../src/shared/testing/render';
-import { DetermineDellaDomanda, SuperficiAmmissibili } from '../src/features/fisico';
-import { DETERMINE, SUPERFICI, VALORI, superficiPer } from '../src/features/fisico/testing/fixture';
+import { OutputRegionale, SuperficiAmmissibili, UnitAmount } from '../src/features/fisico';
+import { OUTPUT, SRA01_OUTPUT, SUPERFICI, VALORI, superficiPer } from '../src/features/fisico/testing/fixture';
+import { lettureFisico } from '../src/features/fisico/testing/letture';
+import { AnteprimaOutput } from '../src/features/fisico/ui/AnteprimaOutput';
+import { TabellaOutput } from '../src/features/fisico/ui/TabellaOutput';
 import type { SuperficieAmmissibile } from '../src/features/fisico/api';
 
 const testo = (s: string | null | undefined) => (s ?? '').replace(/\s/g, ' ');
@@ -33,14 +37,9 @@ function serviSuperfici(corpo: SuperficieAmmissibile = SUPERFICI, valori: object
   return lette;
 }
 
-function PaginaDetermine() {
-  const { codice } = useParams();
-  return <DetermineDellaDomanda codice={codice} />;
-}
-
-function apriDetermine(indirizzo: string) {
-  const router = createMemoryRouter([{ path: '/fisico/determine/:codice?', Component: PaginaDetermine }], { initialEntries: [indirizzo] });
-  return { ...renderConQuery(<RouterProvider router={router} />), router };
+function inRouter(ui: ReactElement) {
+  const router = createMemoryRouter([{ path: '*', element: ui }], { initialEntries: ['/'] });
+  return { ...render(<RouterProvider router={router} />), router };
 }
 
 describe('SuperficiAmmissibili (pagina delle superfici, componente)', () => {
@@ -151,28 +150,80 @@ describe('TabellaSuperfici (componente)', () => {
   });
 });
 
-describe('CercaDomanda e DetermineDellaDomanda (componenti)', () => {
-  it('senza codice: il solo modulo e lo stato iniziale, nessuna lettura; nessuna violazione axe', async () => {
-    const { container } = apriDetermine('/fisico/determine');
-    expect(screen.getByRole('heading', { level: 1, name: 'Determine di una domanda' })).toBeTruthy();
-    expect(screen.getByRole('search', { name: 'Cerca le determine di una domanda' })).toBeTruthy();
-    expect(screen.getByRole('status').textContent).toBe('Scrivi il codice a barre di una domanda per vedere da quali determine prende le informazioni.');
+// l'output regionale (dall'istituzionale) e le Unit Amount (dal procedurale) sono del fisico dal 29/10/2026: gli stessi casi
+// dei test dei componenti delle aree da cui vengono
+describe('OutputRegionale, TabellaOutput e AnteprimaOutput (output regionale)', () => {
+  const intestazioni = (t: HTMLElement) => within(t).getAllByRole('columnheader').map((c) => c.textContent?.replace(/[▲▼↕]/g, '').trim());
+
+  it('barra con periodo, interruttore della misura con la didascalia, anni dalla risposta; nessuna violazione axe', async () => {
+    server.use(...lettureFisico().handlers);
+    const { container } = renderPagina(OutputRegionale, '/fisico/output-regionale');
+    const misura = await screen.findByRole('group', { name: 'Misura mostrata negli anni' });
+    expect(within(screen.getByRole('region', { name: 'Filtri attivi' })).getByText('Periodo: 2023 - 2029')).toBeTruthy();
+    expect(within(misura).getAllByRole('button').map((b) => [b.textContent, b.getAttribute('aria-pressed')])).toEqual([
+      ['Programmato', 'true'],
+      ['Realizzato SIGC', 'false'],
+      ['Realizzato non SIGC (cumulativo)', 'false'],
+    ]);
+    const tabella = screen.getByRole('table', { name: /^Output programmato per anno/ });
+    expect(intestazioni(tabella)).toEqual(['Intervento', 'Indicatore di output', 'Unità di misura', 'Target di fine periodo', 'Anno del target', '2023', '2024', '2025', '2026', '2027', '2028', '2029']);
+    const sra01 = within(tabella).getByRole('row', { name: "Apri l'anteprima dell'intervento SRA01" });
+    expect(testo(sra01.textContent)).toContain('1500 ettari');
+    expect(testo(sra01.textContent)).toContain('500 ettari');
+    await userEvent.click(within(misura).getByRole('button', { name: 'Realizzato SIGC' }));
+    expect(screen.getByRole('table', { name: /^Output realizzato SIGC per anno/ })).toBeTruthy();
+    expect(document.activeElement).toBe(within(misura).getByRole('button', { name: 'Realizzato SIGC' }));
     await expectNoA11yViolations(container);
   });
 
-  it('il modulo riduce il testo alle cifre e porta alla stessa route col codice', async () => {
-    const { router } = apriDetermine('/fisico/determine');
-    server.use(http.get('*/api/fisico/domande/:codice/determina', () => HttpResponse.json(DETERMINE)));
-    await userEvent.type(screen.getByRole('searchbox', { name: 'Codice a barre della domanda' }), '5481 0769-585');
-    await userEvent.click(screen.getByRole('button', { name: 'Cerca' }));
-    await waitFor(() => expect(router.state.location.pathname).toBe('/fisico/determine/54810769585'));
+  it('TabellaOutput: indicatore, unita, target e anno del target assenti in badge, mai uno zero', () => {
+    inRouter(<TabellaOutput d={OUTPUT} misura="realizzatoNonSigc" scaricamenti={[]} onRiga={() => undefined} />);
+    const srg01 = screen.getByRole('row', { name: "Apri l'anteprima dell'intervento SRG01" });
+    expect(testo(srg01.textContent)).toContain('non valorizzatonessun target');
+    expect(within(srg01).getAllByText('non valorizzato').length).toBeGreaterThanOrEqual(4);
+    const srd01 = screen.getByRole('row', { name: "Apri l'anteprima dell'intervento SRD01" });
+    expect(testo(srd01.textContent)).toContain('12 numero di operazioni');
   });
 
-  it('con un codice: testata, KPI e tabella delle determine; nessuna violazione axe', async () => {
-    server.use(http.get('*/api/fisico/domande/:codice/determina', () => HttpResponse.json(DETERMINE)));
-    const { container } = apriDetermine('/fisico/determine/54810769585');
-    expect(await screen.findByRole('table', { name: /^Determine da cui la domanda 54810769585 prende le informazioni/ })).toBeTruthy();
-    expect(screen.getByRole('link', { name: 'Apri la scheda della domanda' }).getAttribute('href')).toBe('/elenco-operativo/domande/PAGAMENTO/54810769585');
+  it('AnteprimaOutput: voci, mini grafico senza PNG con la tabella equivalente, nessun link (il dettaglio del fisico e dei passi successivi); nessuna violazione axe', async () => {
+    const onChiudi = vi.fn();
+    inRouter(<AnteprimaOutput riga={SRA01_OUTPUT} cumulativo onChiudi={onChiudi} />);
+    const drawer = await screen.findByRole('dialog', { name: 'Anteprima: SRA01' });
+    expect(testo(drawer.textContent)).toContain('O.14 (ettari)');
+    expect(testo(drawer.textContent)).toContain('1500 ettari al 2029');
+    const card = await trovaCard('Output di SRA01 per anno');
+    expect(within(card).queryByRole('group', { name: /^Scarica/ })).toBeNull();
+    expect(within(await tabellaDi(card)).getAllByRole('rowheader').map((c) => c.textContent)).toContain('Target di fine periodo');
+    expect(within(drawer).queryByRole('link')).toBeNull();
+    await expectNoA11yViolations(drawer);
+    await userEvent.click(within(drawer).getByRole('button', { name: 'Chiudi: Anteprima: SRA01' }));
+    expect(onChiudi).toHaveBeenCalled();
+  });
+});
+
+describe('UnitAmount, TabellaUnitAmount e l anteprima della Unit Amount', () => {
+  const intestazioni = (t: HTMLElement) => within(t).getAllByRole('columnheader').map((c) => c.textContent?.replace(/[▲▼↕]/g, '').trim());
+
+  it('la nota unica del pagato, le nove colonne in ordine di intervento, esercizio e codice; nessuna violazione axe', async () => {
+    server.use(...lettureFisico().handlers);
+    const { container } = renderPagina(UnitAmount, '/fisico/unit-amount');
+    const tabella = await screen.findByRole('table', { name: /^Unit Amount degli interventi selezionati/ });
+    expect(screen.getByText(/^Importo pagato, percentuale pagata sul richiesto e base storica: non disponibili per tutte le Unit Amount \(fonte pagato per Unit Amount non attiva\)/)).toBeTruthy();
+    expect(intestazioni(tabella)).toEqual(['Intervento', 'Unit Amount', 'Gruppo colturale', 'Esercizio', 'Importo unitario', 'Output previsto', 'Importo pagato', 'Pagato sul richiesto', 'Base storica']);
+    expect(within(tabella).getAllByRole('rowheader').map((c) => c.textContent)).toEqual(['UA1', 'UA2', 'UA1']);
+    const ua2 = within(tabella).getByRole('row', { name: "Apri l'anteprima della Unit Amount UA2 di SRD01, esercizio 2024" });
+    expect(testo(ua2.textContent)).toBe('SRD01UA2Ortive2024non valorizzatoil dato non è presente nella fonte5non disponibilenon disponibilenon disponibile');
+    const card = await trovaCard('Percentuale pagata per Unit Amount');
+    expect(testo(card.textContent)).toContain("Grafico non disponibile: nessuna Unit Amount ha ancora l'importo pagato (fonte pagato per Unit Amount non attiva).");
     await expectNoA11yViolations(container);
+  });
+
+  it('col pagato: il clic su una barra apre l anteprima della riga; nessuna violazione axe', async () => {
+    server.use(...lettureFisico({ pagato: true }).handlers);
+    renderPagina(UnitAmount, '/fisico/unit-amount');
+    clicSulCodice(graficoDi(await trovaCard('Percentuale pagata per Unit Amount')), 'SRD01|UA1|2024');
+    const drawer = await screen.findByRole('dialog', { name: 'Anteprima: UA1 (SRD01, esercizio 2024)' });
+    expect(testo(drawer.textContent)).toContain('Gruppo colturaleSeminativi');
+    await expectNoA11yViolations(drawer);
   });
 });

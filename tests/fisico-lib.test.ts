@@ -1,9 +1,10 @@
 // Test L1 delle funzioni PURE del fisico (lib/): criteri nell'indirizzo, conti sulle superfici, testi, builder dei
-// grafici, determine, grant e pagine. Chiamate dirette, niente render; i dati sono quelli degli scenari del backend.
+// grafici, output regionale e Unit Amount (dal 29/10/2026), grant e pagine. Chiamate dirette, niente render; i dati sono
+// quelli degli scenari del backend. Le determine di una domanda sono del procedurale.
 import type { EChartsOption } from 'echarts';
 import { describe, expect, it } from 'vitest';
 import { COLORI, ettari, valoreEttari } from '../src/shared/lib';
-import { criteriAttivi, criteriDaRicerca, campagnaDaTesto, conCampagna, conFiltriDelProgramma, ricercaDaCriteri, soloIntervento, testiCriteri } from '../src/features/fisico/lib/criteri';
+import { criteriAttivi, criteriDaRicerca, campagnaDaTesto, conCampagna, conFiltriDelProgramma, filtriSenzaAzione, ricercaDaCriteri, soloIntervento, testiCriteri } from '../src/features/fisico/lib/criteri';
 import {
   campagnaDi,
   campagnaDiRiferimento,
@@ -19,11 +20,17 @@ import {
   totaliPerCampagna,
 } from '../src/features/fisico/lib/superfici';
 import {
+  ANNO_TARGET_ASSENTE,
+  DEFINIZIONI_OUTPUT,
+  NON_DISPONIBILE_BREVE,
   SENZA_SUPERFICI,
+  TESTO_ASSENTE,
   cellaDifferenza,
   cellaSuperficie,
   fonteLineaIntervento,
   notaQuantitaPremio,
+  pillPeriodo,
+  quantita,
   testoDifferenza,
   testoDomande,
   testoNessunaSuperficie,
@@ -32,28 +39,18 @@ import {
   testoQuantitaPremio,
   testoQuotaOltreDs,
   testoSenzaSuperfici,
+  testoTarget,
+  testoVuotoOutput,
+  testoVuotoUnitAmount,
 } from '../src/features/fisico/lib/formato';
 import { TESTI_KPI, cardDelleSuperfici, kpiDellaCampagna } from '../src/features/fisico/lib/report';
 import { anteprimaSuperfici } from '../src/features/fisico/lib/anteprima';
-import { MOTIVO_CON_CAMPAGNA, graficoInterventoPerCampagna, graficoPerCampagna, graficoPerIntervento, graficoVerifica, lineePerCampagna } from '../src/features/fisico/lib/grafici';
-import {
-  MAX_CIFRE,
-  badgeDetermine,
-  codiceDaCercare,
-  codiceDalPercorso,
-  eCorrente,
-  fonteDi,
-  percorsoDetermine,
-  percorsoSchedaDellaDomanda,
-  siNo,
-  soloCifre,
-  sopratitoloDetermine,
-  testoTipoDomanda,
-  titoloDetermine,
-} from '../src/features/fisico/lib/determine';
+import { MOTIVO_CON_CAMPAGNA, graficoInterventoPerCampagna, graficoOutputPerAnno, graficoPerCampagna, graficoPerIntervento, graficoUnitAmount, graficoVerifica, lineePerCampagna, pagatoSenzaFonte } from '../src/features/fisico/lib/grafici';
+import { MISURE, anniDelPeriodo, captionOutput, datoDellAnno, etichettaMisura, importiOrdinati, opzioniMisura, ordinabileDellAnno, testoRicercaOutput, vociAnteprima } from '../src/features/fisico/lib/output';
+import { CAMPI_PAGATO, TITOLI_PAGATO, assenzaPagato, chiaveUnitAmount, etichettaUnitAmount, notaPagato, valoreDi } from '../src/features/fisico/lib/unitAmount';
 import { GRANT, puoLeggere } from '../src/features/fisico/lib/grant';
 import { PAGINE_FISICO, PERCORSI, pagineVisibili } from '../src/features/fisico/lib/pagine';
-import { DETERMINE, DETERMINE_CHIUSA, DETERMINE_NESSUNA, SUPERFICI, SUPERFICI_SENZA, SUPERFICI_TRE, SUPERFICI_TRE_2024, campagna, superficiPer } from '../src/features/fisico/testing/fixture';
+import { OUTPUT, SRA01_OUTPUT, SUPERFICI, SUPERFICI_SENZA, SUPERFICI_TRE, SUPERFICI_TRE_2024, campagna, outputPer, righeDeiFiltri, superficiPer, unitAmountPer } from '../src/features/fisico/testing/fixture';
 
 // gli spazi del formato it-IT sono non separabili: si confronta con spazi normali
 const n = (s: string | undefined) => (s ?? '').replace(/\s/g, ' ');
@@ -382,45 +379,133 @@ describe('RF018: il report come dati e i calcoli spostati dai componenti (H3, H4
   });
 });
 
-describe('RF020: determine di una domanda (codice, link e testi)', () => {
-  it('codice del percorso: assente, valido o non valido (nessuna lettura)', () => {
-    expect(codiceDalPercorso(undefined)).toEqual({ stato: 'assente' });
-    expect(codiceDalPercorso('')).toEqual({ stato: 'assente' });
-    expect(codiceDalPercorso('54810769585')).toEqual({ stato: 'valido', codice: '54810769585' });
-    expect(codiceDalPercorso('5481A')).toEqual({ stato: 'non-valido' });
+// output regionale (TX-0017) e Unit Amount (TX-0030): gli stessi casi dei test dell'istituzionale e del procedurale da cui
+// le pagine vengono (29/10/2026)
+describe('RF017: l output regionale (TX-0017)', () => {
+  it('misure dell interruttore, anni del periodo e dato di un anno; un anno non elencato e non valorizzato', () => {
+    expect(MISURE.map((m) => etichettaMisura(m, true))).toEqual(['Programmato', 'Realizzato SIGC', 'Realizzato non SIGC (cumulativo)']);
+    expect(etichettaMisura('realizzatoNonSigc', false)).toBe('Realizzato non SIGC');
+    expect(opzioniMisura(true)).toEqual([
+      { valore: 'programmato', etichetta: 'Programmato' },
+      { valore: 'realizzatoSigc', etichetta: 'Realizzato SIGC' },
+      { valore: 'realizzatoNonSigc', etichetta: 'Realizzato non SIGC (cumulativo)' },
+    ]);
+    expect(anniDelPeriodo({ annoInizio: 2023, annoFine: 2030 })).toHaveLength(8);
+    expect(datoDellAnno(SRA01_OUTPUT, 2024, 'programmato').valore).toBe(500);
+    expect(datoDellAnno(SRA01_OUTPUT, 2031, 'programmato')).toEqual({ valore: null, motivo: 'NON_VALORIZZATO', fonte: null });
+    expect([ordinabileDellAnno(SRA01_OUTPUT, 2023, 'realizzatoSigc'), ordinabileDellAnno(SRA01_OUTPUT, 2023, 'programmato')]).toEqual([400, null]);
   });
 
-  it('modulo di ricerca: le sole cifre, almeno una e al piu 30', () => {
-    expect(soloCifre(' 5481-0769 585 ')).toBe('54810769585');
-    expect(codiceDaCercare(' 5481 0769585')).toEqual({ codice: '54810769585' });
-    expect(codiceDaCercare('abc')).toEqual({ errore: 'Scrivi il codice a barre della domanda: contano solo le cifre.' });
-    expect(codiceDaCercare('1'.repeat(MAX_CIFRE + 1))).toEqual({ errore: 'Il codice a barre ha al più 30 cifre: ne hai scritte 31.' });
+  it('didascalia con la misura; voci del drawer; importi in ordine di esercizio e codice; riga e ricerca', () => {
+    expect(captionOutput('programmato', true)).toBe("Output programmato per anno (misura scelta sopra), l'intervento è l'intestazione di riga e gli anni vengono dalla risposta");
+    expect(captionOutput('realizzatoSigc', true)).toMatch(/^Output realizzato SIGC per anno/);
+    expect(vociAnteprima(SRA01_OUTPUT, true)).toEqual([
+      { termine: 'Indicatore di output', valore: 'O.14 (ettari)' },
+      { termine: 'Target di fine periodo', valore: '1500 ettari al 2029' },
+      { termine: 'Realizzato non SIGC', valore: 'cumulativo per anno di riferimento' },
+    ]);
+    const srg01 = OUTPUT.righe[3];
+    // l'indicatore assente con la resa unica delle assenze, come la tabella; senza l'unita' anche se c'e' (review V4)
+    expect(vociAnteprima(srg01, false).map((v) => v.valore)).toEqual(['non valorizzato (il dato non è presente nella fonte)', 'non valorizzato (il dato non è presente nella fonte)', 'annuale']);
+    expect(vociAnteprima({ ...srg01, unitaMisura: 'ettari' }, false)[0].valore).toBe('non valorizzato (il dato non è presente nella fonte)');
+    expect(importiOrdinati(SRA01_OUTPUT).map((i) => `${i.esercizio} ${i.codiceUnitAmount}`)).toEqual(['2024 UA01', '2024 UA02', '2025 UA01']);
+    expect(testoRicercaOutput(SRA01_OUTPUT)).toBe('SRA01 O.14 ettari');
   });
 
-  it('link cerca-domanda (stessa route) e scheda-domanda (elenco operativo, col grant e domanda non chiusa)', () => {
-    expect(percorsoDetermine()).toBe('/fisico/determine');
-    expect(percorsoDetermine('54810769585')).toBe('/fisico/determine/54810769585');
-    expect(percorsoSchedaDellaDomanda(DETERMINE, true)).toBe('/elenco-operativo/domande/PAGAMENTO/54810769585');
-    expect(percorsoSchedaDellaDomanda(DETERMINE, false)).toBeNull();
-    expect(percorsoSchedaDellaDomanda(DETERMINE_CHIUSA, true)).toBeNull();
+  it('testi: quantita con l unita, periodo, target; mai uno zero al posto di un assente; stato vuoto e definizioni', () => {
+    expect([quantita(1500, 'ettari'), quantita(12, null), quantita(12345, 'UBA')]).toEqual(['1500 ettari', '12', '12.345 UBA']);
+    expect(pillPeriodo(2023, 2029)).toBe('Periodo: 2023 - 2029');
+    expect(testoTarget({ valore: 1500 }, 2029, 'ettari')).toBe('1500 ettari al 2029');
+    expect(testoTarget({ valore: 10 }, null, null)).toBe('10');
+    expect(testoTarget({ valore: null, motivo: 'NON_VALORIZZATO' }, null, null)).toBe('non valorizzato (il dato non è presente nella fonte)');
+    expect(ANNO_TARGET_ASSENTE).toEqual({ disponibile: false, testo: 'non valorizzato', nota: 'nessun target' });
+    expect(TESTO_ASSENTE.motivo).toBe('NON_VALORIZZATO');
+    expect(testoVuotoOutput(true)).toBe("Nessun intervento per i filtri scelti (per esempio un'azione portante senza interventi collegati).");
+    expect(testoVuotoOutput(false)).toBe("Nessun intervento nell'output regionale.");
+    expect(DEFINIZIONI_OUTPUT).toContain("somma dell'output previsto delle Unit Amount");
   });
 
-  it('testata: tipo, corrente o chiusa, numero di determine', () => {
-    expect(testoTipoDomanda('SOSTEGNO')).toBe('Domanda di sostegno');
-    expect(badgeDetermine(DETERMINE)).toEqual(['Domanda di pagamento', 'Domanda corrente', '3 determine con riga aperta']);
-    expect(badgeDetermine(DETERMINE_CHIUSA)).toEqual(['Domanda di pagamento', 'Domanda chiusa: non è più nelle fonti SIAN', '1 determina con riga aperta']);
-    expect(sopratitoloDetermine(DETERMINE)).toBe('Domanda di pagamento 54810769585 - fonte delle informazioni');
-    expect(titoloDetermine('54810769585')).toBe('Determine della domanda 54810769585');
+  it('output per anno: tre serie nell unita dell indicatore, anni senza valore omessi col motivo, il target linea e riga', () => {
+    const g = graficoOutputPerAnno(SRA01_OUTPUT, true);
+    const serie = g.opzioni?.series as Array<{ name: string; markLine?: { data: unknown[] } }>;
+    expect(serie.map((x) => x.name)).toEqual(['Programmato', 'Realizzato SIGC', 'Realizzato non SIGC (cumulativo)']);
+    expect((g.opzioni?.xAxis as { data: string[] }).data).toEqual(['2023', '2024']);
+    expect(serie[0].markLine?.data).toEqual([{ name: 'Target 1500 ettari al 2029', yAxis: 1500 }]);
+    // il target supera le barre: l'asse lo contiene
+    expect((g.opzioni?.yAxis as { max?: number }).max).toBe(1500);
+    expect((g.opzioni?.aria as { label: { description: string } }).label.description).toMatch(/Target di fine periodo: 1500 ettari al 2029\.$/);
+    expect(g.tabella.caption).toBe("Tabella equivalente: output dell'intervento SRA01 per anno, in ettari");
+    expect(g.tabella.righe[1]).toEqual(['2024', '500 ettari', 'non valorizzato (il dato non è presente nella fonte)', 'non valorizzato (il dato non è presente nella fonte)']);
+    expect(g.tabella.righe.at(-1)).toEqual(['Target di fine periodo', '1500 ettari al 2029', '', '']);
+    expect(g.omessi).toContain('2027, realizzato SIGC: non valorizzato (il dato non è presente nella fonte)');
   });
 
-  it('determina corrente, fonti dei campi (la piu recente che li valorizza) e si/no in testo', () => {
-    expect(DETERMINE.elenco.map((d) => eCorrente(d, DETERMINE.corrente))).toEqual([true, false, false]);
-    expect(eCorrente(DETERMINE.elenco[0], DETERMINE_NESSUNA.corrente)).toBe(false);
-    expect(fonteDi(DETERMINE.elenco, 'fonteStatoAreaProgrammazione')?.codice).toBe('G00001');
-    expect(fonteDi(DETERMINE.elenco, 'fonteComparto')?.codice).toBe('G00002');
-    expect(fonteDi(DETERMINE_NESSUNA.elenco, 'fonteComparto')).toBeUndefined();
-    expect(siNo(true, 'sì, corrente')).toBe('sì, corrente');
-    expect(siNo(false)).toBe('no');
+  it('output per anno senza target ne valori: non disegnabile, la tabella resta con la riga del target', () => {
+    const g = graficoOutputPerAnno(OUTPUT.righe[3], false);
+    expect(g.opzioni).toBeNull();
+    expect(g.motivoAssenza).toBe("nessun anno con un valore dell'output");
+    expect(g.tabella.caption).toBe("Tabella equivalente: output dell'intervento SRG01 per anno");
+    expect(g.tabella.righe.at(-1)).toEqual(['Target di fine periodo', 'non valorizzato (il dato non è presente nella fonte)', '', '']);
+    const ambiguo = graficoOutputPerAnno(OUTPUT.righe[1], true);
+    expect(ambiguo.omessi).toContain('2027, realizzato SIGC: non attribuibile (riga presente sia nel monitoraggio SIGC sia nel non SIGC)');
+  });
+
+  it('fixture: le righe dei filtri come il backend (E fra dimensioni, O fra valori), azione senza legame: nessuna riga', () => {
+    const codici = (p: string) => righeDeiFiltri(OUTPUT.righe, new URLSearchParams(p)).map((r) => r.codiceIntervento);
+    expect(codici('')).toEqual(['SRA01', 'SRA16', 'SRD01', 'SRG01']);
+    expect(codici('os=OS4')).toEqual(['SRD01']);
+    expect(codici('os=OS4&os=OS5')).toEqual(['SRA01', 'SRA16', 'SRD01']);
+    expect(codici('og=OG1&op=OP1')).toEqual(['SRA01']);
+    expect(codici('azione=3')).toEqual([]);
+    expect(outputPer(OUTPUT, new URLSearchParams('intervento=SRD01')).righe).toHaveLength(1);
+  });
+});
+
+describe('RF030: le Unit Amount (TX-0030)', () => {
+  const q = (s = '') => new URLSearchParams(s);
+
+  it('chiave ed etichetta della riga; la nota unica e le celle brevi con la fonte del pagato non attiva (scelta 8)', () => {
+    const [r] = unitAmountPer(q()).righe ?? [];
+    expect([chiaveUnitAmount(r), etichettaUnitAmount(r)]).toEqual(['SRD01|UA1|2024', 'UA1 (SRD01, esercizio 2024)']);
+    expect(chiaveUnitAmount({})).toBe('||');
+    expect(CAMPI_PAGATO.map((c) => TITOLI_PAGATO[c])).toEqual(['Importo pagato', 'Pagato sul richiesto', 'Base storica']);
+    expect(notaPagato(unitAmountPer(q()).righe ?? [])).toBe(
+      'Importo pagato, percentuale pagata sul richiesto e base storica: non disponibili per tutte le Unit Amount (fonte pagato per Unit Amount non attiva). Nelle celle: "non disponibile".',
+    );
+    expect(notaPagato(unitAmountPer(q(), { pagato: true }).righe ?? [])).toBeNull();
+    expect(assenzaPagato(r, 'baseStorica', true)).toBe(NON_DISPONIBILE_BREVE);
+    // il drawer non arriva alla nota della tabella: col motivo
+    expect(assenzaPagato(r, 'baseStorica', false)).toEqual({ disponibile: false, testo: 'non disponibile', nota: 'fonte pagato per Unit Amount non attiva' });
+    const [, ua2] = unitAmountPer(q(), { pagato: true }).righe ?? [];
+    expect(assenzaPagato(ua2, 'importoPagato', true)).toEqual({ disponibile: false, testo: 'non valorizzato', nota: 'il dato non è presente nella fonte' });
+    expect([valoreDi({ valore: 3 }), valoreDi({ valore: null }), valoreDi(undefined)]).toEqual([3, null, null]);
+    expect([testoVuotoUnitAmount(true), testoVuotoUnitAmount(false)]).toEqual(['Nessuna Unit Amount per gli interventi scelti.', 'Nessuna Unit Amount.']);
+  });
+
+  it('senza la fonte del pagato grafico non disponibile; con la fonte barre orizzontali raggruppate', () => {
+    const righe = unitAmountPer(q()).righe ?? [];
+    const senza = graficoUnitAmount(righe, 'Percentuale pagata per Unit Amount');
+    expect(senza.motivoAssenza).toBe("nessuna Unit Amount ha ancora l'importo pagato (fonte pagato per Unit Amount non attiva)");
+    expect(senza.tabella.righe).toEqual([
+      ['UA1 (SRD01, esercizio 2024)', 'non disponibile', 'non disponibile'],
+      ['UA2 (SRD01, esercizio 2024)', 'non disponibile', 'non disponibile'],
+      ['UA1 (SRD01, esercizio 2025)', 'non disponibile', 'non disponibile'],
+    ]);
+    // un'altra assenza resta col motivo
+    const mista = graficoUnitAmount([righe[0], { ...righe[1], baseStorica: { valore: null, motivo: 'NON_VALORIZZATO', fonte: null } }], 'T');
+    expect(mista.tabella.righe[1]).toEqual(['UA2 (SRD01, esercizio 2024)', 'non disponibile', 'non valorizzato (il dato non è presente nella fonte)']);
+    expect(pagatoSenzaFonte(righe)).toBe(true);
+    const con = graficoUnitAmount(unitAmountPer(q(), { pagato: true }).righe ?? [], 'Percentuale pagata per Unit Amount');
+    const o = con.opzioni as { yAxis: { type: string; data: string[] }; series: Array<{ data: unknown[] }> };
+    expect(o.yAxis.type).toBe('category');
+    expect(o.yAxis.data).toEqual(['UA1 (SRD01, esercizio 2024)', 'UA1 (SRD01, esercizio 2025)']);
+    expect(o.series[0].data[0]).toMatchObject({ value: 40, codice: 'SRD01|UA1|2024' });
+  });
+
+  it('filtri delle Unit Amount: intervento e obiettivi, senza l azione portante; righe dei filtri come il backend', () => {
+    expect(filtriSenzaAzione('?intervento=SRD01&os=OS4&azione=3')).toEqual({ intervento: ['SRD01'], os: ['OS4'] });
+    expect((unitAmountPer(q('os=OS5')).righe ?? []).map((r) => r.codiceIntervento)).toEqual([]);
+    expect((unitAmountPer(q('intervento=SRD01')).righe ?? [])).toHaveLength(3);
   });
 });
 
@@ -428,16 +513,21 @@ describe('grant e pagine del fisico (gate di UX)', () => {
   const stato = (roles: string[]) => ({ authenticated: true, user: { username: 'u', roles } });
 
   it('grant verbatim dal catalogo; senza stato nessuna lettura', () => {
-    expect(GRANT).toEqual({ superfici: 'csr.tx-0018.read', determine: 'csr.tx-0020.read', filtri: 'csr.tx-0060.read', schedaDomanda: 'csr.tx-0058.read' });
+    expect(GRANT).toEqual({ superfici: 'csr.tx-0018.read', output: 'csr.tx-0017.read', unitAmount: 'csr.tx-0030.read', filtri: 'csr.tx-0060.read' });
     expect(puoLeggere(stato(['csr.tx-0018.read']), 'superfici')).toBe(true);
     expect(puoLeggere(stato(['csr.tx-0018.read']), 'filtri')).toBe(false);
-    expect(puoLeggere(undefined, 'determine')).toBe(false);
+    expect(puoLeggere(undefined, 'output')).toBe(false);
   });
 
-  it('pagine visibili per grant, nell ordine del menu', () => {
-    expect(pagineVisibili((g) => g === GRANT.determine).map((p) => p.percorso)).toEqual([PERCORSI.determine]);
-    expect(pagineVisibili(() => true).map((p) => p.voceMenu)).toEqual(['Superfici ammissibili', 'Determine di una domanda']);
-    expect(PAGINE_FISICO.map((p) => p.grant)).toEqual([GRANT.superfici, GRANT.determine]);
+  it('pagine visibili per grant, nell ordine del menu: superfici, output regionale, Unit Amount (le determine al procedurale)', () => {
+    expect(pagineVisibili((g) => g === GRANT.unitAmount).map((p) => p.percorso)).toEqual([PERCORSI.unitAmount]);
+    expect(pagineVisibili(() => true).map((p) => [p.voceMenu, p.percorso])).toEqual([
+      ['Superfici ammissibili', '/fisico/superfici'],
+      ['Output regionale', '/fisico/output-regionale'],
+      ['Unit Amount', '/fisico/unit-amount'],
+    ]);
+    expect(PAGINE_FISICO.map((p) => p.grant)).toEqual([GRANT.superfici, GRANT.output, GRANT.unitAmount]);
+    expect(pagineVisibili((g) => g === 'csr.tx-0020.read')).toEqual([]);
   });
 });
 
