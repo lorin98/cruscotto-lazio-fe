@@ -1,6 +1,7 @@
 // Pagina /fisico/superfici (green-fe step7): describe taggati coi REQ della route (RF018, RA006), dati dagli scenari del
 // backend (fixture del fisico), MSW seminato con onUnhandledRequest 'error' (ogni lettura e' dichiarata qui: il server dei
-// test non monta i mock generati del fisico e dell'elenco), axe-core diretto. ECharts e' il grafico finto del setup.
+// test non monta i mock generati del fisico e dell'elenco), axe-core diretto. ECharts e' il grafico finto del setup. Dal
+// 30/10/2026 l'anteprima porta al dettaglio dell'intervento del fisico (link dettaglio-intervento-superfici).
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -285,6 +286,34 @@ describe('RF018: superficie ammissibile della domanda di sostegno e di pagamento
     await waitFor(() => expect(document.activeElement).toBe(h1));
     await titoloKpi(2025);
     expect(document.activeElement).toBe(h1);
+  });
+
+  it("link dettaglio-intervento-superfici: Apri il dettaglio dell'intervento porta al dettaglio del fisico (un link vero, nessun filtro)", async () => {
+    servi();
+    const { router } = apri(`${PERCORSO}?campagna=2025`);
+    await userEvent.click(within(await screen.findByRole('group', { name: 'Vista delle superfici' })).getByRole('button', { name: 'Tabella' }));
+    screen.getByRole('row', { name: "Apri l'anteprima dell'intervento SRB01, campagna 2025" }).focus();
+    await userEvent.keyboard('{Enter}');
+    const anteprima = await screen.findByRole('dialog', { name: 'SRB01' });
+    const link = within(anteprima).getByRole('link', { name: "Apri il dettaglio dell'intervento" });
+    expect(link.getAttribute('href')).toBe('/fisico/interventi/SRB01');
+    // da tastiera, senza mouse
+    link.focus();
+    await userEvent.keyboard('{Enter}');
+    await waitFor(() => expect(router.state.location.pathname).toBe('/fisico/interventi/SRB01'));
+    expect(router.state.location.search).toBe('');
+  });
+
+  it('il link al dettaglio si nasconde senza nessuno dei grant del dettaglio; Mostra solo resta', async () => {
+    profilo(['csr.tx-0060.read']);
+    servi();
+    apri(`${PERCORSO}?campagna=2025`);
+    await userEvent.click(within(await screen.findByRole('group', { name: 'Vista delle superfici' })).getByRole('button', { name: 'Tabella' }));
+    screen.getByRole('row', { name: "Apri l'anteprima dell'intervento SRB01, campagna 2025" }).focus();
+    await userEvent.keyboard('{Enter}');
+    const anteprima = await screen.findByRole('dialog', { name: 'SRB01' });
+    expect(within(anteprima).getByRole('button', { name: 'Mostra solo SRB01' })).toBeTruthy();
+    expect(within(anteprima).queryByRole('link')).toBeNull();
   });
 
   it('Applica i filtri del pannello aperto dallo stato vuoto porta il focus sul titolo della pagina (X2)', async () => {

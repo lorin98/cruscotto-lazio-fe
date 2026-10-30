@@ -126,6 +126,16 @@ describe('RF017: output programmato e realizzato della Regione Lazio per interve
     expect(router.state.location.search).toBe('');
   });
 
+  it('il link al dettaglio si nasconde senza nessuno dei grant del dettaglio (gate di UX: il backend ridecide)', async () => {
+    profilo(['csr.tx-0060.read']);
+    servi();
+    apri(`${PERCORSO}?os=OS5`);
+    await userEvent.click(within(await tabella()).getByRole('row', { name: "Apri l'anteprima dell'intervento SRA16" }));
+    const drawer = await screen.findByRole('dialog', { name: 'Anteprima: SRA16' });
+    expect(await within(drawer).findByText('SRA16 - Conservazione agrobiodiversità')).toBeTruthy();
+    expect(within(drawer).queryByRole('link')).toBeNull();
+  });
+
   it('CSV e XLSX dal backend coi filtri della pagina e tutte le misure, con X-Requested-With', async () => {
     const lette = servi();
     URL.createObjectURL = vi.fn(() => 'blob:prova');

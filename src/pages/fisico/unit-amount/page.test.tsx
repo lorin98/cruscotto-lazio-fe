@@ -2,7 +2,9 @@
 // casi della pagina /procedurale/unit-amount): describe taggati coi REQ della route (RF030, RA006), dati dagli scenari del
 // backend (fixture del fisico) con letture che rispondono ai parametri della query, MSW seminato con onUnhandledRequest
 // 'error' (ogni lettura e' dichiarata qui), axe-core diretto. ECharts e' il grafico finto del setup. I valori dei filtri
-// vengono da TX-0060 (G2) e non da TX-0024 del procedurale; il filtro per azione portante e' dei passi successivi.
+// vengono da TX-0060 (G2) e non da TX-0024 del procedurale; dal 30/10/2026 (wireframe unit-amount approvato) i filtri dei
+// report fisici con l'azione portante (SC-FS_UNIT_AMOUNT_AZIONE), la descrizione dell'intervento e il link al dettaglio
+// dell'intervento del fisico nel drawer.
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -13,7 +15,7 @@ import { graficoDi, trovaCard } from '../../../shared/testing/card-grafico';
 import { clicSulCodice } from '../../../shared/testing/grafico-finto';
 import { problema, trattenuta } from '../../../shared/testing/msw';
 import { renderPagina } from '../../../shared/testing/render-pagina';
-import { unitAmountPer } from '../../../features/fisico/testing/fixture';
+import { VALORI_PROGRAMMA, unitAmountPer } from '../../../features/fisico/testing/fixture';
 import { lettureFisico } from '../../../features/fisico/testing/letture';
 import Pagina from './page';
 
@@ -120,6 +122,19 @@ describe('RA006: filtri della pagina delle Unit Amount (voci da TX-0060, decisio
     await userEvent.click(within(pannello).getByRole('button', { name: 'Applica i filtri' }));
     await waitFor(() => expect(router.state.location.search).toBe(''));
     await waitFor(() => expect(lette.unitAmount.at(-1)).toBe(''));
+  });
+
+  it("SC-FS_UNIT_AMOUNT_AZIONE: col legame interventi - azioni l'azione portante va alla lettura e al file; senza Unit Amount collegate il vuoto lo dice", async () => {
+    const lette = servi({ valori: { ...VALORI_PROGRAMMA, legameAzioniDisponibile: true } });
+    apri(`${PERCORSO}?intervento=SRD01&azione=3`);
+    const vuoto = (await screen.findByText("Nessuna Unit Amount per i filtri scelti (per esempio un'azione portante senza interventi collegati).")).closest('[role="status"]') as HTMLElement;
+    expect(lette.unitAmount).toEqual(['?intervento=SRD01&azione=3']);
+    const barra = screen.getByRole('region', { name: 'Filtri attivi' });
+    expect(within(barra).getByRole('button', { name: /^Togli il filtro Azione portante/ })).toBeTruthy();
+    // Modifica i filtri apre il pannello, con l'azione scelta fra le voci di TX-0060
+    await userEvent.click(within(vuoto).getByRole('button', { name: 'Modifica i filtri' }));
+    const pannello = await screen.findByRole('dialog', { name: 'Filtri dei report fisici' });
+    expect((within(pannello).getByRole('checkbox', { name: /Azione portante 3/ }) as HTMLInputElement).checked).toBe(true);
   });
 
   it('TX-0060 in errore: lo stato dei valori con Riprova; le Unit Amount si leggono', async () => {
