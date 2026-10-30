@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "fisico",
-  "current_step": 6,
+  "current_step": 7,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -103,13 +103,16 @@
       }
     },
     "step6-page": {
-      "status": "in_progress",
-      "completed_at": "2026-10-22T09:42:00Z",
+      "status": "done",
+      "completed_at": "2026-10-30T09:25:40Z",
       "artifacts": [
         "./src/pages",
         "./plan/fisico/route-manifest.json"
       ],
-      "gates": {}
+      "gates": {
+        "pages_compile": "pass",
+        "route_manifest_valid": "pass"
+      }
     },
     "step7-test": {
       "status": "in_progress",

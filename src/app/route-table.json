@@ -340,6 +340,38 @@
       ]
     },
     {
+      "path": "/fisico/interventi/:codice",
+      "flow": "intervento",
+      "component": "src/pages/fisico/interventi/page.tsx",
+      "visibility": [
+        "csr.tx-0017.read",
+        "csr.tx-0018.read",
+        "csr.tx-0030.read"
+      ],
+      "actions": [
+        {
+          "operationId": "TX-0017",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0017.read"
+        },
+        {
+          "operationId": "TX-0018",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0018.read"
+        },
+        {
+          "operationId": "TX-0030",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0030.read"
+        },
+        {
+          "operationId": "TX-0060",
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0060.read"
+        }
+      ]
+    },
+    {
       "path": "/istituzionale/verifica-smp-non-sigc",
       "flow": "verifica-smp-non-sigc",
       "component": "src/pages/istituzionale/verifica-smp-non-sigc/page.tsx",
