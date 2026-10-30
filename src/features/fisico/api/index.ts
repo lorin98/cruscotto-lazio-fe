@@ -4,7 +4,8 @@
 // TX-0060 dell'elenco operativo (decisione G2 dell'utente del 21/10/2026), letta da entities/filtri con la stessa
 // query-key dell'elenco. Dal riallineamento degli ambiti del 29/10/2026 l'output regionale viene dall'istituzionale e le
 // Unit Amount dal procedurale; le determine di una domanda (TX-0020) sono del procedurale. I componenti importano da qui,
-// mai dal generato.
+// mai dal generato. Il dettaglio dell'intervento (/fisico/interventi/:codice, flusso intervento del 30/10/2026) usa le
+// stesse tre letture col solo intervento della route: nessuna transazione nuova, la query-key e' quella della factory.
 // - Query-key: quelle delle factory generate (dentro gli hook orval). Nessuna mutation: i file CSV e XLSX (D-06 del
 //   backend fisico) sono funzioni che restituiscono il file, come nel finanziario; l'esito lo mostra chi le chiama.
 // - Errori: nessun onError qui. I componenti li rendono con getErrorMessage (problem-type del backend); il 400
@@ -51,7 +52,7 @@ export type { ValoriFiltriElenco, VoceFiltro } from '../../../entities/filtri';
 export type CriteriSuperfici = Tx0018Params;
 /** Criteri di TX-0017: i cinque filtri ripetibili (il periodo lo decide il backend). */
 export type CriteriOutput = Tx0017Params;
-/** Criteri di TX-0030: i filtri del programma (la pagina manda intervento e obiettivi, come nel procedurale). */
+/** Criteri di TX-0030: i cinque filtri ripetibili dei report fisici, azione portante compresa (SC-FS_UNIT_AMOUNT_AZIONE). */
 export type CriteriUnitAmount = Tx0030Params;
 
 /** `abilitato` falso: nessuna lettura (es. finche' non si sa se il filtro per azione si applica, o senza il grant). */
