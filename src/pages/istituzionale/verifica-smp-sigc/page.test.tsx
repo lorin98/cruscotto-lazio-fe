@@ -7,12 +7,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { http, HttpResponse } from 'msw';
 import { server } from '../../../shared/api/mock/server';
 import { expectNoA11yViolations } from '../../../shared/testing/axe';
 import { graficoDi, opzioniDi, trovaCard } from '../../../shared/testing/card-grafico';
 import { clicSulDato, graficiVivi } from '../../../shared/testing/grafico-finto';
+import { problema, trattenuta } from '../../../shared/testing/msw';
 import { renderPagina } from '../../../shared/testing/render-pagina';
-import { VERIFICA_SMP, dato, nd, nv, rigaSmp } from '../../../features/istituzionale/testing/fixture';
+import { VERIFICA_SMP, dato, nd, nv, rigaSmp, verificaSigcPer } from '../../../features/istituzionale/testing/fixture';
 import { lettureIstituzionale } from '../../../features/istituzionale/testing/letture';
 import Pagina from './page';
 
@@ -245,5 +247,80 @@ describe('RF015: i dati ASR dell ambito SIGC per il confronto con SMP - Data Pla
     const { container } = apri(`${PERCORSO}?esercizio=2025`);
     await tabella();
     await expectNoA11yViolations(container);
+  });
+});
+
+describe('RF015: link reciproci e stati della verifica SMP SIGC (wireframe verifica-smp-sigc del 30/10/2026)', () => {
+  const profilo = (roles: string[]) =>
+    server.use(http.get('*/auth/status', () => HttpResponse.json({ authenticated: true, user: { username: 'U', profile: 'p3-funzionario-area-ist', roles } })));
+
+  it('link verifica-smp-non-sigc: col grant di TX-0016 la frase porta alla verifica non SIGC coi filtri comuni, non l esercizio; senza il grant non c e', async () => {
+    servi();
+    const { unmount } = apri(`${PERCORSO}?intervento=SRA01&op=OP1&esercizio=2025`);
+    await tabella();
+    const link = screen.getByRole('link', { name: 'Verifica SMP non SIGC' });
+    expect(link.getAttribute('href')).toBe('/istituzionale/verifica-smp-non-sigc?intervento=SRA01&op=OP1');
+    expect(link.closest('p')?.textContent).toBe('La stessa verifica per i dati ASR non SIGC, con gli stessi filtri: Verifica SMP non SIGC.');
+    unmount();
+
+    profilo(['csr.tx-0015.read', 'csr.tx-0060.read']);
+    servi();
+    apri(`${PERCORSO}?esercizio=2025`);
+    await tabella();
+    expect(screen.queryByRole('link', { name: 'Verifica SMP non SIGC' })).toBeNull();
+    expect(document.body.textContent).not.toContain('La stessa verifica per i dati ASR non SIGC');
+  });
+
+  it('caricamento con lo scheletro e aria-live, poi i dati; errore: un solo avviso con Riprova, "Dati al" non disponibile', async () => {
+    servi();
+    const t = trattenuta();
+    let tentativi = 0;
+    server.use(
+      http.get('*/api/istituzionale/verifica-smp-sigc', async ({ request }) => {
+        tentativi += 1;
+        await t.attesa;
+        if (tentativi === 1) return HttpResponse.json(problema(503, 'TEMPO_SCADUTO', 'lettura oltre il tetto di durata'), { status: 503 });
+        return HttpResponse.json(verificaSigcPer(VERIFICA_SMP, new URL(request.url).searchParams));
+      }),
+    );
+    apri(`${PERCORSO}?esercizio=2025`);
+    const caricamento = await screen.findByText('Caricamento in corso…');
+    expect(caricamento.closest('[role="status"]')?.getAttribute('aria-live')).toBe('polite');
+    await act(async () => t.libera());
+    const avviso = await screen.findByRole('alert');
+    expect(screen.getAllByRole('alert')).toHaveLength(1);
+    expect(within(screen.getByRole('region', { name: 'Filtri attivi' })).getByText('Ultimo dato sincronizzato: non disponibile')).toBeTruthy();
+    await userEvent.click(within(avviso).getByRole('button', { name: 'Riprova' }));
+    await tabella();
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('file non scaricato: oltre il limite dell export il motivo in role=alert, il report resta', async () => {
+    servi();
+    server.use(http.get('*/api/istituzionale/verifica-smp-sigc/:formato', () => HttpResponse.json(problema(400, 'DATO_NON_VALIDO', 'oltre il limite di 5.000 righe'), { status: 400 })));
+    apri(`${PERCORSO}?esercizio=2025`);
+    await tabella();
+    await userEvent.click(screen.getAllByRole('button', { name: 'Scarica i dati della verifica SMP SIGC, esercizio 2025 in CSV' })[1]);
+    expect((await screen.findByRole('alert')).textContent).toMatch(/^File CSV non scaricato/);
+    expect(screen.getByRole('table', { name: TABELLA })).toBeTruthy();
+  });
+});
+
+describe('RA006: i valori dei filtri della verifica SMP SIGC da TX-0060 dell elenco operativo (decisione G2)', () => {
+  it('chip con la descrizione dell intervento; TX-0060 in errore: lo stato col motivo e Riprova, i chip restano e il report si legge', async () => {
+    const lette = servi();
+    const { unmount } = apri(`${PERCORSO}?intervento=SRA01&esercizio=2025`);
+    await tabella();
+    const barra = screen.getByRole('region', { name: 'Filtri attivi' });
+    await waitFor(() => expect(within(barra).getByRole('button', { name: /^Togli il filtro Intervento SRA01/ })).toBeTruthy());
+    expect(lette.filtri).toBe(1);
+    unmount();
+
+    servi({ valori: null });
+    apri(`${PERCORSO}?intervento=SRA01&esercizio=2025`);
+    const stato = (await screen.findByText(/^Valori dei filtri non disponibili/)).closest('[role="status"]') as HTMLElement;
+    expect(within(stato).getByRole('button', { name: 'Riprova' })).toBeTruthy();
+    expect(within(screen.getByRole('region', { name: 'Filtri attivi' })).getByRole('button', { name: /^Togli il filtro Intervento SRA01/ })).toBeTruthy();
+    await tabella();
   });
 });
