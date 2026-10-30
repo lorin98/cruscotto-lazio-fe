@@ -8,6 +8,7 @@
 import { useMemo } from 'react';
 import type { Filtri } from '../../../entities/filtri';
 import { CardGrafico, ContestoIntestazione, TabellaVoci, Vuoto, useRigheContesto } from '../../../shared/ui';
+import { percorsoIntervento } from '../lib/collegamenti';
 import { criteriVerifica, testiCriteri } from '../lib/criteri';
 import type { Verifica } from '../lib/dto';
 import { NESSUN_FILE, PERIMETRO_IN_PAROLE } from '../lib/formato';
@@ -22,7 +23,7 @@ const FONTE =
   "Fonte: TX-0016 (domande e spesa cumulative). La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati. PNG: l'immagine del grafico con l'intestazione, non registrata in audit come nel finanziario; CSV e XLSX: i dati del report scritti dal backend con gli stessi filtri e anno.";
 
 export function ReportVerifica({ d, filtri, anno }: { d: Verifica; filtri: Filtri; anno: number | undefined }) {
-  const { apri, dalClic } = useApriIntervento(anno);
+  const { apri, dalClic } = useApriIntervento((codice) => percorsoIntervento(codice, anno));
   const dati = useMemo(() => graficoSpesa(d.righe), [d.righe]);
   const file = fileVerifica(anno === undefined ? 'Verifica SMP non SIGC' : `Verifica SMP non SIGC ${anno}`, criteriVerifica(filtri, anno));
   const contesto = useRigheContesto(testiCriteri(filtri, anno), d.ultimiDatiSincronizzati, PERIMETRO_IN_PAROLE);

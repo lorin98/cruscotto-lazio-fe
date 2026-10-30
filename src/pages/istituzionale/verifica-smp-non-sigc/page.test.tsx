@@ -22,7 +22,7 @@ const CARD = 'Spesa pubblica erogata per intervento (anticipi inclusi)';
 const testo = (s: string | null | undefined) => (s ?? '').replace(/\s/g, ' ');
 const profilo = (roles: string[]) =>
   server.use(http.get('*/auth/status', () => HttpResponse.json({ authenticated: true, user: { username: 'U', profile: 'p3-funzionario-area-ist', roles } })));
-// p3-funzionario-area-ist (catalogo rev. 4): le due verifiche SMP e l'elenco; un profilo senza TX-0015 per la frase G4
+// p3-funzionario-area-ist (catalogo rev. 4): le due verifiche SMP e l'elenco; un profilo senza TX-0015 per la frase verso la verifica SIGC
 const P3_IST = ['csr.tx-0015.read', 'csr.tx-0016.read', 'csr.tx-0056.read', 'csr.tx-0059.read', 'csr.tx-0060.read'];
 const SENZA_SIGC = P3_IST.filter((g) => g !== 'csr.tx-0015.read');
 
@@ -103,21 +103,21 @@ describe('RF016: i dati ASR non SIGC per intervento, da confrontare con SMP - Da
     ]);
   });
 
-  it('decisione G4: con csr.tx-0015.read la frase col link alla verifica SMP SIGC, nella stessa area dal 29/10/2026, senza filtri portati', async () => {
+  it('link verifica-smp-sigc (scelta di disegno 1): con csr.tx-0015.read la frase porta alla verifica SMP SIGC coi filtri comuni, non l anno', async () => {
     servi();
-    apri(`${PERCORSO}?intervento=SRD01&anno=2024`);
+    apri(`${PERCORSO}?intervento=SRD01&anno=2024&og=OG2`);
     const link = await screen.findByRole('link', { name: 'Verifica SMP SIGC' });
-    expect(link.getAttribute('href')).toBe('/istituzionale/verifica-smp-sigc');
-    expect(link.closest('p')?.textContent).toBe('I dati SIGC per lo stesso confronto sono nella pagina Verifica SMP SIGC.');
+    expect(link.getAttribute('href')).toBe('/istituzionale/verifica-smp-sigc?intervento=SRD01&og=OG2');
+    expect(link.closest('p')?.textContent).toBe('La stessa verifica per i dati SIGC, per esercizio finanziario e con gli stessi filtri: Verifica SMP SIGC.');
   });
 
-  it('decisione G4: senza csr.tx-0015.read la frase non c e', async () => {
+  it('link verifica-smp-sigc: senza csr.tx-0015.read la frase non c e', async () => {
     profilo(SENZA_SIGC);
     servi();
     apri();
     await trovaCard(CARD);
     expect(screen.queryByRole('link', { name: 'Verifica SMP SIGC' })).toBeNull();
-    expect(document.body.textContent).not.toContain('I dati SIGC per lo stesso confronto');
+    expect(document.body.textContent).not.toContain('La stessa verifica per i dati SIGC');
   });
 
   it('il selettore dell anno si applica con Mostra: l anno nell indirizzo coi filtri, una lettura nuova, il focus resta su Mostra', async () => {

@@ -16,14 +16,15 @@ import { clicSulDato } from '../src/shared/testing/grafico-finto';
 import { problema } from '../src/shared/testing/msw';
 import { renderPagina } from '../src/shared/testing/render-pagina';
 import { renderConQuery } from '../src/shared/testing/render';
-import { DettaglioIntervento, VerificaSmpNonSigc } from '../src/features/istituzionale';
+import { DettaglioIntervento, VerificaSmpNonSigc, VerificaSmpSigc } from '../src/features/istituzionale';
 import { SRD01, VALORI, VERIFICA, VERIFICA_SMP, verificaPer, verificaSigcPer } from '../src/features/istituzionale/testing/fixture';
-import { CellaDato } from '../src/features/istituzionale/ui/comuni';
+import { CellaDato, ValoreDelDatoSigc } from '../src/features/istituzionale/ui/comuni';
 import { ValoriFiltriNonDisponibili } from '../src/entities/filtri';
 import { PaginaReport } from '../src/features/istituzionale/ui/PaginaReport';
 import { useFiltriDellaPagina } from '../src/features/istituzionale/ui/useFiltriNellIndirizzo';
 import { TabellaVerifica } from '../src/features/istituzionale/ui/TabellaVerifica';
 import { DATI_VERIFICA } from '../src/features/istituzionale/lib/verifica';
+import { DATI_VERIFICA_SIGC } from '../src/features/istituzionale/lib/verificaSigc';
 import type { StatoQuery } from '../src/shared/ui';
 import type { ValoriFiltriElenco } from '../src/features/istituzionale/api';
 
@@ -84,8 +85,8 @@ describe('VerificaSmpNonSigc (pagina della verifica SMP non SIGC, componente)', 
     expect(within(barra).getByText('Perimetro: regionale (i report istituzionali non hanno perimetro ADA)')).toBeTruthy();
     expect(within(barra).getByText('Anno di riferimento del file SMP non SIGC: 2025')).toBeTruthy();
     expect(within(barra).getByRole('button', { name: /^Ultimo dato sincronizzato: dati al 02\/03\/2026 per tutti i flussi/ })).toBeTruthy();
-    // il link G4 verso la verifica SMP SIGC, nella stessa area dal 29/10/2026 (i filtri comuni li porta lo step6)
-    expect(screen.getByRole('link', { name: 'Verifica SMP SIGC' }).getAttribute('href')).toBe('/istituzionale/verifica-smp-sigc');
+    // link verifica-smp-sigc: la verifica SMP SIGC della stessa area coi filtri comuni (scelta di disegno 1)
+    expect(screen.getByRole('link', { name: 'Verifica SMP SIGC' }).getAttribute('href')).toBe('/istituzionale/verifica-smp-sigc?intervento=SRD01');
     const riferimenti = screen.getByRole('table', { name: 'Riferimenti della risposta' });
     expect(testo(riferimenti.textContent)).toContain('2025 (ultimo anno con un file SMP non SIGC presente)');
     expect(within(card).getAllByRole('button', { name: /^Scarica / }).map((b) => b.textContent)).toEqual(['PNG', 'CSV', 'XLSX']);
@@ -110,6 +111,61 @@ describe('VerificaSmpNonSigc (pagina della verifica SMP non SIGC, componente)', 
     expect(stato.closest('[role="status"]')).not.toBeNull();
     expect(within(stato.closest('[role="status"]') as HTMLElement).getByRole('button', { name: 'Riprova' })).toBeTruthy();
     await trovaCard('Spesa pubblica erogata per intervento (anticipi inclusi)');
+  });
+});
+
+describe('VerificaSmpSigc (pagina della verifica SMP SIGC, componente)', () => {
+  it('frase verso la verifica non SIGC coi filtri comuni e senza l esercizio, solo col grant di TX-0016; riferimenti, card e tabella; nessuna violazione axe', async () => {
+    servi();
+    const { container } = renderPagina(VerificaSmpSigc, '/istituzionale/verifica-smp-sigc', '/istituzionale/verifica-smp-sigc?intervento=SRA01&os=OS5&esercizio=2025');
+    await trovaCard('Spesa erogata nella campagna precedente per intervento');
+    expect(screen.getByText("I dati SIGC per intervento dell'esercizio scelto, da confrontare con SMP - Data Platform.")).toBeTruthy();
+    const link = screen.getByRole('link', { name: 'Verifica SMP non SIGC' });
+    expect(link.getAttribute('href')).toBe('/istituzionale/verifica-smp-non-sigc?intervento=SRA01&os=OS5');
+    expect(link.closest('p')?.textContent).toBe('La stessa verifica per i dati ASR non SIGC, con gli stessi filtri: Verifica SMP non SIGC.');
+    expect(within(screen.getByRole('region', { name: 'Filtri attivi' })).getByText('Esercizio finanziario: 2025 (dal 16/10/2024 al 15/10/2025)')).toBeTruthy();
+    expect(screen.getByRole('table', { name: 'Riferimenti della risposta' })).toBeTruthy();
+    expect(screen.getByRole('heading', { level: 2, name: 'Dati per intervento' })).toBeTruthy();
+    await expectNoA11yViolations(container);
+  });
+
+  it('senza csr.tx-0016.read la frase non c e; il vuoto dell esercizio e dei filtri con Modifica i filtri', async () => {
+    profilo(['csr.tx-0015.read', 'csr.tx-0060.read']);
+    servi();
+    renderPagina(VerificaSmpSigc, '/istituzionale/verifica-smp-sigc', '/istituzionale/verifica-smp-sigc?intervento=SRD04&esercizio=2025');
+    const vuoto = (await screen.findByText(/^Nessun dato SIGC per l'esercizio e i filtri scelti\. Scegli un altro esercizio oppure$/)).closest('[role="status"]') as HTMLElement;
+    expect(within(vuoto).getByRole('button', { name: 'Modifica i filtri' })).toBeTruthy();
+    expect(screen.queryByRole('link', { name: 'Verifica SMP non SIGC' })).toBeNull();
+  });
+});
+
+describe('ValoreDelDatoSigc (i venti dati di TX-0015 nella tabella e nella scheda del dettaglio)', () => {
+  it('conteggi e si e no col motivo, importi, quantita col codice dell indicatore, facoltativi non disponibili; mai uno zero inventato', () => {
+    const r = { ...VERIFICA_SMP.righe[0], azioniAttivate: { valore: 4, motivo: null, fonte: null }, outputErogatoEsercizio: 12 };
+    const d = (campo: string) => DATI_VERIFICA_SIGC.find((x) => x.campo === campo) as (typeof DATI_VERIFICA_SIGC)[number];
+    render(
+      <table>
+        <tbody>
+          <tr>
+            {['azioniAttivate', 'previsionePagamentoEsercizio', 'includeTopUp', 'spesaErogataCampagnaPrecedente', 'outputErogatoEsercizio', 'outputAttesoFinanziate', 'ettariUbaRichiesti', 'indicatoreRisultato'].map((c) => (
+              <td key={c}>
+                <ValoreDelDatoSigc r={r} d={d(c)} indicatore={r.indicatoreOutput} />
+              </td>
+            ))}
+          </tr>
+        </tbody>
+      </table>,
+    );
+    expect(screen.getAllByRole('cell').map((c) => c.textContent)).toEqual([
+      '4',
+      'non disponibilefonte previsione di pagamento non attiva',
+      'no',
+      new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }).format(400000),
+      '12 (indicatore O.14)',
+      'non disponibile',
+      '350,5',
+      'non disponibile',
+    ]);
   });
 });
 
@@ -224,20 +280,27 @@ describe('PannelloFiltriIstituzionale e ValoriFiltriNonDisponibili (entities/fil
 });
 
 describe('DettaglioIntervento e SchedeIntervento (dettaglio dell intervento)', () => {
-  it('testata con la descrizione di TX-0060, badge, pulsante verso la verifica, KPI e la scheda della verifica; nessuna violazione axe', async () => {
+  it('testata con la descrizione di TX-0060, badge, pulsanti verso le due verifiche, le due schede coi KPI nella non SIGC; nessuna violazione axe', async () => {
     const lette = servi();
     const { container } = apriDettaglio('/istituzionale/interventi/SRD01');
     expect(await screen.findByRole('heading', { level: 1, name: 'Investimenti produttivi agricoli per la competitività' })).toBeTruthy();
     expect(screen.getByText('Istituzionale - intervento SRD01')).toBeTruthy();
-    await screen.findByRole('region', { name: 'Domande ricevute non SIGC' });
+    const kpi = await screen.findByRole('region', { name: 'Domande ricevute non SIGC' });
+    // i KPI stanno nella scheda (periodi diversi): nessun KPI in testa
+    expect(kpi.closest('[role="tabpanel"]')).not.toBeNull();
     // gli indicatori stanno nelle voci di ogni scheda (dipendono dall'anno o dall'esercizio): nella testata il solo perimetro
     expect(within(screen.getByRole('list', { name: 'Dati principali' })).getAllByRole('listitem').map((l) => l.textContent)).toEqual(['Perimetro regionale']);
     expect(screen.getByRole('link', { name: 'Verifica SMP non SIGC filtrata su questo intervento' }).getAttribute('href')).toBe('/istituzionale/verifica-smp-non-sigc?intervento=SRD01');
+    expect(screen.getByRole('link', { name: 'Verifica SMP SIGC filtrata su questo intervento' }).getAttribute('href')).toBe('/istituzionale/verifica-smp-sigc?intervento=SRD01');
     // l'output regionale (TX-0017: schede Output per anno e Importi unitari, KPI del target) e' del fisico dal 29/10/2026
     expect(screen.queryByRole('link', { name: 'Output regionale filtrato su questo intervento' })).toBeNull();
-    expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Verifica SMP non SIGC']);
+    expect(screen.getAllByRole('tab').map((t) => [t.textContent, t.getAttribute('aria-selected')])).toEqual([
+      ['Verifica SMP non SIGC', 'true'],
+      ['Verifica SMP SIGC', 'false'],
+    ]);
     expect(screen.queryByRole('region', { name: 'Target di fine periodo' })).toBeNull();
-    expect(lette.verifica).toEqual(['?intervento=SRD01']);
+    // la scheda SIGC legge solo quando si apre
+    expect([lette.verifica, lette.verificaSigc]).toEqual([['?intervento=SRD01'], []]);
     await screen.findByRole('table', { name: /^I dati ASR non SIGC dell'intervento/ });
     await expectNoA11yViolations(container);
   });
@@ -259,13 +322,41 @@ describe('DettaglioIntervento e SchedeIntervento (dettaglio dell intervento)', (
     expect(lette.verifica).toEqual([]);
   });
 
-  it('col grant di TX-0016 (P3 dell area istituzionale): la scheda Verifica; la verifica SIGC non si legge nel dettaglio (passi successivi)', async () => {
+  it('scheda Verifica SMP SIGC: senza esercizio chiede di sceglierlo e non legge; con Mostra legge TX-0015 dell intervento: KPI, riferimenti e venti voci; nessuna violazione axe', async () => {
     profilo(['csr.tx-0015.read', 'csr.tx-0016.read', 'csr.tx-0060.read']);
     const lette = servi();
-    apriDettaglio('/istituzionale/interventi/SRD01');
+    const { container, router } = apriDettaglio('/istituzionale/interventi/SRA01');
+    await screen.findByRole('table', { name: /^I dati ASR non SIGC dell'intervento/ });
+    await userEvent.click(screen.getByRole('tab', { name: 'Verifica SMP SIGC' }));
+    expect((await screen.findByText("Scegli l'esercizio finanziario da consultare.")).closest('[role="status"]')).not.toBeNull();
+    expect(lette.verificaSigc).toEqual([]);
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Esercizio finanziario' }), '2025');
+    await userEvent.click(screen.getByRole('button', { name: 'Mostra' }));
+    await waitFor(() => expect(router.state.location.search).toBe('?esercizio=2025'));
+    const voci = await screen.findByRole('table', { name: /^I dati SIGC dell'intervento da confrontare con SMP \(esercizio 2025, domande della campagna 2024\)/ });
+    expect(lette.verificaSigc).toEqual(['?intervento=SRA01&esercizio=2025']);
+    expect(within(voci).getAllByRole('rowheader')).toHaveLength(23);
+    expect(testo((await screen.findByRole('region', { name: 'Domande ricevute SIGC (campagna 2024)' })).textContent)).toContain('120');
+    expect(screen.getByRole('tab', { name: 'Verifica SMP SIGC' }).getAttribute('aria-selected')).toBe('true');
+    // il pulsante della testata porta l'esercizio scelto
+    expect(screen.getByRole('link', { name: 'Verifica SMP SIGC filtrata su questo intervento' }).getAttribute('href')).toBe('/istituzionale/verifica-smp-sigc?intervento=SRA01&esercizio=2025');
+    await expectNoA11yViolations(container);
+  });
+
+  it('dalla verifica SIGC (esercizio senza anno) si apre la scheda SIGC e legge solo TX-0015; col solo grant di TX-0016 la scheda SIGC non c e', async () => {
+    const lette = servi();
+    const primo = apriDettaglio('/istituzionale/interventi/SRA01?esercizio=2025');
+    await screen.findByRole('table', { name: /^I dati SIGC dell'intervento/ });
+    expect(screen.getByRole('tab', { name: 'Verifica SMP SIGC' }).getAttribute('aria-selected')).toBe('true');
+    expect([lette.verifica, lette.verificaSigc]).toEqual([[], ['?intervento=SRA01&esercizio=2025']]);
+    primo.unmount();
+
+    profilo(['csr.tx-0016.read', 'csr.tx-0060.read']);
+    apriDettaglio('/istituzionale/interventi/SRA01?esercizio=2025');
     await screen.findByRole('table', { name: /^I dati ASR non SIGC dell'intervento/ });
     expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Verifica SMP non SIGC']);
-    expect(lette.verificaSigc).toEqual([]);
+    expect(screen.queryByRole('link', { name: 'Verifica SMP SIGC filtrata su questo intervento' })).toBeNull();
+    expect(lette.verificaSigc).toEqual(['?intervento=SRA01&esercizio=2025']);
   });
 });
 

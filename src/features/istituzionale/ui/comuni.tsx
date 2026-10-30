@@ -1,17 +1,53 @@
-// comuni.tsx — mattoni di DOMINIO dei report istituzionali (UI v2, wireframe approvati del 22/10/2026): la resa di un dato
-// della verifica SMP non SIGC (il valore, oppure l'assenza col motivo in badge: mai uno 0 o un "no" inventati) col suo
-// link verso l'elenco operativo. Lo stato "valori dei filtri non disponibili" della pagina e' quello comune di
+// comuni.tsx — mattoni di DOMINIO dei report istituzionali (UI v2, wireframe approvati del 22/10 e del 30/10/2026): la
+// resa di un dato della verifica SMP non SIGC (il valore, oppure l'assenza col motivo in badge: mai uno 0 o un "no"
+// inventati) col suo link verso l'elenco operativo, e quella di un dato della verifica SMP SIGC (tabella della pagina e
+// scheda SIGC del dettaglio, stesse regole). Lo stato "valori dei filtri non disponibili" della pagina e' quello comune di
 // entities/filtri (ValoriFiltriNonDisponibili, nato qui), le righe di contesto del PNG dei grafici (NFR-50) quelle del kit
 // (useRigheContesto). Classi bootstrap-italia e del kit; nessun react-aria.
 import { ApriNellElenco } from '../../../entities/domanda';
 import { ValoreImporto, ValoreMotivato } from '../../../entities/importo';
 import type { DatoMotivatoLike } from '../../../entities/importo';
-import { formatNumber } from '../../../shared/lib';
-import type { RigaVerifica } from '../lib/dto';
+import { NON_DISPONIBILE, formatNumber } from '../../../shared/lib';
+import type { RigaVerifica, RigaVerificaSigc } from '../lib/dto';
+import { numeroOpzionale, quantitaConIndicatore, siNo, testoOpzionale } from '../lib/formato';
 import { TESTI_LINK, indirizzoDelDato, testoValore } from '../lib/verifica';
 import type { DatoVerifica, LinkDato } from '../lib/verifica';
+import type { DatoVerificaSigc } from '../lib/verificaSigc';
 
 const monospace = (testo: string) => <span className="font-monospace">{testo}</span>;
+
+/** Conteggio (numero di domande): il backend non lo rende null; un assente resta "-" del formattatore. */
+export function Numero({ valore }: { valore: number | null | undefined }) {
+  return monospace(formatNumber(valore));
+}
+
+const numero = (v: number) => <Numero valore={v} />;
+
+/**
+ * Il valore di un dato della verifica SMP SIGC (TX-0015): conteggi e importi, i dati col motivo dell'assenza
+ * (ConteggioFinanziario, SiNoFinanziario: D3, D15, D-11 del backend) resi come quella di un importo, i campi facoltativi
+ * senza motivo "non disponibile"; una quantita' di output col codice dell'indicatore accanto quando chi la rende lo da'
+ * (voci del dettaglio, OP-IS-12). Mai uno 0 o un "no" inventati.
+ */
+export function ValoreDelDatoSigc({ r, d, indicatore }: { r: RigaVerificaSigc; d: DatoVerificaSigc; indicatore?: string | null }) {
+  const v = r[d.campo];
+  switch (d.tipo) {
+    case 'conteggioMotivato':
+      return <ValoreMotivato dato={v as DatoMotivatoLike<number> | undefined} resa={numero} />;
+    case 'conteggio':
+      return <Numero valore={v as number | undefined} />;
+    case 'importo':
+      return <ValoreImporto importo={v as DatoMotivatoLike<number> | undefined} />;
+    case 'siNo':
+      return <ValoreMotivato dato={v as DatoMotivatoLike<boolean> | undefined} resa={siNo} />;
+    case 'quantita':
+      return <>{typeof v === 'number' ? quantitaConIndicatore(v, indicatore) : NON_DISPONIBILE}</>;
+    case 'numero':
+      return <>{numeroOpzionale(v as number | null | undefined)}</>;
+    default:
+      return <>{testoOpzionale(v as string | null | undefined)}</>;
+  }
+}
 
 /**
  * Il valore di un dato della verifica: un conteggio sempre valorizzato, un importo, o un dato col motivo dell'assenza; una

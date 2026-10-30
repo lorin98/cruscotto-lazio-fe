@@ -277,6 +277,7 @@ describe('Home e menu dallo stesso catalogo', () => {
   it('profilo dell istituzionale: la card porta alla verifica SMP non SIGC e il menu ha le due verifiche, prima la non SIGC', async () => {
     server.use(
       http.get('*/api/istituzionale/verifica-smp-non-sigc', () => HttpResponse.json({ annoRiferimento: 2025, perimetro: 'REGIONALE', outputCumulativo: true, righe: [], ultimiDatiSincronizzati: [] })),
+      http.get('*/api/istituzionale/verifica-smp-sigc', ({ request }) => HttpResponse.json({ perimetro: 'REGIONALE', esercizio: Number(new URL(request.url).searchParams.get('esercizio')), righe: [], ultimiDatiSincronizzati: [] })),
       http.get('*/api/elenco-operativo/filtri', () => HttpResponse.json({ perimetro: 'REGIONALE', interventi: [] })),
     );
     apriHomeCon(['csr.tx-0015.read', 'csr.tx-0016.read', 'csr.tx-0060.read']);
@@ -298,15 +299,15 @@ describe('Home e menu dallo stesso catalogo', () => {
     expect(within(menu).queryByRole('button', { name: 'Procedurale' })).toBeNull();
   });
 
-  it('profilo con la sola verifica SMP SIGC: la card porta alla verifica SIGC senza letture, il menu ha la sola voce', async () => {
-    const letture = registra(['/api/istituzionale/verifica-smp-non-sigc', '/api/istituzionale/verifica-smp-sigc']);
+  it('profilo con la sola verifica SMP SIGC: la card porta alla verifica SIGC e ne mostra il solo blocco SIGC, il menu ha la sola voce', async () => {
+    const letture = registra(['/api/istituzionale/verifica-smp-non-sigc', '/api/istituzionale/verifica-smp-sigc'], { '/api/istituzionale/verifica-smp-sigc': { perimetro: 'REGIONALE', righe: [], ultimiDatiSincronizzati: [] } });
     apriHomeCon(['csr.tx-0015.read']);
     const card = await screen.findByRole('region', { name: 'Istituzionale' });
     expect(within(card).getByRole('link', { name: 'Entra in Istituzionale' }).getAttribute('href')).toBe('/istituzionale/verifica-smp-sigc');
-    // senza il grant di TX-0016 la card non legge e dice cosa c'e' nell'area
-    expect(within(card).getByText('Verifica SMP dei dati ASR non SIGC')).toBeTruthy();
-    expect(within(card).queryByRole('group')).toBeNull();
-    expect(letture).toEqual({ '/api/istituzionale/verifica-smp-non-sigc': 0, '/api/istituzionale/verifica-smp-sigc': 0 });
+    // col grant di TX-0015 la card legge la verifica SIGC (rework 1 del 30/10/2026); senza quello di TX-0016 niente blocco non SIGC
+    expect(await within(card).findByRole('group', { name: /^SIGC, esercizio \d{4}$/ })).toBeTruthy();
+    expect(within(card).queryByText(/^Non SIGC, valori cumulativi/)).toBeNull();
+    await waitFor(() => expect(letture).toEqual({ '/api/istituzionale/verifica-smp-non-sigc': 0, '/api/istituzionale/verifica-smp-sigc': 1 }));
     const menu = screen.getByRole('navigation', { name: 'Navigazione principale' });
     expect(within(menu).getAllByRole('link').map((l) => l.textContent)).toEqual(['Verifica SMP SIGC']);
   });

@@ -1,92 +1,65 @@
-// TabellaVerificaSigc — la tabella dei venti dati della verifica SMP SIGC (RF015, TX-0015; la stessa della pagina
-// /finanziario/sigc/verifica-smp, portata qui col riallineamento degli ambiti del 29/10/2026): TabellaInterattiva del kit
-// (cerca, ordina, scegli le colonne, 20 righe per pagina), intestazione di riga sul codice intervento; i dati ASR mancanti
-// sono "non disponibile" (decisione di OP-004). Avvisi e azioni attivate sono conteggi col motivo dell'assenza e il top-up
-// incluso e la previsione di pagamento un si'/no col motivo (D3, D15, D-11 del backend): il valore, oppure l'assenza resa
-// come quella di un importo, mai uno 0 o un "no" inventati; i si'/no sono colonne di testo. Riga apribile (clic o Invio)
-// verso il dettaglio dell'intervento. Tabella HTML nativa del kit (caption, th scope, aria-sort).
-import type { ReactNode } from 'react';
-import { ValoreImporto, ValoreMotivato } from '../../../entities/importo';
-import type { DatoMotivatoLike, ImportoLike } from '../../../entities/importo';
-import { formatNumber } from '../../../shared/lib';
-import { TabellaInterattiva } from '../../../shared/ui';
-import type { ColonnaTabella } from '../../../shared/ui';
-import type { VerificaSmpRiga } from '../api';
-import { numeroOpzionale, siNo, testoOpzionale } from '../lib/formato';
-import { NOTA_FILE_VERIFICA_SIGC } from './esportazioni';
+// TabellaVerificaSigc — la card "Dati per intervento" della verifica SMP SIGC (flusso verifica-smp-sigc approvato il
+// 30/10/2026, RF015, TX-0015; la stessa tabella della pagina /finanziario/sigc/verifica-smp, portata qui col riallineamento
+// degli ambiti del 29/10/2026 e resa come quella della verifica non SIGC): TabellaInterattiva del kit (cerca, ordina,
+// colonne, 20 righe per pagina) coi venti dati di lib/verificaSigc nell'ordine e coi titoli della pagina del finanziario,
+// l'intervento come intestazione di riga, visibili di partenza le colonne del low-fi (le altre da "Colonne"), i si'/no e
+// gli indicatori come colonne di testo; ogni dato mancante dice il motivo, mai uno 0 o un "no" inventati. Riga apribile
+// (clic o Invio) verso il dettaglio dell'intervento; CSV e XLSX negli strumenti con la nota sui file; sotto, le definizioni
+// del backend (OP-IS-07). Tabella HTML nativa del kit (caption, th scope, aria-sort).
+import { PulsantiScarica, Sezione, TabellaInterattiva } from '../../../shared/ui';
+import type { ColonnaTabella, Scaricamento } from '../../../shared/ui';
+import type { RigaVerificaSigc } from '../lib/dto';
+import { DEFINIZIONI_VERIFICA_SIGC } from '../lib/formato';
+import { DATI_VERIFICA_SIGC, testoRicercaSigc, valoreOrdinabileSigc } from '../lib/verificaSigc';
+import type { TipoDatoSigc } from '../lib/verificaSigc';
+import { ValoreDelDatoSigc } from './comuni';
+import { NOTA_FILE_VERIFICA } from './esportazioni';
 
-type Riga = VerificaSmpRiga;
-type Ordinabile = string | number | null | undefined;
+const TITOLO_TABELLA = 'Dati per intervento';
+/** Colonne di testo: i si'/no e gli indicatori non si allineano come numeri (review delta 21/10 V2 del finanziario). */
+const DI_TESTO: ReadonlySet<TipoDatoSigc> = new Set(['siNo', 'testo']);
+const INTERVENTO: ColonnaTabella<RigaVerificaSigc> = { chiave: 'codiceIntervento', titolo: 'Intervento', valore: (r) => r.codiceIntervento ?? null, fissa: true };
 
-/** Conteggio (numero di domande): il backend non lo rende null; un assente resta "-" del formattatore. */
-export function Numero({ valore }: { valore: number | null | undefined }) {
-  return <span className="font-monospace">{formatNumber(valore)}</span>;
-}
-
-/** `numerica` falso: colonna di testo (allineata a sinistra), come i si'/no nel wireframe verifica-smp riapprovato. */
-function colonna(chiave: string, titolo: string, valore: (r: Riga) => Ordinabile, resa: (r: Riga) => ReactNode, { numerica = true } = {}): ColonnaTabella<Riga> {
-  return { chiave, titolo, valore: (r) => valore(r) ?? null, resa, numerica };
-}
-const conteggio = (chiave: string, titolo: string, leggi: (r: Riga) => number | null | undefined) => colonna(chiave, titolo, leggi, (r) => <Numero valore={leggi(r)} />);
-const importo = (chiave: string, titolo: string, leggi: (r: Riga) => ImportoLike | undefined) => colonna(chiave, titolo, (r) => leggi(r)?.valore, (r) => <ValoreImporto importo={leggi(r)} />);
-const opzionale = (chiave: string, titolo: string, leggi: (r: Riga) => number | null | undefined) => colonna(chiave, titolo, leggi, (r) => numeroOpzionale(leggi(r)));
-/**
- * Dato del backend col motivo dell'assenza (ConteggioFinanziario, SiNoFinanziario: D3, D15 del backend): il valore reso da
- * `resaValore`, oppure l'assenza come quella di un importo (ValoreMotivato), mai uno 0 o un "no" inventati. Un si'/no si
- * ordina per il suo testo ed e' una colonna di testo (TESTO).
- */
-function colonnaMotivata<T extends number | boolean>(
-  chiave: string,
-  titolo: string,
-  leggi: (r: Riga) => DatoMotivatoLike<T> | undefined,
-  resaValore: (v: T) => ReactNode,
-  opzioni: { numerica?: boolean } = {},
-): ColonnaTabella<Riga> {
-  const ordinabile = (v: T | null | undefined): Ordinabile => (typeof v === 'boolean' ? siNo(v) : v);
-  return colonna(chiave, titolo, (r) => ordinabile(leggi(r)?.valore), (r) => <ValoreMotivato dato={leggi(r)} resa={resaValore} />, opzioni);
-}
-const numero = (v: number) => <Numero valore={v} />;
-/** Colonna di testo: i si'/no non si allineano come numeri (review delta 21/10 V2 del finanziario). */
-const TESTO = { numerica: false };
-
-const COLONNE: ColonnaTabella<Riga>[] = [
-  { chiave: 'codice', titolo: 'Intervento', valore: (r) => r.codiceIntervento ?? null, fissa: true },
-  colonnaMotivata<number>('avvisi', 'Avvisi attivati', (r) => r.avvisiAttivati, numero),
-  colonnaMotivata<number>('azioni', 'Azioni attivate', (r) => r.azioniAttivate, numero),
-  conteggio('ricevute', 'Domande ricevute', (r) => r.domandeRicevute),
-  conteggio('senzaRichiesto', 'Domande ricevute senza richiesto', (r) => r.domandeRicevuteSenzaRichiesto),
-  importo('valoreRicevute', 'Valore domande ricevute', (r) => r.valoreDomandeRicevute),
-  conteggio('finanziate', 'Domande finanziate', (r) => r.domandeFinanziate),
-  importo('valoreFinanziate', 'Valore domande finanziate', (r) => r.valoreDomandeFinanziate),
-  importo('dotazionePrecedente', 'Dotazione anno precedente', (r) => r.dotazioneAnnoPrecedente),
-  importo('dotazioneImpegno', 'Dotazione periodo di impegno', (r) => r.dotazionePeriodoImpegno),
-  conteggio('pagate', "Domande pagate nell'esercizio", (r) => r.domandePagateEsercizio),
-  importo('spesaPrecedente', 'Spesa erogata campagna precedente', (r) => r.spesaErogataCampagnaPrecedente),
-  importo('spesaAnteriori', 'Spesa erogata campagne anteriori', (r) => r.spesaErogataCampagneAnteriori),
-  colonnaMotivata<boolean>('previsione', "Si prevede di pagare nell'esercizio", (r) => r.previsionePagamentoEsercizio, siNo, TESTO),
-  importo('topUp', 'Importo top-up', (r) => r.importoTopUp),
-  colonnaMotivata<boolean>('includeTopUp', 'Include top-up', (r) => r.includeTopUp, siNo, TESTO),
-  opzionale('ettari', 'Ettari o UBA richiesti', (r) => r.ettariUbaRichiesti),
-  opzionale('outputAtteso', 'Output atteso delle finanziate', (r) => r.outputAttesoFinanziate),
-  opzionale('outputErogato', "Output erogato nell'esercizio", (r) => r.outputErogatoEsercizio),
-  colonna('indicatoreOutput', 'Indicatore di output', (r) => r.indicatoreOutput, (r) => testoOpzionale(r.indicatoreOutput)),
-  colonna('indicatoreRisultato', 'Indicatore di risultato', (r) => r.indicatoreRisultato, (r) => testoOpzionale(r.indicatoreRisultato)),
+/** Le colonne dai dati di lib/verificaSigc: l'intervento, poi i venti dati col loro titolo, ordinamento e resa. */
+const COLONNE: ColonnaTabella<RigaVerificaSigc>[] = [
+  INTERVENTO,
+  ...DATI_VERIFICA_SIGC.map((d) => ({
+    chiave: d.campo,
+    titolo: d.colonna,
+    valore: (r: RigaVerificaSigc) => valoreOrdinabileSigc(r, d),
+    resa: (r: RigaVerificaSigc) => <ValoreDelDatoSigc r={r} d={d} />,
+    numerica: !DI_TESTO.has(d.tipo),
+    nascosta: d.nascosta,
+  })),
 ];
 
-export function TabellaVerificaSigc({ righe, onRiga }: { righe: readonly Riga[]; onRiga: (codice: string) => void }) {
+interface PropsTabella {
+  righe: readonly RigaVerificaSigc[];
+  esercizio: number;
+  scaricamenti: readonly Scaricamento[];
+  /** Completa "Scarica …" nei pulsanti dei file (dice l'esercizio). */
+  oggetto: string;
+  onRiga: (codice: string) => void;
+}
+
+export function TabellaVerificaSigc({ righe, esercizio, scaricamenti, oggetto, onRiga }: PropsTabella) {
   return (
-    <TabellaInterattiva
-      caption="I dati ASR per intervento da confrontare con SMP"
-      righe={righe}
-      colonne={COLONNE}
-      chiaveRiga={(r) => r.codiceIntervento ?? ''}
-      testoRicerca={(r) => `${r.codiceIntervento ?? ''} ${r.indicatoreOutput ?? ''} ${r.indicatoreRisultato ?? ''}`}
-      segnapostoRicerca="Cerca per codice o indicatore"
-      notaRicerca={NOTA_FILE_VERIFICA_SIGC}
-      // la riga apre il dettaglio anche da tastiera (Invio), come il clic sulla barra del grafico
-      etichettaRiga={(r) => `Apri il dettaglio dell'intervento ${r.codiceIntervento ?? ''}`}
-      onRiga={(r) => r.codiceIntervento && onRiga(r.codiceIntervento)}
-      perPagina={20}
-    />
+    <Sezione titolo={TITOLO_TABELLA}>
+      <p className="ui-nota">{NOTA_FILE_VERIFICA}</p>
+      <TabellaInterattiva
+        caption={`Verifica SMP SIGC, esercizio ${esercizio}: l'intervento è l'intestazione di riga, un dato mancante dice il motivo (mai uno 0 o un "no" inventati)`}
+        righe={righe}
+        colonne={COLONNE}
+        chiaveRiga={(r) => r.codiceIntervento ?? ''}
+        testoRicerca={testoRicercaSigc}
+        segnapostoRicerca="Cerca per codice o indicatore"
+        // la riga apre il dettaglio anche da tastiera (Invio), come il clic sulla barra del grafico
+        etichettaRiga={(r) => `Apri il dettaglio dell'intervento ${r.codiceIntervento ?? ''}`}
+        onRiga={(r) => r.codiceIntervento && onRiga(r.codiceIntervento)}
+        perPagina={20}
+        strumenti={<PulsantiScarica oggetto={oggetto} scaricamenti={scaricamenti} />}
+      />
+      <p className="ui-fonte">{DEFINIZIONI_VERIFICA_SIGC}</p>
+    </Sezione>
   );
 }

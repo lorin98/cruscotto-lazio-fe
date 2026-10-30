@@ -46,7 +46,10 @@ describe("RF016: testata, KPI e scheda dell'intervento (TX-0016 filtrata sull'in
     expect(testo((await kpi('Domande ricevute non SIGC')).textContent)).toContain('0');
     // l'output regionale (TX-0017: KPI del target, schede Output per anno e Importi unitari) e' del fisico
     expect(screen.queryByRole('region', { name: 'Target di fine periodo' })).toBeNull();
-    expect(screen.getAllByRole('tab').map((t) => [t.textContent, t.getAttribute('aria-selected')])).toEqual([['Verifica SMP non SIGC', 'true']]);
+    expect(screen.getAllByRole('tab').map((t) => [t.textContent, t.getAttribute('aria-selected')])).toEqual([
+      ['Verifica SMP non SIGC', 'true'],
+      ['Verifica SMP SIGC', 'false'],
+    ]);
     expect(screen.queryByRole('link', { name: 'Output regionale filtrato su questo intervento' })).toBeNull();
     await voci();
     expect(lette.verifica).toEqual(['?intervento=SRA01']);
