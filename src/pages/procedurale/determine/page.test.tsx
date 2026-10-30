@@ -324,6 +324,9 @@ describe("RF020: domanda dell'altro tipo in arrivo dalla scheda dell'elenco, SC-
     await userEvent.click(link);
     await waitFor(() => expect(router.state.location.pathname).toBe('/elenco-operativo/domande/SOSTEGNO/34810022870'));
     expect(screen.getByText('altra pagina')).toBeTruthy();
+    // la scheda della domanda si apre sulla scheda Determine (state della navigazione, mai nell'indirizzo)
+    expect(router.state.location.state).toEqual({ schedaIniziale: 'determine' });
+    expect(router.state.location.search).toBe('');
   });
 
   it('la regione role=status c e gia in caricamento, vuota e nascosta, e si riempie con la risposta (si annuncia)', async () => {

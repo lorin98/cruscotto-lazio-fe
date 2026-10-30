@@ -59,3 +59,29 @@ export function percorsoSchedaDomanda(tipo: string | null | undefined, codiceABa
   if (!riferimentoDomandaValido(tipo, codiceABarre)) return null;
   return `${PERCORSO_ELENCO_DOMANDE}/${tipo}/${codiceABarre}`;
 }
+
+/** Le schede della scheda della domanda (identificativi dei Tab, nell'ordine della pagina): un elenco chiuso. */
+export const SCHEDE_DELLA_DOMANDA = ['sintesi', 'collegate', 'determine', 'pagamenti', 'recuperi', 'anomalie'] as const;
+export type SchedaDellaDomanda = (typeof SCHEDE_DELLA_DOMANDA)[number];
+
+/**
+ * Lo state della navigazione di un link verso la scheda della domanda che la apre su una scheda (decisione D1
+ * dell'utente del 30/10/2026, review step9 EO-01: "Apri la scheda della domanda di <tipo>, scheda Determine" delle
+ * determine del procedurale), mai nell'indirizzo. Senza, la scheda si apre sulla Sintesi.
+ */
+export interface ArrivoSullaScheda {
+  schedaIniziale: SchedaDellaDomanda;
+}
+
+export function arrivoSullaScheda(scheda: SchedaDellaDomanda): ArrivoSullaScheda {
+  return { schedaIniziale: scheda };
+}
+
+/**
+ * La scheda iniziale dallo state della navigazione (che e' `unknown`, anche manipolabile), convalidata contro l'elenco
+ * chiuso delle schede; null (la Sintesi) senza state o con uno non valido.
+ */
+export function schedaInizialeDalloState(stato: unknown): SchedaDellaDomanda | null {
+  const scheda = typeof stato === 'object' && stato !== null && 'schedaIniziale' in stato ? stato.schedaIniziale : undefined;
+  return SCHEDE_DELLA_DOMANDA.find((s) => s === scheda) ?? null;
+}

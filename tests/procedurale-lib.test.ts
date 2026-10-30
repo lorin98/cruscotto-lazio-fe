@@ -66,6 +66,7 @@ import type { VoceDistribuzione } from '../src/features/procedurale/lib/stati';
 import { interventiSenzaContributo, kpiDegliStati, kpiDelleAmmesse, kpiDomandeDellIntervento, kpiInterventi, notaContributo, testoSenzaContributo } from '../src/features/procedurale/lib/kpi';
 import { altreSottofasi, anagraficaVuota, etichettaVoce, righeVoci, senzaDomandeNeiFiltri, testoCensita } from '../src/features/procedurale/lib/sottofasi';
 import {
+  ARRIVO_SU_DETERMINE,
   MAX_CIFRE,
   badgeDetermine,
   badgePerimetro,
@@ -742,5 +743,7 @@ describe('RF020: determine di una domanda (codice, link e testi)', () => {
     expect(percorsoSchedaDiPartenza('SOSTEGNO', '34810022870', true)).toBe('/elenco-operativo/domande/SOSTEGNO/34810022870');
     expect(percorsoSchedaDiPartenza('SOSTEGNO', '34810022870', false)).toBeNull();
     expect(percorsoSchedaDiPartenza('SOSTEGNO', '3481A', true)).toBeNull();
+    // il link apre la scheda della domanda sulla scheda Determine, come promette il suo testo
+    expect(ARRIVO_SU_DETERMINE).toEqual({ schedaIniziale: 'determine' });
   });
 });

@@ -29,6 +29,7 @@ import { AvvisoPagina, Briciole, Griglia, Kpi, Sezione, TabellaStatica, TestataD
 import type { ColonnaStatica } from '../../../shared/ui';
 import { rispostaDatoNonValido, rispostaDomandaAssente, useDetermine } from '../api';
 import {
+  ARRIVO_SU_DETERMINE,
   badgeDetermine,
   codiceDalPercorso,
   eCorrente,
@@ -64,7 +65,10 @@ function Testata({ h1, titolo, d, scheda }: { h1: Ref<HTMLHeadingElement>; titol
   return <TestataDettaglio idTitolo="t-determine" titolo={titolo} h1={h1} sopratitolo={d && sopratitoloDetermine(d)} badge={d && badgeDetermine(d)} azioni={azioni} />;
 }
 
-/** Il testo dell'avviso "domanda dell'altro tipo" e il link scheda-di-partenza (solo col grant della scheda). */
+/**
+ * Il testo dell'avviso "domanda dell'altro tipo" e il link scheda-di-partenza (solo col grant della scheda), che apre la
+ * scheda della domanda sulla scheda Determine (state della navigazione).
+ */
 function TestoAltroTipo({ codice, tipoDellaRisposta, tipoDellaScheda, conGrantScheda }: { codice: string; tipoDellaRisposta: string; tipoDellaScheda: string; conGrantScheda: boolean }) {
   const scheda = percorsoSchedaDiPartenza(tipoDellaScheda, codice, conGrantScheda);
   return (
@@ -73,7 +77,9 @@ function TestoAltroTipo({ codice, tipoDellaRisposta, tipoDellaScheda, conGrantSc
       {scheda && (
         <>
           {' '}
-          <Link to={scheda}>{testoSchedaDiPartenza(tipoDellaScheda)}</Link>
+          <Link to={scheda} state={ARRIVO_SU_DETERMINE}>
+            {testoSchedaDiPartenza(tipoDellaScheda)}
+          </Link>
         </>
       )}
     </>

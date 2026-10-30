@@ -67,7 +67,10 @@ import { puoAprireLeDetermine } from '../src/features/elenco-operativo/lib/grant
 import {
   GRANT_DETERMINE_DELLA_DOMANDA,
   PERCORSO_DETERMINE_DELLA_DOMANDA,
+  SCHEDE_DELLA_DOMANDA,
   arrivoDallaScheda,
+  arrivoSullaScheda,
+  schedaInizialeDalloState,
   percorsoDetermineDellaDomanda,
   tipoDellaSchedaDiPartenza,
   tipoDomandaValido,
@@ -577,5 +580,14 @@ describe('elenco operativo, link della scheda verso le determine del procedurale
       expect(tipoDellaSchedaDiPartenza(stato), JSON.stringify(stato)).toBeNull();
     }
     expect([tipoDomandaValido('SOSTEGNO'), tipoDomandaValido('PAGAMENTO'), tipoDomandaValido('ALTRO'), tipoDomandaValido(undefined)]).toEqual([true, true, false, false]);
+  });
+
+  it('state della scheda iniziale (link scheda-di-partenza): letto solo se e una delle schede, altrimenti la Sintesi (null)', () => {
+    expect(SCHEDE_DELLA_DOMANDA).toEqual(['sintesi', 'collegate', 'determine', 'pagamenti', 'recuperi', 'anomalie']);
+    expect(arrivoSullaScheda('determine')).toEqual({ schedaIniziale: 'determine' });
+    for (const scheda of SCHEDE_DELLA_DOMANDA) expect(schedaInizialeDalloState(arrivoSullaScheda(scheda))).toBe(scheda);
+    for (const stato of [null, undefined, 'determine', ['determine'], {}, { scheda: 'determine' }, { schedaIniziale: 'Determine' }, { schedaIniziale: 'altro' }, { schedaIniziale: ['determine'] }, { ricerca: '/elenco-operativo/domande' }]) {
+      expect(schedaInizialeDalloState(stato), JSON.stringify(stato)).toBeNull();
+    }
   });
 });

@@ -6,7 +6,10 @@
 // richiesta (review v1 A-01). Un 404 ha lo stesso messaggio per domanda inesistente, chiusa o fuori perimetro (D-06).
 // Link dichiarati: domanda collegata, altre domande del beneficiario, torna all'elenco (alla ricerca di partenza), le
 // determine della domanda nell'area Procedurale sotto la scheda Determine (solo con csr.tx-0020.read, OP-EO-07; il tipo
-// della scheda nello state della navigazione, decisione D1 dell'utente del 30/10/2026).
+// della scheda nello state della navigazione, decisione D1 dell'utente del 30/10/2026). La scheda iniziale e' la Sintesi,
+// oppure quella che il link d'arrivo porta nello state della navigazione (schedaIniziale, convalidata contro l'elenco
+// chiuso delle schede di entities/domanda; mai nell'indirizzo): "Apri la scheda della domanda di <tipo>, scheda
+// Determine" delle determine del procedurale apre la scheda Determine (review step9 EO-01).
 // L'atto di concessione della sintesi legge attoConcessioneDisponibile di TX-0060 (stessa lettura e cache del pannello dei
 // filtri, col suo grant), che parte insieme a TX-0058: una domanda senza l'atto dice "nessun atto" solo con la fonte attiva,
 // l'assenza con la fonte senza la fonte (F1), "non disponibile" finche' TX-0060 non e' letto (review delta 21/10 passata 2 V1).
@@ -14,6 +17,8 @@ import { useMemo } from 'react';
 import type { Ref } from 'react';
 import { Link, useLocation } from 'react-router';
 import { Tab, TabList, TabPanel, Tabs } from 'react-aria-components';
+import { schedaInizialeDalloState } from '../../../entities/domanda';
+import type { SchedaDellaDomanda } from '../../../entities/domanda';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { formatNumber, formatPercentuale, righeContesto } from '../../../shared/lib';
 import { AvvisoPagina, CardGrafico, ContestoIntestazione, Griglia, Kpi, Sezione, TestataDettaglio, VistaQuery, useFocusTitolo } from '../../../shared/ui';
@@ -175,10 +180,16 @@ function listeDi(scheda: DettaglioDomanda) {
   };
 }
 
+/** La scheda da cui partire: quella che porta il link d'arrivo nello state della navigazione (se valida), o la Sintesi. */
+function useSchedaIniziale(): SchedaDellaDomanda {
+  return schedaInizialeDalloState(useLocation().state) ?? 'sintesi';
+}
+
 function Schede({ d, scheda, ricerca, attoConcessioneDisponibile, conDetermine }: { d: DomandaElenco; scheda: DettaglioDomanda } & DaFuori) {
   const l = listeDi(scheda);
+  const iniziale = useSchedaIniziale();
   return (
-    <Tabs>
+    <Tabs defaultSelectedKey={iniziale}>
       <TabList aria-label="Sezioni della domanda" className="ui-tabs">
         <Tab id="sintesi" className="ui-tab">
           Sintesi

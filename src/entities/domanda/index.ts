@@ -8,12 +8,15 @@ export {
   GRANT_ELENCO,
   PERCORSO_ELENCO_DOMANDE,
   PERCORSO_ELENCO_PAGAMENTI,
+  SCHEDE_DELLA_DOMANDA,
+  arrivoSullaScheda,
   codiceABarreValido,
   percorsoSchedaDomanda,
   riferimentoDomandaValido,
+  schedaInizialeDalloState,
   tipoDomandaValido,
 } from './lib/elenco';
-export type { DestinazioneElenco, EsitoRigaElenco, TipoDellaDomanda } from './lib/elenco';
+export type { ArrivoSullaScheda, DestinazioneElenco, EsitoRigaElenco, SchedaDellaDomanda, TipoDellaDomanda } from './lib/elenco';
 // il contratto dell'indirizzo delle determine di una domanda (procedurale, TX-0020): il link della scheda dell'elenco e il
 // suo state (il tipo della scheda di partenza, decisione D1 del 30/10/2026)
 export {

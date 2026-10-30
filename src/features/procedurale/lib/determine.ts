@@ -8,7 +8,7 @@
 // per la domanda non trovata, inesistente o fuori dal perimetro ADA del P4 (scelte 2 e 3 del dossier). Dalla decisione D1
 // dell'utente del 30/10/2026 (review step9 EO-01, flusso riapprovato): l'avviso "domanda dell'altro tipo" e il link
 // scheda-di-partenza, in arrivo dalla scheda dell'elenco con un tipo diverso da quello della risposta.
-import { PERCORSO_DETERMINE_DELLA_DOMANDA, codiceABarreValido, etichettaTipoDomanda, percorsoSchedaDomanda } from '../../../entities/domanda';
+import { PERCORSO_DETERMINE_DELLA_DOMANDA, arrivoSullaScheda, codiceABarreValido, etichettaTipoDomanda, percorsoSchedaDomanda } from '../../../entities/domanda';
 import type { Determina, Determine, Perimetro } from './dto';
 
 /** Il codice del percorso: nessuno (ingresso dal menu), valido (si legge), oppure non valido (nessuna lettura). */
@@ -89,6 +89,12 @@ export function testoSchedaDiPartenza(tipoDellaScheda: string): string {
 export function percorsoSchedaDiPartenza(tipoDellaScheda: string, codice: string, conGrantScheda: boolean): string | null {
   return conGrantScheda ? percorsoSchedaDomanda(tipoDellaScheda, codice) : null;
 }
+
+/**
+ * State del link scheda-di-partenza: la scheda della domanda si apre sulla scheda Determine, come promette il testo del
+ * link (contratto condiviso di entities/domanda, mai nell'indirizzo).
+ */
+export const ARRIVO_SU_DETERMINE = arrivoSullaScheda('determine');
 
 /**
  * Il perimetro della risposta in testo (WCAG 1.4.1, non solo un colore): regionale per P1, P2 e il P3 dell'area procedurale
