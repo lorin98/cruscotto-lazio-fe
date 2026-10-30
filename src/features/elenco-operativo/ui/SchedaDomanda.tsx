@@ -9,7 +9,9 @@
 // della scheda nello state della navigazione, decisione D1 dell'utente del 30/10/2026). La scheda iniziale e' la Sintesi,
 // oppure quella che il link d'arrivo porta nello state della navigazione (schedaIniziale, convalidata contro l'elenco
 // chiuso delle schede di entities/domanda; mai nell'indirizzo): "Apri la scheda della domanda di <tipo>, scheda
-// Determine" delle determine del procedurale apre la scheda Determine (review step9 EO-01).
+// Determine" delle determine del procedurale apre la scheda Determine (review step9 EO-01). Vale a ogni voce della
+// cronologia (un link, Indietro o Avanti), anche con la risposta gia' in cache: le schede si rimontano a ogni voce
+// (review step9 EO2-04); lo state resta nella voce, quindi una ricarica riapre la stessa scheda.
 // L'atto di concessione della sintesi legge attoConcessioneDisponibile di TX-0060 (stessa lettura e cache del pannello dei
 // filtri, col suo grant), che parte insieme a TX-0058: una domanda senza l'atto dice "nessun atto" solo con la fonte attiva,
 // l'assenza con la fonte senza la fonte (F1), "non disponibile" finche' TX-0060 non e' letto (review delta 21/10 passata 2 V1).
@@ -184,16 +186,22 @@ function listeDi(scheda: DettaglioDomanda) {
  *  EO2-02). */
 const idScheda = (id: SchedaDellaDomanda): SchedaDellaDomanda => id;
 
-/** La scheda da cui partire: quella che porta il link d'arrivo nello state della navigazione (se valida), o la Sintesi. */
-function useSchedaIniziale(): SchedaDellaDomanda {
-  return schedaInizialeDalloState(useLocation().state) ?? 'sintesi';
+/**
+ * La scheda da cui partire: quella che porta il link d'arrivo nello state della navigazione (se valida), o la Sintesi; e
+ * la voce della cronologia a cui vale. La route riusa il componente fra le voci (una collegata, Indietro, Avanti) e con la
+ * risposta in cache le schede non passano dal caricamento: la voce nella key le rimonta sulla scheda iniziale della voce
+ * (review step9 EO2-04). La scheda non naviga con replace, quindi la voce non cambia finche' l'utente resta.
+ */
+function useSchedaIniziale(): { iniziale: SchedaDellaDomanda; voce: string } {
+  const { state, key } = useLocation();
+  return { iniziale: schedaInizialeDalloState(state) ?? 'sintesi', voce: key };
 }
 
 function Schede({ d, scheda, ricerca, attoConcessioneDisponibile, conDetermine }: { d: DomandaElenco; scheda: DettaglioDomanda } & DaFuori) {
   const l = listeDi(scheda);
-  const iniziale = useSchedaIniziale();
+  const { iniziale, voce } = useSchedaIniziale();
   return (
-    <Tabs defaultSelectedKey={iniziale}>
+    <Tabs key={voce} defaultSelectedKey={iniziale}>
       <TabList aria-label="Sezioni della domanda" className="ui-tabs">
         <Tab id={idScheda('sintesi')} className="ui-tab">
           Sintesi

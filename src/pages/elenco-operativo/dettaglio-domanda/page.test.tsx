@@ -5,14 +5,14 @@
 // scheda nello state della navigazione (decisione D1 del 30/10/2026). Le altre route finiscono sul segnaposto di
 // renderPagina: l'arrivo si guarda nel router.
 import { describe, expect, it } from 'vitest';
-import { screen, waitFor, within } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { SCHEDE_DELLA_DOMANDA } from '../../../entities/domanda';
 import { server } from '../../../shared/api/mock/server';
 import { expectNoA11yViolations } from '../../../shared/testing/axe';
-import { renderConQuery } from '../../../shared/testing/render';
+import { clientDiTest, renderConQuery } from '../../../shared/testing/render';
 import { renderPagina } from '../../../shared/testing/render-pagina';
 import { DETTAGLIO, VALORI } from '../../../features/elenco-operativo/testing/fixture';
 import Pagina from './page';
@@ -135,8 +135,8 @@ describe("RA004: link alle determine della domanda nell'area Procedurale (OP-EO-
 // decisione D1 dell'utente del 30/10/2026 (review step9 EO-01): il link scheda-di-partenza delle determine del procedurale
 // promette "scheda Determine" e porta { schedaIniziale: 'determine' } nello state della navigazione, mai nell'indirizzo
 describe('RA004: scheda iniziale dallo state della navigazione (link scheda-di-partenza delle determine, decisione D1)', () => {
-  /** La scheda nel router dei test, arrivando con lo state dato. */
-  function apriConState(state: unknown) {
+  /** La scheda nel router dei test, arrivando con lo state dato (e il QueryClient, se il test lo semina). */
+  function apriConState(state: unknown, client = clientDiTest()) {
     const router = createMemoryRouter(
       [
         { path: ROUTE, Component: Pagina },
@@ -144,7 +144,7 @@ describe('RA004: scheda iniziale dallo state della navigazione (link scheda-di-p
       ],
       { initialEntries: [{ pathname: SCHEDA, state }] },
     );
-    return { ...renderConQuery(<RouterProvider router={router} />), router };
+    return { ...renderConQuery(<RouterProvider router={router} />, client), router };
   }
   const selezionate = () => screen.getAllByRole('tab').filter((t) => t.getAttribute('aria-selected') === 'true').map((t) => t.textContent);
 
@@ -158,10 +158,40 @@ describe('RA004: scheda iniziale dallo state della navigazione (link scheda-di-p
     expect(router.state.location.pathname + router.state.location.search).toBe(SCHEDA);
     expect(document.activeElement).toBe(h1);
     await expectNoA11yViolations(container);
-    // le frecce da tastiera ripartono dalla scheda Determine, come dopo un cambio di scheda
-    screen.getByRole('tab', { name: 'Determine (1)' }).focus();
+    // da tastiera, dal titolo: Tab entra nelle schede sulla scheda Determine (react-aria seleziona col focus, quindi un
+    // focus portato a mano proverebbe poco, review step9 EO2-06), e le frecce ripartono da li'
+    for (let i = 0; i < 20 && document.activeElement?.getAttribute('role') !== 'tab'; i += 1) await userEvent.tab();
+    expect(document.activeElement?.textContent).toBe('Determine (1)');
+    expect(selezionate()).toEqual(['Determine (1)']);
     await userEvent.keyboard('{ArrowRight}');
     expect(selezionate()).toEqual(['Pagamenti (1)']);
+  });
+
+  // review step9 EO2-04: la route riusa il componente fra le voci, e con la risposta in cache le schede non passano dal
+  // caricamento; la scheda iniziale vale comunque per ogni voce della cronologia
+  it('a ogni voce la sua scheda iniziale, anche con la risposta in cache: la collegata si apre sulla Sintesi, Indietro riapre Determine', async () => {
+    servi(CON_DETERMINE);
+    const COLLEGATA = '/elenco-operativo/domande/SOSTEGNO/04230000001';
+    const collegata = { ...DETTAGLIO, domanda: { ...DETTAGLIO.domanda, tipo: 'SOSTEGNO' as const, codiceABarre: '04230000001', denominazione: 'AZIENDA AGRICOLA ROSSI' } };
+    server.use(http.get('*/api/elenco-operativo/domande/SOSTEGNO/04230000001', () => HttpResponse.json(collegata)));
+    const client = clientDiTest();
+    // la collegata gia' in cache (la chiave di TX-0058 del generato): la pagina non passa dal caricamento
+    client.setQueryData([`/api/elenco-operativo/domande/SOSTEGNO/04230000001`], collegata);
+    const { router } = apriConState({ schedaIniziale: 'determine' }, client);
+    await screen.findByRole('heading', { level: 1, name: 'COOPERATIVA VERDI' });
+    expect(selezionate()).toEqual(['Determine (1)']);
+    await userEvent.click(screen.getByRole('tab', { name: 'Domande collegate (1)' }));
+    await userEvent.click(within(screen.getByRole('tabpanel')).getByRole('link', { name: '04230000001' }));
+    // la collegata e' subito coi dati (nessuno scheletro) e si apre sulla Sintesi: il suo link non porta una scheda
+    expect(router.state.location.pathname).toBe(COLLEGATA);
+    expect(screen.getByRole('heading', { level: 1, name: 'AZIENDA AGRICOLA ROSSI' })).toBeTruthy();
+    expect(selezionate()).toEqual(['Sintesi']);
+    await userEvent.click(screen.getByRole('tab', { name: 'Pagamenti (1)' }));
+    // Indietro: la voce d'arrivo, gia' in cache, con lo state che apre Determine
+    await act(async () => router.navigate(-1));
+    expect(router.state.location.pathname).toBe(SCHEDA);
+    expect(screen.getByRole('heading', { level: 1, name: 'COOPERATIVA VERDI' })).toBeTruthy();
+    expect(selezionate()).toEqual(['Determine (1)']);
   });
 
   it('ogni scheda dell elenco chiuso si apre dallo state (gli identificativi sono quelli dei Tab)', async () => {
