@@ -2,9 +2,10 @@
 // barra (l'esercizio coi suoi estremi), quantita' di output col codice dell'indicatore accanto (l'unita' di misura veniva
 // da TX-0017, ora del fisico: OP-IS-12), si'/no, stati vuoti e note sulle definizioni del backend (OP-IS-07: note fisse,
 // non un dato). I testi sono quelli dei wireframe approvati (22/10/2026 e, per le due verifiche e il dettaglio, 30/10/2026),
-// con le lettere accentate. Il perimetro in parole e' di shared/lib (review H7). I testi dell'output regionale sono del
-// fisico dal 29/10/2026.
-import { NON_DISPONIBILE, formatNumber, testoPerimetro } from '../../../shared/lib';
+// con le lettere accentate. Il perimetro in parole e' di shared/lib (review H7), come i campi facoltativi della verifica
+// SMP SIGC (numeroOpzionale, testoOpzionale, annoOpzionale: review del riallineamento IST-06). I testi dell'output
+// regionale sono del fisico dal 29/10/2026.
+import { formatNumber, testoPerimetro } from '../../../shared/lib';
 
 /** Pill della barra: i report istituzionali hanno sempre il perimetro regionale (spec: enum REGIONALE). */
 export const PILL_PERIMETRO = 'Perimetro: regionale (i report istituzionali non hanno perimetro ADA)';
@@ -75,18 +76,3 @@ export const NESSUN_DATO_SIGC = "Nessun dato SIGC per l'esercizio e i filtri sce
  */
 export const DEFINIZIONI_VERIFICA_SIGC =
   "Definizioni del backend (decisioni di finanziario richiamate da istituzionale): esercizio n = dal 16/10/n-1 al 15/10/n, estremi compresi; domande ricevute e finanziate = domande SIGC della campagna n-1 (finanziate: importo ammesso maggiore di zero), quelle senza importo richiesto contate ma escluse dal valore; domande pagate e spesa erogata = pagamenti SIGC autorizzati nell'esercizio, la spesa divisa fra la campagna n-1 e le campagne anteriori (D-05 Rev. 4); i pagamenti senza data di autorizzazione sono esclusi e contati nei riferimenti; avvisi attivati = numero del report SMP, mai ricavato dallo stato (D-09 Rev. 1); output erogato = solo SIGC (RF015); previsione di pagamento = sì/no del monitoraggio SMP (D-11).";
-
-/** Un dato facoltativo della verifica SMP SIGC (TX-0015, campi facoltativi nella spec): assente = "non disponibile". */
-export function numeroOpzionale(v: number | null | undefined): string {
-  return v == null ? NON_DISPONIBILE : formatNumber(v);
-}
-
-/** Un testo facoltativo della verifica SMP SIGC (indicatori): assente o vuoto = "non disponibile". */
-export function testoOpzionale(v: string | null | undefined): string {
-  return v == null || v.trim() === '' ? NON_DISPONIBILE : v;
-}
-
-/** Un anno facoltativo (anno delle domande della verifica SMP SIGC), senza separatore delle migliaia. */
-export function annoOpzionale(v: number | null | undefined): string {
-  return v == null ? NON_DISPONIBILE : String(v);
-}

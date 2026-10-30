@@ -7,9 +7,9 @@
 import { ApriNellElenco } from '../../../entities/domanda';
 import { ValoreImporto, ValoreMotivato } from '../../../entities/importo';
 import type { DatoMotivatoLike } from '../../../entities/importo';
-import { NON_DISPONIBILE, formatNumber } from '../../../shared/lib';
+import { NON_DISPONIBILE, formatNumber, numeroOpzionale, testoOpzionale } from '../../../shared/lib';
 import type { RigaVerifica, RigaVerificaSigc } from '../lib/dto';
-import { numeroOpzionale, quantitaConIndicatore, siNo, testoOpzionale } from '../lib/formato';
+import { quantitaConIndicatore, siNo } from '../lib/formato';
 import { TESTI_LINK, indirizzoDelDato, testoValore } from '../lib/verifica';
 import type { DatoVerifica, LinkDato } from '../lib/verifica';
 import type { DatoVerificaSigc } from '../lib/verificaSigc';

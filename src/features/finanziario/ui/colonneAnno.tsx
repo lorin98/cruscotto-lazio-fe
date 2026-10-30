@@ -4,9 +4,10 @@
 // Titoli e formato delle celle sono quelli della tabella equivalente del grafico (ANNUALITA_DOMANDE, numeroOpzionale): con o
 // senza il grant la vista Tabella ha le stesse intestazioni e gli stessi testi, link a parte.
 import { ApriNellElenco } from '../../../entities/domanda';
+import { numeroOpzionale } from '../../../shared/lib';
 import type { Colonna } from '../../../shared/ui';
 import type { DomandePerAnnoRiga } from '../api';
-import { annoDiRaccolta, numeroOpzionale } from '../lib/formato';
+import { annoDiRaccolta } from '../lib/formato';
 import { ANNUALITA_DOMANDE } from '../lib/grafici';
 import type { Annualita } from '../../../entities/domanda';
 

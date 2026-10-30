@@ -4,10 +4,10 @@
 // colonne nascoste di partenza (visibili quelle del low-fi, le altre da "Colonne", come nella verifica non SIGC); il valore
 // per l'ordinamento, il testo della ricerca e i riferimenti della risposta (pagina e scheda). I componenti li rendono con
 // un map: qui nessun calcolo resta nei componenti.
-import { testoPerimetro } from '../../../shared/lib';
+import { annoOpzionale, numeroOpzionale, testoPerimetro } from '../../../shared/lib';
 import type { ValoreOrdinabile } from '../../../shared/lib';
 import type { RigaVerificaSigc, VerificaSigc } from './dto';
-import { annoOpzionale, numeroOpzionale, periodoEsercizio, siNo } from './formato';
+import { periodoEsercizio, siNo } from './formato';
 
 /**
  * Il tipo del valore di un dato di TX-0015: conteggio col motivo (avvisi e azioni attivate), conteggio, importo e si'/no col

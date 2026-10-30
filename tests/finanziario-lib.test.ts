@@ -17,15 +17,7 @@ import {
   valoreFiltroValido,
 } from '../src/features/finanziario/lib/filtri';
 import { PERIMETRO_ADA, etichettaDellArea, etichettaDiProgramma, etichettaPerimetro, perimetroBreve, perimetroCombinato } from '../src/features/finanziario/lib/perimetro';
-import {
-  annoDiRaccolta,
-  annoOpzionale,
-  euroOpzionale,
-  numeroOpzionale,
-  percentualeOpzionale,
-  siNo,
-  testoOpzionale,
-} from '../src/features/finanziario/lib/formato';
+import { annoDiRaccolta, euroOpzionale, percentualeOpzionale } from '../src/features/finanziario/lib/formato';
 import {
   DETTAGLIO_INTERVENTO,
   GRANT,
@@ -256,15 +248,7 @@ describe('etichette e anni', () => {
 });
 
 describe('formato dei campi facoltativi', () => {
-  it('assenti come "non disponibile", mai zero o cella vuota', () => {
-    expect(testoOpzionale(null)).toBe('non disponibile');
-    expect(testoOpzionale('  ')).toBe('non disponibile');
-    expect(testoOpzionale('O.14')).toBe('O.14');
-    expect(siNo(true)).toBe('sì');
-    expect(siNo(false)).toBe('no');
-    expect(siNo(undefined)).toBe('non disponibile');
-    expect(numeroOpzionale(null)).toBe('non disponibile');
-    expect(numeroOpzionale(0)).toBe('0');
+  it('assenti come "non disponibile", mai zero o cella vuota (numero, testo e anno facoltativi: tests/lib.test.ts)', () => {
     expect(euroOpzionale(null)).toBe('non disponibile');
     expect(n(euroOpzionale(10))).toBe('10,00 €');
     expect(percentualeOpzionale(undefined)).toBe('non disponibile');
@@ -273,8 +257,6 @@ describe('formato dei campi facoltativi', () => {
   it('anni: senza separatore delle migliaia, "senza anno di raccolta" per l anno di raccolta assente (D-09)', () => {
     expect(annoDiRaccolta(null)).toBe('senza anno di raccolta');
     expect(annoDiRaccolta(2024)).toBe('2024');
-    expect(annoOpzionale(2024)).toBe('2024');
-    expect(annoOpzionale(null)).toBe('non disponibile');
   });
 });
 

@@ -13,6 +13,7 @@ import {
   nonDisegnabile,
   notaOmessi,
   numeroDi,
+  numeroOpzionale,
   plurale,
   valoreBreve,
   valoreInNumero,
@@ -20,7 +21,7 @@ import {
 import type { DatiGrafico } from '../../../../shared/lib';
 import { sommaSeCompleta, testoSenzaAmmesso } from '../aggregati';
 import type { RigaDomandeAnno, RigaImportiAnno } from '../dto';
-import { annoDiRaccolta, numeroOpzionale } from '../formato';
+import { annoDiRaccolta } from '../formato';
 import { assenzaImporto, cellaImporto, perAnno, valoreDi } from '../importi';
 import { ETICHETTE_ANNUALITA } from '../../../../entities/domanda';
 import type { Annualita } from '../../../../entities/domanda';

@@ -29,15 +29,12 @@ import {
   PERIMETRO_IN_PAROLE,
   PILL_PERIMETRO,
   SCEGLI_ESERCIZIO,
-  annoOpzionale,
-  numeroOpzionale,
   periodoEsercizio,
   pillAnnoDelFile,
   pillEsercizio,
   quantitaConIndicatore,
   siNo,
   testoAnnoDiRiferimento,
-  testoOpzionale,
   testoOutputErogato,
   testoVuoto,
 } from '../src/features/istituzionale/lib/formato';
@@ -206,7 +203,7 @@ describe('RF016 e RF015: testi (perimetro, anno, esercizio, quantita, assenze, d
     expect([testoOutputErogato(true), testoOutputErogato(false)]).toEqual(['valore del file, cumulativo per anno di riferimento', 'valore del file per anno di riferimento']);
   });
 
-  it('quantita con l unita, si e no, dati motivati e facoltativi; mai uno zero al posto di un assente', () => {
+  it('quantita con l unita, si e no e dati motivati (i facoltativi sono del kit: tests/lib.test.ts); mai uno zero al posto di un assente', () => {
     // OP-IS-12: l'unita' di misura non c'e' nelle due verifiche, la quantita' ha accanto il codice dell'indicatore
     expect([quantitaConIndicatore(40, 'O.20'), quantitaConIndicatore(12, null), quantitaConIndicatore(12345, ' '), quantitaConIndicatore(12345, 'O.14')]).toEqual(['40 (indicatore O.20)', '12', '12.345', '12.345 (indicatore O.14)']);
     expect([siNo(true), siNo(false)]).toEqual(['sì', 'no']);
@@ -215,10 +212,6 @@ describe('RF016 e RF015: testi (perimetro, anno, esercizio, quantita, assenze, d
     expect(testoMotivato(undefined, String)).toBe('non disponibile');
     expect(assenzaInFrase({ motivo: 'NON_VALORIZZATO' })).toBe('Non valorizzato: il dato non è presente nella fonte');
     expect(assenzaInFrase(null)).toBe('Non disponibile');
-    // i campi facoltativi della verifica SMP SIGC (TX-0015): "non disponibile", mai uno zero; anni senza separatore
-    expect([numeroOpzionale(null), numeroOpzionale(0), numeroOpzionale(350.5)]).toEqual(['non disponibile', '0', '350,5']);
-    expect([testoOpzionale(null), testoOpzionale('  '), testoOpzionale('O.14')]).toEqual(['non disponibile', 'non disponibile', 'O.14']);
-    expect([annoOpzionale(2024), annoOpzionale(undefined)]).toEqual(['2024', 'non disponibile']);
   });
 
   it('stati e definizioni dei wireframe approvati', () => {

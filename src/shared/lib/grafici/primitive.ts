@@ -103,6 +103,24 @@ export function valorePercentuale(v: unknown): string {
   return typeof v === 'number' ? formatPercentuale(v) : NON_DISPONIBILE;
 }
 
+// I campi facoltativi senza motivo dell'assenza (nella spec il dato manca e basta): assente = "non disponibile", mai uno
+// zero ne' una cella vuota. Prima copiati nel finanziario e nell'istituzionale (review del riallineamento IST-06).
+
+/** Un numero facoltativo (conteggi, ettari o UBA): assente = "non disponibile". */
+export function numeroOpzionale(v: number | null | undefined): string {
+  return v == null ? NON_DISPONIBILE : formatNumber(v);
+}
+
+/** Un testo facoltativo (date gia' formattate, indicatori): assente o vuoto = "non disponibile". */
+export function testoOpzionale(v: string | null | undefined): string {
+  return v == null || v.trim() === '' ? NON_DISPONIBILE : v;
+}
+
+/** Un anno facoltativo, senza separatore delle migliaia: assente = "non disponibile". */
+export function annoOpzionale(v: number | null | undefined): string {
+  return v == null ? NON_DISPONIBILE : String(v);
+}
+
 export function assePercentuale(v: number): string {
   return formatPercentuale(v);
 }

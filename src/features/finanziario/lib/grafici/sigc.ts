@@ -21,6 +21,7 @@ import {
   nonDisegnabile,
   notaOmessi,
   numeroDi,
+  numeroOpzionale,
   opzioniCascata,
   percentuale,
   plurale,
@@ -28,7 +29,6 @@ import {
 } from '../../../../shared/lib';
 import type { DatiGrafico, DatoSerie, PassoCascata } from '../../../../shared/lib';
 import type { DomandeSigcLike, ImportiSigcLike } from '../dto';
-import { numeroOpzionale } from '../formato';
 import { assenzaImporto, cellaImporto, valoreDi } from '../importi';
 
 // ---------------------------------------------------------------- 1. domande SIGC

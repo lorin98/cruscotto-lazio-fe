@@ -7,13 +7,13 @@
 // riserva v2): quattro KPI (accumulato, congelato, utilizzato, residuo), linea dell'utilizzo cumulato con zoom e la
 // riserva accumulata come riferimento, voci di contorno in tabella.
 import { ValoreImporto } from '../../../entities/importo';
-import { formatDate, importoBreve } from '../../../shared/lib';
+import { formatDate, importoBreve, testoOpzionale } from '../../../shared/lib';
 import { CardGrafico, Griglia, Kpi, PulsantiScarica, Sezione, TabellaRighe, TabellaVoci, VistaQuery, Vuoto } from '../../../shared/ui';
 import type { Colonna, Scaricamento } from '../../../shared/ui';
 import { esportaRiserva, rispostaRiservaAssente, useRiserva } from '../api';
 import type { MonitoraggioRiserva, UtilizzoRiserva } from '../api';
 import { scaricamentiDati } from './esportazioni';
-import { euroOpzionale, testoOpzionale } from '../lib/formato';
+import { euroOpzionale } from '../lib/formato';
 import { graficoUtilizzoRiserva } from '../lib/grafici';
 import { aiutoRiserva, etichettaFaseRiserva, istantaneaAnteriore, kpiRiserva, testoCongelato, testoResiduo, utilizzoOltreRiserva } from '../lib/riserva';
 import type { ValoreKpiRiserva } from '../lib/riserva';

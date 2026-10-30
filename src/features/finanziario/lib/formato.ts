@@ -1,22 +1,11 @@
 // formato.ts — resa PURA dei campi dei report del finanziario (zero React). Un dato assente non e' mai uno zero ne' una
-// cella vuota: e' "non disponibile" come per gli Importo (ValoreImporto), salvo dove la spec ne dice il motivo.
+// cella vuota: e' "non disponibile" come per gli Importo (ValoreImporto), salvo dove la spec ne dice il motivo. Il numero
+// e il testo facoltativi sono quelli comuni di shared/lib (review del riallineamento IST-06 e FIN-01, che ha tolto anche
+// siNo e annoOpzionale, rimasti senza consumatori con l'uscita della verifica SMP).
 import { ANNO_ASSENTE } from '../../../entities/domanda';
-import { NON_DISPONIBILE, formatEuro, formatNumber, formatPercentuale } from '../../../shared/lib';
+import { NON_DISPONIBILE, formatEuro, formatPercentuale } from '../../../shared/lib';
 
 export { NON_DISPONIBILE };
-
-export function testoOpzionale(v: string | null | undefined): string {
-  return v == null || v.trim() === '' ? NON_DISPONIBILE : v;
-}
-
-export function siNo(v: boolean | null | undefined): string {
-  if (v == null) return NON_DISPONIBILE;
-  return v ? 'sì' : 'no';
-}
-
-export function numeroOpzionale(v: number | null | undefined): string {
-  return v == null ? NON_DISPONIBILE : formatNumber(v);
-}
 
 export function euroOpzionale(v: number | null | undefined): string {
   return v == null ? NON_DISPONIBILE : formatEuro(v);
@@ -29,9 +18,4 @@ export function percentualeOpzionale(v: number | null | undefined): string {
 /** Anno di raccolta: la campagna, altrimenti l'anno di rilascio della domanda di sostegno; null senza nessuno dei due (spec DomandePerAnno). */
 export function annoDiRaccolta(anno: number | null | undefined): string {
   return anno == null ? ANNO_ASSENTE.esteso : String(anno);
-}
-
-/** Anno come testo (senza separatore delle migliaia), "non disponibile" se assente. */
-export function annoOpzionale(v: number | null | undefined): string {
-  return v == null ? NON_DISPONIBILE : String(v);
 }

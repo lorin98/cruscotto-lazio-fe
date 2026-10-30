@@ -9,6 +9,7 @@ import { conStatoSalvato, leggiStatoSalvato } from '../src/shared/lib/stato-hist
 import { statoDelDettaglio, tutteRisposte } from '../src/shared/lib/dettaglio';
 import * as libComune from '../src/shared/lib';
 import { NON_DISPONIBILE_BREVE, resaAssenza, totaleMotivato } from '../src/entities/importo';
+import { annoOpzionale, numeroOpzionale, testoOpzionale } from '../src/shared/lib/grafici/primitive';
 import { isOpenEnded, isSentinelDate, SENTINEL_DATE_MAX } from '../src/shared/lib/sentinel-dates';
 import { isEditable, makeRolePredicate } from '../src/shared/lib/predicates';
 import type { AuthStatus } from '../src/shared/api/auth/auth-status';
@@ -309,5 +310,15 @@ describe("entities/importo: resaAssenza, l'assenza in breve dove il motivo e det
     expect(resaAssenza({ motivo: 'FONTE_NON_ATTIVA', fonte: 'PAGATO_PER_UNIT_AMOUNT' }, false)).toEqual({ disponibile: false, testo: 'non disponibile', nota: 'fonte pagato per Unit Amount non attiva' });
     expect(resaAssenza({ motivo: 'NON_VALORIZZATO' }, true)).toEqual({ disponibile: false, testo: 'non valorizzato', nota: 'il dato non è presente nella fonte' });
     expect(resaAssenza(undefined, true)).toEqual({ disponibile: false, testo: 'non disponibile' });
+  });
+});
+
+describe('lib/grafici — campi facoltativi senza motivo (review del riallineamento IST-06 e FIN-01, prima nel finanziario e nell istituzionale)', () => {
+  it('assenti come "non disponibile", mai uno zero ne una cella vuota; anni senza separatore delle migliaia', () => {
+    expect([numeroOpzionale(null), numeroOpzionale(undefined), numeroOpzionale(0), numeroOpzionale(350.5)]).toEqual(['non disponibile', 'non disponibile', '0', '350,5']);
+    expect([testoOpzionale(null), testoOpzionale('  '), testoOpzionale('O.14')]).toEqual(['non disponibile', 'non disponibile', 'O.14']);
+    expect([annoOpzionale(2024), annoOpzionale(null), annoOpzionale(undefined)]).toEqual(['2024', 'non disponibile', 'non disponibile']);
+    // dal barrel del kit, come gli altri mattoni
+    expect([libComune.numeroOpzionale, libComune.testoOpzionale, libComune.annoOpzionale]).toEqual([numeroOpzionale, testoOpzionale, annoOpzionale]);
   });
 });
