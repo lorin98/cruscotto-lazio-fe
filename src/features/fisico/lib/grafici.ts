@@ -5,7 +5,8 @@
 // mai a zero; i valori negativi hanno il segno meno nel testo (il colore non e' l'unico canale). Dal riallineamento degli
 // ambiti del 29/10/2026 anche le barre raggruppate per anno dell'output di un intervento col target di fine periodo
 // (TX-0017, dall'istituzionale) e le barre orizzontali della percentuale pagata delle Unit Amount (TX-0030, dal
-// procedurale).
+// procedurale); dal 30/10/2026 la linea delle superfici di un intervento nel suo dettaglio, con tutti i dati della campagna
+// nella tabella equivalente.
 import type { BarSeriesOption, EChartsOption, LineSeriesOption } from 'echarts';
 import { descriviAssenza, testoConNota, testoMotivato } from '../../../entities/importo';
 import {
@@ -145,6 +146,26 @@ export function graficoInterventoPerCampagna(riga: InterventoSuperficie, campagn
     titolo: `Linee della superficie DS e DP di ${riga.codiceIntervento} per campagna`,
   });
   return campagnaRisposta === null ? g : nonDisegnabile(MOTIVO_CON_CAMPAGNA, g.tabella, []);
+}
+
+/**
+ * La card "Superficie DS e DP per campagna" del dettaglio dell'intervento (flusso intervento approvato il 30/10/2026): la
+ * linea della superficie DS e DP campagna per campagna (TX-0018 col solo intervento, tutte le campagne: mai sommate fra
+ * campagne, D-01) e la tabella equivalente coi dati di ogni campagna, dalla piu' recente. Nessun clic: la pagina Superfici
+ * filtrata sull'intervento ha le card per campagna (link superfici-intervento della testata).
+ */
+export function graficoSuperficiDellIntervento(riga: InterventoSuperficie): DatiGrafico {
+  const codice = riga.codiceIntervento;
+  const crescenti = [...riga.campagne].sort((a, b) => a.anno - b.anno);
+  const g = lineePerCampagna(crescenti, { caption: '', titolo: `Linee della superficie DS e DP di ${codice} per campagna` });
+  const tabella: TabellaEquivalente = {
+    caption: `Tabella equivalente: superfici dell'intervento ${codice} per campagna, dalla più recente`,
+    colonne: [ETICHETTE.campagna, ETICHETTE.domandePagamento, ETICHETTE.domandeSostegno, ETICHETTE.superficieDs, ETICHETTE.superficieDp, ETICHETTE.differenzaDpDs, ETICHETTE.domandeDpOltreDs],
+    righe: [...crescenti]
+      .reverse()
+      .map((c) => [String(c.anno), formatNumber(c.domandePagamento), formatNumber(c.domandeSostegno), cellaSuperficie(c.superficieDs), cellaSuperficie(c.superficieDp), cellaDifferenza(c.differenzaDpDs), formatNumber(c.domandeDpOltreDs)]),
+  };
+  return { ...g, tabella };
 }
 
 // ---------------------------------------------------------------- verifica incrociata DP - DS

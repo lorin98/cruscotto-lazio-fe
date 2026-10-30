@@ -89,6 +89,28 @@ export function superficiPer(corpo: SuperficieAmmissibile, ricerca: string | URL
   return { ...corpo, campagna: anno, righe };
 }
 
+/**
+ * Le superfici degli interventi dell'output e delle Unit Amount, per il dettaglio dell'intervento (valori del wireframe
+ * intervento approvato il 30/10/2026): SRA01 nel 2024 e nel 2025 (la DP del 2025 sotto la DS, quella del 2024 oltre);
+ * SRD01, strutturale, senza superfici (NON_VALORIZZATO). AT001 non c'e' mai (SC-FS_FILTRI).
+ */
+export const SUPERFICI_INTERVENTI: SuperficieAmmissibile = {
+  campagna: null,
+  perimetro: 'REGIONALE',
+  righe: [
+    {
+      codiceIntervento: 'SRA01',
+      motivo: null,
+      campagne: [
+        campagna(2024, { domandePagamento: 1, domandeSostegno: 1, superficieDs: 5, superficieDp: 6, differenzaDpDs: 1, domandeDpOltreDs: 1 }),
+        campagna(2025, { domandePagamento: 2, domandeSostegno: 1, superficieDs: 10.5, superficieDp: 10.2, differenzaDpDs: -0.3, domandeDpOltreDs: 0 }),
+      ],
+    },
+    { codiceIntervento: 'SRD01', motivo: 'NON_VALORIZZATO', campagne: [] },
+  ],
+  ultimiDatiSincronizzati: ULTIMI,
+};
+
 /** SUPERFICI_TRE letta con ?campagna=2024: SRB02 (superfici solo nel 2025) e SRA29 con campagne vuote e NON_VALORIZZATO. */
 export const SUPERFICI_TRE_2024: SuperficieAmmissibile = superficiPer(SUPERFICI_TRE, '?campagna=2024');
 

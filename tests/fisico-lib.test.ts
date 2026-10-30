@@ -1,10 +1,11 @@
 // Test L1 delle funzioni PURE del fisico (lib/): criteri nell'indirizzo, conti sulle superfici, testi, builder dei
-// grafici, output regionale e Unit Amount (dal 29/10/2026), grant e pagine. Chiamate dirette, niente render; i dati sono
-// quelli degli scenari del backend. Le determine di una domanda sono del procedurale.
+// grafici, output regionale e Unit Amount (dal 29/10/2026), grant e pagine, il dettaglio dell'intervento e i suoi link (dal
+// 30/10/2026). Chiamate dirette, niente render; i dati sono quelli degli scenari del backend e dei wireframe approvati. Le
+// determine di una domanda sono del procedurale.
 import type { EChartsOption } from 'echarts';
 import { describe, expect, it } from 'vitest';
 import { COLORI, ettari, valoreEttari } from '../src/shared/lib';
-import { criteriAttivi, criteriDaRicerca, campagnaDaTesto, conCampagna, conFiltriDelProgramma, filtriSenzaAzione, ricercaDaCriteri, soloIntervento, testiCriteri } from '../src/features/fisico/lib/criteri';
+import { criteriAttivi, criteriDaRicerca, criteriDellIntervento, campagnaDaTesto, conCampagna, conFiltriDelProgramma, filtriSenzaAzione, ricercaDaCriteri, soloIntervento, testiCriteri } from '../src/features/fisico/lib/criteri';
 import {
   campagnaDi,
   campagnaDiRiferimento,
@@ -45,12 +46,72 @@ import {
 } from '../src/features/fisico/lib/formato';
 import { TESTI_KPI, cardDelleSuperfici, kpiDellaCampagna } from '../src/features/fisico/lib/report';
 import { anteprimaSuperfici } from '../src/features/fisico/lib/anteprima';
-import { MOTIVO_CON_CAMPAGNA, graficoInterventoPerCampagna, graficoOutputPerAnno, graficoPerCampagna, graficoPerIntervento, graficoUnitAmount, graficoVerifica, lineePerCampagna, pagatoSenzaFonte } from '../src/features/fisico/lib/grafici';
-import { MISURE, anniDelPeriodo, captionOutput, datoDellAnno, etichettaMisura, importiOrdinati, opzioniMisura, ordinabileDellAnno, testoRicercaOutput, vociAnteprima } from '../src/features/fisico/lib/output';
+import {
+  MOTIVO_CON_CAMPAGNA,
+  graficoInterventoPerCampagna,
+  graficoOutputPerAnno,
+  graficoPerCampagna,
+  graficoPerIntervento,
+  graficoSuperficiDellIntervento,
+  graficoUnitAmount,
+  graficoVerifica,
+  lineePerCampagna,
+  pagatoSenzaFonte,
+} from '../src/features/fisico/lib/grafici';
+import { MISURE, anniDelPeriodo, captionOutput, datoDellAnno, etichettaMisura, opzioniMisura, ordinabileDellAnno, testoRicercaOutput, vociAnteprima } from '../src/features/fisico/lib/output';
 import { CAMPI_PAGATO, TITOLI_PAGATO, assenzaPagato, chiaveUnitAmount, etichettaUnitAmount, notaPagato, valoreDi } from '../src/features/fisico/lib/unitAmount';
-import { GRANT, puoLeggere } from '../src/features/fisico/lib/grant';
-import { PAGINE_FISICO, PERCORSI, pagineVisibili } from '../src/features/fisico/lib/pagine';
-import { OUTPUT, SRA01_OUTPUT, SUPERFICI, SUPERFICI_SENZA, SUPERFICI_TRE, SUPERFICI_TRE_2024, campagna, outputPer, righeDeiFiltri, superficiPer, unitAmountPer } from '../src/features/fisico/testing/fixture';
+import { GRANT, LETTURE_DETTAGLIO, puoAprireIntervento, puoLeggere } from '../src/features/fisico/lib/grant';
+import { GRANT_DETTAGLIO, PAGINE_FISICO, PERCORSI, pagineVisibili } from '../src/features/fisico/lib/pagine';
+import { outputDellIntervento, percorsoIntervento, superficiDellIntervento, unitAmountDellIntervento } from '../src/features/fisico/lib/collegamenti';
+import {
+  GRAFICO_OUTPUT_INTERVENTO,
+  GRAFICO_SUPERFICI_INTERVENTO,
+  NOTA_CAMPAGNA_KPI,
+  SENZA_DATI,
+  SENZA_OUTPUT,
+  SENZA_SUPERFICI_INTERVENTO,
+  SENZA_UNIT_AMOUNT,
+  SOTTOTITOLO_OUTPUT_INTERVENTO,
+  SOTTOTITOLO_SUPERFICI_INTERVENTO,
+  SUPERFICI_NON_VALORIZZATE,
+  TITOLI_SCHEDE,
+  TITOLO_SUPERFICI_INTERVENTO,
+  badgeIntervento,
+  campagnaDeiKpi,
+  captionUnitAmountIntervento,
+  eIdScheda,
+  fonteOutputIntervento,
+  fonteSuperficiIntervento,
+  fonteUnitAmountIntervento,
+  kpiIntervento,
+  oggettoFileOutput,
+  oggettoFileSuperfici,
+  oggettoFileUnitAmount,
+  perimetroDelDettaglio,
+  ritornoSenzaDati,
+  schedaAttiva,
+  schedeVisibili,
+  sopratitoloIntervento,
+  titoloIntervento,
+  titoloOutputIntervento,
+  ultimiDelDettaglio,
+  ultimoDatoInErrore,
+} from '../src/features/fisico/lib/intervento';
+import {
+  OUTPUT,
+  SRA01_OUTPUT,
+  SUPERFICI,
+  SUPERFICI_INTERVENTI,
+  SUPERFICI_SENZA,
+  SUPERFICI_TRE,
+  SUPERFICI_TRE_2024,
+  ULTIMI,
+  campagna,
+  outputPer,
+  righeDeiFiltri,
+  superficiPer,
+  unitAmountPer,
+} from '../src/features/fisico/testing/fixture';
 
 // gli spazi del formato it-IT sono non separabili: si confronta con spazi normali
 const n = (s: string | undefined) => (s ?? '').replace(/\s/g, ' ');
@@ -396,7 +457,7 @@ describe('RF017: l output regionale (TX-0017)', () => {
     expect([ordinabileDellAnno(SRA01_OUTPUT, 2023, 'realizzatoSigc'), ordinabileDellAnno(SRA01_OUTPUT, 2023, 'programmato')]).toEqual([400, null]);
   });
 
-  it('didascalia con la misura; voci del drawer; importi in ordine di esercizio e codice; riga e ricerca', () => {
+  it('didascalia con la misura; voci del drawer; riga e ricerca (gli importi unitari li mostra TX-0030, OP-FIS-15)', () => {
     expect(captionOutput('programmato', true)).toBe("Output programmato per anno (misura scelta sopra), l'intervento è l'intestazione di riga e gli anni vengono dalla risposta");
     expect(captionOutput('realizzatoSigc', true)).toMatch(/^Output realizzato SIGC per anno/);
     expect(vociAnteprima(SRA01_OUTPUT, true)).toEqual([
@@ -408,7 +469,6 @@ describe('RF017: l output regionale (TX-0017)', () => {
     // l'indicatore assente con la resa unica delle assenze, come la tabella; senza l'unita' anche se c'e' (review V4)
     expect(vociAnteprima(srg01, false).map((v) => v.valore)).toEqual(['non valorizzato (il dato non è presente nella fonte)', 'non valorizzato (il dato non è presente nella fonte)', 'annuale']);
     expect(vociAnteprima({ ...srg01, unitaMisura: 'ettari' }, false)[0].valore).toBe('non valorizzato (il dato non è presente nella fonte)');
-    expect(importiOrdinati(SRA01_OUTPUT).map((i) => `${i.esercizio} ${i.codiceUnitAmount}`)).toEqual(['2024 UA01', '2024 UA02', '2025 UA01']);
     expect(testoRicercaOutput(SRA01_OUTPUT)).toBe('SRA01 O.14 ettari');
   });
 
@@ -558,5 +618,149 @@ describe('RF018: card della Home coi KPI della campagna piu recente (OP-FIS-10, 
       'Differenza DP - DS: superficie di pagamento meno superficie di sostegno, campagna 2025',
       'Domande con DP oltre la DS: domande di pagamento con superficie oltre quella di sostegno, campagna 2025',
     ]);
+  });
+});
+
+describe("RF017, RF018, RF030: il dettaglio dell'intervento come dati (flusso intervento del 30/10/2026)", () => {
+  const sra01 = SUPERFICI_INTERVENTI.righe[0];
+  const srd01 = SUPERFICI_INTERVENTI.righe[1];
+  const kpi = kpiIntervento(SRA01_OUTPUT, sra01);
+
+  it('testata: titolo dalla descrizione di TX-0060 o dal codice, sopratitolo, badge del perimetro e dell indicatore', () => {
+    expect(titoloIntervento('SRA01', 'Produzione integrata')).toBe('Produzione integrata');
+    expect(titoloIntervento('SRA01', undefined)).toBe('Intervento SRA01');
+    expect(sopratitoloIntervento('SRA01')).toBe('Fisico - intervento SRA01');
+    expect(badgeIntervento(SRA01_OUTPUT)).toEqual(['Perimetro regionale', 'Indicatore di output O.14 (ettari)']);
+    expect(badgeIntervento({ indicatoreOutput: null, unitaMisura: null })).toEqual(['Perimetro regionale', 'Indicatore di output non valorizzato']);
+    expect(badgeIntervento({ indicatoreOutput: 'O.20', unitaMisura: null })).toEqual(['Perimetro regionale', 'Indicatore di output O.20']);
+    // senza la riga di TX-0017 (senza il grant, o intervento fuori dal report) il solo perimetro
+    expect(badgeIntervento(undefined)).toEqual(['Perimetro regionale']);
+  });
+
+  it('KPI: il target da TX-0017 e le superfici della campagna piu recente da TX-0018, le sigle sciolte nel nome accessibile', () => {
+    expect(campagnaDeiKpi(sra01)).toBe(2025);
+    expect(kpi.map((k) => [k.chiave, k.etichetta, k.valore, k.nota])).toEqual([
+      ['target', 'Target di fine periodo', '1500 ettari al 2029', 'TX-0017'],
+      ['ds', 'Superficie ammissibile DS, campagna 2025', ettari(10.5), 'TX-0018, 1 domanda di sostegno'],
+      ['dp', 'Superficie ammissibile DP, campagna 2025', ettari(10.2), 'TX-0018, 2 domande di pagamento'],
+      ['oltre', 'Domande con DP oltre la DS, campagna 2025', '0', 'TX-0018, su 2 domande di pagamento: 0 %'],
+    ]);
+    // il nome accessibile contiene l'etichetta visibile (WCAG 2.5.3) e scioglie DS e DP
+    expect(kpi.slice(1).map((k) => k.nomeAccessibile)).toEqual([
+      'Superficie ammissibile DS, campagna 2025: superficie delle domande di sostegno',
+      'Superficie ammissibile DP, campagna 2025: superficie delle domande di pagamento',
+      'Domande con DP oltre la DS, campagna 2025: domande di pagamento con superficie oltre quella di sostegno',
+    ]);
+    expect(NOTA_CAMPAGNA_KPI).toMatch(/^Campagna di riferimento dei KPI delle superfici: la più recente/);
+  });
+
+  it('KPI: un intervento senza superfici ha i tre KPI non valorizzati, mai zero; un target assente detto in una frase', () => {
+    expect(campagnaDeiKpi(srd01)).toBeNull();
+    const senza = kpiIntervento(undefined, srd01);
+    expect(senza.map((k) => [k.etichetta, k.valore, k.assente])).toEqual([
+      ['Superficie ammissibile DS', undefined, SUPERFICI_NON_VALORIZZATE],
+      ['Superficie ammissibile DP', undefined, SUPERFICI_NON_VALORIZZATE],
+      ['Domande con DP oltre la DS', undefined, SUPERFICI_NON_VALORIZZATE],
+    ]);
+    expect(SUPERFICI_NON_VALORIZZATE).toBe('Non valorizzato: intervento non a superficie o non SIGC');
+    const srg01 = OUTPUT.righe[3];
+    expect(kpiIntervento(srg01, undefined)).toEqual([{ chiave: 'target', etichetta: 'Target di fine periodo', assente: 'Non valorizzato: il dato non è presente nella fonte', nota: 'TX-0017' }]);
+    expect(kpiIntervento(undefined, undefined)).toEqual([]);
+  });
+
+  it('barra dei riferimenti: ultimo dato e perimetro della prima risposta arrivata; errore solo se tutte le letture lo sono', () => {
+    const altri = [{ flusso: 'X', conclusoIl: '2026-01-01T00:00:00Z' }];
+    expect(ultimiDelDettaglio(undefined, { ultimiDatiSincronizzati: ULTIMI }, { ultimiDatiSincronizzati: altri })).toBe(ULTIMI);
+    expect(ultimiDelDettaglio(undefined, undefined, { ultimiDatiSincronizzati: altri })).toBe(altri);
+    expect(ultimiDelDettaglio(undefined, undefined, undefined)).toBeUndefined();
+    expect(perimetroDelDettaglio(undefined, { perimetro: 'REGIONALE' })).toBe('REGIONALE');
+    expect(perimetroDelDettaglio()).toBeUndefined();
+    expect(ultimoDatoInErrore([{ isError: true }, { isError: true }])).toBe(true);
+    expect(ultimoDatoInErrore([{ isError: true }, { isError: false }])).toBe(false);
+    expect(ultimoDatoInErrore([])).toBe(false);
+  });
+
+  it('schede nell ordine del wireframe, ognuna col grant della sua lettura; la scelta vale se visibile', () => {
+    expect(schedeVisibili(() => true)).toEqual(['output', 'superfici', 'unitAmount']);
+    expect(schedeVisibili((l) => l !== 'output')).toEqual(['superfici', 'unitAmount']);
+    expect(schedeVisibili(() => false)).toEqual([]);
+    expect(Object.values(TITOLI_SCHEDE)).toEqual(['Output per anno', 'Superfici per campagna', 'Unit Amount']);
+    expect(schedaAttiva(['output', 'superfici', 'unitAmount'], 'unitAmount')).toBe('unitAmount');
+    expect(schedaAttiva(['superfici'], 'unitAmount')).toBe('superfici');
+    expect(schedaAttiva(['output', 'superfici'], null)).toBe('output');
+    expect(schedaAttiva([], null)).toBeUndefined();
+    expect([eIdScheda('unitAmount'), eIdScheda('importi'), eIdScheda(undefined)]).toEqual([true, false, false]);
+  });
+
+  it('intervento senza dati: il ritorno all output regionale, o al primo report che il profilo apre', () => {
+    expect(SENZA_DATI).toBe("Nessun dato per questo intervento nei report del fisico (l'Assistenza tecnica AT001 non è nei report).");
+    expect(ritornoSenzaDati(() => true)).toEqual({ percorso: '/fisico/output-regionale', testo: "Torna all'output regionale" });
+    expect(ritornoSenzaDati((l) => l === 'superfici')).toEqual({ percorso: '/fisico/superfici', testo: 'Torna alle superfici ammissibili' });
+    expect(ritornoSenzaDati((l) => l === 'unitAmount')).toEqual({ percorso: '/fisico/unit-amount', testo: 'Torna alle Unit Amount' });
+    expect(ritornoSenzaDati(() => false)).toBeUndefined();
+  });
+
+  it('testi delle schede: titoli con l unita, oggetti dei file con l intervento, fonti, stati vuoti dichiarati', () => {
+    expect(titoloOutputIntervento('ettari')).toBe('Output programmato e realizzato per anno (ettari)');
+    expect(titoloOutputIntervento(null)).toBe('Output programmato e realizzato per anno');
+    expect(GRAFICO_OUTPUT_INTERVENTO).toBe('il grafico Output programmato e realizzato per anno');
+    expect(SOTTOTITOLO_OUTPUT_INTERVENTO).toMatch(/le barre non si sommano$/);
+    expect(oggettoFileOutput('SRA01')).toBe("l'output e gli importi unitari dell'intervento SRA01");
+    expect(fonteOutputIntervento('SRA01')).toContain("CSV e XLSX: l'export di TX-0017 con intervento = SRA01 (output per anno e importi unitari)");
+    expect(SENZA_OUTPUT).toBe('Nessun output per questo intervento nel report.');
+    expect([TITOLO_SUPERFICI_INTERVENTO, GRAFICO_SUPERFICI_INTERVENTO]).toEqual(['Superficie DS e DP per campagna (ettari)', 'il grafico Superficie DS e DP per campagna']);
+    expect(SOTTOTITOLO_SUPERFICI_INTERVENTO).toMatch(/^Le superfici di campagne diverse non si sommano/);
+    expect(oggettoFileSuperfici('SRA01')).toBe("le superfici dell'intervento SRA01");
+    // la quantita' richiesta a premio, oggi sempre senza fonte (OP-FIS-04): detta una volta
+    expect(fonteSuperficiIntervento(sra01)).toBe(
+      "Fonte: TX-0018 con intervento = SRA01, tutte le campagne. Quantità richiesta a premio: non disponibile (fonte quantità richiesta a premio non attiva). PNG: l'immagine del grafico; CSV e XLSX: l'export di TX-0018 con intervento = SRA01 (una riga per campagna), registrato in AUDIT_ESPORTAZIONE.",
+    );
+    const conPremio = { ...sra01, campagne: [campagna(2024, { quantitaRichiestaPremio: { valore: 3, motivo: null, fonte: null } }), campagna(2025)] };
+    expect(fonteSuperficiIntervento(conPremio)).toContain('Quantità richiesta a premio: 2025 non disponibile (fonte quantità richiesta a premio non attiva); 2024 3.');
+    expect(SENZA_SUPERFICI_INTERVENTO).toMatch(/^Intervento senza superfici \(non a superficie o non SIGC/);
+    expect(oggettoFileUnitAmount('SRD01')).toBe("le Unit Amount dell'intervento SRD01");
+    expect(captionUnitAmountIntervento('SRD01')).toBe("Unit Amount dell'intervento SRD01 per esercizio e codice: importo unitario, output previsto, pagato e base storica");
+    expect(fonteUnitAmountIntervento('SRD01')).toMatch(/^Fonte: TX-0030 con intervento = SRD01\./);
+    expect(SENZA_UNIT_AMOUNT).toMatch(/^Intervento senza Unit Amount \(per esempio un intervento strutturale\)/);
+  });
+
+  it('superfici per campagna: la linea in ordine di campagna, la tabella equivalente coi sette dati dalla piu recente', () => {
+    const g = graficoSuperficiDellIntervento(sra01);
+    const o = prova(g.opzioni);
+    expect(o.xAxis?.data).toEqual(['2024', '2025']);
+    expect(o.series.map((s) => s.name)).toEqual(['Superficie DS', 'Superficie DP']);
+    expect(n(o.aria?.label.description)).toBe('Linee della superficie DS e DP di SRA01 per campagna dal 2024 al 2025 (2 campagne), superfici in ettari: nel 2025 DS 10,50 ha e DP 10,20 ha.');
+    expect(g.tabella.caption).toBe("Tabella equivalente: superfici dell'intervento SRA01 per campagna, dalla più recente");
+    expect(g.tabella.colonne).toEqual(['Campagna', 'Domande di pagamento', 'Domande di sostegno', 'Superficie DS (ha)', 'Superficie DP (ha)', 'Differenza DP - DS (ha)', 'Domande con DP oltre la DS']);
+    expect(g.tabella.righe).toEqual([
+      ['2025', '2', '1', '10,50', '10,20', '-0,30', '0'],
+      ['2024', '1', '1', '5,00', '6,00', '+1,00', '1'],
+    ]);
+    // senza superfici non si disegna, e lo dice
+    const senza = graficoSuperficiDellIntervento(srd01);
+    expect(senza.opzioni).toBeNull();
+    expect(senza.tabella.righe).toEqual([]);
+  });
+});
+
+describe('RA006: i link del dettaglio dell intervento (links dello uiplan, stessa feature)', () => {
+  const stato = (roles: string[]) => ({ authenticated: true, user: { username: 'u', roles } });
+
+  it('il dettaglio col codice nel percorso codificato; i tre report col solo filtro Intervento', () => {
+    expect(percorsoIntervento('SRA01')).toBe('/fisico/interventi/SRA01');
+    expect(percorsoIntervento('SR/..')).toBe('/fisico/interventi/SR%2F..');
+    expect(outputDellIntervento('SRA01')).toBe('/fisico/output-regionale?intervento=SRA01');
+    expect(superficiDellIntervento('SRA01')).toBe('/fisico/superfici?intervento=SRA01');
+    expect(unitAmountDellIntervento('SRD01')).toBe('/fisico/unit-amount?intervento=SRD01');
+    expect(criteriDellIntervento('SRA01')).toEqual({ intervento: ['SRA01'] });
+  });
+
+  it('il dettaglio si apre con almeno uno dei tre grant (visibility della route); in caricamento no', () => {
+    expect(LETTURE_DETTAGLIO).toEqual(['output', 'superfici', 'unitAmount']);
+    expect(GRANT_DETTAGLIO).toEqual(['csr.tx-0017.read', 'csr.tx-0018.read', 'csr.tx-0030.read']);
+    expect(PERCORSI.interventi).toBe('/fisico/interventi');
+    expect(puoAprireIntervento(stato(['csr.tx-0030.read']))).toBe(true);
+    expect(puoAprireIntervento(stato(['csr.tx-0060.read', 'csr.tx-0016.read']))).toBe(false);
+    expect(puoAprireIntervento(undefined)).toBe(false);
   });
 });

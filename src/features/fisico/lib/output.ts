@@ -1,14 +1,14 @@
 // output.ts — l'output regionale come DATI (PURO, zero React; TX-0017, dall'istituzionale col riallineamento degli
 // ambiti del 29/10/2026): le tre misure dell'interruttore (programmato, realizzato SIGC, realizzato non SIGC cumulativo:
 // scelta approvata di OP-IS-06, ora OP-FIS-11, una misura alla volta), gli anni del periodo dalla risposta, il dato di un
-// anno per la misura scelta, la didascalia che dice la misura, le voci del drawer di anteprima e gli importi unitari in
-// ordine di esercizio e di codice. Nessun totale ne' somma fra interventi: ogni intervento ha il suo indicatore e la sua
-// unita' di misura (OP-FIS-11).
+// anno per la misura scelta, la didascalia che dice la misura e le voci del drawer di anteprima. Nessun totale ne' somma fra
+// interventi: ogni intervento ha il suo indicatore e la sua unita' di misura (OP-FIS-11). Gli importi unitari di TX-0017 non
+// si mostrano: li mostrano le Unit Amount da TX-0030 (OP-FIS-15, scelta 5 del 30/10/2026).
 import { testoMotivato } from '../../../entities/importo';
 import type { DatoMotivatoLike } from '../../../entities/importo';
-import { confronta, minuscolaIniziale } from '../../../shared/lib';
+import { minuscolaIniziale } from '../../../shared/lib';
 import type { ValoreOrdinabile } from '../../../shared/lib';
-import type { ImportoUnitario, Output, RigaOutput } from './dto';
+import type { Output, RigaOutput } from './dto';
 import { TESTO_ASSENTE, testoTarget } from './formato';
 
 export type Misura = 'programmato' | 'realizzatoSigc' | 'realizzatoNonSigc';
@@ -69,11 +69,6 @@ export function vociAnteprima(r: RigaOutput, cumulativo: boolean): { termine: st
     { termine: 'Target di fine periodo', valore: testoTarget(r.targetFinePeriodo, r.annoTarget, r.unitaMisura) },
     { termine: 'Realizzato non SIGC', valore: cumulativo ? 'cumulativo per anno di riferimento' : 'annuale' },
   ];
-}
-
-/** Gli importi unitari in ordine di esercizio e poi di codice della Unit Amount (wireframe intervento, scheda Importi). */
-export function importiOrdinati(r: Pick<RigaOutput, 'importiUnitari'>): ImportoUnitario[] {
-  return [...r.importiUnitari].sort((a, b) => a.esercizio - b.esercizio || confronta(a.codiceUnitAmount, b.codiceUnitAmount));
 }
 
 /** Testo su cui cerca la ricerca della tabella: codice, indicatore e unita' di misura. */

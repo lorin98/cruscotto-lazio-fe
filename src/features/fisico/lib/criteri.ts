@@ -54,6 +54,11 @@ export function conCampagna(criteri: Criteri, campagna: number | undefined): Cri
   return campagna === undefined ? resto : { ...resto, campagna };
 }
 
+/** I criteri del dettaglio dell'intervento: il solo intervento della route (le tre letture e i loro file). */
+export function criteriDellIntervento(codice: string): Filtri {
+  return { intervento: [codice] };
+}
+
 /** I criteri con il solo intervento dato al posto di quelli scelti ("Mostra solo SRB01" dell'anteprima). */
 export function soloIntervento(criteri: Criteri, codice: string): Criteri {
   return { ...criteri, intervento: [codice] };
