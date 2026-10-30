@@ -745,7 +745,7 @@
         },
         {
           "id": "scheda-di-partenza",
-          "trigger": "Apri la scheda della domanda di <tipo>, scheda Determine (avviso 'domanda dell'altro tipo'): solo in arrivo da determine-della-domanda dell'elenco con un tipo, portato nello state della navigazione, diverso da tipoDomanda della risposta, e solo con csr.tx-0058.read; tipo = tipo portato dal link, codiceABarre = codice cercato (decisione D1 dell'utente del 30/10/2026)",
+          "trigger": "Apri la scheda della domanda di <tipo>, scheda Determine (avviso 'domanda dell'altro tipo'): solo in arrivo da determine-della-domanda dell'elenco con un tipo, portato nello state della navigazione, diverso da tipoDomanda della risposta, e solo con csr.tx-0058.read; tipo = tipo portato dal link, codiceABarre = codice cercato (decisione D1 dell'utente del 30/10/2026); porta { schedaIniziale: 'determine' } nello state della navigazione (mai nell'URL): la scheda si apre su Determine",
           "target_feature": "elenco-operativo",
           "target": "/elenco-operativo/domande/:tipo/:codiceABarre",
           "path_params": [
