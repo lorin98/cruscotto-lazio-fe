@@ -102,15 +102,16 @@ export const AREE: readonly DiAmbito<Area>[] = [
     Anteprima: AnteprimaProcedurale,
   },
   {
-    // G1: verifica SMP non SIGC (TX-0016) e output regionale programmato e realizzato (TX-0017); i due report hanno gli
-    // stessi filtri, che restano passando dall'uno all'altro (come nel finanziario). Il dettaglio dell'intervento non e'
-    // una voce di menu: ci si arriva dai report.
+    // G1 e riallineamento degli ambiti (29/10/2026): verifica SMP non SIGC (TX-0016) e verifica SMP SIGC (TX-0015, dal
+    // finanziario); l'output regionale (TX-0017) e' del fisico. I due report hanno gli stessi filtri, che restano passando
+    // dall'uno all'altro (anno ed esercizio no). Il dettaglio dell'intervento non e' una voce di menu: ci si arriva dai
+    // report. Testi della card dal dossier dei wireframe del 30/10/2026; l'Anteprima ha i due blocchi, non SIGC e SIGC.
     chiave: 'istituzionale',
     titolo: 'Istituzionale',
-    descrizione: 'Dati ASR non SIGC a confronto con SMP - Data Platform e output regionale programmato e realizzato.',
+    descrizione: 'Dati ASR SIGC e non SIGC per intervento, da confrontare con SMP - Data Platform.',
     icona: 'it-pa',
     tono: 'viola',
-    contenuti: ['Verifica SMP dei dati ASR non SIGC', 'Output regionale programmato e realizzato per intervento e anno'],
+    contenuti: ['Verifica SMP dei dati ASR non SIGC', 'Verifica SMP dei dati ASR SIGC per esercizio finanziario'],
     pagineVisibili: pagineIstituzionale,
     ricercaConservata: ricercaIstituzionale,
     Anteprima: AnteprimaIstituzionale,

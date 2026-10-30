@@ -1,6 +1,6 @@
 {
   "feature": "istituzionale",
-  "pack_hash": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb",
+  "pack_hash": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7",
   "routes": [
     {
       "actions": [
@@ -26,8 +26,8 @@
       "actions": [
         {
           "gating": "hide-by-role",
-          "grant": "csr.tx-0017.read",
-          "operationId": "TX-0017"
+          "grant": "csr.tx-0015.read",
+          "operationId": "TX-0015"
         },
         {
           "gating": "hide-by-role",
@@ -35,11 +35,11 @@
           "operationId": "TX-0060"
         }
       ],
-      "component": "src/pages/istituzionale/output-regionale/page.tsx",
-      "flow": "output-regionale",
-      "path": "/istituzionale/output-regionale",
+      "component": "src/pages/istituzionale/verifica-smp-sigc/page.tsx",
+      "flow": "verifica-smp-sigc",
+      "path": "/istituzionale/verifica-smp-sigc",
       "visibility": [
-        "csr.tx-0017.read"
+        "csr.tx-0015.read"
       ]
     },
     {
@@ -51,8 +51,8 @@
         },
         {
           "gating": "hide-by-role",
-          "grant": "csr.tx-0017.read",
-          "operationId": "TX-0017"
+          "grant": "csr.tx-0015.read",
+          "operationId": "TX-0015"
         },
         {
           "gating": "hide-by-role",
@@ -65,7 +65,7 @@
       "path": "/istituzionale/interventi/:codice",
       "visibility": [
         "csr.tx-0016.read",
-        "csr.tx-0017.read"
+        "csr.tx-0015.read"
       ]
     }
   ],
@@ -74,7 +74,7 @@
     {
       "manifest_hash_match": true,
       "path": "handover/openapi-istituzionale.json",
-      "sha256": "sha256:b0c069cf6b6874cc5bcdd6baaa6597db8438bd313c233d22ff7444aa9cb3c288",
+      "sha256": "sha256:e29f8ac4e5d99c287d8398aa419acb19c2c6f6167d1cbf22240a1e66cc7e3489",
       "slice": "istituzionale"
     },
     {

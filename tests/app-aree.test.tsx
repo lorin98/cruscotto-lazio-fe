@@ -27,7 +27,7 @@ import { pagineVisibili as pagineIstituzionale, ricercaConservata as ricercaIsti
 import { pagineVisibili as pagineProcedurale, ricercaConservata as ricercaProcedurale } from '../src/features/procedurale';
 import { PAGINE_FINANZIARIO } from '../src/features/finanziario/lib/report';
 import { PAGINE_FISICO } from '../src/features/fisico/lib/pagine';
-import { PAGINE_ISTITUZIONALE } from '../src/features/istituzionale/lib/pagine';
+import { GRANT_DETTAGLIO as GRANT_DETTAGLIO_ISTITUZIONALE, PAGINE_ISTITUZIONALE } from '../src/features/istituzionale/lib/pagine';
 import { PAGINE_PROCEDURALE } from '../src/features/procedurale/lib/pagine';
 import { VERIFICA_SMP_SIGC } from '../src/features/istituzionale/lib/collegamenti';
 import { GRANT as GRANT_ISTITUZIONALE } from '../src/features/istituzionale/lib/grant';
@@ -80,8 +80,9 @@ describe('catalogo delle aree', () => {
       const route = routeTable.routes.find((r) => matchPath(r.path, p.percorso));
       expect(route?.visibility, p.percorso).toEqual([p.grant]);
     }
-    // il dettaglio dell'intervento non e' una voce di menu: si apre col grant della verifica SMP non SIGC (TX-0017 al fisico)
-    expect(routeTable.routes.find((r) => r.path === '/istituzionale/interventi/:codice')?.visibility).toEqual(['csr.tx-0016.read']);
+    // il dettaglio dell'intervento non e' una voce di menu: si apre col grant di una delle due verifiche (una scheda ciascuna)
+    expect(routeTable.routes.find((r) => r.path === '/istituzionale/interventi/:codice')?.visibility).toEqual(['csr.tx-0016.read', 'csr.tx-0015.read']);
+    expect(routeTable.routes.find((r) => r.path === '/istituzionale/interventi/:codice')?.visibility).toEqual([...GRANT_DETTAGLIO_ISTITUZIONALE]);
   });
 
   it('le pagine del procedurale compaiono col grant di uno dei loro report, sempre fra i grant della route', () => {
@@ -121,10 +122,10 @@ describe('catalogo delle aree', () => {
     const procedurale = AREE.find((a) => a.chiave === 'procedurale');
     expect(procedurale?.contenuti).toEqual(['Stati e sottofasi delle domande', 'Domande ammesse con atto di concessione e contributo', 'Riepilogo per intervento', 'Pagamenti per Unit Amount']);
     expect(procedurale?.contenuti.join(' ')).not.toMatch(/Determine, responsabili/);
-    // G1: istituzionale = verifica SMP non SIGC e output regionale programmato e realizzato (TX-0016, TX-0017)
+    // G1 e riallineamento del 29/10/2026: istituzionale = le due verifiche SMP (TX-0016, TX-0015), testi del dossier dei wireframe
     const istituzionale = AREE.find((a) => a.chiave === 'istituzionale');
-    expect(istituzionale?.contenuti).toEqual(['Verifica SMP dei dati ASR non SIGC', 'Output regionale programmato e realizzato per intervento e anno']);
-    expect(istituzionale?.descrizione).toBe('Dati ASR non SIGC a confronto con SMP - Data Platform e output regionale programmato e realizzato.');
+    expect(istituzionale?.contenuti).toEqual(['Verifica SMP dei dati ASR non SIGC', 'Verifica SMP dei dati ASR SIGC per esercizio finanziario']);
+    expect(istituzionale?.descrizione).toBe('Dati ASR SIGC e non SIGC per intervento, da confrontare con SMP - Data Platform.');
   });
 
   it('una ricerca conservata porta solo i criteri dell area: del finanziario, dell istituzionale senza l anno, del procedurale con lo stato', () => {

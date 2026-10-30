@@ -98,7 +98,8 @@ describe('RF016 e RF015: grant e pagine dell istituzionale (menu e Home)', () =>
     expect(pagineVisibili(() => false)).toEqual([]);
     // l'output regionale (TX-0017) e' del fisico dal 29/10/2026: nessuna pagina dell'istituzionale col suo grant
     expect(pagineVisibili((g) => g === 'csr.tx-0017.read')).toEqual([]);
-    expect(GRANT_DETTAGLIO).toEqual(['csr.tx-0016.read']);
+    // il dettaglio si apre con una delle due verifiche (una scheda ciascuna)
+    expect(GRANT_DETTAGLIO).toEqual(['csr.tx-0016.read', 'csr.tx-0015.read']);
     expect(ricercaConservata('?intervento=SRD01&anno=2024&os=OS4&x=1')).toBe('intervento=SRD01&os=OS4');
     expect(ricercaConservata('?esercizio=2025&og=OG1')).toBe('og=OG1');
     expect(ricercaConservata('')).toBe('');

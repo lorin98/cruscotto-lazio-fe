@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "istituzionale",
-  "current_step": 6,
+  "current_step": 7,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -96,13 +96,16 @@
       }
     },
     "step6-page": {
-      "status": "in_progress",
-      "completed_at": "2026-10-22T14:36:14Z",
+      "status": "done",
+      "completed_at": "2026-10-30T10:09:50Z",
       "artifacts": [
         "./src/pages",
         "./plan/istituzionale/route-manifest.json"
       ],
-      "gates": {}
+      "gates": {
+        "pages_compile": "pass",
+        "route_manifest_valid": "pass"
+      }
     },
     "step7-test": {
       "status": "in_progress",
