@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "finanziario",
-  "current_step": 7,
+  "current_step": 8,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -132,14 +132,17 @@
       }
     },
     "step7-test": {
-      "status": "in_progress",
-      "completed_at": "2026-10-21T09:15:20Z",
+      "status": "done",
+      "completed_at": "2026-10-30T10:21:10Z",
       "artifacts": [
         "./src/shared/test",
         "./src/shared/api/mock",
         "./src/shared/testing/axe.ts"
       ],
-      "gates": {}
+      "gates": {
+        "tests_generated": "pass",
+        "msw_fail_closed": "pass"
+      }
     },
     "step8-gate": {
       "status": "in_progress",

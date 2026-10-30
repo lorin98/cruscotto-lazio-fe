@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
-import { screen, waitFor, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { createMemoryRouter, RouterProvider } from 'react-router';
 import { http, HttpResponse } from 'msw';
 import { server } from '../src/shared/api/mock/server';
 import { expectNoA11yViolations } from '../src/shared/testing/axe';
@@ -17,6 +19,8 @@ import { pngDelGrafico } from '../src/shared/ui/grafici/echarts';
 import { ROTTE_FINANZIARIO } from './rotte-finanziario';
 import * as F from '../src/features/finanziario/testing/fixture';
 import { tabellaDelRiepilogo } from '../src/features/finanziario/testing/riepilogo';
+import { appRoutes } from '../src/app/routes';
+import { clientApp } from './app-client';
 
 // Impaginazione comune delle pagine (widget PaginaFinanziario, UI v2) e coerenza del catalogo delle pagine con la
 // route-table. I comportamenti di ogni pagina sono nei page.test.tsx accanto alle pagine; menu e intestazione nei test
@@ -142,5 +146,21 @@ describe('pagine del finanziario (step6)', () => {
     await tabellaDelRiepilogo();
     await screen.findByRole('button', { name: /^Ultimo dato sincronizzato/ });
     await expectNoA11yViolations(container);
+  });
+});
+
+// riallineamento degli ambiti (verbale del 29/10/2026, A-1 e A-4; OP-FE-10): la verifica SMP SIGC (TX-0015) e' una
+// pagina dell'istituzionale e la vecchia route del finanziario non ha alias, nemmeno per chi ha csr.tx-0015.read
+describe('pagine del finanziario: nessun alias della verifica SMP (A-4, OP-FE-10)', () => {
+  it('/finanziario/sigc/verifica-smp apre Pagina non trovata e resta su quell indirizzo', async () => {
+    server.use(http.get('*/auth/status', () => HttpResponse.json({ authenticated: true, user: { username: 'U', roles: ['csr.tx-0012.read', 'csr.tx-0013.read', 'csr.tx-0015.read'] } })));
+    const router = createMemoryRouter(appRoutes(), { initialEntries: ['/finanziario/sigc/verifica-smp?esercizio=2025'] });
+    render(
+      <QueryClientProvider client={clientApp()}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>,
+    );
+    expect(await screen.findByRole('heading', { level: 1, name: 'Pagina non trovata' })).toBeTruthy();
+    expect(router.state.location.pathname).toBe('/finanziario/sigc/verifica-smp');
   });
 });

@@ -96,3 +96,22 @@ describe("RA003: drill-down dalla pagina SIGC all'elenco operativo", () => {
     await expectNoA11yViolations(container);
   });
 });
+
+// riallineamento degli ambiti (verbale del 29/10/2026, OP-FE-10; scelta S-1 a dell'utente del 30/10/2026): la verifica
+// SMP SIGC (TX-0015) e' dell'istituzionale e la pagina SIGC non ha collegamenti verso altri ambiti, anche per chi ha
+// csr.tx-0015.read (alla verifica si arriva dal menu Istituzionale)
+describe('RF012: pagina SIGC senza collegamenti verso altri ambiti (scelta S-1 a, OP-FE-10)', () => {
+  it('con csr.tx-0015.read i link fuori dal finanziario portano solo all elenco operativo; la verifica SMP non e citata', async () => {
+    servi();
+    server.use(http.get('*/auth/status', () => HttpResponse.json({ authenticated: true, user: { username: 'U', roles: ['csr.tx-0012.read', 'csr.tx-0013.read', 'csr.tx-0015.read', 'csr.tx-0056.read'] } })));
+    renderPagina(Pagina, '/finanziario/sigc');
+    await screen.findByRole('link', { name: "Apri nell'elenco operativo le domande SIGC pagate" });
+    await screen.findByRole('table', { name: 'Importi SIGC' });
+    const indirizzi = screen.getAllByRole('link').map((l) => l.getAttribute('href') ?? '');
+    expect(indirizzi.some((h) => h.startsWith('/elenco-operativo/domande'))).toBe(true);
+    const fuori = indirizzi.filter((h) => h !== '/' && !h.startsWith('/finanziario') && !h.startsWith('/elenco-operativo/'));
+    expect(fuori).toEqual([]);
+    expect(indirizzi.filter((h) => h.includes('verifica-smp'))).toEqual([]);
+    expect(document.body.textContent).not.toMatch(/verifica SMP/i);
+  });
+});
