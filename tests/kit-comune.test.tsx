@@ -1,15 +1,15 @@
 // Kit comune portato fuori dalle feature per il fisico (shared/ui ed entities/filtri): testata della pagina e di
 // dettaglio, file CSV e XLSX del backend, totali su piu' righe della tabella interattiva, nome accessibile del KPI, gruppi
-// del pannello del programma e controlli del pannello dei filtri (il solo test dei controlli: review del fisico H1). Dati
-// di prova inventati.
+// del pannello del programma e controlli del pannello dei filtri (il solo test dei controlli: review del fisico H1); la
+// tabella a confronto delle card della Home (rework 2 della card istituzionale, 31/10/2026). Dati di prova inventati.
 import { createRef } from 'react';
 import type { ReactElement } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
-import { BarraRiferimenti, Briciole, Caselle, Gruppo, Kpi, PulsantiScarica, Scelte, TabellaInterattiva, TestaPagina, TestataDettaglio, scaricamentiDalBackend } from '../src/shared/ui';
-import type { ColonnaTabella } from '../src/shared/ui';
+import { BarraRiferimenti, Briciole, Caselle, ConfrontoArea, Gruppo, Kpi, PulsantiScarica, Scelte, TabellaInterattiva, TestaPagina, TestataDettaglio, scaricamentiDalBackend } from '../src/shared/ui';
+import type { ColonnaConfronto, ColonnaTabella } from '../src/shared/ui';
 import { GruppiProgramma } from '../src/entities/filtri';
 import { expectNoA11yViolations } from '../src/shared/testing/axe';
 
@@ -234,5 +234,40 @@ describe('BarraRiferimenti: la barra dei riferimenti del dettaglio (review del r
     rerender(<BarraRiferimenti perimetro="Perimetro: regionale (i report istituzionali non hanno perimetro ADA)" ultimi={undefined} inErrore />);
     expect(screen.getByText('Perimetro: regionale (i report istituzionali non hanno perimetro ADA)')).toBeTruthy();
     expect(screen.getByText('Ultimo dato sincronizzato: non disponibile')).toBeTruthy();
+  });
+});
+
+describe('ConfrontoArea: la tabella a confronto delle card della Home (rework 2 della card istituzionale, 31/10/2026)', () => {
+  const RIGHE = [
+    { chiave: 'conteggio', etichetta: 'Domande', formato: (v: number) => `${v} domande` },
+    { chiave: 'importo', etichetta: 'Spesa', formato: (v: number) => `${v} euro` },
+    { chiave: 'solo-b', etichetta: 'Pagate', formato: String },
+  ];
+  const A: ColonnaConfronto = { chiave: 'a', titolo: 'Fonte A', dettaglio: 'cumulativi', celle: { conteggio: { valore: 3 }, importo: { valore: null, motivo: 'manca per 1 intervento' } }, senzaDato: { righe: ['solo-b'], testo: 'dato non previsto nella fonte A' } };
+  const cella = (riga: string, indice: number) => screen.getByRole('rowheader', { name: riga }).closest('tr')?.querySelectorAll('td')[indice]?.textContent;
+
+  it('intestazioni di riga e di colonna, valori col formato della riga, non disponibile col motivo sotto la tabella, trattino della riga senza dato; axe', async () => {
+    const B: ColonnaConfronto = { chiave: 'b', titolo: 'Fonte B', celle: { conteggio: { valore: 10 }, importo: { valore: 2.5 }, 'solo-b': { valore: 7 } } };
+    const { container } = render(<ConfrontoArea titolo="Due fonti a confronto" righe={RIGHE} colonne={[A, B]} />);
+    const tabella = screen.getByRole('table', { name: 'Due fonti a confronto' });
+    expect(within(tabella).getAllByRole('columnheader').map((h) => h.textContent)).toEqual(['Fonte A (cumulativi)', 'Fonte B']);
+    expect(within(tabella).getByRole('columnheader', { name: 'Fonte A (cumulativi)' })).toBeTruthy();
+    expect([cella('Domande', 0), cella('Domande', 1), cella('Spesa', 0), cella('Spesa', 1), cella('Pagate', 0), cella('Pagate', 1)]).toEqual(['3 domande', '10 domande', 'non disponibile', '2.5 euro', '—dato non previsto nella fonte A', '7']);
+    // il motivo con riga e colonna, fuori dalla cella; nessuna attesa annunciata
+    expect(screen.getByText('Spesa, Fonte A: manca per 1 intervento')).toBeTruthy();
+    expect(screen.queryByRole('status')).toBeNull();
+    await expectNoA11yViolations(container);
+  });
+
+  it('colonna in attesa: scheletro nelle sue celle (non nelle righe che non ha) e un solo annuncio; colonna fallita: non disponibile senza motivo', () => {
+    const { rerender } = render(<ConfrontoArea titolo="T" righe={RIGHE} colonne={[{ ...A, celle: undefined }, { chiave: 'b', titolo: 'Fonte B', celle: undefined }]} />);
+    expect(screen.getAllByRole('status')).toHaveLength(1);
+    expect(screen.getByRole('status').getAttribute('aria-live')).toBe('polite');
+    expect(document.querySelectorAll('td .ui-skeleton')).toHaveLength(5);
+    expect(cella('Pagate', 0)).toBe('—dato non previsto nella fonte A');
+    rerender(<ConfrontoArea titolo="T" righe={RIGHE} colonne={[{ ...A, celle: null }]} />);
+    expect([cella('Domande', 0), cella('Spesa', 0), cella('Pagate', 0)]).toEqual(['non disponibile', 'non disponibile', '—dato non previsto nella fonte A']);
+    expect(screen.queryByRole('status')).toBeNull();
+    expect(document.querySelectorAll('.ui-ambito__nota')).toHaveLength(0);
   });
 });
