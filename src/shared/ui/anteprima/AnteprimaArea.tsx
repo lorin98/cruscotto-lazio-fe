@@ -97,19 +97,32 @@ export interface CellaConfronto {
   motivo?: string;
 }
 
+/**
+ * Lo stato della lettura di una colonna, esplicito (review H-02): in attesa (scheletro), fallita (non disponibile in ogni
+ * riga; la frase dell'errore la scrive chi usa la tabella) o pronta con le celle per riga (una riga senza cella e' non
+ * disponibile).
+ */
+export type StatoColonnaConfronto = { stato: 'attesa' } | { stato: 'errore' } | { stato: 'pronta'; celle: Readonly<Partial<Record<string, CellaConfronto>>> };
+
 /** Una colonna della tabella a confronto: una lettura indipendente dalle altre. */
-export interface ColonnaConfronto {
+export type ColonnaConfronto = StatoColonnaConfronto & {
   chiave: string;
   titolo: string;
+  /** Come si nomina la colonna dentro una frase (il motivo sotto la tabella); di norma il titolo. */
+  nomeNelTesto?: string;
   /** Sotto il titolo, tra parentesi: a cosa si riferiscono i valori della colonna. */
   dettaglio?: string;
-  /**
-   * Le celle per riga: undefined = lettura in corso (scheletro), null = lettura fallita (non disponibile in ogni riga; la
-   * frase dell'errore la scrive chi usa la tabella). Una riga senza cella e' non disponibile.
-   */
-  celle: Readonly<Partial<Record<string, CellaConfronto>>> | null | undefined;
   /** Le righe che la colonna non ha (un trattino) e cosa ne sentono i lettori di schermo. */
   senzaDato?: { righe: readonly string[]; testo: string };
+};
+
+/**
+ * Il valore della cella, fermo (review X-03: un numero animato cambierebbe a ogni passo la larghezza delle colonne della
+ * tabella). Lo spazio fisso prima dell'unita' (" €") diventa normale: in una card stretta l'unita' va a capo, il numero
+ * resta intero e nulla viene tagliato (review A-01).
+ */
+function valoreDellaCella(v: number, formato: (v: number) => string): string {
+  return formato(v).replace(/\u00a0/g, ' ');
 }
 
 function CellaDelConfronto({ riga, colonna }: { riga: RigaConfronto; colonna: ColonnaConfronto }) {
@@ -121,10 +134,10 @@ function CellaDelConfronto({ riga, colonna }: { riga: RigaConfronto; colonna: Co
       </span>
     );
   }
-  if (colonna.celle === undefined) return <span className="ui-skeleton ui-ambito__confronto-attesa" aria-hidden="true" />;
-  const presente = numeroDi(colonna.celle?.[riga.chiave]?.valore);
+  if (colonna.stato === 'attesa') return <span className="ui-skeleton ui-ambito__confronto-attesa" aria-hidden="true" />;
+  const presente = colonna.stato === 'pronta' ? numeroDi(colonna.celle[riga.chiave]?.valore) : null;
   if (presente === null) return <span className="ui-ambito__confronto-assente">{NON_DISPONIBILE}</span>;
-  return <NumeroAnimato valore={presente} formato={riga.formato} />;
+  return <>{valoreDellaCella(presente, riga.formato)}</>;
 }
 
 /**
@@ -135,8 +148,8 @@ function CellaDelConfronto({ riga, colonna }: { riga: RigaConfronto; colonna: Co
 export function ConfrontoArea({ titolo, righe, colonne }: { titolo: string; righe: readonly RigaConfronto[]; colonne: readonly ColonnaConfronto[] }) {
   const motivi = righe.flatMap((r) =>
     colonne.flatMap((c) => {
-      const cella = c.celle?.[r.chiave];
-      return cella?.motivo && numeroDi(cella.valore) === null ? [{ chiave: `${r.chiave}-${c.chiave}`, testo: `${r.etichetta}, ${c.titolo}: ${cella.motivo}` }] : [];
+      const cella = c.stato === 'pronta' ? c.celle[r.chiave] : undefined;
+      return cella?.motivo && numeroDi(cella.valore) === null ? [{ chiave: `${r.chiave}-${c.chiave}`, testo: `${r.etichetta}, ${c.nomeNelTesto ?? c.titolo}: ${cella.motivo}` }] : [];
     }),
   );
   return (
@@ -175,7 +188,7 @@ export function ConfrontoArea({ titolo, righe, colonne }: { titolo: string; righ
           </tbody>
         </table>
       </div>
-      {colonne.some((c) => c.celle === undefined) && (
+      {colonne.some((c) => c.stato === 'attesa') && (
         <p className="visually-hidden" role="status" aria-live="polite">
           Caricamento in corso…
         </p>

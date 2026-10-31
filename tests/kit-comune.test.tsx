@@ -240,34 +240,53 @@ describe('BarraRiferimenti: la barra dei riferimenti del dettaglio (review del r
 describe('ConfrontoArea: la tabella a confronto delle card della Home (rework 2 della card istituzionale, 31/10/2026)', () => {
   const RIGHE = [
     { chiave: 'conteggio', etichetta: 'Domande', formato: (v: number) => `${v} domande` },
-    { chiave: 'importo', etichetta: 'Spesa', formato: (v: number) => `${v} euro` },
+    // lo spazio fisso prima dell'unita', come formatEuro
+    { chiave: 'importo', etichetta: 'Spesa', formato: (v: number) => `${v}\u00a0euro` },
     { chiave: 'solo-b', etichetta: 'Pagate', formato: String },
   ];
-  const A: ColonnaConfronto = { chiave: 'a', titolo: 'Fonte A', dettaglio: 'cumulativi', celle: { conteggio: { valore: 3 }, importo: { valore: null, motivo: 'manca per 1 intervento' } }, senzaDato: { righe: ['solo-b'], testo: 'dato non previsto nella fonte A' } };
+  const A = {
+    chiave: 'a',
+    titolo: 'Fonte A',
+    nomeNelTesto: 'fonte A',
+    dettaglio: 'cumulativi',
+    senzaDato: { righe: ['solo-b'], testo: 'dato non confrontabile nella fonte A' },
+  };
+  const PRONTA_A: ColonnaConfronto = { ...A, stato: 'pronta', celle: { conteggio: { valore: 3 }, importo: { valore: null, motivo: 'manca per 1 intervento' } } };
   const cella = (riga: string, indice: number) => screen.getByRole('rowheader', { name: riga }).closest('tr')?.querySelectorAll('td')[indice]?.textContent;
 
   it('intestazioni di riga e di colonna, valori col formato della riga, non disponibile col motivo sotto la tabella, trattino della riga senza dato; axe', async () => {
-    const B: ColonnaConfronto = { chiave: 'b', titolo: 'Fonte B', celle: { conteggio: { valore: 10 }, importo: { valore: 2.5 }, 'solo-b': { valore: 7 } } };
-    const { container } = render(<ConfrontoArea titolo="Due fonti a confronto" righe={RIGHE} colonne={[A, B]} />);
+    const B: ColonnaConfronto = { chiave: 'b', titolo: 'Fonte B', stato: 'pronta', celle: { conteggio: { valore: 10 }, importo: { valore: 2.5 }, 'solo-b': { valore: 7 } } };
+    const { container } = render(<ConfrontoArea titolo="Due fonti a confronto" righe={RIGHE} colonne={[PRONTA_A, B]} />);
     const tabella = screen.getByRole('table', { name: 'Due fonti a confronto' });
     expect(within(tabella).getAllByRole('columnheader').map((h) => h.textContent)).toEqual(['Fonte A (cumulativi)', 'Fonte B']);
     expect(within(tabella).getByRole('columnheader', { name: 'Fonte A (cumulativi)' })).toBeTruthy();
-    expect([cella('Domande', 0), cella('Domande', 1), cella('Spesa', 0), cella('Spesa', 1), cella('Pagate', 0), cella('Pagate', 1)]).toEqual(['3 domande', '10 domande', 'non disponibile', '2.5 euro', '—dato non previsto nella fonte A', '7']);
-    // il motivo con riga e colonna, fuori dalla cella; nessuna attesa annunciata
-    expect(screen.getByText('Spesa, Fonte A: manca per 1 intervento')).toBeTruthy();
+    // review A-01: lo spazio fisso prima dell'unita' diventa normale, cosi' l'unita' puo' andare a capo
+    expect([cella('Domande', 0), cella('Domande', 1), cella('Spesa', 0), cella('Spesa', 1), cella('Pagate', 0), cella('Pagate', 1)]).toEqual(['3 domande', '10 domande', 'non disponibile', '2.5 euro', '—dato non confrontabile nella fonte A', '7']);
+    // il trattino per gli occhi, il perche' solo per i lettori di schermo (review X-05)
+    expect(within(tabella).getByText('—').getAttribute('aria-hidden')).toBe('true');
+    expect(within(tabella).getByText('dato non confrontabile nella fonte A').className).toBe('visually-hidden');
+    // il motivo con riga e colonna (col nome della colonna nelle frasi), fuori dalla cella; nessuna attesa annunciata
+    expect(screen.getByText('Spesa, fonte A: manca per 1 intervento')).toBeTruthy();
     expect(screen.queryByRole('status')).toBeNull();
     await expectNoA11yViolations(container);
   });
 
   it('colonna in attesa: scheletro nelle sue celle (non nelle righe che non ha) e un solo annuncio; colonna fallita: non disponibile senza motivo', () => {
-    const { rerender } = render(<ConfrontoArea titolo="T" righe={RIGHE} colonne={[{ ...A, celle: undefined }, { chiave: 'b', titolo: 'Fonte B', celle: undefined }]} />);
+    const { rerender } = render(<ConfrontoArea titolo="T" righe={RIGHE} colonne={[{ ...A, stato: 'attesa' }, { chiave: 'b', titolo: 'Fonte B', stato: 'attesa' }]} />);
     expect(screen.getAllByRole('status')).toHaveLength(1);
     expect(screen.getByRole('status').getAttribute('aria-live')).toBe('polite');
     expect(document.querySelectorAll('td .ui-skeleton')).toHaveLength(5);
-    expect(cella('Pagate', 0)).toBe('—dato non previsto nella fonte A');
-    rerender(<ConfrontoArea titolo="T" righe={RIGHE} colonne={[{ ...A, celle: null }]} />);
-    expect([cella('Domande', 0), cella('Spesa', 0), cella('Pagate', 0)]).toEqual(['non disponibile', 'non disponibile', '—dato non previsto nella fonte A']);
+    expect(cella('Pagate', 0)).toBe('—dato non confrontabile nella fonte A');
+    rerender(<ConfrontoArea titolo="T" righe={RIGHE} colonne={[{ ...A, stato: 'errore' }]} />);
+    expect([cella('Domande', 0), cella('Spesa', 0), cella('Pagate', 0)]).toEqual(['non disponibile', 'non disponibile', '—dato non confrontabile nella fonte A']);
     expect(screen.queryByRole('status')).toBeNull();
     expect(document.querySelectorAll('.ui-ambito__nota')).toHaveLength(0);
+  });
+
+  it('colonna pronta senza la cella di una riga: non disponibile, mai uno scheletro che non finisce (review H-02)', () => {
+    render(<ConfrontoArea titolo="T" righe={RIGHE} colonne={[{ chiave: 'b', titolo: 'Fonte B', stato: 'pronta', celle: { conteggio: { valore: 1 } } }]} />);
+    expect([cella('Domande', 0), cella('Spesa', 0), cella('Pagate', 0)]).toEqual(['1 domande', 'non disponibile', 'non disponibile']);
+    expect(screen.queryByRole('status')).toBeNull();
+    expect(document.querySelectorAll('td .ui-skeleton')).toHaveLength(0);
   });
 });
