@@ -1,0 +1,29 @@
+[
+  {
+    "id": "A-01",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/tema.css:397",
+    "titolo": "Importi sotto il milione tagliati in silenzio nella colonna di destra con quattro card per riga (nowrap dei td e overflow:hidden della card)",
+    "evidenza": "`.ui-ambito__confronto td` ha `white-space: nowrap` (tema.css:397). Il contenitore ha `container-type: inline-size` (:391), quindi la tabella non allarga la card. La card `.ui-ambito` ha `overflow: hidden` (:352): quello che eccede viene tagliato, senza scorrimento. importoBreve sotto 1.000.000 usa formatEuro con due decimali (primitive.ts:81, \"493.500,00 €\"). Misure coi metrici di Titillium Web dai ttf di bootstrap-italia (cifre 560/1000 em, gia' tabulari): \"493.500,00 €\" in 700 a 1rem = 92,5 px; la parola piu' larga delle intestazioni di riga, \"finanziate\" in 600 a .78rem = 53,1 px. Con due importi sotto il milione la tabella vuole almeno 53,1 + 2 x (92,5 + 7,2) = 252 px. A 1440 px lo spazio e' circa 215 px, con la container query stretta attiva (menu 280, pagina 2 x 28, quattro colonne con gap 20, bordo, corpo 2 x 20): la colonna SIGC perde circa 37 px, cioe' \"0,00 €\". A 1680 px ci sono circa 275 px, con i td a 1,15rem, contro 288 richiesti: si perdono circa 12 px, il simbolo €. Con il solo SIGC sotto il milione e il non SIGC in milioni (\"12,3 M€\") servono 217 px su 215. In questa fascia stanno i dati d'esempio del dev server (api/mock/esempio.ts: 180.000,00 € non SIGC e 493.500,00 € SIGC) e le fixture dei test (91.200,50 €, 400.000,00 €). Le foto approvate erano coi dati veri. Prima del rework i valori nei dd andavano a capo (`overflow-wrap: anywhere`, :386); ora una parte del numero sparisce senza segnale (jsdom non fa layout, nessun test lo vede).",
+    "fix": "Nella container query stretta (tema.css:401-405) impedire il taglio: si possono abbassare ancora i td (es. .9rem e padding-left .35rem), oppure lasciare andare a capo gli importi come i dd di :386 (`white-space: normal; overflow-wrap: anywhere`). In alternativa si puo' dare al contenitore `overflow-x: auto` con tabindex=0 e un nome, cosi' la regione scorrevole e' raggiungibile da tastiera. Poi verificare al dev server, coi dati d'esempio, a 1440 e 1680 px."
+  },
+  {
+    "id": "A-02",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/ui/AnteprimaIstituzionale.tsx:74",
+    "titolo": "Barra, nota e frasi d'errore seguono la query anche quando e' disabilitata, non il grant: col nuovo meccanismo il gate della colonna non le copre",
+    "evidenza": "Le colonne sono filtrate per grant (:73). Invece `nonSigcLetta` e `sigcLetta` (:74-75) vengono dalle query anche quando sono disabilitate, e da loro dipendono la barra (`{nonSigcLetta && <Quota .../>}`, :82) e la nota (:76, :83). Le due frasi d'errore (`ErroreDellaLettura`, :80-81) leggono `isError` senza il grant. Con `enabled: false` React Query restituisce comunque lo stato in cache per quella chiave. Quindi col solo csr.tx-0015.read e una risposta TX-0016 senza filtri in cache la card mostrerebbe \"Spesa non SIGC sul valore finanziato\" e \"Non SIGC: ultimo file SMP aaaa.\" senza la colonna e senza il grant. Prima del rework (dbdd81c) il blocco non SIGC era un figlio montato solo col grant, quindi questo non poteva succedere. Oggi lo impedisce soltanto lo svuotamento della cache al cambio d'impronta, ruoli compresi (app/utente-della-sessione.ts:33). Non c'e' una fuga oggi, ma il gate di UX della card dipende da un invariante di un altro modulo e nessun test lo prova.",
+    "fix": "Legare al grant tutto cio' che si ricava dalle letture: `const nonSigcLetta = conVerifica ? risposta(nonSigc) : undefined; const sigcLetta = conSigc ? risposta(sigc) : undefined;` e `ErroreDellaLettura` solo con il suo grant (o un `abilitato` dentro `risposta`). Aggiungere un test col solo grant SIGC e una risposta TX-0016 gia' in cache (`client.setQueryData` sulla chiave senza filtri), che verifichi l'assenza di barra, di \"Non SIGC:\" nella nota e di frasi non SIGC."
+  },
+  {
+    "id": "A-03",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "tests/anteprime-home.test.tsx:296",
+    "titolo": "Con un solo grant i test provano la query disabilitata solo al montaggio, non a una rilettura o invalidazione globale",
+    "evidenza": "Il cambio di meccanismo e' provato a :255-271 e :296-309 contando le richieste dopo che l'altra colonna ha letto: hook sempre montati, `abilitato` = grant (AnteprimaIstituzionale.tsx:71-72). Questo copre il montaggio. L'unico test con `client.refetchQueries()` (:429-448) ha entrambi i grant. Il codice e' corretto. In query-core 5.101.3 refetchQueries e invalidateQueries saltano le query con `isDisabled()` (build/modern/queryClient.js:171, query.js:102). In src non ci sono prefetchQuery, ensureQueryData o fetchQuery, e le sole invalidazioni sono sulla chiave di /auth/status (utente-della-sessione.ts:42, inattivita.tsx:129). Inoltre refetchOnWindowFocus e' false (query-client.ts:33) e la card non chiama `.refetch()`. Pero' il nuovo meccanismo lascia in cache una query disabilitata al posto di una query assente, e nessun test controlla che una rilettura globale non la faccia partire senza grant, per esempio dopo un aggiornamento di React Query o un cambio del wrapper `useVerificaSmp*`.",
+    "fix": "Nel test col solo grant SIGC (:296) passare un `clientDiTest()` a renderConQuery e, dopo la prima lettura, eseguire `await act(() => client.refetchQueries())` e `await act(() => client.invalidateQueries())`. Poi asserire che TX-0016 resta `[]` e che TX-0015 ha almeno due letture (controllo positivo). Fare lo stesso nel test col solo TX-0016 (:255)."
+  }
+]

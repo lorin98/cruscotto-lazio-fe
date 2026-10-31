@@ -1,0 +1,106 @@
+[
+  {
+    "id": "A-01",
+    "feature": "istituzionale",
+    "origine": "comune",
+    "assorbe": ["V-03", "H-01", "X-02", "X-C1"],
+    "severity": "MINORE",
+    "file": "src/shared/ui/tema.css:397",
+    "titolo": "Importi sotto il milione tagliati senza segnale nella colonna SIGC con quattro card per riga (td nowrap, contenitore inline-size, card overflow hidden)",
+    "fix": "Nella container query stretta (tema.css:401-405) niente taglio silenzioso. Raccomandato: `.ui-ambito__confronto td { white-space: normal; overflow-wrap: anywhere }` come i dd di :386 (lo spazio prima di € e' U+00A0, quindi `white-space: normal` da solo non basta). In alternativa il contenitore scorrevole del kit (overflow-x: auto, tabIndex=0, role=region col nome, come .ui-tabella-contenitore). Rivedere anche la soglia: sopra 15,5rem i td a 1,15rem chiedono circa 277 px. Verificare nel browser con le spese divise per 200 a 1380, 1440, 1560-1600 e circa 1000 px. La fascia corretta del residuo (quattro card per riga da circa 1376 px) va subito nel dossier e in md:269 alla prossima riapprovazione."
+  },
+  {
+    "id": "A-02",
+    "feature": "istituzionale",
+    "origine": "istituzionale",
+    "assorbe": ["A-03"],
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/ui/AnteprimaIstituzionale.tsx:74",
+    "titolo": "Barra, nota e frasi d'errore seguono la query anche disabilitata, non il grant: col nuovo meccanismo (hook sempre montati) il gate di UX delle parti derivate dipende dallo svuotamento della cache di un altro modulo, e nessun test lo prova oltre il montaggio",
+    "fix": "Legare al grant cio' che si ricava dalle letture: `const nonSigcLetta = conVerifica ? risposta(nonSigc) : undefined` (lo stesso per sigc) ed ErroreDellaLettura solo col suo grant. Test col solo csr.tx-0015.read e una risposta TX-0016 gia' in cache (client.setQueryData sulla chiave senza filtri): niente barra, niente 'Non SIGC:' nella nota, nessuna frase non SIGC. Poi `refetchQueries()` e `invalidateQueries()`: TX-0016 resta [] e TX-0015 ha almeno due letture (A-03). Lo stesso a grant invertiti."
+  },
+  {
+    "id": "H-02",
+    "feature": "istituzionale",
+    "origine": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/anteprima/AnteprimaArea.tsx:110",
+    "titolo": "Nell'API del kit ConfrontoArea lo stato della colonna dipende da undefined (attesa) contro null (errore), mentre negli stessi tipi undefined vuol dire 'non disponibile'",
+    "fix": "Stato esplicito della colonna: `celle: { stato: 'attesa' } | { stato: 'errore' } | { stato: 'pronta'; valori: Record<string, CellaConfronto> }`, oppure un campo `stato` accanto a `celle`. Aggiornare celleDellaLettura (AnteprimaIstituzionale.tsx:47-50), ConfrontoArea (AnteprimaArea.tsx:124, :138, :178) e i test di tests/kit-comune.test.tsx."
+  },
+  {
+    "id": "V-01",
+    "feature": "istituzionale",
+    "origine": "istituzionale",
+    "decisione": "D1",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/lib/anteprima.ts:120",
+    "titolo": "Il testo del trattino per i lettori di schermo ('dato non previsto nella verifica non SIGC') e' falso rispetto al pack e al contratto: TX-0016 ha 'Numero domande pagate (solo saldate al 100%)' (domandeSaldate obbligatorio)",
+    "fix": "Decisione D1 dell'utente. Raccomandata (a): un testo vero, per esempio 'dato non confrontabile: la verifica non SIGC conta solo le domande saldate al 100%', in anteprima.ts:120, home.html:111 e md:252-253 (riapprovazione del flusso: terzo rework, oltre il budget, serve il via dell'utente), con i test anteprime-home.test.tsx:288 e :355 e istituzionale-lib.test.ts:619. (b) Tenere il testo e registrare la contraddizione nei deviations_reviewed del gate wireframe_verifica-smp-non-sigc."
+  },
+  {
+    "id": "V-02",
+    "feature": "istituzionale",
+    "origine": "istituzionale",
+    "severity": "COSMETICO",
+    "declassato_da": "MINORE",
+    "file": "src/shared/ui/anteprima/AnteprimaArea.tsx:139",
+    "titolo": "Il motivo sotto la tabella dice 'Spesa pubblica erogata, Non SIGC: ...', il wireframe approvato 'non SIGC' minuscolo",
+    "fix": "Aggiungere a ColonnaConfronto un campo facoltativo per il nome della colonna dentro la frase (es. `nomeNelTesto`, di norma il titolo) e usarlo a AnteprimaArea.tsx:139. colonnaNonSigc (AnteprimaIstituzionale.tsx:53) passa 'non SIGC'. Aggiornare anteprime-home.test.tsx:424 e coprire il campo in tests/kit-comune.test.tsx."
+  },
+  {
+    "id": "H-03",
+    "feature": "istituzionale",
+    "origine": "istituzionale",
+    "severity": "COSMETICO",
+    "declassato_da": "MINORE",
+    "file": "src/features/istituzionale/ui/AnteprimaIstituzionale.tsx:47",
+    "titolo": "La regola 'l'errore vince sul dato in cache' e' scritta due volte (risposta, celleDellaLettura); anteprimaVerifica e periodoDellaRisposta girano due volte per render",
+    "fix": "In Confronto ricavare una volta per lettura `d = risposta(lettura)` e le celle da d (`lettura.isError ? null : d ? celle(d) : undefined`). Calcolare una volta `anteprimaVerifica(nonSigcLetta)` e `periodoDellaRisposta(sigcLetta, esercizio)` e passarli alle colonne, a Quota e a notaRiferimenti. Il test di anteprime-home.test.tsx:429 resta la prova."
+  },
+  {
+    "id": "X-03",
+    "feature": "istituzionale",
+    "origine": "comune",
+    "severity": "COSMETICO",
+    "file": "src/shared/ui/anteprima/AnteprimaArea.tsx:127",
+    "titolo": "Numero animato in una tabella a layout automatico con valori nowrap: per 700 ms le colonne cambiano larghezza, e con un totale poco sopra il milione la cella passa per importi coi centesimi piu' larghi del valore finale",
+    "fix": "Riservare nella cella la larghezza del valore finale: in CellaDelConfronto un contenitore `display: inline-grid` con il valore finale in `visibility: hidden` e aria-hidden nella stessa area di NumeroAnimato (classi in tema.css, niente stili inline per la CSP), oppure `table-layout: fixed` con la larghezza della colonna delle etichette. Controllo nella foto di A-01 con un totale poco sopra il milione."
+  },
+  {
+    "id": "X-04",
+    "feature": "istituzionale",
+    "origine": "istituzionale",
+    "severity": "COSMETICO",
+    "file": "src/features/istituzionale/ui/AnteprimaIstituzionale.tsx:79",
+    "titolo": "Con un solo grant la didascalia della tabella dice ancora 'verifica SMP non SIGC e SIGC' su una tabella con una sola colonna",
+    "fix": "Comporre la didascalia dalle colonne presenti con una funzione pura in lib/anteprima.ts ('L'istituzionale in cifre: verifica SMP non SIGC', '...: verifica SMP SIGC', '...: verifica SMP non SIGC e SIGC') e usarla a :79. Aggiornare i due test con un solo grant (anteprime-home.test.tsx:255 e :296)."
+  },
+  {
+    "id": "X-05",
+    "feature": "istituzionale",
+    "origine": "istituzionale",
+    "severity": "COSMETICO",
+    "file": "tests/anteprime-home.test.tsx:288",
+    "titolo": "Due affermazioni dei test non distinguono l'implementazione giusta da una sbagliata: la frase del trattino nascosta alla vista e l'esercizio dell'intestazione preso dalla risposta",
+    "fix": "(1) In anteprime-home.test.tsx:288 e in kit-comune.test.tsx:255 asserire che la frase sta in un elemento con la classe visually-hidden. (2) Un caso con una risposta TX-0015 che dichiara un esercizio diverso da quello chiesto (`{ ...VERIFICA_SMP, esercizio: ESERCIZIO - 1 }`), con intestazione e nota su quell'esercizio dopo la lettura."
+  },
+  {
+    "id": "H-04",
+    "feature": "istituzionale",
+    "origine": "istituzionale",
+    "severity": "COSMETICO",
+    "file": "src/app/aree.ts:123",
+    "titolo": "Commenti rimasti al rework 1: 'l'Anteprima ha i due blocchi' (aree.ts:123) e 'I numeri del blocco SIGC' (lib/anteprima.ts:83)",
+    "fix": "aree.ts:123: \"l'Anteprima e' la tabella a confronto Non SIGC / SIGC (rework 2 del 31/10/2026)\". lib/anteprima.ts:83: \"I numeri della colonna SIGC dalla risposta di TX-0015 ...\"."
+  },
+  {
+    "id": "V-05",
+    "feature": "istituzionale",
+    "origine": "istituzionale",
+    "severity": "COSMETICO",
+    "file": "plan/istituzionale/uiplan.json:1029",
+    "titolo": "Provenance dei campi della card non aggiornata al rework 2: cita il riferimento e le etichette di prima, manca il perimetro di TX-0015 usato nell'intestazione SIGC",
+    "fix": "uiplan.json:1029: \"esercizio, annoDomande e perimetro della risposta (intestazione 'SIGC (esercizio aaaa)', nota col periodo e l'anno delle domande)\"; :1017: \"annoRiferimento (nota) e perimetro (intestazione 'Non SIGC (cumulativi della tua area)')\"; :1023 e :1029 'colonna SIGC' al posto di 'blocco SIGC'. Poi uiplan-validate (lo uiplan e' fuori dal baseline_ref: nessuna riapprovazione)."
+  }
+]

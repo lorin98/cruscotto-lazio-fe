@@ -1,0 +1,47 @@
+[
+  {
+    "id": "H-01",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/tema.css:391",
+    "titolo": "ConfrontoArea non ha difese se la tabella e' piu' larga della card: valori nowrap e card con overflow hidden, quindi la colonna di destra viene tagliata senza avviso",
+    "evidenza": "Il contenitore della tabella ha solo `container-type: inline-size` (tema.css:391), senza overflow. Le celle sono `white-space: nowrap` (tema.css:397) e la card `.ui-ambito` ha `overflow: hidden` (tema.css:352). La griglia della Home usa `minmax(0, 1fr)` (tema.css:348), percio' la card non si allarga col contenuto. Gli altri due pezzi del kit evitano il problema: NumeroArea con `overflow-wrap: anywhere` (tema.css:386), le tabelle di TabelleSemplici con un contenitore che scorre (`.ui-tabella-contenitore { overflow: auto }`, tema.css:219, regione con nome e tabIndex). Stima (font e misure non verificati in un browser): le card stanno 4 per riga da circa 1390 px (sidebar 280 px, padding della pagina 1,75rem, 4 colonne da 1040 px di `.ui-ambiti`). A 1390-1440 px il corpo della card e' largo circa 205-217 px, quindi scatta la container query (< 15,5rem). Due importi sotto il milione (`importoBreve` -> `formatEuro`, es. \"400.000,00 €\" con lo spazio indivisibile, 12 caratteri) portano il minimo della tabella a circa 240-250 px: oltre i 20 px di padding della card l'ultima colonna (il simbolo €, la colonna SIGC) viene tagliata. Con importi in milioni (\"12,3 M€\") ci sta, ed e' il caso delle foto viste dall'utente. Il residuo dichiarato nel doc del flusso (\"resa alle larghezze strette\") resta senza una rete di sicurezza nel codice.",
+    "fix": "Aggiungere una rete di sicurezza al contenitore, come per le altre tabelle del kit: `.ui-ambito__confronto-contenitore { overflow-x: auto; }`. Se puo' scorrere serve anche raggiungerlo da tastiera; in alternativa lasciare andare a capo le celle sotto la container query. Poi verificare a circa 1400 px con un totale sotto il milione (fixture VERIFICA: 91.200,50 €) in entrambe le colonne e aggiornare il residuo del doc."
+  },
+  {
+    "id": "H-02",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/anteprima/AnteprimaArea.tsx:110",
+    "titolo": "Nell'API del kit lo stato della colonna dipende dalla differenza fra undefined e null di `celle`, mentre negli stessi tipi undefined vuol dire 'non disponibile'",
+    "evidenza": "`ColonnaConfronto.celle: ... | null | undefined` (AnteprimaArea.tsx:106-110): undefined = lettura in corso (scheletro piu' `role=\"status\"` \"Caricamento in corso\", righe 124 e 178), null = lettura fallita. Nella stessa struttura un undefined vuol dire il contrario: `CellaConfronto.valore` undefined (riga 96) e una riga senza cella (riga 108) significano \"non disponibile\". Lo stesso vale per NumeroArea (riga 35: \"null o assente = non disponibile\"). Un chiamante che passa `celle: data?.campo` con un campo assente ottiene uno scheletro infinito e un annuncio di caricamento che non finisce mai, invece di \"non disponibile\". Gli altri pezzi del file non hanno questa ambiguita': lo stato lo decide il chiamante (AttesaArea, NotaArea). Oggi l'unico chiamante usa l'API correttamente (`celleDellaLettura`, AnteprimaIstituzionale.tsx:47-50), ma e' un pezzo comune pensato per altre card.",
+    "fix": "Rendere esplicito lo stato con un'unione discriminata, es. `celle: { stato: 'attesa' } | { stato: 'errore' } | { stato: 'pronta'; valori: Record<string, CellaConfronto> }`, oppure con un campo `stato` accanto a `celle`. Aggiornare `celleDellaLettura` e i due test in tests/kit-comune.test.tsx."
+  },
+  {
+    "id": "H-03",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/ui/AnteprimaIstituzionale.tsx:47",
+    "titolo": "La regola 'l'errore vince sul dato in cache' e lo stato della colonna sono ricavati in piu' punti del componente: anteprimaVerifica e periodoDellaRisposta si calcolano due volte per render",
+    "evidenza": "La regola dell'errore e' scritta due volte in modo indipendente: in `risposta` (righe 42-44, `isError ? undefined : data`) e in `celleDellaLettura` (righe 47-50, controlla di nuovo `isError` e poi legge `lettura.data` direttamente). `risposta` si chiama tre volte (righe 53, 58, 74-75). `anteprimaVerifica(d)` gira due volte sulle stesse righe: per le celle (riga 53) e per la quota (riga 82). `periodoDellaRisposta` gira due volte: per l'intestazione (riga 59) e per la nota (riga 76). Il commit a382562 corregge proprio una divergenza nata da questa dispersione: celle, intestazione, frase d'errore, quota e nota leggevano `data` ognuna per conto suo e con dato vecchio e rilettura fallita mostravano i numeri vecchi. La divergenza puo' ripresentarsi alla prossima modifica di uno solo dei due helper.",
+    "fix": "Ricavare una volta sola per lettura `const d = risposta(lettura)` e costruire le celle da `d` (`lettura.isError ? null : d ? celle(d) : undefined`). Calcolare in `Confronto`, una volta sola, `a = nonSigcLetta && anteprimaVerifica(nonSigcLetta)` e `p = sigcLetta && periodoDellaRisposta(sigcLetta, esercizio)` e passarli sia alle colonne sia a `Quota` e a `notaRiferimenti`. In alternativa un piccolo hook `useColonna(lettura)` che restituisca `{ risposta, celle, fallita }`. Il test 'rilettura fallita dopo un primo dato in cache' resta come prova."
+  },
+  {
+    "id": "H-04",
+    "feature": "istituzionale",
+    "severity": "COSMETICO",
+    "file": "src/app/aree.ts:123",
+    "titolo": "Commenti rimasti al rework 1: 'l'Anteprima ha i due blocchi' e 'il blocco SIGC'",
+    "evidenza": "src/app/aree.ts:123 dice ancora \"l'Anteprima ha i due blocchi, non SIGC e SIGC\", ma dal rework 2 la card e' una tabella a confronto con una colonna per verifica. Allo stesso modo il JSDoc in src/features/istituzionale/lib/anteprima.ts:83 dice \"I numeri del blocco SIGC dalla risposta di TX-0015\", mentre ora sono le celle della colonna SIGC (celleSigc).",
+    "fix": "aree.ts:123: \"l'Anteprima e' la tabella a confronto Non SIGC / SIGC (rework 2 del 31/10/2026)\". anteprima.ts:83: \"I numeri della colonna SIGC ...\"."
+  },
+  {
+    "id": "H-05",
+    "feature": "istituzionale",
+    "severity": "COSMETICO",
+    "file": "src/features/istituzionale/lib/formato.ts:25",
+    "titolo": "`estremiEsercizio` resta esportata solo per i test: l'unico consumatore fuori dal modulo (riferimentoAnteprimaSigc) e' stato tolto dal rework",
+    "evidenza": "Prima del delta lib/anteprima.ts importava `estremiEsercizio` per `riferimentoAnteprimaSigc`. Ora importa `periodoEsercizio` (anteprima.ts:22). `grep` su src trova `estremiEsercizio` solo in formato.ts:25 (definizione) e formato.ts:31 (dentro `periodoEsercizio`); fuori dal modulo resta solo tests/istituzionale-lib.test.ts:485. Il JSDoc (formato.ts:21-24, \"una sola regola per le voci, la pill e la card della Home\") passa ormai tutto da `periodoEsercizio`.",
+    "fix": "Togliere l'export, cosi' `estremiEsercizio` resta un dettaglio di `periodoEsercizio`, e nel test tenere l'asserzione su `periodoEsercizio` (gia' presente alla riga 486). In alternativa lasciarla esportata ma con un JSDoc che dica che la usa solo `periodoEsercizio`."
+  }
+]

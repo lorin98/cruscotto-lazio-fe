@@ -1,0 +1,47 @@
+[
+  {
+    "id": "V-01",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/lib/anteprima.ts:120",
+    "titolo": "Il testo per i lettori di schermo del trattino (\"dato non previsto nella verifica non SIGC\") contraddice il contratto e la pagina della stessa verifica",
+    "evidenza": "SENZA_DATO_NON_SIGC.testo = 'dato non previsto nella verifica non SIGC' (anteprima.ts:120), reso nella cella Domande pagate / Non SIGC (test anteprime-home.test.tsx:288 e :355). Il testo e' quello del wireframe approvato (home.html:111, verifica-smp-non-sigc.md:252-253). Pero' TX-0016 ha il dato: VerificaSmpNonSigcRiga.domandeSaldate e' un campo obbligatorio del contratto (handover/openapi-istituzionale.json). Lo stesso doc del flusso lo elenca fra i 21 dati della verifica, \"Domande pagate (solo saldate) | righe[].domandeSaldate\" (verifica-smp-non-sigc.md:102). La pagina lo rende come colonna \"Domande pagate (solo saldate)\" (lib/verifica.ts:43, nascosta di default ma sceglibile, ed e' nei file CSV/XLSX). La sua nota delle definizioni dice \"pagate = pratiche con un saldo pagato, solo saldate al 100%\" (lib/formato.ts:74). Chi usa un lettore di schermo sente che la verifica non SIGC non prevede le domande pagate, poi entra nell'area e la trova come colonna. A differenza di X3 del 26/10, qui il testo approvato non regge al confronto col contratto. Le due misure sono diverse (SIGC: pagate nell'esercizio; non SIGC: saldate al 100%, cumulative, definizione da confermare D-02): il trattino puo' restare, la frase e' sbagliata.",
+    "fix": "E' una scelta approvata, quindi decide l'utente. (a) Una frase vera, per esempio \"dato non confrontabile: la verifica non SIGC conta solo le domande saldate al 100%\", con la riapprovazione del flusso verifica-smp-non-sigc (home.html:111, md:252-253) e l'aggiornamento di anteprime-home.test.tsx:288 e :355 e di istituzionale-lib.test.ts:619. (b) Tenere il testo e registrare la contraddizione nei deviations_reviewed del gate wireframe del flusso. Raccomandata (a): costa una riga."
+  },
+  {
+    "id": "V-02",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/shared/ui/anteprima/AnteprimaArea.tsx:139",
+    "titolo": "Il motivo sotto la tabella dice \"Spesa pubblica erogata, Non SIGC: ...\", il wireframe approvato \"Spesa pubblica erogata, non SIGC: ...\"",
+    "evidenza": "ConfrontoArea compone il motivo con il titolo della colonna: `${r.etichetta}, ${c.titolo}: ${cella.motivo}` (AnteprimaArea.tsx:139). Per la colonna non SIGC il titolo e' 'Non SIGC' (anteprima.ts:124), quindi la frase ha la maiuscola a meta' frase. Il test fissa quel testo (anteprime-home.test.tsx:424). Il wireframe approvato scrive \"non SIGC\" minuscolo, sia nella resa (home.html:146) sia nella regola (verifica-smp-non-sigc.md:257-258). La colonna SIGC (\"..., SIGC: ...\", home.html:158; test :395) e' conforme.",
+    "fix": "Aggiungere a ColonnaConfronto un campo facoltativo per il nome della colonna dentro la frase (per esempio `nomeNelTesto`, di norma il titolo) e usarlo a AnteprimaArea.tsx:139. colonnaNonSigc (AnteprimaIstituzionale.tsx:53) passa 'non SIGC'. Aggiornare anteprime-home.test.tsx:424 e coprire il campo in kit-comune.test.tsx."
+  },
+  {
+    "id": "V-03",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/tema.css:397",
+    "titolo": "Valori in white-space: nowrap, contenitore a size containment e card con overflow: hidden: un importo sotto il milione con i centesimi puo' essere tagliato, non mandato a capo, a quattro card per riga",
+    "evidenza": "Le celle hanno `white-space: nowrap` (tema.css:397). Il contenitore ha `container-type: inline-size` (tema.css:391): il suo contenuto non allarga la traccia della griglia, quindi la tabella esce dal contenitore. La card ha `overflow: hidden` (tema.css:352), che ritaglia l'eccesso. importoBreve da' formatEuro coi centesimi sotto 1.000.000 (shared/lib/grafici/primitive.ts:81), per esempio '400.000,00 €' e '91.200,50 €', i valori delle fixture dei test (anteprime-home.test.tsx:285 e :265). A quattro card per riga (contenitore .ui-ambiti da 1040 px, tema.css:348-349; a 1440 px la card e' larga circa 260 px) la tabella ha circa 205-220 px, sotto i 15,5rem quindi a 1rem (tema.css:401-404). Stima, non resa (sola lettura): 'finanziate' circa 62 px, piu' circa 90 e 99 px per i due importi, cioe' circa 250 px. Sono circa 35 px oltre il contenitore e circa 14 px oltre il bordo interno della card: il simbolo dell'euro e forse una cifra della colonna SIGC spariscono senza segnale, che e' un numero letto male. Con totali in milioni ('12,3 M€') la tabella entra: per questo le foto della Home vera possono non mostrarlo. La resa stretta e' gia' un RESIDUO umano del doc (verifica-smp-non-sigc.md:267-269), ma il taglio silenzioso e' una conseguenza delle regole del kit, non del dato.",
+    "fix": "Nella container query stretta (tema.css:401-404) lasciar andare a capo i valori (`.ui-ambito__confronto td { white-space: normal }`, che spezza allo spazio prima di €), oppure ridurre la soglia dell'importo breve per la card. Poi una foto della card con le fixture (91.200,50 € e 400.000,00 €) a circa 1300-1440 px per chiudere il residuo. Evitare `overflow-x: auto` sul contenitore: richiederebbe una regione scorrevole raggiungibile da tastiera."
+  },
+  {
+    "id": "V-04",
+    "feature": "comune",
+    "severity": "COSMETICO",
+    "file": "src/shared/ui/tema.css:390",
+    "titolo": "Interlinea comune: nelle card di finanziario, fisico e procedurale passano a 1,4 anche le note sotto i numeri (dd), che avevano 1,15. Nessuna regressione di contenuto, effetto non detto e non fissato da un test",
+    "evidenza": "`.ui-ambito__anteprima .ui-ambito__nota` (specificita' 0,2,0; tema.css:390) batte `.ui-ambito__numeri dd { line-height: 1.15 }` (0,1,1; tema.css:386). Quindi anche `dd.ui-ambito__nota` di NumeroArea (AnteprimaArea.tsx:54) va da 1,15 a 1,4, in tutte le card: per esempio \"Manca il contributo di 1 intervento (SRA01).\" del procedurale (anteprime-home.test.tsx:143) e \"Conteggio non disponibile in questo momento.\" del finanziario (:475). Il commit 9621d56 motiva il cambio con \"ereditavano 28 px dal paragrafo di Bootstrap Italia\": vale per i p (NotaArea, etichette di AvanzamentoArea), non per i dd. Per le altre tre card ho verificato i selettori: nessun elemento perde stile, nessun pezzo cambia struttura, e tutti gli usi di NotaArea e AvanzamentoArea delle altre card stanno dentro AnteprimaArea. L'unico effetto e' l'interlinea: piu' corta per p e barre (da 28 px a 1,4), un po' piu' lunga per le note dd. Il progetto fissa le regole del tema con un test (regolaDelTema, tests/kit-comune-procedurale.test.tsx:20), ma le regole nuove (interlinea, nowrap, container query) non ne hanno.",
+    "fix": "Confermare l'effetto sulle note dd guardando la foto della card del procedurale con la nota del contributo. Se non e' voluto, restringere la regola a `p.ui-ambito__nota`. Poi fissarla con un test regolaDelTema in tests/kit-comune.test.tsx."
+  },
+  {
+    "id": "V-05",
+    "feature": "istituzionale",
+    "severity": "COSMETICO",
+    "file": "plan/istituzionale/uiplan.json:1029",
+    "titolo": "Provenance dei campi della card non aggiornata al rework 2: cita il riferimento e le etichette di prima, manca il perimetro di TX-0015",
+    "evidenza": "La voce uiplan.json:1029 dice \"esercizio e annoDomande della risposta (riferimento 'SIGC, esercizio aaaa' col periodo)\". Quel riferimento non esiste piu': l'esercizio e' nell'intestazione \"SIGC (esercizio aaaa)\", il periodo e l'anno delle domande nella nota (notaRiferimenti, anteprima.ts:140-146). La voce :1017 parla ancora di \"etichette 'della tua area'\", che ora e' l'intestazione \"Non SIGC (cumulativi della tua area)\". La colonna SIGC usa anche VerificaSmp.perimetro (AnteprimaIstituzionale.tsx:60, \"della tua area\" nell'intestazione), che non compare nella provenance del blocco SIGC (:1023, :1029). Lo uiplan del delta ha aggiornato la nota WCAG e OP-IS-11, non queste voci.",
+    "fix": "Al prossimo tocco dello uiplan: :1029 diventa \"esercizio, annoDomande e perimetro della risposta (intestazione 'SIGC (esercizio aaaa)', nota col periodo e l'anno delle domande)\"; :1017 diventa \"annoRiferimento (nota) e perimetro (intestazione 'Non SIGC (cumulativi della tua area)')\". Poi uiplan-validate. L'hash del wireframe non cambia: lo uiplan e' fuori dal baseline_ref."
+  }
+]

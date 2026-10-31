@@ -1,0 +1,52 @@
+[
+  {
+    "id": "X-01",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/lib/anteprima.ts:143",
+    "titolo": "Colonna SIGC: tolto \"nell'esercizio\" dalle etichette, la nota attribuisce \"domande dell'anno aaaa-1\" anche alle domande pagate, che per il pack e la pagina sono i pagamenti dell'esercizio (campagna n-1 e campagne anteriori)",
+    "evidenza": "Blind spot 1 e 3: le tre lenti hanno confrontato i testi col wireframe, non la semantica di ogni cella con la pagina e col pack. Prima del delta le etichette erano \"Domande pagate nell'esercizio\" e \"Spesa pubblica erogata nell'esercizio\" (ETICHETTE_SIGC in dbdd81c; home.html approvato il 30/10, righe 103-105). Ora la riga e' \"Domande pagate\" (anteprima.ts:100), l'intestazione \"SIGC (esercizio aaaa)\" vale per tutte e quattro le righe, compresi ricevute e finanziate, che sono domande della campagna n-1, e la nota dice \"SIGC: dal 16/10/2025 al 15/10/2026, domande dell'anno 2025.\" (anteprima.ts:143). Chi legge riferisce \"domande dell'anno 2025\" a tutte le righe di domande, quindi anche alle pagate. Pero' TX-0015 nel pack ha \"Numero domande pagate nell'esercizio finanziario n\" (transactions.json TX-0015). SC-IS_SMP_SIGC dice che il numero di domande pagate comprende \"solo le domande correnti delle campagne della spesa\", cioe' la campagna n-1 e le campagne anteriori (D-05 Rev. 4). La pagina scrive \"Domande pagate nell'esercizio\" (lib/verificaSigc.ts:69) e \"domande pagate e spesa erogata = pagamenti SIGC autorizzati nell'esercizio ... fra la campagna n-1 e le campagne anteriori\" (lib/formato.ts:87). Il wireframe approvato dichiara che \"per il SIGC domande pagate e spesa sono quelle dell'esercizio, ricevute e finanziate quelle delle domande dell'anno n-1, come dice la nota sotto la tabella\" (home.html:59; md:250-251), ma il testo della nota, approvato anch'esso (home.html:122, md:262), non lo dice. Il wireframe non e' coerente con se stesso, e la card e' l'unico posto dell'app dove le pagate SIGC non hanno un qualificatore.",
+    "fix": "Decide l'utente, con la riapprovazione del flusso. Proposta: la parte SIGC della nota distingue le righe, per esempio \"SIGC: pagate e spesa dal 16/10/2025 al 15/10/2026; ricevute e finanziate, domande dell'anno 2025.\" (notaRiferimenti, anteprima.ts:143). Poi aggiornare home.html:122 e :134, md:262, NOTA_SIGC (anteprime-home.test.tsx:228 e :371) e istituzionale-lib.test.ts:487 e :626. In alternativa una sola riga per la colonna SIGC, coerente con la pagina, e la nota cosi' com'e'."
+  },
+  {
+    "id": "X-02",
+    "feature": "istituzionale",
+    "severity": "COSMETICO",
+    "file": "wireframes/istituzionale/verifica-smp-non-sigc/verifica-smp-non-sigc.md:269",
+    "titolo": "Il residuo umano della resa stretta indica la fascia sbagliata (\"quattro card per riga sotto i 1300 px circa\") e manca la fascia stretta a due card per riga vicino a 992 px",
+    "evidenza": "Tutte e tre le lenti partono dal residuo del doc. V-03 chiede la foto \"a circa 1300-1440 px\". Dal tema: le card stanno 4 per riga solo con .ui-ambiti >= 1040 px (tema.css:348-349); menu di 280 px (tema.css:32 e :66), padding della pagina 1,75rem per lato (tema.css:70), corpo della card 1,25rem per lato (tema.css:378). Quindi si passa a 4 per riga solo da circa 1376 px piu' la barra di scorrimento, cioe' circa 1390 px. A 1300 px le card sono 2 per riga, con un corpo di circa 600 px, e non tagliano nulla. Il caso peggiore a 4 per riga e' appena sopra la soglia: corpo di circa 203 px a 1390 px. La container query (<= 15,5rem) resta attiva fino a circa 1570 px. C'e' poi una fascia non vista da nessuno: fra 992 px (il menu e' ancora visibile, tema.css:280-282) e circa 1010 px le card sono 2 per riga con un corpo di circa 268-285 px, senza container query, con i td a 1,15rem. A-01 stima che due importi sotto il milione chiedano 288 px a 1,15rem, quindi anche li' la colonna di destra si taglia. Le foto viste dall'utente (1680, 1440, 1100, 390) non comprendono ne' 1390 ne' circa 1000 px.",
+    "fix": "Correggere il residuo, md:269: \"resa alle larghezze strette: quattro card per riga fra circa 1390 e 1570 px (caso peggiore a circa 1390), due per riga col menu fra 992 e circa 1010 px\". Fare la verifica del taglio (V-03/H-01/A-01) a circa 1390 e a circa 1000 px con le fixture sotto il milione. Il doc e' nel baseline del wireframe: la correzione va col prossimo giro di approvazione."
+  },
+  {
+    "id": "X-03",
+    "feature": "comune",
+    "severity": "COSMETICO",
+    "file": "src/shared/ui/anteprima/AnteprimaArea.tsx:127",
+    "titolo": "Numero animato in una tabella a layout automatico con valori nowrap: per 700 ms le colonne cambiano larghezza a ogni frame, e con un totale poco sopra il milione la cella passa per importi coi centesimi piu' larghi del valore finale",
+    "evidenza": "Le lenti hanno misurato solo i valori finali (\"con importi in milioni ci sta\", V-03, H-01, A-01). Il valore animato pero' non e' quello finale. NumeroAnimato (animazione/NumeroAnimato.tsx:44-52) mostra il valore intermedio formattato, mentre il valore finale sta in uno span visually-hidden, posizionato in assoluto, che non riserva larghezza. La tabella e' a layout automatico (tema.css:392, width 100%) con td nowrap (tema.css:397). Quindi a ogni frame cambia la larghezza minima delle colonne dei numeri, e la colonna delle etichette di riga si stringe e si allarga: \"Spesa pubblica erogata\" va a capo su 1-3 righe e l'altezza della card cambia. Nella griglia della Home le quattro card hanno l'altezza della piu' alta, quindi si muove tutta la riga. Per la spesa, importoBreve passa da formatEuro coi centesimi a \"M€\" (primitive.ts:80-82). Con un totale finale di 1,5 M€ la cella mostra valori tipo \"999.999,99 €\" (12 caratteri, piu' largo di \"1,5 M€\") per circa il 31% dell'animazione, cioe' circa 215 ms con l'uscita cubica di useValoreAnimato. Il taglio delle lenti si vede quindi anche con dati in milioni, per un istante. Prima del delta i dd stavano in tracce fisse (minmax(8.5rem, 1fr), tema.css:384) con overflow-wrap: anywhere: il numero animato non spostava le etichette.",
+    "fix": "Riservare nella cella la larghezza del valore finale. Per esempio, in CellaDelConfronto un contenitore `display: inline-grid` con due figli nella stessa area: il valore finale con `visibility: hidden` e aria-hidden (fa da misura) e sopra NumeroAnimato. Classi in tema.css, niente stili inline (CSP). In alternativa `table-layout: fixed` con larghezze dichiarate per la colonna delle etichette. Controllo nella stessa foto chiesta per V-03, con un totale di poco sopra il milione."
+  },
+  {
+    "id": "X-04",
+    "feature": "istituzionale",
+    "severity": "COSMETICO",
+    "file": "src/features/istituzionale/ui/AnteprimaIstituzionale.tsx:79",
+    "titolo": "Con un solo grant la didascalia della tabella dice ancora \"verifica SMP non SIGC e SIGC\" su una tabella con una sola colonna",
+    "evidenza": "Il titolo di ConfrontoArea e' fisso (AnteprimaIstituzionale.tsx:79), mentre le colonne dipendono dai grant (:73). Col solo csr.tx-0015.read un lettore di schermo sente \"L'istituzionale in cifre: verifica SMP non SIGC e SIGC, tabella\" e poi trova solo \"SIGC (esercizio aaaa)\". Lo stesso col solo grant non SIGC. Il wireframe da' la didascalia nello stato coi due grant (home.html:90, md:248-249) e per un solo grant dice solo \"la tabella ha la sola sua colonna\" (home.html:59 e :156). I test fissano la didascalia doppia anche col solo grant SIGC (anteprime-home.test.tsx:227 e :243, usata nel test del solo SIGC). Oggi nessun profilo del catalogo rev. 4 ha un solo dei due grant.",
+    "fix": "Comporre la didascalia dalle colonne presenti: \"L'istituzionale in cifre: verifica SMP non SIGC\" / \"...: verifica SMP SIGC\" / \"...: verifica SMP non SIGC e SIGC\", per esempio con una funzione pura in lib/anteprima.ts. Aggiornare i test del solo grant (anteprime-home.test.tsx, i due casi con un grant) e app-aree.test.tsx se cerca la tabella per nome."
+  },
+  {
+    "id": "X-05",
+    "feature": "istituzionale",
+    "severity": "COSMETICO",
+    "file": "tests/anteprime-home.test.tsx:288",
+    "titolo": "Due affermazioni dei test non distinguono l'implementazione giusta da una sbagliata: testo del trattino nascosto alla vista, ed esercizio dell'intestazione preso dalla risposta",
+    "evidenza": "(1) \"un trattino per gli occhi, il perche' per i lettori di schermo\" (anteprime-home.test.tsx:287-289, e kit-comune.test.tsx con '—dato non previsto nella fonte A'). I test controllano il textContent della cella e l'aria-hidden del trattino, ma non che la frase sia visually-hidden: senza la classe di AnteprimaArea.tsx:120 la frase resterebbe visibile nella card e i test passerebbero. (2) Il commento di colonnaSigc dice \"l'esercizio dell'intestazione e' quello della risposta, prima della risposta quello chiesto\" (AnteprimaIstituzionale.tsx:56-60), ma letturaSigc rimanda sempre l'esercizio chiesto (verificaSigcPer, :231-241). Il test del confine (:370 e :379) trova l'intestazione anche prima della risposta. Nessun test vede la differenza fra `p?.esercizio ?? esercizio` e il solo `esercizio`.",
+    "fix": "(1) Aggiungere `expect(within(t).getByText('dato non previsto nella verifica non SIGC').classList.contains('visually-hidden')).toBe(true)`, e lo stesso nel test del kit. (2) Un caso con una risposta TX-0015 che dichiara un esercizio diverso da quello chiesto (`HttpResponse.json({ ...VERIFICA_SMP, esercizio: ESERCIZIO - 1 })`), con l'intestazione e la nota attese su quell'esercizio dopo la lettura."
+  },
+  {
+    "id": "X-C1",
+    "contesta": "V-03",
+    "evidenza": "Il finding resta valido; e' sbagliato solo l'intervallo del controllo nel fix (\"una foto ... a circa 1300-1440 px\"). Fra 992 e circa 1390 px le card sono 2 per riga (tema.css:348-349, con menu di 280 px e padding di 1,75rem). A 1300 px il corpo e' largo circa 600 px e non taglia. Il caso peggiore e' a circa 1390 px (4 per riga, corpo di circa 203 px), e c'e' una seconda fascia stretta fra 992 e circa 1010 px (2 per riga, corpo di circa 268-285 px, td a 1,15rem): vedi X-02. Nemmeno l'affermazione condivisa da V-03, H-01 e A-01 che i valori in milioni ci stiano regge durante l'animazione: vedi X-03."
+  }
+]
