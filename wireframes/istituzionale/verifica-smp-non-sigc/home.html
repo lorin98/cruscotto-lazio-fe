@@ -3,7 +3,9 @@
      Istituzionale della Home coi totali della verifica SMP non SIGC (decisione dell'utente del 26/10/2026). La Home non e'
      una route della feature: la card e' contenuto della feature (G1) e la monta lo step6 in src/app/aree.ts, come quella del
      finanziario. Aggiornato il 30/10/2026 per il riallineamento degli ambiti (MIN-20261029): descrizione e contenuti
-     dell'area = le due verifiche SMP (SIGC e non SIGC); i numeri non cambiano. Valori di esempio, nessun dato reale. -->
+     dell'area = le due verifiche SMP (SIGC e non SIGC); i numeri non cambiano. Rework 2 del 31/10/2026 (richiesta e scelta
+     dell'utente): i due blocchi diventano una tabella a confronto, un'etichetta per riga e una colonna per verifica, per
+     portare la card all'altezza delle altre tre; stessi numeri. Valori di esempio, nessun dato reale. -->
 <html lang="it">
 <head>
 <meta charset="utf-8">
@@ -54,6 +56,7 @@
     <p class="wf-note">Card Istituzionale. Ruoli (grant verbatim): csr.tx-0016.read per il blocco non SIGC, csr.tx-0015.read per il blocco SIGC - Transazioni: TX-0016, letta senza filtri e senza anno (la stessa lettura della pagina Verifica SMP non SIGC aperta senza filtri, in cache condivisa); TX-0015, letta senza filtri con l'ultimo esercizio chiuso (scelta dell'utente del 30/10/2026: l'esercizio n va dal 16/10/n-1 al 15/10/n, quindi dal 16/10 di un anno l'ultimo chiuso e' quello dell'anno, prima e' quello dell'anno precedente; la stessa lettura della pagina Verifica SMP SIGC aperta con quell'esercizio). L'output regionale (TX-0017) e' passato al fisico (MIN-20261029). Senza un grant il suo blocco non legge nulla; senza nessuno dei due la card mostra i contenuti dell'area (gate di UX, mai sicurezza). Le altre tre card sono fuori da questo flusso.</p>
     <p class="wf-note">Blocco non SIGC: i totali di quattro colonne della tabella della verifica, sommate fra gli interventi della risposta. Si sommano perche' ogni domanda e' una domanda di sostegno corrente di un solo intervento (D-02 Rev. 2 del backend) e la spesa erogata sono righe pagate non SIGC (anticipi inclusi, al lordo dei recuperi). Se in una riga un dato motivato manca, il totale e' "non disponibile" col motivo: mai una somma parziale. La pagina della verifica non cambia (resta senza KPI).</p>
     <p class="wf-note">Blocco SIGC (richiesta dell'utente del 30/10/2026): i totali di quattro colonne della verifica SMP SIGC, sommate fra gli interventi della risposta con la stessa regola (ogni domanda e' di un solo intervento; un dato motivato assente in una riga rende il totale "non disponibile" col motivo): domande ricevute e domande finanziate (domande dell'anno n-1), domande pagate nell'esercizio, spesa pubblica erogata nell'esercizio (spesa della campagna precedente piu' quella delle campagne anteriori). Nessuna quota: la spesa dell'esercizio comprende campagne anteriori e non si confronta col valore delle domande dell'anno n-1. Il riferimento dice esercizio e periodo.</p>
+    <p class="wf-note">Tabella a confronto (rework 2 del 31/10/2026, richiesta e scelta dell'utente: la card era molto piu' alta delle altre tre): un'etichetta per riga, in ordine ricevute, finanziate, pagate, spesa, e una colonna per verifica, Non SIGC (valori cumulativi) e SIGC (ultimo esercizio chiuso). I numeri sono quelli dei due blocchi di prima; per il SIGC domande pagate e spesa sono quelle dell'esercizio, ricevute e finanziate quelle delle domande dell'anno n-1, come dice la nota sotto la tabella. Le due colonne restano letture indipendenti: scheletro, errore e "non disponibile" per colonna. Le colonne si leggono una accanto all'altra ma non si sommano (cumulativi contro esercizio). "Domande pagate" e' solo della verifica SIGC: nella colonna non SIGC un trattino, ai lettori di schermo "dato non previsto nella verifica non SIGC". La barra resta solo per la spesa non SIGC sul valore finanziato. La nota sotto la tabella sostituisce i due riferimenti di prima e conserva cosa diceva D3 (valori cumulativi, anno dell'ultimo file): "Non SIGC: ultimo file SMP aaaa" (senza file "Non SIGC: nessun file SMP") e "SIGC: dal 16/10/aaaa-1 al 15/10/aaaa, domande dell'anno aaaa-1"; le colonne dicono "cumulativi" ed "esercizio aaaa". Col perimetro ADA l'intestazione della colonna dice "della tua area". Con un solo grant la tabella ha la sola sua colonna (senza il SIGC niente riga "Domande pagate").</p>
     <div class="ui-griglia ui-griglia--4">
       <section class="ui-card" aria-labelledby="area-finanziario">
         <div class="ui-card__testa">
@@ -83,67 +86,77 @@
         </div>
         <p>Dati ASR SIGC e non SIGC per intervento, da confrontare con SMP - Data Platform.</p>
         <div role="group" aria-label="L'istituzionale in cifre">
-          <p class="ui-eyebrow">Non SIGC, valori cumulativi (ultimo file SMP non SIGC: aaaa)</p>
-          <dl>
-            <dt>Domande finanziate</dt>
-            <dd class="ui-kpi__valore">nnn</dd>
-            <dt>Spesa pubblica erogata</dt>
-            <dd class="ui-kpi__valore">n,n M euro</dd>
-          </dl>
-          <p class="ui-barra">Spesa erogata sul valore delle domande finanziate: n,n % (barra a passi del 5 %, decorativa: la percentuale e' nel testo)</p>
-          <dl>
-            <dt>Domande ricevute</dt>
-            <dd class="ui-kpi__valore">n.nnn</dd>
-          </dl>
-          <div role="group" aria-label="SIGC, esercizio aaaa">
-            <p class="ui-eyebrow">SIGC, esercizio aaaa (16/10/aaaa-1 - 15/10/aaaa; domande dell'anno aaaa-1)</p>
-            <dl>
-              <dt>Domande finanziate</dt>
-              <dd class="ui-kpi__valore">nnn</dd>
-              <dt>Spesa pubblica erogata nell'esercizio</dt>
-              <dd class="ui-kpi__valore">n,n M euro</dd>
-              <dt>Domande pagate nell'esercizio</dt>
-              <dd class="ui-kpi__valore">nnn</dd>
-              <dt>Domande ricevute</dt>
-              <dd class="ui-kpi__valore">n.nnn</dd>
-            </dl>
-          </div>
+          <table class="ui-tabella">
+            <caption>L'istituzionale in cifre: verifica SMP non SIGC e SIGC</caption>
+            <thead>
+              <tr>
+                <td></td>
+                <th scope="col">Non SIGC (cumulativi)</th>
+                <th scope="col">SIGC (esercizio aaaa)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Domande ricevute</th>
+                <td>n.nnn</td>
+                <td>nn.nnn</td>
+              </tr>
+              <tr>
+                <th scope="row">Domande finanziate</th>
+                <td>nnn</td>
+                <td>nn.nnn</td>
+              </tr>
+              <tr>
+                <th scope="row">Domande pagate</th>
+                <td>- (dato non previsto nella verifica non SIGC)</td>
+                <td>nn.nnn</td>
+              </tr>
+              <tr>
+                <th scope="row">Spesa pubblica erogata</th>
+                <td>n,n M euro</td>
+                <td>nn,n M euro</td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="ui-barra">Spesa non SIGC sul valore finanziato: n,n % (barra a passi del 5 %, decorativa: la percentuale e' nel testo)</p>
+          <p class="ui-fonte">Non SIGC: ultimo file SMP aaaa. SIGC: dal 16/10/aaaa-1 al 15/10/aaaa, domande dell'anno aaaa-1.</p>
         </div>
         <a class="btn btn-primary" href="verifica-smp-non-sigc.html">Entra in Istituzionale</a>
       </section>
     </div>
     <h2>Stato: caricamento</h2>
-    <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro al posto dei numeri di ciascun blocco, non SIGC e SIGC, finche' la sua lettura non finisce; fascia, testo e "Entra in Istituzionale" restano)</div>
+    <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro nelle celle della colonna, non SIGC o SIGC, finche' la sua lettura non finisce; intestazioni, etichette delle righe, fascia, testo e "Entra in Istituzionale" restano)</div>
     <h2>Stato: errore</h2>
     <p class="ui-fonte">Dati della verifica SMP non SIGC non disponibili in questo momento.</p>
     <p class="ui-fonte">Dati della verifica SMP SIGC non disponibili in questo momento.</p>
-    <p class="wf-note">Un errore non ferma la Home e non apre un avviso della pagina: la card resta l'ingresso all'area, come la card del finanziario. I due blocchi sono indipendenti: se una lettura fallisce, l'altro blocco resta coi suoi numeri.</p>
+    <p class="wf-note">Un errore non ferma la Home e non apre un avviso della pagina: la card resta l'ingresso all'area, come la card del finanziario. Le due colonne sono indipendenti: se una lettura fallisce, le sue celle dicono "non disponibile", la frase va sotto la tabella e l'altra colonna resta coi suoi numeri.</p>
     <h2>Stato: nessun file SMP non SIGC</h2>
-    <p class="ui-eyebrow">Non SIGC, valori cumulativi (nessun file SMP non SIGC)</p>
+    <p class="ui-fonte">Non SIGC: nessun file SMP. SIGC: dal 16/10/aaaa-1 al 15/10/aaaa, domande dell'anno aaaa-1.</p>
     <p class="wf-note">Senza anno di riferimento nella risposta i numeri restano: domande e spesa vengono dalle pratiche, non dal file SMP (come lo stato "nessun file SMP non SIGC" della pagina).</p>
     <h2>Stato: un dato motivato assente in una riga</h2>
-    <dl>
-      <dt>Spesa pubblica erogata</dt>
-      <dd>non disponibile</dd>
-      <dd class="ui-fonte">non disponibile: fonte non attiva (spesa erogata)</dd>
-    </dl>
-    <p class="ui-fonte">Spesa erogata sul valore delle domande finanziate: non disponibile</p>
+    <table class="ui-tabella">
+      <caption>Una cella senza totale</caption>
+      <tbody>
+        <tr>
+          <th scope="row">Spesa pubblica erogata</th>
+          <td>non disponibile</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="ui-fonte">Spesa pubblica erogata, non SIGC: non disponibile: fonte non attiva (spesa erogata)</p>
+    <p class="ui-fonte">Spesa non SIGC sul valore finanziato: non disponibile</p>
     <p class="wf-note">Il totale di un dato motivato esiste solo se ogni riga lo ha: altrimenti "non disponibile" col motivo (entity importo), e la quota che lo usa non c'e'. La quota non c'e' nemmeno con valore finanziato nullo. Se la spesa supera il valore finanziato la percentuale e' quella vera e la barra si ferma al 100 %.</p>
     <h2>Stato: perimetro ADA</h2>
-    <p class="wf-note">TX-0016 dichiara il perimetro della risposta: col perimetro ADA le etichette dicono "della tua area", come nella card del finanziario. Oggi nessun profilo con csr.tx-0016.read ha il perimetro ADA (catalogo: p1-dirigente, p2-referente-adg, p3-funzionario-area-ist).</p>
+    <p class="wf-note">TX-0016 dichiara il perimetro della risposta: col perimetro ADA l'intestazione della colonna dice "della tua area" ("Non SIGC (cumulativi della tua area)"), come le etichette della card del finanziario. Oggi nessun profilo con csr.tx-0016.read ha il perimetro ADA (catalogo: p1-dirigente, p2-referente-adg, p3-funzionario-area-ist).</p>
     <h2>Stato: profilo senza csr.tx-0016.read</h2>
     <ul>
       <li>Verifica SMP dei dati ASR non SIGC</li>
       <li>Verifica SMP dei dati ASR SIGC per esercizio finanziario</li>
     </ul>
-    <p class="wf-note">Nessuna lettura: la card elenca cosa c'e' nell'area, come oggi. Nel catalogo rev. 4 i profili con csr.tx-0015.read e quelli con csr.tx-0016.read sono gli stessi (p1-dirigente, p2-referente-adg, p3-funzionario-area-ist): oggi nessuno entra nell'area senza i numeri della card, e nessuno vede un solo blocco. Con un solo grant si vedrebbe solo il suo blocco.</p>
-    <h2>Stato: un dato motivato assente in una riga del blocco SIGC</h2>
-    <dl>
-      <dt>Spesa pubblica erogata nell'esercizio</dt>
-      <dd>non disponibile</dd>
-      <dd class="ui-fonte">non disponibile: fonte non attiva (spesa erogata)</dd>
-    </dl>
-    <p class="wf-note">Stessa regola del blocco non SIGC: il totale esiste solo se ogni riga ha il dato (spesa della campagna precedente e delle campagne anteriori), altrimenti "non disponibile" col motivo. Senza domande SIGC nell'esercizio i conteggi sono 0 (conteggio vero) e la spesa segue i motivi della risposta (TX-0015 non valorizza un importo senza importi nel database).</p>
+    <p class="wf-note">Nessuna lettura: la card elenca cosa c'e' nell'area, come oggi. Nel catalogo rev. 4 i profili con csr.tx-0015.read e quelli con csr.tx-0016.read sono gli stessi (p1-dirigente, p2-referente-adg, p3-funzionario-area-ist): oggi nessuno entra nell'area senza i numeri della card, e nessuno vede una sola colonna. Con un solo grant si vedrebbe solo la sua colonna.</p>
+    <h2>Stato: un dato motivato assente in una riga della colonna SIGC</h2>
+    <p class="ui-fonte">Spesa pubblica erogata, SIGC: non disponibile: fonte non attiva (spesa erogata)</p>
+    <p class="wf-note">La cella dice "non disponibile" e il motivo va sotto la tabella, con riga e colonna. Stessa regola della colonna non SIGC: il totale esiste solo se ogni riga ha il dato (spesa della campagna precedente e delle campagne anteriori), altrimenti "non disponibile" col motivo. Senza domande SIGC nell'esercizio i conteggi sono 0 (conteggio vero) e la spesa segue i motivi della risposta (TX-0015 non valorizza un importo senza importi nel database).</p>
   </main>
 </div>
 <footer class="ui-footer">

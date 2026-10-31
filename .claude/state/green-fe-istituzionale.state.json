@@ -23,10 +23,10 @@
       "status": "done",
       "gates": {
         "wireframe_verifica-smp-non-sigc": {
-          "approved_hash": "sha256:50b56a897a73b49c4d196a5efdb3a96a6fd6c237280bdfdca0528bed9079c3ce",
+          "approved_hash": "sha256:36cdd0dfc616dd5e237078a6999a08a4dcf6bb7d18bad91960ec9de0a27ff193",
           "baseline_ref": "./wireframes/istituzionale/verifica-smp-non-sigc",
-          "approved_at": "2026-10-30T07:36:54Z",
-          "time_to_approve_s": 74,
+          "approved_at": "2026-10-31T07:56:49Z",
+          "time_to_approve_s": 88,
           "deviations_reviewed": []
         },
         "wireframe_verifica-smp-sigc": {

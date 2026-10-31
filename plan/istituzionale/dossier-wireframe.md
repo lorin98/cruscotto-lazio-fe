@@ -23,6 +23,15 @@ nessuna quota), letture e stati indipendenti. Supera la scelta di disegno 3 di q
 nota "nessun esercizio predefinito inventato". Cambiano `home.html`, `verifica-smp-non-sigc.md` e lo uiplan (due campi
 della card, testo del flusso); lint e uiplan-validate verdi.
 
+Rework 2 della card della Home (31/10/2026, richiesta dell'utente dall'app accesa: la card era molto piu' alta delle altre
+tre). Fra tabella a confronto, due colonne affiancate e interruttore Non SIGC / SIGC l'utente sceglie la tabella: righe
+domande ricevute, finanziate, pagate (solo SIGC) e spesa pubblica erogata, colonne Non SIGC (cumulativi) e SIGC
+(esercizio), barra della spesa non SIGC sul valore finanziato e una nota coi riferimenti, che sostituisce i due
+riferimenti di prima e conserva cio' che diceva D3. Stessi numeri, letture indipendenti per colonna. Cambiano `home.html`,
+`verifica-smp-non-sigc.md` e lo uiplan (nota WCAG della card, OP-IS-11); lint, uiplan-validate e fe-project-check rc 0.
+Riapprovato dall'utente il 2026-10-31T07:56:49Z (time_to_approve_s 88, rework 2),
+`sha256:36cdd0dfc616dd5e237078a6999a08a4dcf6bb7d18bad91960ec9de0a27ff193`.
+
 ## Cosa cambia per il riallineamento (29/10/2026)
 
 - **Entra TX-0015, verifica SMP SIGC (RF015)**: dal finanziario all'istituzionale (A-1). Flusso nuovo

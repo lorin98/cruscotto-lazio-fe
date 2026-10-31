@@ -23,6 +23,10 @@ SMP non SIGC" e "Verifica SMP SIGC" (non piu' "Output regionale"), e le altre ar
 la card della Home ha descrizione e contenuti nuovi (le due verifiche), con gli stessi numeri. Non cambiano TX-0016, le
 colonne, il grafico, i filtri, i link verso il dettaglio e verso l'elenco.
 
+Rework 2 del 31/10/2026 (richiesta e scelta dell'utente): la card della Home mette i numeri non SIGC e SIGC in una tabella
+a confronto, per portarla all'altezza delle altre tre; stessi numeri. Vedi "Tabella a confronto" in "Card della Home". La
+pagina della verifica non cambia.
+
 ## Route del flusso
 
 | route | kind | pattern | grant (verbatim dal catalogo) |
@@ -234,6 +238,35 @@ titolo, descrizione), numeri chiave nel corpo, "Entra in Istituzionale" nel pied
   animato e' letto solo nel valore finale e non si anima con prefers-reduced-motion (kit `NumeroAnimato`); la barra e'
   nascosta ai lettori di schermo e la percentuale e' nel testo. RESIDUO umano: ordine di lettura della card, comprensibilita'
   di "non SIGC" e dell'anno di riferimento, contrasto della resa finale; axe deferito a step8.
+
+### Tabella a confronto (rework 2 del 31/10/2026, richiesta e scelta dell'utente)
+
+La card coi due blocchi in colonna era molto piu' alta delle altre tre (8 numeri contro 3-4). L'utente ha scelto, fra
+tabella a confronto, due colonne affiancate e interruttore Non SIGC / SIGC, la tabella. Supera la resa dei due blocchi
+descritta sopra; letture, somme, motivi, grant, stati e perimetro restano quelli sopra.
+
+- Un gruppo con nome "L'istituzionale in cifre" con una tabella (caption nascosta "L'istituzionale in cifre: verifica SMP
+  non SIGC e SIGC"): righe Domande ricevute, Domande finanziate, Domande pagate, Spesa pubblica erogata (`th scope=row`),
+  colonne "Non SIGC (cumulativi)" e "SIGC (esercizio aaaa)" (`th scope=col`). Le celle sono i totali di prima: per il SIGC
+  domande pagate e spesa sono quelle dell'esercizio, ricevute e finanziate quelle delle domande dell'anno n-1.
+- "Domande pagate" c'e' solo nella verifica SIGC: nella colonna non SIGC un trattino, ai lettori di schermo "dato non
+  previsto nella verifica non SIGC". Senza il grant SIGC la riga non c'e'.
+- Le colonne restano letture indipendenti: in attesa le celle della colonna hanno lo scheletro (con un solo
+  `role="status"` "Caricamento in corso"); in errore dicono "non disponibile" e sotto la tabella va la frase di prima
+  ("Dati della verifica SMP SIGC non disponibili in questo momento."). Con un solo grant la tabella ha la sola sua colonna.
+- Un totale non disponibile: la cella dice "non disponibile" e sotto la tabella il motivo con riga e colonna ("Spesa
+  pubblica erogata, non SIGC: <motivo>").
+- Sotto la tabella la barra della spesa non SIGC sul valore finanziato ("Spesa non SIGC sul valore finanziato", stessa
+  regola di prima; senza quota "Spesa non SIGC sul valore finanziato: <motivo>"), poi la nota dei riferimenti, che
+  sostituisce i due riferimenti di prima e conserva cio' che diceva D3 (valori cumulativi nella colonna, anno dell'ultimo
+  file nella nota): "Non SIGC: ultimo file SMP aaaa. SIGC: dal 16/10/aaaa-1 al 15/10/aaaa, domande dell'anno aaaa-1."
+  (senza file "Non SIGC: nessun file SMP.").
+- Perimetro ADA: l'intestazione della colonna dice "della tua area" ("Non SIGC (cumulativi della tua area)").
+- Le due colonne si leggono una accanto all'altra ma non si sommano: cumulativi contro esercizio, come dicono intestazioni
+  e nota.
+- WCAG: tabella di dati con intestazioni di riga e di colonna (ogni cella si legge con la sua riga e la sua colonna); numero
+  animato e barra come sopra. RESIDUO umano: lettura della tabella con un lettore di schermo reale, resa alle larghezze
+  strette (quattro card per riga sotto i 1300 px circa); axe allo step8.
 
 ## Stati resi (obbligatori)
 
