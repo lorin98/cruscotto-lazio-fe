@@ -1,76 +1,79 @@
 // AnteprimaIstituzionale — i numeri chiave dell'istituzionale nella card dell'area della Home (flusso verifica-smp-non-sigc
-// approvato, home.html, OP-IS-11; decisione dell'utente del 26/10/2026 e rework 1 della card del 30/10/2026). Due blocchi,
-// ognuno col grant della sua transazione, che leggono e falliscono in modo indipendente (scheletro e frase d'errore per
-// blocco):
-// - non SIGC (csr.tx-0016.read): domande finanziate, spesa pubblica erogata, quota della spesa sul valore delle domande
-//   finanziate (barra) e domande ricevute, totali della verifica SMP non SIGC (lib/anteprima) con l'anno dell'ultimo file
-//   (valori cumulativi, D3), dalla lettura di TX-0016 coi criteri della pagina aperta senza filtri ne' anno (stessa cache,
-//   a lettura finita, D2);
-// - SIGC (csr.tx-0015.read), in un gruppo col nome dell'esercizio: domande finanziate, spesa pubblica erogata
-//   nell'esercizio (campagna precedente + campagne anteriori), domande pagate nell'esercizio, domande ricevute, da TX-0015
-//   senza filtri con l'ultimo esercizio chiuso (dal 16/10 di un anno quello dell'anno, prima quello precedente, nel
-//   calendario italiano qualunque sia il fuso del browser: decisione D3; la stessa lettura della pagina Verifica SMP SIGC
-//   aperta con quell'esercizio); nessuna quota.
-// Nessuna lettura di TX-0017 (output regionale, del fisico dal 29/10/2026). Senza nessuno dei due grant, `altrimenti` (cosa
-// c'e' nell'area). Un errore non ferma la Home: la card resta l'ingresso all'area e dice che il dato non e' disponibile.
-// Pezzi del kit (AnteprimaArea) come la card del finanziario.
+// approvato, home.html, OP-IS-11; decisione dell'utente del 26/10/2026, rework 1 della card del 30/10/2026 e rework 2 del
+// 31/10/2026). Una tabella a confronto (kit ConfrontoArea): righe domande ricevute, finanziate, pagate e spesa pubblica
+// erogata, una colonna per verifica, ognuna col grant della sua transazione, che legge e fallisce in modo indipendente
+// (scheletro nelle sue celle, "non disponibile" e frase d'errore sotto la tabella):
+// - non SIGC (csr.tx-0016.read): domande ricevute, domande finanziate e spesa pubblica erogata, totali della verifica SMP
+//   non SIGC (lib/anteprima), valori cumulativi (D3), dalla lettura di TX-0016 coi criteri della pagina aperta senza
+//   filtri ne' anno (stessa cache, a lettura finita, D2); niente domande pagate (un trattino). Sotto la tabella la quota
+//   della spesa sul valore delle domande finanziate (barra);
+// - SIGC (csr.tx-0015.read): domande ricevute e finanziate (domande dell'anno n-1), domande pagate e spesa pubblica
+//   erogata nell'esercizio (campagna precedente + campagne anteriori), da TX-0015 senza filtri con l'ultimo esercizio
+//   chiuso (dal 16/10 di un anno quello dell'anno, prima quello precedente, nel calendario italiano qualunque sia il fuso
+//   del browser: decisione D3; la stessa lettura della pagina Verifica SMP SIGC aperta con quell'esercizio); nessuna quota.
+// In fondo la nota dei riferimenti (anno dell'ultimo file, periodo dell'esercizio). Nessuna lettura di TX-0017 (output
+// regionale, del fisico dal 29/10/2026). Senza nessuno dei due grant, `altrimenti` (cosa c'e' nell'area). Un errore non
+// ferma la Home: la card resta l'ingresso all'area e dice che il dato non e' disponibile. Pezzi del kit (AnteprimaArea)
+// come la card del finanziario.
 import type { ReactNode } from 'react';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
-import { importoBreve, intero } from '../../../shared/lib';
-import { AnteprimaArea, AttesaArea, AvanzamentoArea, NotaArea, NumeriArea, NumeroArea, RiferimentoArea } from '../../../shared/ui';
+import { AnteprimaArea, AvanzamentoArea, ConfrontoArea, NotaArea } from '../../../shared/ui';
+import type { ColonnaConfronto } from '../../../shared/ui';
 import { useVerificaSmpNonSigc, useVerificaSmpSigc } from '../api';
-import type { VerificaSmp } from '../api';
-import { anteprimaVerifica, anteprimaVerificaSigc, etichetteAnteprima, etichetteAnteprimaSigc, nomeGruppoSigc, riferimentoAnteprima, riferimentoAnteprimaSigc } from '../lib/anteprima';
+import type { VerificaSmp, VerificaSmpNonSigc } from '../api';
+import { QUOTA_NON_SIGC, SENZA_DATO_NON_SIGC, anteprimaVerifica, anteprimaVerificaSigc, celleNonSigc, celleSigc, intestazioneNonSigc, intestazioneSigc, notaRiferimenti, righeCard } from '../lib/anteprima';
+import type { AnteprimaVerifica } from '../lib/anteprima';
 import { criteriVerificaSenzaFiltri, esercizioUltimoChiuso, filtriVerificaSigcSenzaFiltri } from '../lib/criteri';
 import { puoLeggere } from '../lib/grant';
 import { periodoDellaRisposta } from '../lib/verificaSigc';
 
-function Verifica() {
-  const { data, isPending, isError } = useVerificaSmpNonSigc(criteriVerificaSenzaFiltri());
-  if (isPending) return <AttesaArea />;
-  if (isError || !data) return <NotaArea>Dati della verifica SMP non SIGC non disponibili in questo momento.</NotaArea>;
-  const a = anteprimaVerifica(data);
-  const e = etichetteAnteprima(data.perimetro);
-  return (
-    <>
-      <RiferimentoArea>{riferimentoAnteprima(data.annoRiferimento)}</RiferimentoArea>
-      <NumeriArea>
-        <NumeroArea etichetta={e.finanziate} valore={a.domandeFinanziate} formato={intero} />
-        <NumeroArea etichetta={e.spesa} valore={a.spesaErogata.valore} motivo={a.spesaErogata.motivo} formato={importoBreve} />
-      </NumeriArea>
-      {a.quotaSpesa.valore !== null ? <AvanzamentoArea etichetta={e.quota} percentuale={a.quotaSpesa.valore} /> : <NotaArea>{`${e.quota}: ${a.quotaSpesa.motivo}`}</NotaArea>}
-      <NumeriArea>
-        <NumeroArea etichetta={e.ricevute} valore={a.domandeRicevute} formato={intero} />
-      </NumeriArea>
-    </>
-  );
+/** La quota della spesa non SIGC sul valore finanziato: barra, oppure il motivo per cui manca. */
+function Quota({ a }: { a: AnteprimaVerifica }) {
+  return a.quotaSpesa.valore !== null ? <AvanzamentoArea etichetta={QUOTA_NON_SIGC} percentuale={a.quotaSpesa.valore} /> : <NotaArea>{`${QUOTA_NON_SIGC}: ${a.quotaSpesa.motivo}`}</NotaArea>;
 }
 
-/** I numeri del blocco SIGC dalla risposta: riferimento con esercizio e periodo, quattro totali, nessuna quota. */
-function NumeriSigc({ d, esercizio }: { d: VerificaSmp; esercizio: number }) {
-  const a = anteprimaVerificaSigc(d);
-  const e = etichetteAnteprimaSigc(d.perimetro);
-  const p = periodoDellaRisposta(d, esercizio);
-  return (
-    <>
-      <RiferimentoArea>{riferimentoAnteprimaSigc(p.esercizio, p.annoDomande)}</RiferimentoArea>
-      <NumeriArea>
-        <NumeroArea etichetta={e.finanziate} valore={a.domandeFinanziate.valore} motivo={a.domandeFinanziate.motivo} formato={intero} />
-        <NumeroArea etichetta={e.spesa} valore={a.spesaErogata.valore} motivo={a.spesaErogata.motivo} formato={importoBreve} />
-        <NumeroArea etichetta={e.pagate} valore={a.domandePagate.valore} motivo={a.domandePagate.motivo} formato={intero} />
-        <NumeroArea etichetta={e.ricevute} valore={a.domandeRicevute.valore} motivo={a.domandeRicevute.motivo} formato={intero} />
-      </NumeriArea>
-    </>
-  );
+/** Lo stato di una lettura che serve a una colonna: la risposta, se c'e', e se la lettura e' fallita. */
+interface Lettura<T> {
+  data?: T;
+  isError: boolean;
 }
 
-function VerificaSigc() {
+/** Le celle di una colonna dalla sua lettura: i valori, null se e' fallita, undefined mentre legge. */
+function celleDellaLettura<T>({ data, isError }: Lettura<T>, celle: (d: T) => ColonnaConfronto['celle']): ColonnaConfronto['celle'] {
+  if (data) return celle(data);
+  return isError ? null : undefined;
+}
+
+function colonnaNonSigc(lettura: Lettura<VerificaSmpNonSigc>): ColonnaConfronto {
+  return { chiave: 'non-sigc', ...intestazioneNonSigc(lettura.data?.perimetro), celle: celleDellaLettura(lettura, (d) => celleNonSigc(anteprimaVerifica(d))), senzaDato: SENZA_DATO_NON_SIGC };
+}
+
+/** La colonna SIGC: l'esercizio dell'intestazione e' quello della risposta, prima della risposta quello chiesto. */
+function colonnaSigc(lettura: Lettura<VerificaSmp>, esercizio: number): ColonnaConfronto {
+  const p = lettura.data && periodoDellaRisposta(lettura.data, esercizio);
+  return { chiave: 'sigc', ...intestazioneSigc(p?.esercizio ?? esercizio, lettura.data?.perimetro), celle: celleDellaLettura(lettura, (d) => celleSigc(anteprimaVerificaSigc(d))) };
+}
+
+/** La frase di una lettura fallita, sotto la tabella (una lettura non abilitata non fallisce mai). */
+function ErroreDellaLettura({ lettura, children }: { lettura: Lettura<unknown>; children: string }) {
+  return lettura.isError && !lettura.data ? <NotaArea>{children}</NotaArea> : null;
+}
+
+/** Le due letture e la tabella a confronto, con le sole colonne dei grant dell'utente. */
+function Confronto({ conVerifica, conSigc }: { conVerifica: boolean; conSigc: boolean }) {
   const esercizio = esercizioUltimoChiuso(new Date());
-  const { data, isPending, isError } = useVerificaSmpSigc(filtriVerificaSigcSenzaFiltri(), esercizio);
+  const nonSigc = useVerificaSmpNonSigc(criteriVerificaSenzaFiltri(), { abilitato: conVerifica });
+  const sigc = useVerificaSmpSigc(filtriVerificaSigcSenzaFiltri(), esercizio, { abilitato: conSigc });
+  const colonne = [...(conVerifica ? [colonnaNonSigc(nonSigc)] : []), ...(conSigc ? [colonnaSigc(sigc, esercizio)] : [])];
+  const nota = notaRiferimenti(nonSigc.data, sigc.data && periodoDellaRisposta(sigc.data, esercizio));
   return (
-    <AnteprimaArea nome={nomeGruppoSigc(esercizio)}>
-      {isPending ? <AttesaArea /> : isError || !data ? <NotaArea>Dati della verifica SMP SIGC non disponibili in questo momento.</NotaArea> : <NumeriSigc d={data} esercizio={esercizio} />}
-    </AnteprimaArea>
+    <>
+      <ConfrontoArea titolo="L'istituzionale in cifre: verifica SMP non SIGC e SIGC" righe={righeCard(conSigc)} colonne={colonne} />
+      <ErroreDellaLettura lettura={nonSigc}>Dati della verifica SMP non SIGC non disponibili in questo momento.</ErroreDellaLettura>
+      <ErroreDellaLettura lettura={sigc}>Dati della verifica SMP SIGC non disponibili in questo momento.</ErroreDellaLettura>
+      {nonSigc.data && <Quota a={anteprimaVerifica(nonSigc.data)} />}
+      {nota && <NotaArea>{nota}</NotaArea>}
+    </>
   );
 }
 
@@ -82,8 +85,7 @@ export function AnteprimaIstituzionale({ altrimenti }: { altrimenti: ReactNode }
   if (!conVerifica && !conSigc) return <>{altrimenti}</>;
   return (
     <AnteprimaArea nome="L'istituzionale in cifre">
-      {conVerifica && <Verifica />}
-      {conSigc && <VerificaSigc />}
+      <Confronto conVerifica={conVerifica} conSigc={conSigc} />
     </AnteprimaArea>
   );
 }

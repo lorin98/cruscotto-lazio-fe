@@ -64,7 +64,7 @@ import { DATI_VERIFICA_SIGC, periodoDellaRisposta, testoEsercizio, testoRicercaS
 import type { DatoVerificaSigc, TipoDatoSigc } from '../src/features/istituzionale/lib/verificaSigc';
 import { TITOLO_SPESA, TITOLO_SPESA_SIGC, graficoSpesa, graficoSpesaSigc } from '../src/features/istituzionale/lib/grafici';
 import { SRD01, VERIFICA, VERIFICA_SMP, dato as datoSmp, nd, nv, rigaSmp, righeDeiFiltri, verificaPer, verificaSigcPer } from '../src/features/istituzionale/testing/fixture';
-import { anteprimaVerifica, anteprimaVerificaSigc, etichetteAnteprima, etichetteAnteprimaSigc, nomeGruppoSigc, riferimentoAnteprima, riferimentoAnteprimaSigc } from '../src/features/istituzionale/lib/anteprima';
+import { QUOTA_NON_SIGC, SENZA_DATO_NON_SIGC, anteprimaVerifica, anteprimaVerificaSigc, celleNonSigc, celleSigc, intestazioneNonSigc, intestazioneSigc, notaRiferimenti, righeCard } from '../src/features/istituzionale/lib/anteprima';
 import type { RigaVerifica } from '../src/features/istituzionale/lib/dto';
 
 const dato = (campo: DatoVerifica['campo']) => DATI_VERIFICA.find((d) => d.campo === campo) as DatoVerifica;
@@ -484,7 +484,7 @@ describe('RF015: i venti dati della verifica SMP SIGC (TX-0015) nella tabella e 
     // una sola regola per gli estremi: voci, pill e card della Home
     expect(estremiEsercizio(2026)).toEqual({ inizio: '16/10/2025', fine: '15/10/2026' });
     expect(periodoEsercizio(2026)).toBe('dal 16/10/2025 al 15/10/2026');
-    expect(riferimentoAnteprimaSigc(2026, 2025)).toBe("SIGC, esercizio 2026 (16/10/2025 - 15/10/2026; domande dell'anno 2025)");
+    expect(notaRiferimenti(undefined, { esercizio: 2026, annoDomande: 2025 })).toBe("SIGC: dal 16/10/2025 al 15/10/2026, domande dell'anno 2025.");
   });
 
   it('riferimenti della risposta: esercizio con gli estremi, anno delle domande, pagamenti senza data, perimetro', () => {
@@ -612,11 +612,29 @@ describe('RF016: card della Home coi totali della verifica SMP non SIGC (OP-IS-1
     expect(anteprimaVerifica({ righe: oltre }).quotaSpesa).toEqual({ valore: 125.8 });
   });
 
-  it('riferimento dell anno del file e etichette col perimetro', () => {
-    expect(riferimentoAnteprima(2025)).toBe('Non SIGC, valori cumulativi (ultimo file SMP non SIGC: 2025)');
-    expect(riferimentoAnteprima(null)).toBe('Non SIGC, valori cumulativi (nessun file SMP non SIGC)');
-    expect(etichetteAnteprima('REGIONALE')).toEqual({ finanziate: 'Domande finanziate', spesa: 'Spesa pubblica erogata', quota: 'Spesa erogata sul valore delle domande finanziate', ricevute: 'Domande ricevute' });
-    expect(etichetteAnteprima('ADA')).toMatchObject({ finanziate: 'Domande finanziate della tua area', spesa: 'Spesa pubblica erogata della tua area', ricevute: 'Domande ricevute della tua area' });
+  it('colonna non SIGC della tabella a confronto (rework 2): celle senza domande pagate, intestazione col perimetro, quota', () => {
+    expect(celleNonSigc(anteprimaVerifica(VERIFICA))).toEqual({ ricevute: { valore: 4 }, finanziate: { valore: 2 }, spesa: { valore: 91200.5 } });
+    const motivata = celleNonSigc(anteprimaVerifica({ righe: conSpesa((r) => (r.codiceIntervento === 'SRA16' ? assente('FONTE_AMBIGUA') : r.spesaErogata)) }));
+    expect(motivata.spesa.motivo).toContain('manca per 1 intervento (SRA16)');
+    expect(SENZA_DATO_NON_SIGC).toEqual({ righe: ['pagate'], testo: 'dato non previsto nella verifica non SIGC' });
+    expect(intestazioneNonSigc('REGIONALE')).toEqual({ titolo: 'Non SIGC', dettaglio: 'cumulativi' });
+    expect(intestazioneNonSigc('ADA')).toEqual({ titolo: 'Non SIGC', dettaglio: 'cumulativi della tua area' });
+    expect(QUOTA_NON_SIGC).toBe('Spesa non SIGC sul valore finanziato');
+  });
+
+  it('nota dei riferimenti (conserva D3: anno dell ultimo file) e righe della tabella, dalle ricevute alla spesa', () => {
+    expect(notaRiferimenti({ annoRiferimento: 2025 }, { esercizio: 2026, annoDomande: 2025 })).toBe("Non SIGC: ultimo file SMP 2025. SIGC: dal 16/10/2025 al 15/10/2026, domande dell'anno 2025.");
+    expect(notaRiferimenti({ annoRiferimento: null }, undefined)).toBe('Non SIGC: nessun file SMP.');
+    expect(notaRiferimenti(undefined, undefined)).toBe('');
+    expect(righeCard(true).map((r) => [r.chiave, r.etichetta])).toEqual([
+      ['ricevute', 'Domande ricevute'],
+      ['finanziate', 'Domande finanziate'],
+      ['pagate', 'Domande pagate'],
+      ['spesa', 'Spesa pubblica erogata'],
+    ]);
+    // senza la colonna SIGC la riga delle domande pagate non c'e'
+    expect(righeCard(false).map((r) => r.chiave)).toEqual(['ricevute', 'finanziate', 'spesa']);
+    expect(righeCard(true).map((r) => r.formato(12345678))).toEqual(['12.345.678', '12.345.678', '12.345.678', '12,3 M€']);
   });
 });
 
@@ -649,10 +667,10 @@ describe('RF015: blocco SIGC della card della Home (rework 1 della card, scelta 
     expect(anteprimaVerificaSigc({ righe: [{ codiceIntervento: 'SRA03' }] }).domandePagate).toEqual({ valore: null, motivo: 'Non calcolabile: manca per 1 intervento (SRA03)' });
   });
 
-  it('nome del gruppo, riferimento con esercizio, periodo e anno delle domande; etichette col perimetro', () => {
-    expect(nomeGruppoSigc(2026)).toBe('SIGC, esercizio 2026');
-    expect(riferimentoAnteprimaSigc(2026, 2025)).toBe("SIGC, esercizio 2026 (16/10/2025 - 15/10/2026; domande dell'anno 2025)");
-    expect(etichetteAnteprimaSigc('REGIONALE')).toEqual({ finanziate: 'Domande finanziate', spesa: "Spesa pubblica erogata nell'esercizio", pagate: "Domande pagate nell'esercizio", ricevute: 'Domande ricevute' });
-    expect(etichetteAnteprimaSigc('ADA').pagate).toBe("Domande pagate nell'esercizio della tua area");
+  it('colonna SIGC della tabella a confronto (rework 2): le quattro celle e l intestazione con l esercizio e il perimetro', () => {
+    const righe = [riga('SRA01'), riga('SRA03', { domandeRicevute: 30, domandeFinanziate: 20, domandePagateEsercizio: 5, spesaErogataCampagnaPrecedente: importo(1000.1), spesaErogataCampagneAnteriori: importo(250.25) })];
+    expect(celleSigc(anteprimaVerificaSigc({ righe }))).toEqual({ ricevute: { valore: 150 }, finanziate: { valore: 120 }, pagate: { valore: 85 }, spesa: { valore: 401250.35 } });
+    expect(intestazioneSigc(2026, 'REGIONALE')).toEqual({ titolo: 'SIGC', dettaglio: 'esercizio 2026' });
+    expect(intestazioneSigc(2026, 'ADA')).toEqual({ titolo: 'SIGC', dettaglio: 'esercizio 2026 della tua area' });
   });
 });

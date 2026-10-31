@@ -305,7 +305,7 @@ describe('Home e menu dallo stesso catalogo', () => {
     expect(within(card).getByRole('link', { name: 'Entra in Istituzionale' }).getAttribute('href')).toBe('/istituzionale/verifica-smp-non-sigc');
     // col grant di TX-0016 la card mostra i totali della verifica (OP-IS-11): qui nessun intervento, zeri veri
     const cifre = await within(card).findByRole('group', { name: "L'istituzionale in cifre" });
-    expect(await within(cifre).findByText('Non SIGC, valori cumulativi (ultimo file SMP non SIGC: 2025)')).toBeTruthy();
+    expect(await within(cifre).findByText(/^Non SIGC: ultimo file SMP 2025\. SIGC: dal /)).toBeTruthy();
     const menu = screen.getByRole('navigation', { name: 'Navigazione principale' });
     const gruppo = within(menu).getByRole('button', { name: 'Istituzionale' });
     const sottomenu = document.getElementById(gruppo.getAttribute('aria-controls') ?? '') as HTMLElement;
@@ -323,9 +323,10 @@ describe('Home e menu dallo stesso catalogo', () => {
     apriHomeCon(['csr.tx-0015.read']);
     const card = await screen.findByRole('region', { name: 'Istituzionale' });
     expect(within(card).getByRole('link', { name: 'Entra in Istituzionale' }).getAttribute('href')).toBe('/istituzionale/verifica-smp-sigc');
-    // col grant di TX-0015 la card legge la verifica SIGC (rework 1 del 30/10/2026); senza quello di TX-0016 niente blocco non SIGC
-    expect(await within(card).findByRole('group', { name: /^SIGC, esercizio \d{4}$/ })).toBeTruthy();
-    expect(within(card).queryByText(/^Non SIGC, valori cumulativi/)).toBeNull();
+    // col grant di TX-0015 la card legge la verifica SIGC (rework 1 del 30/10/2026); senza quello di TX-0016 niente colonna
+    // non SIGC nella tabella a confronto (rework 2 del 31/10/2026)
+    expect(await within(card).findByRole('columnheader', { name: /^SIGC \(esercizio \d{4}\)$/ })).toBeTruthy();
+    expect(within(card).queryByRole('columnheader', { name: /^Non SIGC/ })).toBeNull();
     await waitFor(() => expect(letture).toEqual({ '/api/istituzionale/verifica-smp-non-sigc': 0, '/api/istituzionale/verifica-smp-sigc': 1 }));
     const menu = screen.getByRole('navigation', { name: 'Navigazione principale' });
     expect(within(menu).getAllByRole('link').map((l) => l.textContent)).toEqual(['Verifica SMP SIGC']);
@@ -461,7 +462,7 @@ describe('RF016, RF018, RF026 e RF027: le card della Home coi profili del catalo
     const letture = registra(['/api/istituzionale/verifica-smp-non-sigc'], { '/api/istituzionale/verifica-smp-non-sigc': VERIFICA });
     apriHomeCon(['csr.tx-0016.read']);
     const card = await screen.findByRole('region', { name: 'Istituzionale' });
-    expect(await within(card).findByText('Non SIGC, valori cumulativi (ultimo file SMP non SIGC: 2025)')).toBeTruthy();
+    expect(await within(card).findByText('Non SIGC: ultimo file SMP 2025.')).toBeTruthy();
     await userEvent.click(within(card).getByRole('link', { name: 'Entra in Istituzionale' }));
     expect(await screen.findByRole('heading', { level: 1, name: 'Istituzionale: verifica SMP non SIGC' })).toBeTruthy();
     expect(await screen.findByRole('rowheader', { name: 'SRD01' })).toBeTruthy();

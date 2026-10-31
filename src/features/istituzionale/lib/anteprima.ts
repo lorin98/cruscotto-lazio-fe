@@ -4,18 +4,22 @@
 // sostegno corrente di un solo intervento (D-02 Rev. 2 del backend) e la spesa erogata sono righe pagate non SIGC; gli
 // interventi SIGC contano 0 (conteggio vero). Un dato motivato assente anche in una sola riga rende il totale non
 // disponibile col motivo (totaleMotivato dell'entity importo: mai una somma parziale) e la quota che lo usa non c'e'.
-// Domande e spesa sono cumulative: il riferimento lo dice, con l'anno del file (decisione D3 dell'utente del 26/10/2026).
+// Domande e spesa sono cumulative: lo dicono la colonna e la nota, con l'anno del file (decisione D3 del 26/10/2026).
 // La pagina della verifica resta senza KPI.
 // Blocco SIGC (rework 1 della card, richiesta e scelta dell'utente del 30/10/2026): i totali di quattro colonne della
 // verifica SMP SIGC letta senza filtri con l'ultimo esercizio chiuso (lib/criteri), sommate fra gli interventi con la
 // stessa regola: domande ricevute e finanziate (domande dell'anno n-1), domande pagate nell'esercizio, spesa pubblica
 // erogata nell'esercizio = spesa della campagna precedente + quella delle campagne anteriori. Nessuna quota: la spesa
 // dell'esercizio comprende campagne anteriori e non si confronta col valore delle domande dell'anno n-1.
+// Tabella a confronto (rework 2 della card, richiesta e scelta dell'utente del 31/10/2026: la card coi due blocchi era
+// molto piu' alta delle altre tre): un'etichetta per riga e una colonna per verifica, coi totali di prima; le colonne si
+// affiancano, non si sommano (cumulativi contro esercizio). Intestazioni e nota dei riferimenti dicono a cosa si riferisce
+// ogni colonna.
 import { totaleMotivato } from '../../../entities/importo';
 import type { DatoMotivatoLike, TotaleMotivato } from '../../../entities/importo';
-import { etichettaDellArea, numeroDi, percentuale, sommaSeCompleta } from '../../../shared/lib';
+import { etichettaDellArea, importoBreve, intero, numeroDi, percentuale, sommaSeCompleta } from '../../../shared/lib';
 import type { RigaVerifica, RigaVerificaSigc, Verifica, VerificaSigc } from './dto';
-import { estremiEsercizio } from './formato';
+import { periodoEsercizio } from './formato';
 
 export interface AnteprimaVerifica {
   domandeFinanziate: number;
@@ -23,28 +27,6 @@ export interface AnteprimaVerifica {
   spesaErogata: TotaleMotivato;
   /** Spesa erogata sul valore delle domande finanziate (0-100, oltre 100 se la spesa lo supera), oppure il motivo. */
   quotaSpesa: TotaleMotivato;
-}
-
-const ETICHETTE = {
-  finanziate: 'Domande finanziate',
-  spesa: 'Spesa pubblica erogata',
-  quota: 'Spesa erogata sul valore delle domande finanziate',
-  ricevute: 'Domande ricevute',
-} as const;
-
-/** Le etichette della card, col perimetro della risposta (ADA: "della tua area"). */
-export function etichetteAnteprima(perimetro: string | null | undefined): Record<keyof typeof ETICHETTE, string> {
-  return {
-    finanziate: etichettaDellArea(ETICHETTE.finanziate, perimetro),
-    spesa: etichettaDellArea(ETICHETTE.spesa, perimetro),
-    quota: ETICHETTE.quota,
-    ricevute: etichettaDellArea(ETICHETTE.ricevute, perimetro),
-  };
-}
-
-/** "Non SIGC, valori cumulativi (ultimo file SMP non SIGC: 2025)"; senza file lo dice: domande e spesa restano. */
-export function riferimentoAnteprima(annoRiferimento: number | null): string {
-  return `Non SIGC, valori cumulativi (${annoRiferimento === null ? 'nessun file SMP non SIGC' : `ultimo file SMP non SIGC: ${annoRiferimento}`})`;
 }
 
 /** Totale di una colonna motivata: nessun intervento = zero vero; se mancano tutti per lo stesso motivo, quel motivo. */
@@ -81,34 +63,6 @@ export interface AnteprimaVerificaSigc {
   domandeRicevute: TotaleMotivato;
 }
 
-const ETICHETTE_SIGC = {
-  finanziate: 'Domande finanziate',
-  spesa: "Spesa pubblica erogata nell'esercizio",
-  pagate: "Domande pagate nell'esercizio",
-  ricevute: 'Domande ricevute',
-} as const;
-
-/** Le etichette del blocco SIGC, col perimetro della risposta (ADA: "della tua area"; oggi sempre REGIONALE). */
-export function etichetteAnteprimaSigc(perimetro: string | null | undefined): Record<keyof typeof ETICHETTE_SIGC, string> {
-  return {
-    finanziate: etichettaDellArea(ETICHETTE_SIGC.finanziate, perimetro),
-    spesa: etichettaDellArea(ETICHETTE_SIGC.spesa, perimetro),
-    pagate: etichettaDellArea(ETICHETTE_SIGC.pagate, perimetro),
-    ricevute: etichettaDellArea(ETICHETTE_SIGC.ricevute, perimetro),
-  };
-}
-
-/** Il nome del gruppo del blocco SIGC: "SIGC, esercizio 2026". */
-export function nomeGruppoSigc(esercizio: number): string {
-  return `SIGC, esercizio ${esercizio}`;
-}
-
-/** "SIGC, esercizio 2026 (16/10/2025 - 15/10/2026; domande dell'anno 2025)": esercizio, periodo e anno delle domande. */
-export function riferimentoAnteprimaSigc(esercizio: number, annoDomande: number): string {
-  const { inizio, fine } = estremiEsercizio(esercizio);
-  return `SIGC, esercizio ${esercizio} (${inizio} - ${fine}; domande dell'anno ${annoDomande})`;
-}
-
 /**
  * La spesa erogata nell'esercizio di una riga: campagna precedente + campagne anteriori se ci sono entrambe; altrimenti la
  * prima assente, col suo motivo (il totale della card non e' mai una somma parziale).
@@ -135,4 +89,58 @@ export function anteprimaVerificaSigc(d: Pick<VerificaSigc, 'righe'>): Anteprima
     domandePagate: totaleConteggio(righe, (r) => r.domandePagateEsercizio),
     domandeRicevute: totaleConteggio(righe, (r) => r.domandeRicevute),
   };
+}
+
+/** Le righe della tabella a confronto della card (rework 2), dalle domande ricevute alla spesa. */
+export type RigaCard = 'ricevute' | 'finanziate' | 'pagate' | 'spesa';
+
+const RIGHE_CARD: readonly { chiave: RigaCard; etichetta: string; formato: (v: number) => string }[] = [
+  { chiave: 'ricevute', etichetta: 'Domande ricevute', formato: intero },
+  { chiave: 'finanziate', etichetta: 'Domande finanziate', formato: intero },
+  { chiave: 'pagate', etichetta: 'Domande pagate', formato: intero },
+  { chiave: 'spesa', etichetta: 'Spesa pubblica erogata', formato: importoBreve },
+];
+
+/** Le righe della tabella: "Domande pagate" e' solo della verifica SIGC, quindi c'e' solo con la sua colonna. */
+export function righeCard(conSigc: boolean): { chiave: RigaCard; etichetta: string; formato: (v: number) => string }[] {
+  return RIGHE_CARD.filter((r) => conSigc || r.chiave !== 'pagate');
+}
+
+/** Le celle della colonna non SIGC: le domande pagate non ci sono (SENZA_DATO_NON_SIGC). */
+export function celleNonSigc(a: AnteprimaVerifica): Record<Exclude<RigaCard, 'pagate'>, TotaleMotivato> {
+  return { ricevute: { valore: a.domandeRicevute }, finanziate: { valore: a.domandeFinanziate }, spesa: a.spesaErogata };
+}
+
+/** Le celle della colonna SIGC: domande pagate e spesa dell'esercizio, ricevute e finanziate delle domande dell'anno n-1. */
+export function celleSigc(a: AnteprimaVerificaSigc): Record<RigaCard, TotaleMotivato> {
+  return { ricevute: a.domandeRicevute, finanziate: a.domandeFinanziate, pagate: a.domandePagate, spesa: a.spesaErogata };
+}
+
+/** La riga che la verifica non SIGC non ha: un trattino, e ai lettori di schermo perche'. */
+export const SENZA_DATO_NON_SIGC = { righe: ['pagate'], testo: 'dato non previsto nella verifica non SIGC' } as const;
+
+/** Intestazione della colonna non SIGC: "Non SIGC (cumulativi)"; col perimetro ADA "(cumulativi della tua area)". */
+export function intestazioneNonSigc(perimetro: string | null | undefined): { titolo: string; dettaglio: string } {
+  return { titolo: 'Non SIGC', dettaglio: etichettaDellArea('cumulativi', perimetro) };
+}
+
+/** Intestazione della colonna SIGC: "SIGC (esercizio 2026)"; col perimetro ADA "(esercizio 2026 della tua area)". */
+export function intestazioneSigc(esercizio: number, perimetro: string | null | undefined): { titolo: string; dettaglio: string } {
+  return { titolo: 'SIGC', dettaglio: etichettaDellArea(`esercizio ${esercizio}`, perimetro) };
+}
+
+/** L'etichetta della barra sotto la tabella: la quota c'e' solo per la verifica non SIGC. */
+export const QUOTA_NON_SIGC = 'Spesa non SIGC sul valore finanziato';
+
+/**
+ * La nota dei riferimenti sotto la tabella (al posto dei due riferimenti di prima; conserva cio' che diceva D3: valori
+ * cumulativi nella colonna, anno dell'ultimo file qui): "Non SIGC: ultimo file SMP 2025. SIGC: dal 16/10/2025 al
+ * 15/10/2026, domande dell'anno 2025.". Ogni parte c'e' solo con la risposta della sua colonna.
+ */
+export function notaRiferimenti(nonSigc: { annoRiferimento: number | null } | undefined, sigc: { esercizio: number; annoDomande: number } | undefined): string {
+  const parti = [
+    nonSigc && `Non SIGC: ${nonSigc.annoRiferimento === null ? 'nessun file SMP' : `ultimo file SMP ${nonSigc.annoRiferimento}`}.`,
+    sigc && `SIGC: ${periodoEsercizio(sigc.esercizio)}, domande dell'anno ${sigc.annoDomande}.`,
+  ];
+  return parti.filter((p) => p).join(' ');
 }

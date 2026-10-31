@@ -221,9 +221,11 @@ describe('RF026 e RF027: card Procedurale della Home (OP-PR-10)', () => {
   });
 });
 
-describe('RF016 e RF015: card Istituzionale della Home (OP-IS-11, rework 1 della card del 30/10/2026)', () => {
-  // l'output regionale (TX-0017) e' del fisico dal 29/10/2026; il blocco SIGC legge TX-0015 con l'ultimo esercizio chiuso
+describe('RF016 e RF015: card Istituzionale della Home (OP-IS-11; tabella a confronto, rework 2 della card del 31/10/2026)', () => {
+  // l'output regionale (TX-0017) e' del fisico dal 29/10/2026; la colonna SIGC legge TX-0015 con l'ultimo esercizio chiuso
   const ESERCIZIO = esercizioUltimoChiuso(new Date());
+  const TABELLA = "L'istituzionale in cifre: verifica SMP non SIGC e SIGC";
+  const NOTA_SIGC = `SIGC: dal 16/10/${ESERCIZIO - 1} al 15/10/${ESERCIZIO}, domande dell'anno ${ESERCIZIO - 1}.`;
 
   /** TX-0015 come il backend (l'esercizio chiesto, le righe dei filtri), con la query di ogni lettura registrata. */
   function letturaSigc(base: VerificaSmp = VERIFICA_SMP) {
@@ -238,56 +240,70 @@ describe('RF016 e RF015: card Istituzionale della Home (OP-IS-11, rework 1 della
     return query;
   }
 
-  const gruppoSigc = () => screen.findByRole('group', { name: `SIGC, esercizio ${ESERCIZIO}` });
+  const tabella = () => screen.findByRole('table', { name: TABELLA });
+  const colonne = (t: HTMLElement) => within(t).getAllByRole('columnheader').map((h) => h.textContent);
 
-  it('col solo grant di TX-0016: i totali della verifica, cumulativi con l anno dell ultimo file (D3), da una lettura senza filtri ne anno; nessun altra lettura', async () => {
+  /** Il testo della cella per riga (intestazione di riga) e colonna (l'intestazione di colonna comincia con `colonna`). */
+  function cella(t: HTMLElement, riga: string, colonna: string): string {
+    const indice = within(t)
+      .getAllByRole('columnheader')
+      .findIndex((h) => h.textContent?.startsWith(colonna));
+    if (indice < 0) throw new Error(`colonna ${colonna} assente`);
+    return within(t).getByRole('rowheader', { name: riga }).closest('tr')?.querySelectorAll('td')[indice]?.textContent ?? '';
+  }
+
+  it('col solo grant di TX-0016: la sola colonna non SIGC (cumulativi), senza domande pagate, la quota e la nota col file (D3); una lettura senza filtri ne anno', async () => {
     conRuoli(['csr.tx-0016.read']);
     const query = lettura(VERIFICA_PATH, VERIFICA);
     const sigc = lettura(VERIFICA_SIGC_PATH, VERIFICA_SMP);
     const { container } = renderConQuery(<AnteprimaIstituzionale altrimenti={ALTRIMENTI} />);
     const cifre = await screen.findByRole('group', { name: "L'istituzionale in cifre" });
-    expect(await within(cifre).findByText('Non SIGC, valori cumulativi (ultimo file SMP non SIGC: 2025)')).toBeTruthy();
-    expect(valoreDi(cifre, 'Domande finanziate')).toBe('2');
-    expect(valoreDi(cifre, 'Spesa pubblica erogata')).toBe(formatEuro(91200.5));
-    expect(valoreDi(cifre, 'Domande ricevute')).toBe('4');
-    expect(within(cifre).getByText('Spesa erogata sul valore delle domande finanziate')).toBeTruthy();
+    expect(await within(cifre).findByText('Non SIGC: ultimo file SMP 2025.')).toBeTruthy();
+    const t = await tabella();
+    expect(colonne(t)).toEqual(['Non SIGC (cumulativi)']);
+    expect(within(t).getAllByRole('rowheader').map((h) => h.textContent)).toEqual(['Domande ricevute', 'Domande finanziate', 'Spesa pubblica erogata']);
+    expect([cella(t, 'Domande ricevute', 'Non SIGC'), cella(t, 'Domande finanziate', 'Non SIGC'), cella(t, 'Spesa pubblica erogata', 'Non SIGC')]).toEqual(['4', '2', formatEuro(91200.5)]);
+    expect(within(cifre).getByText('Spesa non SIGC sul valore finanziato')).toBeTruthy();
     expect(within(cifre).getByText(formatPercentuale(57))).toBeTruthy();
-    expect(within(cifre).queryByRole('group')).toBeNull();
     expect(query).toEqual(['']);
     expect(sigc).toEqual([]);
     await expectNoA11yViolations(container);
   });
 
-  it('coi grant di TX-0016 e TX-0015: sotto il blocco non SIGC il blocco SIGC, letto senza filtri con l ultimo esercizio chiuso; quattro totali, nessuna quota; nessuna violazione axe', async () => {
+  it('coi grant di TX-0016 e TX-0015: le due colonne affiancate, la SIGC letta senza filtri con l ultimo esercizio chiuso; trattino delle domande pagate non SIGC; una sola barra; nessuna violazione axe', async () => {
     conRuoli(['csr.tx-0015.read', 'csr.tx-0016.read']);
     const query = lettura(VERIFICA_PATH, VERIFICA);
     const sigc = letturaSigc();
     const { container } = renderConQuery(<AnteprimaIstituzionale altrimenti={ALTRIMENTI} />);
     const cifre = await screen.findByRole('group', { name: "L'istituzionale in cifre" });
-    const blocco = await gruppoSigc();
-    expect(cifre.contains(blocco)).toBe(true);
-    expect(await within(blocco).findByText(`SIGC, esercizio ${ESERCIZIO} (16/10/${ESERCIZIO - 1} - 15/10/${ESERCIZIO}; domande dell'anno ${ESERCIZIO - 1})`)).toBeTruthy();
-    expect(valoreDi(blocco, 'Domande finanziate')).toBe('100');
-    // spesa della campagna precedente (400.000) + quella delle campagne anteriori (0)
-    expect(valoreDi(blocco, "Spesa pubblica erogata nell'esercizio")).toBe(formatEuro(400000));
-    expect(valoreDi(blocco, "Domande pagate nell'esercizio")).toBe('80');
-    expect(valoreDi(blocco, 'Domande ricevute')).toBe('120');
-    expect(blocco.querySelector('.ui-barra')).toBeNull();
-    // il blocco non SIGC resta, prima di quello SIGC
-    expect(await within(cifre).findByText('Non SIGC, valori cumulativi (ultimo file SMP non SIGC: 2025)')).toBeTruthy();
+    expect(await within(cifre).findByText(`Non SIGC: ultimo file SMP 2025. ${NOTA_SIGC}`)).toBeTruthy();
+    const t = await tabella();
+    expect(cifre.contains(t)).toBe(true);
+    expect(colonne(t)).toEqual(['Non SIGC (cumulativi)', `SIGC (esercizio ${ESERCIZIO})`]);
+    expect(within(t).getAllByRole('rowheader').map((h) => h.textContent)).toEqual(['Domande ricevute', 'Domande finanziate', 'Domande pagate', 'Spesa pubblica erogata']);
+    // spesa dell'esercizio = campagna precedente (400.000) + campagne anteriori (0)
+    expect(['Domande ricevute', 'Domande finanziate', 'Domande pagate', 'Spesa pubblica erogata'].map((r) => cella(t, r, 'SIGC'))).toEqual(['120', '100', '80', formatEuro(400000)]);
+    expect(cella(t, 'Domande ricevute', 'Non SIGC')).toBe('4');
+    // la riga che la verifica non SIGC non ha: un trattino per gli occhi, il perche' per i lettori di schermo
+    expect(cella(t, 'Domande pagate', 'Non SIGC')).toBe('—dato non previsto nella verifica non SIGC');
+    expect(within(t).getByText('—').getAttribute('aria-hidden')).toBe('true');
+    expect(cifre.querySelectorAll('.ui-barra')).toHaveLength(1);
     expect(query).toEqual(['']);
     expect(sigc).toEqual([`?esercizio=${ESERCIZIO}`]);
     await expectNoA11yViolations(container);
   });
 
-  it('col solo grant della verifica SIGC: il solo blocco SIGC, nessuna lettura di TX-0016', async () => {
+  it('col solo grant della verifica SIGC: la sola colonna SIGC con le domande pagate, nessuna lettura di TX-0016, nessuna quota', async () => {
     conRuoli(['csr.tx-0015.read']);
     const query = lettura(VERIFICA_PATH, VERIFICA);
     const sigc = letturaSigc();
     renderConQuery(<AnteprimaIstituzionale altrimenti={ALTRIMENTI} />);
-    const blocco = await gruppoSigc();
-    await waitFor(() => expect(valoreDi(blocco, 'Domande ricevute')).toBe('120'));
-    expect(screen.queryByText(/^Non SIGC, valori cumulativi/)).toBeNull();
+    const t = await tabella();
+    await waitFor(() => expect(cella(t, 'Domande ricevute', 'SIGC')).toBe('120'));
+    expect(colonne(t)).toEqual([`SIGC (esercizio ${ESERCIZIO})`]);
+    expect(cella(t, 'Domande pagate', 'SIGC')).toBe('80');
+    expect(await screen.findByText(NOTA_SIGC)).toBeTruthy();
+    expect(document.querySelector('.ui-barra')).toBeNull();
     expect(screen.queryByText("Contenuti dell'area")).toBeNull();
     expect([query, sigc]).toEqual([[], [`?esercizio=${ESERCIZIO}`]]);
   });
@@ -301,32 +317,43 @@ describe('RF016 e RF015: card Istituzionale della Home (OP-IS-11, rework 1 della
     expect([query, sigc]).toEqual([[], []]);
   });
 
-  it('i due blocchi leggono e falliscono da soli: lo scheletro e la frase d errore di uno, i numeri dell altro; nessun avviso', async () => {
+  it('le due colonne leggono e falliscono da sole: lo scheletro e poi "non disponibile" con la frase d errore di una, i numeri dell altra; nessun avviso', async () => {
     conRuoli(['csr.tx-0015.read', 'csr.tx-0016.read']);
-    const t = trattenuta();
+    const t0 = trattenuta();
     server.use(
       http.get(`*${VERIFICA_SIGC_PATH}`, async () => {
-        await t.attesa;
+        await t0.attesa;
         return HttpResponse.json(problema(503, 'CAPACITA_ESAURITA'), { status: 503 });
       }),
     );
     lettura(VERIFICA_PATH, VERIFICA);
-    const sigc = renderConQuery(<AnteprimaIstituzionale altrimenti={ALTRIMENTI} />);
+    const vista = renderConQuery(<AnteprimaIstituzionale altrimenti={ALTRIMENTI} />);
     const cifre = await screen.findByRole('group', { name: "L'istituzionale in cifre" });
-    await waitFor(() => expect(valoreDi(cifre, 'Domande ricevute')).toBe('4'));
-    const blocco = await gruppoSigc();
-    expect(within(blocco).getByRole('status').getAttribute('aria-live')).toBe('polite');
-    await act(async () => t.libera());
-    expect(await within(blocco).findByText('Dati della verifica SMP SIGC non disponibili in questo momento.')).toBeTruthy();
+    const t = await tabella();
+    await waitFor(() => expect(cella(t, 'Domande ricevute', 'Non SIGC')).toBe('4'));
+    // la colonna SIGC in attesa: scheletro nelle celle, annunciato una volta
+    expect(within(cifre).getByRole('status').getAttribute('aria-live')).toBe('polite');
+    expect(within(cifre).getByRole('status').textContent).toBe('Caricamento in corso…');
+    expect(cella(t, 'Domande ricevute', 'SIGC')).toBe('');
+    expect(t.querySelectorAll('td .ui-skeleton')).toHaveLength(4);
+    await act(async () => t0.libera());
+    expect(await within(cifre).findByText('Dati della verifica SMP SIGC non disponibili in questo momento.')).toBeTruthy();
+    expect(cella(t, 'Spesa pubblica erogata', 'SIGC')).toBe('non disponibile');
+    expect(within(cifre).queryByRole('status')).toBeNull();
     expect(screen.queryByRole('alert')).toBeNull();
-    expect(valoreDi(cifre, 'Spesa pubblica erogata')).toBe(formatEuro(91200.5));
-    sigc.unmount();
+    expect(cella(t, 'Spesa pubblica erogata', 'Non SIGC')).toBe(formatEuro(91200.5));
+    vista.unmount();
 
     server.use(indisponibile(VERIFICA_PATH));
     letturaSigc();
     renderConQuery(<AnteprimaIstituzionale altrimenti={ALTRIMENTI} />);
     expect(await screen.findByText('Dati della verifica SMP non SIGC non disponibili in questo momento.')).toBeTruthy();
-    await waitFor(async () => expect(valoreDi(await gruppoSigc(), 'Domande ricevute')).toBe('120'));
+    const altra = await tabella();
+    await waitFor(() => expect(cella(altra, 'Domande ricevute', 'SIGC')).toBe('120'));
+    expect(cella(altra, 'Domande ricevute', 'Non SIGC')).toBe('non disponibile');
+    // il trattino resta: la riga non e' della verifica non SIGC, anche quando la lettura fallisce
+    expect(cella(altra, 'Domande pagate', 'Non SIGC')).toBe('—dato non previsto nella verifica non SIGC');
+    expect(screen.getByText(NOTA_SIGC)).toBeTruthy();
     expect(screen.queryByRole('alert')).toBeNull();
   });
 
@@ -340,8 +367,8 @@ describe('RF016 e RF015: card Istituzionale della Home (OP-IS-11, rework 1 della
       vi.setSystemTime(new Date('2026-10-15T21:30:00Z'));
       const prima = letturaSigc();
       const vista = renderConQuery(<AnteprimaIstituzionale altrimenti={ALTRIMENTI} />);
-      const blocco = await screen.findByRole('group', { name: 'SIGC, esercizio 2025' });
-      expect(await within(blocco).findByText("SIGC, esercizio 2025 (16/10/2024 - 15/10/2025; domande dell'anno 2024)")).toBeTruthy();
+      expect(await screen.findByRole('columnheader', { name: 'SIGC (esercizio 2025)' })).toBeTruthy();
+      expect(await screen.findByText("SIGC: dal 16/10/2024 al 15/10/2025, domande dell'anno 2024.")).toBeTruthy();
       expect(prima).toEqual(['?esercizio=2025']);
       vista.unmount();
 
@@ -349,7 +376,7 @@ describe('RF016 e RF015: card Istituzionale della Home (OP-IS-11, rework 1 della
       vi.setSystemTime(new Date('2026-10-15T22:30:00Z'));
       const dopo = letturaSigc();
       renderConQuery(<AnteprimaIstituzionale altrimenti={ALTRIMENTI} />);
-      expect(await screen.findByRole('group', { name: 'SIGC, esercizio 2026' })).toBeTruthy();
+      expect(await screen.findByRole('columnheader', { name: 'SIGC (esercizio 2026)' })).toBeTruthy();
       expect(dopo).toEqual(['?esercizio=2026']);
     } finally {
       vi.useRealTimers();
@@ -358,42 +385,52 @@ describe('RF016 e RF015: card Istituzionale della Home (OP-IS-11, rework 1 della
     }
   });
 
-  it('blocco SIGC: una parte della spesa assente in una riga, non disponibile col motivo (mai una somma parziale); i conteggi restano', async () => {
+  it('colonna SIGC: una parte della spesa assente in una riga, non disponibile col motivo sotto la tabella (mai una somma parziale); i conteggi restano', async () => {
     conRuoli(['csr.tx-0015.read']);
     const righe = [...(VERIFICA_SMP.righe ?? []), { ...VERIFICA_SMP.righe[0], codiceIntervento: 'SRA03', spesaErogataCampagneAnteriori: { valore: null, motivo: 'FONTE_NON_ATTIVA', fonte: 'IMPEGNI' } }];
     letturaSigc({ ...VERIFICA_SMP, righe });
     renderConQuery(<AnteprimaIstituzionale altrimenti={ALTRIMENTI} />);
-    const blocco = await gruppoSigc();
-    await waitFor(() => expect(valoreDi(blocco, "Spesa pubblica erogata nell'esercizio")).toBe('non disponibile'));
-    expect(notaDi(blocco, "Spesa pubblica erogata nell'esercizio")).toBe('Non calcolabile: manca per 1 intervento (SRA03); non disponibile (fonte impegni non attiva)');
-    expect(valoreDi(blocco, 'Domande ricevute')).toBe('240');
+    const t = await tabella();
+    await waitFor(() => expect(cella(t, 'Spesa pubblica erogata', 'SIGC')).toBe('non disponibile'));
+    expect(screen.getByText('Spesa pubblica erogata, SIGC: Non calcolabile: manca per 1 intervento (SRA03); non disponibile (fonte impegni non attiva)')).toBeTruthy();
+    expect(cella(t, 'Domande ricevute', 'SIGC')).toBe('240');
   });
 
-  it('errore: una frase, nessun avviso; nessun file SMP non SIGC: i numeri restano', async () => {
+  it('errore: una frase, nessun avviso; nessun file SMP non SIGC: la nota lo dice e i numeri restano', async () => {
     conRuoli(['csr.tx-0016.read']);
     server.use(indisponibile(VERIFICA_PATH));
     const errore = renderConQuery(<AnteprimaIstituzionale altrimenti={ALTRIMENTI} />);
     expect(await screen.findByText('Dati della verifica SMP non SIGC non disponibili in questo momento.')).toBeTruthy();
+    expect(cella(await tabella(), 'Domande ricevute', 'Non SIGC')).toBe('non disponibile');
+    expect(document.querySelector('.ui-barra')).toBeNull();
     expect(screen.queryByRole('alert')).toBeNull();
     errore.unmount();
 
     lettura(VERIFICA_PATH, { ...VERIFICA, annoRiferimento: null });
     renderConQuery(<AnteprimaIstituzionale altrimenti={ALTRIMENTI} />);
     const cifre = await screen.findByRole('group', { name: "L'istituzionale in cifre" });
-    expect(await within(cifre).findByText('Non SIGC, valori cumulativi (nessun file SMP non SIGC)')).toBeTruthy();
-    expect(valoreDi(cifre, 'Domande ricevute')).toBe('4');
+    expect(await within(cifre).findByText('Non SIGC: nessun file SMP.')).toBeTruthy();
+    expect(cella(await tabella(), 'Domande ricevute', 'Non SIGC')).toBe('4');
   });
 
-  it('spesa assente in una riga: non disponibile col motivo, niente quota, mai una somma parziale', async () => {
+  it('spesa assente in una riga: non disponibile col motivo sotto la tabella, niente quota, mai una somma parziale', async () => {
     conRuoli(['csr.tx-0016.read']);
     const righe = VERIFICA.righe.map((r) => (r.codiceIntervento === 'SRA16' ? { ...r, spesaErogata: { valore: null, motivo: 'FONTE_AMBIGUA', fonte: null } } : r));
     lettura(VERIFICA_PATH, { ...VERIFICA, righe });
     renderConQuery(<AnteprimaIstituzionale altrimenti={ALTRIMENTI} />);
     const cifre = await screen.findByRole('group', { name: "L'istituzionale in cifre" });
-    await waitFor(() => expect(valoreDi(cifre, 'Spesa pubblica erogata')).toBe('non disponibile'));
-    expect(notaDi(cifre, 'Spesa pubblica erogata')).toBe('Non calcolabile: manca per 1 intervento (SRA16); non attribuibile (riga presente sia nel monitoraggio SIGC sia nel non SIGC)');
-    expect(within(cifre).getByText('Spesa erogata sul valore delle domande finanziate: non calcolabile: manca il totale della spesa')).toBeTruthy();
+    const t = await tabella();
+    await waitFor(() => expect(cella(t, 'Spesa pubblica erogata', 'Non SIGC')).toBe('non disponibile'));
+    expect(within(cifre).getByText('Spesa pubblica erogata, Non SIGC: Non calcolabile: manca per 1 intervento (SRA16); non attribuibile (riga presente sia nel monitoraggio SIGC sia nel non SIGC)')).toBeTruthy();
+    expect(within(cifre).getByText('Spesa non SIGC sul valore finanziato: non calcolabile: manca il totale della spesa')).toBeTruthy();
     expect(cifre.querySelector('.ui-barra')).toBeNull();
+  });
+
+  it('perimetro ADA: l intestazione della colonna dice "della tua area"', async () => {
+    conRuoli(['csr.tx-0016.read']);
+    lettura(VERIFICA_PATH, { ...VERIFICA, perimetro: 'ADA' });
+    renderConQuery(<AnteprimaIstituzionale altrimenti={ALTRIMENTI} />);
+    expect(await screen.findByRole('columnheader', { name: 'Non SIGC (cumulativi della tua area)' })).toBeTruthy();
   });
 });
 
