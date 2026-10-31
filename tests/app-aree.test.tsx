@@ -305,7 +305,7 @@ describe('Home e menu dallo stesso catalogo', () => {
     expect(within(card).getByRole('link', { name: 'Entra in Istituzionale' }).getAttribute('href')).toBe('/istituzionale/verifica-smp-non-sigc');
     // col grant di TX-0016 la card mostra i totali della verifica (OP-IS-11): qui nessun intervento, zeri veri
     const cifre = await within(card).findByRole('group', { name: "L'istituzionale in cifre" });
-    expect(await within(cifre).findByText(/^Non SIGC: ultimo file SMP 2025\. SIGC: dal /)).toBeTruthy();
+    expect(await within(cifre).findByText(/^Non SIGC: ultimo file SMP 2025\. SIGC: pagate e spesa dal /)).toBeTruthy();
     const menu = screen.getByRole('navigation', { name: 'Navigazione principale' });
     const gruppo = within(menu).getByRole('button', { name: 'Istituzionale' });
     const sottomenu = document.getElementById(gruppo.getAttribute('aria-controls') ?? '') as HTMLElement;

@@ -18,14 +18,14 @@
 import type { ReactNode } from 'react';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { AnteprimaArea, AvanzamentoArea, ConfrontoArea, NotaArea } from '../../../shared/ui';
-import type { ColonnaConfronto } from '../../../shared/ui';
+import type { CellaConfronto, ColonnaConfronto, StatoColonnaConfronto } from '../../../shared/ui';
 import { useVerificaSmpNonSigc, useVerificaSmpSigc } from '../api';
-import type { VerificaSmp, VerificaSmpNonSigc } from '../api';
-import { QUOTA_NON_SIGC, SENZA_DATO_NON_SIGC, anteprimaVerifica, anteprimaVerificaSigc, celleNonSigc, celleSigc, intestazioneNonSigc, intestazioneSigc, notaRiferimenti, righeCard } from '../lib/anteprima';
-import type { AnteprimaVerifica } from '../lib/anteprima';
+import { QUOTA_NON_SIGC, SENZA_DATO_NON_SIGC, anteprimaVerifica, anteprimaVerificaSigc, celleNonSigc, celleSigc, intestazioneNonSigc, intestazioneSigc, notaRiferimenti, righeCard, titoloTabella } from '../lib/anteprima';
+import type { AnteprimaVerifica, AnteprimaVerificaSigc } from '../lib/anteprima';
 import { criteriVerificaSenzaFiltri, esercizioUltimoChiuso, filtriVerificaSigcSenzaFiltri } from '../lib/criteri';
 import { puoLeggere } from '../lib/grant';
 import { periodoDellaRisposta } from '../lib/verificaSigc';
+import type { PeriodoSigc } from '../lib/verificaSigc';
 
 /** La quota della spesa non SIGC sul valore finanziato: barra, oppure il motivo per cui manca. */
 function Quota({ a }: { a: AnteprimaVerifica }) {
@@ -38,48 +38,63 @@ interface Lettura<T> {
   isError: boolean;
 }
 
-/** La risposta da mostrare: nessuna se la lettura e' fallita, anche con un dato vecchio in cache (come la card di prima). */
-function risposta<T>({ data, isError }: Lettura<T>): T | undefined {
-  return isError ? undefined : data;
+/** Una lettura ricavata una volta sola (review H-03): in attesa, fallita o pronta coi suoi dati. */
+type Stato<T> = { stato: 'attesa' } | { stato: 'errore' } | { stato: 'pronta'; dati: T };
+
+/**
+ * Lo stato di una lettura, solo col grant della sua colonna: senza il grant nessuna colonna e nessuna parte derivata (barra,
+ * nota, frase d'errore), anche con una risposta in cache (review A-02). L'errore vince sul dato in cache, come la card di
+ * prima e quella del finanziario.
+ */
+function statoDi<D, T>(conGrant: boolean, { data, isError }: Lettura<D>, ricava: (d: D) => T): Stato<T> | undefined {
+  if (!conGrant) return undefined;
+  if (isError) return { stato: 'errore' };
+  return data ? { stato: 'pronta', dati: ricava(data) } : { stato: 'attesa' };
 }
 
-/** Le celle di una colonna dalla sua lettura: i valori, null se e' fallita, undefined mentre legge. */
-function celleDellaLettura<T>(lettura: Lettura<T>, celle: (d: T) => ColonnaConfronto['celle']): ColonnaConfronto['celle'] {
-  if (lettura.isError) return null;
-  return lettura.data ? celle(lettura.data) : undefined;
+const datiDi = <T,>(s: Stato<T> | undefined): T | undefined => (s?.stato === 'pronta' ? s.dati : undefined);
+
+/** Lo stato della colonna del kit dallo stato della lettura, con le celle ricavate dai dati. */
+function statoColonna<T>(s: Stato<T>, celle: (d: T) => Readonly<Partial<Record<string, CellaConfronto>>>): StatoColonnaConfronto {
+  return s.stato === 'pronta' ? { stato: 'pronta', celle: celle(s.dati) } : { stato: s.stato };
 }
 
-function colonnaNonSigc(lettura: Lettura<VerificaSmpNonSigc>): ColonnaConfronto {
-  return { chiave: 'non-sigc', ...intestazioneNonSigc(risposta(lettura)?.perimetro), celle: celleDellaLettura(lettura, (d) => celleNonSigc(anteprimaVerifica(d))), senzaDato: SENZA_DATO_NON_SIGC };
+interface DatiNonSigc {
+  a: AnteprimaVerifica;
+  annoRiferimento: number | null;
+  perimetro?: string | null;
+}
+
+interface DatiSigc {
+  a: AnteprimaVerificaSigc;
+  periodo: PeriodoSigc;
+  perimetro?: string | null;
+}
+
+function colonnaNonSigc(s: Stato<DatiNonSigc>): ColonnaConfronto {
+  return { chiave: 'non-sigc', ...intestazioneNonSigc(datiDi(s)?.perimetro), ...statoColonna(s, (d) => celleNonSigc(d.a)), senzaDato: SENZA_DATO_NON_SIGC };
 }
 
 /** La colonna SIGC: l'esercizio dell'intestazione e' quello della risposta, prima della risposta quello chiesto. */
-function colonnaSigc(lettura: Lettura<VerificaSmp>, esercizio: number): ColonnaConfronto {
-  const d = risposta(lettura);
-  const p = d && periodoDellaRisposta(d, esercizio);
-  return { chiave: 'sigc', ...intestazioneSigc(p?.esercizio ?? esercizio, d?.perimetro), celle: celleDellaLettura(lettura, (r) => celleSigc(anteprimaVerificaSigc(r))) };
-}
-
-/** La frase di una lettura fallita, sotto la tabella (una lettura non abilitata non fallisce mai). */
-function ErroreDellaLettura({ lettura, children }: { lettura: Lettura<unknown>; children: string }) {
-  return lettura.isError ? <NotaArea>{children}</NotaArea> : null;
+function colonnaSigc(s: Stato<DatiSigc>, esercizio: number): ColonnaConfronto {
+  const d = datiDi(s);
+  return { chiave: 'sigc', ...intestazioneSigc(d?.periodo.esercizio ?? esercizio, d?.perimetro), ...statoColonna(s, (x) => celleSigc(x.a)) };
 }
 
 /** Le due letture e la tabella a confronto, con le sole colonne dei grant dell'utente. */
 function Confronto({ conVerifica, conSigc }: { conVerifica: boolean; conSigc: boolean }) {
   const esercizio = esercizioUltimoChiuso(new Date());
-  const nonSigc = useVerificaSmpNonSigc(criteriVerificaSenzaFiltri(), { abilitato: conVerifica });
-  const sigc = useVerificaSmpSigc(filtriVerificaSigcSenzaFiltri(), esercizio, { abilitato: conSigc });
-  const colonne = [...(conVerifica ? [colonnaNonSigc(nonSigc)] : []), ...(conSigc ? [colonnaSigc(sigc, esercizio)] : [])];
-  const nonSigcLetta = risposta(nonSigc);
-  const sigcLetta = risposta(sigc);
-  const nota = notaRiferimenti(nonSigcLetta, sigcLetta && periodoDellaRisposta(sigcLetta, esercizio));
+  const nonSigc = statoDi(conVerifica, useVerificaSmpNonSigc(criteriVerificaSenzaFiltri(), { abilitato: conVerifica }), (d) => ({ a: anteprimaVerifica(d), annoRiferimento: d.annoRiferimento, perimetro: d.perimetro }));
+  const sigc = statoDi(conSigc, useVerificaSmpSigc(filtriVerificaSigcSenzaFiltri(), esercizio, { abilitato: conSigc }), (d) => ({ a: anteprimaVerificaSigc(d), periodo: periodoDellaRisposta(d, esercizio), perimetro: d.perimetro }));
+  const colonne = [...(nonSigc ? [colonnaNonSigc(nonSigc)] : []), ...(sigc ? [colonnaSigc(sigc, esercizio)] : [])];
+  const datiNonSigc = datiDi(nonSigc);
+  const nota = notaRiferimenti(datiNonSigc, datiDi(sigc)?.periodo);
   return (
     <>
-      <ConfrontoArea titolo="L'istituzionale in cifre: verifica SMP non SIGC e SIGC" righe={righeCard(conSigc)} colonne={colonne} />
-      <ErroreDellaLettura lettura={nonSigc}>Dati della verifica SMP non SIGC non disponibili in questo momento.</ErroreDellaLettura>
-      <ErroreDellaLettura lettura={sigc}>Dati della verifica SMP SIGC non disponibili in questo momento.</ErroreDellaLettura>
-      {nonSigcLetta && <Quota a={anteprimaVerifica(nonSigcLetta)} />}
+      <ConfrontoArea titolo={titoloTabella(conVerifica, conSigc)} righe={righeCard(conSigc)} colonne={colonne} />
+      {nonSigc?.stato === 'errore' && <NotaArea>Dati della verifica SMP non SIGC non disponibili in questo momento.</NotaArea>}
+      {sigc?.stato === 'errore' && <NotaArea>Dati della verifica SMP SIGC non disponibili in questo momento.</NotaArea>}
+      {datiNonSigc && <Quota a={datiNonSigc.a} />}
       {nota && <NotaArea>{nota}</NotaArea>}
     </>
   );

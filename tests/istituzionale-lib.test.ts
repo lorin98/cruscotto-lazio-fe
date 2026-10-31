@@ -64,7 +64,7 @@ import { DATI_VERIFICA_SIGC, periodoDellaRisposta, testoEsercizio, testoRicercaS
 import type { DatoVerificaSigc, TipoDatoSigc } from '../src/features/istituzionale/lib/verificaSigc';
 import { TITOLO_SPESA, TITOLO_SPESA_SIGC, graficoSpesa, graficoSpesaSigc } from '../src/features/istituzionale/lib/grafici';
 import { SRD01, VERIFICA, VERIFICA_SMP, dato as datoSmp, nd, nv, rigaSmp, righeDeiFiltri, verificaPer, verificaSigcPer } from '../src/features/istituzionale/testing/fixture';
-import { QUOTA_NON_SIGC, SENZA_DATO_NON_SIGC, anteprimaVerifica, anteprimaVerificaSigc, celleNonSigc, celleSigc, intestazioneNonSigc, intestazioneSigc, notaRiferimenti, righeCard } from '../src/features/istituzionale/lib/anteprima';
+import { QUOTA_NON_SIGC, SENZA_DATO_NON_SIGC, anteprimaVerifica, anteprimaVerificaSigc, celleNonSigc, celleSigc, intestazioneNonSigc, intestazioneSigc, notaRiferimenti, righeCard, titoloTabella } from '../src/features/istituzionale/lib/anteprima';
 import type { RigaVerifica } from '../src/features/istituzionale/lib/dto';
 
 const dato = (campo: DatoVerifica['campo']) => DATI_VERIFICA.find((d) => d.campo === campo) as DatoVerifica;
@@ -484,7 +484,7 @@ describe('RF015: i venti dati della verifica SMP SIGC (TX-0015) nella tabella e 
     // una sola regola per gli estremi: voci, pill e card della Home
     expect(estremiEsercizio(2026)).toEqual({ inizio: '16/10/2025', fine: '15/10/2026' });
     expect(periodoEsercizio(2026)).toBe('dal 16/10/2025 al 15/10/2026');
-    expect(notaRiferimenti(undefined, { esercizio: 2026, annoDomande: 2025 })).toBe("SIGC: dal 16/10/2025 al 15/10/2026, domande dell'anno 2025.");
+    expect(notaRiferimenti(undefined, { esercizio: 2026, annoDomande: 2025 })).toBe("SIGC: pagate e spesa dal 16/10/2025 al 15/10/2026; ricevute e finanziate, domande dell'anno 2025.");
   });
 
   it('riferimenti della risposta: esercizio con gli estremi, anno delle domande, pagamenti senza data, perimetro', () => {
@@ -616,14 +616,21 @@ describe('RF016: card della Home coi totali della verifica SMP non SIGC (OP-IS-1
     expect(celleNonSigc(anteprimaVerifica(VERIFICA))).toEqual({ ricevute: { valore: 4 }, finanziate: { valore: 2 }, spesa: { valore: 91200.5 } });
     const motivata = celleNonSigc(anteprimaVerifica({ righe: conSpesa((r) => (r.codiceIntervento === 'SRA16' ? assente('FONTE_AMBIGUA') : r.spesaErogata)) }));
     expect(motivata.spesa.motivo).toContain('manca per 1 intervento (SRA16)');
-    expect(SENZA_DATO_NON_SIGC).toEqual({ righe: ['pagate'], testo: 'dato non previsto nella verifica non SIGC' });
-    expect(intestazioneNonSigc('REGIONALE')).toEqual({ titolo: 'Non SIGC', dettaglio: 'cumulativi' });
-    expect(intestazioneNonSigc('ADA')).toEqual({ titolo: 'Non SIGC', dettaglio: 'cumulativi della tua area' });
+    // decisione D1 dell'utente del 31/10/2026 (review V-01): TX-0016 ha solo le domande saldate al 100%
+    expect(SENZA_DATO_NON_SIGC).toEqual({ righe: ['pagate'], testo: 'dato non confrontabile: la verifica non SIGC conta solo le domande saldate al 100%' });
+    expect(intestazioneNonSigc('REGIONALE')).toEqual({ titolo: 'Non SIGC', nomeNelTesto: 'non SIGC', dettaglio: 'cumulativi' });
+    expect(intestazioneNonSigc('ADA')).toEqual({ titolo: 'Non SIGC', nomeNelTesto: 'non SIGC', dettaglio: 'cumulativi della tua area' });
+    expect([titoloTabella(true, true), titoloTabella(true, false), titoloTabella(false, true)]).toEqual([
+      "L'istituzionale in cifre: verifica SMP non SIGC e SIGC",
+      "L'istituzionale in cifre: verifica SMP non SIGC",
+      "L'istituzionale in cifre: verifica SMP SIGC",
+    ]);
     expect(QUOTA_NON_SIGC).toBe('Spesa non SIGC sul valore finanziato');
   });
 
   it('nota dei riferimenti (conserva D3: anno dell ultimo file) e righe della tabella, dalle ricevute alla spesa', () => {
-    expect(notaRiferimenti({ annoRiferimento: 2025 }, { esercizio: 2026, annoDomande: 2025 })).toBe("Non SIGC: ultimo file SMP 2025. SIGC: dal 16/10/2025 al 15/10/2026, domande dell'anno 2025.");
+    // decisione D2 dell'utente del 31/10/2026 (review X-01): la parte SIGC dice a quali righe valgono periodo e anno
+    expect(notaRiferimenti({ annoRiferimento: 2025 }, { esercizio: 2026, annoDomande: 2025 })).toBe("Non SIGC: ultimo file SMP 2025. SIGC: pagate e spesa dal 16/10/2025 al 15/10/2026; ricevute e finanziate, domande dell'anno 2025.");
     expect(notaRiferimenti({ annoRiferimento: null }, undefined)).toBe('Non SIGC: nessun file SMP.');
     expect(notaRiferimenti(undefined, undefined)).toBe('');
     expect(righeCard(true).map((r) => [r.chiave, r.etichetta])).toEqual([
@@ -670,7 +677,7 @@ describe('RF015: blocco SIGC della card della Home (rework 1 della card, scelta 
   it('colonna SIGC della tabella a confronto (rework 2): le quattro celle e l intestazione con l esercizio e il perimetro', () => {
     const righe = [riga('SRA01'), riga('SRA03', { domandeRicevute: 30, domandeFinanziate: 20, domandePagateEsercizio: 5, spesaErogataCampagnaPrecedente: importo(1000.1), spesaErogataCampagneAnteriori: importo(250.25) })];
     expect(celleSigc(anteprimaVerificaSigc({ righe }))).toEqual({ ricevute: { valore: 150 }, finanziate: { valore: 120 }, pagate: { valore: 85 }, spesa: { valore: 401250.35 } });
-    expect(intestazioneSigc(2026, 'REGIONALE')).toEqual({ titolo: 'SIGC', dettaglio: 'esercizio 2026' });
-    expect(intestazioneSigc(2026, 'ADA')).toEqual({ titolo: 'SIGC', dettaglio: 'esercizio 2026 della tua area' });
+    expect(intestazioneSigc(2026, 'REGIONALE')).toEqual({ titolo: 'SIGC', nomeNelTesto: 'SIGC', dettaglio: 'esercizio 2026' });
+    expect(intestazioneSigc(2026, 'ADA')).toEqual({ titolo: 'SIGC', nomeNelTesto: 'SIGC', dettaglio: 'esercizio 2026 della tua area' });
   });
 });

@@ -1008,25 +1008,25 @@
     },
     {
       "route": "/istituzionale/verifica-smp-non-sigc",
-      "name": "card della Home: somme fra gli interventi di righe[].domandeFinanziate, righe[].spesaErogata, righe[].valoreDomandeFinanziate, righe[].domandeRicevute di TX-0016 senza filtri e senza anno",
+      "name": "card della Home, colonna non SIGC: somme fra gli interventi di righe[].domandeFinanziate, righe[].spesaErogata, righe[].valoreDomandeFinanziate, righe[].domandeRicevute di TX-0016 senza filtri e senza anno",
       "provenance": "spec",
       "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigcRiga"
     },
     {
       "route": "/istituzionale/verifica-smp-non-sigc",
-      "name": "card della Home: annoRiferimento e perimetro della risposta (anno di riferimento detto in testo; etichette 'della tua area' col perimetro ADA)",
+      "name": "card della Home, colonna non SIGC: annoRiferimento e perimetro della risposta (anno dell'ultimo file nella nota sotto la tabella; 'della tua area' nell'intestazione della colonna col perimetro ADA)",
       "provenance": "spec",
       "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpNonSigc"
     },
     {
       "route": "/istituzionale/verifica-smp-non-sigc",
-      "name": "card della Home, blocco SIGC: somme fra gli interventi di righe[].domandeFinanziate, righe[].domandeRicevute, righe[].domandePagateEsercizio e righe[].spesaErogataCampagnaPrecedente + righe[].spesaErogataCampagneAnteriori di TX-0015 senza filtri con l'ultimo esercizio chiuso",
+      "name": "card della Home, colonna SIGC: somme fra gli interventi di righe[].domandeFinanziate, righe[].domandeRicevute, righe[].domandePagateEsercizio e righe[].spesaErogataCampagnaPrecedente + righe[].spesaErogataCampagneAnteriori di TX-0015 senza filtri con l'ultimo esercizio chiuso",
       "provenance": "spec",
       "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmpRiga"
     },
     {
       "route": "/istituzionale/verifica-smp-non-sigc",
-      "name": "card della Home, blocco SIGC: esercizio e annoDomande della risposta (riferimento 'SIGC, esercizio aaaa' col periodo)",
+      "name": "card della Home, colonna SIGC: esercizio, annoDomande e perimetro della risposta (esercizio nell'intestazione della colonna, periodo e anno delle domande nella nota sotto la tabella; 'della tua area' col perimetro ADA)",
       "provenance": "spec",
       "source_ref": "openapi-istituzionale.json#/components/schemas/VerificaSmp"
     }

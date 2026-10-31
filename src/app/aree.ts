@@ -120,7 +120,8 @@ export const AREE: readonly DiAmbito<Area>[] = [
     // G1 e riallineamento degli ambiti (29/10/2026): verifica SMP non SIGC (TX-0016) e verifica SMP SIGC (TX-0015, dal
     // finanziario); l'output regionale (TX-0017) e' del fisico. I due report hanno gli stessi filtri, che restano passando
     // dall'uno all'altro (anno ed esercizio no). Il dettaglio dell'intervento non e' una voce di menu: ci si arriva dai
-    // report. Testi della card dal dossier dei wireframe del 30/10/2026; l'Anteprima ha i due blocchi, non SIGC e SIGC.
+    // report. Testi della card dal dossier dei wireframe del 30/10/2026; l'Anteprima e' una tabella a confronto non SIGC e
+    // SIGC (rework 2 del 31/10/2026).
     chiave: 'istituzionale',
     titolo: 'Istituzionale',
     descrizione: 'Dati ASR SIGC e non SIGC per intervento, da confrontare con SMP - Data Platform.',

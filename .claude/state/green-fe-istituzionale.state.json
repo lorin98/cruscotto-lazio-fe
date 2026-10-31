@@ -27,7 +27,11 @@
           "baseline_ref": "./wireframes/istituzionale/verifica-smp-non-sigc",
           "approved_at": "2026-10-31T07:56:49Z",
           "time_to_approve_s": 88,
-          "deviations_reviewed": []
+          "deviations_reviewed": [
+            "V-01 (review step9 FULL della card a tabella, 31/10/2026; decisione D1 dell utente: testo nuovo solo nel codice, nessun rework 3): ai lettori di schermo il trattino delle domande pagate della colonna non SIGC dice \"dato non confrontabile: la verifica non SIGC conta solo le domande saldate al 100%\" invece di \"dato non previsto nella verifica non SIGC\" del wireframe (falso: TX-0016 ha domandeSaldate)",
+            "X-01 (stessa review; decisione D2 dell utente: testo nuovo solo nel codice): la parte SIGC della nota sotto la tabella dice \"SIGC: pagate e spesa dal 16/10/aaaa-1 al 15/10/aaaa; ricevute e finanziate, domande dell anno aaaa-1.\" invece di \"SIGC: dal 16/10/aaaa-1 al 15/10/aaaa, domande dell anno aaaa-1.\"",
+            "A-01/X-02 (stessa review, conseguenza di D1-D2 senza rework): il residuo WCAG della sezione Tabella a confronto del doc dice \"quattro card per riga sotto i 1300 px circa\"; la fascia vera e da circa 1376 px (correzione nel resoconto review/card-istituzionale-2026-10-31, il doc del wireframe resta invariato)"
+          ]
         },
         "wireframe_verifica-smp-sigc": {
           "approved_hash": "sha256:46cf705caa939048eece9f1c5fa78062f600df47739d93e1f0e54f7bd42ef218",

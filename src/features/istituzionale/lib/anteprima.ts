@@ -80,7 +80,7 @@ function totaleConteggio(righe: readonly RigaVerificaSigc[], conteggio: (r: Riga
   return totaleMotivato(righe, (r) => ({ valore: conteggio(r) }), codiceSigc, { vuoto: 'zero' });
 }
 
-/** I numeri del blocco SIGC dalla risposta di TX-0015 (righe facoltative come nella spec: assenti = nessun intervento). */
+/** I totali della colonna SIGC dalla risposta di TX-0015 (righe facoltative come nella spec: assenti = nessun intervento). */
 export function anteprimaVerificaSigc(d: Pick<VerificaSigc, 'righe'>): AnteprimaVerificaSigc {
   const righe = d.righe ?? [];
   return {
@@ -116,17 +116,33 @@ export function celleSigc(a: AnteprimaVerificaSigc): Record<RigaCard, TotaleMoti
   return { ricevute: a.domandeRicevute, finanziate: a.domandeFinanziate, pagate: a.domandePagate, spesa: a.spesaErogata };
 }
 
-/** La riga che la verifica non SIGC non ha: un trattino, e ai lettori di schermo perche'. */
-export const SENZA_DATO_NON_SIGC = { righe: ['pagate'], testo: 'dato non previsto nella verifica non SIGC' } as const;
+/**
+ * La riga che la colonna non SIGC non confronta: un trattino, e ai lettori di schermo perche'. TX-0016 ha le domande pagate
+ * solo saldate al 100% (domandeSaldate), che non sono le pagate nell'esercizio della SIGC (review V-01, decisione D1
+ * dell'utente del 31/10/2026: testo nuovo nel codice, deviazione registrata nel gate del flusso).
+ */
+export const SENZA_DATO_NON_SIGC = { righe: ['pagate'], testo: 'dato non confrontabile: la verifica non SIGC conta solo le domande saldate al 100%' } as const;
 
-/** Intestazione della colonna non SIGC: "Non SIGC (cumulativi)"; col perimetro ADA "(cumulativi della tua area)". */
-export function intestazioneNonSigc(perimetro: string | null | undefined): { titolo: string; dettaglio: string } {
-  return { titolo: 'Non SIGC', dettaglio: etichettaDellArea('cumulativi', perimetro) };
+interface Intestazione {
+  titolo: string;
+  nomeNelTesto: string;
+  dettaglio: string;
+}
+
+/** Intestazione della colonna non SIGC: "Non SIGC (cumulativi)", "non SIGC" nelle frasi; col perimetro ADA "(cumulativi della tua area)". */
+export function intestazioneNonSigc(perimetro: string | null | undefined): Intestazione {
+  return { titolo: 'Non SIGC', nomeNelTesto: 'non SIGC', dettaglio: etichettaDellArea('cumulativi', perimetro) };
 }
 
 /** Intestazione della colonna SIGC: "SIGC (esercizio 2026)"; col perimetro ADA "(esercizio 2026 della tua area)". */
-export function intestazioneSigc(esercizio: number, perimetro: string | null | undefined): { titolo: string; dettaglio: string } {
-  return { titolo: 'SIGC', dettaglio: etichettaDellArea(`esercizio ${esercizio}`, perimetro) };
+export function intestazioneSigc(esercizio: number, perimetro: string | null | undefined): Intestazione {
+  return { titolo: 'SIGC', nomeNelTesto: 'SIGC', dettaglio: etichettaDellArea(`esercizio ${esercizio}`, perimetro) };
+}
+
+/** La didascalia della tabella con le sole verifiche delle colonne presenti (review X-04). */
+export function titoloTabella(conVerifica: boolean, conSigc: boolean): string {
+  const verifiche = [conVerifica && 'non SIGC', conSigc && 'SIGC'].filter((v) => v).join(' e ');
+  return `L'istituzionale in cifre: verifica SMP ${verifiche}`;
 }
 
 /** L'etichetta della barra sotto la tabella: la quota c'e' solo per la verifica non SIGC. */
@@ -134,13 +150,15 @@ export const QUOTA_NON_SIGC = 'Spesa non SIGC sul valore finanziato';
 
 /**
  * La nota dei riferimenti sotto la tabella (al posto dei due riferimenti di prima; conserva cio' che diceva D3: valori
- * cumulativi nella colonna, anno dell'ultimo file qui): "Non SIGC: ultimo file SMP 2025. SIGC: dal 16/10/2025 al
- * 15/10/2026, domande dell'anno 2025.". Ogni parte c'e' solo con la risposta della sua colonna.
+ * cumulativi nella colonna, anno dell'ultimo file qui): "Non SIGC: ultimo file SMP 2025. SIGC: pagate e spesa dal
+ * 16/10/2025 al 15/10/2026; ricevute e finanziate, domande dell'anno 2025.". La parte SIGC dice a quali righe valgono il
+ * periodo e l'anno delle domande (review X-01, decisione D2 dell'utente del 31/10/2026: testo nuovo nel codice, deviazione
+ * registrata nel gate del flusso). Ogni parte c'e' solo con la risposta della sua colonna.
  */
 export function notaRiferimenti(nonSigc: { annoRiferimento: number | null } | undefined, sigc: { esercizio: number; annoDomande: number } | undefined): string {
   const parti = [
     nonSigc && `Non SIGC: ${nonSigc.annoRiferimento === null ? 'nessun file SMP' : `ultimo file SMP ${nonSigc.annoRiferimento}`}.`,
-    sigc && `SIGC: ${periodoEsercizio(sigc.esercizio)}, domande dell'anno ${sigc.annoDomande}.`,
+    sigc && `SIGC: pagate e spesa ${periodoEsercizio(sigc.esercizio)}; ricevute e finanziate, domande dell'anno ${sigc.annoDomande}.`,
   ];
   return parti.filter((p) => p).join(' ');
 }
