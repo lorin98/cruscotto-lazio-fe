@@ -426,6 +426,27 @@ describe('RF016 e RF015: card Istituzionale della Home (OP-IS-11; tabella a conf
     expect(cifre.querySelector('.ui-barra')).toBeNull();
   });
 
+  it('rilettura fallita dopo un primo dato in cache: la colonna dice non disponibile con la frase, mai i numeri vecchi; quota e nota spariscono', async () => {
+    conRuoli(['csr.tx-0015.read', 'csr.tx-0016.read']);
+    lettura(VERIFICA_PATH, VERIFICA);
+    letturaSigc();
+    const client = clientDiTest();
+    renderConQuery(<AnteprimaIstituzionale altrimenti={ALTRIMENTI} />, client);
+    const cifre = await screen.findByRole('group', { name: "L'istituzionale in cifre" });
+    const t = await tabella();
+    await waitFor(() => expect(cella(t, 'Domande ricevute', 'Non SIGC')).toBe('4'));
+    await waitFor(() => expect(cella(t, 'Domande ricevute', 'SIGC')).toBe('120'));
+    server.use(indisponibile(VERIFICA_PATH));
+    await act(async () => {
+      await client.refetchQueries();
+    });
+    await waitFor(() => expect(cella(t, 'Domande ricevute', 'Non SIGC')).toBe('non disponibile'));
+    expect(within(cifre).getByText('Dati della verifica SMP non SIGC non disponibili in questo momento.')).toBeTruthy();
+    expect(cifre.querySelector('.ui-barra')).toBeNull();
+    expect(within(cifre).getByText(NOTA_SIGC)).toBeTruthy();
+    expect(cella(t, 'Domande ricevute', 'SIGC')).toBe('120');
+  });
+
   it('perimetro ADA: l intestazione della colonna dice "della tua area"', async () => {
     conRuoli(['csr.tx-0016.read']);
     lettura(VERIFICA_PATH, { ...VERIFICA, perimetro: 'ADA' });

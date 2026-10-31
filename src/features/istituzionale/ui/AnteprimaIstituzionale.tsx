@@ -38,25 +38,31 @@ interface Lettura<T> {
   isError: boolean;
 }
 
+/** La risposta da mostrare: nessuna se la lettura e' fallita, anche con un dato vecchio in cache (come la card di prima). */
+function risposta<T>({ data, isError }: Lettura<T>): T | undefined {
+  return isError ? undefined : data;
+}
+
 /** Le celle di una colonna dalla sua lettura: i valori, null se e' fallita, undefined mentre legge. */
-function celleDellaLettura<T>({ data, isError }: Lettura<T>, celle: (d: T) => ColonnaConfronto['celle']): ColonnaConfronto['celle'] {
-  if (data) return celle(data);
-  return isError ? null : undefined;
+function celleDellaLettura<T>(lettura: Lettura<T>, celle: (d: T) => ColonnaConfronto['celle']): ColonnaConfronto['celle'] {
+  if (lettura.isError) return null;
+  return lettura.data ? celle(lettura.data) : undefined;
 }
 
 function colonnaNonSigc(lettura: Lettura<VerificaSmpNonSigc>): ColonnaConfronto {
-  return { chiave: 'non-sigc', ...intestazioneNonSigc(lettura.data?.perimetro), celle: celleDellaLettura(lettura, (d) => celleNonSigc(anteprimaVerifica(d))), senzaDato: SENZA_DATO_NON_SIGC };
+  return { chiave: 'non-sigc', ...intestazioneNonSigc(risposta(lettura)?.perimetro), celle: celleDellaLettura(lettura, (d) => celleNonSigc(anteprimaVerifica(d))), senzaDato: SENZA_DATO_NON_SIGC };
 }
 
 /** La colonna SIGC: l'esercizio dell'intestazione e' quello della risposta, prima della risposta quello chiesto. */
 function colonnaSigc(lettura: Lettura<VerificaSmp>, esercizio: number): ColonnaConfronto {
-  const p = lettura.data && periodoDellaRisposta(lettura.data, esercizio);
-  return { chiave: 'sigc', ...intestazioneSigc(p?.esercizio ?? esercizio, lettura.data?.perimetro), celle: celleDellaLettura(lettura, (d) => celleSigc(anteprimaVerificaSigc(d))) };
+  const d = risposta(lettura);
+  const p = d && periodoDellaRisposta(d, esercizio);
+  return { chiave: 'sigc', ...intestazioneSigc(p?.esercizio ?? esercizio, d?.perimetro), celle: celleDellaLettura(lettura, (r) => celleSigc(anteprimaVerificaSigc(r))) };
 }
 
 /** La frase di una lettura fallita, sotto la tabella (una lettura non abilitata non fallisce mai). */
 function ErroreDellaLettura({ lettura, children }: { lettura: Lettura<unknown>; children: string }) {
-  return lettura.isError && !lettura.data ? <NotaArea>{children}</NotaArea> : null;
+  return lettura.isError ? <NotaArea>{children}</NotaArea> : null;
 }
 
 /** Le due letture e la tabella a confronto, con le sole colonne dei grant dell'utente. */
@@ -65,13 +71,15 @@ function Confronto({ conVerifica, conSigc }: { conVerifica: boolean; conSigc: bo
   const nonSigc = useVerificaSmpNonSigc(criteriVerificaSenzaFiltri(), { abilitato: conVerifica });
   const sigc = useVerificaSmpSigc(filtriVerificaSigcSenzaFiltri(), esercizio, { abilitato: conSigc });
   const colonne = [...(conVerifica ? [colonnaNonSigc(nonSigc)] : []), ...(conSigc ? [colonnaSigc(sigc, esercizio)] : [])];
-  const nota = notaRiferimenti(nonSigc.data, sigc.data && periodoDellaRisposta(sigc.data, esercizio));
+  const nonSigcLetta = risposta(nonSigc);
+  const sigcLetta = risposta(sigc);
+  const nota = notaRiferimenti(nonSigcLetta, sigcLetta && periodoDellaRisposta(sigcLetta, esercizio));
   return (
     <>
       <ConfrontoArea titolo="L'istituzionale in cifre: verifica SMP non SIGC e SIGC" righe={righeCard(conSigc)} colonne={colonne} />
       <ErroreDellaLettura lettura={nonSigc}>Dati della verifica SMP non SIGC non disponibili in questo momento.</ErroreDellaLettura>
       <ErroreDellaLettura lettura={sigc}>Dati della verifica SMP SIGC non disponibili in questo momento.</ErroreDellaLettura>
-      {nonSigc.data && <Quota a={anteprimaVerifica(nonSigc.data)} />}
+      {nonSigcLetta && <Quota a={anteprimaVerifica(nonSigcLetta)} />}
       {nota && <NotaArea>{nota}</NotaArea>}
     </>
   );
