@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "fisico",
-  "current_step": 1,
+  "current_step": 2,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -20,9 +20,38 @@
       }
     },
     "step1-uiplan": {
-      "status": "in_progress",
-      "gates": {},
-      "completed_at": "2026-10-30T07:30:53Z",
+      "status": "done",
+      "gates": {
+        "wireframe_superfici": {
+          "approved_hash": "sha256:d642ae588608d0c35430670e46efb4a3f3c6cd49c64b9fb0f6e154269f187921",
+          "baseline_ref": "./wireframes/fisico/superfici",
+          "approved_at": "2026-11-01T09:50:39Z",
+          "time_to_approve_s": 354,
+          "deviations_reviewed": []
+        },
+        "wireframe_output-regionale": {
+          "approved_hash": "sha256:5d85c16182cbc222b548723b50266d7d7c54cfc10cccb3131b9452219a4e88ff",
+          "baseline_ref": "./wireframes/fisico/output-regionale",
+          "approved_at": "2026-11-01T09:50:39Z",
+          "time_to_approve_s": 354,
+          "deviations_reviewed": []
+        },
+        "wireframe_unit-amount": {
+          "approved_hash": "sha256:a55975764e3a33d49bffa6230ffadcba6e4c66f08ad1bd09ae6527bf8c38862a",
+          "baseline_ref": "./wireframes/fisico/unit-amount",
+          "approved_at": "2026-11-01T09:50:39Z",
+          "time_to_approve_s": 354,
+          "deviations_reviewed": []
+        },
+        "wireframe_intervento": {
+          "approved_hash": "sha256:8912ef454802da00f68e89757c502b5042a1e3a803cb146c310874ee02c5fea7",
+          "baseline_ref": "./wireframes/fisico/intervento",
+          "approved_at": "2026-11-01T09:50:39Z",
+          "time_to_approve_s": 354,
+          "deviations_reviewed": []
+        }
+      },
+      "completed_at": "2026-11-01T09:51:03Z",
       "artifacts": [
         "./plan/fisico/uiplan.json"
       ]

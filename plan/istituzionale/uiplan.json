@@ -1063,7 +1063,14 @@
         "Frase verso la verifica SMP SIGC della stessa area resa con csr.tx-0015.read (mai un link che porta a un 403; nel catalogo rev. 4 lo hanno tutti i profili della pagina); il testo dice che porta i filtri e non l'anno",
         "Residuo manuale: ordine di lettura (filtri, anno, grafico, tabella), comprensibilita delle note sulle definizioni, contrasto della resa finale; axe rinviato allo step8",
         "Card della Home (home.html, decisione dell'utente del 26/10/2026; tabella a confronto dal rework 2 del 31/10/2026): numeri in una tabella con intestazioni di riga (domande ricevute, finanziate, pagate, spesa pubblica erogata) e di colonna (Non SIGC, SIGC) dentro un gruppo con nome (\"L'istituzionale in cifre\"), trattino della riga senza dato detto ai lettori di schermo, motivi delle assenze sotto la tabella con riga e colonna; numero animato letto solo nel valore finale e fermo con prefers-reduced-motion; barra della spesa sul valore finanziato nascosta ai lettori di schermo, percentuale nel testo; totale di un dato motivato assente in una riga detto 'non disponibile' col motivo, mai una somma parziale; errore detto in una frase senza fermare la Home."
-      ]
+      ],
+      "approval": {
+        "approved_hash": "sha256:f1a61879d14a841ba5e70663aadc391d47293777e0c82a42d5c87271c3a00cff",
+        "baseline_ref": "./wireframes/istituzionale/verifica-smp-non-sigc",
+        "approved_at": "2026-11-01T09:50:39Z",
+        "time_to_approve_s": 354,
+        "rework_rounds": 0
+      }
     },
     {
       "name": "verifica-smp-sigc",
@@ -1080,7 +1087,14 @@
         "Pill 'Dati al' (ultimiDatiSincronizzati di TX-0015) come bottone col nome accessibile completo ('Ultimo dato sincronizzato: dati al ... per tutti i flussi. Mostra il dettaglio per flusso') e popover con una voce per flusso",
         "Frase verso la verifica SMP non SIGC resa con csr.tx-0016.read (mai un link che porta a un 403); il testo dice che porta i filtri e non l'esercizio",
         "Residuo manuale: ordine di lettura (filtri, titolo, esercizio, riferimenti, grafico, tabella), comprensibilita' delle note sulle definizioni, testi lunghi delle assenze nelle celle, contrasto della resa finale; axe rinviato allo step8"
-      ]
+      ],
+      "approval": {
+        "approved_hash": "sha256:d0af0beb1dc3e14ba71f476259c652db72acafea83269ed43c034f89ff9b9fe4",
+        "baseline_ref": "./wireframes/istituzionale/verifica-smp-sigc",
+        "approved_at": "2026-11-01T09:50:39Z",
+        "time_to_approve_s": 354,
+        "rework_rounds": 0
+      }
     },
     {
       "name": "intervento",
@@ -1096,7 +1110,14 @@
         "Scaricamenti per formato (CSV e XLSX in ogni scheda; il nome accessibile dice l'intervento e, per la scheda SIGC, l'esercizio): sigla visibile contenuta nel nome accessibile completo (WCAG 2.5.3); durante la preparazione aria-disabled col focus sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo",
         "Pill 'Dati al' (ultimiDatiSincronizzati) come bottone col nome accessibile completo ('Ultimo dato sincronizzato: dati al ... per tutti i flussi. Mostra il dettaglio per flusso') e popover con una voce per flusso",
         "Residuo manuale: ordine di lettura di testata e schede; comprensibilita' della differenza di periodo fra le due schede; etichette lunghe delle voci; contrasto della resa finale; axe rinviato allo step8"
-      ]
+      ],
+      "approval": {
+        "approved_hash": "sha256:1e5a767887afd3187aa19e07ebd7d76e991e684df40e3a710342fcb714137d3b",
+        "baseline_ref": "./wireframes/istituzionale/intervento",
+        "approved_at": "2026-11-01T09:50:39Z",
+        "time_to_approve_s": 354,
+        "rework_rounds": 0
+      }
     }
   ],
   "open_points": [

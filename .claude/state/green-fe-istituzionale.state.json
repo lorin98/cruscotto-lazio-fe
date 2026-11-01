@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "istituzionale",
-  "current_step": 1,
+  "current_step": 2,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -20,9 +20,35 @@
       }
     },
     "step1-uiplan": {
-      "status": "in_progress",
-      "gates": {},
-      "completed_at": "2026-10-30T07:37:47Z",
+      "status": "done",
+      "gates": {
+        "wireframe_verifica-smp-non-sigc": {
+          "approved_hash": "sha256:f1a61879d14a841ba5e70663aadc391d47293777e0c82a42d5c87271c3a00cff",
+          "baseline_ref": "./wireframes/istituzionale/verifica-smp-non-sigc",
+          "approved_at": "2026-11-01T09:50:39Z",
+          "time_to_approve_s": 354,
+          "deviations_reviewed": [
+            "V-01 (review step9 FULL della card a tabella, 31/10/2026; decisione D1 dell utente: testo nuovo solo nel codice, nessun rework 3): ai lettori di schermo il trattino delle domande pagate della colonna non SIGC dice \"dato non confrontabile: la verifica non SIGC conta solo le domande saldate al 100%\" invece di \"dato non previsto nella verifica non SIGC\" del wireframe (falso: TX-0016 ha domandeSaldate)",
+            "X-01 (stessa review; decisione D2 dell utente: testo nuovo solo nel codice): la parte SIGC della nota sotto la tabella dice \"SIGC: pagate e spesa dal 16/10/aaaa-1 al 15/10/aaaa; ricevute e finanziate, domande dell anno aaaa-1.\" invece di \"SIGC: dal 16/10/aaaa-1 al 15/10/aaaa, domande dell anno aaaa-1.\"",
+            "A-01/X-02 (stessa review, conseguenza di D1-D2 senza rework): il residuo WCAG della sezione Tabella a confronto del doc dice \"quattro card per riga sotto i 1300 px circa\"; la fascia vera e da circa 1376 px (correzione nel resoconto review/card-istituzionale-2026-10-31, il doc del wireframe resta invariato)"
+          ]
+        },
+        "wireframe_verifica-smp-sigc": {
+          "approved_hash": "sha256:d0af0beb1dc3e14ba71f476259c652db72acafea83269ed43c034f89ff9b9fe4",
+          "baseline_ref": "./wireframes/istituzionale/verifica-smp-sigc",
+          "approved_at": "2026-11-01T09:50:39Z",
+          "time_to_approve_s": 354,
+          "deviations_reviewed": []
+        },
+        "wireframe_intervento": {
+          "approved_hash": "sha256:1e5a767887afd3187aa19e07ebd7d76e991e684df40e3a710342fcb714137d3b",
+          "baseline_ref": "./wireframes/istituzionale/intervento",
+          "approved_at": "2026-11-01T09:50:39Z",
+          "time_to_approve_s": 354,
+          "deviations_reviewed": []
+        }
+      },
+      "completed_at": "2026-11-01T09:51:14Z",
       "artifacts": [
         "./plan/istituzionale/uiplan.json"
       ]

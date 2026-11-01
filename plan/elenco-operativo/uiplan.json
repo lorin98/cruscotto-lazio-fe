@@ -1623,7 +1623,14 @@
         "Intestazioni ordinabili come bottoni con lo stato dell'ordinamento annunciato; righe apribili con Invio oltre che col clic",
         "Residuo manuale: ordine di lettura di sinottico, tabella e totali; contrasto della resa finale; comprensibilita' delle etichette dei filtri",
         "Grafici del sinottico con la tabella equivalente; il clic su una barra aggiunge il filtro (chip) e lo annuncia"
-      ]
+      ],
+      "approval": {
+        "approved_hash": "sha256:7d56aed4a5aea1177abd6d4755ff9e1123369ef1b837a327d230655d28ad8acb",
+        "baseline_ref": "./wireframes/elenco-operativo/domande",
+        "approved_at": "2026-11-01T09:50:39Z",
+        "time_to_approve_s": 354,
+        "rework_rounds": 0
+      }
     },
     {
       "name": "dettaglio-domanda",
@@ -1637,7 +1644,14 @@
         "Grafico a cascata con la tabella equivalente e la didascalia; importi assenti dichiarati col motivo, mai a zero",
         "Residuo manuale: ordine di lettura della testata, comprensibilita' dei badge di stato, contrasto della resa finale",
         "Il link alle determine dice nel testo dove porta, area compresa ('nell'area Procedurale'): scopo chiaro dal solo testo (WCAG 2.4.4), cambio di area annunciato prima del clic"
-      ]
+      ],
+      "approval": {
+        "approved_hash": "sha256:4555d1e5508ddb3923d617adaf7079635f38d2e5b030ea8e4f585a85fecf77b2",
+        "baseline_ref": "./wireframes/elenco-operativo/dettaglio-domanda",
+        "approved_at": "2026-11-01T09:50:39Z",
+        "time_to_approve_s": 354,
+        "rework_rounds": 0
+      }
     },
     {
       "name": "pagamenti",
@@ -1652,7 +1666,14 @@
         "Intestazioni ordinabili come bottoni con lo stato dell'ordinamento annunciato; righe apribili con Invio oltre che col clic",
         "Residuo manuale: ordine di lettura di sinottico, tabella e totali; contrasto della resa finale; comprensibilita' delle etichette dei filtri",
         "La riga di una domanda chiusa dice in testo 'domanda chiusa' (non solo col colore) e non offre il link al dettaglio"
-      ]
+      ],
+      "approval": {
+        "approved_hash": "sha256:327903337fe2e2b69e6c0d6f8d842e7be28f24c85a049ba268cad72cdb4bae1a",
+        "baseline_ref": "./wireframes/elenco-operativo/pagamenti",
+        "approved_at": "2026-11-01T09:50:39Z",
+        "time_to_approve_s": 354,
+        "rework_rounds": 0
+      }
     }
   ],
   "open_points": [

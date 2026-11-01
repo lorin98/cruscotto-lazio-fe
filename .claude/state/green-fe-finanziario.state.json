@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "finanziario",
-  "current_step": 1,
+  "current_step": 2,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -20,9 +20,55 @@
       }
     },
     "step1-uiplan": {
-      "status": "in_progress",
-      "gates": {},
-      "completed_at": "2026-10-30T07:29:22Z",
+      "status": "done",
+      "gates": {
+        "wireframe_panoramica": {
+          "approved_hash": "sha256:7831bc3f2e835b39fcd7d1dfcd4fe1cc72cfa0f4512e0baa77000360099912f6",
+          "baseline_ref": "./wireframes/panoramica",
+          "approved_at": "2026-11-01T09:50:39Z",
+          "time_to_approve_s": 354,
+          "deviations_reviewed": [
+            "V-22 (review step9 v2, scelta dell utente del 09/10/2026): il pulsante del pannello dei filtri resta Applica i filtri e non Mostra n interventi; il conteggio richiede il legame intervento-OS-OG-OP (OP-FE-07), che TX-0001 non espone",
+            "V-07 (review step9 v3, download per formato chiesto dall utente il 09/10/2026, deviazione confermata il 12/10/2026): al posto del solo Scarica per card e di Esporta CSV per le tabelle, un pulsante per formato con la sigla visibile; PNG del grafico come si vede con l intestazione di NFR-50 (V-01), CSV e XLSX scritti dal backend (D-08). Il PNG non e registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08, scelta dell utente del 12/10/2026"
+          ]
+        },
+        "wireframe_riepilogo": {
+          "approved_hash": "sha256:79a25c749adb1022552c787a6b068f16d0e2ec1271068295277957ce0c2975ef",
+          "baseline_ref": "./wireframes/riepilogo",
+          "approved_at": "2026-11-01T09:50:39Z",
+          "time_to_approve_s": 354,
+          "deviations_reviewed": [
+            "V-07 (review step9 v3, download per formato chiesto dall utente il 09/10/2026, deviazione confermata il 12/10/2026): al posto del solo Scarica per card e di Esporta CSV per le tabelle, un pulsante per formato con la sigla visibile; PNG del grafico come si vede con l intestazione di NFR-50 (V-01), CSV e XLSX scritti dal backend (D-08). Il PNG non e registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08, scelta dell utente del 12/10/2026",
+            "F2 della review FULL sul delta FE (21/10/2026): vista iniziale a grafico con interruttore di pagina Grafico | Tabella, tabella approvata invariata nella vista Tabella; due interruttori nella vista Grafico nello stesso ordine; riapprovato dall'utente il 21/10/2026"
+          ]
+        },
+        "wireframe_dotazione-avanzamento": {
+          "approved_hash": "sha256:95b817b2e07c1f9b1dae17d21182629ecce678fa7929e2f34b8597877ab9821e",
+          "baseline_ref": "./wireframes/dotazione-avanzamento",
+          "approved_at": "2026-11-01T09:50:39Z",
+          "time_to_approve_s": 354,
+          "deviations_reviewed": [
+            "V-07 (review step9 v3, download per formato chiesto dall utente il 09/10/2026, deviazione confermata il 12/10/2026): al posto del solo Scarica per card e di Esporta CSV per le tabelle, un pulsante per formato con la sigla visibile; PNG del grafico come si vede con l intestazione di NFR-50 (V-01), CSV e XLSX scritti dal backend (D-08). Il PNG non e registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08, scelta dell utente del 12/10/2026"
+          ]
+        },
+        "wireframe_domande": {
+          "approved_hash": "sha256:078555864f049b03fae3723801d1abe0755caaabcf727741a1f1ff6c81ba642e",
+          "baseline_ref": "./wireframes/domande",
+          "approved_at": "2026-11-01T09:50:39Z",
+          "time_to_approve_s": 354,
+          "deviations_reviewed": [
+            "V-07 (review step9 v3, download per formato chiesto dall utente il 09/10/2026, deviazione confermata il 12/10/2026): al posto del solo Scarica per card e di Esporta CSV per le tabelle, un pulsante per formato con la sigla visibile; PNG del grafico come si vede con l intestazione di NFR-50 (V-01), CSV e XLSX scritti dal backend (D-08). Il PNG non e registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08, scelta dell utente del 12/10/2026"
+          ]
+        },
+        "wireframe_sigc": {
+          "approved_hash": "sha256:eab1ffa893b6696e2313e217459c5c1033230eb01a05dc6b8107b63fa3bf0cf2",
+          "baseline_ref": "./wireframes/sigc",
+          "approved_at": "2026-11-01T09:50:39Z",
+          "time_to_approve_s": 354,
+          "deviations_reviewed": []
+        }
+      },
+      "completed_at": "2026-11-01T09:50:43Z",
       "artifacts": [
         "./uiplan.json"
       ]

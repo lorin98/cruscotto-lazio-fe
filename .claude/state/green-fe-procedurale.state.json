@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "procedurale",
-  "current_step": 1,
+  "current_step": 2,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -20,9 +20,60 @@
       }
     },
     "step1-uiplan": {
-      "status": "in_progress",
-      "gates": {},
-      "completed_at": "2026-10-30T07:31:32Z",
+      "status": "done",
+      "gates": {
+        "wireframe_panoramica": {
+          "approved_hash": "sha256:7bab43374ff4be639b25c2024b3d296880f6db4d600c599be734199b74960127",
+          "baseline_ref": "./wireframes/procedurale/panoramica",
+          "approved_at": "2026-11-01T09:50:39Z",
+          "time_to_approve_s": 354,
+          "deviations_reviewed": []
+        },
+        "wireframe_stati": {
+          "approved_hash": "sha256:666e4d185c54a994578478820d4d0eea9debab8e05c46b1e1482bfd5a3791322",
+          "baseline_ref": "./wireframes/procedurale/stati",
+          "approved_at": "2026-11-01T09:50:39Z",
+          "time_to_approve_s": 354,
+          "deviations_reviewed": [
+            "Scelte di disegno approvate dall'utente il 22/10/2026: dettaglio procedurale dell'intervento con scheda Sottofasi; due pagine per gli stati di sostegno e di pagamento; card stato area programmazione da TX-0029; clic su una barra = filtro in pagina, Apri nell'elenco (n rilasciate) azione esplicita; di cui non rilasciate di In compilazione senza fonte = non disponibile; CSV/XLSX di una card = intero report; Unit Amount senza importo pagato = nota unica sopra la tabella"
+          ]
+        },
+        "wireframe_ammesse": {
+          "approved_hash": "sha256:6b0e18fe836095b1a8fc5b52a36c85c999f8a52749e6edaa8bfb9ccb845432a7",
+          "baseline_ref": "./wireframes/procedurale/ammesse",
+          "approved_at": "2026-11-01T09:50:39Z",
+          "time_to_approve_s": 354,
+          "deviations_reviewed": [
+            "Scelte di disegno approvate dall'utente il 22/10/2026: dettaglio procedurale dell'intervento con scheda Sottofasi; due pagine per gli stati di sostegno e di pagamento; card stato area programmazione da TX-0029; clic su una barra = filtro in pagina, Apri nell'elenco (n rilasciate) azione esplicita; di cui non rilasciate di In compilazione senza fonte = non disponibile; CSV/XLSX di una card = intero report; Unit Amount senza importo pagato = nota unica sopra la tabella"
+          ]
+        },
+        "wireframe_sottofasi": {
+          "approved_hash": "sha256:327ee4626afe3d6cd89214142139a3f9bb38542462262484c067c1b0b5f9f028",
+          "baseline_ref": "./wireframes/procedurale/sottofasi",
+          "approved_at": "2026-11-01T09:50:39Z",
+          "time_to_approve_s": 354,
+          "deviations_reviewed": [
+            "Scelte di disegno approvate dall'utente il 22/10/2026: dettaglio procedurale dell'intervento con scheda Sottofasi; due pagine per gli stati di sostegno e di pagamento; card stato area programmazione da TX-0029; clic su una barra = filtro in pagina, Apri nell'elenco (n rilasciate) azione esplicita; di cui non rilasciate di In compilazione senza fonte = non disponibile; CSV/XLSX di una card = intero report; Unit Amount senza importo pagato = nota unica sopra la tabella"
+          ]
+        },
+        "wireframe_riepilogo": {
+          "approved_hash": "sha256:229cc5b96bac06ffda3a72cad7e8dd9ae5ef8ac8d7933c0d2ff2deab069e17f5",
+          "baseline_ref": "./wireframes/procedurale/riepilogo",
+          "approved_at": "2026-11-01T09:50:39Z",
+          "time_to_approve_s": 354,
+          "deviations_reviewed": [
+            "Scelte di disegno approvate dall'utente il 22/10/2026: dettaglio procedurale dell'intervento con scheda Sottofasi; due pagine per gli stati di sostegno e di pagamento; card stato area programmazione da TX-0029; clic su una barra = filtro in pagina, Apri nell'elenco (n rilasciate) azione esplicita; di cui non rilasciate di In compilazione senza fonte = non disponibile; CSV/XLSX di una card = intero report; Unit Amount senza importo pagato = nota unica sopra la tabella"
+          ]
+        },
+        "wireframe_determine": {
+          "approved_hash": "sha256:e61fb80a776b464c8060a283da8b9d44c791083fc348b56eb565a9cffade87ee",
+          "baseline_ref": "./wireframes/procedurale/determine",
+          "approved_at": "2026-11-01T09:50:39Z",
+          "time_to_approve_s": 354,
+          "deviations_reviewed": []
+        }
+      },
+      "completed_at": "2026-11-01T09:51:25Z",
       "artifacts": [
         "./plan/procedurale/uiplan.json"
       ]

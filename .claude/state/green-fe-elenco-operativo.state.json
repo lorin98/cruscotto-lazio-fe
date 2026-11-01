@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "elenco-operativo",
-  "current_step": 1,
+  "current_step": 2,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -20,9 +20,35 @@
       }
     },
     "step1-uiplan": {
-      "status": "in_progress",
-      "gates": {},
-      "completed_at": "2026-10-30T07:30:08Z",
+      "status": "done",
+      "gates": {
+        "wireframe_domande": {
+          "approved_hash": "sha256:7d56aed4a5aea1177abd6d4755ff9e1123369ef1b837a327d230655d28ad8acb",
+          "baseline_ref": "./wireframes/elenco-operativo/domande",
+          "approved_at": "2026-11-01T09:50:39Z",
+          "time_to_approve_s": 354,
+          "deviations_reviewed": [
+            "F3 della review FULL sul delta FE (21/10/2026, decisione dell'utente): stato 'atto di concessione non disponibile' non disegnato nel wireframe, come la nota delle azioni portanti; registrato come OP-EO-06 nello uiplan"
+          ]
+        },
+        "wireframe_dettaglio-domanda": {
+          "approved_hash": "sha256:4555d1e5508ddb3923d617adaf7079635f38d2e5b030ea8e4f585a85fecf77b2",
+          "baseline_ref": "./wireframes/elenco-operativo/dettaglio-domanda",
+          "approved_at": "2026-11-01T09:50:39Z",
+          "time_to_approve_s": 354,
+          "deviations_reviewed": []
+        },
+        "wireframe_pagamenti": {
+          "approved_hash": "sha256:327903337fe2e2b69e6c0d6f8d842e7be28f24c85a049ba268cad72cdb4bae1a",
+          "baseline_ref": "./wireframes/elenco-operativo/pagamenti",
+          "approved_at": "2026-11-01T09:50:39Z",
+          "time_to_approve_s": 354,
+          "deviations_reviewed": [
+            "F3 della review FULL sul delta FE (21/10/2026, decisione dell'utente): stato 'atto di concessione non disponibile' non disegnato nel wireframe, come la nota delle azioni portanti; registrato come OP-EO-06 nello uiplan"
+          ]
+        }
+      },
+      "completed_at": "2026-11-01T09:50:53Z",
       "artifacts": [
         "./plan/elenco-operativo/uiplan.json"
       ]

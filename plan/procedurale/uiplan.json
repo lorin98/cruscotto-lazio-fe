@@ -1370,7 +1370,14 @@
         "Download per formato (PNG, CSV, XLSX) come nel finanziario: un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo (400 oltre 5.000 righe o 50.000 celle: restringere i filtri; 503 ESPORTAZIONE_NON_REGISTRATA). PNG solo per i grafici disegnati, nella vista Grafico.",
         "Residuo manuale: ordine di lettura di KPI e card, comprensibilita' delle didascalie, contrasto della resa finale; axe deferito al gate di step8.",
         "Card della Home (home.html, decisione dell'utente del 26/10/2026): numeri in una lista di definizioni dentro un gruppo con nome ('Il procedurale in cifre'); numero animato letto solo nel valore finale e fermo con prefers-reduced-motion; barra degli interventi attivati nascosta ai lettori di schermo, 'n su m' e percentuale nel testo; contributo assente detto col motivo, mai 0; errore di una lettura detto in una frase senza fermare la Home."
-      ]
+      ],
+      "approval": {
+        "approved_hash": "sha256:7bab43374ff4be639b25c2024b3d296880f6db4d600c599be734199b74960127",
+        "baseline_ref": "./wireframes/procedurale/panoramica",
+        "approved_at": "2026-11-01T09:50:39Z",
+        "time_to_approve_s": 354,
+        "rework_rounds": 0
+      }
     },
     {
       "name": "stati",
@@ -1386,7 +1393,14 @@
         "Pill 'Dati al gg/mm/aaaa' (ultimiDatiSincronizzati di TX-0024, la conclusione meno recente fra i flussi): bottone con nome accessibile completo e popover con una voce per flusso; senza acquisizioni concluse e' testo, mai una data vuota.",
         "Download per formato (PNG, CSV, XLSX) come nel finanziario: un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo (400 oltre 5.000 righe o 50.000 celle: restringere i filtri; 503 ESPORTAZIONE_NON_REGISTRATA). PNG solo per i grafici disegnati, nella vista Grafico.",
         "Residuo manuale: leggibilita' della tabella larga (11 voci piu' altri stati) a 320 px con lo scorrimento orizzontale della sola tabella (WCAG 1.4.10), contrasto della resa finale; axe deferito al gate di step8."
-      ]
+      ],
+      "approval": {
+        "approved_hash": "sha256:666e4d185c54a994578478820d4d0eea9debab8e05c46b1e1482bfd5a3791322",
+        "baseline_ref": "./wireframes/procedurale/stati",
+        "approved_at": "2026-11-01T09:50:39Z",
+        "time_to_approve_s": 354,
+        "rework_rounds": 0
+      }
     },
     {
       "name": "ammesse",
@@ -1400,7 +1414,14 @@
         "Pill 'Dati al gg/mm/aaaa' (ultimiDatiSincronizzati di TX-0024, la conclusione meno recente fra i flussi): bottone con nome accessibile completo e popover con una voce per flusso; senza acquisizioni concluse e' testo, mai una data vuota.",
         "Download per formato (PNG, CSV, XLSX) come nel finanziario: un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo (400 oltre 5.000 righe o 50.000 celle: restringere i filtri; 503 ESPORTAZIONE_NON_REGISTRATA). PNG solo per i grafici disegnati, nella vista Grafico.",
         "Residuo manuale: dimensione dei bersagli dei link 'Apri nell'elenco' nelle celle (WCAG 2.5.8, minimo 24 px), contrasto della resa finale; axe deferito al gate di step8."
-      ]
+      ],
+      "approval": {
+        "approved_hash": "sha256:6b0e18fe836095b1a8fc5b52a36c85c999f8a52749e6edaa8bfb9ccb845432a7",
+        "baseline_ref": "./wireframes/procedurale/ammesse",
+        "approved_at": "2026-11-01T09:50:39Z",
+        "time_to_approve_s": 354,
+        "rework_rounds": 0
+      }
     },
     {
       "name": "sottofasi",
@@ -1415,7 +1436,14 @@
         "Pill 'Dati al gg/mm/aaaa' (ultimiDatiSincronizzati di TX-0024, la conclusione meno recente fra i flussi): bottone con nome accessibile completo e popover con una voce per flusso; senza acquisizioni concluse e' testo, mai una data vuota.",
         "Download per formato (PNG, CSV, XLSX) come nel finanziario: un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo (400 oltre 5.000 righe o 50.000 celle: restringere i filtri; 503 ESPORTAZIONE_NON_REGISTRATA). PNG solo per i grafici disegnati, nella vista Grafico.",
         "Residuo manuale: comprensibilita' della nota 'la voce conta le domande distinte', contrasto della resa finale; axe deferito al gate di step8."
-      ]
+      ],
+      "approval": {
+        "approved_hash": "sha256:327ee4626afe3d6cd89214142139a3f9bb38542462262484c067c1b0b5f9f028",
+        "baseline_ref": "./wireframes/procedurale/sottofasi",
+        "approved_at": "2026-11-01T09:50:39Z",
+        "time_to_approve_s": 354,
+        "rework_rounds": 0
+      }
     },
     {
       "name": "riepilogo",
@@ -1429,7 +1457,14 @@
         "Pill 'Dati al gg/mm/aaaa' (ultimiDatiSincronizzati di TX-0024, la conclusione meno recente fra i flussi): bottone con nome accessibile completo e popover con una voce per flusso; senza acquisizioni concluse e' testo, mai una data vuota.",
         "Download per formato (PNG, CSV, XLSX) come nel finanziario: un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo (400 oltre 5.000 righe o 50.000 celle: restringere i filtri; 503 ESPORTAZIONE_NON_REGISTRATA). PNG solo per i grafici disegnati, nella vista Grafico.",
         "Residuo manuale: leggibilita' della tabella larga a 320 px (scorrimento della sola tabella, WCAG 1.4.10), contrasto della resa finale; axe deferito al gate di step8."
-      ]
+      ],
+      "approval": {
+        "approved_hash": "sha256:229cc5b96bac06ffda3a72cad7e8dd9ae5ef8ac8d7933c0d2ff2deab069e17f5",
+        "baseline_ref": "./wireframes/procedurale/riepilogo",
+        "approved_at": "2026-11-01T09:50:39Z",
+        "time_to_approve_s": 354,
+        "rework_rounds": 0
+      }
     },
     {
       "name": "determine",
@@ -1445,7 +1480,14 @@
         "Le colonne si/no della tabella delle determine sono testo, non solo icone o colore; la determina corrente e' dichiarata in testo nella riga",
         "Nessuna pill 'Dati al' e nessun download: TX-0020 non porta l'ultimo dato sincronizzato e non ha export, nulla da annunciare",
         "Residuo manuale: ordine di lettura di testata, riquadri e tabella; comprensibilita' di 'stato area programmazione', 'comparto' e del messaggio 'fra quelle che puoi consultare'; contrasto della resa finale"
-      ]
+      ],
+      "approval": {
+        "approved_hash": "sha256:e61fb80a776b464c8060a283da8b9d44c791083fc348b56eb565a9cffade87ee",
+        "baseline_ref": "./wireframes/procedurale/determine",
+        "approved_at": "2026-11-01T09:50:39Z",
+        "time_to_approve_s": 354,
+        "rework_rounds": 0
+      }
     }
   ],
   "open_points": [

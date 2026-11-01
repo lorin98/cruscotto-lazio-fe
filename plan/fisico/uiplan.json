@@ -771,7 +771,14 @@
         "Residuo manuale: ordine di lettura di KPI, card e tabella; comprensibilita' di 'DS', 'DP' e 'differenza DP - DS' (sciolte per esteso alla prima occorrenza) e della differenza fra il file di una card della campagna di riferimento e quello della tabella (tutte le campagne); contrasto della resa finale",
         "Card della Home (home.html, decisione dell'utente del 26/10/2026): numeri in una lista di definizioni dentro un gruppo con nome ('Il fisico in cifre'); numero animato letto solo nel valore finale e fermo con prefers-reduced-motion; barra delle domande con DP oltre la DS nascosta ai lettori di schermo, percentuale nel testo; errore detto in una frase senza fermare la Home.",
         "Link 'Apri il dettaglio dell'intervento' nel drawer (30/10/2026): e' un link vero (cambia route), col focus sul titolo del dettaglio dopo il cambio di route; il drawer resta un dialogo con nome e il focus torna all'innesco se si chiude senza navigare"
-      ]
+      ],
+      "approval": {
+        "approved_hash": "sha256:d642ae588608d0c35430670e46efb4a3f3c6cd49c64b9fb0f6e154269f187921",
+        "baseline_ref": "./wireframes/fisico/superfici",
+        "approved_at": "2026-11-01T09:50:39Z",
+        "time_to_approve_s": 354,
+        "rework_rounds": 0
+      }
     },
     {
       "name": "output-regionale",
@@ -785,7 +792,14 @@
         "Pulsanti CSV e XLSX: sigla visibile contenuta nel nome accessibile completo (2.5.3); aria-disabled e focus sul pulsante durante la preparazione (2.4.3); esito in role=status, errore in role=alert col motivo",
         "Pill 'Dati al' come pulsante col nome accessibile completo; dettaglio per flusso in un dialogo con nome; pannello dei filtri senza voci di TX-0060 detto in testo (role=status), report comunque leggibile",
         "Residuo manuale: tabella larga a 320 px (scorrimento della sola tabella, 1.4.10), unita' di misura leggibile accanto ai valori, ordine di lettura, contrasto della resa finale; axe deferito a step8"
-      ]
+      ],
+      "approval": {
+        "approved_hash": "sha256:5d85c16182cbc222b548723b50266d7d7c54cfc10cccb3131b9452219a4e88ff",
+        "baseline_ref": "./wireframes/fisico/output-regionale",
+        "approved_at": "2026-11-01T09:50:39Z",
+        "time_to_approve_s": 354,
+        "rework_rounds": 0
+      }
     },
     {
       "name": "unit-amount",
@@ -799,7 +813,14 @@
         "Download per formato con la sigla nel nome accessibile (2.5.3), aria-disabled e focus sul pulsante durante la preparazione (2.4.3), esito in role=status ed errore in role=alert col motivo",
         "Pill 'Dati al' (da TX-0030) come pulsante col nome accessibile completo; pannello dei filtri con focus-trap e ritorno del focus al bottone Filtri; voci di TX-0060 assenti dette in testo",
         "Residuo manuale: tabella di nove colonne a 320 px (1.4.10); ripetizione di 'non disponibile (fonte non attiva)' in tre colonne per riga; contrasto della resa finale; axe deferito a step8"
-      ]
+      ],
+      "approval": {
+        "approved_hash": "sha256:a55975764e3a33d49bffa6230ffadcba6e4c66f08ad1bd09ae6527bf8c38862a",
+        "baseline_ref": "./wireframes/fisico/unit-amount",
+        "approved_at": "2026-11-01T09:50:39Z",
+        "time_to_approve_s": 354,
+        "rework_rounds": 0
+      }
     },
     {
       "name": "intervento",
@@ -813,7 +834,14 @@
         "Assenze dette in testo, mai a zero: anni senza output (non valorizzato, non attribuibile), intervento senza superfici o senza Unit Amount dichiarato nella sua scheda; valori negativi della differenza DP - DS col segno meno",
         "Download per formato con la sigla e l'intervento nel nome accessibile (2.5.3), aria-disabled e focus sul pulsante durante la preparazione (2.4.3), esito in role=status, errore in role=alert; l'errore di una scheda resta nella scheda",
         "Residuo manuale: ordine di lettura di testata, KPI e schede; comprensibilita' di DS, DP e 'campagna di riferimento' nei KPI; tabella delle Unit Amount di otto colonne a 320 px (1.4.10); contrasto della resa finale; axe deferito a step8"
-      ]
+      ],
+      "approval": {
+        "approved_hash": "sha256:8912ef454802da00f68e89757c502b5042a1e3a803cb146c310874ee02c5fea7",
+        "baseline_ref": "./wireframes/fisico/intervento",
+        "approved_at": "2026-11-01T09:50:39Z",
+        "time_to_approve_s": 354,
+        "rework_rounds": 0
+      }
     }
   ],
   "open_points": [
