@@ -8,7 +8,7 @@ Lavoro fatto nella sessione principale (niente agenti), dopo l'approvazione dei 
 |---|---|---|---|
 | step2-codegen | tutte e cinque | pass | spec dell'handover in `specs/`, fixture di /auth/status, `npm ci`, orval; gate SKILL §6 (typecheck, build, 1685 test, lint, orval deterministico, canary) e registrazione nello stesso blocco (c6e9dc5) |
 | step3-7 | tutte e cinque | pass | gate unico `../ambiente-prova/strumenti-sessione-93fdeac2/gate-step3-7.sh`: controlli di progetto una volta (npm, query-key, lib senza React, import dal generato e fra feature, pagine, MSW fail-closed, coverage summary), per feature hash dei wireframe approvati, route-manifest proiettato e validato, fe-project-check, REQ-must nei describe; poi step3 -> 8 per ognuna (4a30c79) |
-| step8-gate | tutte e cinque | in corso | primo giro: finanziario 10/11, `authz` rosso per il drift della route del dettaglio (TX-0002 ancora nella route-table): corretto in 1017ca1, rilanciato |
+| step8-gate | tutte e cinque | 11/11 | primo giro: finanziario 10/11, `authz` rosso per il drift della route del dettaglio (TX-0002 ancora nella route-table): corretto in 1017ca1; secondo giro 11/11 per tutte (1706 test, axe 0 violazioni su 139 run), feature a step9 (7637a3a) |
 
 ## Commit (main, non pushati)
 
