@@ -3,11 +3,16 @@
 // Togliere un chip non lascia il focus sul nulla (review v1 X-02, WCAG 2.4.3): passa al chip successivo (o al precedente
 // se era l'ultimo), e senza chip al bottone dei filtri; "Togli tutti" lo porta al bottone dei filtri. Nei report col filtro
 // SIGC (revisioni del 31/10/2026, R01) il controllo "Tutti | SIGC | NO SIGC" sta subito dopo il bottone dei filtri, sempre
-// visibile; non e' un chip (non si toglie: "Tutti" e' il valore senza filtro).
+// visibile; non e' un chip ne' lo toglie "Togli tutti" ("Tutti" e' il valore senza filtro), e col solo filtro SIGC la barra
+// non dice "Nessun filtro" (review X-07). L'altezza della barra va nella variabile CSS dello scroll-padding del documento:
+// lo scorrimento del focus si ferma sotto la barra anche quando va a capo (WCAG 2.4.11, review A-11).
 import { useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
+import { useLocation } from 'react-router';
+import { sigcDaRicerca } from '../../lib';
 import { Icona } from '../icona';
 import { ControlloSigc } from './ControlloSigc';
+import type { ControlloSigcGuidato } from './ControlloSigc';
 
 export interface ChipFiltro {
   chiave: string;
@@ -46,6 +51,30 @@ function TogliTutti({ onTogli }: { onTogli: () => void }) {
   );
 }
 
+/** Il testo senza chip quando il filtro SIGC (dell'indirizzo) e' attivo: e' l'unico filtro. */
+function VuotoConSigcDellIndirizzo({ vuoto }: { vuoto: string }) {
+  return <TestoSenzaChip vuoto={vuoto} sigcAttivo={sigcDaRicerca(useLocation().search) !== undefined} />;
+}
+
+function TestoSenzaChip({ vuoto, sigcAttivo }: { vuoto: string; sigcAttivo: boolean }) {
+  return <span className="ui-chip ui-chip--tutti">{sigcAttivo ? 'Nessun altro filtro' : vuoto}</span>;
+}
+
+/** L'altezza della barra nella variabile --ui-altezza-barra-filtri del documento (scroll-padding-top, WCAG 2.4.11). */
+function useAltezzaNelDocumento(barra: { current: HTMLDivElement | null }) {
+  useEffect(() => {
+    const el = barra.current;
+    if (!el || typeof ResizeObserver === 'undefined') return undefined;
+    const radice = document.documentElement;
+    const osservatore = new ResizeObserver(() => radice.style.setProperty('--ui-altezza-barra-filtri', `${Math.ceil(el.getBoundingClientRect().height)}px`));
+    osservatore.observe(el);
+    return () => {
+      osservatore.disconnect();
+      radice.style.removeProperty('--ui-altezza-barra-filtri');
+    };
+  }, [barra]);
+}
+
 /** Ref della barra e posizione del bottone da rifocalizzare quando i chip cambiano (null = nessuna rimozione in corso). */
 function useFocusDopoLaRimozione(chip: readonly ChipFiltro[]) {
   const barra = useRef<HTMLDivElement>(null);
@@ -59,14 +88,7 @@ function useFocusDopoLaRimozione(chip: readonly ChipFiltro[]) {
   return { barra, daRifocalizzare };
 }
 
-export function BarraFiltri({
-  chip,
-  onApri,
-  onTogliTutti,
-  vuoto = 'Nessun filtro: tutti i dati del perimetro',
-  destra,
-  filtroSigc = false,
-}: {
+interface PropsBarraFiltri {
   chip: ChipFiltro[];
   /** Apre il pannello dei filtri; assente (es. senza il grant dei filtri) = niente bottone. */
   onApri?: () => void;
@@ -75,9 +97,46 @@ export function BarraFiltri({
   destra?: ReactNode;
   /** Il controllo del filtro SIGC (parametro `sigc` dell'indirizzo): i report che lo prendono; non i dettagli (F5). */
   filtroSigc?: boolean;
-}) {
-  const { barra, daRifocalizzare } = useFocusDopoLaRimozione(chip);
+  /** Il controllo SIGC guidato dalla pagina (valore e scrittura propri, es. l'elenco operativo): implica filtroSigc. */
+  controlloSigc?: ControlloSigcGuidato;
+}
+
+/** Il testo senza chip: col filtro SIGC attivo "Nessun altro filtro" (il controllo guidato o l'indirizzo lo dicono). */
+function SenzaChip({ vuoto, filtroSigc, controlloSigc }: Pick<PropsBarraFiltri, 'filtroSigc' | 'controlloSigc'> & { vuoto: string }) {
+  if (controlloSigc) return <TestoSenzaChip vuoto={vuoto} sigcAttivo={controlloSigc.valore !== undefined} />;
+  return filtroSigc ? <VuotoConSigcDellIndirizzo vuoto={vuoto} /> : <TestoSenzaChip vuoto={vuoto} sigcAttivo={false} />;
+}
+
+/** I chip rimovibili e "Togli tutti": dopo una rimozione il focus va al chip seguente (useFocusDopoLaRimozione). */
+function ChipDellaBarra({ chip, onTogliTutti, daRifocalizzare }: { chip: ChipFiltro[]; onTogliTutti?: () => void; daRifocalizzare: { current: number | null } }) {
   const rimovibili = chip.filter((c) => c.onTogli);
+  return (
+    <>
+      {chip.map((c) => (
+        <Chip
+          key={c.chiave}
+          c={c}
+          onTogli={() => {
+            daRifocalizzare.current = rimovibili.indexOf(c);
+            c.onTogli?.();
+          }}
+        />
+      ))}
+      {onTogliTutti && rimovibili.length > 0 && (
+        <TogliTutti
+          onTogli={() => {
+            daRifocalizzare.current = Number.MAX_SAFE_INTEGER;
+            onTogliTutti();
+          }}
+        />
+      )}
+    </>
+  );
+}
+
+export function BarraFiltri({ chip, onApri, onTogliTutti, vuoto = 'Nessun filtro: tutti i dati del perimetro', destra, filtroSigc = false, controlloSigc }: PropsBarraFiltri) {
+  const { barra, daRifocalizzare } = useFocusDopoLaRimozione(chip);
+  useAltezzaNelDocumento(barra);
   return (
     <div className="ui-filtri" role="region" aria-label="Filtri attivi" ref={barra}>
       {onApri && (
@@ -87,31 +146,12 @@ export function BarraFiltri({
           {chip.length > 0 && <span className="badge bg-white text-primary">{chip.length}</span>}
         </button>
       )}
-      {filtroSigc && <ControlloSigc />}
+      {(filtroSigc || controlloSigc) && <ControlloSigc guidato={controlloSigc} />}
       <div className="ui-filtri__chips">
         {chip.length === 0 ? (
-          <span className="ui-chip ui-chip--tutti">{vuoto}</span>
+          <SenzaChip vuoto={vuoto} filtroSigc={filtroSigc} controlloSigc={controlloSigc} />
         ) : (
-          <>
-            {chip.map((c) => (
-              <Chip
-                key={c.chiave}
-                c={c}
-                onTogli={() => {
-                  daRifocalizzare.current = rimovibili.indexOf(c);
-                  c.onTogli?.();
-                }}
-              />
-            ))}
-            {onTogliTutti && rimovibili.length > 0 && (
-              <TogliTutti
-                onTogli={() => {
-                  daRifocalizzare.current = Number.MAX_SAFE_INTEGER;
-                  onTogliTutti();
-                }}
-              />
-            )}
-          </>
+          <ChipDellaBarra chip={chip} onTogliTutti={onTogliTutti} daRifocalizzare={daRifocalizzare} />
         )}
       </div>
       {destra && <div className="ui-filtri__destra">{destra}</div>}

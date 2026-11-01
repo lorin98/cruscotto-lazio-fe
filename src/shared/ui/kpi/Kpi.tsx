@@ -2,7 +2,7 @@
 // diventa mai zero: la tessera dice "non disponibile" con il motivo. Dentro <NonPertinente> (filtro SIGC opposto, F3) la
 // tessera e' in grigio, dice il motivo e non ha l'azione.
 import type { ReactNode } from 'react';
-import { MotivoNonPertinente, useNonPertinenza } from '../card/NonPertinente';
+import { MotivoNonPertinente, useMotivoGiaDetto, useNonPertinenza } from '../card/NonPertinente';
 import type { NomeIcona } from '../icona';
 import { Icona } from '../icona';
 
@@ -55,10 +55,17 @@ export function Kpi({
       <ValoreKpi valore={valore} unita={unita} assente={assente} pieno={valorePieno} />
       {nota && <p className="ui-kpi__nota">{nota}</p>}
       {!assente && <BarraQuota quota={quota} />}
-      {np && <MotivoNonPertinente np={np} />}
+      <MotivoSeDovuto />
       {azione && !np && <div className="ui-kpi__azione">{azione}</div>}
     </section>
   );
+}
+
+/** Il motivo della non pertinenza, se nessuna card intorno lo ha gia' detto (review J-01). */
+function MotivoSeDovuto() {
+  const np = useNonPertinenza();
+  const detto = useMotivoGiaDetto();
+  return np && !detto ? <MotivoNonPertinente np={np} /> : null;
 }
 
 function EtichettaKpi({ etichetta, icona, tono, badge }: { etichetta: string; icona: NomeIcona; tono: TonoKpi; badge?: string }) {
@@ -68,7 +75,7 @@ function EtichettaKpi({ etichetta, icona, tono, badge }: { etichetta: string; ic
         <Icona nome={icona} />
       </span>
       {etichetta}
-      {badge && <span className="badge ui-badge-np ms-1">{badge}</span>}
+      {badge && <span className="badge ui-badge-testo ms-1">{badge}</span>}
     </p>
   );
 }
@@ -77,10 +84,15 @@ function EtichettaKpi({ etichetta, icona, tono, badge }: { etichetta: string; ic
 function ValoreKpi({ valore, unita, assente, pieno }: { valore?: string; unita?: string; assente?: string; pieno?: string }) {
   if (assente) return <p className="ui-kpi__valore ui-kpi__valore--assente">{assente}</p>;
   if (pieno && pieno !== valore) {
+    // l'unita' resta accanto al compatto e nel pieno (review H-09)
+    const pienoConUnita = unita ? `${pieno} ${unita}` : pieno;
     return (
-      <p className="ui-kpi__valore" title={pieno}>
-        <span aria-hidden="true">{valore}</span>
-        <span className="visually-hidden">{pieno}</span>
+      <p className="ui-kpi__valore" title={pienoConUnita}>
+        <span aria-hidden="true">
+          {valore}
+          {unita && <small>{unita}</small>}
+        </span>
+        <span className="visually-hidden">{pienoConUnita}</span>
       </p>
     );
   }

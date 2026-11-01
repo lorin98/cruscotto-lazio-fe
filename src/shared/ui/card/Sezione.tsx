@@ -1,20 +1,22 @@
 // Sezione — card del kit (ADR 0027): testa con titolo (h2 o h3), sottotitolo e strumenti, poi il contenuto. La testa e'
 // la stessa di CardGrafico. Regione con il nome del titolo (aria-labelledby): i lettori di schermo la trovano per nome.
 // Dentro <NonPertinente> (filtro SIGC opposto, F3) la testa dice il motivo, gli strumenti spariscono e il contenuto e' in
-// grigio e inerte.
+// grigio, leggibile e non attivabile.
 import { useId } from 'react';
 import type { ReactNode } from 'react';
-import { CorpoNonPertinente, MotivoNonPertinente, useNonPertinenza } from './NonPertinente';
+import { CorpoNonPertinente, MotivoNonPertinente, useMotivoGiaDetto, useNonPertinenza } from './NonPertinente';
 
 export function TestaCard({ id, titolo, sottotitolo, livello = 2, strumenti }: { id: string; titolo: string; sottotitolo?: string; livello?: 2 | 3; strumenti?: ReactNode }) {
   const Titolo = livello === 2 ? 'h2' : 'h3';
   const np = useNonPertinenza();
+  // dentro il corpo di una card non pertinente il motivo e' gia' detto: niente badge ripetuti (review J-01)
+  const detto = useMotivoGiaDetto();
   return (
     <div className="ui-card__testa">
       <div>
         <Titolo id={id}>{titolo}</Titolo>
         {sottotitolo && <p>{sottotitolo}</p>}
-        {np && <MotivoNonPertinente np={np} />}
+        {np && !detto && <MotivoNonPertinente np={np} />}
       </div>
       {strumenti && !np && <div className="ui-card__strumenti">{strumenti}</div>}
     </div>

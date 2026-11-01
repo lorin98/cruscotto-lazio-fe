@@ -66,8 +66,10 @@ export function useFiltriProgrammaNellIndirizzo<C extends Filtri>(p: ParametriFi
   // senza l'azione portante non si aspetta mai: i criteri non la portano
   const inAttesa = !p.senzaAzione && legameIgnoto(auth.data === undefined && !auth.isError, p) && (richiesti.azione ?? []).length > 0;
   const filtri: C = useMemo(() => (legameAssente ? senzaAzioneSeNonDisponibile(richiesti, false) : richiesti), [richiesti, legameAssente]);
+  // il filtro SIGC lo cambia solo il controllo della barra: chip, "Togli tutti" e "Applica"/"Azzera" del pannello lo
+  // lasciano com'e' (review X-08)
   const applica = (c: C) => {
-    const query = scrivi(c, search);
+    const query = scrivi({ ...c, sigc: richiesti.sigc }, search);
     void naviga(query ? `${pathname}?${query}` : pathname);
   };
   const chip: ChipFiltro[] = attivi(richiesti).map((a) => ({

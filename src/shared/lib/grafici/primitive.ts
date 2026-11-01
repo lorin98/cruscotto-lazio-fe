@@ -5,8 +5,11 @@ import { ettari, formatEttari, formatEuro, formatNumber, formatPercentuale } fro
 
 export const NON_DISPONIBILE = 'non disponibile';
 export const NON_CALCOLABILE = 'non calcolabile';
-/** Oltre questo numero di categorie le barre verticali si scorrono (dataZoom). */
-export const MAX_BARRE_VISIBILI = 12;
+/**
+ * Oltre questo numero di categorie le barre verticali si scorrono (dataZoom): una soglia alta (R02, U1: "zoom solo oltre una
+ * soglia alta"; prima 12, review J-09), cosi' per esempio i 36 interventi della dotazione stanno tutti con le etichette.
+ */
+export const MAX_BARRE_VISIBILI = 40;
 /**
  * Barre orizzontali (R02, revisioni del 31/10/2026): il grafico e' alto quanto serve al numero di categorie e si scorre
  * solo oltre questa soglia alta, cosi' per esempio la Panoramica mostra tutti gli interventi con tutte le etichette.
@@ -88,6 +91,14 @@ export function importoBreve(v: number): string {
   return Math.abs(v) >= 1_000_000 ? milioni(v) : formatEuro(v);
 }
 
+/**
+ * Un importo per un KPI: la forma compatta su una riga e il valore pieno per i lettori di schermo e il suggerimento (R09,
+ * revisioni del 31/10/2026; review J-08). Si stende nelle prop di Kpi; senza valore niente (l'assenza la dice la tessera).
+ */
+export function importoKpi(v: number | null | undefined): { valore?: string; valorePieno?: string } {
+  return v == null ? {} : { valore: importoBreve(v), valorePieno: formatEuro(v) };
+}
+
 export function valoreBreve(v: unknown): string {
   return typeof v === 'number' ? importoBreve(v) : NON_DISPONIBILE;
 }
@@ -165,7 +176,8 @@ export function righeOrizzontali(opzioni: EChartsOption): number {
  */
 export function gradinoRighe(righe: number, righeDellaBase: number): number | null {
   if (righe <= righeDellaBase) return null;
-  return Math.min(MAX_BARRE_ORIZZONTALI, Math.ceil(righe / RIGHE_PER_GRADINO) * RIGHE_PER_GRADINO);
+  // il primo gradino e' 12 (le classi partono da ui-grafico--righe-12: review H-12)
+  return Math.min(MAX_BARRE_ORIZZONTALI, Math.max(12, Math.ceil(righe / RIGHE_PER_GRADINO) * RIGHE_PER_GRADINO));
 }
 
 /** La griglia che contiene le etichette degli assi, com'era containLabel (deprecato in ECharts 6: grid.outerBounds). */

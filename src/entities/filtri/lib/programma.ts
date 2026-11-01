@@ -6,7 +6,7 @@
 // suo lib/filtri). Dalle revisioni del 31/10/2026 (R01) i criteri portano anche il filtro SIGC (`sigc`, un valore solo,
 // fuori dai chip: e' il controllo della barra), che i report prendono come parametro accanto ai cinque.
 import { MAX_VALORI_PARAMETRO, PARAMETRO_SIGC, leggiRipetuti, scriviRipetuti, sigcDaRicerca } from '../../../shared/lib';
-import type { ValoreSigc } from '../../../shared/lib';
+import type { FiltroSigc, ValoreSigc } from '../../../shared/lib';
 
 export const CHIAVI_FILTRO = ['intervento', 'os', 'og', 'op', 'azione'] as const;
 export type ChiaveFiltro = (typeof CHIAVI_FILTRO)[number];
@@ -153,7 +153,7 @@ export function descrizioneIntervento(voci: readonly VoceLike[] | undefined, cod
  * "SIGC", "NO SIGC", null se l'intervento non e' classificato o le voci non ci sono. La pill della testata dei dettagli
  * (revisioni del 31/10/2026, F5: i dettagli non hanno il filtro SIGC, dicono il tipo).
  */
-export function tipoIntervento(voci: readonly VoceLike[] | undefined, codice: string): 'SIGC' | 'NO SIGC' | null {
+export function tipoIntervento(voci: readonly VoceLike[] | undefined, codice: string): FiltroSigc | null {
   const perimetro = voci?.find((v) => v.chiave === codice)?.perimetro;
   return perimetro === 'SIGC' ? 'SIGC' : perimetro === 'NO_SIGC' ? 'NO SIGC' : null;
 }

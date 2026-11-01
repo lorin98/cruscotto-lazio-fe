@@ -1,8 +1,8 @@
 // kit-sigc.test.tsx — il filtro SIGC e lo stato "non pertinente" del kit (revisioni del 31/10/2026, R01, F1-F5), le regole
 // comuni nuove (assi R02, sinottici R09) e il tipo dell'intervento dei dettagli: lib pura, controllo della barra, card del
 // kit dentro <NonPertinente>, pill del tipo.
-import { describe, expect, it } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { filtriDaRicerca, ricercaDaFiltri, tipoIntervento } from '../src/entities/filtri';
@@ -103,7 +103,7 @@ const DATI: DatiGrafico = {
 const NP = { filtro: 'NO SIGC' as const, motivo: 'Riguarda solo le domande SIGC' };
 
 describe('F3: le card del kit dentro <NonPertinente>', () => {
-  it('CardGrafico: badge e motivo, niente interruttore ne Scarica ne clic, corpo inerte, tabella dei dati per gli strumenti assistivi', async () => {
+  it('CardGrafico: badge e motivo, niente interruttore ne Scarica ne clic, corpo leggibile ma non attivabile, tabella dei dati per gli strumenti assistivi', async () => {
     const { container } = render(
       <NonPertinente np={NP}>
         <CardGrafico titolo="Domande SIGC" dati={DATI} fonte="Fonte: TX-0012" scaricamenti={[{ formato: 'CSV', file: 'domande.csv', scarica: async () => undefined }]} />
@@ -115,11 +115,19 @@ describe('F3: le card del kit dentro <NonPertinente>', () => {
     expect(within(card).getByText(/^Riguarda solo le domande SIGC: con il filtro NO SIGC non si applica\./)).toBeTruthy();
     expect(within(card).queryByRole('group', { name: 'Vista di Domande SIGC' })).toBeNull();
     expect(within(card).queryByRole('button')).toBeNull();
-    expect(card.querySelector('.ui-non-pertinente__corpo')?.hasAttribute('inert')).toBe(true);
-    // la tabella equivalente fuori dal corpo inerte, nascosta alla vista
+    // niente inert (review J-01): il corpo resta leggibile dagli strumenti assistivi
+    const corpo = card.querySelector('.ui-non-pertinente__corpo') as HTMLElement;
+    expect(corpo).not.toBeNull();
+    expect(card.querySelector('[inert]')).toBeNull();
+    // la tabella equivalente nel corpo, nascosta alla vista, fuori dalla tabulazione (review J-02)
     const tabella = within(card).getByRole('table', { name: 'Domande SIGC per voce' });
-    expect(tabella.closest('[inert]')).toBeNull();
     expect(tabella.closest('.visually-hidden')).not.toBeNull();
+    expect(tabella.closest('.ui-non-pertinente__corpo')).toBe(corpo);
+    const focalizzabili = Array.from(corpo.querySelectorAll('[tabindex], a[href], button, input, select, textarea'));
+    expect(focalizzabili.length).toBeGreaterThan(0);
+    expect(focalizzabili.every((el) => el.getAttribute('tabindex') === '-1')).toBe(true);
+    // il badge una volta sola: la card lo dice, il corpo no (review J-01)
+    expect(within(card).getAllByText('Non pertinente al filtro NO SIGC')).toHaveLength(1);
     await expectNoA11yViolations(container);
   });
 
@@ -134,25 +142,44 @@ describe('F3: le card del kit dentro <NonPertinente>', () => {
     expect(within(card).getByRole('group', { name: 'Vista di Domande SIGC' })).toBeTruthy();
   });
 
-  it('Sezione, Kpi e contenuti fuori dalle card: motivo, grigio e inerte; il KPI perde l azione e lo dice nel nome', () => {
+  it('Sezione, Kpi e contenuti fuori dalle card: motivo, grigio, leggibili ma non attivabili; il KPI perde l azione e lo dice nel nome', () => {
+    const riga = vi.fn();
+    const link = vi.fn();
     render(
       <NonPertinente np={NP}>
         <Sezione titolo="Tabella delle superfici" strumenti={<button type="button">Scarica</button>}>
-          <button type="button">Riga</button>
+          <button type="button" onClick={riga}>
+            Riga
+          </button>
         </Sezione>
         <Kpi etichetta="Presentate" valore="3" icona="it-files" azione={<a href="#x">Apri nell elenco</a>} />
         <InerteSeNonPertinente>
-          <a href="#y">Le domande nell elenco</a>
+          <a href="#y" onClick={link}>
+            Le domande nell elenco
+          </a>
         </InerteSeNonPertinente>
       </NonPertinente>,
     );
     const sezione = screen.getByRole('region', { name: 'Tabella delle superfici' });
     expect(within(sezione).queryByRole('button', { name: 'Scarica' })).toBeNull();
-    expect(within(sezione).getByText('Riga').closest('[inert]')).not.toBeNull();
+    // niente inert (review J-01): il controllo resta nell'albero accessibile, disattivato e fuori dalla tabulazione
+    expect(document.querySelector('[inert]')).toBeNull();
+    const bottone = within(sezione).getByRole('button', { name: 'Riga' });
+    expect(bottone.getAttribute('aria-disabled')).toBe('true');
+    expect(bottone.getAttribute('tabindex')).toBe('-1');
+    fireEvent.click(bottone);
+    fireEvent.keyDown(bottone, { key: 'Enter' });
+    expect(riga).not.toHaveBeenCalled();
+    // il motivo una volta sola nella sezione
+    expect(within(sezione).getAllByText('Non pertinente al filtro NO SIGC')).toHaveLength(1);
     const kpi = screen.getByRole('region', { name: 'Presentate, non pertinente al filtro NO SIGC' });
     expect(within(kpi).queryByRole('link')).toBeNull();
     expect(within(kpi).getByText('Non pertinente al filtro NO SIGC')).toBeTruthy();
-    expect(screen.getByText('Le domande nell elenco').closest('[inert]')).not.toBeNull();
+    const elenco = screen.getByRole('link', { name: 'Le domande nell elenco' });
+    expect(elenco.getAttribute('aria-disabled')).toBe('true');
+    expect(elenco.getAttribute('tabindex')).toBe('-1');
+    fireEvent.click(elenco);
+    expect(link).not.toHaveBeenCalled();
   });
 });
 

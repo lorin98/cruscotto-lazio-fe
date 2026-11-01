@@ -47,7 +47,8 @@ export function NumeroArea({ etichetta, spiegazione, valore, formato, formatoPie
   const presente = numeroDi(valore);
   const sotto = presente === null ? motivo : nota;
   // R20: un numero arrotondato nella card (es. gli ettari senza decimali) ha il valore pieno per i lettori di schermo
-  const pieno = presente !== null && formatoPieno ? formatoPieno(presente) : null;
+  // solo se diverso dal compatto (un importo sotto la soglia e' gia' pieno: niente doppione)
+  const pieno = presente !== null && formatoPieno && formatoPieno(presente) !== formato(presente) ? formatoPieno(presente) : null;
   return (
     <div>
       <dt>

@@ -165,7 +165,8 @@ export function TabellaServer<T>({
         {conScelta && <SceltaColonne colonne={colonne} nascoste={nascoste} onCambia={cambia} />}
       </div>
       <div className="ui-tabella-contenitore">
-        <table className="ui-tabella">
+        {/* tabella larga (oltre 6 colonne): la prima colonna resta ferma scorrendo in orizzontale (R12, review J-11) */}
+        <table className={visibili.length > 6 ? 'ui-tabella ui-tabella--larga' : 'ui-tabella'}>
           <caption>{caption}</caption>
           <thead>
             <tr>

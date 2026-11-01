@@ -44,6 +44,15 @@ export function etichettaSigc(valore: ValoreSigc | undefined): FiltroSigc | unde
   return valore === undefined ? undefined : valore === 'true' ? 'SIGC' : 'NO SIGC';
 }
 
+/**
+ * La riga del filtro SIGC fra i "Filtri applicati" dell'intestazione dei PNG e dei file (NFR-50): "Interventi: SIGC", o
+ * niente senza filtro. La stessa in tutte le aree (review J-03).
+ */
+export function righeSigc(valore: ValoreSigc | undefined): string[] {
+  const e = etichettaSigc(valore);
+  return e ? [`Interventi: ${e}`] : [];
+}
+
 /** Una card (o una pagina) di un solo tipo col filtro opposto: il filtro scelto e il motivo leggibile. */
 export interface NonPertinenza {
   filtro: FiltroSigc;
@@ -69,4 +78,20 @@ export function senzaSigc<C extends { sigc?: unknown }>(criteri: C): C {
   const resto: C = { ...criteri };
   delete resto.sigc;
   return resto;
+}
+
+/** Una card di un solo tipo: la sua non pertinenza e i criteri della sua lettura, dalla stessa decisione. */
+export interface LetturaDelTipo<C> {
+  np: NonPertinenza | null;
+  criteri: C;
+}
+
+/**
+ * Una sola decisione per la resa e la lettura di una card di un solo tipo (review H-06: prima ricopiata in ogni pagina):
+ * col filtro opposto e' non pertinente e legge senza filtro (il dato reale, la stessa cache di "Tutti": F3), altrimenti e'
+ * normale e legge coi criteri dati.
+ */
+export function letturaDelTipo<C extends { sigc?: ValoreSigc }>(criteri: C, solo: SoloTipo, motivo: string): LetturaDelTipo<C> {
+  const np = nonPertinenza(criteri.sigc, solo, motivo);
+  return { np, criteri: np ? senzaSigc(criteri) : criteri };
 }

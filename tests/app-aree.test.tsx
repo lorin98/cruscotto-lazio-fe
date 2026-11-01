@@ -293,6 +293,32 @@ describe('Home e menu dallo stesso catalogo', () => {
     expect(within(delDettaglio).getByRole('link', { name: 'Panoramica' }).getAttribute('aria-current')).toBeNull();
   });
 
+  // revisioni del 31/10/2026 (R01), review step9 V2-17: il filtro SIGC resta passando da un'area all'altra
+  it('dal menu il filtro SIGC resta fra le aree e gli strumenti; le determine di una domanda no; senza filtro nessun link lo porta', async () => {
+    server.use(rispondi('/api/fisico/superficie-ammissibile', SUPERFICI));
+    // un profilo con tutti i grant delle pagine del menu (aree e strumenti), le stesse regole del catalogo
+    const grant = new Set<string>();
+    const senzaRicerca = new Set<string>();
+    for (const area of [...AREE, ...catalogo.STRUMENTI]) {
+      for (const p of area.pagineVisibili((g) => (grant.add(g), true))) if (p.senzaRicercaConservata) senzaRicerca.add(p.percorso);
+    }
+    expect(senzaRicerca).toEqual(new Set(['/procedurale/determine']));
+    const ruoli = [...grant].filter((g) => g !== 'csr.tx-0060.read');
+    const conSigc = apriHomeCon(ruoli, '/fisico/superfici?sigc=true');
+    expect(await screen.findByRole('heading', { level: 1, name: 'Fisico: superfici ammissibili per intervento' })).toBeTruthy();
+    const link = () => within(screen.getByRole('navigation', { name: 'Navigazione principale' })).getAllByRole('link').map((l) => l.getAttribute('href') ?? '');
+    const aree = new Set(link().map((h) => h.split('?')[0].split('/')[1]));
+    expect(aree).toEqual(new Set(['finanziario', 'fisico', 'procedurale', 'istituzionale', 'elenco-operativo']));
+    for (const h of link()) {
+      const [percorso, query = ''] = h.split('?');
+      expect(new URLSearchParams(query).get('sigc'), h).toBe(senzaRicerca.has(percorso) ? null : 'true');
+    }
+    conSigc.unmount();
+    apriHomeCon(ruoli, '/fisico/superfici');
+    expect(await screen.findByRole('heading', { level: 1, name: 'Fisico: superfici ammissibili per intervento' })).toBeTruthy();
+    expect(link().filter((h) => new URLSearchParams(h.split('?')[1] ?? '').has('sigc'))).toEqual([]);
+  });
+
   it('profilo dell istituzionale: la card porta alla verifica SMP non SIGC e il menu ha le due verifiche, prima la non SIGC', async () => {
     server.use(
       http.get('*/api/istituzionale/verifica-smp-non-sigc', () => HttpResponse.json({ annoRiferimento: 2025, perimetro: 'REGIONALE', outputCumulativo: true, righe: [], ultimiDatiSincronizzati: [] })),

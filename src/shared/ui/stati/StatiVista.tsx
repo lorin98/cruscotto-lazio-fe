@@ -4,6 +4,7 @@
 import type { ReactNode } from 'react';
 import { getErrorMessage } from '../../lib';
 import { ErroreNellaPagina, useErroreNellaPagina } from './AvvisoPagina';
+import { ConMotivoSeNonPertinente } from '../card/NonPertinente';
 
 // UI v2 (ADR 0027): il caricamento e' uno scheletro della card, con il testo per i lettori di schermo.
 export function Caricamento({ testo = 'Caricamento in corso…', alto = false }: { testo?: string; alto?: boolean }) {
@@ -134,7 +135,14 @@ export function VistaQuery<T>({ stato, eVuoto, vuoto, errorePersonalizzato, inAt
   return (
     <>
       {stato.isError && <AggiornamentoFallito errore={stato.error} onRiprova={() => void stato.refetch()} />}
-      {eVuoto?.(dati) ? <Vuoto>{contenutoVuoto(vuoto, dati)}</Vuoto> : children(dati)}
+      {/* dentro <NonPertinente> il vuoto dice il motivo e non invita a cambiare filtri (review X-10) */}
+      {eVuoto?.(dati) ? (
+        <ConMotivoSeNonPertinente>
+          <Vuoto>{contenutoVuoto(vuoto, dati)}</Vuoto>
+        </ConMotivoSeNonPertinente>
+      ) : (
+        children(dati)
+      )}
     </>
   );
 }

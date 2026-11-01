@@ -204,7 +204,10 @@ function Fonte({ testo }: { testo: string }) {
 /** Nessuna istanza da tenere: la card non pertinente non scarica il PNG. */
 const nessunaIstanza = () => undefined;
 
-/** La card col filtro SIGC opposto: motivo, grafico in grigio e inerte, tabella dei dati per gli strumenti assistivi. */
+/**
+ * La card col filtro SIGC opposto: motivo, grafico in grigio e non attivabile, voci omesse, e la tabella dei dati per gli
+ * strumenti assistivi (nascosta alla vista, fuori dalla tabulazione: dentro il corpo non pertinente, review J-02).
+ */
 function CardNonPertinente({ titolo, sottotitolo, dati, fonte, altezza = 'normale', livello = 2 }: PropsCardGrafico) {
   const id = useId();
   return (
@@ -216,10 +219,11 @@ function CardNonPertinente({ titolo, sottotitolo, dati, fonte, altezza = 'normal
         ) : (
           <p className="ui-grafico-assente">{`Grafico non disponibile: ${dati.motivoAssenza ?? 'dati insufficienti'}.`}</p>
         )}
+        <div className="visually-hidden">
+          <TabellaDati tabella={dati.tabella} />
+        </div>
+        <VociOmesse omessi={dati.omessi} />
       </CorpoNonPertinente>
-      <div className="visually-hidden">
-        <TabellaDati tabella={dati.tabella} />
-      </div>
       <Fonte testo={fonte} />
     </section>
   );

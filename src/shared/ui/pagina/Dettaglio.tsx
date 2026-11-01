@@ -9,6 +9,7 @@ import type { ReactNode } from 'react';
 import { senzaRisposta } from '../../lib/dettaglio';
 import type { LetturaConErrore, StatoDettaglio } from '../../lib/dettaglio';
 import type { UltimoDato } from '../../lib/aggiornamento';
+import type { FiltroSigc } from '../../lib';
 import { PillDatiAl } from '../filtri/PillDatiAl';
 import { PillTipoIntervento } from '../filtri/PillTipoIntervento';
 import { ErroreNellaPagina, useErroreNellaPagina } from '../stati/AvvisoPagina';
@@ -50,7 +51,7 @@ interface PropsBarraRiferimenti {
   /** Tutte le letture fatte sono in errore (ultimoDatoInErrore): la pill lo dice. */
   inErrore: boolean;
   /** Il tipo dell'intervento dalla programmazione (revisioni del 31/10/2026, F5): il dettaglio non ha il filtro SIGC. */
-  tipo?: 'SIGC' | 'NO SIGC' | null;
+  tipo?: FiltroSigc | null;
 }
 
 /**
