@@ -1,23 +1,23 @@
 {
   "schema_version": "1.0",
   "pack": {
-    "version": "1.4.0",
-    "hash": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7"
+    "version": "1.5.0",
+    "hash": "sha256:b606aaee3b2f7add11e8b239ea50e03b3f206913e8b013e5ec7604cb3b4a310f"
   },
   "authz_catalog": {
     "path": "handover/authz-catalog.json",
     "grants": 69,
     "profiles": 11,
-    "sha256": "sha256:e7a2a1224b88ca94d4fdd0ec6eb74e71e2a86d9e090f7f5322b36ba950ff809f",
+    "sha256": "sha256:ab5b9bad2e63c914d0d9897e0d32671ddd960c1154d7548dbdfc76b2fe2e5dac",
     "sealed": true
   },
   "slices": [
     {
       "slice": "elenco-operativo",
       "spec_path": "handover/openapi-elenco-operativo.json",
-      "spec_sha256": "sha256:7532fe3b3708398d1448238ef2fe4df9e3d1037b096325bc23435cb9dc39a4ca",
+      "spec_sha256": "sha256:bf5c831398dbd82875a66c4cdcdf0ddfaffa05424cc978dc683e4e1f3f7c407d",
       "manifest_path": "handover/slices/elenco-operativo/manifest.json",
-      "manifest_openapi_hash": "sha256:7532fe3b3708398d1448238ef2fe4df9e3d1037b096325bc23435cb9dc39a4ca",
+      "manifest_openapi_hash": "sha256:bf5c831398dbd82875a66c4cdcdf0ddfaffa05424cc978dc683e4e1f3f7c407d",
       "manifest_hash_match": true,
       "backend_gates_ok": true
     }

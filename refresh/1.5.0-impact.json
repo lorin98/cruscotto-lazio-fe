@@ -1,0 +1,197 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-11-01T09:15:44Z",
+  "from_pack_hash": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7",
+  "to_pack_hash": "sha256:b606aaee3b2f7add11e8b239ea50e03b3f206913e8b013e5ec7604cb3b4a310f",
+  "changed": {
+    "pack": true,
+    "style_guide": false,
+    "specs": [
+      "elenco-operativo",
+      "finanziario",
+      "fisico",
+      "istituzionale",
+      "procedurale"
+    ]
+  },
+  "stale_features": [
+    {
+      "name": "finanziario",
+      "reason": "pack-changed",
+      "reopen_step": 1,
+      "changed_slices": [
+        "finanziario"
+      ],
+      "flows": [
+        {
+          "name": "domande",
+          "decision": "revoked",
+          "expected": "sha256:67bb6e94750c9514d15c72bb2480ad9b68596156bef3a4d4968ff4c71ee97313",
+          "current": "sha256:42044d92f11ff9f32732bcedfd9d9dc08d14a65d8a9d6d5a952e65f846f2fb49"
+        },
+        {
+          "name": "dotazione-avanzamento",
+          "decision": "revoked",
+          "expected": "sha256:ead559227a1e9ae2ffc680cd48943ee02bf23af206b3918efc799feb6092636c",
+          "current": "sha256:f58ac4b6d85415f4730317e76a79a32753a7ce9555b7814f1c4b938f46d8ff37"
+        },
+        {
+          "name": "panoramica",
+          "decision": "revoked",
+          "expected": "sha256:62847ef999d2117747d48ade82cec4c30d0962fd65ef67fc7172f2931fa3ba82",
+          "current": "sha256:eef21421e079a20be7e6384a553fd2117be2b21df84b86fe2c9ecc810324e898"
+        },
+        {
+          "name": "riepilogo",
+          "decision": "revoked",
+          "expected": "sha256:8d3e3739ae6f988cf64e6a6cd38a05299388742a85ffe1a6d8b0596d7bdfe2d1",
+          "current": "sha256:904a7d7d51d493a612bfcc0c30f2aeed97027a9bfcf86a2f5a256c4d3cbf2816"
+        },
+        {
+          "name": "sigc",
+          "decision": "revoked",
+          "expected": "sha256:8189d3aa39192515b10f93dd9c087b24a95b335ade329052113204612766b0cf",
+          "current": "sha256:40c91f3ee0bc3ce33d891d9da8bf919c68a74ed57e3fc8de708fcd92c41e771d"
+        }
+      ]
+    },
+    {
+      "name": "elenco-operativo",
+      "reason": "pack-changed",
+      "reopen_step": 1,
+      "changed_slices": [
+        "elenco-operativo"
+      ],
+      "flows": [
+        {
+          "name": "dettaglio-domanda",
+          "decision": "revoked",
+          "expected": "sha256:fc22acf7e94c41bfa38f0ab4bf9d8a8a5c20c61a5e64e1f2877590f1f30e2698",
+          "current": "sha256:2cf7f69b23797dd1b2f2301531f86e06c7d3730f983fd39187d8cccddcb216ba"
+        },
+        {
+          "name": "domande",
+          "decision": "revoked",
+          "expected": "sha256:c8a117471712ad00e67e456b346e6eda3f752b0f373c014cca4105b8d3d52fcd",
+          "current": "sha256:6126bedc2cf1ffb7ac50098f19c20c0261c1af4e2abb9ead2ff8083f5a569dfc"
+        },
+        {
+          "name": "pagamenti",
+          "decision": "revoked",
+          "expected": "sha256:e9639ac808de662d2456e707d8d2a0872bcd41328ae4f3133a2ac8f6afdc1f55",
+          "current": "sha256:c5dcaae0326047b97200efbe927bbc23771c289ee436218a4a01bfee6c1230f8"
+        }
+      ]
+    },
+    {
+      "name": "fisico",
+      "reason": "pack-changed",
+      "reopen_step": 1,
+      "changed_slices": [
+        "elenco-operativo",
+        "fisico"
+      ],
+      "flows": [
+        {
+          "name": "intervento",
+          "decision": "revoked",
+          "expected": "sha256:7d55310571a299802ce8a11df23dd8b1b400001340d491fdcbdac71ee33b74db",
+          "current": "sha256:1cb2d1e9dd806c6b5d1e2fc92658bdd0ebefd2dc7d223f178d5a6fd0f2cc3b80"
+        },
+        {
+          "name": "output-regionale",
+          "decision": "revoked",
+          "expected": "sha256:6451a941f95765d6ca3d4f95485edacc3cfc993282770660bb6df81512adf9fc",
+          "current": "sha256:96df7588c03e75edc756f821d0dc924df685d5c2305c64b60ec137c5d9e97916"
+        },
+        {
+          "name": "superfici",
+          "decision": "revoked",
+          "expected": "sha256:27c926339771b223dbc33c7042587e18a6841a2a6b2d701504095feb25e69d24",
+          "current": "sha256:b76ea622d83a8a77ac8c6ff4048c94dad86d1cb2c6665bb4727b02c80d81201f"
+        },
+        {
+          "name": "unit-amount",
+          "decision": "revoked",
+          "expected": "sha256:8e0da11f9b870e27094e2a77b3e015d2b0eacfbea66d702a608149be9c5789fa",
+          "current": "sha256:6734131e60da0c9e35f41af6b610ce2fdef5eb54c7db35b980912cebc6087d10"
+        }
+      ]
+    },
+    {
+      "name": "istituzionale",
+      "reason": "pack-changed",
+      "reopen_step": 1,
+      "changed_slices": [
+        "elenco-operativo",
+        "istituzionale"
+      ],
+      "flows": [
+        {
+          "name": "intervento",
+          "decision": "revoked",
+          "expected": "sha256:23b9de7b0f94771300578493b9c590f0c25364dc8adf236ed775bbdfcf3fcd9c",
+          "current": "sha256:2233f5dc6504e2a8ffdfcdbbfd81bef5d0c467f67037f03059bef81e8431c9c2"
+        },
+        {
+          "name": "verifica-smp-non-sigc",
+          "decision": "revoked",
+          "expected": "sha256:36cdd0dfc616dd5e237078a6999a08a4dcf6bb7d18bad91960ec9de0a27ff193",
+          "current": "sha256:cde32ab22d66676b2112aede774211c72b98c978c9f9b9c44f92fbfd4df54351"
+        },
+        {
+          "name": "verifica-smp-sigc",
+          "decision": "revoked",
+          "expected": "sha256:46cf705caa939048eece9f1c5fa78062f600df47739d93e1f0e54f7bd42ef218",
+          "current": "sha256:9378720b026534b088513ae0af180cd4ed958ef8387ec6069d733765d8688ee4"
+        }
+      ]
+    },
+    {
+      "name": "procedurale",
+      "reason": "pack-changed",
+      "reopen_step": 1,
+      "changed_slices": [
+        "procedurale"
+      ],
+      "flows": [
+        {
+          "name": "ammesse",
+          "decision": "revoked",
+          "expected": "sha256:6cbddd380343f94fc5bbbdba8b32b14f7b86eda5a7eaedf7e46caacdb3966eaf",
+          "current": "sha256:808ff6bdfefd16d6241ff3933d922c3d7b4af85e272b20353fa1d31f915b3cfb"
+        },
+        {
+          "name": "determine",
+          "decision": "revoked",
+          "expected": "sha256:72cac7a76d4909b42659dc76578903c786ae139aa0ff0d3ce2b660976bce5c9d",
+          "current": "sha256:88162aca19727c0f878d2ff0233814f382a7898fb8f9aa2670fd595b28245072"
+        },
+        {
+          "name": "panoramica",
+          "decision": "revoked",
+          "expected": "sha256:cad72afc59598c543c6e81996500de0435f50585521bffb7d3257b712044184b",
+          "current": "sha256:a45383487a6187ab8725193d60035ec4c5f75a0641873192c7c91d6f3c5ec461"
+        },
+        {
+          "name": "riepilogo",
+          "decision": "revoked",
+          "expected": "sha256:77f2d54bff90fd1378528ce1a5e081df40180c83a64aa9c3542358583e9d46d1",
+          "current": "sha256:6010092186975bff00efbda9abd5d3203a9428a09eba16dd10ab496bb3366379"
+        },
+        {
+          "name": "sottofasi",
+          "decision": "revoked",
+          "expected": "sha256:d73403d3633be07461f7ea03219b6530d6d776e0a61eea7bc4e4f28c4e813b49",
+          "current": "sha256:ded49fc6f45c114d57adc273b5c1613350336447958b871b7197bc55a18fee64"
+        },
+        {
+          "name": "stati",
+          "decision": "revoked",
+          "expected": "sha256:21fcddefe1beea7d44d9de7cb1aa85faea32641771f9d196c7b636b470f1a294",
+          "current": "sha256:685b62d111f858347523178d53d9fa08228d7b8236bdfe007f69dd1eeaeca98a"
+        }
+      ]
+    }
+  ]
+}

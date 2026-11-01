@@ -230,6 +230,20 @@
       "test_tag": "SC-IS_ESPORTA",
       "approved": true,
       "role": "p3-funzionario-area"
+    },
+    {
+      "scenario_id": "SC-IS_FILTRO_SIGC",
+      "req_uids": [
+        "RU-00000015",
+        "RU-00000016"
+      ],
+      "given": "SRA01 classificato SIGC e SRD01 NO_SIGC con i dati di SC-IS_SMP_SIGC (SRA01) e di SC-IS_SMP_NONSIGC (SRD01)",
+      "when": "chiama la verifica SMP non SIGC (TX-0016) e SIGC (TX-0015) con sigc=true e con sigc=false, e i loro export con sigc; poi con sigc=abc",
+      "then": "TX-0016: con sigc=false come senza filtro, con sigc=true zero righe e totali a zero; TX-0015: con sigc=true come senza filtro, con sigc=false zero righe e totali a zero; gli export seguono il filtro; sigc=abc 400 DATO_NON_VALIDO che nomina sigc (D-09)",
+      "kind": "positive",
+      "test_tag": "SC-IS_FILTRO_SIGC",
+      "approved": true,
+      "role": "p1-dirigente"
     }
   ]
 }

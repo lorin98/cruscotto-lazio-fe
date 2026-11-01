@@ -2,18 +2,19 @@
   {
     "name": "intervento",
     "decision": "revoked",
-    "expected": "sha256:1932cee77819cb6b6333e61f8e65b1c45c2f22393985d85fd427c4b56ee79a1b",
-    "current": "sha256:23b9de7b0f94771300578493b9c590f0c25364dc8adf236ed775bbdfcf3fcd9c"
-  },
-  {
-    "name": "output-regionale",
-    "decision": "revoked",
-    "expected": "sha256:4b7342bfd3870e169d098ff86e16b94921f91bde4782a1bddeb9e565fa90f302"
+    "expected": "sha256:23b9de7b0f94771300578493b9c590f0c25364dc8adf236ed775bbdfcf3fcd9c",
+    "current": "sha256:2233f5dc6504e2a8ffdfcdbbfd81bef5d0c467f67037f03059bef81e8431c9c2"
   },
   {
     "name": "verifica-smp-non-sigc",
     "decision": "revoked",
-    "expected": "sha256:dcb8a4bdd3edea0b1a12367e80c0111fb807a4a3d3a92debdc3d28fbf502778d",
-    "current": "sha256:a947ba1b2995bf6641cbf41291b8d56d925acd87bfe8cd07fb370b5460d3e49b"
+    "expected": "sha256:36cdd0dfc616dd5e237078a6999a08a4dcf6bb7d18bad91960ec9de0a27ff193",
+    "current": "sha256:cde32ab22d66676b2112aede774211c72b98c978c9f9b9c44f92fbfd4df54351"
+  },
+  {
+    "name": "verifica-smp-sigc",
+    "decision": "revoked",
+    "expected": "sha256:46cf705caa939048eece9f1c5fa78062f600df47739d93e1f0e54f7bd42ef218",
+    "current": "sha256:9378720b026534b088513ae0af180cd4ed958ef8387ec6069d733765d8688ee4"
   }
 ]

@@ -1,37 +1,38 @@
 [
   {
     "name": "ammesse",
-    "decision": "carried_over",
+    "decision": "revoked",
     "expected": "sha256:6cbddd380343f94fc5bbbdba8b32b14f7b86eda5a7eaedf7e46caacdb3966eaf",
-    "current": "sha256:6cbddd380343f94fc5bbbdba8b32b14f7b86eda5a7eaedf7e46caacdb3966eaf"
+    "current": "sha256:808ff6bdfefd16d6241ff3933d922c3d7b4af85e272b20353fa1d31f915b3cfb"
+  },
+  {
+    "name": "determine",
+    "decision": "revoked",
+    "expected": "sha256:72cac7a76d4909b42659dc76578903c786ae139aa0ff0d3ce2b660976bce5c9d",
+    "current": "sha256:88162aca19727c0f878d2ff0233814f382a7898fb8f9aa2670fd595b28245072"
   },
   {
     "name": "panoramica",
     "decision": "revoked",
-    "expected": "sha256:eec17f2e3d8f1f27d4422f85825b27f5eaf3146cccc873c877e451cb05ef3865",
-    "current": "sha256:cad72afc59598c543c6e81996500de0435f50585521bffb7d3257b712044184b"
+    "expected": "sha256:cad72afc59598c543c6e81996500de0435f50585521bffb7d3257b712044184b",
+    "current": "sha256:a45383487a6187ab8725193d60035ec4c5f75a0641873192c7c91d6f3c5ec461"
   },
   {
     "name": "riepilogo",
-    "decision": "carried_over",
+    "decision": "revoked",
     "expected": "sha256:77f2d54bff90fd1378528ce1a5e081df40180c83a64aa9c3542358583e9d46d1",
-    "current": "sha256:77f2d54bff90fd1378528ce1a5e081df40180c83a64aa9c3542358583e9d46d1"
+    "current": "sha256:6010092186975bff00efbda9abd5d3203a9428a09eba16dd10ab496bb3366379"
   },
   {
     "name": "sottofasi",
-    "decision": "carried_over",
+    "decision": "revoked",
     "expected": "sha256:d73403d3633be07461f7ea03219b6530d6d776e0a61eea7bc4e4f28c4e813b49",
-    "current": "sha256:d73403d3633be07461f7ea03219b6530d6d776e0a61eea7bc4e4f28c4e813b49"
+    "current": "sha256:ded49fc6f45c114d57adc273b5c1613350336447958b871b7197bc55a18fee64"
   },
   {
     "name": "stati",
-    "decision": "carried_over",
-    "expected": "sha256:21fcddefe1beea7d44d9de7cb1aa85faea32641771f9d196c7b636b470f1a294",
-    "current": "sha256:21fcddefe1beea7d44d9de7cb1aa85faea32641771f9d196c7b636b470f1a294"
-  },
-  {
-    "name": "unit-amount",
     "decision": "revoked",
-    "expected": "sha256:dd0ab7020fdf39f25b23e6678acf9f4182ca5c788f343ad1733a32636daace55"
+    "expected": "sha256:21fcddefe1beea7d44d9de7cb1aa85faea32641771f9d196c7b636b470f1a294",
+    "current": "sha256:685b62d111f858347523178d53d9fa08228d7b8236bdfe007f69dd1eeaeca98a"
   }
 ]

@@ -1,23 +1,23 @@
 {
   "schema_version": "1.0",
   "pack": {
-    "version": "1.4.0",
-    "hash": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7"
+    "version": "1.5.0",
+    "hash": "sha256:b606aaee3b2f7add11e8b239ea50e03b3f206913e8b013e5ec7604cb3b4a310f"
   },
   "authz_catalog": {
     "path": "handover/authz-catalog.json",
     "grants": 69,
     "profiles": 11,
-    "sha256": "sha256:e7a2a1224b88ca94d4fdd0ec6eb74e71e2a86d9e090f7f5322b36ba950ff809f",
+    "sha256": "sha256:ab5b9bad2e63c914d0d9897e0d32671ddd960c1154d7548dbdfc76b2fe2e5dac",
     "sealed": true
   },
   "slices": [
     {
       "slice": "procedurale",
       "spec_path": "handover/openapi-procedurale.json",
-      "spec_sha256": "sha256:2d600037ef21b6a04f24f7690cd20ba7492fed4da7bcce11f134b733ea570a33",
+      "spec_sha256": "sha256:fc6433807a3eecb8d1f802a9a0c2cb40fa802a004b1ef09f42e7547d1e99fbfa",
       "manifest_path": "handover/slices/procedurale/manifest.json",
-      "manifest_openapi_hash": "sha256:2d600037ef21b6a04f24f7690cd20ba7492fed4da7bcce11f134b733ea570a33",
+      "manifest_openapi_hash": "sha256:fc6433807a3eecb8d1f802a9a0c2cb40fa802a004b1ef09f42e7547d1e99fbfa",
       "manifest_hash_match": true,
       "backend_gates_ok": true
     }

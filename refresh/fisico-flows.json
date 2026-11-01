@@ -1,13 +1,26 @@
 [
   {
-    "name": "determine",
+    "name": "intervento",
     "decision": "revoked",
-    "expected": "sha256:c797793a40a02c16b021bf98496a77e808dd8072184e3ab4847e8581da535d32"
+    "expected": "sha256:7d55310571a299802ce8a11df23dd8b1b400001340d491fdcbdac71ee33b74db",
+    "current": "sha256:1cb2d1e9dd806c6b5d1e2fc92658bdd0ebefd2dc7d223f178d5a6fd0f2cc3b80"
+  },
+  {
+    "name": "output-regionale",
+    "decision": "revoked",
+    "expected": "sha256:6451a941f95765d6ca3d4f95485edacc3cfc993282770660bb6df81512adf9fc",
+    "current": "sha256:96df7588c03e75edc756f821d0dc924df685d5c2305c64b60ec137c5d9e97916"
   },
   {
     "name": "superfici",
     "decision": "revoked",
-    "expected": "sha256:199cd655ea694dd53c53bc67bcf83fcb132e8da272304d8f195f3c67ddf66596",
-    "current": "sha256:27c926339771b223dbc33c7042587e18a6841a2a6b2d701504095feb25e69d24"
+    "expected": "sha256:27c926339771b223dbc33c7042587e18a6841a2a6b2d701504095feb25e69d24",
+    "current": "sha256:b76ea622d83a8a77ac8c6ff4048c94dad86d1cb2c6665bb4727b02c80d81201f"
+  },
+  {
+    "name": "unit-amount",
+    "decision": "revoked",
+    "expected": "sha256:8e0da11f9b870e27094e2a77b3e015d2b0eacfbea66d702a608149be9c5789fa",
+    "current": "sha256:6734131e60da0c9e35f41af6b610ce2fdef5eb54c7db35b980912cebc6087d10"
   }
 ]

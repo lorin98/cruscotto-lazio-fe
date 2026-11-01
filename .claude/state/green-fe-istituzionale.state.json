@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "istituzionale",
-  "current_step": 9,
+  "current_step": 1,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -13,143 +13,84 @@
       ],
       "gates": {
         "handover_verified": {
-          "approved_hash": "sha256:9563f32120d34fd2d2f429809656d45f6b2e0f081ed997ace1a13c6bda021baa",
+          "approved_hash": "sha256:b83c17d2f0e3a8a62b8ecb97ac795241b16cf58983a8a6a031da0fa93d17ae82",
           "baseline_ref": "./plan/istituzionale/handover.json",
-          "approved_at": "2026-10-29T17:10:43Z"
+          "approved_at": "2026-11-01T09:08:11Z"
         }
       }
     },
     "step1-uiplan": {
-      "status": "done",
-      "gates": {
-        "wireframe_verifica-smp-non-sigc": {
-          "approved_hash": "sha256:36cdd0dfc616dd5e237078a6999a08a4dcf6bb7d18bad91960ec9de0a27ff193",
-          "baseline_ref": "./wireframes/istituzionale/verifica-smp-non-sigc",
-          "approved_at": "2026-10-31T07:56:49Z",
-          "time_to_approve_s": 88,
-          "deviations_reviewed": [
-            "V-01 (review step9 FULL della card a tabella, 31/10/2026; decisione D1 dell utente: testo nuovo solo nel codice, nessun rework 3): ai lettori di schermo il trattino delle domande pagate della colonna non SIGC dice \"dato non confrontabile: la verifica non SIGC conta solo le domande saldate al 100%\" invece di \"dato non previsto nella verifica non SIGC\" del wireframe (falso: TX-0016 ha domandeSaldate)",
-            "X-01 (stessa review; decisione D2 dell utente: testo nuovo solo nel codice): la parte SIGC della nota sotto la tabella dice \"SIGC: pagate e spesa dal 16/10/aaaa-1 al 15/10/aaaa; ricevute e finanziate, domande dell anno aaaa-1.\" invece di \"SIGC: dal 16/10/aaaa-1 al 15/10/aaaa, domande dell anno aaaa-1.\"",
-            "A-01/X-02 (stessa review, conseguenza di D1-D2 senza rework): il residuo WCAG della sezione Tabella a confronto del doc dice \"quattro card per riga sotto i 1300 px circa\"; la fascia vera e da circa 1376 px (correzione nel resoconto review/card-istituzionale-2026-10-31, il doc del wireframe resta invariato)"
-          ]
-        },
-        "wireframe_verifica-smp-sigc": {
-          "approved_hash": "sha256:46cf705caa939048eece9f1c5fa78062f600df47739d93e1f0e54f7bd42ef218",
-          "baseline_ref": "./wireframes/istituzionale/verifica-smp-sigc",
-          "approved_at": "2026-10-30T07:36:54Z",
-          "time_to_approve_s": 74,
-          "deviations_reviewed": []
-        },
-        "wireframe_intervento": {
-          "approved_hash": "sha256:23b9de7b0f94771300578493b9c590f0c25364dc8adf236ed775bbdfcf3fcd9c",
-          "baseline_ref": "./wireframes/istituzionale/intervento",
-          "approved_at": "2026-10-30T07:36:54Z",
-          "time_to_approve_s": 74,
-          "deviations_reviewed": []
-        }
-      },
+      "status": "in_progress",
+      "gates": {},
       "completed_at": "2026-10-30T07:37:47Z",
       "artifacts": [
         "./plan/istituzionale/uiplan.json"
       ]
     },
     "step2-codegen": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-30T08:45:22Z",
       "artifacts": [
         "./specs/.spec-lock.json",
         "./src/shared/api/generated"
       ],
-      "gates": {
-        "codegen_compiles": "pass",
-        "orval_types": "pass",
-        "csrf_static": "pass"
-      }
+      "gates": {}
     },
     "step3-api": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-30T09:29:36Z",
       "artifacts": [
         "./src/features"
       ],
-      "gates": {
-        "api_wrappers_compile": "pass",
-        "querykey_from_factory": "pass"
-      }
+      "gates": {}
     },
     "step4-lib": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-30T09:44:54Z",
       "artifacts": [
         "./src/shared/lib"
       ],
-      "gates": {
-        "lib_pure_compile": "pass",
-        "lib_zero_react": "pass"
-      }
+      "gates": {}
     },
     "step5-ui": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-30T10:06:17Z",
       "artifacts": [
         "./src/features"
       ],
-      "gates": {
-        "ui_components_compile": "pass",
-        "ui_a11y_axe": "pass"
-      }
+      "gates": {}
     },
     "step6-page": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-30T10:09:50Z",
       "artifacts": [
         "./src/pages",
         "./plan/istituzionale/route-manifest.json"
       ],
-      "gates": {
-        "pages_compile": "pass",
-        "route_manifest_valid": "pass"
-      }
+      "gates": {}
     },
     "step7-test": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-30T10:15:38Z",
       "artifacts": [
         "./src/shared/test",
         "./src/shared/api/mock",
         "./src/shared/testing/axe.ts"
       ],
-      "gates": {
-        "tests_generated": "pass",
-        "msw_fail_closed": "pass"
-      }
+      "gates": {}
     },
     "step8-gate": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-30T14:13:29Z",
       "artifacts": [
         "./plan/istituzionale/fe-gate-report.json"
       ],
-      "gates": {
-        "lint": "pass",
-        "typecheck": "pass",
-        "test": "pass",
-        "a11y": "pass",
-        "build": "pass",
-        "fsd_import": "pass",
-        "orval_types": "pass",
-        "security": "pass",
-        "authz": "pass",
-        "wireframe_approved": "pass",
-        "req_coverage_ui": "pass"
-      }
+      "gates": {}
     },
     "step9-review": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-30T11:43:21Z",
-      "gates": {
-        "review": "pass"
-      }
+      "gates": {}
     }
   },
   "open_blockers": [],
@@ -170,6 +111,6 @@
     "gate_budget": 8
   },
   "didactic_level": "standard",
-  "pack_version": "1.4.0",
-  "pack_hash": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7"
+  "pack_version": "1.5.0",
+  "pack_hash": "sha256:b606aaee3b2f7add11e8b239ea50e03b3f206913e8b013e5ec7604cb3b4a310f"
 }

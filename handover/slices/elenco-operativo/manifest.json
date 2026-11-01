@@ -5,7 +5,7 @@
       "ownership": "elenco-operativo",
       "path": "slice-plan.json",
       "role": "artifact",
-      "sha256": "sha256:aafd98dc39648da14efc7d7142328e8d4365d388959ea391f1763bd81fbe3d10",
+      "sha256": "sha256:1f0522505502f4188d52098d4a7f7536fc78ac4129d87846dcdd7a454416dd8b",
       "step": "step1-import"
     },
     {
@@ -13,7 +13,7 @@
       "ownership": "elenco-operativo",
       "path": "authz-catalog.json",
       "role": "authz-catalog",
-      "sha256": "sha256:e7a2a1224b88ca94d4fdd0ec6eb74e71e2a86d9e090f7f5322b36ba950ff809f",
+      "sha256": "sha256:ab5b9bad2e63c914d0d9897e0d32671ddd960c1154d7548dbdfc76b2fe2e5dac",
       "step": "authz-catalog"
     },
     {
@@ -29,7 +29,7 @@
       "ownership": "elenco-operativo",
       "path": "datamodel/elenco-operativo-decisions.json",
       "role": "migration",
-      "sha256": "sha256:40482f32d150a29efd1ecd2dbe9e53850ede727287a9216e40462dae1b440bfd",
+      "sha256": "sha256:b58484829c0d14133eab77686612eac4a0b4de23bac6210b7f985a38ec1acb91",
       "step": "step2-datamodel"
     },
     {
@@ -149,7 +149,7 @@
       "ownership": "elenco-operativo",
       "path": "ARSCSR/application/src/main/java/it/arsial/cruscottocsr/application/port/in/ConsultaElencoOperativoUseCase.java",
       "role": "port",
-      "sha256": "sha256:129c0d12a83b01bdcd69357f1f1a325eab318f048028fe8c6046e453bbe1305d",
+      "sha256": "sha256:a8e0a351faa2e648db878ba99119f3adaa7dbb64e7648175c7b0cd9cafcebf4a",
       "step": "step4-ports"
     },
     {
@@ -165,7 +165,7 @@
       "ownership": "elenco-operativo",
       "path": "acceptance/elenco-operativo-scenarios.json",
       "role": "application",
-      "sha256": "sha256:3dedae35aed569b6ee43e637e29a35878caa875fb7789d6ec13aae06182e7252",
+      "sha256": "sha256:f68940c0b941e8d519786942c77318e39cc61ea11b949ba45384c97e3f160869",
       "step": "step5-service"
     },
     {
@@ -173,7 +173,7 @@
       "ownership": "elenco-operativo",
       "path": "ARSCSR/adapter-out/adapter-out-postgres/src/main/java/it/arsial/cruscottocsr/adapter/out/persistence/elencooperativo/PostgresElencoOperativoAdapter.java",
       "role": "adapter-out-pg",
-      "sha256": "sha256:c970fd6bd5626ab69a96acb443eb45e360c9d3cc99709188a105336faa7177fe",
+      "sha256": "sha256:dcd031d13102323c7d4aa0ed591c9783b8958f30c0be14848ba364f24de6a288",
       "step": "step6-adapter-pg"
     },
     {
@@ -181,24 +181,24 @@
       "ownership": "elenco-operativo",
       "path": "openapi/openapi-elenco-operativo.json",
       "role": "adapter-in-rest",
-      "sha256": "sha256:7532fe3b3708398d1448238ef2fe4df9e3d1037b096325bc23435cb9dc39a4ca",
+      "sha256": "sha256:bf5c831398dbd82875a66c4cdcdf0ddfaffa05424cc978dc683e4e1f3f7c407d",
       "step": "step8-rest"
     }
   ],
   "authz_catalog": {
-    "hash": "sha256:e7a2a1224b88ca94d4fdd0ec6eb74e71e2a86d9e090f7f5322b36ba950ff809f",
+    "hash": "sha256:ab5b9bad2e63c914d0d9897e0d32671ddd960c1154d7548dbdfc76b2fe2e5dac",
     "path": "authz-catalog.json"
   },
   "gates": {
     "authz-catalog.authz_approved": {
-      "approved_at": "2026-10-29T08:48:37Z",
-      "approved_hash": "sha256:e7a2a1224b88ca94d4fdd0ec6eb74e71e2a86d9e090f7f5322b36ba950ff809f",
-      "baseline_ref": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7"
+      "approved_at": "2026-10-31T10:35:48Z",
+      "approved_hash": "sha256:ab5b9bad2e63c914d0d9897e0d32671ddd960c1154d7548dbdfc76b2fe2e5dac",
+      "baseline_ref": "sha256:b606aaee3b2f7add11e8b239ea50e03b3f206913e8b013e5ec7604cb3b4a310f"
     },
     "step1-import.plan_approved": {
-      "approved_at": "2026-10-29T08:48:37Z",
-      "approved_hash": "sha256:aafd98dc39648da14efc7d7142328e8d4365d388959ea391f1763bd81fbe3d10",
-      "baseline_ref": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7"
+      "approved_at": "2026-10-31T10:35:48Z",
+      "approved_hash": "sha256:1f0522505502f4188d52098d4a7f7536fc78ac4129d87846dcdd7a454416dd8b",
+      "baseline_ref": "sha256:b606aaee3b2f7add11e8b239ea50e03b3f206913e8b013e5ec7604cb3b4a310f"
     },
     "step10-gate.acceptance": "pass",
     "step10-gate.assumptions": "pass",
@@ -212,17 +212,17 @@
     "step11-review.review": "pass",
     "step1b-scaffold.reactor_compiles": "pass",
     "step2-datamodel.ddl_approved": {
-      "approved_at": "2026-10-20T08:27:25Z",
-      "approved_hash": "sha256:40482f32d150a29efd1ecd2dbe9e53850ede727287a9216e40462dae1b440bfd",
-      "baseline_ref": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
+      "approved_at": "2026-10-31T11:11:13Z",
+      "approved_hash": "sha256:b58484829c0d14133eab77686612eac4a0b4de23bac6210b7f985a38ec1acb91",
+      "baseline_ref": "sha256:b606aaee3b2f7add11e8b239ea50e03b3f206913e8b013e5ec7604cb3b4a310f"
     },
     "step3-domain.domain_compiles": "pass",
     "step3-domain.domain_pure": "pass",
     "step4-ports.ports_pure": "pass",
     "step5-service.acceptance_approved": {
-      "approved_at": "2026-10-20T08:27:25Z",
-      "approved_hash": "sha256:3dedae35aed569b6ee43e637e29a35878caa875fb7789d6ec13aae06182e7252",
-      "baseline_ref": "sha256:bb5e50081acaaa983d0a965d3358da36dc8070a0260f45e11c1c0869df85b5bb"
+      "approved_at": "2026-10-31T11:11:13Z",
+      "approved_hash": "sha256:f68940c0b941e8d519786942c77318e39cc61ea11b949ba45384c97e3f160869",
+      "baseline_ref": "sha256:b606aaee3b2f7add11e8b239ea50e03b3f206913e8b013e5ec7604cb3b4a310f"
     },
     "step5-service.authz_import_zero": "pass",
     "step6-adapter-pg.adapter_pg_compiles": "pass",
@@ -232,11 +232,11 @@
     "step9-functions.functions": "pass"
   },
   "openapi": {
-    "hash": "sha256:7532fe3b3708398d1448238ef2fe4df9e3d1037b096325bc23435cb9dc39a4ca",
+    "hash": "sha256:bf5c831398dbd82875a66c4cdcdf0ddfaffa05424cc978dc683e4e1f3f7c407d",
     "path": "./openapi/openapi-elenco-operativo.json"
   },
-  "pack_hash": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7",
-  "pack_version": "1.4.0",
+  "pack_hash": "sha256:b606aaee3b2f7add11e8b239ea50e03b3f206913e8b013e5ec7604cb3b4a310f",
+  "pack_version": "1.5.0",
   "reqs": [
     "RU-00000057",
     "RU-00000058",

@@ -275,6 +275,21 @@
       "test_tag": "SC-FS_ESPORTA",
       "approved": true,
       "role": "p3-funzionario-area"
+    },
+    {
+      "scenario_id": "SC-FS_FILTRO_SIGC",
+      "req_uids": [
+        "RU-00000017",
+        "RU-00000018",
+        "RU-00000030"
+      ],
+      "given": "SRA01 classificato SIGC con superfici dell'ASR2-20, output e Unit Amount; SRD01 NO_SIGC con output e Unit Amount",
+      "when": "chiama /api/fisico/superfici, /output-regionale e /unit-amount con sigc=true e con sigc=false; poi sigc=abc",
+      "then": "sigc=true: superfici, output e Unit Amount del solo SRA01; sigc=false: output e Unit Amount del solo SRD01 e superfici senza righe (TX-0018 ha solo domande SIGC); sigc=abc 400 DATO_NON_VALIDO che nomina sigc (D-08)",
+      "kind": "positive",
+      "test_tag": "SC-FS_FILTRO_SIGC",
+      "approved": true,
+      "role": "p1-dirigente"
     }
   ]
 }

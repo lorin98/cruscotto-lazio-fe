@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "procedurale",
-  "current_step": 9,
+  "current_step": 1,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -13,168 +13,84 @@
       ],
       "gates": {
         "handover_verified": {
-          "approved_hash": "sha256:5568145d201a758b76b22f69ac5059d50675df9acfc70e2ee165472816fc3042",
+          "approved_hash": "sha256:ecddd3f407f6641bb1efa21db209824c3957790839b9ea9ba5c9d722633bb737",
           "baseline_ref": "./plan/procedurale/handover.json",
-          "approved_at": "2026-10-29T17:10:56Z"
+          "approved_at": "2026-11-01T09:08:14Z"
         }
       }
     },
     "step1-uiplan": {
-      "status": "done",
-      "gates": {
-        "wireframe_ammesse": {
-          "approved_hash": "sha256:6cbddd380343f94fc5bbbdba8b32b14f7b86eda5a7eaedf7e46caacdb3966eaf",
-          "baseline_ref": "./wireframes/procedurale/ammesse",
-          "approved_at": "2026-10-22T08:51:29Z",
-          "time_to_approve_s": 218,
-          "deviations_reviewed": [
-            "Scelte di disegno approvate dall'utente il 22/10/2026: dettaglio procedurale dell'intervento con scheda Sottofasi; due pagine per gli stati di sostegno e di pagamento; card stato area programmazione da TX-0029; clic su una barra = filtro in pagina, Apri nell'elenco (n rilasciate) azione esplicita; di cui non rilasciate di In compilazione senza fonte = non disponibile; CSV/XLSX di una card = intero report; Unit Amount senza importo pagato = nota unica sopra la tabella"
-          ]
-        },
-        "wireframe_riepilogo": {
-          "approved_hash": "sha256:77f2d54bff90fd1378528ce1a5e081df40180c83a64aa9c3542358583e9d46d1",
-          "baseline_ref": "./wireframes/procedurale/riepilogo",
-          "approved_at": "2026-10-22T08:51:29Z",
-          "time_to_approve_s": 218,
-          "deviations_reviewed": [
-            "Scelte di disegno approvate dall'utente il 22/10/2026: dettaglio procedurale dell'intervento con scheda Sottofasi; due pagine per gli stati di sostegno e di pagamento; card stato area programmazione da TX-0029; clic su una barra = filtro in pagina, Apri nell'elenco (n rilasciate) azione esplicita; di cui non rilasciate di In compilazione senza fonte = non disponibile; CSV/XLSX di una card = intero report; Unit Amount senza importo pagato = nota unica sopra la tabella"
-          ]
-        },
-        "wireframe_sottofasi": {
-          "approved_hash": "sha256:d73403d3633be07461f7ea03219b6530d6d776e0a61eea7bc4e4f28c4e813b49",
-          "baseline_ref": "./wireframes/procedurale/sottofasi",
-          "approved_at": "2026-10-22T08:51:29Z",
-          "time_to_approve_s": 218,
-          "deviations_reviewed": [
-            "Scelte di disegno approvate dall'utente il 22/10/2026: dettaglio procedurale dell'intervento con scheda Sottofasi; due pagine per gli stati di sostegno e di pagamento; card stato area programmazione da TX-0029; clic su una barra = filtro in pagina, Apri nell'elenco (n rilasciate) azione esplicita; di cui non rilasciate di In compilazione senza fonte = non disponibile; CSV/XLSX di una card = intero report; Unit Amount senza importo pagato = nota unica sopra la tabella"
-          ]
-        },
-        "wireframe_stati": {
-          "approved_hash": "sha256:21fcddefe1beea7d44d9de7cb1aa85faea32641771f9d196c7b636b470f1a294",
-          "baseline_ref": "./wireframes/procedurale/stati",
-          "approved_at": "2026-10-22T08:51:29Z",
-          "time_to_approve_s": 218,
-          "deviations_reviewed": [
-            "Scelte di disegno approvate dall'utente il 22/10/2026: dettaglio procedurale dell'intervento con scheda Sottofasi; due pagine per gli stati di sostegno e di pagamento; card stato area programmazione da TX-0029; clic su una barra = filtro in pagina, Apri nell'elenco (n rilasciate) azione esplicita; di cui non rilasciate di In compilazione senza fonte = non disponibile; CSV/XLSX di una card = intero report; Unit Amount senza importo pagato = nota unica sopra la tabella"
-          ]
-        },
-        "wireframe_determine": {
-          "approved_hash": "sha256:72cac7a76d4909b42659dc76578903c786ae139aa0ff0d3ce2b660976bce5c9d",
-          "baseline_ref": "./wireframes/procedurale/determine",
-          "approved_at": "2026-10-30T13:37:31Z",
-          "time_to_approve_s": 122,
-          "deviations_reviewed": []
-        },
-        "wireframe_panoramica": {
-          "approved_hash": "sha256:cad72afc59598c543c6e81996500de0435f50585521bffb7d3257b712044184b",
-          "baseline_ref": "./wireframes/procedurale/panoramica",
-          "approved_at": "2026-10-30T07:26:41Z",
-          "time_to_approve_s": 408,
-          "deviations_reviewed": []
-        }
-      },
+      "status": "in_progress",
+      "gates": {},
       "completed_at": "2026-10-30T07:31:32Z",
       "artifacts": [
         "./plan/procedurale/uiplan.json"
       ]
     },
     "step2-codegen": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-30T08:45:32Z",
       "artifacts": [
         "./specs/.spec-lock.json",
         "./src/shared/api/generated"
       ],
-      "gates": {
-        "codegen_compiles": "pass",
-        "orval_types": "pass",
-        "csrf_static": "pass"
-      }
+      "gates": {}
     },
     "step3-api": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-30T09:28:51Z",
       "artifacts": [
         "./src/features"
       ],
-      "gates": {
-        "api_wrappers_compile": "pass",
-        "querykey_from_factory": "pass"
-      }
+      "gates": {}
     },
     "step4-lib": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-30T09:32:15Z",
       "artifacts": [
         "./src/shared/lib"
       ],
-      "gates": {
-        "lib_pure_compile": "pass",
-        "lib_zero_react": "pass"
-      }
+      "gates": {}
     },
     "step5-ui": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-30T09:43:42Z",
       "artifacts": [
         "./src/features"
       ],
-      "gates": {
-        "ui_components_compile": "pass",
-        "ui_a11y_axe": "pass"
-      }
+      "gates": {}
     },
     "step6-page": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-30T09:49:18Z",
       "artifacts": [
         "./src/pages",
         "./plan/procedurale/route-manifest.json"
       ],
-      "gates": {
-        "pages_compile": "pass",
-        "route_manifest_valid": "pass"
-      }
+      "gates": {}
     },
     "step7-test": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-30T09:54:51Z",
       "artifacts": [
         "./src/shared/test",
         "./src/shared/api/mock",
         "./src/shared/testing/axe.ts"
       ],
-      "gates": {
-        "tests_generated": "pass",
-        "msw_fail_closed": "pass"
-      }
+      "gates": {}
     },
     "step8-gate": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-30T14:07:46Z",
       "artifacts": [
         "./plan/procedurale/fe-gate-report.json"
       ],
-      "gates": {
-        "lint": "pass",
-        "typecheck": "pass",
-        "test": "pass",
-        "a11y": "pass",
-        "build": "pass",
-        "fsd_import": "pass",
-        "orval_types": "pass",
-        "security": "pass",
-        "authz": "pass",
-        "wireframe_approved": "pass",
-        "req_coverage_ui": "pass"
-      }
+      "gates": {}
     },
     "step9-review": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-10-30T13:34:10Z",
-      "gates": {
-        "review": "pass"
-      }
+      "gates": {}
     }
   },
   "open_blockers": [],
@@ -195,6 +111,6 @@
     "gate_budget": 8
   },
   "didactic_level": "standard",
-  "pack_version": "1.4.0",
-  "pack_hash": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7"
+  "pack_version": "1.5.0",
+  "pack_hash": "sha256:b606aaee3b2f7add11e8b239ea50e03b3f206913e8b013e5ec7604cb3b4a310f"
 }

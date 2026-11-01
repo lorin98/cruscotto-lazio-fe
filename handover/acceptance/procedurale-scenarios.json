@@ -46,9 +46,9 @@
       "req_uids": [
         "RU-00000027"
       ],
-      "given": "SRD01 (perimetro 'SIGC no') e SRA01 collegati a OS4, SRD02 collegato a OS5 senza domande; domande correnti di SRD01: S1 SOSTEGNO RILASCIATO ADA Latina, stato area programmazione AMMESSA, determina corrente G2 del 2025-06-30 con contributo richiesto 1000,00 e ammesso 800,00 (riga piu' vecchia G1 del 2025-01-10 con 900,00 e 700,00); S2 SOSTEGNO 'ISTRUITA CON ESITO POSITIVO SU TUTTE LE MISURE' ADA Frosinone, AMMESSA, determina G3 con richiesto 500,00 e ammesso non valorizzato; S3 SOSTEGNO RILASCIATO ADA Latina senza determina; P1 PAGAMENTO CSR-DP 'PROPOSTO AL PAGAMENTO - DA REVISIONARE' ADA Latina, stato area programmazione REVOCATA (codice PROSA fuori catalogo); domande di SRA01: S4 SOSTEGNO 'SOSPESA' (stato SIAN fuori catalogo) ADA Latina, AMMESSA, determina G4 senza contributi; nessuna domanda non rilasciata del tipo nel database",
+      "given": "SRD01 (perimetro NO_SIGC) e SRA01 collegati a OS4, SRD02 collegato a OS5 senza domande; domande correnti di SRD01: S1 SOSTEGNO RILASCIATO ADA Latina, stato area programmazione AMMESSA, determina corrente G2 del 2025-06-30 con contributo richiesto 1000,00 e ammesso 800,00 (riga piu' vecchia G1 del 2025-01-10 con 900,00 e 700,00); S2 SOSTEGNO 'ISTRUITA CON ESITO POSITIVO SU TUTTE LE MISURE' ADA Frosinone, AMMESSA, determina G3 con richiesto 500,00 e ammesso non valorizzato; S3 SOSTEGNO RILASCIATO ADA Latina senza determina; P1 PAGAMENTO CSR-DP 'PROPOSTO AL PAGAMENTO - DA REVISIONARE' ADA Latina, stato area programmazione REVOCATA (codice PROSA fuori catalogo); domande di SRA01: S4 SOSTEGNO 'SOSPESA' (stato SIAN fuori catalogo) ADA Latina, AMMESSA, determina G4 senza contributi; nessuna domanda non rilasciata del tipo nel database",
       "when": "chiama GET /api/procedurale/stati-sostegno",
-      "then": "200, per intervento e in totale le 11 voci di RF027 nell'ordine di SR-01, tutte presenti anche a 0 (NON_RICEVIBILE 0), tranne IN_COMPILAZIONE che esce null con FONTE_NON_ATTIVA DOMANDE_IN_COMPILAZIONE (le domande in compilazione non hanno codice a barre e non sono acquisite, D-04 Rev. 3): SRD01 RILASCIATO 2, ESITO_POSITIVO_TUTTE_LE_MISURE 1 (alias 'ISTRUITA...', D-04); SRA01 nessuna voce e tra gli altri stati SOSPESA 1 col suo codice; la domanda di pagamento P1 non e' contata; totale 4",
+      "then": "200, per intervento e in totale le 11 voci di RF027 nell'ordine di processo di Utilities SIAN (in compilazione, stampato, firmata, rilasciato, preso in carico, ricevibile, non ricevibile, in istruttoria presso ente competente, istruttoria atto ammissibile, istruttoria atto non ammissibile, esito positivo su tutte le misure; D-12), tutte presenti anche a 0 (NON_RICEVIBILE 0), tranne IN_COMPILAZIONE che esce null con FONTE_NON_ATTIVA DOMANDE_IN_COMPILAZIONE (le domande in compilazione non hanno codice a barre e non sono acquisite, D-04 Rev. 3): SRD01 RILASCIATO 2, ESITO_POSITIVO_TUTTE_LE_MISURE 1 (alias 'ISTRUITA...', D-04); SRA01 nessuna voce e tra gli altri stati SOSPESA 1 col suo codice; la domanda di pagamento P1 non e' contata; totale 4",
       "kind": "positive",
       "test_tag": "SC-PC_STATI_SOSTEGNO",
       "approved": true,
@@ -345,6 +345,23 @@
       "test_tag": "SC-PC_ESPORTA",
       "approved": true,
       "role": "p3-funzionario-area"
+    },
+    {
+      "scenario_id": "SC-PC_FILTRO_SIGC",
+      "req_uids": [
+        "RU-00000024",
+        "RU-00000026",
+        "RU-00000027",
+        "RU-00000028",
+        "RU-00000029"
+      ],
+      "given": "SRD01 classificato NO_SIGC con domande di sostegno RILASCIATO; SRA01 classificato SIGC con una domanda di sostegno RILASCIATO; SRG06 non classificato con una domanda di sostegno",
+      "when": "chiama /api/procedurale/stati-sostegno con sigc=false e con sigc=true, /api/procedurale/filtri, poi sigc=1",
+      "then": "sigc=false: il solo SRD01; sigc=true: il solo SRA01; SRG06 in nessuno dei due e presente senza filtro; /filtri porta il perimetro di ogni intervento; sigc=1 400 DATO_NON_VALIDO che nomina sigc (D-12)",
+      "kind": "positive",
+      "test_tag": "SC-PC_FILTRO_SIGC",
+      "approved": true,
+      "role": "p1-dirigente"
     }
   ]
 }
