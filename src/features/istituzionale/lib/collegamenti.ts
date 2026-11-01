@@ -8,6 +8,7 @@ import { PERCORSO_ELENCO_DOMANDE, PERCORSO_ELENCO_PAGAMENTI } from '../../../ent
 import { ricercaDaFiltri } from '../../../entities/filtri';
 import type { Filtri } from '../../../entities/filtri';
 import { isAnnoValido, scriviRipetuti } from '../../../shared/lib';
+import type { FiltroSigc } from '../../../shared/lib';
 import { PARAMETRO_ANNO, PARAMETRO_ESERCIZIO } from './criteri';
 import { PERCORSI } from './pagine';
 
@@ -76,13 +77,19 @@ export function elencoRicevute(codice: string): string {
 }
 
 /**
- * link:elenco-spesa-riga e link:elenco-spesa-intervento: le righe PAGATA degli elenchi di liquidazione dell'intervento
- * (esito=PAGATA). Senza sigc dal 01/11/2026 (review step9 J-05): il parametro sigc dell'elenco vale ora per intervento
- * (D-12 Rev. del backend), non per domanda, e sigc=false non riprodurrebbe piu' la spesa non SIGC; l'elenco mostra tutte
- * le righe PAGATA dell'intervento, SIGC comprese (OP-IS-09).
+ * link:elenco-spesa-riga e link:elenco-spesa-intervento: le righe PAGATA non SIGC degli elenchi di liquidazione
+ * dell'intervento (esito=PAGATA, sigc=false, come nel wireframe approvato). Il parametro sigc dell'elenco vale per
+ * intervento (D-12 Rev. del backend): il link si rende solo per gli interventi classificati NO SIGC, dove le righe con
+ * sigc=false sono tutte le righe PAGATA dell'intervento; per gli altri l'elenco sarebbe vuoto (spesaNonSigcApribile;
+ * review step9 K-02, OP-IS-09).
  */
 export function elencoSpesa(codice: string): string {
-  return conQuery(PERCORSO_ELENCO_PAGAMENTI, ['esito', 'intervento'], { esito: 'PAGATA', intervento: codice });
+  return conQuery(PERCORSO_ELENCO_PAGAMENTI, ['esito', 'sigc', 'intervento'], { esito: 'PAGATA', sigc: 'false', intervento: codice });
+}
+
+/** La spesa non SIGC si apre nell'elenco solo per un intervento classificato NO SIGC (fail-closed senza la classificazione). */
+export function spesaNonSigcApribile(tipo: FiltroSigc | null | undefined): boolean {
+  return tipo === 'NO SIGC';
 }
 
 /** Il link verso l'elenco si mostra solo con un valore maggiore di 0 (wireframe: niente link verso un elenco vuoto). */

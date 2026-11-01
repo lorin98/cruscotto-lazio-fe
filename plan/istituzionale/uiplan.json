@@ -92,12 +92,13 @@
         },
         {
           "id": "elenco-spesa-riga",
-          "trigger": "Cella Spesa erogata di una riga, azione 'Apri nei pagamenti' (solo con un valore maggiore di 0): le righe PAGATA degli elenchi di liquidazione dell'intervento (esito=PAGATA, intervento della riga). Senza sigc dal 01/11/2026 (review step9 J-05): il parametro sigc dell'elenco vale ora per intervento (D-12 Rev. del backend, PostgresElencoOperativoAdapter.perSigc), non piu' per domanda, quindi sigc=false non riproduce piu' la spesa non SIGC; l'elenco mostra tutte le righe PAGATA dell'intervento, SIGC comprese (OP-IS-09)",
+          "trigger": "Cella Spesa erogata di una riga, azione 'Apri nei pagamenti' (solo con un valore maggiore di 0 e per un intervento classificato NO SIGC): le righe PAGATA non SIGC degli elenchi di liquidazione dell'intervento (esito=PAGATA, sigc=false, intervento della riga). Il parametro sigc dell'elenco vale per intervento (D-12 Rev. del backend): per un intervento NO SIGC le righe con sigc=false sono tutte le sue righe PAGATA; per un intervento SIGC o non classificato l'elenco sarebbe vuoto e il link non c'e' (review step9 K-02, OP-IS-09)",
           "target_feature": "elenco-operativo",
           "target": "/elenco-operativo/pagamenti",
           "path_params": [],
           "query": [
             "esito",
+            "sigc",
             "intervento"
           ]
         },
@@ -255,12 +256,13 @@
         },
         {
           "id": "elenco-spesa-intervento",
-          "trigger": "Voce Spesa erogata della scheda Verifica SMP non SIGC, azione 'Apri nei pagamenti': esito=PAGATA, intervento = codice della route; senza sigc come elenco-spesa-riga (review step9 J-05, OP-IS-09)",
+          "trigger": "Voce Spesa erogata della scheda Verifica SMP non SIGC, azione 'Apri nei pagamenti': esito=PAGATA, sigc=false, intervento = codice della route; solo per un intervento classificato NO SIGC, come elenco-spesa-riga (review step9 K-02, OP-IS-09)",
           "target_feature": "elenco-operativo",
           "target": "/elenco-operativo/pagamenti",
           "path_params": [],
           "query": [
             "esito",
+            "sigc",
             "intervento"
           ]
         }
@@ -1162,7 +1164,7 @@
     {
       "id": "OP-IS-09",
       "kind": "altro",
-      "detail": "Drill-down verso l'elenco operativo (link elenco-ricevute-riga, elenco-spesa-riga, elenco-ricevute-intervento, elenco-spesa-intervento): la coincidenza dei numeri vale per definizione (D-05 del backend: ricevute = domande correnti di SOSTEGNO, cioe' TX-0056 con tipo=SOSTEGNO; spesa erogata non SIGC = righe PAGATA la cui domanda non soddisfa il predicato SIGC dei pagamenti, cioe' TX-0059 con esito=PAGATA e sigc=false, regola dei pagamenti D-07 Rev. 1), ma nessuno scenario del backend la verifica, a differenza di SC-EO_DRILLDOWN per i link del finanziario. Non collegati perche' l'elenco non li riproduce: domande finanziate (servirebbe ammessoDa=0.01, soglia artificiosa), domande pagate solo saldate (nessun parametro per il saldo), anticipi erogati (TX-0059 non filtra per tipologia di pagamento). Da decidere: tenere i quattro link, oppure chiedere a green-be di estendere SC-EO_DRILLDOWN a tipo=SOSTEGNO e a sigc=false sui pagamenti e rendere i link solo dopo (open point che li blocca). Aggiornato il 01/11/2026 (revisioni del finanziario del 31/10, review step9 J-05): il parametro sigc dell'elenco vale per intervento (D-12 Rev. del backend: PostgresElencoOperativoAdapter.perSigc usa il perimetro dell'intervento anche per i pagamenti), non piu' per domanda; i link della spesa erogata non portano piu' sigc=false e l'elenco mostra tutte le righe PAGATA dell'intervento, SIGC comprese: per la spesa non SIGC la coincidenza dei numeri non vale piu' (vale per gli interventi senza pagamenti SIGC). Per riaverla servirebbe un parametro dell'elenco per il predicato SIGC del pagamento (da chiedere a green-be)."
+      "detail": "Drill-down verso l'elenco operativo (link elenco-ricevute-riga, elenco-spesa-riga, elenco-ricevute-intervento, elenco-spesa-intervento): la coincidenza dei numeri vale per definizione (D-05 del backend: ricevute = domande correnti di SOSTEGNO, cioe' TX-0056 con tipo=SOSTEGNO; spesa erogata non SIGC = righe PAGATA la cui domanda non soddisfa il predicato SIGC dei pagamenti, cioe' TX-0059 con esito=PAGATA e sigc=false, regola dei pagamenti D-07 Rev. 1), ma nessuno scenario del backend la verifica, a differenza di SC-EO_DRILLDOWN per i link del finanziario. Non collegati perche' l'elenco non li riproduce: domande finanziate (servirebbe ammessoDa=0.01, soglia artificiosa), domande pagate solo saldate (nessun parametro per il saldo), anticipi erogati (TX-0059 non filtra per tipologia di pagamento). Da decidere: tenere i quattro link, oppure chiedere a green-be di estendere SC-EO_DRILLDOWN a tipo=SOSTEGNO e a sigc=false sui pagamenti e rendere i link solo dopo (open point che li blocca). Aggiornato il 01/11/2026 (revisioni del finanziario del 31/10, review step9 J-05 e K-02): il parametro sigc dell'elenco vale per intervento (D-12 Rev. del backend: PostgresElencoOperativoAdapter.perSigc usa il perimetro dell'intervento anche per i pagamenti), non piu' per domanda. I link della spesa erogata restano quelli del wireframe approvato (esito=PAGATA, sigc=false) ma si rendono solo per gli interventi classificati NO SIGC (VoceFiltro.perimetro dei valori dei filtri; senza la classificazione nessun link, fail-closed): li' le righe con sigc=false sono tutte le righe PAGATA dell'intervento. Limite dichiarato: la spesa non SIGC del report e' per presenza SIGC della domanda, quindi in un intervento NO SIGC con domande a presenza SIGC i due numeri possono non coincidere; per un intervento SIGC con spesa non SIGC (trascinamenti) il link non c'e'. Per una coincidenza esatta servirebbe un parametro dell'elenco per il predicato SIGC del pagamento (da chiedere a green-be)."
     },
     {
       "id": "OP-IS-10",

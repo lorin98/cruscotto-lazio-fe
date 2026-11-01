@@ -196,9 +196,9 @@ describe('RF016 e RF015: i link dello uiplan (dettaglio, report filtrati, elenco
     expect([verificaSigcConFiltri({}), verificaNonSigcConFiltri({})]).toEqual(['/istituzionale/verifica-smp-sigc', '/istituzionale/verifica-smp-non-sigc']);
   });
 
-  it('elenco operativo: ricevute = domande di sostegno, spesa = righe PAGATA dell intervento, senza sigc (J-05: sigc per intervento); link solo con un valore positivo', () => {
+  it('elenco operativo: ricevute = domande di sostegno, spesa = righe PAGATA non SIGC (sigc=false come nel wireframe); link solo con un valore positivo', () => {
     expect(elencoRicevute('SRD01')).toBe('/elenco-operativo/domande?tipo=SOSTEGNO&intervento=SRD01');
-    expect(elencoSpesa('SRD01')).toBe('/elenco-operativo/pagamenti?esito=PAGATA&intervento=SRD01');
+    expect(elencoSpesa('SRD01')).toBe('/elenco-operativo/pagamenti?esito=PAGATA&sigc=false&intervento=SRD01');
     expect([conValore(3), conValore(0), conValore(null), conValore(undefined), conValore(-1)]).toEqual([true, false, false, false, false]);
   });
 });
@@ -287,7 +287,9 @@ describe('RF016: i ventuno dati della verifica SMP non SIGC (TX-0016)', () => {
   it('link verso l elenco: solo col valore maggiore di 0 e col grant della destinazione (OP-IS-09)', () => {
     const tutto = () => true;
     expect(indirizzoDelDato(SRD01, dato('domandeRicevute'), tutto)).toBe('/elenco-operativo/domande?tipo=SOSTEGNO&intervento=SRD01');
-    expect(indirizzoDelDato(SRD01, dato('spesaErogata'), tutto)).toBe('/elenco-operativo/pagamenti?esito=PAGATA&intervento=SRD01');
+    expect(indirizzoDelDato(SRD01, dato('spesaErogata'), tutto, 'NO SIGC')).toBe('/elenco-operativo/pagamenti?esito=PAGATA&sigc=false&intervento=SRD01');
+    // review K-02: sigc nell'elenco vale per intervento; per un intervento SIGC o non classificato l'elenco sarebbe vuoto
+    expect([indirizzoDelDato(SRD01, dato('spesaErogata'), tutto, 'SIGC'), indirizzoDelDato(SRD01, dato('spesaErogata'), tutto, null), indirizzoDelDato(SRD01, dato('spesaErogata'), tutto)]).toEqual([null, null, null]);
     // SRA01 e' SIGC: zero domande e zero spesa non SIGC, niente link verso un elenco vuoto
     expect(indirizzoDelDato(VERIFICA.righe[0], dato('domandeRicevute'), tutto)).toBeNull();
     expect(indirizzoDelDato(VERIFICA.righe[0], dato('spesaErogata'), tutto)).toBeNull();
@@ -540,8 +542,8 @@ describe('RF016 e RF015: grafici (spesa per intervento non SIGC e SIGC)', () => 
     expect(g.tabella.righe[0][0]).toBe('SRA01');
   });
 
-  it('spesa erogata SIGC: oltre MAX_BARRE_VISIBILI (40) interventi zoom interno e cursore; nessun valore non disegnabile', () => {
-    const molte = Array.from({ length: 41 }, (_, k) => ({ codiceIntervento: `SRC${k + 10}`, spesaErogataCampagnaPrecedente: { valore: 1_000_000 } }));
+  it('spesa erogata SIGC: oltre 12 interventi zoom interno e cursore; nessun valore non disegnabile', () => {
+    const molte = Array.from({ length: 13 }, (_, k) => ({ codiceIntervento: `SRC${k + 10}`, spesaErogataCampagnaPrecedente: { valore: 1_000_000 } }));
     expect((graficoSpesaSigc(molte).opzioni?.dataZoom as Array<{ type: string }>).map((z) => z.type)).toEqual(['inside', 'slider']);
     const g = graficoSpesaSigc([{ codiceIntervento: 'SRA09' }]);
     expect(g.opzioni).toBeNull();

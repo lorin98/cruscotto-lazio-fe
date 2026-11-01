@@ -8,6 +8,7 @@ import { ApriNellElenco } from '../../../entities/domanda';
 import { ValoreImporto, ValoreMotivato } from '../../../entities/importo';
 import type { DatoMotivatoLike } from '../../../entities/importo';
 import { NON_DISPONIBILE, formatNumber, numeroOpzionale, testoOpzionale } from '../../../shared/lib';
+import type { FiltroSigc } from '../../../shared/lib';
 import type { RigaVerifica, RigaVerificaSigc } from '../lib/dto';
 import { quantitaConIndicatore, siNo } from '../lib/formato';
 import { TESTI_LINK, indirizzoDelDato, testoValore } from '../lib/verifica';
@@ -62,8 +63,8 @@ export function ValoreDelDato({ r, d, indicatore }: { r: RigaVerifica; d: DatoVe
 }
 
 /** La cella (o la voce) di un dato: il valore e, per domande ricevute e spesa erogata, il link verso l'elenco (OP-IS-09). */
-export function CellaDato({ r, d, indicatore, puo }: { r: RigaVerifica; d: DatoVerifica; indicatore?: string | null; puo: (l: LinkDato) => boolean }) {
-  const indirizzo = indirizzoDelDato(r, d, puo);
+export function CellaDato({ r, d, indicatore, puo, tipo }: { r: RigaVerifica; d: DatoVerifica; indicatore?: string | null; puo: (l: LinkDato) => boolean; tipo?: FiltroSigc | null }) {
+  const indirizzo = indirizzoDelDato(r, d, puo, tipo);
   return (
     <>
       <ValoreDelDato r={r} d={d} indicatore={indicatore} />

@@ -18,7 +18,7 @@ import { filtriDaRicerca, ricercaDaFiltri } from '../../../entities/filtri';
 import type { Filtri } from '../../../entities/filtri';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { letturaDelTipo } from '../../../shared/lib';
-import { CardGrafico, ContestoIntestazione, NonPertinente, SelettoreAnno, TabellaVoci, useAnnoNellIndirizzo, useRigheContesto } from '../../../shared/ui';
+import { CardGrafico, ContestoIntestazione, SelettoreAnno, TabellaVoci, useAnnoNellIndirizzo, useRigheContesto } from '../../../shared/ui';
 import { useVerificaSmpSigc } from '../api';
 import type { VerificaSmp } from '../api';
 import { percorsoInterventoSigc, verificaNonSigcConFiltri } from '../lib/collegamenti';
@@ -98,14 +98,9 @@ export function VerificaSmpSigc() {
       testoDelVuoto={NESSUN_DATO_SIGC}
       pill={(d) => pillEsercizio(d.esercizio ?? esercizio)}
       sopra={selettore}
+      np={np}
     >
-      {(d) =>
-        esercizio !== undefined && (
-          <NonPertinente np={np}>
-            <ReportVerificaSigc key={`${ricercaDaFiltri(pagina.filtri)}|${esercizio}`} d={d} filtri={pagina.filtri} esercizio={esercizio} />
-          </NonPertinente>
-        )
-      }
+      {(d) => esercizio !== undefined && <ReportVerificaSigc key={`${ricercaDaFiltri(pagina.filtri)}|${esercizio}`} d={d} filtri={pagina.filtri} esercizio={esercizio} />}
     </PaginaReport>
   );
 }

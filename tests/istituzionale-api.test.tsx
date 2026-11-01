@@ -156,8 +156,12 @@ describe('mock di esempio del dev server dell istituzionale', () => {
 
     expect((await leggi('verifica-smp-non-sigc?os=OS4')).righe.map((r) => r.codiceIntervento)).toEqual(['SRD01']);
     expect((await leggi('verifica-smp-sigc?esercizio=2025&azione=3')).righe).toEqual([]);
-    const sigc = await leggi('verifica-smp-sigc?esercizio=2024&intervento=SRA01&intervento=SRA16');
-    expect([sigc.esercizio, ...sigc.righe.map((r) => r.codiceIntervento)]).toEqual([2024, 'SRA01', 'SRA16']);
+    // TX-0015 di soli interventi SIGC (review X-11): SRA16 e' NO SIGC
+    const sigc = await leggi('verifica-smp-sigc?esercizio=2024&intervento=SRA01&intervento=SRA03&intervento=SRA16');
+    expect([sigc.esercizio, ...sigc.righe.map((r) => r.codiceIntervento)]).toEqual([2024, 'SRA01', 'SRA03']);
+    // il filtro SIGC per intervento come il backend (REV-D1): col valore opposto nessuna riga
+    expect((await leggi('verifica-smp-sigc?esercizio=2024&sigc=false')).righe).toEqual([]);
+    expect((await leggi('verifica-smp-non-sigc?sigc=true')).righe.map((r) => r.codiceIntervento).every((c) => c === 'SRA01' || c === 'SRA03')).toBe(true);
     const anno2024 = await leggi('verifica-smp-non-sigc?anno=2024&intervento=SRD01');
     expect([anno2024.annoRiferimento, anno2024.righe[0].dotazioneAvvisi?.motivo]).toEqual([2024, 'ANNO_NON_CONSERVATO']);
     // SC-IS_SMP_ANNO (review V3): tutti i dati dell'avviso, anche avvisi e concessioni; senza file niente indicatori

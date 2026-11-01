@@ -11,6 +11,7 @@
 import { http, HttpResponse } from 'msw';
 import type { RequestHandler } from 'msw';
 import { PROBLEM_TYPES } from '../../../../shared/api/problem/problem-types';
+import { passaSigc } from '../../../../shared/testing/sigc';
 
 const ULTIMI = [{ flusso: 'ASR2_DS20', conclusoIl: '2026-03-02T09:30:00Z' }];
 /** Un dato col motivo dell'assenza (DatoMotivato della spec): il valore, oppure null col motivo. */
@@ -112,14 +113,17 @@ const sigc = (codiceIntervento: string, base: number) => ({
   indicatoreRisultato: null,
 });
 
-const VERIFICA_SIGC = [sigc('SRA01', 120), sigc('SRA16', 40), sigc('SRD01', 75)];
+// TX-0015 e' di soli interventi SIGC (F1: SRA16 e SRD01 sono NO SIGC; review X-11)
+const VERIFICA_SIGC = [sigc('SRA01', 120), sigc('SRA03', 40), sigc('SRB01', 75)];
 
 /** Le righe dei filtri: dimensioni insieme, valori dello stesso filtro in alternativa; azione senza legame: nessuna. */
 function filtra<R extends { codiceIntervento: string }>(righe: readonly R[], p: URLSearchParams): R[] {
   if (p.getAll('azione').length > 0) return [];
   const interventi = p.getAll('intervento');
   const obiettivi = ['os', 'og', 'op'].map((k) => p.getAll(k)).filter((x) => x.length > 0);
-  return righe.filter((r) => (interventi.length === 0 || interventi.includes(r.codiceIntervento)) && obiettivi.every((x) => x.some((o) => (OBIETTIVI[r.codiceIntervento] ?? []).includes(o))));
+  return righe.filter(
+    (r) => (interventi.length === 0 || interventi.includes(r.codiceIntervento)) && obiettivi.every((x) => x.some((o) => (OBIETTIVI[r.codiceIntervento] ?? []).includes(o))) && passaSigc(r.codiceIntervento, p),
+  );
 }
 
 function rispostaVerifica(p: URLSearchParams) {

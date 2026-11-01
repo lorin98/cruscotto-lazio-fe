@@ -6,7 +6,8 @@
 import { codiceDelPercorso } from '../../../entities/filtri';
 import { formatDate, formatEuro, formatNumber, testoPerimetro } from '../../../shared/lib';
 import type { ValoreOrdinabile } from '../../../shared/lib';
-import { conValore, elencoRicevute, elencoSpesa } from './collegamenti';
+import type { FiltroSigc } from '../../../shared/lib';
+import { conValore, elencoRicevute, elencoSpesa, spesaNonSigcApribile } from './collegamenti';
 import type { RigaVerifica, Verifica } from './dto';
 import { quantitaConIndicatore, siNo, testoAnnoDiRiferimento, testoOutputErogato } from './formato';
 
@@ -95,10 +96,11 @@ export const TESTI_LINK: Record<LinkDato, (codice: string) => { testo?: string; 
  * codice della risposta, come il finanziario: un codice fuori formato l'elenco lo scarterebbe e aprirebbe un insieme
  * piu' largo di quello che il nome del link dichiara (review A2), quindi nessun link.
  */
-export function indirizzoDelDato(r: RigaVerifica, d: DatoVerifica, puo: (l: LinkDato) => boolean): string | null {
+export function indirizzoDelDato(r: RigaVerifica, d: DatoVerifica, puo: (l: LinkDato) => boolean, tipo?: FiltroSigc | null): string | null {
   if (d.link === undefined || !puo(d.link) || codiceDelPercorso(r.codiceIntervento) === null) return null;
   if (d.link === 'ricevute') return conValore(r.domandeRicevute) ? elencoRicevute(r.codiceIntervento) : null;
-  return conValore(r.spesaErogata.valore) ? elencoSpesa(r.codiceIntervento) : null;
+  // la spesa non SIGC (sigc=false) solo per gli interventi NO SIGC: per gli altri l'elenco sarebbe vuoto (review K-02)
+  return conValore(r.spesaErogata.valore) && spesaNonSigcApribile(tipo) ? elencoSpesa(r.codiceIntervento) : null;
 }
 
 /** I riferimenti della risposta (tabella sopra la card): anno di riferimento, come si legge l'output erogato, perimetro. */

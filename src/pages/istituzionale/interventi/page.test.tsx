@@ -92,7 +92,7 @@ describe("RF016: la verifica SMP non SIGC dell'intervento (TX-0016 filtrata sull
     const ricevute = voce(t, 'Domande ricevute');
     expect(within(ricevute).getByRole('link', { name: "Apri nell'elenco operativo le domande di sostegno correnti dell'intervento SRD01" }).getAttribute('href')).toBe('/elenco-operativo/domande?tipo=SOSTEGNO&intervento=SRD01');
     const spesa = voce(t, 'Spesa pubblica erogata (anticipi inclusi, al lordo dei recuperi)');
-    expect(within(spesa).getByRole('link', { name: /^Apri nei pagamenti: / }).getAttribute('href')).toBe('/elenco-operativo/pagamenti?esito=PAGATA&intervento=SRD01');
+    expect(within(spesa).getByRole('link', { name: /^Apri nei pagamenti: / }).getAttribute('href')).toBe('/elenco-operativo/pagamenti?esito=PAGATA&sigc=false&intervento=SRD01');
     // senza TX-0017 (al fisico) le quantita' di TX-0016 sono senza unita' di misura, col codice dell'indicatore (OP-IS-12)
     expect(testo(voce(t, 'Output atteso delle domande finanziate').lastElementChild?.textContent)).toBe('40 (indicatore O.20)');
     expect(testo(voce(t, 'Output atteso delle domande finanziate').textContent)).not.toContain('numero di operazioni');

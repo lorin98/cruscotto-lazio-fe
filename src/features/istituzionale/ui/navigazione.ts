@@ -4,9 +4,11 @@
 // l'esercizio) e i link verso l'elenco operativo, solo col grant della pagina di arrivo (OP-IS-09). Gli indirizzi li
 // costruiscono le funzioni pure di lib/collegamenti.
 import { useLocation, useNavigate } from 'react-router';
-import { codiceDelPercorso } from '../../../entities/filtri';
+import { codiceDelPercorso, tipoIntervento } from '../../../entities/filtri';
 import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
-import { codiceDalClic, ricercaDelSoloSigc } from '../../../shared/lib';
+import { codiceDalClic, percorsoConSigc, sigcDaRicerca } from '../../../shared/lib';
+import type { FiltroSigc } from '../../../shared/lib';
+import { useValoriFiltri } from '../api';
 import type { ClicGrafico } from '../../../shared/ui';
 import { puoLeggere } from '../lib/grant';
 import { pagineVisibili } from '../lib/pagine';
@@ -16,9 +18,9 @@ import type { LinkDato } from '../lib/verifica';
 export function useIngressoArea(): string | undefined {
   const auth = useAuthStatus().data;
   // il filtro SIGC della pagina resta tornando all'ingresso dell'area, come nel menu (R01; review step9 V2-19)
-  const sigc = ricercaDelSoloSigc(useLocation().search);
+  const sigc = sigcDaRicerca(useLocation().search);
   const percorso = pagineVisibili((g) => hasGrant(auth, g))[0]?.percorso;
-  return percorso && sigc ? `${percorso}?${sigc}` : percorso;
+  return percorso && percorsoConSigc(percorso, sigc);
 }
 
 /**
@@ -33,6 +35,16 @@ export function useApriIntervento(percorso: (codice: string) => string) {
     if (codice !== null) apri(codice);
   };
   return { apri, dalClic };
+}
+
+/**
+ * La classificazione SIGC degli interventi (VoceFiltro.perimetro dei valori dei filtri, letti col loro grant: stessa cache
+ * della pagina); null se non e' nota. Decide il link della spesa non SIGC (review K-02).
+ */
+export function useTipoDegliInterventi(): (codice: string) => FiltroSigc | null {
+  const auth = useAuthStatus().data;
+  const voci = useValoriFiltri(puoLeggere(auth, 'filtri')).data?.interventi;
+  return (codice) => tipoIntervento(voci, codice);
 }
 
 /** Il profilo puo' aprire la destinazione del link verso l'elenco: le domande (TX-0056) o i pagamenti (TX-0059). */

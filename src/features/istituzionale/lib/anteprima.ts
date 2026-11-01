@@ -17,7 +17,7 @@
 // ogni colonna.
 import { totaleMotivato } from '../../../entities/importo';
 import type { DatoMotivatoLike, TotaleMotivato } from '../../../entities/importo';
-import { etichettaDellArea, importoBreve, intero, numeroDi, percentuale, sommaSeCompleta } from '../../../shared/lib';
+import { etichettaDellArea, formatEuro, importoBreve, intero, numeroDi, percentuale, sommaSeCompleta } from '../../../shared/lib';
 import type { RigaVerifica, RigaVerificaSigc, Verifica, VerificaSigc } from './dto';
 import { periodoEsercizio } from './formato';
 
@@ -94,11 +94,12 @@ export function anteprimaVerificaSigc(d: Pick<VerificaSigc, 'righe'>): Anteprima
 /** Le righe della tabella a confronto della card (rework 2), dalle domande ricevute alla spesa. */
 export type RigaCard = 'ricevute' | 'finanziate' | 'pagate' | 'spesa';
 
-const RIGHE_CARD: readonly { chiave: RigaCard; etichetta: string; formato: (v: number) => string }[] = [
+// la spesa compatta col valore pieno per i lettori di schermo (R09, R20; review V2-05)
+const RIGHE_CARD: readonly { chiave: RigaCard; etichetta: string; formato: (v: number) => string; formatoPieno?: (v: number) => string }[] = [
   { chiave: 'ricevute', etichetta: 'Domande ricevute', formato: intero },
   { chiave: 'finanziate', etichetta: 'Domande finanziate', formato: intero },
   { chiave: 'pagate', etichetta: 'Domande pagate', formato: intero },
-  { chiave: 'spesa', etichetta: 'Spesa pubblica erogata', formato: importoBreve },
+  { chiave: 'spesa', etichetta: 'Spesa pubblica erogata', formato: importoBreve, formatoPieno: formatEuro },
 ];
 
 /** Le righe della tabella: "Domande pagate" e' solo della verifica SIGC, quindi c'e' solo con la sua colonna. */

@@ -23,11 +23,12 @@ export const ULTIMI = [
 export const VALORI: ValoriFiltriElenco = {
   perimetro: 'REGIONALE',
   interventi: [
-    { chiave: 'SRA01', descrizione: 'Produzione integrata' },
-    { chiave: 'SRA16', descrizione: 'Conservazione agrobiodiversità' },
-    { chiave: 'SRD01', descrizione: 'Investimenti produttivi agricoli per la competitività' },
-    { chiave: 'SRD04', descrizione: 'Investimenti non produttivi agricoli con finalità ambientale' },
-    { chiave: 'SRG01', descrizione: 'Sostegno ai gruppi operativi PEI AGRI' },
+    // la classificazione della programmazione (F1): SRA01 SIGC, gli altri NO SIGC (SRA16 compreso)
+    { chiave: 'SRA01', descrizione: 'Produzione integrata', perimetro: 'SIGC' },
+    { chiave: 'SRA16', descrizione: 'Conservazione agrobiodiversità', perimetro: 'NO_SIGC' },
+    { chiave: 'SRD01', descrizione: 'Investimenti produttivi agricoli per la competitività', perimetro: 'NO_SIGC' },
+    { chiave: 'SRD04', descrizione: 'Investimenti non produttivi agricoli con finalità ambientale', perimetro: 'NO_SIGC' },
+    { chiave: 'SRG01', descrizione: 'Sostegno ai gruppi operativi PEI AGRI', perimetro: 'NO_SIGC' },
   ],
   obiettiviSpecifici: [
     { chiave: 'OS4', descrizione: null },

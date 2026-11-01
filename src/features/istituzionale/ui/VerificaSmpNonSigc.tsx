@@ -13,7 +13,7 @@ import { Link, useLocation } from 'react-router';
 import { filtriDaRicerca, ricercaDaFiltri } from '../../../entities/filtri';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { letturaDelTipo } from '../../../shared/lib';
-import { NonPertinente, SelettoreAnno, useAnnoNellIndirizzo } from '../../../shared/ui';
+import { SelettoreAnno, useAnnoNellIndirizzo } from '../../../shared/ui';
 import { useVerificaSmpNonSigc } from '../api';
 import { verificaSigcConFiltri } from '../lib/collegamenti';
 import { PARAMETRO_ANNO, anniDiRiferimento, criteriVerifica } from '../lib/criteri';
@@ -54,12 +54,8 @@ export function VerificaSmpNonSigc() {
   const nota = puoLeggere(useAuthStatus().data, 'verificaSigc') ? <FraseVerificaSigc /> : undefined;
   const selettore = <SelettoreAnno id="f-anno-smp" etichetta="Anno di riferimento del monitoraggio SMP non SIGC" aiuto={AIUTO_ANNO} anni={anniDiRiferimento(stato.data?.annoRiferimento, anno)} voceVuota="Ultimo anno con un file (predefinito)" anno={anno} onCambia={impostaAnno} />;
   return (
-    <PaginaReport pagina={pagina} stato={stato} briciola="Verifica SMP non SIGC" titolo="Istituzionale: verifica SMP non SIGC" titoloDocumento="Verifica SMP non SIGC - Istituzionale" sottotitolo={SOTTOTITOLO} nota={nota} pill={(d) => pillAnnoDelFile(d.annoRiferimento)} sopra={selettore}>
-      {(d) => (
-        <NonPertinente np={np}>
-          <ReportVerifica key={`${ricercaDaFiltri(pagina.filtri)}|${anno ?? ''}`} d={d} filtri={pagina.filtri} anno={anno} />
-        </NonPertinente>
-      )}
+    <PaginaReport pagina={pagina} stato={stato} briciola="Verifica SMP non SIGC" titolo="Istituzionale: verifica SMP non SIGC" titoloDocumento="Verifica SMP non SIGC - Istituzionale" sottotitolo={SOTTOTITOLO} nota={nota} pill={(d) => pillAnnoDelFile(d.annoRiferimento)} sopra={selettore} np={np}>
+      {(d) => <ReportVerifica key={`${ricercaDaFiltri(pagina.filtri)}|${anno ?? ''}`} d={d} filtri={pagina.filtri} anno={anno} />}
     </PaginaReport>
   );
 }

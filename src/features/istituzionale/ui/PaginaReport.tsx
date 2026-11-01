@@ -12,7 +12,7 @@
 import type { ReactNode } from 'react';
 import { PaginaReportProgramma } from '../../../entities/filtri';
 import type { StatoQuery } from '../../../shared/ui';
-import type { UltimoDato } from '../../../shared/lib';
+import type { NonPertinenza, UltimoDato } from '../../../shared/lib';
 import { conFiltri } from '../lib/criteri';
 import { PILL_PERIMETRO, testoVuoto } from '../lib/formato';
 import { useIngressoArea } from './navigazione';
@@ -54,6 +54,8 @@ interface PropsPagina<D extends RispostaReport> {
   sopra?: ReactNode;
   /** Il report della risposta (nuovo coi criteri nuovi: la chiave la da' la pagina). */
   children: (d: D) => ReactNode;
+  /** La non pertinenza della verifica col filtro SIGC opposto: avvolge anche il vuoto e l'errore (review X-10). */
+  np?: NonPertinenza | null;
 }
 
 /** Perimetro (sempre regionale) e la pill della risposta, a destra nella barra prima di "Dati al". */
@@ -66,7 +68,7 @@ function PillDellaRisposta<D extends RispostaReport>({ d, pill }: { d: D | undef
   );
 }
 
-export function PaginaReport<D extends RispostaReport>({ pagina, stato, briciola, titolo, titoloDocumento, sottotitolo, nota, senzaLettura, testoDelVuoto, pill, sopra, children }: PropsPagina<D>) {
+export function PaginaReport<D extends RispostaReport>({ pagina, stato, briciola, titolo, titoloDocumento, sottotitolo, nota, senzaLettura, testoDelVuoto, pill, sopra, children, np }: PropsPagina<D>) {
   const { filtri, valori, pannello, chiudi, onApplica } = pagina;
   const pannelloFiltri = <PannelloFiltriIstituzionale aperto={pannello !== null} filtri={filtri} valori={valori} codiciRisposta={codiciDi(stato.data)} onApplica={onApplica} onChiudi={chiudi} />;
   return (
@@ -80,6 +82,7 @@ export function PaginaReport<D extends RispostaReport>({ pagina, stato, briciola
       senzaLettura={senzaLettura}
       sopra={sopra}
       pannello={pannelloFiltri}
+      np={np}
     >
       {children}
     </PaginaReportProgramma>

@@ -168,10 +168,13 @@ describe('RF016: i dati ASR non SIGC per intervento, da confrontare con SMP - Da
     servi();
     apri();
     const srd01 = within(await tabella()).getByRole('row', { name: "Apri il dettaglio dell'intervento SRD01" });
-    expect(within(srd01).getAllByRole('link').map((l) => l.getAttribute('href'))).toEqual([
-      '/elenco-operativo/domande?tipo=SOSTEGNO&intervento=SRD01',
-      '/elenco-operativo/pagamenti?esito=PAGATA&intervento=SRD01',
-    ]);
+    // la spesa non SIGC si apre per SRD01, classificato NO SIGC nei valori dei filtri (review K-02)
+    await waitFor(() =>
+      expect(within(srd01).getAllByRole('link').map((l) => l.getAttribute('href'))).toEqual([
+        '/elenco-operativo/domande?tipo=SOSTEGNO&intervento=SRD01',
+        '/elenco-operativo/pagamenti?esito=PAGATA&sigc=false&intervento=SRD01',
+      ]),
+    );
     // SRA01 e' SIGC: zero domande e zero spesa non SIGC, nessun link verso un elenco vuoto
     expect(within(within(await tabella()).getByRole('row', { name: "Apri il dettaglio dell'intervento SRA01" })).queryAllByRole('link')).toHaveLength(0);
   });
@@ -194,13 +197,24 @@ describe('RF016: i dati ASR non SIGC per intervento, da confrontare con SMP - Da
     expect(within(srd01).queryByRole('link', { name: /^Apri nei pagamenti/ })).toBeNull();
   });
 
-  it('OP-IS-09: col solo grant di TX-0059 la spesa porta ai pagamenti, le domande ricevute no', async () => {
-    profilo(['csr.tx-0016.read', 'csr.tx-0059.read']);
+  it('OP-IS-09: col solo grant di TX-0059 fra le destinazioni la spesa porta ai pagamenti, le domande ricevute no', async () => {
+    profilo(['csr.tx-0016.read', 'csr.tx-0059.read', 'csr.tx-0060.read']);
     servi();
     apri();
     const srd01 = within(await tabella()).getByRole('row', { name: "Apri il dettaglio dell'intervento SRD01" });
-    expect(within(srd01).getAllByRole('link').map((l) => l.getAttribute('href'))).toEqual(['/elenco-operativo/pagamenti?esito=PAGATA&intervento=SRD01']);
+    await waitFor(() => expect(within(srd01).getAllByRole('link').map((l) => l.getAttribute('href'))).toEqual(['/elenco-operativo/pagamenti?esito=PAGATA&sigc=false&intervento=SRD01']));
     expect(within(srd01).queryByRole('link', { name: /^Apri nell'elenco operativo/ })).toBeNull();
+  });
+
+  // review K-02: sigc dell'elenco per intervento; senza la classificazione dell'intervento (valori dei filtri) nessun link
+  it('K-02: la spesa non SIGC si apre solo per gli interventi classificati NO SIGC; senza i valori dei filtri nessun link (fail-closed)', async () => {
+    profilo(['csr.tx-0016.read', 'csr.tx-0059.read']);
+    const lette = servi();
+    apri();
+    const t = await tabella();
+    expect(testo(within(t).getByRole('row', { name: "Apri il dettaglio dell'intervento SRD01" }).textContent)).toContain('3');
+    expect(lette.filtri).toBe(0);
+    expect(within(t).queryAllByRole('link')).toHaveLength(0);
   });
 
   it('CSV e XLSX dal backend coi filtri e l anno della pagina, con X-Requested-With; nome del file', async () => {

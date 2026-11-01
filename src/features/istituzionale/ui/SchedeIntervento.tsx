@@ -26,7 +26,7 @@ import { DATI_VERIFICA, titoloDato } from '../lib/verifica';
 import { DATI_VERIFICA_SIGC, periodoDellaRisposta, vociRiferimentiSigcIntervento } from '../lib/verificaSigc';
 import { CellaDato, ValoreDelDatoSigc } from './comuni';
 import { fileVerifica, fileVerificaSigc } from './esportazioni';
-import { usePuoAprireElenco } from './navigazione';
+import { usePuoAprireElenco, useTipoDegliInterventi } from './navigazione';
 
 type StatoVerifica = ReturnType<typeof useVerificaSmpNonSigc>;
 type StatoVerificaSigc = ReturnType<typeof useVerificaSmpSigc>;
@@ -56,9 +56,10 @@ function KpiScheda({ kpi }: { kpi: readonly KpiIntervento[] }) {
 /** I KPI, i file e le venti voci della verifica non SIGC dell'intervento e dell'anno, coi link verso l'elenco. */
 function VociVerifica({ d, codice, anno }: { d: Verifica; codice: string; anno: number | undefined }) {
   const puo = usePuoAprireElenco();
+  const tipo = useTipoDegliInterventi()(codice);
   const r = rigaDellIntervento(d.righe, codice);
   if (!r) return <Vuoto>Nessun dato della verifica SMP non SIGC per questo intervento.</Vuoto>;
-  const voci = DATI_VERIFICA.map((x) => ({ etichetta: titoloDato(x, 'voce', d.outputCumulativo), valore: <CellaDato r={r} d={x} indicatore={r.indicatoreOutput.valore} puo={puo} /> }));
+  const voci = DATI_VERIFICA.map((x) => ({ etichetta: titoloDato(x, 'voce', d.outputCumulativo), valore: <CellaDato r={r} d={x} indicatore={r.indicatoreOutput.valore} puo={puo} tipo={tipo} /> }));
   return (
     <>
       {d.annoRiferimento === null && <Vuoto>{NESSUN_FILE}</Vuoto>}
