@@ -156,7 +156,8 @@ export const RISERVA = {
   quotaRiserva: 0.05,
   quotaResiduo: 0.02,
   naturaRiserva: 'CONSUNTIVO',
-  naturaResiduo: 'PREVISIONE',
+  // fase RESIDUO: il residuo e' consuntivo (PREVISIONE prima della fase RESIDUO; review V1-14)
+  naturaResiduo: 'CONSUNTIVO',
   importoAccumulato: 500,
   importoCongelato: 500,
   importoUtilizzato: 300,

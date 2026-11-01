@@ -9,7 +9,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { ApriNellElenco } from '../../../entities/domanda';
-import { formatNumber, formatPercentuale, importoBreve, nonPertinenza, senzaSigc } from '../../../shared/lib';
+import { formatNumber, formatPercentuale, importoKpi, letturaDelTipo } from '../../../shared/lib';
 import { Caricamento, CardGrafico, Griglia, Kpi, NonPertinente, VistaQuery } from '../../../shared/ui';
 import type { ClicGrafico } from '../../../shared/ui';
 import { useSigcDomande, useSigcImporti, useSpesaPerIntervento, useTotaleDomande } from '../api';
@@ -47,7 +47,7 @@ function KpiDotazione({ d }: { d: SpesaPerIntervento }) {
       etichetta={diProgramma('Dotazione spesa pubblica', d.perimetro)}
       icona="it-card"
       tono="scuro"
-      valore={k.dotazione.valore === null ? undefined : importoBreve(k.dotazione.valore)}
+      {...importoKpi(k.dotazione.valore)}
       assente={assente(k.dotazione)}
       nota={n === 1 ? '1 intervento nella selezione' : `${n} interventi nella selezione`}
     />
@@ -63,7 +63,7 @@ function KpiImpegnatoEPagato({ d }: { d: SpesaPerIntervento }) {
         etichetta="Totale impegnato"
         icona="it-files"
         tono="blu"
-        valore={k.impegnato.valore === null ? undefined : importoBreve(k.impegnato.valore)}
+        {...importoKpi(k.impegnato.valore)}
         assente={assente(k.impegnato)}
         nota={notaDiCuiStimato(k.stimato.valore === null ? null : { valore: k.stimato.valore })}
       />
@@ -75,7 +75,7 @@ function KpiImpegnatoEPagato({ d }: { d: SpesaPerIntervento }) {
         assente={assente(k.quotaImpegnata)}
         quota={k.quotaImpegnata.valore === null ? null : k.quotaImpegnata.valore / 100}
       />
-      <Kpi etichetta={PAGAMENTI_LORDI} icona="it-chart-line" tono="verde" valore={k.pagato.valore === null ? undefined : importoBreve(k.pagato.valore)} assente={assente(k.pagato)} />
+      <Kpi etichetta={PAGAMENTI_LORDI} icona="it-chart-line" tono="verde" {...importoKpi(k.pagato.valore)} assente={assente(k.pagato)} />
       <Kpi
         etichetta={PAGATO_LORDO_SULLA_DOTAZIONE}
         icona="it-presentation"
@@ -220,8 +220,7 @@ export function Panoramica({ filtri }: { filtri: Filtri }) {
   const naviga = useNavigate();
   const { dalClic } = useApriIntervento(filtri);
   // le card SIGC col filtro NO SIGC: non pertinenti, col dato senza filtro (F3)
-  const np = nonPertinenza(filtri.sigc, 'sigc', MOTIVO_SOLO_SIGC);
-  const sigc = np ? senzaSigc(filtri) : filtri;
+  const { np, criteri: sigc } = letturaDelTipo(filtri, 'sigc', MOTIVO_SOLO_SIGC);
   return (
     <>
       {/* i dati di TX-0002 si scaricano dalle card dei grafici; quelli delle domande (TX-0009) qui (NFR-75, review v3 V-04) */}

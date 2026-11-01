@@ -10,7 +10,7 @@
 // Consuntivo o Previsione), R18 linea a gradini con le fasi, la soglia della riserva e il testo di lettura sopra. Il filtro
 // SIGC non si applica (F4): la pagina non ha la barra dei filtri.
 import { ValoreImporto } from '../../../entities/importo';
-import { formatDate, importoBreve, testoOpzionale } from '../../../shared/lib';
+import { formatDate, importoKpi, testoOpzionale } from '../../../shared/lib';
 import { CardGrafico, Griglia, Kpi, PulsantiScarica, Sezione, TabellaRighe, TabellaVoci, VistaQuery, Vuoto } from '../../../shared/ui';
 import type { Colonna, Scaricamento } from '../../../shared/ui';
 import { esportaRiserva, rispostaRiservaAssente, useRiserva } from '../api';
@@ -18,7 +18,7 @@ import type { MonitoraggioRiserva, UtilizzoRiserva } from '../api';
 import { scaricamentiDati } from './esportazioni';
 import { euroOpzionale } from '../lib/formato';
 import { graficoUtilizzoRiserva, letturaUtilizzoRiserva } from '../lib/grafici';
-import { NATURA_RISERVA, aiutoRiserva, etichettaFaseRiserva, istantaneaAnteriore, kpiRiserva, noteQuoteRiserva, testoCongelato, testoQuota, testoResiduo, utilizzoOltreRiserva, valoreResiduo, valoreRiserva } from '../lib/riserva';
+import { NATURA_RISERVA, aiutoRiserva, etichettaFaseRiserva, istantaneaAnteriore, kpiRiserva, noteQuoteRiserva, riservaDelMontante, testoCongelato, testoQuota, testoResiduo, utilizzoOltreRiserva, valoreResiduo } from '../lib/riserva';
 import type { ValoreKpiRiserva } from '../lib/riserva';
 import { PerimetroSezione } from './comuni';
 import { SelettoreAnno } from './SelettoreAnno';
@@ -34,17 +34,18 @@ const COLONNE_UTILIZZO: Colonna<UtilizzoRiserva>[] = [
   ['Cumulato', (u) => euroOpzionale(u.cumulato)],
 ];
 
-const importo = (v: ValoreKpiRiserva) => (v.valore === null ? undefined : importoBreve(v.valore));
+// forma compatta col valore pieno accessibile (R09)
+const importo = (v: ValoreKpiRiserva) => importoKpi(v.valore);
 
 /** I quattro valori della riserva come KPI; un valore che non c'e' ancora dice quando ci sara' (lib/riserva, kpiRiserva). */
 function KpiRiserva({ d, anno }: { d: MonitoraggioRiserva; anno: number }) {
   const k = kpiRiserva(d, anno, oggiIso());
   return (
     <Griglia colonne={4}>
-      <Kpi etichetta="Importo accumulato" icona="it-card" tono="scuro" valore={importo(k.accumulato)} assente={k.accumulato.assente} nota={k.accumulato.nota} />
-      <Kpi etichetta="Importo congelato" icona="it-presentation" tono="blu" valore={importo(k.congelato)} assente={k.congelato.assente} nota={k.congelato.nota} />
-      <Kpi etichetta="Importo utilizzato" icona="it-chart-line" tono={k.utilizzato.oltreRiserva ? 'ambra' : 'verde'} valore={importo(k.utilizzato)} assente={k.utilizzato.assente} nota={k.utilizzato.nota} />
-      <Kpi etichetta="Residuo disponibile" icona="it-calendar" tono="ambra" valore={importo(k.residuo)} assente={k.residuo.assente} nota={k.residuo.nota} />
+      <Kpi etichetta="Importo accumulato" icona="it-card" tono="scuro" {...importo(k.accumulato)} assente={k.accumulato.assente} nota={k.accumulato.nota} />
+      <Kpi etichetta="Importo congelato" icona="it-presentation" tono="blu" {...importo(k.congelato)} assente={k.congelato.assente} nota={k.congelato.nota} />
+      <Kpi etichetta="Importo utilizzato" icona="it-chart-line" tono={k.utilizzato.oltreRiserva ? 'ambra' : 'verde'} {...importo(k.utilizzato)} assente={k.utilizzato.assente} nota={k.utilizzato.nota} />
+      <Kpi etichetta="Residuo disponibile" icona="it-calendar" tono="ambra" {...importo(k.residuo)} assente={k.residuo.assente} nota={k.residuo.nota} />
     </Griglia>
   );
 }
@@ -52,16 +53,16 @@ function KpiRiserva({ d, anno }: { d: MonitoraggioRiserva; anno: number }) {
 /** R17: il montante dei pagamenti in alto, la riserva del 5% e il residuo del 2% in due riquadri con la loro natura. */
 function MontanteERiserve({ d, anno }: { d: MonitoraggioRiserva; anno: number }) {
   const note = noteQuoteRiserva(anno, d);
-  const [riserva, residuo] = [valoreRiserva(d), valoreResiduo(d)];
-  const euro = (v: number | null) => (v === null ? undefined : importoBreve(v));
+  const [riserva, residuo] = [riservaDelMontante(d), valoreResiduo(d)];
+  const euro = (v: number | null) => importoKpi(v);
   return (
     <Sezione titolo={`Montante e riserve dell'anno ${anno}`} livello={3}>
       <Griglia colonne={4}>
-        <Kpi etichetta={`Montante dei pagamenti dell'anno ${anno}`} icona="it-card" tono="scuro" valore={euro(d.montantePagamenti ?? null)} assente={d.montantePagamenti == null ? 'Non disponibile' : undefined} nota="base di calcolo di entrambe le riserve" />
+        <Kpi etichetta={`Montante dei pagamenti dell'anno ${anno}`} icona="it-card" tono="scuro" {...euro(d.montantePagamenti ?? null)} assente={d.montantePagamenti == null ? 'Non disponibile' : undefined} nota="base di calcolo di entrambe le riserve" />
       </Griglia>
       <Griglia>
-        <Kpi etichetta={`Riserva di efficacia (${testoQuota(d.quotaRiserva, '5%')})`} badge={NATURA_RISERVA[d.naturaRiserva ?? '']} icona="it-presentation" tono="blu" valore={euro(riserva)} assente={riserva === null ? 'Non calcolabile: manca il montante o la quota' : undefined} nota={note.riserva} />
-        <Kpi etichetta={`Residuo (${testoQuota(d.quotaResiduo, '2%')})`} badge={NATURA_RISERVA[d.naturaResiduo ?? '']} icona="it-calendar" tono="ambra" valore={euro(residuo)} assente={residuo === null ? 'Non calcolabile: manca il montante o la quota' : undefined} nota={note.residuo} />
+        <Kpi etichetta={`Riserva di efficacia (${testoQuota(d.quotaRiserva, '5%')})`} badge={NATURA_RISERVA[d.naturaRiserva ?? '']} icona="it-presentation" tono="blu" {...euro(riserva)} assente={riserva === null ? 'Non calcolabile: manca il montante o la quota' : undefined} nota={note.riserva} />
+        <Kpi etichetta={`Residuo (${testoQuota(d.quotaResiduo, '2%')})`} badge={NATURA_RISERVA[d.naturaResiduo ?? '']} icona="it-calendar" tono="ambra" {...euro(residuo)} assente={residuo === null ? 'Non calcolabile: manca il montante o la quota' : undefined} nota={note.residuo} />
       </Griglia>
       <p className="ui-fonte">Fonte: TX-0014 (montante dei pagamenti, quote e natura della riserva e del residuo). Sotto: i movimenti della riserva.</p>
     </Sezione>

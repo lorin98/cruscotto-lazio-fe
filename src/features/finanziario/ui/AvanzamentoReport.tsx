@@ -246,8 +246,11 @@ const SEZIONI: { titolo: string; grant: string; Componente: (p: PropsSezione) =>
 /** Il residuo sui pagamenti per intervento (RF007, R08), dalla stessa lettura di TX-0007 della sezione. */
 function ResiduoInterventi({ filtri }: { filtri: Filtri }) {
   const segnale = useSelezioneSenzaInterventi(filtri);
+  const stato = useResiduoPagamenti(filtri);
+  // con la selezione vuota lo dicono le quattro sezioni: qui niente (review V1-06)
+  if (segnale === 'vuota') return null;
   return (
-    <VistaQuery stato={useResiduoPagamenti(filtri)} inAttesa={segnale === 'in-attesa'} eVuoto={() => segnale === 'vuota'} vuoto={null} errorePersonalizzato={silenzioso}>
+    <VistaQuery stato={stato} inAttesa={segnale === 'in-attesa'} errorePersonalizzato={silenzioso}>
       {(d) => <ResiduoPerIntervento d={d} filtri={filtri} />}
     </VistaQuery>
   );

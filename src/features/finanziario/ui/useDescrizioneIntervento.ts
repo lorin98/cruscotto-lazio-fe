@@ -6,6 +6,7 @@ import { descrizioneIntervento, tipoIntervento } from '../../../entities/filtri'
 import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { useFiltri } from '../api';
 import { GRANT } from '../lib/report';
+import type { FiltroSigc } from '../../../shared/lib';
 
 export function useDescrizioneIntervento(codice: string | undefined): string | undefined {
   const abilitato = hasGrant(useAuthStatus().data, GRANT.filtri);
@@ -14,7 +15,7 @@ export function useDescrizioneIntervento(codice: string | undefined): string | u
 }
 
 /** Il tipo dell'intervento ("SIGC", "NO SIGC") dai valori dei filtri; null se non classificato o senza il grant. */
-export function useTipoIntervento(codice: string | undefined): 'SIGC' | 'NO SIGC' | null {
+export function useTipoIntervento(codice: string | undefined): FiltroSigc | null {
   const abilitato = hasGrant(useAuthStatus().data, GRANT.filtri);
   const { data } = useFiltri(abilitato);
   return codice === undefined ? null : tipoIntervento(data?.interventi, codice);

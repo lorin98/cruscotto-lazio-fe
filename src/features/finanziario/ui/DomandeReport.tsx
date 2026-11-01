@@ -8,7 +8,7 @@
 // quella del pagato dei pagamenti totali di RF005 (OP-FE-05).
 import { useId, useState } from 'react';
 import { ApriNellElenco } from '../../../entities/domanda';
-import { formatNumber, importoBreve } from '../../../shared/lib';
+import { formatNumber, importoKpi } from '../../../shared/lib';
 import { CardGrafico, Griglia, Kpi, PulsantiScarica, Sezione, TabellaRighe, VistaQuery } from '../../../shared/ui';
 import type { ClicGrafico, Colonna } from '../../../shared/ui';
 import { useDomandePerAnno, useImportiPerAnno, useTotaleDomande } from '../api';
@@ -73,11 +73,11 @@ function KpiAmmessoEStanziato({ d }: { d: ImportiPerAnno }) {
   const { ammesso, stanziato } = kpiImportiPerAnno(d.righe ?? []);
   return (
     <>
-      <Kpi etichetta="Importo ammesso" icona="it-card" tono="verde" valore={ammesso.valore === null ? undefined : importoBreve(ammesso.valore)} assente={ammesso.motivo} nota={ammesso.nota} />
+      <Kpi etichetta="Importo ammesso" icona="it-card" tono="verde" {...importoKpi(ammesso.valore)} assente={ammesso.motivo} nota={ammesso.nota} />
       {stanziato.valore === null ? (
         <KpiImporto etichetta="Importo stanziato" importo={stanziato.importo} icona="it-presentation" tono="scuro" />
       ) : (
-        <Kpi etichetta="Importo stanziato" icona="it-presentation" tono="scuro" valore={importoBreve(stanziato.valore)} nota={stanziato.nota} />
+        <Kpi etichetta="Importo stanziato" icona="it-presentation" tono="scuro" {...importoKpi(stanziato.valore)} nota={stanziato.nota} />
       )}
     </>
   );

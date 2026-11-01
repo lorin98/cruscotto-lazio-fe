@@ -9,7 +9,7 @@
 // (F3) e mostrano il dato letto senza filtro, in grigio e inerte.
 import { ApriNellElenco } from '../../../entities/domanda';
 import { ValoreImporto } from '../../../entities/importo';
-import { codiceDalClic, nonPertinenza, senzaSigc } from '../../../shared/lib';
+import { codiceDalClic, letturaDelTipo } from '../../../shared/lib';
 import { CardGrafico, Griglia, InerteSeNonPertinente, NonPertinente, TabellaVoci, VistaQuery } from '../../../shared/ui';
 import { useSigcDomande, useSigcImporti } from '../api';
 import type { ImportiSigc as ImportiSigcDto } from '../api';
@@ -148,8 +148,7 @@ function ContenutoImportiSigc({ d, filtri, indirizzo, onClic }: { d: ImportiSigc
 
 export function SigcReport({ filtri }: { filtri: Filtri }) {
   // col filtro NO SIGC: le card non pertinenti col dato senza filtro (il backend col valore opposto risponde zero)
-  const np = nonPertinenza(filtri.sigc, 'sigc', MOTIVO_SOLO_SIGC);
-  const lettura = np ? senzaSigc(filtri) : filtri;
+  const { np, criteri: lettura } = letturaDelTipo(filtri, 'sigc', MOTIVO_SOLO_SIGC);
   return (
     <NonPertinente np={np}>
       <Griglia>

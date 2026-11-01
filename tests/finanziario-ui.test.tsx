@@ -134,7 +134,16 @@ function cella(tabella: HTMLElement, riga: string, colonna: string) {
   return testo((within(tabella).getByRole('row', { name: riga }) as HTMLTableRowElement).cells[indice].textContent);
 }
 // Valore e nota di una tessera KPI (l'assenza, se c'e', sta al posto del valore).
-const valoreKpi = (nome: string) => testo(screen.getByRole('region', { name: nome }).querySelector('.ui-kpi__valore')?.textContent);
+// il valore a vista del KPI: la forma compatta, senza il pieno per i lettori di schermo (R09)
+const valoreKpi = (nome: string) => {
+  const v = screen.getByRole('region', { name: nome }).querySelector('.ui-kpi__valore');
+  return testo((v?.querySelector('[aria-hidden="true"]') ?? v)?.textContent);
+};
+// il valore pieno del KPI per i lettori di schermo (R09, review J-08); undefined se il compatto e' gia' pieno
+const pienoKpi = (nome: string) => {
+  const p = screen.getByRole('region', { name: nome }).querySelector('.ui-kpi__valore .visually-hidden')?.textContent;
+  return p == null ? undefined : testo(p);
+};
 const notaKpi = (nome: string) => testo(screen.getByRole('region', { name: nome }).querySelector('.ui-kpi__nota')?.textContent);
 // La ricerca della tabella interattiva (l'etichetta resta "Cerca nella tabella", il segnaposto dice su cosa si cerca).
 const ricerca = () => screen.getByRole('searchbox', { name: 'Cerca nella tabella' }) as HTMLInputElement;
@@ -496,7 +505,9 @@ describe('Panoramica (route /finanziario: TX-0002, TX-0009, TX-0012, TX-0013)', 
     await waitFor(() => expect(valoreKpi('Pagato lordo sulla dotazione')).toBe('20 %'));
     expect(notaKpi('Pagato lordo sulla dotazione')).toBe('media ponderata su 1 di 2 interventi');
     expect(valoreKpi('Dotazione spesa pubblica')).toBe('1,0 M€');
+    expect(pienoKpi('Dotazione spesa pubblica')).toBe('1.000.000,00 €');
     expect(valoreKpi('Pagamenti totali (lordi, elenchi di liquidazione)')).toBe('300.000,00 €');
+    expect(pienoKpi('Pagamenti totali (lordi, elenchi di liquidazione)')).toBeUndefined();
     await waitFor(() => expect(descrizione(graficoDi('Avanzamento per intervento'))).toContain('media ponderata 20 %'));
     expect(within(card('Avanzamento per intervento')).getByText('SRG08: dotazione pari a zero')).toBeTruthy();
   });
@@ -719,11 +730,15 @@ describe('DettaglioIntervento (route /finanziario/interventi/:codice)', () => {
     expect(letture(client, '/api/finanziario/filtri')).toHaveLength(0);
   });
 
-  it('TX-0002 in errore: pagato netto sulla dotazione e cascata restano (TX-0011), manca solo il contributo ambientale della testata', async () => {
+  it('il dettaglio non legge TX-0002 (R14): anche con TX-0002 in errore gauge e cascata restano (TX-0011) e la lettura non parte', async () => {
     servi();
     server.use(rispondi('/api/finanziario/spesa-per-intervento', problema(500, 'ERRORE_INTERNO'), 500));
-    conRouter(<DettaglioIntervento codice="SRA01" />);
+    const client = clientDiTest();
+    conRouter(<DettaglioIntervento codice="SRA01" />, '/prova', client);
     await waitFor(() => expect(graficiVivi()).toHaveLength(2));
+    await notifiche();
+    // review V1-13, X-17: prima il test passava per costruzione
+    expect(letture(client, '/api/finanziario/spesa-per-intervento')).toHaveLength(0);
     expect(descrizione(graficoDi('Avanzamento rispetto ai pagamenti effettuati'))).toContain('20 %');
     expect(screen.queryByText(/^Contributo ambientale/)).toBeNull();
     expect(screen.queryByText(/valore non disponibile/)).toBeNull();
@@ -1428,9 +1443,11 @@ describe('AvanzamentoReport (TX-0004..TX-0007)', () => {
         perimetro: 'REGIONALE',
         dotazioneSpesaPubblica: ZERO,
         importoPagato: ZERO,
-        importoRecuperato: ZERO,
+        // forma del contratto 1.5.0 (R08; review V1-12): le rettifiche al posto dei recuperi, e gli interventi
+        importoRettifiche: ZERO,
         pagamentiNettoRettifiche: ZERO,
         dotazioneResidua: ZERO,
+        interventi: [],
       }),
     );
     renderConQuery(<AvanzamentoReport filtri={{ intervento: ['SRA99'] }} />);

@@ -29,6 +29,9 @@ export interface RigaRiepilogo {
   pagamentiLordi?: Importo;
   importoRettifiche?: Importo;
   impegnatoStimato?: Importo;
+  /** L'indicatore delle rettifiche (null = fonte non attiva) e le righe: "Con rettifiche" di Tutte le voci (V1-07). */
+  conRettifiche?: boolean | null;
+  rettifiche?: readonly unknown[] | null;
 }
 
 /** Riga di DomandePerAnno (TX-0008): annoRaccolta = campagna, altrimenti anno di rilascio della domanda di sostegno; null senza nessuno dei due. */

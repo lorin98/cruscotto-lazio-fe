@@ -7,7 +7,7 @@
 // (AnteprimaArea), comuni alle card degli altri ambiti.
 import type { ReactNode } from 'react';
 import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
-import { importoBreve, intero } from '../../../shared/lib';
+import { formatEuro, importoBreve, intero } from '../../../shared/lib';
 import { AnteprimaArea, AttesaArea, AvanzamentoArea, NotaArea, NumeriArea, NumeroArea } from '../../../shared/ui';
 import { useSpesaPerIntervento, useTotaleDomande } from '../api';
 import { kpiSpesa } from '../lib/aggregati';
@@ -17,7 +17,8 @@ import { etichettaDellArea, etichettaDiProgramma } from '../lib/perimetro';
 import { GRANT } from '../lib/report';
 
 function Importo({ etichetta, a }: { etichetta: string; a: Aggregato }) {
-  return <NumeroArea etichetta={etichetta} valore={a.valore} formato={importoBreve} motivo={a.motivo} />;
+  // R09/R20: il compatto nella card, il valore pieno per i lettori di schermo
+  return <NumeroArea etichetta={etichetta} valore={a.valore} formato={importoBreve} formatoPieno={formatEuro} motivo={a.motivo} />;
 }
 
 function Spesa() {

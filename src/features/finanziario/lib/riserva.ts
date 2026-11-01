@@ -17,9 +17,14 @@ function quotaDelMontante(m: RiservaLike, quota: number | null | undefined): num
   return montante == null || q == null ? null : centesimi(montante * q);
 }
 
-/** La riserva del 5% (montante x quotaRiserva); senza quota la riserva accumulata, come prima delle revisioni. */
+/** La riserva del 5% del riquadro R17: montante x quotaRiserva, null senza uno dei due (niente ripieghi: review V1-09). */
+export function riservaDelMontante(m: RiservaLike): number | null {
+  return quotaDelMontante(m, m.quotaRiserva);
+}
+
+/** La soglia del grafico dell'utilizzo: la riserva del 5% o, senza montante o quota, la riserva accumulata (dichiarato). */
 export function valoreRiserva(m: RiservaLike): number | null {
-  return quotaDelMontante(m, m.quotaRiserva) ?? numeroDi(m.importoAccumulato);
+  return riservaDelMontante(m) ?? numeroDi(m.importoAccumulato);
 }
 
 /** Il residuo del 2% (montante x quotaResiduo). */
@@ -37,7 +42,7 @@ export function noteQuoteRiserva(n: number, m: RiservaLike): { riserva: string; 
   const c = calendarioRiserva(n);
   return {
     riserva: `= ${testoQuota(m.quotaRiserva, '5%')} x montante; congelata il ${formatDate(c.congelamento)}: da quella data il valore è consuntivo, prima è una previsione`,
-    residuo: `= ${testoQuota(m.quotaResiduo, '2%')} x montante; consuntivo dall'inizio della fase di residuo (${formatDate(c.inizioResiduo)}), prima è una previsione`,
+    residuo: `= ${testoQuota(m.quotaResiduo, '2%')} x montante; consuntivo dall'inizio della fase di residuo (${formatDate(c.inizioResiduo)}), prima è una previsione. Il residuo disponibile qui sotto può essere minore: è quanto resta dopo l'utilizzo della riserva`,
   };
 }
 

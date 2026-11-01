@@ -116,16 +116,16 @@ interface ValoriSigc {
 }
 
 /** Il motivo per cui la cascata non si disegna, oppure i quattro valori del contratto, che tornano al centesimo. */
-function motivoCascataSigc(i: ImportiSigcLike): { motivo: string } | { valori: ValoriSigc } {
+function motivoImportiSigc(i: ImportiSigcLike): { motivo: string } | { valori: ValoriSigc } {
   const mancanti = VOCI_CASCATA.filter((v) => valoreDi(i[v.campo]) == null);
   if (mancanti.length > 0) {
-    return { motivo: `la cascata richiede ammesso, pagato oltre l'ammesso, pagato e ancora da pagare: ${mancanti.map((v) => `${v.nome.toLowerCase()} ${assenzaImporto(i[v.campo])}`).join(', ')}` };
+    return { motivo: `il grafico richiede ammesso, pagato oltre l'ammesso, pagato e ancora da pagare: ${mancanti.map((v) => `${v.nome.toLowerCase()} ${assenzaImporto(i[v.campo])}`).join(', ')}` };
   }
   const [ammesso, oltre, pagato, daPagare] = VOCI_CASCATA.map((v) => valoreDi(i[v.campo]) as number);
-  if ([ammesso, oltre, pagato, daPagare].some((v) => v < 0)) return { motivo: 'importi negativi: la cascata non si può disegnare' };
+  if ([ammesso, oltre, pagato, daPagare].some((v) => v < 0)) return { motivo: 'importi negativi: il grafico non si può disegnare' };
   // le somme escludono le domande senza uno degli importi: se non sono sulle stesse domande i valori non tornano
   if (centesimi(ammesso + oltre - pagato) !== centesimi(daPagare)) {
-    return { motivo: 'ammesso, pagato e ancora da pagare non tornano (somme su domande diverse, vedi le domande senza importo): la cascata non si può disegnare' };
+    return { motivo: 'ammesso, pagato e ancora da pagare non tornano (somme su domande diverse, vedi le domande senza importo): il grafico non si può disegnare' };
   }
   return { valori: { ammesso, oltre, pagato, daPagare } };
 }
@@ -217,8 +217,8 @@ export function graficoImportiSigc(i: ImportiSigcLike): DatiGrafico {
   const escluso = nonAmmesso(i);
   const tabella = tabellaCascataSigc(i, escluso);
   const omessi = [...omessoRichiesto(i, escluso), ...VOCI_CASCATA.filter((v) => valoreDi(i[v.campo]) == null).map((v) => `${v.nome} ${assenzaImporto(i[v.campo])}`)];
-  const esito = motivoCascataSigc(i);
-  if ('motivo' in esito) return nonDisegnabile(esito.motivo.replace('la cascata', 'il grafico'), tabella, omessi);
+  const esito = motivoImportiSigc(i);
+  if ('motivo' in esito) return nonDisegnabile(esito.motivo, tabella, omessi);
   const { ammesso, oltre, pagato, daPagare } = esito.valori;
   const richiestoTotale = valoreDi(i.richiesto) ?? 0;
   const segmenti: Segmento[] = [
@@ -228,7 +228,8 @@ export function graficoImportiSigc(i: ImportiSigcLike): DatiGrafico {
           { nome: 'Non ammesso', barra: 'Richiesto' as const, valore: escluso.valore, totale: richiestoTotale, colore: COLORI.neutro },
         ]
       : []),
-    { nome: 'Pagato', barra: 'Ammesso', valore: centesimi(pagato - oltre), totale: ammesso, colore: COLORI.positivo },
+    // col pagato oltre l'ammesso il segmento e' la parte entro l'ammesso, e lo dice (review X-13)
+    { nome: oltre > 0 ? "Pagato entro l'ammesso" : 'Pagato', barra: 'Ammesso', valore: centesimi(pagato - oltre), totale: ammesso, colore: COLORI.positivo },
     { nome: 'Ancora da pagare', barra: 'Ammesso', valore: daPagare, totale: ammesso, colore: '#8fb8e6' },
   ];
   if (oltre > 0) omessi.push(`Pagato oltre l'ammesso: ${formatEuro(oltre)} (fuori dalla barra dell'ammesso)`);

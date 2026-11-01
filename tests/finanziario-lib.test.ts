@@ -39,9 +39,14 @@ import {
   inizioFase,
   istantaneaAnteriore,
   kpiRiserva,
+  noteQuoteRiserva,
+  riservaDelMontante,
   testoCongelato,
+  testoQuota,
   testoResiduo,
   utilizzoOltreRiserva,
+  valoreResiduo,
+  valoreRiserva,
 } from '../src/features/finanziario/lib/riserva';
 import type { FaseRiserva } from '../src/features/finanziario/lib/riserva';
 
@@ -427,6 +432,29 @@ describe('codiceDaRicerca (H-25)', () => {
     expect(codiceDaRicerca('  sra01 Intervento di prova A')).toBe('SRA01');
     expect(codiceDaRicerca('SRD07')).toBe('SRD07');
     for (const t of ['', '   ', 'intervento', '<x>', '../riepilogo']) expect(codiceDaRicerca(t)).toBeUndefined();
+  });
+});
+
+describe('R17: montante, riserva del 5% e residuo del 2% (review V1-09, V1-14)', () => {
+  const m = { montantePagamenti: 20000, quotaRiserva: 0.05, quotaResiduo: 0.02, importoAccumulato: 500 };
+  it('montante x quota al centesimo; senza montante o quota il riquadro non ripiega sull accumulato', () => {
+    expect(riservaDelMontante(m)).toBe(1000);
+    expect(valoreResiduo(m)).toBe(400);
+    expect(riservaDelMontante({ ...m, montantePagamenti: null })).toBeNull();
+    expect(riservaDelMontante({ ...m, quotaRiserva: null })).toBeNull();
+    expect(valoreResiduo({ ...m, quotaResiduo: undefined })).toBeNull();
+    expect(riservaDelMontante({ montantePagamenti: 333.33, quotaRiserva: 0.05 })).toBe(16.67);
+  });
+  it('la soglia del grafico ripiega sull accumulato, dichiarato', () => {
+    expect(valoreRiserva(m)).toBe(1000);
+    expect(valoreRiserva({ ...m, montantePagamenti: null })).toBe(500);
+    expect(valoreRiserva({})).toBeNull();
+  });
+  it('testo della quota e note dei due riquadri', () => {
+    expect([testoQuota(0.05, 'x'), testoQuota(0.025, 'x'), testoQuota(null, '5%')]).toEqual(['5%', '2,5%', '5%']);
+    const note = noteQuoteRiserva(2025, m);
+    expect(note.riserva).toBe('= 5% x montante; congelata il 30/06/2026: da quella data il valore è consuntivo, prima è una previsione');
+    expect(note.residuo).toMatch(/^= 2% x montante; consuntivo dall'inizio della fase di residuo \(01\/01\/2027\), prima è una previsione\. Il residuo disponibile/);
   });
 });
 

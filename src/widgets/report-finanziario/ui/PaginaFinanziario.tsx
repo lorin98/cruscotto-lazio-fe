@@ -9,7 +9,7 @@ import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { ContestoFiltri, PANORAMICA, PannelloFiltri, PerimetroPill, UltimoAggiornamento, conFiltri, titoloH1, useFiltriNellIndirizzo, useRigheIntestazione, voceDi } from '../../../features/finanziario';
 import type { Filtri } from '../../../features/finanziario';
-import { etichettaSigc } from '../../../shared/lib';
+import { righeSigc } from '../../../shared/lib';
 import { AvvisoPagina, BarraFiltri, Briciole as BricioleKit, Caricamento, ContestoIntestazione, TestaPagina } from '../../../shared/ui';
 import type { Briciola, ChipFiltro } from '../../../shared/ui';
 
@@ -73,8 +73,7 @@ function useBarraFiltri(conBarraFiltri: boolean, chipFissi: ChipFiltro[] | undef
 
 /** Il filtro SIGC fra le righe dell'intestazione dei PNG, nei report che lo prendono. */
 function rigaSigc(conSigc: boolean, filtri: Filtri): string[] {
-  const sigc = conSigc ? etichettaSigc(filtri.sigc) : undefined;
-  return sigc ? [`Interventi: ${sigc}`] : [];
+  return conSigc ? righeSigc(filtri.sigc) : [];
 }
 
 export function PaginaFinanziario({ conBarraFiltri = true, chipFissi, parametri = [], pill, children, ...testata }: PropsPagina) {

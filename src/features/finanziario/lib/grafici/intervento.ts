@@ -9,6 +9,7 @@ import type { DatiGrafico, PassoCascata, TabellaEquivalente } from '../../../../
 import type { RigaRiepilogo } from '../dto';
 import { assenzaImporto, cellaImporto, codiceDi, valoreDi } from '../importi';
 import { PERIMETRO_ADA, etichettaDiProgramma } from '../perimetro';
+import { testoRettificato } from '../rettifiche';
 
 const MOTIVO_ADA_CASCATA = "perimetro ADA: la dotazione è regionale, i pagamenti sono dell'area e il residuo è fuori perimetro";
 
@@ -28,7 +29,10 @@ export function vociIntervento(riga: RigaRiepilogo, perimetro?: string | null): 
     ['Residuo sugli impegni', riga.dotazioneResiduaSuImpegni],
     ['Residuo sui pagamenti', riga.dotazioneResiduaSuPagamenti],
   ];
-  return { caption: `Intervento ${codiceDi(riga)}: dalla dotazione al residuo sui pagamenti`, colonne: ['Voce', 'Importo'], righe: voci.map(([nome, importo]) => [nome, cellaImporto(importo)]) };
+  const righe = voci.map(([nome, importo]) => [nome, cellaImporto(importo)]);
+  // l'indicatore delle rettifiche dopo le rettifiche (wireframe del dettaglio, review V1-07)
+  righe.splice(8, 0, ['Con rettifiche', testoRettificato(riga.conRettifiche, (riga.rettifiche ?? []).length)]);
+  return { caption: `Intervento ${codiceDi(riga)}: dalla dotazione al residuo sui pagamenti`, colonne: ['Voce', 'Importo'], righe };
 }
 
 function motivoCascata(codice: string, dotazione: number | null, lordi: number | null, riga: RigaRiepilogo): string | null {

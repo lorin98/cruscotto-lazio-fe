@@ -630,6 +630,42 @@
     },
     {
       "route": "/finanziario/dotazione",
+      "name": "SpesaPerIntervento.righe[].impegnatoStimato",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/SpesaPerIntervento"
+    },
+    {
+      "route": "/finanziario/dotazione",
+      "name": "SpesaPerIntervento.stimaImpegni.metodo",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/SpesaPerIntervento"
+    },
+    {
+      "route": "/finanziario/dotazione",
+      "name": "SpesaPerIntervento.stimaImpegni.orizzonte",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/SpesaPerIntervento"
+    },
+    {
+      "route": "/finanziario/dotazione",
+      "name": "SpesaPerIntervento.stimaImpegni.ultimaCampagnaRilevata",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/SpesaPerIntervento"
+    },
+    {
+      "route": "/finanziario/dotazione",
+      "name": "SpesaPerIntervento.stimaImpegni.calcolatoIl",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/SpesaPerIntervento"
+    },
+    {
+      "route": "/finanziario/dotazione",
+      "name": "SpesaPerIntervento.stimaImpegni.quotaDaRichiesto",
+      "provenance": "spec",
+      "source_ref": "openapi-finanziario.json#/components/schemas/SpesaPerIntervento"
+    },
+    {
+      "route": "/finanziario/dotazione",
       "name": "SpesaPerIntervento.righe[].pagamentiTotali",
       "provenance": "spec",
       "source_ref": "openapi-finanziario.json#/components/schemas/SpesaPerIntervento"
@@ -1289,36 +1325,6 @@
       "source_ref": "openapi-finanziario.json#/components/schemas/SpesaPerIntervento"
     },
     {
-      "route": "/finanziario",
-      "name": "stimaImpegni.metodo",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/SpesaPerIntervento"
-    },
-    {
-      "route": "/finanziario",
-      "name": "stimaImpegni.orizzonte",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/SpesaPerIntervento"
-    },
-    {
-      "route": "/finanziario",
-      "name": "stimaImpegni.ultimaCampagnaRilevata",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/SpesaPerIntervento"
-    },
-    {
-      "route": "/finanziario",
-      "name": "stimaImpegni.calcolatoIl",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/SpesaPerIntervento"
-    },
-    {
-      "route": "/finanziario",
-      "name": "stimaImpegni.quotaDaRichiesto",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/SpesaPerIntervento"
-    },
-    {
       "route": "/finanziario/interventi/:codice",
       "name": "interventi[].chiave",
       "provenance": "spec",
@@ -1537,36 +1543,6 @@
     {
       "route": "/finanziario/interventi/:codice",
       "name": "righe[].rettifiche[].riferimento",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/RiepilogoFinanziario"
-    },
-    {
-      "route": "/finanziario/interventi/:codice",
-      "name": "stimaImpegni.metodo",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/RiepilogoFinanziario"
-    },
-    {
-      "route": "/finanziario/interventi/:codice",
-      "name": "stimaImpegni.orizzonte",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/RiepilogoFinanziario"
-    },
-    {
-      "route": "/finanziario/interventi/:codice",
-      "name": "stimaImpegni.ultimaCampagnaRilevata",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/RiepilogoFinanziario"
-    },
-    {
-      "route": "/finanziario/interventi/:codice",
-      "name": "stimaImpegni.calcolatoIl",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/RiepilogoFinanziario"
-    },
-    {
-      "route": "/finanziario/interventi/:codice",
-      "name": "stimaImpegni.quotaDaRichiesto",
       "provenance": "spec",
       "source_ref": "openapi-finanziario.json#/components/schemas/RiepilogoFinanziario"
     },

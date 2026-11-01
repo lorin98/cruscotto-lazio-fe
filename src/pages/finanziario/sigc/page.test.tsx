@@ -134,7 +134,10 @@ describe('Revisioni del 31/10/2026: pagina di soli interventi SIGC (F3)', () => 
     await waitFor(() => expect(lette.length).toBeGreaterThanOrEqual(2));
     expect(lette.every((q) => !q.includes('sigc'))).toBe(true);
     expect(within(screen.getByRole('group', { name: 'Interventi SIGC o NO SIGC' })).getByRole('button', { name: 'NO SIGC' }).getAttribute('aria-pressed')).toBe('true');
-    // i link verso l'elenco sono nel corpo inerte: non si raggiungono
-    for (const link of screen.queryAllByRole('link', { name: /elenco operativo/ })) expect(link.closest('[inert]')).not.toBeNull();
+    // i link verso l'elenco sono nel corpo non attivabile: ci sono (review H-13), disattivati e fuori dalla tabulazione
+    const links = screen.getAllByRole('link', { name: /elenco operativo/ });
+    expect(links.length).toBeGreaterThan(0);
+    await waitFor(() => expect(links.every((l) => l.getAttribute('aria-disabled') === 'true' && l.getAttribute('tabindex') === '-1')).toBe(true));
+    expect(document.querySelector('[inert]')).toBeNull();
   });
 });

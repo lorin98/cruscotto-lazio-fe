@@ -272,7 +272,8 @@ describe("RA003: drill-down dal riepilogo all'elenco operativo", () => {
     const tabella = await tabellaDelRiepilogo(TABELLA);
     expect(within(tabella).getByRole('link', { name: "Apri nell'elenco operativo le domande presentate dell'intervento SRA01" })).toBeTruthy();
     expect(within(tabella).queryByRole('link', { name: /^righe di pagamento: / })).toBeNull();
-    expect(screen.queryByText(/i recuperi sono nella scheda di ogni domanda\.$/)).toBeNull();
+    // la nota attuale sui lordi (R08; review V1-11: prima si cercava il testo di prima, che non c'e' piu')
+    expect(screen.queryByText(/come la colonna Pagamenti lordi; le rettifiche sono nella loro colonna/)).toBeNull();
   });
   it("tornando indietro dall'elenco operativo l'ordinamento della tabella e' quello scelto", async () => {
     server.use(http.get('*/api/finanziario/riepilogo', () => HttpResponse.json(RIEPILOGO)));

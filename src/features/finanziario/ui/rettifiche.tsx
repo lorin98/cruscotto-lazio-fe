@@ -12,6 +12,7 @@ import type { ColonnaStatica, ColonnaTabella } from '../../../shared/ui';
 import type { FonteRettifiche, Rettifica, ResiduoSuPagamenti, ResiduoSuPagamentiIntervento } from '../api';
 import { ricercaDaFiltri } from '../lib/filtri';
 import type { Filtri } from '../lib/filtri';
+import { conRigheDiRettifiche, testoRettificato } from '../lib/rettifiche';
 import { datiDelReport } from './esportazioni';
 import { NotaPerimetroMisto, PerimetroSezione } from './comuni';
 
@@ -44,11 +45,12 @@ export function FonteDelleRettifiche({ fonte }: { fonte: FonteRettifiche | null 
 /** "Si': n righe" (apre il dettaglio), "No", o il dato assente (nessuna rettifica nel database). */
 function Rettificato({ r, onApri }: { r: ResiduoSuPagamentiIntervento; onApri: () => void }) {
   const n = (r.rettifiche ?? []).length;
-  if (r.conRettifiche == null) return <>fonte non attiva: rettifiche</>;
-  if (!r.conRettifiche || n === 0) return <>No</>;
+  const testo = testoRettificato(r.conRettifiche, n);
+  if (!conRigheDiRettifiche(r.conRettifiche, n)) return <>{testo}</>;
+  // il nome accessibile comincia col testo visibile (WCAG 2.5.3, review A-12)
   return (
-    <button type="button" className="btn btn-link btn-sm p-0" onClick={onApri} aria-label={`Apri le ${n === 1 ? 'una riga' : `${n} righe`} di rettifiche dell'intervento ${r.codiceIntervento}`}>
-      {n === 1 ? "Si': 1 riga" : `Si': ${n} righe`}
+    <button type="button" className="btn btn-link btn-sm p-0" onClick={onApri} aria-label={`${testo}: apri le rettifiche dell'intervento ${r.codiceIntervento ?? ''}`}>
+      {testo}
     </button>
   );
 }

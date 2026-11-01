@@ -504,7 +504,8 @@ describe('graficoImportiSigc (R13, forma B: due barre impilate)', () => {
     expect(segmenti(o)).toEqual([
       ['Ammesso', 'importi', [8_000_000, null]],
       ['Non ammesso', 'importi', [2_000_000, null]],
-      ['Pagato', 'importi', [null, 4_900_000]],
+      // col pagato oltre l'ammesso il segmento e' la parte entro l'ammesso, e lo dice (review X-13)
+      ["Pagato entro l'ammesso", 'importi', [null, 4_900_000]],
       ['Ancora da pagare', 'importi', [null, 3_100_000]],
     ]);
     // le due barre tornano: richiesto 10 = 8 + 2; ammesso 8 = 4,9 + 3,1
@@ -927,11 +928,20 @@ describe('graficoCascataIntervento e vociIntervento (R08: lordi e rettifiche)', 
       ['di cui stimato (previsione sui bandi pluriennali SIGC)', 'non disponibile'],
       ['Pagamenti lordi', '4.500.000,00 €'],
       ['Rettifiche', '500.000,00 €'],
+      ['Con rettifiche', 'fonte non attiva: rettifiche'],
       ['Pagamenti al netto delle rettifiche', '4.000.000,00 €'],
       ['Residuo sugli impegni', 'non disponibile (fonte impegni non attiva)'],
       ['Residuo sui pagamenti', '6.000.000,00 €'],
     ]);
     expect(g.tabella).toEqual(vociIntervento(rigaIntervento));
+  });
+
+  it('"Con rettifiche" dopo le rettifiche, come nel riepilogo (V1-07): Sì con le righe, No, fonte non attiva', () => {
+    const voce = (r: RigaRiepilogo) => vociIntervento(r).righe[8];
+    expect(voce({ ...rigaIntervento, conRettifiche: true, rettifiche: [{}, {}] })).toEqual(['Con rettifiche', 'Sì: 2 righe']);
+    expect(voce({ ...rigaIntervento, conRettifiche: true, rettifiche: [{}] })).toEqual(['Con rettifiche', 'Sì: 1 riga']);
+    expect(voce({ ...rigaIntervento, conRettifiche: false, rettifiche: [] })).toEqual(['Con rettifiche', 'No']);
+    expect(voce({ ...rigaIntervento, conRettifiche: null })).toEqual(['Con rettifiche', 'fonte non attiva: rettifiche']);
   });
 
   it('residuo assente: barra omessa e dichiarata come dato della riga', () => {
@@ -943,7 +953,7 @@ describe('graficoCascataIntervento e vociIntervento (R08: lordi e rettifiche)', 
   it('dotazione o lordi assenti, negativi, lordi oltre la dotazione: non disegnabile', () => {
     const senza = graficoCascataIntervento({ ...rigaIntervento, pagamentiLordi: assente('FUORI_PERIMETRO') });
     controllaNonDisegnabile(senza, `la cascata di SRA01 richiede dotazione e pagamenti lordi; pagamenti lordi: ${FUORI_PERIMETRO}`);
-    expect(senza.tabella.righe).toHaveLength(11);
+    expect(senza.tabella.righe).toHaveLength(12);
     controllaNonDisegnabile(graficoCascataIntervento({ ...rigaIntervento, pagamentiLordi: imp(11_000_000) }), 'i pagamenti lordi di SRA01 superano la dotazione: la cascata non si può disegnare');
     controllaNonDisegnabile(graficoCascataIntervento({ ...rigaIntervento, dotazioneResiduaSuPagamenti: imp(-1) }), 'importi negativi per SRA01: la cascata non si può disegnare');
   });
@@ -969,16 +979,17 @@ describe('graficoCascataIntervento e vociIntervento (R08: lordi e rettifiche)', 
       'di cui stimato (previsione sui bandi pluriennali SIGC)',
       'Pagamenti lordi',
       'Rettifiche',
+      'Con rettifiche',
       'Pagamenti al netto delle rettifiche',
       'Residuo sugli impegni',
       'Residuo sui pagamenti',
     ]);
-    expect(ada.righe[10]).toEqual(['Residuo sui pagamenti', FUORI_PERIMETRO]);
+    expect(ada.righe[11]).toEqual(['Residuo sui pagamenti', FUORI_PERIMETRO]);
     expect(vociIntervento(rigaIntervento, 'REGIONALE').righe[0][0]).toBe('Dotazione di spesa pubblica');
     const vuota = vociIntervento({});
     expect(vuota.caption).toBe('Intervento Senza codice: dalla dotazione al residuo sui pagamenti');
-    expect(vuota.righe.every((r) => r[1] === 'non disponibile')).toBe(true);
-    expect(vuota.righe).toHaveLength(11);
+    expect(vuota.righe.filter((r) => r[0] !== 'Con rettifiche').every((r) => r[1] === 'non disponibile')).toBe(true);
+    expect(vuota.righe).toHaveLength(12);
   });
 });
 
@@ -1078,7 +1089,7 @@ describe('graficoPartiImporto', () => {
   });
 });
 
-// ---------------------------------------------------------------- 12. contributo ambientale
+// ---------------------------------------------------------------- 12. dotazione e pagamenti per intervento
 
 describe('graficoDotazionePagamenti', () => {
   const righe = [
@@ -1086,7 +1097,7 @@ describe('graficoDotazionePagamenti', () => {
     { codiceIntervento: 'SRA02', dotazione: imp(20_000_000), pagato: assente('NON_VALORIZZATO') },
     { codiceIntervento: 'SRA03', dotazione: assente('FONTE_NON_ATTIVA'), pagato: assente('FONTE_NON_ATTIVA') },
   ];
-  const tredici = Array.from({ length: 13 }, (_, k) => ({
+  const quarantuno = Array.from({ length: 41 }, (_, k) => ({
     codiceIntervento: `SRB${String(k + 1).padStart(2, '0')}`,
     dotazione: imp(1_000_000),
     pagato: imp(500_000),
@@ -1117,10 +1128,11 @@ describe('graficoDotazionePagamenti', () => {
     ]);
   });
 
-  it('oltre 12 interventi: zoom interno e cursore', () => {
-    const o = opzioniDi(graficoDotazionePagamenti(tredici));
+  it('oltre MAX_BARRE_VISIBILI (40) interventi: zoom interno e cursore; fino a 40 tutti con la loro etichetta (R02, J-09)', () => {
+    const o = opzioniDi(graficoDotazionePagamenti(quarantuno));
     expect(o.dataZoom?.map((z) => z.type)).toEqual(['inside', 'slider']);
-    expect(opzioniDi(graficoDotazionePagamenti(tredici.slice(0, 12))).dataZoom).toBeUndefined();
+    expect(opzioniDi(graficoDotazionePagamenti(quarantuno.slice(0, 40))).dataZoom).toBeUndefined();
+    expect(opzioniDi(graficoDotazionePagamenti(quarantuno.slice(0, 13))).dataZoom).toBeUndefined();
   });
 
   it('perimetro ADA: solo il pagato, la dotazione dichiarata come non affiancabile', () => {

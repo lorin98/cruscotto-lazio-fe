@@ -11,7 +11,7 @@ import { useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router';
 import { Tab, TabList, TabPanel, Tabs } from 'react-aria-components';
 import { ApriNellElenco } from '../../../entities/domanda';
-import { codiceDalClic, formatNumber, importoBreve } from '../../../shared/lib';
+import { codiceDalClic, formatNumber, importoBreve, senzaSigc } from '../../../shared/lib';
 import { CardGrafico, Griglia, Kpi, Sezione, TabellaDati, TabellaRighe, VistaQuery, Vuoto, eVistaGrafico } from '../../../shared/ui';
 import type { ClicGrafico, VistaGrafico } from '../../../shared/ui';
 import { useDomandePerAnno, useImportiPerAnno, useRiepilogo, useSigcDomande, useSigcImporti } from '../api';
@@ -35,6 +35,7 @@ import { useStatoNellaHistory } from './useStatoNellaHistory';
 import { useTipoIntervento } from './useDescrizioneIntervento';
 import { TabellaRettifiche } from './rettifiche';
 import { notaDiCuiStimato } from '../lib/stima';
+import type { FiltroSigc } from '../../../shared/lib';
 
 // R15: il titolo del gauge dei pagamenti netti sulla dotazione
 const AVANZAMENTO_PAGAMENTI = 'Avanzamento rispetto ai pagamenti effettuati';
@@ -68,7 +69,7 @@ function TornaAlRiepilogo({ selezione, className }: { selezione: Filtri; classNa
   );
 }
 
-function Testata({ codice, selezione, perimetro, tipo }: { codice: string; selezione: Filtri; perimetro?: Perimetro; tipo?: 'SIGC' | 'NO SIGC' | null }) {
+function Testata({ codice, selezione, perimetro, tipo }: { codice: string; selezione: Filtri; perimetro?: Perimetro; tipo?: FiltroSigc | null }) {
   return (
     <section className="ui-hero ui-dissolvenza" aria-label={`Intervento ${codice}`}>
       <span className="ui-eyebrow">{`Intervento ${codice}`}</span>
@@ -119,7 +120,7 @@ function RettificheIntervento({ r }: { r: RiepilogoFinanziarioRiga }) {
     corpo = (
       <>
         <p className="mb-2">
-          <span className="badge ui-badge-np">Con rettifiche</span>
+          <span className="badge ui-badge-testo">Con rettifiche</span>
         </p>
         <TabellaRettifiche codice={codice} rettifiche={righe} />
       </>
@@ -380,8 +381,9 @@ function Contenuto({ codice, selezione }: { codice: string; selezione: Filtri })
             <Testata codice={codice} selezione={selezione} perimetro={d.perimetro} tipo={tipo} />
             <PerimetroSezione perimetro={d.perimetro} />
             <NotaPerimetroMisto perimetro={d.perimetro} />
-            <Kpis r={r} perimetro={d.perimetro} da={{ codice, selezione }} />
-            <Schede filtri={filtri} r={r} perimetro={d.perimetro} da={{ codice, selezione }} />
+            {/* i link verso l'elenco senza il filtro SIGC della provenienza: il dettaglio non lo applica (F5, review A-08) */}
+            <Kpis r={r} perimetro={d.perimetro} da={{ codice, selezione: senzaSigc(selezione) }} />
+            <Schede filtri={filtri} r={r} perimetro={d.perimetro} da={{ codice, selezione: senzaSigc(selezione) }} />
           </>
         );
       }}

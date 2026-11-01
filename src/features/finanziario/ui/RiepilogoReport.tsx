@@ -24,6 +24,7 @@ import type { Perimetro } from '../lib/perimetro';
 import { conFiltri, percorsoIntervento } from '../lib/report';
 import { NotaPerimetroMisto, NotaStima, PerimetroSezione, colonneImporti, diProgramma, vuotoConPerimetro } from './comuni';
 import { TabellaRettifiche } from './rettifiche';
+import { testoRettificato } from '../lib/rettifiche';
 import { NOTA_RICERCA_FILE, datiDelReport } from './esportazioni';
 import { useApriIntervento } from './useApriIntervento';
 import { useStatoNellaHistory } from './useStatoNellaHistory';
@@ -59,10 +60,7 @@ const NOTA_PAGAMENTI_LORDI = "L'elenco dei pagamenti mostra le righe pagate degl
 
 /** "Si': 2 righe", "No", o la fonte non attiva senza rettifiche nel database (R08). */
 function testoConRettifiche(r: Riga): string {
-  const n = (r.rettifiche ?? []).length;
-  if (r.conRettifiche == null) return 'fonte non attiva: rettifiche';
-  if (!r.conRettifiche || n === 0) return 'No';
-  return n === 1 ? 'Sì: 1 riga' : `Sì: ${n} righe`;
+  return testoRettificato(r.conRettifiche, (r.rettifiche ?? []).length);
 }
 
 /** Link della riga verso l'elenco: nessuno senza il codice dell'intervento (la dotazione AT001 sta nel piede, senza link). */
@@ -236,7 +234,7 @@ function Contenuto({ d, filtri }: { d: RiepilogoFinanziario; filtri: Filtri }) {
       ) : (
         <CardGrafico
           titolo="Dotazione e pagamenti per intervento"
-          sottotitolo="Trascina il cursore sotto il grafico per ingrandire; clic su una barra per il dettaglio"
+          sottotitolo="Tutti gli interventi con la loro etichetta (R02); clic su una barra per il dettaglio"
           livello={3}
           altezza="alto"
           dati={graficoDotazionePagamenti(

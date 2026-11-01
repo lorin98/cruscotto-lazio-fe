@@ -6,7 +6,7 @@ import type { ReactNode } from 'react';
 import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { ValoreImporto, assenzaInFrase } from '../../../entities/importo';
 import type { ImportoLike } from '../../../entities/importo';
-import { formatNumber, importoBreve } from '../../../shared/lib';
+import { formatNumber, importoKpi } from '../../../shared/lib';
 import { Caricamento, Icona, Kpi, PulsantiScarica, Sezione } from '../../../shared/ui';
 import type { Colonna, ColonnaTabella, NomeIcona, TonoKpi } from '../../../shared/ui';
 import { PERIMETRO_ADA, etichettaDiProgramma, etichettaPerimetro } from '../lib/perimetro';
@@ -130,7 +130,7 @@ export function colonneImporti<T>(campi: readonly CampoImporto<T>[], perimetro: 
  */
 export function KpiImporto({ etichetta, importo, icona, tono, nota, aggregato = true }: { etichetta: string; importo: ImportoLike | null | undefined; icona: NomeIcona; tono: TonoKpi; nota?: string; aggregato?: boolean }) {
   const assente = importo?.valore != null ? undefined : assenzaInFrase(importo, aggregato);
-  return <Kpi etichetta={etichetta} icona={icona} tono={tono} valore={importo?.valore != null ? importoBreve(importo.valore) : undefined} assente={assente} nota={nota} />;
+  return <Kpi etichetta={etichetta} icona={icona} tono={tono} {...importoKpi(importo?.valore)} assente={assente} nota={nota} />;
 }
 
 /**

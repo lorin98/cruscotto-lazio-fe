@@ -98,7 +98,9 @@ export function graficoUtilizzoRiserva(m: RiservaLike, anno: number): DatiGrafic
   const opzioni: EChartsOption = {
     aria: aria(descrizione),
     tooltip: { trigger: 'axis', valueFormatter: valoreBreve },
-    xAxis: { type: 'time', axisLabel: { formatter: '{dd}/{MM}/{yyyy}', hideOverlap: true } },
+    // l'asse copre le fasi dell'anno n (dall'inizio dell'accumulo alla fine dell'anno del residuo), non i soli movimenti:
+    // le fasce si vedono tutte (review J-07)
+    xAxis: { type: 'time', min: calendarioRiserva(anno).inizioAccumulo, max: `${anno + 2}-12-31`, axisLabel: { formatter: '{dd}/{MM}/{yyyy}', hideOverlap: true } },
     yAxis: { type: 'value', min: 0, ...massimo, axisLabel: { formatter: asseImporti } },
     series: [lineaUtilizzo(datati.map((p) => [p.data, p.cumulato]), riserva, anno, `${importoBreve(ultimo)}${quota}`)],
   };

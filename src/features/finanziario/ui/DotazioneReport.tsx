@@ -51,7 +51,7 @@ function CardDotazione({ filtri }: { filtri: Filtri }) {
       {(d) => (
         <CardGrafico
           titolo="Dotazione e pagamenti per intervento"
-          sottotitolo="Trascina il cursore sotto il grafico per ingrandire; clic su una barra per il dettaglio"
+          sottotitolo="Tutti gli interventi con la loro etichetta (R02); clic su una barra per il dettaglio"
           dati={graficoDotazionePagamenti((d.righe ?? []).map((r) => ({ codiceIntervento: r.codiceIntervento, dotazione: r.dotazioneSpesaPubblica, pagato: r.pagamentiTotali })), d.perimetro, PAGAMENTI_LORDI)}
           fonte={`Fonte: TX-0002 · Perimetro ${d.perimetro ?? 'non indicato'}`}
           altezza="alto"

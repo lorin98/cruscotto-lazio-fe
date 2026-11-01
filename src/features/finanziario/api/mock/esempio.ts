@@ -1,6 +1,6 @@
 // esempio.ts — dati DI ESEMPIO del finanziario per il dev server con MSW (npm run dev): valori INVENTATI e
-// deterministici, nella forma dei DTO della spec e con le stesse assenze dei dati reali (impegni, stanziato, quote Stato
-// e Regione, vincolo LEADER da fonte non attiva). Rispettano i filtri intervento/og/os/op, cosi' panoramica, dettaglio e
+// deterministici, nella forma dei DTO della spec 1.5.0 e con le stesse assenze dei dati reali (impegni e stanziato da
+// fonte non attiva). Rispettano i filtri intervento/og/os/op e sigc, cosi' panoramica, dettaglio e
 // pannello dei filtri si provano davvero. Solo il worker del browser li usa: i test hanno le loro fixture.
 // Stanno nella feature (review v2 H-20): il worker di shared/api/mock/browser.ts li raccoglie per convenzione di percorso
 // (features/<slice>/api/mock/esempio.ts, export handlersEsempio).
@@ -82,6 +82,9 @@ function selezione(url: string) {
   );
 }
 
+// la parte stimata dell'impegnato: solo per gli interventi SIGC (la previsione sui bandi pluriennali SIGC, R04)
+const stimato = (i: Intervento) => (SIGC.has(i.codice) ? tondo(i.dotazione * 0.6 * (i.contributo / 400)) : 0);
+
 // la stima dell'impegnato (R04) e due righe di rettifiche per intervento (R08), come le produce il backend
 const STIMA = { metodo: 'MEDIA_ANNUALITA_RILEVATE_PER_BANDO_X_ANNI_RESIDUI', orizzonte: 2029, ultimaCampagnaRilevata: 2025, calcolatoIl: '2026-10-31', quotaDaRichiesto: euro(0) };
 function righeRettifiche(codice: string, totale: number) {
@@ -120,7 +123,7 @@ export const handlersEsempio: RequestHandler[] = [
         impegnatoCofinanziatoFeasrENon: euro(tondo(i.dotazione * 0.6)),
         // revisioni del 31/10/2026: impegnato di spesa pubblica con la parte stimata (R03, R04)
         impegnatoSpesaPubblica: euro(tondo(i.dotazione * 0.6)),
-        impegnatoStimato: euro(tondo(i.dotazione * 0.6 * (i.contributo / 400))),
+        impegnatoStimato: euro(stimato(i)),
         pagamentiTotali: euro(i.pagato),
       })),
       stimaImpegni: STIMA,
@@ -135,12 +138,12 @@ export const handlersEsempio: RequestHandler[] = [
     const s = selezione(request.url);
     const impegnato = somma(s, (i) => tondo(i.dotazione * 0.6));
     const pagato = somma(s, (i) => i.pagato);
-    return HttpResponse.json({ perimetro: PERIMETRO, totaleImpegnato: euro(impegnato), pagamentiTotali: euro(pagato), impegnatoDaPagare: euro(tondo(impegnato - pagato)), impegnatoStimato: euro(somma(s, (i) => tondo(i.dotazione * 0.6 * (i.contributo / 400)))), stimaImpegni: STIMA });
+    return HttpResponse.json({ perimetro: PERIMETRO, totaleImpegnato: euro(impegnato), pagamentiTotali: euro(pagato), impegnatoDaPagare: euro(tondo(impegnato - pagato)), impegnatoStimato: euro(somma(s, stimato)), stimaImpegni: STIMA });
   }),
   http.get(`${B}/residuo-impegni`, ({ request }) => {
     const s = selezione(request.url);
     const [dotazione, impegnato] = [somma(s, (i) => i.dotazione), somma(s, (i) => tondo(i.dotazione * 0.6))];
-    return HttpResponse.json({ perimetro: PERIMETRO, dotazioneSpesaPubblica: euro(dotazione), importoImpegnato: euro(impegnato), dotazioneResidua: euro(tondo(dotazione - impegnato)), impegnatoStimato: euro(somma(s, (i) => tondo(i.dotazione * 0.6 * (i.contributo / 400)))), stimaImpegni: STIMA });
+    return HttpResponse.json({ perimetro: PERIMETRO, dotazioneSpesaPubblica: euro(dotazione), importoImpegnato: euro(impegnato), dotazioneResidua: euro(tondo(dotazione - impegnato)), impegnatoStimato: euro(somma(s, stimato)), stimaImpegni: STIMA });
   }),
   http.get(`${B}/residuo-pagamenti`, ({ request }) => {
     const s = selezione(request.url);
@@ -220,7 +223,7 @@ export const handlersEsempio: RequestHandler[] = [
         importoStanziato: euro(tondo(i.dotazione * 0.8)),
         impegnatoCofinanziatoFeasr: euro(tondo(i.dotazione * 0.6 * 0.407)),
         impegnatoCofinanziatoFeasrENon: euro(tondo(i.dotazione * 0.6)),
-        impegnatoStimato: euro(tondo(i.dotazione * 0.6 * (i.contributo / 400))),
+        impegnatoStimato: euro(stimato(i)),
         // revisioni del 31/10/2026 (R08): lordi, rettifiche e netto
         pagamentiLordi: euro(i.pagato),
         importoRettifiche: i.nettiValorizzati ? euro(tondo(i.pagato * 0.03)) : fna('RETTIFICHE'),

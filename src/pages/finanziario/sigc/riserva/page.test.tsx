@@ -53,13 +53,21 @@ describe("RF014: monitoraggio della riserva al 5% dell'anno n nelle quattro fasi
 
 describe('Revisioni del 31/10/2026: montante e riserve (R17 forma A) e utilizzo progressivo (R18 forma A)', () => {
   it('il montante in alto, riserva del 5% e residuo del 2% col badge della natura; il testo di lettura sopra il grafico', async () => {
-    server.use(http.get('*/api/finanziario/riserva/2025', () => HttpResponse.json(RISERVA)));
+    // montante diverso da 20 x accumulato: 5% = 1.000,00 (accumulato 500,00), 2% = 400,00 (residuo disponibile 200,00)
+    // distingue montante x quota dai campi di prima (review V1-14)
+    server.use(http.get('*/api/finanziario/riserva/2025', () => HttpResponse.json({ ...RISERVA, montantePagamenti: 20000, naturaResiduo: 'PREVISIONE', fase: 'UTILIZZO' })));
     renderPagina(Pagina, '/finanziario/sigc/riserva', '/finanziario/sigc/riserva?anno=2025');
     const blocco = await screen.findByRole('region', { name: "Montante e riserve dell'anno 2025" });
     const riserva = screen.getByRole('region', { name: 'Riserva di efficacia (5%)' });
     expect(riserva.textContent).toContain('Consuntivo');
-    expect(riserva.textContent).toContain('500,00');
-    expect(screen.getByRole('region', { name: 'Residuo (2%)' }).textContent).toContain('Previsione');
+    // it-IT senza separatore delle migliaia sotto 10.000
+    expect(riserva.textContent).toMatch(/1000,00.€/);
+    expect(riserva.textContent).not.toMatch(/(^|[^.\d])500,00/);
+    const residuo = screen.getByRole('region', { name: 'Residuo (2%)' });
+    expect(residuo.textContent).toContain('Previsione');
+    expect(residuo.textContent).toMatch(/400,00.€/);
+    expect(residuo.textContent).not.toMatch(/(^|[^.\d])200,00/);
+    expect(residuo.textContent).toContain('Il residuo disponibile qui sotto può essere minore');
     expect(blocco.textContent).toContain("Montante dei pagamenti dell'anno 2025");
     const card = await trovaCard('Utilizzo progressivo cumulato');
     expect(card.textContent).toMatch(/La linea è quanto della riserva è stato usato, sommato nel tempo/);

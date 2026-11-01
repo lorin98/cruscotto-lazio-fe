@@ -16,6 +16,7 @@ import type {
   RiepilogoFinanziario,
   RiepilogoFinanziarioRiga,
   SpesaPerInterventoRiga,
+  StimaImpegni,
   UtilizzoRiserva,
 } from '../api';
 import type {
@@ -33,6 +34,7 @@ import type {
 } from '../lib/grafici';
 import type { Perimetro } from '../lib/perimetro';
 import type { FaseRiserva } from '../lib/riserva';
+import type { StimaImpegniLike } from '../lib/stima';
 
 type Uguali<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
 /** Ogni campo della forma scritta a mano esiste nel DTO (la forma puo' leggerne solo una parte). */
@@ -43,6 +45,8 @@ export const CONTRATTO_FASE: Uguali<NonNullable<MonitoraggioRiserva['fase']>, Fa
 export const CONTRATTO_PERIMETRO: Uguali<NonNullable<RiepilogoFinanziario['perimetro']>, Perimetro> = true;
 
 export const CONTRATTO_RIGA_SPESA: Contenuta<RigaSpesa, SpesaPerInterventoRiga> = true;
+// la forma della stima dell'impegnato (revisioni del 31/10/2026, R04; review H-11)
+export const CONTRATTO_STIMA: Contenuta<StimaImpegniLike, StimaImpegni> = true;
 export const CONTRATTO_RIGA_RIEPILOGO: Contenuta<RigaRiepilogo, RiepilogoFinanziarioRiga> = true;
 export const CONTRATTO_DOMANDE_ANNO: Contenuta<RigaDomandeAnno, DomandePerAnnoRiga> = true;
 export const CONTRATTO_IMPORTI_ANNO: Contenuta<RigaImportiAnno, ImportiPerAnnoRiga> = true;
