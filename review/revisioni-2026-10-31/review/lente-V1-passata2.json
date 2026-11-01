@@ -1,0 +1,74 @@
+[
+  {
+    "id": "V1-01",
+    "feature": "comune",
+    "severity": "MAGGIORE",
+    "file": "src/shared/lib/grafici/primitive.ts:12",
+    "titolo": "Scelta d (J-09): con MAX_BARRE_VISIBILI = 40 le barre verticali per intervento disegnano 36 etichette inclinate che a 390 px e nelle card a meta' larghezza si sovrappongono (R02 'sempre leggibili', U1 'verifica a 1680, 1100 e 390 px')",
+    "evidenza": "La soglia passa da 12 a 40 (primitive.ts:12) e l'asse delle barre verticali disegna tutte le etichette (forme.ts:130: interval 0, hideOverlap false, rotate 45 oltre 8, carattere 12 px), senza zoom e senza altezza a gradini (che vale solo per le orizzontali). 'Dotazione e pagamenti per intervento' (spesa.ts:268, in DotazioneReport e RiepilogoReport) ha 36 interventi: lo spazio per intervento e' larghezza del piano / 36. A 390 px (sotto 992 px niente menu, pagina 1rem, card 1.25rem) il piano e' al piu' ~300 px: ~8 px per intervento, ~6 px fra due etichette inclinate di 45 gradi alte 12 px, quindi sovrapposte e illeggibili (e 72 barre di ~3 px). Nella dotazione la card sta in Griglia a due colonne (DotazioneReport.tsx:114, ui-griglia--2: due colonne da 936 px di contenuto, cioe' da ~1272 px di finestra col menu da 280 px): a 1366-1440 px la card e' larga ~510-550 px e restano ~10-12 px per intervento, ancora sovrapposte. R02 chiede 'etichette sempre leggibili ... con la soluzione piu' leggibile' e U1 la verifica a 1680, 1100 e 390 px; il wireframe approvato chiede 'tutte le etichette', non le barre verticali. La soglia vale per tutti i grafici verticali per intervento del kit (procedurale lib/grafici.ts:132, 155, 171; istituzionale 22, 43; fisico 87, 283), che fino a 40 categorie perdono lo zoom senza un'alternativa leggibile. Nessun test misura la leggibilita': finanziario-grafici.test.ts controlla solo l'assenza di dataZoom fino a 40.",
+    "fix": "Per i grafici per intervento usare le barre orizzontali del kit (barreRaggruppate(..., { orizzontale: true }): categorie sull'asse y, altezza a gradini ui-grafico--righe-N fino a 40, gia' la forma R02 per molte categorie), almeno in graficoDotazionePagamenti; in alternativa riportare la soglia verticale bassa (12-16) e lasciare 40 alle sole orizzontali. Aggiornare sottotitoli e test e rifare la verifica a 1680, 1100 e 390 px sulle pagine coi grafici per intervento."
+  },
+  {
+    "id": "V1-02",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici/riserva.ts:59",
+    "titolo": "V1-09 chiuso a meta' (scelta g): la soglia del grafico dell'utilizzo ripiega sull'accumulato ma si chiama ancora 'Riserva del 5%', mentre il riquadro sopra dice 'Non calcolabile'",
+    "evidenza": "Il riquadro R17 ora usa solo montante x quota e senza uno dei due dice 'Non calcolabile: manca il montante o la quota' (RiservaReport.tsx:64). Il grafico e il testo di lettura usano invece valoreRiserva (lib/riserva.ts:26: montante x quota, altrimenti importoAccumulato) e lo chiamano sempre riserva del 5%: etichetta della linea 'Riserva del 5% {importo}' (grafici/riserva.ts:59), didascalia della tabella 'riserva del 5%: ...' (riga 83), descrizione aria (riga 95) e sottotitolo 'La linea tratteggiata e' la riserva del 5% (...)' (riga 113). Senza montante la stessa pagina dice che la riserva del 5% non si calcola e, poco sotto, che vale l'accumulato. Il commento di valoreRiserva promette '(dichiarato)', ma nessun testo lo dichiara; il test 'senza quota: la soglia e la riserva accumulata' (tests/finanziario-grafici.test.ts:1195) consolida la didascalia 'riserva del 5%: 5.000.000,00 EUR' per l'accumulato. Il ripiego della scelta g regge solo se dichiarato (stessa regola del 'mai il lordo al posto del netto').",
+    "fix": "Quando montante o quota mancano, chiamare la soglia 'Riserva accumulata' in etichetta della linea, didascalia, aria e testo di lettura, con la nota 'riserva del 5% non calcolabile: manca il montante o la quota'; oppure ometterla come il riquadro (l'omesso 'soglia omessa' della riga 90 c'e' gia'). Aggiornare il test della riga 1195."
+  },
+  {
+    "id": "V1-03",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "uiplan.json:91",
+    "titolo": "A-08/V1-03 chiuso a meta': uiplan e LINK_ELENCO dichiarano ancora 'sigc' nei due link del dettaglio, e nessun test apre il dettaglio da ?sigc=false",
+    "evidenza": "Il dettaglio ora costruisce i link da senzaSigc(selezione) (DettaglioIntervento.tsx:385-386) e il comportamento e' giusto, ma l'uiplan dichiara ancora 'sigc' nella query di elenco-presentate-intervento (uiplan.json:91-104, trigger 'con i filtri correnti') ed elenco-anno-intervento (riga 107 e seguenti), e LINK_ELENCO li copia verbatim con CORRENTI_E_SIGC (link-elenco.ts:83-84). La garanzia di F5 sta solo nella chiamata, non nella definizione che per costruzione non fa uscire un parametro non dichiarato: un altro uso di useLinkElenco nel dettaglio con la selezione intera riporterebbe il sigc. Il fix accettato (A-08: 'sigc dalla query dei due link -intervento dello uiplan ... test con ?sigc=false') e' fatto solo nel componente; nessun test del dettaglio parte da ?sigc=false (src/pages/finanziario/interventi/page.test.tsx, tests/finanziario-ui.test.tsx).",
+    "fix": "Togliere 'sigc' dalla query dei due link -intervento nell'uiplan e in LINK_ELENCO (FILTRI_CORRENTI) e rilanciare uiplan-validate; aggiungere un test del dettaglio aperto da /finanziario/interventi/SRA01?sigc=false che verifichi gli href dei due link senza sigc."
+  },
+  {
+    "id": "V1-04",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "tests/finanziario-grafici.test.ts:1188",
+    "titolo": "J-07 chiuso senza il test chiesto: niente protegge le fasce R18 (componente MarkArea registrato, asse che le contiene)",
+    "evidenza": "Le fasce ora si disegnano (MarkAreaComponent in src/shared/ui/grafici/echarts.ts:10 e 20; xAxis.min/max in grafici/riserva.ts:103), ma il fix accettato (X-04) chiedeva 'un test SSR reale o almeno un controllo che xAxis.min/max contengano le tre fasce e che il componente sia registrato'. Il test 'linea a gradini sul tempo, fasi dell anno sullo sfondo' (riga 1179) verifica solo che le opzioni abbiano tre markArea (riga 1188): passava identico col difetto MAGGIORE J-07 e passerebbe ancora togliendo MarkAreaComponent o min/max. Dichiara le fasi sullo sfondo senza provarle.",
+    "fix": "Nel test della riga 1179 asserire xAxis.min = '2024-10-01' e xAxis.max = '2026-12-31' (le tre fasce dentro l'asse); un test del kit che renda un grafico con markArea e verifichi che ECharts lo tenga (getOption().series[0].markArea dopo setOption, o render SSR con le fasce nell'SVG)."
+  },
+  {
+    "id": "V1-05",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "tests/finanziario-ui.test.tsx:1438",
+    "titolo": "V1-05, V1-06 e V1-10 chiusi nel codice senza i test chiesti: vuoto non pertinente, avviso in piu' della selezione vuota e 'Azzera' che conserva il SIGC non sono coperti",
+    "evidenza": "V1-05/X-10: il vuoto di una lettura non pertinente passa ora da ConMotivoSeNonPertinente (src/shared/ui/stati/StatiVista.tsx:140), ma nessun test lo esercita (zero occorrenze di ConMotivoSeNonPertinente, X-10 o V1-05 nei test; nessun test della pagina SIGC o della panoramica con ?sigc=false su una selezione di soli NO SIGC). V1-06: ResiduoInterventi non monta piu' la sezione con la selezione vuota (AvanzamentoReport.tsx:251), ma il test 'selezione senza interventi: nemmeno KPI e flussi mostrano zeri' (riga 1438) conta ancora solo i quattro messaggi e non verifica che 'Nessun dato da mostrare.' (StatiVista.tsx:102) non compaia. V1-10/X-08: applica di useFiltriProgrammaNellIndirizzo conserva il sigc (src/entities/filtri/ui/useFiltriProgrammaNellIndirizzo.ts:72), ma nessun test fa Azzera + Applica o 'Togli tutti' con ?sigc=... in un'area che usa il hook (finanziario, fisico, istituzionale); c'e' solo il test dell'elenco, che ha un meccanismo suo. Le tre regressioni tornerebbero senza un test rosso.",
+    "fix": "Qui aggiungere expect(screen.queryByText('Nessun dato da mostrare.')).toBeNull(); un test della pagina SIGC con /finanziario/sigc?intervento=SRD01&sigc=false e TX-0012 a zero presentate (badge 'Non pertinente al filtro NO SIGC', motivo, 'Modifica i filtri' con aria-disabled e tabindex -1); un test del finanziario con ?intervento=SRA01&sigc=false: Azzera + Applica porta a ?sigc=false, 'Togli tutti' anche."
+  },
+  {
+    "id": "V1-06",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "uiplan.json:837",
+    "titolo": "V1-08 non chiuso del tutto (scelta f): /finanziario/avanzamento dichiara ResiduoSuImpegni.stimaImpegni.* senza renderlo",
+    "evidenza": "La scelta f allinea la provenance della stima per panoramica, dettaglio e dotazione, ma l'avanzamento dichiara ancora i cinque campi ResiduoSuImpegni.stimaImpegni.metodo/orizzonte/ultimaCampagnaRilevata/calcolatoIl/quotaDaRichiesto (uiplan.json:837 e seguenti), mentre la nota di lettura della pagina viene solo da TX-0005 (NotaStimaImpegnato -> usePagamentiSuImpegnato -> d.stimaImpegni, AvanzamentoReport.tsx:159-167); di TX-0006 si rende solo impegnatoStimato (lib/grafici/avanzamento.ts:57). E' lo stesso disallineamento di V1-08: campi dichiarati che la UI non mostra.",
+    "fix": "Togliere da /finanziario/avanzamento i cinque ResiduoSuImpegni.stimaImpegni.* (la nota e' quella di AvanzamentoPagamenti, gia' dichiarata) e rilanciare uiplan-validate."
+  },
+  {
+    "id": "V1-07",
+    "feature": "finanziario",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/ui/DomandeReport.tsx:70",
+    "titolo": "V1-16 chiuso a meta': commenti e mock con testi superati",
+    "evidenza": "Restano: 'lo stanziato, oggi da fonte non attiva' (DomandeReport.tsx:70; lo stanziato viene dai bandi, per anno 'non valorizzato' col motivo); 'I cinque filtri ripetibili di RF001' su FiltriReport = Tx0011Params, che ora porta anche sigc (src/features/finanziario/api/index.ts:105); l'intestazione di SigcReport 'in grigio e inerte' (SigcReport.tsx:9) dopo la scelta a (niente inert); il seme della stima nel mock si chiama ancora 'contributo' (api/mock/esempio.ts:61, 86), che il fix chiedeva di rinominare.",
+    "fix": "Aggiornare i tre commenti e rinominare il seme del mock (es. quotaStimata)."
+  },
+  {
+    "id": "V1-08",
+    "feature": "finanziario",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/ui/DotazioneReport.tsx:54",
+    "titolo": "Sottotitolo visibile con un codice interno di revisione: 'Tutti gli interventi con la loro etichetta (R02)'",
+    "evidenza": "Le correzioni di J-09 hanno messo nel sottotitolo di 'Dotazione e pagamenti per intervento' il testo 'Tutti gli interventi con la loro etichetta (R02); clic su una barra per il dettaglio' (DotazioneReport.tsx:54, RiepilogoReport.tsx:237). 'R02' e' il numero della revisione nel documento di lavoro (revisioni_finanziario_261030.md), non un codice che l'utente conosca (i titoli citano solo gli RF del pack); nei wireframe approvati R02 sta solo nelle figcaption delle note e la card non ha sottotitolo (dotazione.html:68-75, riepilogo.html:72-78). La prima meta' descrive una proprieta' del grafico, non come leggerlo.",
+    "fix": "Sottotitolo come gli altri grafici per intervento ('Clic su una barra per il dettaglio', o 'Dotazione e pagamenti di ogni intervento; clic su una barra per il dettaglio'), senza il codice di revisione."
+  }
+]

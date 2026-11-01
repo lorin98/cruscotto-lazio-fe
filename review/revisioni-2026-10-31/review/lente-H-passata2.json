@@ -1,0 +1,119 @@
+[
+  {
+    "id": "H-01",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/features/procedurale/ui/StatiDomande.tsx:163",
+    "titolo": "X-10 chiuso a meta': il vuoto (e l'errore) di una lettura non pertinente dice il motivo solo dove <NonPertinente> avvolge VistaQuery, non nelle pagine intere non pertinenti",
+    "evidenza": "Il kit chiude X-10 dentro VistaQuery con ConMotivoSeNonPertinente (src/shared/ui/stati/StatiVista.tsx:140-142), che legge il contesto di <NonPertinente>. Funziona dove la pagina mette <NonPertinente> sopra la lettura (SigcReport, panoramiche). Nelle pagine intere non pertinenti invece <NonPertinente> sta DENTRO il ramo dei dati, quindi il vuoto resta fuori dal contesto: stati del procedurale (StatiDomande.tsx:163 VistaQuery, :165 NonPertinente), domande ammesse (DomandeAmmesse.tsx:57 e :59), superfici del fisico (SuperficiAmmissibili.tsx:63 e :66); stesso schema nelle verifiche SMP dell'istituzionale (VerificaSmpNonSigc.tsx:59, VerificaSmpSigc.tsx:104, col vuoto reso da entities/filtri/ui/PaginaReportProgramma.tsx:68). Es. /fisico/superfici?intervento=SRD01&sigc=false: lettura senza sigc, nessuna superficie (solo SIGC), vuoto 'Nessun intervento per i filtri scelti.' con 'Modifica i filtri' attivo e nessun badge ne' motivo; idem /procedurale/stati-sostegno?intervento=SRA01&sigc=true. E' il caso di X-10. L'errore senza dati (RamoSenzaDati, StatiVista.tsx:94) non passa mai da ConMotivoSeNonPertinente, benche' il commit b7c12c8 dichiari 'vuoto ed errore'. Nessun test copre il caso (X-10, V1-05, ConMotivoSeNonPertinente: zero occorrenze nei test).",
+    "fix": "Nelle pagine intere non pertinenti portare <NonPertinente np={np}> sopra VistaQuery (o sopra il corpo di PaginaReportProgramma), come fanno SigcReport e le panoramiche; nel kit far passare anche l'errore senza dati di VistaQuery da ConMotivoSeNonPertinente. Test di pagina: superfici con ?intervento=<NO SIGC>&sigc=false e stati del procedurale con ?intervento=<SIGC>&sigc=true mostrano badge e motivo e 'Modifica i filtri' non attivabile."
+  },
+  {
+    "id": "H-02",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/card/NonPertinente.tsx:77",
+    "titolo": "Scelta a: il corpo non pertinente ferma clic, mousedown, Invio e spazio, ma i link restano link: clic centrale, menu contestuale e trascinamento li aprono",
+    "evidenza": "CorpoNonPertinente lascia nel DOM i link con href (Link di react-router in ApriNellElenco, src/entities/domanda/ui/ApriNellElenco.tsx:18) e ferma solo onClickCapture, onMouseDownCapture e Invio/spazio (NonPertinente.tsx:77-81). Il clic centrale non genera click ma auxclick, e il browser apre il link in una nuova scheda: preventDefault sul mousedown non lo impedisce; lo stesso 'Apri link in una nuova scheda' dal menu contestuale e il trascinamento del link. Con inert (prima) nessuno di questi gesti arrivava. Casi reali: con ?sigc=false i link delle voci e 'Le domande SIGC nell'elenco operativo' della pagina SIGC (SigcReport.tsx:78, 142); con ?sigc=true gli 'Apri nell'elenco' delle tabelle per stato del procedurale. Anche pointerdown e wheel passano: oltre MAX_BARRE_VISIBILI il dataZoom inside/slider (zoomSeMolti, src/shared/lib/grafici/primitive.ts:190) resta trascinabile nella card in grigio. Contro il punto del brief 'corpo davvero non interattivo (nessun link... raggiungibile)'. Il test del kit prova solo fireEvent.click (tests/kit-sigc.test.tsx:181-182).",
+    "fix": "Togliere l'interattivita' alla fonte invece di fermarne alcuni eventi: ApriNellElenco (e gli altri link del kit) leggono useNonPertinenza() e nel corpo non pertinente rendono testo senza href; in piu' `.ui-non-pertinente__corpo :is(a, button, summary, canvas, svg) { pointer-events: none }` (o onAuxClickCapture/onPointerDownCapture/onWheelCapture sul corpo). Test: nel corpo non pertinente nessun a[href]."
+  },
+  {
+    "id": "H-03",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/card/NonPertinente.tsx:43",
+    "titolo": "Scelta a: disattiva() tratta come controllo ogni [tabindex], anche la regione della tabella dei dati che deve restare leggibile, e l'osservatore vede solo i nodi nuovi, non gli attributi",
+    "evidenza": "ATTIVABILI comprende [tabindex]: il Contenitore delle tabelle semplici (src/shared/ui/tabella/TabelleSemplici.tsx:19, role=region tabIndex=0, area di scorrimento, non un controllo) prende aria-disabled=true. E' proprio il contenitore della TabellaDati che CardNonPertinente lascia 'per gli strumenti assistivi' (CardGrafico.tsx:222-224): in Chromium aria-disabled si propaga ai discendenti, e la tabella che la scelta a vuole leggibile viene esposta come disattivata (i lettori di schermo possono annunciare 'non disponibile', che nel cruscotto e' anche il testo dei dati assenti). Il test del kit consacra l'eccesso: pretende tabindex=-1 su tutti i [tabindex] del corpo (tests/kit-sigc.test.tsx:126-128). Inoltre l'osservatore e' { childList: true, subtree: true } (NonPertinente.tsx:70): un nodo gia' montato che riceve dopo un tabindex o un href per cambio di prop (es. le righe di TabellaInterattiva con tabIndex={apri ? 0 : undefined}, TabellaInterattiva.tsx:98) torna nella tabulazione senza aria-disabled. 'Anche quelli montati dopo', dichiarato nel commit b7c12c8, non ha un test: i test del kit montano tutto insieme.",
+    "fix": "Escludere dal selettore le regioni di scorrimento (es. data-attributo sul Contenitore, o la copia nascosta della tabella senza tabIndex, come suggeriva A-01) e marcare aria-disabled solo i controlli; osservare anche gli attributi (attributes: true, attributeFilter: ['tabindex', 'href', 'disabled']: disattiva e' gia' idempotente). Test del kit: la tabella dei dati di una card non pertinente non ha antenati aria-disabled; un rerender che aggiunge un link o cambia il tabIndex di un bottone nel corpo lo trova disattivato."
+  },
+  {
+    "id": "H-04",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici/riserva.ts:79",
+    "titolo": "V1-09 chiuso a meta' (scelta g): senza montante o quota la soglia del grafico e' la riserva accumulata ma si chiama 'Riserva del 5%', mentre il riquadro della stessa pagina dice 'Non calcolabile'",
+    "evidenza": "Il riquadro R17 usa riservaDelMontante senza ripieghi (RiservaReport.tsx:64: 'Non calcolabile: manca il montante o la quota'); il grafico usa valoreRiserva (lib/riserva.ts:26-28), che ripiega su importoAccumulato. Il ripiego non e' detto da nessuna parte: l'etichetta della linea tratteggiata ('Riserva del 5% X', riserva.ts:59), la caption della tabella equivalente ('riserva del 5%: X', riga 83), la descrizione aria (righe 93-95) e il testo di lettura sopra il grafico (letturaUtilizzoRiserva, righe 111-114: 'La linea tratteggiata e' la riserva del 5% (X)') chiamano 'riserva del 5%' l'accumulato. Con montantePagamenti null la pagina dice insieme 'Riserva di efficacia (5%): Non calcolabile' e 'Riserva del 5% 500 EUR'. La lib lo chiama 'dichiarato' (riserva.ts:25) e il test 'la soglia del grafico ripiega sull accumulato, dichiarato' (tests/finanziario-lib.test.ts:448) controlla solo il numero: la dichiarazione che il nome promette non c'e'.",
+    "fix": "Far restituire alla lib anche l'origine della soglia (es. sogliaRiserva(m): { valore, origine: 'montante' | 'accumulato' } | null) e usarla in etichetta, caption, descrizione e testo di lettura ('Riserva accumulata X: montante o quota non disponibili'); oppure togliere il ripiego e usare il ramo gia' presente della soglia omessa e dichiarata (riserva.ts:90). Test: con montante null etichetta e testo di lettura non dicono 'Riserva del 5%'."
+  },
+  {
+    "id": "H-05",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/lib/verifica.ts:89",
+    "titolo": "J-05: il link della spesa erogata apre tutte le righe PAGATA dell'intervento, ma il nome accessibile dice ancora 'le righe pagate non SIGC'",
+    "evidenza": "elencoSpesa non porta piu' sigc=false (lib/collegamenti.ts:84-86) e l'uiplan lo dichiara (OP-IS-09: 'l'elenco mostra tutte le righe PAGATA dell'intervento, SIGC comprese'), ma TESTI_LINK.spesa (verifica.ts:89) compone ancora 'Apri nei pagamenti: apri nell'elenco operativo le righe pagate non SIGC dell'intervento X', il nome del link nelle righe della verifica e nella scheda del dettaglio. Per un intervento con pagamenti SIGC il lettore di schermo promette un insieme che l'elenco non mostra (WCAG 2.4.4: lo scopo del link dal suo nome). Il test lo fissa (tests/istituzionale-lib.test.ts:302) e quello di pagina cerca il link con /^Apri nei pagamenti: / senza guardare la descrizione (src/pages/istituzionale/interventi/page.test.tsx:95).",
+    "fix": "Allineare la descrizione alla destinazione (es. 'le righe pagate dell'intervento X, SIGC comprese') in TESTI_LINK.spesa e nel test di lib; nel test di pagina verificare il nome intero."
+  },
+  {
+    "id": "H-06",
+    "feature": "procedurale",
+    "severity": "MINORE",
+    "file": "src/features/procedurale/lib/criteri.ts:87",
+    "titolo": "H-06 chiuso a meta' nel procedurale: letturaDelTipo serve solo per i criteri (motivo vuoto, non pertinenza buttata); la natura delle card resta scritta in tre punti indipendenti",
+    "evidenza": "criteriNoSigc fa letturaDelTipo(criteriDelReport(c), 'nosigc', '').criteri: motivo fittizio e np scartato. La resa la ricalcola ogni componente con nonPertinenza(pagina.filtri.sigc, 'nosigc', MOTIVI_NO_SIGC.x) (DomandeAmmesse.tsx:51, Sottofasi.tsx:27, StatiDomande.tsx:156, Panoramica.tsx:136) e i link verso l'elenco ne hanno una terza copia, la lista SOLO_NO_SIGC degli id (lib/collegamenti.ts:91). Lettura, resa e link di una card ripetono la sua natura in tre posti: e' la divergenza che H-06 voleva togliere (una card che diventa mista, come e' successo allo stato area programmazione il 01/11, va cambiata in tre file; dimenticarne uno da' una card grigia letta col filtro o un link col sigc da una card non pertinente). Negli altri ambiti np e criteri vengono dalla stessa chiamata (finanziario Panoramica.tsx:223 e SigcReport.tsx:151, fisico SuperficiAmmissibili.tsx:81, istituzionale VerificaSmpNonSigc.tsx:52 e VerificaSmpSigc.tsx:84). Valutazione della scelta i: giusta dove resa e lettura stanno nello stesso componente; nel procedurale, dove la lettura e' nell'hook della pagina e la resa nei figli, l'API che lega il motivo (testo di ui) alla lettura costringe a due chiamate.",
+    "fix": "Dichiarare la natura una volta in lib/ (es. NATURA = { ammesse: { solo: 'nosigc', motivo }, statiSostegno: ..., statiPagamento: ..., sottofasi: ... }, coi motivi spostati da ui/nonPertinenza.ts), chiamare letturaDelTipo una volta per lettura nella pagina e passare np e criteri ai figli; derivare SOLO_NO_SIGC dalla stessa tabella (id del link -> card). Unit test: per ogni card resa, lettura e link vengono dalla stessa voce."
+  },
+  {
+    "id": "H-07",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/DettaglioIntervento.tsx:117",
+    "titolo": "H-07 chiuso a meta': la sezione 'Rettifiche dell'intervento' decide ancora da se' (e in un altro ordine) fonte non attiva / nessuna / con rettifiche; le programmazioni restano in ui/",
+    "evidenza": "lib/rettifiche.ts (testoRettificato, conRigheDiRettifiche) e' ora la regola del riepilogo, del residuo per intervento e di 'Tutte le voci', ma RettificheIntervento ne tiene una copia (DettaglioIntervento.tsx:117-118: conRettifiche == null -> fonte non attiva; righe.length === 0 -> 'Nessuna rettifica'; altrimenti badge 'Con rettifiche' e tabella) che non guarda conRettifiche === false: con dati incoerenti (false e righe presenti) la sezione dice 'Con rettifiche' e 'Tutte le voci' della stessa pagina dice 'No'. Il contratto non dovrebbe produrre quel caso, ma la regola deve essere una sola. Il vocabolario delle programmazioni (PROGRAMMAZIONI: CSR nel netto, trascinamenti fuori, ui/rettifiche.tsx:20-23) e' dominio rimasto in ui/, come segnalava il fix di H-07.",
+    "fix": "In RettificheIntervento scegliere il ramo con conRigheDiRettifiche e prendere i testi senza righe da lib/rettifiche.ts; spostare PROGRAMMAZIONI e la sua etichetta in lib/rettifiche.ts."
+  },
+  {
+    "id": "H-08",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/SigcReport.tsx:62",
+    "titolo": "H-08 chiuso a meta': le card non pertinenti tengono il sottotitolo 'Clic su una barra: ...' anche se il corpo non e' attivabile",
+    "evidenza": "CardNonPertinente rende ora le voci omesse (CardGrafico.tsx:225) ma passa intatto il sottotitolo (riga 215). Nelle card di un solo tipo col filtro opposto il sottotitolo promette un'azione che il corpo ferma: pagina SIGC con ?sigc=false 'Clic su una barra: le domande nell'elenco operativo' (SigcReport.tsx:62: conLink e' vero perche' il link si calcola dalla lettura senza filtro) e 'Clic sul grafico: le domande SIGC nell'elenco operativo' (sottotitoloImporti, righe 92-93); panoramica del finanziario 'Clic su una barra: pagina SIGC' (Panoramica.tsx:189); procedurale con ?sigc=true 'Clic su una barra: la pagina degli stati.' (Panoramica.tsx:86) e 'Clic su una barra: la tabella per intervento resta...' (StatiDomande.tsx:107). Con la scelta a il corpo resta leggibile: chi segue l'istruzione clicca e non succede nulla.",
+    "fix": "Separare l'istruzione di clic dal sottotitolo con una prop del kit (es. istruzioneClic di CardGrafico) che CardNonPertinente omette: una regola sola; test del kit: una card non pertinente non dice 'Clic'."
+  },
+  {
+    "id": "H-09",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/anteprima/AnteprimaArea.tsx:106",
+    "titolo": "J-08 chiuso a meta' nelle card della Home (R09, R20): il valore pieno accessibile c'e' nel finanziario e nel fisico, non nel procedurale e nell'istituzionale; RigaConfronto del kit non lo prevede",
+    "evidenza": "La correzione ha dato formatoPieno alla card del finanziario (AnteprimaFinanziario.tsx:21); il fisico lo ha per gli ettari (AnteprimaFisico.tsx:30-31). Il contributo ammesso della card Procedurale resta importoBreve senza formatoPieno (AnteprimaProcedurale.tsx:28), e la spesa erogata della card Istituzionale a tabella (assorbita in questa review) e' importoBreve (istituzionale/lib/anteprima.ts:101) dentro ConfrontoArea, la cui riga ha solo `formato` (RigaConfronto, AnteprimaArea.tsx:106-110; resa in CellaDelConfronto, riga 158): il kit da' il pieno a NumeroArea ma non alla tabella a confronto. Lo chiedono i wireframe approvati (R20 Home: 'un solo stile dei numeri ... valore pieno accessibile', wireframes/procedurale/panoramica/panoramica.md:216-217, wireframes/istituzionale/verifica-smp-non-sigc/verifica-smp-non-sigc.md:319-320) e U4 ('in tutte le aree').",
+    "fix": "Aggiungere formatoPieno? a RigaConfronto con la resa di NumeroArea (compatto aria-hidden, pieno visually-hidden e nel title, solo se diversi); formatoPieno: formatEuro nella riga 'spesa' di RIGHE_CARD e nel NumeroArea del contributo del procedurale; test delle anteprime col valore pieno."
+  },
+  {
+    "id": "H-10",
+    "feature": "comune",
+    "severity": "COSMETICO",
+    "file": "src/features/elenco-operativo/lib/chip.ts:45",
+    "titolo": "H-16 non chiuso: codice morto e commenti residui del filtro SIGC, motivi delle card non pertinenti in moduli di ui",
+    "evidenza": "Invariato rispetto alla passata 1: BOOLEANI.sigc (chip.ts:45) e' codice morto (chipDeiCriteri salta sigc, riga 124); i commenti di ricercaDeiSoliFiltri ('I soli filtri del programma', src/entities/filtri/lib/programma.ts:77) e di FiltriReport ('I cinque filtri ripetibili di RF001', src/features/finanziario/api/index.ts:105) non dicono che portano sigc; MOTIVO_SOLO_SIGC e' esportato da un componente (SigcReport.tsx:29) e importato dalla Panoramica (Panoramica.tsx:23); i motivi del procedurale restano in ui/nonPertinenza.ts.",
+    "fix": "Come nella passata 1: togliere sigc da BOOLEANI, aggiornare i due commenti, spostare i motivi in lib/ delle due feature (vedi anche H-06 di questa passata)."
+  },
+  {
+    "id": "H-11",
+    "feature": "comune",
+    "severity": "COSMETICO",
+    "file": "src/shared/lib/sigc.ts:36",
+    "titolo": "J-04 residuo (scelta e): ricercaConSigc cancella ancora 'pagina', parametro dell'elenco, che ora scrive il SIGC coi suoi criteri; l'elenco riscrive a mano l'unione 'true' | 'false'",
+    "evidenza": "Valutazione della scelta e: corretta. L'elenco passa da useCriteri (applica: bozza scartata e incorporata, replace con lo state, conFiltro azzera la sua pagina) e le altre aree navigano col controllo come fanno i loro chip (push, nessuno state che valga oltre la firma dei filtri). Resta pero' nel kit il vocabolario della feature che H-01 della passata 1 chiedeva di togliere: p.delete('pagina') (sigc.ts:36) non serve piu' a nessuna pagina (le aree non guidate non hanno 'pagina' nell'indirizzo, azzerano la tabella con la key dei criteri), ma il test del kit lo prova ancora con '/prova?intervento=SRA01&pagina=2' (tests/kit-sigc.test.tsx:74-75) e il commento di ControlloSigc dice che riporta 'la tabella alla prima pagina' (ControlloSigc.tsx:3). In elenco sigcDeiCriteri, conSigc (elenco-operativo/lib/criteri.ts:194, 200) e onCambia (ui/useInterrogazione.ts:47) riscrivono 'true' | 'false' invece di ValoreSigc del kit (come H-14).",
+    "fix": "Togliere p.delete('pagina') con la parte del test e del commento; usare ValoreSigc nelle tre firme dell'elenco."
+  },
+  {
+    "id": "H-12",
+    "feature": "comune",
+    "severity": "COSMETICO",
+    "file": "src/features/fisico/ui/SuperficiAmmissibili.tsx:94",
+    "titolo": "Scelta h: la voce dell'area col filtro SIGC e' scritta in tre modi (due hook identici e un indirizzo composto a mano col nome del parametro)",
+    "evidenza": "useIngressoArea del fisico (ui/navigazione.ts:12-18) e dell'istituzionale (ui/navigazione.ts:16-22) sono identici (prima pagina visibile + '?' + ricercaDelSoloSigc); le superfici compongono `${PERCORSI.superfici}?sigc=${criteri.sigc}` col nome 'sigc' scritto a mano (SuperficiAmmissibili.tsx:94) invece di PARAMETRO_SIGC o ricercaDelSoloSigc; il menu usa ricercaDelSoloSigc (src/app/menu.tsx:23). La regola 'la voce dell'area porta solo il sigc' ha tre forme. Il comportamento della scelta h e' corretto.",
+    "fix": "Una funzione pura nel kit (es. conSoloSigc(percorso, ricerca) in shared/lib/sigc.ts) usata dal menu, dai due useIngressoArea e dalle superfici."
+  },
+  {
+    "id": "H-13",
+    "feature": "comune",
+    "severity": "COSMETICO",
+    "file": "src/shared/ui/tabella/TabellaServer.tsx:169",
+    "titolo": "J-11: la soglia 'oltre 6 colonne' della tabella larga (R12) e' ricopiata in TabellaServer e TabellaInterattiva",
+    "evidenza": "`visibili.length > 6 ? 'ui-tabella ui-tabella--larga' : 'ui-tabella'` sta identico in TabellaInterattiva.tsx:296 e, dalla correzione J-11, in TabellaServer.tsx:169: la regola U6/R12 ha due copie che possono divergere.",
+    "fix": "Una costante o funzione del kit (es. classeTabella(colonneVisibili) in shared/ui/tabella) usata dalle due tabelle."
+  }
+]

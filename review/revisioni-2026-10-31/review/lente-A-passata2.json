@@ -1,0 +1,56 @@
+[
+  {
+    "id": "A-01",
+    "feature": "istituzionale",
+    "severity": "MAGGIORE",
+    "file": "src/features/istituzionale/lib/verifica.ts:89",
+    "titolo": "J-05 chiuso a metà: il link della spesa erogata ha cambiato insieme, ma il nome accessibile dice ancora «le righe pagate non SIGC»",
+    "evidenza": "Con la scelta b elencoSpesa apre /elenco-operativo/pagamenti?esito=PAGATA&intervento=X senza sigc (collegamenti.ts:84-86): l'elenco mostra tutte le righe PAGATA dell'intervento, comprese quelle SIGC (OP-IS-09 aggiornato, uiplan elenco-spesa-riga ed elenco-spesa-intervento). TESTI_LINK.spesa però è rimasto {testo: 'Apri nei pagamenti', descrizione: \"le righe pagate non SIGC dell'intervento ${codice}\"} (verifica.ts:89), e ApriNellElenco ne fa l'aria-label «Apri nei pagamenti: apri nell'elenco operativo le righe pagate non SIGC dell'intervento X» (entities/domanda/ui/ApriNellElenco.tsx:16-18). Il link compare nella cella Spesa erogata di TabellaVerifica e nella voce della scheda non SIGC del dettaglio (CellaDato, istituzionale/ui/comuni.tsx:65-72). Per gli interventi con pagamenti SIGC il lettore di schermo annuncia un insieme diverso da quello che si apre (WCAG 2.4.4), lo stesso difetto che J-05 doveva togliere. A vista nessuna nota dice che il «Pagato» dell'elenco può superare la spesa non SIGC della cella: DEFINIZIONI_VERIFICA (formato.ts:74) dice solo «spesa erogata = righe pagate non SIGC», e la spiegazione sta solo in OP-IS-09, che l'utente non vede. Il test istituzionale-lib.test.ts:302 fissa il testo vecchio, quindi il gate resta verde.",
+    "fix": "Descrizione allineata all'insieme aperto (es. «le righe pagate dell'intervento X, SIGC comprese»), una frase visibile accanto alla tabella o nelle definizioni (il link apre tutte le righe pagate: per gli interventi con pagamenti SIGC il totale dell'elenco supera la spesa non SIGC) e test aggiornato in istituzionale-lib.test.ts:302."
+  },
+  {
+    "id": "A-02",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/card/NonPertinente.tsx:43",
+    "titolo": "Scelta a: il corpo non pertinente si ferma solo su clic primario, Tab, Invio e spazio; i link portano ancora altrove e i campi nativi restano utilizzabili",
+    "evidenza": "disattiva mette soltanto tabindex=-1 e aria-disabled=true (NonPertinente.tsx:46-51), e CorpoNonPertinente ferma click, mousedown e keydown di Invio e spazio (righe 77-81). (1) I link restano <a href> (ApriNellElenco è un Link di react-router, ApriNellElenco.tsx:18): nel corpo stanno quelli delle voci SIGC (SigcReport.tsx:78 e 142), le celle «Apri nell'elenco» e «Apri nei pagamenti» di TabellaVerifica e i link per intervento delle tabelle del procedurale. Il clic centrale non genera click: apre la scheda con auxclick, che nessuno ferma, e lo stesso fanno «Apri link in nuova scheda» del menu contestuale e il trascinamento. Il link naviga anche se è in grigio e dichiarato disattivato. (2) aria-disabled non disattiva un controllo nativo. Il campo «Cerca nella tabella» di TabellaInterattiva (TabellaInterattiva.tsx:175) sta nel corpo delle Sezioni non pertinenti (TabellaStatiInterventi, TabellaAmmesse, TabellaVerifica, TabellaVerificaSigc, vista Tabella delle superfici). Un lettore di schermo in modalità focus (NVDA, JAWS) ci porta il focus, perché tabindex=-1 non lo impedisce, e i caratteri digitati arrivano a onChange, che non è fermato: la tabella «non attivabile» si filtra. (3) onMouseDownCapture con preventDefault su tutto il corpo impedisce anche di selezionare e copiare col mouse il testo delle card, che la scelta a vuole leggibili. Il MutationObserver guarda solo childList: un tabindex o un href rimesso da React su un nodo esistente non viene ripreso.",
+    "fix": "Nel corpo non pertinente: controlli nativi (button, input, select, textarea) con l'attributo disabled al posto del solo aria-disabled; i link resi senza href (ApriNellElenco e i Link del kit leggono il contesto e rendono testo, oppure href tolto e rimesso col contesto); il mousedown fermato solo sui controlli (o con closest(ATTIVABILI)) per lasciare la selezione del testo; il MutationObserver anche su attributes con attributeFilter ['tabindex','href','disabled']. Test: nessun a[href] e nessun input abilitato nel corpo."
+  },
+  {
+    "id": "A-03",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "tests/kit-sigc.test.tsx:171",
+    "titolo": "Il test «leggibili ma non attivabili» prova Invio su un bottone, dove jsdom non lo trasforma mai in clic, e non prova i controlli montati dopo",
+    "evidenza": "fireEvent.keyDown(bottone, { key: 'Enter' }) seguito da expect(riga).not.toHaveBeenCalled() (kit-sigc.test.tsx:171-172) passa anche senza onKeyDownCapture: in jsdom un keydown non attiva il bottone, e il gestore onClick si chiama solo col click. Il percorso da tastiera che la cattura protegge davvero non è provato: la riga apribile di TabellaInterattiva, con tabIndex 0 e onKeyDown su Invio e spazio (TabellaInterattiva.tsx:96-100), dentro una Sezione non pertinente. Non è provata nemmeno la promessa della scelta a «anche quelli montati dopo (MutationObserver)»: in kit-sigc e nei test delle pagine (procedurale/panoramica/page.test.tsx:253, finanziario/sigc/page.test.tsx:140) il corpo e i figli si montano nello stesso commit.",
+    "fix": "Sostituire l'asserzione con una riga di TabellaInterattiva (onRiga) dentro <NonPertinente><Sezione>: keyDown Invio e spazio sulla riga senza chiamare onRiga. Aggiungere un test che rerenderizza il corpo con un bottone o un link nuovo e verifica tabindex=-1 e aria-disabled dopo il MutationObserver (waitFor)."
+  },
+  {
+    "id": "A-04",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/stati/StatiVista.tsx:134",
+    "titolo": "X-10 chiuso a metà: l'errore di una lettura non pertinente non dice il motivo, e il vuoto lo dice solo dove VistaQuery sta dentro <NonPertinente>",
+    "evidenza": "ConMotivoSeNonPertinente avvolge solo il ramo vuoto (StatiVista.tsx:139-143). L'errore senza dati (RamoSenzaDati, riga 134) resta ErroreNellaPagina o ErroreVista, senza badge né motivo, anche se il commit b7c12c8 dice «vuoto ed errore». Il motivo, poi, lo legge solo un VistaQuery dentro il provider (SigcReport e Panoramica del finanziario, Panoramica del procedurale). Nelle altre pagine il vuoto si rende fuori da <NonPertinente>, che avvolge solo i figli con dati: procedurale StatiDomande.tsx:163-166 e DomandeAmmesse.tsx:57-59, fisico SuperficiAmmissibili.tsx:63-66, istituzionale (PaginaReportProgramma.tsx:84, il vuoto di CorpoReport fuori dal NonPertinente di VerificaSmpSigc.tsx:104 e VerificaSmpNonSigc.tsx:59). Caso concreto: /procedurale/stati-sostegno?sigc=true&intervento=<un intervento SIGC> si legge senza sigc e non ha domande con stati di soli NO SIGC. La pagina dice «Nessuna domanda ... per i filtri scelti», col «Modifica i filtri» attivo e senza dire che è non pertinente. Lo stesso succede alle superfici con ?sigc=false&intervento=<un intervento NO SIGC>. Nessun test copre questi casi.",
+    "fix": "Mettere <NonPertinente np> fuori da VistaQuery (o dare a PaginaReportProgramma/CorpoReport la non pertinenza) in StatiDomande, DomandeAmmesse, Sottofasi, SuperficiAmmissibili e nelle due verifiche; avvolgere anche RamoSenzaDati in ConMotivoSeNonPertinente; test di una pagina non pertinente con lettura vuota e con errore."
+  },
+  {
+    "id": "A-05",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/tema.css:254",
+    "titolo": "Prima colonna ferma (R12, J-10, J-11) senza scroll-padding orizzontale: un link di cella può prendere il focus sotto la colonna ferma (WCAG 2.4.11)",
+    "evidenza": "Nelle tabelle larghe la prima cella di ogni riga è sticky a left 0 con lo sfondo pieno (tema.css:254-255), sopra le celle che scorrono. Il contenitore ha solo scroll-padding-top per la testata ferma (tema.css:238-239), nessuno scroll-padding-left. Il browser porta il focus in vista ignorando gli elementi sticky. Un link in una colonna dopo la prima (le celle «Apri nell'elenco» e «Pagamenti lordi» del riepilogo del finanziario, RiepilogoReport.tsx:84 e 95; «Apri nell'elenco» e «Apri nei pagamenti» di TabellaVerifica, con i 21 dati) che sta già nell'area visibile ma sotto la colonna ferma non viene scrollato: dopo un Tab verso una colonna a destra il contenitore è scorso, e il link della riga seguente prende il focus coperto. Con Shift+Tab, e con l'allineamento al bordo (Firefox), un link a sinistra arriva proprio sotto la colonna ferma. È la stessa classe di difetto che la barra dei filtri ha corretto con scroll-padding-top (A-11).",
+    "fix": "Larghezza massima della prima colonna nelle tabelle larghe (es. 14rem) e .ui-tabella-contenitore:has(.ui-tabella--larga) { scroll-padding-left: 14rem } (o la larghezza misurata con un ResizeObserver in una variabile CSS, come per la barra); verifica manuale a 390 e 1100 px tabulando nel riepilogo e nella verifica SMP."
+  },
+  {
+    "id": "A-06",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/grafici/CardGrafico.tsx:215",
+    "titolo": "Le card non pertinenti tengono i sottotitoli che invitano al clic, anche se clic e vista Tabella sono tolti",
+    "evidenza": "CardNonPertinente passa a TestaCard il sottotitolo del chiamante così com'è (CardGrafico.tsx:215), ma non ha onClic, interruttore né Scarica, e il corpo ferma i clic. Esempi: finanziario Panoramica.tsx:189 «Clic su una barra: pagina SIGC»; SigcReport.tsx:62 «Clic su una barra: le domande nell'elenco operativo», con conLink calcolato senza guardare np; procedurale Panoramica.tsx:86 «Clic su una barra: la pagina degli stati»; CardAmmesse.tsx:32 e 62 «trascina il cursore ... clic su una barra per il dettaglio» e «la vista Tabella apre le domande nell'elenco operativo». Col filtro opposto la card dice di fare cose che non funzionano (il clic va a vuoto in silenzio), mentre il wireframe vuole il corpo «non interattivo» e il motivo dice solo che il filtro non si applica.",
+    "fix": "Nella resa non pertinente togliere dal sottotitolo le istruzioni d'interazione: un prop sottotitoloNonPertinente, oppure i chiamanti che compongono il sottotitolo con np (come conLink); test di una card non pertinente senza «Clic» nel sottotitolo."
+  }
+]

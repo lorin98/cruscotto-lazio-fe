@@ -1,0 +1,47 @@
+[
+  {
+    "id": "V2-01",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/features/procedurale/ui/StatiDomande.tsx:163",
+    "titolo": "X-10 non chiuso: il vuoto di una lettura non pertinente non dice il motivo e lascia 'Modifica i filtri' attivo in stati, ammesse, superfici e verifiche SMP",
+    "evidenza": "La correzione mette il vuoto di VistaQuery in ConMotivoSeNonPertinente (src/shared/ui/stati/StatiVista.tsx:139-142), che legge useNonPertinenza(). Ma in quasi tutte le pagine di un solo tipo <NonPertinente> sta DENTRO la funzione dei figli di VistaQuery, quindi il vuoto e' reso fuori dal provider e il contesto e' null: StatiDomande.tsx:163-169 (stati di sostegno e di pagamento, citata in X-10), DomandeAmmesse.tsx:57-63, SuperficiAmmissibili.tsx:63-68 (citata in X-10) e PaginaReportProgramma.tsx:68 (le due verifiche SMP dell'istituzionale: VerificaSmpNonSigc.tsx e VerificaSmpSigc.tsx avvolgono solo il report). In piu' NessunaSuperficie (ReportSuperfici.tsx:91-103) sta dentro il provider ma non passa da ConMotivoSeNonPertinente ne' da una Sezione. Casi concreti: /procedurale/stati-sostegno?intervento=SRA01&sigc=true (intervento SIGC: la lettura senza sigc non ha domande di sostegno), /fisico/superfici?intervento=SRD01&sigc=false, /istituzionale/verifica-smp-sigc?esercizio=<anno senza dati>&sigc=false: nessun badge 'Non pertinente al filtro ...', nessun motivo, 'Modifica i filtri' attivo e il testo 'per i filtri scelti' (testoVuoto, conFiltri vero col solo sigc) per una lettura che il filtro non l'ha usata. La correzione funziona solo nella panoramica del procedurale, dove <NonPertinente> avvolge la VistaQuery. Nessun test copre il vuoto di una pagina non pertinente.",
+    "fix": "Avvolgere in <NonPertinente np={np}> la VistaQuery intera (non solo i figli) in StatiDomande, DomandeAmmesse e CorpoSuperfici; dare a PaginaReportProgramma (e ai PaginaReport di fisico e istituzionale) una prop np che avvolga CorpoReport; in NessunaSuperficie usare ConMotivoSeNonPertinente. Un test per area: pagina non pertinente con lettura vuota -> badge e motivo presenti, 'Modifica i filtri' con aria-disabled."
+  },
+  {
+    "id": "V2-02",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/card/NonPertinente.tsx:46",
+    "titolo": "Scelta a: senza inert i link del corpo non pertinente restano apribili col clic centrale e col menu contestuale",
+    "evidenza": "La scelta a (non approvata) toglie inert e rende il corpo 'non attivabile' con tabindex=-1, aria-disabled (disattiva, righe 46-51) e onClickCapture/onMouseDownCapture/onKeyDownCapture (righe 77-81). Gli <a> restano pero' con il loro href: il clic centrale genera auxclick, non click (nessun gestore la ferma; preventDefault sul mousedown blocca solo l'autoscroll), e il menu contestuale offre 'Apri link in una nuova scheda'. I corpi non pertinenti contengono link veri verso l'elenco: celle 'Apri nell'elenco'/'Apri nei pagamenti' di TabellaVerifica (istituzionale con SIGC), link per stato di TabellaStatiInterventi e celle di TabellaAmmesse (procedurale con SIGC). Col vecchio inert nessuno di questi percorsi raggiungeva il link; il brief chiede 'nessun link, clic, drawer o download raggiungibile'. Secondario: l'osservatore guarda solo childList (riga 70), quindi un tabindex o un href riscritti da React su un nodo gia' montato (cambio di prop) tornano attivi senza che disattiva riparta.",
+    "fix": "In disattiva togliere anche l'href dei link (es. spostarlo in data-href: il corpo esiste solo con np, il rimontaggio lo ripristina) e aggiungere onAuxClickCapture={ferma}; osservare anche gli attributi (attributes: true, attributeFilter: ['href', 'tabindex', 'aria-disabled']). Nel test di kit-sigc verificare che dentro il corpo non resti nessun a[href]."
+  },
+  {
+    "id": "V2-03",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/tabella/TabellaInterattiva.tsx:176",
+    "titolo": "Nei corpi non pertinenti Scarica, ricerca, scelta delle colonne e interruttore Grafico | Tabella restano a vista, disattivati e con l'aspetto di un download in corso",
+    "evidenza": "La regola comune dei wireframe approvati dice 'corpo in grigio, non interattivo, senza interruttore Grafico/Tabella e senza Scarica' (es. wireframes/procedurale/stati/stati.md:130, istituzionale verifica-smp-non-sigc.html:69 'niente Scarica'). TestaCard e CardGrafico tolgono i propri strumenti con np, ma i controlli annidati no: la barra di TabellaInterattiva rende ricerca, {strumenti} (PulsantiScarica) e SceltaColonne (righe 175-177) in TabellaAmmesse.tsx:76, TabellaStatiInterventi.tsx:75, TabellaVerifica.tsx:53, TabellaVerificaSigc.tsx:59 e TabellaSuperfici.tsx:106; nelle superfici l'InterruttoreVista di pagina sta nella Sezione (ReportSuperfici.tsx:114). Con la scelta a questi controlli prendono aria-disabled=true, e tema.css:180 da' a .ui-scarica__pulsante[aria-disabled='true'] opacita' .55 e cursor: progress, cioe' l'aspetto del file 'in preparazione' di PulsantiScarica (src/shared/ui/scarica/PulsantiScarica.tsx:68). Chi guarda vede 'Scarica CSV/XLSX' che sembrano in corso e non partono mai; chi usa un lettore di schermo li trova come pulsanti non disponibili.",
+    "fix": "Far leggere useNonPertinenza() a TabellaInterattiva (niente strumenti del chiamante, ricerca e scelta colonne con np), a PulsantiScarica (niente pulsanti) e a InterruttoreVista (niente interruttore), come gia' fanno TestaCard e CardGrafico; in alternativa una regola CSS che nasconda .ui-scarica e gli interruttori dentro .ui-non-pertinente__corpo. Estendere il test della Sezione in kit-sigc con una TabellaInterattiva con strumenti: nessun 'Scarica' nell'albero."
+  },
+  {
+    "id": "V2-04",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/lib/verifica.ts:89",
+    "titolo": "J-05 chiuso a meta': il link 'Apri nei pagamenti' apre tutte le righe PAGATA dell'intervento ma il suo nome dice ancora 'righe pagate non SIGC'",
+    "evidenza": "La scelta b toglie sigc=false da elencoSpesa (collegamenti.ts:84-86: esito=PAGATA&intervento=X, SIGC comprese, come dice ora OP-IS-09), ma TESTI_LINK.spesa da' ancora la descrizione `le righe pagate non SIGC dell'intervento ${codice}` e ApriNellElenco ne fa il nome accessibile ('Apri nei pagamenti: apri nell'elenco operativo le righe pagate non SIGC dell'intervento SRD01', entities/domanda/ui/ApriNellElenco.tsx:16). Per un intervento con pagamenti SIGC l'elenco mostra piu' righe e un totale diverso dalla cella cliccata, e niente lo dice (WCAG 2.4.4: lo scopo del link e' dichiarato falso); tests/istituzionale-lib.test.ts:302 e tests/kit-comune-istituzionale.test.tsx:108 fissano il testo vecchio. Inoltre i wireframe approvati dicono ancora 'esito=PAGATA, sigc=false' (wireframes/istituzionale/verifica-smp-non-sigc/verifica-smp-non-sigc.md:156, intervento/intervento.md:106): la scelta b e' l'unica possibile senza un parametro nuovo del backend, ma e' uno scostamento dal wireframe approvato non ancora sottoposto all'utente.",
+    "fix": "Cambiare la descrizione in 'le righe pagate dell'intervento X, comprese quelle SIGC' (o una nota visibile accanto al link) e aggiornare i due test; registrare lo scostamento dei link elenco-spesa-* rispetto ai wireframe approvati nel resoconto dello step9 perche' l'utente lo approvi (o chieda a green-be il parametro per il predicato SIGC del pagamento)."
+  },
+  {
+    "id": "V2-05",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/features/procedurale/ui/AnteprimaProcedurale.tsx:28",
+    "titolo": "J-08 chiuso solo nella card finanziaria della Home: procedurale e istituzionale restano compatti senza il valore pieno",
+    "evidenza": "La correzione di J-08 (cea894e) da' alla card Finanziario della Home formatoPieno={formatEuro} ('R09/R20: il compatto nella card, il valore pieno per i lettori di schermo', AnteprimaFinanziario.tsx:21), come chiedeva H-04 confluito in J-08. Le altre card con importi no: il Contributo ammesso del Procedurale usa formato={importoBreve} senza formatoPieno (AnteprimaProcedurale.tsx:28, '12,3 M€' senza title ne' testo nascosto) e la Spesa pubblica erogata della tabella dell'Istituzionale idem (src/features/istituzionale/lib/anteprima.ts:101). Il wireframe approvato della card (wireframes/procedurale/panoramica/home.html:76, R20) vuole 'un solo stile per i numeri delle quattro card' e U4/R09 il valore pieno accessibile 'in tutte le aree': dopo la correzione le quattro card si comportano in due modi diversi per i lettori di schermo.",
+    "fix": "Passare formatoPieno={formatEuro} al NumeroArea del contributo in AnteprimaProcedurale e dare alla riga 'spesa' della tabella dell'Istituzionale il valore pieno (title e testo visually-hidden, come NumeroArea); un test della card per area come quello del finanziario."
+  }
+]

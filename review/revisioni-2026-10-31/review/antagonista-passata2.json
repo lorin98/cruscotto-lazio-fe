@@ -1,0 +1,128 @@
+[
+  {
+    "id": "X-01",
+    "feature": "istituzionale",
+    "severity": "MAGGIORE",
+    "file": "src/features/istituzionale/lib/verifica.ts:89",
+    "titolo": "J-05 chiuso a meta': il link della spesa erogata apre tutte le righe PAGATA dell'intervento ma il suo nome dice ancora 'le righe pagate non SIGC'",
+    "evidenza": "d0e7a91 toglie sigc da elencoSpesa (collegamenti.ts:84) ma TESTI_LINK.spesa (verifica.ts:89) resta 'le righe pagate non SIGC dell'intervento X': il nome accessibile del link e' 'Apri nei pagamenti: apri nell'elenco operativo le righe pagate non SIGC dell'intervento SRD01' (tests/kit-comune-istituzionale.test.tsx:108, tests/istituzionale-lib.test.ts:302 lo fissano). L'elenco ora mostra anche le righe SIGC: per un intervento SIGC con spesa non SIGC > 0 (trascinamenti PSR in elenchi SIGC, generatore canali/pagamenti.py:195) la cella vale la piccola spesa non SIGC e il link apre i pagamenti SIGC dell'intervento. La regola scritta poco sotto (verifica.ts:92-95: 'mai un insieme piu' largo di quello che il nome del link dichiara') e' violata dal link stesso. L'incoerenza e' detta solo nell'uiplan (OP-IS-09), non all'utente. In piu' i wireframe approvati il 01/11 dicono ancora sigc=false (wireframes/istituzionale/intervento/intervento.md:106, verifica-smp-non-sigc/verifica-smp-non-sigc.md:156): il codice ora diverge dal wireframe approvato su una scelta (punto b del brief) non approvata.",
+    "fix": "Mostrare 'Apri nei pagamenti' solo per gli interventi classificati NO_SIGC (tipoIntervento dai valori dei filtri gia' letti): li' tutte le righe PAGATA coincidono con la spesa non SIGC; per gli interventi SIGC o non classificati nessun link (fail-closed), finche' green-be non da' un parametro per il predicato SIGC del pagamento. In ogni caso togliere 'non SIGC' dal nome se il link resta largo ('le righe pagate dell'intervento X, SIGC comprese'). Aggiornare i due wireframe con la scelta approvata dall'utente e i test che fissano il nome."
+  },
+  {
+    "id": "X-02",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/link-elenco.ts:6",
+    "titolo": "Il ragionamento di J-05 vale anche per i link SIGC del finanziario: sigc=true dell'elenco e' per intervento, TX-0012 conta le domande con presenza SIGC",
+    "evidenza": "Il commento aggiunto nel delta (link-elenco.ts:5-6) dice che l'elenco legge sigc 'con lo stesso significato (per intervento, D-12 Rev.) e mostra lo stesso insieme del dato'. Vale per i filtri correnti, non per elenco-sigc, elenco-sigc-importi ed elenco-sigc-intervento (righe 85, 92, 93), dove sigc=true sta per la domanda SIGC: il backend conta TX-0012/TX-0013 con domandeCorrentiNelPerimetro(...).and(sigc()) (PostgresReportFinanziarioAdapter.java:316, presenza ASR2-08/20 della domanda), mentre l'elenco filtra perimetroIntervento (PostgresElencoOperativoAdapter.java:531-532). Con 'Tutti' le domande SIGC di un intervento NO_SIGC o non classificato entrano nel numero e non nell'elenco; le domande non SIGC di un intervento SIGC (trascinamenti PSR) entrano nell'elenco e non nel numero. Nel dettaglio (DettaglioIntervento.tsx:209 e 229) la card 'Domande SIGC' compare per ogni intervento con presentate > 0 e il link sigc=true&intervento=X apre un elenco vuoto se X non e' classificato SIGC. Lo scenario SC-EO_DRILLDOWN del backend non copre il caso (fixture con A tutto SIGC e D tutto NO SIGC, ElencoOperativoPgTest.java:163-165); X-16 della passata 1 (accettato) da' per possibili domande a presenza SIGC in interventi NO SIGC.",
+    "fix": "Nel dettaglio mostrare i link SIGC solo se tipoIntervento(codice) === 'SIGC' (gia' letto per la pill). Nei report dichiarare il limite nel commento e in un open point come OP-IS-09 (coincidenza solo se presenza SIGC e classificazione dell'intervento coincidono), e chiedere a green-be uno scenario SC-EO_DRILLDOWN con una domanda a presenza SIGC in un intervento NO_SIGC."
+  },
+  {
+    "id": "X-03",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/features/fisico/ui/SuperficiAmmissibili.tsx:63",
+    "titolo": "X-10 non chiuso fuori dal finanziario: il vuoto delle pagine non pertinenti sta fuori da <NonPertinente> e resta senza motivo, con 'Modifica i filtri' attivo",
+    "evidenza": "La correzione (ConMotivoSeNonPertinente in VistaQuery, StatiVista.tsx:140) funziona solo se VistaQuery sta dentro il provider. Nelle superfici (SuperficiAmmissibili.tsx:63-66), negli stati (procedurale StatiDomande.tsx:163-165), nelle ammesse (DomandeAmmesse.tsx:57-59) e nelle due verifiche SMP (VistaQuery in entities/filtri/ui/PaginaReportProgramma.tsx:68, NonPertinente dentro i children: VerificaSmpSigc.tsx:104, VerificaSmpNonSigc.tsx:59) e' il contrario: <NonPertinente> e' dentro i children di VistaQuery. Caso di V1-05: /fisico/superfici?intervento=SRD01&sigc=false legge senza filtro, la risposta e' vuota e la pagina dice 'Nessun intervento per i filtri scelti.' con 'Modifica i filtri' attivo e nessun badge; idem la verifica SMP SIGC con un intervento NO SIGC e il filtro NO SIGC. Il ramo d'errore senza dati (RamoSenzaDati, StatiVista.tsx:133) non passa mai da ConMotivoSeNonPertinente, quindi l'errore resta quello di una card normale anche nel finanziario. Nessun test copre il vuoto di queste pagine non pertinenti.",
+    "fix": "Spostare <NonPertinente np={np}> intorno a VistaQuery (o passare np a PaginaReportProgramma che avvolga la sua VistaQuery), come in SigcReport.tsx:153 e nella panoramica del procedurale; avvolgere anche il ramo d'errore. Test: superfici con ?intervento=SRD01&sigc=false e risposta vuota (badge e motivo, nessun bottone attivabile)."
+  },
+  {
+    "id": "X-04",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/grafici/CardGrafico.tsx:225",
+    "titolo": "H-08 non chiuso: le voci omesse della card non pertinente sono in un <details> che il corpo non attivabile non lascia aprire",
+    "evidenza": "La correzione mette <VociOmesse> dentro CorpoNonPertinente (CardGrafico.tsx:225). VociOmesse e' un <details> chiuso con <summary> (CardGrafico.tsx:50-60): 'summary' e' in ATTIVABILI (NonPertinente.tsx:43), prende tabindex=-1 e aria-disabled, e onClickCapture/onKeyDownCapture fanno preventDefault, che annulla il comportamento di attivazione del summary. Il <details> resta chiuso per sempre: a vista si legge solo 'N voci non nel grafico', e il contenuto di un details chiuso non e' esposto agli strumenti assistivi. Le avvertenze che H-08 voleva recuperare (pagato oltre l'ammesso della R13 B, somme parziali, interventi 'senza superfici' del wireframe superfici.md:59, movimenti senza data della riserva) restano illeggibili proprio nello stato non pertinente. I test passano perche' jsdom trova il testo anche nei details chiusi (getByText/textContent).",
+    "fix": "Nella card non pertinente rendere le voci omesse come elenco statico (senza details) o con <details open>, oppure fuori dal corpo non attivabile; escludere 'summary' dai controlli disattivati se si vuole tenere il details. Test con toBeVisible sul testo di una voce omessa dentro una card non pertinente."
+  },
+  {
+    "id": "X-05",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/card/NonPertinente.tsx:43",
+    "titolo": "Scelta a: il corpo 'leggibile' disattiva anche i riquadri scorrevoli e la paginazione, quindi le tabelle non pertinenti non si scorrono da tastiera e oltre la 25a riga non si leggono",
+    "evidenza": "ATTIVABILI comprende [tabindex]: il contenitore delle tabelle semplici (role=region, tabIndex=0, TabelleSemplici.tsx:19) e le righe apribili di TabellaInterattiva (TabellaInterattiva.tsx:98) passano a tabindex=-1. Il contenitore di TabellaInterattiva (TabellaInterattiva.tsx:294) non ha tabindex e scorre (tema.css:238: overflow auto, max-height max(320px, 100dvh - 7rem); R12: 25 righe, colonne larghe con la prima ferma): senza nessun discendente tabulabile chi usa la tastiera non puo' scorrere ne' in verticale ne' in orizzontale. Nel browser axe segnalerebbe scrollable-region-focusable (focusableElementEvaluate usa _isInTabOrder, node_modules/axe-core/axe.js:26430), ma in jsdom non c'e' layout e il gate non lo vede. In piu' la paginazione e' disattivata: nelle pagine intere non pertinenti (stati, ammesse e sottofasi del procedurale col SIGC; superfici e verifiche SMP col filtro opposto) chi vede e chi usa un lettore di schermo legge solo le prime 25 righe del 'dato reale' promesso leggibile.",
+    "fix": "In disattiva non toccare i contenitori scorrevoli (es. escludere '.ui-tabella-contenitore' e role=region senza azione) e dare tabIndex=0 al contenitore di TabellaInterattiva/TabellaServer quando e' dentro un corpo non pertinente; decidere con l'utente se la paginazione resta usabile (non cambia il dato) o se la tabella non pertinente mostra tutte le righe. Test: dentro una Sezione non pertinente il contenitore della tabella e' nella tabulazione."
+  },
+  {
+    "id": "X-06",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici/riserva.ts:59",
+    "titolo": "V1-09 chiuso a meta': la soglia che ripiega sull'accumulato si chiama ancora 'Riserva del 5%', mentre il riquadro sopra dice 'Non calcolabile'",
+    "evidenza": "Senza montante o quota il riquadro R17 dice 'Non calcolabile: manca il montante o la quota' (RiservaReport.tsx:64), ma il grafico della stessa pagina usa valoreRiserva (riserva.ts:26, ripiego sull'importoAccumulato) e lo etichetta 'Riserva del 5% X' nella linea (grafici/riserva.ts:59), nella didascalia della tabella ('riserva del 5%: X', riga 83), nella descrizione aria e nel testo di lettura (letturaUtilizzoRiserva, riga 111-114). Il commento dice 'dichiarato' ma nessun omesso o testo dice che la soglia e' l'accumulato; il test lo fissa ('senza quota: la soglia e la riserva accumulata', tests/finanziario-grafici.test.ts:1196-1198 con la caption 'riserva del 5%: 5.000.000,00 €'). L'utente legge sulla stessa pagina 'non calcolabile' e un valore.",
+    "fix": "Una regola sola: o il riquadro mostra anche lui l'accumulato (per il backend accumulato = 5% del montante, CalcoloRiserva.java) con la nota 'dalla riserva accumulata', o la soglia di ripiego si chiama 'Riserva accumulata' in linea, didascalia, aria e lettura, con un omesso che lo dice. Aggiornare il test."
+  },
+  {
+    "id": "X-07",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/riserva.ts:45",
+    "titolo": "X-03 chiuso con una nota sbagliata: il residuo disponibile non e' 'quanto resta dopo l'utilizzo'",
+    "evidenza": "La nota chiarita dice 'Il residuo disponibile qui sotto può essere minore: è quanto resta dopo l'utilizzo della riserva'. Per il backend il residuo e' tutto o niente: 2% del montante se l'utilizzato e' minore del congelato, altrimenti zero (CalcoloRiserva.java: residuo = usato < accumulato ? montante x 0,02 : 0; D-04 Rev. 2), come il pack (RF014: 'Qualora la riserva congelata non venga utilizzata completamente entro il 31/12/anno n+1...'). Il KPI sotto e' uguale al riquadro o zero, mai una differenza 'congelato - utilizzato' come suggerisce la nota. Il test controlla solo l'inizio della frase (tests/finanziario-lib.test.ts:457).",
+    "fix": "Scrivere la regola vera: 'Il residuo disponibile qui sotto vale questo importo se la riserva congelata non è utilizzata completamente entro il 31/12/n+1, altrimenti zero'; test sul testo intero."
+  },
+  {
+    "id": "X-08",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "tests/finanziario-grafici.test.ts:1188",
+    "titolo": "J-07 chiuso senza test: ne' l'asse che copre le fasi ne' la registrazione di MarkAreaComponent sono verificati",
+    "evidenza": "La correzione (xAxis.min/max in grafici/riserva.ts:103, MarkAreaComponent in shared/ui/grafici/echarts.ts) non ha asserzioni: il test 'fasi dell anno sullo sfondo' conta ancora markArea.data = 3 (riga 1188), la stessa cosa che passava quando le fasce non si disegnavano (X-04 della passata 1: 'il test non prova cio' che dichiara'); i test sostituiscono ECharts (src/shared/test/setup.ts:10), quindi una regressione sulla registrazione non si vede. La fixture usa movimenti di utilizzo del 15/01 e 01/03/2025 per l'anno 2024, cioe' nella fascia di accumulo, fuori dalla finestra di utilizzo che il backend conta.",
+    "fix": "Asserire xAxis.min = '2024-10-01' e max = '2026-12-31' e che le tre fasce stiano dentro; un test sul modulo echarts che verifichi la registrazione (o un render SSR reale con il nome di una fascia nell'SVG); movimenti della fixture nella finestra di utilizzo."
+  },
+  {
+    "id": "X-09",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/lib/grafici/primitive.ts:12",
+    "titolo": "Scelta d: soglia 40 per tutte le barre verticali contro i wireframe approvati che dicono 'zoom oltre 12' e senza la verifica a 390 px",
+    "evidenza": "MAX_BARRE_VISIBILI = 40 vale per ogni barreRaggruppate verticale (forme.ts:130: interval 0, hideOverlap false, rotate 45). Le tabelle dei grafici di otto wireframe approvati il 01/11 dicono ancora 'zoom oltre 12': procedurale ammesse.md:29-30, panoramica.md:55, riepilogo.md:29; istituzionale verifica-smp-non-sigc.md:148, verifica-smp-sigc.md:139; fisico superfici.md:59; elenco domande.md:52. U1 chiede la verifica a 1680, 1100 e 390 px: a 390 px un grafico di 30-36 interventi (dotazione, ammesse e importi del procedurale, spesa della verifica non SIGC) ha circa 8 px per categoria, e le etichette a 45 gradi con hideOverlap false si sovrappongono; nessuna verifica e' registrata (review/revisioni-2026-10-31/step2-7.md non la cita).",
+    "fix": "Soglia legata alla larghezza disponibile (es. una categoria ogni 18-20 px del piano, zoom oltre) oppure 40 solo dove il wireframe dice 'tutte le etichette'; registrare le prove a 390 e 1100 px e far approvare all'utente l'aggiornamento delle righe 'zoom oltre 12' dei wireframe."
+  },
+  {
+    "id": "X-10",
+    "feature": "procedurale",
+    "severity": "MINORE",
+    "file": "src/pages/procedurale/panoramica/page.test.tsx:253",
+    "titolo": "J-12: il controllo 'nelle card non pertinenti nessun controllo nella tabulazione' passa per costruzione",
+    "evidenza": "La card 'Domande di sostegno per stato' della panoramica e' una CardStati senza link ne' onFiltra (Panoramica.tsx StatiPanoramica, CardDistribuzioni.tsx:67: tabella undefined); da non pertinente CardNonPertinente rende grafico finto, TabellaDati nascosta (nessun a o button) e voci omesse. querySelectorAll('.ui-non-pertinente__corpo a[href], .ui-non-pertinente__corpo button') e' vuoto e every() su un array vuoto e' true: l'asserzione non prova nulla, come H-13 della passata 1.",
+    "fix": "Asserire prima che gli elementi ci siano (length > 0), cercando '[tabindex]' (il contenitore della tabella dei dati) o una card non pertinente che abbia davvero comandi (le tessere KPI delle ammesse con 'Apri nell'elenco' tolto, la tabella delle ammesse)."
+  },
+  {
+    "id": "X-11",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/api/mock/esempio.ts:137",
+    "titolo": "A-10 chiuso a meta': i mock MSW di fisico, procedurale e istituzionale ignorano ancora sigc",
+    "evidenza": "db5d002 allinea solo il mock dell'elenco (INTERVENTI_SIGC). I handler di fisico (src/features/fisico/api/mock/esempio.ts:105 e seguenti), procedurale e istituzionale (rispostaVerifica, esempio.ts:125 e 137) non leggono sigc: nella demo MSW il controllo SIGC di quelle aree non cambia i numeri, mentre il backend col valore opposto risponde zero righe (REV-D1). Il mock della verifica SMP SIGC (esempio.ts:115) mette SRA16 e SRD01, NO SIGC per F1, fra le righe di TX-0015 (solo SIGC). A-10 chiedeva di allineare tutti gli handler.",
+    "fix": "Come A-10: sigc per intervento (stesso insieme INTERVENTI_SIGC, magari in un modulo di testing comune) negli handler di fisico, procedurale e istituzionale; righe di TX-0015 dei soli interventi SIGC."
+  },
+  {
+    "id": "X-12",
+    "feature": "procedurale",
+    "severity": "COSMETICO",
+    "file": "src/features/procedurale/ui/StatiDomande.tsx:156",
+    "titolo": "H-06 chiuso a meta' nel procedurale: resa e lettura vengono ancora da due chiamate separate",
+    "evidenza": "criteriNoSigc usa letturaDelTipo (lib/criteri.ts:87), ma le pagine calcolano np a parte con nonPertinenza(pagina.filtri.sigc, 'nosigc', ...) e la lettura con criteriNoSigc: StatiDomande.tsx:156 e 178/185, DomandeAmmesse.tsx:51-52, Sottofasi.tsx:27 e 42, Panoramica.tsx:136 e 41. Le altre feature prendono np e criteri dallo stesso risultato (punto i del brief); qui la stessa decisione e' ancora scritta due volte ('nosigc' in due punti), che e' cio' che H-06 voleva togliere.",
+    "fix": "In ogni componente const { np, criteri } = letturaDelTipo(criteriDelReport(pagina.filtri), 'nosigc', MOTIVO) e passare entrambi; criteriNoSigc resta solo per chi non rende la card."
+  },
+  {
+    "id": "X-13",
+    "feature": "comune",
+    "severity": "COSMETICO",
+    "file": "tests/kit-sigc.test.tsx:171",
+    "titolo": "Il test del kit sul tasto Invio nel corpo non attivabile passa anche senza onKeyDownCapture",
+    "evidenza": "fireEvent.keyDown(bottone, { key: 'Enter' }) seguito da expect(riga).not.toHaveBeenCalled(): in jsdom un keydown su un bottone non genera mai il click, quindi l'asserzione e' vera anche togliendo il gestore dei tasti da CorpoNonPertinente (NonPertinente.tsx). La parte 'tasti fermati' della scelta a non e' provata.",
+    "fix": "Verificare l'annullamento: expect(fireEvent.keyDown(bottone, { key: 'Enter' })).toBe(false) (fireEvent restituisce false quando preventDefault e' chiamato), e lo stesso per lo spazio."
+  },
+  {
+    "id": "X-14",
+    "feature": "finanziario",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/ui/RiepilogoReport.tsx:237",
+    "titolo": "Sottotitoli con il codice interno '(R02)' e la promessa 'tutti gli interventi con la loro etichetta' anche oltre 40",
+    "evidenza": "RiepilogoReport.tsx:237 e DotazioneReport.tsx:54: 'Tutti gli interventi con la loro etichetta (R02); clic su una barra per il dettaglio'. R02 e' il numero della revisione, non un testo per l'utente; oltre 40 interventi compare il cursore (zoomSeMolti) e il sottotitolo non lo dice piu' (prima 'Trascina il cursore sotto il grafico per ingrandire').",
+    "fix": "Togliere '(R02)'; con piu' di 40 categorie riprendere l'istruzione del cursore (sottotitolo calcolato da dati.opzioni.dataZoom)."
+  }
+]
