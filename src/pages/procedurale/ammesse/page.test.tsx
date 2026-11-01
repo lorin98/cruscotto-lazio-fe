@@ -175,3 +175,41 @@ describe('RF026: stati della pagina delle domande ammesse (caricamento, errore, 
     expect(await screen.findByRole('dialog', { name: 'Filtri dei report procedurali' })).toBeTruthy();
   });
 });
+
+describe('Revisioni del 31/10/2026: domande ammesse solo NO SIGC, non pertinenti col filtro SIGC (F3; review J-12)', () => {
+  it('col filtro SIGC la pagina e non pertinente e TX-0026 si legge senza filtro', async () => {
+    const lette = servi();
+    apri(`${PERCORSO}?sigc=true`);
+    expect((await screen.findAllByText('Non pertinente al filtro SIGC')).length).toBeGreaterThan(0);
+    await waitFor(() => expect(lette.ammesse.length).toBeGreaterThan(0));
+    expect(lette.ammesse.every((q) => !q.includes('sigc'))).toBe(true);
+  });
+
+  it('col filtro NO SIGC TX-0026 si legge con sigc=false, nessuna card non pertinente', async () => {
+    const lette = servi();
+    apri(`${PERCORSO}?sigc=false`);
+    await waitFor(() => expect(lette.ammesse).toEqual(['?sigc=false']));
+    expect(screen.queryByText(/^Non pertinente al filtro/)).toBeNull();
+  });
+
+  it('cambiando il filtro SIGC la tabella riparte dalla prima pagina, anche con la risposta gia in cache (review X-11)', async () => {
+    servi();
+    const corpo = ammessePer(new URLSearchParams());
+    const riga = (corpo.righe ?? [])[0];
+    const righe = Array.from({ length: 30 }, (_, k) => ({ ...riga, codiceIntervento: `SRA${k + 10}` }));
+    server.use(http.get('*/api/procedurale/domande-ammesse', () => HttpResponse.json({ ...corpo, righe })));
+    apri();
+    const controllo = () => within(screen.getByRole('group', { name: 'Interventi SIGC o NO SIGC' }));
+    const pagine = () => within(screen.getByRole('navigation', { name: 'Pagine della tabella' }));
+    await tabella();
+    // la cache di "Tutti" e' calda: tornandoci la tabella non passa dal caricamento
+    await userEvent.click(controllo().getByRole('button', { name: 'NO SIGC' }));
+    await waitFor(() => expect(controllo().getByRole('button', { name: 'NO SIGC' }).getAttribute('aria-pressed')).toBe('true'));
+    await tabella();
+    await userEvent.click(pagine().getByRole('button', { name: 'Pagina 2' }));
+    expect(within(await tabella()).getByRole('row', { name: "Apri l'anteprima dell'intervento SRA35" })).toBeTruthy();
+    await userEvent.click(controllo().getByRole('button', { name: 'Tutti' }));
+    await waitFor(() => expect(controllo().getByRole('button', { name: 'Tutti' }).getAttribute('aria-pressed')).toBe('true'));
+    await waitFor(() => expect(pagine().getByRole('button', { name: 'Pagina 1' }).getAttribute('aria-current')).toBe('page'));
+  });
+});

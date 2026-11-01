@@ -134,3 +134,20 @@ describe('RF028: stati della pagina degli stati di pagamento (caricamento, error
     expect(screen.queryByRole('alert')).toBeNull();
   });
 });
+
+describe('Revisioni del 31/10/2026: stati di pagamento solo NO SIGC, non pertinenti col filtro SIGC (F3; review J-12)', () => {
+  it('col filtro SIGC la pagina e non pertinente e TX-0028 si legge senza filtro', async () => {
+    const lette = servi();
+    apri(`${PERCORSO}?sigc=true`);
+    expect((await screen.findAllByText('Non pertinente al filtro SIGC')).length).toBeGreaterThan(0);
+    await waitFor(() => expect(lette.pagamento.length).toBeGreaterThan(0));
+    expect(lette.pagamento.every((q) => !q.includes('sigc'))).toBe(true);
+  });
+
+  it('col filtro NO SIGC TX-0028 si legge con sigc=false, nessuna card non pertinente', async () => {
+    const lette = servi();
+    apri(`${PERCORSO}?sigc=false`);
+    await waitFor(() => expect(lette.pagamento).toEqual(['?sigc=false']));
+    expect(screen.queryByText(/^Non pertinente al filtro/)).toBeNull();
+  });
+});

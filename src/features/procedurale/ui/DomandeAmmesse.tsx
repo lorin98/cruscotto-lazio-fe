@@ -11,7 +11,7 @@ import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { nonPertinenza } from '../../../shared/lib';
 import { Griglia, NonPertinente, VistaQuery, VuotoConFiltri } from '../../../shared/ui';
 import { useDomandeAmmesse } from '../api';
-import { conFiltri, criteriNoSigc } from '../lib/criteri';
+import { conFiltri, criteriNoSigc, ricercaDaCriteri } from '../lib/criteri';
 import type { Ammesse } from '../lib/dto';
 import { NOTA_AMMESSE, testoNessunIntervento } from '../lib/formato';
 import { puoLeggere } from '../lib/grant';
@@ -57,7 +57,8 @@ export function DomandeAmmesse() {
       <VistaQuery stato={stato} eVuoto={(d) => (d.righe ?? []).length === 0} vuoto={vuoto}>
         {(d) => (
           <NonPertinente np={np}>
-            <ReportAmmesse d={d} pagina={pagina} aperto={aperto} onApri={setAperto} />
+            {/* la chiave coi criteri: cambiando i filtri (anche il SIGC) la tabella riparte dalla prima pagina (review X-11) */}
+            <ReportAmmesse key={ricercaDaCriteri(pagina.filtri)} d={d} pagina={pagina} aperto={aperto} onApri={setAperto} />
           </NonPertinente>
         )}
       </VistaQuery>

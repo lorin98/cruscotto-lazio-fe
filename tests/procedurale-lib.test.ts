@@ -16,6 +16,7 @@ import {
   criteriDelReport,
   criteriDellIntervento,
   criteriNellaBarra,
+  criteriNoSigc,
   etichettaStatoArea,
   notaStatiEsclusi,
   ricercaDaCriteri,
@@ -261,6 +262,32 @@ describe('procedurale: link dello uiplan (fail-closed, solo i parametri della qu
     // fail-closed: un codice o una chiave che non si possono esprimere non danno un link piu' largo
     expect(indirizzoElenco('elenco-ammesse-riga', c, { voceProgrammazione: 'AMMESSA', intervento: 'SR/D01' })).toBeNull();
     expect(indirizzoElenco('elenco-stato-sostegno', c, { statoSostegno: ' <x>' })).toBeNull();
+  });
+
+  // revisioni del 31/10/2026 (R01), review step9 J-06: sigc nell'elenco vale per intervento come nei report
+  it('filtro SIGC nei link di programma: lo stato area programmazione lo porta sempre, i dati NO SIGC come la loro lettura', () => {
+    const conSigc = { os: ['OS4'], sigc: 'true' as const };
+    const noSigc = { os: ['OS4'], sigc: 'false' as const };
+    // stato area programmazione (misto): sempre
+    expect(indirizzoElenco('elenco-area-programmazione-panoramica', conSigc, { voceProgrammazione: SENZA_STATO })).toBe('/elenco-operativo/domande?voceProgrammazione=SENZA_STATO&os=OS4&sigc=true');
+    expect(indirizzoElenco('elenco-area-programmazione-panoramica', noSigc, { voceProgrammazione: SENZA_STATO })).toBe('/elenco-operativo/domande?voceProgrammazione=SENZA_STATO&os=OS4&sigc=false');
+    // ammesse, con atto, stati (soli NO SIGC): sigc=false si', sigc=true no (la card e' non pertinente e conta senza filtro)
+    for (const id of ['elenco-ammesse-panoramica', 'elenco-ammesse', 'elenco-con-atto-panoramica', 'elenco-con-atto'] as const) {
+      expect(indirizzoElenco(id, noSigc, { voceProgrammazione: 'AMMESSA' })).toMatch(/&os=OS4&sigc=false$/);
+      expect(indirizzoElenco(id, conSigc, { voceProgrammazione: 'AMMESSA' })).not.toContain('sigc');
+    }
+    expect(indirizzoElenco('elenco-stato-sostegno', noSigc, { statoSostegno: 'RILASCIATO' })).toBe('/elenco-operativo/domande?statoSostegno=RILASCIATO&os=OS4&sigc=false');
+    expect(indirizzoElenco('elenco-stato-pagamento', conSigc, { statoPagamento: 'FINANZIATO' })).toBe('/elenco-operativo/domande?statoPagamento=FINANZIATO&os=OS4');
+    // per riga o intervento l'intervento e' fissato: niente sigc
+    expect(indirizzoElenco('elenco-stato-sostegno-riga', noSigc, { statoSostegno: 'RILASCIATO', intervento: 'SRD01' })).toBe('/elenco-operativo/domande?statoSostegno=RILASCIATO&intervento=SRD01');
+    expect(indirizzoElenco('elenco-area-programmazione-intervento', conSigc, { voceProgrammazione: SENZA_STATO, intervento: 'SRD01' })).toBe('/elenco-operativo/domande?voceProgrammazione=SENZA_STATO&intervento=SRD01');
+  });
+
+  it('criteriNoSigc: col filtro SIGC senza filtro (la card non pertinente legge il dato reale), altrimenti i criteri del report', () => {
+    expect(criteriNoSigc({ os: ['OS4'], sigc: 'true', stato: ['AMMESSA'] })).toEqual({ os: ['OS4'], stato: ['AMMESSA'] });
+    expect(criteriNoSigc({ os: ['OS4'], sigc: 'false' })).toEqual({ os: ['OS4'], sigc: 'false' });
+    expect(criteriNoSigc({ os: ['OS4'] })).toEqual({ os: ['OS4'] });
+    expect(criteriNoSigc({ os: ['OS4'], sigc: 'false' })).toEqual(criteriDelReport({ os: ['OS4'], sigc: 'false' }));
   });
 
   it('quando i link ci sono: ammesse con un numero e lo stato che ammette AMMESSA, atto con la fonte, voce con le rilasciate', () => {

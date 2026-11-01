@@ -5,7 +5,7 @@
 // sul richiesto c'e' solo se entrambi sono valorizzati. Ogni KPI che apre l'elenco porta il link dello uiplan: chi lo
 // rende ne controlla il grant di arrivo.
 import { assenzaInFrase, testoMotivato } from '../../../entities/importo';
-import { formatNumber, formatPercentuale, importoBreve, percentuale, plurale } from '../../../shared/lib';
+import { formatNumber, formatPercentuale, importoBreve, importoKpi, percentuale, plurale } from '../../../shared/lib';
 import { apreConAtto, apreLeAmmesse, VOCE_AMMESSA } from './collegamenti';
 import type { IdLinkElenco, PuntoElenco } from './collegamenti';
 import type { CriteriProcedurali } from './criteri';
@@ -29,9 +29,16 @@ export interface KpiProcedurale {
   chiave: ChiaveKpi;
   etichetta: string;
   valore?: string;
+  /** Il valore pieno della forma compatta (R09). */
+  valorePieno?: string;
   assente?: string;
   nota?: string;
   elenco?: LinkKpi;
+}
+
+/** Il valore pieno di un importo per il KPI (R09); niente senza valore. */
+function pienoDi(d: Dato | undefined): Pick<KpiProcedurale, 'valorePieno'> {
+  return { valorePieno: importoKpi(d?.valore).valorePieno };
 }
 
 /** Il valore o l'assenza in una frase di un dato motivato. */
@@ -101,7 +108,8 @@ export function kpiDelleAmmesse(t: TotaleAmmesse, x: Contesto): KpiProcedurale[]
   return [
     kpiAmmesse(t, x),
     kpiConAtto(t, x),
-    { chiave: 'contributo', etichetta: ETICHETTE_KPI.contributo, ...valoreOAssenza(t.contributoAmmesso, importoBreve), nota: [notaContributo(t.importoRichiesto, t.contributoAmmesso), testoSenzaContributo(x.senzaContributo ?? [])].filter(Boolean).join('; ') },
+    // R09: il compatto col valore pieno accessibile
+    { chiave: 'contributo', etichetta: ETICHETTE_KPI.contributo, ...valoreOAssenza(t.contributoAmmesso, importoBreve), ...pienoDi(t.contributoAmmesso), nota: [notaContributo(t.importoRichiesto, t.contributoAmmesso), testoSenzaContributo(x.senzaContributo ?? [])].filter(Boolean).join('; ') },
   ];
 }
 

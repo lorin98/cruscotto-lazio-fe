@@ -9,7 +9,7 @@ import { nonPertinenza } from '../../../shared/lib';
 import { NonPertinente, VistaQuery } from '../../../shared/ui';
 import type { StatoQuery } from '../../../shared/ui';
 import { useSottofasiPagamento, useSottofasiSostegno } from '../api';
-import { conFiltri, criteriNoSigc } from '../lib/criteri';
+import { conFiltri, criteriNoSigc, ricercaDaCriteri } from '../lib/criteri';
 import { MOTIVI_NO_SIGC } from './nonPertinenza';
 import type { Sottofasi as DatiSottofasi, TipoDomanda } from '../lib/dto';
 import { NOTA_SOTTOFASI, perimetroDelle } from '../lib/formato';
@@ -29,7 +29,7 @@ function SezioneSottofasi({ tipo, stato, pagina }: { tipo: TipoDomanda; stato: S
     <VistaQuery stato={stato}>
       {(s) => (
         <NonPertinente np={np}>
-          <CardSottofasi tipo={tipo} s={s} criteri={pagina.filtri} onModifica={() => pagina.apri('vuoto')} conFiltri={conFiltri(pagina.filtri)} />
+          <CardSottofasi key={ricercaDaCriteri(pagina.filtri)} tipo={tipo} s={s} criteri={pagina.filtri} onModifica={() => pagina.apri('vuoto')} conFiltri={conFiltri(pagina.filtri)} />
         </NonPertinente>
       )}
     </VistaQuery>

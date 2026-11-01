@@ -159,3 +159,20 @@ describe('RF031: stati della pagina delle sottofasi (caricamento, errore)', () =
     await trovaCard(SOSTEGNO);
   });
 });
+
+describe('Revisioni del 31/10/2026: sottofasi solo NO SIGC, non pertinenti col filtro SIGC (F3; review J-12)', () => {
+  it('col filtro SIGC la pagina e non pertinente e TX-0032 si legge senza filtro', async () => {
+    const lette = servi();
+    apri(`${PERCORSO}?sigc=true`);
+    expect((await screen.findAllByText('Non pertinente al filtro SIGC')).length).toBeGreaterThan(0);
+    await waitFor(() => expect(lette.sottofasiPagamento.length).toBeGreaterThan(0));
+    expect(lette.sottofasiPagamento.every((q) => !q.includes('sigc'))).toBe(true);
+  });
+
+  it('col filtro NO SIGC TX-0032 si legge con sigc=false, nessuna card non pertinente', async () => {
+    const lette = servi();
+    apri(`${PERCORSO}?sigc=false`);
+    await waitFor(() => expect(lette.sottofasiPagamento).toEqual(['?sigc=false']));
+    expect(screen.queryByText(/^Non pertinente al filtro/)).toBeNull();
+  });
+});

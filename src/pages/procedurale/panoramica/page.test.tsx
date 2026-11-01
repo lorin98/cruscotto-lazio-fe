@@ -230,6 +230,42 @@ describe('RF029: stato area programmazione dal riepilogo per intervento nella pa
   });
 });
 
+describe('Revisioni del 31/10/2026: filtro SIGC nella panoramica (natura mista, scelta del 01/11/2026; review J-12, J-06)', () => {
+  it('col filtro SIGC: ammesse, stati e importi non pertinenti e letti senza filtro; lo stato area programmazione col filtro e i suoi link lo portano', async () => {
+    const lette = servi();
+    apri(`${PERCORSO}?sigc=true`);
+    const area = await trovaCard('Domande per stato area programmazione');
+    await waitFor(() => expect(lette.riepilogo).toEqual(['?sigc=true']));
+    await waitFor(() => expect([lette.ammesse, lette.sostegno, lette.pagamento].every((l) => l.length > 0)).toBe(true));
+    for (const l of [lette.ammesse, lette.sostegno, lette.pagamento]) expect(l.every((q) => !q.includes('sigc'))).toBe(true);
+    // la card dell'area e' normale; le altre dicono il motivo
+    expect(within(area).queryByText('Non pertinente al filtro SIGC')).toBeNull();
+    for (const titolo of ['Domande di sostegno per stato', 'Domande di pagamento per stato', 'Importo richiesto e contributo ammesso per intervento']) {
+      expect(within(await trovaCard(titolo)).getAllByText('Non pertinente al filtro SIGC')).toHaveLength(1);
+    }
+    expect(await screen.findByRole('region', { name: 'Domande ammesse, non pertinente al filtro SIGC' })).toBeTruthy();
+    // J-06: i link dello stato area programmazione portano sigc=true
+    const links = within(await tabellaDi(area)).getAllByRole('link');
+    expect(links.length).toBeGreaterThan(0);
+    expect(links.every((l) => new URLSearchParams(l.getAttribute('href')?.split('?')[1]).get('sigc') === 'true')).toBe(true);
+    // nelle card non pertinenti nessun controllo nella tabulazione
+    const sostegno = await trovaCard('Domande di sostegno per stato');
+    expect(Array.from(sostegno.querySelectorAll('.ui-non-pertinente__corpo a[href], .ui-non-pertinente__corpo button')).every((el) => el.getAttribute('tabindex') === '-1')).toBe(true);
+  });
+
+  it('col filtro NO SIGC: tutte le letture con sigc=false, nessuna card non pertinente; il link delle ammesse porta sigc=false', async () => {
+    const lette = servi();
+    const corpo = ammessePer(new URLSearchParams());
+    server.use(http.get('*/api/procedurale/domande-ammesse', () => HttpResponse.json({ ...corpo, totale: { ...corpo.totale, domandeAmmesse: 7 } })));
+    apri(`${PERCORSO}?sigc=false`);
+    const ammesse = await screen.findByRole('region', { name: 'Domande ammesse' });
+    await waitFor(() => expect([lette.sostegno, lette.pagamento, lette.riepilogo].every((l) => l.length > 0)).toBe(true));
+    for (const l of [lette.sostegno, lette.pagamento, lette.riepilogo]) expect(l).toEqual(['?sigc=false']);
+    expect(screen.queryByText(/^Non pertinente al filtro/)).toBeNull();
+    expect(within(ammesse).getByRole('link', { name: "Apri nell'elenco operativo le domande ammesse" }).getAttribute('href')).toBe('/elenco-operativo/domande?voceProgrammazione=AMMESSA&sigc=false');
+  });
+});
+
 describe('RF024: stati della panoramica (caricamento, errore, vuoto, perimetro)', () => {
   it('caricamento: lo scheletro della sezione con aria-live, le altre sezioni intanto ci sono; poi i dati', async () => {
     const t = trattenuta();

@@ -9,7 +9,7 @@
 import { codiceDelPercorso } from '../../../entities/filtri';
 import { PERCORSO_ELENCO_DOMANDE } from '../../../entities/domanda';
 import { formatNumber, scriviRipetuti } from '../../../shared/lib';
-import { PARAMETRO_STATO, chiaveStatoValida, conCriteri, statoAmmette } from './criteri';
+import { PARAMETRO_STATO, chiaveStatoValida, conCriteri, criteriNoSigc, statoAmmette } from './criteri';
 import type { CriteriProcedurali } from './criteri';
 import type { Dato, TipoDomanda } from './dto';
 import { PERCORSI } from './pagine';
@@ -45,7 +45,9 @@ export function paginaDegliStati(tipo: 'statiSostegno' | 'statiPagamento', c: Cr
 
 // ---------------------------------------------------------------- drill-down verso l'elenco operativo
 
-const PROGRAMMA = ['intervento', 'os', 'og', 'op'] as const;
+// i filtri del programma e il filtro SIGC (revisioni del 31/10/2026, R01; review step9 J-06): nell'elenco sigc vale per
+// intervento come nei report (D-12 Rev.); i link per riga o intervento non lo portano, l'intervento e' fissato
+const PROGRAMMA = ['intervento', 'os', 'og', 'op', 'sigc'] as const;
 const ATTO = ['concessione', 'tipo', 'voceProgrammazione'] as const;
 
 /** I link dello uiplan verso /elenco-operativo/domande: la `query` copiata da `links[]`. */
@@ -81,14 +83,28 @@ export interface PuntoElenco {
   concessione?: boolean;
 }
 
+/**
+ * I link dei dati di soli NO SIGC (ammesse, con atto, stati): portano il filtro SIGC come la lettura della card
+ * (criteriNoSigc: sigc=false si', sigc=true no, la card e' non pertinente e conta senza filtro). Lo stato area
+ * programmazione (misto) lo porta sempre.
+ */
+const SOLO_NO_SIGC: ReadonlySet<IdLinkElenco> = new Set<IdLinkElenco>(['elenco-ammesse-panoramica', 'elenco-con-atto-panoramica', 'elenco-stato-sostegno', 'elenco-stato-pagamento', 'elenco-ammesse', 'elenco-con-atto']);
+
+/** Il filtro SIGC del link: quello della lettura della card da cui parte. */
+function sigcDelLink(id: IdLinkElenco, c: CriteriProcedurali): readonly string[] | undefined {
+  const sigc = (SOLO_NO_SIGC.has(id) ? criteriNoSigc(c) : c).sigc;
+  return sigc === undefined ? undefined : [sigc];
+}
+
 /** I valori dei parametri: i criteri della pagina, poi il punto (che sostituisce intervento e stato area). */
-function parametri(c: CriteriProcedurali, p: PuntoElenco): Record<string, readonly string[] | undefined> {
+function parametri(id: IdLinkElenco, c: CriteriProcedurali, p: PuntoElenco): Record<string, readonly string[] | undefined> {
   const voce = p.voceProgrammazione === undefined ? c.stato : [p.voceProgrammazione];
   return {
     intervento: p.intervento === undefined ? c.intervento : [p.intervento],
     os: c.os,
     og: c.og,
     op: c.op,
+    sigc: sigcDelLink(id, c),
     voceProgrammazione: voce,
     statoSostegno: p.statoSostegno === undefined ? undefined : [p.statoSostegno],
     statoPagamento: p.statoPagamento === undefined ? undefined : [p.statoPagamento],
@@ -105,7 +121,7 @@ function puntoValido(p: PuntoElenco): boolean {
 
 /** L'indirizzo del link `id` coi criteri della pagina e il punto del report; null se il punto non si puo' esprimere. */
 export function indirizzoElenco(id: IdLinkElenco, c: CriteriProcedurali, p: PuntoElenco = {}): string | null {
-  return puntoValido(p) ? conQuery(PERCORSO_ELENCO_DOMANDE, LINK_ELENCO[id], parametri(c, p)) : null;
+  return puntoValido(p) ? conQuery(PERCORSO_ELENCO_DOMANDE, LINK_ELENCO[id], parametri(id, c, p)) : null;
 }
 
 /** I link per stato di un tipo di domanda: dalla pagina degli stati (coi filtri), dalla riga del drawer, dal dettaglio. */

@@ -5,7 +5,7 @@
 // prende dall'indirizzo il solo stato. Le determine di una domanda non hanno criteri (il codice a barre e' nel percorso).
 import { filtriDaRicerca, filtriNellaBarra, ricercaDaFiltri } from '../../../entities/filtri';
 import type { Filtri, FiltroNellaBarra } from '../../../entities/filtri';
-import { leggiRipetuti, maiuscolaIniziale, scriviRipetuti, senzaSigc } from '../../../shared/lib';
+import { leggiRipetuti, letturaDelTipo, maiuscolaIniziale, righeSigc, scriviRipetuti } from '../../../shared/lib';
 import type { StatoArea } from './dto';
 
 /** I criteri dei report: i filtri del programma (mai l'azione portante) e lo stato area programmazione. */
@@ -83,7 +83,8 @@ export function criteriDelReport(c: CriteriProcedurali): CriteriProcedurali {
  * card e' non pertinente e mostra il dato reale, F3), altrimenti quelli del report.
  */
 export function criteriNoSigc(c: CriteriProcedurali): CriteriProcedurali {
-  return c.sigc === 'true' ? senzaSigc(criteriDelReport(c)) : criteriDelReport(c);
+  // la stessa decisione della resa (nonPertinenza 'nosigc' nelle card): un solo punto nel kit (review H-06)
+  return letturaDelTipo(criteriDelReport(c), 'nosigc', '').criteri;
 }
 
 /** I criteri dei report della panoramica aperta senza filtri: la card della Home legge con questi, nella stessa cache. */
@@ -147,7 +148,8 @@ export function criteriNellaBarra(c: CriteriProcedurali, valori: readonly StatoA
 
 /** "Etichetta: valore" di ogni criterio applicato alla lettura, per l'intestazione del PNG dei grafici (NFR-50). */
 export function testiCriteri(c: CriteriProcedurali, valori: readonly StatoArea[] | undefined): string[] {
-  return criteriNellaBarra(c, valori).map((f) => `${f.etichetta}: ${f.valore}`);
+  // il filtro SIGC non e' un chip ma e' un filtro applicato (review J-03)
+  return [...criteriNellaBarra(c, valori).map((f) => `${f.etichetta}: ${f.valore}`), ...righeSigc(c.sigc)];
 }
 
 /** Il filtro per stato ammette la voce (vuoto = tutte): il link delle domande ammesse c'e' solo se ammette AMMESSA. */

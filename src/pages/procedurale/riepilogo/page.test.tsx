@@ -203,3 +203,13 @@ describe('RF029: stati della pagina del riepilogo (caricamento, errore, vuoto)',
     expect(screen.queryByRole('group', { name: 'Vista del riepilogo' })).toBeNull();
   });
 });
+
+describe('Revisioni del 31/10/2026: il riepilogo prende il filtro SIGC (natura mista; review J-12)', () => {
+  it('col filtro SIGC TX-0029 si legge con sigc=true e la pagina non e non pertinente', async () => {
+    const lette = servi();
+    apri(`${PERCORSO}?sigc=true`);
+    await trovaCard(GRAFICO);
+    expect(lette.riepilogo).toEqual(['?sigc=true']);
+    expect(screen.queryByText(/^Non pertinente al filtro/)).toBeNull();
+  });
+});

@@ -42,7 +42,7 @@ export function TessereKpi({ kpi, criteri, colonne = 4 }: { kpi: readonly KpiPro
   return (
     <Griglia colonne={colonne}>
       {kpi.map((k) => (
-        <Kpi key={k.chiave} etichetta={k.etichetta} valore={k.valore} assente={k.assente} nota={k.nota} {...ASPETTO[k.chiave]} azione={k.elenco && <ApriNellElenco indirizzo={link(k.elenco.id, k.elenco.punto)} descrizione={k.elenco.descrizione} />} />
+        <Kpi key={k.chiave} etichetta={k.etichetta} valore={k.valore} valorePieno={k.valorePieno} assente={k.assente} nota={k.nota} {...ASPETTO[k.chiave]} azione={k.elenco && <ApriNellElenco indirizzo={link(k.elenco.id, k.elenco.punto)} descrizione={k.elenco.descrizione} />} />
       ))}
     </Griglia>
   );

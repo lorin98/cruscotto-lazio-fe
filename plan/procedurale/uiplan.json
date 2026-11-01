@@ -76,7 +76,7 @@
       "links": [
         {
           "id": "elenco-ammesse-panoramica",
-          "trigger": "Apri nell'elenco del KPI Domande ammesse: voceProgrammazione=AMMESSA (solo se il filtro per stato area programmazione e' vuoto o comprende AMMESSA) con i filtri correnti intervento, os, og, op",
+          "trigger": "Apri nell'elenco del KPI Domande ammesse: voceProgrammazione=AMMESSA (solo se il filtro per stato area programmazione e' vuoto o comprende AMMESSA) con i filtri correnti intervento, os, og, op Porta il filtro SIGC come la lettura della card (criteriNoSigc): sigc=false si', sigc=true no (la card e' non pertinente e conta senza filtro; review step9 J-06, 01/11/2026).",
           "target_feature": "elenco-operativo",
           "target": "/elenco-operativo/domande",
           "path_params": [],
@@ -85,12 +85,13 @@
             "intervento",
             "os",
             "og",
-            "op"
+            "op",
+            "sigc"
           ]
         },
         {
           "id": "elenco-con-atto-panoramica",
-          "trigger": "Apri nell'elenco del KPI Con atto di concessione (solo con la fonte attiva): concessione=true, tipo=SOSTEGNO, voceProgrammazione = valori del filtro stato, con i filtri correnti intervento, os, og, op",
+          "trigger": "Apri nell'elenco del KPI Con atto di concessione (solo con la fonte attiva): concessione=true, tipo=SOSTEGNO, voceProgrammazione = valori del filtro stato, con i filtri correnti intervento, os, og, op Porta il filtro SIGC come la lettura della card (criteriNoSigc): sigc=false si', sigc=true no (la card e' non pertinente e conta senza filtro; review step9 J-06, 01/11/2026).",
           "target_feature": "elenco-operativo",
           "target": "/elenco-operativo/domande",
           "path_params": [],
@@ -101,12 +102,13 @@
             "intervento",
             "os",
             "og",
-            "op"
+            "op",
+            "sigc"
           ]
         },
         {
           "id": "elenco-area-programmazione-panoramica",
-          "trigger": "Apri nell'elenco su una voce della tabella equivalente di Domande per stato area programmazione: voceProgrammazione = chiave della voce (codice dell'altro stato, SENZA_STATO per le domande senza stato) con i filtri correnti intervento, os, og, op",
+          "trigger": "Apri nell'elenco su una voce della tabella equivalente di Domande per stato area programmazione: voceProgrammazione = chiave della voce (codice dell'altro stato, SENZA_STATO per le domande senza stato) con i filtri correnti intervento, os, og, op Porta il filtro SIGC della pagina (sigc, per intervento come nell'elenco: D-12 Rev.; review step9 J-06, 01/11/2026).",
           "target_feature": "elenco-operativo",
           "target": "/elenco-operativo/domande",
           "path_params": [],
@@ -115,7 +117,8 @@
             "intervento",
             "os",
             "og",
-            "op"
+            "op",
+            "sigc"
           ]
         },
         {
@@ -328,7 +331,7 @@
       "links": [
         {
           "id": "elenco-stato-sostegno",
-          "trigger": "Apri nell'elenco su una voce della tabella equivalente di Domande di sostegno per stato: statoSostegno = voce o codice dell'altro stato, voceProgrammazione = valori del filtro stato, con i filtri correnti intervento, os, og, op; apre la parte rilasciata (domande meno di cui non rilasciate)",
+          "trigger": "Apri nell'elenco su una voce della tabella equivalente di Domande di sostegno per stato: statoSostegno = voce o codice dell'altro stato, voceProgrammazione = valori del filtro stato, con i filtri correnti intervento, os, og, op; apre la parte rilasciata (domande meno di cui non rilasciate) Porta il filtro SIGC come la lettura della card (criteriNoSigc): sigc=false si', sigc=true no (la card e' non pertinente e conta senza filtro; review step9 J-06, 01/11/2026).",
           "target_feature": "elenco-operativo",
           "target": "/elenco-operativo/domande",
           "path_params": [],
@@ -338,7 +341,8 @@
             "intervento",
             "os",
             "og",
-            "op"
+            "op",
+            "sigc"
           ]
         },
         {
@@ -422,7 +426,7 @@
       "links": [
         {
           "id": "elenco-stato-pagamento",
-          "trigger": "Apri nell'elenco su una voce della tabella equivalente di Domande di pagamento per stato: statoPagamento = voce o codice dell'altro stato, voceProgrammazione = valori del filtro stato, con i filtri correnti intervento, os, og, op; apre la parte rilasciata (domande meno di cui non rilasciate)",
+          "trigger": "Apri nell'elenco su una voce della tabella equivalente di Domande di pagamento per stato: statoPagamento = voce o codice dell'altro stato, voceProgrammazione = valori del filtro stato, con i filtri correnti intervento, os, og, op; apre la parte rilasciata (domande meno di cui non rilasciate) Porta il filtro SIGC come la lettura della card (criteriNoSigc): sigc=false si', sigc=true no (la card e' non pertinente e conta senza filtro; review step9 J-06, 01/11/2026).",
           "target_feature": "elenco-operativo",
           "target": "/elenco-operativo/domande",
           "path_params": [],
@@ -432,7 +436,8 @@
             "intervento",
             "os",
             "og",
-            "op"
+            "op",
+            "sigc"
           ]
         },
         {
@@ -516,7 +521,7 @@
       "links": [
         {
           "id": "elenco-ammesse",
-          "trigger": "Apri nell'elenco del KPI Domande ammesse: voceProgrammazione=AMMESSA (solo se il filtro per stato e' vuoto o comprende AMMESSA) con i filtri correnti intervento, os, og, op",
+          "trigger": "Apri nell'elenco del KPI Domande ammesse: voceProgrammazione=AMMESSA (solo se il filtro per stato e' vuoto o comprende AMMESSA) con i filtri correnti intervento, os, og, op Porta il filtro SIGC come la lettura della card (criteriNoSigc): sigc=false si', sigc=true no (la card e' non pertinente e conta senza filtro; review step9 J-06, 01/11/2026).",
           "target_feature": "elenco-operativo",
           "target": "/elenco-operativo/domande",
           "path_params": [],
@@ -525,12 +530,13 @@
             "intervento",
             "os",
             "og",
-            "op"
+            "op",
+            "sigc"
           ]
         },
         {
           "id": "elenco-con-atto",
-          "trigger": "Apri nell'elenco del KPI Con atto di concessione (solo con la fonte attiva): concessione=true, tipo=SOSTEGNO, voceProgrammazione = valori del filtro stato, con i filtri correnti intervento, os, og, op",
+          "trigger": "Apri nell'elenco del KPI Con atto di concessione (solo con la fonte attiva): concessione=true, tipo=SOSTEGNO, voceProgrammazione = valori del filtro stato, con i filtri correnti intervento, os, og, op Porta il filtro SIGC come la lettura della card (criteriNoSigc): sigc=false si', sigc=true no (la card e' non pertinente e conta senza filtro; review step9 J-06, 01/11/2026).",
           "target_feature": "elenco-operativo",
           "target": "/elenco-operativo/domande",
           "path_params": [],
@@ -541,7 +547,8 @@
             "intervento",
             "os",
             "og",
-            "op"
+            "op",
+            "sigc"
           ]
         },
         {
@@ -1529,7 +1536,7 @@
     {
       "id": "OP-PR-08",
       "kind": "altro",
-      "detail": "Drill-down e 'di cui non rilasciate' (D-04 Rev. 5, decisione D1 del backend): l'elenco operativo ha le sole domande rilasciate, quindi i link per stato (statoSostegno, statoPagamento) aprono la parte rilasciata della voce, domande meno di cui non rilasciate; il link lo dice nell'etichetta e non compare per una voce senza domande rilasciate o con la fonte non attiva (IN_COMPILAZIONE con FONTE_NON_ATTIVA DOMANDE_IN_COMPILAZIONE). Il filtro per stato area programmazione passa all'elenco come voceProgrammazione (stesse chiavi di TX-0025). Nessun link per importi (richiesto e contributo ammesso: l'elenco ha gli importi della domanda, non quelli della determina corrente di D-03), e per le sottofasi (l'elenco non ha un filtro per sottofase, anche ora che le sottofasi accettano i filtri). La pagina delle determine (TX-0020) non apre l'elenco: e' una sola domanda e porta alla sua scheda (link scheda-domanda). Aggiornato il 30/10/2026: le Unit Amount non sono piu' di questa feature (OP-PR-12)."
+      "detail": "Drill-down e 'di cui non rilasciate' (D-04 Rev. 5, decisione D1 del backend): l'elenco operativo ha le sole domande rilasciate, quindi i link per stato (statoSostegno, statoPagamento) aprono la parte rilasciata della voce, domande meno di cui non rilasciate; il link lo dice nell'etichetta e non compare per una voce senza domande rilasciate o con la fonte non attiva (IN_COMPILAZIONE con FONTE_NON_ATTIVA DOMANDE_IN_COMPILAZIONE). Il filtro per stato area programmazione passa all'elenco come voceProgrammazione (stesse chiavi di TX-0025). Nessun link per importi (richiesto e contributo ammesso: l'elenco ha gli importi della domanda, non quelli della determina corrente di D-03), e per le sottofasi (l'elenco non ha un filtro per sottofase, anche ora che le sottofasi accettano i filtri). La pagina delle determine (TX-0020) non apre l'elenco: e' una sola domanda e porta alla sua scheda (link scheda-domanda). Aggiornato il 30/10/2026: le Unit Amount non sono piu' di questa feature (OP-PR-12). Aggiornato il 01/11/2026 (revisioni del finanziario del 31/10, R01; review step9 J-06): i link a livello di programma (elenco-*-panoramica, elenco-stato-sostegno, elenco-stato-pagamento, elenco-ammesse, elenco-con-atto) portano anche sigc, che nell'elenco vale per intervento come nei report: quelli dei dati di soli NO SIGC (ammesse, con atto, stati) lo portano come la lettura della card (sigc=false si', sigc=true no: la card e' non pertinente e conta senza filtro), quello dello stato area programmazione (misto) sempre. I link per riga o intervento non lo portano: l'intervento e' fissato."
     },
     {
       "id": "OP-PR-09",

@@ -92,7 +92,8 @@ export function Riepilogo() {
   return (
     <PaginaProcedurale pagina={pagina} briciola="Riepilogo per intervento" titolo="Procedurale: riepilogo per intervento" titoloDocumento="Riepilogo per intervento - Procedurale" sottotitolo={SOTTOTITOLO} perimetro={stato.data?.perimetro} tipoPerimetro="domande" codiciRisposta={righeRiepilogo(stato.data ?? {}).map(codiceDellaRiga)}>
       <VistaQuery stato={stato} eVuoto={(d) => righeRiepilogo(d).length === 0} vuoto={vuoto}>
-        {(d) => <ContenutoRiepilogo d={d} pagina={pagina} vista={vista} scegli={scegli} aperto={aperto} setAperto={setAperto} />}
+        {/* la chiave coi criteri: cambiando i filtri (anche il SIGC) la tabella riparte dalla prima pagina (review X-11) */}
+        {(d) => <ContenutoRiepilogo key={ricercaDaCriteri(pagina.filtri)} d={d} pagina={pagina} vista={vista} scegli={scegli} aperto={aperto} setAperto={setAperto} />}
       </VistaQuery>
     </PaginaProcedurale>
   );

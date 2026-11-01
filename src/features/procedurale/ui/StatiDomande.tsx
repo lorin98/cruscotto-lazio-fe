@@ -17,7 +17,7 @@ import { Icona, NonPertinente, VistaQuery, VuotoConFiltri, useFocusDopoIlCambio 
 import type { StatoQuery } from '../../../shared/ui';
 import { useStatiPagamento, useStatiSostegno } from '../api';
 import { LINK_STATO, apreLaVoce, indirizzoElenco, puntoDelloStato, testiLinkStato } from '../lib/collegamenti';
-import { conFiltri, criteriNoSigc } from '../lib/criteri';
+import { conFiltri, criteriNoSigc, ricercaDaCriteri } from '../lib/criteri';
 import { MOTIVI_NO_SIGC } from './nonPertinenza';
 import type { Stati, TipoDomanda } from '../lib/dto';
 import { NOTA_SOLO_CSR_DP, testoVuoto } from '../lib/formato';
@@ -163,7 +163,8 @@ function PaginaStati({ tipo, stato, pagina }: { tipo: TipoDomanda; stato: StatoQ
       <VistaQuery stato={stato} eVuoto={senzaDomande} vuoto={vuoto}>
         {(d) => (
           <NonPertinente np={np}>
-            <ReportStati tipo={tipo} d={d} pagina={pagina} voce={voce} onVoce={scegli} aperto={aperto} onApri={setAperto} />
+            {/* la chiave coi criteri: cambiando i filtri (anche il SIGC) la tabella riparte dalla prima pagina (review X-11) */}
+            <ReportStati key={ricercaDaCriteri(pagina.filtri)} tipo={tipo} d={d} pagina={pagina} voce={voce} onVoce={scegli} aperto={aperto} onApri={setAperto} />
           </NonPertinente>
         )}
       </VistaQuery>
