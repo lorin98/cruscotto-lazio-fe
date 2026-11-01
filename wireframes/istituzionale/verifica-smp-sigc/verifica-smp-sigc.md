@@ -203,7 +203,7 @@ stessi parametri vanno all'export `{formato}` (stessi nomi nella spec).
   verifiche dell'area.
 - OP-IS-10 (informativo): TX-0056..TX-0059 della slice elenco-operativo, pinnata per TX-0060, restano dell'elenco.
 
-## Revisioni del 31/10/2026 (BOZZA da approvare, MIN-20261031)
+## Revisioni del 31/10/2026 (MIN-20261031, scelte dell'utente del 01/11/2026)
 
 ### Natura delle card col filtro SIGC
 

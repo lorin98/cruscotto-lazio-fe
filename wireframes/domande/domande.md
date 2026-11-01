@@ -71,7 +71,7 @@ Importo ammesso e Importo stanziato non hanno l'azione (il secondo ha fonte non 
   fede per il pagato a regime.
 - OP-FE-09: profili misti (P4 con un profilo regionale): il report e' ADA, l'elenco aperto dal link e' regionale.
 
-## Revisioni del 31/10/2026 (BOZZA da approvare, MIN-20261031)
+## Revisioni del 31/10/2026 (MIN-20261031, scelte dell'utente del 01/11/2026)
 
 ### Natura delle card col filtro SIGC
 

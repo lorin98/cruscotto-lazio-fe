@@ -45,7 +45,7 @@ Drill-down verso l'elenco operativo (decisione D-2 dell'utente del 12/10/2026) d
 | /finanziario/riepilogo | elenco-pagamenti-riga | cella Pagamenti lordi di una riga, o del drawer (R08, prima sulla cella dei pagamenti netti) | elenco-operativo: /elenco-operativo/pagamenti | - | esito=PAGATA, intervento della riga |
 
 La riga dell'Assistenza tecnica non ha link (AT001 non e' selezionabile nell'elenco). Il link dei pagamenti sta sulla cella
-Pagamenti lordi (R08, BOZZA): l'elenco dei pagamenti mostra il pagato lordo delle righe PAGATA, lo stesso valore della colonna;
+Pagamenti lordi (R08): l'elenco dei pagamenti mostra il pagato lordo delle righe PAGATA, lo stesso valore della colonna;
 le rettifiche hanno la loro colonna e il dettaglio nell'anteprima. Prima della colonna dei lordi il link stava sui pagamenti netti
 con l'etichetta "righe di pagamento, importi lordi" (decisione dell'utente del 13/10/2026).
 Dotazione, risorse FEASR, stanziato, impegnato e residui non sono collegati (non sono insiemi di domande).
@@ -71,7 +71,7 @@ Dotazione, risorse FEASR, stanziato, impegnato e residui non sono collegati (non
   backend); ricerca, ordine, pagina e vista della tabella, salvate nella cronologia del browser, ripartono da capo.
 - OP-FE-09: profili misti (P4 con un profilo regionale): il riepilogo e' ADA, l'elenco aperto dai link della riga e' regionale.
 
-## Revisioni del 31/10/2026 (BOZZA da approvare, MIN-20261031)
+## Revisioni del 31/10/2026 (MIN-20261031, scelte dell'utente del 01/11/2026)
 
 ### Natura delle card col filtro SIGC
 

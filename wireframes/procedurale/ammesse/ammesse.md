@@ -92,7 +92,7 @@ della determina corrente).
 - Chiusi col giro G3 e con G1 (22/10/2026): OP-PR-01 (pill "Dati al"), OP-PR-04 (la card della Home dira' "domande
   ammesse con atto e contributo", non piu' "determine, responsabili e ADA"), OP-PR-05 (CSV e XLSX di TX-0026).
 
-## Revisioni del 31/10/2026 (BOZZA da approvare, MIN-20261031)
+## Revisioni del 31/10/2026 (MIN-20261031, scelte dell'utente del 01/11/2026)
 
 ### Natura delle card col filtro SIGC
 

@@ -25,7 +25,7 @@ Vocabolario del kit UI v2 (ADR 0027 di green-fe), resa approvata nel prototipo `
 | /finanziario | Avanzamento per intervento | barre | TX-0002 | dettaglio dell'intervento | interventi senza dotazione fuori dal grafico, dichiarati |
 | /finanziario | Dotazione per famiglia di intervento | treemap | TX-0002 | famiglia: entra; intervento: dettaglio | dotazione assente: intervento omesso e dichiarato |
 | /finanziario | Domande SIGC | barre orizzontali (presentate, pagate, da pagare, senza importi: pagate e da pagare si sovrappongono) | TX-0012 | pagina SIGC | nessuno (conteggi) |
-| /finanziario | Importi SIGC | forma scelta per R13 (A barre affiancate, B barre impilate, C ponte) | TX-0013 | nessuno | importo assente: passo omesso e dichiarato |
+| /finanziario | Importi SIGC | due barre impilate (R13 B: richiesto = ammesso + non ammesso; ammesso = pagato + ancora da pagare) | TX-0013 | nessuno | importo assente: passo omesso e dichiarato |
 | /finanziario/interventi/:codice | Avanzamento rispetto ai pagamenti effettuati | gauge | TX-0011 (pagamenti al netto delle rettifiche) | nessuno | non disegnato se manca un termine |
 | /finanziario/interventi/:codice | Dalla dotazione al residuo | cascata | TX-0011 | nessuno | rettifiche non caricate: netto e residuo non disegnati, fonte non attiva dichiarata |
 | /finanziario/interventi/:codice | Rettifiche dell'intervento | tabella | TX-0011 (rettifiche[]) | nessuno | nessuna rettifica: "Nessuna rettifica" |
@@ -86,7 +86,7 @@ parte il drill-down.
 - OP-FE-09: profili misti (P4 con un profilo regionale): il report e' ADA, l'elenco aperto dal link e' regionale.
 - OP-FE-07: gerarchia intervento-OS-OG-OP assente dai DTO (raggruppamento per famiglia nel frattempo).
 
-## Revisioni del 31/10/2026 (BOZZA da approvare, MIN-20261031)
+## Revisioni del 31/10/2026 (MIN-20261031, scelte dell'utente del 01/11/2026)
 
 ### Natura delle card col filtro SIGC
 
@@ -101,8 +101,8 @@ parte il drill-down.
 
 - R03: sei box nella panoramica (impegnato e sua percentuale dalla stessa lettura di TX-0002, con "di cui stimato"), griglia
   3 x 2 a coppie per colonna.
-- R13: Importi SIGC in una delle tre forme proposte (A barre affiancate con le differenze, B due barre impilate, consigliata,
-  C ponte con connettori); la scelta vale per panoramica, pagina SIGC e scheda SIGC del dettaglio.
+- R13: Importi SIGC a due barre impilate (forma B, scelta dell'utente del 01/11/2026 fra A barre affiancate, B e C ponte):
+  vale per panoramica, pagina SIGC e scheda SIGC del dettaglio.
 - R16: via "(flusso ASR2-20)" dalle didascalie delle card SIGC.
 - Dettaglio: testata col tipo dell'intervento al posto del contributo ambientale (R14, F5), niente lettura di TX-0002; R15
   "Avanzamento rispetto ai pagamenti effettuati"; rettifiche nella Sintesi e in Tutte le voci (R08); impegnato con la parte

@@ -63,7 +63,7 @@
       <p>Dotazione, pagamenti e domande degli interventi selezionati. I grafici portano al dettaglio dell'intervento.</p>
     </div>
     <p class="wf-note">Ruoli (grant verbatim): csr.tx-0001.read, csr.tx-0002.read, csr.tx-0009.read, csr.tx-0012.read, csr.tx-0013.read - Transazioni: TX-0001 (filtri e ultimo dato sincronizzato), TX-0002, TX-0009, TX-0012, TX-0013. Ogni card compare solo con il grant della sua transazione (gate di UX).</p>
-    <p class="wf-note">R03 (bozza): sei box in griglia 3 x 2 a coppie per colonna (Dotazione / Domande presentate, Impegnato / Impegnato sulla dotazione, Pagamenti / Pagato sulla dotazione); 2 colonne sotto ~900 px, 1 sotto 576 px. R09: ogni valore su una riga, formato compatto, valore pieno accessibile e nel suggerimento.</p>
+    <p class="wf-note">R03: sei box in griglia 3 x 2 a coppie per colonna (Dotazione / Domande presentate, Impegnato / Impegnato sulla dotazione, Pagamenti / Pagato sulla dotazione); 2 colonne sotto ~900 px, 1 sotto 576 px. R09: ogni valore su una riga, formato compatto, valore pieno accessibile e nel suggerimento.</p>
     <div class="ui-griglia">
       <section class="ui-kpi" aria-label="Dotazione spesa pubblica">
         <p>Dotazione spesa pubblica</p>
@@ -129,6 +129,19 @@
         </figure>
         <p class="ui-fonte">Fonte: TX-0012. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati.</p>
       </section>
+      <section class="ui-card" aria-labelledby="g-sigc-imp">
+        <div class="ui-card__testa">
+          <h2 id="g-sigc-imp">Importi SIGC: richiesto, ammesso, pagato e ancora da pagare</h2>
+          <div class="ui-seg" role="group" aria-label="Vista di Importi SIGC"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+        </div>
+        <figure class="ui-grafico ui-grafico--barre">
+          <figcaption>Due barre orizzontali della stessa scala: "Richiesto" = ammesso + non ammesso; "Ammesso" = pagato + ancora da pagare. Etichette con importo e percentuale dentro i segmenti, legenda sotto. Si legge da sinistra a destra senza barre sospese (R13, forma B scelta dall'utente il 01/11/2026; prima: cascata con barre a mezza altezza). Il pagato oltre l'ammesso, se c'e', come nota sotto; nessun clic.</figcaption>
+        </figure>
+        <p class="ui-fonte">Fonte: TX-0013.</p>
+      </section>
+    </div>
+    <h2>Card di un solo tipo col filtro opposto (esempio del kit)</h2>
+    <div class="ui-griglia ui-griglia--2">
       <section class="ui-card" aria-labelledby="g-sigc-np">
         <div class="ui-card__testa">
           <h2 id="g-sigc-np">Domande SIGC con il filtro NO SIGC (stato non pertinente)</h2>
@@ -138,40 +151,6 @@
         <figure class="ui-grafico ui-grafico--barre">
           <figcaption>Stesso grafico della card sopra, in grigio, con i valori senza filtro; la tabella equivalente resta leggibile dagli strumenti assistivi.</figcaption>
         </figure>
-      </section>
-    </div>
-    <h2>Importi SIGC (R13): tre alternative, se ne sceglie una all'approvazione</h2>
-    <p class="wf-note">Oggi: cascata con barre "a mezza altezza" che non fa capire la scomposizione. Stessi dati di TX-0013 (richiesto, ammesso, non ammesso, pagato, ancora da pagare, pagato oltre l'ammesso); nessun clic. La scelta vale anche per la pagina SIGC e per la scheda SIGC del dettaglio.</p>
-    <div class="ui-griglia ui-griglia--2">
-      <section class="ui-card" aria-labelledby="g-sigc-imp-a">
-        <div class="ui-card__testa">
-          <h2 id="g-sigc-imp-a">Alternativa A: barre affiancate con le differenze</h2>
-          <div class="ui-seg" role="group" aria-label="Vista dell'alternativa A"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
-        </div>
-        <figure class="ui-grafico ui-grafico--barre">
-          <figcaption>Tre barre verticali a piena altezza (richiesto, ammesso, pagato) con fra una barra e l'altra la differenza scritta ("non ammesso n,n M euro", "ancora da pagare n,n M euro"); il pagato oltre l'ammesso, se c'e', come nota sotto.</figcaption>
-        </figure>
-        <p class="ui-fonte">Fonte: TX-0013.</p>
-      </section>
-      <section class="ui-card" aria-labelledby="g-sigc-imp-b">
-        <div class="ui-card__testa">
-          <h2 id="g-sigc-imp-b">Alternativa B (consigliata): due barre impilate</h2>
-          <div class="ui-seg" role="group" aria-label="Vista dell'alternativa B"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
-        </div>
-        <figure class="ui-grafico ui-grafico--barre">
-          <figcaption>Due barre orizzontali della stessa scala: "Richiesto" = ammesso + non ammesso; "Ammesso" = pagato + ancora da pagare. Etichette con importo e percentuale dentro i segmenti, legenda sotto. Si legge da sinistra a destra senza barre sospese.</figcaption>
-        </figure>
-        <p class="ui-fonte">Fonte: TX-0013.</p>
-      </section>
-      <section class="ui-card" aria-labelledby="g-sigc-imp-c">
-        <div class="ui-card__testa">
-          <h2 id="g-sigc-imp-c">Alternativa C: ponte con connettori</h2>
-          <div class="ui-seg" role="group" aria-label="Vista dell'alternativa C"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
-        </div>
-        <figure class="ui-grafico ui-grafico--cascata">
-          <figcaption>Cascata rivista: richiesto e ammesso come barre piene da zero, i passi intermedi (non ammesso, pagato) come barre sospese unite da linee di collegamento, ogni passo con l'etichetta dell'importo e del segno; ancora da pagare come barra piena finale.</figcaption>
-        </figure>
-        <p class="ui-fonte">Fonte: TX-0013.</p>
       </section>
     </div>
     <aside class="ui-pannello" id="pannello-filtri" aria-label="Pannello dei filtri">

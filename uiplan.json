@@ -1584,14 +1584,7 @@
         "Perimetro (REGIONALE o ADA) dichiarato in testa alla pagina con testo, non solo con colore.",
         "Filtri a selezione multipla con label esplicite; il filtro azioni portanti e' disabilitato con spiegazione testuale quando legameAzioniDisponibile e' falso.",
         "Download per formato (PNG, CSV, XLSX): un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo. Deviazione rivista V-07."
-      ],
-      "approval": {
-        "approved_hash": "sha256:62847ef999d2117747d48ade82cec4c30d0962fd65ef67fc7172f2931fa3ba82",
-        "baseline_ref": "./wireframes/panoramica",
-        "approved_at": "2026-10-13T17:26:04Z",
-        "time_to_approve_s": 418,
-        "rework_rounds": 4
-      }
+      ]
     },
     {
       "name": "riepilogo",
@@ -1605,14 +1598,7 @@
         "Perimetro (REGIONALE o ADA) dichiarato in testa alla pagina con testo, non solo con colore.",
         "Filtri a selezione multipla con label esplicite; il filtro azioni portanti e' disabilitato con spiegazione testuale quando legameAzioniDisponibile e' falso.",
         "Download per formato (PNG, CSV, XLSX): un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo. Deviazione rivista V-07."
-      ],
-      "approval": {
-        "approved_hash": "sha256:8d3e3739ae6f988cf64e6a6cd38a05299388742a85ffe1a6d8b0596d7bdfe2d1",
-        "baseline_ref": "./wireframes/riepilogo",
-        "approved_at": "2026-10-21T10:57:26Z",
-        "time_to_approve_s": 418,
-        "rework_rounds": 5
-      }
+      ]
     },
     {
       "name": "dotazione-avanzamento",
@@ -1626,14 +1612,7 @@
         "Importi non disponibili resi come testo (motivo e fonte attesa dalla spec), mai come cella vuota o zero.",
         "Perimetro (REGIONALE o ADA) dichiarato in testa alla pagina con testo, non solo con colore.",
         "Download per formato (PNG, CSV, XLSX): un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo. Deviazione rivista V-07."
-      ],
-      "approval": {
-        "approved_hash": "sha256:ead559227a1e9ae2ffc680cd48943ee02bf23af206b3918efc799feb6092636c",
-        "baseline_ref": "./wireframes/dotazione-avanzamento",
-        "approved_at": "2026-10-13T16:01:07Z",
-        "time_to_approve_s": 189,
-        "rework_rounds": 2
-      }
+      ]
     },
     {
       "name": "domande",
@@ -1646,14 +1625,7 @@
         "Importi non disponibili resi come testo (motivo e fonte attesa dalla spec), mai come cella vuota o zero.",
         "Perimetro (REGIONALE o ADA) dichiarato in testa alla pagina con testo, non solo con colore.",
         "Download per formato (PNG, CSV, XLSX): un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo. Deviazione rivista V-07."
-      ],
-      "approval": {
-        "approved_hash": "sha256:67bb6e94750c9514d15c72bb2480ad9b68596156bef3a4d4968ff4c71ee97313",
-        "baseline_ref": "./wireframes/domande",
-        "approved_at": "2026-10-13T17:26:04Z",
-        "time_to_approve_s": 418,
-        "rework_rounds": 3
-      }
+      ]
     },
     {
       "name": "sigc",
@@ -1668,14 +1640,7 @@
         "Perimetro (REGIONALE o ADA) dichiarato in testa alla pagina con testo, non solo con colore.",
         "Selettore dell'anno della riserva con label; il 404 della riserva e' uno stato vuoto spiegato, non un errore.",
         "Download per formato (PNG, CSV, XLSX): un pulsante per formato con la sigla visibile e il nome accessibile completo che la contiene (WCAG 2.5.3); durante la preparazione aria-disabled, il focus resta sul pulsante attivato (WCAG 2.4.3); esito in role=status, errore in role=alert col motivo. Deviazione rivista V-07."
-      ],
-      "approval": {
-        "approved_hash": "sha256:8189d3aa39192515b10f93dd9c087b24a95b335ade329052113204612766b0cf",
-        "baseline_ref": "./wireframes/sigc",
-        "approved_at": "2026-10-30T07:26:41Z",
-        "time_to_approve_s": 408,
-        "rework_rounds": 0
-      }
+      ]
     }
   ],
   "open_points": [

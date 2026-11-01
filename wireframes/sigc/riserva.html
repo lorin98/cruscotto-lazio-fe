@@ -61,10 +61,9 @@
       <select class="form-select" id="anno" name="anno"><option>aaaa</option></select>
       <button class="btn btn-primary" type="submit">Mostra</button>
     </form>
-    <h2>Montante e riserve (R17): due alternative, se ne sceglie una</h2>
     <section class="ui-card" aria-labelledby="r17-a">
       <div class="ui-card__testa">
-        <h2 id="r17-a">Alternativa A (consigliata): montante in alto e due riquadri affiancati</h2>
+        <h2 id="r17-a">Montante e riserve dell'anno aaaa</h2>
       </div>
       <div class="ui-sinottico">
         <section class="ui-kpi" aria-label="Montante dei pagamenti dell'anno">
@@ -85,22 +84,7 @@
           <p class="ui-barra">= 2% x montante; consuntivo dall'inizio della fase di residuo (01/01/aaaa+2), prima e' una previsione</p>
         </section>
       </div>
-      <p class="ui-fonte">Fonte: TX-0014 (montantePagamenti, quotaRiserva, quotaResiduo, naturaRiserva, naturaResiduo). Sotto restano accumulato, congelato, utilizzato e residuo disponibile come oggi.</p>
-    </section>
-    <section class="ui-card" aria-labelledby="r17-b">
-      <div class="ui-card__testa">
-        <h2 id="r17-b">Alternativa B: il calcolo come tabella</h2>
-      </div>
-      <table class="ui-tabella">
-        <caption>Dal montante alle riserve dell'anno aaaa</caption>
-        <thead><tr><th scope="col">Voce</th><th scope="col">Calcolo</th><th scope="col">Importo</th><th scope="col">Natura al gg/mm/aaaa</th></tr></thead>
-        <tbody>
-          <tr><th scope="row">Montante dei pagamenti</th><td>pagamenti dell'anno aaaa</td><td class="ui-num">n,nn euro</td><td>consuntivo</td></tr>
-          <tr><th scope="row">Riserva di efficacia</th><td>5% del montante, congelata il 30/06/aaaa+1</td><td class="ui-num">n,nn euro</td><td>consuntivo</td></tr>
-          <tr><th scope="row">Residuo</th><td>2% del montante, dal 01/01/aaaa+2</td><td class="ui-num">n,nn euro</td><td>previsione</td></tr>
-        </tbody>
-      </table>
-      <p class="ui-fonte">Fonte: TX-0014.</p>
+      <p class="ui-fonte">Fonte: TX-0014 (montantePagamenti, quotaRiserva, quotaResiduo, naturaRiserva, naturaResiduo). R17, forma A scelta dall'utente il 01/11/2026. Sotto restano accumulato, congelato, utilizzato e residuo disponibile come oggi.</p>
     </section>
     <h2>Movimenti della riserva (invariati)</h2>
     <div class="ui-griglia ui-griglia--4">
@@ -125,28 +109,16 @@
         <p class="ui-barra">previsto, con la data, se non ancora disponibile</p>
       </section>
     </div>
-    <h2>Utilizzo progressivo cumulato (R18): due alternative, se ne sceglie una</h2>
     <section class="ui-card" aria-labelledby="r18-a">
       <div class="ui-card__testa">
-        <h2 id="r18-a">Alternativa A (consigliata): linea con le fasi annotate</h2>
-        <div class="ui-seg" role="group" aria-label="Vista dell'alternativa A di R18"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+        <h2 id="r18-a">Utilizzo progressivo cumulato</h2>
+        <div class="ui-seg" role="group" aria-label="Vista di Utilizzo progressivo cumulato"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
       </div>
       <p class="wf-note">Come si legge (testo sopra il grafico): "La linea e' quanto della riserva e' stato usato, sommato nel tempo. La linea tratteggiata e' la riserva del 5% (n,n M euro): finche' la linea resta sotto, c'e' ancora riserva; oltre, l'utilizzo la supera."</p>
       <figure class="ui-grafico ui-grafico--linea">
         <figcaption>Linea a gradini dell'utilizzo cumulato per data; fasce di sfondo con il nome e la data delle fasi (accumulo, congelamento al 30/06, utilizzo, residuo dal 01/01); soglia della riserva tratteggiata ed etichettata con l'importo; ultimo punto etichettato con il valore e la percentuale della riserva.</figcaption>
       </figure>
-      <p class="ui-fonte">Fonte: TX-0014. La tabella equivalente elenca date, movimenti e cumulato.</p>
-    </section>
-    <section class="ui-card" aria-labelledby="r18-b">
-      <div class="ui-card__testa">
-        <h2 id="r18-b">Alternativa B: barra delle fasi e grafico semplice</h2>
-        <div class="ui-seg" role="group" aria-label="Vista dell'alternativa B di R18"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
-      </div>
-      <p class="ui-barra">Fasi: accumulo (fino al 31/12/aaaa) - congelamento (30/06/aaaa+1) - utilizzo - residuo (dal 01/01/aaaa+2); la fase corrente evidenziata</p>
-      <figure class="ui-grafico ui-grafico--barre">
-        <figcaption>Una barra orizzontale: utilizzato rispetto alla riserva (n,n M euro su n,n M euro, nn%), con l'eventuale eccedenza in un colore a parte; sotto, l'elenco dei movimenti per data.</figcaption>
-      </figure>
-      <p class="ui-fonte">Fonte: TX-0014.</p>
+      <p class="ui-fonte">Fonte: TX-0014. La tabella equivalente elenca date, movimenti e cumulato. R18, forma A scelta dall'utente il 01/11/2026.</p>
     </section>
     <h2>Stato: anno senza riserva</h2>
     <div class="ui-vuoto" role="status">Nessuna riserva calcolata per l'anno scelto (404). Scegli un altro anno.</div>

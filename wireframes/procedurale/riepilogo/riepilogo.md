@@ -85,7 +85,7 @@ l'intestazione di NFR-50, non registrato in audit) e, come dati, lo stesso file 
 - Chiusi col giro G3 (22/10/2026): OP-PR-01 (pill "Dati al" da TX-0024), OP-PR-05 (riepilogo anche in XLSX; sottofasi e
   Unit Amount hanno ora i loro export, nelle loro pagine).
 
-## Revisioni del 31/10/2026 (BOZZA da approvare, MIN-20261031)
+## Revisioni del 31/10/2026 (MIN-20261031, scelte dell'utente del 01/11/2026)
 
 ### Natura delle card col filtro SIGC
 

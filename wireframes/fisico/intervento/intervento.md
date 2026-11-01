@@ -153,7 +153,7 @@ Nessuno: il codice e' un segmento del percorso (`:codice`), la scheda resta nell
 - OP-FIS-15: importi unitari da TX-0030, non da TX-0017.
 - OP-FIS-05: nessun drill-down verso l'elenco operativo.
 
-## Revisioni del 31/10/2026 (BOZZA da approvare, MIN-20261031)
+## Revisioni del 31/10/2026 (MIN-20261031, scelte dell'utente del 01/11/2026)
 
 ### Natura delle card col filtro SIGC
 

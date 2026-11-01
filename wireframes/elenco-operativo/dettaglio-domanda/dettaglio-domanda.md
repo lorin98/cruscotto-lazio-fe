@@ -94,7 +94,7 @@ della spec di TX-0058.
   procedurale.
 - OP-EO-04 (voce nel menu) riguarda tutta la feature.
 
-## Revisioni del 31/10/2026 (BOZZA da approvare, MIN-20261031)
+## Revisioni del 31/10/2026 (MIN-20261031, scelte dell'utente del 01/11/2026)
 
 ### Natura delle card col filtro SIGC
 

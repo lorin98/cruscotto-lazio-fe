@@ -165,7 +165,7 @@ stessi parametri vanno all'export `{formato}`. Le voci del pannello: TX-0060 (de
   ultimo dato ed export di TX-0017).
 - OP-FIS-07: voce di menu "Output regionale" nell'area Fisico, da montare allo step6.
 
-## Revisioni del 31/10/2026 (BOZZA da approvare, MIN-20261031)
+## Revisioni del 31/10/2026 (MIN-20261031, scelte dell'utente del 01/11/2026)
 
 ### Natura delle card col filtro SIGC
 

@@ -94,7 +94,7 @@ filtri restano. Valori vuoti, fuori dominio o oltre 100 per dimensione: 400 DATO
 - Chiusi col giro G3 (22/10/2026): OP-PR-01 (pill "Dati al" da TX-0024), OP-PR-03 (le sottofasi accettano i filtri di
   RF024), OP-PR-05 (CSV e XLSX di TX-0031 e TX-0032).
 
-## Revisioni del 31/10/2026 (BOZZA da approvare, MIN-20261031)
+## Revisioni del 31/10/2026 (MIN-20261031, scelte dell'utente del 01/11/2026)
 
 ### Natura delle card col filtro SIGC
 

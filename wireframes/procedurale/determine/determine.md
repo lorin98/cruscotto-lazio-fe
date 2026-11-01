@@ -141,7 +141,7 @@ Nessun parametro di query: TX-0020 ha solo il codice a barre, nel path.
 - Audit (informativo): il registro conserva chi, quando ed esito della lettura, non quale domanda (il codice a barre e'
   sostituito dal segnaposto della regola comune NFR-84); i 404 fuori perimetro e inesistente sono registrati uguali.
 
-## Revisioni del 31/10/2026 (BOZZA da approvare, MIN-20261031)
+## Revisioni del 31/10/2026 (MIN-20261031, scelte dell'utente del 01/11/2026)
 
 ### Natura delle card col filtro SIGC
 

@@ -142,7 +142,7 @@ non numerica e' un 400 DATO_NON_VALIDO col nome del parametro.
   applica: nel fisico non c'e' il filtro), OP-PR-04 (la pagina restava nel procedurale: superato dal verbale del
   29/10/2026), OP-PR-05 (export, ora `/api/fisico/unit-amount/{formato}`).
 
-## Revisioni del 31/10/2026 (BOZZA da approvare, MIN-20261031)
+## Revisioni del 31/10/2026 (MIN-20261031, scelte dell'utente del 01/11/2026)
 
 ### Natura delle card col filtro SIGC
 

@@ -157,7 +157,7 @@ approvata: scelta di disegno 2 del dossier).
 - Chiusi: OP-IS-01 (G2, descrizione dell'intervento da TX-0060), OP-IS-02 (G3, ultimiDatiSincronizzati), OP-IS-03 (G3,
   export CSV e XLSX); OP-IS-06 (grafico dell'output fra interventi) passato al fisico con TX-0017.
 
-## Revisioni del 31/10/2026 (BOZZA da approvare, MIN-20261031)
+## Revisioni del 31/10/2026 (MIN-20261031, scelte dell'utente del 01/11/2026)
 
 ### Natura delle card col filtro SIGC
 

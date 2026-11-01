@@ -306,7 +306,7 @@ descritta sopra; letture, somme, motivi, grant, stati e perimetro restano quelli
   CSV e XLSX). OP-IS-04 (G4, link verso la verifica SMP SIGC del finanziario) superato il 29/10/2026 dal riallineamento:
   link reciproci fra le due verifiche dell'area. OP-IS-05 (G1) aggiornato: card e menu dell'area = le due verifiche.
 
-## Revisioni del 31/10/2026 (BOZZA da approvare, MIN-20261031)
+## Revisioni del 31/10/2026 (MIN-20261031, scelte dell'utente del 01/11/2026)
 
 ### Natura delle card col filtro SIGC
 
@@ -317,8 +317,8 @@ descritta sopra; letture, somme, motivi, grant, stati e perimetro restano quelli
 ### Modifiche del flusso
 
 - R20 (Home): testo della card sotto ~90 caratteri, fascia colorata alta uguale nelle quattro card, un solo stile dei
-  numeri, numero e unita' su una riga (ettari senza decimali nella card, valore pieno accessibile). Testi proposti (li
-  sceglie l'utente): Fisico "Output regionale, superfici ammissibili e pagamenti per Unit Amount, per intervento.";
+  numeri, numero e unita' su una riga (ettari senza decimali nella card, valore pieno accessibile). Testi approvati
+  dall'utente il 01/11/2026: Fisico "Output regionale, superfici ammissibili e pagamenti per Unit Amount, per intervento.";
   Procedurale "Stati, sottofasi e domande ammesse, con riepilogo per intervento e determine."
 
 ### Regole comuni (kit, tutte le aree)

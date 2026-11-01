@@ -23,16 +23,16 @@ due pagine non cambia.
 Vocabolario del kit UI v2 (ADR 0027 di green-fe), resa approvata nel prototipo `prototipo/finanziario/`.
 
 - /finanziario/sigc: Shell > Barra filtri > Breadcrumb > Titolo > Card domande SIGC (barre orizzontali) + Card importi SIGC (cascata) > Stati
-- /finanziario/sigc/riserva: Shell (senza barra filtri: dato regionale) > Breadcrumb > Titolo > Selettore anno > Blocco del montante con riserva 5% e residuo 2% e loro natura (forma scelta per R17) > KPI x4 dei movimenti > Card utilizzo progressivo (forma scelta per R18, testo di lettura) > Stati
+- /finanziario/sigc/riserva: Shell (senza barra filtri: dato regionale) > Breadcrumb > Titolo > Selettore anno > Blocco del montante con riserva 5% e residuo 2% e loro natura (R17 A: montante in alto e due riquadri con il badge Consuntivo o Previsione) > KPI x4 dei movimenti > Card utilizzo progressivo (R18 A: linea a gradini con le fasi annotate, testo di lettura) > Stati
 
 ## Grafici del flusso
 
 | pagina | grafico | tipo | dati (transazione) | clic | valori assenti |
 |---|---|---|---|---|---|
 | /finanziario/sigc | Domande SIGC | barre orizzontali (pagate e da pagare si sovrappongono) | TX-0012 | link:elenco-sigc (elenco-operativo: /elenco-operativo/domande) | nessuno (conteggi) |
-| /finanziario/sigc | Importi SIGC | cascata | TX-0013 | link:elenco-sigc-importi (elenco-operativo: /elenco-operativo/domande) | importo assente: passo omesso |
-| /finanziario/sigc/riserva | Montante e riserve 5% e 2% | riquadri (A) o tabella del calcolo (B) | TX-0014 | nessuno | natura PREVISIONE / CONSUNTIVO sempre dichiarata |
-| /finanziario/sigc/riserva | Utilizzo progressivo cumulato | linea a gradini con fasi annotate (A) o barra delle fasi con barra dell'utilizzo (B) | TX-0014 | nessuno | punti assenti omessi e dichiarati |
+| /finanziario/sigc | Importi SIGC | due barre impilate (R13 B) | TX-0013 | link:elenco-sigc-importi (elenco-operativo: /elenco-operativo/domande) | importo assente: passo omesso |
+| /finanziario/sigc/riserva | Montante e riserve 5% e 2% | montante e due riquadri con la natura (R17 A) | TX-0014 | nessuno | natura PREVISIONE / CONSUNTIVO sempre dichiarata |
+| /finanziario/sigc/riserva | Utilizzo progressivo cumulato | linea a gradini con fasi annotate e soglia della riserva (R18 A) | TX-0014 | nessuno | punti assenti omessi e dichiarati |
 
 La riserva e' un dato regionale: i filtri non si applicano (OP-FE-03).
 
@@ -81,21 +81,22 @@ verso altri ambiti: la verifica SMP SIGC (TX-0015) e' dell'istituzionale (OP-FE-
 - OP-FE-10 (nuovo, 30/10/2026): la verifica SMP SIGC esce dal finanziario; voce di menu, route-table, card della Home e
   codice della pagina li allinea lo step6.
 
-## Revisioni del 31/10/2026 (BOZZA da approvare, MIN-20261031)
+## Revisioni del 31/10/2026 (MIN-20261031, scelte dell'utente del 01/11/2026)
 
 ### Natura delle card col filtro SIGC
 
 | pagina | elementi | natura |
 |---|---|---|
 | /finanziario/sigc | Domande SIGC, Importi SIGC e tabelle | solo SIGC: con NO SIGC tutta la pagina non pertinente |
-| /finanziario/riserva | tutta la pagina | il filtro non si applica (TX-0014 non lo prende): nessuna barra dei filtri |
+| /finanziario/sigc/riserva | tutta la pagina | il filtro non si applica (TX-0014 non lo prende): nessuna barra dei filtri |
 
 ### Modifiche del flusso
 
 - R16: via "(flusso ASR2-20)" e "campagne senza ASR2-20" dalle etichette (le domande senza importi restano, con
   un'etichetta neutra).
-- R13: Importi SIGC nella forma scelta (alternative nella panoramica).
-- R17, R18: riserva di efficacia rivista (vedi `riserva.html`).
+- R13: Importi SIGC a due barre impilate (forma B, scelta dell'utente del 01/11/2026).
+- R17, R18: riserva di efficacia rivista (vedi `riserva.html`): forme A scelte dall'utente il 01/11/2026 (riquadri con la
+  natura; linea a gradini con fasi annotate e testo di lettura).
 
 ### Regole comuni (kit, tutte le aree)
 

@@ -49,7 +49,7 @@ Stanziato (dai bandi), impegnato (dagli import, con la parte stimata) e rettific
 
 - Nessuno specifico del flusso.
 
-## Revisioni del 31/10/2026 (BOZZA da approvare, MIN-20261031)
+## Revisioni del 31/10/2026 (MIN-20261031, scelte dell'utente del 01/11/2026)
 
 ### Natura delle card col filtro SIGC
 

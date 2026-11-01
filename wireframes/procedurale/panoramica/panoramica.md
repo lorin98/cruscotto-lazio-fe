@@ -201,7 +201,7 @@ titolo, descrizione), numeri chiave nel corpo, "Entra in Procedurale" nel piede.
   uscito dal contratto), OP-PR-03 (sottofasi con i filtri; Unit Amount senza lo stato per decisione del backend), OP-PR-04
   (card della Home = contenuto reale della feature, la riscrive step6), OP-PR-05 (export CSV e XLSX di TX-0026..TX-0032).
 
-## Revisioni del 31/10/2026 (BOZZA da approvare, MIN-20261031)
+## Revisioni del 31/10/2026 (MIN-20261031, scelte dell'utente del 01/11/2026)
 
 ### Natura delle card col filtro SIGC
 
@@ -214,8 +214,8 @@ titolo, descrizione), numeri chiave nel corpo, "Entra in Procedurale" nel piede.
 ### Modifiche del flusso
 
 - R20 (Home): testo della card sotto ~90 caratteri, fascia colorata alta uguale nelle quattro card, un solo stile dei
-  numeri, numero e unita' su una riga (ettari senza decimali nella card, valore pieno accessibile). Testi proposti (li
-  sceglie l'utente): Fisico "Output regionale, superfici ammissibili e pagamenti per Unit Amount, per intervento.";
+  numeri, numero e unita' su una riga (ettari senza decimali nella card, valore pieno accessibile). Testi approvati
+  dall'utente il 01/11/2026: Fisico "Output regionale, superfici ammissibili e pagamenti per Unit Amount, per intervento.";
   Procedurale "Stati, sottofasi e domande ammesse, con riepilogo per intervento e determine."
 
 ### Regole comuni (kit, tutte le aree)

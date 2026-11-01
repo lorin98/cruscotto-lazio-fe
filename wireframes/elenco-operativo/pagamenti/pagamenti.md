@@ -100,7 +100,7 @@ Esportazione: "Scarica CSV" e "Scarica XLSX" con gli stessi filtri e ordinamento
 - OP-EO-04: voce "Elenco operativo" nella Home e nel menu (layer app).
 - OP-EO-05: esportazione CSV/XLSX.
 
-## Revisioni del 31/10/2026 (BOZZA da approvare, MIN-20261031)
+## Revisioni del 31/10/2026 (MIN-20261031, scelte dell'utente del 01/11/2026)
 
 ### Natura delle card col filtro SIGC
 
