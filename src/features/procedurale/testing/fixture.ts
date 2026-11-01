@@ -145,7 +145,11 @@ const tutti = (p: URLSearchParams, k: string) => p.getAll(k);
 /** Gli interventi selezionati dai filtri (intervento, os, og, op: in E fra filtri, in O nello stesso filtro), per codice. */
 function interventiSelezionati(p: URLSearchParams): (typeof INTERVENTI)[number][] {
   const passa = (k: 'os' | 'og' | 'op', i: (typeof INTERVENTI)[number]) => tutti(p, k).length === 0 || tutti(p, k).includes(i[k]);
-  return INTERVENTI.filter((i) => (tutti(p, 'intervento').length === 0 || tutti(p, 'intervento').includes(i.codice)) && passa('os', i) && passa('og', i) && passa('op', i));
+  // il filtro SIGC per intervento come il backend (REV-D1; review X-11): la classificazione della programmazione; SRD02 non
+  // e' classificato e non passa ne' SIGC ne' NO SIGC
+  const sigc = p.get('sigc');
+  const passaSigc = (i: (typeof INTERVENTI)[number]) => sigc === null || (i.perimetro !== null && (i.perimetro === 'SIGC sì') === (sigc === 'true'));
+  return INTERVENTI.filter((i) => (tutti(p, 'intervento').length === 0 || tutti(p, 'intervento').includes(i.codice)) && passa('os', i) && passa('og', i) && passa('op', i) && passaSigc(i));
 }
 
 /** Le domande dell'universo filtrato: degli interventi selezionati e dello stato area scelto (maiuscole indifferenti). */

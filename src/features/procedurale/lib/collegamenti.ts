@@ -9,7 +9,9 @@
 import { codiceDelPercorso } from '../../../entities/filtri';
 import { PERCORSO_ELENCO_DOMANDE } from '../../../entities/domanda';
 import { formatNumber, scriviRipetuti } from '../../../shared/lib';
-import { PARAMETRO_STATO, chiaveStatoValida, conCriteri, criteriNoSigc, statoAmmette } from './criteri';
+import { PARAMETRO_STATO, chiaveStatoValida, conCriteri, statoAmmette } from './criteri';
+import { letturaNoSigc } from './natura';
+import type { LetturaNoSigc } from './natura';
 import type { CriteriProcedurali } from './criteri';
 import type { Dato, TipoDomanda } from './dto';
 import { PERCORSI } from './pagine';
@@ -84,15 +86,23 @@ export interface PuntoElenco {
 }
 
 /**
- * I link dei dati di soli NO SIGC (ammesse, con atto, stati): portano il filtro SIGC come la lettura della card
- * (criteriNoSigc: sigc=false si', sigc=true no, la card e' non pertinente e conta senza filtro). Lo stato area
- * programmazione (misto) lo porta sempre.
+ * La lettura da cui parte ogni link dei dati di soli NO SIGC (ammesse, con atto, stati): il link porta il filtro SIGC come
+ * quella lettura (letturaNoSigc: sigc=false si', sigc=true no, la card e' non pertinente e conta senza filtro). Lo stato
+ * area programmazione (misto) lo porta sempre.
  */
-const SOLO_NO_SIGC: ReadonlySet<IdLinkElenco> = new Set<IdLinkElenco>(['elenco-ammesse-panoramica', 'elenco-con-atto-panoramica', 'elenco-stato-sostegno', 'elenco-stato-pagamento', 'elenco-ammesse', 'elenco-con-atto']);
+const LETTURA_DEL_LINK: Partial<Record<IdLinkElenco, LetturaNoSigc>> = {
+  'elenco-ammesse-panoramica': 'ammesse',
+  'elenco-con-atto-panoramica': 'ammesse',
+  'elenco-ammesse': 'ammesse',
+  'elenco-con-atto': 'ammesse',
+  'elenco-stato-sostegno': 'statiSostegno',
+  'elenco-stato-pagamento': 'statiPagamento',
+};
 
 /** Il filtro SIGC del link: quello della lettura della card da cui parte. */
 function sigcDelLink(id: IdLinkElenco, c: CriteriProcedurali): readonly string[] | undefined {
-  const sigc = (SOLO_NO_SIGC.has(id) ? criteriNoSigc(c) : c).sigc;
+  const lettura = LETTURA_DEL_LINK[id];
+  const sigc = (lettura === undefined ? c : letturaNoSigc(c, lettura).criteri).sigc;
   return sigc === undefined ? undefined : [sigc];
 }
 

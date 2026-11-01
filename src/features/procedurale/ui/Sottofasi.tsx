@@ -5,12 +5,11 @@
 // ognuna col suo grant e la sua lettura coi criteri dell'indirizzo. Stati: caricamento (scheletro di ogni card), errore (un
 // solo avviso della pagina), anagrafica vuota (nessun errore), nessuna domanda nei filtri (voci a 0, "Modifica i
 // filtri"), valori dei filtri non disponibili. Classi bootstrap-italia e del kit v2; react-aria solo nel pannello e nella pill.
-import { nonPertinenza } from '../../../shared/lib';
 import { NonPertinente, VistaQuery } from '../../../shared/ui';
 import type { StatoQuery } from '../../../shared/ui';
 import { useSottofasiPagamento, useSottofasiSostegno } from '../api';
-import { conFiltri, criteriNoSigc, ricercaDaCriteri } from '../lib/criteri';
-import { MOTIVI_NO_SIGC } from './nonPertinenza';
+import { conFiltri, ricercaDaCriteri } from '../lib/criteri';
+import { letturaNoSigc } from '../lib/natura';
 import type { Sottofasi as DatiSottofasi, TipoDomanda } from '../lib/dto';
 import { NOTA_SOTTOFASI, perimetroDelle } from '../lib/formato';
 import { CardSottofasi } from './CardSottofasi';
@@ -24,7 +23,7 @@ const SOTTOTITOLO =
 
 function SezioneSottofasi({ tipo, stato, pagina }: { tipo: TipoDomanda; stato: StatoQuery<DatiSottofasi>; pagina: PaginaDeiCriteri }) {
   // solo NO SIGC: col filtro SIGC la card e' non pertinente, letta senza filtro (F3)
-  const np = nonPertinenza(pagina.filtri.sigc, 'nosigc', MOTIVI_NO_SIGC.sottofasi);
+  const { np } = letturaNoSigc(pagina.filtri, 'sottofasi');
   return (
     <VistaQuery stato={stato}>
       {(s) => (
@@ -39,7 +38,7 @@ function SezioneSottofasi({ tipo, stato, pagina }: { tipo: TipoDomanda; stato: S
 /** Le due letture, ognuna col grant della sua transazione (null senza: la card non c'e'). */
 function useLetture(pagina: PaginaDeiCriteri) {
   const { puo, conGrant } = useLettureColGrant();
-  const criteri = criteriNoSigc(pagina.filtri);
+  const { criteri } = letturaNoSigc(pagina.filtri, 'sottofasi');
   return {
     sostegno: conGrant('sottofasiSostegno', useSottofasiSostegno(criteri, { abilitato: puo('sottofasiSostegno') })),
     pagamento: conGrant('sottofasiPagamento', useSottofasiPagamento(criteri, { abilitato: puo('sottofasiPagamento') })),

@@ -12,13 +12,12 @@
 import { useState } from 'react';
 import { ApriNellElenco } from '../../../entities/domanda';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
-import { nonPertinenza } from '../../../shared/lib';
 import { Icona, NonPertinente, VistaQuery, VuotoConFiltri, useFocusDopoIlCambio } from '../../../shared/ui';
 import type { StatoQuery } from '../../../shared/ui';
 import { useStatiPagamento, useStatiSostegno } from '../api';
 import { LINK_STATO, apreLaVoce, indirizzoElenco, puntoDelloStato, testiLinkStato } from '../lib/collegamenti';
-import { conFiltri, criteriNoSigc, ricercaDaCriteri } from '../lib/criteri';
-import { MOTIVI_NO_SIGC } from './nonPertinenza';
+import { conFiltri, ricercaDaCriteri } from '../lib/criteri';
+import { letturaNoSigc } from '../lib/natura';
 import type { Stati, TipoDomanda } from '../lib/dto';
 import { NOTA_SOLO_CSR_DP, testoVuoto } from '../lib/formato';
 import { puoLeggere } from '../lib/grant';
@@ -153,21 +152,20 @@ function useVoceDellaTabella(stato: StatoQuery<Stati>) {
 function PaginaStati({ tipo, stato, pagina }: { tipo: TipoDomanda; stato: StatoQuery<Stati>; pagina: PaginaDeiCriteri }) {
   const { voce, scegli, regione } = useVoceDellaTabella(stato);
   // solo NO SIGC: col filtro SIGC la pagina e' non pertinente, letta senza filtro (F3)
-  const np = nonPertinenza(pagina.filtri.sigc, 'nosigc', tipo === 'SOSTEGNO' ? MOTIVI_NO_SIGC.statiSostegno : MOTIVI_NO_SIGC.statiPagamento);
+  const { np } = letturaNoSigc(pagina.filtri, tipo === 'SOSTEGNO' ? 'statiSostegno' : 'statiPagamento');
   const [aperto, setAperto] = useState<string | null>(null);
   const testi = TESTI[tipo];
   const vuoto = (d: Stati) => <VuotoConFiltri onModifica={() => pagina.apri('vuoto')}>{testoVuoto(testi.vuoto, conFiltri(pagina.filtri), d.perimetro)}</VuotoConFiltri>;
   return (
     <PaginaProcedurale pagina={pagina} briciola={testi.pagina} titolo={`Procedurale: ${testi.pagina.toLowerCase()}`} titoloDocumento={`${testi.pagina} - Procedurale`} sottotitolo={testi.sottotitolo} nota={tipo === 'PAGAMENTO' ? NOTA_SOLO_CSR_DP : undefined} perimetro={stato.data?.perimetro} tipoPerimetro="domande" codiciRisposta={righeStati(stato.data ?? {}).map((r) => r.codiceIntervento)}>
       {regione}
-      <VistaQuery stato={stato} eVuoto={senzaDomande} vuoto={vuoto}>
-        {(d) => (
-          <NonPertinente np={np}>
-            {/* la chiave coi criteri: cambiando i filtri (anche il SIGC) la tabella riparte dalla prima pagina (review X-11) */}
-            <ReportStati key={ricercaDaCriteri(pagina.filtri)} tipo={tipo} d={d} pagina={pagina} voce={voce} onVoce={scegli} aperto={aperto} onApri={setAperto} />
-          </NonPertinente>
-        )}
-      </VistaQuery>
+      {/* la non pertinenza avvolge anche il vuoto e l'errore (review X-10) */}
+      <NonPertinente np={np}>
+        <VistaQuery stato={stato} eVuoto={senzaDomande} vuoto={vuoto}>
+          {/* la chiave coi criteri: cambiando i filtri (anche il SIGC) la tabella riparte dalla prima pagina (review X-11) */}
+          {(d) => <ReportStati key={ricercaDaCriteri(pagina.filtri)} tipo={tipo} d={d} pagina={pagina} voce={voce} onVoce={scegli} aperto={aperto} onApri={setAperto} />}
+        </VistaQuery>
+      </NonPertinente>
     </PaginaProcedurale>
   );
 }
@@ -175,13 +173,13 @@ function PaginaStati({ tipo, stato, pagina }: { tipo: TipoDomanda; stato: StatoQ
 /** /procedurale/stati-sostegno: TX-0027 col suo grant. */
 export function StatiSostegno() {
   const pagina = useCriteriDellaPagina('tutti');
-  const stato = useStatiSostegno(criteriNoSigc(pagina.filtri), { abilitato: puoLeggere(useAuthStatus().data, 'statiSostegno') });
+  const stato = useStatiSostegno(letturaNoSigc(pagina.filtri, 'statiSostegno').criteri, { abilitato: puoLeggere(useAuthStatus().data, 'statiSostegno') });
   return <PaginaStati tipo="SOSTEGNO" stato={stato} pagina={pagina} />;
 }
 
 /** /procedurale/stati-pagamento: TX-0028 col suo grant. */
 export function StatiPagamento() {
   const pagina = useCriteriDellaPagina('tutti');
-  const stato = useStatiPagamento(criteriNoSigc(pagina.filtri), { abilitato: puoLeggere(useAuthStatus().data, 'statiPagamento') });
+  const stato = useStatiPagamento(letturaNoSigc(pagina.filtri, 'statiPagamento').criteri, { abilitato: puoLeggere(useAuthStatus().data, 'statiPagamento') });
   return <PaginaStati tipo="PAGAMENTO" stato={stato} pagina={pagina} />;
 }

@@ -16,7 +16,6 @@ import {
   criteriDelReport,
   criteriDellIntervento,
   criteriNellaBarra,
-  criteriNoSigc,
   etichettaStatoArea,
   notaStatiEsclusi,
   ricercaDaCriteri,
@@ -46,6 +45,7 @@ import {
   testiLinkStato,
 } from '../src/features/procedurale/lib/collegamenti';
 import { nellaTuaArea, perimetroDelle, pillPerimetro, siNo, testoNessunIntervento, testoVuoto } from '../src/features/procedurale/lib/formato';
+import { MOTIVI_NO_SIGC, letturaNoSigc } from '../src/features/procedurale/lib/natura';
 import {
   SENZA_STATO,
   VOCE_TOLTA,
@@ -283,11 +283,13 @@ describe('procedurale: link dello uiplan (fail-closed, solo i parametri della qu
     expect(indirizzoElenco('elenco-area-programmazione-intervento', conSigc, { voceProgrammazione: SENZA_STATO, intervento: 'SRD01' })).toBe('/elenco-operativo/domande?voceProgrammazione=SENZA_STATO&intervento=SRD01');
   });
 
-  it('criteriNoSigc: col filtro SIGC senza filtro (la card non pertinente legge il dato reale), altrimenti i criteri del report', () => {
-    expect(criteriNoSigc({ os: ['OS4'], sigc: 'true', stato: ['AMMESSA'] })).toEqual({ os: ['OS4'], stato: ['AMMESSA'] });
-    expect(criteriNoSigc({ os: ['OS4'], sigc: 'false' })).toEqual({ os: ['OS4'], sigc: 'false' });
-    expect(criteriNoSigc({ os: ['OS4'] })).toEqual({ os: ['OS4'] });
-    expect(criteriNoSigc({ os: ['OS4'], sigc: 'false' })).toEqual(criteriDelReport({ os: ['OS4'], sigc: 'false' }));
+  it('letturaNoSigc: col filtro SIGC non pertinente e senza filtro (il dato reale), altrimenti normale coi criteri del report', () => {
+    const conSigc = letturaNoSigc({ os: ['OS4'], sigc: 'true', stato: ['AMMESSA'] }, 'statiSostegno');
+    expect(conSigc.criteri).toEqual({ os: ['OS4'], stato: ['AMMESSA'] });
+    expect(conSigc.np).toEqual({ filtro: 'SIGC', motivo: MOTIVI_NO_SIGC.statiSostegno });
+    const noSigc = letturaNoSigc({ os: ['OS4'], sigc: 'false' }, 'ammesse');
+    expect(noSigc).toEqual({ np: null, criteri: criteriDelReport({ os: ['OS4'], sigc: 'false' }) });
+    expect(letturaNoSigc({ os: ['OS4'] }, 'sottofasi')).toEqual({ np: null, criteri: { os: ['OS4'] } });
   });
 
   it('quando i link ci sono: ammesse con un numero e lo stato che ammette AMMESSA, atto con la fonte, voce con le rilasciate', () => {

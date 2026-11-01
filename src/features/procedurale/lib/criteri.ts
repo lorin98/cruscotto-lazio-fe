@@ -5,7 +5,7 @@
 // prende dall'indirizzo il solo stato. Le determine di una domanda non hanno criteri (il codice a barre e' nel percorso).
 import { filtriDaRicerca, filtriNellaBarra, ricercaDaFiltri } from '../../../entities/filtri';
 import type { Filtri, FiltroNellaBarra } from '../../../entities/filtri';
-import { leggiRipetuti, letturaDelTipo, maiuscolaIniziale, righeSigc, scriviRipetuti } from '../../../shared/lib';
+import { leggiRipetuti, maiuscolaIniziale, righeSigc, scriviRipetuti } from '../../../shared/lib';
 import type { StatoArea } from './dto';
 
 /** I criteri dei report: i filtri del programma (mai l'azione portante) e lo stato area programmazione. */
@@ -76,15 +76,6 @@ export function conFiltri(c: CriteriProcedurali): boolean {
 /** I criteri di una lettura dei report per domanda (i cinque filtri, mai l'azione). */
 export function criteriDelReport(c: CriteriProcedurali): CriteriProcedurali {
   return { ...soloProgramma(c), ...conStato(c.stato) };
-}
-
-/**
- * I criteri di una lettura di soli dati NO SIGC (stati, sottofasi, ammesse): col filtro SIGC la lettura e' senza filtro (la
- * card e' non pertinente e mostra il dato reale, F3), altrimenti quelli del report.
- */
-export function criteriNoSigc(c: CriteriProcedurali): CriteriProcedurali {
-  // la stessa decisione della resa (nonPertinenza 'nosigc' nelle card): un solo punto nel kit (review H-06)
-  return letturaDelTipo(criteriDelReport(c), 'nosigc', '').criteri;
 }
 
 /** I criteri dei report della panoramica aperta senza filtri: la card della Home legge con questi, nella stessa cache. */

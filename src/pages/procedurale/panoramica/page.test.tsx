@@ -249,8 +249,15 @@ describe('Revisioni del 31/10/2026: filtro SIGC nella panoramica (natura mista, 
     expect(links.length).toBeGreaterThan(0);
     expect(links.every((l) => new URLSearchParams(l.getAttribute('href')?.split('?')[1]).get('sigc') === 'true')).toBe(true);
     // nelle card non pertinenti nessun controllo nella tabulazione
+    // review X-10 della passata 2: prima un every su un array che poteva essere vuoto
     const sostegno = await trovaCard('Domande di sostegno per stato');
-    expect(Array.from(sostegno.querySelectorAll('.ui-non-pertinente__corpo a[href], .ui-non-pertinente__corpo button')).every((el) => el.getAttribute('tabindex') === '-1')).toBe(true);
+    const corpo = sostegno.querySelector('.ui-non-pertinente__corpo') as HTMLElement;
+    expect(corpo).not.toBeNull();
+    expect(corpo.querySelectorAll('a[href]')).toHaveLength(0);
+    // la tabella dei dati nascosta alla vista c'e' e non prende il focus; nessun altro elemento nella tabulazione
+    expect(corpo.querySelector('.visually-hidden .ui-tabella-contenitore')?.getAttribute('tabindex')).toBe('-1');
+    const tabulabili = corpo.querySelectorAll('button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])');
+    expect(tabulabili).toHaveLength(0);
   });
 
   it('col filtro NO SIGC: tutte le letture con sigc=false, nessuna card non pertinente; il link delle ammesse porta sigc=false', async () => {

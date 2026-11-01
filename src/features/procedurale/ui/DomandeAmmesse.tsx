@@ -8,10 +8,10 @@
 // filtri non disponibili. Classi bootstrap-italia e del kit v2; react-aria solo nel pannello, nel drawer e nella pill.
 import { useState } from 'react';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
-import { nonPertinenza } from '../../../shared/lib';
 import { Griglia, NonPertinente, VistaQuery, VuotoConFiltri } from '../../../shared/ui';
 import { useDomandeAmmesse } from '../api';
-import { conFiltri, criteriNoSigc, ricercaDaCriteri } from '../lib/criteri';
+import { conFiltri, ricercaDaCriteri } from '../lib/criteri';
+import { letturaNoSigc } from '../lib/natura';
 import type { Ammesse } from '../lib/dto';
 import { NOTA_AMMESSE, testoNessunIntervento } from '../lib/formato';
 import { puoLeggere } from '../lib/grant';
@@ -20,7 +20,6 @@ import { CardAmmesseConAtto, CardImporti } from './CardAmmesse';
 import { TessereKpi } from './comuni';
 import { fileReport } from './esportazioni';
 import { PaginaProcedurale } from './PaginaProcedurale';
-import { MOTIVI_NO_SIGC } from './nonPertinenza';
 import { AnteprimaAmmesse, TabellaAmmesse } from './TabellaAmmesse';
 import { useCriteriDellaPagina } from './useCriteriNellIndirizzo';
 import type { PaginaDeiCriteri } from './useCriteriNellIndirizzo';
@@ -48,20 +47,19 @@ function ReportAmmesse({ d, pagina, aperto, onApri }: { d: Ammesse; pagina: Pagi
 export function DomandeAmmesse() {
   const pagina = useCriteriDellaPagina('tutti');
   // solo NO SIGC (domande ammesse in determina): col filtro SIGC non pertinente, letta senza filtro (F3)
-  const np = nonPertinenza(pagina.filtri.sigc, 'nosigc', MOTIVI_NO_SIGC.ammesse);
-  const stato = useDomandeAmmesse(criteriNoSigc(pagina.filtri), { abilitato: puoLeggere(useAuthStatus().data, 'ammesse') });
+  const { np, criteri } = letturaNoSigc(pagina.filtri, 'ammesse');
+  const stato = useDomandeAmmesse(criteri, { abilitato: puoLeggere(useAuthStatus().data, 'ammesse') });
   const [aperto, setAperto] = useState<string | null>(null);
   const vuoto = <VuotoConFiltri onModifica={() => pagina.apri('vuoto')}>{testoNessunIntervento(conFiltri(pagina.filtri))}</VuotoConFiltri>;
   return (
     <PaginaProcedurale pagina={pagina} briciola="Domande ammesse" titolo="Procedurale: domande ammesse per intervento" titoloDocumento="Domande ammesse - Procedurale" sottotitolo={SOTTOTITOLO} perimetro={stato.data?.perimetro} tipoPerimetro="domande" codiciRisposta={(stato.data?.righe ?? []).map((r) => r.codiceIntervento)}>
-      <VistaQuery stato={stato} eVuoto={(d) => (d.righe ?? []).length === 0} vuoto={vuoto}>
-        {(d) => (
-          <NonPertinente np={np}>
-            {/* la chiave coi criteri: cambiando i filtri (anche il SIGC) la tabella riparte dalla prima pagina (review X-11) */}
-            <ReportAmmesse key={ricercaDaCriteri(pagina.filtri)} d={d} pagina={pagina} aperto={aperto} onApri={setAperto} />
-          </NonPertinente>
-        )}
-      </VistaQuery>
+      {/* la non pertinenza avvolge anche il vuoto e l'errore (review X-10) */}
+      <NonPertinente np={np}>
+        <VistaQuery stato={stato} eVuoto={(d) => (d.righe ?? []).length === 0} vuoto={vuoto}>
+          {/* la chiave coi criteri: cambiando i filtri (anche il SIGC) la tabella riparte dalla prima pagina (review X-11) */}
+          {(d) => <ReportAmmesse key={ricercaDaCriteri(pagina.filtri)} d={d} pagina={pagina} aperto={aperto} onApri={setAperto} />}
+        </VistaQuery>
+      </NonPertinente>
     </PaginaProcedurale>
   );
 }

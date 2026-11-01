@@ -249,4 +249,15 @@ describe('Revisioni del 31/10/2026: stati di sostegno solo NO SIGC, non pertinen
     expect(lette.sostegno.length).toBeGreaterThan(0);
     expect(lette.sostegno.every((q) => !q.includes('sigc'))).toBe(true);
   });
+
+  // review X-10: anche il vuoto di una lettura non pertinente dice il motivo e non invita a cambiare i filtri
+  it('col filtro SIGC il vuoto dice il motivo e "Modifica i filtri" e disattivato', async () => {
+    servi();
+    apri(`${PERCORSO}?intervento=SRD02&sigc=true`);
+    const vuoto = (await screen.findByText('Nessuna domanda di sostegno per i filtri scelti.')).closest('[role="status"]') as HTMLElement;
+    expect(screen.getAllByText('Non pertinente al filtro SIGC').length).toBeGreaterThan(0);
+    const modifica = within(vuoto).getByRole('button', { name: 'Modifica i filtri' }) as HTMLButtonElement;
+    expect(modifica.disabled).toBe(true);
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
 });

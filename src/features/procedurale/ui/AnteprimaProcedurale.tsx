@@ -7,7 +7,7 @@
 // (AnteprimaArea) come la card del finanziario; nessun react-aria.
 import type { ReactNode } from 'react';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
-import { importoBreve, intero } from '../../../shared/lib';
+import { formatEuro, importoBreve, intero } from '../../../shared/lib';
 import { AnteprimaArea, AttesaArea, AvanzamentoArea, NotaArea, NumeriArea, NumeroArea } from '../../../shared/ui';
 import { useDomandeAmmesse, useStatiSostegno } from '../api';
 import { anteprimaAmmesse, domandeDiSostegno, etichetteAnteprima, testoInterventi } from '../lib/anteprima';
@@ -25,7 +25,7 @@ function Ammesse() {
     <>
       <NumeriArea>
         <NumeroArea etichetta={e.ammesse} valore={a.domandeAmmesse} formato={intero} />
-        <NumeroArea etichetta={e.contributo} valore={a.contributo.valore} motivo={a.contributo.motivo} nota={a.contributo.nota} formato={importoBreve} />
+        <NumeroArea etichetta={e.contributo} valore={a.contributo.valore} motivo={a.contributo.motivo} nota={a.contributo.nota} formato={importoBreve} formatoPieno={formatEuro} />
       </NumeriArea>
       {interventi.quota !== null ? (
         <AvanzamentoArea etichetta={e.interventi} percentuale={interventi.quota} testo={testoInterventi(interventi)} />
