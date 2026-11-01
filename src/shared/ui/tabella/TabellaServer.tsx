@@ -8,6 +8,7 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { ariaSort, conColonna } from '../../lib/tabella';
+import { COLONNE_TABELLA_STRETTA } from './larghezza';
 import { gestoriRigaApribile } from './rigaApribile';
 import { GLIFO_ORDINE, SceltaColonne } from './SceltaColonne';
 
@@ -166,7 +167,7 @@ export function TabellaServer<T>({
       </div>
       <div className="ui-tabella-contenitore">
         {/* tabella larga (oltre 6 colonne): la prima colonna resta ferma scorrendo in orizzontale (R12, review J-11) */}
-        <table className={visibili.length > 6 ? 'ui-tabella ui-tabella--larga' : 'ui-tabella'}>
+        <table className={visibili.length > COLONNE_TABELLA_STRETTA ? 'ui-tabella ui-tabella--larga' : 'ui-tabella'}>
           <caption>{caption}</caption>
           <thead>
             <tr>

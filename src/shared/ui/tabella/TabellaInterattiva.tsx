@@ -9,7 +9,9 @@ import { useId, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { ariaSort, conColonna, didascalia, filtraRighe, ordinaRighe, paginaDi, versoSuccessivo } from '../../lib/tabella';
 import type { Ordine, ValoreOrdinabile } from '../../lib/tabella';
+import { useNonPertinenza } from '../card/NonPertinente';
 import { gestoriRigaApribile } from './rigaApribile';
+import { COLONNE_TABELLA_STRETTA } from './larghezza';
 import { GLIFO_ORDINE, SceltaColonne } from './SceltaColonne';
 
 export interface ColonnaTabella<T> {
@@ -253,6 +255,7 @@ export function TabellaInterattiva<T>(props: PropsTabellaInterattiva<T>) {
   // 25 righe per pagina (R12, revisioni del 31/10/2026: prima 10, la tabella non riempiva mai il riquadro)
   const { caption, righe, colonne, chiaveRiga, testoRicerca, onRiga, etichettaRiga, totali, righePiede = [], perPagina = 25, onStato } = props;
   const id = useId();
+  const np = useNonPertinenza();
   const [iniziale] = useState(() => partenza(props));
   const [cercato, setCercato] = useState(iniziale.cercato);
   const [ordine, setOrdine] = useState<Ordine>(iniziale.ordine);
@@ -280,20 +283,23 @@ export function TabellaInterattiva<T>(props: PropsTabellaInterattiva<T>) {
 
   return (
     <div>
-      <Strumenti
-        id={id}
-        cercato={cercato}
-        onCerca={cerca}
-        segnaposto={props.segnapostoRicerca ?? 'Cerca nella tabella'}
-        strumenti={props.strumenti}
-        notaRicerca={props.notaRicerca}
-        colonne={colonne}
-        nascoste={nascoste}
-        onColonna={(chiave, visibile) => setNascoste((s) => conColonna(s, chiave, visibile))}
-      />
+      {/* nel corpo non pertinente niente ricerca, colonne ne' Scarica: il wireframe li vuole assenti (review V2-03) */}
+      {!np && (
+        <Strumenti
+          id={id}
+          cercato={cercato}
+          onCerca={cerca}
+          segnaposto={props.segnapostoRicerca ?? 'Cerca nella tabella'}
+          strumenti={props.strumenti}
+          notaRicerca={props.notaRicerca}
+          colonne={colonne}
+          nascoste={nascoste}
+          onColonna={(chiave, visibile) => setNascoste((s) => conColonna(s, chiave, visibile))}
+        />
+      )}
       <div className="ui-tabella-contenitore">
         {/* tabella larga (oltre 6 colonne): la prima colonna resta ferma scorrendo in orizzontale (R12) */}
-        <table className={visibili.length > 6 ? 'ui-tabella ui-tabella--larga' : 'ui-tabella'}>
+        <table className={visibili.length > COLONNE_TABELLA_STRETTA ? 'ui-tabella ui-tabella--larga' : 'ui-tabella'}>
           <caption>{didascalia(caption, filtrate.length, cercato, !!onRiga)}</caption>
           <Intestazioni colonne={visibili} ordine={ordine} onOrdina={ordina} />
           <tbody>

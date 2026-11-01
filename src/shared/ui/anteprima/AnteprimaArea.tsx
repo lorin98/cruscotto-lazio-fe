@@ -107,6 +107,8 @@ export interface RigaConfronto {
   chiave: string;
   etichetta: string;
   formato: (v: number) => string;
+  /** Il valore pieno di un formato compatto, per i lettori di schermo e il suggerimento (R09, R20; review V2-05). */
+  formatoPieno?: (v: number) => string;
 }
 
 /** Una cella: il valore (null o assente = non disponibile) e perche' manca. */
@@ -155,7 +157,15 @@ function CellaDelConfronto({ riga, colonna }: { riga: RigaConfronto; colonna: Co
   if (colonna.stato === 'attesa') return <span className="ui-skeleton ui-ambito__confronto-attesa" aria-hidden="true" />;
   const presente = colonna.stato === 'pronta' ? numeroDi(colonna.celle[riga.chiave]?.valore) : null;
   if (presente === null) return <span className="ui-ambito__confronto-assente">{NON_DISPONIBILE}</span>;
-  return <>{valoreDellaCella(presente, riga.formato)}</>;
+  const compatto = valoreDellaCella(presente, riga.formato);
+  const pieno = riga.formatoPieno?.(presente);
+  if (!pieno || pieno === compatto) return <>{compatto}</>;
+  return (
+    <span title={pieno}>
+      <span aria-hidden="true">{compatto}</span>
+      <span className="visually-hidden">{pieno}</span>
+    </span>
+  );
 }
 
 /**

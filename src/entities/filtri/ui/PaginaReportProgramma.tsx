@@ -11,7 +11,8 @@
 // del kit v2; react-aria solo dentro il pannello e il popover della pill del kit.
 import type { ComponentProps, ReactNode, RefObject } from 'react';
 import type { UltimoDato } from '../../../shared/lib';
-import { Caricamento, PaginaConFiltri, PillDatiAl, TestaPagina, VistaQuery, Vuoto, VuotoConFiltri } from '../../../shared/ui';
+import { Caricamento, NonPertinente, PaginaConFiltri, PillDatiAl, TestaPagina, VistaQuery, Vuoto, VuotoConFiltri } from '../../../shared/ui';
+import type { NonPertinenza } from '../../../shared/lib';
 import type { Briciola, ChipFiltro, StatoQuery } from '../../../shared/ui';
 import type { PannelloAperto } from './usePannelloConFocus';
 import { ValoriFiltriNonDisponibili } from './ValoriFiltriNonDisponibili';
@@ -55,23 +56,28 @@ interface PropsPaginaReport<D extends RispostaReportProgramma> {
   pannello: ReactNode;
   /** Il report della risposta (nuovo coi criteri nuovi: la chiave la da' la pagina). */
   children: (d: D) => ReactNode;
+  /** La non pertinenza del report (pagina di un solo tipo col filtro SIGC opposto): anche il vuoto e l'errore la dicono. */
+  np?: NonPertinenza | null;
 }
 
-type PropsCorpo<D extends RispostaReportProgramma> = Pick<PropsPaginaReport<D>, 'stato' | 'senzaLettura' | 'children'> & { inAttesa: boolean; vuoto: ReactNode };
+type PropsCorpo<D extends RispostaReportProgramma> = Pick<PropsPaginaReport<D>, 'stato' | 'senzaLettura' | 'children' | 'np'> & { inAttesa: boolean; vuoto: ReactNode };
 
 /** Il corpo (nell'avviso unico della pagina): il testo al posto del report, l'attesa del legame con le azioni, la lettura. */
-function CorpoReport<D extends RispostaReportProgramma>({ stato, inAttesa, vuoto, senzaLettura, children }: PropsCorpo<D>) {
+function CorpoReport<D extends RispostaReportProgramma>({ stato, inAttesa, vuoto, senzaLettura, children, np = null }: PropsCorpo<D>) {
   if (senzaLettura !== undefined) return <Vuoto>{senzaLettura}</Vuoto>;
   // finche' non si sa se il filtro per azione si applica, il report non si legge (come nel finanziario, X-03)
   if (inAttesa) return <Caricamento testo="Verifica dei filtri in corso…" />;
+  // la non pertinenza avvolge anche il vuoto e l'errore della lettura (review X-10)
   return (
-    <VistaQuery stato={stato} eVuoto={(d) => (d.righe ?? []).length === 0} vuoto={vuoto}>
-      {children}
-    </VistaQuery>
+    <NonPertinente np={np}>
+      <VistaQuery stato={stato} eVuoto={(d) => (d.righe ?? []).length === 0} vuoto={vuoto}>
+        {children}
+      </VistaQuery>
+    </NonPertinente>
   );
 }
 
-export function PaginaReportProgramma<D extends RispostaReportProgramma>({ pagina, stato, briciole, testa, pillDellaBarra, testoVuoto, senzaLettura, sopra, pannello, children }: PropsPaginaReport<D>) {
+export function PaginaReportProgramma<D extends RispostaReportProgramma>({ pagina, stato, briciole, testa, pillDellaBarra, testoVuoto, senzaLettura, sopra, pannello, children, np }: PropsPaginaReport<D>) {
   const { inAttesa, chip, togliTutti, valori, h1, apri } = pagina;
   const destra = (
     <>
@@ -95,7 +101,7 @@ export function PaginaReportProgramma<D extends RispostaReportProgramma>({ pagin
       }
       pannello={pannello}
     >
-      <CorpoReport stato={stato} inAttesa={inAttesa} vuoto={vuoto} senzaLettura={senzaLettura}>
+      <CorpoReport stato={stato} inAttesa={inAttesa} vuoto={vuoto} senzaLettura={senzaLettura} np={np}>
         {children}
       </CorpoReport>
     </PaginaConFiltri>

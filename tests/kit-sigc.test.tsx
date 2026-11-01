@@ -2,13 +2,14 @@
 // comuni nuove (assi R02, sinottici R09) e il tipo dell'intervento dei dettagli: lib pura, controllo della barra, card del
 // kit dentro <NonPertinente>, pill del tipo.
 import { describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { useEffect, useState } from 'react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { filtriDaRicerca, ricercaDaFiltri, tipoIntervento } from '../src/entities/filtri';
-import { etichettaSigc, gradinoRighe, nonPertinenza, ricercaConSigc, ricercaDelSoloSigc, righeOrizzontali, senzaSigc, sigcDaRicerca } from '../src/shared/lib';
+import { etichettaSigc, gradinoRighe, nonPertinenza, percorsoConSigc, ricercaConSigc, ricercaDelSoloSigc, righeOrizzontali, senzaIstruzioni, senzaSigc, sigcDaRicerca } from '../src/shared/lib';
 import type { DatiGrafico } from '../src/shared/lib';
-import { BarraFiltri, BarraRiferimenti, CardGrafico, InerteSeNonPertinente, Kpi, NonPertinente, Sezione } from '../src/shared/ui';
+import { BarraFiltri, BarraRiferimenti, CardGrafico, InerteSeNonPertinente, InterruttoreVista, Kpi, NonPertinente, Sezione, TabellaInterattiva } from '../src/shared/ui';
 import { expectNoA11yViolations } from '../src/shared/testing/axe';
 
 describe('R01 SIGC: lib pura del filtro', () => {
@@ -23,7 +24,9 @@ describe('R01 SIGC: lib pura del filtro', () => {
   });
 
   it('cambiare il filtro lascia gli altri parametri e riporta la tabella alla prima pagina', () => {
-    expect(ricercaConSigc('intervento=SRA01&pagina=3', 'false')).toBe('intervento=SRA01&sigc=false');
+    expect(ricercaConSigc('intervento=SRA01', 'false')).toBe('intervento=SRA01&sigc=false');
+    expect(percorsoConSigc('/fisico/superfici', 'true')).toBe('/fisico/superfici?sigc=true');
+    expect(percorsoConSigc('/fisico/superfici', undefined)).toBe('/fisico/superfici');
     expect(ricercaConSigc('intervento=SRA01&sigc=false', undefined)).toBe('intervento=SRA01');
     expect(ricercaDelSoloSigc('os=OS1&sigc=true&anno=2025')).toBe('sigc=true');
     expect(ricercaDelSoloSigc('os=OS1')).toBe('');
@@ -71,8 +74,8 @@ function barraNelRouter(indirizzo: string) {
 }
 
 describe('R01: il controllo "Tutti | SIGC | NO SIGC" della barra', () => {
-  it('stato premuto dall indirizzo, scelta nell indirizzo (pagina azzerata), "Tutti" toglie il parametro', async () => {
-    const router = barraNelRouter('/prova?intervento=SRA01&pagina=2');
+  it('stato premuto dall indirizzo, scelta nell indirizzo con gli altri parametri com erano, "Tutti" toglie il parametro', async () => {
+    const router = barraNelRouter('/prova?intervento=SRA01');
     const gruppo = screen.getByRole('group', { name: 'Interventi SIGC o NO SIGC' });
     expect(within(gruppo).getAllByRole('button').map((b) => [b.textContent, b.getAttribute('aria-pressed')])).toEqual([
       ['Tutti', 'true'],
@@ -162,24 +165,91 @@ describe('F3: le card del kit dentro <NonPertinente>', () => {
     );
     const sezione = screen.getByRole('region', { name: 'Tabella delle superfici' });
     expect(within(sezione).queryByRole('button', { name: 'Scarica' })).toBeNull();
-    // niente inert (review J-01): il controllo resta nell'albero accessibile, disattivato e fuori dalla tabulazione
+    // niente inert (review J-01): il bottone resta nell'albero accessibile, disattivato (disabled: fuori dalla tabulazione)
     expect(document.querySelector('[inert]')).toBeNull();
-    const bottone = within(sezione).getByRole('button', { name: 'Riga' });
+    const bottone = within(sezione).getByRole('button', { name: 'Riga' }) as HTMLButtonElement;
+    expect(bottone.disabled).toBe(true);
     expect(bottone.getAttribute('aria-disabled')).toBe('true');
-    expect(bottone.getAttribute('tabindex')).toBe('-1');
     fireEvent.click(bottone);
-    fireEvent.keyDown(bottone, { key: 'Enter' });
     expect(riga).not.toHaveBeenCalled();
     // il motivo una volta sola nella sezione
     expect(within(sezione).getAllByText('Non pertinente al filtro NO SIGC')).toHaveLength(1);
     const kpi = screen.getByRole('region', { name: 'Presentate, non pertinente al filtro NO SIGC' });
     expect(within(kpi).queryByRole('link')).toBeNull();
     expect(within(kpi).getByText('Non pertinente al filtro NO SIGC')).toBeTruthy();
+    // il link perde l'href (niente clic centrale, menu contestuale o trascinamento) e resta un "link disattivato"
     const elenco = screen.getByRole('link', { name: 'Le domande nell elenco' });
+    expect(elenco.hasAttribute('href')).toBe(false);
     expect(elenco.getAttribute('aria-disabled')).toBe('true');
     expect(elenco.getAttribute('tabindex')).toBe('-1');
     fireEvent.click(elenco);
     expect(link).not.toHaveBeenCalled();
+  });
+
+  // review passata 2 (A-03, X-13): i tasti fermati davvero, i controlli montati o cambiati dopo, le zone di lettura
+  it('corpo non attivabile: Invio e spazio non arrivano ai gestori, i controlli montati dopo si disattivano, la paginazione resta', async () => {
+    const tasto = vi.fn();
+    const pagina = vi.fn();
+    function MontatoDopo() {
+      const [c, setC] = useState(false);
+      useEffect(() => setC(true), []);
+      return c ? <a href="#dopo">Montato dopo</a> : null;
+    }
+    render(
+      <NonPertinente np={NP}>
+        <InerteSeNonPertinente>
+          <div role="button" tabIndex={0} onKeyDown={tasto}>
+            Riga apribile
+          </div>
+          <input aria-label="Cerca" />
+          <MontatoDopo />
+          <nav className="ui-paginazione" aria-label="Pagine della tabella">
+            <button type="button" onClick={pagina}>
+              Pagina 2
+            </button>
+          </nav>
+        </InerteSeNonPertinente>
+      </NonPertinente>,
+    );
+    const riga = screen.getByRole('button', { name: 'Riga apribile' });
+    expect(riga.getAttribute('tabindex')).toBe('-1');
+    fireEvent.keyDown(riga, { key: 'Enter' });
+    fireEvent.keyDown(riga, { key: ' ' });
+    expect(tasto).not.toHaveBeenCalled();
+    expect((screen.getByRole('textbox', { name: 'Cerca' }) as HTMLInputElement).disabled).toBe(true);
+    await waitFor(() => expect(screen.getByRole('link', { name: 'Montato dopo' }).hasAttribute('href')).toBe(false));
+    const bottonePagina = screen.getByRole('button', { name: 'Pagina 2' }) as HTMLButtonElement;
+    expect(bottonePagina.disabled).toBe(false);
+    fireEvent.click(bottonePagina);
+    expect(pagina).toHaveBeenCalledTimes(1);
+  });
+
+  it('nel corpo non pertinente niente strumenti della tabella ne interruttore della vista; le voci omesse si aprono; sottotitolo senza istruzioni', () => {
+    render(
+      <NonPertinente np={NP}>
+        <InterruttoreVista etichetta="Vista delle superfici" vista="grafico" onVista={() => undefined} />
+        <TabellaInterattiva caption="Superfici" righe={[{ c: 'SRA01' }]} colonne={[{ chiave: 'c', titolo: 'Intervento', valore: (r: { c: string }) => r.c }]} chiaveRiga={(r) => r.c} testoRicerca={(r) => r.c} strumenti={<button type="button">Scarica</button>} />
+        <CardGrafico titolo="Domande SIGC" sottotitolo="Le voci di SR-01; clic su una barra: la pagina degli stati." dati={{ ...DATI, omessi: ['SRA02: non valorizzato'] }} fonte="Fonte: TX-0012" />
+      </NonPertinente>,
+    );
+    expect(screen.queryByRole('group', { name: 'Vista delle superfici' })).toBeNull();
+    expect(screen.queryByRole('searchbox')).toBeNull();
+    expect(screen.queryByRole('textbox')).toBeNull();
+    expect(screen.queryByText('Colonne')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Scarica' })).toBeNull();
+    const card = screen.getByRole('region', { name: 'Domande SIGC' });
+    expect(within(card).getByText('Le voci di SR-01.')).toBeTruthy();
+    const omessi = within(card).getByText('1 voce non nel grafico');
+    expect(omessi.closest('.ui-non-pertinente__corpo')).toBeNull();
+    expect(omessi.getAttribute('aria-disabled')).toBeNull();
+  });
+
+  it('senzaIstruzioni: toglie le frasi "Clic ..." e "Trascina ..."; il resto com e', () => {
+    expect(senzaIstruzioni('Le undici voci di SR-01, poi gli altri stati. Clic su una barra: la pagina degli stati.')).toBe('Le undici voci di SR-01, poi gli altri stati.');
+    expect(senzaIstruzioni('Un intervento per riga; clic su una barra per il dettaglio')).toBe('Un intervento per riga.');
+    expect(senzaIstruzioni('Clic su una barra: il dettaglio.')).toBeUndefined();
+    expect(senzaIstruzioni('Nessuna istruzione qui.')).toBe('Nessuna istruzione qui.');
+    expect(senzaIstruzioni(undefined)).toBeUndefined();
   });
 });
 

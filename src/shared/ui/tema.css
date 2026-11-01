@@ -253,6 +253,10 @@ html:has(.ui-filtri) { scroll-padding-top: calc(var(--ui-altezza-barra-filtri, 3
 /* la prima colonna, qualunque cella sia (anche quando l'intestazione di riga e' un'altra colonna: review J-10) */
 .ui-tabella--larga tbody tr > :first-child, .ui-tabella--larga tfoot tr > :first-child { position: sticky; left: 0; z-index: 0; background: #fff; }
 .ui-tabella--larga thead tr:last-child > :first-child { position: sticky; left: 0; z-index: 2; }
+/* la prima colonna ferma non copre la cella che prende il focus scorrendo in orizzontale (WCAG 2.4.11, review A-05): una
+   larghezza massima nota e lo stesso spazio come scroll-padding del riquadro */
+.ui-tabella--larga tr > :first-child { max-width: 16rem; }
+.ui-tabella-contenitore:has(> .ui-tabella--larga) { scroll-padding-left: 16.5rem; }
 .ui-tabella tfoot td, .ui-tabella tfoot th { font-weight: 700; background: #fbfcfe; }
 .ui-riga { cursor: pointer; transition: background .15s; }
 .ui-riga:hover { background: #f5f9ff; }

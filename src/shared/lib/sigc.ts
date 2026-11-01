@@ -28,15 +28,19 @@ export function ricercaDelSoloSigc(ricerca: string): string {
 }
 
 /**
- * La query string (senza "?") col filtro cambiato e gli altri parametri com'erano, salvo la pagina della tabella
- * (`pagina`): cambiando l'insieme degli interventi si riparte dalla prima.
+ * La query string (senza "?") col filtro cambiato e gli altri parametri com'erano. La prima pagina delle tabelle la
+ * garantiscono le pagine (chiave coi criteri; l'elenco scrive il SIGC coi suoi criteri: review H-11).
  */
 export function ricercaConSigc(ricerca: string, valore: ValoreSigc | undefined): string {
   const p = new URLSearchParams(ricerca);
-  p.delete('pagina');
   if (valore === undefined) p.delete(PARAMETRO_SIGC);
   else p.set(PARAMETRO_SIGC, valore);
   return p.toString();
+}
+
+/** Un percorso col solo filtro SIGC dato (la voce dell'area nel menu e nelle briciole; review H-12). */
+export function percorsoConSigc(percorso: string, valore: ValoreSigc | undefined): string {
+  return valore === undefined ? percorso : `${percorso}?${PARAMETRO_SIGC}=${valore}`;
 }
 
 /** Il filtro come lo dice l'utente; assente = tutti. */
@@ -51,6 +55,20 @@ export function etichettaSigc(valore: ValoreSigc | undefined): FiltroSigc | unde
 export function righeSigc(valore: ValoreSigc | undefined): string[] {
   const e = etichettaSigc(valore);
   return e ? [`Interventi: ${e}`] : [];
+}
+
+/**
+ * Il sottotitolo di una card non pertinente senza le istruzioni d'uso ("Clic su una barra: ...", "Trascina ..."): nel corpo
+ * non attivabile non valgono (review H-08, A-06). Le frasi si separano su punto o punto e virgola; senza istruzioni resta
+ * com'e'.
+ */
+export function senzaIstruzioni(testo: string | undefined): string | undefined {
+  if (!testo) return testo;
+  const frasi = testo.split(/(?<=[.;])\s+/);
+  const restano = frasi.filter((f) => !/^(clic|trascina)\b/i.test(f.trim()));
+  if (restano.length === frasi.length) return testo;
+  const unito = restano.join(' ').trim().replace(/;$/, '.');
+  return unito || undefined;
 }
 
 /** Una card (o una pagina) di un solo tipo col filtro opposto: il filtro scelto e il motivo leggibile. */

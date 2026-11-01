@@ -13,6 +13,7 @@
 import { useId, useState } from 'react';
 import type { ReactNode } from 'react';
 import { nomeFile } from '../../lib/nome-file';
+import { senzaIstruzioni } from '../../lib/sigc';
 import type { DatiGrafico } from '../../lib/grafici';
 import { Interruttore } from '../card/Interruttore';
 import { CorpoNonPertinente, useNonPertinenza } from '../card/NonPertinente';
@@ -44,6 +45,9 @@ const VISTE = [
  * nome del gruppo per i lettori di schermo; `className`: classi in piu' (es. il margine).
  */
 export function InterruttoreVista({ etichetta, vista, onVista, className }: { etichetta: string; vista: Vista; onVista: (v: Vista) => void; className?: string }) {
+  // nel corpo non pertinente niente interruttore, come nelle card grafico (review V2-03)
+  const np = useNonPertinenza();
+  if (np) return null;
   return <Interruttore etichetta={etichetta} opzioni={VISTE} scelta={vista} onScelta={onVista} className={className} />;
 }
 
@@ -212,7 +216,8 @@ function CardNonPertinente({ titolo, sottotitolo, dati, fonte, altezza = 'normal
   const id = useId();
   return (
     <section className="ui-card ui-dissolvenza" aria-labelledby={id} data-card-grafico="non-pertinente">
-      <TestaCard id={id} titolo={titolo} sottotitolo={sottotitolo} livello={livello} />
+      {/* il sottotitolo senza le istruzioni d'uso: il clic e lo zoom non valgono nel corpo non pertinente (H-08, A-06) */}
+      <TestaCard id={id} titolo={titolo} sottotitolo={senzaIstruzioni(sottotitolo)} livello={livello} />
       <CorpoNonPertinente>
         {dati.opzioni ? (
           <Grafico opzioni={dati.opzioni} altezza={altezza} onIstanza={nessunaIstanza} />
@@ -222,8 +227,9 @@ function CardNonPertinente({ titolo, sottotitolo, dati, fonte, altezza = 'normal
         <div className="visually-hidden">
           <TabellaDati tabella={dati.tabella} />
         </div>
-        <VociOmesse omessi={dati.omessi} />
       </CorpoNonPertinente>
+      {/* le voci omesse fuori dal corpo: si aprono come nelle card normali, sono lettura del dato (review X-04) */}
+      <VociOmesse omessi={dati.omessi} />
       <Fonte testo={fonte} />
     </section>
   );

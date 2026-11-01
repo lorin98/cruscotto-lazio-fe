@@ -75,8 +75,9 @@ export function ricercaDaFiltri(filtri: Filtri): string {
 }
 
 /**
- * I soli filtri del programma di una query string (senza "?"), validi e nell'ordine delle chiavi: la parte che resta
- * passando dal menu da un report all'altro di un'area (finanziario, istituzionale; review H7 dell'istituzionale).
+ * I soli filtri del programma di una query string (senza "?"), validi e nell'ordine delle chiavi, col filtro SIGC (R01): la
+ * parte che resta passando dal menu da un report all'altro di un'area (finanziario, istituzionale; review H7
+ * dell'istituzionale).
  */
 export function ricercaDeiSoliFiltri(ricerca: string): string {
   return ricercaDaFiltri(filtriDaRicerca(ricerca));

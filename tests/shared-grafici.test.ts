@@ -181,8 +181,8 @@ describe('contratto e primitive numeriche', () => {
 
 describe('zoomSeMolti', () => {
   it('fino a MAX_BARRE_VISIBILI categorie niente scorrimento', () => {
-    // 40 dal 31/10/2026 (R02: tutti gli interventi con la loro etichetta; review J-09)
-    expect(MAX_BARRE_VISIBILI).toBe(40);
+    // 12 come nei wireframe approvati ("zoom oltre 12"); tutti gli interventi stanno nelle barre orizzontali (review K-01)
+    expect(MAX_BARRE_VISIBILI).toBe(12);
     expect(zoomSeMolti(0)).toEqual({});
     expect(zoomSeMolti(MAX_BARRE_VISIBILI)).toEqual({});
   });
@@ -445,11 +445,11 @@ describe('barreRaggruppate', () => {
     const nove = prova(barreRaggruppate(Array.from({ length: 9 }, (_, k) => voce(k + 1)), definizioni, testi).opzioni);
     expect(asse(nove.xAxis).axisLabel?.rotate).toBe(45);
     expect(nove.dataZoom).toBeUndefined();
-    expect(prova(barreRaggruppate(Array.from({ length: 40 }, (_, k) => voce(k + 1)), definizioni, testi).opzioni).dataZoom).toBeUndefined();
-    const molte = prova(barreRaggruppate(Array.from({ length: 41 }, (_, k) => voce(k + 1)), definizioni, testi).opzioni);
+    expect(prova(barreRaggruppate(Array.from({ length: 12 }, (_, k) => voce(k + 1)), definizioni, testi).opzioni).dataZoom).toBeUndefined();
+    const molte = prova(barreRaggruppate(Array.from({ length: 13 }, (_, k) => voce(k + 1)), definizioni, testi).opzioni);
     expect(molte.dataZoom?.map((z) => [z.type, z.startValue, z.endValue])).toEqual([
-      ['inside', 0, 39],
-      ['slider', 0, 39],
+      ['inside', 0, 11],
+      ['slider', 0, 11],
     ]);
   });
 });

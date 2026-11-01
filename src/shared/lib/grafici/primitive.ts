@@ -6,10 +6,11 @@ import { ettari, formatEttari, formatEuro, formatNumber, formatPercentuale } fro
 export const NON_DISPONIBILE = 'non disponibile';
 export const NON_CALCOLABILE = 'non calcolabile';
 /**
- * Oltre questo numero di categorie le barre verticali si scorrono (dataZoom): una soglia alta (R02, U1: "zoom solo oltre una
- * soglia alta"; prima 12, review J-09), cosi' per esempio i 36 interventi della dotazione stanno tutti con le etichette.
+ * Oltre questo numero di categorie le barre verticali si scorrono (dataZoom), come dicono i wireframe approvati ("zoom oltre
+ * 12"): piu' barre verticali non hanno spazio per le etichette, specie a 390 px. I grafici che devono mostrare tutti gli
+ * interventi (R02) usano le barre orizzontali, alte quanto serve e scorrevoli solo oltre MAX_BARRE_ORIZZONTALI (review K-01).
  */
-export const MAX_BARRE_VISIBILI = 40;
+export const MAX_BARRE_VISIBILI = 12;
 /**
  * Barre orizzontali (R02, revisioni del 31/10/2026): il grafico e' alto quanto serve al numero di categorie e si scorre
  * solo oltre questa soglia alta, cosi' per esempio la Panoramica mostra tutti gli interventi con tutte le etichette.
