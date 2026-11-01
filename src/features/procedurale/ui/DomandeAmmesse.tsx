@@ -8,9 +8,10 @@
 // filtri non disponibili. Classi bootstrap-italia e del kit v2; react-aria solo nel pannello, nel drawer e nella pill.
 import { useState } from 'react';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
-import { Griglia, VistaQuery, VuotoConFiltri } from '../../../shared/ui';
+import { nonPertinenza } from '../../../shared/lib';
+import { Griglia, NonPertinente, VistaQuery, VuotoConFiltri } from '../../../shared/ui';
 import { useDomandeAmmesse } from '../api';
-import { conFiltri, criteriDelReport } from '../lib/criteri';
+import { conFiltri, criteriNoSigc } from '../lib/criteri';
 import type { Ammesse } from '../lib/dto';
 import { NOTA_AMMESSE, testoNessunIntervento } from '../lib/formato';
 import { puoLeggere } from '../lib/grant';
@@ -19,6 +20,7 @@ import { CardAmmesseConAtto, CardImporti } from './CardAmmesse';
 import { TessereKpi } from './comuni';
 import { fileReport } from './esportazioni';
 import { PaginaProcedurale } from './PaginaProcedurale';
+import { MOTIVI_NO_SIGC } from './nonPertinenza';
 import { AnteprimaAmmesse, TabellaAmmesse } from './TabellaAmmesse';
 import { useCriteriDellaPagina } from './useCriteriNellIndirizzo';
 import type { PaginaDeiCriteri } from './useCriteriNellIndirizzo';
@@ -45,13 +47,19 @@ function ReportAmmesse({ d, pagina, aperto, onApri }: { d: Ammesse; pagina: Pagi
 
 export function DomandeAmmesse() {
   const pagina = useCriteriDellaPagina('tutti');
-  const stato = useDomandeAmmesse(criteriDelReport(pagina.filtri), { abilitato: puoLeggere(useAuthStatus().data, 'ammesse') });
+  // solo NO SIGC (domande ammesse in determina): col filtro SIGC non pertinente, letta senza filtro (F3)
+  const np = nonPertinenza(pagina.filtri.sigc, 'nosigc', MOTIVI_NO_SIGC.ammesse);
+  const stato = useDomandeAmmesse(criteriNoSigc(pagina.filtri), { abilitato: puoLeggere(useAuthStatus().data, 'ammesse') });
   const [aperto, setAperto] = useState<string | null>(null);
   const vuoto = <VuotoConFiltri onModifica={() => pagina.apri('vuoto')}>{testoNessunIntervento(conFiltri(pagina.filtri))}</VuotoConFiltri>;
   return (
     <PaginaProcedurale pagina={pagina} briciola="Domande ammesse" titolo="Procedurale: domande ammesse per intervento" titoloDocumento="Domande ammesse - Procedurale" sottotitolo={SOTTOTITOLO} perimetro={stato.data?.perimetro} tipoPerimetro="domande" codiciRisposta={(stato.data?.righe ?? []).map((r) => r.codiceIntervento)}>
       <VistaQuery stato={stato} eVuoto={(d) => (d.righe ?? []).length === 0} vuoto={vuoto}>
-        {(d) => <ReportAmmesse d={d} pagina={pagina} aperto={aperto} onApri={setAperto} />}
+        {(d) => (
+          <NonPertinente np={np}>
+            <ReportAmmesse d={d} pagina={pagina} aperto={aperto} onApri={setAperto} />
+          </NonPertinente>
+        )}
       </VistaQuery>
     </PaginaProcedurale>
   );

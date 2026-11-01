@@ -9,11 +9,13 @@
 // della pagina per lettura: TX-0026 lo registra la card degli importi, i KPI mostrano il testo statico), vuoto con
 // "Modifica i filtri". Classi bootstrap-italia e del kit v2; react-aria solo nel pannello e nella pill.
 import { Link, useNavigate } from 'react-router';
-import { ErroreNellaPagina, Griglia, VistaQuery, VuotoConFiltri } from '../../../shared/ui';
+import { nonPertinenza } from '../../../shared/lib';
+import { ErroreNellaPagina, Griglia, NonPertinente, VistaQuery, VuotoConFiltri } from '../../../shared/ui';
 import type { StatoQuery } from '../../../shared/ui';
 import { useDomandeAmmesse, useRiepilogo, useStatiPagamento, useStatiSostegno } from '../api';
 import { apreLaVoceDellArea, indirizzoElenco, paginaDegliStati, testiLinkArea } from '../lib/collegamenti';
-import { chiaveStatoValida, conFiltri, criteriDelReport } from '../lib/criteri';
+import { chiaveStatoValida, conFiltri, criteriDelReport, criteriNoSigc } from '../lib/criteri';
+import { MOTIVI_NO_SIGC } from './nonPertinenza';
 import type { CriteriProcedurali } from '../lib/criteri';
 import type { Ammesse, Riepilogo, Stati, TipoDomanda } from '../lib/dto';
 import { perimetroDelle, testoNessunIntervento, testoVuoto } from '../lib/formato';
@@ -34,11 +36,14 @@ const SOTTOTITOLO = 'Domande ammesse, stati delle domande di sostegno e di pagam
 /** Le letture della pagina, ognuna solo col grant della sua transazione (null senza: la sezione non c'e'). */
 function useLetture(c: CriteriProcedurali) {
   const { puo, conGrant } = useLettureColGrant();
+  // le card di soli dati NO SIGC si leggono senza filtro col filtro SIGC (non pertinenti, F3); lo stato area programmazione
+  // (misto: le domande SIGC stanno fra le senza stato) coi criteri del report
+  const noSigc = criteriNoSigc(c);
   const criteri = criteriDelReport(c);
   return {
-    ammesse: conGrant('ammesse', useDomandeAmmesse(criteri, { abilitato: puo('ammesse') })),
-    sostegno: conGrant('statiSostegno', useStatiSostegno(criteri, { abilitato: puo('statiSostegno') })),
-    pagamento: conGrant('statiPagamento', useStatiPagamento(criteri, { abilitato: puo('statiPagamento') })),
+    ammesse: conGrant('ammesse', useDomandeAmmesse(noSigc, { abilitato: puo('ammesse') })),
+    sostegno: conGrant('statiSostegno', useStatiSostegno(noSigc, { abilitato: puo('statiSostegno') })),
+    pagamento: conGrant('statiPagamento', useStatiPagamento(noSigc, { abilitato: puo('statiPagamento') })),
     riepilogo: conGrant('riepilogo', useRiepilogo(criteri, { abilitato: puo('riepilogo') })),
   };
 }
@@ -127,16 +132,18 @@ function ImportiPanoramica({ stato, pagina }: { stato: StatoQuery<Ammesse>; pagi
 }
 
 function Contenuto({ letture, pagina }: { letture: Letture; pagina: PaginaDeiCriteri }) {
+  // natura delle card col filtro SIGC (scelta dell'utente del 01/11/2026): solo NO SIGC, tranne lo stato area programmazione
+  const np = (motivo: string) => nonPertinenza(pagina.filtri.sigc, 'nosigc', motivo);
   return (
     <>
-      {letture.ammesse && <KpiPanoramica stato={letture.ammesse} criteri={pagina.filtri} />}
+      <NonPertinente np={np(MOTIVI_NO_SIGC.ammesse)}>{letture.ammesse && <KpiPanoramica stato={letture.ammesse} criteri={pagina.filtri} />}</NonPertinente>
       <Griglia>
-        {letture.sostegno && <StatiPanoramica tipo="SOSTEGNO" stato={letture.sostegno} pagina={pagina} />}
-        {letture.pagamento && <StatiPanoramica tipo="PAGAMENTO" stato={letture.pagamento} pagina={pagina} />}
+        <NonPertinente np={np(MOTIVI_NO_SIGC.statiSostegno)}>{letture.sostegno && <StatiPanoramica tipo="SOSTEGNO" stato={letture.sostegno} pagina={pagina} />}</NonPertinente>
+        <NonPertinente np={np(MOTIVI_NO_SIGC.statiPagamento)}>{letture.pagamento && <StatiPanoramica tipo="PAGAMENTO" stato={letture.pagamento} pagina={pagina} />}</NonPertinente>
       </Griglia>
       <Griglia>
         {letture.riepilogo && <AreaPanoramica stato={letture.riepilogo} pagina={pagina} />}
-        {letture.ammesse && <ImportiPanoramica stato={letture.ammesse} pagina={pagina} />}
+        <NonPertinente np={np(MOTIVI_NO_SIGC.ammesse)}>{letture.ammesse && <ImportiPanoramica stato={letture.ammesse} pagina={pagina} />}</NonPertinente>
       </Griglia>
     </>
   );

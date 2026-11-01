@@ -5,7 +5,7 @@
 // prende dall'indirizzo il solo stato. Le determine di una domanda non hanno criteri (il codice a barre e' nel percorso).
 import { filtriDaRicerca, filtriNellaBarra, ricercaDaFiltri } from '../../../entities/filtri';
 import type { Filtri, FiltroNellaBarra } from '../../../entities/filtri';
-import { leggiRipetuti, maiuscolaIniziale, scriviRipetuti } from '../../../shared/lib';
+import { leggiRipetuti, maiuscolaIniziale, scriviRipetuti, senzaSigc } from '../../../shared/lib';
 import type { StatoArea } from './dto';
 
 /** I criteri dei report: i filtri del programma (mai l'azione portante) e lo stato area programmazione. */
@@ -33,10 +33,14 @@ export function chiaveStatoValida(valore: string | null | undefined): valore is 
   return typeof valore === 'string' && CHIAVE_STATO.test(valore);
 }
 
-/** I soli filtri del programma del procedurale (senza l'azione portante), con almeno un valore. */
+/**
+ * I soli filtri del programma del procedurale (senza l'azione portante), con almeno un valore, e il filtro SIGC (revisioni
+ * del 31/10/2026, R01: i report del procedurale lo prendono, le determine no).
+ */
 function soloProgramma(f: Filtri): Filtri {
   const p: Filtri = {};
   for (const k of PROGRAMMA) if ((f[k] ?? []).length > 0) p[k] = f[k];
+  if (f.sigc !== undefined) p.sigc = f.sigc;
   return p;
 }
 
@@ -72,6 +76,14 @@ export function conFiltri(c: CriteriProcedurali): boolean {
 /** I criteri di una lettura dei report per domanda (i cinque filtri, mai l'azione). */
 export function criteriDelReport(c: CriteriProcedurali): CriteriProcedurali {
   return { ...soloProgramma(c), ...conStato(c.stato) };
+}
+
+/**
+ * I criteri di una lettura di soli dati NO SIGC (stati, sottofasi, ammesse): col filtro SIGC la lettura e' senza filtro (la
+ * card e' non pertinente e mostra il dato reale, F3), altrimenti quelli del report.
+ */
+export function criteriNoSigc(c: CriteriProcedurali): CriteriProcedurali {
+  return c.sigc === 'true' ? senzaSigc(criteriDelReport(c)) : criteriDelReport(c);
 }
 
 /** I criteri dei report della panoramica aperta senza filtri: la card della Home legge con questi, nella stessa cache. */

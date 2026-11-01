@@ -55,7 +55,8 @@ export function PaginaProcedurale({ pagina, briciola, titolo, titoloDocumento, s
   const { filtri, chip, togliTutti, h1, pannello, apri, chiudi, onApplica } = pagina;
   const ingresso = useIngressoArea(filtri);
   const briciole = briciola === undefined ? [{ etichetta: 'Procedurale' }] : [{ etichetta: 'Procedurale', a: ingresso }, { etichetta: briciola }];
-  const barra = { chip, onApri: () => apri('barra'), onTogliTutti: togliTutti, vuoto: 'Nessun filtro: tutti gli interventi', destra: <PillDellaBarra pagina={pagina} perimetro={perimetro} tipoPerimetro={tipoPerimetro} /> };
+  // il controllo del filtro SIGC in ogni report del procedurale (revisioni del 31/10/2026, R01; le determine non lo hanno)
+  const barra = { chip, onApri: () => apri('barra'), onTogliTutti: togliTutti, vuoto: 'Nessun filtro: tutti gli interventi', destra: <PillDellaBarra pagina={pagina} perimetro={perimetro} tipoPerimetro={tipoPerimetro} />, filtroSigc: true };
   const contesto = useContesto(pagina, perimetro);
   const pannelloFiltri = <PannelloFiltriProcedurale aperto={pannello !== null} forma={pagina.forma} criteri={filtri} valori={pagina.valori} statiArea={pagina.statiArea} codiciRisposta={codiciRisposta} onApplica={onApplica} onChiudi={chiudi} />;
   return (

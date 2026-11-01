@@ -16,11 +16,11 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
 import type { Ref } from 'react';
-import { ID_TITOLO_INTERVENTO, InterventoNonValido, codiceDelPercorso, descrizioneIntervento, rigaDellIntervento, ValoriFiltriNonDisponibili } from '../../../entities/filtri';
+import { ID_TITOLO_INTERVENTO, InterventoNonValido, codiceDelPercorso, descrizioneIntervento, rigaDellIntervento, tipoIntervento, ValoriFiltriNonDisponibili } from '../../../entities/filtri';
 import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { testoPerimetro } from '../../../shared/lib';
 import type { StatoDettaglio } from '../../../shared/lib';
-import { AvvisoAggiornamento, AvvisoPagina, BarraFiltri, Briciole, ContestoIntestazione, CorpoDelDettaglio, ErroriDelleLetture, PillDatiAl, TestataDettaglio, Vuoto, VuotoConFiltri, useFocusTitolo, useRigheContesto, useStatoDelDettaglio } from '../../../shared/ui';
+import { AvvisoAggiornamento, AvvisoPagina, BarraFiltri, Briciole, ContestoIntestazione, CorpoDelDettaglio, ErroriDelleLetture, PillDatiAl, PillTipoIntervento, TestataDettaglio, Vuoto, VuotoConFiltri, useFocusTitolo, useRigheContesto, useStatoDelDettaglio } from '../../../shared/ui';
 import { useDomandeAmmesse, useStatiPagamento, useStatiSostegno } from '../api';
 import { panoramicaDellIntervento } from '../lib/collegamenti';
 import { conCriteri, criteriDellIntervento, testiCriteri } from '../lib/criteri';
@@ -162,10 +162,14 @@ function useStatoDelCorpo(letture: Letture): StatoDettaglio {
   return fatte.length === 0 ? 'dati' : stato;
 }
 
-/** La barra: il chip dello stato col pannello, il perimetro della prima risposta e "Dati al" di TX-0024. */
-function BarraDelDettaglio({ pagina, perimetro }: { pagina: PaginaDeiCriteri; perimetro: Perimetro | undefined }) {
+/**
+ * La barra: il chip dello stato col pannello, il tipo dell'intervento dalla programmazione (VoceFiltro.perimetro di
+ * TX-0024: il dettaglio non ha il filtro SIGC, revisioni del 31/10/2026, F5), il perimetro della prima risposta e "Dati al".
+ */
+function BarraDelDettaglio({ pagina, perimetro, codice }: { pagina: PaginaDeiCriteri; perimetro: Perimetro | undefined; codice: string }) {
   const destra = (
     <>
+      <PillTipoIntervento tipo={tipoIntervento(pagina.valori?.data?.interventi, codice)} />
       <PillPerimetro perimetro={perimetro} tipo="domande" />
       {pagina.valori && <PillDatiAl voci={pagina.valori.data?.ultimiDatiSincronizzati} inErrore={pagina.valori.isError} />}
     </>
@@ -186,7 +190,7 @@ function Dettaglio({ codice }: { codice: string }) {
   const ingresso = useIngressoArea(pagina.filtri);
   return (
     <ContestoIntestazione.Provider value={contesto}>
-      <BarraDelDettaglio pagina={pagina} perimetro={perimetro} />
+      <BarraDelDettaglio pagina={pagina} perimetro={perimetro} codice={codice} />
       <main className="ui-pagina" id="contenuto">
         <Briciole voci={[{ etichetta: 'Procedurale', a: ingresso }, { etichetta: `Intervento ${codice}` }]} />
         <TestataIntervento h1={pagina.h1} codice={codice} titolo={titolo} badge={badgeIntervento(righe(codice, letture).ammesse)} stato={pagina.filtri.stato} />
