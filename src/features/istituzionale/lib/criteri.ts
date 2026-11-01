@@ -8,7 +8,7 @@
 // (codiceDelPercorso).
 import { filtriAttivi, filtriDaRicerca, filtriNellaBarra, ricercaDaFiltri } from '../../../entities/filtri';
 import type { Filtri } from '../../../entities/filtri';
-import { anniProposti, isAnnoValido } from '../../../shared/lib';
+import { anniProposti, isAnnoValido, righeSigc } from '../../../shared/lib';
 
 /**
  * Criteri di TX-0016 nel layer puro: i filtri del programma e l'anno di riferimento del file (assente = l'ultimo anno con
@@ -119,13 +119,14 @@ export function filtriVerificaSigcSenzaFiltri(): Filtri {
 
 /** "Etichetta: valore" di ogni filtro e dell'anno scelto, per l'intestazione del PNG dei grafici (filtri applicati, NFR-50). */
 export function testiCriteri(filtri: Filtri, anno?: number): string[] {
-  const testi = filtriNellaBarra(filtri).map((f) => `${f.etichetta}: ${f.valore}`);
+  // il filtro SIGC non e' un chip ma e' un filtro applicato (review J-03)
+  const testi = [...filtriNellaBarra(filtri).map((f) => `${f.etichetta}: ${f.valore}`), ...righeSigc(filtri.sigc)];
   return anno === undefined ? testi : [...testi, `${ETICHETTA_ANNO}: ${anno}`];
 }
 
 /** "Etichetta: valore" di ogni filtro e dell'esercizio, per l'intestazione del PNG della verifica SMP SIGC (NFR-50). */
 export function testiCriteriSigc(filtri: Filtri, esercizio: number): string[] {
-  return [...filtriNellaBarra(filtri).map((f) => `${f.etichetta}: ${f.valore}`), `${ETICHETTA_ESERCIZIO}: ${esercizio}`];
+  return [...filtriNellaBarra(filtri).map((f) => `${f.etichetta}: ${f.valore}`), ...righeSigc(filtri.sigc), `${ETICHETTA_ESERCIZIO}: ${esercizio}`];
 }
 
 /** I filtri del dettaglio: il solo intervento della route (la lettura di TX-0016 dell'intervento). */

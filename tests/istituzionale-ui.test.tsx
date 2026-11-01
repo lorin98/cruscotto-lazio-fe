@@ -189,7 +189,7 @@ describe('TabellaVerifica e CellaDato (i ventuno dati di TX-0016)', () => {
     ]);
     const srd01 = within(tabella).getByRole('row', { name: "Apri il dettaglio dell'intervento SRD01" });
     expect(within(srd01).getByRole('link', { name: "Apri nell'elenco operativo le domande di sostegno correnti dell'intervento SRD01" }).getAttribute('href')).toBe('/elenco-operativo/domande?tipo=SOSTEGNO&intervento=SRD01');
-    expect(within(srd01).getByRole('link', { name: /^Apri nei pagamenti: / }).getAttribute('href')).toBe('/elenco-operativo/pagamenti?esito=PAGATA&sigc=false&intervento=SRD01');
+    expect(within(srd01).getByRole('link', { name: /^Apri nei pagamenti: / }).getAttribute('href')).toBe('/elenco-operativo/pagamenti?esito=PAGATA&intervento=SRD01');
     const sra01 = within(tabella).getByRole('row', { name: "Apri il dettaglio dell'intervento SRA01" });
     expect(within(sra01).queryByRole('link')).toBeNull();
     expect(testo(sra01.textContent)).toContain('non valorizzatoil dato non è presente nella fonte');

@@ -76,11 +76,13 @@ export function elencoRicevute(codice: string): string {
 }
 
 /**
- * link:elenco-spesa-riga e link:elenco-spesa-intervento: le righe PAGATA non SIGC degli elenchi di liquidazione
- * dell'intervento (esito=PAGATA, sigc=false: la negazione esatta del predicato SIGC dei pagamenti, anticipi inclusi).
+ * link:elenco-spesa-riga e link:elenco-spesa-intervento: le righe PAGATA degli elenchi di liquidazione dell'intervento
+ * (esito=PAGATA). Senza sigc dal 01/11/2026 (review step9 J-05): il parametro sigc dell'elenco vale ora per intervento
+ * (D-12 Rev. del backend), non per domanda, e sigc=false non riprodurrebbe piu' la spesa non SIGC; l'elenco mostra tutte
+ * le righe PAGATA dell'intervento, SIGC comprese (OP-IS-09).
  */
 export function elencoSpesa(codice: string): string {
-  return conQuery(PERCORSO_ELENCO_PAGAMENTI, ['esito', 'sigc', 'intervento'], { esito: 'PAGATA', sigc: 'false', intervento: codice });
+  return conQuery(PERCORSO_ELENCO_PAGAMENTI, ['esito', 'intervento'], { esito: 'PAGATA', intervento: codice });
 }
 
 /** Il link verso l'elenco si mostra solo con un valore maggiore di 0 (wireframe: niente link verso un elenco vuoto). */

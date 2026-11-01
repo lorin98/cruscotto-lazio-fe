@@ -8,7 +8,7 @@
 // TX-0017 sono del fisico dal riallineamento degli ambiti del 29/10/2026.
 import { assenzaInFrase } from '../../../entities/importo';
 import type { DatoMotivatoLike } from '../../../entities/importo';
-import { formatNumber, importoBreve } from '../../../shared/lib';
+import { formatNumber, importoKpi } from '../../../shared/lib';
 import type { LetturaDettaglio, StatoDettaglio } from '../../../shared/lib';
 import type { RigaVerifica, RigaVerificaSigc } from './dto';
 
@@ -36,12 +36,14 @@ export interface KpiIntervento {
   etichetta: string;
   valore?: string;
   assente?: string;
+  /** Il valore pieno della forma compatta (R09). */
+  valorePieno?: string;
   nota: string;
 }
 
-/** Il valore di un importo in breve, oppure la sua assenza in una frase (mai uno zero). */
-function importoOAssenza(importo: DatoMotivatoLike<number> | undefined): Pick<KpiIntervento, 'valore' | 'assente'> {
-  return importo?.valore != null ? { valore: importoBreve(importo.valore) } : { assente: assenzaInFrase(importo) };
+/** Il valore di un importo in breve col pieno accessibile (R09), oppure la sua assenza in una frase (mai uno zero). */
+function importoOAssenza(importo: DatoMotivatoLike<number> | undefined): Pick<KpiIntervento, 'valore' | 'valorePieno' | 'assente'> {
+  return importo?.valore != null ? importoKpi(importo.valore) : { assente: assenzaInFrase(importo) };
 }
 
 /** I KPI della scheda Verifica SMP non SIGC (TX-0016): domande e spesa cumulative, nell'ordine del wireframe. */

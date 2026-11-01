@@ -47,7 +47,7 @@ function KpiScheda({ kpi }: { kpi: readonly KpiIntervento[] }) {
   return (
     <Griglia colonne={4}>
       {kpi.map((k) => (
-        <Kpi key={k.chiave} etichetta={k.etichetta} valore={k.valore} assente={k.assente} nota={k.nota} {...ASPETTO_KPI[k.chiave]} />
+        <Kpi key={k.chiave} etichetta={k.etichetta} valore={k.valore} valorePieno={k.valorePieno} assente={k.assente} nota={k.nota} {...ASPETTO_KPI[k.chiave]} />
       ))}
     </Griglia>
   );

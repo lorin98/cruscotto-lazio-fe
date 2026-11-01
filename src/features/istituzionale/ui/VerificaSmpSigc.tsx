@@ -17,7 +17,7 @@ import { Link, useLocation } from 'react-router';
 import { filtriDaRicerca, ricercaDaFiltri } from '../../../entities/filtri';
 import type { Filtri } from '../../../entities/filtri';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
-import { nonPertinenza, senzaSigc } from '../../../shared/lib';
+import { letturaDelTipo } from '../../../shared/lib';
 import { CardGrafico, ContestoIntestazione, NonPertinente, SelettoreAnno, TabellaVoci, useAnnoNellIndirizzo, useRigheContesto } from '../../../shared/ui';
 import { useVerificaSmpSigc } from '../api';
 import type { VerificaSmp } from '../api';
@@ -81,8 +81,8 @@ export function VerificaSmpSigc() {
   const pagina = useFiltriDellaPagina(PARAMETRO_ESERCIZIO);
   const [esercizio, impostaEsercizio] = useAnnoNellIndirizzo(PARAMETRO_ESERCIZIO);
   // solo SIGC (TX-0015): col filtro NO SIGC il report e' non pertinente, letto senza filtro (il dato reale, in grigio)
-  const np = nonPertinenza(pagina.filtri.sigc, 'sigc', MOTIVO_SOLO_SIGC);
-  const stato = useVerificaSmpSigc(np ? senzaSigc(pagina.filtri) : pagina.filtri, esercizio, { abilitato: !pagina.inAttesa });
+  const { np, criteri: lettura } = letturaDelTipo(pagina.filtri, 'sigc', MOTIVO_SOLO_SIGC);
+  const stato = useVerificaSmpSigc(lettura, esercizio, { abilitato: !pagina.inAttesa });
   const nota = puoLeggere(useAuthStatus().data, 'verifica') ? <FraseVerificaNonSigc /> : undefined;
   const selettore = <SelettoreAnno id="f-esercizio" etichetta="Esercizio finanziario" aiuto={AIUTO_ESERCIZIO} anni={eserciziProposti(esercizio)} voceVuota="Scegli un anno" anno={esercizio} onCambia={impostaEsercizio} />;
   return (

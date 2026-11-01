@@ -170,7 +170,7 @@ describe('RF016: i dati ASR non SIGC per intervento, da confrontare con SMP - Da
     const srd01 = within(await tabella()).getByRole('row', { name: "Apri il dettaglio dell'intervento SRD01" });
     expect(within(srd01).getAllByRole('link').map((l) => l.getAttribute('href'))).toEqual([
       '/elenco-operativo/domande?tipo=SOSTEGNO&intervento=SRD01',
-      '/elenco-operativo/pagamenti?esito=PAGATA&sigc=false&intervento=SRD01',
+      '/elenco-operativo/pagamenti?esito=PAGATA&intervento=SRD01',
     ]);
     // SRA01 e' SIGC: zero domande e zero spesa non SIGC, nessun link verso un elenco vuoto
     expect(within(within(await tabella()).getByRole('row', { name: "Apri il dettaglio dell'intervento SRA01" })).queryAllByRole('link')).toHaveLength(0);
@@ -199,7 +199,7 @@ describe('RF016: i dati ASR non SIGC per intervento, da confrontare con SMP - Da
     servi();
     apri();
     const srd01 = within(await tabella()).getByRole('row', { name: "Apri il dettaglio dell'intervento SRD01" });
-    expect(within(srd01).getAllByRole('link').map((l) => l.getAttribute('href'))).toEqual(['/elenco-operativo/pagamenti?esito=PAGATA&sigc=false&intervento=SRD01']);
+    expect(within(srd01).getAllByRole('link').map((l) => l.getAttribute('href'))).toEqual(['/elenco-operativo/pagamenti?esito=PAGATA&intervento=SRD01']);
     expect(within(srd01).queryByRole('link', { name: /^Apri nell'elenco operativo/ })).toBeNull();
   });
 
@@ -421,5 +421,17 @@ describe('Revisioni del 31/10/2026: verifica SMP non SIGC solo NO SIGC, non pert
     apri(`${PERCORSO}?sigc=false`);
     await waitFor(() => expect(conFiltro.verifica.some((q) => q.includes('sigc=false'))).toBe(true));
     expect(screen.queryByText('Non pertinente al filtro NO SIGC')).toBeNull();
+  });
+});
+
+describe('Revisioni del 31/10/2026: la voce dell area nel percorso porta il filtro SIGC (review V2-19)', () => {
+  it('col filtro SIGC la voce Istituzionale delle briciole lo porta; senza filtro no', async () => {
+    servi();
+    const conSigc = apri(`${PERCORSO}?sigc=false`);
+    const voce = async () => (await within(await screen.findByRole('navigation', { name: 'Percorso' })).findByRole('link', { name: 'Istituzionale' })).getAttribute('href');
+    expect(await voce()).toBe('/istituzionale/verifica-smp-non-sigc?sigc=false');
+    conSigc.unmount();
+    apri();
+    expect(await voce()).toBe('/istituzionale/verifica-smp-non-sigc');
   });
 });

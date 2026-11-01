@@ -191,12 +191,12 @@ describe('RF015: i dati ASR dell ambito SIGC per il confronto con SMP - Data Pla
   });
 
   // V-16 del finanziario: TabellaInterattiva con ricerca e scelta delle colonne, come nel wireframe verifica-smp
-  it('tabella interattiva: Intervento fisso, scelta delle altre 20 colonne (nascoste quelle fuori dal low-fi), ricerca per codice o indicatore, 20 righe per pagina', async () => {
-    const righe = Array.from({ length: 25 }, (_, n) => ({ ...VERIFICA_SMP.righe[0], codiceIntervento: `SRB${10 + n}`, indicatoreRisultato: n === 24 ? 'R.1' : null }));
+  it('tabella interattiva: Intervento fisso, scelta delle altre 20 colonne (nascoste quelle fuori dal low-fi), ricerca per codice o indicatore, 25 righe per pagina come le altre tabelle (review X-15)', async () => {
+    const righe = Array.from({ length: 30 }, (_, n) => ({ ...VERIFICA_SMP.righe[0], codiceIntervento: `SRB${10 + n}`, indicatoreRisultato: n === 29 ? 'R.1' : null }));
     servi({ verificaSigc: { ...VERIFICA_SMP, righe } });
     apri(`${PERCORSO}?esercizio=2025`);
     const t = await tabella();
-    expect(righeCorpo(t)).toHaveLength(20);
+    expect(righeCorpo(t)).toHaveLength(25);
     expect(screen.getByRole('navigation', { name: 'Pagine della tabella' }).textContent).toContain('Pagina 1 di 2');
     const colonne = within(screen.getByRole('group', { name: 'Colonne visibili' }));
     expect(colonne.getAllByRole('checkbox')).toHaveLength(20);
@@ -207,10 +207,10 @@ describe('RF015: i dati ASR dell ambito SIGC per il confronto con SMP - Data Pla
     expect(within(t).getAllByRole('columnheader')).toHaveLength(12);
     expect(ricerca().placeholder).toBe('Cerca per codice o indicatore');
     await userEvent.type(ricerca(), 'r.1');
-    expect(righeCorpo(t)).toEqual(['SRB34']);
+    expect(righeCorpo(t)).toEqual(['SRB39']);
     await userEvent.clear(ricerca());
     await userEvent.type(ricerca(), 'srb3');
-    expect(righeCorpo(t)).toEqual(['SRB30', 'SRB31', 'SRB32', 'SRB33', 'SRB34']);
+    expect(righeCorpo(t)).toEqual(['SRB30', 'SRB31', 'SRB32', 'SRB33', 'SRB34', 'SRB35', 'SRB36', 'SRB37', 'SRB38', 'SRB39']);
   });
 
   it("grafico della spesa erogata montato con la fonte e l'esercizio; la previsione di pagamento (D-11) non è nel grafico ma nella tabella", async () => {

@@ -12,7 +12,7 @@
 import { Link, useLocation } from 'react-router';
 import { filtriDaRicerca, ricercaDaFiltri } from '../../../entities/filtri';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
-import { nonPertinenza, senzaSigc } from '../../../shared/lib';
+import { letturaDelTipo } from '../../../shared/lib';
 import { NonPertinente, SelettoreAnno, useAnnoNellIndirizzo } from '../../../shared/ui';
 import { useVerificaSmpNonSigc } from '../api';
 import { verificaSigcConFiltri } from '../lib/collegamenti';
@@ -49,8 +49,8 @@ export function VerificaSmpNonSigc() {
   const pagina = useFiltriDellaPagina(PARAMETRO_ANNO);
   const [anno, impostaAnno] = useAnnoNellIndirizzo(PARAMETRO_ANNO);
   // solo NO SIGC (TX-0016): col filtro SIGC il report e' non pertinente, letto senza filtro (il dato reale, in grigio)
-  const np = nonPertinenza(pagina.filtri.sigc, 'nosigc', MOTIVO_SOLO_NO_SIGC);
-  const stato = useVerificaSmpNonSigc(criteriVerifica(np ? senzaSigc(pagina.filtri) : pagina.filtri, anno), { abilitato: !pagina.inAttesa });
+  const { np, criteri: lettura } = letturaDelTipo(pagina.filtri, 'nosigc', MOTIVO_SOLO_NO_SIGC);
+  const stato = useVerificaSmpNonSigc(criteriVerifica(lettura, anno), { abilitato: !pagina.inAttesa });
   const nota = puoLeggere(useAuthStatus().data, 'verificaSigc') ? <FraseVerificaSigc /> : undefined;
   const selettore = <SelettoreAnno id="f-anno-smp" etichetta="Anno di riferimento del monitoraggio SMP non SIGC" aiuto={AIUTO_ANNO} anni={anniDiRiferimento(stato.data?.annoRiferimento, anno)} voceVuota="Ultimo anno con un file (predefinito)" anno={anno} onCambia={impostaAnno} />;
   return (

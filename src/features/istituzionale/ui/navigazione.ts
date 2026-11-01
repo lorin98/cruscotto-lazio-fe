@@ -3,19 +3,22 @@
 // su una riga delle due verifiche (link dettaglio-intervento-smp con l'anno, dettaglio-intervento-smp-sigc con
 // l'esercizio) e i link verso l'elenco operativo, solo col grant della pagina di arrivo (OP-IS-09). Gli indirizzi li
 // costruiscono le funzioni pure di lib/collegamenti.
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import { codiceDelPercorso } from '../../../entities/filtri';
 import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
-import { codiceDalClic } from '../../../shared/lib';
+import { codiceDalClic, ricercaDelSoloSigc } from '../../../shared/lib';
 import type { ClicGrafico } from '../../../shared/ui';
 import { puoLeggere } from '../lib/grant';
 import { pagineVisibili } from '../lib/pagine';
 import type { LinkDato } from '../lib/verifica';
 
-/** L'indirizzo della voce "Istituzionale" del percorso: la prima pagina dell'area che il profilo puo' aprire. */
+/** L'indirizzo della voce "Istituzionale" del percorso: la prima pagina dell'area che il profilo puo' aprire, col filtro SIGC. */
 export function useIngressoArea(): string | undefined {
   const auth = useAuthStatus().data;
-  return pagineVisibili((g) => hasGrant(auth, g))[0]?.percorso;
+  // il filtro SIGC della pagina resta tornando all'ingresso dell'area, come nel menu (R01; review step9 V2-19)
+  const sigc = ricercaDelSoloSigc(useLocation().search);
+  const percorso = pagineVisibili((g) => hasGrant(auth, g))[0]?.percorso;
+  return percorso && sigc ? `${percorso}?${sigc}` : percorso;
 }
 
 /**

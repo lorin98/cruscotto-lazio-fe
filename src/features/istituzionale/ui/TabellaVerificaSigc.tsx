@@ -56,7 +56,6 @@ export function TabellaVerificaSigc({ righe, esercizio, scaricamenti, oggetto, o
         // la riga apre il dettaglio anche da tastiera (Invio), come il clic sulla barra del grafico
         etichettaRiga={(r) => `Apri il dettaglio dell'intervento ${r.codiceIntervento ?? ''}`}
         onRiga={(r) => r.codiceIntervento && onRiga(r.codiceIntervento)}
-        perPagina={20}
         strumenti={<PulsantiScarica oggetto={oggetto} scaricamenti={scaricamenti} />}
       />
       <p className="ui-fonte">{DEFINIZIONI_VERIFICA_SIGC}</p>
