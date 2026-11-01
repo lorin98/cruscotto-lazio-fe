@@ -42,6 +42,7 @@ export const ETICHETTE_FILTRI: Record<NomeFiltro, string> = {
 const IMPORTI: ReadonlySet<NomeFiltro> = new Set(['richiestoDa', 'richiestoA', 'ammessoDa', 'ammessoA', 'pagatoDa', 'pagatoA']);
 const BOOLEANI: Partial<Record<NomeFiltro, [string, string]>> = {
   presentata: ['solo le presentate', ''],
+  // non e' un chip (e' il controllo della barra), ma il testo serve all'annuncio dei filtri aggiunti dal sinottico
   sigc: ['interventi SIGC', 'interventi NO SIGC'],
   concessione: ["con l'atto", "senza l'atto"],
   anomalie: ['con anomalie', 'senza anomalie'],

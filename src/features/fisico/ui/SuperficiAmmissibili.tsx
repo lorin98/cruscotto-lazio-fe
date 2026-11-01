@@ -17,7 +17,7 @@
 // filtro, in grigio e inerte.
 import { useState } from 'react';
 import { descrizioneIntervento, usePannelloConFocus } from '../../../entities/filtri';
-import { letturaDelTipo, testoPerimetro } from '../../../shared/lib';
+import { letturaDelTipo, percorsoConSigc, testoPerimetro } from '../../../shared/lib';
 import type { NonPertinenza } from '../../../shared/lib';
 import { AvvisoPagina, BarraFiltri, Briciole, Caricamento, ContestoIntestazione, NonPertinente, PillDatiAl, TestaPagina, VistaQuery, VuotoConFiltri, useRigheContesto } from '../../../shared/ui';
 import type { VistaGrafico } from '../../../shared/ui';
@@ -60,14 +60,13 @@ function CorpoSuperfici({ stato, inAttesa, np, ...report }: PropsCorpo) {
         {inAttesa ? (
           <Caricamento testo="Verifica dei filtri in corso…" />
         ) : (
-          <VistaQuery stato={stato} eVuoto={(d) => d.righe.length === 0} vuoto={<VuotoConFiltri onModifica={report.onModificaFiltri}>Nessun intervento per i filtri scelti.</VuotoConFiltri>}>
-            {/* criteri nuovi = contenuto nuovo: l'anteprima aperta non resta quella di prima */}
-            {(d) => (
-              <NonPertinente np={np}>
-                <Report key={ricercaDaCriteri(report.criteri)} d={d} {...report} />
-              </NonPertinente>
-            )}
-          </VistaQuery>
+          // la non pertinenza avvolge anche il vuoto e l'errore (review X-10)
+          <NonPertinente np={np}>
+            <VistaQuery stato={stato} eVuoto={(d) => d.righe.length === 0} vuoto={<VuotoConFiltri onModifica={report.onModificaFiltri}>Nessun intervento per i filtri scelti.</VuotoConFiltri>}>
+              {/* criteri nuovi = contenuto nuovo: l'anteprima aperta non resta quella di prima */}
+              {(d) => <Report key={ricercaDaCriteri(report.criteri)} d={d} {...report} />}
+            </VistaQuery>
+          </NonPertinente>
         )}
       </AvvisoPagina>
     </ContestoIntestazione.Provider>
@@ -91,7 +90,7 @@ export function SuperficiAmmissibili() {
       <BarraFiltri chip={chip} onApri={() => apri('barra')} onTogliTutti={togliTutti} vuoto="Nessun filtro: tutti gli interventi e tutte le campagne" destra={<PillDellaBarra d={stato.data} inErrore={stato.isError} />} filtroSigc />
       <main className="ui-pagina" id="contenuto">
         {/* la voce dell'area porta il filtro SIGC della pagina, come il menu (review V2-19) */}
-        <Briciole voci={[{ etichetta: 'Fisico', a: criteri.sigc ? `${PERCORSI.superfici}?sigc=${criteri.sigc}` : PERCORSI.superfici }, { etichetta: 'Superfici ammissibili' }]} />
+        <Briciole voci={[{ etichetta: 'Fisico', a: percorsoConSigc(PERCORSI.superfici, criteri.sigc) }, { etichetta: 'Superfici ammissibili' }]} />
         <TestaPagina titolo="Fisico: superfici ammissibili per intervento" titoloDocumento="Superfici ammissibili - Fisico" sottotitolo={SOTTOTITOLO} refTitolo={h1} />
         <CorpoSuperfici stato={stato} inAttesa={inAttesa} np={np} criteri={criteri} vista={vista} onVista={setVista} applica={applicaConFocus} onModificaFiltri={() => apri('vuoto')} descrizioneDi={descrizioneDi} />
       </main>

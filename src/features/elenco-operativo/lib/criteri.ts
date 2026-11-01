@@ -3,6 +3,7 @@
 // che passano da un elenco all'altro e quelli del sinottico e dell'esportazione.
 // Nel contratto ogni parametro e' testuale e ripetibile: i criteri hanno la stessa forma (Record<nome, string[]>).
 import { DIMENSIONI_PAGINA, MAX_VALORI_PARAMETRO, leggiRipetuti, scriviRipetuti } from '../../../shared/lib';
+import type { ValoreSigc } from '../../../shared/lib';
 
 /** Filtri della domanda comuni ai due elenchi (i link "pagamenti di queste domande" e ritorno li portano tutti). */
 export const FILTRI_DOMANDA = [
@@ -191,13 +192,13 @@ export function senzaValore(criteri: Criteri, nome: NomeFiltro, valore?: string)
 }
 
 /** Il filtro SIGC dei criteri ('true' interventi SIGC, 'false' NO SIGC, per intervento: D-12 Rev.); assente = tutti. */
-export function sigcDeiCriteri(criteri: Criteri): 'true' | 'false' | undefined {
+export function sigcDeiCriteri(criteri: Criteri): ValoreSigc | undefined {
   const v = criteri.sigc?.[0];
   return v === 'true' || v === 'false' ? v : undefined;
 }
 
 /** Criteri col filtro SIGC del controllo della barra (assente = tolto); si torna alla prima pagina. */
-export function conSigc(criteri: Criteri, valore: 'true' | 'false' | undefined): Criteri {
+export function conSigc(criteri: Criteri, valore: ValoreSigc | undefined): Criteri {
   return conFiltro(criteri, 'sigc', valore === undefined ? [] : [valore]);
 }
 

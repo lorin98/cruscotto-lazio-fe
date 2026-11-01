@@ -10,6 +10,7 @@
 import { http, HttpResponse } from 'msw';
 import type { RequestHandler } from 'msw';
 import { PROBLEM_TYPES } from '../../../../shared/api/problem/problem-types';
+import { passaSigc } from '../../../../shared/testing/sigc';
 
 const ULTIMI = [{ flusso: 'DS-12', conclusoIl: '2026-03-02T09:15:00Z' }];
 const PREMIO = { valore: null, motivo: 'FONTE_NON_ATTIVA', fonte: 'QUANTITA_RICHIESTA_PREMIO' };
@@ -37,7 +38,7 @@ const RIGHE = [
 function superfici(p: URLSearchParams) {
   const interventi = p.getAll('intervento');
   const anno = p.get('campagna');
-  const righe = RIGHE.filter((r) => interventi.length === 0 || interventi.includes(r.codiceIntervento)).map((r) => {
+  const righe = RIGHE.filter((r) => (interventi.length === 0 || interventi.includes(r.codiceIntervento)) && passaSigc(r.codiceIntervento, p)).map((r) => {
     if (anno === null) return r;
     const campagne = r.campagne.filter((c) => String(c.anno) === anno);
     return { ...r, campagne, motivo: campagne.length === 0 ? 'NON_VALORIZZATO' : null };
@@ -89,7 +90,9 @@ function filtra<R extends { codiceIntervento: string }>(righe: readonly R[], p: 
   if (p.getAll('azione').length > 0) return [];
   const interventi = p.getAll('intervento');
   const obiettivi = ['os', 'og', 'op'].map((k) => p.getAll(k)).filter((x) => x.length > 0);
-  return righe.filter((r) => (interventi.length === 0 || interventi.includes(r.codiceIntervento)) && obiettivi.every((x) => x.some((o) => (OBIETTIVI[r.codiceIntervento] ?? []).includes(o))));
+  return righe.filter(
+    (r) => (interventi.length === 0 || interventi.includes(r.codiceIntervento)) && obiettivi.every((x) => x.some((o) => (OBIETTIVI[r.codiceIntervento] ?? []).includes(o))) && passaSigc(r.codiceIntervento, p),
+  );
 }
 
 const file = () => new HttpResponse('Esempio;dati inventati\n', { headers: { 'Content-Type': 'text/csv; charset=UTF-8' } });

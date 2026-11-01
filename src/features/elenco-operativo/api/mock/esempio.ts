@@ -6,6 +6,7 @@
 import { http, HttpResponse } from 'msw';
 import type { RequestHandler } from 'msw';
 import { PROBLEM_TYPES } from '../../../../shared/api/problem/problem-types';
+import { passaSigc } from '../../../../shared/testing/sigc';
 
 const INTERVENTI: Array<[string, string]> = [
   ['SRA01', 'Produzione integrata (esempio)'],
@@ -87,13 +88,10 @@ function filtrate(p: URLSearchParams): DomandaEsempio[] {
       tra('stato', d.statoCodice) &&
       tra('provincia', d.provincia) &&
       // sigc per intervento come il backend dal 31/10/2026 (D-12 Rev.): SIGC gli interventi della programmazione SIGC
-      (p.get('sigc') === null || String(INTERVENTI_SIGC.has(d.codiceIntervento)) === p.get('sigc')) &&
+      passaSigc(d.codiceIntervento, p) &&
       (testo === '' || d.codiceABarre.startsWith(testo) || d.cuaa.toLowerCase().startsWith(testo) || d.denominazione.toLowerCase().includes(testo)),
   );
 }
-
-/** Gli interventi classificati SIGC nella programmazione (revisioni del 31/10/2026, F1). */
-const INTERVENTI_SIGC = new Set(['SRA01', 'SRA03', 'SRA14', 'SRA15', 'SRA29', 'SRA30', 'SRB01', 'SRC01']);
 
 function somma(righe: DomandaEsempio[], campo: 'richiesto' | 'ammesso' | 'pagato' | 'ancoraDaPagare') {
   const con = righe.filter((d) => d[campo].valore !== null);
