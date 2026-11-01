@@ -23,9 +23,9 @@ describe('RF012: domande SIGC presentate, pagate, da pagare e senza importi', ()
     expect(t).toContain('Presentate800');
     expect(t).toContain('Pagate (ammesso e pagato valorizzati, pagato maggiore di zero)500');
     expect(t).toContain('Da pagare (ammesse con importo ancora da pagare, anche se pagate in parte)320');
-    expect(t).toContain('Senza importi (non classificabili: campagne senza ASR2-20)60');
+    expect(t).toContain('Senza importi (non classificabili)60');
     expect(t).not.toMatch(/elenchi? di liquidazione|presentate meno pagate/);
-    expect(screen.getByText(/^Pagate e da pagare vengono dagli importi della domanda \(flusso ASR2-20\)/)).toBeTruthy();
+    expect(screen.getByText(/^Pagate e da pagare vengono dagli importi della domanda/)).toBeTruthy();
   });
 });
 
@@ -35,7 +35,7 @@ describe('RF013: importi SIGC richiesto, ammesso, pagato, pagato oltre l ammesso
     renderPagina(Pagina, '/finanziario/sigc');
     const t = ((await screen.findByRole('table', { name: 'Importi SIGC' })).textContent ?? '').replace(/\s/g, ' ');
     expect(t).toContain('5.000.000,00 €');
-    expect(t).toContain('Importo pagato (flusso ASR2-20)3.000.000,00 €');
+    expect(t).toContain('Importo pagato3.000.000,00 €');
     expect(t).toContain("Pagato oltre l'ammesso100.000,00 €");
     expect(t).toContain('Ancora da pagare1.600.000,00 €');
     expect(t).toContain('Domande senza importo richiesto60');

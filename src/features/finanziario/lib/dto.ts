@@ -9,7 +9,9 @@ export interface RigaSpesa {
   codiceIntervento?: string;
   dotazioneSpesaPubblica?: Importo;
   pagamentiTotali?: Importo;
-  percentualeContributoAmbientale?: number | null;
+  /** Impegnato di spesa pubblica (rilevato piu' stimato) e la parte stimata: i sei box della panoramica (R03). */
+  impegnatoSpesaPubblica?: Importo;
+  impegnatoStimato?: Importo;
 }
 
 /** Riga di RiepilogoFinanziario (TX-0011). */
@@ -23,6 +25,10 @@ export interface RigaRiepilogo {
   pagamentiNettoRettifiche?: Importo;
   dotazioneResiduaSuImpegni?: Importo;
   dotazioneResiduaSuPagamenti?: Importo;
+  /** Revisioni del 31/10/2026 (R08, R04): pagato lordo, rettifiche da togliere, di cui stimato dell'impegnato. */
+  pagamentiLordi?: Importo;
+  importoRettifiche?: Importo;
+  impegnatoStimato?: Importo;
 }
 
 /** Riga di DomandePerAnno (TX-0008): annoRaccolta = campagna, altrimenti anno di rilascio della domanda di sostegno; null senza nessuno dei due. */
@@ -69,6 +75,8 @@ export interface ResiduoSuImpegniLike {
   dotazioneSpesaPubblica?: Importo;
   importoImpegnato?: Importo;
   dotazioneResidua?: Importo;
+  /** Di cui stimato (revisioni del 31/10/2026, R04): il ramo dell'impegnato stimato del flusso. */
+  impegnatoStimato?: Importo;
 }
 
 /** AvanzamentoPagamenti (TX-0005). */
@@ -94,5 +102,11 @@ export interface DistribuzioneDotazioneLike {
 /** MonitoraggioRiserva (TX-0014): utilizzo progressivo con data ISO AAAA-MM-GG. */
 export interface RiservaLike {
   importoAccumulato?: number | null;
+  /** Revisioni del 31/10/2026 (R17): montante dei pagamenti, quote della riserva (5%) e del residuo (2%) e loro natura. */
+  montantePagamenti?: number | null;
+  quotaRiserva?: number | null;
+  quotaResiduo?: number | null;
+  naturaRiserva?: string | null;
+  naturaResiduo?: string | null;
   utilizzoProgressivo?: Array<{ data?: string | null; importo?: number | null; cumulato?: number | null }> | null;
 }

@@ -4,11 +4,14 @@
 // rettifiche (lo stesso netto del residuo sui pagamenti e di RF007, mai il pagato lordo degli elenchi di liquidazione) e
 // le quattro sezioni come card con ciambella e tabella equivalente. Ogni sezione ha il suo grant e il suo perimetro
 // (RF004 e RF006 regionali, RF005 e RF007 seguono il perimetro ADA); lo stato vuoto viene dalle righe di TX-0002
-// (segnale), mai da importi a zero. Le letture stanno nei figli di ConGrant (R-09).
+// (segnale), mai da importi a zero. Le letture stanno nei figli di ConGrant (R-09). Revisioni del 31/10/2026: stanziato dai
+// bandi, impegnato con la parte stimata (nota di lettura, ramo stimato nel flusso), gauge "Avanzamento rispetto ai
+// pagamenti effettuati" (R15), rettifiche al posto del recuperato e residuo sui pagamenti per intervento (R08).
 import type { ReactNode } from 'react';
 import type { ImportoLike } from '../../../entities/importo';
 import { Caricamento, CardGrafico, Griglia, VistaQuery } from '../../../shared/ui';
 import type { Scaricamento, StatoQuery } from '../../../shared/ui';
+import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { usePagamentiSuImpegnato, useResiduoImpegni, useResiduoPagamenti, useStanziato } from '../api';
 import { datiDelReport } from './esportazioni';
 import type { Filtri } from '../lib/filtri';
@@ -16,14 +19,18 @@ import { PAGAMENTI_LORDI, graficoPagatoNetto, graficoPartiImporto, graficoSankey
 import { PERIMETRO_ADA, perimetroCombinato } from '../lib/perimetro';
 import type { Perimetro } from '../lib/perimetro';
 import { GRANT } from '../lib/report';
-import { ConGrant, KpiImporto, diProgramma, erroreGiaMostrato, vuotoConPerimetro } from './comuni';
+import { notaDiCuiStimato } from '../lib/stima';
+import { ConGrant, KpiImporto, NotaStima, diProgramma, erroreGiaMostrato, vuotoConPerimetro } from './comuni';
+import { ResiduoPerIntervento } from './rettifiche';
 import { useSelezioneSenzaInterventi } from './selezione';
 import type { Segnale } from './selezione';
 
 type Voce = [string, ImportoLike | undefined];
 const VUOTO = vuotoConPerimetro('Nessun intervento per i filtri scelti.', { programma: true });
-// l'importo pagato di TX-0007: lordo, dagli elenchi di liquidazione dei decreti (il netto sottrae il recuperato)
+// l'importo pagato di TX-0007: lordo, dagli elenchi di liquidazione dei decreti (il netto sottrae le rettifiche, R08)
 const PAGATO_LORDO = 'Importo pagato (lordo, elenchi di liquidazione)';
+// R15: il titolo del gauge dei pagamenti netti sulla dotazione
+const AVANZAMENTO_PAGAMENTI = 'Avanzamento rispetto ai pagamenti effettuati';
 
 // ---------------------------------------------------------------- KPI e flussi
 
@@ -32,11 +39,11 @@ const PAGATO_LORDO = 'Importo pagato (lordo, elenchi di liquidazione)';
 const silenzioso = erroreGiaMostrato;
 
 function KpiStanziato({ filtri }: { filtri: Filtri }) {
-  return <VistaQuery stato={useStanziato(filtri)} errorePersonalizzato={silenzioso}>{(d) => <KpiImporto etichetta="Importo stanziato" importo={d.importoStanziato} icona="it-card" tono="scuro" nota="dato di programma (regionale)" />}</VistaQuery>;
+  return <VistaQuery stato={useStanziato(filtri)} errorePersonalizzato={silenzioso}>{(d) => <KpiImporto etichetta="Importo stanziato" importo={d.importoStanziato} icona="it-card" tono="scuro" nota="dai bandi del quadro sinottico (dato regionale)" />}</VistaQuery>;
 }
 
 function KpiImpegnato({ filtri }: { filtri: Filtri }) {
-  return <VistaQuery stato={usePagamentiSuImpegnato(filtri)} errorePersonalizzato={silenzioso}>{(d) => <KpiImporto etichetta="Totale impegnato" importo={d.totaleImpegnato} icona="it-files" tono="blu" />}</VistaQuery>;
+  return <VistaQuery stato={usePagamentiSuImpegnato(filtri)} errorePersonalizzato={silenzioso}>{(d) => <KpiImporto etichetta="Totale impegnato" importo={d.totaleImpegnato} icona="it-files" tono="blu" nota={notaDiCuiStimato(d.impegnatoStimato)} />}</VistaQuery>;
 }
 
 function KpiResiduo({ filtri, voce }: { filtri: Filtri; voce: 'pagato' | 'residuo' }) {
@@ -104,12 +111,12 @@ function PagatoSullaDotazione({ filtri }: { filtri: Filtri }) {
     <VistaQuery stato={useResiduoPagamenti(filtri)} errorePersonalizzato={silenzioso}>
       {(d) => (
         <CardGrafico
-          titolo="Pagato netto sulla dotazione"
+          titolo={AVANZAMENTO_PAGAMENTI}
           sottotitolo="Pagamenti al netto delle rettifiche sulla dotazione, come il residuo sui pagamenti"
           dati={graficoPagatoNetto(d.pagamentiNettoRettifiche, d.dotazioneSpesaPubblica, d.perimetro)}
           fonte={`Fonte: TX-0007, pagamenti al netto delle rettifiche · Perimetro ${d.perimetro ?? 'non indicato'}`}
           altezza="alto"
-          scaricamenti={datiDelReport('Pagato netto sulla dotazione', 'residuoPagamenti', filtri)}
+          scaricamenti={datiDelReport(AVANZAMENTO_PAGAMENTI, 'residuoPagamenti', filtri)}
         />
       )}
     </VistaQuery>
@@ -123,7 +130,7 @@ function Flussi({ filtri }: { filtri: Filtri }) {
       <ConGrant grant={[GRANT.residuoImpegni, GRANT.pagamentiSuImpegnato, GRANT.residuoPagamenti]} titolo="Dove va la dotazione">
         <FlussoDotazione filtri={filtri} />
       </ConGrant>
-      <ConGrant grant={GRANT.residuoPagamenti} titolo="Pagato netto sulla dotazione">
+      <ConGrant grant={GRANT.residuoPagamenti} titolo={AVANZAMENTO_PAGAMENTI}>
         <PagatoSullaDotazione filtri={filtri} />
       </ConGrant>
     </Griglia>
@@ -143,7 +150,22 @@ function IndicatoriEFlussi({ filtri }: { filtri: Filtri }) {
     <>
       <Indicatori filtri={filtri} />
       <Flussi filtri={filtri} />
+      <NotaStimaImpegnato filtri={filtri} />
     </>
+  );
+}
+
+/** La nota di lettura dell'impegnato (stimaImpegni di TX-0005, dalla cache): solo con il grant, in silenzio sugli errori. */
+function NotaStimaImpegnato({ filtri }: { filtri: Filtri }) {
+  const conGrant = hasGrant(useAuthStatus().data, GRANT.pagamentiSuImpegnato);
+  return conGrant ? <LetturaNotaStima filtri={filtri} /> : null;
+}
+
+function LetturaNotaStima({ filtri }: { filtri: Filtri }) {
+  return (
+    <VistaQuery stato={usePagamentiSuImpegnato(filtri)} errorePersonalizzato={silenzioso}>
+      {(d) => <NotaStima stima={d.stimaImpegni} />}
+    </VistaQuery>
   );
 }
 
@@ -208,7 +230,7 @@ function ResiduoPagamenti({ filtri, titolo }: PropsSezione) {
       scaricamenti={datiDelReport(titolo, 'residuoPagamenti', filtri)}
       parti={(d) => [['Pagamenti al netto delle rettifiche', d.pagamentiNettoRettifiche], ['Dotazione residua', d.dotazioneResidua]]}
       voci={(d) => [
-        [diProgramma('Dotazione spesa pubblica', d.perimetro), d.dotazioneSpesaPubblica], [PAGATO_LORDO, d.importoPagato], ['Importo recuperato', d.importoRecuperato],
+        [diProgramma('Dotazione spesa pubblica', d.perimetro), d.dotazioneSpesaPubblica], [PAGATO_LORDO, d.importoPagato], ['Rettifiche', d.importoRettifiche],
         ['Pagamenti al netto delle rettifiche', d.pagamentiNettoRettifiche], ['Dotazione residua', d.dotazioneResidua],
       ]} />
   );
@@ -221,6 +243,16 @@ const SEZIONI: { titolo: string; grant: string; Componente: (p: PropsSezione) =>
   { titolo: 'Dotazione residua sui pagamenti (RF007)', grant: GRANT.residuoPagamenti, Componente: ResiduoPagamenti },
 ];
 
+/** Il residuo sui pagamenti per intervento (RF007, R08), dalla stessa lettura di TX-0007 della sezione. */
+function ResiduoInterventi({ filtri }: { filtri: Filtri }) {
+  const segnale = useSelezioneSenzaInterventi(filtri);
+  return (
+    <VistaQuery stato={useResiduoPagamenti(filtri)} inAttesa={segnale === 'in-attesa'} eVuoto={() => segnale === 'vuota'} vuoto={null} errorePersonalizzato={silenzioso}>
+      {(d) => <ResiduoPerIntervento d={d} filtri={filtri} />}
+    </VistaQuery>
+  );
+}
+
 export function AvanzamentoReport({ filtri }: { filtri: Filtri }) {
   return (
     <>
@@ -232,6 +264,9 @@ export function AvanzamentoReport({ filtri }: { filtri: Filtri }) {
           </ConGrant>
         ))}
       </Griglia>
+      <ConGrant grant={GRANT.residuoPagamenti} titolo="Dotazione residua sui pagamenti per intervento (RF007)">
+        <ResiduoInterventi filtri={filtri} />
+      </ConGrant>
     </>
   );
 }

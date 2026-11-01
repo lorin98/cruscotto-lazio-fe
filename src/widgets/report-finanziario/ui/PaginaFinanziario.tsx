@@ -2,11 +2,14 @@
 // a chip con il pannello laterale, il perimetro e la data dell'ultimo dato, breadcrumb, titolo (h1 SEMPRE presente, che
 // riceve il focus e da' il titolo al documento), un solo avviso d'errore per la pagina, contenuto. La semantica dei filtri
 // e' della feature (useFiltriNellIndirizzo); qui solo l'impaginazione, il contesto che apre il pannello dallo stato vuoto e
-// le righe della pagina nell'intestazione dei PNG dei grafici (filtri della barra, profilo, ultimo dato: NFR-50, V-01).
+// le righe della pagina nell'intestazione dei PNG dei grafici (filtri della barra, profilo, ultimo dato: NFR-50, V-01). Nei
+// report la barra ha il controllo del filtro SIGC (revisioni del 31/10/2026, R01); il dettaglio no (F5): la sua pill dice
+// il tipo dell'intervento.
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { ContestoFiltri, PANORAMICA, PannelloFiltri, PerimetroPill, UltimoAggiornamento, conFiltri, titoloH1, useFiltriNellIndirizzo, useRigheIntestazione, voceDi } from '../../../features/finanziario';
 import type { Filtri } from '../../../features/finanziario';
+import { etichettaSigc } from '../../../shared/lib';
 import { AvvisoPagina, BarraFiltri, Briciole as BricioleKit, Caricamento, ContestoIntestazione, TestaPagina } from '../../../shared/ui';
 import type { Briciola, ChipFiltro } from '../../../shared/ui';
 
@@ -25,6 +28,8 @@ interface PropsPagina {
   conBarraFiltri?: boolean;
   /** Chip non rimovibili al posto dei filtri dell'indirizzo (es. l'intervento della pagina di dettaglio). */
   chipFissi?: ChipFiltro[];
+  /** Pill della barra prima del perimetro (es. il tipo dell'intervento del dettaglio). */
+  pill?: ReactNode;
   /** Parametri di pagina fuori dalla barra (es. "Anno: 2025"), fra i filtri applicati dell'intestazione dei PNG (N-02). */
   parametri?: readonly string[];
   /** Voci intermedie del percorso (dopo Home e Finanziario). */
@@ -39,7 +44,7 @@ interface PropsPagina {
 }
 
 /** Briciole e titolo dal catalogo dei report, con le sostituzioni della pagina. */
-function Testata({ percorso, briciole, titolo, titoloDocumento, sottotitolo, azioni, filtri }: Omit<PropsPagina, 'children' | 'conBarraFiltri' | 'chipFissi' | 'parametri'> & { filtri: Filtri }) {
+function Testata({ percorso, briciole, titolo, titoloDocumento, sottotitolo, azioni, filtri }: Omit<PropsPagina, 'children' | 'conBarraFiltri' | 'chipFissi' | 'parametri' | 'pill'> & { filtri: Filtri }) {
   const voce = voceDi(percorso);
   const catalogo = voce?.titolo ?? 'Finanziario';
   return (
@@ -61,16 +66,22 @@ function useBarraFiltri(conBarraFiltri: boolean, chipFissi: ChipFiltro[] | undef
   const pannelloAttivo = conBarraFiltri && conPannello && !chipFissi;
   const apriPannello = pannelloAttivo ? () => setAperto(true) : undefined;
   const barra = chipFissi ? { chip: chipFissi } : { chip, onApri: apriPannello, onTogliTutti: togliTutti };
-  const righe = useRigheIntestazione([...(conBarraFiltri ? barra.chip : []).map((c) => `${c.etichetta}: ${c.valore}`), ...parametri]);
+  const righe = useRigheIntestazione([...(conBarraFiltri ? barra.chip : []).map((c) => `${c.etichetta}: ${c.valore}`), ...rigaSigc(conBarraFiltri && !chipFissi, filtri), ...parametri]);
   const pannello = pannelloAttivo ? { aperto, chiudi: () => setAperto(false), applica } : null;
   return { filtri, inAttesa: conBarraFiltri && inAttesa, barra, apriPannello, righe, pannello };
 }
 
-export function PaginaFinanziario({ conBarraFiltri = true, chipFissi, parametri = [], children, ...testata }: PropsPagina) {
+/** Il filtro SIGC fra le righe dell'intestazione dei PNG, nei report che lo prendono. */
+function rigaSigc(conSigc: boolean, filtri: Filtri): string[] {
+  const sigc = conSigc ? etichettaSigc(filtri.sigc) : undefined;
+  return sigc ? [`Interventi: ${sigc}`] : [];
+}
+
+export function PaginaFinanziario({ conBarraFiltri = true, chipFissi, parametri = [], pill, children, ...testata }: PropsPagina) {
   const { filtri, inAttesa, barra, apriPannello, righe, pannello } = useBarraFiltri(conBarraFiltri, chipFissi, parametri);
   return (
     <ContestoFiltri.Provider value={apriPannello ?? null}>
-      {conBarraFiltri && <BarraFiltri {...barra} vuoto="Nessun filtro: tutti gli interventi del perimetro" destra={<PillDellaBarra />} />}
+      {conBarraFiltri && <BarraFiltri {...barra} filtroSigc={!chipFissi} vuoto="Nessun filtro: tutti gli interventi del perimetro" destra={<PillDellaBarra pill={pill} />} />}
       <main className="ui-pagina" id="contenuto">
         <Testata {...testata} filtri={filtri} />
         <ContestoIntestazione.Provider value={righe}>
@@ -93,9 +104,10 @@ export function PaginaFinanziario({ conBarraFiltri = true, chipFissi, parametri 
   );
 }
 
-function PillDellaBarra() {
+function PillDellaBarra({ pill }: { pill?: ReactNode }) {
   return (
     <>
+      {pill}
       <PerimetroPill />
       <UltimoAggiornamento />
     </>

@@ -42,6 +42,14 @@ export const RIEPILOGO = {
       pagamentiNettoRettifiche: euro(200000),
       dotazioneResiduaSuImpegni: nd('IMPEGNI'),
       dotazioneResiduaSuPagamenti: euro(800000),
+      // revisioni del 31/10/2026 (R08): lordi, rettifiche e le loro righe
+      pagamentiLordi: euro(220000),
+      importoRettifiche: euro(20000),
+      conRettifiche: true,
+      rettifiche: [
+        { progressivo: 1, programmazione: 'CSR_2023_2027', importo: -20000, codiceAzione: 'SRA01.2', riferimento: 'riga 12 del foglio' },
+        { progressivo: 2, programmazione: 'TRASCINAMENTI_PSR', importo: -500, codiceAzione: null, riferimento: 'riga 13 del foglio' },
+      ],
     },
     {
       codiceIntervento: 'SRA03',
@@ -54,6 +62,10 @@ export const RIEPILOGO = {
       pagamentiNettoRettifiche: euro(0),
       dotazioneResiduaSuImpegni: nd('IMPEGNI'),
       dotazioneResiduaSuPagamenti: euro(500000),
+      pagamentiLordi: euro(0),
+      importoRettifiche: euro(0),
+      conRettifiche: false,
+      rettifiche: [],
     },
   ],
 };
@@ -67,11 +79,8 @@ export const SPESA = {
       impegnatoCofinanziatoFeasrENon: nd('IMPEGNI'),
       impegnatoSpesaPubblica: nd('IMPEGNI'),
       pagamentiTotali: euro(200000),
-      // come le produce il backend: il riparto Stato - Regione viene da una fonte non attiva (SC-FI_SPESA_INTERVENTO)
-      quotaStato: nd('RIPARTO_STATO_REGIONE'),
-      quotaRegione: nd('RIPARTO_STATO_REGIONE'),
-      vincoloDotazioneLeader: nd('VINCOLO_LEADER'),
-      percentualeContributoAmbientale: 12.5,
+      // revisioni del 31/10/2026: via quote Stato/Regione, LEADER e contributo ambientale (R14, R21, X3); impegnato stimato
+      impegnatoStimato: nd('IMPEGNI'),
     },
   ],
 };
@@ -83,7 +92,7 @@ export const RESIDUO_PAGAMENTI = {
   perimetro: 'REGIONALE',
   dotazioneSpesaPubblica: euro(1000000),
   importoPagato: euro(220000),
-  importoRecuperato: euro(20000),
+  importoRettifiche: euro(20000),
   pagamentiNettoRettifiche: euro(200000),
   dotazioneResidua: euro(800000),
 };

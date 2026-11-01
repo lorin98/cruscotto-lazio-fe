@@ -73,7 +73,7 @@ export function graficoDomandePerAnno(righe: RigaDomandeAnno[]): DatiGrafico {
   const descrizione =
     `Barre impilate delle domande per anno di raccolta (${categorie.join(', ')}): prima annualità, altre annualità e non classificate` +
     `${totale == null ? '' : `; ${plurale(totale, 'domanda', 'domande')} in tutto`}.${notaOmessi(omessi)}`;
-  const opzioni: EChartsOption = { aria: aria(descrizione), legend: {}, tooltip: { trigger: 'axis', valueFormatter: valoreInNumero }, xAxis: { type: 'category', data: categorie }, yAxis: { type: 'value' }, series: serie };
+  const opzioni: EChartsOption = { aria: aria(descrizione), legend: {}, tooltip: { trigger: 'axis', valueFormatter: valoreInNumero }, xAxis: { type: 'category', data: categorie, axisLabel: { interval: 0, hideOverlap: false } }, yAxis: { type: 'value' }, series: serie };
   return { opzioni, tabella, omessi };
 }
 
@@ -134,7 +134,7 @@ export function graficoImportiPerAnno(righe: RigaImportiAnno[]): DatiGrafico {
     legend: {},
     tooltip: { trigger: 'axis', valueFormatter: valoreBreve },
     dataZoom: [{ type: 'inside' }],
-    xAxis: { type: 'category', data: categorie },
+    xAxis: { type: 'category', data: categorie, axisLabel: { interval: 0, hideOverlap: false } },
     yAxis: { type: 'value', axisLabel: { formatter: asseImporti } },
     series: serie,
   };

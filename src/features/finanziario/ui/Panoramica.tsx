@@ -2,12 +2,15 @@
 // che esistono davvero (dotazione e pagamenti per intervento TX-0002, domande TX-0009, SIGC TX-0012 e TX-0013). Ogni
 // card legge solo con il grant della sua transazione (le letture stanno nei figli di ConGrant, R-09). I KPI vengono
 // dagli aggregati di lib (mai somme parziali, la quota e' la media ponderata del grafico). Il clic su un intervento apre
-// il suo dettaglio; raggruppamento per famiglia finche' manca la gerarchia degli obiettivi (OP-FE-07).
+// il suo dettaglio; raggruppamento per famiglia finche' manca la gerarchia degli obiettivi (OP-FE-07). Revisioni del
+// 31/10/2026: sei box in griglia 3 x 2 a coppie per colonna con l'impegnato e la sua quota dalla stessa lettura di TX-0002
+// (R03), importi SIGC in due barre impilate (R13 forma B); le card SIGC sono di soli interventi SIGC: col filtro NO SIGC non
+// pertinenti, lette senza filtro (F3).
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { ApriNellElenco } from '../../../entities/domanda';
-import { formatNumber, formatPercentuale, importoBreve } from '../../../shared/lib';
-import { Caricamento, CardGrafico, Griglia, Kpi, VistaQuery } from '../../../shared/ui';
+import { formatNumber, formatPercentuale, importoBreve, nonPertinenza, senzaSigc } from '../../../shared/lib';
+import { Caricamento, CardGrafico, Griglia, Kpi, NonPertinente, VistaQuery } from '../../../shared/ui';
 import type { ClicGrafico } from '../../../shared/ui';
 import { useSigcDomande, useSigcImporti, useSpesaPerIntervento, useTotaleDomande } from '../api';
 import { datiDelReport } from './esportazioni';
@@ -15,7 +18,9 @@ import type { SpesaPerIntervento } from '../api';
 import { kpiSpesa } from '../lib/aggregati';
 import type { Aggregato } from '../lib/aggregati';
 import type { Filtri } from '../lib/filtri';
-import { PAGAMENTI_LORDI, PAGATO_LORDO_SULLA_DOTAZIONE, graficoAvanzamento, graficoCascataSigc, graficoDomandeSigc, graficoFamiglie } from '../lib/grafici';
+import { PAGAMENTI_LORDI, PAGATO_LORDO_SULLA_DOTAZIONE, graficoAvanzamento, graficoDomandeSigc, graficoFamiglie, graficoImportiSigc } from '../lib/grafici';
+import { notaDiCuiStimato } from '../lib/stima';
+import { MOTIVO_SOLO_SIGC } from './SigcReport';
 import { GRANT, PERCORSI, conFiltri } from '../lib/report';
 import { ConGrant, NotaPerimetroMisto, PerimetroSezione, ScaricaKpi, diProgramma, erroreGiaMostrato, vuotoConPerimetro } from './comuni';
 import { useSelezioneSenzaDomandeSigc, useSelezioneSenzaInterventi } from './selezione';
@@ -27,18 +32,48 @@ const VUOTO_SIGC = vuotoConPerimetro('Nessuna domanda SIGC per i filtri scelti.'
 
 const assente = (a: Aggregato) => (a.valore === null ? a.motivo : undefined);
 
-function KpiSpesa({ d }: { d: SpesaPerIntervento }) {
+/** Le tessere della spesa (TX-0002): la dotazione, oppure le quattro dell'impegnato e del pagato (R03). */
+type TessereSpesa = 'dotazione' | 'impegnato-e-pagato';
+
+function KpiSpesa({ d, tessere }: { d: SpesaPerIntervento; tessere: TessereSpesa }) {
+  return tessere === 'dotazione' ? <KpiDotazione d={d} /> : <KpiImpegnatoEPagato d={d} />;
+}
+
+function KpiDotazione({ d }: { d: SpesaPerIntervento }) {
   const k = kpiSpesa(d.righe ?? [], d.perimetro);
   const n = (d.righe ?? []).length;
   return (
+    <Kpi
+      etichetta={diProgramma('Dotazione spesa pubblica', d.perimetro)}
+      icona="it-card"
+      tono="scuro"
+      valore={k.dotazione.valore === null ? undefined : importoBreve(k.dotazione.valore)}
+      assente={assente(k.dotazione)}
+      nota={n === 1 ? '1 intervento nella selezione' : `${n} interventi nella selezione`}
+    />
+  );
+}
+
+function KpiImpegnatoEPagato({ d }: { d: SpesaPerIntervento }) {
+  const k = kpiSpesa(d.righe ?? [], d.perimetro);
+  // ordine del DOM a coppie per colonna (griglia 3 x 2 in colonna): impegnato e la sua quota, pagato e la sua quota
+  return (
     <>
       <Kpi
-        etichetta={diProgramma('Dotazione spesa pubblica', d.perimetro)}
-        icona="it-card"
-        tono="scuro"
-        valore={k.dotazione.valore === null ? undefined : importoBreve(k.dotazione.valore)}
-        assente={assente(k.dotazione)}
-        nota={n === 1 ? '1 intervento nella selezione' : `${n} interventi nella selezione`}
+        etichetta="Totale impegnato"
+        icona="it-files"
+        tono="blu"
+        valore={k.impegnato.valore === null ? undefined : importoBreve(k.impegnato.valore)}
+        assente={assente(k.impegnato)}
+        nota={notaDiCuiStimato(k.stimato.valore === null ? null : { valore: k.stimato.valore })}
+      />
+      <Kpi
+        etichetta="Impegnato sulla dotazione"
+        icona="it-presentation"
+        tono="blu"
+        valore={k.quotaImpegnata.valore === null ? undefined : formatPercentuale(k.quotaImpegnata.valore)}
+        assente={assente(k.quotaImpegnata)}
+        quota={k.quotaImpegnata.valore === null ? null : k.quotaImpegnata.valore / 100}
       />
       <Kpi etichetta={PAGAMENTI_LORDI} icona="it-chart-line" tono="verde" valore={k.pagato.valore === null ? undefined : importoBreve(k.pagato.valore)} assente={assente(k.pagato)} />
       <Kpi
@@ -54,11 +89,12 @@ function KpiSpesa({ d }: { d: SpesaPerIntervento }) {
   );
 }
 
-// le tessere della spesa compaiono con i dati; caricamento, errore e vuoto li dice la sezione dei grafici
-function KpiSpesaSezione({ filtri }: { filtri: Filtri }) {
+// le tessere della spesa compaiono con i dati; caricamento, errore e vuoto li dice la sezione dei grafici. Le due parti
+// leggono la stessa lettura in cache di TX-0002
+function KpiSpesaSezione({ filtri, tessere }: { filtri: Filtri; tessere: TessereSpesa }) {
   return (
     <VistaQuery stato={useSpesaPerIntervento(filtri)} errorePersonalizzato={erroreGiaMostrato}>
-      {(d) => ((d.righe ?? []).length === 0 ? null : <KpiSpesa d={d} />)}
+      {(d) => ((d.righe ?? []).length === 0 ? null : <KpiSpesa d={d} tessere={tessere} />)}
     </VistaQuery>
   );
 }
@@ -152,7 +188,7 @@ function DomandeSigc({ filtri, onSigc }: { filtri: Filtri; onSigc: () => void })
           titolo="Domande SIGC: presentate, pagate e da pagare"
           sottotitolo="Pagate e da pagare si sovrappongono (domande pagate in parte). Clic su una barra: pagina SIGC"
           dati={graficoDomandeSigc(d)}
-          fonte="Fonte: TX-0012 · pagate e da pagare dagli importi della domanda (flusso ASR2-20), come l'importo pagato"
+          fonte="Fonte: TX-0012 · pagate e da pagare dagli importi della domanda, come l'importo pagato"
           onClic={onSigc}
           scaricamenti={datiDelReport('Domande SIGC', 'sigcDomande', filtri)}
         />
@@ -169,10 +205,10 @@ function ImportiSigc({ filtri }: { filtri: Filtri }) {
     <VistaQuery stato={stato} inAttesa={segnale === 'in-attesa'} eVuoto={() => segnale === 'vuota'} vuoto={VUOTO_SIGC}>
       {(d) => (
         <CardGrafico
-          titolo="Importi SIGC"
-          sottotitolo="Dal richiesto all'ancora da pagare"
-          dati={graficoCascataSigc(d)}
-          fonte="Fonte: TX-0013 · importi della domanda (flusso ASR2-20)"
+          titolo="Importi SIGC: richiesto, ammesso, pagato e ancora da pagare"
+          sottotitolo="Richiesto = ammesso + non ammesso; ammesso = pagato + ancora da pagare"
+          dati={graficoImportiSigc(d)}
+          fonte="Fonte: TX-0013 · importi della domanda"
           scaricamenti={datiDelReport('Importi SIGC', 'sigcImporti', filtri)}
         />
       )}
@@ -183,29 +219,38 @@ function ImportiSigc({ filtri }: { filtri: Filtri }) {
 export function Panoramica({ filtri }: { filtri: Filtri }) {
   const naviga = useNavigate();
   const { dalClic } = useApriIntervento(filtri);
+  // le card SIGC col filtro NO SIGC: non pertinenti, col dato senza filtro (F3)
+  const np = nonPertinenza(filtri.sigc, 'sigc', MOTIVO_SOLO_SIGC);
+  const sigc = np ? senzaSigc(filtri) : filtri;
   return (
     <>
       {/* i dati di TX-0002 si scaricano dalle card dei grafici; quelli delle domande (TX-0009) qui (NFR-75, review v3 V-04) */}
       <ScaricaDomande filtri={filtri} />
-      <Griglia colonne={4}>
-        <ConGrant grant={GRANT.spesaPerIntervento} titolo="Dotazione e pagamenti">
-          <KpiSpesaSezione filtri={filtri} />
+      {/* sei box 3 x 2 a coppie per colonna (R03): dotazione e domande, impegnato e quota, pagato e quota */}
+      <Griglia colonne={3}>
+        <ConGrant grant={GRANT.spesaPerIntervento} titolo="Dotazione">
+          <KpiSpesaSezione filtri={filtri} tessere="dotazione" />
         </ConGrant>
         <ConGrant grant={GRANT.totaleDomande} titolo="Domande presentate">
           <KpiDomande filtri={filtri} />
+        </ConGrant>
+        <ConGrant grant={GRANT.spesaPerIntervento} titolo="Impegnato e pagamenti">
+          <KpiSpesaSezione filtri={filtri} tessere="impegnato-e-pagato" />
         </ConGrant>
       </Griglia>
       <ConGrant grant={GRANT.spesaPerIntervento} titolo="Dotazione e pagamenti per intervento">
         <GraficiSpesa filtri={filtri} clic={dalClic} />
       </ConGrant>
-      <Griglia>
-        <ConGrant grant={GRANT.sigcDomande} titolo="Domande SIGC">
-          <DomandeSigc filtri={filtri} onSigc={() => void naviga(conFiltri(PERCORSI.sigc, filtri))} />
-        </ConGrant>
-        <ConGrant grant={GRANT.sigcImporti} titolo="Importi SIGC">
-          <ImportiSigc filtri={filtri} />
-        </ConGrant>
-      </Griglia>
+      <NonPertinente np={np}>
+        <Griglia>
+          <ConGrant grant={GRANT.sigcDomande} titolo="Domande SIGC">
+            <DomandeSigc filtri={sigc} onSigc={() => void naviga(conFiltri(PERCORSI.sigc, filtri))} />
+          </ConGrant>
+          <ConGrant grant={GRANT.sigcImporti} titolo="Importi SIGC">
+            <ImportiSigc filtri={sigc} />
+          </ConGrant>
+        </Griglia>
+      </NonPertinente>
     </>
   );
 }

@@ -4,20 +4,22 @@
 // (gauge, cascata), Domande (TX-0008, TX-0010), SIGC (TX-0012, TX-0013), Tutte le voci (con il motivo dei valori
 // assenti). Le schede leggono solo quando si aprono e solo con il grant (letture nei figli di ConGrant, R-09). I dati
 // sono del solo intervento; i link di ritorno conservano la selezione della pagina (filtri dell'indirizzo, N-03).
+// Revisioni del 31/10/2026: testata col tipo dell'intervento al posto del contributo ambientale (R14, F5: niente lettura di
+// TX-0002), gauge "Avanzamento rispetto ai pagamenti effettuati" (R15), cascata con lordi e rettifiche e le righe delle
+// rettifiche (R08), importi SIGC in due barre impilate (R13 forma B), nessun "flusso ASR2-20" nei testi (R16).
 import { useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router';
 import { Tab, TabList, TabPanel, Tabs } from 'react-aria-components';
 import { ApriNellElenco } from '../../../entities/domanda';
-import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
-import { codiceDalClic, formatNumber, formatPercentuale } from '../../../shared/lib';
-import { CardGrafico, Griglia, Kpi, TabellaDati, TabellaRighe, VistaQuery, Vuoto, eVistaGrafico } from '../../../shared/ui';
+import { codiceDalClic, formatNumber, importoBreve } from '../../../shared/lib';
+import { CardGrafico, Griglia, Kpi, Sezione, TabellaDati, TabellaRighe, VistaQuery, Vuoto, eVistaGrafico } from '../../../shared/ui';
 import type { ClicGrafico, VistaGrafico } from '../../../shared/ui';
-import { useDomandePerAnno, useImportiPerAnno, useRiepilogo, useSigcDomande, useSigcImporti, useSpesaPerIntervento } from '../api';
+import { useDomandePerAnno, useImportiPerAnno, useRiepilogo, useSigcDomande, useSigcImporti } from '../api';
 import type { DomandePerAnno as DomandePerAnnoDto, RiepilogoFinanziarioRiga } from '../api';
 import { datiDelReport } from './esportazioni';
 import { conParametroDiPagina } from '../lib/filtri';
 import type { Filtri } from '../lib/filtri';
-import { VOCI_DOMANDE_SIGC, graficoCascataIntervento, graficoCascataSigc, graficoDomandePerAnno, graficoDomandeSigc, graficoImportiPerAnno, graficoPagatoNetto, vociIntervento } from '../lib/grafici';
+import { VOCI_DOMANDE_SIGC, graficoCascataIntervento, graficoDomandePerAnno, graficoDomandeSigc, graficoImportiPerAnno, graficoImportiSigc, graficoPagatoNetto, vociIntervento } from '../lib/grafici';
 import { perAnno } from '../lib/importi';
 import { annoDiRaccolta } from '../lib/formato';
 import { criteriAnnoAnnualita, criteriDomandePerAnno, criteriVoceSigc } from '../lib/link-elenco';
@@ -30,6 +32,12 @@ import { useApriNellElenco, useLinkElenco } from './LinkElenco';
 import { colonneDomandePerAnno } from './colonneAnno';
 import { useStatoDelRiepilogo } from './ritornoAlRiepilogo';
 import { useStatoNellaHistory } from './useStatoNellaHistory';
+import { useTipoIntervento } from './useDescrizioneIntervento';
+import { TabellaRettifiche } from './rettifiche';
+import { notaDiCuiStimato } from '../lib/stima';
+
+// R15: il titolo del gauge dei pagamenti netti sulla dotazione
+const AVANZAMENTO_PAGAMENTI = 'Avanzamento rispetto ai pagamenti effettuati';
 
 /** I link verso l'elenco portano la selezione da cui si e' arrivati, con l'intervento del dettaglio al posto del filtro. */
 interface Provenienza {
@@ -60,12 +68,12 @@ function TornaAlRiepilogo({ selezione, className }: { selezione: Filtri; classNa
   );
 }
 
-function Testata({ codice, selezione, perimetro, contributo }: { codice: string; selezione: Filtri; perimetro?: Perimetro; contributo?: number | null }) {
+function Testata({ codice, selezione, perimetro, tipo }: { codice: string; selezione: Filtri; perimetro?: Perimetro; tipo?: 'SIGC' | 'NO SIGC' | null }) {
   return (
     <section className="ui-hero ui-dissolvenza" aria-label={`Intervento ${codice}`}>
       <span className="ui-eyebrow">{`Intervento ${codice}`}</span>
       {perimetro && <span className="ui-hero__badge">{`Perimetro ${perimetro}`}</span>}
-      {contributo != null && <span className="ui-hero__badge">{`Contributo ambientale ${formatPercentuale(contributo)}`}</span>}
+      {tipo && <span className="ui-hero__badge">{`Intervento ${tipo} (dalla programmazione)`}</span>}
       <div className="ui-hero__azioni">
         <Link className="btn btn-light btn-sm" to={conFiltri(PERCORSI.panoramica, { intervento: [codice] })}>
           Filtra i report su questo intervento
@@ -82,7 +90,7 @@ function Kpis({ r, perimetro, da }: { r: RiepilogoFinanziarioRiga; perimetro?: P
     <Griglia colonne={4}>
       <KpiImporto etichetta={diProgramma('Dotazione spesa pubblica', perimetro)} importo={r.dotazioneSpesaPubblica} icona="it-card" tono="scuro" aggregato={false} />
       <KpiImporto etichetta={diProgramma('Risorse quota FEASR', perimetro)} importo={r.risorseQuotaFeasr} icona="it-presentation" tono="blu" aggregato={false} />
-      <KpiImporto etichetta="Pagamenti al netto delle rettifiche" importo={r.pagamentiNettoRettifiche} icona="it-chart-line" tono="verde" aggregato={false} />
+      <KpiImporto etichetta="Pagamenti al netto delle rettifiche" importo={r.pagamentiNettoRettifiche} icona="it-chart-line" tono="verde" aggregato={false} nota={notaLordiERettifiche(r)} />
       <Kpi
         etichetta="Domande presentate"
         icona="it-files"
@@ -94,25 +102,60 @@ function Kpis({ r, perimetro, da }: { r: RiepilogoFinanziarioRiga; perimetro?: P
   );
 }
 
-// il gauge usa i pagamenti al netto delle rettifiche della riga (TX-0011), come il KPI e la cascata accanto: mai il
-// pagato lordo degli elenchi di liquidazione (TX-0002) su una dotazione il cui residuo e' calcolato sul netto
-function Sintesi({ filtri, r, perimetro }: { filtri: Filtri; r: RiepilogoFinanziarioRiga; perimetro?: Perimetro }) {
+/** "lordi 1,2 M€, rettifiche 0,1 M€" sotto i pagamenti netti (R08); niente se manca uno dei due. */
+function notaLordiERettifiche(r: RiepilogoFinanziarioRiga): string | undefined {
+  const [lordi, rettifiche] = [r.pagamentiLordi?.valore, r.importoRettifiche?.valore];
+  return lordi == null || rettifiche == null ? undefined : `lordi ${importoBreve(lordi)}, rettifiche ${importoBreve(rettifiche)}`;
+}
+
+/** Le righe delle rettifiche dell'intervento (R08): con il badge, "Nessuna rettifica", o la fonte non attiva. */
+function RettificheIntervento({ r }: { r: RiepilogoFinanziarioRiga }) {
+  const righe = r.rettifiche ?? [];
+  const codice = r.codiceIntervento ?? '';
+  let corpo;
+  if (r.conRettifiche == null) corpo = <p className="mb-0">Rettifiche non disponibili: fonte non attiva (rettifiche).</p>;
+  else if (righe.length === 0) corpo = <p className="mb-0">Nessuna rettifica.</p>;
+  else
+    corpo = (
+      <>
+        <p className="mb-2">
+          <span className="badge ui-badge-np">Con rettifiche</span>
+        </p>
+        <TabellaRettifiche codice={codice} rettifiche={righe} />
+      </>
+    );
   return (
-    <Griglia>
-      <CardGrafico
-        titolo="Pagato netto sulla dotazione"
-        sottotitolo="Pagamenti al netto delle rettifiche sulla dotazione, come il residuo sui pagamenti"
-        dati={graficoPagatoNetto(r.pagamentiNettoRettifiche, r.dotazioneSpesaPubblica, perimetro, false)}
-        fonte="Fonte: TX-0011, riepilogo per intervento"
-        scaricamenti={datiDelReport('Pagato netto sulla dotazione', 'riepilogo', filtri)}
-      />
-      <CardGrafico
-        titolo="Dalla dotazione al residuo"
-        dati={graficoCascataIntervento(r, perimetro)}
-        fonte="Fonte: TX-0011, riepilogo per intervento"
-        scaricamenti={datiDelReport(`Riepilogo ${r.codiceIntervento ?? 'intervento'}`, 'riepilogo', filtri)}
-      />
-    </Griglia>
+    <Sezione titolo="Rettifiche dell'intervento" sottotitolo="Recuperi e variazioni certificati (foglio recuperi e variazioni del report FEASR)">
+      {corpo}
+      <p className="ui-fonte">Fonte: TX-0011 (rettifiche della riga). Le rettifiche dei trascinamenti PSR sono nel dettaglio ma fuori dal netto.</p>
+    </Sezione>
+  );
+}
+
+// il gauge usa i pagamenti al netto delle rettifiche della riga (TX-0011), come il KPI e la cascata accanto: mai il
+// pagato lordo degli elenchi di liquidazione su una dotazione il cui residuo e' calcolato sul netto
+function Sintesi({ filtri, r, perimetro }: { filtri: Filtri; r: RiepilogoFinanziarioRiga; perimetro?: Perimetro }) {
+  const stimato = notaDiCuiStimato(r.impegnatoStimato);
+  return (
+    <>
+      <Griglia>
+        <CardGrafico
+          titolo={AVANZAMENTO_PAGAMENTI}
+          sottotitolo="Pagamenti al netto delle rettifiche sulla dotazione, come il residuo sui pagamenti"
+          dati={graficoPagatoNetto(r.pagamentiNettoRettifiche, r.dotazioneSpesaPubblica, perimetro, false)}
+          fonte="Fonte: TX-0011, riepilogo per intervento"
+          scaricamenti={datiDelReport(AVANZAMENTO_PAGAMENTI, 'riepilogo', filtri)}
+        />
+        <CardGrafico
+          titolo="Dalla dotazione al residuo"
+          sottotitolo={stimato ? `Impegnato e residuo sugli impegni nella tabella; impegnato ${stimato}` : undefined}
+          dati={graficoCascataIntervento(r, perimetro)}
+          fonte="Fonte: TX-0011, riepilogo per intervento"
+          scaricamenti={datiDelReport(`Riepilogo ${r.codiceIntervento ?? 'intervento'}`, 'riepilogo', filtri)}
+        />
+      </Griglia>
+      <RettificheIntervento r={r} />
+    </>
   );
 }
 
@@ -198,7 +241,7 @@ function CardDomandeSigc({ d, filtri, conLink, onClic }: { d: Parameters<typeof 
       titolo="Domande SIGC"
       sottotitolo={SOTTOTITOLO_DOMANDE_SIGC + (conLink && dati.opzioni !== null ? CLIC_BARRA : '')}
       dati={dati}
-      fonte="Fonte: TX-0012 · pagate e da pagare dagli importi della domanda (flusso ASR2-20), come l'importo pagato"
+      fonte="Fonte: TX-0012 · pagate e da pagare dagli importi della domanda, come l'importo pagato"
       onClic={onClic}
       scaricamenti={datiDelReport('Domande SIGC', 'sigcDomande', filtri)}
     />
@@ -216,21 +259,22 @@ function ImportiSigc({ filtri, da }: { filtri: Filtri; da: Provenienza }) {
   return (
     <VistaQuery stato={useSigcImporti(filtri)} inAttesa={segnale === 'in-attesa'} eVuoto={() => segnale === 'vuota'} vuoto={SENZA_SIGC}>
       {(d) => (
-        <CascataImportiSigc dati={graficoCascataSigc(d)} indirizzo={indirizzo} filtri={filtri} onClic={() => apri('elenco-sigc-intervento', { sigc: true, intervento: da.codice })} />
+        <BarreImportiSigc dati={graficoImportiSigc(d)} indirizzo={indirizzo} filtri={filtri} onClic={() => apri('elenco-sigc-intervento', { sigc: true, intervento: da.codice })} />
       )}
     </VistaQuery>
   );
 }
 
-/** La cascata degli importi SIGC dell'intervento e, sotto, lo stesso link da tastiera, presente anche senza cascata. */
-function CascataImportiSigc({ dati, indirizzo, filtri, onClic }: { dati: ReturnType<typeof graficoCascataSigc>; indirizzo: string | null; filtri: Filtri; onClic: () => void }) {
+/** Gli importi SIGC dell'intervento in due barre impilate (R13 B) e, sotto, lo stesso link da tastiera, anche senza grafico. */
+function BarreImportiSigc({ dati, indirizzo, filtri, onClic }: { dati: ReturnType<typeof graficoImportiSigc>; indirizzo: string | null; filtri: Filtri; onClic: () => void }) {
+  const clic = indirizzo && dati.opzioni !== null ? " Clic sul grafico: le domande SIGC dell'intervento nell'elenco operativo" : '';
   return (
     <div>
       <CardGrafico
         titolo="Importi SIGC"
-        sottotitolo={indirizzo && dati.opzioni !== null ? "Clic sulla cascata: le domande SIGC dell'intervento nell'elenco operativo" : undefined}
+        sottotitolo={`Richiesto = ammesso + non ammesso; ammesso = pagato + ancora da pagare.${clic}`}
         dati={dati}
-        fonte="Fonte: TX-0013 · importi della domanda (flusso ASR2-20)"
+        fonte="Fonte: TX-0013 · importi della domanda"
         onClic={onClic}
         scaricamenti={datiDelReport('Importi SIGC', 'sigcImporti', filtri)}
       />
@@ -314,8 +358,8 @@ function Schede({ filtri, r, perimetro, da }: { filtri: Filtri; r: RiepilogoFina
 function Contenuto({ codice, selezione }: { codice: string; selezione: Filtri }) {
   const filtri: Filtri = { intervento: [codice] };
   const riepilogo = useRiepilogo(filtri);
-  // il contributo ambientale della testata viene da TX-0002: si legge solo con il suo grant (R-09)
-  const spesa = useSpesaPerIntervento(filtri, hasGrant(useAuthStatus().data, GRANT.spesaPerIntervento));
+  // il tipo dell'intervento della testata dai valori dei filtri (TX-0001, la stessa lettura in cache del titolo)
+  const tipo = useTipoIntervento(codice);
   return (
     <VistaQuery stato={riepilogo}>
       {(d) => {
@@ -323,7 +367,7 @@ function Contenuto({ codice, selezione }: { codice: string; selezione: Filtri })
         if (!r) {
           return (
             <>
-              <Testata codice={codice} selezione={selezione} perimetro={d.perimetro} />
+              <Testata codice={codice} selezione={selezione} perimetro={d.perimetro} tipo={tipo} />
               <Vuoto>
                 {'Nessun dato per questo intervento nel riepilogo. '}
                 <TornaAlRiepilogo selezione={selezione} />
@@ -333,7 +377,7 @@ function Contenuto({ codice, selezione }: { codice: string; selezione: Filtri })
         }
         return (
           <>
-            <Testata codice={codice} selezione={selezione} perimetro={d.perimetro} contributo={spesa.data?.righe?.[0]?.percentualeContributoAmbientale} />
+            <Testata codice={codice} selezione={selezione} perimetro={d.perimetro} tipo={tipo} />
             <PerimetroSezione perimetro={d.perimetro} />
             <NotaPerimetroMisto perimetro={d.perimetro} />
             <Kpis r={r} perimetro={d.perimetro} da={{ codice, selezione }} />

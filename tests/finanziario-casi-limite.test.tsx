@@ -145,7 +145,7 @@ describe('Panoramica: casi limite', () => {
     expect(valoreKpi('Pagato lordo sulla dotazione')).toBe('Non calcolabile: manca il totale della dotazione e dei pagamenti');
     expect(within(screen.getByRole('region', { name: 'Pagato lordo sulla dotazione' })).queryByRole('img')).toBeNull();
     expect(screen.queryAllByText(/0,0 M€/)).toHaveLength(0);
-    await waitFor(() => expect(graficiVivi().map(titoloGrafico)).toEqual(['Domande SIGC: presentate, pagate e da pagare', 'Importi SIGC']));
+    await waitFor(() => expect(graficiVivi().map(titoloGrafico)).toEqual(['Domande SIGC: presentate, pagate e da pagare', 'Importi SIGC: richiesto, ammesso, pagato e ancora da pagare']));
   });
 
   // regressione: le card SIGC seguono il segnale di TX-0012 come SigcReport (prima la cascata disegnava gli zeri)
@@ -208,9 +208,9 @@ describe('DettaglioIntervento: casi limite', () => {
     expect(valoreKpi('Domande presentate')).toBe('0');
     const cascata = await trovaCard('Dalla dotazione al residuo');
     expect(within(cascata).getByText(NON_DISPONIBILE_GRAFICO).textContent).toBe(
-      'Grafico non disponibile: la cascata di SRD99 richiede dotazione e pagamenti netti; dotazione: non disponibile; pagamenti netti: non disponibile.',
+      'Grafico non disponibile: la cascata di SRD99 richiede dotazione e pagamenti lordi; dotazione: non disponibile; pagamenti lordi: non disponibile.',
     );
-    expect(within(await trovaCard('Pagato netto sulla dotazione')).getByText(NON_DISPONIBILE_GRAFICO).textContent).toBe(
+    expect(within(await trovaCard('Avanzamento rispetto ai pagamenti effettuati')).getByText(NON_DISPONIBILE_GRAFICO).textContent).toBe(
       'Grafico non disponibile: la percentuale richiede pagamenti netti e dotazione; pagamenti netti: non disponibile; dotazione: non disponibile.',
     );
     expect(screen.queryByText(/^Contributo ambientale/)).toBeNull();
@@ -233,10 +233,17 @@ describe('RiepilogoReport: casi limite', () => {
       pagamentiNettoRettifiche: euro(50000),
       dotazioneResiduaSuImpegni: euro(30000),
       dotazioneResiduaSuPagamenti: euro(50000),
+      // revisioni del 31/10/2026 (R08, R04)
+      impegnatoStimato: euro(10000),
+      pagamentiLordi: euro(52000),
+      importoRettifiche: euro(2000),
+      conRettifiche: true,
+      rettifiche: [{ progressivo: 1, programmazione: 'CSR_2023_2027', importo: -2000, codiceAzione: 'SRA01.1', riferimento: 'riga 3' }],
     };
     server.use(rispondi('/api/finanziario/riepilogo', { perimetro: 'REGIONALE', righe: [piena] }));
     conRouter(<RiepilogoReport filtri={{}} />);
-    expect(within(await tabella()).getAllByRole('columnheader')).toHaveLength(10);
+    // 14 colonne: le 10 di prima con di cui stimato, pagamenti lordi, rettifiche e "Con rettifiche" (R08)
+    expect(within(await tabella()).getAllByRole('columnheader')).toHaveLength(14);
     expect(screen.queryByText(/^Colonne nascoste/)).toBeNull();
   });
 
@@ -254,7 +261,9 @@ describe('RiepilogoReport: casi limite', () => {
     server.use(rispondi('/api/finanziario/riepilogo', { perimetro: 'ADA', righe: [riga] }));
     conRouter(<RiepilogoReport filtri={{}} />);
     const t = await tabella();
-    expect(intestazioni(t)).toHaveLength(10);
+    expect(intestazioni(t)).toHaveLength(14);
+    // senza rettifiche nel database (conRettifiche assente): la colonna lo dice
+    expect(cella(t, "Apri l'anteprima dell'intervento SRA01", 'Con rettifiche')).toBe('fonte non attiva: rettifiche');
     expect(screen.queryByText(/^Colonne nascoste/)).toBeNull();
     const nome = "Apri l'anteprima dell'intervento SRA01";
     expect(cella(t, nome, 'Risorse quota FEASR (regionale)')).toMatch(/^non valorizzato ?il dato non è presente nella fonte$/);
@@ -279,7 +288,8 @@ describe('RiepilogoReport: casi limite', () => {
     const dl = anteprima.querySelector('dl') as HTMLDListElement;
     expect(Array.from(dl.children).every((c) => c.tagName === 'DIV')).toBe(true);
     const voci = Array.from(dl.children, (c) => [c.querySelector('dt')?.textContent, testo(c.querySelector('dd')?.textContent)]);
-    expect(voci).toHaveLength(9);
+    // i campi di prima, di cui stimato, lordi, rettifiche e "Con rettifiche" (R08)
+    expect(voci).toHaveLength(13);
     expect(voci[0]).toEqual(['Domande presentate', '12']);
     expect(voci).toContainEqual(['Dotazione spesa pubblica (regionale)', '1.000.000,00 €']);
     expect(voci).toContainEqual(['Importo stanziato (regionale)', 'non disponibilefonte quadro sinottico non attiva']);
@@ -306,8 +316,9 @@ describe('DotazioneReport: casi limite', () => {
     );
     conRouter(<DotazioneReport filtri={{}} />);
     expect(within(await trovaCard('Dotazione e pagamenti per intervento')).getByText('Grafico non disponibile: nessun intervento con pagamenti totali (lordi, elenchi di liquidazione) valorizzati.')).toBeTruthy();
-    expect(within(await trovaCard('Contributo ambientale per intervento')).getByText('Grafico non disponibile: nessun intervento con il contributo ambientale valorizzato.')).toBeTruthy();
-    const quote = await trovaCard('Dotazione tra quota FEASR e non FEASR (RF003)');
+    // R14: la card del contributo ambientale non c'e' piu'
+    expect(screen.queryByRole('region', { name: 'Contributo ambientale per intervento' })).toBeNull();
+    const quote = await trovaCard('Quota FEASR e non FEASR della dotazione');
     expect(within(quote).getByText(NON_DISPONIBILE_GRAFICO).textContent).toBe(
       'Grafico non disponibile: manca una delle due parti (Quota FEASR: non disponibile; Quota non FEASR: non disponibile).',
     );
@@ -322,11 +333,8 @@ describe('DotazioneReport: casi limite', () => {
       'Dotazione spesa pubblica (regionale)',
       'Impegnato cofinanziato FEASR e non',
       'Impegnato spesa pubblica',
+      'di cui stimato',
       'Pagamenti totali (lordi, elenchi di liquidazione)',
-      'Quota Stato (regionale)',
-      'Quota Regione (regionale)',
-      'Vincolo dotazione LEADER (regionale)',
-      'Contributo ambientale (regionale)',
     ]);
     const celle = Array.from((within(t).getByRole('row', { name: /SRA01/ }) as HTMLTableRowElement).cells, (c) => testo(c.textContent)).slice(1);
     expect(celle.every((c) => c === 'non disponibile')).toBe(true);
@@ -351,7 +359,7 @@ describe('DotazioneReport: casi limite', () => {
       rispondi('/api/finanziario/distribuzione-dotazione', { ...F.DISTRIBUZIONE, dotazioneSpesaPubblica: NON_VALORIZZATO }),
     );
     conRouter(<DotazioneReport filtri={{}} />);
-    const quote = await trovaCard('Dotazione tra quota FEASR e non FEASR (RF003)');
+    const quote = await trovaCard('Quota FEASR e non FEASR della dotazione');
     await userEvent.click(within(quote).getByRole('button', { name: 'Tabella' }));
     const t = within(quote).getByRole('table', { name: 'Dotazione: quota FEASR e quota non FEASR' });
     const celle = (voce: string) => Array.from((within(t).getByRole('rowheader', { name: voce }).closest('tr') as HTMLTableRowElement).cells, (c) => testo(c.textContent)).slice(1);
@@ -373,10 +381,10 @@ describe('AvanzamentoReport: casi limite', () => {
     renderConQuery(<AvanzamentoReport filtri={{}} />);
     const rf007 = await trovaCard('Dotazione residua sui pagamenti (RF007)');
     expect(within(rf007).getByText(/^Grafico non disponibile: manca una delle due parti/)).toBeTruthy();
-    expect(valoreDi(within(rf007).getByRole('table'), 'Importo recuperato')).toBe('non disponibile');
+    expect(valoreDi(within(rf007).getByRole('table'), 'Rettifiche')).toBe('non disponibile');
     await waitFor(() => expect(valoreKpi('Importo pagato (lordo, elenchi di liquidazione)')).toBe('Non disponibile'));
     for (const kpi of ['Importo stanziato', 'Totale impegnato', 'Dotazione residua sui pagamenti']) expect(valoreKpi(kpi)).toBe('Non disponibile');
-    expect(within(await trovaCard('Pagato netto sulla dotazione')).getByText(NON_DISPONIBILE_GRAFICO).textContent).toBe(
+    expect(within(await trovaCard('Avanzamento rispetto ai pagamenti effettuati')).getByText(NON_DISPONIBILE_GRAFICO).textContent).toBe(
       'Grafico non disponibile: la percentuale richiede pagamenti netti e dotazione; pagamenti netti: non disponibile; dotazione: non disponibile.',
     );
     // nemmeno il flusso ridotto da TX-0007: senza pagamenti netti e residuo non si disegna
@@ -454,10 +462,10 @@ describe('SigcReport: casi limite', () => {
     conRouter(<SigcReport filtri={{}} />);
     const voci = await screen.findByRole('table', { name: 'Importi SIGC' });
     expect(valoreDi(voci, 'Importo richiesto')).toBe('non disponibile');
-    expect(valoreDi(voci, 'Importo pagato (flusso ASR2-20)')).toBe('non valorizzatoil dato non è presente nella fonte');
+    expect(valoreDi(voci, 'Importo pagato')).toBe('non valorizzatoil dato non è presente nella fonte');
     expect(valoreDi(voci, "Pagato oltre l'ammesso")).toBe('non disponibile');
     expect(valoreDi(voci, 'Domande senza importo richiesto')).toBe('-');
-    expect(within(await trovaCard('Importi SIGC (RF013)')).getByText(/^Grafico non disponibile: la cascata richiede ammesso, pagato oltre l'ammesso, pagato e ancora da pagare: ammesso non disponibile, /)).toBeTruthy();
+    expect(within(await trovaCard('Importi SIGC (RF013)')).getByText(/^Grafico non disponibile: il grafico richiede ammesso, pagato oltre l'ammesso, pagato e ancora da pagare: ammesso non disponibile, /)).toBeTruthy();
   });
 });
 
@@ -498,7 +506,7 @@ describe('RiservaReport: casi limite', () => {
   it('movimento senza data: il grafico lo dichiara fra le voci omesse', async () => {
     server.use(rispondi('/api/finanziario/riserva/2025', { ...F.RISERVA, utilizzoProgressivo: [...F.RISERVA.utilizzoProgressivo, { importo: 50, cumulato: 350 }] }));
     renderConQuery(<RiservaReport anno={2025} onCambiaAnno={nessunaAzione} />);
-    const c = await trovaCard('Utilizzo progressivo cumulato della riserva');
+    const c = await trovaCard('Utilizzo progressivo cumulato');
     expect(within(c).getByText('1 movimento senza data')).toBeTruthy();
   });
 

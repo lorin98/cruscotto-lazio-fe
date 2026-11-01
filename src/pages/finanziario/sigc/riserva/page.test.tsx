@@ -26,10 +26,10 @@ describe("RF014: monitoraggio della riserva al 5% dell'anno n nelle quattro fasi
     server.use(http.get('*/api/finanziario/riserva/2025', () => HttpResponse.json(RISERVA)));
     renderPagina(Pagina, '/finanziario/sigc/riserva', '/finanziario/sigc/riserva?anno=2025');
     expect(await screen.findByRole('table', { name: 'Utilizzo progressivo' })).toBeTruthy();
-    const card = await trovaCard('Utilizzo progressivo cumulato della riserva');
+    const card = await trovaCard('Utilizzo progressivo cumulato');
     expect(graficoDi(card)).toBeTruthy();
     expect(descrizioneDi(card)).toBeTruthy();
-    expect(screen.getByText(/i filtri del finanziario non si applicano/)).toBeTruthy();
+    expect(screen.getByText(/i filtri del finanziario e il filtro SIGC non si applicano/)).toBeTruthy();
     // dato regionale: niente barra dei filtri del finanziario
     expect(screen.queryByRole('region', { name: 'Filtri attivi' })).toBeNull();
   });

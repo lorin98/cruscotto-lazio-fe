@@ -5,7 +5,10 @@
 // backend la fase e' calcolata al giorno della consultazione, gli importi sono quelli dell'istantanea alla data di
 // estrazione: la tabella lo dichiara e avvisa se l'istantanea precede la fase attuale (lib/riserva.ts). UI v2 (wireframe
 // riserva v2): quattro KPI (accumulato, congelato, utilizzato, residuo), linea dell'utilizzo cumulato con zoom e la
-// riserva accumulata come riferimento, voci di contorno in tabella.
+// riserva accumulata come riferimento, voci di contorno in tabella. Revisioni del 31/10/2026, forme A scelte dall'utente il
+// 01/11/2026: R17 blocco "Montante e riserve" (montante in alto, riserva del 5% e residuo del 2% in due riquadri col badge
+// Consuntivo o Previsione), R18 linea a gradini con le fasi, la soglia della riserva e il testo di lettura sopra. Il filtro
+// SIGC non si applica (F4): la pagina non ha la barra dei filtri.
 import { ValoreImporto } from '../../../entities/importo';
 import { formatDate, importoBreve, testoOpzionale } from '../../../shared/lib';
 import { CardGrafico, Griglia, Kpi, PulsantiScarica, Sezione, TabellaRighe, TabellaVoci, VistaQuery, Vuoto } from '../../../shared/ui';
@@ -14,8 +17,8 @@ import { esportaRiserva, rispostaRiservaAssente, useRiserva } from '../api';
 import type { MonitoraggioRiserva, UtilizzoRiserva } from '../api';
 import { scaricamentiDati } from './esportazioni';
 import { euroOpzionale } from '../lib/formato';
-import { graficoUtilizzoRiserva } from '../lib/grafici';
-import { aiutoRiserva, etichettaFaseRiserva, istantaneaAnteriore, kpiRiserva, testoCongelato, testoResiduo, utilizzoOltreRiserva } from '../lib/riserva';
+import { graficoUtilizzoRiserva, letturaUtilizzoRiserva } from '../lib/grafici';
+import { NATURA_RISERVA, aiutoRiserva, etichettaFaseRiserva, istantaneaAnteriore, kpiRiserva, noteQuoteRiserva, testoCongelato, testoQuota, testoResiduo, utilizzoOltreRiserva, valoreResiduo, valoreRiserva } from '../lib/riserva';
 import type { ValoreKpiRiserva } from '../lib/riserva';
 import { PerimetroSezione } from './comuni';
 import { SelettoreAnno } from './SelettoreAnno';
@@ -46,6 +49,25 @@ function KpiRiserva({ d, anno }: { d: MonitoraggioRiserva; anno: number }) {
   );
 }
 
+/** R17: il montante dei pagamenti in alto, la riserva del 5% e il residuo del 2% in due riquadri con la loro natura. */
+function MontanteERiserve({ d, anno }: { d: MonitoraggioRiserva; anno: number }) {
+  const note = noteQuoteRiserva(anno, d);
+  const [riserva, residuo] = [valoreRiserva(d), valoreResiduo(d)];
+  const euro = (v: number | null) => (v === null ? undefined : importoBreve(v));
+  return (
+    <Sezione titolo={`Montante e riserve dell'anno ${anno}`} livello={3}>
+      <Griglia colonne={4}>
+        <Kpi etichetta={`Montante dei pagamenti dell'anno ${anno}`} icona="it-card" tono="scuro" valore={euro(d.montantePagamenti ?? null)} assente={d.montantePagamenti == null ? 'Non disponibile' : undefined} nota="base di calcolo di entrambe le riserve" />
+      </Griglia>
+      <Griglia>
+        <Kpi etichetta={`Riserva di efficacia (${testoQuota(d.quotaRiserva, '5%')})`} badge={NATURA_RISERVA[d.naturaRiserva ?? '']} icona="it-presentation" tono="blu" valore={euro(riserva)} assente={riserva === null ? 'Non calcolabile: manca il montante o la quota' : undefined} nota={note.riserva} />
+        <Kpi etichetta={`Residuo (${testoQuota(d.quotaResiduo, '2%')})`} badge={NATURA_RISERVA[d.naturaResiduo ?? '']} icona="it-calendar" tono="ambra" valore={euro(residuo)} assente={residuo === null ? 'Non calcolabile: manca il montante o la quota' : undefined} nota={note.residuo} />
+      </Griglia>
+      <p className="ui-fonte">Fonte: TX-0014 (montante dei pagamenti, quote e natura della riserva e del residuo). Sotto: i movimenti della riserva.</p>
+    </Sezione>
+  );
+}
+
 function ValoriRiserva({ d, anno }: { d: MonitoraggioRiserva; anno: number }) {
   const estrazione = d.dataEstrazione;
   return (
@@ -58,6 +80,7 @@ function ValoriRiserva({ d, anno }: { d: MonitoraggioRiserva; anno: number }) {
       {utilizzoOltreRiserva(d) && (
         <div className="alert alert-warning my-2">{"L'importo utilizzato supera la riserva (congelata o, prima del congelamento, accumulata) di questa estrazione."}</div>
       )}
+      <MontanteERiserve d={d} anno={anno} />
       <KpiRiserva d={d} anno={anno} />
       <TabellaVoci
         caption={estrazione ? `Riserva dell'anno ${anno}: valori all'estrazione del ${formatDate(estrazione)}` : `Riserva dell'anno ${anno}`}
@@ -77,15 +100,15 @@ function ValoriRiserva({ d, anno }: { d: MonitoraggioRiserva; anno: number }) {
   );
 }
 
-function UtilizzoProgressivo({ d, scaricamenti }: { d: MonitoraggioRiserva; scaricamenti: Scaricamento[] }) {
+function UtilizzoProgressivo({ d, anno, scaricamenti }: { d: MonitoraggioRiserva; anno: number; scaricamenti: Scaricamento[] }) {
   const utilizzi = d.utilizzoProgressivo ?? [];
   if (utilizzi.length === 0) return <p>Nessun utilizzo registrato.</p>;
   return (
     <>
       <CardGrafico
-        titolo="Utilizzo progressivo cumulato della riserva"
-        sottotitolo="La linea orizzontale è la riserva accumulata; trascina per ingrandire"
-        dati={graficoUtilizzoRiserva(d)}
+        titolo="Utilizzo progressivo cumulato"
+        sottotitolo={letturaUtilizzoRiserva(d)}
+        dati={graficoUtilizzoRiserva(d, anno)}
         fonte="Fonte: TX-0014, movimenti della riserva"
         livello={3}
         scaricamenti={scaricamenti}
@@ -108,7 +131,7 @@ function Riserva({ anno }: { anno: number }) {
           <>
             <PerimetroSezione perimetro={d.perimetro} />
             <ValoriRiserva d={d} anno={anno} />
-            <UtilizzoProgressivo d={d} scaricamenti={dati} />
+            <UtilizzoProgressivo d={d} anno={anno} scaricamenti={dati} />
           </>
         )}
       </VistaQuery>
@@ -119,7 +142,7 @@ function Riserva({ anno }: { anno: number }) {
 export function RiservaReport({ anno, onCambiaAnno }: { anno: number | undefined; onCambiaAnno: (anno: number | undefined) => void }) {
   return (
     <>
-      <p className="mb-2">Dato regionale: i filtri del finanziario non si applicano alla riserva.</p>
+      <p className="mb-2">Dato regionale: i filtri del finanziario e il filtro SIGC non si applicano alla riserva.</p>
       <SelettoreAnno id="f-anno-riserva" etichetta="Anno di riferimento (anno n)" aiuto={aiutoRiserva(anno)} anno={anno} onCambia={onCambiaAnno} />
       {anno === undefined ? <Vuoto>{"Scegli l'anno della riserva da consultare."}</Vuoto> : <Riserva anno={anno} />}
     </>

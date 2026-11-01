@@ -28,9 +28,10 @@ describe('RF002: grafico e tabella per intervento con dotazione, impegnato e pag
     expect(within(tabella).getByRole('rowheader').textContent).toBe('SRA01');
     // tutte le colonne si vedono (wireframe dotazione): ogni assenza dice il motivo, mai uno zero
     expect(within(tabella).getByRole('columnheader', { name: /Impegnato spesa pubblica/ })).toBeTruthy();
-    expect(within(tabella).getByRole('columnheader', { name: /Vincolo dotazione LEADER/ })).toBeTruthy();
+    // R14, R21, X3: niente contributo ambientale, quote Stato e Regione, vincolo LEADER
+    expect(within(tabella).queryByRole('columnheader', { name: /Vincolo dotazione LEADER|Quota Stato|Quota Regione|Contributo ambientale/ })).toBeNull();
+    expect(within(tabella).getByRole('columnheader', { name: /di cui stimato/ })).toBeTruthy();
     expect(tabella.textContent).toContain('fonte impegni non attiva');
-    expect(tabella.textContent).toContain('fonte vincolo LEADER non attiva');
   });
   it("drill-down: il clic su una barra e su una riga apre il dettaglio dell'intervento, con la selezione nell'indirizzo", async () => {
     servi();
@@ -68,7 +69,7 @@ describe('RF002: grafico e tabella per intervento con dotazione, impegnato e pag
   it('nessuna violazione axe', async () => {
     servi();
     const { container } = renderPagina(Pagina, '/finanziario/dotazione');
-    await trovaCard('Dotazione tra quota FEASR e non FEASR (RF003)');
+    await trovaCard('Quota FEASR e non FEASR della dotazione');
     await screen.findByRole('table', { name: /^Dotazione, impegni e pagamenti per intervento/ });
     await expectNoA11yViolations(container);
   });
@@ -78,8 +79,8 @@ describe('RF003: dotazione ripartita tra quota FEASR e quota non FEASR', () => {
   it('ciambella e voci', async () => {
     servi();
     renderPagina(Pagina, '/finanziario/dotazione');
-    const card = await trovaCard('Dotazione tra quota FEASR e non FEASR (RF003)');
-    expect(descrizioneDi(card)).toMatch(/Quota FEASR 40\s?%, Quota non FEASR 60\s?%/);
+    const card = await trovaCard('Quota FEASR e non FEASR della dotazione');
+    expect(descrizioneDi(card)).toMatch(/Quota FEASR [^(]+\(40\s?%\), Quota non FEASR [^(]+\(60\s?%\)/);
     const t = (await tabellaDi(card)).textContent ?? '';
     // la dotazione e' quella del contratto, non la somma delle quote (V-04)
     expect(t).toContain('Dotazione spesa pubblica');

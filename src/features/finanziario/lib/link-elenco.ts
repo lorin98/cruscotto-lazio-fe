@@ -2,12 +2,13 @@
 // (uiplan links[] con target_feature elenco-operativo, ADR 0028 §7; D-2 di MIN-20261012).
 // Ogni link porta i filtri correnti del finanziario piu' i criteri del punto cliccato, limitati ai parametri che il link
 // dichiara nello uiplan (`query`, sottoinsieme degli url_params della route dell'elenco): un parametro non dichiarato
-// non esce mai, anche se il chiamante lo passa.
+// non esce mai, anche se il chiamante lo passa. Dalle revisioni del 31/10/2026 i filtri correnti comprendono il filtro SIGC
+// (R01, F2): l'elenco lo legge con lo stesso significato (per intervento, D-12 Rev.) e mostra lo stesso insieme del dato.
 
 import { ANNO_SENZA, ETICHETTE_ANNUALITA, ETICHETTE_ESITO_PAGAMENTO, GRANT_DELLA_PAGINA, PERCORSO_ELENCO_DOMANDE, PERCORSO_ELENCO_PAGAMENTI } from '../../../entities/domanda';
 import type { Annualita, DestinazioneElenco, EsitoPagamentoDomanda, EsitoRigaElenco } from '../../../entities/domanda';
 import { scriviRipetuti } from '../../../shared/lib';
-import { valoreFiltroValido, type Filtri } from './filtri';
+import { CHIAVI_FILTRO, valoreFiltroValido, type Filtri } from './filtri';
 
 /** Criteri del punto cliccato, nei valori dei parametri di TX-0056/TX-0059 (descrizioni della spec dell'elenco). */
 export interface CriteriLink {
@@ -37,7 +38,11 @@ function valoriDeiCriteri(c: CriteriLink): Record<string, string[]> {
 /** Valori dei parametri: filtri correnti (gia' validati da filtriDaRicerca) e criteri del punto cliccato. */
 export function parametriLink(filtri: Filtri, criteri: CriteriLink = {}): Record<string, string[]> {
   const p: Record<string, string[]> = {};
-  for (const [chiave, valori] of Object.entries(filtri)) if (valori && valori.length > 0) p[chiave] = [...valori];
+  for (const chiave of CHIAVI_FILTRO) {
+    const valori = filtri[chiave];
+    if (valori && valori.length > 0) p[chiave] = [...valori];
+  }
+  if (filtri.sigc !== undefined) p.sigc = [filtri.sigc];
   if (criteri.intervento !== undefined) {
     // un codice fuori formato non entra nell'indirizzo; il filtro corrente decade comunque (il clic e' su quell'intervento)
     delete p.intervento;
@@ -68,20 +73,22 @@ interface DefinizioneLink {
 }
 
 const FILTRI_CORRENTI = ['intervento', 'os', 'og', 'op', 'azione'] as const;
+/** I filtri correnti col filtro SIGC, per i link che non lo fissano (gli elenchi SIGC lo hanno gia' in testa). */
+const CORRENTI_E_SIGC = [...FILTRI_CORRENTI, 'sigc'] as const;
 const DOMANDE: DestinazioneElenco = PERCORSO_ELENCO_DOMANDE;
 
 /** I link dello uiplan del finanziario verso l'elenco operativo: destinazione e `query` copiati da `links[]`. */
 export const LINK_ELENCO = {
-  'elenco-presentate-panoramica': { destinazione: DOMANDE, query: ['presentata', ...FILTRI_CORRENTI] },
-  'elenco-presentate-intervento': { destinazione: DOMANDE, query: ['presentata', ...FILTRI_CORRENTI] },
-  'elenco-anno-intervento': { destinazione: DOMANDE, query: ['presentata', 'anno', 'annualita', ...FILTRI_CORRENTI] },
+  'elenco-presentate-panoramica': { destinazione: DOMANDE, query: ['presentata', ...CORRENTI_E_SIGC] },
+  'elenco-presentate-intervento': { destinazione: DOMANDE, query: ['presentata', ...CORRENTI_E_SIGC] },
+  'elenco-anno-intervento': { destinazione: DOMANDE, query: ['presentata', 'anno', 'annualita', ...CORRENTI_E_SIGC] },
   'elenco-sigc-intervento': { destinazione: DOMANDE, query: ['sigc', 'pagamento', ...FILTRI_CORRENTI] },
   'elenco-presentate-riga': { destinazione: DOMANDE, query: ['presentata', 'intervento'] },
   'elenco-pagamenti-riga': { destinazione: PERCORSO_ELENCO_PAGAMENTI, query: ['esito', 'intervento'] },
-  'elenco-presentate-domande': { destinazione: DOMANDE, query: ['presentata', ...FILTRI_CORRENTI] },
-  'elenco-prima-annualita': { destinazione: DOMANDE, query: ['presentata', 'annualita', ...FILTRI_CORRENTI] },
-  'elenco-anno-annualita': { destinazione: DOMANDE, query: ['presentata', 'anno', 'annualita', ...FILTRI_CORRENTI] },
-  'elenco-anno': { destinazione: DOMANDE, query: ['presentata', 'anno', ...FILTRI_CORRENTI] },
+  'elenco-presentate-domande': { destinazione: DOMANDE, query: ['presentata', ...CORRENTI_E_SIGC] },
+  'elenco-prima-annualita': { destinazione: DOMANDE, query: ['presentata', 'annualita', ...CORRENTI_E_SIGC] },
+  'elenco-anno-annualita': { destinazione: DOMANDE, query: ['presentata', 'anno', 'annualita', ...CORRENTI_E_SIGC] },
+  'elenco-anno': { destinazione: DOMANDE, query: ['presentata', 'anno', ...CORRENTI_E_SIGC] },
   'elenco-sigc': { destinazione: DOMANDE, query: ['sigc', 'pagamento', ...FILTRI_CORRENTI] },
   'elenco-sigc-importi': { destinazione: DOMANDE, query: ['sigc', ...FILTRI_CORRENTI] },
 } as const satisfies Record<string, DefinizioneLink>;

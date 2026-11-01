@@ -64,13 +64,31 @@ const INTERVENTI = BASE.map(([codice, descrizione, og, os, op, milioni], n) => {
   };
 });
 
+type Intervento = (typeof INTERVENTI)[number];
+
+// classificazione SIGC degli interventi della programmazione (revisioni del 31/10/2026, F1: SRA01/03/14/15/29/30, SRB01,
+// SRC01 SIGC; gli altri NO SIGC)
+const SIGC = new Set(['SRA01', 'SRA03', 'SRA14', 'SRA15', 'SRA29', 'SRA30', 'SRB01', 'SRC01']);
+const perimetroDi = (codice: string) => (SIGC.has(codice) ? 'SIGC' : 'NO_SIGC');
+
 function selezione(url: string) {
   const p = new URL(url).searchParams;
   const filtro = (k: string) => p.getAll(k);
   const [interventi, og, os, op] = ['intervento', 'og', 'os', 'op'].map(filtro);
+  const sigc = p.get('sigc');
+  const tipo = (i: Intervento) => sigc === null || (sigc === 'true') === SIGC.has(i.codice);
   return INTERVENTI.filter(
-    (i) => (!interventi.length || interventi.includes(i.codice)) && (!og.length || og.includes(i.og)) && (!os.length || os.includes(i.os)) && (!op.length || op.includes(i.op)),
+    (i) => (!interventi.length || interventi.includes(i.codice)) && (!og.length || og.includes(i.og)) && (!os.length || os.includes(i.os)) && (!op.length || op.includes(i.op)) && tipo(i),
   );
+}
+
+// la stima dell'impegnato (R04) e due righe di rettifiche per intervento (R08), come le produce il backend
+const STIMA = { metodo: 'MEDIA_ANNUALITA_RILEVATE_PER_BANDO_X_ANNI_RESIDUI', orizzonte: 2029, ultimaCampagnaRilevata: 2025, calcolatoIl: '2026-10-31', quotaDaRichiesto: euro(0) };
+function righeRettifiche(codice: string, totale: number) {
+  return [
+    { progressivo: 1, programmazione: 'CSR_2023_2027', importo: -totale, codiceAzione: `${codice}.1`, riferimento: 'riga 12 del foglio' },
+    { progressivo: 2, programmazione: 'TRASCINAMENTI_PSR', importo: -1000, codiceAzione: null, riferimento: 'riga 13 del foglio' },
+  ];
 }
 const somma = <T>(xs: T[], f: (x: T) => number) => tondo(xs.reduce((a, x) => a + f(x), 0));
 const PERIMETRO = 'REGIONALE';
@@ -79,7 +97,7 @@ const B = '*/api/finanziario';
 export const handlersEsempio: RequestHandler[] = [
   http.get(`${B}/filtri`, () =>
     HttpResponse.json({
-      interventi: INTERVENTI.map((i) => ({ chiave: i.codice, descrizione: i.descrizione })),
+      interventi: INTERVENTI.map((i) => ({ chiave: i.codice, descrizione: i.descrizione, perimetro: perimetroDi(i.codice) })),
       obiettiviSpecifici: [...new Set(INTERVENTI.map((i) => i.os))].sort().map((c) => ({ chiave: c, descrizione: null })),
       obiettiviGenerali: ['OG1', 'OG2', 'OG3'],
       obiettiviPolicy: ['OP1', 'OP2', 'OP5'],
@@ -99,14 +117,13 @@ export const handlersEsempio: RequestHandler[] = [
       righe: selezione(request.url).map((i) => ({
         codiceIntervento: i.codice,
         dotazioneSpesaPubblica: euro(i.dotazione),
-        impegnatoCofinanziatoFeasrENon: fna('IMPEGNI'),
-        impegnatoSpesaPubblica: fna('IMPEGNI'),
+        impegnatoCofinanziatoFeasrENon: euro(tondo(i.dotazione * 0.6)),
+        // revisioni del 31/10/2026: impegnato di spesa pubblica con la parte stimata (R03, R04)
+        impegnatoSpesaPubblica: euro(tondo(i.dotazione * 0.6)),
+        impegnatoStimato: euro(tondo(i.dotazione * 0.6 * (i.contributo / 400))),
         pagamentiTotali: euro(i.pagato),
-        percentualeContributoAmbientale: i.contributo,
-        quotaStato: fna('RIPARTO_STATO_REGIONE'),
-        quotaRegione: fna('RIPARTO_STATO_REGIONE'),
-        vincoloDotazioneLeader: fna('VINCOLO_LEADER'),
       })),
+      stimaImpegni: STIMA,
     }),
   ),
   http.get(`${B}/distribuzione-dotazione`, ({ request }) => {
@@ -114,21 +131,42 @@ export const handlersEsempio: RequestHandler[] = [
     return HttpResponse.json({ perimetro: PERIMETRO, dotazioneSpesaPubblica: euro(dot), quotaFeasr: euro(tondo(dot * 0.407)), quotaNonFeasr: euro(tondo(dot * 0.593)) });
   }),
   http.get(`${B}/stanziato`, () => HttpResponse.json({ perimetro: PERIMETRO, importoStanziato: fna('QUADRO_SINOTTICO'), importoDaStanziare: fna('QUADRO_SINOTTICO') })),
-  http.get(`${B}/pagamenti-su-impegnato`, ({ request }) =>
-    HttpResponse.json({ perimetro: PERIMETRO, totaleImpegnato: fna('IMPEGNI'), pagamentiTotali: euro(somma(selezione(request.url), (i) => i.pagato)), impegnatoDaPagare: fna('IMPEGNI') }),
-  ),
-  http.get(`${B}/residuo-impegni`, ({ request }) =>
-    HttpResponse.json({ perimetro: PERIMETRO, dotazioneSpesaPubblica: euro(somma(selezione(request.url), (i) => i.dotazione)), importoImpegnato: fna('IMPEGNI'), dotazioneResidua: fna('IMPEGNI') }),
-  ),
+  http.get(`${B}/pagamenti-su-impegnato`, ({ request }) => {
+    const s = selezione(request.url);
+    const impegnato = somma(s, (i) => tondo(i.dotazione * 0.6));
+    const pagato = somma(s, (i) => i.pagato);
+    return HttpResponse.json({ perimetro: PERIMETRO, totaleImpegnato: euro(impegnato), pagamentiTotali: euro(pagato), impegnatoDaPagare: euro(tondo(impegnato - pagato)), impegnatoStimato: euro(somma(s, (i) => tondo(i.dotazione * 0.6 * (i.contributo / 400)))), stimaImpegni: STIMA });
+  }),
+  http.get(`${B}/residuo-impegni`, ({ request }) => {
+    const s = selezione(request.url);
+    const [dotazione, impegnato] = [somma(s, (i) => i.dotazione), somma(s, (i) => tondo(i.dotazione * 0.6))];
+    return HttpResponse.json({ perimetro: PERIMETRO, dotazioneSpesaPubblica: euro(dotazione), importoImpegnato: euro(impegnato), dotazioneResidua: euro(tondo(dotazione - impegnato)), impegnatoStimato: euro(somma(s, (i) => tondo(i.dotazione * 0.6 * (i.contributo / 400)))), stimaImpegni: STIMA });
+  }),
   http.get(`${B}/residuo-pagamenti`, ({ request }) => {
     const s = selezione(request.url);
+    // revisioni del 31/10/2026 (R08): rettifiche al posto del recuperato, il residuo per intervento con le righe
+    const rettifiche = (i: Intervento) => (i.nettiValorizzati ? tondo(i.pagato * 0.03) : null);
+    const conRettifiche = s.filter((i) => i.nettiValorizzati);
+    const totaleRettifiche = somma(conRettifiche, (i) => rettifiche(i) ?? 0);
+    const tutteValorizzate = conRettifiche.length === s.length;
     return HttpResponse.json({
       perimetro: PERIMETRO,
       dotazioneSpesaPubblica: euro(somma(s, (i) => i.dotazione)),
       importoPagato: euro(somma(s, (i) => i.pagato)),
-      importoRecuperato: nv(),
-      pagamentiNettoRettifiche: nv(),
-      dotazioneResidua: nv(),
+      importoRettifiche: tutteValorizzate ? euro(totaleRettifiche) : nv(),
+      pagamentiNettoRettifiche: tutteValorizzate ? euro(tondo(somma(s, (i) => i.pagato) - totaleRettifiche)) : nv(),
+      dotazioneResidua: tutteValorizzate ? euro(tondo(somma(s, (i) => i.dotazione - i.pagato) + totaleRettifiche)) : nv(),
+      fonteRettifiche: { documento: 'FEASR 23.27 Report', dataRiferimento: '2026-02-28' },
+      interventi: s.map((i) => ({
+        codiceIntervento: i.codice,
+        dotazioneSpesaPubblica: euro(i.dotazione),
+        pagatoLordo: euro(i.pagato),
+        importoRettifiche: i.nettiValorizzati ? euro(rettifiche(i) ?? 0) : fna('RETTIFICHE'),
+        pagamentiNettoRettifiche: i.nettiValorizzati ? euro(tondo(i.pagato - (rettifiche(i) ?? 0))) : fna('RETTIFICHE'),
+        dotazioneResidua: i.nettiValorizzati ? euro(tondo(i.dotazione - i.pagato + (rettifiche(i) ?? 0))) : fna('RETTIFICHE'),
+        conRettifiche: i.nettiValorizzati ? true : null,
+        rettifiche: i.nettiValorizzati ? righeRettifiche(i.codice, rettifiche(i) ?? 0) : [],
+      })),
     });
   }),
   http.get(`${B}/domande-per-anno`, ({ request }) => {
@@ -179,13 +217,20 @@ export const handlersEsempio: RequestHandler[] = [
         domandePresentate: i.presentate,
         dotazioneSpesaPubblica: euro(i.dotazione),
         risorseQuotaFeasr: euro(tondo(i.dotazione * 0.407)),
-        importoStanziato: fna('QUADRO_SINOTTICO'),
-        impegnatoCofinanziatoFeasr: fna('IMPEGNI'),
-        impegnatoCofinanziatoFeasrENon: fna('IMPEGNI'),
-        pagamentiNettoRettifiche: i.nettiValorizzati ? euro(tondo(i.pagato * 0.97)) : nv(),
-        dotazioneResiduaSuImpegni: fna('IMPEGNI'),
-        dotazioneResiduaSuPagamenti: i.nettiValorizzati ? euro(tondo(i.dotazione - i.pagato * 0.97)) : nv(),
+        importoStanziato: euro(tondo(i.dotazione * 0.8)),
+        impegnatoCofinanziatoFeasr: euro(tondo(i.dotazione * 0.6 * 0.407)),
+        impegnatoCofinanziatoFeasrENon: euro(tondo(i.dotazione * 0.6)),
+        impegnatoStimato: euro(tondo(i.dotazione * 0.6 * (i.contributo / 400))),
+        // revisioni del 31/10/2026 (R08): lordi, rettifiche e netto
+        pagamentiLordi: euro(i.pagato),
+        importoRettifiche: i.nettiValorizzati ? euro(tondo(i.pagato * 0.03)) : fna('RETTIFICHE'),
+        conRettifiche: i.nettiValorizzati ? true : null,
+        rettifiche: i.nettiValorizzati ? righeRettifiche(i.codice, tondo(i.pagato * 0.03)) : [],
+        pagamentiNettoRettifiche: i.nettiValorizzati ? euro(tondo(i.pagato * 0.97)) : fna('RETTIFICHE'),
+        dotazioneResiduaSuImpegni: euro(tondo(i.dotazione * 0.4)),
+        dotazioneResiduaSuPagamenti: i.nettiValorizzati ? euro(tondo(i.dotazione - i.pagato * 0.97)) : fna('RETTIFICHE'),
       })),
+      stimaImpegni: STIMA,
     }),
   ),
   http.get(`${B}/sigc/domande`, ({ request }) => {
@@ -236,6 +281,11 @@ export const handlersEsempio: RequestHandler[] = [
       dataEstrazione: '2025-11-30',
       dataCongelamento: '2025-06-30',
       montantePagamenti: 410e6,
+      // revisioni del 31/10/2026 (R17): quote e natura della riserva e del residuo
+      quotaRiserva: 0.05,
+      quotaResiduo: 0.02,
+      naturaRiserva: 'CONSUNTIVO',
+      naturaResiduo: 'CONSUNTIVO',
       importoAccumulato: 20.5e6,
       importoCongelato: 20.5e6,
       importoUtilizzato: 12.2e6,

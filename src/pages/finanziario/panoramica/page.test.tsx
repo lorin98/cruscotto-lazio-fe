@@ -155,7 +155,7 @@ describe('panoramica: indicatori, grafici e drill-down', () => {
     servi();
     const { container } = renderPagina(Pagina, '/finanziario');
     await trovaCard('Avanzamento per intervento');
-    await trovaCard('Importi SIGC');
+    await trovaCard('Importi SIGC: richiesto, ammesso, pagato e ancora da pagare');
     await expectNoA11yViolations(container);
     const pannello = await apriPannello();
     await within(pannello).findByRole('checkbox', { name: 'SRA01 Intervento di prova A' });

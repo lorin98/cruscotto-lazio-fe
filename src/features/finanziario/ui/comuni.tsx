@@ -7,9 +7,11 @@ import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-statu
 import { ValoreImporto, assenzaInFrase } from '../../../entities/importo';
 import type { ImportoLike } from '../../../entities/importo';
 import { formatNumber, importoBreve } from '../../../shared/lib';
-import { Caricamento, Kpi, PulsantiScarica, Sezione } from '../../../shared/ui';
+import { Caricamento, Icona, Kpi, PulsantiScarica, Sezione } from '../../../shared/ui';
 import type { Colonna, ColonnaTabella, NomeIcona, TonoKpi } from '../../../shared/ui';
 import { PERIMETRO_ADA, etichettaDiProgramma, etichettaPerimetro } from '../lib/perimetro';
+import { testoStima } from '../lib/stima';
+import type { StimaImpegniLike } from '../lib/stima';
 import type { Perimetro } from '../lib/perimetro';
 import type { ReportEsportabile } from '../api';
 import type { Filtri } from '../lib/filtri';
@@ -152,5 +154,19 @@ export function ScaricaKpi({ grant, titolo, report, filtri }: { grant: string; t
       <span className="small" aria-hidden="true">{`File di ${titolo}`}</span>
       <PulsantiScarica oggetto={`i dati di ${titolo}`} scaricamenti={datiDelReport(titolo, report, filtri)} />
     </div>
+  );
+}
+
+/**
+ * Nota di lettura dell'impegnato con la parte stimata (revisioni del 31/10/2026, R04): dal blocco stimaImpegni della
+ * lettura; senza parte stimata (stimaImpegni null) non compare.
+ */
+export function NotaStima({ stima }: { stima: StimaImpegniLike | null | undefined }) {
+  if (!stima) return null;
+  return (
+    <p className="ui-fonte">
+      <Icona nome="it-info-circle" />
+      {testoStima(stima)}
+    </p>
   );
 }

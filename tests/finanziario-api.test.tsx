@@ -18,6 +18,8 @@ function wrapper() {
 
 describe('feature finanziario, wrapper api (step3) su MSW', () => {
   it('useFiltri legge i valori dei filtri (TX-0001)', async () => {
+    // una risposta fissa: il mock generato da orval ha campi facoltativi casuali (interventi puo' mancare)
+    server.use(http.get('*/api/finanziario/filtri', () => HttpResponse.json({ interventi: [{ chiave: 'SRA01', descrizione: null, perimetro: 'SIGC' }] })));
     const { result } = renderHook(() => useFiltri(), { wrapper: wrapper() });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(Array.isArray(result.current.data?.interventi)).toBe(true);

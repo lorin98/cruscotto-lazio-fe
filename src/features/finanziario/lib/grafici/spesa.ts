@@ -1,12 +1,12 @@
 // spesa.ts — grafici della spesa per intervento (TX-0002, TX-0011): avanzamento del pagato lordo sulla dotazione, dotazione
-// per famiglia di intervento, contributo ambientale, dotazione e pagato affiancati. I dati per intervento portano il
+// per famiglia di intervento, dotazione e pagato affiancati (il contributo ambientale e' uscito con le revisioni del
+// 31/10/2026, R14). I dati per intervento portano il
 // codice (drill-down). Col perimetro ADA la dotazione (regionale) non si confronta con i pagamenti (dell'area).
 import type { BarSeriesOption, EChartsOption, SunburstSeriesOption, TreemapSeriesOption } from 'echarts';
 import type { ImportoLike } from '../../../../entities/importo';
 import {
   COLORI,
   NON_CALCOLABILE,
-  NON_DISPONIBILE,
   aria,
   arrotondaPercentuale,
   assePercentuale,
@@ -18,11 +18,10 @@ import {
   importoBreve,
   nonDisegnabile,
   notaOmessi,
-  numeroDi,
   plurale,
   sommaCentesimi,
   tooltipDettaglio,
-  zoomSeMolti,
+  asseCategorieOrizzontale,
 } from '../../../../shared/lib';
 import type { DatiGrafico, DatoSerie, TabellaEquivalente } from '../../../../shared/lib';
 import { famigliaDi } from '../famiglie';
@@ -84,7 +83,8 @@ function opzioniAvanzamento(dati: DatoSerie[], media: number, omessi: readonly s
     aria: aria(descrizioneAvanzamento(dati, media, omessi)),
     tooltip: { trigger: 'item', formatter: tooltipDettaglio },
     xAxis: { type: 'value', min: 0, max: massimo, axisLabel: { formatter: assePercentuale } },
-    yAxis: { type: 'category', inverse: true, data: dati.map((d) => d.name) },
+    // tutti gli interventi con la loro etichetta (R02): l'altezza del grafico segue il numero di interventi
+    yAxis: asseCategorieOrizzontale(dati.map((d) => d.name)),
     series: [serie],
   };
 }
@@ -234,28 +234,6 @@ export function graficoFamiglie(righe: RigaSpesa[], forma: 'treemap' | 'sunburst
     `${tipo} della dotazione di spesa pubblica per famiglia di intervento: ${plurale(disegnate.length, 'famiglia', 'famiglie')} e ` +
     `${plurale(interventi, 'intervento', 'interventi')}; ${confrontoFamiglie(famiglie)}.${notaOmessi(omessi)}`;
   const opzioni: EChartsOption = { aria: aria(descrizione), tooltip: { trigger: 'item', formatter: tooltipDettaglio }, series: [serieFamiglie(disegnate.map(nodoFamiglia), forma)] };
-  return { opzioni, tabella, omessi };
-}
-
-// ---------------------------------------------------------------- 3. contributo ambientale
-
-/** Barre della percentuale di contributo ambientale per intervento (asse 0-100%); le assenti sono omesse. */
-export function graficoContributo(righe: RigaSpesa[]): DatiGrafico {
-  const caption = 'Contributo ambientale per intervento';
-  const valori = righe.map((r) => ({ codice: codiceDi(r), v: numeroDi(r.percentualeContributoAmbientale) }));
-  const tabella = { caption, colonne: ['Intervento', 'Contributo ambientale'], righe: valori.map((x) => [x.codice, x.v == null ? NON_DISPONIBILE : formatPercentuale(x.v)]) };
-  const omessi = valori.filter((x) => x.v == null).map((x) => `${x.codice}: contributo ambientale ${NON_DISPONIBILE}`);
-  const dati = valori.flatMap((x): DatoSerie[] => (x.v == null ? [] : [{ value: x.v, name: x.codice, codice: x.codice, etichetta: formatPercentuale(x.v), dettaglio: `${x.codice}: contributo ambientale ${formatPercentuale(x.v)}` }]));
-  if (dati.length === 0) return nonDisegnabile('nessun intervento con il contributo ambientale valorizzato', tabella, omessi);
-  const descrizione = `Barre del contributo ambientale per ${plurale(dati.length, 'intervento', 'interventi')}, in percentuale: ${dati.map((x) => `${x.name} ${x.etichetta}`).join(', ')}.${notaOmessi(omessi)}`;
-  const opzioni: EChartsOption = {
-    aria: aria(descrizione),
-    tooltip: { trigger: 'item', formatter: tooltipDettaglio },
-    ...zoomSeMolti(dati.length),
-    xAxis: { type: 'category', data: dati.map((x) => x.name), axisLabel: { interval: 0, rotate: dati.length > 8 ? 45 : 0 } },
-    yAxis: { type: 'value', min: 0, max: 100, axisLabel: { formatter: assePercentuale } },
-    series: [{ type: 'bar', name: 'Contributo ambientale', data: dati, itemStyle: { color: COLORI.positivo } }],
-  };
   return { opzioni, tabella, omessi };
 }
 

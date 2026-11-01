@@ -1,6 +1,7 @@
 // DotazioneReport — report RF002 e RF003 (route /finanziario/dotazione, TX-0002 e TX-0003, flusso dotazione-avanzamento v2):
 // dotazione e pagamenti per intervento (barre con zoom) accanto alla quota FEASR e non FEASR (ciambella, con la dotazione
-// del contratto), poi contributo ambientale per intervento e tabella interattiva di RF002, nell'ordine del wireframe. Ogni sezione ha il suo grant e il suo perimetro; con il
+// del contratto), poi la tabella interattiva di RF002, nell'ordine del wireframe (revisioni del 31/10/2026: via il contributo
+// ambientale, le quote Stato e Regione e il vincolo LEADER, R14, R21, X3; impegnato con la parte stimata). Ogni sezione ha il suo grant e il suo perimetro; con il
 // perimetro ADA la dotazione regionale non sta sullo stesso grafico dei pagamenti dell'area. Lo stato vuoto di RF003 si
 // ricava dalle righe di RF002. Tutte le colonne si vedono, con il motivo di ogni assenza (wireframe dotazione). Clic su
 // un intervento: il suo dettaglio.
@@ -11,11 +12,10 @@ import type { SpesaPerIntervento, SpesaPerInterventoRiga } from '../api';
 import { NOTA_RICERCA_FILE, datiDelReport } from './esportazioni';
 import { ricercaDaFiltri } from '../lib/filtri';
 import type { Filtri } from '../lib/filtri';
-import { percentualeOpzionale } from '../lib/formato';
-import { PAGAMENTI_LORDI, graficoContributo, graficoDotazionePagamenti, graficoQuotaFeasr } from '../lib/grafici';
+import { PAGAMENTI_LORDI, graficoDotazionePagamenti, graficoQuotaFeasr } from '../lib/grafici';
 import type { Perimetro } from '../lib/perimetro';
 import { GRANT } from '../lib/report';
-import { ConGrant, NotaPerimetroMisto, PerimetroSezione, colonneImporti, diProgramma, vuotoConPerimetro } from './comuni';
+import { ConGrant, NotaPerimetroMisto, NotaStima, PerimetroSezione, colonneImporti, vuotoConPerimetro } from './comuni';
 import type { CampoImporto } from './comuni';
 import { useSelezioneSenzaInterventi } from './selezione';
 import { useApriIntervento } from './useApriIntervento';
@@ -26,21 +26,18 @@ const CAMPI: CampoImporto<Riga>[] = [
   { chiave: 'dotazioneSpesaPubblica', titolo: 'Dotazione spesa pubblica', programma: true },
   { chiave: 'impegnatoCofinanziatoFeasrENon', titolo: 'Impegnato cofinanziato FEASR e non' },
   { chiave: 'impegnatoSpesaPubblica', titolo: 'Impegnato spesa pubblica' },
+  { chiave: 'impegnatoStimato', titolo: 'di cui stimato' },
   { chiave: 'pagamentiTotali', titolo: PAGAMENTI_LORDI },
-  { chiave: 'quotaStato', titolo: 'Quota Stato', programma: true },
-  { chiave: 'quotaRegione', titolo: 'Quota Regione', programma: true },
-  { chiave: 'vincoloDotazioneLeader', titolo: 'Vincolo dotazione LEADER', programma: true },
 ];
 
 const TITOLO_SPESA = 'Spesa pubblica per intervento (RF002)';
-const TITOLO_QUOTE = 'Dotazione tra quota FEASR e non FEASR (RF003)';
+const TITOLO_QUOTE = 'Quota FEASR e non FEASR della dotazione';
 const VUOTO = vuotoConPerimetro('Nessun intervento per i filtri scelti.', { programma: true });
 
 function colonne(p: Perimetro | undefined): ColonnaTabella<Riga>[] {
   return [
     { chiave: 'codice', titolo: 'Intervento', valore: (r) => r.codiceIntervento ?? null, fissa: true },
     ...colonneImporti(CAMPI, p),
-    { chiave: 'contributo', titolo: diProgramma('Contributo ambientale', p), valore: (r) => r.percentualeContributoAmbientale ?? null, resa: (r) => percentualeOpzionale(r.percentualeContributoAmbientale), numerica: true },
   ];
 }
 
@@ -66,21 +63,13 @@ function CardDotazione({ filtri }: { filtri: Filtri }) {
   );
 }
 
-/** Contributo ambientale e tabella di RF002, dalla stessa lettura in cache di TX-0002; il vuoto lo dice CardDotazione. */
-function ContributoETabella({ d, filtri }: { d: SpesaPerIntervento; filtri: Filtri }) {
+/** La tabella di RF002, dalla stessa lettura in cache di TX-0002; il vuoto lo dice CardDotazione. */
+function TabellaSpesa({ d, filtri }: { d: SpesaPerIntervento; filtri: Filtri }) {
   const righe = d.righe ?? [];
-  const { apri: onIntervento, dalClic } = useApriIntervento(filtri);
+  const { apri: onIntervento } = useApriIntervento(filtri);
   return (
     <>
-      <CardGrafico
-        titolo="Contributo ambientale per intervento"
-        sottotitolo="Clic su una barra per il dettaglio"
-        dati={graficoContributo(righe)}
-        fonte="Fonte: TX-0002"
-        altezza="alto"
-        onClic={dalClic}
-        scaricamenti={datiDelReport('Contributo ambientale per intervento', 'spesaPerIntervento', filtri)}
-      />
+      <NotaStima stima={d.stimaImpegni} />
       <Sezione titolo={TITOLO_SPESA} strumenti={<PulsantiScarica oggetto={`la tabella ${TITOLO_SPESA}`} scaricamenti={datiDelReport(TITOLO_SPESA, 'spesaPerIntervento', filtri)} />}>
         <PerimetroSezione perimetro={d.perimetro} />
         <NotaPerimetroMisto perimetro={d.perimetro} />
@@ -104,7 +93,7 @@ function ContributoETabella({ d, filtri }: { d: SpesaPerIntervento; filtri: Filt
 }
 
 function Spesa({ filtri }: { filtri: Filtri }) {
-  return <VistaQuery stato={useSpesaPerIntervento(filtri)}>{(d) => (senzaRighe(d) ? null : <ContributoETabella d={d} filtri={filtri} />)}</VistaQuery>;
+  return <VistaQuery stato={useSpesaPerIntervento(filtri)}>{(d) => (senzaRighe(d) ? null : <TabellaSpesa d={d} filtri={filtri} />)}</VistaQuery>;
 }
 
 function Distribuzione({ filtri }: { filtri: Filtri }) {
@@ -117,8 +106,8 @@ function Distribuzione({ filtri }: { filtri: Filtri }) {
   );
 }
 
-// ordine del wireframe dotazione approvato (review v3 V-06): dotazione e quota FEASR affiancate, poi il contributo
-// ambientale e la tabella di RF002
+// ordine del wireframe dotazione approvato (review v3 V-06, revisioni del 31/10/2026): dotazione e quota FEASR affiancate,
+// poi la tabella di RF002
 export function DotazioneReport({ filtri }: { filtri: Filtri }) {
   return (
     <>

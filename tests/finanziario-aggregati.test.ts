@@ -135,21 +135,24 @@ describe('quotaPagata e kpiSpesa', () => {
     expect(quotaPagata([], 'ADA')).toEqual({ valore: null, motivo: MOTIVO_ADA });
   });
 
+  // i tre totali e la quota pagata (l'impegnato e la sua quota hanno il loro test, R03)
+  const tre = (k: ReturnType<typeof kpiSpesa>) => ({ dotazione: k.dotazione, pagato: k.pagato, quota: k.quota });
+
   it('kpiSpesa: totali senza somme parziali e la stessa quota', () => {
-    expect(kpiSpesa(righe)).toEqual({
+    expect(tre(kpiSpesa(righe))).toEqual({
       dotazione: { valore: 40_000_000 },
       pagato: { valore: 12_000_000 },
       quota: { valore: 30, nota: 'media ponderata degli interventi' },
     });
     // dotazione zero: e un valore nel totale, ma la quota la esclude (la media non e il rapporto dei totali)
-    expect(kpiSpesa([...righe, dotazioneZero])).toEqual({
+    expect(tre(kpiSpesa([...righe, dotazioneZero]))).toEqual({
       dotazione: { valore: 40_000_000 },
       pagato: { valore: 13_000_000 },
       quota: { valore: 30, nota: 'media ponderata su 3 di 4 interventi' },
     });
     // una dotazione assente: il totale della dotazione non e calcolabile, il pagato si'; la quota non compare accanto a
     // un totale non calcolabile (wireframe panoramica, review v3 V-05)
-    expect(kpiSpesa([...righe, senzaDotazione])).toEqual({
+    expect(tre(kpiSpesa([...righe, senzaDotazione]))).toEqual({
       dotazione: { valore: null, motivo: 'Non calcolabile: manca per 1 intervento (SRA03)' },
       pagato: { valore: 13_000_000 },
       quota: { valore: null, motivo: 'Non calcolabile: manca il totale della dotazione' },
@@ -159,11 +162,24 @@ describe('quotaPagata e kpiSpesa', () => {
   });
 
   it('kpiSpesa col perimetro ADA: i totali restano, la quota non e confrontabile', () => {
-    expect(kpiSpesa(righe, 'ADA')).toEqual({
+    expect(tre(kpiSpesa(righe, 'ADA'))).toEqual({
       dotazione: { valore: 40_000_000 },
       pagato: { valore: 12_000_000 },
       quota: { valore: null, motivo: MOTIVO_ADA },
     });
+    expect(kpiSpesa(righe, 'ADA').quotaImpegnata).toEqual({ valore: null, motivo: "Non confrontabile: dotazione regionale e impegni dell'area (perimetro ADA)" });
+  });
+
+  it('kpiSpesa, R03: impegnato e di cui stimato dalla stessa lettura, la quota impegnata solo con i due totali', () => {
+    const conImpegni = righe.map((r, k) => ({ ...r, impegnatoSpesaPubblica: { valore: 5_000_000 }, impegnatoStimato: { valore: k === 0 ? 1_000_000 : 0 } }));
+    const k = kpiSpesa(conImpegni);
+    expect(k.impegnato.valore).toBe(5_000_000 * conImpegni.length);
+    expect(k.stimato.valore).toBe(1_000_000);
+    expect(k.quotaImpegnata).toEqual({ valore: Math.round(((5_000_000 * conImpegni.length) / 40_000_000) * 1000) / 10 });
+    // un impegnato assente: il totale non e calcolabile e la quota lo dice
+    const senzaImpegno = kpiSpesa([...conImpegni.slice(1), { ...conImpegni[0], impegnatoSpesaPubblica: { valore: null, motivo: 'FONTE_NON_ATTIVA', fonte: 'IMPEGNI' } }]);
+    expect(senzaImpegno.impegnato.valore).toBeNull();
+    expect(senzaImpegno.quotaImpegnata).toEqual({ valore: null, motivo: "Non calcolabile: manca il totale dell'impegnato" });
   });
 
   it('kpiSpesa senza righe: tutto non calcolabile, nessuno zero', () => {

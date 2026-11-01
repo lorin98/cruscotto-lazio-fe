@@ -104,14 +104,13 @@ describe('esportaReport: ogni chiave chiama l endpoint della sua transazione (re
 });
 
 describe('ogni pulsante CSV delle pagine scarica la transazione della sua card (review v3 V-02)', () => {
-  it('Dotazione: dotazione e contributo e tabella da TX-0002, quote da TX-0003', async () => {
+  it('Dotazione: dotazione e tabella da TX-0002, quote da TX-0003 (il contributo ambientale non c e piu, R14)', async () => {
     server.use(rispondi('/api/finanziario/spesa-per-intervento', F.SPESA), rispondi('/api/finanziario/distribuzione-dotazione', F.DISTRIBUZIONE));
     const richieste = registraEsportazioni();
     conRouter(<DotazioneReport filtri={SRA01} />);
-    expect(await scaricaOgniCsv(richieste, 4)).toEqual([
+    expect(await scaricaOgniCsv(richieste, 3)).toEqual([
       ['Scarica il grafico Dotazione e pagamenti per intervento in CSV', 'spesa-per-intervento'],
-      ['Scarica il grafico Dotazione tra quota FEASR e non FEASR (RF003) in CSV', 'distribuzione-dotazione'],
-      ['Scarica il grafico Contributo ambientale per intervento in CSV', 'spesa-per-intervento'],
+      ['Scarica il grafico Quota FEASR e non FEASR della dotazione in CSV', 'distribuzione-dotazione'],
       ['Scarica la tabella Spesa pubblica per intervento (RF002) in CSV', 'spesa-per-intervento'],
     ]);
   });
@@ -126,9 +125,10 @@ describe('ogni pulsante CSV delle pagine scarica la transazione della sua card (
     );
     const richieste = registraEsportazioni();
     conRouter(<AvanzamentoReport filtri={SRA01} />);
-    const esiti = await scaricaOgniCsv(richieste, 5);
+    const esiti = await scaricaOgniCsv(richieste, 6);
     expect(Object.fromEntries(esiti)).toEqual({
-      'Scarica il grafico Pagato netto sulla dotazione in CSV': 'residuo-pagamenti',
+      'Scarica il grafico Avanzamento rispetto ai pagamenti effettuati in CSV': 'residuo-pagamenti',
+      'Scarica la tabella Dotazione residua sui pagamenti per intervento (RF007) in CSV': 'residuo-pagamenti',
       'Scarica il grafico Importo stanziato e da stanziare (RF004) in CSV': 'stanziato',
       "Scarica il grafico Pagamenti sull'impegnato (RF005) in CSV": 'pagamenti-su-impegnato',
       'Scarica il grafico Dotazione residua sugli impegni (RF006) in CSV': 'residuo-impegni',
@@ -167,7 +167,7 @@ describe('ogni pulsante CSV delle pagine scarica la transazione della sua card (
       'Scarica il grafico Avanzamento per intervento in CSV': 'spesa-per-intervento',
       'Scarica il grafico Dotazione per famiglia di intervento in CSV': 'spesa-per-intervento',
       'Scarica il grafico Domande SIGC: presentate, pagate e da pagare in CSV': 'sigc/domande',
-      'Scarica il grafico Importi SIGC in CSV': 'sigc/importi',
+      'Scarica il grafico Importi SIGC: richiesto, ammesso, pagato e ancora da pagare in CSV': 'sigc/importi',
     });
   });
 

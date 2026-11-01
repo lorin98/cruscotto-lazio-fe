@@ -2,7 +2,10 @@
 // intervento con i nove campi (cerca, ordina, colonne, paginazione, totali), riga che apre l'anteprima laterale e da li'
 // il dettaglio dell'intervento, vista grafico (clic su una barra: dettaglio), file CSV e XLSX dal backend con gli stessi filtri, e
 // nel piede la dotazione dell'Assistenza tecnica (intero programma, non dipende dai filtri). Ogni cella assente dice il
-// suo motivo; i totali sono "non calcolabile" se manca anche un solo valore (mai somme parziali).
+// suo motivo; i totali sono "non calcolabile" se manca anche un solo valore (mai somme parziali). Revisioni del 31/10/2026
+// (R08): pagamenti lordi (col link alle righe pagate dell'elenco), rettifiche e "Con rettifiche" accanto al netto, le righe
+// delle rettifiche nell'anteprima, l'impegnato con la parte stimata e la nota di lettura sopra la tabella; l'Assistenza
+// tecnica non prende il filtro SIGC.
 import { useState } from 'react';
 import { Link } from 'react-router';
 import { ApriNellElenco } from '../../../entities/domanda';
@@ -19,7 +22,8 @@ import type { Filtri } from '../lib/filtri';
 import { graficoDotazionePagamenti } from '../lib/grafici';
 import type { Perimetro } from '../lib/perimetro';
 import { conFiltri, percorsoIntervento } from '../lib/report';
-import { NotaPerimetroMisto, PerimetroSezione, colonneImporti, diProgramma, vuotoConPerimetro } from './comuni';
+import { NotaPerimetroMisto, NotaStima, PerimetroSezione, colonneImporti, diProgramma, vuotoConPerimetro } from './comuni';
+import { TabellaRettifiche } from './rettifiche';
 import { NOTA_RICERCA_FILE, datiDelReport } from './esportazioni';
 import { useApriIntervento } from './useApriIntervento';
 import { useStatoNellaHistory } from './useStatoNellaHistory';
@@ -37,6 +41,9 @@ const CAMPI: CampoImporto<Riga>[] = [
   { chiave: 'importoStanziato', titolo: 'Importo stanziato', programma: true },
   { chiave: 'impegnatoCofinanziatoFeasr', titolo: 'Impegnato cofinanziato FEASR' },
   { chiave: 'impegnatoCofinanziatoFeasrENon', titolo: 'Impegnato cofinanziato FEASR e non' },
+  { chiave: 'impegnatoStimato', titolo: 'di cui stimato' },
+  { chiave: 'pagamentiLordi', titolo: 'Pagamenti lordi' },
+  { chiave: 'importoRettifiche', titolo: 'Rettifiche' },
   { chiave: 'pagamentiNettoRettifiche', titolo: 'Pagamenti al netto delle rettifiche' },
   { chiave: 'dotazioneResiduaSuImpegni', titolo: 'Dotazione residua sugli impegni' },
   { chiave: 'dotazioneResiduaSuPagamenti', titolo: 'Dotazione residua sui pagamenti' },
@@ -46,9 +53,17 @@ const VUOTO = vuotoConPerimetro('Nessun intervento per i filtri scelti.', { prog
 
 type LinkDelReport = (id: IdLinkElenco, criteri?: CriteriLink) => string | null;
 
-/** Nota del link dei pagamenti: l'elenco ha il pagato lordo delle righe PAGATA, il report il netto delle rettifiche. */
-const PAGAMENTI_LORDI_ELENCO = 'righe di pagamento, importi lordi';
-const NOTA_PAGAMENTI_LORDI = "L'elenco dei pagamenti mostra le righe pagate degli elenchi di liquidazione con gli importi lordi; i recuperi sono nella scheda di ogni domanda.";
+/** Nota del link dei pagamenti: l'elenco ha il pagato lordo delle righe PAGATA, lo stesso importo della colonna dei lordi. */
+const PAGAMENTI_LORDI_ELENCO = 'righe di pagamento';
+const NOTA_PAGAMENTI_LORDI = "L'elenco dei pagamenti mostra le righe pagate degli elenchi di liquidazione con gli importi lordi, come la colonna Pagamenti lordi; le rettifiche sono nella loro colonna e nell'anteprima.";
+
+/** "Si': 2 righe", "No", o la fonte non attiva senza rettifiche nel database (R08). */
+function testoConRettifiche(r: Riga): string {
+  const n = (r.rettifiche ?? []).length;
+  if (r.conRettifiche == null) return 'fonte non attiva: rettifiche';
+  if (!r.conRettifiche || n === 0) return 'No';
+  return n === 1 ? 'Sì: 1 riga' : `Sì: ${n} righe`;
+}
 
 /** Link della riga verso l'elenco: nessuno senza il codice dell'intervento (la dotazione AT001 sta nel piede, senza link). */
 function linkDellaRiga(link: LinkDelReport, r: Riga) {
@@ -75,19 +90,22 @@ function colonne(perimetro: Perimetro | undefined, link: LinkDelReport): Colonna
       ),
       numerica: true,
     },
-    ...colonneImporti(CAMPI, perimetro).map((c) =>
-      c.chiave !== 'pagamentiNettoRettifiche'
-        ? c
-        : {
-            ...c,
-            resa: (r: Riga) => (
-              <>
-                {c.resa?.(r)}
-                <ApriNellElenco variante="testo" indirizzo={linkDellaRiga(link, r).pagamenti} testo={PAGAMENTI_LORDI_ELENCO} descrizione={`le righe di pagamento dell'intervento ${r.codiceIntervento ?? ''}`} />
-              </>
-            ),
-          },
-    ),
+    ...colonneImporti(CAMPI, perimetro).flatMap((c): ColonnaTabella<Riga>[] => {
+      // il link alle righe pagate sta sulla cella dei lordi: stesso importo dell'elenco (scelta dell'utente del 01/11/2026)
+      if (c.chiave === 'pagamentiLordi') {
+        const resa = (r: Riga) => (
+          <>
+            {c.resa?.(r)}
+            <ApriNellElenco variante="testo" indirizzo={linkDellaRiga(link, r).pagamenti} testo={PAGAMENTI_LORDI_ELENCO} descrizione={`le righe di pagamento dell'intervento ${r.codiceIntervento ?? ''}`} />
+          </>
+        );
+        return [{ ...c, resa }];
+      }
+      if (c.chiave === 'importoRettifiche') {
+        return [c, { chiave: 'conRettifiche', titolo: 'Con rettifiche', valore: (r) => (r.rettifiche ?? []).length, resa: testoConRettifiche }];
+      }
+      return [c];
+    }),
   ];
 }
 
@@ -142,7 +160,12 @@ function Anteprima({ riga, perimetro, filtri, onChiudi }: { riga: Riga | null; p
                 </dd>
               </div>
             ))}
+            <div>
+              <dt>Con rettifiche</dt>
+              <dd>{testoConRettifiche(riga)}</dd>
+            </div>
           </dl>
+          {(riga.rettifiche ?? []).length > 0 && <TabellaRettifiche codice={riga.codiceIntervento ?? ''} rettifiche={riga.rettifiche ?? []} />}
           {riga.codiceIntervento && (
             <Link className="btn btn-primary mt-3 w-100" to={conFiltri(percorsoIntervento(riga.codiceIntervento), filtri)} state={ritorno}>
               {"Apri il dettaglio dell'intervento"}
@@ -184,11 +207,12 @@ function Contenuto({ d, filtri }: { d: RiepilogoFinanziario; filtri: Filtri }) {
   const [aperta, setAperta] = useState<Riga | null>(null);
   const [vista, scegliVista] = useVistaRiepilogo(filtri);
   // valore fuori tabella, indipendente dai filtri: nel piede, come nel wireframe
-  const assistenzaTecnica: RigaPiede = { codice: 'Dotazione assistenza tecnica (AT001, intero programma: non dipende dai filtri)', dotazioneSpesaPubblica: <ValoreImporto importo={d.dotazioneAssistenzaTecnica} /> };
+  const assistenzaTecnica: RigaPiede = { codice: 'Dotazione assistenza tecnica (AT001, intero programma: non dipende dai filtri, nemmeno dal filtro SIGC)', dotazioneSpesaPubblica: <ValoreImporto importo={d.dotazioneAssistenzaTecnica} /> };
   return (
     <>
       <PerimetroSezione perimetro={d.perimetro} />
       <NotaPerimetroMisto perimetro={d.perimetro} />
+      <NotaStima stima={d.stimaImpegni} />
       {/* interruttore di pagina: quello del kit, nello stesso ordine Grafico | Tabella di ogni card (X3-b, passata 2 H2) */}
       <InterruttoreVista etichetta="Vista del riepilogo" vista={vista} onVista={scegliVista} className="mb-3" />
       {vista === 'tabella' ? (

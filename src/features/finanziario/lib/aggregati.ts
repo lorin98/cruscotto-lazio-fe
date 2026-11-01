@@ -42,6 +42,22 @@ export interface KpiSpesa {
   dotazione: Aggregato;
   pagato: Aggregato;
   quota: Aggregato;
+  /** Revisioni del 31/10/2026 (R03): impegnato di spesa pubblica, di cui stimato, e sua quota sulla dotazione. */
+  impegnato: Aggregato;
+  stimato: Aggregato;
+  quotaImpegnata: Aggregato;
+}
+
+/**
+ * Impegnato sulla dotazione (0-100) dagli stessi totali dei box accanto (R03, stessa lettura di TX-0002): solo se impegnato
+ * e dotazione sono valorizzati e la dotazione e' positiva; col perimetro ADA non confrontabile, come la quota pagata.
+ */
+function quotaImpegnata(impegnato: Aggregato, dotazione: Aggregato, perimetro?: string | null): Aggregato {
+  if (perimetro === PERIMETRO_ADA) return { valore: null, motivo: "Non confrontabile: dotazione regionale e impegni dell'area (perimetro ADA)" };
+  const mancanti = [dotazione.valore === null ? 'della dotazione' : null, impegnato.valore === null ? "dell'impegnato" : null].filter((m) => m !== null);
+  if (mancanti.length > 0) return { valore: null, motivo: `Non calcolabile: manca il totale ${mancanti.join(' e ')}` };
+  if ((dotazione.valore as number) <= 0) return { valore: null, motivo: 'Non calcolabile: dotazione pari a zero' };
+  return { valore: Math.round(((impegnato.valore as number) / (dotazione.valore as number)) * 1000) / 10 };
 }
 
 /**
@@ -56,7 +72,9 @@ export function kpiSpesa(righe: readonly RigaSpesa[], perimetro?: string | null)
     righe.length > 0 && perimetro !== PERIMETRO_ADA && mancanti.length > 0
       ? { valore: null, motivo: `Non calcolabile: manca il totale ${mancanti.join(' e ')}` }
       : quotaPagata(righe, perimetro);
-  return { dotazione, pagato, quota };
+  const impegnato = totaleImporti(righe, (r) => r.impegnatoSpesaPubblica);
+  const stimato = totaleImporti(righe, (r) => r.impegnatoStimato);
+  return { dotazione, pagato, quota, impegnato, stimato, quotaImpegnata: quotaImpegnata(impegnato, dotazione, perimetro) };
 }
 
 /**

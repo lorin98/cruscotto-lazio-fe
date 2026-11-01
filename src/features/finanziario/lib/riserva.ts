@@ -3,7 +3,43 @@
 // Congelato e residuo sono null finche' l'istantanea precede il congelamento (30/6/n+1); il residuo c'e' gia' dal
 // congelamento ma diventa disponibile solo dal 1/1/n+2, se la riserva non e' utilizzata tutta entro il 31/12/n+1.
 // Date ISO (AAAA-MM-GG): il confronto fra stringhe ISO e' cronologico.
-import { formatDate, formatEuro, maiuscolaIniziale } from '../../../shared/lib';
+import { centesimi, formatDate, formatEuro, maiuscolaIniziale, numeroDi } from '../../../shared/lib';
+import type { RiservaLike } from './dto';
+
+// ---------------------------------------------------------------- montante, riserva 5% e residuo 2% (R17)
+
+/** La natura di un valore della riserva (enum della spec): previsione prima della data, consuntivo dopo. */
+export const NATURA_RISERVA: Record<string, string> = { PREVISIONE: 'Previsione', CONSUNTIVO: 'Consuntivo' };
+
+/** Il valore di una quota del montante (montante x quota) al centesimo; null se manca uno dei due. */
+function quotaDelMontante(m: RiservaLike, quota: number | null | undefined): number | null {
+  const [montante, q] = [numeroDi(m.montantePagamenti), numeroDi(quota)];
+  return montante == null || q == null ? null : centesimi(montante * q);
+}
+
+/** La riserva del 5% (montante x quotaRiserva); senza quota la riserva accumulata, come prima delle revisioni. */
+export function valoreRiserva(m: RiservaLike): number | null {
+  return quotaDelMontante(m, m.quotaRiserva) ?? numeroDi(m.importoAccumulato);
+}
+
+/** Il residuo del 2% (montante x quotaResiduo). */
+export function valoreResiduo(m: RiservaLike): number | null {
+  return quotaDelMontante(m, m.quotaResiduo);
+}
+
+/** "5%" dalla quota del contratto (0.05). */
+export function testoQuota(quota: number | null | undefined, ripiego: string): string {
+  return quota == null ? ripiego : `${Math.round(quota * 1000) / 10}%`.replace('.', ',');
+}
+
+/** Le note dei due riquadri: come si calcola il valore e da quando e' consuntivo (date del calendario dell'anno n). */
+export function noteQuoteRiserva(n: number, m: RiservaLike): { riserva: string; residuo: string } {
+  const c = calendarioRiserva(n);
+  return {
+    riserva: `= ${testoQuota(m.quotaRiserva, '5%')} x montante; congelata il ${formatDate(c.congelamento)}: da quella data il valore è consuntivo, prima è una previsione`,
+    residuo: `= ${testoQuota(m.quotaResiduo, '2%')} x montante; consuntivo dall'inizio della fase di residuo (${formatDate(c.inizioResiduo)}), prima è una previsione`,
+  };
+}
 
 /** Fasi della riserva al 5% (enum della spec, RF014). */
 export type FaseRiserva = 'NON_INIZIATA' | 'ACCUMULO' | 'UTILIZZO' | 'RESIDUO';

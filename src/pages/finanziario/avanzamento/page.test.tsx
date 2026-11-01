@@ -63,12 +63,13 @@ describe('RF007: dotazione tra importo pagato e dotazione residua', () => {
     servi();
     renderPagina(Pagina, '/finanziario/avanzamento');
     const card = await trovaCard('Dotazione residua sui pagamenti (RF007)');
-    expect(descrizioneDi(card)).toMatch(/^Dotazione tra pagato e residuo: Pagamenti al netto delle rettifiche 20\s?%, Dotazione residua 80\s?%\.$/);
+    // R06: importi e percentuali, il totale al centro; R08: le rettifiche al posto del recuperato
+    expect(descrizioneDi(card)).toMatch(/^Dotazione tra pagato e residuo: totale [^;]+; Pagamenti al netto delle rettifiche [^(]+\(20\s?%\), Dotazione residua [^(]+\(80\s?%\)\.$/);
     const t = await voci('Dotazione residua sui pagamenti (RF007)');
-    expect(t).toContain('Importo recuperato');
+    expect(t).toContain('Rettifiche');
     expect(t).toContain('Importo pagato (lordo, elenchi di liquidazione)');
     // il gauge usa il netto (200.000 su 1.000.000), come il residuo e la ciambella accanto, non il lordo (220.000)
-    expect(descrizioneDi(await trovaCard('Pagato netto sulla dotazione'))).toMatch(/20\s?%/);
+    expect(descrizioneDi(await trovaCard('Avanzamento rispetto ai pagamenti effettuati'))).toMatch(/20\s?%/);
   });
   it('perimetro ADA: dotazione regionale dichiarata nella tabella e grafico dichiarato non confrontabile', async () => {
     servi();

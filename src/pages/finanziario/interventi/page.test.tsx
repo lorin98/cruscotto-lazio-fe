@@ -43,11 +43,13 @@ describe("dettaglio dell'intervento (flusso panoramica)", () => {
     await waitFor(() => expect(document.activeElement).toBe(h1));
     expect(document.title).toBe('SRA01 - Finanziario - Cruscotto CSR 2023-2027');
     expect(screen.getByText('Intervento SRA01')).toBeTruthy();
-    expect(screen.getByText(/^Contributo ambientale 12,5\s?%$/)).toBeTruthy();
+    // R14, F5: il tipo dell'intervento al posto del contributo ambientale, nella testata e nella pill della barra
+    expect(screen.queryByText(/^Contributo ambientale/)).toBeNull();
     expect((await screen.findByRole('region', { name: 'Domande presentate' })).textContent).toContain('12');
     expect(screen.getByRole('region', { name: 'Risorse quota FEASR' }).textContent).not.toContain('Non disponibile');
     expect(lette.riepilogo).toBe('?intervento=SRA01');
-    expect(lette['spesa-per-intervento']).toBe('?intervento=SRA01');
+    // R14: la lettura di TX-0002 serviva solo al contributo ambientale e si toglie
+    expect(lette['spesa-per-intervento']).toBeUndefined();
     const briciole = screen.getByRole('navigation', { name: 'Percorso' });
     expect(within(briciole).getByRole('link', { name: 'Riepilogo per intervento' }).getAttribute('href')).toBe('/finanziario/riepilogo');
     expect(within(briciole).getByText('SRA01').getAttribute('aria-current')).toBe('page');
@@ -70,7 +72,7 @@ describe("dettaglio dell'intervento (flusso panoramica)", () => {
   it('le schede leggono solo quando si aprono; la scheda delle voci dice il motivo dei valori assenti', async () => {
     const lette = servi();
     renderPagina(Pagina, PERCORSO, '/finanziario/interventi/SRA01');
-    await trovaCard('Pagato netto sulla dotazione');
+    await trovaCard('Avanzamento rispetto ai pagamenti effettuati');
     expect(graficoDi(await trovaCard('Dalla dotazione al residuo'))).toBeTruthy();
     expect(lette['domande-per-anno']).toBeUndefined();
     expect(lette['sigc/domande']).toBeUndefined();

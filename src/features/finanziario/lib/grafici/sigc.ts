@@ -1,6 +1,7 @@
 // sigc.ts — grafici SIGC: barre delle domande (TX-0012: presentate, pagate, da pagare e senza importi, insiemi che si
-// sovrappongono), cascata degli importi (TX-0013: dall'ammesso all'ancora da pagare con i valori del contratto, con le
-// domande senza uno degli importi dichiarate: le somme sono parziali). La verifica SMP SIGC (TX-0015) e' dell'istituzionale
+// sovrappongono), importi in due barre impilate (TX-0013, R13 forma B scelta dall'utente il 01/11/2026 al posto della
+// cascata: richiesto = ammesso + non ammesso, ammesso = pagato + ancora da pagare, con i valori del contratto e le domande
+// senza uno degli importi dichiarate: le somme sono parziali). La verifica SMP SIGC (TX-0015) e' dell'istituzionale
 // dal riallineamento degli ambiti del 29/10/2026.
 // Gli importi SIGC sono somme per domanda: NON_VALORIZZATO vuol dire che l'importo manca su tutte le domande della
 // selezione (D-09 del backend), quindi si rende come il dato assente nella fonte, non come un totale per intervento.
@@ -13,7 +14,6 @@ import {
   NON_DISPONIBILE,
   aria,
   centesimi,
-  descrizioneCascata,
   etichettaDato,
   formatEuro,
   formatNumber,
@@ -22,12 +22,15 @@ import {
   notaOmessi,
   numeroDi,
   numeroOpzionale,
-  opzioniCascata,
   percentuale,
   plurale,
   tooltipDettaglio,
+  asseCategorieOrizzontale,
+  asseImporti,
+  importoBreve,
+  GRIGLIA_CON_ETICHETTE,
 } from '../../../../shared/lib';
-import type { DatiGrafico, DatoSerie, PassoCascata } from '../../../../shared/lib';
+import type { DatiGrafico, DatoSerie } from '../../../../shared/lib';
 import type { DomandeSigcLike, ImportiSigcLike } from '../dto';
 import { assenzaImporto, cellaImporto, valoreDi } from '../importi';
 
@@ -35,7 +38,7 @@ import { assenzaImporto, cellaImporto, valoreDi } from '../importi';
 
 /**
  * Le voci di TX-0012 (D-09 del backend), con l'etichetta delle tabelle: pagate e da pagare vengono dagli importi della
- * domanda (flusso ASR2-20), come l'importo pagato di TX-0013. Pagata = ammesso e pagato valorizzati e pagato maggiore di
+ * domanda, come l'importo pagato di TX-0013. Pagata = ammesso e pagato valorizzati e pagato maggiore di
  * zero (D-09 Rev. 2: una domanda senza ammesso e' tra le senza importi, mai tra le pagate). Una domanda pagata in parte e'
  * sia pagata sia da pagare; quelle senza importi non sono ne' l'una ne' l'altra; le presentate fuori da tutte e tre non
  * sono ammesse ne' pagate.
@@ -45,7 +48,7 @@ export const VOCI_DOMANDE_SIGC = [
   { codice: 'PRESENTATE', nome: 'Presentate', campo: 'presentate', etichetta: 'Presentate', colore: COLORI.scuro },
   { codice: 'PAGATA', nome: ETICHETTE_ESITO_PAGAMENTO.PAGATA, campo: 'pagate', etichetta: 'Pagate (ammesso e pagato valorizzati, pagato maggiore di zero)', colore: COLORI.positivo },
   { codice: 'DA_PAGARE', nome: ETICHETTE_ESITO_PAGAMENTO.DA_PAGARE, campo: 'daPagare', etichetta: 'Da pagare (ammesse con importo ancora da pagare, anche se pagate in parte)', colore: COLORI.attenzione },
-  { codice: 'SENZA_IMPORTI', nome: ETICHETTE_ESITO_PAGAMENTO.SENZA_IMPORTI, campo: 'senzaImporti', etichetta: 'Senza importi (non classificabili: campagne senza ASR2-20)', colore: COLORI.attenuato },
+  { codice: 'SENZA_IMPORTI', nome: ETICHETTE_ESITO_PAGAMENTO.SENZA_IMPORTI, campo: 'senzaImporti', etichetta: 'Senza importi (non classificabili)', colore: COLORI.attenuato },
   // i codici sono quelli del vocabolario della domanda (esiti del pagamento) piu' le presentate: il tipo lo verifica (review v4 H-06)
 ] as const satisfies readonly { codice: EsitoPagamentoDomanda | 'PRESENTATE'; nome: string; campo: string; etichetta: string; colore: string }[];
 
@@ -85,7 +88,7 @@ export function graficoDomandeSigc(d: DomandeSigcLike): DatiGrafico {
     // spazio a destra per le etichette ("6000 (60 %)") oltre la barra piu' lunga, quella delle presentate
     grid: { right: 110 },
     xAxis: { type: 'value', min: 0 },
-    yAxis: { type: 'category', inverse: true, data: dati.map((x) => x.name) },
+    yAxis: asseCategorieOrizzontale(dati.map((x) => x.name)),
     series: [{ type: 'bar', name: 'Domande SIGC', data: dati, label: { show: true, position: 'right', formatter: etichettaDato } }],
   };
   return { opzioni, tabella, omessi };
@@ -179,30 +182,68 @@ function omessoRichiesto(i: ImportiSigcLike, escluso: { valore: number } | { mot
   return valoreDi(i.ammesso) != null && 'motivo' in escluso ? [`Richiesto e non ammesso: ${escluso.motivo}`] : [];
 }
 
+/** Un segmento di una delle due barre impilate: il dato nella sua barra, nulla nell'altra. */
+interface Segmento {
+  nome: string;
+  barra: 'Richiesto' | 'Ammesso';
+  valore: number;
+  /** Il totale della barra: la percentuale dell'etichetta. */
+  totale: number;
+  colore: string;
+}
+
+function serieSegmento(seg: Segmento, barre: readonly string[]) {
+  const quota = seg.totale > 0 ? ` (${formatPercentuale(percentuale(seg.valore, seg.totale))})` : '';
+  const dato: DatoSerie = { value: seg.valore, name: seg.barra, etichetta: `${importoBreve(seg.valore)}${quota}`, dettaglio: `${seg.barra}, ${seg.nome.toLowerCase()}: ${formatEuro(seg.valore)}${quota}` };
+  return {
+    type: 'bar' as const,
+    name: seg.nome,
+    stack: 'importi',
+    barMaxWidth: 46,
+    itemStyle: { color: seg.colore },
+    label: { show: true, position: 'inside' as const, formatter: etichettaDato },
+    data: barre.map((b) => (b === seg.barra ? dato : null)),
+  };
+}
+
 /**
- * Cascata degli importi SIGC: richiesto -> non ammesso -> ammesso -> pagato oltre l'ammesso -> pagato -> ancora da
- * pagare, con i valori del contratto (il browser calcola solo il non ammesso, e solo sulle stesse domande).
+ * Importi SIGC in due barre impilate della stessa scala (R13, forma B): "Richiesto" = ammesso + non ammesso (solo se
+ * richiesto e ammesso sono sulle stesse domande, altrimenti la barra non c'e' e il motivo e' fra le voci omesse), "Ammesso"
+ * = pagato + ancora da pagare; il pagato oltre l'ammesso, se c'e', e' una nota sotto (fra le voci non nel grafico). Etichette
+ * con l'importo e la percentuale della barra. Con i valori del contratto: il browser calcola solo il non ammesso e il pagato
+ * entro l'ammesso.
  */
-export function graficoCascataSigc(i: ImportiSigcLike): DatiGrafico {
+export function graficoImportiSigc(i: ImportiSigcLike): DatiGrafico {
   const escluso = nonAmmesso(i);
   const tabella = tabellaCascataSigc(i, escluso);
   const omessi = [...omessoRichiesto(i, escluso), ...VOCI_CASCATA.filter((v) => valoreDi(i[v.campo]) == null).map((v) => `${v.nome} ${assenzaImporto(i[v.campo])}`)];
   const esito = motivoCascataSigc(i);
-  if ('motivo' in esito) return nonDisegnabile(esito.motivo, tabella, omessi);
+  if ('motivo' in esito) return nonDisegnabile(esito.motivo.replace('la cascata', 'il grafico'), tabella, omessi);
   const { ammesso, oltre, pagato, daPagare } = esito.valori;
-  const richiesto: PassoCascata[] =
-    'valore' in escluso
+  const richiestoTotale = valoreDi(i.richiesto) ?? 0;
+  const segmenti: Segmento[] = [
+    ...('valore' in escluso
       ? [
-          { nome: 'Richiesto', valore: valoreDi(i.richiesto) as number, base: 0, colore: COLORI.scuro },
-          { nome: 'Non ammesso', valore: escluso.valore, base: ammesso, colore: COLORI.attenzione },
+          { nome: 'Ammesso', barra: 'Richiesto' as const, valore: ammesso, totale: richiestoTotale, colore: COLORI.primario },
+          { nome: 'Non ammesso', barra: 'Richiesto' as const, valore: escluso.valore, totale: richiestoTotale, colore: COLORI.neutro },
         ]
-      : [];
-  const passi: PassoCascata[] = [
-    ...richiesto,
-    { nome: 'Ammesso', valore: ammesso, base: 0, colore: COLORI.primario },
-    { nome: "Pagato oltre l'ammesso", valore: oltre, base: ammesso, colore: COLORI.attenzione },
-    { nome: 'Pagato', valore: pagato, base: daPagare, colore: COLORI.positivo },
-    { nome: 'Ancora da pagare', valore: daPagare, base: 0, colore: COLORI.primario },
+      : []),
+    { nome: 'Pagato', barra: 'Ammesso', valore: centesimi(pagato - oltre), totale: ammesso, colore: COLORI.positivo },
+    { nome: 'Ancora da pagare', barra: 'Ammesso', valore: daPagare, totale: ammesso, colore: '#8fb8e6' },
   ];
-  return { opzioni: opzioniCascata(passi, descrizioneCascata('Cascata degli importi SIGC', passi, omessi)), tabella, omessi };
+  if (oltre > 0) omessi.push(`Pagato oltre l'ammesso: ${formatEuro(oltre)} (fuori dalla barra dell'ammesso)`);
+  const barre = 'valore' in escluso ? ['Richiesto', 'Ammesso'] : ['Ammesso'];
+  const richiesto = 'valore' in escluso ? `richiesto ${importoBreve(valoreDi(i.richiesto) as number)} = ammesso ${importoBreve(ammesso)} + non ammesso ${importoBreve(escluso.valore)}; ` : '';
+  const sopra = oltre > 0 ? ` (più ${importoBreve(oltre)} pagati oltre l'ammesso)` : '';
+  const descrizione = `Due barre impilate degli importi SIGC: ${richiesto}ammesso ${importoBreve(ammesso)} = pagato ${importoBreve(centesimi(pagato - oltre))} + ancora da pagare ${importoBreve(daPagare)}${sopra}.${notaOmessi(omessi)}`;
+  const opzioni: EChartsOption = {
+    aria: aria(descrizione),
+    tooltip: { trigger: 'item', formatter: tooltipDettaglio },
+    legend: { bottom: 0 },
+    grid: GRIGLIA_CON_ETICHETTE,
+    xAxis: { type: 'value', axisLabel: { formatter: asseImporti } },
+    yAxis: asseCategorieOrizzontale(barre),
+    series: segmenti.map((seg) => serieSegmento(seg, barre)),
+  };
+  return { opzioni, tabella, omessi };
 }

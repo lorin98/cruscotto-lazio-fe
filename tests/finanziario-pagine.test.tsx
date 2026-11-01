@@ -134,7 +134,7 @@ describe('pagine del finanziario (step6)', () => {
     const png = vi.mocked(pngDelGrafico);
     png.mockClear();
     renderPagina(PaginaRiserva, '/finanziario/sigc/riserva', '/finanziario/sigc/riserva?anno=2025');
-    await userEvent.click(await screen.findByRole('button', { name: 'Scarica il grafico Utilizzo progressivo cumulato della riserva in PNG' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Scarica il grafico Utilizzo progressivo cumulato in PNG' }));
     await waitFor(() => expect(png).toHaveBeenCalledTimes(1));
     expect(png.mock.calls[0][1].intestazione).toContain('Filtri applicati: Anno: 2025');
     clic.mockRestore();
