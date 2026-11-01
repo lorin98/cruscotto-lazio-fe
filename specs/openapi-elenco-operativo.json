@@ -940,6 +940,13 @@
               "string",
               "null"
             ]
+          },
+          "perimetro": {
+            "description": "Solo per gli interventi: classificazione SIGC o NO_SIGC (filtro sigc, D-13 di finanziario); null per un intervento non classificato e per le altre voci",
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "type": "object"

@@ -638,6 +638,18 @@
               },
               "type": "array"
             }
+          },
+          {
+            "description": "true = interventi classificati SIGC, false = NO SIGC; assente = tutti. Un intervento non classificato non e' in nessuno dei due (D-13 di finanziario). Non ripetibile",
+            "in": "query",
+            "name": "sigc",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -799,6 +811,18 @@
                 "type": "string"
               },
               "type": "array"
+            }
+          },
+          {
+            "description": "true = interventi classificati SIGC, false = NO SIGC; assente = tutti. Un intervento non classificato non e' in nessuno dei due (D-13 di finanziario). Non ripetibile",
+            "in": "query",
+            "name": "sigc",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
             }
           }
         ],
@@ -975,6 +999,18 @@
               },
               "type": "array"
             }
+          },
+          {
+            "description": "true = interventi classificati SIGC, false = NO SIGC; assente = tutti. Un intervento non classificato non e' in nessuno dei due (D-13 di finanziario). Non ripetibile",
+            "in": "query",
+            "name": "sigc",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1146,6 +1182,18 @@
               },
               "type": "array"
             }
+          },
+          {
+            "description": "true = interventi classificati SIGC, false = NO SIGC; assente = tutti. Un intervento non classificato non e' in nessuno dei due (D-13 di finanziario). Non ripetibile",
+            "in": "query",
+            "name": "sigc",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1312,6 +1360,18 @@
               },
               "type": "array"
             }
+          },
+          {
+            "description": "true = interventi classificati SIGC, false = NO SIGC; assente = tutti. Un intervento non classificato non e' in nessuno dei due (D-13 di finanziario). Non ripetibile",
+            "in": "query",
+            "name": "sigc",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1473,6 +1533,18 @@
                 "type": "string"
               },
               "type": "array"
+            }
+          },
+          {
+            "description": "true = interventi classificati SIGC, false = NO SIGC; assente = tutti. Un intervento non classificato non e' in nessuno dei due (D-13 di finanziario). Non ripetibile",
+            "in": "query",
+            "name": "sigc",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
             }
           }
         ],

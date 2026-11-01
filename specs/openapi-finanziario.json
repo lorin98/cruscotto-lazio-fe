@@ -7,6 +7,11 @@
           "impegnatoDaPagare": {
             "$ref": "#/components/schemas/Importo"
           },
+          "impegnatoStimato": {
+            "$ref": "#/components/schemas/Importo",
+            "description": "Di cui stimato",
+            "type": "object"
+          },
           "pagamentiTotali": {
             "$ref": "#/components/schemas/Importo"
           },
@@ -17,6 +22,21 @@
               "ADA"
             ],
             "type": "string"
+          },
+          "stimaImpegni": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StimaImpegni"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Metodo della stima dell'impegnato; null se gli interventi selezionati non hanno impegnato stimato",
+            "type": [
+              "object",
+              "null"
+            ]
           },
           "totaleImpegnato": {
             "$ref": "#/components/schemas/Importo"
@@ -192,6 +212,20 @@
               "$ref": "#/components/schemas/UltimoDatoSincronizzato"
             },
             "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "FonteRettifiche": {
+        "properties": {
+          "dataRiferimento": {
+            "$ref": "#/components/schemas/LocalDate"
+          },
+          "documento": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "type": "object"
@@ -392,6 +426,22 @@
           "montantePagamenti": {
             "type": "number"
           },
+          "naturaResiduo": {
+            "description": "PREVISIONE prima della fase RESIDUO (01/01/n+2), CONSUNTIVO dopo",
+            "enum": [
+              "PREVISIONE",
+              "CONSUNTIVO"
+            ],
+            "type": "string"
+          },
+          "naturaRiserva": {
+            "description": "PREVISIONE prima del congelamento (30/06/n+1), CONSUNTIVO dopo",
+            "enum": [
+              "PREVISIONE",
+              "CONSUNTIVO"
+            ],
+            "type": "string"
+          },
           "perimetro": {
             "description": "A quali domande si riferiscono le misure per domanda: REGIONALE (tutte) o ADA (solo quelle dei perimetri ADA del chiamante, P4). I report di soli dati di programma sono sempre REGIONALE",
             "enum": [
@@ -399,6 +449,14 @@
               "ADA"
             ],
             "type": "string"
+          },
+          "quotaResiduo": {
+            "description": "Quota del residuo sul montante dei pagamenti (0.02)",
+            "type": "number"
+          },
+          "quotaRiserva": {
+            "description": "Quota della riserva sul montante dei pagamenti (0.05)",
+            "type": "number"
           },
           "regolaN2": {
             "$ref": "#/components/schemas/Importo"
@@ -461,7 +519,7 @@
         "type": "object"
       },
       "ResiduoSuImpegni": {
-        "description": "TX-0006",
+        "description": "TX-0006: residuo = dotazione meno impegnato di spesa pubblica, come il riepilogo",
         "properties": {
           "dotazioneResidua": {
             "$ref": "#/components/schemas/Importo"
@@ -469,7 +527,81 @@
           "dotazioneSpesaPubblica": {
             "$ref": "#/components/schemas/Importo"
           },
+          "impegnatoStimato": {
+            "$ref": "#/components/schemas/Importo",
+            "description": "Di cui stimato",
+            "type": "object"
+          },
           "importoImpegnato": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "perimetro": {
+            "description": "A quali domande si riferiscono le misure per domanda: REGIONALE (tutte) o ADA (solo quelle dei perimetri ADA del chiamante, P4). I report di soli dati di programma sono sempre REGIONALE",
+            "enum": [
+              "REGIONALE",
+              "ADA"
+            ],
+            "type": "string"
+          },
+          "stimaImpegni": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StimaImpegni"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Metodo della stima dell'impegnato; null se gli interventi selezionati non hanno impegnato stimato",
+            "type": [
+              "object",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "ResiduoSuPagamenti": {
+        "description": "TX-0007: residuo = dotazione meno pagamenti al netto delle rettifiche (pagato lordo meno rettifiche certificate CSR per intervento, D-13); i recuperi per domanda non entrano",
+        "properties": {
+          "dotazioneResidua": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "dotazioneSpesaPubblica": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "fonteRettifiche": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FonteRettifiche"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Report delle rettifiche letto (ultima data di riferimento)",
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "importoPagato": {
+            "$ref": "#/components/schemas/Importo",
+            "description": "Pagato lordo (righe di elenco PAGATA)",
+            "type": "object"
+          },
+          "importoRettifiche": {
+            "$ref": "#/components/schemas/Importo",
+            "description": "Rettifiche da togliere, positive; FONTE_NON_ATTIVA RETTIFICHE senza rettifiche nel database",
+            "type": "object"
+          },
+          "interventi": {
+            "items": {
+              "$ref": "#/components/schemas/ResiduoSuPagamentiIntervento"
+            },
+            "type": "array"
+          },
+          "pagamentiNettoRettifiche": {
             "$ref": "#/components/schemas/Importo"
           },
           "perimetro": {
@@ -483,31 +615,68 @@
         },
         "type": "object"
       },
-      "ResiduoSuPagamenti": {
-        "description": "TX-0007: residuo = dotazione meno pagamenti al netto di rettifiche (pagato meno recuperato, mai negativo per domanda)",
+      "ResiduoSuPagamentiIntervento": {
         "properties": {
+          "codiceIntervento": {
+            "type": "string"
+          },
+          "conRettifiche": {
+            "description": "Se l'intervento ha rettifiche (anche solo dei trascinamenti); null senza rettifiche nel database",
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
           "dotazioneResidua": {
             "$ref": "#/components/schemas/Importo"
           },
           "dotazioneSpesaPubblica": {
             "$ref": "#/components/schemas/Importo"
           },
-          "importoPagato": {
-            "$ref": "#/components/schemas/Importo"
-          },
-          "importoRecuperato": {
+          "importoRettifiche": {
             "$ref": "#/components/schemas/Importo"
           },
           "pagamentiNettoRettifiche": {
             "$ref": "#/components/schemas/Importo"
           },
-          "perimetro": {
-            "description": "A quali domande si riferiscono le misure per domanda: REGIONALE (tutte) o ADA (solo quelle dei perimetri ADA del chiamante, P4). I report di soli dati di programma sono sempre REGIONALE",
-            "enum": [
-              "REGIONALE",
-              "ADA"
-            ],
+          "pagatoLordo": {
+            "$ref": "#/components/schemas/Importo"
+          },
+          "rettifiche": {
+            "items": {
+              "$ref": "#/components/schemas/Rettifica"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "Rettifica": {
+        "description": "Rettifica certificata di un intervento (addendo del foglio recuperi_variazioni)",
+        "properties": {
+          "codiceAzione": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "importo": {
+            "description": "Importo col segno del foglio: negativo = riduzione del pagato",
+            "type": "number"
+          },
+          "programmazione": {
+            "description": "CSR_2023_2027 (nel netto) o TRASCINAMENTI_PSR (solo dettaglio)",
             "type": "string"
+          },
+          "progressivo": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "riferimento": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "type": "object"
@@ -531,6 +700,21 @@
               "$ref": "#/components/schemas/RiepilogoFinanziarioRiga"
             },
             "type": "array"
+          },
+          "stimaImpegni": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StimaImpegni"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Metodo della stima dell'impegnato; null se gli interventi selezionati non hanno impegnato stimato",
+            "type": [
+              "object",
+              "null"
+            ]
           }
         },
         "type": "object"
@@ -540,12 +724,21 @@
           "codiceIntervento": {
             "type": "string"
           },
+          "conRettifiche": {
+            "description": "Se l'intervento ha rettifiche; null senza rettifiche nel database",
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
           "domandePresentate": {
             "format": "int64",
             "type": "integer"
           },
           "dotazioneResiduaSuImpegni": {
-            "$ref": "#/components/schemas/Importo"
+            "$ref": "#/components/schemas/Importo",
+            "description": "Dotazione meno impegnato di spesa pubblica, come TX-0006",
+            "type": "object"
           },
           "dotazioneResiduaSuPagamenti": {
             "$ref": "#/components/schemas/Importo"
@@ -559,11 +752,34 @@
           "impegnatoCofinanziatoFeasrENon": {
             "$ref": "#/components/schemas/Importo"
           },
+          "impegnatoStimato": {
+            "$ref": "#/components/schemas/Importo",
+            "description": "Di cui stimato",
+            "type": "object"
+          },
+          "importoRettifiche": {
+            "$ref": "#/components/schemas/Importo",
+            "description": "Rettifiche CSR da togliere, positive",
+            "type": "object"
+          },
           "importoStanziato": {
-            "$ref": "#/components/schemas/Importo"
+            "$ref": "#/components/schemas/Importo",
+            "description": "Stanziato dai bandi del quadro sinottico",
+            "type": "object"
+          },
+          "pagamentiLordi": {
+            "$ref": "#/components/schemas/Importo",
+            "description": "Pagato lordo (righe di elenco PAGATA)",
+            "type": "object"
           },
           "pagamentiNettoRettifiche": {
             "$ref": "#/components/schemas/Importo"
+          },
+          "rettifiche": {
+            "items": {
+              "$ref": "#/components/schemas/Rettifica"
+            },
+            "type": "array"
           },
           "risorseQuotaFeasr": {
             "$ref": "#/components/schemas/Importo"
@@ -587,6 +803,21 @@
               "$ref": "#/components/schemas/SpesaPerInterventoRiga"
             },
             "type": "array"
+          },
+          "stimaImpegni": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StimaImpegni"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Metodo della stima dell'impegnato; null se gli interventi selezionati non hanno impegnato stimato",
+            "type": [
+              "object",
+              "null"
+            ]
           }
         },
         "type": "object"
@@ -603,25 +834,60 @@
             "$ref": "#/components/schemas/Importo"
           },
           "impegnatoSpesaPubblica": {
-            "$ref": "#/components/schemas/Importo"
+            "$ref": "#/components/schemas/Importo",
+            "description": "Impegnato di spesa pubblica, rilevato piu' stimato",
+            "type": "object"
+          },
+          "impegnatoStimato": {
+            "$ref": "#/components/schemas/Importo",
+            "description": "Di cui stimato (previsione SIGC per bando fino all'orizzonte)",
+            "type": "object"
           },
           "pagamentiTotali": {
             "$ref": "#/components/schemas/Importo"
-          },
-          "percentualeContributoAmbientale": {
+          }
+        },
+        "type": "object"
+      },
+      "StimaImpegni": {
+        "description": "Metodo della stima dell'impegnato (D-13): presente solo se la selezione ha righe stimate",
+        "properties": {
+          "calcolatoIl": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LocalDate"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Giorno dell'ultimo ricalcolo dell'impegnato",
             "type": [
-              "number",
+              "string",
               "null"
             ]
           },
-          "quotaRegione": {
-            "$ref": "#/components/schemas/Importo"
+          "metodo": {
+            "description": "MEDIA_ANNUALITA_RILEVATE_PER_BANDO_X_ANNI_RESIDUI",
+            "type": "string"
           },
-          "quotaStato": {
-            "$ref": "#/components/schemas/Importo"
+          "orizzonte": {
+            "description": "Ultimo anno della previsione (orizzonte del CSR)",
+            "format": "int32",
+            "type": "integer"
           },
-          "vincoloDotazioneLeader": {
-            "$ref": "#/components/schemas/Importo"
+          "quotaDaRichiesto": {
+            "$ref": "#/components/schemas/Importo",
+            "description": "Parte dell'impegnato rilevato presa dal richiesto (domande ancora in istruttoria): provvisoria",
+            "type": "object"
+          },
+          "ultimaCampagnaRilevata": {
+            "description": "Ultima campagna SIGC rilevata da un ASR2-20",
+            "format": "int32",
+            "type": [
+              "integer",
+              "null"
+            ]
           }
         },
         "type": "object"
@@ -685,6 +951,13 @@
           },
           "descrizione": {
             "description": "Descrizione; null per gli OS (solo codice)",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "perimetro": {
+            "description": "Solo per gli interventi: classificazione SIGC o NO_SIGC (filtro sigc, D-13 di finanziario); null per un intervento non classificato e per le altre voci",
             "type": [
               "string",
               "null"
@@ -765,6 +1038,18 @@
                 "type": "string"
               },
               "type": "array"
+            }
+          },
+          {
+            "description": "true = interventi classificati SIGC, false = NO SIGC; assente = tutti. Un intervento non classificato non e' in nessuno dei due (D-13 di finanziario). Non ripetibile",
+            "in": "query",
+            "name": "sigc",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
             }
           }
         ],
@@ -927,6 +1212,18 @@
                 "type": "string"
               },
               "type": "array"
+            }
+          },
+          {
+            "description": "true = interventi classificati SIGC, false = NO SIGC; assente = tutti. Un intervento non classificato non e' in nessuno dei due (D-13 di finanziario). Non ripetibile",
+            "in": "query",
+            "name": "sigc",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
             }
           }
         ],
@@ -1094,6 +1391,18 @@
               },
               "type": "array"
             }
+          },
+          {
+            "description": "true = interventi classificati SIGC, false = NO SIGC; assente = tutti. Un intervento non classificato non e' in nessuno dei due (D-13 di finanziario). Non ripetibile",
+            "in": "query",
+            "name": "sigc",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1255,6 +1564,18 @@
                 "type": "string"
               },
               "type": "array"
+            }
+          },
+          {
+            "description": "true = interventi classificati SIGC, false = NO SIGC; assente = tutti. Un intervento non classificato non e' in nessuno dei due (D-13 di finanziario). Non ripetibile",
+            "in": "query",
+            "name": "sigc",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
             }
           }
         ],
@@ -1516,6 +1837,18 @@
               },
               "type": "array"
             }
+          },
+          {
+            "description": "true = interventi classificati SIGC, false = NO SIGC; assente = tutti. Un intervento non classificato non e' in nessuno dei due (D-13 di finanziario). Non ripetibile",
+            "in": "query",
+            "name": "sigc",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1677,6 +2010,18 @@
                 "type": "string"
               },
               "type": "array"
+            }
+          },
+          {
+            "description": "true = interventi classificati SIGC, false = NO SIGC; assente = tutti. Un intervento non classificato non e' in nessuno dei due (D-13 di finanziario). Non ripetibile",
+            "in": "query",
+            "name": "sigc",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
             }
           }
         ],
@@ -1844,6 +2189,18 @@
               },
               "type": "array"
             }
+          },
+          {
+            "description": "true = interventi classificati SIGC, false = NO SIGC; assente = tutti. Un intervento non classificato non e' in nessuno dei due (D-13 di finanziario). Non ripetibile",
+            "in": "query",
+            "name": "sigc",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -2005,6 +2362,18 @@
                 "type": "string"
               },
               "type": "array"
+            }
+          },
+          {
+            "description": "true = interventi classificati SIGC, false = NO SIGC; assente = tutti. Un intervento non classificato non e' in nessuno dei due (D-13 di finanziario). Non ripetibile",
+            "in": "query",
+            "name": "sigc",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
             }
           }
         ],
@@ -2172,6 +2541,18 @@
               },
               "type": "array"
             }
+          },
+          {
+            "description": "true = interventi classificati SIGC, false = NO SIGC; assente = tutti. Un intervento non classificato non e' in nessuno dei due (D-13 di finanziario). Non ripetibile",
+            "in": "query",
+            "name": "sigc",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -2333,6 +2714,18 @@
                 "type": "string"
               },
               "type": "array"
+            }
+          },
+          {
+            "description": "true = interventi classificati SIGC, false = NO SIGC; assente = tutti. Un intervento non classificato non e' in nessuno dei due (D-13 di finanziario). Non ripetibile",
+            "in": "query",
+            "name": "sigc",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
             }
           }
         ],
@@ -2500,6 +2893,18 @@
               },
               "type": "array"
             }
+          },
+          {
+            "description": "true = interventi classificati SIGC, false = NO SIGC; assente = tutti. Un intervento non classificato non e' in nessuno dei due (D-13 di finanziario). Non ripetibile",
+            "in": "query",
+            "name": "sigc",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -2661,6 +3066,18 @@
                 "type": "string"
               },
               "type": "array"
+            }
+          },
+          {
+            "description": "true = interventi classificati SIGC, false = NO SIGC; assente = tutti. Un intervento non classificato non e' in nessuno dei due (D-13 di finanziario). Non ripetibile",
+            "in": "query",
+            "name": "sigc",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
             }
           }
         ],
@@ -2828,6 +3245,18 @@
               },
               "type": "array"
             }
+          },
+          {
+            "description": "true = interventi classificati SIGC, false = NO SIGC; assente = tutti. Un intervento non classificato non e' in nessuno dei due (D-13 di finanziario). Non ripetibile",
+            "in": "query",
+            "name": "sigc",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -2989,6 +3418,18 @@
                 "type": "string"
               },
               "type": "array"
+            }
+          },
+          {
+            "description": "true = interventi classificati SIGC, false = NO SIGC; assente = tutti. Un intervento non classificato non e' in nessuno dei due (D-13 di finanziario). Non ripetibile",
+            "in": "query",
+            "name": "sigc",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
             }
           }
         ],
@@ -3414,6 +3855,18 @@
               },
               "type": "array"
             }
+          },
+          {
+            "description": "true = interventi classificati SIGC, false = NO SIGC; assente = tutti. Un intervento non classificato non e' in nessuno dei due (D-13 di finanziario). Non ripetibile",
+            "in": "query",
+            "name": "sigc",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -3575,6 +4028,18 @@
                 "type": "string"
               },
               "type": "array"
+            }
+          },
+          {
+            "description": "true = interventi classificati SIGC, false = NO SIGC; assente = tutti. Un intervento non classificato non e' in nessuno dei due (D-13 di finanziario). Non ripetibile",
+            "in": "query",
+            "name": "sigc",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
             }
           }
         ],
@@ -3742,6 +4207,18 @@
               },
               "type": "array"
             }
+          },
+          {
+            "description": "true = interventi classificati SIGC, false = NO SIGC; assente = tutti. Un intervento non classificato non e' in nessuno dei due (D-13 di finanziario). Non ripetibile",
+            "in": "query",
+            "name": "sigc",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -3903,6 +4380,18 @@
                 "type": "string"
               },
               "type": "array"
+            }
+          },
+          {
+            "description": "true = interventi classificati SIGC, false = NO SIGC; assente = tutti. Un intervento non classificato non e' in nessuno dei due (D-13 di finanziario). Non ripetibile",
+            "in": "query",
+            "name": "sigc",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
             }
           }
         ],
@@ -4070,6 +4559,18 @@
               },
               "type": "array"
             }
+          },
+          {
+            "description": "true = interventi classificati SIGC, false = NO SIGC; assente = tutti. Un intervento non classificato non e' in nessuno dei due (D-13 di finanziario). Non ripetibile",
+            "in": "query",
+            "name": "sigc",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -4231,6 +4732,18 @@
                 "type": "string"
               },
               "type": "array"
+            }
+          },
+          {
+            "description": "true = interventi classificati SIGC, false = NO SIGC; assente = tutti. Un intervento non classificato non e' in nessuno dei due (D-13 di finanziario). Non ripetibile",
+            "in": "query",
+            "name": "sigc",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
             }
           }
         ],
@@ -4398,6 +4911,18 @@
               },
               "type": "array"
             }
+          },
+          {
+            "description": "true = interventi classificati SIGC, false = NO SIGC; assente = tutti. Un intervento non classificato non e' in nessuno dei due (D-13 di finanziario). Non ripetibile",
+            "in": "query",
+            "name": "sigc",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -4559,6 +5084,18 @@
                 "type": "string"
               },
               "type": "array"
+            }
+          },
+          {
+            "description": "true = interventi classificati SIGC, false = NO SIGC; assente = tutti. Un intervento non classificato non e' in nessuno dei due (D-13 di finanziario). Non ripetibile",
+            "in": "query",
+            "name": "sigc",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
             }
           }
         ],
@@ -4726,6 +5263,18 @@
               },
               "type": "array"
             }
+          },
+          {
+            "description": "true = interventi classificati SIGC, false = NO SIGC; assente = tutti. Un intervento non classificato non e' in nessuno dei due (D-13 di finanziario). Non ripetibile",
+            "in": "query",
+            "name": "sigc",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -4887,6 +5436,18 @@
                 "type": "string"
               },
               "type": "array"
+            }
+          },
+          {
+            "description": "true = interventi classificati SIGC, false = NO SIGC; assente = tutti. Un intervento non classificato non e' in nessuno dei due (D-13 di finanziario). Non ripetibile",
+            "in": "query",
+            "name": "sigc",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
             }
           }
         ],
