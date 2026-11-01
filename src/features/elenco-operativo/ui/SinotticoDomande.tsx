@@ -43,7 +43,7 @@ function notaLiquidatoRecuperato(s: SinotticoElenco): string {
 // pagare portano quota e liquidato/recuperato quando la vista non ha le tessere proprie (wireframe, review v1 V-09).
 const INDICATORI: Record<Indicatore, (s: SinotticoElenco, vista: Vista) => ReactNode> = {
   domande: (s) => <Kpi etichetta="Domande" valore={n(s.domande)} nota={`di sostegno ${n(s.sostegno)} - di pagamento ${n(s.pagamento)}`} icona="it-files" />,
-  presentate: (s) => <Kpi etichetta="Presentate" valore={n(s.presentate)} nota={`di cui SIGC ${n(s.sigc)}`} icona="it-file-signed" tono="verde" />,
+  presentate: (s) => <Kpi etichetta="Presentate" valore={n(s.presentate)} nota={`di cui SIGC per domanda ${n(s.sigc)}`} icona="it-file-signed" tono="verde" />,
   beneficiari: (s) => <Kpi etichetta="Beneficiari distinti" valore={n(s.beneficiari)} icona="it-user" tono="scuro" />,
   esitiPagamento: (s) => <Kpi etichetta="Pagate / da pagare / senza importi" valore={`${n(s.pagate)} / ${n(s.daPagare)} / ${n(s.senzaImporti)}`} icona="it-check-circle" tono="ambra" />,
   richiesto: (s) => <KpiSomma etichetta="Richiesto" somma={s.richiesto} icona="it-chart-line" />,

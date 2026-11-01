@@ -61,10 +61,14 @@ function piedeDomande(s: SinotticoElenco | undefined, totaleRighe: number, sinot
     ammesso: testo(() => testoSomma(s.ammesso).valore),
     pagato: testo(() => testoSomma(s.pagato).valore),
     ancoraDaPagare: testo(() => testoSomma(s.ancoraDaPagare).valore),
-    liquidato: testo(() => testoAggregato(s.liquidato, 'liquidato').valore),
-    recuperato: testo(() => testoAggregato(s.recuperato, 'recuperato').valore),
+    // nel piede gli euro pieni come gli altri totali (la forma compatta e' dei sinottici: review V2-08)
+    liquidato: testo(() => pienoOValore(testoAggregato(s.liquidato, 'liquidato'))),
+    recuperato: testo(() => pienoOValore(testoAggregato(s.recuperato, 'recuperato'))),
   };
 }
+
+/** Il valore pieno di un aggregato (o la sua assenza col motivo). */
+const pienoOValore = (t: { valore: string; pieno?: string }) => t.pieno ?? t.valore;
 
 /** Le letture della pagina, ognuna col suo grant (review v1 A-06): elenco (TX-0056) e sinottico (TX-0057). */
 function useLettureDomande(criteri: Criteri, auth: Interrogazione['auth']) {
@@ -170,6 +174,7 @@ export function ElencoDomande() {
         chip={i.chip}
         onApri={i.pannello.apri}
         onTogliTutti={i.togliTutti}
+        sigc={i.sigc}
         vuoto="Nessun filtro: tutte le domande del perimetro"
         perimetro={l.perimetro}
         ultimi={l.sinottico.data?.ultimiDatiSincronizzati}

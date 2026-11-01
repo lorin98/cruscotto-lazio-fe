@@ -7,10 +7,11 @@
 // (review v1 A-06).
 import { useState } from 'react';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
+import { righeSigc } from '../../../shared/lib';
 import type { ChipFiltro } from '../../../shared/ui';
 import { useValoriFiltri } from '../api';
 import { chipDeiCriteri } from '../lib/chip';
-import { senzaFiltri, senzaValore } from '../lib/criteri';
+import { conSigc, senzaFiltri, senzaValore, sigcDeiCriteri } from '../lib/criteri';
 import type { Elenco } from '../lib/criteri';
 import { puoLeggere } from '../lib/grant';
 import { useCriteri } from './useCriteri';
@@ -38,8 +39,12 @@ export function useInterrogazione(elenco: Elenco) {
     ritira,
     auth: auth.data,
     chip,
-    filtriApplicati: chipDeiCriteri(criteri, valori.data).map((c) => `${c.etichetta}: ${c.testo}`),
-    togliTutti: () => applica(senzaFiltri(criteriVisti)),
+    // il filtro SIGC non e' un chip ma resta nell'intestazione dei PNG, come nelle altre aree (review J-03)
+    filtriApplicati: [...chipDeiCriteri(criteri, valori.data).map((c) => `${c.etichetta}: ${c.testo}`), ...righeSigc(sigcDeiCriteri(criteri))],
+    // "Togli tutti" toglie i chip: il filtro SIGC e' il controllo della barra e resta (review X-08)
+    togliTutti: () => applica(conSigc(senzaFiltri(criteriVisti), sigcDeiCriteri(criteriVisti))),
+    // il controllo SIGC scrive coi criteri della pagina: replace con lo state (vista e colonne), bozza compresa (review J-04)
+    sigc: { valore: sigcDeiCriteri(criteriVisti), onCambia: (v: 'true' | 'false' | undefined) => applica(conSigc(criteriVisti, v)) },
     valori: conFiltri ? valori : null,
     pannello: {
       aperto,

@@ -2,7 +2,7 @@
 // ordinamento attivo dichiarato (X-02, X-04), pagina oltre l'ultima (H-01), stato vuoto che porta al pannello dei filtri,
 // accesso non disponibile senza il grant della lettura (A-06). L'avviso di aggiornamento (i dati precedenti restano, ADR
 // 0029) e' passato nel kit (AvvisoAggiornamento di shared/ui), usato anche dall'istituzionale.
-import type { ChipFiltro } from '../../../shared/ui';
+import type { ChipFiltro, ControlloSigcGuidato } from '../../../shared/ui';
 import { BarraFiltri, Caricamento, PillDatiAl } from '../../../shared/ui';
 import type { UltimoDato } from '../../../shared/lib';
 import { formatNumber } from '../../../shared/lib';
@@ -16,8 +16,11 @@ export function BarraInterrogazione({
   perimetro,
   ultimi,
   ultimiInErrore = false,
+  sigc,
 }: {
   chip: ChipFiltro[];
+  /** Il controllo SIGC coi criteri dell'elenco (useInterrogazione). */
+  sigc: ControlloSigcGuidato;
   onApri?: () => void;
   onTogliTutti: () => void;
   vuoto: string;
@@ -32,8 +35,8 @@ export function BarraInterrogazione({
       onApri={onApri}
       onTogliTutti={onTogliTutti}
       vuoto={vuoto}
-      // il controllo SIGC comune (per intervento, D-12 Rev. del backend), nelle due pagine dell'elenco
-      filtroSigc
+      // il controllo SIGC comune (per intervento, D-12 Rev. del backend), guidato dai criteri della pagina (review J-04)
+      controlloSigc={sigc}
       destra={
         <>
           <PerimetroElenco perimetro={perimetro} />

@@ -28,6 +28,8 @@ function SinotticoPagamenti({ totali, inAggiornamento }: { totali: TotaliPagamen
   // importi in forma compatta su una riga col valore pieno (R09)
   const decretato = testoSommaCompatta(totali?.importoDecretato, ['riga', 'righe']);
   const pagato = importoCompatto(totali?.importoPagato);
+  const feasr = importoCompatto(totali?.quotaFeasr);
+  const quotaFeasr = { valore: feasr.valore, valorePieno: feasr.pieno };
   return (
     <section className="ui-sinottico ui-risultati" aria-labelledby="t-sinottico-pagamenti" aria-busy={inAggiornamento}>
       <h2 id="t-sinottico-pagamenti">Sinottico dell’insieme filtrato</h2>
@@ -38,9 +40,10 @@ function SinotticoPagamenti({ totali, inAggiornamento }: { totali: TotaliPagamen
         <Kpi etichetta="Pagato" valore={pagato.valore} valorePieno={pagato.pieno} icona="it-card" tono="verde" />
         <Kpi
           etichetta="Quote di finanziamento"
-          valore={cellaImporto(totali?.quotaFeasr)}
+          // R09: la quota FEASR compatta col valore pieno; nella nota le altre due, compatte (review V2-09)
+          {...quotaFeasr}
           unita=" FEASR"
-          nota={`nazionale ${cellaImporto(totali?.quotaNazionale)} - regionale ${cellaImporto(totali?.quotaRegionale)}`}
+          nota={`nazionale ${importoCompatto(totali?.quotaNazionale).valore} - regionale ${importoCompatto(totali?.quotaRegionale).valore}`}
           icona="it-pa"
           tono="ambra"
         />
@@ -118,6 +121,7 @@ export function ElencoPagamenti() {
         chip={i.chip}
         onApri={i.pannello.apri}
         onTogliTutti={i.togliTutti}
+        sigc={i.sigc}
         vuoto="Nessun filtro: tutte le righe di pagamento del perimetro"
         perimetro={dati?.perimetro}
         ultimi={dati?.ultimiDatiSincronizzati}

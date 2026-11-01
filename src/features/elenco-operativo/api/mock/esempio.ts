@@ -86,10 +86,14 @@ function filtrate(p: URLSearchParams): DomandaEsempio[] {
       tra('anno', String(d.annoRaccolta)) &&
       tra('stato', d.statoCodice) &&
       tra('provincia', d.provincia) &&
-      (p.get('sigc') === null || String(d.sigc) === p.get('sigc')) &&
+      // sigc per intervento come il backend dal 31/10/2026 (D-12 Rev.): SIGC gli interventi della programmazione SIGC
+      (p.get('sigc') === null || String(INTERVENTI_SIGC.has(d.codiceIntervento)) === p.get('sigc')) &&
       (testo === '' || d.codiceABarre.startsWith(testo) || d.cuaa.toLowerCase().startsWith(testo) || d.denominazione.toLowerCase().includes(testo)),
   );
 }
+
+/** Gli interventi classificati SIGC nella programmazione (revisioni del 31/10/2026, F1). */
+const INTERVENTI_SIGC = new Set(['SRA01', 'SRA03', 'SRA14', 'SRA15', 'SRA29', 'SRA30', 'SRB01', 'SRC01']);
 
 function somma(righe: DomandaEsempio[], campo: 'richiesto' | 'ammesso' | 'pagato' | 'ancoraDaPagare') {
   const con = righe.filter((d) => d[campo].valore !== null);

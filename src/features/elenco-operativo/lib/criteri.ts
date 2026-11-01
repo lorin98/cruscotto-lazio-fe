@@ -190,6 +190,17 @@ export function senzaValore(criteri: Criteri, nome: NomeFiltro, valore?: string)
   return conFiltro(criteri, nome, valore === undefined ? [] : (criteri[nome] ?? []).filter((v) => v !== valore));
 }
 
+/** Il filtro SIGC dei criteri ('true' interventi SIGC, 'false' NO SIGC, per intervento: D-12 Rev.); assente = tutti. */
+export function sigcDeiCriteri(criteri: Criteri): 'true' | 'false' | undefined {
+  const v = criteri.sigc?.[0];
+  return v === 'true' || v === 'false' ? v : undefined;
+}
+
+/** Criteri col filtro SIGC del controllo della barra (assente = tolto); si torna alla prima pagina. */
+export function conSigc(criteri: Criteri, valore: 'true' | 'false' | undefined): Criteri {
+  return conFiltro(criteri, 'sigc', valore === undefined ? [] : [valore]);
+}
+
 /** Tutti i filtri tolti; restano dimensione e ordinamento. */
 export function senzaFiltri(criteri: Criteri): Criteri {
   const out: Criteri = {};

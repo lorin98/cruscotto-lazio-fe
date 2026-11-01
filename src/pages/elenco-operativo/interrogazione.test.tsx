@@ -78,6 +78,25 @@ describe('RA006: interrogazione libera delle domande con il sinottico sopra e i 
     await waitFor(() => expect(router.state.location.search).toBe('?intervento=SRA01'));
   });
 
+  // review step9 J-04: il controllo SIGC dell'elenco scrive coi criteri della pagina (replace con lo state), come i filtri
+  it('il filtro SIGC dal controllo della barra: la vista per ambito resta, nessuna voce nuova nella cronologia, criteri al server', async () => {
+    const richieste = servi();
+    const { router } = renderPagina(ElencoDomande, '/elenco-operativo/domande', '/elenco-operativo/domande?intervento=SRA01');
+    await screen.findByRole('table', { name: /vista generale/ });
+    await userEvent.click(screen.getByRole('button', { name: 'Vista: fisico' }));
+    await screen.findByRole('table', { name: /vista fisico/ });
+    const sigc = within(screen.getByRole('region', { name: 'Filtri attivi' })).getByRole('group', { name: 'Interventi SIGC o NO SIGC' });
+    await userEvent.click(within(sigc).getByRole('button', { name: 'NO SIGC' }));
+    await waitFor(() => expect(router.state.location.search).toBe('?intervento=SRA01&sigc=false'));
+    expect(router.state.historyAction).toBe('REPLACE');
+    expect(await screen.findByRole('table', { name: /vista fisico/ })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Vista: fisico' }).getAttribute('aria-pressed')).toBe('true');
+    await waitFor(() => expect(richieste).toContain('domande?intervento=SRA01&sigc=false'));
+    // "Togli tutti" toglie i chip, non il filtro SIGC (review X-08)
+    await userEvent.click(screen.getByRole('button', { name: 'Togli tutti' }));
+    await waitFor(() => expect(router.state.location.search).toBe('?sigc=false'));
+  });
+
   it('vista per ambito: cambiano colonne e indicatori, non le righe', async () => {
     servi();
     renderPagina(ElencoDomande, '/elenco-operativo/domande');
@@ -138,6 +157,20 @@ describe("RA006: PNG di un grafico del sinottico con filtri, perimetro e profilo
       'Profilo: p1-dirigente',
       expect.stringMatching(/^Ultimo dato sincronizzato: /),
     ]);
+    clic.mockRestore();
+  });
+
+  // review step9 J-03: il filtro SIGC non e' un chip ma resta nell'intestazione dei PNG, come nelle altre aree
+  it("col filtro SIGC l'intestazione del PNG lo dice fra i filtri applicati", async () => {
+    servi();
+    const clic = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    const png = vi.mocked(pngDelGrafico);
+    png.mockClear();
+    renderPagina(ElencoDomande, '/elenco-operativo/domande', '/elenco-operativo/domande?intervento=SRA01&sigc=true');
+    const card = await trovaCard('Domande per intervento');
+    await userEvent.click(within(card).getByRole('button', { name: / in PNG$/ }));
+    await waitFor(() => expect(png).toHaveBeenCalledTimes(1));
+    expect(png.mock.calls[0][1].intestazione).toContain('Filtri applicati: Intervento: SRA01 Produzione integrata; Interventi: SIGC');
     clic.mockRestore();
   });
 });
