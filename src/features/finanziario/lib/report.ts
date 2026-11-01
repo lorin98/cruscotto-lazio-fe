@@ -65,12 +65,15 @@ export const PANORAMICA: VoceReport = {
   grant: [G.filtri, G.spesaPerIntervento, G.totaleDomande, G.sigcDomande, G.sigcImporti],
 };
 
-/** Dettaglio dell'intervento: le transazioni dei report filtrate sull'intervento della route. */
+/**
+ * Dettaglio dell'intervento: le transazioni dei report filtrate sull'intervento della route. Senza TX-0002 dalle revisioni
+ * del 31/10/2026 (R14: la sua lettura serviva solo al contributo ambientale della testata).
+ */
 export const DETTAGLIO_INTERVENTO: VoceReport = {
   percorso: PERCORSI.dettaglio,
   titolo: "Dettaglio dell'intervento",
   voceMenu: "Dettaglio dell'intervento",
-  grant: [G.riepilogo, G.spesaPerIntervento, G.domandePerAnno, G.importiPerAnno, G.sigcDomande, G.sigcImporti],
+  grant: [G.riepilogo, G.domandePerAnno, G.importiPerAnno, G.sigcDomande, G.sigcImporti],
 };
 
 export const REPORT_FINANZIARIO: VoceReport[] = [

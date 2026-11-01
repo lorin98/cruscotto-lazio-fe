@@ -50,11 +50,6 @@
         },
         {
           "gating": "hide-by-role",
-          "grant": "csr.tx-0002.read",
-          "operationId": "TX-0002"
-        },
-        {
-          "gating": "hide-by-role",
           "grant": "csr.tx-0008.read",
           "operationId": "TX-0008"
         },
@@ -79,7 +74,6 @@
       "path": "/finanziario/interventi/:codice",
       "visibility": [
         "csr.tx-0011.read",
-        "csr.tx-0002.read",
         "csr.tx-0008.read",
         "csr.tx-0010.read",
         "csr.tx-0012.read",
