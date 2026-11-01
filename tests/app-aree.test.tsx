@@ -119,7 +119,7 @@ describe('catalogo delle aree', () => {
     // riallineamento degli ambiti (verbale del 29/10/2026, home.html del flusso superfici approvato il 30/10/2026): output
     // regionale, superfici e Unit Amount; le determine al procedurale
     const fisico = AREE.find((a) => a.chiave === 'fisico');
-    expect(fisico?.descrizione).toBe('Output regionale programmato e realizzato, superfici ammissibili delle domande di sostegno e di pagamento e pagamenti per Unit Amount, per intervento.');
+    expect(fisico?.descrizione).toBe('Output regionale, superfici ammissibili e pagamenti per Unit Amount, per intervento.');
     expect(fisico?.contenuti).toEqual([
       'Output regionale programmato e realizzato per intervento e anno',
       'Superfici ammissibili di sostegno e di pagamento per intervento e campagna',
@@ -131,7 +131,7 @@ describe('catalogo delle aree', () => {
     // riepilogo, determine di una domanda (TX-0020; le Unit Amount sono del fisico)
     const procedurale = AREE.find((a) => a.chiave === 'procedurale');
     expect(procedurale?.contenuti).toEqual(['Stati e sottofasi delle domande', 'Domande ammesse con atto di concessione e contributo', 'Riepilogo per intervento', 'Determine di una domanda']);
-    expect(procedurale?.descrizione).toBe('Stati e sottofasi delle domande di sostegno e di pagamento, domande ammesse con atto di concessione e contributo, riepilogo per intervento e determine di una domanda.');
+    expect(procedurale?.descrizione).toBe('Stati, sottofasi e domande ammesse, con riepilogo per intervento e determine.');
     expect(procedurale?.contenuti.join(' ')).not.toMatch(/Determine, responsabili/);
     // G1 e riallineamento del 29/10/2026: istituzionale = le due verifiche SMP (TX-0016, TX-0015), testi del dossier dei wireframe
     const istituzionale = AREE.find((a) => a.chiave === 'istituzionale');
@@ -377,7 +377,7 @@ describe('Home e menu dallo stesso catalogo', () => {
     const letture = registra(['/api/procedurale/domande-ammesse', '/api/procedurale/stati-sostegno']);
     apriHomeCon(['csr.tx-0020.read']);
     const card = await screen.findByRole('region', { name: 'Procedurale' });
-    expect(within(card).getByText('Stati e sottofasi delle domande di sostegno e di pagamento, domande ammesse con atto di concessione e contributo, riepilogo per intervento e determine di una domanda.')).toBeTruthy();
+    expect(within(card).getByText('Stati, sottofasi e domande ammesse, con riepilogo per intervento e determine.')).toBeTruthy();
     expect(within(card).getAllByRole('listitem').map((l) => l.textContent)).toEqual(['Stati e sottofasi delle domande', 'Domande ammesse con atto di concessione e contributo', 'Riepilogo per intervento', 'Determine di una domanda']);
     expect(within(card).queryByText(/Unit Amount/)).toBeNull();
     expect(within(card).queryByRole('group')).toBeNull();

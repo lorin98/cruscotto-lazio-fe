@@ -2,7 +2,7 @@
 // pluriennali ha una parte stimata (media delle annualita' rilevate per bando moltiplicata per gli anni residui fino
 // all'orizzonte del CSR), calcolata dal backend; i report la dicono accanto all'impegnato ("di cui stimato") e con una nota
 // di lettura dal blocco stimaImpegni (TX-0002, TX-0005, TX-0006, TX-0011), che manca se nessun intervento ha parte stimata.
-import { formatGiorno, importoBreve } from '../../../shared/lib';
+import { formatDate, importoBreve } from '../../../shared/lib';
 import type { ImportoLike } from '../../../entities/importo';
 
 /** StimaImpegni del contratto, quanto basta alla nota (forma strutturale: i layer puri non importano dal confine api/). */
@@ -18,7 +18,7 @@ export interface StimaImpegniLike {
 export function testoStima(s: StimaImpegniLike): string {
   const orizzonte = s.orizzonte == null ? "all'orizzonte del CSR" : `al ${s.orizzonte}`;
   const campagna = s.ultimaCampagnaRilevata == null ? 'nessuna campagna rilevata' : `ultima campagna rilevata ${s.ultimaCampagnaRilevata}`;
-  const giorno = s.calcolatoIl ? `calcolato il ${formatGiorno(s.calcolatoIl)}` : 'data del calcolo non indicata';
+  const giorno = s.calcolatoIl ? `calcolato il ${formatDate(s.calcolatoIl)}` : 'data del calcolo non indicata';
   const richiesto = s.quotaDaRichiesto?.valore != null && s.quotaDaRichiesto.valore !== 0 ? ` Dell'impegnato rilevato, ${importoBreve(s.quotaDaRichiesto.valore)} vengono dal richiesto delle domande ancora in istruttoria: valore provvisorio.` : '';
   return `La parte stimata è la media delle annualità rilevate per bando moltiplicata per gli anni residui fino ${orizzonte}; ${campagna}; ${giorno}.${richiesto}`;
 }

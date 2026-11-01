@@ -409,3 +409,17 @@ describe("RA006: valori dei filtri della verifica da TX-0060 dell'elenco operati
     await waitFor(() => expect(document.activeElement).toBe(bottone));
   });
 });
+
+describe('Revisioni del 31/10/2026: verifica SMP non SIGC solo NO SIGC, non pertinente col filtro SIGC (F3)', () => {
+  it('col filtro SIGC il report e non pertinente e TX-0016 si legge senza filtro; con NO SIGC col filtro', async () => {
+    const lette = servi();
+    const { unmount } = apri(`${PERCORSO}?sigc=true`);
+    expect((await screen.findAllByText('Non pertinente al filtro SIGC')).length).toBeGreaterThan(0);
+    expect(lette.verifica.every((q) => !q.includes('sigc'))).toBe(true);
+    unmount();
+    const conFiltro = servi();
+    apri(`${PERCORSO}?sigc=false`);
+    await waitFor(() => expect(conFiltro.verifica.some((q) => q.includes('sigc=false'))).toBe(true));
+    expect(screen.queryByText('Non pertinente al filtro NO SIGC')).toBeNull();
+  });
+});

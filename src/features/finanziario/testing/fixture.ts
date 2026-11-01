@@ -12,8 +12,9 @@ const euro = (valore: number) => dato(valore);
 
 export const FILTRI = {
   interventi: [
-    { chiave: 'SRA01', descrizione: 'Intervento di prova A' },
-    { chiave: 'SRA03', descrizione: 'Intervento di prova B' },
+    // il tipo dalla programmazione (revisioni del 31/10/2026, VoceFiltro.perimetro)
+    { chiave: 'SRA01', descrizione: 'Intervento di prova A', perimetro: 'SIGC' },
+    { chiave: 'SRA03', descrizione: 'Intervento di prova B', perimetro: 'SIGC' },
   ],
   obiettiviSpecifici: [{ chiave: 'OS4', descrizione: null }],
   obiettiviGenerali: ['OG2'],
@@ -93,6 +94,23 @@ export const RESIDUO_PAGAMENTI = {
   dotazioneSpesaPubblica: euro(1000000),
   importoPagato: euro(220000),
   importoRettifiche: euro(20000),
+  // revisioni del 31/10/2026 (R08): la fonte delle rettifiche e il residuo per intervento
+  fonteRettifiche: { documento: 'FEASR 23.27 Report', dataRiferimento: '2026-02-28' },
+  interventi: [
+    {
+      codiceIntervento: 'SRA01',
+      dotazioneSpesaPubblica: euro(1000000),
+      pagatoLordo: euro(220000),
+      importoRettifiche: euro(20000),
+      pagamentiNettoRettifiche: euro(200000),
+      dotazioneResidua: euro(800000),
+      conRettifiche: true,
+      rettifiche: [
+        { progressivo: 1, programmazione: 'CSR_2023_2027', importo: -20000, codiceAzione: 'SRA01.2', riferimento: 'riga 12 del foglio' },
+        { progressivo: 2, programmazione: 'TRASCINAMENTI_PSR', importo: -500, codiceAzione: null, riferimento: 'riga 13 del foglio' },
+      ],
+    },
+  ],
   pagamentiNettoRettifiche: euro(200000),
   dotazioneResidua: euro(800000),
 };
@@ -134,6 +152,11 @@ export const RISERVA = {
   dataEstrazione: '2026-12-31',
   dataCongelamento: '2026-06-30',
   montantePagamenti: 10000,
+  // revisioni del 31/10/2026 (R17): quote e natura
+  quotaRiserva: 0.05,
+  quotaResiduo: 0.02,
+  naturaRiserva: 'CONSUNTIVO',
+  naturaResiduo: 'PREVISIONE',
   importoAccumulato: 500,
   importoCongelato: 500,
   importoUtilizzato: 300,

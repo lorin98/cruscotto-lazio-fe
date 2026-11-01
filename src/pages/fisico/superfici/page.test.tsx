@@ -446,3 +446,20 @@ describe("RA006: valori dei filtri delle superfici da TX-0060 dell'elenco operat
     await waitFor(() => expect(document.activeElement).toBe(bottone));
   });
 });
+
+describe('Revisioni del 31/10/2026: superfici solo SIGC, non pertinenti col filtro NO SIGC (F3)', () => {
+  it('col filtro NO SIGC il report e non pertinente e si legge senza filtro; con SIGC si legge col filtro', async () => {
+    const lette = servi();
+    const { unmount } = apri(`${PERCORSO}?sigc=false`);
+    expect((await screen.findAllByText('Non pertinente al filtro NO SIGC')).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/^Riguarda solo le domande SIGC \(superfici dall'ASR2-20\)/).length).toBeGreaterThan(0);
+    expect(within(screen.getByRole('group', { name: 'Interventi SIGC o NO SIGC' })).getByRole('button', { name: 'NO SIGC' }).getAttribute('aria-pressed')).toBe('true');
+    expect(lette.superfici.length).toBeGreaterThan(0);
+    expect(lette.superfici.every((q) => !q.includes('sigc'))).toBe(true);
+    unmount();
+    const conSigc = servi();
+    apri(`${PERCORSO}?sigc=true`);
+    await waitFor(() => expect(conSigc.superfici).toContain('?sigc=true'));
+    expect(screen.queryByText('Non pertinente al filtro SIGC')).toBeNull();
+  });
+});

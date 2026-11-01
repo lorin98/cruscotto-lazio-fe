@@ -50,3 +50,18 @@ describe("RF014: monitoraggio della riserva al 5% dell'anno n nelle quattro fasi
     await expectNoA11yViolations(container);
   });
 });
+
+describe('Revisioni del 31/10/2026: montante e riserve (R17 forma A) e utilizzo progressivo (R18 forma A)', () => {
+  it('il montante in alto, riserva del 5% e residuo del 2% col badge della natura; il testo di lettura sopra il grafico', async () => {
+    server.use(http.get('*/api/finanziario/riserva/2025', () => HttpResponse.json(RISERVA)));
+    renderPagina(Pagina, '/finanziario/sigc/riserva', '/finanziario/sigc/riserva?anno=2025');
+    const blocco = await screen.findByRole('region', { name: "Montante e riserve dell'anno 2025" });
+    const riserva = screen.getByRole('region', { name: 'Riserva di efficacia (5%)' });
+    expect(riserva.textContent).toContain('Consuntivo');
+    expect(riserva.textContent).toContain('500,00');
+    expect(screen.getByRole('region', { name: 'Residuo (2%)' }).textContent).toContain('Previsione');
+    expect(blocco.textContent).toContain("Montante dei pagamenti dell'anno 2025");
+    const card = await trovaCard('Utilizzo progressivo cumulato');
+    expect(card.textContent).toMatch(/La linea è quanto della riserva è stato usato, sommato nel tempo/);
+  });
+});

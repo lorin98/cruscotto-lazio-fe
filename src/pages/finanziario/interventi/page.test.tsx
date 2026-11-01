@@ -289,3 +289,13 @@ describe("RA003: drill-down dal dettaglio dell'intervento all'elenco operativo",
     expect(screen.queryByRole('link', { name: /apri nell.elenco operativo/i })).toBeNull();
   });
 });
+
+describe('Revisioni del 31/10/2026: il tipo dell intervento nel dettaglio (F5), niente filtro SIGC', () => {
+  it('la pill della barra e il badge della testata dicono il tipo dalla programmazione; nessun controllo SIGC', async () => {
+    servi();
+    renderPagina(Pagina, PERCORSO, '/finanziario/interventi/SRA01');
+    expect(await screen.findByText('Tipo di intervento: SIGC (dalla programmazione; il filtro SIGC non si applica al dettaglio)')).toBeTruthy();
+    expect(await screen.findByText('Intervento SIGC (dalla programmazione)')).toBeTruthy();
+    expect(screen.queryByRole('group', { name: 'Interventi SIGC o NO SIGC' })).toBeNull();
+  });
+});

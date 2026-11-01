@@ -178,3 +178,36 @@ describe("RA003: drill-down dalla panoramica all'elenco operativo", () => {
     expect(screen.queryByRole('link', { name: /Apri nell.elenco operativo/ })).toBeNull();
   });
 });
+
+describe('Revisioni del 31/10/2026: filtro SIGC nella panoramica (R01, F3) e sei box (R03)', () => {
+  it('col filtro NO SIGC le card SIGC sono non pertinenti e si leggono senza filtro; la spesa si legge col filtro', async () => {
+    const lette: Record<string, string[]> = { spesa: [], sigc: [] };
+    servi();
+    server.use(
+      http.get('*/api/finanziario/spesa-per-intervento', ({ request }) => {
+        lette.spesa.push(new URL(request.url).search);
+        return HttpResponse.json(SPESA);
+      }),
+      http.get('*/api/finanziario/sigc/domande', ({ request }) => {
+        lette.sigc.push(new URL(request.url).search);
+        return HttpResponse.json(SIGC_DOMANDE);
+      }),
+    );
+    renderPagina(Pagina, '/finanziario', '/finanziario?sigc=false');
+    expect((await screen.findAllByText('Non pertinente al filtro NO SIGC')).length).toBe(2);
+    await waitFor(() => expect(lette.spesa).toContain('?sigc=false'));
+    expect(lette.sigc.length).toBeGreaterThan(0);
+    expect(lette.sigc.every((q) => !q.includes('sigc'))).toBe(true);
+    // R03: le sei tessere, nell'ordine del DOM a coppie per colonna
+    const griglia = (await screen.findByRole('region', { name: 'Totale impegnato' })).parentElement as HTMLElement;
+    expect(griglia.className).toContain('ui-griglia--3');
+    expect(Array.from(griglia.querySelectorAll('.ui-kpi'), (k) => k.querySelector('.ui-kpi__etichetta')?.textContent)).toEqual([
+      'Dotazione spesa pubblica',
+      'Domande presentate',
+      'Totale impegnato',
+      'Impegnato sulla dotazione',
+      'Pagamenti totali (lordi, elenchi di liquidazione)',
+      'Pagato lordo sulla dotazione',
+    ]);
+  });
+});

@@ -115,3 +115,26 @@ describe('RF012: pagina SIGC senza collegamenti verso altri ambiti (scelta S-1 a
     expect(document.body.textContent).not.toMatch(/verifica SMP/i);
   });
 });
+
+describe('Revisioni del 31/10/2026: pagina di soli interventi SIGC (F3)', () => {
+  it('col filtro NO SIGC le due card sono non pertinenti, lette senza filtro; il controllo dice NO SIGC', async () => {
+    const lette: string[] = [];
+    server.use(
+      http.get('*/api/finanziario/sigc/domande', ({ request }) => {
+        lette.push(new URL(request.url).search);
+        return HttpResponse.json(SIGC_DOMANDE);
+      }),
+      http.get('*/api/finanziario/sigc/importi', ({ request }) => {
+        lette.push(new URL(request.url).search);
+        return HttpResponse.json(SIGC_IMPORTI);
+      }),
+    );
+    renderPagina(Pagina, '/finanziario/sigc', '/finanziario/sigc?sigc=false');
+    expect((await screen.findAllByText('Non pertinente al filtro NO SIGC')).length).toBeGreaterThanOrEqual(2);
+    await waitFor(() => expect(lette.length).toBeGreaterThanOrEqual(2));
+    expect(lette.every((q) => !q.includes('sigc'))).toBe(true);
+    expect(within(screen.getByRole('group', { name: 'Interventi SIGC o NO SIGC' })).getByRole('button', { name: 'NO SIGC' }).getAttribute('aria-pressed')).toBe('true');
+    // i link verso l'elenco sono nel corpo inerte: non si raggiungono
+    for (const link of screen.queryAllByRole('link', { name: /elenco operativo/ })) expect(link.closest('[inert]')).not.toBeNull();
+  });
+});

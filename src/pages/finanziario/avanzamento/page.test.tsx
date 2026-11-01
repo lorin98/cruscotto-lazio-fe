@@ -116,3 +116,22 @@ describe('RF007: dotazione tra importo pagato e dotazione residua', () => {
     await expectNoA11yViolations(container);
   });
 });
+
+describe('Revisioni del 31/10/2026: residuo sui pagamenti per intervento con le rettifiche (R08) e R15', () => {
+  it('la tabella per intervento con la fonte delle rettifiche; "Si: 2 righe" apre le righe nel pannello laterale', async () => {
+    servi();
+    renderPagina(Pagina, '/finanziario/avanzamento');
+    // la sezione arriva con la lettura di TX-0007 (prima il caricamento della sezione col grant)
+    await screen.findByText('Rettifiche: documento "FEASR 23.27 Report", data di riferimento 28/02/2026');
+    const sezione = screen.getByRole('region', { name: 'Dotazione residua sui pagamenti per intervento (RF007)' });
+    // R15: il titolo nuovo del gauge (prima di aprire il pannello, che rende inerte il resto della pagina)
+    expect(await screen.findByRole('region', { name: 'Avanzamento rispetto ai pagamenti effettuati' })).toBeTruthy();
+    const riga = within(sezione).getByRole('row', { name: /SRA01/ });
+    expect(riga.textContent).toContain('220.000,00');
+    await userEvent.click(within(riga).getByRole('button', { name: "Apri le 2 righe di rettifiche dell'intervento SRA01" }));
+    const pannello = await screen.findByRole('dialog', { name: 'SRA01' });
+    const righe = within(pannello).getByRole('table', { name: "Rettifiche dell'intervento SRA01" });
+    expect(righe.textContent).toContain('CSR 2023-2027 (nel netto)');
+    expect(righe.textContent).toContain('Trascinamenti PSR (fuori dal netto)');
+  });
+});

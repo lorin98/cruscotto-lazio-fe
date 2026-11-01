@@ -6,7 +6,7 @@
 // risponde "fonte non attiva: rettifiche" sugli importi (ValoreImporto lo dice).
 import { useState } from 'react';
 import { ValoreImporto } from '../../../entities/importo';
-import { formatEuro, formatGiorno } from '../../../shared/lib';
+import { formatDate, formatEuro } from '../../../shared/lib';
 import { PannelloLaterale, PulsantiScarica, Sezione, TabellaInterattiva, TabellaStatica } from '../../../shared/ui';
 import type { ColonnaStatica, ColonnaTabella } from '../../../shared/ui';
 import type { FonteRettifiche, Rettifica, ResiduoSuPagamenti, ResiduoSuPagamentiIntervento } from '../api';
@@ -38,7 +38,7 @@ export function TabellaRettifiche({ codice, rettifiche }: { codice: string; rett
 export function FonteDelleRettifiche({ fonte }: { fonte: FonteRettifiche | null | undefined }) {
   if (!fonte) return null;
   const documento = fonte.documento ? `documento "${fonte.documento}"` : 'documento non indicato';
-  return <p className="ui-pill mb-2">{`Rettifiche: ${documento}, data di riferimento ${formatGiorno(fonte.dataRiferimento)}`}</p>;
+  return <p className="ui-pill mb-2">{`Rettifiche: ${documento}, data di riferimento ${formatDate(fonte.dataRiferimento)}`}</p>;
 }
 
 /** "Si': n righe" (apre il dettaglio), "No", o il dato assente (nessuna rettifica nel database). */

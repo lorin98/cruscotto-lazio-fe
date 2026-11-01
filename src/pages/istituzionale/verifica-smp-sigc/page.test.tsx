@@ -333,3 +333,14 @@ describe('RA006: i valori dei filtri della verifica SMP SIGC da TX-0060 dell ele
     await tabella();
   });
 });
+
+describe('Revisioni del 31/10/2026: verifica SMP SIGC solo SIGC, non pertinente col filtro NO SIGC (F3)', () => {
+  it('col filtro NO SIGC il report e non pertinente e TX-0015 si legge senza filtro', async () => {
+    const lette = servi();
+    apri(`${PERCORSO}?esercizio=2025&sigc=false`);
+    expect((await screen.findAllByText('Non pertinente al filtro NO SIGC')).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/^Riguarda solo gli interventi SIGC: con il filtro NO SIGC non si applica/).length).toBeGreaterThan(0);
+    expect(lette.verificaSigc.length).toBeGreaterThan(0);
+    expect(lette.verificaSigc.every((q) => !q.includes('sigc'))).toBe(true);
+  });
+});

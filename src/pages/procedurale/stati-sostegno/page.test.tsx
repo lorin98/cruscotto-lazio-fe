@@ -239,3 +239,14 @@ describe('RF027: stati della pagina degli stati di sostegno (caricamento, errore
     await waitFor(() => expect(document.activeElement).toBe(h1()));
   });
 });
+
+describe('Revisioni del 31/10/2026: stati di sostegno solo NO SIGC, non pertinenti col filtro SIGC (F3)', () => {
+  it('col filtro SIGC la pagina e non pertinente e TX-0027 si legge senza filtro', async () => {
+    const lette = servi();
+    apri(`${PERCORSO}?sigc=true`);
+    expect((await screen.findAllByText('Non pertinente al filtro SIGC')).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/^Riguarda solo le domande di sostegno, che sono NO SIGC/).length).toBeGreaterThan(0);
+    expect(lette.sostegno.length).toBeGreaterThan(0);
+    expect(lette.sostegno.every((q) => !q.includes('sigc'))).toBe(true);
+  });
+});
