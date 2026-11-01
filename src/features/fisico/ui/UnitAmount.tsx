@@ -12,7 +12,7 @@
 // non disponibili.
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
-import { descrizioneIntervento } from '../../../entities/filtri';
+import { descrizioneIntervento, ricercaDaFiltri } from '../../../entities/filtri';
 import type { Filtri } from '../../../entities/filtri';
 import { ValoreImporto, ValoreMotivato } from '../../../entities/importo';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
@@ -130,7 +130,8 @@ export function UnitAmount() {
       testoVuoto={testoVuotoUnitAmount}
       codiciRisposta={[...new Set((stato.data?.righe ?? []).flatMap((r) => (r.codiceIntervento ? [r.codiceIntervento] : [])))]}
     >
-      {(d) => <ReportUnitAmount d={d} filtri={pagina.filtri} aperto={aperto} onApri={setAperto} descrizioneDi={(codice) => descrizioneIntervento(pagina.valori?.data?.interventi, codice)} />}
+      {/* la chiave coi filtri: cambiandoli (anche il SIGC) la tabella riparte dalla prima pagina (review X-11, come l'output) */}
+      {(d) => <ReportUnitAmount key={ricercaDaFiltri(pagina.filtri)} d={d} filtri={pagina.filtri} aperto={aperto} onApri={setAperto} descrizioneDi={(codice) => descrizioneIntervento(pagina.valori?.data?.interventi, codice)} />}
     </PaginaReport>
   );
 }

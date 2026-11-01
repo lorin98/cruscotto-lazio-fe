@@ -17,7 +17,8 @@
 // filtro, in grigio e inerte.
 import { useState } from 'react';
 import { descrizioneIntervento, usePannelloConFocus } from '../../../entities/filtri';
-import { nonPertinenza, senzaSigc, testoPerimetro } from '../../../shared/lib';
+import { letturaDelTipo, testoPerimetro } from '../../../shared/lib';
+import type { NonPertinenza } from '../../../shared/lib';
 import { AvvisoPagina, BarraFiltri, Briciole, Caricamento, ContestoIntestazione, NonPertinente, PillDatiAl, TestaPagina, VistaQuery, VuotoConFiltri, useRigheContesto } from '../../../shared/ui';
 import type { VistaGrafico } from '../../../shared/ui';
 import { useSuperfici } from '../api';
@@ -32,7 +33,6 @@ import { useCriteriNellIndirizzo } from './useCriteriNellIndirizzo';
 
 const SOTTOTITOLO =
   "Superficie ammissibile delle domande di sostegno (DS) e delle domande di pagamento (DP) per intervento e campagna, con la verifica incrociata fra le due. Clic su una barra per l'anteprima dell'intervento; nella vista Tabella cerca, ordina e scegli le colonne.";
-const BRICIOLE = [{ etichetta: 'Fisico', a: PERCORSI.superfici }, { etichetta: 'Superfici ammissibili' }];
 /** Il motivo della non pertinenza col filtro NO SIGC (wireframe superfici, F3). */
 const MOTIVO_SOLO_SIGC = "Riguarda solo le domande SIGC (superfici dall'ASR2-20)";
 
@@ -46,10 +46,10 @@ function PillDellaBarra({ d, inErrore }: { d: SuperficieAmmissibile | undefined;
   );
 }
 
-type PropsCorpo = Omit<PropsReport, 'd'> & { stato: ReturnType<typeof useSuperfici>; inAttesa: boolean };
+type PropsCorpo = Omit<PropsReport, 'd'> & { stato: ReturnType<typeof useSuperfici>; inAttesa: boolean; np: NonPertinenza | null };
 
 /** Il corpo della pagina: un solo avviso, l'attesa del legame con le azioni, la lettura di TX-0018 e il report. */
-function CorpoSuperfici({ stato, inAttesa, ...report }: PropsCorpo) {
+function CorpoSuperfici({ stato, inAttesa, np, ...report }: PropsCorpo) {
   // righe di contesto del PNG dei grafici (NFR-50, hook del kit): criteri applicati, perimetro, profilo, ultimo dato di TX-0018
   const d = stato.data;
   const contesto = useRigheContesto(testiCriteri(report.criteri), d?.ultimiDatiSincronizzati, d ? testoPerimetro(d.perimetro) : null);
@@ -63,7 +63,7 @@ function CorpoSuperfici({ stato, inAttesa, ...report }: PropsCorpo) {
           <VistaQuery stato={stato} eVuoto={(d) => d.righe.length === 0} vuoto={<VuotoConFiltri onModifica={report.onModificaFiltri}>Nessun intervento per i filtri scelti.</VuotoConFiltri>}>
             {/* criteri nuovi = contenuto nuovo: l'anteprima aperta non resta quella di prima */}
             {(d) => (
-              <NonPertinente np={nonPertinenza(report.criteri.sigc, 'sigc', MOTIVO_SOLO_SIGC)}>
+              <NonPertinente np={np}>
                 <Report key={ricercaDaCriteri(report.criteri)} d={d} {...report} />
               </NonPertinente>
             )}
@@ -76,8 +76,9 @@ function CorpoSuperfici({ stato, inAttesa, ...report }: PropsCorpo) {
 
 export function SuperficiAmmissibili() {
   const { criteri, inAttesa, chip, applica, togliTutti, valori } = useCriteriNellIndirizzo();
-  // col filtro NO SIGC le superfici (solo SIGC) si leggono senza filtro: il dato reale, in grigio (F3)
-  const lettura = nonPertinenza(criteri.sigc, 'sigc', MOTIVO_SOLO_SIGC) ? senzaSigc(criteri) : criteri;
+  // col filtro NO SIGC le superfici (solo SIGC) si leggono senza filtro: il dato reale, in grigio (F3); resa e lettura
+  // dalla stessa decisione (review H-06)
+  const { np, criteri: lettura } = letturaDelTipo(criteri, 'sigc', MOTIVO_SOLO_SIGC);
   const stato = useSuperfici(lettura, { abilitato: !inAttesa });
   // il pannello e il focus dopo "Applica i filtri" (regola comune di entities/filtri); i criteri applicati da un comando
   // che sparisce col report (applicaConFocus) portano il focus sull'h1 dopo la chiusura del dialogo (A1, X2)
@@ -89,9 +90,10 @@ export function SuperficiAmmissibili() {
     <>
       <BarraFiltri chip={chip} onApri={() => apri('barra')} onTogliTutti={togliTutti} vuoto="Nessun filtro: tutti gli interventi e tutte le campagne" destra={<PillDellaBarra d={stato.data} inErrore={stato.isError} />} filtroSigc />
       <main className="ui-pagina" id="contenuto">
-        <Briciole voci={BRICIOLE} />
+        {/* la voce dell'area porta il filtro SIGC della pagina, come il menu (review V2-19) */}
+        <Briciole voci={[{ etichetta: 'Fisico', a: criteri.sigc ? `${PERCORSI.superfici}?sigc=${criteri.sigc}` : PERCORSI.superfici }, { etichetta: 'Superfici ammissibili' }]} />
         <TestaPagina titolo="Fisico: superfici ammissibili per intervento" titoloDocumento="Superfici ammissibili - Fisico" sottotitolo={SOTTOTITOLO} refTitolo={h1} />
-        <CorpoSuperfici stato={stato} inAttesa={inAttesa} criteri={criteri} vista={vista} onVista={setVista} applica={applicaConFocus} onModificaFiltri={() => apri('vuoto')} descrizioneDi={descrizioneDi} />
+        <CorpoSuperfici stato={stato} inAttesa={inAttesa} np={np} criteri={criteri} vista={vista} onVista={setVista} applica={applicaConFocus} onModificaFiltri={() => apri('vuoto')} descrizioneDi={descrizioneDi} />
       </main>
       <PannelloFiltriSuperfici aperto={pannello !== null} criteri={criteri} valori={valori} campagne={campagnePresenti(righe)} codiciRisposta={righe.map((r) => r.codiceIntervento)} onChiudi={chiudi} onApplica={onApplica} />
     </>

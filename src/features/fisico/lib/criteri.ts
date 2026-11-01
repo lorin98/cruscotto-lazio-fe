@@ -6,7 +6,7 @@
 // 30/10/2026 anche le Unit Amount, SC-FS_UNIT_AMOUNT_AZIONE); per il dettaglio dell'intervento il solo intervento.
 import { CHIAVI_FILTRO, filtriDaRicerca, filtriNellaBarra, ricercaDaFiltri } from '../../../entities/filtri';
 import type { ChiaveFiltro, Filtri, FiltroNellaBarra } from '../../../entities/filtri';
-import { isAnnoValido } from '../../../shared/lib';
+import { isAnnoValido, righeSigc } from '../../../shared/lib';
 
 /** Criteri di TX-0018: i filtri del programma e la campagna (assente = tutte le campagne presenti). */
 export interface Criteri extends Filtri {
@@ -77,7 +77,8 @@ export function criteriAttivi(criteri: Criteri): CriterioAttivo[] {
 
 /** "Etichetta: valore" di ogni criterio, per l'intestazione del PNG dei grafici (filtri applicati, NFR-50). */
 export function testiCriteri(criteri: Criteri): string[] {
-  return criteriAttivi(criteri).map((c) => `${c.etichetta}: ${c.valore}`);
+  // il filtro SIGC non e' un chip ma e' un filtro applicato (review J-03)
+  return [...criteriAttivi(criteri).map((c) => `${c.etichetta}: ${c.valore}`), ...righeSigc(criteri.sigc)];
 }
 
 /** Vero se c'e' almeno un filtro del programma (la campagna esclusa): serve a dire se il vuoto dipende dai filtri. */

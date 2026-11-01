@@ -249,3 +249,15 @@ describe("RA006: valori dei filtri dell'output regionale da TX-0060 dell'elenco 
     expect(within(await tabella()).getAllByRole('rowheader').map((c) => c.textContent)).toEqual(['SRA01']);
   });
 });
+
+describe('Revisioni del 31/10/2026: la voce dell area nel percorso porta il filtro SIGC (review V2-19)', () => {
+  it('col filtro SIGC la voce Fisico delle briciole lo porta; senza filtro no', async () => {
+    servi();
+    const conSigc = apri(`${PERCORSO}?sigc=false`);
+    const voce = async () => (await within(await screen.findByRole('navigation', { name: 'Percorso' })).findByRole('link', { name: 'Fisico' })).getAttribute('href');
+    expect(await voce()).toBe('/fisico/superfici?sigc=false');
+    conSigc.unmount();
+    apri();
+    expect(await voce()).toBe('/fisico/superfici');
+  });
+});

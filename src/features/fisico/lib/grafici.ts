@@ -120,7 +120,8 @@ export function lineePerCampagna(punti: readonly PuntoCampagna[], { caption, tit
     aria: aria(descrizioneLinee(titolo, punti)),
     legend: {},
     tooltip: { trigger: 'axis', valueFormatter: valoreEttari },
-    xAxis: { type: 'category', data: punti.map((p) => String(p.anno)) },
+    // tutte le campagne sull'asse: sono poche e ognuna e' un punto da leggere (review X-18)
+    xAxis: { type: 'category', data: punti.map((p) => String(p.anno)), axisLabel: { interval: 0, hideOverlap: false } },
     yAxis: { type: 'value', axisLabel: { formatter: asseEttari } },
     series: [serie('superficieDs', 'Superficie DS', 'superficie DS'), serie('superficieDp', 'Superficie DP', 'superficie DP')],
   };
