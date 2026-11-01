@@ -1,0 +1,119 @@
+[
+  {
+    "id": "A-01",
+    "feature": "comune",
+    "severity": "MAGGIORE",
+    "file": "src/shared/ui/grafici/CardGrafico.tsx:220",
+    "titolo": "Card grafico non pertinente: la tabella nascosta alla vista resta una fermata di tabulazione invisibile",
+    "evidenza": "CardNonPertinente rende <div className='visually-hidden'><TabellaDati/></div> fuori dal corpo inerte (CardGrafico.tsx:220-222). TabellaDati usa il Contenitore delle tabelle semplici, che e' role=region con tabIndex={0} (src/shared/ui/tabella/TabelleSemplici.tsx:19). In ogni card grafico non pertinente non annidata (pagina SIGC e card SIGC della panoramica del finanziario con NO SIGC; stati, sottofasi e ammesse del procedurale con SIGC; grafici delle due verifiche SMP dell'istituzionale) il Tab si ferma su una regione clippata a 1 px: il focus sparisce alla vista (WCAG 2.4.7, 2.4.3) proprio nel contenuto che il wireframe vuole non interattivo. Nella card normale la tabella si vede solo nella vista Tabella, quindi la copia nascosta e focalizzabile e' nuova del delta. Il test kit-sigc.test.tsx:120-123 verifica solo che la tabella non abbia antenati [inert] e stia in .visually-hidden, non che non sia raggiungibile da tastiera; ne' jsdom ne' axe lo rilevano.",
+    "fix": "Rendere la copia per gli strumenti assistivi senza tabIndex (variante di Contenitore/TabellaDati non focalizzabile, o tabella senza contenitore scorrevole) e aggiungere al test che nella card non pertinente non resti alcun elemento con tabindex >= 0 fuori dal corpo inerte."
+  },
+  {
+    "id": "A-02",
+    "feature": "fisico",
+    "severity": "MAGGIORE",
+    "file": "src/features/fisico/ui/ReportSuperfici.tsx:112",
+    "titolo": "Superfici con NO SIGC: le tabelle equivalenti dei grafici finiscono sotto l'inert della Sezione e non le legge nessuno strumento assistivo",
+    "evidenza": "Le tre CardGrafico delle superfici stanno dentro <Sezione titolo={TITOLO_TABELLA}> (ReportSuperfici.tsx:112-120) e tutto e' avvolto in <NonPertinente> (SuperficiAmmissibili.tsx:66). La Sezione non pertinente mette i figli in un div inert (Sezione.tsx:30, NonPertinente.tsx:36): la tabella dei dati che CardNonPertinente lascia «per gli strumenti assistivi» (CardGrafico.tsx:220) ha cosi' un antenato inert ed esce dall'albero di accessibilita' (la specifica HTML: il contenuto inert non e' percepibile da tutti gli utenti). Con NO SIGC chi usa un lettore di schermo ha solo i quattro KPI: nessun valore per intervento ne' dai grafici ne' dalla vista Tabella (inerte anch'essa), mentre a vista restano i grafici in grigio coi valori. Contraddice la regola comune dei wireframe approvati («La tabella equivalente resta leggibile dagli strumenti assistivi») e lo stesso scostamento 3 dichiarato («per i grafici la tabella dei dati resta leggibile»). In piu' badge e motivo compaiono quattro volte (testa della Sezione e testa di ogni card). Il test superfici/page.test.tsx:450-464 controlla badge e letture, non le tabelle.",
+    "fix": "Non annidare le card del kit sotto l'inert di una Sezione non pertinente: la Sezione rende inerti solo i propri controlli (interruttore di vista, tabella interattiva) e lascia alle CardGrafico figlie la loro resa non pertinente, oppure il contesto dice alle card annidate di non ripetere il badge e la tabella nascosta va fuori dall'antenato inert; test che cerchi la tabella dei dati senza antenati [inert] nella pagina con ?sigc=false."
+  },
+  {
+    "id": "A-03",
+    "feature": "procedurale",
+    "severity": "MAGGIORE",
+    "file": "src/features/procedurale/lib/collegamenti.ts:55",
+    "titolo": "I link del procedurale verso l'elenco operativo perdono il filtro SIGC: l'elenco apre un insieme diverso dal numero cliccato",
+    "evidenza": "LINK_ELENCO (collegamenti.ts:51-70) e parametri() (collegamenti.ts:85-98) del procedurale non portano mai sigc, e plan/procedurale/uiplan.json non e' stato aggiornato (a differenza dei 7 link del finanziario, link-elenco.ts:77-93). La card mista «Domande per stato area programmazione» legge coi criteri del report, sigc compreso (Panoramica.tsx:42, 47), ma il suo link «Apri nell'elenco operativo N domande con stato area programmazione X» (Panoramica.tsx:101, testiLinkArea) apre /elenco-operativo/domande con voceProgrammazione e i filtri del programma senza sigc. Con SIGC la card conta le domande degli interventi SIGC (in gran parte «senza stato», wireframe panoramica.md:211) e l'elenco mostra anche quelle NO SIGC; con NO SIGC la voce «senza stato» dell'elenco comprende le domande SIGC. Il numero nel nome accessibile del link non coincide coi risultati e l'elenco si apre su «Tutti», contro la regola dei wireframe (filtro conservato fra le pagine e fra le aree) e E-impatto-fe.md §7 («i link dalle dashboard all'elenco passano gia' sigc»). Lo stesso vale per i link delle card NO SIGC quando esistono interventi non classificati (fuori da entrambi i valori).",
+    "fix": "Aggiungere 'sigc' alla query dei link del procedurale verso l'elenco coi filtri correnti (uiplan, LINK_ELENCO e parametri() con c.sigc), come nel finanziario; test: dalla panoramica con ?sigc=true il link dell'area programmazione porta sigc=true."
+  },
+  {
+    "id": "A-04",
+    "feature": "comune",
+    "severity": "MAGGIORE",
+    "file": "src/entities/filtri/lib/programma.ts:111",
+    "titolo": "Intestazione dei PNG senza il filtro SIGC fuori dal finanziario (NFR-50); nell'elenco operativo e' una regressione",
+    "evidenza": "Solo PaginaFinanziario aggiunge «Interventi: SIGC|NO SIGC» alle righe dell'intestazione dei PNG (PaginaFinanziario.tsx:69, 75-78). Altrove le righe vengono dai filtri della barra: filtriAttivi scorre solo CHIAVI_FILTRO (programma.ts:111), quindi testiCriteri di fisico (fisico/lib/criteri.ts:79, usato in PaginaReport.tsx:68 e SuperficiAmmissibili.tsx:55), istituzionale (istituzionale/lib/criteri.ts:121, 127) e procedurale (PaginaProcedurale.tsx:50) non dicono il filtro SIGC; nell'elenco operativo filtriApplicati viene da chipDeiCriteri (useInterrogazione.ts:41), che dal delta salta sigc (chip.ts:124), mentre prima il chip SIGC finiva nell'intestazione. Un PNG scaricato con SIGC o NO SIGC (output regionale, Unit Amount, stati e area programmazione del procedurale, ripartizioni dell'elenco) elenca filtri che non comprendono quello applicato: NFR-50 chiede in ogni file esportato i filtri applicati.",
+    "fix": "Portare il filtro SIGC nelle righe di contesto in un punto solo (testiCriteri comuni in entities/filtri o righeContesto col valore sigc della pagina), escluso dove la pagina non lo prende (dettagli, riserva, determine); test sull'intestazione del PNG in un'area diversa dal finanziario e nell'elenco."
+  },
+  {
+    "id": "A-05",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/card/Sezione.tsx:30",
+    "titolo": "Scostamento 3: le tabelle delle Sezione non pertinenti restano visibili ma sono tolte agli strumenti assistivi",
+    "evidenza": "La Sezione non pertinente avvolge tutti i figli in CorpoNonPertinente con inert (Sezione.tsx:30, NonPertinente.tsx:36). Le tabelle per intervento delle pagine non pertinenti (TabellaStatiInterventi.tsx:62, TabellaAmmesse.tsx:64, TabellaVerifica.tsx:42, TabellaVerificaSigc.tsx:47, vista Tabella delle superfici) restano a vista in grigio ma escono dall'albero di accessibilita': la specifica HTML avverte che un sottoalbero inert non deve contenere contenuto necessario a capire la pagina, e WCAG 1.3.1 chiede che l'informazione presentata sia determinabile. Il wireframe chiede un corpo non interattivo, non non percepibile; per i grafici la scelta del kit e' opposta (tabella leggibile). Valutazione dello scostamento dichiarato: non accettabile cosi' com'e'.",
+    "fix": "Rendere le tabelle non interattive ma leggibili: inert solo su controlli, righe cliccabili e link (o copia statica visually-hidden senza tabIndex fuori dall'inert, come per i grafici), lasciando il grigio a vista."
+  },
+  {
+    "id": "A-06",
+    "feature": "elenco-operativo",
+    "severity": "MINORE",
+    "file": "src/shared/lib/sigc.ts:20",
+    "titolo": "Controllo SIGC ed elenco operativo leggono sigc dall'indirizzo con regole diverse: la barra puo' dire «Tutti» mentre la richiesta filtra",
+    "evidenza": "sigcDaRicerca prende il primo valore grezzo (p.get, sigc.ts:20) e lo accetta solo se e' esattamente 'true' o 'false'; criteriDaRicerca dell'elenco usa leggiRipetuti, che toglie gli spazi e prende il primo valore valido (elenco-operativo/lib/criteri.ts:149, parametri-ripetuti.ts:10). Con ?sigc=x&sigc=true (o ?sigc=%20true) l'elenco manda sigc=true e mostra l'insieme SIGC, mentre ControlloSigc (ControlloSigc.tsx:25) segna «Tutti» premuto; il clic su «Tutti» non fa nulla (scegli esce se s === scelta), quindi dalla barra il filtro non si toglie. Nelle aree coi filtri del programma filtriDaRicerca usa sigcDaRicerca e barra e richiesta coincidono.",
+    "fix": "Una regola sola: sigcDaRicerca allineata a leggiRipetuti (trim, primo valore valido) oppure l'elenco che legge sigc con sigcDaRicerca; test con un indirizzo a due valori di sigc."
+  },
+  {
+    "id": "A-07",
+    "feature": "elenco-operativo",
+    "severity": "MINORE",
+    "file": "src/shared/ui/filtri/ControlloSigc.tsx:29",
+    "titolo": "Nell'elenco operativo il controllo SIGC naviga con push e senza state: perde vista e colonne e non segue la regola replace dei filtri dell'elenco",
+    "evidenza": "ControlloSigc chiama naviga(percorso?query) senza opzioni (ControlloSigc.tsx:29): voce nuova nella cronologia e location.state nullo. L'elenco tiene vista per ambito e colonne nascoste nello state (useScelteElenco -> useStatoNellaHistory, interrogazione.tsx:37-38) e i suoi filtri scrivono con { replace: true, state } proprio per conservarle e perche' «indietro» torni alla pagina di provenienza (useCriteri.ts:1-3, 60-62). Cambiare SIGC nell'elenco riporta vista e colonne di partenza e riempie la cronologia; la scelta 6 del resoconto («con push, come i chip») e' vera nelle aree coi filtri del programma, non nell'elenco, dove i chip usano replace. Una bozza in attesa del debounce (applicaRitardato, 300 ms dopo un clic su un grafico) viene poi scritta coi criteri di prima e riporta sigc al valore precedente.",
+    "fix": "Nell'elenco far passare il cambio di sigc dal suo useCriteri (applica con replace e state, che scarica o scarta la bozza), per esempio con un callback opzionale di BarraFiltri/ControlloSigc; nelle altre aree comportamento invariato."
+  },
+  {
+    "id": "A-08",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/link-elenco.ts:45",
+    "titolo": "Il dettaglio dell'intervento, senza filtro SIGC (F5), porta comunque il sigc della provenienza nei link verso l'elenco",
+    "evidenza": "I link del dettaglio si costruiscono con la selezione dell'indirizzo (useLinkElenco(da.selezione), DettaglioIntervento.tsx:88 e 170) e parametriLink copia filtri.sigc (link-elenco.ts:45); lo uiplan aggiornato mette sigc in elenco-presentate-intervento ed elenco-anno-intervento. Il dettaglio mostra i dati dell'intervento senza filtro e la sua barra non ha il controllo SIGC (PaginaFinanziario: filtroSigc={!chipFissi}), quindi l'utente non vede il sigc che il link applica. Con un indirizzo che porta il valore opposto al tipo dell'intervento, o un intervento non classificato (indirizzo condiviso, segnalibro), «Apri nell'elenco operativo le domande presentate dell'intervento» apre un elenco vuoto mentre il KPI dice N; col valore uguale il parametro e' solo ridondante.",
+    "fix": "Nei link con l'intervento del dettaglio togliere sigc (senzaSigc(da.selezione)) e 'sigc' dalla query dei due link -intervento dello uiplan, oppure portarlo solo se coincide con tipoIntervento; test con ?sigc=false su un intervento SIGC."
+  },
+  {
+    "id": "A-09",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/lib/collegamenti.ts:83",
+    "titolo": "Link della spesa non SIGC verso i pagamenti: sigc=false non e' piu' la negazione del predicato SIGC dei pagamenti",
+    "evidenza": "elencoSpesa apre /elenco-operativo/pagamenti?esito=PAGATA&sigc=false&intervento=X e il commento dice «la negazione esatta del predicato SIGC dei pagamenti» (collegamenti.ts:78-84). Col contratto 1.5.0 (D-12, RV-06) il sigc dell'elenco filtra per classificazione dell'intervento: il backend usa PredicatiReport.perimetroIntervento (PostgresElencoOperativoAdapter.java:527-533), mentre TX-0016 somma le righe PAGATA con not(sigcPerPagamenti()) per domanda (PostgresReportIstituzionaleAdapter.java:360-366). Per un intervento classificato SIGC con spesa non SIGC (riga di TX-0016 con il link, conValore > 0) l'elenco risponde vuoto; per uno NO SIGC comprende anche le righe di domande con presenza SIGC. La descrizione di sigc nel contratto dell'elenco (handover/openapi-elenco-operativo.json: «presenza aperta ASR2-08 o ASR2-20») e' ancora quella per domanda e non segnala il cambio.",
+    "fix": "Rivedere il link sul contratto nuovo (sigc tolto con una nota sull'insieme, o un parametro per domanda chiesto al backend) e correggere il commento; segnalare al backend la descrizione superata del parametro sigc dell'elenco."
+  },
+  {
+    "id": "A-10",
+    "feature": "elenco-operativo",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/api/mock/esempio.ts:89",
+    "titolo": "I dati d'esempio MSW non seguono il sigc del contratto 1.5.0",
+    "evidenza": "Il mock dell'elenco filtra ancora per domanda (sigc della riga: tipo PAGAMENTO e k pari, esempio.ts:68; String(d.sigc) === p.get('sigc'), esempio.ts:89) e non per classificazione dell'intervento come D-12; i mock di fisico e procedurale non leggono sigc e quello dell'istituzionale non lo applica alle letture. Nella demo MSW (shared/api/mock/browser.ts) il controllo SIGC delle tre aree non cambia i numeri e i link del finanziario e dell'istituzionale verso l'elenco sembrano coerenti col vecchio significato, nascondendo A-09. I test usano handler propri (non e' un falso verde), ma la demo conferma un comportamento superato.",
+    "fix": "Allineare i mock: interventi classificati come in finanziario/api/mock/esempio.ts (SRA01, SRA03, SRA14, SRA15, SRA29, SRA30, SRB01, SRC01 SIGC) e sigc per intervento negli handler di elenco, fisico, istituzionale e procedurale, con zero righe col valore opposto dove il backend le azzera."
+  },
+  {
+    "id": "A-11",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/tema.css:89",
+    "titolo": "scroll-padding-top fisso a 5rem con una barra dei filtri che va a capo: WCAG 2.4.11 non garantito",
+    "evidenza": "La barra e' sticky a top 0 a ogni larghezza (tema.css:86) e il commento dice «circa 3.5rem, di piu' se va a capo» (tema.css:88-89). Con il controllo SIGC (tre bottoni), il chip «Nessun filtro: ...» e le pill a destra (perimetro, dati al; nei dettagli la pill lunga «Tipo di intervento: ... il filtro SIGC non si applica al dettaglio») la barra va su due righe gia' a 1100 px col menu e su tre-quattro a 390 px: un link di testo (ApriNellElenco variante testo, circa 1.3rem) portato a 5rem dal bordo con Shift+Tab resta interamente sotto una barra alta 6.5-10rem.",
+    "fix": "Misurare l'altezza della barra (ResizeObserver che scrive una variabile CSS sulla radice via CSSOM, compatibile con la CSP) e usare scroll-padding-top: calc(var(--altezza-barra) + .5rem); in alternativa barra non sticky sotto i 576 px."
+  },
+  {
+    "id": "A-12",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/rettifiche.tsx:50",
+    "titolo": "Indicatore delle rettifiche dell'avanzamento: il nome accessibile non contiene il testo visibile (WCAG 2.5.3) ed e' sgrammaticato",
+    "evidenza": "Il bottone mostra «Si': 2 righe» ma ha aria-label «Apri le 2 righe di rettifiche dell'intervento X» (rettifiche.tsx:50-51): chi usa il controllo vocale e pronuncia il testo visibile non lo attiva (2.5.3 Label in Name, livello A). Con una riga il nome diventa «Apri le una riga di rettifiche...». Il riepilogo scrive «Sì: 1 riga» (RiepilogoReport.tsx:65), l'avanzamento «Si': 1 riga»: due grafie dello stesso indicatore.",
+    "fix": "Nome accessibile che comincia col testo visibile (es. «Sì: 2 righe, apri le rettifiche dell'intervento X») o testo visibile piu' una parte visually-hidden senza aria-label; una sola grafia nelle due pagine."
+  },
+  {
+    "id": "A-13",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/filtri/BarraFiltri.tsx:92",
+    "titolo": "La barra dice «Nessun filtro» col filtro SIGC attivo; «Togli tutti» e «Azzera» tolgono anche sigc",
+    "evidenza": "BarraFiltri mostra il testo vuoto quando non ci sono chip (BarraFiltri.tsx:92-93) senza guardare sigc: con ?sigc=true e nessun altro filtro la barra ha «SIGC» premuto e accanto «Nessun filtro: tutti gli interventi del perimetro» (finanziario), «...tutti gli interventi» (procedurale, fisico, istituzionale), «...tutte le domande del perimetro» (elenco), e un lettore di schermo legge le due cose in fila. togliTutti scrive i criteri vuoti (useFiltriProgrammaNellIndirizzo.ts:79; senzaFiltri dell'elenco, criteri.ts:194-199) e «Azzera» del pannello riparte da {} (PannelloFiltri.tsx:25, PannelloFiltriProgramma.tsx:94): entrambi tolgono sigc, che non e' un chip ne' un controllo del pannello e che il commento della barra dice «non si toglie» (BarraFiltri.tsx:4-6); col solo sigc, invece, «Togli tutti» non compare (rimovibili vuoto).",
+    "fix": "Testo vuoto che tiene conto del filtro SIGC (es. «Nessun altro filtro: interventi SIGC») e una regola sola per «Togli tutti» e «Azzera»: conservare sigc, che si cambia dal suo controllo, oppure toglierlo sempre mostrando «Togli tutti» anche col solo sigc; test della barra con ?sigc=true senza chip."
+  }
+]

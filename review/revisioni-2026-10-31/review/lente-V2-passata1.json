@@ -1,0 +1,191 @@
+[
+  {
+    "id": "V2-01",
+    "feature": "comune",
+    "severity": "MAGGIORE",
+    "file": "src/shared/ui/filtri/ControlloSigc.tsx:29",
+    "titolo": "Il controllo SIGC nell'elenco operativo azzera la vista per ambito e le colonne scelte",
+    "evidenza": "ControlloSigc naviga con naviga(`${pathname}?${query}`): voce nuova della cronologia e SENZA state. Nell'elenco operativo la vista per ambito e le colonne scelte stanno proprio nello state della voce (useScelteElenco -> useStatoNellaHistory, src/features/elenco-operativo/ui/interrogazione.tsx:37-38; OP-EO-02 del wireframe domande.md:118-119), e ogni altro cambio di filtro le conserva di proposito: useCriteri.ts:60-62 naviga con { replace: true, state } ('la vista per ambito e le colonne nello state restano: cambiare i filtri non le cambia'). Quindi scegliere SIGC o NO SIGC (o Tutti) nelle due pagine dell'elenco riporta la vista generale e le colonne di partenza; inoltre lascia una voce di cronologia per filtro, contro la regola dell'elenco (filtri in replace). Il test interrogazione.test.tsx:71-78 controlla solo l'indirizzo, non la vista.",
+    "fix": "In ControlloSigc conservare lo state della voce corrente (useLocation().state) nella navigazione, oppure dare al controllo una callback opzionale onScelta che l'elenco collega a useCriteri (applica con conFiltro(criteri,'sigc',...) in replace). Aggiungere un test: vista per ambito scelta, clic su SIGC, la vista resta."
+  },
+  {
+    "id": "V2-02",
+    "feature": "istituzionale",
+    "severity": "MAGGIORE",
+    "file": "src/features/istituzionale/lib/collegamenti.ts:82",
+    "titolo": "Il link della spesa non SIGC verso i pagamenti usa sigc=false con la semantica per domanda, ora per intervento",
+    "evidenza": "elencoSpesa porta esito=PAGATA&sigc=false&intervento=X dichiarando 'la negazione esatta del predicato SIGC dei pagamenti' (anche uiplan istituzionale, open point a riga 1167: 'TX-0059 con esito=PAGATA e sigc=false ... la coincidenza dei numeri vale per definizione'). Con le revisioni (F1, D-12 Rev., 5ad5165) il sigc dell'elenco filtra per CLASSIFICAZIONE DELL'INTERVENTO: nel backend PostgresElencoOperativoAdapter.dellaDomanda -> perSigc = PredicatiReport.perimetroIntervento (riga 527-533), applicato anche ai pagamenti. La spesa erogata di TX-0016 resta invece per pagamento (test BE ReportIstituzionalePgProperties.java:175, '!k.sigc()'). Esito: per un intervento classificato SIGC (es. SRA01) con spesa non SIGC > 0, o non classificato, la riga della verifica mostra un importo e il link apre un elenco vuoto; per un intervento NO_SIGC l'elenco comprende anche i pagamenti SIGC. La descrizione del parametro nel contratto handover/openapi-elenco-operativo.json e' ancora quella per domanda (stantia).",
+    "fix": "Togliere sigc dal link (elenco-spesa-riga/intervento nel uiplan e in elencoSpesa) e dire nel testo del link che l'elenco mostra tutte le righe PAGATA dell'intervento, oppure chiedere al backend un parametro per il predicato SIGC del pagamento e rendere il link solo dopo; aggiornare l'open point del uiplan. Verificare lo stesso schema nei link 'elenco-sigc*' del finanziario (altra lente)."
+  },
+  {
+    "id": "V2-03",
+    "feature": "procedurale",
+    "severity": "MAGGIORE",
+    "file": "src/features/procedurale/lib/collegamenti.ts:85",
+    "titolo": "I link del procedurale verso l'elenco non portano sigc: con SIGC o NO SIGC aprono un insieme diverso dal numero",
+    "evidenza": "parametri() costruisce la query dei 20 LINK_ELENCO (righe 52-71, uiplan plan/procedurale/uiplan.json:108, 330, ...) senza sigc, mentre le letture dei report lo usano. Casi concreti: (a) 'Domande per stato area programmazione' della panoramica e' misto e si legge con sigc (Panoramica.tsx:47, TX-0029 coi criteri del report); il link della voce (Panoramica.tsx:101, elenco-area-programmazione-panoramica) apre l'elenco senza sigc, cioe' anche le domande degli interventi dell'altro tipo e dei non classificati; (b) con NO SIGC stati, ammesse e sottofasi si leggono con sigc=false (criteriNoSigc), ma i link per stato (StatiDomande.tsx:72, elenco-stato-sostegno) e delle ammesse aprono l'insieme 'Tutti'. Il finanziario ha risolto lo stesso punto portando sigc nei 7 link (link-elenco.ts:77-85, scelta 5 dello step2-7: 'cosi' l'elenco mostra lo stesso insieme del dato'); il procedurale no, e l'utente perde anche il filtro passando all'elenco.",
+    "fix": "Aggiungere sigc alla query dei link verso l'elenco nel uiplan del procedurale e in parametri() (sigc: c.sigc ? [c.sigc] : undefined), almeno per i link senza intervento fissato; un test che col filtro SIGC il link della voce dell'area programmazione porta sigc=true."
+  },
+  {
+    "id": "V2-04",
+    "feature": "comune",
+    "severity": "MAGGIORE",
+    "file": "src/features/elenco-operativo/ui/useInterrogazione.ts:41",
+    "titolo": "L'intestazione del PNG non dice il filtro SIGC in elenco, fisico, istituzionale e procedurale (NFR-50)",
+    "evidenza": "NFR-50 vuole i 'filtri applicati' nell'intestazione di ogni file esportato. Il finanziario aggiunge la riga 'Interventi: SIGC' (rigaSigc in src/widgets/report-finanziario/ui/PaginaFinanziario.tsx:69,75-78), ma la regola non e' nel kit: (a) elenco operativo, REGRESSIONE: filtriApplicati = chipDeiCriteri e chip.ts:124 ora salta sigc (prima era il chip 'SIGC: solo SIGC'), quindi il PNG dei grafici dell'elenco perde il filtro; (b) fisico testiCriteri (lib/criteri.ts:79-81), istituzionale testiCriteri/testiCriteriSigc (lib/criteri.ts:121-129) e procedurale testiCriteri (lib/criteri.ts:149-151) usano filtriNellaBarra/criteriAttivi, che non contengono sigc. Un PNG scaricato con il filtro SIGC mostra dati dei soli interventi SIGC con un'intestazione che non lo dice.",
+    "fix": "Portare rigaSigc nel kit (shared/lib, testo 'Interventi: SIGC/NO SIGC' da etichettaSigc) e usarla in useRigheContesto o nei quattro testiCriteri/filtriApplicati delle pagine col controllo; test sulle righe di contesto con ?sigc=true in almeno una pagina per feature."
+  },
+  {
+    "id": "V2-05",
+    "feature": "comune",
+    "severity": "MAGGIORE",
+    "file": "src/shared/ui/card/Sezione.tsx:30",
+    "titolo": "Sezione non pertinente inerte: tabelle e tabelle equivalenti dei grafici annidati spariscono per gli strumenti assistivi",
+    "evidenza": "Scostamento dichiarato 3 da valutare: il dossier (WCAG e residuo) e la regola comune dei wireframe chiedono per le card non pertinenti 'tabella equivalente leggibile dagli strumenti assistivi'. Sezione mette TUTTO il contenuto in CorpoNonPertinente (inert): un sottoalbero inert esce dall'albero di accessibilita', quindi i dati che a vista restano (in grigio) non arrivano al lettore di schermo (WCAG 1.3.1). Peggio quando una CardGrafico sta dentro una Sezione: nelle superfici del fisico tutte le card grafico stanno nella Sezione 'TITOLO_TABELLA' (ReportSuperfici.tsx:112-119), cosi' anche la TabellaDati visually-hidden di CardNonPertinente (CardGrafico.tsx:220) finisce dentro un antenato inert e non e' leggibile; in piu' badge e motivo si ripetono (Sezione e ogni card annidata). Stesso effetto sulle tabelle di stati (TabellaStatiInterventi.tsx:62), ammesse e verifiche SMP (TabellaVerifica.tsx:42). Il test del fisico (superfici/page.test.tsx:451-463) controlla solo che il badge compaia.",
+    "fix": "Non rendere inert il contenuto della Sezione: rendere non interattive le tabelle del kit quando useNonPertinenza() e' attivo (TabellaInterattiva/TabellaServer senza onRiga, ricerca, ordinamento, scelta colonne, strumenti; link resi come testo), oppure affiancare al corpo inert una copia statica visually-hidden come in CardGrafico; nelle card annidate dire il motivo una volta sola. Test: col filtro opposto la tabella e' raggiungibile per ruolo e senza controlli."
+  },
+  {
+    "id": "V2-06",
+    "feature": "comune",
+    "severity": "MAGGIORE",
+    "file": "src/shared/ui/tema.css:253",
+    "titolo": "R12 prima colonna ferma: nella tabella Unit Amount si ferma la colonna sbagliata sotto l'intestazione 'Intervento'",
+    "evidenza": "La regola ferma i th[scope=row] del corpo (tema.css:253) ma, nell'intestazione, thead tr:last-child th:first-child (riga 254). TabellaInterattiva applica ui-tabella--larga oltre 6 colonne (TabellaInterattiva.tsx:296) e mette il th scope=row nella colonna intestazioneRiga, che puo' non essere la prima (riga 265). Nel fisico TabellaUnitAmount ha 9 colonne e intestazioneRiga='ua' nella SECONDA colonna (TabellaUnitAmount.tsx:47,66): scorrendo in orizzontale resta ferma a sinistra l'intestazione 'Intervento' mentre nel corpo resta ferma la colonna Unit Amount (la colonna Intervento, td, scorre via): codici Unit Amount sotto l'intestazione Intervento, lettura sbagliata della tabella del flusso unit-amount approvato.",
+    "fix": "Fermare la stessa colonna in intestazione, corpo e piede: classe sulla colonna dell'intestazione di riga (es. ui-col-ferma sul th di thead e sulle celle della colonna intestazione) invece di :first-child, oppure applicare ui-tabella--larga solo quando l'intestazione di riga e' la prima colonna visibile. Test sulla classe/colonna ferma con intestazioneRiga diversa dalla prima."
+  },
+  {
+    "id": "V2-07",
+    "feature": "comune",
+    "severity": "MAGGIORE",
+    "file": "src/shared/ui/tabella/TabellaServer.tsx:168",
+    "titolo": "R12: negli elenchi dell'elenco operativo la prima colonna non resta ferma",
+    "evidenza": "La regola R12 approvata nei wireframe dell'elenco (domande.md, pagamenti.md, 'Tabelle medio-grandi: ... prima colonna ferma nelle tabelle larghe') e la richiesta stessa ('elenchi con molte righe e colonne') riguardano soprattutto l'elenco operativo, ma la classe ui-tabella--larga e' solo in TabellaInterattiva: TabellaServer, usata dalle due pagine dell'elenco con 6-12 colonne (viste in lib/viste.ts:62-90, la vista finanziaria ne ha 12) rende sempre <table className=\"ui-tabella\">. Il codice a barre (th scope=row, TabellaServer.tsx:83) scorre via in orizzontale.",
+    "fix": "In TabellaServer usare la stessa regola di TabellaInterattiva (visibili.length > 6 -> 'ui-tabella ui-tabella--larga'; la prima colonna e' gia' th scope=row nel corpo e nel piede). Un test di classe come per TabellaInterattiva."
+  },
+  {
+    "id": "V2-08",
+    "feature": "elenco-operativo",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/ElencoDomande.tsx:64",
+    "titolo": "Piede della vista finanziaria: Liquidato e Recuperato in forma compatta fra totali in euro pieni",
+    "evidenza": "testoAggregato (lib/formato.ts:56-59) ora rende il valore compatto per il sinottico (R09), ma e' usato anche nel piede della tabella (ElencoDomande.tsx:64-65): Richiesto, Ammesso, Pagato e Ancora da pagare restano '5.000.000,00 €' (testoSomma) mentre Liquidato e Recuperato diventano '5,0 M€', senza il valore pieno. Il wireframe domande.html:244 disegna i totali del piede come 'n,nn' (euro pieni); R09 riguarda i sinottici, non le tabelle.",
+    "fix": "Nel piede usare il valore pieno (es. testoAggregato(...).pieno ?? valore, o una funzione separata per il piede) e lasciare la forma compatta alle sole tessere del sinottico."
+  },
+  {
+    "id": "V2-09",
+    "feature": "elenco-operativo",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/ElencoPagamenti.tsx:41",
+    "titolo": "Sinottico dei pagamenti: le quote di finanziamento restano in euro pieni",
+    "evidenza": "Il wireframe pagamenti approvato (pagamenti.md 'R09: importi del sinottico in formato compatto su una riga'; pagamenti.html:111-113 'n,n / n,n / n,n M') vuole le quote FEASR/nazionale/regionale compatte. La tessera usa cellaImporto (euro pieni) per il valore con l'unita' ' FEASR' e per la nota; con white-space: nowrap e .ui-kpi overflow: hidden un importo a nove cifre piu' ' FEASR' in una tessera da 220 px rischia di essere tagliato.",
+    "fix": "Usare importoCompatto per le tre quote (valore e valorePieno sulla FEASR; nota con le forme compatte e il pieno nel title o in un testo visually-hidden)."
+  },
+  {
+    "id": "V2-10",
+    "feature": "elenco-operativo",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/api/mock/esempio.ts:89",
+    "titolo": "Il mock MSW dell'elenco filtra sigc per domanda, non per intervento",
+    "evidenza": "Il gestore di esempio confronta String(d.sigc) === p.get('sigc') sul flag della domanda (righe 46, 68, 89), cioe' la semantica precedente; dal 31/10 sigc seleziona le domande degli interventi classificati SIGC/NO SIGC (D-12 Rev., F1). In sviluppo e nelle demo con MSW il controllo SIGC dell'elenco mostra un insieme diverso da quello del backend e dagli altri report (che il mock del procedurale/finanziario filtrano per intervento).",
+    "fix": "Nel mock filtrare per classificazione dell'intervento della riga (tabella interventi -> perimetro, come VoceFiltro.perimetro di TX-0060), lasciando il flag sigc della domanda per colonna e 'di cui SIGC'."
+  },
+  {
+    "id": "V2-11",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/filtri/BarraFiltri.tsx:92",
+    "titolo": "Con SIGC o NO SIGC attivo e nessun chip la barra dice 'Nessun filtro: tutti gli interventi'",
+    "evidenza": "Il testo vuoto si mostra con chip.length === 0 anche quando il controllo SIGC accanto e' premuto su SIGC o NO SIGC: 'Nessun filtro: tutti gli interventi' (PaginaReportProgramma.tsx:83, PaginaProcedurale.tsx:59), '... e tutte le campagne' (SuperficiAmmissibili.tsx:90), 'Nessun filtro: tutte le domande del perimetro' (ElencoDomande.tsx:173). Il messaggio contraddice il dato filtrato.",
+    "fix": "In BarraFiltri, con filtroSigc e sigc presente nell'indirizzo, sostituire il testo vuoto (es. 'Nessun altro filtro') o ometterlo; test con ?sigc=true e nessun chip."
+  },
+  {
+    "id": "V2-12",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/tema.css:89",
+    "titolo": "scroll-padding fisso a 5rem: con la barra su piu' righe il focus puo' finire sotto la barra (WCAG 2.4.11)",
+    "evidenza": "html:has(.ui-filtri) { scroll-padding-top: 5rem } e' tarato su una barra di circa 3.5rem, e il commento ammette 'di piu' se va a capo'. Col controllo SIGC (tre bottoni) e le pill a destra (perimetro, dati al, tipo dell'intervento con un testo di circa 90 caratteri) la barra sticky a 390 px va su tre o piu' righe: un elemento che riceve il focus scorrendo puo' restare interamente coperto. axe non lo misura; il wireframe chiede la verifica a 390 px.",
+    "fix": "Impostare lo scroll-padding sull'altezza reale della barra (ResizeObserver che scrive una custom property via CSSOM, ammesso dalla CSP) o rendere la barra non sticky sotto 576 px; verifica a vista a 390 px."
+  },
+  {
+    "id": "V2-13",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/ui/TabellaVerificaSigc.tsx:59",
+    "titolo": "La tabella della verifica SMP SIGC resta a 20 righe per pagina invece di 25 (R12)",
+    "evidenza": "R12 (regola comune del wireframe verifica-smp-sigc.md:230: '25 righe per pagina') e' stata portata nel kit cambiando il predefinito di TabellaInterattiva a 25, ma questa tabella passa perPagina={20} esplicito (da 94e45a7), quindi non cambia.",
+    "fix": "Togliere perPagina={20} (vale il predefinito 25)."
+  },
+  {
+    "id": "V2-14",
+    "feature": "procedurale",
+    "severity": "MINORE",
+    "file": "src/features/procedurale/lib/kpi.ts:104",
+    "titolo": "KPI del contributo ammesso in forma compatta senza il valore pieno accessibile (R09)",
+    "evidenza": "La regola comune R09 dei wireframe (e U4: 'formato compatto con il valore pieno accessibile ... in tutte le aree') e' stata applicata solo all'elenco operativo (Kpi.valorePieno). Il KPI 'Contributo ammesso' della panoramica, delle ammesse e del dettaglio dell'intervento usa importoBreve ('12,3 M€') e TessereKpi (ui/comuni.tsx:45) non passa valorePieno: il lettore di schermo e il suggerimento non hanno l'importo esatto.",
+    "fix": "Aggiungere a KpiProcedurale un campo pieno (formatEuro) per gli importi e passarlo a Kpi valorePieno in TessereKpi."
+  },
+  {
+    "id": "V2-15",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/lib/intervento.ts:44",
+    "titolo": "KPI della spesa del dettaglio in forma compatta senza il valore pieno accessibile (R09)",
+    "evidenza": "importoOAssenza rende la spesa erogata (non SIGC e SIGC) con importoBreve e SchedeIntervento.tsx:50 non passa valorePieno al Kpi: contro la regola R09/U4 approvata ('formato compatto con il valore pieno accessibile', in tutte le aree), applicata nel kit ma usata solo dall'elenco.",
+    "fix": "Restituire anche il pieno (formatEuro) in KpiIntervento e passarlo a Kpi valorePieno."
+  },
+  {
+    "id": "V2-16",
+    "feature": "procedurale",
+    "severity": "MINORE",
+    "file": "src/pages/procedurale/stati-sostegno/page.test.tsx:243",
+    "titolo": "La natura delle card del procedurale e' provata solo sugli stati di sostegno",
+    "evidenza": "L'unico test F3 del procedurale e' quello degli stati di sostegno. Non sono provati: la panoramica con la natura scelta dall'utente il 01/11 (KPI, stati e importi non pertinenti e letti senza sigc, 'stato area programmazione' normale e letto con sigc=true: Panoramica.tsx:39-48, 135-147), ammesse, sottofasi e stati di pagamento, ne' sigc=false letto davvero con NO SIGC. Nessun test di pagina verifica che il corpo sia inerte (nessun link, Scarica o drawer raggiungibile).",
+    "fix": "Un test della panoramica con ?sigc=true (quattro letture contate: tre senza sigc, riepilogo con sigc=true; badge sulle tre card, non sulla card dell'area; nessun link 'Apri nell'elenco' raggiungibile) e uno per ammesse/sottofasi."
+  },
+  {
+    "id": "V2-17",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/app/menu.tsx:23",
+    "titolo": "Il filtro SIGC conservato fra le aree dal menu (F2) non ha un test",
+    "evidenza": "La riga 23 e' l'unico punto che porta sigc da un'area all'altra (ricercaDelSoloSigc) e lo aggiunge per le aree senza ricercaConservata (elenco operativo); tests/app-aree.test.tsx:142-156 prova le ricerche conservate senza sigc e nessun test rende il menu con ?sigc=... (ne' l'esclusione delle determine, senzaRicercaConservata).",
+    "fix": "Test del menu: da /fisico/superfici?sigc=true i link di finanziario, procedurale, istituzionale ed elenco portano sigc=true; la voce Determine no; da una pagina senza sigc nessun link lo porta."
+  },
+  {
+    "id": "V2-18",
+    "feature": "procedurale",
+    "severity": "MINORE",
+    "file": "src/features/procedurale/ui/Riepilogo.tsx:76",
+    "titolo": "Cambiando il filtro SIGC le tabelle con paginazione interna non ripartono dalla prima pagina",
+    "evidenza": "La scelta 6 dello step2-7 ('il controllo SIGC azzera pagina: la tabella riparte dalla prima pagina') vale solo per le tabelle con la pagina nell'indirizzo. Il riepilogo per intervento (misto) usa TabellaInterattiva con la pagina nello stato interno e il report non si rimonta al cambio dei criteri: con NO SIGC si resta alla pagina 3 (paginaDi la limita solo all'ultima). Stesso caso nel fisico, Unit Amount (UnitAmount.tsx:133, ReportUnitAmount senza key), mentre output regionale e superfici si rimontano con la key dei criteri.",
+    "fix": "Dare al report una key coi criteri (ricercaDaCriteri(pagina.filtri)) come in OutputRegionale.tsx:72, o azzerare la pagina della tabella quando cambiano le righe."
+  },
+  {
+    "id": "V2-19",
+    "feature": "fisico",
+    "severity": "MINORE",
+    "file": "src/features/fisico/ui/navigazione.ts:10",
+    "titolo": "La briciola dell'area nei report di fisico e istituzionale perde il filtro SIGC",
+    "evidenza": "useIngressoArea restituisce il percorso nudo della prima pagina visibile (fisico navigazione.ts:10-13, usata in PaginaReport.tsx:86; uguale in istituzionale/ui/navigazione.ts:16-19). Da /fisico/output-regionale?sigc=true la briciola 'Fisico' porta a /fisico/superfici senza sigc, mentre il menu lo conserva (menu.tsx:23) e il procedurale lo conserva anche nella briciola (navigazione.ts:23). F2: il valore resta passando da una pagina all'altra.",
+    "fix": "Nei report (non nei dettagli) aggiungere alla briciola almeno ricercaDelSoloSigc(search), o la ricercaConservata dell'area come fa il procedurale."
+  },
+  {
+    "id": "V2-20",
+    "feature": "comune",
+    "severity": "COSMETICO",
+    "file": "src/shared/ui/filtri/BarraFiltri.tsx:6",
+    "titolo": "Il commento dice che il filtro SIGC 'non si toglie', ma 'Togli tutti' lo toglie",
+    "evidenza": "BarraFiltri.tsx:4-6 ('non e' un chip (non si toglie ...)'), mentre 'Togli tutti' azzera anche sigc: useFiltriProgrammaNellIndirizzo.ts:79 (applica(nessuno) con nessuno = {}) e senzaFiltri dell'elenco (lib/criteri.ts:194-199). Il comportamento e' coerente fra le aree; il commento induce a pensare il contrario.",
+    "fix": "Allineare il commento ('Togli tutti' riporta anche il controllo a Tutti) o, se la scelta e' l'opposta, conservare sigc in nessuno/senzaFiltri e provarlo."
+  },
+  {
+    "id": "V2-21",
+    "feature": "comune",
+    "severity": "COSMETICO",
+    "file": "src/shared/ui/kpi/Kpi.tsx:79",
+    "titolo": "Kpi con valorePieno ignora l'unita'",
+    "evidenza": "Nel ramo pieno !== valore ValoreKpi rende solo valore e pieno, senza <small>{unita}</small>: una tessera con unita' separata (es. la 'Quote di finanziamento' con unita=' FEASR' se diventasse compatta, V2-09) perderebbe l'unita' in silenzio. Oggi nessun chiamante passa entrambi.",
+    "fix": "Rendere {unita && <small>{unita}</small>} anche nel ramo col valore pieno (dentro lo span aria-hidden) e includerla nel testo visually-hidden."
+  }
+]

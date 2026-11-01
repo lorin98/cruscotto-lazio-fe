@@ -1,0 +1,146 @@
+[
+  {
+    "id": "H-01",
+    "feature": "elenco-operativo",
+    "severity": "MAGGIORE",
+    "file": "src/shared/ui/filtri/ControlloSigc.tsx:29",
+    "titolo": "Il controllo SIGC scrive l'indirizzo da solo e salta useCriteri: nell'elenco perde vista e colonne, aggiunge cronologia e puo' essere annullato dalla bozza del debounce",
+    "evidenza": "ControlloSigc fa `void naviga(query ? `${pathname}?${query}` : pathname)`: push, senza `state`. Nell'elenco i criteri li scrive solo useCriteri (src/features/elenco-operativo/ui/useCriteri.ts:56-63: `naviga(..., { replace: true, state })`, con la regola 'la vista per ambito e le colonne nello state restano: cambiare i filtri non le cambia' e, alle righe 2-3, 'L'indirizzo si sostituisce (replace) ... indietro torna alla pagina di provenienza'). Vista per ambito e colonne nascoste stanno nello state della voce di history (useScelteElenco, interrogazione.tsx:36-49). Fino al 31/10 il SIGC era un filtro del pannello e passava da applicaRitardato/vai (state conservato, replace). Ora, nelle due pagine dell'elenco, cambiare SIGC: (1) riporta vista generale e colonne di partenza; (2) aggiunge una voce di cronologia (Indietro torna al SIGC di prima, non alla pagina di provenienza); (3) se c'e' una bozza in attesa (clic su un grafico, RITARDO_MS 300) il timer scade dopo il cambio e `scarica` -> `vai(b)` (useCriteri.ts:81-85) riscrive i criteri col sigc vecchio. In piu' ricercaConSigc (src/shared/lib/sigc.ts:36) cancella `pagina`, il nome del parametro dell'elenco (PARAMETRI_PAGINA, elenco-operativo/lib/criteri.ts:41): il kit conosce il vocabolario di una feature. Il test che provava che le colonne restano al cambio dei filtri (src/pages/elenco-operativo/interrogazione-comandi.test.tsx:244-262) e' stato spostato da SIGC a 'presentata': il percorso nuovo non e' coperto. La scelta 6 dello step2-7 ('naviga con push, come i chip') non vale per l'elenco, dove i chip usano replace con lo state.",
+    "fix": "Il controllo non deve possedere la scrittura dell'indirizzo: BarraFiltri riceve il valore e un callback (es. `filtroSigc={{ valore, onCambia }}`) e ogni feature passa il proprio scrittore: finanziario, fisico, istituzionale, procedurale l'`applica` di useFiltriProgrammaNellIndirizzo con `{ ...filtri, sigc }`; l'elenco `applica(conFiltro(criteriVisti, 'sigc', v ? [v] : []))` di useCriteri, che lascia cadere la bozza, usa replace, conserva lo state e azzera `pagina` col suo conFiltro. Cosi' `pagina` esce da shared/lib. Test nell'elenco: dopo il cambio SIGC colonne e vista restano, nessuna voce di cronologia in piu', e una bozza in attesa non riporta il valore vecchio."
+  },
+  {
+    "id": "H-02",
+    "feature": "comune",
+    "severity": "MAGGIORE",
+    "file": "src/widgets/report-finanziario/ui/PaginaFinanziario.tsx:75",
+    "titolo": "Il filtro SIGC manca dai 'Filtri applicati' dell'intestazione dei PNG (NFR-50) in fisico, istituzionale, procedurale ed elenco operativo",
+    "evidenza": "Solo il widget del finanziario aggiunge la riga del filtro (`rigaSigc`, righe 69 e 75-78: 'Interventi: SIGC'). Le altre aree costruiscono i criteri dell'intestazione dai chip o da filtriNellaBarra, che non contengono sigc perche' non e' piu' un chip: fisico lib/criteri.ts:79-81 (testiCriteri -> criteriAttivi -> filtriNellaBarra), istituzionale lib/criteri.ts:121-129 (testiCriteri, testiCriteriSigc), procedurale lib/criteri.ts:149-151, elenco useInterrogazione.ts:41 (filtriApplicati da chipDeiCriteri, che dal 31/10 salta 'sigc', chip.ts:124: regressione, prima il SIGC era un chip e finiva nell'intestazione). Con la sola scelta SIGC righeContesto scrive 'Filtri applicati: nessuno' (src/shared/lib/intestazione.ts:74): il PNG di dati filtrati per SIGC dichiara che non c'e' filtro. La regola e' ricopiata in un solo punto invece che nel kit; nessun test la copre fuori dal finanziario.",
+    "fix": "Una regola sola nel kit: useRigheContesto (o righeContesto) riceve il valore `sigc` applicato alla lettura e aggiunge 'Interventi: SIGC|NO SIGC' ai filtri applicati; togliere rigaSigc dal widget. Il valore va passato in modo esplicito dai report (non letto dall'indirizzo nel kit): nei dettagli (F5) l'indirizzo puo' portare sigc ma il dato non e' filtrato e la riga non deve comparire. Test per area: PNG con ?sigc=true dice il filtro; elenco: torna nell'intestazione."
+  },
+  {
+    "id": "H-03",
+    "feature": "fisico",
+    "severity": "MAGGIORE",
+    "file": "src/features/fisico/ui/ReportSuperfici.tsx:112",
+    "titolo": "Superfici non pertinenti: le CardGrafico annidate nella Sezione inerte rendono illeggibile la tabella equivalente dei grafici",
+    "evidenza": "Report mette InterruttoreVista e le tre CardGrafico (Grafici, righe 56-77) dentro `<Sezione titolo={TITOLO_TABELLA}>` (righe 112-120). Con ?sigc=false la Sezione avvolge tutto il contenuto in CorpoNonPertinente con `inert` (src/shared/ui/card/Sezione.tsx:30); le CardGrafico annidate rendono CardNonPertinente con la tabella dei dati in un div visually-hidden 'fuori dal corpo inerte' (src/shared/ui/grafici/CardGrafico.tsx:208-226), ma quel div resta sotto l'antenato inerte della Sezione: `inert` toglie l'intero sottoalbero dall'albero di accessibilita'. Quindi ne' le tabelle dei grafici ne' l'interruttore verso la vista Tabella sono raggiungibili, contro la regola dei wireframe approvati ('La tabella equivalente resta leggibile dagli strumenti assistivi', wireframes/fisico/superfici, sezione Revisioni del 31/10/2026) e contro lo scostamento 3 dichiarato. In piu' ogni card annidata ripete badge e motivo. Il test del kit prova solo una CardGrafico isolata (tests/kit-sigc.test.tsx:106-124); quello della pagina (src/pages/fisico/superfici/page.test.tsx:450-464) controlla solo il badge e le letture.",
+    "fix": "Nel kit: una card non pertinente annidata in un'altra non deve finire sotto un `inert` di un antenato. Es. Sezione con np fornisce un contesto 'gia' non pertinente' e non rende inerte il suo corpo intero, ma solo le parti interattive non-card (InerteSeNonPertinente), lasciando alle CardGrafico annidate il loro corpo inerte e la tabella fuori; oppure nel fisico togliere l'annidamento quando np (le tre CardGrafico fuori dalla Sezione, l'interruttore in InerteSeNonPertinente). Test di pagina: con ?sigc=false le tabelle dei grafici delle superfici hanno closest('[inert]') === null."
+  },
+  {
+    "id": "H-04",
+    "feature": "finanziario",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/ui/comuni.tsx:133",
+    "titolo": "Sinottici del finanziario in forma compatta senza il valore pieno accessibile (R09, U4): la coppia compatto/pieno sta solo nel lib dell'elenco",
+    "evidenza": "KpiImporto rende `importoBreve(importo.valore)` senza `valorePieno`; lo stesso nei sei box della panoramica (Panoramica.tsx:50, 66, 78) e in DomandeReport.tsx:76 e 80; la card della Home usa NumeroArea con formato importoBreve senza formatoPieno (AnteprimaFinanziario.tsx:20). Il wireframe approvato della panoramica (wireframes/panoramica/panoramica.md:124, uguale in dotazione-avanzamento, riepilogo, domande, sigc) chiede 'formato compatto con il valore pieno accessibile'; U4 di DECISIONI.md lo vuole 'in tutte le aree'. Il kit ha l'API (Kpi.valorePieno, NumeroArea.formatoPieno) ma la coppia compatto/pieno e' calcolata solo in elenco-operativo/lib/formato.ts:34-45 (testoSommaCompatta, importoCompatto): una duplicazione che lascia fuori la feature con piu' sinottici.",
+    "fix": "Portare la coppia nel kit: `importoCompattoPieno(v)` in shared/lib (o una prop numerica di Kpi che formatta da se' compatto e pieno) e usarla in KpiImporto, nei KPI della Panoramica e di DomandeReport, con `formatoPieno={formatEuro}` nella card della Home; l'elenco usa lo stesso helper. Test: title e testo visually-hidden col valore pieno su un KPI del finanziario."
+  },
+  {
+    "id": "H-05",
+    "feature": "procedurale",
+    "severity": "MAGGIORE",
+    "file": "src/features/procedurale/ui/Panoramica.tsx:39",
+    "titolo": "Procedurale: filtro SIGC e card non pertinenti senza test fuori dagli stati di sostegno (panoramica a natura mista, sottofasi, ammesse, criteriNoSigc)",
+    "evidenza": "Nel procedurale solo src/pages/procedurale/stati-sostegno/page.test.tsx:243-251 prova il filtro SIGC; tests/procedurale-ui.test.tsx, procedurale-lib.test.ts e kit-comune-procedurale.test.tsx non contengono 'sigc'. Nessun test per: la panoramica di natura mista (scostamento 5, scelta dell'utente del 01/11: ammesse, stati di sostegno e di pagamento letti senza sigc e non pertinenti, area programmazione e riepilogo letti col filtro; Panoramica.tsx:39-47 e 135-147), le sottofasi (Sottofasi.tsx:42), le domande ammesse (DomandeAmmesse.tsx:51), gli stati di pagamento, il riepilogo misto che deve mandare sigc, criteriNoSigc (lib/criteri.ts:85-87), la pill del tipo nel dettaglio. Lettura e resa sono decise con due regole separate (criteriNoSigc con `c.sigc === 'true'`, nonPertinenza(..., 'nosigc') nei componenti): una divergenza non la vedrebbe nessun test.",
+    "fix": "Test di pagina della panoramica: con ?sigc=true i badge 'Non pertinente al filtro SIGC' su KPI delle ammesse, stati e importi, letture TX-0027/TX-0028/ammesse senza sigc e riepilogo con sigc=true; con ?sigc=false tutte le letture con sigc=false e nessun badge. Lo stesso per sottofasi, ammesse e stati di pagamento; unit di criteriNoSigc ('true' -> senza sigc, 'false' -> con, assente -> come criteriDelReport)."
+  },
+  {
+    "id": "H-06",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/lib/sigc.ts:60",
+    "titolo": "La decisione 'non pertinente + lettura senza filtro' e' ricopiata in ogni pagina, e nel procedurale con una regola a mano",
+    "evidenza": "La coppia `np = nonPertinenza(sigc, solo, motivo); lettura = np ? senzaSigc(criteri) : criteri` e' ripetuta in finanziario Panoramica.tsx:223-224 e SigcReport.tsx (SigcReport), fisico SuperficiAmmissibili.tsx:66 e 80 (calcolata due volte in due componenti), istituzionale VerificaSmpNonSigc.tsx e VerificaSmpSigc.tsx; nel procedurale la lettura passa da criteriNoSigc (lib/criteri.ts:85, `c.sigc === 'true'` scritto a mano) e la resa da nonPertinenza(..., 'nosigc') in quattro componenti. Due regole indipendenti per la stessa decisione possono divergere (card grigia letta col filtro = zero righe, o card normale letta senza filtro).",
+    "fix": "Un helper unico nel kit, es. `letturaDelTipo(criteri, solo, motivo): { np, criteri }` in shared/lib/sigc.ts; criteriNoSigc ne diventa un uso (o sparisce); i componenti prendono np e criteri dallo stesso risultato (nel fisico calcolato una volta e passato a CorpoSuperfici)."
+  },
+  {
+    "id": "H-07",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/RiepilogoReport.tsx:61",
+    "titolo": "La regola delle rettifiche (fonte non attiva / No / n righe) e' scritta tre volte nella ui, con grafie diverse",
+    "evidenza": "La stessa decisione (conRettifiche null = fonte non attiva; false o nessuna riga = No; altrimenti n righe) sta in testoConRettifiche (RiepilogoReport.tsx:61-66, 'Sì: 2 righe'), Rettificato (rettifiche.tsx:45-53, 'Si'': 2 righe') e RettificheIntervento (DettaglioIntervento.tsx:112-128). Riepilogo e avanzamento mostrano la stessa informazione con grafie diverse ('Sì' e 'Si''). Anche il vocabolario delle programmazioni (PROGRAMMAZIONI, rettifiche.tsx:19-22) e' dominio dentro ui/.",
+    "fix": "lib/rettifiche.ts puro: `statoRettifiche(r)` (fonte non attiva | no | si con n righe), il testo e l'etichetta delle programmazioni; i tre componenti rendono soltanto. Una grafia sola ('Sì')."
+  },
+  {
+    "id": "H-08",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/grafici/CardGrafico.tsx:208",
+    "titolo": "CardNonPertinente perde le note delle voci omesse e conserva i sottotitoli con istruzioni di clic non piu' vere",
+    "evidenza": "CardNormale rende `<VociOmesse omessi={dati.omessi} />` (riga 189), CardNonPertinente no (righe 208-226): le avvertenze sul dato (es. il pagato oltre l'ammesso e le somme parziali degli importi SIGC, che R13 B mette fra le voci non nel grafico) spariscono proprio nello stato che mostra il dato senza filtro. Il sottotitolo invece passa intatto con istruzioni che nel corpo inerte non valgono: 'Clic su una barra: le domande nell'elenco operativo' (SigcReport.tsx:62, conLink calcolato con la lettura senza filtro), sottotitoloImporti (SigcReport.tsx:116), 'Clic su una barra: pagina SIGC' (Panoramica.tsx:189).",
+    "fix": "In CardNonPertinente rendere anche VociOmesse (solo testo). Per i sottotitoli: un'istruzione di clic separata nelle props (es. `istruzioneClic`) che il kit omette con np, oppure i chiamanti la tolgono leggendo useNonPertinenza()."
+  },
+  {
+    "id": "H-09",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/kpi/Kpi.tsx:79",
+    "titolo": "Kpi.valorePieno scarta in silenzio la prop unita",
+    "evidenza": "ValoreKpi, quando `pieno` c'e' ed e' diverso da `valore`, rende lo span aria-hidden col valore e lo span visually-hidden col pieno, ma non `unita` (<small>), che si perde. Oggi nessun chiamante passa entrambe, ma l'API del kit le accetta insieme.",
+    "fix": "Rendere l'unita' anche nel ramo col valore pieno (dentro lo span aria-hidden), oppure tipizzare le due prop come alternative (union discriminata)."
+  },
+  {
+    "id": "H-10",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici/sigc.ts:221",
+    "titolo": "graficoImportiSigc corregge il motivo con un replace sul testo ('la cascata' -> 'il grafico')",
+    "evidenza": "`nonDisegnabile(esito.motivo.replace('la cascata', 'il grafico'), ...)`: i motivi di motivoCascataSigc (righe 119-128) parlano ancora della cascata, che con R13 B non c'e' piu'; il replace dipende dal testo esatto (cambiato il messaggio, l'utente legge 'la cascata' sotto due barre impilate). Restano anche i nomi motivoCascataSigc, tabellaCascataSigc, VOCI_CASCATA.",
+    "fix": "Riscrivere i motivi con 'il grafico' (funzione rinominata, es. motivoImportiSigc) e togliere il replace; rinominare tabella e voci."
+  },
+  {
+    "id": "H-11",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/stima.ts:9",
+    "titolo": "StimaImpegniLike (forma scritta a mano) senza controllo in ui/contratto.ts",
+    "evidenza": "StimaImpegniLike ha tutti i campi facoltativi e riceve d.stimaImpegni di TX-0002/0005/0006/0011 (NotaStima in comuni.tsx:164). ui/contratto.ts (righe 41-57) controlla con Contenuta le altre forme ma non questa: se la spec rinomina orizzonte, ultimaCampagnaRilevata o quotaDaRichiesto il DTO resta assegnabile e testoStima (righe 18-24) dice in silenzio 'nessuna campagna rilevata' o 'all'orizzonte del CSR', il caso che contratto.ts esiste per impedire (review H-17, H-24). Anche NATURA_RISERVA (lib/riserva.ts) non e' legata all'enum MonitoraggioRiservaNaturaRiserva.",
+    "fix": "In ui/contratto.ts: `CONTRATTO_STIMA: Contenuta<StimaImpegniLike, StimaImpegni> = true` (StimaImpegni e' gia' riesportato da api) e `Uguali<NonNullable<MonitoraggioRiserva['naturaRiserva']>, keyof typeof NATURA_RISERVA>` con NATURA_RISERVA tipizzata sulle due chiavi."
+  },
+  {
+    "id": "H-12",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/lib/grafici/primitive.ts:166",
+    "titolo": "Gradini d'altezza delle barre orizzontali: gradinoRighe puo' dare 8 ma la classe ui-grafico--righe-8 non esiste; costanti in tre file",
+    "evidenza": "Con altezza 'basso' (RIGHE_DELLA_BASE 5, src/shared/ui/grafici/Grafico.tsx:43) e 6-8 barre gradinoRighe restituisce ceil(6/4)*4 = 8, ma src/shared/ui/tema.css:186-193 definisce solo righe-12...righe-40: la classe resta senza regola e il grafico prende per caso l'altezza normale. Le costanti che devono restare allineate stanno in primitive.ts (RIGHE_PER_GRADINO, MAX_BARRE_ORIZZONTALI), Grafico.tsx (RIGHE_DELLA_BASE) e tema.css. Oggi nessun grafico orizzontale 'basso': rischio latente.",
+    "fix": "Aggiungere `.ui-grafico--righe-8 { height: 336px; }` (stessa formula: 32 px x righe + 80) o far partire i gradini da 12; un test che per ogni valore possibile di gradinoRighe la classe esista in tema.css."
+  },
+  {
+    "id": "H-13",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/pages/finanziario/sigc/page.test.tsx:138",
+    "titolo": "Il test 'link verso l'elenco nel corpo inerte' passa anche senza link",
+    "evidenza": "`for (const link of screen.queryAllByRole('link', { name: /elenco operativo/ })) expect(link.closest('[inert]')).not.toBeNull();`: se i link non ci sono (grant, criteri, nome accessibile cambiato) il ciclo non asserisce nulla e il test passa, pur dichiarando che i link sono inerti.",
+    "fix": "Asserire prima che i link ci siano: `expect(links.length).toBeGreaterThan(0)` (o cercare per nome quello di 'Le domande SIGC nell'elenco operativo')."
+  },
+  {
+    "id": "H-14",
+    "feature": "comune",
+    "severity": "COSMETICO",
+    "file": "src/shared/ui/filtri/PillTipoIntervento.tsx:4",
+    "titolo": "L'unione 'SIGC' | 'NO SIGC' e' riscritta a mano in cinque punti invece di usare FiltroSigc",
+    "evidenza": "src/shared/lib/sigc.ts:12 definisce FiltroSigc, ma la stessa unione e' ripetuta in PillTipoIntervento.tsx:4, BarraRiferimenti (src/shared/ui/pagina/Dettaglio.tsx:53), tipoIntervento (src/entities/filtri/lib/programma.ts:156), useTipoIntervento (finanziario/ui/useDescrizioneIntervento.ts:17) e nella Testata del dettaglio del finanziario (DettaglioIntervento.tsx:71).",
+    "fix": "Usare FiltroSigc (o un alias TipoIntervento = FiltroSigc esportato dal kit) in tutti i punti."
+  },
+  {
+    "id": "H-15",
+    "feature": "comune",
+    "severity": "COSMETICO",
+    "file": "src/shared/ui/kpi/Kpi.tsx:71",
+    "titolo": "La classe del badge 'non pertinente' (ui-badge-np) e' usata come badge generico",
+    "evidenza": "La prop generica Kpi.badge ('Consuntivo'/'Previsione' della riserva, MontanteERiserve in RiservaReport.tsx) e il badge 'Con rettifiche' (finanziario/ui/DettaglioIntervento.tsx:122) usano `ui-badge-np` (tema.css:491), la classe dello stato non pertinente del filtro SIGC: uno stile con un significato preciso riusato per altri.",
+    "fix": "Una classe neutra del kit (es. ui-badge-neutro) per Kpi.badge e i badge informativi; ui-badge-np resta di MotivoNonPertinente."
+  },
+  {
+    "id": "H-16",
+    "feature": "comune",
+    "severity": "COSMETICO",
+    "file": "src/entities/filtri/lib/programma.ts:81",
+    "titolo": "Commenti e codice residui dopo l'ingresso di sigc nei filtri",
+    "evidenza": "ricercaDeiSoliFiltri e' ancora descritta come 'I soli filtri del programma' ma porta sigc; FiltriReport e' 'I cinque filtri ripetibili di RF001' (finanziario/api/index.ts:105) e ora comprende sigc, come il commento di ESPORTA; BOOLEANI.sigc in elenco-operativo/lib/chip.ts:45 e' codice morto (il chip sigc non si crea piu', riga 124); MOTIVO_SOLO_SIGC e' esportato da un componente (SigcReport.tsx) e importato dalla Panoramica (Panoramica.tsx:23), mentre il procedurale tiene i motivi in un modulo di sole costanti dentro ui/ (nonPertinenza.ts).",
+    "fix": "Aggiornare i commenti; togliere sigc da BOOLEANI; spostare i motivi delle card non pertinenti in lib/ della feature (finanziario e procedurale)."
+  }
+]

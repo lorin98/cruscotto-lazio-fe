@@ -1,0 +1,146 @@
+[
+  {
+    "id": "V1-01",
+    "feature": "finanziario",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/ui/comuni.tsx:133",
+    "titolo": "R09 non applicato ai sinottici del finanziario: importi compatti senza il valore pieno accessibile ne' nel suggerimento",
+    "evidenza": "Il wireframe approvato della panoramica (wireframes/panoramica/panoramica.html, wf-note R03) dice 'R09: ogni valore su una riga, formato compatto, valore pieno accessibile e nel suggerimento'; la regola comune R09 e' ripetuta in ogni .md del finanziario e la decisione U4 vale 'in tutte le aree'. Il kit offre Kpi.valorePieno (src/shared/ui/kpi/Kpi.tsx:30, title + visually-hidden), ma nel finanziario nessun Kpi lo passa (grep 'valorePieno' in src/features/finanziario: zero occorrenze): KpiImporto (comuni.tsx:133) rende solo importoBreve(valore), e cosi' i sei box della panoramica (Panoramica.tsx:50, 66, 78), i KPI del dettaglio (DettaglioIntervento.tsx:91-93), dell'avanzamento (AvanzamentoReport.tsx:42-56), delle domande (DomandeReport.tsx:76-80) e della riserva (RiservaReport.tsx:37, 60-64). Sopra il milione l'utente vede solo '123,4 M€' e i lettori di schermo leggono lo stesso arrotondamento; nessun suggerimento al passaggio del mouse.",
+    "fix": "In KpiImporto e nei Kpi d'importo di Panoramica, RiservaReport e DomandeReport passare valorePieno={formatEuro(v)} quando importoBreve compatta (|v| >= 1.000.000); un test che verifichi title e testo visually-hidden su un box della panoramica e su un KPI del dettaglio."
+  },
+  {
+    "id": "V1-02",
+    "feature": "finanziario",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/lib/grafici/spesa.ts:268",
+    "titolo": "Dotazione e pagamenti per intervento (dotazione e riepilogo) ancora con lo zoom oltre 12 barre, contro i wireframe approvati 'tutte le etichette (R02)'",
+    "evidenza": "graficoDotazionePagamenti chiama barreRaggruppate in verticale (spesa.ts:265, 268), che usa zoomSeMolti con MAX_BARRE_VISIBILI = 12 (src/shared/lib/grafici/forme.ts:130, primitive.ts:9): con i 36 interventi reali si vedono 12 barre alla volta col cursore. I wireframe approvati il 01/11 hanno tolto proprio lo zoom: dotazione.html:74 passa da 'Barre raggruppate con zoom (36 interventi)' (239d537) a 'Barre raggruppate (36 interventi, tutte le etichette, R02)', riepilogo.html:77 da 'Barre raggruppate con zoom' a '... tutte le etichette (R02)'; decisione U1 'zoom solo oltre una soglia alta'. Il codice promette ancora lo zoom nei sottotitoli ('Trascina il cursore sotto il grafico per ingrandire', DotazioneReport.tsx:54, RiepilogoReport.tsx:239) e il test lo consolida ('oltre 12 interventi: zoom interno e cursore', tests/finanziario-grafici.test.ts:1120).",
+    "fix": "Rendere il grafico con tutte le etichette: barre orizzontali (barreRaggruppate(..., { orizzontale: true }), altezza a gradini e zoom solo oltre 40 come gli altri grafici per intervento) oppure soglia verticale alta nel kit; aggiornare i due sottotitoli e il test di finanziario-grafici.test.ts:1120 (nessuno zoom a 36 interventi)."
+  },
+  {
+    "id": "V1-03",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/DettaglioIntervento.tsx:88",
+    "titolo": "Dettaglio (F5, nessun filtro): i link verso l'elenco ereditano il sigc nascosto della selezione",
+    "evidenza": "Le letture del dettaglio sono filtrate solo sull'intervento (filtri = { intervento: [codice] }, riga 359) e la pill dice 'il filtro SIGC non si applica al dettaglio', ma i link elenco-presentate-intervento ed elenco-anno-intervento usano useLinkElenco(da.selezione) (righe 88, 170) con query CORRENTI_E_SIGC (link-elenco.ts:83-84): parametriLink copia filtri.sigc della selezione (link-elenco.ts:45). Con un indirizzo /finanziario/interventi/SRA01?sigc=false (condiviso, salvato o modificato) il KPI dice N domande e il link apre l'elenco con intervento=SRA01&sigc=false, cioe' zero righe: il link non seleziona lo stesso insieme del dato (D-02). Nei percorsi dai report il sigc coincide col tipo dell'intervento, quindi il caso e' limitato a indirizzi incoerenti.",
+    "fix": "Nel dettaglio costruire i link da senzaSigc(da.selezione) (o fissare sigc al tipo dell'intervento) e togliere 'sigc' dalla query dei due link del dettaglio nell'uiplan (routes[1].links); un test col dettaglio aperto da ?sigc=false che verifichi l'href senza sigc."
+  },
+  {
+    "id": "V1-04",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici/sigc.ts:231",
+    "titolo": "R13 B: il segmento 'Pagato' della barra dell'ammesso vale pagato meno pagato oltre l'ammesso, mentre tabella e voci accanto dicono 'Pagato' col valore del contratto",
+    "evidenza": "Il segmento si chiama 'Pagato' ma vale centesimi(pagato - oltre) (sigc.ts:231); la tabella equivalente (sigc.ts:172) e la tabella delle voci della pagina SIGC ('Importo pagato', SigcReport.tsx:131) mostrano il pagato del contratto. Nel test: segmento 'Pagato' 4.900.000 (finanziario-grafici.test.ts:507) e riga 'Pagato' 5.000.000 (riga 527) nella stessa card. La nota 'Pagato oltre l'ammesso ... fuori dalla barra' spiega la differenza solo fra le voci non nel grafico: a colpo d'occhio la stessa etichetta porta due importi diversi.",
+    "fix": "Quando pagatoOltreAmmesso > 0 chiamare il segmento 'Pagato entro l'ammesso' (etichetta, legenda, suggerimento e descrizione aria), lasciando 'Pagato' alla riga della tabella col valore del contratto."
+  },
+  {
+    "id": "V1-05",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/SigcReport.tsx:57",
+    "titolo": "Pagina SIGC e card SIGC della panoramica col filtro NO SIGC: se la lettura senza filtro e' vuota sparisce lo stato non pertinente",
+    "evidenza": "Con np la pagina legge senza sigc (SigcReport.tsx:152); se la selezione contiene solo interventi NO SIGC (es. ?intervento=SRD01&sigc=false) presentate = 0 e VistaQuery rende il Vuoto 'Nessuna domanda SIGC per i filtri scelti.' con il bottone 'Modifica i filtri' (righe 57 e 103; Panoramica.tsx:185 e 205): nessun badge 'Non pertinente al filtro NO SIGC', nessun motivo, e il bottone resta interattivo. Il wireframe sigc.md (Natura delle card) dice 'con NO SIGC tutta la pagina non pertinente'.",
+    "fix": "Con np rendere il vuoto dentro una card del kit non pertinente (titolo, badge e motivo) oppure anteporre il MotivoNonPertinente al Vuoto, senza bottone 'Modifica i filtri' interattivo; un test con selezione di soli NO SIGC e filtro NO SIGC."
+  },
+  {
+    "id": "V1-06",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/AvanzamentoReport.tsx:250",
+    "titolo": "Avanzamento con la selezione vuota: la tabella del residuo per intervento aggiunge un quinto avviso generico 'Nessun dato da mostrare.'",
+    "evidenza": "ResiduoInterventi passa vuoto={null} a VistaQuery, ma contenutoVuoto (src/shared/ui/stati/StatiVista.tsx:101) trasforma null in 'Nessun dato da mostrare.' dentro un alert role=status: con la selezione vuota la pagina mostra le quattro sezioni con 'Nessun intervento per i filtri scelti.' e 'Modifica i filtri' piu' un avviso senza titolo ne' azione. Il test 'selezione senza interventi' (tests/finanziario-ui.test.tsx:1422) conta solo i quattro messaggi e non se ne accorge. Col filtro SIGC la selezione vuota e' piu' frequente (es. SIGC con interventi NO SIGC selezionati).",
+    "fix": "Con la selezione vuota non montare la sezione (if (segnale === 'vuota') return null, come IndicatoriEFlussi) invece di vuoto={null}; nel test verificare che 'Nessun dato da mostrare.' non compaia."
+  },
+  {
+    "id": "V1-07",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici/intervento.ts:26",
+    "titolo": "Scheda 'Tutte le voci' del dettaglio senza l'indicatore 'Con rettifiche' disegnato dal wireframe",
+    "evidenza": "Il wireframe approvato (wireframes/panoramica/intervento.html, scheda Tutte le voci) ha la riga 'Rettifiche: n,nn euro (con rettifiche: si')'; vociIntervento rende solo ['Rettifiche', riga.importoRettifiche] senza conRettifiche, che l'uiplan dichiara per la route (righe[].conRettifiche). L'indicatore c'e' solo nella card della Sintesi.",
+    "fix": "Aggiungere alla riga delle rettifiche (o come riga a parte) l'indicatore con la stessa regola del riepilogo: 'si'/no' o 'fonte non attiva: rettifiche' se conRettifiche e' null."
+  },
+  {
+    "id": "V1-08",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "uiplan.json:1293",
+    "titolo": "Provenance della stima disallineata: panoramica e dettaglio dichiarano stimaImpegni senza renderlo, la dotazione lo rende senza dichiararlo",
+    "evidenza": "L'uiplan dichiara stimaImpegni.metodo/orizzonte/ultimaCampagnaRilevata/calcolatoIl/quotaDaRichiesto per /finanziario (righe 1293-1317) e per /finanziario/interventi/:codice (righe 1545-1569), ma ne' Panoramica.tsx ne' DettaglioIntervento.tsx rendono NotaStima (c'e' solo il 'di cui stimato'); per /finanziario/dotazione l'uiplan non ha ne' righe[].impegnatoStimato ne' stimaImpegni.*, mentre DotazioneReport.tsx:29 e :72 rendono la colonna 'di cui stimato' e la nota di lettura. La tracciabilita' per campo (lente V) non corrisponde alla UI.",
+    "fix": "Allineare: aggiungere a /finanziario/dotazione SpesaPerIntervento.righe[].impegnatoStimato e SpesaPerIntervento.stimaImpegni.* e, per panoramica e dettaglio, o rendere NotaStima (TX-0002 sotto l'impegnato, TX-0011 nella Sintesi) o togliere i campi stimaImpegni.* dichiarati; rilanciare uiplan-validate."
+  },
+  {
+    "id": "V1-09",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/riserva.ts:22",
+    "titolo": "Riquadro 'Riserva di efficacia (5%)': senza montante o quota ripiega in silenzio sull'accumulato mentre la nota dice '= 5% x montante'",
+    "evidenza": "valoreRiserva restituisce quotaDelMontante(...) ?? numeroDi(m.importoAccumulato); MontanteERiserve (RiservaReport.tsx:63) mostra quel valore con la nota noteQuoteRiserva '= 5% x montante; congelata il ...' e il messaggio 'Non calcolabile: manca il montante o la quota' non scatta mai se c'e' l'accumulato. Il residuo 2% (valoreResiduo) invece dice l'assenza. Un valore preso da un altro campo sotto l'etichetta del calcolo (stessa regola del 'mai il lordo al posto del netto').",
+    "fix": "Nel riquadro R17 usare solo montante x quota (assenza dichiarata se manca uno dei due); se si vuole tenere il ripiego per la soglia del grafico, dichiararlo nella nota ('riserva accumulata: montante o quota non disponibili')."
+  },
+  {
+    "id": "V1-10",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/PannelloFiltri.tsx:25",
+    "titolo": "'Azzera' del pannello dei filtri toglie anche il filtro SIGC, che nel pannello non c'e'",
+    "evidenza": "Il pannello non mostra il controllo SIGC (sta nella barra), ma 'Azzera' fa setBozza({}) e 'Applica i filtri' scrive la bozza senza sigc: dopo Azzera + Applica il controllo della barra torna a 'Tutti' senza che l'utente l'abbia toccato. Il brief chiede il sigc conservato col pannello 'Applica'; senza Azzera e' conservato (useBozzaFiltri parte dai filtri applicati).",
+    "fix": "Azzerare i soli filtri del pannello conservando il sigc applicato (setBozza({ sigc: valori.sigc }) o equivalente nel pannello comune) e coprirlo con un test (Azzera + Applica su ?intervento=SRA01&sigc=false -> ?sigc=false)."
+  },
+  {
+    "id": "V1-11",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/pages/finanziario/riepilogo/page.test.tsx:275",
+    "titolo": "Test del riepilogo senza TX-0059: l'assenza della nota sui lordi e' verificata sul testo vecchio, che non esiste piu'",
+    "evidenza": "Il test dichiara 'spariscono quello dei pagamenti e la nota sui lordi' ma controlla queryByText(/i recuperi sono nella scheda di ogni domanda\\.$/), il testo di prima di R08; la nota attuale e' NOTA_PAGAMENTI_LORDI ('... come la colonna Pagamenti lordi; le rettifiche sono nella loro colonna e nell'anteprima.', RiepilogoReport.tsx:58). L'asserzione passa sempre: una regressione che mostrasse la nota senza il grant non verrebbe vista.",
+    "fix": "Asserire l'assenza del testo attuale (es. /come la colonna Pagamenti lordi; le rettifiche sono nella loro colonna/) dopo il passaggio alla vista Tabella."
+  },
+  {
+    "id": "V1-12",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "tests/finanziario-ui.test.tsx:1431",
+    "titolo": "Residuo di importoRecuperato (tolto dal contratto) in una risposta finta di TX-0007",
+    "evidenza": "Il test 'selezione senza interventi: nemmeno KPI e flussi mostrano zeri' risponde a /residuo-pagamenti con importoRecuperato: ZERO e senza importoRettifiche, fonteRettifiche e interventi: un campo che il contratto 1.5.0 non ha piu' (R08, X3 nel brief: 'senza residui (codice, mock, test, testi)') e la forma attuale non esercitata.",
+    "fix": "Sostituire importoRecuperato con importoRettifiche: ZERO e aggiungere interventi: [] (forma del contratto 1.5.0)."
+  },
+  {
+    "id": "V1-13",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "tests/finanziario-ui.test.tsx:722",
+    "titolo": "Test 'TX-0002 in errore ... manca solo il contributo ambientale della testata' rimasto senza oggetto dopo R14",
+    "evidenza": "Il dettaglio non legge piu' TX-0002 (R14): mettere /spesa-per-intervento in errore non ha effetto e il test non verifica che la lettura non parta; il titolo afferma ancora che manca 'solo il contributo ambientale'. La non-lettura e' provata solo da src/pages/finanziario/interventi/page.test.tsx:52.",
+    "fix": "Rinominare il test e asserire letture(client, '/api/finanziario/spesa-per-intervento') di lunghezza 0, oppure eliminarlo come duplicato del test di pagina."
+  },
+  {
+    "id": "V1-14",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/pages/finanziario/sigc/riserva/page.test.tsx:61",
+    "titolo": "Test R17: la fixture non distingue montante x quota dai campi di prima e il residuo del 2% non e' verificato",
+    "evidenza": "Nella fixture RISERVA (src/features/finanziario/testing/fixture.ts:154-163) montante 10000 x 0,05 = 500 = importoAccumulato e 10000 x 0,02 = 200 = importoResiduoDisponibile: l'asserzione '500,00' passa anche col ripiego sull'accumulato (V1-09) e per 'Residuo (2%)' si controlla solo il badge. Inoltre naturaResiduo 'PREVISIONE' con fase 'RESIDUO' contraddice il contratto ('PREVISIONE prima della fase RESIDUO, CONSUNTIVO dopo'). Nessun test unitario su valoreResiduo/noteQuoteRiserva.",
+    "fix": "Nel test di pagina usare valori distinti (es. montante 20000: riserva 1.000,00, residuo 400,00 diversi da accumulato e residuo disponibile), asserire entrambi i valori e una natura coerente con la fase; aggiungere test unitari di valoreRiserva/valoreResiduo/testoQuota."
+  },
+  {
+    "id": "V1-15",
+    "feature": "finanziario",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/ui/rettifiche.tsx:50",
+    "titolo": "Indicatore delle rettifiche scritto in due modi e nome accessibile sgrammaticato per una riga",
+    "evidenza": "Avanzamento: \"Si': 1 riga\" e aria-label 'Apri le una riga di rettifiche dell'intervento X' (rettifiche.tsx:50-51); riepilogo: 'Sì: 1 riga' (RiepilogoReport.tsx:65).",
+    "fix": "Una sola forma ('Sì: n righe') in entrambe le pagine e aria-label 'Apri la riga di rettifiche' / 'Apri le n righe di rettifiche'."
+  },
+  {
+    "id": "V1-16",
+    "feature": "finanziario",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/api/mock/esempio.ts:2",
+    "titolo": "Residui testuali di R14/X3 e del vecchio stato delle fonti in commenti e mock",
+    "evidenza": "esempio.ts:2-3 'quote Stato e Regione, vincolo LEADER da fonte non attiva' e impegni/stanziato 'da fonte non attiva' (ora valorizzati); la stima del mock deriva dal campo 'contributo' (esempio.ts:61, 123, 138, 143, 223) e da' una parte stimata anche agli interventi NO SIGC (la stima riguarda i bandi pluriennali SIGC, I3); intestazione '12. contributo ambientale' sopra graficoDotazionePagamenti (tests/finanziario-grafici.test.ts:1081); 'I cinque filtri ripetibili di RF001' ora anche col sigc (api/index.ts:105); 'lo stanziato, oggi da fonte non attiva' (DomandeReport.tsx:70).",
+    "fix": "Aggiornare i commenti; nel mock rinominare il seme della stima e dare impegnatoStimato 0 agli interventi NO SIGC."
+  }
+]

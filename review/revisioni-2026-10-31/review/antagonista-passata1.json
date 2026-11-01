@@ -1,0 +1,173 @@
+[
+  {
+    "id": "X-01",
+    "feature": "istituzionale",
+    "severity": "MAGGIORE",
+    "file": "src/features/istituzionale/lib/collegamenti.ts:83",
+    "titolo": "Il link 'Apri nei pagamenti' della spesa non SIGC usa sigc=false con la semantica vecchia: dopo D-12 dell'elenco non seleziona piu' le righe che la verifica SMP conta",
+    "evidenza": "elencoSpesa(codice) apre /elenco-operativo/pagamenti?esito=PAGATA&sigc=false&intervento=X e il commento (righe 78-80) e l'uiplan (plan/istituzionale/uiplan.json:95 e :259, OP-IS-09 alla 1167) lo giustificano come 'negazione esatta del predicato SIGC dei pagamenti, anticipi inclusi'. TX-0016 conta ancora cosi' la spesa (BE PostgresReportIstituzionaleAdapter.java:365-371, not(sigcPerPagamenti())), ma con D-12 dell'elenco (approvazioni-revisioni-2026-10-31.md, voce 41; BE PostgresElencoOperativoAdapter.java:527-532) TX-0059 con sigc=false seleziona le domande degli INTERVENTI classificati NO_SIGC. Effetti: per un intervento SIGC con pagamenti non SIGC, o non classificato (AT001), la cella ha spesa > 0 e il link apre un elenco vuoto; per un intervento NO_SIGC con domande a presenza SIGC (SRA16 e' NO_SIGC 'da confermare') l'elenco e' piu' largo del numero. Il delta ha cambiato la semantica (5ad5165, chip 'interventi NO SIGC') senza toccare i link che ne dipendono; nessuno scenario BE copre il link (OP-IS-09). Anche la descrizione di sigc in specs/openapi-elenco-operativo.json e' rimasta quella per domanda e ha favorito l'equivoco.",
+    "fix": "Togliere sigc dai link elenco-spesa-riga ed elenco-spesa-intervento (uiplan e collegamenti.ts) finche' l'elenco non ha un parametro per il predicato SIGC dei pagamenti, e dirlo nella nota del link (l'elenco mostra tutte le righe PAGATA dell'intervento, SIGC comprese); in alternativa chiedere a green-be un parametro dedicato (es. flussoSigc) e uno scenario di coincidenza. Correggere il commento e OP-IS-09."
+  },
+  {
+    "id": "X-02",
+    "feature": "procedurale",
+    "severity": "MAGGIORE",
+    "file": "src/features/procedurale/lib/collegamenti.ts:55",
+    "titolo": "I 20 link del procedurale verso l'elenco non portano sigc: col filtro attivo l'elenco e' piu' largo del numero cliccato e il filtro si perde",
+    "evidenza": "LINK_ELENCO (righe 52-71) e plan/procedurale/uiplan.json non hanno 'sigc' in nessuna query (0 link su 20), mentre il finanziario lo porta in 10 link proprio 'cosi' l'elenco mostra lo stesso insieme del dato' (step2-7.md, scelta 5). Caso concreto: col filtro SIGC la card mista 'Domande per stato area programmazione' legge TX-0029 con sigc=true (Panoramica.tsx:47) e, come dice il wireframe panoramica.md ('le domande SIGC finiscono in senza stato'), conta le sole domande SIGC nella voce Senza stato; il link della barra (Panoramica.tsx:101, voceProgrammazione=SENZA_STATO + filtri del programma, senza sigc) apre in elenco tutte le domande senza stato, SIGC e NO SIGC. Col filtro NO SIGC tutte le card sono normali e lette con sigc=false, i link a livello di pagina (elenco-stato-sostegno, elenco-stato-pagamento, elenco-ammesse, elenco-con-atto, *-panoramica) aprono l'elenco con 'Tutti' (anche interventi SIGC e non classificati) e il controllo SIGC dell'elenco torna a Tutti. Tradisce la regola del file stesso ('mai un elenco piu' largo di quello che il report conta', riga 7) e il punto del brief sui link coi filtri correnti.",
+    "fix": "Aggiungere 'sigc' alla query dei link con i filtri del programma (elenco-*-panoramica, elenco-stato-sostegno, elenco-stato-pagamento, elenco-ammesse, elenco-con-atto) nell'uiplan e in LINK_ELENCO, valorizzandolo da c.sigc in parametri() (riga ~85); i link per riga/intervento possono restare senza. Test: col filtro SIGC il link della voce Senza stato porta sigc=true."
+  },
+  {
+    "id": "X-03",
+    "feature": "finanziario",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/lib/riserva.ts:26",
+    "titolo": "R17: il riquadro 'Residuo (2%)' mostra sempre montante x 2% e lo marca Consuntivo anche quando il residuo consuntivo e' zero",
+    "evidenza": "valoreResiduo() = montantePagamenti x quotaResiduo senza condizioni e RiservaReport.tsx:64 gli mette il badge di naturaResiduo (CONSUNTIVO dal 01/01/n+2, solo per data). Il backend calcola il residuo come 2% del montante SOLO a riserva congelata e non utilizzata completamente, altrimenti 0 (CalcoloRiserva.java:57-60, D-04 Rev. 2, condizione della SR-01). Con utilizzato >= congelato, dopo il 01/01/n+2, la stessa pagina dice 'Residuo (2%) Consuntivo 8,2 M EUR' nel blocco R17 e 'Residuo disponibile 0,00 EUR' nel KPI sotto (riga 47). Analogo per il 5%: con un'istantanea estratta prima del 30/06/n+1 e consultata dopo, il riquadro della riserva dice Consuntivo su un montante parziale mentre la tabella dice 'non ancora congelato all'estrazione' e l'avviso istantaneaAnteriore (riga 75) dice che gli importi non rappresentano la fase. R17 chiede proprio di far capire se il valore e' consuntivo o previsione; nessun test copre la riserva usata tutta (page.test.tsx:62 verifica solo 'Previsione').",
+    "fix": "Nel riquadro del 2% usare importoResiduoDisponibile quando c'e' (e' gia' 2% o 0 secondo la SR-01) e montante x 2% solo come previsione, con la nota 'zero se la riserva e' utilizzata completamente entro il 31/12/n+1'; non mostrare Consuntivo per un valore calcolato su un'istantanea anteriore al congelamento (badge 'Previsione (istantanea del gg/mm)' o null). Aggiungere i due casi ai test."
+  },
+  {
+    "id": "X-04",
+    "feature": "finanziario",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/lib/grafici/riserva.ts:69",
+    "titolo": "R18 forma A: le fasce delle fasi non si disegnano mai (markArea non registrato in ECharts) e comunque cadrebbero fuori dall'asse del tempo",
+    "evidenza": "lineaUtilizzo mette le fasi in series.markArea, ma src/shared/ui/grafici/echarts.ts:18-21 registra MarkLineComponent e non MarkAreaComponent (echarts/core tree-shaken: il componente non importato viene ignorato). In piu' l'asse x e' type 'time' senza min/max (riga 101): in ECharts 6.1 l'estensione viene solo dai dati delle serie (node_modules/echarts/lib/coord/scaleRawExtentInfo.js:380-410), e i movimenti stanno nella sola finestra di utilizzo (mock esempio.ts: 15/07-15/10/2025), quindi le fasce Accumulo (01/10/n-30/06/n+1) e Residuo (dal 01/01/n+2) resterebbero fuori anche registrando il componente; l'autore lo sa per la soglia (max calcolato a mano, riga 97) ma non per le fasce. Le 'annotazioni delle fasi' sono il cuore della forma A scelta il 01/11 (riserva.html: fasce di sfondo con nome e data di accumulo, congelamento, utilizzo, residuo). Il test (tests/finanziario-grafici.test.ts:1176) conta solo markArea.data = 3 e i test sostituiscono ECharts (src/shared/test/setup.ts:10), quindi nessuno se ne accorge: il test non prova cio' che dichiara ('fasi dell'anno sullo sfondo').",
+    "fix": "Registrare MarkAreaComponent in echarts.ts (togliendo il cast 'as never'); fissare xAxis.min = inizioAccumulo e xAxis.max = fine della fascia di residuo (o almeno inizioResiduo) dal calendario dell'anno. Coprire con un test SSR reale (come l'antagonista v2-iter1) o almeno con un controllo che xAxis.min/max contengano le tre fasce e che il componente sia registrato."
+  },
+  {
+    "id": "X-05",
+    "feature": "comune",
+    "severity": "MAGGIORE",
+    "file": "src/shared/ui/grafici/useRigheContesto.ts:15",
+    "titolo": "L'intestazione dei PNG non dice il filtro SIGC fuori dal finanziario; nell'elenco operativo e' una regressione",
+    "evidenza": "Solo PaginaFinanziario aggiunge la riga 'Interventi: SIGC' (widgets/report-finanziario/ui/PaginaFinanziario.tsx:69,75). Le altre pagine passano a useRigheContesto i soli criteri dei chip: fisico testiCriteri (features/fisico/lib/criteri.ts:79), istituzionale testiCriteri/testiCriteriSigc (features/istituzionale/lib/criteri.ts:121,127), procedurale testiCriteri (features/procedurale/lib/criteri.ts:149), elenco filtriApplicati = chipDeiCriteri (ui/useInterrogazione.ts:41). Nell'elenco il delta ha tolto sigc dai chip (lib/chip.ts:124): prima di 64ada98 il PNG diceva il filtro SIGC, ora no. Un PNG dell'output regionale, delle Unit Amount, del riepilogo procedurale o del sinottico dell'elenco con NO SIGC ha numeri diversi da 'Tutti' e un'intestazione identica: tradisce NFR-50 (filtri applicati nell'intestazione) e il punto del brief sui PNG.",
+    "fix": "Aggiungere la riga del filtro in un punto solo: useRigheContesto (o righeContesto) legge sigc dall'indirizzo con sigcDaRicerca e aggiunge 'Interventi: SIGC/NO SIGC' quando la pagina ha il controllo (parametro opzionale conSigc), oppure testiCriteri/filtriApplicati delle quattro feature includono etichettaSigc(filtri.sigc). Test per area: col filtro l'intestazione ricevuta da pngDelGrafico contiene la riga."
+  },
+  {
+    "id": "X-06",
+    "feature": "comune",
+    "severity": "MAGGIORE",
+    "file": "src/shared/ui/card/Sezione.tsx:30",
+    "titolo": "Scostamento 3 non regge: le tabelle delle card non pertinenti sono visibili a chi vede e inesistenti per gli strumenti assistivi",
+    "evidenza": "Sezione avvolge tutto il contenuto in CorpoNonPertinente (NonPertinente.tsx:35-41, attributo inert), che toglie la tabella dall'albero dell'accessibilita'. Le pagine intere non pertinenti (procedurale stati, ammesse, sottofasi col filtro SIGC; fisico superfici e verifica SMP SIGC con NO SIGC; verifica SMP non SIGC con SIGC) hanno la tabella per intervento in una Sezione (TabellaStatiInterventi, TabellaAmmesse, TabellaSuperfici, TabellaVerifica.tsx:42, TabellaVerificaSigc.tsx:47): chi vede legge i dati in grigio, chi usa un lettore di schermo sente solo il motivo e salta tutta la tabella. Il dossier approvato promette 'tabella equivalente leggibile dagli strumenti assistivi' e per i grafici CardNonPertinente lo fa (copia visually-hidden, CardGrafico.tsx:219-221); per le tabelle-contenuto no. Contenuto visibile ma non esposto ai lettori di schermo viola WCAG 1.3.1; axe non lo rileva (non segnala inert).",
+    "fix": "Per le tabelle della Sezione non pertinente fare come per i grafici: corpo visibile inerte e, fuori dal corpo, una copia statica nascosta alla vista (TabellaStatica/TabellaDati delle righe senza comandi), oppure non usare inert sulle tabelle ma disattivare solo i comandi (righe senza onRiga, niente link, bottoni disabled). Aggiungere un test che cerchi la tabella per nome dentro una Sezione non pertinente."
+  },
+  {
+    "id": "X-07",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/filtri/BarraFiltri.tsx:92",
+    "titolo": "Col solo filtro SIGC la barra dice 'Nessun filtro: tutti gli interventi'",
+    "evidenza": "Il filtro SIGC non e' un chip, quindi con sigc=true e nessun altro filtro chip.length === 0 e la barra mostra accanto al controllo 'SIGC' premuto il testo vuoto della pagina: 'Nessun filtro: tutti gli interventi del perimetro' (PaginaFinanziario.tsx:84), 'Nessun filtro: tutti gli interventi' (PaginaReportProgramma.tsx:83, PaginaProcedurale.tsx:59), 'Nessun filtro: tutte le domande del perimetro' (elenco, ElencoDomande.tsx:173). Il testo e' falso proprio nel caso piu' comune d'uso del filtro.",
+    "fix": "In BarraFiltri, con filtroSigc e sigc presente nell'indirizzo, non mostrare il testo vuoto (o mostrare 'Nessun altro filtro'); test nel kit."
+  },
+  {
+    "id": "X-08",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/entities/filtri/ui/useFiltriProgrammaNellIndirizzo.ts:79",
+    "titolo": "'Togli tutti' e 'Azzera' del pannello tolgono anche il filtro SIGC, che non e' un chip ne' sta nel pannello",
+    "evidenza": "togliTutti = applica(nessuno) con nessuno = {} (finanziario, fisico, istituzionale, procedurale) e ricercaConParametri (features/finanziario/lib/filtri.ts:50-57) conserva solo anno e scheda; nell'elenco senzaFiltri (lib/criteri.ts:194) conserva solo dimensione e ordina. 'Azzera' + 'Applica' fa lo stesso (PannelloFiltri.tsx:25, PannelloFiltriProgramma.tsx:94 setBozza(nessuno)). Il controllo dichiara il contrario ('non e' un chip (non si toglie)', BarraFiltri.tsx:5-6; ControlloSigc.tsx:2-5), 'Togli tutti' compare solo se ci sono chip, e nessun test ne fissa il comportamento: l'utente con SIGC + intervento vede sparire anche SIGC senza averlo chiesto.",
+    "fix": "Decidere e dichiarare: o 'Togli tutti'/'Azzera' conservano sigc (nessuno = { sigc: corrente } o ricercaConParametri che copia sigc) oppure il controllo dice che 'Togli tutti' lo azzera; aggiungere il test in tests/kit-sigc.test.tsx e in entita-filtri-ui.test.tsx."
+  },
+  {
+    "id": "X-09",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/app/menu.tsx:34",
+    "titolo": "Il filtro SIGC si perde passando dalle determine, dai dettagli di fisico, istituzionale e procedurale e dalla Home",
+    "evidenza": "La voce delle determine ha senzaRicercaConservata (procedurale/lib/pagine.ts:47): il menu la apre senza indirizzo, e dalle determine ricercaDelSoloSigc('') e' vuoto per tutte le aree, quindi tornando a qualunque report il filtro e' Tutti. I link ai dettagli non portano sigc (fisico/lib/collegamenti.ts:20, istituzionale/lib/collegamenti.ts:29, procedurale/lib/collegamenti.ts:32): dal dettaglio menu e briciole riportano ai report senza filtro. La Home (briciola e card, home.tsx:56) non lo porta. Il wireframe vuole il filtro 'conservato fra le pagine e fra le aree'; il finanziario lo conserva nel suo dettaglio (useApriIntervento con conFiltri), le altre aree no.",
+    "fix": "Portare sigc (non letto) nei link verso dettagli e determine o, piu' semplicemente, nel menu usare ricercaDelSoloSigc anche per le voci senzaRicercaConservata quando la pagina corrente lo ha, e conservarlo nell'indirizzo dei dettagli (non usato dalle letture, F5). Decidere esplicitamente per la Home."
+  },
+  {
+    "id": "X-10",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/card/NonPertinente.tsx:19",
+    "titolo": "Card non pertinente con lettura vuota o in errore: niente badge ne' motivo, 'Modifica i filtri' attivo e testo 'per i filtri scelti'",
+    "evidenza": "NonPertinente avvolge solo il contenuto con dati; vuoto ed errore di VistaQuery stanno fuori (SigcReport.tsx:57 VUOTO 'Nessuna domanda SIGC per i filtri scelti.'; finanziario Panoramica.tsx:185; procedurale Panoramica.tsx:53-55 e :78 VuotoConFiltri con 'Modifica i filtri'; StatiDomande.tsx:163; fisico SuperficiAmmissibili.tsx:63). Col filtro opposto la lettura e' senza sigc, ma il vuoto dice 'per i filtri scelti' (conFiltri e' vero per il solo sigc) e propone di modificare filtri che la lettura ha ignorato; l'errore appare come quello di una card normale. Nessun test copre la combinazione.",
+    "fix": "Rendere il vuoto e l'errore delle sezioni non pertinenti con il badge e il motivo (es. un VuotoNonPertinente letto dal contesto in StatiVista) e senza 'Modifica i filtri'; test di una pagina non pertinente con lettura vuota."
+  },
+  {
+    "id": "X-11",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/lib/sigc.ts:36",
+    "titolo": "La tabella non riparte sempre dalla prima pagina: 'pagina' esiste solo nell'elenco, altrove dipende dalla cache",
+    "evidenza": "ricercaConSigc toglie il parametro 'pagina', che solo l'elenco usa (elenco-operativo/lib/criteri.ts:41). Nelle altre aree la pagina e' stato di TabellaInterattiva (useState, TabellaInterattiva.tsx:259): si azzera solo se la tabella si rimonta. Il finanziario la rimonta con key=ricercaDaFiltri (RiepilogoReport.tsx:265, DotazioneReport.tsx:78, rettifiche.tsx:87); procedurale (Riepilogo.tsx:76, TabellaAmmesse, TabellaStatiInterventi) e Unit Amount (UnitAmount.tsx:109) no: con la lettura del valore scelto gia' in cache (staleTime 5 minuti, VistaQuery non torna allo scheletro) la tabella resta montata e resta alla pagina 3 (paginaDi la limita all'ultima). La scelta 6 di step2-7.md lo dichiara come garantito; il test (tests/kit-sigc.test.tsx:26) prova solo la funzione pura.",
+    "fix": "Dare alle tabelle del procedurale e delle Unit Amount la key coi criteri (ricercaDaCriteri, come finanziario e superfici) o azzerare la pagina quando cambiano le righe; un test che passi Tutti -> SIGC -> Tutti con la cache calda."
+  },
+  {
+    "id": "X-12",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/comuni.tsx:133",
+    "titolo": "R09/U4: i sinottici del finanziario sono in forma compatta senza il valore pieno accessibile",
+    "evidenza": "U4 (DECISIONI.md) e tutti i wireframe chiedono 'formato compatto con il valore pieno accessibile'. Kpi.valorePieno esiste ma lo usa solo l'elenco; nel finanziario KpiImporto (comuni.tsx:133), i sei box (Panoramica.tsx:50, 66, 78), Domande (DomandeReport.tsx:76, 80) e riserva (RiservaReport.tsx:37, 56) passano importoBreve ('75,8 M EUR') senza title ne' testo nascosto: il valore al centesimo non e' raggiungibile ne' a vista ne' coi lettori di schermo.",
+    "fix": "Passare valorePieno={formatEuro(v)} quando importoBreve compatta (>= 1 milione), nel KpiImporto e nei Kpi diretti; un test come quello del kit sui box della panoramica."
+  },
+  {
+    "id": "X-13",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici/sigc.ts:231",
+    "titolo": "R13: il segmento 'Pagato' della barra dell'ammesso vale pagato meno pagato oltre l'ammesso e non coincide con l'Importo pagato della tabella",
+    "evidenza": "Il segmento si chiama 'Pagato' (serie e tooltip 'Ammesso, pagato: ...') ma vale centesimi(pagato - oltre); la TabellaVoci sotto (SigcReport.tsx:131) e la tabella equivalente dicono 'Importo pagato' = pagato. Con pagato oltre l'ammesso > 0 l'utente vede due 'pagato' diversi; la nota fra le voci omesse lo spiega solo in parte. R13 chiedeva chiarezza della scomposizione.",
+    "fix": "Chiamare il segmento 'Pagato entro l'ammesso' (serie, tooltip, aria) o aggiungere nel tooltip 'pagato totale X, di cui oltre l'ammesso Y'."
+  },
+  {
+    "id": "X-14",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/aggregati.ts:56",
+    "titolo": "Perimetro ADA: la quota impegnata e' 'non confrontabile' per 'impegni dell'area', ma l'impegnato e' regionale come la dotazione",
+    "evidenza": "quotaImpegnata col perimetro ADA restituisce 'Non confrontabile: dotazione regionale e impegni dell'area'. L'impegnato di TX-0002 viene dalla programmazione per intervento (BE ConsultaFinanziarioService.java:117-120, campo(pi, impegnatoSpesaPubblica), nessun filtro di perimetro; IMPEGNO e' per intervento), quindi e' regionale. Per un P4 il box 'Totale impegnato' (Panoramica.tsx:63) mostra un dato regionale senza dirlo (la dotazione accanto usa diProgramma) e la sua quota viene negata con un motivo falso.",
+    "fix": "Etichettare il box con diProgramma('Totale impegnato', perimetro) e calcolare la quota anche col perimetro ADA (entrambi regionali), oppure correggere il motivo; allineare la colonna 'Impegnato' di riepilogo e dotazione (programma: true)."
+  },
+  {
+    "id": "X-15",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/ui/TabellaVerificaSigc.tsx:59",
+    "titolo": "R12/U6: la tabella della verifica SMP SIGC resta a 20 righe per pagina",
+    "evidenza": "Il delta porta il default di TabellaInterattiva a 25 (TabellaInterattiva.tsx:254) ma TabellaVerificaSigc passa perPagina={20} esplicito (riga 59, da ec0eaec): e' l'unica tabella interattiva fuori dalla regola '25 righe per pagina' dei wireframe approvati.",
+    "fix": "Togliere perPagina={20} (default 25)."
+  },
+  {
+    "id": "X-16",
+    "feature": "elenco-operativo",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/ui/SinotticoDomande.tsx:45",
+    "titolo": "Due significati di 'SIGC' nella stessa pagina: il controllo filtra per intervento, il sinottico e la colonna contano per domanda",
+    "evidenza": "Dopo D-12 il controllo della barra seleziona le domande degli interventi SIGC/NO SIGC, ma la tessera Presentate dice 'di cui SIGC n' (presenza ASR2-08/20 per domanda, BE count().filterWhere(PredicatiReport.sigc())) e la colonna della riga dice 'SIGC'/'non SIGC' per domanda (lib/voci.ts:78). Con NO SIGC premuto la tessera puo' dire 'di cui SIGC 12' (domande a presenza SIGC di interventi NO SIGC, es. SRA16): l'utente legge una contraddizione. Il wireframe domande.md dice che la colonna resta per domanda, ma non chiede etichette che distinguano.",
+    "fix": "Rinominare le voci per domanda ('di cui con flusso SIGC (ASR2-08/20)', colonna 'Flusso SIGC') cosi' da distinguerle dal filtro per intervento."
+  },
+  {
+    "id": "X-17",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "tests/finanziario-ui.test.tsx:722",
+    "titolo": "Residui di R14 e R08 nei test e nei mock: un test ormai vuoto e campi tolti dal contratto",
+    "evidenza": "Il test 'TX-0002 in errore: ... manca solo il contributo ambientale della testata' (riga 722) mette TX-0002 in errore, ma il dettaglio non legge piu' TX-0002 (1017ca1): passa per costruzione e non prova nulla. La fixture di residuo-pagamenti a riga 1431 ha ancora importoRecuperato, uscito dal contratto (R08). Il mock esempio.ts:2-3 parla ancora di 'quote Stato e Regione, vincolo LEADER da fonte non attiva' e tests/finanziario-grafici.test.ts:1081 intitola '12. contributo ambientale' la sezione di graficoDotazionePagamenti. Il brief chiede R14/R21/X3 senza residui in codice, mock, test e testi.",
+    "fix": "Togliere o riscrivere il test di riga 722 (es. TX-0011 in errore), sostituire importoRecuperato con importoRettifiche nella fixture, aggiornare il commento del mock e il titolo della sezione."
+  },
+  {
+    "id": "X-18",
+    "feature": "fisico",
+    "severity": "COSMETICO",
+    "file": "src/features/fisico/lib/grafici.ts:123",
+    "titolo": "U1 'interval: 0 sempre': l'asse delle campagne delle linee DS/DP e' ancora senza",
+    "evidenza": "lineePerCampagna usa xAxis { type: 'category', data: anni } senza axisLabel.interval 0; e' l'unico asse a categorie rimasto fuori dalla regola R02 (grep di type 'category'). Con poche campagne l'effetto pratico e' nullo, ma a 390 px ECharts puo' saltare etichette.",
+    "fix": "axisLabel: { interval: 0, hideOverlap: false }."
+  },
+  {
+    "id": "X-19",
+    "feature": "finanziario",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/ui/rettifiche.tsx:50",
+    "titolo": "Indicatore delle rettifiche: \"Si'\" con l'apostrofo e nome accessibile sgrammaticato",
+    "evidenza": "Rettificato mostra \"Si': 2 righe\" (riga 51) mentre il riepilogo dice 'Sì: 2 righe' (RiepilogoReport.tsx:65); l'aria-label per una riga diventa \"Apri le una riga di rettifiche dell'intervento X\" (riga 50).",
+    "fix": "Usare 'Sì' e 'Apri la riga' / 'Apri le n righe' come nel riepilogo."
+  }
+]
