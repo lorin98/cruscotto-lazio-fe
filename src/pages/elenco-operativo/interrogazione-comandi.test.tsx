@@ -42,7 +42,7 @@ async function pannelloAperto(indirizzo = '/elenco-operativo/domande') {
   await tabellaDomande();
   await userEvent.click(screen.getByRole('button', { name: /Filtri/ }));
   const dialogo = await screen.findByRole('dialog');
-  await within(dialogo).findByRole('button', { name: 'Solo SIGC' });
+  await within(dialogo).findByRole('button', { name: 'Solo presentate' });
   const navigazioni: string[] = [];
   router.subscribe((s) => navigazioni.push(s.location.search));
   return { router, dialogo, navigazioni, richieste };
@@ -100,13 +100,13 @@ describe('RA006: filtri dal vivo nel pannello, col ritardo dichiarato e senza Ap
     fireEvent.click(within(dialogo).getByRole('checkbox', { name: 'FROSINONE' }));
     await avanza(200);
     fireEvent.click(within(dialogo).getByRole('checkbox', { name: 'LATINA' }));
-    fireEvent.click(within(dialogo).getByRole('button', { name: 'Solo SIGC' }));
+    fireEvent.click(within(dialogo).getByRole('button', { name: 'Solo presentate' }));
     // la bozza e' gia' nei controlli prima che parta
     expect(within(dialogo).getByRole('checkbox', { name: 'FROSINONE' })).toHaveProperty('checked', true);
     await avanza(299);
     expect(navigazioni).toEqual([]);
     await avanza(1);
-    expect(navigazioni).toEqual(['?provincia=FROSINONE&provincia=LATINA&sigc=true']);
+    expect(navigazioni).toEqual(['?provincia=FROSINONE&provincia=LATINA&presentata=true']);
   });
 
   it("un testo tornato non valido ritira la sua bozza: 'ros' e poi 'ro' non partono (review v2 H-01)", async () => {
@@ -244,7 +244,7 @@ describe('RA002: tastiera, ordinamento e colonne della tabella (review v1 X-02, 
     servi();
     server.use(
       http.get('*/api/elenco-operativo/domande', ({ request }) =>
-        HttpResponse.json(new URL(request.url).searchParams.has('sigc') ? { ...PAGINA_DOMANDE, righe: [], totaleRighe: 0 } : PAGINA_DOMANDE),
+        HttpResponse.json(new URL(request.url).searchParams.has('presentata') ? { ...PAGINA_DOMANDE, righe: [], totaleRighe: 0 } : PAGINA_DOMANDE),
       ),
     );
     renderPagina(ElencoDomande, '/elenco-operativo/domande');
@@ -253,10 +253,10 @@ describe('RA002: tastiera, ordinamento e colonne della tabella (review v1 X-02, 
     await userEvent.click(screen.getByRole('checkbox', { name: 'Liquidato' }));
     await userEvent.keyboard('{Escape}');
     await userEvent.click(screen.getByRole('button', { name: /^Filtri/ }));
-    await userEvent.click(await within(await screen.findByRole('dialog')).findByRole('button', { name: 'Solo SIGC' }));
+    await userEvent.click(await within(await screen.findByRole('dialog')).findByRole('button', { name: 'Solo presentate' }));
     await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Chiudi' }));
     expect(await screen.findByText(/Nessuna domanda per questi filtri\./)).toBeTruthy();
-    await userEvent.click(within(screen.getByRole('region', { name: 'Filtri attivi' })).getByRole('button', { name: 'Togli il filtro SIGC solo SIGC' }));
+    await userEvent.click(within(screen.getByRole('region', { name: 'Filtri attivi' })).getByRole('button', { name: 'Togli il filtro Presentate solo le presentate' }));
     const tabella = await tabellaDomande();
     expect(within(tabella).getByRole('columnheader', { name: /^Liquidato/ })).toBeTruthy();
   });
@@ -282,11 +282,11 @@ describe('RA002: tastiera, ordinamento e colonne della tabella (review v1 X-02, 
 
   it('togliere un chip porta il focus al chip seguente, e senza chip al bottone dei filtri', async () => {
     servi();
-    renderPagina(ElencoDomande, '/elenco-operativo/domande', '/elenco-operativo/domande?intervento=SRA01&sigc=true');
+    renderPagina(ElencoDomande, '/elenco-operativo/domande', '/elenco-operativo/domande?intervento=SRA01&presentata=true');
     const barra = await screen.findByRole('region', { name: 'Filtri attivi' });
     await userEvent.click(await within(barra).findByRole('button', { name: /^Togli il filtro Intervento/ }));
-    await waitFor(() => expect(document.activeElement).toBe(within(barra).getByRole('button', { name: 'Togli il filtro SIGC solo SIGC' })));
-    await userEvent.click(within(barra).getByRole('button', { name: 'Togli il filtro SIGC solo SIGC' }));
+    await waitFor(() => expect(document.activeElement).toBe(within(barra).getByRole('button', { name: 'Togli il filtro Presentate solo le presentate' })));
+    await userEvent.click(within(barra).getByRole('button', { name: 'Togli il filtro Presentate solo le presentate' }));
     await waitFor(() => expect(document.activeElement).toBe(within(barra).getByRole('button', { name: /^Filtri/ })));
   });
 });
@@ -411,7 +411,8 @@ describe('RA006: tessere del sinottico nella vista generale (review v1 V-09, V-1
     const pagato = await screen.findByRole('region', { name: 'Pagato' });
     expect(pagato.textContent).toContain("quota pagata sull'ammesso: 55");
     const ancora = screen.getByRole('region', { name: 'Ancora da pagare' });
-    expect(ancora.textContent).toMatch(/liquidato 5\.000\.000,00.* - recuperato non calcolabile/);
+    // R09: gli importi del sinottico in forma compatta su una riga
+    expect(ancora.textContent).toMatch(/liquidato 5,0\s?M€ - recuperato non calcolabile/);
     // nel piede della vista finanziaria (che ha la colonna Recuperato) lo stesso testo d'aggregato, mai "non valorizzato"
     await userEvent.click(screen.getByRole('button', { name: 'Vista: finanziario' }));
     const piede = (await screen.findByRole('table', { name: /vista finanziario/ })).querySelector('tfoot');

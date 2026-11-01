@@ -219,13 +219,13 @@ describe('RA006: fascia di importo ed errori delle letture nel pannello (review 
     servi();
     server.use(
       http.get('*/api/elenco-operativo/domande/sinottico', ({ request }) =>
-        new URL(request.url).searchParams.has('sigc') ? HttpResponse.json(problema(400, 'DATO_NON_VALIDO', 'sigc non valido'), { status: 400 }) : HttpResponse.json(SINOTTICO),
+        new URL(request.url).searchParams.has('presentata') ? HttpResponse.json(problema(400, 'DATO_NON_VALIDO', 'sigc non valido'), { status: 400 }) : HttpResponse.json(SINOTTICO),
       ),
     );
     renderPagina(ElencoDomande, '/elenco-operativo/domande');
     await screen.findByRole('table', { name: /Elenco operativo delle domande/ });
     const dialogo = await apriPannello();
-    await userEvent.click(await within(dialogo).findByRole('button', { name: 'Solo SIGC' }));
+    await userEvent.click(await within(dialogo).findByRole('button', { name: 'Solo presentate' }));
     const avviso = await within(dialogo).findByRole('alert');
     expect(avviso.textContent).toBe('Risultati non disponibili con questi filtri: Richiesta non valida: sigc non valido. Correggila e riprova.');
   });

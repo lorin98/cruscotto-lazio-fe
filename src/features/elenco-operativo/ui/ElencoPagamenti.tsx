@@ -13,7 +13,7 @@ import { AvvisoAggiornamento, AvvisoPagina, ContestoIntestazione, Griglia, Kpi, 
 import { usePagamenti } from '../api';
 import type { PagamentoElenco, TotaliPagamenti } from '../api';
 import { percorsoDomandeDeiPagamenti } from '../lib/collegamenti';
-import { cellaImporto, perimetroDellaRisposta, testoSomma } from '../lib/formato';
+import { cellaImporto, importoCompatto, perimetroDellaRisposta, testoSomma, testoSommaCompatta } from '../lib/formato';
 import { puoLeggere } from '../lib/grant';
 import { AnteprimaPagamento } from './anteprime';
 import { colonnePagamenti } from './colonne';
@@ -25,15 +25,17 @@ import { useInterrogazione } from './useInterrogazione';
 
 /** I totali vengono dalla stessa lettura delle righe: mentre arrivano quelli nuovi restano i precedenti, dichiarati. */
 function SinotticoPagamenti({ totali, inAggiornamento }: { totali: TotaliPagamenti | undefined; inAggiornamento: boolean }) {
-  const decretato = testoSomma(totali?.importoDecretato, ['riga', 'righe']);
+  // importi in forma compatta su una riga col valore pieno (R09)
+  const decretato = testoSommaCompatta(totali?.importoDecretato, ['riga', 'righe']);
+  const pagato = importoCompatto(totali?.importoPagato);
   return (
     <section className="ui-sinottico ui-risultati" aria-labelledby="t-sinottico-pagamenti" aria-busy={inAggiornamento}>
       <h2 id="t-sinottico-pagamenti">Sinottico dell’insieme filtrato</h2>
       <AvvisoAggiornamento attivo={inAggiornamento} testo="Aggiornamento del sinottico: restano visibili i numeri precedenti finché arrivano i nuovi." />
       <Griglia colonne={4}>
         <Kpi etichetta="Righe pagate / escluse" valore={`${formatNumber(totali?.pagate ?? 0)} / ${formatNumber(totali?.escluse ?? 0)}`} icona="it-list" />
-        <Kpi etichetta="Decretato" valore={decretato.valore} nota={decretato.nota} icona="it-file-signed" tono="scuro" />
-        <Kpi etichetta="Pagato" valore={cellaImporto(totali?.importoPagato)} icona="it-card" tono="verde" />
+        <Kpi etichetta="Decretato" valore={decretato.valore} valorePieno={decretato.pieno} nota={decretato.nota} icona="it-file-signed" tono="scuro" />
+        <Kpi etichetta="Pagato" valore={pagato.valore} valorePieno={pagato.pieno} icona="it-card" tono="verde" />
         <Kpi
           etichetta="Quote di finanziamento"
           valore={cellaImporto(totali?.quotaFeasr)}

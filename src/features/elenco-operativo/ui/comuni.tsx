@@ -32,6 +32,8 @@ export function BarraInterrogazione({
       onApri={onApri}
       onTogliTutti={onTogliTutti}
       vuoto={vuoto}
+      // il controllo SIGC comune (per intervento, D-12 Rev. del backend), nelle due pagine dell'elenco
+      filtroSigc
       destra={
         <>
           <PerimetroElenco perimetro={perimetro} />

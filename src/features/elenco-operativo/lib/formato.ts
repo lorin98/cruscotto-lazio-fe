@@ -4,7 +4,7 @@
 import { ANNO_ASSENTE, ANNO_SENZA, ETICHETTE_ANNUALITA, ETICHETTE_ESITO_PAGAMENTO, ETICHETTE_ESITO_RIGA, ETICHETTE_TIPO_DOMANDA, etichettaTipoDomanda } from '../../../entities/domanda';
 import { descriviAssenza, descriviImporto, testoConNota } from '../../../entities/importo';
 import type { ImportoLike } from '../../../entities/importo';
-import { ettari, formatDate, formatEuro, formatNumber, formatPercentuale, plurale, testoPerimetro } from '../../../shared/lib';
+import { ettari, formatDate, formatEuro, formatNumber, formatPercentuale, importoBreve, plurale, testoPerimetro } from '../../../shared/lib';
 import type { DatoSenzaFonte, Somma } from './dto';
 
 /** Cella di un Importo di una domanda: euro, oppure l'assenza con il motivo ("non valorizzato"). */
@@ -27,6 +27,22 @@ export function testoSomma(somma: Somma | null | undefined, unita: readonly [str
   return senza > 0 ? { valore, nota: `${plurale(senza, unita[0], unita[1])} senza importo` } : { valore };
 }
 
+/**
+ * La somma del sinottico in forma compatta su una riga (R09, revisioni del 31/10/2026: "12,3 M€" da un milione in su) col
+ * valore pieno per i lettori di schermo e il suggerimento; l'assenza resta col suo motivo.
+ */
+export function testoSommaCompatta(somma: Somma | null | undefined, unita: readonly [string, string] = ['domanda', 'domande']): { valore: string; pieno?: string; nota?: string } {
+  const pieno = testoSomma(somma, unita);
+  const v = somma?.totale?.valore;
+  return v == null ? pieno : { ...pieno, valore: importoBreve(v), pieno: formatEuro(v) };
+}
+
+/** Un importo in forma compatta col valore pieno (R09); l'assenza col suo motivo. */
+export function importoCompatto(importo: ImportoLike | null | undefined): { valore: string; pieno?: string } {
+  const v = importo?.valore;
+  return v == null ? { valore: cellaImporto(importo) } : { valore: importoBreve(v), pieno: formatEuro(v) };
+}
+
 /** Motivo dell'assenza di un aggregato del sinottico (D-05 Rev. 1 del backend): non e' il "non valorizzato" della domanda. */
 const MOTIVI_AGGREGATO: Readonly<Record<'liquidato' | 'recuperato', string>> = {
   liquidato: "una riga di liquidazione dell'insieme non ha l'importo",
@@ -37,8 +53,9 @@ const MOTIVI_AGGREGATO: Readonly<Record<'liquidato' | 'recuperato', string>> = {
  * Liquidato o recuperato del sinottico: la somma, oppure "non calcolabile" col motivo dell'aggregato (un elemento
  * dell'insieme senza importo rende assente la somma, D-05 Rev. 1), mai zero (review v1 V-10).
  */
-export function testoAggregato(importo: ImportoLike | null | undefined, campo: 'liquidato' | 'recuperato'): { valore: string; nota?: string } {
-  if (importo?.valore != null) return { valore: formatEuro(importo.valore) };
+export function testoAggregato(importo: ImportoLike | null | undefined, campo: 'liquidato' | 'recuperato'): { valore: string; pieno?: string; nota?: string } {
+  // forma compatta su una riga col valore pieno (R09)
+  if (importo?.valore != null) return { valore: importoBreve(importo.valore), pieno: formatEuro(importo.valore) };
   return { valore: 'non calcolabile', nota: MOTIVI_AGGREGATO[campo] };
 }
 

@@ -7,6 +7,7 @@ import { ANNO_ASSENTE, ANNO_SENZA } from '../../../entities/domanda';
 import type { BarSeriesOption, EChartsOption } from 'echarts';
 import {
   COLORI,
+  asseCategorieOrizzontale,
   aria,
   centesimi,
   descrizioneCascata,
@@ -96,13 +97,14 @@ export function graficoRipartizione(r: Ripartizione, voci: readonly Voce[] | und
   const totale = elenco.reduce((s, v) => s + (v.domande ?? 0), 0);
   const descrizione = `${t.titolo}: ${plurale(elenco.length, t.unita[0], t.unita[1])}, ${plurale(totale, 'domanda', 'domande')} in tutto.`;
   const serie: BarSeriesOption = { type: 'bar', name: 'Domande', data: dati };
-  const asseCategorie = { type: 'category' as const, data: categorie, ...(t.orizzontale ? { inverse: true } : { axisLabel: { interval: 0, rotate: categorie.length > 8 ? 45 : 0 } }) };
+  // tutte le etichette (R02): le barre orizzontali (stati SIAN) con l'asse comune, alte quanto serve
+  const verticale = { type: 'category' as const, data: categorie, axisLabel: { interval: 0, rotate: categorie.length > 8 ? 45 : 0 } };
   const opzioni: EChartsOption = {
     aria: aria(descrizione),
     tooltip: { trigger: 'item', valueFormatter: valoreInNumero },
     ...(t.orizzontale ? {} : zoomSeMolti(categorie.length)),
-    xAxis: t.orizzontale ? { type: 'value' } : asseCategorie,
-    yAxis: t.orizzontale ? asseCategorie : { type: 'value' },
+    xAxis: t.orizzontale ? { type: 'value' } : verticale,
+    yAxis: t.orizzontale ? asseCategorieOrizzontale(categorie) : { type: 'value' },
     series: [serie],
   };
   return { opzioni, tabella, omessi: [] };

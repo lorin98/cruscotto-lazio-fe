@@ -80,10 +80,10 @@ function GruppoProgramma({ id, dati, sel, imposta, conta }: Scelta) {
 
 function GruppoDomanda({ dati, sel, imposta, conta, aperto }: Scelta & { aperto: boolean }) {
   return (
-    <Gruppo titolo="Domanda" scelti={conta('tipo', 'presentata', 'sigc', 'annualita')} aperto={aperto}>
+    // il filtro SIGC e' nella barra (controllo comune "Tutti | SIGC | NO SIGC", per intervento: revisioni del 31/10/2026, D-12 Rev.)
+    <Gruppo titolo="Domanda" scelti={conta('tipo', 'presentata', 'annualita')} aperto={aperto}>
       <Scelte etichetta={ETICHETTE_FILTRI.tipo} opzioni={daCodici(dati.tipi, 'tipo')} scelti={sel('tipo')} onCambia={imposta('tipo')} />
       <Scelte etichetta={ETICHETTE_FILTRI.presentata} opzioni={booleano('Solo presentate')} scelti={sel('presentata')} esclusive onCambia={imposta('presentata')} />
-      <Scelte etichetta={ETICHETTE_FILTRI.sigc} opzioni={booleano('Solo SIGC', 'Non SIGC')} scelti={sel('sigc')} esclusive onCambia={imposta('sigc')} />
       <Scelte etichetta={ETICHETTE_FILTRI.annualita} opzioni={fisse('annualita')} scelti={sel('annualita')} onCambia={imposta('annualita')} />
     </Gruppo>
   );

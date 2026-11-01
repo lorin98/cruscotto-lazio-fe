@@ -68,10 +68,13 @@ describe('RA006: interrogazione libera delle domande con il sinottico sopra e i 
     const { router } = renderPagina(ElencoDomande, '/elenco-operativo/domande', '/elenco-operativo/domande?intervento=SRA01&sigc=true');
     const barra = await screen.findByRole('region', { name: 'Filtri attivi' });
     expect(await within(barra).findByText(/SRA01 Produzione integrata/)).toBeTruthy();
-    expect(within(barra).getByText(/solo SIGC/)).toBeTruthy();
+    // il filtro SIGC e' il controllo comune della barra (per intervento, D-12 Rev.), non un chip (revisioni del 31/10/2026)
+    const sigc = within(barra).getByRole('group', { name: 'Interventi SIGC o NO SIGC' });
+    expect(within(sigc).getByRole('button', { name: 'SIGC' }).getAttribute('aria-pressed')).toBe('true');
+    expect(within(barra).queryByText(/solo SIGC/)).toBeNull();
     await waitFor(() => expect(richieste).toContain('domande?intervento=SRA01&sigc=true'));
     expect(richieste).toContain('sinottico?intervento=SRA01&sigc=true');
-    await userEvent.click(within(barra).getByRole('button', { name: 'Togli il filtro SIGC solo SIGC' }));
+    await userEvent.click(within(sigc).getByRole('button', { name: 'Tutti' }));
     await waitFor(() => expect(router.state.location.search).toBe('?intervento=SRA01'));
   });
 
@@ -147,9 +150,9 @@ describe('RA006: filtri dal vivo nel pannello, senza Applica', () => {
     await userEvent.click(screen.getByRole('button', { name: /Filtri/ }));
     const dialogo = await screen.findByRole('dialog');
     expect(within(dialogo).getByRole('status').textContent).toBe('1284 domande con questi filtri');
-    await userEvent.click(await within(dialogo).findByRole('button', { name: 'Solo SIGC' }));
+    await userEvent.click(await within(dialogo).findByRole('button', { name: 'Solo presentate' }));
     // dopo il ritardo del debounce (RITARDO_MS)
-    await waitFor(() => expect(router.state.location.search).toBe('?sigc=true'));
+    await waitFor(() => expect(router.state.location.search).toBe('?presentata=true'));
     await expectNoA11yViolations(dialogo);
   });
 
@@ -164,7 +167,7 @@ describe('RA006: filtri dal vivo nel pannello, senza Applica', () => {
     const r = trattenuta();
     server.use(
       http.get(api, async ({ request }) => {
-        if (new URL(request.url).searchParams.get('sigc') !== 'true') return HttpResponse.json(pagina);
+        if (new URL(request.url).searchParams.get('presentata') !== 'true') return HttpResponse.json(pagina);
         await r.attesa;
         return HttpResponse.json({ ...pagina, totaleRighe: 17 });
       }),
@@ -175,9 +178,9 @@ describe('RA006: filtri dal vivo nel pannello, senza Applica', () => {
     const dialogo = await screen.findByRole('dialog');
     const conteggio = within(dialogo).getByRole('status');
     expect(conteggio.textContent).toBe(prima);
-    await userEvent.click(await within(dialogo).findByRole('button', { name: 'Solo SIGC' }));
+    await userEvent.click(await within(dialogo).findByRole('button', { name: 'Solo presentate' }));
     expect(conteggio.textContent).toBe('Conteggio in corso…');
-    await waitFor(() => expect(router.state.location.search).toBe('?sigc=true'));
+    await waitFor(() => expect(router.state.location.search).toBe('?presentata=true'));
     // l'indirizzo e' cambiato ma la lettura e' trattenuta: il conteggio resta in corso
     expect(conteggio.textContent).toBe('Conteggio in corso…');
     r.libera();

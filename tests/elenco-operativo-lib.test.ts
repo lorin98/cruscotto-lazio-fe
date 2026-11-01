@@ -275,7 +275,7 @@ describe('elenco operativo, chip dei filtri', () => {
     expect(valoreLeggibile('stato', 'SENZA_STATO', valori)).toBe('Senza stato SIAN');
     expect(valoreLeggibile('azione', '3', valori)).toBe('Filiere corte');
     expect(valoreLeggibile('anno', 'SENZA')).toBe('Senza anno');
-    expect(valoreLeggibile('sigc', 'false')).toBe('non SIGC');
+    expect(valoreLeggibile('sigc', 'false')).toBe('interventi NO SIGC');
     expect(valoreLeggibile('presentata', 'true')).toBe('solo le presentate');
     expect(valoreLeggibile('richiestoDa', '10000')).toBe(formatEuro(10000));
     expect(valoreLeggibile('testo', 'rossi')).toBe('“rossi”');
@@ -453,7 +453,9 @@ describe('elenco operativo, testi rivisti di chip, aggregati e contesto (review 
   });
 
   it("liquidato e recuperato dell'insieme: l'importo, o il motivo per cui non si calcola (mai 'non valorizzato')", () => {
-    expect(testoAggregato(euro(5000), 'liquidato')).toEqual({ valore: formatEuro(5000) });
+    // R09: la forma compatta (sotto il milione e' l'importo pieno) col valore pieno accessibile
+    expect(testoAggregato(euro(5000), 'liquidato')).toEqual({ valore: formatEuro(5000), pieno: formatEuro(5000) });
+    expect(testoAggregato(euro(5_000_000), 'liquidato').valore).toMatch(/^5,0\s?M€$/);
     expect(testoAggregato(euro(null, 'NON_VALORIZZATO'), 'recuperato')).toEqual({ valore: 'non calcolabile', nota: "un recupero dell'insieme non ha l'importo" });
     expect(testoAggregato(undefined, 'liquidato').nota).toBe("una riga di liquidazione dell'insieme non ha l'importo");
   });

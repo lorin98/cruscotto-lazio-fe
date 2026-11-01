@@ -15,21 +15,21 @@ import type { SinotticoElenco } from '../api';
 import type { Voce } from '../lib/dto';
 import { TESTI_RIPARTIZIONE, filtroDalClic, filtroDellaVoce, graficoRipartizione, nomeVoce } from '../lib/grafici';
 import type { Ripartizione } from '../lib/grafici';
-import { testoAggregato, testoConteggio, testoQuotaPagata, testoSomma } from '../lib/formato';
+import { testoAggregato, testoConteggio, testoQuotaPagata, testoSommaCompatta } from '../lib/formato';
 import type { Indicatore, Vista } from '../lib/viste';
 
 const FONTE = 'Fonte: sinottico dell’insieme filtrato (TX-0057), calcolato dal server su tutte le domande, non sulla pagina.';
 
 /** Tessera di una somma: la nota delle domande senza importo e, se c'e', una nota in piu' (quota, liquidato e recuperato). */
 function KpiSomma({ etichetta, somma, icona, altro }: { etichetta: string; somma: SinotticoElenco['richiesto']; icona: 'it-chart-line' | 'it-card'; altro?: string }) {
-  const t = testoSomma(somma);
+  const t = testoSommaCompatta(somma);
   const nota = [t.nota, altro].filter(Boolean).join(' - ') || undefined;
-  return <Kpi etichetta={etichetta} valore={t.valore} nota={nota} icona={icona} />;
+  return <Kpi etichetta={etichetta} valore={t.valore} valorePieno={t.pieno} nota={nota} icona={icona} />;
 }
 
 function KpiAggregato({ etichetta, campo, s, tono, icona }: { etichetta: string; campo: 'liquidato' | 'recuperato'; s: SinotticoElenco; tono: 'verde' | 'ambra'; icona: 'it-card' | 'it-refresh' }) {
   const t = testoAggregato(s[campo], campo);
-  return <Kpi etichetta={etichetta} valore={t.valore} nota={t.nota} icona={icona} tono={tono} />;
+  return <Kpi etichetta={etichetta} valore={t.valore} valorePieno={t.pieno} nota={t.nota} icona={icona} tono={tono} />;
 }
 
 const n = (v: number | undefined) => formatNumber(v ?? 0);

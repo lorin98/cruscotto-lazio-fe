@@ -20,8 +20,14 @@ export function Kpi({
   azione,
   nomeAccessibile,
   badge,
+  valorePieno,
 }: {
   etichetta: string;
+  /**
+   * Il valore pieno quando quello mostrato e' in forma compatta (R09: "1,2 M€" su una riga): lo leggono i lettori di
+   * schermo e il suggerimento al passaggio del mouse.
+   */
+  valorePieno?: string;
   /** Un badge in testo accanto all'etichetta (es. "Consuntivo" o "Previsione" della riserva). */
   badge?: string;
   valore?: string;
@@ -46,7 +52,7 @@ export function Kpi({
   return (
     <section className={np ? 'ui-card ui-kpi ui-kpi--non-pertinente ui-dissolvenza' : 'ui-card ui-kpi ui-dissolvenza'} aria-label={np ? `${nome}, non pertinente al filtro ${np.filtro}` : nome}>
       <EtichettaKpi etichetta={etichetta} icona={icona} tono={tono} badge={badge} />
-      <ValoreKpi valore={valore} unita={unita} assente={assente} />
+      <ValoreKpi valore={valore} unita={unita} assente={assente} pieno={valorePieno} />
       {nota && <p className="ui-kpi__nota">{nota}</p>}
       {!assente && <BarraQuota quota={quota} />}
       {np && <MotivoNonPertinente np={np} />}
@@ -68,8 +74,16 @@ function EtichettaKpi({ etichetta, icona, tono, badge }: { etichetta: string; ic
 }
 
 /** Il valore con l'unita', oppure l'assenza col suo motivo (mai uno zero al posto di un assente). */
-function ValoreKpi({ valore, unita, assente }: { valore?: string; unita?: string; assente?: string }) {
+function ValoreKpi({ valore, unita, assente, pieno }: { valore?: string; unita?: string; assente?: string; pieno?: string }) {
   if (assente) return <p className="ui-kpi__valore ui-kpi__valore--assente">{assente}</p>;
+  if (pieno && pieno !== valore) {
+    return (
+      <p className="ui-kpi__valore" title={pieno}>
+        <span aria-hidden="true">{valore}</span>
+        <span className="visually-hidden">{pieno}</span>
+      </p>
+    );
+  }
   return (
     <p className="ui-kpi__valore">
       {valore}

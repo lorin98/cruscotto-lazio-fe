@@ -42,7 +42,7 @@ export const ETICHETTE_FILTRI: Record<NomeFiltro, string> = {
 const IMPORTI: ReadonlySet<NomeFiltro> = new Set(['richiestoDa', 'richiestoA', 'ammessoDa', 'ammessoA', 'pagatoDa', 'pagatoA']);
 const BOOLEANI: Partial<Record<NomeFiltro, [string, string]>> = {
   presentata: ['solo le presentate', ''],
-  sigc: ['solo SIGC', 'non SIGC'],
+  sigc: ['interventi SIGC', 'interventi NO SIGC'],
   concessione: ["con l'atto", "senza l'atto"],
   anomalie: ['con anomalie', 'senza anomalie'],
 };
@@ -114,10 +114,14 @@ function etichettaNelGruppo(criteri: Criteri, nome: NomeFiltro): string {
   return attivi > 1 ? `${ETICHETTE_FILTRI[nome]} (in alternativa agli altri stati)` : ETICHETTE_FILTRI[nome];
 }
 
-/** Un chip per ogni valore di ogni filtro attivo, nell'ordine dei filtri (pagina e ordinamento non sono chip). */
+/**
+ * Un chip per ogni valore di ogni filtro attivo, nell'ordine dei filtri (pagina e ordinamento non sono chip). Il filtro
+ * SIGC non e' un chip: e' il controllo della barra (revisioni del 31/10/2026, R01).
+ */
 export function chipDeiCriteri(criteri: Criteri, valori?: Valori): Chip[] {
   const out: Chip[] = [];
   for (const nome of [...FILTRI_PAGAMENTO, ...FILTRI_DOMANDA]) {
+    if (nome === 'sigc') continue;
     for (const valore of criteri[nome] ?? []) {
       out.push({ nome, valore, etichetta: etichettaNelGruppo(criteri, nome), testo: valoreLeggibile(nome, valore, valori) });
     }
