@@ -12,7 +12,8 @@
 import { Link, useLocation } from 'react-router';
 import { filtriDaRicerca, ricercaDaFiltri } from '../../../entities/filtri';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
-import { SelettoreAnno, useAnnoNellIndirizzo } from '../../../shared/ui';
+import { nonPertinenza, senzaSigc } from '../../../shared/lib';
+import { NonPertinente, SelettoreAnno, useAnnoNellIndirizzo } from '../../../shared/ui';
 import { useVerificaSmpNonSigc } from '../api';
 import { verificaSigcConFiltri } from '../lib/collegamenti';
 import { PARAMETRO_ANNO, anniDiRiferimento, criteriVerifica } from '../lib/criteri';
@@ -41,15 +42,24 @@ function FraseVerificaSigc() {
   );
 }
 
+/** Il motivo della non pertinenza col filtro SIGC (wireframe verifica-smp-non-sigc, revisioni del 31/10/2026, F3). */
+const MOTIVO_SOLO_NO_SIGC = 'Riguarda solo gli interventi NO SIGC';
+
 export function VerificaSmpNonSigc() {
   const pagina = useFiltriDellaPagina(PARAMETRO_ANNO);
   const [anno, impostaAnno] = useAnnoNellIndirizzo(PARAMETRO_ANNO);
-  const stato = useVerificaSmpNonSigc(criteriVerifica(pagina.filtri, anno), { abilitato: !pagina.inAttesa });
+  // solo NO SIGC (TX-0016): col filtro SIGC il report e' non pertinente, letto senza filtro (il dato reale, in grigio)
+  const np = nonPertinenza(pagina.filtri.sigc, 'nosigc', MOTIVO_SOLO_NO_SIGC);
+  const stato = useVerificaSmpNonSigc(criteriVerifica(np ? senzaSigc(pagina.filtri) : pagina.filtri, anno), { abilitato: !pagina.inAttesa });
   const nota = puoLeggere(useAuthStatus().data, 'verificaSigc') ? <FraseVerificaSigc /> : undefined;
   const selettore = <SelettoreAnno id="f-anno-smp" etichetta="Anno di riferimento del monitoraggio SMP non SIGC" aiuto={AIUTO_ANNO} anni={anniDiRiferimento(stato.data?.annoRiferimento, anno)} voceVuota="Ultimo anno con un file (predefinito)" anno={anno} onCambia={impostaAnno} />;
   return (
     <PaginaReport pagina={pagina} stato={stato} briciola="Verifica SMP non SIGC" titolo="Istituzionale: verifica SMP non SIGC" titoloDocumento="Verifica SMP non SIGC - Istituzionale" sottotitolo={SOTTOTITOLO} nota={nota} pill={(d) => pillAnnoDelFile(d.annoRiferimento)} sopra={selettore}>
-      {(d) => <ReportVerifica key={`${ricercaDaFiltri(pagina.filtri)}|${anno ?? ''}`} d={d} filtri={pagina.filtri} anno={anno} />}
+      {(d) => (
+        <NonPertinente np={np}>
+          <ReportVerifica key={`${ricercaDaFiltri(pagina.filtri)}|${anno ?? ''}`} d={d} filtri={pagina.filtri} anno={anno} />
+        </NonPertinente>
+      )}
     </PaginaReport>
   );
 }

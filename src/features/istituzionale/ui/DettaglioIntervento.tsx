@@ -18,7 +18,7 @@
 import { Link } from 'react-router';
 import { useState } from 'react';
 import type { Ref } from 'react';
-import { ID_TITOLO_INTERVENTO, InterventoNonValido, codiceDelPercorso, descrizioneIntervento } from '../../../entities/filtri';
+import { ID_TITOLO_INTERVENTO, InterventoNonValido, codiceDelPercorso, descrizioneIntervento, tipoIntervento } from '../../../entities/filtri';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { ultimiDelDettaglio, ultimoDatoInErrore } from '../../../shared/lib';
 import type { StatoDettaglio } from '../../../shared/lib';
@@ -139,7 +139,10 @@ function Dettaglio({ codice }: { codice: string }) {
   const statoSigc = useVerificaSmpSigc(soloIntervento(codice), esercizio, { abilitato: leggeSigc, mantieniDati: true });
   const verifica = leggeVerifica ? statoVerifica : null;
   const verificaSigc = leggeSigc ? statoSigc : null;
-  const descrizione = descrizioneIntervento(useValoriFiltri(conValori).data?.interventi, codice);
+  const voci = useValoriFiltri(conValori).data?.interventi;
+  const descrizione = descrizioneIntervento(voci, codice);
+  // il tipo dell'intervento dalla programmazione (VoceFiltro.perimetro di TX-0060), nella barra (revisioni del 31/10/2026, F5)
+  const tipo = tipoIntervento(voci, codice);
   const letture = [verifica, verificaSigc].filter((l) => l !== null);
   const stato = statoDellaPagina(useStatoDelDettaglio(lettureDelloStato(verifica, verificaSigc)), letture.length, schede.length);
   // il titolo del documento dal codice, come nel wireframe approvato (review V8): la descrizione che arriva dopo non
@@ -152,7 +155,7 @@ function Dettaglio({ codice }: { codice: string }) {
   const schedeProps = { codice, anno, onAnno: impostaAnno, esercizio, onEsercizio: impostaEsercizio, schede, attiva, onScheda, verifica, verificaSigc };
   return (
     <ContestoIntestazione.Provider value={contesto}>
-      <BarraRiferimenti perimetro={PILL_PERIMETRO} ultimi={ultimi} inErrore={ultimoDatoInErrore(letture)} />
+      <BarraRiferimenti perimetro={PILL_PERIMETRO} ultimi={ultimi} inErrore={ultimoDatoInErrore(letture)} tipo={tipo} />
       <main className="ui-pagina" id="contenuto">
         <Briciole voci={[{ etichetta: 'Istituzionale', a: useIngressoArea() }, { etichetta: codice }]} />
         <TestataIntervento h1={h1} codice={codice} titolo={titoloIntervento(codice, descrizione)} anno={anno} esercizio={esercizio} conVerifica={conVerifica} conSigc={conSigc} />

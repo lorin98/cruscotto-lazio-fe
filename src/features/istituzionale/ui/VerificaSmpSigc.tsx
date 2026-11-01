@@ -17,7 +17,8 @@ import { Link, useLocation } from 'react-router';
 import { filtriDaRicerca, ricercaDaFiltri } from '../../../entities/filtri';
 import type { Filtri } from '../../../entities/filtri';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
-import { CardGrafico, ContestoIntestazione, SelettoreAnno, TabellaVoci, useAnnoNellIndirizzo, useRigheContesto } from '../../../shared/ui';
+import { nonPertinenza, senzaSigc } from '../../../shared/lib';
+import { CardGrafico, ContestoIntestazione, NonPertinente, SelettoreAnno, TabellaVoci, useAnnoNellIndirizzo, useRigheContesto } from '../../../shared/ui';
 import { useVerificaSmpSigc } from '../api';
 import type { VerificaSmp } from '../api';
 import { percorsoInterventoSigc, verificaNonSigcConFiltri } from '../lib/collegamenti';
@@ -73,10 +74,15 @@ function ReportVerificaSigc({ d, filtri, esercizio }: { d: VerificaSmp; filtri: 
   );
 }
 
+/** Il motivo della non pertinenza col filtro NO SIGC (wireframe verifica-smp-sigc, revisioni del 31/10/2026, F3). */
+const MOTIVO_SOLO_SIGC = 'Riguarda solo gli interventi SIGC';
+
 export function VerificaSmpSigc() {
   const pagina = useFiltriDellaPagina(PARAMETRO_ESERCIZIO);
   const [esercizio, impostaEsercizio] = useAnnoNellIndirizzo(PARAMETRO_ESERCIZIO);
-  const stato = useVerificaSmpSigc(pagina.filtri, esercizio, { abilitato: !pagina.inAttesa });
+  // solo SIGC (TX-0015): col filtro NO SIGC il report e' non pertinente, letto senza filtro (il dato reale, in grigio)
+  const np = nonPertinenza(pagina.filtri.sigc, 'sigc', MOTIVO_SOLO_SIGC);
+  const stato = useVerificaSmpSigc(np ? senzaSigc(pagina.filtri) : pagina.filtri, esercizio, { abilitato: !pagina.inAttesa });
   const nota = puoLeggere(useAuthStatus().data, 'verifica') ? <FraseVerificaNonSigc /> : undefined;
   const selettore = <SelettoreAnno id="f-esercizio" etichetta="Esercizio finanziario" aiuto={AIUTO_ESERCIZIO} anni={eserciziProposti(esercizio)} voceVuota="Scegli un anno" anno={esercizio} onCambia={impostaEsercizio} />;
   return (
@@ -93,7 +99,13 @@ export function VerificaSmpSigc() {
       pill={(d) => pillEsercizio(d.esercizio ?? esercizio)}
       sopra={selettore}
     >
-      {(d) => esercizio !== undefined && <ReportVerificaSigc key={`${ricercaDaFiltri(pagina.filtri)}|${esercizio}`} d={d} filtri={pagina.filtri} esercizio={esercizio} />}
+      {(d) =>
+        esercizio !== undefined && (
+          <NonPertinente np={np}>
+            <ReportVerificaSigc key={`${ricercaDaFiltri(pagina.filtri)}|${esercizio}`} d={d} filtri={pagina.filtri} esercizio={esercizio} />
+          </NonPertinente>
+        )
+      }
     </PaginaReport>
   );
 }
