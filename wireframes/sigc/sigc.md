@@ -23,7 +23,7 @@ due pagine non cambia.
 Vocabolario del kit UI v2 (ADR 0027 di green-fe), resa approvata nel prototipo `prototipo/finanziario/`.
 
 - /finanziario/sigc: Shell > Barra filtri > Breadcrumb > Titolo > Card domande SIGC (barre orizzontali) + Card importi SIGC (cascata) > Stati
-- /finanziario/sigc/riserva: Shell (senza barra filtri: dato regionale) > Breadcrumb > Titolo > Selettore anno > KPI x4 > Card utilizzo progressivo (linea con zoom) > Stati
+- /finanziario/sigc/riserva: Shell (senza barra filtri: dato regionale) > Breadcrumb > Titolo > Selettore anno > Blocco del montante con riserva 5% e residuo 2% e loro natura (forma scelta per R17) > KPI x4 dei movimenti > Card utilizzo progressivo (forma scelta per R18, testo di lettura) > Stati
 
 ## Grafici del flusso
 
@@ -31,7 +31,8 @@ Vocabolario del kit UI v2 (ADR 0027 di green-fe), resa approvata nel prototipo `
 |---|---|---|---|---|---|
 | /finanziario/sigc | Domande SIGC | barre orizzontali (pagate e da pagare si sovrappongono) | TX-0012 | link:elenco-sigc (elenco-operativo: /elenco-operativo/domande) | nessuno (conteggi) |
 | /finanziario/sigc | Importi SIGC | cascata | TX-0013 | link:elenco-sigc-importi (elenco-operativo: /elenco-operativo/domande) | importo assente: passo omesso |
-| /finanziario/sigc/riserva | Utilizzo progressivo della riserva | linea | TX-0014 | nessuno | punti assenti omessi e dichiarati |
+| /finanziario/sigc/riserva | Montante e riserve 5% e 2% | riquadri (A) o tabella del calcolo (B) | TX-0014 | nessuno | natura PREVISIONE / CONSUNTIVO sempre dichiarata |
+| /finanziario/sigc/riserva | Utilizzo progressivo cumulato | linea a gradini con fasi annotate (A) o barra delle fasi con barra dell'utilizzo (B) | TX-0014 | nessuno | punti assenti omessi e dichiarati |
 
 La riserva e' un dato regionale: i filtri non si applicano (OP-FE-03).
 
@@ -79,3 +80,39 @@ verso altri ambiti: la verifica SMP SIGC (TX-0015) e' dell'istituzionale (OP-FE-
 - OP-FE-09: profili misti (P4 con un profilo regionale): il report e' ADA, l'elenco aperto dal link e' regionale.
 - OP-FE-10 (nuovo, 30/10/2026): la verifica SMP SIGC esce dal finanziario; voce di menu, route-table, card della Home e
   codice della pagina li allinea lo step6.
+
+## Revisioni del 31/10/2026 (BOZZA da approvare, MIN-20261031)
+
+### Natura delle card col filtro SIGC
+
+| pagina | elementi | natura |
+|---|---|---|
+| /finanziario/sigc | Domande SIGC, Importi SIGC e tabelle | solo SIGC: con NO SIGC tutta la pagina non pertinente |
+| /finanziario/riserva | tutta la pagina | il filtro non si applica (TX-0014 non lo prende): nessuna barra dei filtri |
+
+### Modifiche del flusso
+
+- R16: via "(flusso ASR2-20)" e "campagne senza ASR2-20" dalle etichette (le domande senza importi restano, con
+  un'etichetta neutra).
+- R13: Importi SIGC nella forma scelta (alternative nella panoramica).
+- R17, R18: riserva di efficacia rivista (vedi `riserva.html`).
+
+### Regole comuni (kit, tutte le aree)
+
+- **Filtro SIGC (R01, F1-F5)**: controllo "Tutti | SIGC | NO SIGC" sempre visibile nella barra dei filtri (parametro `sigc`,
+  assente = tutti), conservato fra le pagine e fra le aree; filtra gli **interventi** per classificazione della
+  programmazione (gli interventi non classificati restano fuori da SIGC e da NO SIGC). Ogni card dichiara la sua natura:
+  **misto** (si ricalcola), **solo SIGC** / **solo NO SIGC** (col valore opposto: **non pertinente**), **il filtro non si
+  applica** (dato non scomponibile: visibile normale).
+- **Card non pertinente**: titolo e badge "Non pertinente al filtro NO SIGC" (o SIGC) con il motivo leggibile ("Riguarda solo
+  le domande SIGC"); corpo in grigio, non interattivo, senza interruttore Grafico/Tabella e senza Scarica; il dato e' quello
+  **senza** filtro (il backend col valore opposto risponde zero righe). La tabella equivalente resta leggibile dagli
+  strumenti assistivi.
+- **Assi (R02)**: nessuna etichetta saltata; barre orizzontali alte quanto serve al numero di categorie; zoom solo oltre una
+  soglia alta; verifica a 1680, 1100 e 390 px.
+- **Sinottici (R09)**: valore su una riga (carattere adattivo, formato compatto con il valore pieno accessibile), unita' non
+  separabile dal numero.
+- **Barra dei filtri (R11)**: attaccata al bordo superiore scorrendo (e il menu laterale con lei).
+- **Tabelle medio-grandi (R12)**: intestazione ferma scorrendo, riquadro alto quanto la finestra, 25 righe per pagina,
+  prima colonna ferma nelle tabelle larghe.
+- **Ciambelle (R05, R06)**: importo e percentuale nelle etichette, totale al centro.

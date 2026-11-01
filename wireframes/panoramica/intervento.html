@@ -47,6 +47,7 @@
   <main class="ui-main" id="contenuto">
     <div class="ui-filtri" role="region" aria-label="Filtri attivi">
       <a class="btn btn-primary" href="../panoramica/panoramica.html#pannello-filtri">Filtri (1)</a>
+      <span class="ui-pill">Tipo di intervento: SIGC (dalla programmazione; il filtro SIGC non si applica al dettaglio)</span>
       <span class="ui-chip">Intervento: SRA01 <button class="btn" type="button" aria-label="Togli il filtro Intervento SRA01">x</button></span>
       <span class="ui-pill">Perimetro: regionale (profilo ADA: solo la propria area, non rimovibile)</span>
       <span class="ui-pill">Ultimo dato sincronizzato: gg/mm/aaaa (un valore per ogni flusso di import)</span>
@@ -62,10 +63,10 @@
     <section class="ui-hero">
       <p class="ui-eyebrow">Intervento SRA01</p>
       <h1>Descrizione dell'intervento (da TX-0001)</h1>
-      <p><span class="badge">Perimetro regionale</span> <span class="badge">Contributo ambientale nn%</span></p>
+      <p><span class="badge">Perimetro regionale</span> <span class="badge">Intervento SIGC (dalla programmazione)</span></p>
       <a class="btn btn-primary" href="../panoramica/panoramica.html">Filtra i report su questo intervento</a> <a class="btn" href="../riepilogo/riepilogo.html">Torna al riepilogo</a>
     </section>
-    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0011.read, csr.tx-0002.read, csr.tx-0008.read, csr.tx-0010.read, csr.tx-0012.read, csr.tx-0013.read - Transazioni: le stesse dei report, filtrate su intervento = codice della route (nessuna transazione nuova). Le schede leggono i dati solo quando si aprono.</p>
+    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0011.read, csr.tx-0008.read, csr.tx-0010.read, csr.tx-0012.read, csr.tx-0013.read - Transazioni: le stesse dei report, filtrate su intervento = codice della route (nessuna transazione nuova). R14: la lettura di TX-0002 serviva solo al contributo ambientale e si toglie. Le schede leggono i dati solo quando si aprono.</p>
     <div class="ui-griglia ui-griglia--4">
       <section class="ui-kpi" aria-label="Dotazione spesa pubblica">
         <p>Dotazione spesa pubblica</p>
@@ -80,7 +81,7 @@
       <section class="ui-kpi" aria-label="Pagamenti al netto delle rettifiche">
         <p>Pagamenti al netto delle rettifiche</p>
         <p class="ui-kpi__valore">n,n M euro</p>
-        <p class="ui-barra">TX-0011</p>
+        <p class="ui-barra">TX-0011; lordi n,n M euro, rettifiche n,n M euro (R08)</p>
       </section>
       <section class="ui-kpi" aria-label="Domande presentate">
         <p>Domande presentate</p>
@@ -95,11 +96,11 @@
     <div class="ui-griglia ui-griglia--2">
       <section class="ui-card" aria-labelledby="g-d-gauge">
         <div class="ui-card__testa">
-          <h2 id="g-d-gauge">Pagato netto sulla dotazione</h2>
-          <div class="ui-seg" role="group" aria-label="Vista di Pagato netto sulla dotazione"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+          <h2 id="g-d-gauge">Avanzamento rispetto ai pagamenti effettuati</h2>
+          <div class="ui-seg" role="group" aria-label="Vista di Avanzamento rispetto ai pagamenti effettuati"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
         </div>
         <figure class="ui-grafico ui-grafico--gauge">
-          <figcaption>Gauge: pagamenti al netto delle rettifiche sulla dotazione (TX-0011), come il residuo sui pagamenti. Non disegnato se uno dei due manca.</figcaption>
+          <figcaption>Gauge (titolo nuovo, R15): pagamenti al netto delle rettifiche sulla dotazione (TX-0011), come il residuo sui pagamenti. Non disegnato se uno dei due manca.</figcaption>
         </figure>
         <p class="ui-fonte">Fonte: TX-0011, riepilogo per intervento. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati.</p>
       </section>
@@ -109,11 +110,26 @@
           <div class="ui-seg" role="group" aria-label="Vista di Dalla dotazione al residuo"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
         </div>
         <figure class="ui-grafico ui-grafico--cascata">
-          <figcaption>Cascata: dotazione, pagamenti netti, dotazione residua sui pagamenti. L'impegnato e il residuo sugli impegni non ci sono: fonte non attiva (impegni), dichiarata nella didascalia.</figcaption>
+          <figcaption>Cascata: dotazione, pagamenti lordi, rettifiche, pagamenti netti, dotazione residua sui pagamenti; a parte impegnato (di cui stimato) e residuo sugli impegni. Senza rettifiche caricate il netto e il residuo non si disegnano (fonte non attiva: rettifiche, dichiarata), mai il lordo al posto del netto.</figcaption>
         </figure>
         <p class="ui-fonte">Fonte: TX-0011. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati.</p>
       </section>
     </div>
+    <section class="ui-card" aria-labelledby="g-d-rett">
+      <div class="ui-card__testa">
+        <h2 id="g-d-rett">Rettifiche dell'intervento (R08)</h2>
+        <span class="badge">Con rettifiche</span>
+      </div>
+      <table class="ui-tabella">
+        <caption>Recuperi e variazioni certificati (foglio recuperi_variazioni), documento e data di riferimento dal file caricato</caption>
+        <thead><tr><th scope="col">Azione</th><th scope="col">Progressivo</th><th scope="col">Importo</th><th scope="col">Programmazione</th><th scope="col">Riferimento</th></tr></thead>
+        <tbody>
+          <tr><td>SRA29.2</td><td class="ui-num">1</td><td class="ui-num">-n,nn euro</td><td>CSR 2023-2027</td><td>riga n del foglio</td></tr>
+          <tr><td>-</td><td class="ui-num">2</td><td class="ui-num">-n,nn euro</td><td>Trascinamenti PSR (fuori dal netto CSR)</td><td>riga n del foglio</td></tr>
+        </tbody>
+      </table>
+      <p class="ui-fonte">Fonte: TX-0011 (rettifiche della riga). Un intervento senza rettifiche dice "Nessuna rettifica"; senza file delle rettifiche caricato: fonte non attiva (rettifiche).</p>
+    </section>
     </section>
     <section role="tabpanel" aria-label="Domande">
     <div class="ui-griglia ui-griglia--2">
@@ -133,7 +149,7 @@
           <div class="ui-seg" role="group" aria-label="Vista di Importi ammessi e decretati per anno"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
         </div>
         <figure class="ui-grafico ui-grafico--linea">
-          <figcaption>Linee con zoom: importo ammesso e importo decretato per anno di raccolta. L'importo stanziato non c'e' (fonte non attiva).</figcaption>
+          <figcaption>Linee con zoom: importo ammesso, importo decretato e importo stanziato per anno di raccolta; lo stanziato viene dai bandi (quadro sinottico) ed e' non valorizzato negli anni senza bandi, dichiarato.</figcaption>
         </figure>
         <p class="ui-fonte">Fonte: TX-0010. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati.</p>
       </section>
@@ -157,7 +173,7 @@
           <div class="ui-seg" role="group" aria-label="Vista di Importi SIGC"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
         </div>
         <figure class="ui-grafico ui-grafico--cascata">
-          <figcaption>Cascata: richiesto, ammesso, pagato, ancora da pagare.</figcaption>
+          <figcaption>Richiesto, ammesso, pagato, ancora da pagare, nella forma scelta per R13 (alternative nella panoramica).</figcaption>
         </figure>
         <p class="ui-fonte">Fonte: TX-0013. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati.</p>
       </section>
@@ -167,8 +183,11 @@
       <table class="ui-tabella">
         <caption>Voci finanziarie dell'intervento (RF011), con i valori assenti e il loro motivo</caption>
         <tbody>
-          <tr><th scope="row">Importo stanziato</th><td>non disponibile (fonte non attiva: quadro sinottico)</td></tr>
-          <tr><th scope="row">Impegnato cofinanziato FEASR</th><td>non disponibile (fonte non attiva: impegni)</td></tr>
+          <tr><th scope="row">Importo stanziato (dai bandi)</th><td class="ui-num">n,nn euro</td></tr>
+          <tr><th scope="row">Impegnato cofinanziato FEASR</th><td class="ui-num">n,nn euro, di cui stimato n,nn euro</td></tr>
+          <tr><th scope="row">Pagamenti lordi</th><td class="ui-num">n,nn euro</td></tr>
+          <tr><th scope="row">Rettifiche</th><td class="ui-num">n,nn euro (con rettifiche: si')</td></tr>
+          <tr><th scope="row">Pagamenti al netto delle rettifiche</th><td class="ui-num">n,nn euro</td></tr>
           <tr><th scope="row">Dotazione residua sui pagamenti</th><td class="ui-num">n,nn euro</td></tr>
         </tbody>
       </table>

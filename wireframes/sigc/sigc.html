@@ -46,6 +46,7 @@
   <main class="ui-main" id="contenuto">
     <div class="ui-filtri" role="region" aria-label="Filtri attivi">
       <a class="btn btn-primary" href="../panoramica/panoramica.html#pannello-filtri">Filtri (1)</a>
+      <div class="ui-seg" role="group" aria-label="Interventi SIGC o NO SIGC"><button class="btn" type="button" aria-pressed="true">Tutti</button> <button class="btn" type="button" aria-pressed="false">SIGC</button> <button class="btn" type="button" aria-pressed="false">NO SIGC</button></div>
       <span class="ui-chip">Intervento: SRA01 <button class="btn" type="button" aria-label="Togli il filtro Intervento SRA01">x</button></span>
       <span class="ui-pill">Perimetro: regionale (profilo ADA: solo la propria area, non rimovibile)</span>
       <span class="ui-pill">Ultimo dato sincronizzato: gg/mm/aaaa (un valore per ogni flusso di import)</span>
@@ -61,7 +62,7 @@
       <h1>Finanziario: domande e importi SIGC</h1>
       <p>Domande dalla presentazione al pagamento e importi SIGC.</p>
     </div>
-    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0012.read, csr.tx-0013.read - Transazioni: TX-0012 (RF012), TX-0013 (RF013). Pagate, da pagare e importo pagato hanno la stessa fonte, gli importi della domanda (flusso ASR2-20): le note lo dicono accanto ai dati (OP-FE-05).</p>
+    <p class="wf-note">Ruoli (grant verbatim): csr.tx-0012.read, csr.tx-0013.read - Transazioni: TX-0012 (RF012), TX-0013 (RF013). Pagate, da pagare e importo pagato hanno la stessa fonte, gli importi della domanda: le note lo dicono accanto ai dati (OP-FE-05). Pagina di soli interventi SIGC: con il filtro NO SIGC le due card sono non pertinenti (dato senza filtro, in grigio).</p>
     <div class="ui-griglia ui-griglia--2">
       <section class="ui-card" aria-labelledby="g-sigc-d">
         <div class="ui-card__testa">
@@ -69,7 +70,7 @@
           <div class="ui-seg" role="group" aria-label="Vista di Domande SIGC"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
         </div>
         <figure class="ui-grafico ui-grafico--barre">
-          <figcaption>Barre orizzontali: presentate, pagate, da pagare e senza importi, dagli importi della domanda (flusso ASR2-20); pagate e da pagare si sovrappongono (domande pagate in parte).</figcaption>
+          <figcaption>Barre orizzontali: presentate, pagate, da pagare e senza importi, dagli importi della domanda; pagate e da pagare si sovrappongono (domande pagate in parte).</figcaption>
         </figure>
         <p class="ui-fonte">Fonte: TX-0012. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati.</p>
       </section>
@@ -79,7 +80,7 @@
           <div class="ui-seg" role="group" aria-label="Vista di Importi SIGC"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
         </div>
         <figure class="ui-grafico ui-grafico--cascata">
-          <figcaption>Cascata: richiesto, ammesso, pagato (flusso ASR2-20), ancora da pagare; sotto, le domande senza importo richiesto, ammesso o pagato.</figcaption>
+          <figcaption>Richiesto, ammesso, pagato, ancora da pagare nella forma scelta per R13 (alternative nella panoramica); sotto, le domande senza importo richiesto, ammesso o pagato.</figcaption>
         </figure>
         <p class="ui-fonte">Fonte: TX-0013. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati.</p>
       </section>

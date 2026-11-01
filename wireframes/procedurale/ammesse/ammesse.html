@@ -49,6 +49,7 @@
   <main class="ui-main" id="contenuto">
     <div class="ui-filtri" role="region" aria-label="Filtri attivi">
       <a class="btn btn-primary" href="../panoramica/panoramica.html#pannello-filtri">Filtri (1)</a>
+      <div class="ui-seg" role="group" aria-label="Interventi SIGC o NO SIGC"><button class="btn" type="button" aria-pressed="true">Tutti</button> <button class="btn" type="button" aria-pressed="false">SIGC</button> <button class="btn" type="button" aria-pressed="false">NO SIGC</button></div>
       <span class="ui-chip">Obiettivo specifico: OS4 <button class="btn" type="button" aria-label="Togli il filtro Obiettivo specifico OS4">x</button></span>
       <span class="ui-pill">Perimetro: regionale (profilo ADA: solo le domande della propria ADA, non rimovibile)</span>
       <button class="ui-pill" type="button" aria-label="Ultimo dato sincronizzato: dati al gg/mm/aaaa per tutti i flussi. Mostra il dettaglio per flusso">Dati al gg/mm/aaaa</button>
@@ -64,6 +65,7 @@
       <h1>Procedurale: domande ammesse per intervento</h1>
       <p>Numero di domande ammesse, domande con atto di concessione, importo richiesto e contributo ammesso per intervento, con gli interventi attivati.</p>
     </div>
+    <p class="wf-note">Filtro SIGC (bozza): pagina di soli dati NO SIGC. Con il filtro SIGC le card restano visibili come non pertinenti, con il badge "Non pertinente al filtro SIGC" e il motivo "Riguarda solo le domande ammesse in determina, che sono NO SIGC": corpo in grigio e non interattivo, niente Scarica, dati letti senza il filtro. Con Tutti o NO SIGC la pagina e' come sotto.</p>
     <p class="wf-note">Ruoli (grant verbatim): csr.tx-0024.read, csr.tx-0025.read, csr.tx-0026.read - Transazioni: TX-0026 (RF026), TX-0024 e TX-0025 (valori dei filtri). Domanda ammessa = domanda corrente di qualunque tipo con stato area programmazione Ammessa (determine PROSA). Importo richiesto e contributo ammesso: della determina corrente, altrimenti della domanda negli scarichi SIAN (D-03 Rev. 3); un importo non valorizzato non entra nella somma. Dati al: ultimiDatiSincronizzati di TX-0024 (pill della barra dei filtri, dettaglio per flusso al clic).</p>
     <div class="ui-griglia ui-griglia--4">
       <section class="ui-kpi" aria-label="Domande ammesse">

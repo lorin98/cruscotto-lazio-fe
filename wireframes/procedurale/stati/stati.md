@@ -102,3 +102,39 @@ chiede le domande senza stato (D-04 Rev. 4): la pagina lo dice nella nota del KP
 - OP-PR-09: stato "PROPOSTO AL PAGAMENTO-ESTRAZ. CAMPIONE-DA ESEGUIRE" fra gli altri stati di pagamento (punto aperto del
   backend verso ARSIAL).
 - Chiusi col giro G3 (22/10/2026): OP-PR-01 (pill "Dati al" da TX-0024), OP-PR-05 (CSV e XLSX di TX-0027 e TX-0028).
+
+## Revisioni del 31/10/2026 (BOZZA da approvare, MIN-20261031)
+
+### Natura delle card col filtro SIGC
+
+| pagina | elementi | natura |
+|---|---|---|
+| /procedurale/stati-* | KPI, grafici, tabelle e anteprime | solo NO SIGC: non pertinenti con SIGC |
+
+### Modifiche del flusso
+
+- RF027: le 11 voci degli stati di sostegno nell'ordine di processo di Utilities SIAN (in compilazione, stampato, firmata,
+  rilasciato, preso in carico, ricevibile, non ricevibile, in istruttoria presso ente competente, istruttoria atto
+  ammissibile, istruttoria atto non ammissibile, istruita con esito positivo su tutte le misure), come le da' il backend
+  (D-12 b del procedurale): il FE non le riordina. RF028 invariato.
+- R02: etichette degli stati tutte visibili (barre orizzontali alte quanto serve, testo a capo).
+
+### Regole comuni (kit, tutte le aree)
+
+- **Filtro SIGC (R01, F1-F5)**: controllo "Tutti | SIGC | NO SIGC" sempre visibile nella barra dei filtri (parametro `sigc`,
+  assente = tutti), conservato fra le pagine e fra le aree; filtra gli **interventi** per classificazione della
+  programmazione (gli interventi non classificati restano fuori da SIGC e da NO SIGC). Ogni card dichiara la sua natura:
+  **misto** (si ricalcola), **solo SIGC** / **solo NO SIGC** (col valore opposto: **non pertinente**), **il filtro non si
+  applica** (dato non scomponibile: visibile normale).
+- **Card non pertinente**: titolo e badge "Non pertinente al filtro NO SIGC" (o SIGC) con il motivo leggibile ("Riguarda solo
+  le domande SIGC"); corpo in grigio, non interattivo, senza interruttore Grafico/Tabella e senza Scarica; il dato e' quello
+  **senza** filtro (il backend col valore opposto risponde zero righe). La tabella equivalente resta leggibile dagli
+  strumenti assistivi.
+- **Assi (R02)**: nessuna etichetta saltata; barre orizzontali alte quanto serve al numero di categorie; zoom solo oltre una
+  soglia alta; verifica a 1680, 1100 e 390 px.
+- **Sinottici (R09)**: valore su una riga (carattere adattivo, formato compatto con il valore pieno accessibile), unita' non
+  separabile dal numero.
+- **Barra dei filtri (R11)**: attaccata al bordo superiore scorrendo (e il menu laterale con lei).
+- **Tabelle medio-grandi (R12)**: intestazione ferma scorrendo, riquadro alto quanto la finestra, 25 righe per pagina,
+  prima colonna ferma nelle tabelle larghe.
+- **Ciambelle (R05, R06)**: importo e percentuale nelle etichette, totale al centro.

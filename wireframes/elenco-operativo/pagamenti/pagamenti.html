@@ -41,6 +41,7 @@
   <main class="ui-main" id="contenuto">
     <div class="ui-filtri" role="region" aria-label="Filtri attivi">
       <a class="btn btn-primary" href="pagamenti.html#pannello-filtri">Filtri (2)</a>
+      <div class="ui-seg" role="group" aria-label="Interventi SIGC o NO SIGC"><button class="btn" type="button" aria-pressed="true">Tutti</button> <button class="btn" type="button" aria-pressed="false">SIGC</button> <button class="btn" type="button" aria-pressed="false">NO SIGC</button></div>
       <span class="ui-chip">Decreto: D84-1 <button class="btn" type="button" aria-label="Togli il filtro Decreto D84-1">x</button></span>
       <span class="ui-chip">Esito: pagata <button class="btn" type="button" aria-label="Togli il filtro Esito pagata">x</button></span>
       <span class="ui-pill">Perimetro: regionale (profilo ADA: solo la propria area, non rimovibile)</span>
@@ -82,7 +83,7 @@
       </details>
       <details class="ui-gruppo-filtro">
         <summary>Domanda (stessi filtri dell'elenco delle domande)</summary>
-        <button class="ui-toggle-chip" type="button" aria-pressed="false">Sostegno</button> <button class="ui-toggle-chip" type="button" aria-pressed="false">Pagamento</button> <button class="ui-toggle-chip" type="button" aria-pressed="false">Solo SIGC</button>
+        <button class="ui-toggle-chip" type="button" aria-pressed="false">Sostegno</button> <button class="ui-toggle-chip" type="button" aria-pressed="false">Pagamento</button>
         <label class="form-label" for="f-provincia">Provincia</label>
         <select class="form-select" id="f-provincia" name="provincia"><option>LATINA</option></select>
         <p class="form-text">Anche anno di raccolta, annualita', stati, ente, atto di concessione, anomalie, esito del pagamento e importi della domanda (scritti all'italiana, 10.000 o 1.500,50: il campo resta come scritto; "Fino a" minore di "Da" non parte).</p>

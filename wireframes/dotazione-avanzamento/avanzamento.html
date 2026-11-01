@@ -47,6 +47,7 @@
   <main class="ui-main" id="contenuto">
     <div class="ui-filtri" role="region" aria-label="Filtri attivi">
       <a class="btn btn-primary" href="../panoramica/panoramica.html#pannello-filtri">Filtri (1)</a>
+      <div class="ui-seg" role="group" aria-label="Interventi SIGC o NO SIGC"><button class="btn" type="button" aria-pressed="true">Tutti</button> <button class="btn" type="button" aria-pressed="false">SIGC</button> <button class="btn" type="button" aria-pressed="false">NO SIGC</button></div>
       <span class="ui-chip">Intervento: SRA01 <button class="btn" type="button" aria-label="Togli il filtro Intervento SRA01">x</button></span>
       <span class="ui-pill">Perimetro: regionale (profilo ADA: solo la propria area, non rimovibile)</span>
       <span class="ui-pill">Ultimo dato sincronizzato: gg/mm/aaaa (un valore per ogni flusso di import)</span>
@@ -66,13 +67,13 @@
     <div class="ui-griglia ui-griglia--4">
       <section class="ui-kpi" aria-label="Importo stanziato">
         <p>Importo stanziato</p>
-        <p class="ui-kpi__valore">non disponibile</p>
-        <p class="ui-barra">fonte non attiva: quadro sinottico (TX-0004)</p>
+        <p class="ui-kpi__valore">n,n M euro</p>
+        <p class="ui-barra">TX-0004, dai bandi (quadro sinottico); interventi senza bandi: non valorizzato, contati a parte</p>
       </section>
       <section class="ui-kpi" aria-label="Totale impegnato">
         <p>Totale impegnato</p>
-        <p class="ui-kpi__valore">non disponibile</p>
-        <p class="ui-barra">fonte non attiva: impegni (TX-0005)</p>
+        <p class="ui-kpi__valore">n,n M euro</p>
+        <p class="ui-barra">TX-0005; di cui stimato n,n M euro (previsione sui bandi pluriennali SIGC)</p>
       </section>
       <section class="ui-kpi" aria-label="Importo pagato (lordo, elenchi di liquidazione)">
         <p>Importo pagato (lordo, elenchi di liquidazione)</p>
@@ -81,8 +82,8 @@
       </section>
       <section class="ui-kpi" aria-label="Dotazione residua sui pagamenti">
         <p>Dotazione residua sui pagamenti</p>
-        <p class="ui-kpi__valore">non calcolabile</p>
-        <p class="ui-barra">manca un termine (TX-0007): rimanda al riepilogo per intervento</p>
+        <p class="ui-kpi__valore">n,n M euro</p>
+        <p class="ui-barra">TX-0007: dotazione meno i pagamenti al netto delle rettifiche</p>
       </section>
     </div>
     <div class="ui-griglia ui-griglia--2">
@@ -92,21 +93,48 @@
           <div class="ui-seg" role="group" aria-label="Vista di Dove va la dotazione"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
         </div>
         <figure class="ui-grafico ui-grafico--sankey">
-          <figcaption>Sankey: dotazione, impegnato e da impegnare, pagato e da pagare. Con gli impegni da fonte non attiva il ramo dell'impegnato non si disegna: il grafico mostra dotazione e pagato e dichiara il ramo mancante.</figcaption>
+          <figcaption>Sankey: dotazione, impegnato (rilevato e stimato in due tonalita') e da impegnare, pagato e da pagare. Se una fonte manca il suo ramo non si disegna e il grafico lo dichiara.</figcaption>
         </figure>
         <p class="ui-fonte">Fonte: TX-0005, TX-0006, TX-0007. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati.</p>
       </section>
       <section class="ui-card" aria-labelledby="g-gauge">
         <div class="ui-card__testa">
-          <h2 id="g-gauge">Pagato netto sulla dotazione</h2>
-          <div class="ui-seg" role="group" aria-label="Vista di Pagato netto sulla dotazione"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+          <h2 id="g-gauge">Avanzamento rispetto ai pagamenti effettuati</h2>
+          <div class="ui-seg" role="group" aria-label="Vista di Avanzamento rispetto ai pagamenti effettuati"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
         </div>
         <figure class="ui-grafico ui-grafico--gauge">
-          <figcaption>Gauge: pagamenti al netto delle rettifiche sulla dotazione spesa pubblica (TX-0007), come il residuo sui pagamenti.</figcaption>
+          <figcaption>Gauge (titolo nuovo, R15): pagamenti al netto delle rettifiche sulla dotazione spesa pubblica (TX-0007), come il residuo sui pagamenti.</figcaption>
         </figure>
         <p class="ui-fonte">Fonte: TX-0007, pagamenti al netto delle rettifiche. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati.</p>
       </section>
     </div>
+    <p class="wf-note">Nota di lettura dell'impegnato (dal blocco stimaImpegni di TX-0005 e TX-0006): "La parte stimata e' la media delle annualita' rilevate per bando moltiplicata per gli anni residui fino al nnnn; ultima campagna rilevata nnnn; calcolato il gg/mm/aaaa". Senza parte stimata la nota non compare.</p>
+    <section class="ui-card" aria-labelledby="g-ciambelle">
+      <div class="ui-card__testa">
+        <h2 id="g-ciambelle">Stanziato, impegnato, pagato e residui (RF004-RF007)</h2>
+        <div class="ui-seg" role="group" aria-label="Vista di Stanziato, impegnato, pagato e residui"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+      </div>
+      <figure class="ui-grafico ui-grafico--ciambella">
+        <figcaption>Quattro ciambelle (R06): stanziato e da stanziare, impegnato e da impegnare, pagato su impegnato, residuo sui pagamenti. Ogni etichetta con l'importo e la percentuale, al centro il totale; una ciambella con un termine assente non si disegna e dice il motivo.</figcaption>
+      </figure>
+      <p class="ui-fonte">Fonte: TX-0004, TX-0005, TX-0006, TX-0007.</p>
+    </section>
+    <section class="ui-card" aria-labelledby="g-rf007">
+      <div class="ui-card__testa">
+        <h2 id="g-rf007">Dotazione residua sui pagamenti per intervento (RF007)</h2>
+        <div class="ui-seg" role="group" aria-label="Vista di Dotazione residua sui pagamenti per intervento"><button class="btn" type="button" aria-pressed="true">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+      </div>
+      <p class="ui-pill">Rettifiche: documento "FEASR 23.27 Report", data di riferimento 28/02/2026</p>
+      <table class="ui-tabella">
+        <caption>Per intervento: pagato lordo, rettifiche, pagamenti al netto delle rettifiche e dotazione residua (R08)</caption>
+        <thead><tr><th scope="col">Intervento</th><th scope="col">Dotazione</th><th scope="col">Pagato lordo</th><th scope="col">Rettifiche</th><th scope="col">Pagato netto</th><th scope="col">Dotazione residua</th><th scope="col">Rettificato</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">SRA29</th><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td><button class="btn" type="button">Si': 2 righe</button></td></tr>
+          <tr><th scope="row">SRA01</th><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">0,00</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td>No</td></tr>
+        </tbody>
+      </table>
+      <p class="ui-fonte">Fonte: TX-0007 (interventi[]). "Si': n righe" apre il dettaglio delle rettifiche dell'intervento (azione, progressivo, importo, programmazione, riferimento) nel pannello laterale; le rettifiche dei trascinamenti PSR sono nel dettaglio ma fuori dal netto. Senza file delle rettifiche: colonne con "fonte non attiva: rettifiche".</p>
+    </section>
     <h2>Stato: caricamento</h2>
     <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro delle card): le letture partono al piu' due alla volta</div>
     <h2>Stato: vuoto</h2>

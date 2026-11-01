@@ -1,18 +1,18 @@
 {
   "schema_version": "1.0",
   "feature": "istituzionale",
-  "pack_hash": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7",
+  "pack_hash": "sha256:b606aaee3b2f7add11e8b239ea50e03b3f206913e8b013e5ec7604cb3b4a310f",
   "spec_pins": [
     {
       "slice": "istituzionale",
       "path": "handover/openapi-istituzionale.json",
-      "sha256": "sha256:e29f8ac4e5d99c287d8398aa419acb19c2c6f6167d1cbf22240a1e66cc7e3489",
+      "sha256": "sha256:bd522bd06607138597caa5f4dfbd15b3d7d950c005f1682c6a84799c42c541f2",
       "manifest_hash_match": true
     },
     {
       "slice": "elenco-operativo",
       "path": "handover/openapi-elenco-operativo.json",
-      "sha256": "sha256:7532fe3b3708398d1448238ef2fe4df9e3d1037b096325bc23435cb9dc39a4ca",
+      "sha256": "sha256:bf5c831398dbd82875a66c4cdcdf0ddfaffa05424cc978dc683e4e1f3f7c407d",
       "manifest_hash_match": true
     }
   ],
@@ -61,6 +61,10 @@
           "name": "azione",
           "source": "TX-0016.azione",
           "multi": true
+        },
+        {
+          "name": "sigc",
+          "source": "TX-0016.sigc"
         }
       ],
       "links": [
@@ -157,6 +161,10 @@
           "name": "azione",
           "source": "TX-0015.azione",
           "multi": true
+        },
+        {
+          "name": "sigc",
+          "source": "TX-0015.sigc"
         }
       ],
       "links": [
@@ -1003,6 +1011,12 @@
     {
       "route": "/istituzionale/interventi/:codice",
       "name": "interventi[].descrizione",
+      "provenance": "spec",
+      "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
+    },
+    {
+      "route": "/istituzionale/interventi/:codice",
+      "name": "tipo dell'intervento nella testata (pill SIGC / NO SIGC, F5): interventi[].perimetro di TX-0060",
       "provenance": "spec",
       "source_ref": "openapi-elenco-operativo.json#/components/schemas/ValoriFiltriElenco"
     },

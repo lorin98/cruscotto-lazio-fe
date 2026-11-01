@@ -200,3 +200,40 @@ titolo, descrizione), numeri chiave nel corpo, "Entra in Procedurale" nel piede.
 - Chiusi col giro G3 e con G1 (22/10/2026): OP-PR-01 (ultimo dato sincronizzato da TX-0024), OP-PR-02 (parametro `azione`
   uscito dal contratto), OP-PR-03 (sottofasi con i filtri; Unit Amount senza lo stato per decisione del backend), OP-PR-04
   (card della Home = contenuto reale della feature, la riscrive step6), OP-PR-05 (export CSV e XLSX di TX-0026..TX-0032).
+
+## Revisioni del 31/10/2026 (BOZZA da approvare, MIN-20261031)
+
+### Natura delle card col filtro SIGC
+
+| pagina | elementi | natura |
+|---|---|---|
+| /procedurale | KPI ammesse, Domande di sostegno e di pagamento per stato, Importo richiesto e contributo ammesso | solo NO SIGC: non pertinenti con SIGC (da confermare all'approvazione) |
+| /procedurale | Domande per stato area programmazione | misto (le domande SIGC finiscono in 'senza stato') |
+| /procedurale/interventi/:codice | tutta la pagina | nessun filtro (F5): pill col tipo |
+
+### Modifiche del flusso
+
+- R20 (Home): testo della card sotto ~90 caratteri, fascia colorata alta uguale nelle quattro card, un solo stile dei
+  numeri, numero e unita' su una riga (ettari senza decimali nella card, valore pieno accessibile). Testi proposti (li
+  sceglie l'utente): Fisico "Output regionale, superfici ammissibili e pagamenti per Unit Amount, per intervento.";
+  Procedurale "Stati, sottofasi e domande ammesse, con riepilogo per intervento e determine."
+
+### Regole comuni (kit, tutte le aree)
+
+- **Filtro SIGC (R01, F1-F5)**: controllo "Tutti | SIGC | NO SIGC" sempre visibile nella barra dei filtri (parametro `sigc`,
+  assente = tutti), conservato fra le pagine e fra le aree; filtra gli **interventi** per classificazione della
+  programmazione (gli interventi non classificati restano fuori da SIGC e da NO SIGC). Ogni card dichiara la sua natura:
+  **misto** (si ricalcola), **solo SIGC** / **solo NO SIGC** (col valore opposto: **non pertinente**), **il filtro non si
+  applica** (dato non scomponibile: visibile normale).
+- **Card non pertinente**: titolo e badge "Non pertinente al filtro NO SIGC" (o SIGC) con il motivo leggibile ("Riguarda solo
+  le domande SIGC"); corpo in grigio, non interattivo, senza interruttore Grafico/Tabella e senza Scarica; il dato e' quello
+  **senza** filtro (il backend col valore opposto risponde zero righe). La tabella equivalente resta leggibile dagli
+  strumenti assistivi.
+- **Assi (R02)**: nessuna etichetta saltata; barre orizzontali alte quanto serve al numero di categorie; zoom solo oltre una
+  soglia alta; verifica a 1680, 1100 e 390 px.
+- **Sinottici (R09)**: valore su una riga (carattere adattivo, formato compatto con il valore pieno accessibile), unita' non
+  separabile dal numero.
+- **Barra dei filtri (R11)**: attaccata al bordo superiore scorrendo (e il menu laterale con lei).
+- **Tabelle medio-grandi (R12)**: intestazione ferma scorrendo, riquadro alto quanto la finestra, 25 righe per pagina,
+  prima colonna ferma nelle tabelle larghe.
+- **Ciambelle (R05, R06)**: importo e percentuale nelle etichette, totale al centro.

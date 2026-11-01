@@ -49,6 +49,7 @@
   <main class="ui-main" id="contenuto">
     <div class="ui-filtri" role="region" aria-label="Filtri attivi">
       <a class="btn btn-primary" href="../panoramica/panoramica.html#pannello-filtri">Filtri (2)</a>
+      <div class="ui-seg" role="group" aria-label="Interventi SIGC o NO SIGC"><button class="btn" type="button" aria-pressed="true">Tutti</button> <button class="btn" type="button" aria-pressed="false">SIGC</button> <button class="btn" type="button" aria-pressed="false">NO SIGC</button></div>
       <span class="ui-chip">Intervento: SRD01 <button class="btn" type="button" aria-label="Togli il filtro Intervento SRD01">x</button></span>
       <span class="ui-chip">Stato area programmazione: Revocata <button class="btn" type="button" aria-label="Togli il filtro Stato area programmazione Revocata">x</button></span>
       <span class="ui-pill">Perimetro: regionale (profilo ADA: domande per sottofase della propria ADA; anagrafica delle sottofasi regionale)</span>
@@ -65,6 +66,7 @@
       <h1>Procedurale: sottofasi di ammissibilità</h1>
       <p>Le sottofasi dello stato di ammissibilita' della domanda di sostegno (sei) e di pagamento (sette) di SR-01, con la sottofase dell'anagrafica che le abbina e le domande che vi si trovano. I filtri restringono le domande contate; l'elenco delle sottofasi resta intero.</p>
     </div>
+    <p class="wf-note">Filtro SIGC (bozza): pagina di soli dati NO SIGC. Con il filtro SIGC le card restano visibili come non pertinenti, con il badge "Non pertinente al filtro SIGC" e il motivo "Riguarda solo le domande NO SIGC": corpo in grigio e non interattivo, niente Scarica, dati letti senza il filtro. Con Tutti o NO SIGC la pagina e' come sotto.</p>
     <p class="wf-note">Ruoli (grant verbatim): csr.tx-0024.read, csr.tx-0025.read, csr.tx-0031.read, csr.tx-0032.read - Transazioni: TX-0031 (RF031), TX-0032 (RF032), TX-0024 e TX-0025 (valori dei filtri e Dati al). Dal giro G3 (D-06 Rev. 6 del backend) le sottofasi accettano i filtri di RF024 come i report per domanda: intervento, OS, OG, OP e stato area programmazione, nell'indirizzo della pagina e condivisi con le altre pagine del procedurale. I filtri restringono le domande contate per voce, per sottofase censita e per le altre sottofasi; l'anagrafica (voci di SR-01 e sottofasi del tipo) resta intera e regionale, e la fonte resta per tipo di domanda: con la fonte attiva un insieme filtrato senza domande da' 0, non "non disponibile". Ogni card compare solo con il grant della sua transazione.</p>
     <section class="ui-card" aria-labelledby="g-sostegno">
       <div class="ui-card__testa">

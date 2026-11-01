@@ -202,3 +202,31 @@ stessi parametri vanno all'export `{formato}` (stessi nomi nella spec).
 - OP-IS-04 (superato il 29/10/2026): il link G4 verso il finanziario lascia il posto ai link reciproci fra le due
   verifiche dell'area.
 - OP-IS-10 (informativo): TX-0056..TX-0059 della slice elenco-operativo, pinnata per TX-0060, restano dell'elenco.
+
+## Revisioni del 31/10/2026 (BOZZA da approvare, MIN-20261031)
+
+### Natura delle card col filtro SIGC
+
+| pagina | elementi | natura |
+|---|---|---|
+| /istituzionale/verifica-smp-sigc | grafico e tabella | solo SIGC (TX-0015): non pertinenti con NO SIGC |
+
+### Regole comuni (kit, tutte le aree)
+
+- **Filtro SIGC (R01, F1-F5)**: controllo "Tutti | SIGC | NO SIGC" sempre visibile nella barra dei filtri (parametro `sigc`,
+  assente = tutti), conservato fra le pagine e fra le aree; filtra gli **interventi** per classificazione della
+  programmazione (gli interventi non classificati restano fuori da SIGC e da NO SIGC). Ogni card dichiara la sua natura:
+  **misto** (si ricalcola), **solo SIGC** / **solo NO SIGC** (col valore opposto: **non pertinente**), **il filtro non si
+  applica** (dato non scomponibile: visibile normale).
+- **Card non pertinente**: titolo e badge "Non pertinente al filtro NO SIGC" (o SIGC) con il motivo leggibile ("Riguarda solo
+  le domande SIGC"); corpo in grigio, non interattivo, senza interruttore Grafico/Tabella e senza Scarica; il dato e' quello
+  **senza** filtro (il backend col valore opposto risponde zero righe). La tabella equivalente resta leggibile dagli
+  strumenti assistivi.
+- **Assi (R02)**: nessuna etichetta saltata; barre orizzontali alte quanto serve al numero di categorie; zoom solo oltre una
+  soglia alta; verifica a 1680, 1100 e 390 px.
+- **Sinottici (R09)**: valore su una riga (carattere adattivo, formato compatto con il valore pieno accessibile), unita' non
+  separabile dal numero.
+- **Barra dei filtri (R11)**: attaccata al bordo superiore scorrendo (e il menu laterale con lei).
+- **Tabelle medio-grandi (R12)**: intestazione ferma scorrendo, riquadro alto quanto la finestra, 25 righe per pagina,
+  prima colonna ferma nelle tabelle larghe.
+- **Ciambelle (R05, R06)**: importo e percentuale nelle etichette, totale al centro.

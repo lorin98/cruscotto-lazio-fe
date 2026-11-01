@@ -48,6 +48,7 @@
   <main class="ui-main" id="contenuto">
     <div class="ui-filtri" role="region" aria-label="Filtri attivi">
       <a class="btn btn-primary" href="#pannello-filtri">Filtri (1)</a>
+      <div class="ui-seg" role="group" aria-label="Interventi SIGC o NO SIGC"><button class="btn" type="button" aria-pressed="true">Tutti</button> <button class="btn" type="button" aria-pressed="false">SIGC</button> <button class="btn" type="button" aria-pressed="false">NO SIGC</button></div>
       <span class="ui-chip">Intervento: SRD01 <button class="btn" type="button" aria-label="Togli il filtro Intervento SRD01">x</button></span>
       <span class="ui-pill">Perimetro: regionale (i report istituzionali non hanno perimetro ADA)</span>
       <span class="ui-pill">Anno di riferimento del file SMP non SIGC: aaaa</span>
@@ -65,6 +66,7 @@
       <p>I dati dei file ASR non SIGC per intervento, da confrontare con SMP - Data Platform.</p>
       <p>La stessa verifica per i dati SIGC, per esercizio finanziario e con gli stessi filtri: <a href="../verifica-smp-sigc/verifica-smp-sigc.html">Verifica SMP SIGC</a>.</p>
     </div>
+    <p class="wf-note">Filtro SIGC (bozza): pagina di soli dati NO SIGC. Con il filtro SIGC le card restano visibili come non pertinenti, con il badge "Non pertinente al filtro SIGC" e il motivo "Riguarda solo gli interventi NO SIGC": corpo in grigio e non interattivo, niente Scarica, dati letti senza il filtro. Con Tutti o NO SIGC la pagina e' come sotto.</p>
     <p class="wf-note">Ruoli (grant verbatim): csr.tx-0016.read - Transazioni: TX-0016 (RF016) e il suo export CSV o XLSX (GET /api/istituzionale/verifica-smp-non-sigc/{formato}, senza operationId, con X-Requested-With); valori dei filtri da TX-0060 dell'elenco operativo (csr.tx-0060.read, che hanno tutti i profili con csr.tx-0016.read: decisione G2). Stesso aspetto della verifica SMP SIGC della stessa area (TX-0015, /istituzionale/verifica-smp-sigc): selettore, grafico a barre, tabella dei dati per intervento. Perimetro sempre regionale. "Dati al" = ultimiDatiSincronizzati della risposta di TX-0016 (la conclusione meno recente; nel popover una voce per flusso d'import). Clic su barra o riga: link:dettaglio-intervento-smp.</p>
     <p class="wf-note">Collegamento con la verifica SMP SIGC (link:verifica-smp-sigc, scelta di disegno 1; la decisione G4 del 21/10, link verso il finanziario, e' superata dal riallineamento del 29/10/2026): la frase sotto il titolo porta i filtri comuni alle due transazioni (intervento, os, og, op, azione), non l'anno: l'anno di riferimento del file (facoltativo per TX-0016) non si traduce nell'esercizio finanziario (obbligatorio per TX-0015), che la verifica SIGC chiede col suo selettore. Resa con csr.tx-0015.read, che nel catalogo rev. 4 hanno tutti i profili con csr.tx-0016.read (p1-dirigente, p2-referente-adg, p3-funzionario-area-ist): oggi la vedono tutti; il controllo resta come gate di UX. Nella verifica SIGC c'e' la frase speculare (link:verifica-smp-non-sigc).</p>
     <aside class="ui-pannello" id="pannello-filtri" aria-label="Pannello dei filtri">

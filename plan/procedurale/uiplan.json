@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
   "feature": "procedurale",
-  "pack_hash": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7",
+  "pack_hash": "sha256:b606aaee3b2f7add11e8b239ea50e03b3f206913e8b013e5ec7604cb3b4a310f",
   "spec_pins": [
     {
       "slice": "procedurale",
       "path": "handover/openapi-procedurale.json",
-      "sha256": "sha256:2d600037ef21b6a04f24f7690cd20ba7492fed4da7bcce11f134b733ea570a33",
+      "sha256": "sha256:fc6433807a3eecb8d1f802a9a0c2cb40fa802a004b1ef09f42e7547d1e99fbfa",
       "manifest_hash_match": true
     }
   ],
@@ -67,6 +67,10 @@
           "name": "stato",
           "source": "TX-0026.stato",
           "multi": true
+        },
+        {
+          "name": "sigc",
+          "source": "TX-0026.sigc"
         }
       ],
       "links": [
@@ -315,6 +319,10 @@
           "name": "stato",
           "source": "TX-0027.stato",
           "multi": true
+        },
+        {
+          "name": "sigc",
+          "source": "TX-0027.sigc"
         }
       ],
       "links": [
@@ -405,6 +413,10 @@
           "name": "stato",
           "source": "TX-0028.stato",
           "multi": true
+        },
+        {
+          "name": "sigc",
+          "source": "TX-0028.sigc"
         }
       ],
       "links": [
@@ -495,6 +507,10 @@
           "name": "stato",
           "source": "TX-0026.stato",
           "multi": true
+        },
+        {
+          "name": "sigc",
+          "source": "TX-0026.sigc"
         }
       ],
       "links": [
@@ -615,6 +631,10 @@
           "name": "stato",
           "source": "TX-0031.stato",
           "multi": true
+        },
+        {
+          "name": "sigc",
+          "source": "TX-0031.sigc"
         }
       ],
       "links": []
@@ -666,6 +686,10 @@
           "name": "stato",
           "source": "TX-0029.stato",
           "multi": true
+        },
+        {
+          "name": "sigc",
+          "source": "TX-0029.sigc"
         }
       ],
       "links": [
@@ -961,6 +985,12 @@
       "name": "esportazione (D-10 del backend, senza operationId): scheda Sottofasi, pagamento: CSV, XLSX con intervento=:codice - GET /api/procedurale/sottofasi-pagamento/{formato}",
       "provenance": "spec",
       "source_ref": "openapi-procedurale.json#/paths/~1api~1procedurale~1sottofasi-pagamento~1{formato}"
+    },
+    {
+      "route": "/procedurale/interventi/:codice",
+      "name": "tipo dell'intervento nella testata (pill SIGC / NO SIGC, F5): interventi[].perimetro di TX-0024",
+      "provenance": "spec",
+      "source_ref": "openapi-procedurale.json#/components/schemas/FiltriProcedurali"
     },
     {
       "route": "/procedurale/stati-sostegno",

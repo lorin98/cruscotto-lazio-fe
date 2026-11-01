@@ -47,6 +47,7 @@
   <main class="ui-main" id="contenuto">
     <div class="ui-filtri" role="region" aria-label="Filtri attivi">
       <a class="btn btn-primary" href="../panoramica/panoramica.html#pannello-filtri">Filtri (1)</a>
+      <div class="ui-seg" role="group" aria-label="Interventi SIGC o NO SIGC"><button class="btn" type="button" aria-pressed="true">Tutti</button> <button class="btn" type="button" aria-pressed="false">SIGC</button> <button class="btn" type="button" aria-pressed="false">NO SIGC</button></div>
       <span class="ui-chip">Intervento: SRA01 <button class="btn" type="button" aria-label="Togli il filtro Intervento SRA01">x</button></span>
       <span class="ui-pill">Perimetro: regionale (profilo ADA: solo la propria area, non rimovibile)</span>
       <span class="ui-pill">Ultimo dato sincronizzato: gg/mm/aaaa (un valore per ogni flusso di import)</span>
@@ -83,8 +84,8 @@
       </section>
       <section class="ui-kpi" aria-label="Importo stanziato">
         <p>Importo stanziato</p>
-        <p class="ui-kpi__valore">non disponibile</p>
-        <p class="ui-barra">fonte non attiva (TX-0010)</p>
+        <p class="ui-kpi__valore">n,n M euro</p>
+        <p class="ui-barra">TX-0010, dai bandi (quadro sinottico); per anno: non valorizzato finche' i bandi non hanno l'importo annuo</p>
       </section>
     </div>
     <div class="ui-griglia ui-griglia--2">
@@ -104,7 +105,7 @@
           <div class="ui-seg" role="group" aria-label="Vista di Importi ammessi e decretati per anno"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
         </div>
         <figure class="ui-grafico ui-grafico--linea">
-          <figcaption>Linee con zoom: importo ammesso e decretato (il decretato viene dagli elenchi di liquidazione: OP-FE-05).</figcaption>
+          <figcaption>Linee con zoom: importo ammesso, decretato (dagli elenchi di liquidazione: OP-FE-05) e stanziato dai bandi; gli anni con lo stanziato non valorizzato non hanno il punto e lo dichiarano.</figcaption>
         </figure>
         <p class="ui-fonte">Fonte: TX-0010. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati; ogni riga (anno) ha l'azione Apri nell'elenco, che apre l'elenco operativo con le domande presentate di quell'anno.</p>
       </section>

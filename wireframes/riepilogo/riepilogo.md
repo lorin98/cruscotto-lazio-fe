@@ -42,11 +42,12 @@ Drill-down verso l'elenco operativo (decisione D-2 dell'utente del 12/10/2026) d
 | pagina | link (id) | innesco | arrivo (feature: route) | parametri di path | query |
 |---|---|---|---|---|---|
 | /finanziario/riepilogo | elenco-presentate-riga | cella Domande presentate di una riga, o del drawer | elenco-operativo: /elenco-operativo/domande | - | presentata=true, intervento della riga |
-| /finanziario/riepilogo | elenco-pagamenti-riga | cella Pagamenti al netto delle rettifiche di una riga, o del drawer, con l'etichetta "righe di pagamento, importi lordi" | elenco-operativo: /elenco-operativo/pagamenti | - | esito=PAGATA, intervento della riga |
+| /finanziario/riepilogo | elenco-pagamenti-riga | cella Pagamenti lordi di una riga, o del drawer (R08, prima sulla cella dei pagamenti netti) | elenco-operativo: /elenco-operativo/pagamenti | - | esito=PAGATA, intervento della riga |
 
-La riga dell'Assistenza tecnica non ha link (AT001 non e' selezionabile nell'elenco). Il link dei pagamenti porta l'etichetta
-"righe di pagamento, importi lordi": l'elenco dei pagamenti mostra il pagato lordo delle righe PAGATA, il report il netto delle
-rettifiche; la differenza sono i recuperi, che stanno nella scheda della domanda (decisione dell'utente del 13/10/2026).
+La riga dell'Assistenza tecnica non ha link (AT001 non e' selezionabile nell'elenco). Il link dei pagamenti sta sulla cella
+Pagamenti lordi (R08, BOZZA): l'elenco dei pagamenti mostra il pagato lordo delle righe PAGATA, lo stesso valore della colonna;
+le rettifiche hanno la loro colonna e il dettaglio nell'anteprima. Prima della colonna dei lordi il link stava sui pagamenti netti
+con l'etichetta "righe di pagamento, importi lordi" (decisione dell'utente del 13/10/2026).
 Dotazione, risorse FEASR, stanziato, impegnato e residui non sono collegati (non sono insiemi di domande).
 
 ## Stati resi (obbligatori)
@@ -69,3 +70,40 @@ Dotazione, risorse FEASR, stanziato, impegnato e residui non sono collegati (non
 - OP-FE-06 (risolto in parte): dopo il login si torna al riepilogo con i filtri (/auth/login?ritorno=, D-11 Rev. 9 del
   backend); ricerca, ordine, pagina e vista della tabella, salvate nella cronologia del browser, ripartono da capo.
 - OP-FE-09: profili misti (P4 con un profilo regionale): il riepilogo e' ADA, l'elenco aperto dai link della riga e' regionale.
+
+## Revisioni del 31/10/2026 (BOZZA da approvare, MIN-20261031)
+
+### Natura delle card col filtro SIGC
+
+| pagina | elementi | natura |
+|---|---|---|
+| /finanziario/riepilogo | tabella, grafico e anteprima per intervento | misto (per intervento) |
+| /finanziario/riepilogo | riga Assistenza tecnica | il filtro non si applica |
+
+### Modifiche del flusso
+
+- R08: colonne Pagamenti lordi, Rettifiche, Con rettifiche (indicatore con il dettaglio nell'anteprima) accanto ai
+  pagamenti netti; export CSV con le stesse colonne. Il link ai pagamenti dell'elenco passa sulla cella Pagamenti lordi
+  (stesso importo dell'elenco), senza piu' l'etichetta "importi lordi" sui netti.
+- Impegnato con la colonna "di cui stimato" e la nota di lettura (stimaImpegni).
+- R12: intestazione ferma, 25 righe per pagina, prima colonna ferma.
+
+### Regole comuni (kit, tutte le aree)
+
+- **Filtro SIGC (R01, F1-F5)**: controllo "Tutti | SIGC | NO SIGC" sempre visibile nella barra dei filtri (parametro `sigc`,
+  assente = tutti), conservato fra le pagine e fra le aree; filtra gli **interventi** per classificazione della
+  programmazione (gli interventi non classificati restano fuori da SIGC e da NO SIGC). Ogni card dichiara la sua natura:
+  **misto** (si ricalcola), **solo SIGC** / **solo NO SIGC** (col valore opposto: **non pertinente**), **il filtro non si
+  applica** (dato non scomponibile: visibile normale).
+- **Card non pertinente**: titolo e badge "Non pertinente al filtro NO SIGC" (o SIGC) con il motivo leggibile ("Riguarda solo
+  le domande SIGC"); corpo in grigio, non interattivo, senza interruttore Grafico/Tabella e senza Scarica; il dato e' quello
+  **senza** filtro (il backend col valore opposto risponde zero righe). La tabella equivalente resta leggibile dagli
+  strumenti assistivi.
+- **Assi (R02)**: nessuna etichetta saltata; barre orizzontali alte quanto serve al numero di categorie; zoom solo oltre una
+  soglia alta; verifica a 1680, 1100 e 390 px.
+- **Sinottici (R09)**: valore su una riga (carattere adattivo, formato compatto con il valore pieno accessibile), unita' non
+  separabile dal numero.
+- **Barra dei filtri (R11)**: attaccata al bordo superiore scorrendo (e il menu laterale con lei).
+- **Tabelle medio-grandi (R12)**: intestazione ferma scorrendo, riquadro alto quanto la finestra, 25 righe per pagina,
+  prima colonna ferma nelle tabelle larghe.
+- **Ciambelle (R05, R06)**: importo e percentuale nelle etichette, totale al centro.
