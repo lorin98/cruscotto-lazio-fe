@@ -6,7 +6,7 @@
 // finanziario; nessun react-aria.
 import type { ReactNode } from 'react';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
-import { etichettaDellArea, ettari, intero } from '../../../shared/lib';
+import { etichettaDellArea, ettari, ettariInteri, intero } from '../../../shared/lib';
 import { AnteprimaArea, AttesaArea, AvanzamentoArea, NotaArea, NumeriArea, NumeroArea, RiferimentoArea } from '../../../shared/ui';
 import { useSuperfici } from '../api';
 import { anteprimaSuperfici } from '../lib/anteprima';
@@ -26,8 +26,9 @@ function Superfici() {
     <>
       <RiferimentoArea>{`Campagna ${a.campagna}`}</RiferimentoArea>
       <NumeriArea>
-        <NumeroArea etichetta={etichetta(TESTI_KPI.ds.etichetta)} spiegazione={TESTI_KPI.ds.spiegazione} valore={a.superficieDs} formato={ettari} />
-        <NumeroArea etichetta={etichetta(TESTI_KPI.dp.etichetta)} spiegazione={TESTI_KPI.dp.spiegazione} valore={a.superficieDp} formato={ettari} />
+        {/* R20: ettari senza decimali nella card, il valore pieno per i lettori di schermo */}
+        <NumeroArea etichetta={etichetta(TESTI_KPI.ds.etichetta)} spiegazione={TESTI_KPI.ds.spiegazione} valore={a.superficieDs} formato={ettariInteri} formatoPieno={ettari} />
+        <NumeroArea etichetta={etichetta(TESTI_KPI.dp.etichetta)} spiegazione={TESTI_KPI.dp.spiegazione} valore={a.superficieDp} formato={ettariInteri} formatoPieno={ettari} />
       </NumeriArea>
       {a.quotaOltreDs !== null ? (
         <AvanzamentoArea etichetta={TESTI_KPI.oltre.etichetta} spiegazione={TESTI_KPI.oltre.spiegazione} percentuale={a.quotaOltreDs} />

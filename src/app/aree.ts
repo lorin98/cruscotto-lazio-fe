@@ -86,7 +86,8 @@ export const AREE: readonly DiAmbito<Area>[] = [
     // e' una voce di menu: ci si arriva dai drawer dei report. I numeri della card restano quelli delle superfici (scelta 3).
     chiave: 'fisico',
     titolo: 'Fisico',
-    descrizione: 'Output regionale programmato e realizzato, superfici ammissibili delle domande di sostegno e di pagamento e pagamenti per Unit Amount, per intervento.',
+    // R20 (revisioni del 31/10/2026): testo sotto ~90 caratteri approvato dall'utente il 01/11/2026
+    descrizione: 'Output regionale, superfici ammissibili e pagamenti per Unit Amount, per intervento.',
     icona: 'it-map-marker',
     tono: 'verde',
     contenuti: [
@@ -108,7 +109,8 @@ export const AREE: readonly DiAmbito<Area>[] = [
     // dossier dei wireframe (home.html del flusso panoramica approvata il 30/10/2026, OP-PR-10, OP-PR-13).
     chiave: 'procedurale',
     titolo: 'Procedurale',
-    descrizione: 'Stati e sottofasi delle domande di sostegno e di pagamento, domande ammesse con atto di concessione e contributo, riepilogo per intervento e determine di una domanda.',
+    // R20 (revisioni del 31/10/2026): testo sotto ~90 caratteri approvato dall'utente il 01/11/2026
+    descrizione: 'Stati, sottofasi e domande ammesse, con riepilogo per intervento e determine.',
     icona: 'it-file-signed',
     tono: 'arancio',
     contenuti: ['Stati e sottofasi delle domande', 'Domande ammesse con atto di concessione e contributo', 'Riepilogo per intervento', 'Determine di una domanda'],

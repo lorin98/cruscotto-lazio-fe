@@ -12,11 +12,13 @@
 // chiusura del dialogo (A1, X2: WCAG 2.4.3); con criteri invariati il bottone che ha aperto il pannello resta e il focus
 // torna li' (A1 dell'iterazione 2).
 // Design system: classi bootstrap-italia e del kit v2; i primitivi react-aria stanno solo dentro i componenti del kit che
-// li richiedono (pannello e drawer modali, popover della pill).
+// li richiedono (pannello e drawer modali, popover della pill). Revisioni del 31/10/2026: controllo del filtro SIGC nella
+// barra; le superfici sono solo SIGC (TX-0018, ASR2-20): col filtro NO SIGC il report e' non pertinente (F3), letto senza
+// filtro, in grigio e inerte.
 import { useState } from 'react';
 import { descrizioneIntervento, usePannelloConFocus } from '../../../entities/filtri';
-import { testoPerimetro } from '../../../shared/lib';
-import { AvvisoPagina, BarraFiltri, Briciole, Caricamento, ContestoIntestazione, PillDatiAl, TestaPagina, VistaQuery, VuotoConFiltri, useRigheContesto } from '../../../shared/ui';
+import { nonPertinenza, senzaSigc, testoPerimetro } from '../../../shared/lib';
+import { AvvisoPagina, BarraFiltri, Briciole, Caricamento, ContestoIntestazione, NonPertinente, PillDatiAl, TestaPagina, VistaQuery, VuotoConFiltri, useRigheContesto } from '../../../shared/ui';
 import type { VistaGrafico } from '../../../shared/ui';
 import { useSuperfici } from '../api';
 import type { SuperficieAmmissibile } from '../api';
@@ -31,6 +33,8 @@ import { useCriteriNellIndirizzo } from './useCriteriNellIndirizzo';
 const SOTTOTITOLO =
   "Superficie ammissibile delle domande di sostegno (DS) e delle domande di pagamento (DP) per intervento e campagna, con la verifica incrociata fra le due. Clic su una barra per l'anteprima dell'intervento; nella vista Tabella cerca, ordina e scegli le colonne.";
 const BRICIOLE = [{ etichetta: 'Fisico', a: PERCORSI.superfici }, { etichetta: 'Superfici ammissibili' }];
+/** Il motivo della non pertinenza col filtro NO SIGC (wireframe superfici, F3). */
+const MOTIVO_SOLO_SIGC = "Riguarda solo le domande SIGC (superfici dall'ASR2-20)";
 
 /** Perimetro (sempre regionale) e ultimo dato sincronizzato della risposta, a destra nella barra dei filtri. */
 function PillDellaBarra({ d, inErrore }: { d: SuperficieAmmissibile | undefined; inErrore: boolean }) {
@@ -58,7 +62,11 @@ function CorpoSuperfici({ stato, inAttesa, ...report }: PropsCorpo) {
         ) : (
           <VistaQuery stato={stato} eVuoto={(d) => d.righe.length === 0} vuoto={<VuotoConFiltri onModifica={report.onModificaFiltri}>Nessun intervento per i filtri scelti.</VuotoConFiltri>}>
             {/* criteri nuovi = contenuto nuovo: l'anteprima aperta non resta quella di prima */}
-            {(d) => <Report key={ricercaDaCriteri(report.criteri)} d={d} {...report} />}
+            {(d) => (
+              <NonPertinente np={nonPertinenza(report.criteri.sigc, 'sigc', MOTIVO_SOLO_SIGC)}>
+                <Report key={ricercaDaCriteri(report.criteri)} d={d} {...report} />
+              </NonPertinente>
+            )}
           </VistaQuery>
         )}
       </AvvisoPagina>
@@ -68,7 +76,9 @@ function CorpoSuperfici({ stato, inAttesa, ...report }: PropsCorpo) {
 
 export function SuperficiAmmissibili() {
   const { criteri, inAttesa, chip, applica, togliTutti, valori } = useCriteriNellIndirizzo();
-  const stato = useSuperfici(criteri, { abilitato: !inAttesa });
+  // col filtro NO SIGC le superfici (solo SIGC) si leggono senza filtro: il dato reale, in grigio (F3)
+  const lettura = nonPertinenza(criteri.sigc, 'sigc', MOTIVO_SOLO_SIGC) ? senzaSigc(criteri) : criteri;
+  const stato = useSuperfici(lettura, { abilitato: !inAttesa });
   // il pannello e il focus dopo "Applica i filtri" (regola comune di entities/filtri); i criteri applicati da un comando
   // che sparisce col report (applicaConFocus) portano il focus sull'h1 dopo la chiusura del dialogo (A1, X2)
   const { h1, pannello, apri, chiudi, onApplica, applicaConFocus } = usePannelloConFocus(criteri, applica, ricercaDaCriteri);
@@ -77,7 +87,7 @@ export function SuperficiAmmissibili() {
   const descrizioneDi = (codice: string) => descrizioneIntervento(valori?.data?.interventi, codice);
   return (
     <>
-      <BarraFiltri chip={chip} onApri={() => apri('barra')} onTogliTutti={togliTutti} vuoto="Nessun filtro: tutti gli interventi e tutte le campagne" destra={<PillDellaBarra d={stato.data} inErrore={stato.isError} />} />
+      <BarraFiltri chip={chip} onApri={() => apri('barra')} onTogliTutti={togliTutti} vuoto="Nessun filtro: tutti gli interventi e tutte le campagne" destra={<PillDellaBarra d={stato.data} inErrore={stato.isError} />} filtroSigc />
       <main className="ui-pagina" id="contenuto">
         <Briciole voci={BRICIOLE} />
         <TestaPagina titolo="Fisico: superfici ammissibili per intervento" titoloDocumento="Superfici ammissibili - Fisico" sottotitolo={SOTTOTITOLO} refTitolo={h1} />

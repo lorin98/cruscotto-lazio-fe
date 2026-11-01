@@ -34,6 +34,8 @@ interface PropsNumero {
   /** Il valore; null o assente = non disponibile. */
   valore: number | null | undefined;
   formato: (v: number) => string;
+  /** Il valore pieno quando `formato` arrotonda (es. ettari senza decimali, R20): per i lettori di schermo e il suggerimento. */
+  formatoPieno?: (v: number) => string;
   /** Perche' il valore manca, sotto "non disponibile". */
   motivo?: string;
   /** Una precisazione sul valore presente (per esempio cosa non comprende), sotto il numero. */
@@ -41,16 +43,31 @@ interface PropsNumero {
 }
 
 /** Un numero chiave: l'etichetta e il valore animato (con la sua nota), oppure "non disponibile" col motivo (mai uno zero). */
-export function NumeroArea({ etichetta, spiegazione, valore, formato, motivo, nota }: PropsNumero) {
+export function NumeroArea({ etichetta, spiegazione, valore, formato, formatoPieno, motivo, nota }: PropsNumero) {
   const presente = numeroDi(valore);
   const sotto = presente === null ? motivo : nota;
+  // R20: un numero arrotondato nella card (es. gli ettari senza decimali) ha il valore pieno per i lettori di schermo
+  const pieno = presente !== null && formatoPieno ? formatoPieno(presente) : null;
   return (
     <div>
       <dt>
         {etichetta}
         {spiegazione && <span className="visually-hidden">{`: ${spiegazione}`}</span>}
       </dt>
-      <dd>{presente === null ? NON_DISPONIBILE : <NumeroAnimato valore={presente} formato={formato} />}</dd>
+      <dd title={pieno ?? undefined}>
+        {presente === null ? (
+          NON_DISPONIBILE
+        ) : pieno ? (
+          <>
+            <span aria-hidden="true">
+              <NumeroAnimato valore={presente} formato={formato} />
+            </span>
+            <span className="visually-hidden">{pieno}</span>
+          </>
+        ) : (
+          <NumeroAnimato valore={presente} formato={formato} />
+        )}
+      </dd>
       {sotto && <dd className="ui-ambito__nota">{sotto}</dd>}
     </div>
   );

@@ -68,8 +68,12 @@ describe('RF018: card Fisico della Home (OP-FIS-10)', () => {
     const { container } = renderConQuery(<AnteprimaFisico altrimenti={ALTRIMENTI} />);
     const cifre = await screen.findByRole('group', { name: 'Il fisico in cifre' });
     expect(await within(cifre).findByText('Campagna 2025')).toBeTruthy();
-    expect(valoreDi(cifre, 'Superficie ammissibile DS')).toBe('15,50 ha');
-    expect(valoreDi(cifre, 'Superficie ammissibile DP')).toBe('16,20 ha');
+    // R20: nella card gli ettari senza decimali (visibili) e il valore pieno per i lettori di schermo
+    expect(valoreDi(cifre, 'Superficie ammissibile DS')).toBe('16 ha15,50 ha');
+    expect(valoreDi(cifre, 'Superficie ammissibile DP')).toBe('16 ha16,20 ha');
+    const ds = within(cifre).getByText('15,50 ha');
+    expect(ds.className).toBe('visually-hidden');
+    expect(ds.parentElement?.getAttribute('title')).toBe('15,50 ha');
     expect(valoreDi(cifre, 'Domande di pagamento')).toBe('3');
     expect(within(cifre).getByText(formatPercentuale(33.3))).toBeTruthy();
     // le sigle sciolte per i lettori di schermo, come i nomi accessibili dei KPI della pagina

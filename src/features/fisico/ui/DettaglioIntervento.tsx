@@ -17,7 +17,7 @@
 import { Link, useLocation } from 'react-router';
 import { useState } from 'react';
 import type { Ref } from 'react';
-import { ID_TITOLO_INTERVENTO, InterventoNonValido, codiceDelPercorso, descrizioneIntervento, rigaDellIntervento } from '../../../entities/filtri';
+import { ID_TITOLO_INTERVENTO, InterventoNonValido, codiceDelPercorso, descrizioneIntervento, rigaDellIntervento, tipoIntervento } from '../../../entities/filtri';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { perimetroDelDettaglio, testoPerimetro, ultimiDelDettaglio, ultimoDatoInErrore } from '../../../shared/lib';
 import type { StatoDettaglio } from '../../../shared/lib';
@@ -59,6 +59,8 @@ function useLettureDelDettaglio(codice: string, unitAmountAperta: boolean) {
     unitAmount: puo('unitAmount') ? unitAmount : null,
     soloUnitAmount,
     descrizione: descrizioneIntervento(valori.data?.interventi, codice),
+    // il tipo dell'intervento dalla programmazione (VoceFiltro.perimetro di TX-0060), nella barra (F5)
+    tipo: tipoIntervento(valori.data?.interventi, codice),
   };
 }
 
@@ -165,7 +167,7 @@ function Dettaglio({ codice }: { codice: string }) {
   // TX-0030 si legge dalla prima apertura della sua scheda, poi resta (cambiare scheda non la rilegge)
   const [unitAmountAperta, setUnitAmountAperta] = useState(attiva === 'unitAmount');
   if (attiva === 'unitAmount' && !unitAmountAperta) setUnitAmountAperta(true);
-  const { output, superfici, unitAmount, soloUnitAmount, descrizione } = useLettureDelDettaglio(codice, unitAmountAperta);
+  const { output, superfici, unitAmount, soloUnitAmount, descrizione, tipo } = useLettureDelDettaglio(codice, unitAmountAperta);
   // TX-0030 decide lo stato della pagina da quando la sua scheda e' aperta: una sua risposta tiene la pagina coi dati anche
   // se TX-0017 e TX-0018 falliscono insieme (l'errore di una scheda non ferma le altre, review del riallineamento FIS-04)
   const letture = (soloUnitAmount ? [unitAmount] : [output, superfici, unitAmountAperta ? unitAmount : null]).filter((s) => s !== null);
@@ -180,7 +182,7 @@ function Dettaglio({ codice }: { codice: string }) {
   const badge = badgeIntervento(rigaDellIntervento(output?.data?.righe, codice));
   return (
     <ContestoIntestazione.Provider value={contesto}>
-      <BarraRiferimenti perimetro={perimetro && `Perimetro: ${testoPerimetro(perimetro)}`} ultimi={ultimi} inErrore={ultimoDatoInErrore(letture)} />
+      <BarraRiferimenti perimetro={perimetro && `Perimetro: ${testoPerimetro(perimetro)}`} ultimi={ultimi} inErrore={ultimoDatoInErrore(letture)} tipo={tipo} />
       <main className="ui-pagina" id="contenuto">
         <Briciole voci={[{ etichetta: 'Fisico', a: useIngressoArea() }, { etichetta: codice }]} />
         <TestataIntervento h1={h1} codice={codice} titolo={titoloIntervento(codice, descrizione)} badge={badge} />

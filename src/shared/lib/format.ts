@@ -26,6 +26,14 @@ export function ettari(v: number): string {
   return `${formatEttari(v)} ha`;
 }
 
+/**
+ * Gli ettari senza decimali, con l'unita' non separabile dal numero: i numeri delle card della Home (R20, revisioni del
+ * 31/10/2026: "123.457 ha" su una riga; il valore pieno con i decimali lo dice ettari, accanto per i lettori di schermo).
+ */
+export function ettariInteri(v: number): string {
+  return `${formatNumber(Math.round(v))}\u00a0ha`;
+}
+
 /** Un conteggio arrotondato all'unita': i passi di un numero animato (NumeroAnimato) non sono interi. */
 export function intero(v: number): string {
   return formatNumber(Math.round(v));

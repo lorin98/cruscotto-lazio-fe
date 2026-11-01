@@ -10,6 +10,7 @@ import { senzaRisposta } from '../../lib/dettaglio';
 import type { LetturaConErrore, StatoDettaglio } from '../../lib/dettaglio';
 import type { UltimoDato } from '../../lib/aggiornamento';
 import { PillDatiAl } from '../filtri/PillDatiAl';
+import { PillTipoIntervento } from '../filtri/PillTipoIntervento';
 import { ErroreNellaPagina, useErroreNellaPagina } from '../stati/AvvisoPagina';
 import { Caricamento } from '../stati/StatiVista';
 
@@ -48,13 +49,19 @@ interface PropsBarraRiferimenti {
   ultimi: readonly UltimoDato[] | undefined;
   /** Tutte le letture fatte sono in errore (ultimoDatoInErrore): la pill lo dice. */
   inErrore: boolean;
+  /** Il tipo dell'intervento dalla programmazione (revisioni del 31/10/2026, F5): il dettaglio non ha il filtro SIGC. */
+  tipo?: 'SIGC' | 'NO SIGC' | null;
 }
 
-/** La barra dei riferimenti del dettaglio, sopra il main: il perimetro e l'ultimo dato sincronizzato (il dettaglio non ha filtri). */
-export function BarraRiferimenti({ perimetro, ultimi, inErrore }: PropsBarraRiferimenti) {
+/**
+ * La barra dei riferimenti del dettaglio, sopra il main: il tipo dell'intervento, il perimetro e l'ultimo dato
+ * sincronizzato (il dettaglio non ha filtri, nemmeno quello SIGC).
+ */
+export function BarraRiferimenti({ perimetro, ultimi, inErrore, tipo }: PropsBarraRiferimenti) {
   return (
     <div className="ui-filtri" role="region" aria-label="Riferimenti dei dati">
       <div className="ui-filtri__destra">
+        <PillTipoIntervento tipo={tipo} />
         {perimetro && <span className="ui-pill">{perimetro}</span>}
         <PillDatiAl voci={ultimi} inErrore={inErrore} />
       </div>

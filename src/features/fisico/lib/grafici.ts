@@ -11,6 +11,7 @@ import type { BarSeriesOption, EChartsOption, LineSeriesOption } from 'echarts';
 import { descriviAssenza, resaAssenza, testoConNota, testoMotivato } from '../../../entities/importo';
 import {
   COLORI,
+  asseCategorieOrizzontale,
   MISURA_ETTARI,
   MISURA_PERCENTUALI,
   aria,
@@ -225,7 +226,8 @@ export function graficoVerifica(righe: readonly InterventoSuperficie[], anno: nu
     aria: aria(descrizioneVerifica(voci, anno, omessi)),
     tooltip: { trigger: 'item', formatter: tooltipDettaglio },
     xAxis: { type: 'value', min: -m, max: m, axisLabel: { formatter: asseEttari } },
-    yAxis: { type: 'category', inverse: true, data: voci.map((v) => v.codice) },
+    // tutte le etichette (R02), altezza sul numero di interventi
+    yAxis: asseCategorieOrizzontale(voci.map((v) => v.codice)),
     series: [serie],
   };
   return { opzioni, tabella, omessi };

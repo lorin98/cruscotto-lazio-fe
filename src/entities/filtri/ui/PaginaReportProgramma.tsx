@@ -79,7 +79,8 @@ export function PaginaReportProgramma<D extends RispostaReportProgramma>({ pagin
       <PillDatiAl voci={stato.data?.ultimiDatiSincronizzati} inErrore={stato.isError} />
     </>
   );
-  const barra = { chip, onApri: () => apri('barra'), onTogliTutti: togliTutti, vuoto: 'Nessun filtro: tutti gli interventi', destra };
+  // il controllo del filtro SIGC in ogni report coi filtri del programma (revisioni del 31/10/2026, R01)
+  const barra = { chip, onApri: () => apri('barra'), onTogliTutti: togliTutti, vuoto: 'Nessun filtro: tutti gli interventi', destra, filtroSigc: true };
   const vuoto = <VuotoConFiltri onModifica={() => apri('vuoto')}>{testoVuoto}</VuotoConFiltri>;
   return (
     <PaginaConFiltri
