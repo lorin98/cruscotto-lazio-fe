@@ -1,6 +1,8 @@
 // Kpi — tessera di un indicatore (ADR 0027): etichetta con icona, valore, nota, quota opzionale. Un valore assente non
-// diventa mai zero: la tessera dice "non disponibile" con il motivo.
+// diventa mai zero: la tessera dice "non disponibile" con il motivo. Dentro <NonPertinente> (filtro SIGC opposto, F3) la
+// tessera e' in grigio, dice il motivo e non ha l'azione.
 import type { ReactNode } from 'react';
+import { MotivoNonPertinente, useNonPertinenza } from '../card/NonPertinente';
 import type { NomeIcona } from '../icona';
 import { Icona } from '../icona';
 
@@ -17,8 +19,11 @@ export function Kpi({
   assente,
   azione,
   nomeAccessibile,
+  badge,
 }: {
   etichetta: string;
+  /** Un badge in testo accanto all'etichetta (es. "Consuntivo" o "Previsione" della riserva). */
+  badge?: string;
   valore?: string;
   unita?: string;
   nota?: string;
@@ -36,26 +41,40 @@ export function Kpi({
    */
   nomeAccessibile?: string;
 }) {
+  const np = useNonPertinenza();
+  const nome = nomeAccessibile ?? etichetta;
   return (
-    <section className="ui-card ui-kpi ui-dissolvenza" aria-label={nomeAccessibile ?? etichetta}>
-      <p className="ui-kpi__etichetta">
-        <span className={`ui-kpi__icona ui-tono-${tono}`}>
-          <Icona nome={icona} />
-        </span>
-        {etichetta}
-      </p>
-      {assente ? (
-        <p className="ui-kpi__valore ui-kpi__valore--assente">{assente}</p>
-      ) : (
-        <p className="ui-kpi__valore">
-          {valore}
-          {unita && <small>{unita}</small>}
-        </p>
-      )}
+    <section className={np ? 'ui-card ui-kpi ui-kpi--non-pertinente ui-dissolvenza' : 'ui-card ui-kpi ui-dissolvenza'} aria-label={np ? `${nome}, non pertinente al filtro ${np.filtro}` : nome}>
+      <EtichettaKpi etichetta={etichetta} icona={icona} tono={tono} badge={badge} />
+      <ValoreKpi valore={valore} unita={unita} assente={assente} />
       {nota && <p className="ui-kpi__nota">{nota}</p>}
       {!assente && <BarraQuota quota={quota} />}
-      {azione && <div className="ui-kpi__azione">{azione}</div>}
+      {np && <MotivoNonPertinente np={np} />}
+      {azione && !np && <div className="ui-kpi__azione">{azione}</div>}
     </section>
+  );
+}
+
+function EtichettaKpi({ etichetta, icona, tono, badge }: { etichetta: string; icona: NomeIcona; tono: TonoKpi; badge?: string }) {
+  return (
+    <p className="ui-kpi__etichetta">
+      <span className={`ui-kpi__icona ui-tono-${tono}`}>
+        <Icona nome={icona} />
+      </span>
+      {etichetta}
+      {badge && <span className="badge ui-badge-np ms-1">{badge}</span>}
+    </p>
+  );
+}
+
+/** Il valore con l'unita', oppure l'assenza col suo motivo (mai uno zero al posto di un assente). */
+function ValoreKpi({ valore, unita, assente }: { valore?: string; unita?: string; assente?: string }) {
+  if (assente) return <p className="ui-kpi__valore ui-kpi__valore--assente">{assente}</p>;
+  return (
+    <p className="ui-kpi__valore">
+      {valore}
+      {unita && <small>{unita}</small>}
+    </p>
   );
 }
 

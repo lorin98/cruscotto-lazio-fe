@@ -10,3 +10,4 @@ export * from './parametri-ripetuti';
 export * from './stato-history';
 export * from './anni';
 export * from './dettaglio';
+export * from './sigc';

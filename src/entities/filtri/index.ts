@@ -22,6 +22,7 @@ export {
   rigaDellIntervento,
   senzaAzioneSeNonDisponibile,
   senzaValore,
+  tipoIntervento,
   valoreFiltroValido,
   vociDelPannello,
 } from './lib/programma';

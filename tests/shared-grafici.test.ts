@@ -342,7 +342,8 @@ describe('opzioniCascata e descrizioneCascata', () => {
   it('due serie impilate: la base trasparente e muta, poi il valore con testi e colore del passo', () => {
     const o = prova(opzioniCascata(passi, 'Cascata di prova'));
     expect(o.aria).toEqual({ enabled: true, label: { description: 'Cascata di prova' } });
-    expect(asse(o.xAxis)).toEqual({ type: 'category', data: ['Dotazione', 'Pagato', 'Residuo'] });
+    // nessuna etichetta saltata (R02): le voci lunghe vanno a capo
+    expect(asse(o.xAxis)).toEqual({ type: 'category', data: ['Dotazione', 'Pagato', 'Residuo'], axisLabel: { interval: 0, hideOverlap: false, width: 90, overflow: 'break' } });
     expect(asse(o.yAxis).axisLabel?.formatter).toBe(asseImporti);
     expect(o.tooltip).toEqual({ trigger: 'item', formatter: tooltipDettaglio });
     expect(o.series.map((s) => [s.type, s.name, s.stack])).toEqual([
@@ -396,7 +397,7 @@ describe('barreRaggruppate', () => {
     ]);
     // la categoria senza alcun valore non si disegna
     expect(asse(o.xAxis).data).toEqual(['SRA01', 'SRA02']);
-    expect(asse(o.xAxis).axisLabel).toEqual({ interval: 0, rotate: 0 });
+    expect(asse(o.xAxis).axisLabel).toEqual({ interval: 0, hideOverlap: false, rotate: 0, width: 140, overflow: 'truncate' });
     expect(o.series[0].data).toEqual([{ value: 3_000_000, name: 'SRA01', codice: 'SRA01', dettaglio: 'SRA01, previsto: 3,0 M€' }, null]);
     expect(o.series[1].data?.[1]).toEqual({ value: 1_000_000, name: 'SRA02', codice: 'SRA02', dettaglio: 'SRA02, erogato: 1,0 M€' });
     expect(o.legend).toEqual({});
@@ -455,28 +456,30 @@ describe('barreRaggruppate orizzontali, coi numeri e le percentuali (procedurale
   const definizioni: SerieRaggruppata[] = [{ nome: 'Pagata', soggetto: 'percentuale pagata' }];
   const testi: TestiBarre = { caption: 'Percentuali', colonne: ['Unit Amount', 'Pagata'], titolo: 'Barre delle percentuali', vuoto: 'nessun valore', unita: ['Unit Amount', 'Unit Amount'] };
 
-  it('le categorie sull asse y dall alto, i valori sull asse x; lo scorrimento oltre 12 lungo le categorie', () => {
+  it('le categorie sull asse y dall alto, i valori sull asse x; lo scorrimento solo oltre 40 lungo le categorie (R02)', () => {
     const o = prova(barreRaggruppate([{ categoria: 'UA1', codice: 'UA1', valori: [40], celle: ['40 %'] }], definizioni, testi, { misura: MISURA_PERCENTUALI, orizzontale: true }).opzioni);
     // l'asse e la griglia comuni delle barre orizzontali (review H6 del procedurale): etichette a capo, contenute
-    expect(asse(o.yAxis)).toEqual({ type: 'category', inverse: true, data: ['UA1'], axisLabel: { width: 180, overflow: 'break' } });
+    expect(asse(o.yAxis)).toEqual({ type: 'category', inverse: true, data: ['UA1'], axisLabel: { interval: 0, hideOverlap: false, width: 160, overflow: 'break' } });
     expect((o as { grid?: unknown }).grid).toEqual({ outerBoundsMode: 'same', outerBoundsContain: 'axisLabel' });
     // le verticali (finanziario, fisico, istituzionale) restano senza griglia
     expect((prova(barreRaggruppate([{ categoria: 'UA1', codice: 'UA1', valori: [40], celle: ['40 %'] }], definizioni, testi).opzioni) as { grid?: unknown }).grid).toBeUndefined();
     expect(asse(o.xAxis).axisLabel?.formatter).toBe(assePercentuale);
     expect(o.series[0].data).toEqual([{ value: 40, name: 'UA1', codice: 'UA1', dettaglio: 'UA1, percentuale pagata: 40 %' }]);
     expect(o.aria?.label.description).toBe('Barre delle percentuali per 1 Unit Amount (UA1), percentuali.');
-    const molte = Array.from({ length: 13 }, (_, k) => ({ categoria: `UA${k}`, valori: [k], celle: [String(k)] }));
+    const tredici = Array.from({ length: 13 }, (_, k) => ({ categoria: `UA${k}`, valori: [k], celle: [String(k)] }));
+    expect(prova(barreRaggruppate(tredici, definizioni, testi, { misura: MISURA_NUMERI, orizzontale: true }).opzioni).dataZoom).toBeUndefined();
+    const molte = Array.from({ length: 41 }, (_, k) => ({ categoria: `UA${k}`, valori: [k], celle: [String(k)] }));
     const zoom = prova(barreRaggruppate(molte, definizioni, testi, { misura: MISURA_NUMERI, orizzontale: true }).opzioni).dataZoom ?? [];
     expect(zoom.map((z) => [z.type, z.yAxisIndex, z.xAxisIndex, z.endValue])).toEqual([
-      ['inside', 0, undefined, 11],
-      ['slider', 0, undefined, 11],
+      ['inside', 0, undefined, 39],
+      ['slider', 0, undefined, 39],
     ]);
   });
 
   it('asseCategorieOrizzontale e GRIGLIA_CON_ETICHETTE: una resa per tutte le barre orizzontali, senza containLabel deprecato', () => {
     const categorie = ['In istruttoria presso ente competente', 'Rilasciato'];
     const a = asseCategorieOrizzontale(categorie);
-    expect(a).toEqual({ type: 'category', inverse: true, data: categorie, axisLabel: { width: 180, overflow: 'break' } });
+    expect(a).toEqual({ type: 'category', inverse: true, data: categorie, axisLabel: { interval: 0, hideOverlap: false, width: 160, overflow: 'break' } });
     expect((a as { data: string[] }).data).not.toBe(categorie);
     expect(GRIGLIA_CON_ETICHETTE).toEqual({ outerBoundsMode: 'same', outerBoundsContain: 'axisLabel' });
     expect('containLabel' in GRIGLIA_CON_ETICHETTE).toBe(false);
@@ -527,11 +530,13 @@ describe('graficoDueParti', () => {
     expect([s.type, s.name]).toEqual(['pie', 'Totale tra A e B']);
     expect(s.radius).toEqual(['52%', '78%']);
     expect(s.label?.formatter).toBe(etichettaDato);
+    // R05, R06: importo e percentuale nelle etichette, il totale al centro
     expect(s.data).toEqual([
-      { value: 25_000_000, name: 'Parte A', etichetta: '25 %', dettaglio: 'Parte A: 25,0 M€ (25 %)' },
-      { value: 75_000_000, name: 'Parte B', etichetta: '75 %', dettaglio: 'Parte B: 75,0 M€ (75 %)' },
+      { value: 25_000_000, name: 'Parte A', etichetta: '25,0 M€ (25 %)', dettaglio: 'Parte A: 25,0 M€ (25 %)' },
+      { value: 75_000_000, name: 'Parte B', etichetta: '75,0 M€ (75 %)', dettaglio: 'Parte B: 75,0 M€ (75 %)' },
     ]);
-    expect(o.aria?.label.description).toBe('Totale tra A e B: Parte A 25 %, Parte B 75 %.');
+    expect((o as { graphic?: { style?: { text?: string } } }).graphic?.style?.text).toBe('Totale\n100,0 M€');
+    expect(o.aria?.label.description).toBe('Totale tra A e B: totale 100,0 M€; Parte A 25,0 M€ (25 %), Parte B 75,0 M€ (75 %).');
     expect(o.tooltip).toEqual({ trigger: 'item', formatter: tooltipDettaglio });
     expect(g.tabella).toBe(tabella);
     expect(g.omessi).toEqual([]);
@@ -539,9 +544,9 @@ describe('graficoDueParti', () => {
 
   it('percentuali a una cifra decimale; una parte zero e un valore', () => {
     const terzi = prova(graficoDueParti('Terzi', [parte('A', 1_000_000), parte('B', 2_000_000)], tabella).opzioni);
-    expect(terzi.aria?.label.description).toBe('Terzi: A 33,3 %, B 66,7 %.');
+    expect(terzi.aria?.label.description).toBe('Terzi: totale 3,0 M€; A 1,0 M€ (33,3 %), B 2,0 M€ (66,7 %).');
     const zero = prova(graficoDueParti('Tutto B', [parte('A', 0), parte('B', 10)], tabella).opzioni);
-    expect(zero.aria?.label.description).toBe('Tutto B: A 0 %, B 100 %.');
+    expect(zero.aria?.label.description).toBe(`Tutto B: totale ${importoBreve(10)}; A ${importoBreve(0)} (0 %), B ${importoBreve(10)} (100 %).`);
   });
 
   it('parte assente: non disegnabile, il motivo porta la resa dell assenza data dal chiamante', () => {

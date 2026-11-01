@@ -2,13 +2,15 @@
 // aree (aree.ts, review step9 H-22). Le voci di un'area sono le sue pagine visibili per i grant dell'utente (solo UX);
 // passando da una pagina all'altra della stessa area la sua parte dell'indirizzo (i filtri) resta, salvo per le voci che
 // non la prendono (le determine di una domanda del procedurale, senza filtri). Solo dalla stessa
-// area: i filtri di un'altra area non entrano nei suoi link (review v1 H-10, una navigazione che nessun link dichiara).
+// area: i filtri di un'altra area non entrano nei suoi link (review v1 H-10, una navigazione che nessun link dichiara),
+// salvo il filtro SIGC, comune a tutti i report: resta passando da un'area all'altra (revisioni del 31/10/2026, R01, F2).
 // I quattro ambiti stanno nell'ordine fisso del catalogo (aree.ts: AMBITI), ognuno con le sole pagine visibili; gli
 // strumenti trasversali (elenco operativo) hanno una sezione propria, con le sole pagine visibili. Una voce e' corrente sul suo percorso, o anche nei sottopercorsi se
 // la pagina lo dichiara (le determine di una domanda: /procedurale/determine/<codice>).
 import { useId, useState } from 'react';
 import { NavLink, useLocation } from 'react-router';
 import { hasGrant, useAuthStatus } from '../shared/api/auth/use-auth-status';
+import { ricercaDelSoloSigc } from '../shared/lib';
 import { Icona } from '../shared/ui';
 import { AMBITI, STRUMENTI, areeVisibili } from './aree';
 import type { Area, PaginaArea } from './aree';
@@ -18,7 +20,7 @@ function GruppoArea({ area, pagine, onNaviga }: { area: Area; pagine: PaginaArea
   const { pathname, search } = useLocation();
   const [aperto, setAperto] = useState(true);
   const dellArea = pagine.some((p) => pathname === p.percorso || pathname.startsWith(`${p.percorso}/`));
-  const query = dellArea ? (area.ricercaConservata?.(search) ?? '') : '';
+  const query = dellArea ? (area.ricercaConservata?.(search) ?? ricercaDelSoloSigc(search)) : ricercaDelSoloSigc(search);
   return (
     <li>
       <button type="button" className="ui-menu__gruppo" aria-expanded={aperto} aria-controls={`${id}-${area.chiave}`} onClick={() => setAperto((a) => !a)}>

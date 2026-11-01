@@ -260,8 +260,8 @@ describe('ConfrontoArea: la tabella a confronto delle card della Home (rework 2 
     const tabella = screen.getByRole('table', { name: 'Due fonti a confronto' });
     expect(within(tabella).getAllByRole('columnheader').map((h) => h.textContent)).toEqual(['Fonte A (cumulativi)', 'Fonte B']);
     expect(within(tabella).getByRole('columnheader', { name: 'Fonte A (cumulativi)' })).toBeTruthy();
-    // review A-01: lo spazio fisso prima dell'unita' diventa normale, cosi' l'unita' puo' andare a capo
-    expect([cella('Domande', 0), cella('Domande', 1), cella('Spesa', 0), cella('Spesa', 1), cella('Pagate', 0), cella('Pagate', 1)]).toEqual(['3 domande', '10 domande', 'non disponibile', '2.5 euro', '—dato non confrontabile nella fonte A', '7']);
+    // R20 (revisioni del 31/10/2026): lo spazio fisso prima dell'unita' resta (prima diventava normale, review A-01)
+    expect([cella('Domande', 0), cella('Domande', 1), cella('Spesa', 0), cella('Spesa', 1), cella('Pagate', 0), cella('Pagate', 1)]).toEqual(['3 domande', '10 domande', 'non disponibile', '2.5\u00a0euro', '—dato non confrontabile nella fonte A', '7']);
     // il trattino per gli occhi, il perche' solo per i lettori di schermo (review X-05)
     expect(within(tabella).getByText('—').getAttribute('aria-hidden')).toBe('true');
     expect(within(tabella).getByText('dato non confrontabile nella fonte A').className).toBe('visually-hidden');

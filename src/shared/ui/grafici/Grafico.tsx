@@ -2,7 +2,7 @@
 // pronte dai builder puri delle feature; qui solo il ciclo di vita. Con prefers-reduced-motion niente animazioni.
 import { useEffect, useRef } from 'react';
 import type { EChartsOption } from 'echarts';
-import { firmaOpzioni, opzioniSicure } from '../../lib/grafici';
+import { firmaOpzioni, gradinoRighe, opzioniSicure, righeOrizzontali } from '../../lib/grafici';
 import { creaGrafico } from './echarts';
 import type { IstanzaGrafico } from './echarts';
 import { movimentoRidotto } from '../animazione/NumeroAnimato';
@@ -37,6 +37,19 @@ function osservaDimensioni(el: HTMLElement, c: IstanzaGrafico): () => void {
   });
   osservatore.observe(el);
   return () => osservatore.disconnect();
+}
+
+/** Le barre orizzontali che ogni altezza contiene senza stringere le etichette (righe da 32 px, assi e legenda a parte). */
+const RIGHE_DELLA_BASE: Record<AltezzaGrafico, number> = { normale: 8, alto: 10, basso: 5, mini: Number.POSITIVE_INFINITY };
+
+/**
+ * La classe dell'altezza: quella scelta, o il gradino ui-grafico--righe-N quando le barre orizzontali sono di piu' (R02:
+ * il grafico cresce col numero di categorie, nessuna etichetta saltata). Classi e non stile in linea: CSP style-src 'self'.
+ */
+function classeAltezza(altezza: AltezzaGrafico, righe: number): string {
+  const gradino = gradinoRighe(righe, RIGHE_DELLA_BASE[altezza]);
+  if (gradino !== null) return `ui-grafico ui-grafico--righe-${gradino}`;
+  return altezza === 'normale' ? 'ui-grafico' : `ui-grafico ui-grafico--${altezza}`;
 }
 
 export function Grafico({ opzioni, altezza = 'normale', onClic, onIstanza }: PropsGrafico) {
@@ -76,6 +89,5 @@ export function Grafico({ opzioni, altezza = 'normale', onClic, onIstanza }: Pro
     istanza.current.setOption({ ...opzioniSicure(opzioni), animation: !movimentoRidotto() }, { notMerge: true });
   }, [opzioni]);
 
-  const classe = altezza === 'normale' ? 'ui-grafico' : `ui-grafico ui-grafico--${altezza}`;
-  return <div ref={el} className={classe} />;
+  return <div ref={el} className={classeAltezza(altezza, righeOrizzontali(opzioni))} />;
 }

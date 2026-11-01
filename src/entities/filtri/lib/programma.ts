@@ -3,18 +3,25 @@
 // TX-0002..TX-0014) e per le superfici del fisico (TX-0018: "filtri come nei report finanziari", SC-FS_FILTRI); la
 // verifica SMP SIGC (TX-0015) li usa dall'istituzionale. Formato ammesso, lettura e scrittura nell'indirizzo, etichette,
 // chip. Prima stavano nel lib del finanziario; il fisico li usa uguali, quindi sono qui (il finanziario li riesporta dal
-// suo lib/filtri).
-import { MAX_VALORI_PARAMETRO, leggiRipetuti, scriviRipetuti } from '../../../shared/lib';
+// suo lib/filtri). Dalle revisioni del 31/10/2026 (R01) i criteri portano anche il filtro SIGC (`sigc`, un valore solo,
+// fuori dai chip: e' il controllo della barra), che i report prendono come parametro accanto ai cinque.
+import { MAX_VALORI_PARAMETRO, PARAMETRO_SIGC, leggiRipetuti, scriviRipetuti, sigcDaRicerca } from '../../../shared/lib';
+import type { ValoreSigc } from '../../../shared/lib';
 
 export const CHIAVI_FILTRO = ['intervento', 'os', 'og', 'op', 'azione'] as const;
 export type ChiaveFiltro = (typeof CHIAVI_FILTRO)[number];
-/** Stessa forma dei parametri dei report: ogni filtro e' ripetibile. */
-export type Filtri = Partial<Record<ChiaveFiltro, string[]>>;
+/**
+ * Stessa forma dei parametri dei report: ogni filtro del programma e' ripetibile; `sigc` e' il filtro SIGC ('true' SIGC,
+ * 'false' NO SIGC, assente tutti: l'enum di stringhe dei contratti).
+ */
+export type Filtri = Partial<Record<ChiaveFiltro, string[]>> & { sigc?: ValoreSigc };
 
 /** Una voce di un filtro: il valore da rimandare e la descrizione, se c'e' (forma di VoceFiltro di TX-0001 e TX-0060). */
 export interface VoceLike {
   chiave?: string;
   descrizione?: string | null;
+  /** Solo per gli interventi (dal 31/10/2026): la classificazione SIGC o NO_SIGC; null se non classificato. */
+  perimetro?: string | null;
 }
 
 /** I valori dei gruppi del pannello, nella forma comune di FiltriFinanziari (TX-0001) e ValoriFiltriElenco (TX-0060). */
@@ -44,7 +51,10 @@ export function valoreFiltroValido(chiave: ChiaveFiltro, valore: string): boolea
   return FORMATI[chiave].test(valore);
 }
 
-/** Filtri dalla query string: chiavi note, valori nel formato ammesso, senza doppioni, al piu' MAX_VALORI_FILTRO. */
+/**
+ * Filtri dalla query string: chiavi note, valori nel formato ammesso, senza doppioni, al piu' MAX_VALORI_FILTRO; il filtro
+ * SIGC solo se 'true' o 'false'.
+ */
 export function filtriDaRicerca(ricerca: string | URLSearchParams): Filtri {
   const p = typeof ricerca === 'string' ? new URLSearchParams(ricerca) : ricerca;
   const filtri: Filtri = {};
@@ -52,12 +62,16 @@ export function filtriDaRicerca(ricerca: string | URLSearchParams): Filtri {
     const valori = leggiRipetuti(p, chiave, (v) => valoreFiltroValido(chiave, v));
     if (valori.length > 0) filtri[chiave] = valori;
   }
+  const sigc = sigcDaRicerca(p);
+  if (sigc !== undefined) filtri.sigc = sigc;
   return filtri;
 }
 
-/** Query string dei filtri (senza "?"), nel formato atteso dal backend: chiave ripetuta per ogni valore. */
+/** Query string dei filtri (senza "?"), nel formato atteso dal backend: chiave ripetuta per ogni valore, poi `sigc`. */
 export function ricercaDaFiltri(filtri: Filtri): string {
-  return scriviRipetuti(CHIAVI_FILTRO, (chiave) => filtri[chiave as ChiaveFiltro]);
+  const programma = scriviRipetuti(CHIAVI_FILTRO, (chiave) => filtri[chiave as ChiaveFiltro]);
+  const sigc = filtri.sigc === undefined ? '' : `${PARAMETRO_SIGC}=${filtri.sigc}`;
+  return [programma, sigc].filter(Boolean).join('&');
 }
 
 /**
@@ -132,6 +146,16 @@ export const AZIONE_NON_APPLICATA = 'non applicato: il legame con le azioni port
  */
 export function descrizioneIntervento(voci: readonly VoceLike[] | undefined, codice: string): string | undefined {
   return voci?.find((v) => v.chiave === codice)?.descrizione ?? undefined;
+}
+
+/**
+ * Il tipo dell'intervento dalle voci dei filtri (TX-0001, TX-0024, TX-0060: VoceFiltro.perimetro), come lo dice l'utente:
+ * "SIGC", "NO SIGC", null se l'intervento non e' classificato o le voci non ci sono. La pill della testata dei dettagli
+ * (revisioni del 31/10/2026, F5: i dettagli non hanno il filtro SIGC, dicono il tipo).
+ */
+export function tipoIntervento(voci: readonly VoceLike[] | undefined, codice: string): 'SIGC' | 'NO SIGC' | null {
+  const perimetro = voci?.find((v) => v.chiave === codice)?.perimetro;
+  return perimetro === 'SIGC' ? 'SIGC' : perimetro === 'NO_SIGC' ? 'NO SIGC' : null;
 }
 
 /**

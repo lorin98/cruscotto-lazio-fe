@@ -114,6 +114,8 @@ export interface VoceValore {
   chiave?: string;
   codice?: string;
   descrizione?: string | null;
+  /** Solo per gli interventi: SIGC o NO_SIGC (revisioni del 31/10/2026, D-12 Rev.); null se non classificato. */
+  perimetro?: string | null;
 }
 
 /** ValoriFiltriElenco (D-08): valori dei filtri nel perimetro del chiamante. */

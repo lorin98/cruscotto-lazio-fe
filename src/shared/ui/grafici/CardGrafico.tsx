@@ -7,12 +7,15 @@
 // cosa sono quando non sono il solo grafico (l'export completo del report, l'output dell'intervento: WCAG 2.4.6), mentre
 // il PNG resta "il grafico <titolo>" e il gruppo dei pulsanti dice i due contenuti (review V1 dell'istituzionale v1
 // iter2): estensioni dell'istituzionale, facoltative. Il nome del PNG puo' dire di piu' del titolo (le schede del
-// dettaglio procedurale: "di SRD01", review V8 del procedurale), facoltativo.
+// dettaglio procedurale: "di SRD01", review V8 del procedurale), facoltativo. Dentro <NonPertinente> (filtro SIGC opposto,
+// revisioni del 31/10/2026, F3) la card dice il motivo sotto il titolo, non ha interruttore ne' Scarica ne' clic, il grafico
+// e' in grigio e inerte e la tabella equivalente (quella dei dati, senza azioni) resta per gli strumenti assistivi.
 import { useId, useState } from 'react';
 import type { ReactNode } from 'react';
 import { nomeFile } from '../../lib/nome-file';
 import type { DatiGrafico } from '../../lib/grafici';
 import { Interruttore } from '../card/Interruttore';
+import { CorpoNonPertinente, useNonPertinenza } from '../card/NonPertinente';
 import { TestaCard } from '../card/Sezione';
 import { Icona } from '../icona';
 import { PulsantiScarica } from '../scarica/PulsantiScarica';
@@ -160,6 +163,11 @@ function useVista(iniziale: Vista | undefined, onVista: ((v: Vista) => void) | u
 }
 
 export function CardGrafico(props: PropsCardGrafico) {
+  const np = useNonPertinenza();
+  return np ? <CardNonPertinente {...props} /> : <CardNormale {...props} />;
+}
+
+function CardNormale(props: PropsCardGrafico) {
   const { titolo, sottotitolo, dati, fonte, altezza = 'normale', onClic, strumenti, scaricamenti = [], livello = 2, tabella, nomeFile: base, oggettoDati, oggettoPng, senzaPng } = props;
   const id = useId();
   const [vista, setVista] = useVista(props.vistaIniziale, props.onVista);
@@ -179,10 +187,40 @@ export function CardGrafico(props: PropsCardGrafico) {
       <TestaCard id={id} titolo={titolo} sottotitolo={sottotitolo} livello={livello} strumenti={strumentiCard} />
       <CorpoCard dati={dati} vista={vista} altezza={altezza} onClic={onClic} onIstanza={onIstanza} tabella={tabella} />
       <VociOmesse omessi={dati.omessi} />
-      <p className="ui-fonte">
-        <Icona nome="it-info-circle" />
-        {fonte}
-      </p>
+      <Fonte testo={fonte} />
+    </section>
+  );
+}
+
+function Fonte({ testo }: { testo: string }) {
+  return (
+    <p className="ui-fonte">
+      <Icona nome="it-info-circle" />
+      {testo}
+    </p>
+  );
+}
+
+/** Nessuna istanza da tenere: la card non pertinente non scarica il PNG. */
+const nessunaIstanza = () => undefined;
+
+/** La card col filtro SIGC opposto: motivo, grafico in grigio e inerte, tabella dei dati per gli strumenti assistivi. */
+function CardNonPertinente({ titolo, sottotitolo, dati, fonte, altezza = 'normale', livello = 2 }: PropsCardGrafico) {
+  const id = useId();
+  return (
+    <section className="ui-card ui-dissolvenza" aria-labelledby={id} data-card-grafico="non-pertinente">
+      <TestaCard id={id} titolo={titolo} sottotitolo={sottotitolo} livello={livello} />
+      <CorpoNonPertinente>
+        {dati.opzioni ? (
+          <Grafico opzioni={dati.opzioni} altezza={altezza} onIstanza={nessunaIstanza} />
+        ) : (
+          <p className="ui-grafico-assente">{`Grafico non disponibile: ${dati.motivoAssenza ?? 'dati insufficienti'}.`}</p>
+        )}
+      </CorpoNonPertinente>
+      <div className="visually-hidden">
+        <TabellaDati tabella={dati.tabella} />
+      </div>
+      <Fonte testo={fonte} />
     </section>
   );
 }

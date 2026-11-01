@@ -7,7 +7,7 @@ import * as echarts from 'echarts/core';
 import type { EChartsOption } from 'echarts';
 import type { EChartsType } from 'echarts/core';
 import { BarChart, FunnelChart, GaugeChart, LineChart, PieChart, SankeyChart, SunburstChart, TreemapChart } from 'echarts/charts';
-import { AriaComponent, DataZoomComponent, GridComponent, LegendComponent, MarkLineComponent, TooltipComponent } from 'echarts/components';
+import { AriaComponent, DataZoomComponent, GraphicComponent, GridComponent, LegendComponent, MarkLineComponent, TooltipComponent } from 'echarts/components';
 import { CanvasRenderer, SVGRenderer } from 'echarts/renderers';
 import { COLORI, PALETTE } from '../../lib/grafici';
 import { aCapo } from '../../lib/intestazione';
@@ -17,7 +17,7 @@ const FONT = "'Titillium Web', Geneva, Tahoma, sans-serif";
 
 echarts.use([
   BarChart, FunnelChart, GaugeChart, LineChart, PieChart, SankeyChart, SunburstChart, TreemapChart,
-  AriaComponent, DataZoomComponent, GridComponent, LegendComponent, MarkLineComponent, TooltipComponent,
+  AriaComponent, DataZoomComponent, GraphicComponent, GridComponent, LegendComponent, MarkLineComponent, TooltipComponent,
   CanvasRenderer, SVGRenderer,
 ]);
 

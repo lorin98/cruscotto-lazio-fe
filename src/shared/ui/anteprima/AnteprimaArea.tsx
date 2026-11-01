@@ -118,11 +118,11 @@ export type ColonnaConfronto = StatoColonnaConfronto & {
 
 /**
  * Il valore della cella, fermo (review X-03: un numero animato cambierebbe a ogni passo la larghezza delle colonne della
- * tabella). Lo spazio fisso prima dell'unita' (" €") diventa normale: in una card stretta l'unita' va a capo, il numero
- * resta intero e nulla viene tagliato (review A-01).
+ * tabella). Il numero e l'unita' (" €") restano insieme su una riga (R20, revisioni del 31/10/2026; prima l'unita' andava
+ * a capo, review A-01): il carattere si riduce con la larghezza della card (--ui-numero-card).
  */
 function valoreDellaCella(v: number, formato: (v: number) => string): string {
-  return formato(v).replace(/\u00a0/g, ' ');
+  return formato(v);
 }
 
 function CellaDelConfronto({ riga, colonna }: { riga: RigaConfronto; colonna: ColonnaConfronto }) {

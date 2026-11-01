@@ -5,8 +5,15 @@ import { ettari, formatEttari, formatEuro, formatNumber, formatPercentuale } fro
 
 export const NON_DISPONIBILE = 'non disponibile';
 export const NON_CALCOLABILE = 'non calcolabile';
-/** Oltre questo numero di categorie le barre si scorrono (dataZoom). */
+/** Oltre questo numero di categorie le barre verticali si scorrono (dataZoom). */
 export const MAX_BARRE_VISIBILI = 12;
+/**
+ * Barre orizzontali (R02, revisioni del 31/10/2026): il grafico e' alto quanto serve al numero di categorie e si scorre
+ * solo oltre questa soglia alta, cosi' per esempio la Panoramica mostra tutti gli interventi con tutte le etichette.
+ */
+export const MAX_BARRE_ORIZZONTALI = 40;
+/** Righe in piu' per gradino d'altezza delle barre orizzontali (classi ui-grafico--righe-N, per la CSP style-src 'self'). */
+const RIGHE_PER_GRADINO = 4;
 
 /** Il numero se finito, altrimenti null (mai uno zero al posto di un assente). */
 export function numeroDi(v: number | null | undefined): number | null {
@@ -137,22 +144,41 @@ export function notaOmessi(omessi: readonly string[]): string {
 
 /**
  * L'asse delle categorie delle barre orizzontali: dall'alto in basso, con le etichette lunghe a capo (stati e voci di SR-01,
- * Unit Amount del procedurale). Una sola resa per tutte le barre orizzontali (review H6 del procedurale).
+ * Unit Amount del procedurale). Una sola resa per tutte le barre orizzontali (review H6 del procedurale). Nessuna etichetta
+ * saltata (R02): `interval: 0`; l'altezza del grafico segue il numero di categorie (righeOrizzontali, gradinoRighe).
  */
 export function asseCategorieOrizzontale(categorie: readonly string[]): YAXisComponentOption {
-  return { type: 'category', inverse: true, data: [...categorie], axisLabel: { width: 180, overflow: 'break' } };
+  return { type: 'category', inverse: true, data: [...categorie], axisLabel: { interval: 0, hideOverlap: false, width: 160, overflow: 'break' } };
+}
+
+/** Le categorie di un asse orizzontale delle categorie (barre orizzontali) visibili insieme; 0 se l'asse y non le ha. */
+export function righeOrizzontali(opzioni: EChartsOption): number {
+  const y: unknown = Array.isArray(opzioni.yAxis) ? opzioni.yAxis[0] : opzioni.yAxis;
+  if (typeof y !== 'object' || y === null) return 0;
+  const asse = y as { type?: unknown; data?: unknown };
+  return asse.type === 'category' && Array.isArray(asse.data) ? Math.min(asse.data.length, MAX_BARRE_ORIZZONTALI) : 0;
+}
+
+/**
+ * Il gradino d'altezza (le righe della classe ui-grafico--righe-N) per `righe` barre orizzontali quando l'altezza scelta
+ * ne contiene meno (`righeDellaBase`); null = basta l'altezza scelta.
+ */
+export function gradinoRighe(righe: number, righeDellaBase: number): number | null {
+  if (righe <= righeDellaBase) return null;
+  return Math.min(MAX_BARRE_ORIZZONTALI, Math.ceil(righe / RIGHE_PER_GRADINO) * RIGHE_PER_GRADINO);
 }
 
 /** La griglia che contiene le etichette degli assi, com'era containLabel (deprecato in ECharts 6: grid.outerBounds). */
 export const GRIGLIA_CON_ETICHETTE: GridComponentOption = { outerBoundsMode: 'same', outerBoundsContain: 'axisLabel' };
 
 /**
- * Scorrimento delle barre quando le categorie sono piu' di MAX_BARRE_VISIBILI (se ne mostrano MAX_BARRE_VISIBILI), lungo
- * l'asse delle categorie: x per le barre verticali, y per quelle orizzontali.
+ * Scorrimento delle barre quando le categorie sono piu' di MAX_BARRE_VISIBILI (barre verticali, asse x) o di
+ * MAX_BARRE_ORIZZONTALI (barre orizzontali, asse y): se ne mostrano tante quante la soglia.
  */
 export function zoomSeMolti(n: number, asse: 'x' | 'y' = 'x'): { dataZoom?: DataZoomComponentOption[] } {
-  if (n <= MAX_BARRE_VISIBILI) return {};
-  const finestra = { [asse === 'x' ? 'xAxisIndex' : 'yAxisIndex']: 0, startValue: 0, endValue: MAX_BARRE_VISIBILI - 1 };
+  const massimo = asse === 'x' ? MAX_BARRE_VISIBILI : MAX_BARRE_ORIZZONTALI;
+  if (n <= massimo) return {};
+  const finestra = { [asse === 'x' ? 'xAxisIndex' : 'yAxisIndex']: 0, startValue: 0, endValue: massimo - 1 };
   return { dataZoom: [{ type: 'inside', ...finestra }, { type: 'slider', ...finestra }] };
 }
 

@@ -1,10 +1,13 @@
 // BarraFiltri — barra fissa dei filtri attivi (ADR 0027): bottone che apre il pannello, chip rimovibili, "Togli tutti",
 // e a destra le informazioni sempre visibili (perimetro, ultimo dato). Generica: chip e contenuti li decide la feature.
 // Togliere un chip non lascia il focus sul nulla (review v1 X-02, WCAG 2.4.3): passa al chip successivo (o al precedente
-// se era l'ultimo), e senza chip al bottone dei filtri; "Togli tutti" lo porta al bottone dei filtri.
+// se era l'ultimo), e senza chip al bottone dei filtri; "Togli tutti" lo porta al bottone dei filtri. Nei report col filtro
+// SIGC (revisioni del 31/10/2026, R01) il controllo "Tutti | SIGC | NO SIGC" sta subito dopo il bottone dei filtri, sempre
+// visibile; non e' un chip (non si toglie: "Tutti" e' il valore senza filtro).
 import { useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { Icona } from '../icona';
+import { ControlloSigc } from './ControlloSigc';
 
 export interface ChipFiltro {
   chiave: string;
@@ -35,6 +38,14 @@ function Chip({ c, onTogli }: { c: ChipFiltro; onTogli: () => void }) {
   );
 }
 
+function TogliTutti({ onTogli }: { onTogli: () => void }) {
+  return (
+    <button type="button" className="btn btn-link btn-sm p-0 ms-1" onClick={onTogli}>
+      Togli tutti
+    </button>
+  );
+}
+
 /** Ref della barra e posizione del bottone da rifocalizzare quando i chip cambiano (null = nessuna rimozione in corso). */
 function useFocusDopoLaRimozione(chip: readonly ChipFiltro[]) {
   const barra = useRef<HTMLDivElement>(null);
@@ -54,6 +65,7 @@ export function BarraFiltri({
   onTogliTutti,
   vuoto = 'Nessun filtro: tutti i dati del perimetro',
   destra,
+  filtroSigc = false,
 }: {
   chip: ChipFiltro[];
   /** Apre il pannello dei filtri; assente (es. senza il grant dei filtri) = niente bottone. */
@@ -61,6 +73,8 @@ export function BarraFiltri({
   onTogliTutti?: () => void;
   vuoto?: string;
   destra?: ReactNode;
+  /** Il controllo del filtro SIGC (parametro `sigc` dell'indirizzo): i report che lo prendono; non i dettagli (F5). */
+  filtroSigc?: boolean;
 }) {
   const { barra, daRifocalizzare } = useFocusDopoLaRimozione(chip);
   const rimovibili = chip.filter((c) => c.onTogli);
@@ -73,6 +87,7 @@ export function BarraFiltri({
           {chip.length > 0 && <span className="badge bg-white text-primary">{chip.length}</span>}
         </button>
       )}
+      {filtroSigc && <ControlloSigc />}
       <div className="ui-filtri__chips">
         {chip.length === 0 ? (
           <span className="ui-chip ui-chip--tutti">{vuoto}</span>
@@ -89,16 +104,12 @@ export function BarraFiltri({
               />
             ))}
             {onTogliTutti && rimovibili.length > 0 && (
-              <button
-                type="button"
-                className="btn btn-link btn-sm p-0 ms-1"
-                onClick={() => {
+              <TogliTutti
+                onTogli={() => {
                   daRifocalizzare.current = Number.MAX_SAFE_INTEGER;
                   onTogliTutti();
                 }}
-              >
-                Togli tutti
-              </button>
+              />
             )}
           </>
         )}

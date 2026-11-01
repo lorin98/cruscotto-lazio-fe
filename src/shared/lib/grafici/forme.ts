@@ -54,7 +54,8 @@ export function opzioniCascata(passi: readonly PassoCascata[], descrizione: stri
   return {
     aria: aria(descrizione),
     tooltip: { trigger: 'item', formatter: tooltipDettaglio },
-    xAxis: { type: 'category', data: passi.map((p) => p.nome) },
+    // nessuna etichetta saltata (R02): le voci lunghe vanno a capo
+    xAxis: { type: 'category', data: passi.map((p) => p.nome), axisLabel: { interval: 0, hideOverlap: false, width: 90, overflow: 'break' } },
     yAxis: { type: 'value', axisLabel: { formatter: asseImporti } },
     series: serie,
   };
@@ -125,7 +126,8 @@ export interface OpzioniBarre {
 function assiBarre(categorie: string[], misura: MisuraBarre, orizzontale: boolean): Pick<EChartsOption, 'xAxis' | 'yAxis' | 'dataZoom' | 'grid'> {
   const valori = { type: 'value' as const, axisLabel: { formatter: misura.asse } };
   if (orizzontale) return { ...zoomSeMolti(categorie.length, 'y'), grid: GRIGLIA_CON_ETICHETTE, xAxis: valori, yAxis: asseCategorieOrizzontale(categorie) };
-  return { ...zoomSeMolti(categorie.length), xAxis: { type: 'category', data: categorie, axisLabel: { interval: 0, rotate: categorie.length > 8 ? 45 : 0 } }, yAxis: valori };
+  // barre verticali: tutte le etichette (R02), inclinate oltre 8, al piu' 140 px (il testo intero nel suggerimento)
+  return { ...zoomSeMolti(categorie.length), xAxis: { type: 'category', data: categorie, axisLabel: { interval: 0, hideOverlap: false, rotate: categorie.length > 8 ? 45 : 0, width: 140, overflow: 'truncate' } }, yAxis: valori };
 }
 
 function datiBarre(voci: readonly VoceRaggruppata[], definizioni: readonly SerieRaggruppata[], omessi: string[], misura: MisuraBarre) {
@@ -186,7 +188,8 @@ function motivoDueParti(parti: readonly [Parte, Parte]): string | null {
 /**
  * Ciambella di due parti di un totale: si disegna solo se entrambe sono valorizzate e non negative e la somma e'
  * positiva (altrimenti le percentuali sarebbero false). La tabella la compone il chiamante (di norma il totale e le
- * parti, con le assenze del dominio).
+ * parti, con le assenze del dominio). Le etichette dicono l'importo e la percentuale, il totale sta al centro (R05, R06,
+ * revisioni del 31/10/2026).
  */
 export function graficoDueParti(titolo: string, parti: readonly [Parte, Parte], tabella: TabellaEquivalente): DatiGrafico {
   const motivo = motivoDueParti(parti);
@@ -195,7 +198,7 @@ export function graficoDueParti(titolo: string, parti: readonly [Parte, Parte], 
   const quota = (v: number) => formatPercentuale(percentuale(v, totale));
   const dati = parti.map((p): DatoSerie => {
     const v = p.valore as number;
-    return { value: v, name: p.nome, etichetta: quota(v), dettaglio: `${p.nome}: ${importoBreve(v)} (${quota(v)})` };
+    return { value: v, name: p.nome, etichetta: `${importoBreve(v)} (${quota(v)})`, dettaglio: `${p.nome}: ${importoBreve(v)} (${quota(v)})` };
   });
   const serie: PieSeriesOption = {
     type: 'pie',
@@ -208,9 +211,11 @@ export function graficoDueParti(titolo: string, parti: readonly [Parte, Parte], 
   };
   return {
     opzioni: {
-      aria: aria(`${titolo}: ${dati.map((d) => `${d.name} ${d.etichetta}`).join(', ')}.`),
+      aria: aria(`${titolo}: totale ${importoBreve(totale)}; ${dati.map((d) => `${d.name} ${d.etichetta}`).join(', ')}.`),
       tooltip: { trigger: 'item', formatter: tooltipDettaglio },
       legend: { bottom: 0 },
+      // il totale al centro della ciambella (il centro e' al 45% dell'altezza)
+      graphic: { type: 'text', left: 'center', top: '39%', silent: true, style: { text: `Totale\n${importoBreve(totale)}`, align: 'center', fill: COLORI.testo, fontSize: 14, fontWeight: 600, lineHeight: 19 } },
       series: [serie],
     },
     tabella,

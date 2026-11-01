@@ -230,7 +230,8 @@ describe('RF016 e RF015: card Istituzionale della Home (OP-IS-11; tabella a conf
   // decisione D1 dell'utente del 31/10/2026 (review V-01): TX-0016 ha solo le domande saldate al 100%, non confrontabili
   const TRATTINO = '—dato non confrontabile: la verifica non SIGC conta solo le domande saldate al 100%';
   // nella tabella lo spazio fisso prima di "€" diventa normale (review A-01): l'unita' puo' andare a capo
-  const euroInCella = (v: number) => formatEuro(v).replace(/\u00a0/g, ' ');
+  // R20 (revisioni del 31/10/2026): numero e unita' restano insieme, lo spazio fisso prima di € non diventa piu' normale
+  const euroInCella = (v: number) => formatEuro(v);
 
   /** TX-0015 come il backend (l'esercizio chiesto, le righe dei filtri), con la query di ogni lettura registrata. */
   function letturaSigc(base: VerificaSmp = VERIFICA_SMP) {

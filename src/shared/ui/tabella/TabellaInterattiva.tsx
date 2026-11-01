@@ -250,7 +250,8 @@ function partenza<T>(props: PropsTabellaInterattiva<T>): Required<StatoTabella> 
 }
 
 export function TabellaInterattiva<T>(props: PropsTabellaInterattiva<T>) {
-  const { caption, righe, colonne, chiaveRiga, testoRicerca, onRiga, etichettaRiga, totali, righePiede = [], perPagina = 10, onStato } = props;
+  // 25 righe per pagina (R12, revisioni del 31/10/2026: prima 10, la tabella non riempiva mai il riquadro)
+  const { caption, righe, colonne, chiaveRiga, testoRicerca, onRiga, etichettaRiga, totali, righePiede = [], perPagina = 25, onStato } = props;
   const id = useId();
   const [iniziale] = useState(() => partenza(props));
   const [cercato, setCercato] = useState(iniziale.cercato);
@@ -291,7 +292,8 @@ export function TabellaInterattiva<T>(props: PropsTabellaInterattiva<T>) {
         onColonna={(chiave, visibile) => setNascoste((s) => conColonna(s, chiave, visibile))}
       />
       <div className="ui-tabella-contenitore">
-        <table className="ui-tabella">
+        {/* tabella larga (oltre 6 colonne): la prima colonna resta ferma scorrendo in orizzontale (R12) */}
+        <table className={visibili.length > 6 ? 'ui-tabella ui-tabella--larga' : 'ui-tabella'}>
           <caption>{didascalia(caption, filtrate.length, cercato, !!onRiga)}</caption>
           <Intestazioni colonne={visibili} ordine={ordine} onOrdina={ordina} />
           <tbody>

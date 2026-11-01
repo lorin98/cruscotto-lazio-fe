@@ -32,8 +32,9 @@ export interface ImportoResa {
 const FONTI: Record<string, string> = {
   IMPEGNI: 'impegni',
   QUADRO_SINOTTICO: 'quadro sinottico',
-  RIPARTO_STATO_REGIONE: 'riparto Stato - Regione',
-  VINCOLO_LEADER: 'vincolo LEADER',
+  // RIPARTO_STATO_REGIONE e VINCOLO_LEADER non escono piu' dalle revisioni del 31/10/2026 (X3, R21); RETTIFICHE: il report
+  // dei recuperi e delle variazioni (R08)
+  RETTIFICHE: 'rettifiche',
   PREVISIONE_PAGAMENTO: 'previsione di pagamento',
   REGOLA_N2: 'regola n+2 e vincolo di pagamento entro ottobre',
   LEGAME_AZIONI_PORTANTI: 'legame interventi - azioni portanti',

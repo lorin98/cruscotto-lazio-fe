@@ -67,6 +67,8 @@ function tabella(props: Partial<Parameters<typeof TabellaInterattiva<Riga>>[0]> 
       colonne={COLONNE}
       chiaveRiga={(r) => r.codice}
       testoRicerca={(r) => r.codice}
+      // 10 righe per pagina: le 12 righe di prova stanno su due pagine (il default e' 25, R12)
+      perPagina={10}
       {...props}
     />,
   );
@@ -81,6 +83,14 @@ describe('TabellaInterattiva', () => {
     expect(screen.getByText('I file contengono tutte le righe.')).toBeTruthy();
     await userEvent.clear(screen.getByRole('searchbox', { name: 'Cerca nella tabella' }));
     expect(screen.queryByText('I file contengono tutte le righe.')).toBeNull();
+  });
+  it('25 righe per pagina di default (R12, revisioni del 31/10/2026) e prima colonna ferma nelle tabelle larghe', () => {
+    const molte = Array.from({ length: 30 }, (_, k) => ({ ...RIGHE[0], codice: `Y${String(k).padStart(2, '0')}` }));
+    const larghe: ColonnaTabella<Riga>[] = [...COLONNE, ...Array.from({ length: 5 }, (_, k) => ({ chiave: `c${k}`, titolo: `C${k}`, valore: () => k }))];
+    const { container } = render(<TabellaInterattiva<Riga> caption="Molte righe" righe={molte} colonne={larghe} chiaveRiga={(r) => r.codice} testoRicerca={(r) => r.codice} />);
+    expect(codici()).toHaveLength(25);
+    expect(container.querySelector('table')?.classList.contains('ui-tabella--larga')).toBe(true);
+    expect(screen.getByRole('navigation', { name: 'Pagine della tabella' }).textContent).toContain('Pagina 1 di 2');
   });
   it('caption con il conteggio, colonne nascoste di default, paginazione', async () => {
     tabella();
