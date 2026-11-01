@@ -141,3 +141,17 @@ describe('Revisioni del 31/10/2026: pagina di soli interventi SIGC (F3)', () => 
     expect(document.querySelector('[inert]')).toBeNull();
   });
 });
+
+describe('Revisioni del 31/10/2026: il vuoto delle card non pertinenti (review V1-05, X-10)', () => {
+  it('col filtro NO SIGC e nessuna domanda SIGC: il vuoto dice il motivo una volta e non ha controlli attivi', async () => {
+    server.use(
+      http.get('*/api/finanziario/sigc/domande', () => HttpResponse.json({ ...SIGC_DOMANDE, presentate: 0, pagate: 0, daPagare: 0, senzaImporti: 0 })),
+      http.get('*/api/finanziario/sigc/importi', () => HttpResponse.json(SIGC_IMPORTI)),
+    );
+    renderPagina(Pagina, '/finanziario/sigc', '/finanziario/sigc?intervento=SRD01&sigc=false');
+    expect((await screen.findAllByText('Non pertinente al filtro NO SIGC')).length).toBeGreaterThan(0);
+    const corpi = Array.from(document.querySelectorAll('.ui-non-pertinente__corpo'));
+    expect(corpi.length).toBeGreaterThan(0);
+    await waitFor(() => expect(corpi.flatMap((c) => Array.from(c.querySelectorAll('button'))).every((b) => (b as HTMLButtonElement).disabled)).toBe(true));
+  });
+});

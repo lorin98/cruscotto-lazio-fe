@@ -20,7 +20,7 @@ import type { Aggregato } from '../lib/aggregati';
 import type { Filtri } from '../lib/filtri';
 import { PAGAMENTI_LORDI, PAGATO_LORDO_SULLA_DOTAZIONE, graficoAvanzamento, graficoDomandeSigc, graficoFamiglie, graficoImportiSigc } from '../lib/grafici';
 import { notaDiCuiStimato } from '../lib/stima';
-import { MOTIVO_SOLO_SIGC } from './SigcReport';
+import { MOTIVO_SOLO_SIGC } from '../lib/natura';
 import { GRANT, PERCORSI, conFiltri } from '../lib/report';
 import { ConGrant, NotaPerimetroMisto, PerimetroSezione, ScaricaKpi, diProgramma, erroreGiaMostrato, vuotoConPerimetro } from './comuni';
 import { useSelezioneSenzaDomandeSigc, useSelezioneSenzaInterventi } from './selezione';

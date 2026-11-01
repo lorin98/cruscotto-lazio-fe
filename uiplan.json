@@ -89,7 +89,7 @@
       "links": [
         {
           "id": "elenco-presentate-intervento",
-          "trigger": "KPI Domande presentate dell'intervento: presentata=true, intervento=:codice, con i filtri correnti",
+          "trigger": "KPI Domande presentate dell'intervento: presentata=true, intervento=:codice, con i filtri correnti Senza sigc: il dettaglio non applica il filtro SIGC (F5; review step9 A-08, V1-03, 01/11/2026).",
           "target_feature": "elenco-operativo",
           "target": "/elenco-operativo/domande",
           "path_params": [],
@@ -99,13 +99,12 @@
             "os",
             "og",
             "op",
-            "azione",
-            "sigc"
+            "azione"
           ]
         },
         {
           "id": "elenco-anno-intervento",
-          "trigger": "Clic su una barra di Domande per anno: presentata=true, intervento=:codice, anno (SENZA per la barra senza anno), annualita (PRIMA, ALTRE, NON_CLASSIFICATE per il segmento)",
+          "trigger": "Clic su una barra di Domande per anno: presentata=true, intervento=:codice, anno (SENZA per la barra senza anno), annualita (PRIMA, ALTRE, NON_CLASSIFICATE per il segmento) Senza sigc: il dettaglio non applica il filtro SIGC (F5; review step9 A-08, V1-03, 01/11/2026).",
           "target_feature": "elenco-operativo",
           "target": "/elenco-operativo/domande",
           "path_params": [],
@@ -117,13 +116,12 @@
             "os",
             "og",
             "op",
-            "azione",
-            "sigc"
+            "azione"
           ]
         },
         {
           "id": "elenco-sigc-intervento",
-          "trigger": "Clic su un passo di Domande SIGC o di Importi SIGC: sigc=true, intervento=:codice e, per pagate, da pagare e senza importi, pagamento=PAGATA, DA_PAGARE, SENZA_IMPORTI",
+          "trigger": "Clic su un passo di Domande SIGC o di Importi SIGC: sigc=true, intervento=:codice e, per pagate, da pagare e senza importi, pagamento=PAGATA, DA_PAGARE, SENZA_IMPORTI Solo per un intervento classificato SIGC (VoceFiltro.perimetro dei valori dei filtri): sigc dell'elenco vale per intervento, TX-0012/TX-0013 contano per presenza SIGC della domanda; per un intervento non SIGC l'elenco sarebbe vuoto (review step9 X-02, OP-FE-11).",
           "target_feature": "elenco-operativo",
           "target": "/elenco-operativo/domande",
           "path_params": [],
@@ -829,36 +827,6 @@
     {
       "route": "/finanziario/avanzamento",
       "name": "ResiduoSuImpegni.impegnatoStimato",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/ResiduoSuImpegni"
-    },
-    {
-      "route": "/finanziario/avanzamento",
-      "name": "ResiduoSuImpegni.stimaImpegni.metodo",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/ResiduoSuImpegni"
-    },
-    {
-      "route": "/finanziario/avanzamento",
-      "name": "ResiduoSuImpegni.stimaImpegni.orizzonte",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/ResiduoSuImpegni"
-    },
-    {
-      "route": "/finanziario/avanzamento",
-      "name": "ResiduoSuImpegni.stimaImpegni.ultimaCampagnaRilevata",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/ResiduoSuImpegni"
-    },
-    {
-      "route": "/finanziario/avanzamento",
-      "name": "ResiduoSuImpegni.stimaImpegni.calcolatoIl",
-      "provenance": "spec",
-      "source_ref": "openapi-finanziario.json#/components/schemas/ResiduoSuImpegni"
-    },
-    {
-      "route": "/finanziario/avanzamento",
-      "name": "ResiduoSuImpegni.stimaImpegni.quotaDaRichiesto",
       "provenance": "spec",
       "source_ref": "openapi-finanziario.json#/components/schemas/ResiduoSuImpegni"
     },
@@ -1711,6 +1679,11 @@
       "id": "OP-FE-10",
       "kind": "altro",
       "detail": "Riallineamento degli ambiti (decisioni A-1, A-4 e A-5 dell'utente del 29/10/2026, MIN-20261029; pack 1.4.0, catalogo rev. 4): la verifica SMP SIGC (TX-0015, RF015) e' dell'ambito istituzionale e la rende la feature istituzionale (GET /api/istituzionale/verifica-smp-sigc). Escono dal finanziario la route /finanziario/sigc/verifica-smp (nessun alias, A-4), la pagina verifica-smp.html del flusso sigc e i suoi campi; nessun collegamento dalle pagine del finanziario verso la verifica dell'istituzionale (scelta di disegno del dossier del 30/10/2026, da confermare all'approvazione del flusso sigc). Da allineare allo step6, fuori dai wireframe: voce di menu 'Verifica SMP' del finanziario (REPORT_FINANZIARIO, PERCORSI.verificaSmp e GRANT.verificaSmp in lib/report.ts), route-table e route-manifest senza /finanziario/sigc/verifica-smp, contenuti della card Finanziario della Home in src/app/aree.ts ('SIGC, riserva di efficacia e verifica SMP' diventa 'SIGC e riserva di efficacia'), pagina VerificaSmpReport e lettura di TX-0015 nel client del finanziario. I menu dei wireframe approvati degli altri flussi del finanziario (panoramica, riepilogo, dotazione-avanzamento, domande) mostrano ancora la voce 'Verifica SMP': e' la shell del 13/10/2026 (uiplan-patterns 7, il menu e' del layer app/) e quei flussi restano invariati per il carry-over; fa fede il menu costruito allo step6."
+    },
+    {
+      "id": "OP-FE-11",
+      "kind": "altro",
+      "detail": "Link verso le domande SIGC dell'elenco (elenco-sigc, elenco-sigc-importi, elenco-sigc-intervento; review step9 X-02 del 01/11/2026): TX-0012 e TX-0013 contano le domande SIGC per presenza nel flusso ASR2-08/20 della domanda, mentre sigc=true dell'elenco filtra per classificazione dell'intervento (D-12 Rev., PostgresElencoOperativoAdapter.perSigc). La coincidenza dei numeri vale quando le domande a presenza SIGC stanno tutte in interventi classificati SIGC (il caso dei dati attesi, F1); altrimenti le domande SIGC di un intervento NO SIGC o non classificato entrano nel numero e non nell'elenco, e le domande non SIGC di un intervento SIGC (trascinamenti) entrano nell'elenco e non nel numero. Nel dettaglio i link si rendono solo per gli interventi classificati SIGC. Da chiedere a green-be: uno scenario SC-EO_DRILLDOWN con una domanda a presenza SIGC in un intervento NO SIGC, o un parametro dell'elenco per la presenza SIGC della domanda."
     }
   ]
 }

@@ -1452,6 +1452,8 @@ describe('AvanzamentoReport (TX-0004..TX-0007)', () => {
     );
     renderConQuery(<AvanzamentoReport filtri={{ intervento: ['SRA99'] }} />);
     await waitFor(() => expect(screen.getAllByText(VUOTO_INTERVENTI)).toHaveLength(4));
+    // con la selezione vuota il residuo per intervento non aggiunge un quinto avviso (review V1-06)
+    expect(screen.queryByText('Nessun dato da mostrare.')).toBeNull();
     expect(screen.queryAllByText(/^0,00\s€$/)).toHaveLength(0);
     expect(screen.queryAllByText(/0,00.€/)).toHaveLength(0);
   });

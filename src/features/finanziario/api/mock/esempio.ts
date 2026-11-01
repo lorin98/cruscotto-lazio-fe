@@ -58,7 +58,8 @@ const INTERVENTI = BASE.map(([codice, descrizione, og, os, op, milioni], n) => {
   const daPagare = Math.round(pagate * 0.2) + Math.round((presentate - senzaImporti - pagate) * 0.6);
   return {
     codice, descrizione, og, os, op, dotazione, pagato, domande, prime, ammesso, senzaAnno, presentate, pagate, senzaImporti, daPagare,
-    contributo: Math.round(caso() * 100),
+    // il seme della quota stimata dell'impegnato (R04; prima 'contributo', del contributo ambientale tolto: review V1-16)
+    semeStima: Math.round(caso() * 100),
     // come nei dati reali: qualche intervento senza pagamenti netti valorizzati
     nettiValorizzati: n % 5 !== 3,
   };
@@ -83,7 +84,7 @@ function selezione(url: string) {
 }
 
 // la parte stimata dell'impegnato: solo per gli interventi SIGC (la previsione sui bandi pluriennali SIGC, R04)
-const stimato = (i: Intervento) => (SIGC.has(i.codice) ? tondo(i.dotazione * 0.6 * (i.contributo / 400)) : 0);
+const stimato = (i: Intervento) => (SIGC.has(i.codice) ? tondo(i.dotazione * 0.6 * (i.semeStima / 400)) : 0);
 
 // la stima dell'impegnato (R04) e due righe di rettifiche per intervento (R08), come le produce il backend
 const STIMA = { metodo: 'MEDIA_ANNUALITA_RILEVATE_PER_BANDO_X_ANNI_RESIDUI', orizzonte: 2029, ultimaCampagnaRilevata: 2025, calcolatoIl: '2026-10-31', quotaDaRichiesto: euro(0) };

@@ -6,7 +6,7 @@
 // pagare si sovrappongono (domande pagate in parte): la nota lo dice accanto ai dati.
 // UI v2 (wireframe sigc v2): barre delle domande e importi in due barre impilate (R13 forma B, revisioni del 31/10/2026),
 // con le voci in tabella sotto ogni grafico. Pagina di soli interventi SIGC: col filtro NO SIGC le card sono non pertinenti
-// (F3) e mostrano il dato letto senza filtro, in grigio e inerte.
+// (F3) e mostrano il dato letto senza filtro, in grigio, leggibili e non attivabili.
 import { ApriNellElenco } from '../../../entities/domanda';
 import { ValoreImporto } from '../../../entities/importo';
 import { codiceDalClic, letturaDelTipo } from '../../../shared/lib';
@@ -21,12 +21,12 @@ import { GRANT } from '../lib/report';
 import { ConGrant, Numero, PerimetroSezione, vuotoConPerimetro } from './comuni';
 import { criteriVoceSigc } from '../lib/link-elenco';
 import { useApriNellElenco, useLinkElenco } from './LinkElenco';
+import { MOTIVO_SOLO_SIGC } from '../lib/natura';
 
 const TITOLO_DOMANDE = 'Domande SIGC (RF012)';
 const TITOLO_IMPORTI = 'Importi SIGC (RF013)';
 const VUOTO = vuotoConPerimetro('Nessuna domanda SIGC per i filtri scelti.');
 /** Il motivo delle card col filtro NO SIGC (F3). */
-export const MOTIVO_SOLO_SIGC = 'Riguarda solo le domande SIGC';
 
 function NotaDomande() {
   return (

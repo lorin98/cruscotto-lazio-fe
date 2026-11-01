@@ -12,15 +12,9 @@ import type { ColonnaStatica, ColonnaTabella } from '../../../shared/ui';
 import type { FonteRettifiche, Rettifica, ResiduoSuPagamenti, ResiduoSuPagamentiIntervento } from '../api';
 import { ricercaDaFiltri } from '../lib/filtri';
 import type { Filtri } from '../lib/filtri';
-import { conRigheDiRettifiche, testoRettificato } from '../lib/rettifiche';
+import { PROGRAMMAZIONI, conRigheDiRettifiche, testoRettificato } from '../lib/rettifiche';
 import { datiDelReport } from './esportazioni';
 import { NotaPerimetroMisto, PerimetroSezione } from './comuni';
-
-/** Le programmazioni delle rettifiche come le legge l'utente: solo quelle del CSR entrano nel netto. */
-const PROGRAMMAZIONI: Record<string, string> = {
-  CSR_2023_2027: 'CSR 2023-2027 (nel netto)',
-  TRASCINAMENTI_PSR: 'Trascinamenti PSR (fuori dal netto)',
-};
 
 const COLONNE_RETTIFICHE: ColonnaStatica<Rettifica>[] = [
   { chiave: 'azione', titolo: 'Azione', resa: (r) => r.codiceAzione ?? '-' },

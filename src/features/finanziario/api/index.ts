@@ -102,7 +102,7 @@ export type {
   VoceFiltro,
 } from '../../../shared/api/generated/finanziario/aRSCSRBootstrapPostgresAPI.schemas';
 
-/** I cinque filtri ripetibili di RF001 (intervento, os, og, op, azione), uguali per tutti i report. */
+/** I cinque filtri ripetibili di RF001 (intervento, os, og, op, azione) e il filtro SIGC (R01), uguali per tutti i report. */
 export type FiltriReport = Tx0011Params;
 
 /** `abilitato` falso: nessuna lettura (profilo senza csr.tx-0001.read, dove servono solo come descrizioni). */

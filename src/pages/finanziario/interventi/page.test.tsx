@@ -299,3 +299,22 @@ describe('Revisioni del 31/10/2026: il tipo dell intervento nel dettaglio (F5), 
     expect(screen.queryByRole('group', { name: 'Interventi SIGC o NO SIGC' })).toBeNull();
   });
 });
+
+describe('Revisioni del 31/10/2026: il dettaglio non applica il filtro SIGC; i link SIGC solo per gli interventi SIGC (review V1-03, X-02)', () => {
+  it('aperto da ?sigc=false: i link verso l elenco senza sigc', async () => {
+    servi();
+    renderPagina(Pagina, PERCORSO, '/finanziario/interventi/SRA01?os=OS4&sigc=false');
+    const kpi = await screen.findByRole('link', { name: "Apri nell'elenco operativo le domande presentate dell'intervento SRA01" });
+    expect(kpi.getAttribute('href')).toBe('/elenco-operativo/domande?presentata=true&intervento=SRA01&os=OS4');
+  });
+
+  it('un intervento NO SIGC: le domande SIGC senza link verso l elenco, che con sigc=true sarebbe vuoto', async () => {
+    servi();
+    server.use(http.get('*/api/finanziario/filtri', () => HttpResponse.json({ ...FILTRI, interventi: [{ chiave: 'SRA01', descrizione: 'Intervento di prova A', perimetro: 'NO_SIGC' }] })));
+    renderPagina(Pagina, PERCORSO, '/finanziario/interventi/SRA01');
+    await screen.findByRole('heading', { level: 1, name: 'Intervento di prova A' });
+    await userEvent.click(await screen.findByRole('tab', { name: 'SIGC' }));
+    await trovaCard('Importi SIGC');
+    expect(screen.queryAllByRole('link', { name: /domande SIGC/ })).toHaveLength(0);
+  });
+});

@@ -34,6 +34,7 @@ import { useStatoDelRiepilogo } from './ritornoAlRiepilogo';
 import { useStatoNellaHistory } from './useStatoNellaHistory';
 import { useTipoIntervento } from './useDescrizioneIntervento';
 import { TabellaRettifiche } from './rettifiche';
+import { conRigheDiRettifiche, testoSenzaRighe } from '../lib/rettifiche';
 import { notaDiCuiStimato } from '../lib/stima';
 import type { FiltroSigc } from '../../../shared/lib';
 
@@ -44,6 +45,23 @@ const AVANZAMENTO_PAGAMENTI = 'Avanzamento rispetto ai pagamenti effettuati';
 interface Provenienza {
   codice: string;
   selezione: Filtri;
+  /**
+   * L'intervento e' classificato SIGC: solo allora i link verso le domande SIGC dell'elenco (sigc=true, per intervento)
+   * riproducono le domande SIGC di TX-0012/TX-0013 (per presenza nella domanda); altrimenti l'elenco sarebbe vuoto (X-02).
+   */
+  sigc: boolean;
+}
+
+/** I link verso le domande SIGC dell'intervento nell'elenco: solo per un intervento classificato SIGC (review X-02). */
+function useLinkSigc(da: Provenienza) {
+  const link = useLinkElenco(da.selezione);
+  const apri = useApriNellElenco(da.selezione);
+  return {
+    link: (id: 'elenco-sigc-intervento', p: Parameters<typeof link>[1]) => (da.sigc ? link(id, p) : null),
+    apri: (id: 'elenco-sigc-intervento', p: Parameters<typeof apri>[1]) => {
+      if (da.sigc) apri(id, p);
+    },
+  };
 }
 
 const SOTTOTITOLO_DOMANDE_SIGC = 'Pagate e da pagare si sovrappongono (domande pagate in parte); senza importi: non classificabili.';
@@ -113,9 +131,9 @@ function notaLordiERettifiche(r: RiepilogoFinanziarioRiga): string | undefined {
 function RettificheIntervento({ r }: { r: RiepilogoFinanziarioRiga }) {
   const righe = r.rettifiche ?? [];
   const codice = r.codiceIntervento ?? '';
+  // la regola unica delle rettifiche (lib/rettifiche, review H-07): la tabella solo con conRettifiche true e le righe
   let corpo;
-  if (r.conRettifiche == null) corpo = <p className="mb-0">Rettifiche non disponibili: fonte non attiva (rettifiche).</p>;
-  else if (righe.length === 0) corpo = <p className="mb-0">Nessuna rettifica.</p>;
+  if (!conRigheDiRettifiche(r.conRettifiche, righe.length)) corpo = <p className="mb-0">{testoSenzaRighe(r.conRettifiche)}</p>;
   else
     corpo = (
       <>
@@ -205,7 +223,7 @@ function ImportiPerAnno({ filtri }: { filtri: Filtri }) {
 
 /** Le voci delle domande SIGC nell'elenco operativo, anche da tastiera (il clic sul grafico porta agli stessi indirizzi). */
 function VociSigcNellElenco({ da }: { da: Provenienza }) {
-  const link = useLinkElenco(da.selezione);
+  const { link } = useLinkSigc(da);
   const voci = VOCI_DOMANDE_SIGC.map((v) => ({ nome: v.nome, indirizzo: link('elenco-sigc-intervento', conIntervento(criteriVoceSigc(v.codice), da.codice)) }));
   if (voci.every((x) => x.indirizzo === null)) return null;
   return (
@@ -219,8 +237,8 @@ function VociSigcNellElenco({ da }: { da: Provenienza }) {
 }
 
 function DomandeSigc({ filtri, da }: { filtri: Filtri; da: Provenienza }) {
-  const apri = useApriNellElenco(da.selezione);
-  const conLink = useLinkElenco(da.selezione)('elenco-sigc-intervento', { sigc: true, intervento: da.codice }) !== null;
+  const { link, apri } = useLinkSigc(da);
+  const conLink = link('elenco-sigc-intervento', { sigc: true, intervento: da.codice }) !== null;
   return (
     // senza domande SIGC il vuoto si dichiara, come per gli importi: ne' grafico ne' link verso un elenco vuoto (review v4 V-04)
     <VistaQuery stato={useSigcDomande(filtri)} eVuoto={(d) => d.presentate === 0} vuoto={SENZA_SIGC}>
@@ -255,8 +273,8 @@ function CardDomandeSigc({ d, filtri, conLink, onClic }: { d: Parameters<typeof 
  */
 function ImportiSigc({ filtri, da }: { filtri: Filtri; da: Provenienza }) {
   const segnale = useSelezioneSenzaDomandeSigc(filtri);
-  const apri = useApriNellElenco(da.selezione);
-  const indirizzo = useLinkElenco(da.selezione)('elenco-sigc-intervento', { sigc: true, intervento: da.codice });
+  const { link, apri } = useLinkSigc(da);
+  const indirizzo = link('elenco-sigc-intervento', { sigc: true, intervento: da.codice });
   return (
     <VistaQuery stato={useSigcImporti(filtri)} inAttesa={segnale === 'in-attesa'} eVuoto={() => segnale === 'vuota'} vuoto={SENZA_SIGC}>
       {(d) => (
@@ -382,8 +400,8 @@ function Contenuto({ codice, selezione }: { codice: string; selezione: Filtri })
             <PerimetroSezione perimetro={d.perimetro} />
             <NotaPerimetroMisto perimetro={d.perimetro} />
             {/* i link verso l'elenco senza il filtro SIGC della provenienza: il dettaglio non lo applica (F5, review A-08) */}
-            <Kpis r={r} perimetro={d.perimetro} da={{ codice, selezione: senzaSigc(selezione) }} />
-            <Schede filtri={filtri} r={r} perimetro={d.perimetro} da={{ codice, selezione: senzaSigc(selezione) }} />
+            <Kpis r={r} perimetro={d.perimetro} da={{ codice, selezione: senzaSigc(selezione), sigc: tipo === 'SIGC' }} />
+            <Schede filtri={filtri} r={r} perimetro={d.perimetro} da={{ codice, selezione: senzaSigc(selezione), sigc: tipo === 'SIGC' }} />
           </>
         );
       }}

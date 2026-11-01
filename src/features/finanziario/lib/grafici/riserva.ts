@@ -24,7 +24,7 @@ import {
 import type { DatiGrafico } from '../../../../shared/lib';
 import type { RiservaLike } from '../dto';
 import { euroOpzionale } from '../formato';
-import { calendarioRiserva, dataBreve, valoreRiserva } from '../riserva';
+import { calendarioRiserva, dataBreve, sogliaRiserva } from '../riserva';
 
 interface Movimento {
   data: string;
@@ -52,11 +52,12 @@ function fasce(anno: number) {
   ];
 }
 
-function lineaUtilizzo(punti: Array<[string, number | null]>, riserva: number | null, anno: number, ultimo: string): LineSeriesOption {
+function lineaUtilizzo(punti: Array<[string, number | null]>, s: { valore: number | null; nome: string }, anno: number, ultimo: string): LineSeriesOption {
+  const riserva = s.valore;
   const soglia =
     riserva == null
       ? {}
-      : { markLine: { silent: true, symbol: 'none' as const, lineStyle: { color: COLORI.attenzione, type: 'dashed' as const }, label: { formatter: `Riserva del 5% ${importoBreve(riserva)}`, position: 'insideEndTop' as const }, data: [{ name: 'Riserva del 5%', yAxis: riserva }] } };
+      : { markLine: { silent: true, symbol: 'none' as const, lineStyle: { color: COLORI.attenzione, type: 'dashed' as const }, label: { formatter: `${s.nome} ${importoBreve(riserva)}`, position: 'insideEndTop' as const }, data: [{ name: s.nome, yAxis: riserva }] } };
   // l'ultimo punto: il valore e la percentuale della riserva (testo composto qui: i formatter non catturano dati)
   const etichette = punti.map(([data, v], k) => (k === punti.length - 1 && v != null ? { value: [data, v], label: { show: true, position: 'top' as const, formatter: ultimo } } : [data, v]));
   return {
@@ -76,11 +77,13 @@ function lineaUtilizzo(punti: Array<[string, number | null]>, riserva: number | 
  * riserva del 5% (montante x quota; in sua assenza la riserva accumulata).
  */
 export function graficoUtilizzoRiserva(m: RiservaLike, anno: number): DatiGrafico {
-  const riserva = valoreRiserva(m);
+  const s = sogliaRiserva(m);
+  const riserva = s.valore;
+  const nome = s.nome.toLowerCase().replace(' (montante o quota non disponibili)', '');
   const { datati, senzaData } = movimentiDatati(m);
   const date = datati.map((p) => formatDate(p.data));
   const righe = [...datati.map((p, k) => [date[k], euroOpzionale(p.importo), euroOpzionale(p.cumulato)]), ...senzaData.map((p) => ['senza data', euroOpzionale(p.importo), euroOpzionale(p.cumulato)])];
-  const tabella = { caption: `Utilizzo progressivo della riserva (riserva del 5%: ${riserva == null ? NON_DISPONIBILE : formatEuro(riserva)})`, colonne: ['Data', 'Importo del movimento', 'Utilizzo cumulato'], righe };
+  const tabella = { caption: `Utilizzo progressivo della riserva (${s.nome.toLowerCase()}: ${riserva == null ? NON_DISPONIBILE : formatEuro(riserva)})`, colonne: ['Data', 'Importo del movimento', 'Utilizzo cumulato'], righe };
   const omessi = [
     ...(senzaData.length > 0 ? [plurale(senzaData.length, 'movimento senza data', 'movimenti senza data')] : []),
     ...datati.flatMap((p, k) => (p.cumulato == null ? [`${date[k]}: utilizzo cumulato ${NON_DISPONIBILE}`] : [])),
@@ -92,7 +95,7 @@ export function graficoUtilizzoRiserva(m: RiservaLike, anno: number): DatiGrafic
   const quota = riserva != null && riserva > 0 ? ` (${formatPercentuale(percentuale(ultimo, riserva))} della riserva)` : '';
   const descrizione =
     `Linea a gradini dell'utilizzo cumulato della riserva dal ${date[0]} al ${date[date.length - 1]}: ${importoBreve(ultimo)} utilizzati${quota}` +
-    `${riserva == null ? '' : `; riserva del 5% ${importoBreve(riserva)}`}.${notaOmessi(omessi)}`;
+    `${riserva == null ? '' : `; ${nome} ${importoBreve(riserva)}`}.${notaOmessi(omessi)}`;
   // massimo dell'asse calcolato qui: le funzioni delle opzioni non catturano dati (la firma le confronta per sorgente)
   const massimo = riserva == null ? {} : { max: Math.max(riserva, ...cumulati.filter((c): c is number => c != null)) };
   const opzioni: EChartsOption = {
@@ -102,14 +105,15 @@ export function graficoUtilizzoRiserva(m: RiservaLike, anno: number): DatiGrafic
     // le fasce si vedono tutte (review J-07)
     xAxis: { type: 'time', min: calendarioRiserva(anno).inizioAccumulo, max: `${anno + 2}-12-31`, axisLabel: { formatter: '{dd}/{MM}/{yyyy}', hideOverlap: true } },
     yAxis: { type: 'value', min: 0, ...massimo, axisLabel: { formatter: asseImporti } },
-    series: [lineaUtilizzo(datati.map((p) => [p.data, p.cumulato]), riserva, anno, `${importoBreve(ultimo)}${quota}`)],
+    series: [lineaUtilizzo(datati.map((p) => [p.data, p.cumulato]), s, anno, `${importoBreve(ultimo)}${quota}`)],
   };
   return { opzioni, tabella, omessi };
 }
 
 /** Il testo di lettura sopra il grafico (R18): la linea, la soglia e cosa vuol dire superarla. */
 export function letturaUtilizzoRiserva(m: RiservaLike): string {
-  const riserva = valoreRiserva(m);
-  const soglia = riserva == null ? 'la riserva del 5%' : `la riserva del 5% (${importoBreve(riserva)})`;
+  const s = sogliaRiserva(m);
+  const nome = `la ${s.nome.toLowerCase()}`;
+  const soglia = s.valore == null ? nome : `${nome} (${importoBreve(s.valore)})`;
   return `La linea è quanto della riserva è stato usato, sommato nel tempo. La linea tratteggiata è ${soglia}: finché la linea resta sotto, c'è ancora riserva; oltre, l'utilizzo la supera.`;
 }

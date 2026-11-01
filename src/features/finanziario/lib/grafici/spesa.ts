@@ -262,8 +262,9 @@ export function graficoDotazionePagamenti(righe: RigaDotazionePagato[], perimetr
   const pagato = { nome: nomePagato, soggetto: nomePagato.toLowerCase() };
   if (perimetro === PERIMETRO_ADA) {
     const testi = { caption: `${nomePagato} per intervento`, colonne: ['Intervento', nomePagato], titolo: `Barre dei ${pagato.soggetto}`, vuoto: `nessun intervento con ${pagato.soggetto} valorizzati`, unita: INTERVENTI };
-    return barreRaggruppate(righe.map((r) => voce(r, [r.pagato])), [pagato], testi, { omessi: [OMESSO_ADA_DOTAZIONE] });
+    return barreRaggruppate(righe.map((r) => voce(r, [r.pagato])), [pagato], testi, { omessi: [OMESSO_ADA_DOTAZIONE], orizzontale: true });
   }
   const testi = { caption: `Dotazione e ${pagato.soggetto} per intervento`, colonne: ['Intervento', 'Dotazione', nomePagato], titolo: `Barre raggruppate di dotazione e ${pagato.soggetto}`, vuoto: `nessun intervento con dotazione o ${pagato.soggetto} valorizzati`, unita: INTERVENTI };
-  return barreRaggruppate(righe.map((r) => voce(r, [r.dotazione, r.pagato])), [{ nome: 'Dotazione', soggetto: 'dotazione' }, pagato], testi);
+  // in orizzontale: tutti gli interventi con la loro etichetta, uno per riga (R02, wireframe "tutte le etichette"; review K-01)
+  return barreRaggruppate(righe.map((r) => voce(r, [r.dotazione, r.pagato])), [{ nome: 'Dotazione', soggetto: 'dotazione' }, pagato], testi, { orizzontale: true });
 }

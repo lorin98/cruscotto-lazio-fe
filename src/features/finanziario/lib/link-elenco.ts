@@ -80,8 +80,9 @@ const DOMANDE: DestinazioneElenco = PERCORSO_ELENCO_DOMANDE;
 /** I link dello uiplan del finanziario verso l'elenco operativo: destinazione e `query` copiati da `links[]`. */
 export const LINK_ELENCO = {
   'elenco-presentate-panoramica': { destinazione: DOMANDE, query: ['presentata', ...CORRENTI_E_SIGC] },
-  'elenco-presentate-intervento': { destinazione: DOMANDE, query: ['presentata', ...CORRENTI_E_SIGC] },
-  'elenco-anno-intervento': { destinazione: DOMANDE, query: ['presentata', 'anno', 'annualita', ...CORRENTI_E_SIGC] },
+  // dal dettaglio senza sigc: il dettaglio non applica il filtro SIGC (F5; review A-08, V1-03)
+  'elenco-presentate-intervento': { destinazione: DOMANDE, query: ['presentata', ...FILTRI_CORRENTI] },
+  'elenco-anno-intervento': { destinazione: DOMANDE, query: ['presentata', 'anno', 'annualita', ...FILTRI_CORRENTI] },
   'elenco-sigc-intervento': { destinazione: DOMANDE, query: ['sigc', 'pagamento', ...FILTRI_CORRENTI] },
   'elenco-presentate-riga': { destinazione: DOMANDE, query: ['presentata', 'intervento'] },
   'elenco-pagamenti-riga': { destinazione: PERCORSO_ELENCO_PAGAMENTI, query: ['esito', 'intervento'] },

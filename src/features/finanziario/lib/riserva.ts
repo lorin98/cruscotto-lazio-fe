@@ -22,9 +22,20 @@ export function riservaDelMontante(m: RiservaLike): number | null {
   return quotaDelMontante(m, m.quotaRiserva);
 }
 
-/** La soglia del grafico dell'utilizzo: la riserva del 5% o, senza montante o quota, la riserva accumulata (dichiarato). */
+/**
+ * La soglia del grafico dell'utilizzo col suo nome: la riserva del 5% (montante x quota) o, senza montante o quota, la
+ * riserva accumulata, chiamata per quello che e' (review V1-09 e passata 2: mai "Riserva del 5%" su un altro importo).
+ */
+export function sogliaRiserva(m: RiservaLike): { valore: number | null; nome: string } {
+  const riserva = riservaDelMontante(m);
+  if (riserva != null) return { valore: riserva, nome: `Riserva del ${testoQuota(m.quotaRiserva, '5%')}` };
+  const accumulato = numeroDi(m.importoAccumulato);
+  return accumulato == null ? { valore: null, nome: 'Riserva del 5%' } : { valore: accumulato, nome: 'Riserva accumulata (montante o quota non disponibili)' };
+}
+
+/** Il valore della soglia del grafico dell'utilizzo (sogliaRiserva). */
 export function valoreRiserva(m: RiservaLike): number | null {
-  return riservaDelMontante(m) ?? numeroDi(m.importoAccumulato);
+  return sogliaRiserva(m).valore;
 }
 
 /** Il residuo del 2% (montante x quotaResiduo). */
@@ -42,7 +53,8 @@ export function noteQuoteRiserva(n: number, m: RiservaLike): { riserva: string; 
   const c = calendarioRiserva(n);
   return {
     riserva: `= ${testoQuota(m.quotaRiserva, '5%')} x montante; congelata il ${formatDate(c.congelamento)}: da quella data il valore è consuntivo, prima è una previsione`,
-    residuo: `= ${testoQuota(m.quotaResiduo, '2%')} x montante; consuntivo dall'inizio della fase di residuo (${formatDate(c.inizioResiduo)}), prima è una previsione. Il residuo disponibile qui sotto può essere minore: è quanto resta dopo l'utilizzo della riserva`,
+    // come il backend (CalcoloRiserva): il residuo disponibile e' questo importo se la riserva non e' usata tutta, altrimenti zero (review X-07)
+    residuo: `= ${testoQuota(m.quotaResiduo, '2%')} x montante; consuntivo dall'inizio della fase di residuo (${formatDate(c.inizioResiduo)}), prima è una previsione. Il residuo disponibile qui sotto vale questo importo se la riserva non è stata utilizzata tutta entro il ${formatDate(c.fineUtilizzo)}, altrimenti zero`,
   };
 }
 

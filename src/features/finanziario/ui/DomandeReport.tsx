@@ -67,7 +67,7 @@ function KpiTotali({ filtri }: { filtri: Filtri }) {
 
 /**
  * Importo ammesso e stanziato di tutti gli anni (lib/aggregati, kpiImportiPerAnno): la somma solo se ogni anno e'
- * valorizzato, in milioni come gli altri KPI; lo stanziato, oggi da fonte non attiva, si dichiara con il suo motivo.
+ * valorizzato, in milioni come gli altri KPI; lo stanziato dai bandi (per anno non valorizzato, col motivo), si dichiara con il suo motivo.
  */
 function KpiAmmessoEStanziato({ d }: { d: ImportiPerAnno }) {
   const { ammesso, stanziato } = kpiImportiPerAnno(d.righe ?? []);

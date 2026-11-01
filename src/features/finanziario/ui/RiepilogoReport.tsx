@@ -234,7 +234,7 @@ function Contenuto({ d, filtri }: { d: RiepilogoFinanziario; filtri: Filtri }) {
       ) : (
         <CardGrafico
           titolo="Dotazione e pagamenti per intervento"
-          sottotitolo="Tutti gli interventi con la loro etichetta (R02); clic su una barra per il dettaglio"
+          sottotitolo="Un intervento per riga, tutti con la loro etichetta; clic su una barra per il dettaglio"
           livello={3}
           altezza="alto"
           dati={graficoDotazionePagamenti(

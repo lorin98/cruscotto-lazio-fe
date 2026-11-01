@@ -67,7 +67,8 @@ describe('Revisioni del 31/10/2026: montante e riserve (R17 forma A) e utilizzo 
     expect(residuo.textContent).toContain('Previsione');
     expect(residuo.textContent).toMatch(/400,00.€/);
     expect(residuo.textContent).not.toMatch(/(^|[^.\d])200,00/);
-    expect(residuo.textContent).toContain('Il residuo disponibile qui sotto può essere minore');
+    // come il backend: il residuo disponibile e' il 2% se la riserva non e' usata tutta, altrimenti zero (review X-07)
+    expect(residuo.textContent).toContain('Il residuo disponibile qui sotto vale questo importo se la riserva non è stata utilizzata tutta entro il 31/12/2026, altrimenti zero');
     expect(blocco.textContent).toContain("Montante dei pagamenti dell'anno 2025");
     const card = await trovaCard('Utilizzo progressivo cumulato');
     expect(card.textContent).toMatch(/La linea è quanto della riserva è stato usato, sommato nel tempo/);

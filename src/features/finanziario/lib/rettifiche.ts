@@ -10,6 +10,17 @@ export function testoRettificato(conRettifiche: boolean | null | undefined, righ
   return righe === 1 ? 'Sì: 1 riga' : `Sì: ${righe} righe`;
 }
 
+/** La sezione delle rettifiche senza righe da mostrare: la fonte non attiva o nessuna rettifica. */
+export function testoSenzaRighe(conRettifiche: boolean | null | undefined): string {
+  return conRettifiche == null ? 'Rettifiche non disponibili: fonte non attiva (rettifiche).' : 'Nessuna rettifica.';
+}
+
+/** Le programmazioni delle rettifiche come le legge l'utente: solo quelle del CSR entrano nel netto (review H-07: da ui/). */
+export const PROGRAMMAZIONI: Readonly<Record<string, string>> = {
+  CSR_2023_2027: 'CSR 2023-2027 (nel netto)',
+  TRASCINAMENTI_PSR: 'Trascinamenti PSR (fuori dal netto)',
+};
+
 /** Vero se ci sono righe di rettifiche da aprire. */
 export function conRigheDiRettifiche(conRettifiche: boolean | null | undefined, righe: number): boolean {
   return conRettifiche === true && righe > 0;

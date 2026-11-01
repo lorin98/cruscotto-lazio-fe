@@ -2,6 +2,8 @@
 // render. Dati di prova inventati, numeri tondi. Per ogni builder: forma delle opzioni, valori assenti omessi e
 // dichiarati con la resa del dominio (mai zero nel grafico), caso non disegnabile con il motivo (iniziale minuscola:
 // segue "Grafico non disponibile: "), tabella coerente con il grafico. Le primitive del kit sono in shared-grafici.
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import type { ImportoLike } from '../src/entities/importo';
 import { FAMIGLIA_ALTRO, famigliaDi } from '../src/features/finanziario/lib/famiglie';
@@ -20,6 +22,7 @@ import {
   graficoQuotaFeasr,
   graficoSankey,
   graficoUtilizzoRiserva,
+  letturaUtilizzoRiserva,
   sottotitoloFlusso,
   vociIntervento,
 } from '../src/features/finanziario/lib/grafici';
@@ -1111,7 +1114,7 @@ describe('graficoDotazionePagamenti', () => {
       ['bar', 'Dotazione', undefined],
       ['bar', 'Pagamenti totali (lordi, elenchi di liquidazione)', undefined],
     ]);
-    expect(o.xAxis?.data).toEqual(['SRA01', 'SRA02']);
+    expect(o.yAxis?.data).toEqual(['SRA01', 'SRA02']);
     expect(item(o.series[0].data?.[0]).codice).toBe('SRA01');
     expect(o.series[1].data?.[1]).toBeNull();
     expect(g.omessi).toEqual([
@@ -1128,18 +1131,21 @@ describe('graficoDotazionePagamenti', () => {
     ]);
   });
 
-  it('oltre MAX_BARRE_VISIBILI (40) interventi: zoom interno e cursore; fino a 40 tutti con la loro etichetta (R02, J-09)', () => {
+  it('barre orizzontali: fino a 40 interventi tutti con la loro etichetta, oltre lo scorrimento verticale (R02; review K-01)', () => {
     const o = opzioniDi(graficoDotazionePagamenti(quarantuno));
-    expect(o.dataZoom?.map((z) => z.type)).toEqual(['inside', 'slider']);
-    expect(opzioniDi(graficoDotazionePagamenti(quarantuno.slice(0, 40))).dataZoom).toBeUndefined();
-    expect(opzioniDi(graficoDotazionePagamenti(quarantuno.slice(0, 13))).dataZoom).toBeUndefined();
+    expect((o.dataZoom as Array<{ type: string; yAxisIndex?: number }> | undefined)?.map((z) => [z.type, z.yAxisIndex])).toEqual([['inside', 0], ['slider', 0]]);
+    const tutti = opzioniDi(graficoDotazionePagamenti(quarantuno.slice(0, 36)));
+    expect(tutti.dataZoom).toBeUndefined();
+    expect(tutti.yAxis?.type).toBe('category');
+    expect(tutti.yAxis?.data).toHaveLength(36);
+    expect((tutti.yAxis as { axisLabel?: { interval?: number } } | undefined)?.axisLabel?.interval).toBe(0);
   });
 
   it('perimetro ADA: solo il pagato, la dotazione dichiarata come non affiancabile', () => {
     const g = graficoDotazionePagamenti(righe, 'ADA');
     const o = opzioniDi(g);
     expect(o.series.map((s) => s.name)).toEqual(['Pagamenti totali (lordi, elenchi di liquidazione)']);
-    expect(o.xAxis?.data).toEqual(['SRA01']);
+    expect(o.yAxis?.data).toEqual(['SRA01']);
     expect(g.omessi[0]).toBe("perimetro ADA: la dotazione regionale non si affianca ai pagamenti dell'area");
     expect(g.tabella.colonne).toEqual(['Intervento', 'Pagamenti totali (lordi, elenchi di liquidazione)']);
   });
@@ -1167,6 +1173,12 @@ describe('graficoDotazionePagamenti', () => {
 // ---------------------------------------------------------------- 14. riserva
 
 describe('graficoUtilizzoRiserva (R18, forma A: linea a gradini con le fasi)', () => {
+  // J-07: senza il componente registrato ECharts ignora markArea e le fasce non si disegnano (review V1-04, X-08)
+  it('il componente delle fasce (MarkAreaComponent) e registrato in ECharts', () => {
+    const sorgente = readFileSync(resolve(__dirname, '../src/shared/ui/grafici/echarts.ts'), 'utf-8');
+    expect(sorgente).toMatch(/echarts\.use\(\[[^\]]*\bMarkAreaComponent\b[^\]]*\]\)/);
+  });
+
   const riserva = {
     importoAccumulato: 5_000_000,
     utilizzoProgressivo: [
@@ -1186,16 +1198,26 @@ describe('graficoUtilizzoRiserva (R18, forma A: linea a gradini con le fasi)', (
     // la riserva del 5% = montante x quota (4 milioni), non l'accumulato
     expect(s.markLine?.data[0].yAxis).toBe(4_000_000);
     expect((s as { markArea?: { data: unknown[] } }).markArea?.data).toHaveLength(3);
+    // J-07 (review V1-04, X-08): l'asse contiene tutte le fasi dell'anno, dall'inizio dell'accumulo alla fine del residuo
+    expect((o.xAxis as { min?: string; max?: string })).toMatchObject({ min: '2024-10-01', max: '2026-12-31' });
     const ultimo = (s.data as unknown[]).at(-1) as { value: unknown; label: { formatter: string } };
     expect(ultimo.value).toEqual(['2025-03-01', 3_000_000]);
     expect(n(ultimo.label.formatter)).toBe('3,0 M€ (75 % della riserva)');
     expect(n(o.aria.label.description)).toContain('3,0 M€ utilizzati (75 % della riserva); riserva del 5% 4,0 M€.');
   });
 
-  it('senza quota: la soglia e la riserva accumulata; tabella in ordine di data', () => {
+  it('senza quota: la soglia e la riserva accumulata, chiamata per quello che e (review passata 2); tabella in ordine di data', () => {
     const g = graficoUtilizzoRiserva(riserva, 2024);
-    expect(opzioniDi(g).series[0].markLine?.data[0].yAxis).toBe(5_000_000);
-    expect(n(g.tabella.caption)).toMatch(/riserva del 5%: 5\.000\.000,00 €/);
+    const soglia = opzioniDi(g).series[0].markLine?.data[0];
+    expect(soglia?.yAxis).toBe(5_000_000);
+    expect((soglia as { name?: string } | undefined)?.name).toBe('Riserva accumulata (montante o quota non disponibili)');
+    expect(n(g.tabella.caption)).toMatch(/riserva accumulata \(montante o quota non disponibili\): 5\.000\.000,00 €/);
+    expect(g.tabella.caption).not.toMatch(/5%/);
+    expect(letturaUtilizzoRiserva(riserva)).toMatch(/La linea tratteggiata è la riserva accumulata \(montante o quota non disponibili\)/);
+    // con montante e quota la soglia e' la riserva del 5%
+    const conMontante = graficoUtilizzoRiserva({ ...riserva, montantePagamenti: 200_000_000, quotaRiserva: 0.05 }, 2024);
+    expect(opzioniDi(conMontante).series[0].markLine?.data[0].yAxis).toBe(10_000_000);
+    expect(n(conMontante.tabella.caption)).toMatch(/riserva del 5%: 10\.000\.000,00 €/);
     expect(righeN(g)).toEqual([
       ['15/01/2025', '2.000.000,00 €', '2.000.000,00 €'],
       ['01/03/2025', '1.000.000,00 €', '3.000.000,00 €'],

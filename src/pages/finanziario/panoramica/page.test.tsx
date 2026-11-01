@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { screen, waitFor, within } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { server } from '../../../shared/api/mock/server';
@@ -209,5 +209,21 @@ describe('Revisioni del 31/10/2026: filtro SIGC nella panoramica (R01, F3) e sei
       'Pagamenti totali (lordi, elenchi di liquidazione)',
       'Pagato lordo sulla dotazione',
     ]);
+  });
+});
+
+describe('Revisioni del 31/10/2026: il filtro SIGC resta con "Azzera" e con "Togli tutti" (review V1-10, X-08)', () => {
+  it('Azzera e Applica dal pannello e Togli tutti dalla barra tolgono i filtri del programma, non il SIGC', async () => {
+    servi();
+    const { router } = renderPagina(Pagina, '/finanziario', '/finanziario?intervento=SRA01&sigc=false');
+    const pannello = await apriPannello();
+    await userEvent.click(within(pannello).getByRole('button', { name: 'Azzera' }));
+    await userEvent.click(within(pannello).getByRole('button', { name: 'Applica i filtri' }));
+    await waitFor(() => expect(router.state.location.search).toBe('?sigc=false'));
+    await act(async () => {
+      await router.navigate('/finanziario?og=OG2&sigc=false');
+    });
+    await userEvent.click(await within(screen.getByRole('region', { name: 'Filtri attivi' })).findByRole('button', { name: 'Togli tutti' }));
+    await waitFor(() => expect(router.state.location.search).toBe('?sigc=false'));
   });
 });
