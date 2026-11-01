@@ -1,6 +1,6 @@
 {
   "feature": "fisico",
-  "pack_hash": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7",
+  "pack_hash": "sha256:b606aaee3b2f7add11e8b239ea50e03b3f206913e8b013e5ec7604cb3b4a310f",
   "routes": [
     {
       "actions": [
@@ -100,13 +100,13 @@
     {
       "manifest_hash_match": true,
       "path": "handover/openapi-fisico.json",
-      "sha256": "sha256:189c634c3b86c825c924c454737f79daf2406d5ccc24a4f1f50866bb83b4ea3f",
+      "sha256": "sha256:79264c79075db3de0cec28f3aca39fa963ec86148d9acab842f8f6e4870b3564",
       "slice": "fisico"
     },
     {
       "manifest_hash_match": true,
       "path": "handover/openapi-elenco-operativo.json",
-      "sha256": "sha256:7532fe3b3708398d1448238ef2fe4df9e3d1037b096325bc23435cb9dc39a4ca",
+      "sha256": "sha256:bf5c831398dbd82875a66c4cdcdf0ddfaffa05424cc978dc683e4e1f3f7c407d",
       "slice": "elenco-operativo"
     }
   ]

@@ -1,6 +1,6 @@
 {
   "feature": "procedurale",
-  "pack_hash": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7",
+  "pack_hash": "sha256:b606aaee3b2f7add11e8b239ea50e03b3f206913e8b013e5ec7604cb3b4a310f",
   "routes": [
     {
       "actions": [
@@ -265,7 +265,7 @@
     {
       "manifest_hash_match": true,
       "path": "handover/openapi-procedurale.json",
-      "sha256": "sha256:2d600037ef21b6a04f24f7690cd20ba7492fed4da7bcce11f134b733ea570a33",
+      "sha256": "sha256:fc6433807a3eecb8d1f802a9a0c2cb40fa802a004b1ef09f42e7547d1e99fbfa",
       "slice": "procedurale"
     }
   ]

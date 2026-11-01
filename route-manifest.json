@@ -1,6 +1,6 @@
 {
   "feature": "finanziario",
-  "pack_hash": "sha256:141380bd508ce9c4c26b119c70bf9d9efc293ccdb8b31d9b27232209d99035b7",
+  "pack_hash": "sha256:b606aaee3b2f7add11e8b239ea50e03b3f206913e8b013e5ec7604cb3b4a310f",
   "routes": [
     {
       "actions": [
@@ -224,7 +224,7 @@
     {
       "manifest_hash_match": true,
       "path": "handover/openapi-finanziario.json",
-      "sha256": "sha256:f540db815eaa900ae43004c4488617a4a3c0c907d12b8f5da779d20b82c8439b",
+      "sha256": "sha256:8de1b5dd66ff721e97a59d5e8d91faf6b515949599de2d1d23b36b6394bd3cda",
       "slice": "finanziario"
     }
   ]
