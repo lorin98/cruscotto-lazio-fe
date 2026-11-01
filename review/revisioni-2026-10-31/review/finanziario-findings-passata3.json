@@ -1,0 +1,38 @@
+[
+  {
+    "id": "M-03",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/shared/ui/card/NonPertinente.tsx:128",
+    "titolo": "Scelta l (residuo di H-02): al tocco la legenda e il cursore dello zoom dei grafici non pertinenti restano attivi, perche' zrender ascolta i touch event, che il corpo non ferma",
+    "evidenza": "Il corpo ferma in cattura pointerdown, mousedown e wheel (righe 128-130) e click e auxclick (righe 126-127). ECharts 6 (zrender) usa i pointer event solo su IE ed Edge legacy (node_modules/zrender/lib/core/env.js:70-71). Negli altri browser, con 'ontouchstart' in window, monta touchstart, touchmove e touchend (dom/HandlerProxy.js:197-203) ed emula il clic su touchend (righe 138-139, TOUCH_CLICK_DELAY). Sul corpo non c'e' nessun onTouch*Capture. Su telefono (390 px, la verifica U1) un tocco sulla legenda nasconde una serie (barreRaggruppate ha legend: {}, forme.ts:163). Il trascinamento muove il dataZoom inside e lo slider, presenti oltre 12 barre verticali (zoomSeMolti): succede in /procedurale/ammesse?sigc=true (importi e domande con atto per circa 30 interventi) e nella spesa della verifica SMP non SIGC con sigc=true. senzaIstruzioni toglie dal sottotitolo 'trascina il cursore', ma il cursore si trascina. Il commento del componente (righe 9-10) dice invece che 'i gesti del puntatore ... non arrivano ai grafici'.",
+    "fix": "Aggiungere onTouchStartCapture, onTouchMoveCapture e onTouchEndCapture={nonPropagare}: stopPropagation senza preventDefault, quindi la pagina scorre ancora. In alternativa, nelle opzioni della card non pertinente: legend.selectedMode false, niente dataZoom inside, slider con zoomLock. Test del kit: un listener nativo touchstart su un figlio del corpo non viene chiamato."
+  },
+  {
+    "id": "M-06",
+    "feature": "finanziario",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/lib/grafici/riserva.ts:60",
+    "titolo": "Scelta n: l'etichetta della soglia di ripiego dentro il grafico e' lunga circa 60 caratteri; senza soglia, la lettura descrive una linea tratteggiata che non c'e'",
+    "evidenza": "La markLine ha il formatter `${s.nome} ${importoBreve(riserva)}` (riga 60). Senza montante o quota diventa 'Riserva accumulata (montante o quota non disponibili) 5,0 M€': circa 60 caratteri a 12 px (circa 360 px), ancorati alla fine della linea (insideEndTop). A 390 px il piano e' largo circa 260 px, quindi l'inizio ('Riserva accumulata') esce dal canvas e si taglia. La parentesi e' gia' nella caption (riga 86) e nel testo di lettura. Inoltre, quando la soglia manca (sogliaRiserva con valore null, lib/riserva.ts:212), letturaUtilizzoRiserva (righe 117-118) dice 'La linea tratteggiata è la riserva del 5%: finché la linea resta sotto, c'è ancora riserva'. Intanto il grafico omette la soglia e lo dichiara ('Riserva del 5% non disponibile: soglia omessa', riga 93).",
+    "fix": "Nella markLine usare solo il nome corto ('Riserva accumulata' o 'Riserva del 5%') e lasciare la parentesi in caption, aria e lettura. Con valore null, una lettura senza la frase sulla linea tratteggiata. Test di letturaUtilizzoRiserva senza montante, quota e accumulato."
+  },
+  {
+    "id": "M-07",
+    "feature": "finanziario",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/ui/DotazioneReport.tsx:114",
+    "titolo": "K-01: la dotazione in barre orizzontali (alta 1.232 px con 36 interventi) resta affiancata alla quota FEASR nella griglia a due colonne",
+    "evidenza": "graficoDotazionePagamenti ora disegna barre orizzontali (spesa.ts:269). Con 36 interventi Grafico prende la classe ui-grafico--righe-36 (Grafico.tsx:49-51), alta 1232 px (tema.css:192). La card sta nella Griglia a due colonne insieme alla quota FEASR (DotazioneReport.tsx:114-121; ui-griglia--2, tema.css:155). Quando la finestra mostra due colonne, la riga della griglia e' alta quanto la dotazione. La card della quota FEASR, una ciambella ad altezza normale, si allunga fino a quell'altezza (stretch; tema.css:149 e 160) e lascia oltre 800 px vuoti. Il wireframe approvato (dotazione.html) affianca due card di altezza simile.",
+    "fix": "Mettere la dotazione a tutta larghezza, fuori dalla Griglia, con la quota FEASR sotto o accanto alla tabella; oppure align-items: start nella griglia della pagina. Verifica a 1680 e 1100 px."
+  },
+  {
+    "id": "M-09",
+    "feature": "finanziario",
+    "severity": "COSMETICO",
+    "file": "src/shared/ui/filtri/ControlloSigc.tsx:3",
+    "titolo": "H-11 chiuso a meta': il commento e il titolo del test dicono ancora che cambiare il SIGC riporta la tabella alla prima pagina",
+    "evidenza": "ricercaConSigc non tocca piu' il parametro pagina (shared/lib/sigc.ts:34-39). Pero' ControlloSigc.tsx:3 dice ancora '... e riportando la tabella alla prima pagina'. Il test 'cambiare il filtro lascia gli altri parametri e riporta la tabella alla prima pagina' (tests/kit-sigc.test.tsx:26) non prova piu' nessuna prima pagina. H-11 chiedeva di togliere anche la parte del commento.",
+    "fix": "Aggiornare il commento e il titolo del test: la prima pagina la garantiscono le pagine con la chiave dei criteri."
+  }
+]

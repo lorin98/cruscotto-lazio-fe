@@ -1,0 +1,20 @@
+[
+  {
+    "id": "M-08",
+    "feature": "elenco-operativo",
+    "severity": "COSMETICO",
+    "file": "src/features/elenco-operativo/lib/chip.ts:45",
+    "titolo": "H-10 non chiuso: BOOLEANI.sigc resta codice morto, e il commento nuovo gli attribuisce un uso che non c'e'",
+    "evidenza": "Il commento aggiunto in adec6c9 ('serve all'annuncio dei filtri aggiunti dal sinottico', chip.ts:45) non e' vero. L'annuncio (ElencoDomande.tsx:99-102) chiama valoreLeggibile solo col filtro di TESTI_RIPARTIZIONE[r].filtro, che e' stato, intervento o anno (elenco-operativo/lib/grafici.ts:40-42). chipDeiCriteri salta sigc (chip.ts:125). L'unico chiamante con 'sigc' e' il test (tests/elenco-operativo-lib.test.ts:278).",
+    "fix": "Togliere sigc da BOOLEANI e la riga del test. Se un testo del filtro serve, usare etichettaSigc del kit."
+  },
+  {
+    "id": "M-09",
+    "feature": "elenco-operativo",
+    "severity": "COSMETICO",
+    "file": "src/shared/ui/filtri/ControlloSigc.tsx:3",
+    "titolo": "H-11 chiuso a meta': il commento e il titolo del test dicono ancora che cambiare il SIGC riporta la tabella alla prima pagina",
+    "evidenza": "ricercaConSigc non tocca piu' il parametro pagina (shared/lib/sigc.ts:34-39). Pero' ControlloSigc.tsx:3 dice ancora '... e riportando la tabella alla prima pagina'. Il test 'cambiare il filtro lascia gli altri parametri e riporta la tabella alla prima pagina' (tests/kit-sigc.test.tsx:26) non prova piu' nessuna prima pagina. H-11 chiedeva di togliere anche la parte del commento.",
+    "fix": "Aggiornare il commento e il titolo del test: la prima pagina la garantiscono le pagine con la chiave dei criteri."
+  }
+]

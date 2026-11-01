@@ -1,0 +1,47 @@
+[
+  {
+    "id": "M-02",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/shared/ui/tabella/TabellaInterattiva.tsx:300",
+    "titolo": "X-05 (scelta a, residui) chiuso a meta': nel corpo non pertinente il riquadro scorrevole di TabellaInterattiva non si scorre da tastiera",
+    "evidenza": "La correzione lascia attivi solo i riquadri che hanno gia' un tabindex (TabelleSemplici.tsx:19; restaDiLettura in NonPertinente.tsx:61-67). Il contenitore di TabellaInterattiva (riga 300) non ha tabindex. Nel corpo non pertinente ogni suo discendente esce dalla tabulazione: i bottoni d'ordinamento delle intestazioni diventano disabled (riga 76; nativo() in NonPertinente.tsx:77-78), le righe apribili prendono tabindex=-1 (riga 100) e i link delle celle perdono l'href. La paginazione (riga 313) sta fuori dal riquadro. Il riquadro pero' scorre: overflow auto, max-height max(320px, 100dvh - 7rem) (tema.css:238), e le tabelle larghe hanno la prima colonna ferma. Le pagine non pertinenti coinvolte sono la verifica SMP non SIGC con sigc=true (22 colonne), gli stati e le ammesse del procedurale con sigc=true e la vista Tabella delle superfici con sigc=false. Li' chi usa la tastiera non scorre ne' in verticale fino alla 25a riga ne' in orizzontale oltre la prima schermata: in Safari, e la regola axe scrollable-region-focusable lo segnala. Il fix di X-05 chiedeva di dare tabIndex=0 al contenitore di TabellaInterattiva/TabellaServer dentro un corpo non pertinente. La scelta l ('paginazione e riquadri scorrevoli attivi') e il commit 9b433f0 ('restano attive ... lo scorrimento dei riquadri') valgono solo per le tabelle semplici.",
+    "fix": "In TabellaInterattiva (e TabellaServer), con useNonPertinenza(), dare al contenitore tabIndex=0, role=region e un nome dalla caption, come fa TabelleSemplici: restaDiLettura lo lascia gia' attivo. Test del kit: una TabellaInterattiva con onRiga dentro <NonPertinente><Sezione>; il .ui-tabella-contenitore ha tabindex 0 e nessun aria-disabled."
+  },
+  {
+    "id": "M-03",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/shared/ui/card/NonPertinente.tsx:128",
+    "titolo": "Scelta l (residuo di H-02): al tocco la legenda e il cursore dello zoom dei grafici non pertinenti restano attivi, perche' zrender ascolta i touch event, che il corpo non ferma",
+    "evidenza": "Il corpo ferma in cattura pointerdown, mousedown e wheel (righe 128-130) e click e auxclick (righe 126-127). ECharts 6 (zrender) usa i pointer event solo su IE ed Edge legacy (node_modules/zrender/lib/core/env.js:70-71). Negli altri browser, con 'ontouchstart' in window, monta touchstart, touchmove e touchend (dom/HandlerProxy.js:197-203) ed emula il clic su touchend (righe 138-139, TOUCH_CLICK_DELAY). Sul corpo non c'e' nessun onTouch*Capture. Su telefono (390 px, la verifica U1) un tocco sulla legenda nasconde una serie (barreRaggruppate ha legend: {}, forme.ts:163). Il trascinamento muove il dataZoom inside e lo slider, presenti oltre 12 barre verticali (zoomSeMolti): succede in /procedurale/ammesse?sigc=true (importi e domande con atto per circa 30 interventi) e nella spesa della verifica SMP non SIGC con sigc=true. senzaIstruzioni toglie dal sottotitolo 'trascina il cursore', ma il cursore si trascina. Il commento del componente (righe 9-10) dice invece che 'i gesti del puntatore ... non arrivano ai grafici'.",
+    "fix": "Aggiungere onTouchStartCapture, onTouchMoveCapture e onTouchEndCapture={nonPropagare}: stopPropagation senza preventDefault, quindi la pagina scorre ancora. In alternativa, nelle opzioni della card non pertinente: legend.selectedMode false, niente dataZoom inside, slider con zoomLock. Test del kit: un listener nativo touchstart su un figlio del corpo non viene chiamato."
+  },
+  {
+    "id": "M-04",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/features/procedurale/ui/CardAmmesse.tsx:62",
+    "titolo": "H-08/A-06 chiusi a meta': nel corpo non pertinente restano istruzioni d'uso che non valgono ('la vista Tabella apre le domande nell'elenco operativo', 'Clic o Invio su una riga per aprirla')",
+    "evidenza": "senzaIstruzioni (shared/lib/sigc.ts:65-71) toglie solo le frasi che iniziano con Clic o Trascina. Il sottotitolo di CardAmmesseConAtto, citato da A-06, e' 'Clic su una barra per il dettaglio dell'intervento; la vista Tabella apre le domande nell'elenco operativo' (CardAmmesse.tsx:62). Diventa 'la vista Tabella apre le domande nell'elenco operativo', con l'iniziale minuscola. In /procedurale/ammesse?sigc=true la card non pertinente non ha l'interruttore ne' la vista Tabella, e i link sono disattivati. Inoltre la caption di ogni TabellaInterattiva con onRiga aggiunge 'Clic o Invio su una riga per aprirla.' (didascalia, shared/lib/tabella.ts:60; TabellaInterattiva.tsx:303). Lo fa anche nel corpo non pertinente, dove le righe hanno tabindex=-1 e aria-disabled e il clic e' fermato: TabellaVerifica.tsx:54, TabellaStatiInterventi.tsx:73, TabellaAmmesse, TabellaSuperfici.tsx:104. La caption e' il nome della tabella per i lettori di schermo. Lo stesso vale per il sottotitolo di pagina degli stati, 'Clic su una riga per l'anteprima dell'intervento.' (StatiDomande.tsx:39).",
+    "fix": "Separare l'istruzione dal testo descrittivo con una prop del kit (es. istruzione di CardGrafico) che CardNonPertinente omette, invece di filtrare per parola iniziale, come proponeva H-08. In TabellaInterattiva passare a didascalia apribile = !!onRiga && !np. Riscrivere il sottotitolo di CardAmmesseConAtto con le istruzioni nella prop. Test: la card non pertinente delle domande con atto non dice 'vista Tabella'; la caption di una TabellaInterattiva con onRiga dentro <NonPertinente><Sezione> non dice 'Clic o Invio'."
+  },
+  {
+    "id": "M-09",
+    "feature": "istituzionale",
+    "severity": "COSMETICO",
+    "file": "src/shared/ui/filtri/ControlloSigc.tsx:3",
+    "titolo": "H-11 chiuso a meta': il commento e il titolo del test dicono ancora che cambiare il SIGC riporta la tabella alla prima pagina",
+    "evidenza": "ricercaConSigc non tocca piu' il parametro pagina (shared/lib/sigc.ts:34-39). Pero' ControlloSigc.tsx:3 dice ancora '... e riportando la tabella alla prima pagina'. Il test 'cambiare il filtro lascia gli altri parametri e riporta la tabella alla prima pagina' (tests/kit-sigc.test.tsx:26) non prova piu' nessuna prima pagina. H-11 chiedeva di togliere anche la parte del commento.",
+    "fix": "Aggiornare il commento e il titolo del test: la prima pagina la garantiscono le pagine con la chiave dei criteri."
+  },
+  {
+    "id": "M-10",
+    "feature": "istituzionale",
+    "severity": "COSMETICO",
+    "file": "src/features/istituzionale/lib/anteprima.ts:106",
+    "titolo": "V2-05/H-09 chiusi senza test; righeCard dichiara un tipo senza formatoPieno",
+    "evidenza": "La card istituzionale ha il valore pieno della spesa solo perche' righeCard restituisce gli stessi oggetti di RIGHE_CARD. Il tipo dichiarato (riga 106) non ha formatoPieno, quindi un map verso quel tipo lo perderebbe senza errori di compilazione. Nessun test prova CellaDelConfronto col valore pieno (AnteprimaArea.tsx:160-168), ne' la card procedurale (AnteprimaProcedurale.tsx:28) o quella istituzionale. tests/anteprime-home.test.tsx copre solo gli ettari del fisico (righe 71-76). V2-05 e H-09 chiedevano un test della card per area, come quello del finanziario.",
+    "fix": "Tipizzare righeCard come RigaConfronto[], o includere formatoPieno nel tipo. In anteprime-home, testare spesa e contributo: il compatto aria-hidden, il valore pieno visually-hidden e nel title."
+  }
+]

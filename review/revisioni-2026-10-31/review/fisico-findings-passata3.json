@@ -1,0 +1,56 @@
+[
+  {
+    "id": "M-01",
+    "feature": "fisico",
+    "severity": "MINORE",
+    "file": "src/shared/ui/card/Sezione.tsx:32",
+    "titolo": "X-04 non chiuso nelle card annidate: le voci omesse dei grafici dentro una Sezione non pertinente (superfici del fisico) restano in un <details> che non si apre",
+    "evidenza": "CardNonPertinente ora rende VociOmesse fuori dal proprio corpo (CardGrafico.tsx:231-232). Pero' quando la card sta dentro una Sezione non pertinente il <details> resta dentro il CorpoNonPertinente della Sezione (Sezione.tsx:32). Li' disattiva() tratta 'summary' come un controllo (NonPertinente.tsx:46: tabindex=-1 e aria-disabled). onClickCapture={ferma} (riga 126) fa preventDefault sul clic del summary, che cosi' non apre il details; Invio e spazio sono fermati alle righe 131-133. E' il caso del fisico. In /fisico/superfici?sigc=false ReportSuperfici.tsx:113-119 annida i CardGrafico di Grafici (riga 69) nella Sezione TITOLO_TABELLA. Le superfici sono lette senza filtro e omettono gli interventi NO SIGC ('SRD01: non a superficie o non SIGC', fisico/lib/grafici.ts:87 e 207). Sono proprio gli interventi 'senza superfici, elencati sotto' del wireframe superfici.md:59 che X-04 voleva leggibili. Il test del kit 'le voci omesse si aprono' (tests/kit-sigc.test.tsx:227) monta il CardGrafico direttamente sotto <NonPertinente>, non dentro una Sezione, e non clicca il summary.",
+    "fix": "Trattare le voci omesse come zona di lettura, come la paginazione: escludere '.ui-omessi summary' sia in restaDiLettura/disattivaUno sia in diLettura/ferma. In alternativa, in un corpo non pertinente rendere VociOmesse come elenco statico o <details open>. Test del kit: un CardGrafico con omessi dentro <NonPertinente><Sezione>; il summary non ha aria-disabled e fireEvent.click(summary) apre il details."
+  },
+  {
+    "id": "M-02",
+    "feature": "fisico",
+    "severity": "MINORE",
+    "file": "src/shared/ui/tabella/TabellaInterattiva.tsx:300",
+    "titolo": "X-05 (scelta a, residui) chiuso a meta': nel corpo non pertinente il riquadro scorrevole di TabellaInterattiva non si scorre da tastiera",
+    "evidenza": "La correzione lascia attivi solo i riquadri che hanno gia' un tabindex (TabelleSemplici.tsx:19; restaDiLettura in NonPertinente.tsx:61-67). Il contenitore di TabellaInterattiva (riga 300) non ha tabindex. Nel corpo non pertinente ogni suo discendente esce dalla tabulazione: i bottoni d'ordinamento delle intestazioni diventano disabled (riga 76; nativo() in NonPertinente.tsx:77-78), le righe apribili prendono tabindex=-1 (riga 100) e i link delle celle perdono l'href. La paginazione (riga 313) sta fuori dal riquadro. Il riquadro pero' scorre: overflow auto, max-height max(320px, 100dvh - 7rem) (tema.css:238), e le tabelle larghe hanno la prima colonna ferma. Le pagine non pertinenti coinvolte sono la verifica SMP non SIGC con sigc=true (22 colonne), gli stati e le ammesse del procedurale con sigc=true e la vista Tabella delle superfici con sigc=false. Li' chi usa la tastiera non scorre ne' in verticale fino alla 25a riga ne' in orizzontale oltre la prima schermata: in Safari, e la regola axe scrollable-region-focusable lo segnala. Il fix di X-05 chiedeva di dare tabIndex=0 al contenitore di TabellaInterattiva/TabellaServer dentro un corpo non pertinente. La scelta l ('paginazione e riquadri scorrevoli attivi') e il commit 9b433f0 ('restano attive ... lo scorrimento dei riquadri') valgono solo per le tabelle semplici.",
+    "fix": "In TabellaInterattiva (e TabellaServer), con useNonPertinenza(), dare al contenitore tabIndex=0, role=region e un nome dalla caption, come fa TabelleSemplici: restaDiLettura lo lascia gia' attivo. Test del kit: una TabellaInterattiva con onRiga dentro <NonPertinente><Sezione>; il .ui-tabella-contenitore ha tabindex 0 e nessun aria-disabled."
+  },
+  {
+    "id": "M-03",
+    "feature": "fisico",
+    "severity": "MINORE",
+    "file": "src/shared/ui/card/NonPertinente.tsx:128",
+    "titolo": "Scelta l (residuo di H-02): al tocco la legenda e il cursore dello zoom dei grafici non pertinenti restano attivi, perche' zrender ascolta i touch event, che il corpo non ferma",
+    "evidenza": "Il corpo ferma in cattura pointerdown, mousedown e wheel (righe 128-130) e click e auxclick (righe 126-127). ECharts 6 (zrender) usa i pointer event solo su IE ed Edge legacy (node_modules/zrender/lib/core/env.js:70-71). Negli altri browser, con 'ontouchstart' in window, monta touchstart, touchmove e touchend (dom/HandlerProxy.js:197-203) ed emula il clic su touchend (righe 138-139, TOUCH_CLICK_DELAY). Sul corpo non c'e' nessun onTouch*Capture. Su telefono (390 px, la verifica U1) un tocco sulla legenda nasconde una serie (barreRaggruppate ha legend: {}, forme.ts:163). Il trascinamento muove il dataZoom inside e lo slider, presenti oltre 12 barre verticali (zoomSeMolti): succede in /procedurale/ammesse?sigc=true (importi e domande con atto per circa 30 interventi) e nella spesa della verifica SMP non SIGC con sigc=true. senzaIstruzioni toglie dal sottotitolo 'trascina il cursore', ma il cursore si trascina. Il commento del componente (righe 9-10) dice invece che 'i gesti del puntatore ... non arrivano ai grafici'.",
+    "fix": "Aggiungere onTouchStartCapture, onTouchMoveCapture e onTouchEndCapture={nonPropagare}: stopPropagation senza preventDefault, quindi la pagina scorre ancora. In alternativa, nelle opzioni della card non pertinente: legend.selectedMode false, niente dataZoom inside, slider con zoomLock. Test del kit: un listener nativo touchstart su un figlio del corpo non viene chiamato."
+  },
+  {
+    "id": "M-04",
+    "feature": "fisico",
+    "severity": "MINORE",
+    "file": "src/features/procedurale/ui/CardAmmesse.tsx:62",
+    "titolo": "H-08/A-06 chiusi a meta': nel corpo non pertinente restano istruzioni d'uso che non valgono ('la vista Tabella apre le domande nell'elenco operativo', 'Clic o Invio su una riga per aprirla')",
+    "evidenza": "senzaIstruzioni (shared/lib/sigc.ts:65-71) toglie solo le frasi che iniziano con Clic o Trascina. Il sottotitolo di CardAmmesseConAtto, citato da A-06, e' 'Clic su una barra per il dettaglio dell'intervento; la vista Tabella apre le domande nell'elenco operativo' (CardAmmesse.tsx:62). Diventa 'la vista Tabella apre le domande nell'elenco operativo', con l'iniziale minuscola. In /procedurale/ammesse?sigc=true la card non pertinente non ha l'interruttore ne' la vista Tabella, e i link sono disattivati. Inoltre la caption di ogni TabellaInterattiva con onRiga aggiunge 'Clic o Invio su una riga per aprirla.' (didascalia, shared/lib/tabella.ts:60; TabellaInterattiva.tsx:303). Lo fa anche nel corpo non pertinente, dove le righe hanno tabindex=-1 e aria-disabled e il clic e' fermato: TabellaVerifica.tsx:54, TabellaStatiInterventi.tsx:73, TabellaAmmesse, TabellaSuperfici.tsx:104. La caption e' il nome della tabella per i lettori di schermo. Lo stesso vale per il sottotitolo di pagina degli stati, 'Clic su una riga per l'anteprima dell'intervento.' (StatiDomande.tsx:39).",
+    "fix": "Separare l'istruzione dal testo descrittivo con una prop del kit (es. istruzione di CardGrafico) che CardNonPertinente omette, invece di filtrare per parola iniziale, come proponeva H-08. In TabellaInterattiva passare a didascalia apribile = !!onRiga && !np. Riscrivere il sottotitolo di CardAmmesseConAtto con le istruzioni nella prop. Test: la card non pertinente delle domande con atto non dice 'vista Tabella'; la caption di una TabellaInterattiva con onRiga dentro <NonPertinente><Sezione> non dice 'Clic o Invio'."
+  },
+  {
+    "id": "M-05",
+    "feature": "fisico",
+    "severity": "MINORE",
+    "file": "src/features/fisico/ui/ReportSuperfici.tsx:91",
+    "titolo": "X-10 non chiuso del tutto: il vuoto 'Nessuna superficie' del fisico e l'errore delle sottofasi del procedurale non dicono il motivo, e 'Modifica i filtri' resta attivo",
+    "evidenza": "Nelle superfici <NonPertinente> avvolge ora VistaQuery (SuperficiAmmissibili.tsx:64-69), ma il vuoto tipico della pagina non passa da VistaQuery. Report rende NessunaSuperficie nel ramo dei dati (ReportSuperfici.tsx:103) come <Vuoto><VuotoConFiltri/></Vuoto> (righe 91-97), e Vuoto non legge il contesto (StatiVista.tsx:31-37). Caso: /fisico/superfici?intervento=SRD01&sigc=false. La lettura e' senza filtro; SRD01, NO SIGC, torna col motivo NON_VALORIZZATO e esitoSuperfici da' 'senza-superfici' (fisico/lib/superfici.ts:162). La pagina non mostra il badge 'Non pertinente al filtro NO SIGC' ne' il motivo, e 'Modifica i filtri' e' attivo; lo stesso con un filtro Campagna senza superfici. V2-01 lo segnalava gia' ('NessunaSuperficie ... non passa da ConMotivoSeNonPertinente'). Nelle sottofasi (Sottofasi.tsx:28-34) <NonPertinente> sta ancora dentro i figli di VistaQuery, quindi con sigc=true l'errore senza dati non dice il motivo (A-04 citava le sottofasi). Non c'e' nessun test del vuoto non pertinente nel fisico ne' nell'istituzionale.",
+    "fix": "In NessunaSuperficie avvolgere il Vuoto in ConMotivoSeNonPertinente, oppure farlo nel kit: Vuoto dentro <NonPertinente> passa da ConMotivoSeNonPertinente. In SezioneSottofasi portare <NonPertinente np> sopra VistaQuery. Test di pagina: le superfici con ?intervento=SRD01&sigc=false e la riga NON_VALORIZZATO mostrano badge e motivo, con 'Modifica i filtri' disabled."
+  },
+  {
+    "id": "M-09",
+    "feature": "fisico",
+    "severity": "COSMETICO",
+    "file": "src/shared/ui/filtri/ControlloSigc.tsx:3",
+    "titolo": "H-11 chiuso a meta': il commento e il titolo del test dicono ancora che cambiare il SIGC riporta la tabella alla prima pagina",
+    "evidenza": "ricercaConSigc non tocca piu' il parametro pagina (shared/lib/sigc.ts:34-39). Pero' ControlloSigc.tsx:3 dice ancora '... e riportando la tabella alla prima pagina'. Il test 'cambiare il filtro lascia gli altri parametri e riporta la tabella alla prima pagina' (tests/kit-sigc.test.tsx:26) non prova piu' nessuna prima pagina. H-11 chiedeva di togliere anche la parte del commento.",
+    "fix": "Aggiornare il commento e il titolo del test: la prima pagina la garantiscono le pagine con la chiave dei criteri."
+  }
+]

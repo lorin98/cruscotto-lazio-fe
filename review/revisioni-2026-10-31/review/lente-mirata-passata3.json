@@ -1,0 +1,92 @@
+[
+  {
+    "id": "M-01",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/card/Sezione.tsx:32",
+    "titolo": "X-04 non chiuso nelle card annidate: le voci omesse dei grafici dentro una Sezione non pertinente (superfici del fisico) restano in un <details> che non si apre",
+    "evidenza": "CardNonPertinente ora rende VociOmesse fuori dal proprio corpo (CardGrafico.tsx:231-232). Pero' quando la card sta dentro una Sezione non pertinente il <details> resta dentro il CorpoNonPertinente della Sezione (Sezione.tsx:32). Li' disattiva() tratta 'summary' come un controllo (NonPertinente.tsx:46: tabindex=-1 e aria-disabled). onClickCapture={ferma} (riga 126) fa preventDefault sul clic del summary, che cosi' non apre il details; Invio e spazio sono fermati alle righe 131-133. E' il caso del fisico. In /fisico/superfici?sigc=false ReportSuperfici.tsx:113-119 annida i CardGrafico di Grafici (riga 69) nella Sezione TITOLO_TABELLA. Le superfici sono lette senza filtro e omettono gli interventi NO SIGC ('SRD01: non a superficie o non SIGC', fisico/lib/grafici.ts:87 e 207). Sono proprio gli interventi 'senza superfici, elencati sotto' del wireframe superfici.md:59 che X-04 voleva leggibili. Il test del kit 'le voci omesse si aprono' (tests/kit-sigc.test.tsx:227) monta il CardGrafico direttamente sotto <NonPertinente>, non dentro una Sezione, e non clicca il summary.",
+    "fix": "Trattare le voci omesse come zona di lettura, come la paginazione: escludere '.ui-omessi summary' sia in restaDiLettura/disattivaUno sia in diLettura/ferma. In alternativa, in un corpo non pertinente rendere VociOmesse come elenco statico o <details open>. Test del kit: un CardGrafico con omessi dentro <NonPertinente><Sezione>; il summary non ha aria-disabled e fireEvent.click(summary) apre il details."
+  },
+  {
+    "id": "M-02",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/tabella/TabellaInterattiva.tsx:300",
+    "titolo": "X-05 (scelta a, residui) chiuso a meta': nel corpo non pertinente il riquadro scorrevole di TabellaInterattiva non si scorre da tastiera",
+    "evidenza": "La correzione lascia attivi solo i riquadri che hanno gia' un tabindex (TabelleSemplici.tsx:19; restaDiLettura in NonPertinente.tsx:61-67). Il contenitore di TabellaInterattiva (riga 300) non ha tabindex. Nel corpo non pertinente ogni suo discendente esce dalla tabulazione: i bottoni d'ordinamento delle intestazioni diventano disabled (riga 76; nativo() in NonPertinente.tsx:77-78), le righe apribili prendono tabindex=-1 (riga 100) e i link delle celle perdono l'href. La paginazione (riga 313) sta fuori dal riquadro. Il riquadro pero' scorre: overflow auto, max-height max(320px, 100dvh - 7rem) (tema.css:238), e le tabelle larghe hanno la prima colonna ferma. Le pagine non pertinenti coinvolte sono la verifica SMP non SIGC con sigc=true (22 colonne), gli stati e le ammesse del procedurale con sigc=true e la vista Tabella delle superfici con sigc=false. Li' chi usa la tastiera non scorre ne' in verticale fino alla 25a riga ne' in orizzontale oltre la prima schermata: in Safari, e la regola axe scrollable-region-focusable lo segnala. Il fix di X-05 chiedeva di dare tabIndex=0 al contenitore di TabellaInterattiva/TabellaServer dentro un corpo non pertinente. La scelta l ('paginazione e riquadri scorrevoli attivi') e il commit 9b433f0 ('restano attive ... lo scorrimento dei riquadri') valgono solo per le tabelle semplici.",
+    "fix": "In TabellaInterattiva (e TabellaServer), con useNonPertinenza(), dare al contenitore tabIndex=0, role=region e un nome dalla caption, come fa TabelleSemplici: restaDiLettura lo lascia gia' attivo. Test del kit: una TabellaInterattiva con onRiga dentro <NonPertinente><Sezione>; il .ui-tabella-contenitore ha tabindex 0 e nessun aria-disabled."
+  },
+  {
+    "id": "M-03",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/card/NonPertinente.tsx:128",
+    "titolo": "Scelta l (residuo di H-02): al tocco la legenda e il cursore dello zoom dei grafici non pertinenti restano attivi, perche' zrender ascolta i touch event, che il corpo non ferma",
+    "evidenza": "Il corpo ferma in cattura pointerdown, mousedown e wheel (righe 128-130) e click e auxclick (righe 126-127). ECharts 6 (zrender) usa i pointer event solo su IE ed Edge legacy (node_modules/zrender/lib/core/env.js:70-71). Negli altri browser, con 'ontouchstart' in window, monta touchstart, touchmove e touchend (dom/HandlerProxy.js:197-203) ed emula il clic su touchend (righe 138-139, TOUCH_CLICK_DELAY). Sul corpo non c'e' nessun onTouch*Capture. Su telefono (390 px, la verifica U1) un tocco sulla legenda nasconde una serie (barreRaggruppate ha legend: {}, forme.ts:163). Il trascinamento muove il dataZoom inside e lo slider, presenti oltre 12 barre verticali (zoomSeMolti): succede in /procedurale/ammesse?sigc=true (importi e domande con atto per circa 30 interventi) e nella spesa della verifica SMP non SIGC con sigc=true. senzaIstruzioni toglie dal sottotitolo 'trascina il cursore', ma il cursore si trascina. Il commento del componente (righe 9-10) dice invece che 'i gesti del puntatore ... non arrivano ai grafici'.",
+    "fix": "Aggiungere onTouchStartCapture, onTouchMoveCapture e onTouchEndCapture={nonPropagare}: stopPropagation senza preventDefault, quindi la pagina scorre ancora. In alternativa, nelle opzioni della card non pertinente: legend.selectedMode false, niente dataZoom inside, slider con zoomLock. Test del kit: un listener nativo touchstart su un figlio del corpo non viene chiamato."
+  },
+  {
+    "id": "M-04",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/features/procedurale/ui/CardAmmesse.tsx:62",
+    "titolo": "H-08/A-06 chiusi a meta': nel corpo non pertinente restano istruzioni d'uso che non valgono ('la vista Tabella apre le domande nell'elenco operativo', 'Clic o Invio su una riga per aprirla')",
+    "evidenza": "senzaIstruzioni (shared/lib/sigc.ts:65-71) toglie solo le frasi che iniziano con Clic o Trascina. Il sottotitolo di CardAmmesseConAtto, citato da A-06, e' 'Clic su una barra per il dettaglio dell'intervento; la vista Tabella apre le domande nell'elenco operativo' (CardAmmesse.tsx:62). Diventa 'la vista Tabella apre le domande nell'elenco operativo', con l'iniziale minuscola. In /procedurale/ammesse?sigc=true la card non pertinente non ha l'interruttore ne' la vista Tabella, e i link sono disattivati. Inoltre la caption di ogni TabellaInterattiva con onRiga aggiunge 'Clic o Invio su una riga per aprirla.' (didascalia, shared/lib/tabella.ts:60; TabellaInterattiva.tsx:303). Lo fa anche nel corpo non pertinente, dove le righe hanno tabindex=-1 e aria-disabled e il clic e' fermato: TabellaVerifica.tsx:54, TabellaStatiInterventi.tsx:73, TabellaAmmesse, TabellaSuperfici.tsx:104. La caption e' il nome della tabella per i lettori di schermo. Lo stesso vale per il sottotitolo di pagina degli stati, 'Clic su una riga per l'anteprima dell'intervento.' (StatiDomande.tsx:39).",
+    "fix": "Separare l'istruzione dal testo descrittivo con una prop del kit (es. istruzione di CardGrafico) che CardNonPertinente omette, invece di filtrare per parola iniziale, come proponeva H-08. In TabellaInterattiva passare a didascalia apribile = !!onRiga && !np. Riscrivere il sottotitolo di CardAmmesseConAtto con le istruzioni nella prop. Test: la card non pertinente delle domande con atto non dice 'vista Tabella'; la caption di una TabellaInterattiva con onRiga dentro <NonPertinente><Sezione> non dice 'Clic o Invio'."
+  },
+  {
+    "id": "M-05",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/features/fisico/ui/ReportSuperfici.tsx:91",
+    "titolo": "X-10 non chiuso del tutto: il vuoto 'Nessuna superficie' del fisico e l'errore delle sottofasi del procedurale non dicono il motivo, e 'Modifica i filtri' resta attivo",
+    "evidenza": "Nelle superfici <NonPertinente> avvolge ora VistaQuery (SuperficiAmmissibili.tsx:64-69), ma il vuoto tipico della pagina non passa da VistaQuery. Report rende NessunaSuperficie nel ramo dei dati (ReportSuperfici.tsx:103) come <Vuoto><VuotoConFiltri/></Vuoto> (righe 91-97), e Vuoto non legge il contesto (StatiVista.tsx:31-37). Caso: /fisico/superfici?intervento=SRD01&sigc=false. La lettura e' senza filtro; SRD01, NO SIGC, torna col motivo NON_VALORIZZATO e esitoSuperfici da' 'senza-superfici' (fisico/lib/superfici.ts:162). La pagina non mostra il badge 'Non pertinente al filtro NO SIGC' ne' il motivo, e 'Modifica i filtri' e' attivo; lo stesso con un filtro Campagna senza superfici. V2-01 lo segnalava gia' ('NessunaSuperficie ... non passa da ConMotivoSeNonPertinente'). Nelle sottofasi (Sottofasi.tsx:28-34) <NonPertinente> sta ancora dentro i figli di VistaQuery, quindi con sigc=true l'errore senza dati non dice il motivo (A-04 citava le sottofasi). Non c'e' nessun test del vuoto non pertinente nel fisico ne' nell'istituzionale.",
+    "fix": "In NessunaSuperficie avvolgere il Vuoto in ConMotivoSeNonPertinente, oppure farlo nel kit: Vuoto dentro <NonPertinente> passa da ConMotivoSeNonPertinente. In SezioneSottofasi portare <NonPertinente np> sopra VistaQuery. Test di pagina: le superfici con ?intervento=SRD01&sigc=false e la riga NON_VALORIZZATO mostrano badge e motivo, con 'Modifica i filtri' disabled."
+  },
+  {
+    "id": "M-06",
+    "feature": "finanziario",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/lib/grafici/riserva.ts:60",
+    "titolo": "Scelta n: l'etichetta della soglia di ripiego dentro il grafico e' lunga circa 60 caratteri; senza soglia, la lettura descrive una linea tratteggiata che non c'e'",
+    "evidenza": "La markLine ha il formatter `${s.nome} ${importoBreve(riserva)}` (riga 60). Senza montante o quota diventa 'Riserva accumulata (montante o quota non disponibili) 5,0 M€': circa 60 caratteri a 12 px (circa 360 px), ancorati alla fine della linea (insideEndTop). A 390 px il piano e' largo circa 260 px, quindi l'inizio ('Riserva accumulata') esce dal canvas e si taglia. La parentesi e' gia' nella caption (riga 86) e nel testo di lettura. Inoltre, quando la soglia manca (sogliaRiserva con valore null, lib/riserva.ts:212), letturaUtilizzoRiserva (righe 117-118) dice 'La linea tratteggiata è la riserva del 5%: finché la linea resta sotto, c'è ancora riserva'. Intanto il grafico omette la soglia e lo dichiara ('Riserva del 5% non disponibile: soglia omessa', riga 93).",
+    "fix": "Nella markLine usare solo il nome corto ('Riserva accumulata' o 'Riserva del 5%') e lasciare la parentesi in caption, aria e lettura. Con valore null, una lettura senza la frase sulla linea tratteggiata. Test di letturaUtilizzoRiserva senza montante, quota e accumulato."
+  },
+  {
+    "id": "M-07",
+    "feature": "finanziario",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/ui/DotazioneReport.tsx:114",
+    "titolo": "K-01: la dotazione in barre orizzontali (alta 1.232 px con 36 interventi) resta affiancata alla quota FEASR nella griglia a due colonne",
+    "evidenza": "graficoDotazionePagamenti ora disegna barre orizzontali (spesa.ts:269). Con 36 interventi Grafico prende la classe ui-grafico--righe-36 (Grafico.tsx:49-51), alta 1232 px (tema.css:192). La card sta nella Griglia a due colonne insieme alla quota FEASR (DotazioneReport.tsx:114-121; ui-griglia--2, tema.css:155). Quando la finestra mostra due colonne, la riga della griglia e' alta quanto la dotazione. La card della quota FEASR, una ciambella ad altezza normale, si allunga fino a quell'altezza (stretch; tema.css:149 e 160) e lascia oltre 800 px vuoti. Il wireframe approvato (dotazione.html) affianca due card di altezza simile.",
+    "fix": "Mettere la dotazione a tutta larghezza, fuori dalla Griglia, con la quota FEASR sotto o accanto alla tabella; oppure align-items: start nella griglia della pagina. Verifica a 1680 e 1100 px."
+  },
+  {
+    "id": "M-08",
+    "feature": "elenco-operativo",
+    "severity": "COSMETICO",
+    "file": "src/features/elenco-operativo/lib/chip.ts:45",
+    "titolo": "H-10 non chiuso: BOOLEANI.sigc resta codice morto, e il commento nuovo gli attribuisce un uso che non c'e'",
+    "evidenza": "Il commento aggiunto in adec6c9 ('serve all'annuncio dei filtri aggiunti dal sinottico', chip.ts:45) non e' vero. L'annuncio (ElencoDomande.tsx:99-102) chiama valoreLeggibile solo col filtro di TESTI_RIPARTIZIONE[r].filtro, che e' stato, intervento o anno (elenco-operativo/lib/grafici.ts:40-42). chipDeiCriteri salta sigc (chip.ts:125). L'unico chiamante con 'sigc' e' il test (tests/elenco-operativo-lib.test.ts:278).",
+    "fix": "Togliere sigc da BOOLEANI e la riga del test. Se un testo del filtro serve, usare etichettaSigc del kit."
+  },
+  {
+    "id": "M-09",
+    "feature": "comune",
+    "severity": "COSMETICO",
+    "file": "src/shared/ui/filtri/ControlloSigc.tsx:3",
+    "titolo": "H-11 chiuso a meta': il commento e il titolo del test dicono ancora che cambiare il SIGC riporta la tabella alla prima pagina",
+    "evidenza": "ricercaConSigc non tocca piu' il parametro pagina (shared/lib/sigc.ts:34-39). Pero' ControlloSigc.tsx:3 dice ancora '... e riportando la tabella alla prima pagina'. Il test 'cambiare il filtro lascia gli altri parametri e riporta la tabella alla prima pagina' (tests/kit-sigc.test.tsx:26) non prova piu' nessuna prima pagina. H-11 chiedeva di togliere anche la parte del commento.",
+    "fix": "Aggiornare il commento e il titolo del test: la prima pagina la garantiscono le pagine con la chiave dei criteri."
+  },
+  {
+    "id": "M-10",
+    "feature": "comune",
+    "severity": "COSMETICO",
+    "file": "src/features/istituzionale/lib/anteprima.ts:106",
+    "titolo": "V2-05/H-09 chiusi senza test; righeCard dichiara un tipo senza formatoPieno",
+    "evidenza": "La card istituzionale ha il valore pieno della spesa solo perche' righeCard restituisce gli stessi oggetti di RIGHE_CARD. Il tipo dichiarato (riga 106) non ha formatoPieno, quindi un map verso quel tipo lo perderebbe senza errori di compilazione. Nessun test prova CellaDelConfronto col valore pieno (AnteprimaArea.tsx:160-168), ne' la card procedurale (AnteprimaProcedurale.tsx:28) o quella istituzionale. tests/anteprime-home.test.tsx copre solo gli ettari del fisico (righe 71-76). V2-05 e H-09 chiedevano un test della card per area, come quello del finanziario.",
+    "fix": "Tipizzare righeCard come RigaConfronto[], o includere formatoPieno nel tipo. In anteprime-home, testare spesa e contributo: il compatto aria-hidden, il valore pieno visually-hidden e nel title."
+  }
+]
