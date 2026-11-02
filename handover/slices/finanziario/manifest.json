@@ -29,7 +29,7 @@
       "ownership": "finanziario",
       "path": "./datamodel/finanziario-decisions.json",
       "role": "migration",
-      "sha256": "sha256:51aa0c00b9c627db70d6c90a879080bc7bcd0cc3d5df8319360f095ab1906635",
+      "sha256": "sha256:ce502177b3ca6866b9e7364a0da7a46362fedd3ea9d0abd2c0675588c59b3a53",
       "step": "step2-datamodel"
     },
     {
@@ -45,7 +45,7 @@
       "ownership": "finanziario",
       "path": "./acceptance/finanziario-scenarios.json",
       "role": "application",
-      "sha256": "sha256:3466970b382a892c1ea22e569775782d894f24c0f3ebd47b32a08d472674cbea",
+      "sha256": "sha256:5a1bf3ba8bd43142788c44077c2e2341f24863450a4e5d91453428c19dd61438",
       "step": "step5-service"
     },
     {
@@ -84,21 +84,26 @@
     "step11-review.review": "pass",
     "step1b-scaffold.reactor_compiles": "pass",
     "step2-datamodel.ddl_approved": {
-      "approved_at": "2026-10-31T11:11:13Z",
-      "approved_hash": "sha256:51aa0c00b9c627db70d6c90a879080bc7bcd0cc3d5df8319360f095ab1906635",
-      "baseline_ref": "sha256:b606aaee3b2f7add11e8b239ea50e03b3f206913e8b013e5ec7604cb3b4a310f"
+      "approved_at": "2026-11-02T11:11:28Z",
+      "approved_hash": "sha256:ce502177b3ca6866b9e7364a0da7a46362fedd3ea9d0abd2c0675588c59b3a53",
+      "baseline_ref": "sha256:b606aaee3b2f7add11e8b239ea50e03b3f206913e8b013e5ec7604cb3b4a310f",
+      "deviations_reviewed": [
+        "D-13 Rev. 2 (decisione dell utente del 02/11/2026): con la fonte QUADRO_SINOTTICO attiva un intervento senza bandi correnti ha lo stanziato 0.00 (TX-0004, TX-0011) e un anno senza bandi aperti 0.00 (TX-0010); restano NON_VALORIZZATO il bando senza importo e la riga senza anno"
+      ],
+      "time_to_approve_s": 45
     },
     "step3-domain.domain_compiles": "pass",
     "step3-domain.domain_pure": "pass",
     "step4-ports.ports_pure": "pass",
     "step5-service.acceptance_approved": {
-      "approved_at": "2026-10-31T12:58:25Z",
-      "approved_hash": "sha256:3466970b382a892c1ea22e569775782d894f24c0f3ebd47b32a08d472674cbea",
+      "approved_at": "2026-11-02T11:11:28Z",
+      "approved_hash": "sha256:5a1bf3ba8bd43142788c44077c2e2341f24863450a4e5d91453428c19dd61438",
       "baseline_ref": "sha256:b606aaee3b2f7add11e8b239ea50e03b3f206913e8b013e5ec7604cb3b4a310f",
       "deviations_reviewed": [
-        "SC-FI_RESIDUO_PAGAMENTI e SC-FI_RIEPILOGO: per un P4 anche il netto e FUORI_PERIMETRO"
+        "SC-FI_RESIDUO_PAGAMENTI e SC-FI_RIEPILOGO: per un P4 anche il netto e FUORI_PERIMETRO",
+        "SC-FI_STANZIATO_PER_ANNO e SC-FI_FONTI_DI_PROGRAMMA (D-13 Rev. 2, 02/11/2026): anno e intervento senza bandi con stanziato 0.00, /stanziato di due interventi 700.00"
       ],
-      "time_to_approve_s": 41
+      "time_to_approve_s": 45
     },
     "step5-service.authz_import_zero": "pass",
     "step6-adapter-pg.adapter_pg_compiles": "pass",
