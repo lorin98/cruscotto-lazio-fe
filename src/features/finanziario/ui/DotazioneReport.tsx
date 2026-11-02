@@ -5,7 +5,7 @@
 // perimetro ADA la dotazione regionale non sta sullo stesso grafico dei pagamenti dell'area. Lo stato vuoto di RF003 si
 // ricava dalle righe di RF002. Tutte le colonne si vedono, con il motivo di ogni assenza (wireframe dotazione). Clic su
 // un intervento: il suo dettaglio.
-import { CardGrafico, Griglia, PulsantiScarica, Sezione, TabellaInterattiva, VistaQuery } from '../../../shared/ui';
+import { CardGrafico, PulsantiScarica, Sezione, TabellaInterattiva, VistaQuery } from '../../../shared/ui';
 import type { ColonnaTabella } from '../../../shared/ui';
 import { useDistribuzioneDotazione, useSpesaPerIntervento } from '../api';
 import type { SpesaPerIntervento, SpesaPerInterventoRiga } from '../api';
@@ -106,19 +106,18 @@ function Distribuzione({ filtri }: { filtri: Filtri }) {
   );
 }
 
-// ordine del wireframe dotazione approvato (review v3 V-06, revisioni del 31/10/2026): dotazione e quota FEASR affiancate,
-// poi la tabella di RF002
+// ordine del wireframe dotazione approvato (review v3 V-06, revisioni del 31/10/2026): dotazione, quota FEASR, poi la tabella
+// di RF002. La dotazione in barre orizzontali e' alta quanto i suoi interventi: a tutta larghezza, non affiancata alla
+// ciambella della quota (che si allungherebbe vuota; review M-07)
 export function DotazioneReport({ filtri }: { filtri: Filtri }) {
   return (
     <>
-      <Griglia>
-        <ConGrant grant={GRANT.spesaPerIntervento} titolo="Dotazione e pagamenti per intervento">
-          <CardDotazione filtri={filtri} />
-        </ConGrant>
-        <ConGrant grant={GRANT.distribuzioneDotazione} titolo={TITOLO_QUOTE}>
-          <Distribuzione filtri={filtri} />
-        </ConGrant>
-      </Griglia>
+      <ConGrant grant={GRANT.spesaPerIntervento} titolo="Dotazione e pagamenti per intervento">
+        <CardDotazione filtri={filtri} />
+      </ConGrant>
+      <ConGrant grant={GRANT.distribuzioneDotazione} titolo={TITOLO_QUOTE}>
+        <Distribuzione filtri={filtri} />
+      </ConGrant>
       <ConGrant grant={GRANT.spesaPerIntervento} titolo={TITOLO_SPESA}>
         <Spesa filtri={filtri} />
       </ConGrant>

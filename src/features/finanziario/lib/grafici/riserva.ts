@@ -54,10 +54,12 @@ function fasce(anno: number) {
 
 function lineaUtilizzo(punti: Array<[string, number | null]>, s: { valore: number | null; nome: string }, anno: number, ultimo: string): LineSeriesOption {
   const riserva = s.valore;
+  // nel grafico il nome corto (la parentesi sta in didascalia, descrizione e lettura): a 390 px non si taglia (review M-06)
+  const breve = s.nome.split(' (')[0];
   const soglia =
     riserva == null
       ? {}
-      : { markLine: { silent: true, symbol: 'none' as const, lineStyle: { color: COLORI.attenzione, type: 'dashed' as const }, label: { formatter: `${s.nome} ${importoBreve(riserva)}`, position: 'insideEndTop' as const }, data: [{ name: s.nome, yAxis: riserva }] } };
+      : { markLine: { silent: true, symbol: 'none' as const, lineStyle: { color: COLORI.attenzione, type: 'dashed' as const }, label: { formatter: `${breve} ${importoBreve(riserva)}`, position: 'insideEndTop' as const }, data: [{ name: s.nome, yAxis: riserva }] } };
   // l'ultimo punto: il valore e la percentuale della riserva (testo composto qui: i formatter non catturano dati)
   const etichette = punti.map(([data, v], k) => (k === punti.length - 1 && v != null ? { value: [data, v], label: { show: true, position: 'top' as const, formatter: ultimo } } : [data, v]));
   return {
@@ -113,7 +115,8 @@ export function graficoUtilizzoRiserva(m: RiservaLike, anno: number): DatiGrafic
 /** Il testo di lettura sopra il grafico (R18): la linea, la soglia e cosa vuol dire superarla. */
 export function letturaUtilizzoRiserva(m: RiservaLike): string {
   const s = sogliaRiserva(m);
-  const nome = `la ${s.nome.toLowerCase()}`;
-  const soglia = s.valore == null ? nome : `${nome} (${importoBreve(s.valore)})`;
+  // senza soglia il grafico non disegna la linea tratteggiata: la lettura non la promette (review M-06)
+  if (s.valore == null) return `La linea è quanto della riserva è stato usato, sommato nel tempo. La soglia della riserva non è disponibile (mancano montante, quota e riserva accumulata).`;
+  const soglia = `la ${s.nome.toLowerCase()} (${importoBreve(s.valore)})`;
   return `La linea è quanto della riserva è stato usato, sommato nel tempo. La linea tratteggiata è ${soglia}: finché la linea resta sotto, c'è ancora riserva; oltre, l'utilizzo la supera.`;
 }

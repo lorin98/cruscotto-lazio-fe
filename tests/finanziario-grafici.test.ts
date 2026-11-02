@@ -1229,6 +1229,13 @@ describe('graficoUtilizzoRiserva (R18, forma A: linea a gradini con le fasi)', (
     const s = opzioniDi(g).series[0];
     expect(s.markLine).toBeUndefined();
     expect(g.omessi).toEqual(['01/04/2025: utilizzo cumulato non disponibile', 'Riserva del 5% non disponibile: soglia omessa']);
+    // senza soglia la lettura non promette la linea tratteggiata (review M-06)
+    expect(letturaUtilizzoRiserva({ importoAccumulato: null })).not.toMatch(/tratteggiata/);
+  });
+
+  it('nel grafico il nome corto della soglia di ripiego (a 390 px non si taglia); la parentesi in didascalia e lettura (review M-06)', () => {
+    const s = opzioniDi(graficoUtilizzoRiserva(riserva, 2024)).series[0];
+    expect((s.markLine as unknown as { label: { formatter: string } }).label.formatter).toMatch(/^Riserva accumulata 5,0.M€$/);
   });
 
   it('movimento senza data: in coda alla tabella ("senza data") e dichiarato', () => {
