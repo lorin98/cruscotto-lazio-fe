@@ -8,6 +8,9 @@ import { Icona } from '../icona';
 
 export type TonoKpi = 'blu' | 'verde' | 'ambra' | 'scuro';
 
+/** Una riga di una tessera con piu' numeri: il numero gia' formattato e la sua voce ("36.846", "pagate"). */
+export type RigaKpi = { valore: string; voce: string };
+
 export function Kpi({
   etichetta,
   valore,
@@ -33,10 +36,11 @@ export function Kpi({
   badge?: string;
   valore?: string;
   /**
-   * Piu' numeri nella stessa tessera, uno per riga con la sua voce ("36.846 pagate"), al posto di {@link valore}: mai su una
-   * riga sola che esce dalla tessera con numeri grandi (elenco operativo, richiesta dell'utente del 02/11/2026).
+   * Piu' numeri nella stessa tessera, uno per riga con la sua voce ("36.846 pagate"), al posto di {@link valore} (con righe,
+   * valore, unita e valorePieno non si mostrano): mai su una riga sola che esce dalla tessera con numeri grandi (elenco operativo,
+   * richiesta dell'utente del 02/11/2026). Un elenco vuoto vale come assente: si mostra il valore.
    */
-  righe?: readonly { valore: string; voce: string }[];
+  righe?: readonly RigaKpi[];
   unita?: string;
   nota?: string;
   /** Quota fra 0 e 1 resa come barra; omessa se non calcolabile. */
@@ -110,15 +114,21 @@ function ValoreKpi({ valore, unita, assente, pieno }: { valore?: string; unita?:
   );
 }
 
-/** Il valore della tessera: piu' numeri uno per riga, oppure il valore singolo (o l'assenza col suo motivo, che prevale). */
-function CorpoKpi({ righe, ...valore }: { righe?: readonly { valore: string; voce: string }[]; valore?: string; unita?: string; assente?: string; pieno?: string }) {
-  return righe && !valore.assente ? <RigheKpi righe={righe} /> : <ValoreKpi {...valore} />;
+/**
+ * Il valore della tessera: piu' numeri uno per riga se ci sono righe, altrimenti il valore singolo. L'assenza col suo motivo
+ * prevale sempre (mai una tessera muta); un elenco vuoto vale come nessuna riga.
+ */
+function CorpoKpi({ righe, ...valore }: { righe?: readonly RigaKpi[]; valore?: string; unita?: string; assente?: string; pieno?: string }) {
+  return righe?.length && !valore.assente ? <RigheKpi righe={righe} /> : <ValoreKpi {...valore} />;
 }
 
-/** Piu' numeri della tessera, uno per riga con la sua voce: l'elenco si legge anche senza l'etichetta. */
-function RigheKpi({ righe }: { righe: readonly { valore: string; voce: string }[] }) {
+/**
+ * Piu' numeri della tessera, uno per riga con la sua voce: l'elenco si legge anche senza l'etichetta. role="list" perche' con
+ * list-style none WebKit toglie il ruolo all'elenco (VoiceOver non annuncerebbe "elenco, 3 elementi").
+ */
+function RigheKpi({ righe }: { righe: readonly RigaKpi[] }) {
   return (
-    <ul className="ui-kpi__righe">
+    <ul className="ui-kpi__righe" role="list">
       {righe.map((r) => (
         <li key={r.voce}>
           <strong>{r.valore}</strong> {r.voce}

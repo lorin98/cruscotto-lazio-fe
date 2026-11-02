@@ -1,5 +1,7 @@
 // Kit dell'interfaccia UI v2 (ADR 0027, shared/ui e shared/lib/tabella): componenti generici, dati di prova inventati.
 // Il grafico e' quello finto di src/shared/test/setup.ts (jsdom non disegna).
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { act, useState } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
@@ -469,6 +471,33 @@ describe('Kpi', () => {
     const kpi = screen.getByRole('region', { name: 'Pagato' });
     expect(kpi.textContent).toContain('1,5M€');
     expect(within(kpi).getByRole('img', { name: '23,7%' })).toBeTruthy();
+  });
+  it('righe: un numero per riga con la sua voce, in un elenco; un elenco vuoto vale come nessuna riga (review step9 del 02/11)', () => {
+    render(<Kpi etichetta="Esiti" righe={[{ valore: '36.846', voce: 'pagate' }, { valore: '3191', voce: 'senza importi' }]} icona="it-card" />);
+    const kpi = screen.getByRole('region', { name: 'Esiti' });
+    const elenco = within(kpi).getByRole('list');
+    expect(within(elenco).getAllByRole('listitem').map((li) => li.textContent)).toEqual(['36.846 pagate', '3191 senza importi']);
+    expect(elenco.getAttribute('role')).toBe('list');
+    render(<Kpi etichetta="Vuota" valore="12" righe={[]} icona="it-card" />);
+    const vuota = screen.getByRole('region', { name: 'Vuota' });
+    expect(within(vuota).queryByRole('list')).toBeNull();
+    expect(vuota.textContent).toContain('12');
+  });
+  it("righe con un'assenza: prevale il motivo, nessun elenco", () => {
+    render(<Kpi etichetta="Esiti" righe={[{ valore: '1', voce: 'pagate' }]} assente="Non disponibile: sinottico non letto" icona="it-card" />);
+    const kpi = screen.getByRole('region', { name: 'Esiti' });
+    expect(within(kpi).queryByRole('list')).toBeNull();
+    expect(kpi.textContent).toBe('EsitiNon disponibile: sinottico non letto');
+  });
+  it('righe: il numero non si spezza, la voce va a capo e ha la misura del small del valore (tema.css)', () => {
+    const css = readFileSync(resolve(process.cwd(), 'src/shared/ui/tema.css'), 'utf8');
+    const regola = (selettore: string) => {
+      const i = css.indexOf(`\n${selettore} {`);
+      return i < 0 ? '' : css.slice(i, css.indexOf('}', i));
+    };
+    expect(regola('.ui-kpi__righe')).toContain('font-size: .95rem');
+    expect(regola('.ui-kpi__righe li')).not.toContain('nowrap');
+    expect(regola('.ui-kpi__righe strong')).toContain('white-space: nowrap');
   });
   it('assente: il testo completo al posto del valore, nessuna barra, mai zero', () => {
     render(<Kpi etichetta="Impegnato" valore="0" assente="Non disponibile: fonte impegni non attiva" quota={0.5} icona="it-card" />);

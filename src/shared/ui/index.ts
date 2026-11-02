@@ -29,7 +29,7 @@ export type { OpzioneInterruttore } from './card/Interruttore';
 export { TabellaDati, TabellaRighe, TabellaStatica, TabellaVoci } from './tabella/TabelleSemplici';
 export type { Colonna, ColonnaStatica, Voce } from './tabella/TabelleSemplici';
 export { Kpi } from './kpi/Kpi';
-export type { TonoKpi } from './kpi/Kpi';
+export type { RigaKpi, TonoKpi } from './kpi/Kpi';
 export { BarraFiltri } from './filtri/BarraFiltri';
 export { Caselle, Gruppo, Scelte } from './filtri/ControlliPannello';
 export type { OpzioneFiltro } from './filtri/ControlliPannello';
