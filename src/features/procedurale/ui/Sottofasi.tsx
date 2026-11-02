@@ -24,14 +24,13 @@ const SOTTOTITOLO =
 function SezioneSottofasi({ tipo, stato, pagina }: { tipo: TipoDomanda; stato: StatoQuery<DatiSottofasi>; pagina: PaginaDeiCriteri }) {
   // solo NO SIGC: col filtro SIGC la card e' non pertinente, letta senza filtro (F3)
   const { np } = letturaNoSigc(pagina.filtri, 'sottofasi');
+  // la non pertinenza avvolge anche l'errore della lettura (review M-05)
   return (
-    <VistaQuery stato={stato}>
-      {(s) => (
-        <NonPertinente np={np}>
-          <CardSottofasi key={ricercaDaCriteri(pagina.filtri)} tipo={tipo} s={s} criteri={pagina.filtri} onModifica={() => pagina.apri('vuoto')} conFiltri={conFiltri(pagina.filtri)} />
-        </NonPertinente>
-      )}
-    </VistaQuery>
+    <NonPertinente np={np}>
+      <VistaQuery stato={stato}>
+        {(s) => <CardSottofasi key={ricercaDaCriteri(pagina.filtri)} tipo={tipo} s={s} criteri={pagina.filtri} onModifica={() => pagina.apri('vuoto')} conFiltri={conFiltri(pagina.filtri)} />}
+      </VistaQuery>
+    </NonPertinente>
   );
 }
 

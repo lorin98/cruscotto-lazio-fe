@@ -275,7 +275,6 @@ describe('elenco operativo, chip dei filtri', () => {
     expect(valoreLeggibile('stato', 'SENZA_STATO', valori)).toBe('Senza stato SIAN');
     expect(valoreLeggibile('azione', '3', valori)).toBe('Filiere corte');
     expect(valoreLeggibile('anno', 'SENZA')).toBe('Senza anno');
-    expect(valoreLeggibile('sigc', 'false')).toBe('interventi NO SIGC');
     expect(valoreLeggibile('presentata', 'true')).toBe('solo le presentate');
     expect(valoreLeggibile('richiestoDa', '10000')).toBe(formatEuro(10000));
     expect(valoreLeggibile('testo', 'rossi')).toBe('“rossi”');

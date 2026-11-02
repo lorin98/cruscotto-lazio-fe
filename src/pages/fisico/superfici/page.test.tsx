@@ -475,3 +475,13 @@ describe('Revisioni del 31/10/2026: la voce dell area nel percorso porta il filt
     expect(await voce()).toBe('/fisico/superfici');
   });
 });
+
+describe('Residui della passata 3: il vuoto delle superfici non pertinenti (review M-05)', () => {
+  it('col filtro NO SIGC e nessuna superficie: badge e motivo, "Modifica i filtri" disattivato', async () => {
+    servi({ ...SUPERFICI, righe: SUPERFICI.righe.filter((r) => r.codiceIntervento === 'SRA29') });
+    apri(`${PERCORSO}?intervento=SRA29&sigc=false`);
+    const modifica = (await screen.findByRole('button', { name: 'Modifica i filtri' })) as HTMLButtonElement;
+    expect(screen.getAllByText('Non pertinente al filtro NO SIGC').length).toBeGreaterThan(0);
+    expect(modifica.disabled).toBe(true);
+  });
+});

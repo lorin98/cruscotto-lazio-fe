@@ -7,7 +7,7 @@
 // interruttore con aria-pressed); react-aria solo dentro il drawer del kit.
 import { useMemo, useState } from 'react';
 import { codiceDalClic } from '../../../shared/lib';
-import { CardGrafico, Griglia, InterruttoreVista, Kpi, Sezione, Vuoto, VuotoConFiltri } from '../../../shared/ui';
+import { CardGrafico, ConMotivoSeNonPertinente, Griglia, InterruttoreVista, Kpi, Sezione, Vuoto, VuotoConFiltri } from '../../../shared/ui';
 import type { ClicGrafico, NomeIcona, TonoKpi, VistaGrafico } from '../../../shared/ui';
 import type { SuperficieAmmissibile } from '../api';
 import type { InterventoSuperficie } from '../lib/dto';
@@ -89,10 +89,13 @@ export interface PropsReport {
 
 /** Nessuna superficie per gli interventi scelti: in nessuna campagna, o nella campagna filtrata (D1); mai una pagina di zeri. */
 function NessunaSuperficie({ campagna, onModifica }: { campagna: number | null; onModifica: () => void }) {
+  // con le superfici non pertinenti il vuoto dice il motivo e non invita a cambiare i filtri (review M-05)
   return (
-    <Vuoto>
-      <VuotoConFiltri onModifica={onModifica}>{testoNessunaSuperficie(campagna)}</VuotoConFiltri>
-    </Vuoto>
+    <ConMotivoSeNonPertinente>
+      <Vuoto>
+        <VuotoConFiltri onModifica={onModifica}>{testoNessunaSuperficie(campagna)}</VuotoConFiltri>
+      </Vuoto>
+    </ConMotivoSeNonPertinente>
   );
 }
 

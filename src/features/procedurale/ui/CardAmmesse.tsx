@@ -59,7 +59,7 @@ export function CardAmmesseConAtto({ righe, criteri }: PropsCard) {
   return (
     <CardGrafico
       titolo={TITOLO_CON_ATTO}
-      sottotitolo="Clic su una barra per il dettaglio dell'intervento; la vista Tabella apre le domande nell'elenco operativo"
+      istruzione="Clic su una barra per il dettaglio dell'intervento; la vista Tabella apre le domande nell'elenco operativo"
       dati={dati}
       fonte="Fonte: TX-0026. Con atto di concessione = domande di sostegno con numero o data dell'atto nel report CSR-DS. PNG: l'immagine del grafico; CSV e XLSX: l'export di TX-0026 coi filtri della pagina."
       altezza="alto"

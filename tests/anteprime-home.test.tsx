@@ -154,6 +154,23 @@ describe('RF026 e RF027: card Procedurale della Home (OP-PR-10)', () => {
     await expectNoA11yViolations(container);
   });
 
+  it('contributo compatto col valore pieno per i lettori di schermo e nel suggerimento (R09, R20; review M-10)', async () => {
+    conRuoli(['csr.tx-0026.read']);
+    const ammesse = ammessePer(senzaFiltri);
+    lettura('/api/procedurale/domande-ammesse', { ...ammesse, totale: { ...ammesse.totale, contributoAmmesso: { valore: 12_345_678, motivo: null, fonte: null } } });
+    renderConQuery(<AnteprimaProcedurale altrimenti={ALTRIMENTI} />);
+    const cifre = await screen.findByRole('group', { name: 'Il procedurale in cifre' });
+    // il compatto a vista, il pieno (con lo spazio indivisibile di formatEuro) per i lettori di schermo e nel suggerimento
+    const dd = await waitFor(() => {
+      const d = within(cifre).getByText('Contributo ammesso').parentElement?.querySelector('dd[title]');
+      if (!d) throw new Error('valore pieno non ancora reso');
+      return d;
+    });
+    expect(dd.getAttribute('title')).toBe(formatEuro(12_345_678));
+    expect(dd.querySelector('[aria-hidden="true"]')?.textContent).toBe('12,3 M€');
+    expect(dd.querySelector('.visually-hidden')?.textContent).toBe(formatEuro(12_345_678));
+  });
+
   it('ogni intervento con domande ammesse ha il contributo: nessuna nota sotto il valore', async () => {
     conRuoli(['csr.tx-0026.read']);
     const ammesse = ammessePer(senzaFiltri);
@@ -262,6 +279,24 @@ describe('RF016 e RF015: card Istituzionale della Home (OP-IS-11; tabella a conf
     if (indice < 0) throw new Error(`colonna ${colonna} assente`);
     return within(t).getByRole('rowheader', { name: riga }).closest('tr')?.querySelectorAll('td')[indice]?.textContent ?? '';
   }
+
+  it('spesa compatta col valore pieno per i lettori di schermo e nel suggerimento (R09, R20; review M-10)', async () => {
+    conRuoli(['csr.tx-0016.read']);
+    const righe = VERIFICA.righe.map((r, k) => (k === 0 ? { ...r, spesaErogata: { ...r.spesaErogata, valore: 12_345_678 } } : r));
+    lettura(VERIFICA_PATH, { ...VERIFICA, righe });
+    renderConQuery(<AnteprimaIstituzionale altrimenti={ALTRIMENTI} />);
+    const t = await tabella("L'istituzionale in cifre: verifica SMP non SIGC");
+    // la cella della spesa: il compatto a vista, il pieno per i lettori di schermo e nel suggerimento
+    const valore = await waitFor(() => {
+      const v = within(t).getByRole('rowheader', { name: 'Spesa pubblica erogata' }).closest('tr')?.querySelector('td span[title]');
+      if (!v) throw new Error('valore pieno non ancora reso');
+      return v;
+    });
+    const pieno = valore.querySelector('.visually-hidden')?.textContent ?? '';
+    expect(pieno).toMatch(/^12\.\d{3}\.\d{3},\d{2}.€$/);
+    expect(valore.getAttribute('title')).toBe(pieno);
+    expect(valore.querySelector('[aria-hidden="true"]')?.textContent).toMatch(/^12,\d.M€$/);
+  });
 
   it('col solo grant di TX-0016: la sola colonna non SIGC (cumulativi), senza domande pagate, la quota e la nota col file (D3); una lettura senza filtri ne anno', async () => {
     conRuoli(['csr.tx-0016.read']);

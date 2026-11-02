@@ -94,8 +94,15 @@ export function anteprimaVerificaSigc(d: Pick<VerificaSigc, 'righe'>): Anteprima
 /** Le righe della tabella a confronto della card (rework 2), dalle domande ricevute alla spesa. */
 export type RigaCard = 'ricevute' | 'finanziate' | 'pagate' | 'spesa';
 
-// la spesa compatta col valore pieno per i lettori di schermo (R09, R20; review V2-05)
-const RIGHE_CARD: readonly { chiave: RigaCard; etichetta: string; formato: (v: number) => string; formatoPieno?: (v: number) => string }[] = [
+/** Una riga della tabella della card: la spesa compatta ha il valore pieno per i lettori di schermo (R09, R20; V2-05, M-10). */
+export interface RigaDellaCard {
+  chiave: RigaCard;
+  etichetta: string;
+  formato: (v: number) => string;
+  formatoPieno?: (v: number) => string;
+}
+
+const RIGHE_CARD: readonly RigaDellaCard[] = [
   { chiave: 'ricevute', etichetta: 'Domande ricevute', formato: intero },
   { chiave: 'finanziate', etichetta: 'Domande finanziate', formato: intero },
   { chiave: 'pagate', etichetta: 'Domande pagate', formato: intero },
@@ -103,7 +110,7 @@ const RIGHE_CARD: readonly { chiave: RigaCard; etichetta: string; formato: (v: n
 ];
 
 /** Le righe della tabella: "Domande pagate" e' solo della verifica SIGC, quindi c'e' solo con la sua colonna. */
-export function righeCard(conSigc: boolean): { chiave: RigaCard; etichetta: string; formato: (v: number) => string }[] {
+export function righeCard(conSigc: boolean): RigaDellaCard[] {
   return RIGHE_CARD.filter((r) => conSigc || r.chiave !== 'pagate');
 }
 
