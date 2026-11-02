@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "elenco-operativo",
-  "current_step": 9,
+  "current_step": 3,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -22,15 +22,6 @@
     "step1-uiplan": {
       "status": "done",
       "gates": {
-        "wireframe_domande": {
-          "approved_hash": "sha256:7d56aed4a5aea1177abd6d4755ff9e1123369ef1b837a327d230655d28ad8acb",
-          "baseline_ref": "./wireframes/elenco-operativo/domande",
-          "approved_at": "2026-11-01T09:50:39Z",
-          "time_to_approve_s": 354,
-          "deviations_reviewed": [
-            "F3 della review FULL sul delta FE (21/10/2026, decisione dell'utente): stato 'atto di concessione non disponibile' non disegnato nel wireframe, come la nota delle azioni portanti; registrato come OP-EO-06 nello uiplan"
-          ]
-        },
         "wireframe_dettaglio-domanda": {
           "approved_hash": "sha256:4555d1e5508ddb3923d617adaf7079635f38d2e5b030ea8e4f585a85fecf77b2",
           "baseline_ref": "./wireframes/elenco-operativo/dettaglio-domanda",
@@ -46,16 +37,26 @@
           "deviations_reviewed": [
             "F3 della review FULL sul delta FE (21/10/2026, decisione dell'utente): stato 'atto di concessione non disponibile' non disegnato nel wireframe, come la nota delle azioni portanti; registrato come OP-EO-06 nello uiplan"
           ]
+        },
+        "wireframe_domande": {
+          "approved_hash": "sha256:00670688a60b94b4499ce65c37850dc3f254816d37c9305f183b82ea6b2a1d11",
+          "baseline_ref": "./wireframes/elenco-operativo/domande",
+          "approved_at": "2026-11-02T14:12:46Z",
+          "time_to_approve_s": 98,
+          "deviations_reviewed": [
+            "F3 della review FULL sul delta FE (21/10/2026, decisione dell'utente): stato 'atto di concessione non disponibile' non disegnato nel wireframe, come la nota delle azioni portanti; registrato come OP-EO-06 nello uiplan",
+            "Tessera Pagate / da pagare / senza importi su tre righe col numero e la sua voce (decisione dell utente del 02/11/2026). wireframe-lint: aggiunge i tag br e small alla deviazione preesistente dal vocabolario dei template (i wireframe del progetto usano tag e classi del tema, verdetto fail gia' prima della modifica)"
+          ]
         }
       },
-      "completed_at": "2026-11-01T09:50:53Z",
+      "completed_at": "2026-11-02T14:40:38Z",
       "artifacts": [
         "./plan/elenco-operativo/uiplan.json"
       ]
     },
     "step2-codegen": {
       "status": "done",
-      "completed_at": "2026-11-01T11:02:20Z",
+      "completed_at": "2026-11-02T14:46:11Z",
       "artifacts": [
         "./specs/.spec-lock.json",
         "./src/shared/api/generated"
@@ -67,89 +68,60 @@
       }
     },
     "step3-api": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-01T11:28:46Z",
       "artifacts": [
         "./src/features"
       ],
-      "gates": {
-        "api_wrappers_compile": "pass",
-        "querykey_from_factory": "pass"
-      }
+      "gates": {}
     },
     "step4-lib": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-01T11:28:53Z",
       "artifacts": [
         "./src/shared/lib"
       ],
-      "gates": {
-        "lib_pure_compile": "pass",
-        "lib_zero_react": "pass"
-      }
+      "gates": {}
     },
     "step5-ui": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-01T11:29:01Z",
       "artifacts": [
         "./src/features"
       ],
-      "gates": {
-        "ui_components_compile": "pass",
-        "ui_a11y_axe": "pass"
-      }
+      "gates": {}
     },
     "step6-page": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-01T11:29:11Z",
       "artifacts": [
         "./src/pages",
         "./plan/elenco-operativo/route-manifest.json"
       ],
-      "gates": {
-        "pages_compile": "pass",
-        "route_manifest_valid": "pass"
-      }
+      "gates": {}
     },
     "step7-test": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-01T11:29:19Z",
       "artifacts": [
         "./src/shared/test",
         "./src/shared/api/mock",
         "./src/shared/testing/axe.ts"
       ],
-      "gates": {
-        "tests_generated": "pass",
-        "msw_fail_closed": "pass"
-      }
+      "gates": {}
     },
     "step8-gate": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-02T08:37:04Z",
       "artifacts": [
         "./plan/elenco-operativo/fe-gate-report.json"
       ],
-      "gates": {
-        "lint": "pass",
-        "typecheck": "pass",
-        "test": "pass",
-        "a11y": "pass",
-        "build": "pass",
-        "fsd_import": "pass",
-        "orval_types": "pass",
-        "security": "pass",
-        "authz": "pass",
-        "wireframe_approved": "pass",
-        "req_coverage_ui": "pass"
-      }
+      "gates": {}
     },
     "step9-review": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-01T14:11:40Z",
-      "gates": {
-        "review": "pass"
-      }
+      "gates": {}
     }
   },
   "open_blockers": [],

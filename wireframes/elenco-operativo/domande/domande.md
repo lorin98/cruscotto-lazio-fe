@@ -41,6 +41,10 @@ Viste per ambito (D-1: cambiano colonne e indicatori, non le righe; resa lato cl
 | fisico | codice a barre, denominazione, intervento, anno, superficie di sostegno, superficie di pagamento | domande, beneficiari; il DTO di sintesi non porta somme di superficie: nessun totale di superficie |
 | istituzionale | codice a barre, tipo, denominazione, intervento, anno, prima annualita', provincia, ente delegato | domande, presentate, beneficiari; card per intervento |
 
+La tessera "Pagate / da pagare / senza importi" mostra i tre numeri uno per riga, ciascuno con la sua voce ("36.846 pagate",
+"31.595 da pagare", "3.191 senza importi"), anche con numeri grandi: mai su una riga sola che esce dalla tessera (richiesta
+dell'utente del 02/11/2026).
+
 Colonne ordinabili (elenco chiuso di TX-0056, D-04): codice a barre, tipo, CUAA, denominazione, intervento, anno, stato,
 provincia, ente, richiesto, ammesso, pagato, ancora da pagare, liquidato. Le altre colonne non hanno il bottone di ordinamento.
 
