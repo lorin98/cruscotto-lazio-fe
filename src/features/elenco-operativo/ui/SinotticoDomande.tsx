@@ -54,6 +54,8 @@ const INDICATORI: Record<Indicatore, (s: SinotticoElenco, vista: Vista) => React
         { valore: n(s.daPagare), voce: 'da pagare' },
         { valore: n(s.senzaImporti), voce: 'senza importi' },
       ]}
+      // pagate e da pagare si sovrappongono (D-09 del backend): la nota lo dice, cosi' non si sommano (wireframe del 02/11/2026)
+      nota="una domanda pagata in parte e' tra le pagate e tra le da pagare"
       icona="it-check-circle"
       tono="ambra"
     />

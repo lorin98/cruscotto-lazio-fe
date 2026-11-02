@@ -43,7 +43,8 @@ Viste per ambito (D-1: cambiano colonne e indicatori, non le righe; resa lato cl
 
 La tessera "Pagate / da pagare / senza importi" mostra i tre numeri uno per riga, ciascuno con la sua voce ("36.846 pagate",
 "31.595 da pagare", "3.191 senza importi"), anche con numeri grandi: mai su una riga sola che esce dalla tessera (richiesta
-dell'utente del 02/11/2026).
+dell'utente del 02/11/2026). Sotto i numeri la nota "una domanda pagata in parte e' tra le pagate e tra le da pagare": i due
+insiemi si sovrappongono (D-09 del backend, come nel finanziario) e non vanno sommati (decisione dell'utente del 02/11/2026).
 
 Colonne ordinabili (elenco chiuso di TX-0056, D-04): codice a barre, tipo, CUAA, denominazione, intervento, anno, stato,
 provincia, ente, richiesto, ammesso, pagato, ancora da pagare, liquidato. Le altre colonne non hanno il bottone di ordinamento.

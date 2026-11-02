@@ -1625,10 +1625,10 @@
         "Grafici del sinottico con la tabella equivalente; il clic su una barra aggiunge il filtro (chip) e lo annuncia"
       ],
       "approval": {
-        "approved_hash": "sha256:00670688a60b94b4499ce65c37850dc3f254816d37c9305f183b82ea6b2a1d11",
+        "approved_hash": "sha256:2894040bbb1b458d1d8ca235ffc9b991d6ca091ba32d449cdcb06915ec05c2e7",
         "baseline_ref": "./wireframes/elenco-operativo/domande",
-        "approved_at": "2026-11-02T14:12:46Z",
-        "time_to_approve_s": 98,
+        "approved_at": "2026-11-02T15:49:46Z",
+        "time_to_approve_s": 54,
         "rework_rounds": 0
       }
     },
