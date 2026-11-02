@@ -45,7 +45,19 @@ const INDICATORI: Record<Indicatore, (s: SinotticoElenco, vista: Vista) => React
   domande: (s) => <Kpi etichetta="Domande" valore={n(s.domande)} nota={`di sostegno ${n(s.sostegno)} - di pagamento ${n(s.pagamento)}`} icona="it-files" />,
   presentate: (s) => <Kpi etichetta="Presentate" valore={n(s.presentate)} nota={`di cui SIGC per domanda ${n(s.sigc)}`} icona="it-file-signed" tono="verde" />,
   beneficiari: (s) => <Kpi etichetta="Beneficiari distinti" valore={n(s.beneficiari)} icona="it-user" tono="scuro" />,
-  esitiPagamento: (s) => <Kpi etichetta="Pagate / da pagare / senza importi" valore={`${n(s.pagate)} / ${n(s.daPagare)} / ${n(s.senzaImporti)}`} icona="it-check-circle" tono="ambra" />,
+  // un numero per riga con la sua voce, anche con numeri grandi (wireframe del 02/11/2026: mai fuori dalla tessera)
+  esitiPagamento: (s) => (
+    <Kpi
+      etichetta="Pagate / da pagare / senza importi"
+      righe={[
+        { valore: n(s.pagate), voce: 'pagate' },
+        { valore: n(s.daPagare), voce: 'da pagare' },
+        { valore: n(s.senzaImporti), voce: 'senza importi' },
+      ]}
+      icona="it-check-circle"
+      tono="ambra"
+    />
+  ),
   richiesto: (s) => <KpiSomma etichetta="Richiesto" somma={s.richiesto} icona="it-chart-line" />,
   ammesso: (s) => <KpiSomma etichetta="Ammesso" somma={s.ammesso} icona="it-chart-line" />,
   pagato: (s, v) => (

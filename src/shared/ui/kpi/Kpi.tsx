@@ -11,6 +11,7 @@ export type TonoKpi = 'blu' | 'verde' | 'ambra' | 'scuro';
 export function Kpi({
   etichetta,
   valore,
+  righe,
   unita,
   nota,
   quota,
@@ -31,6 +32,11 @@ export function Kpi({
   /** Un badge in testo accanto all'etichetta (es. "Consuntivo" o "Previsione" della riserva). */
   badge?: string;
   valore?: string;
+  /**
+   * Piu' numeri nella stessa tessera, uno per riga con la sua voce ("36.846 pagate"), al posto di {@link valore}: mai su una
+   * riga sola che esce dalla tessera con numeri grandi (elenco operativo, richiesta dell'utente del 02/11/2026).
+   */
+  righe?: readonly { valore: string; voce: string }[];
   unita?: string;
   nota?: string;
   /** Quota fra 0 e 1 resa come barra; omessa se non calcolabile. */
@@ -52,7 +58,7 @@ export function Kpi({
   return (
     <section className={np ? 'ui-card ui-kpi ui-kpi--non-pertinente ui-dissolvenza' : 'ui-card ui-kpi ui-dissolvenza'} aria-label={np ? `${nome}, non pertinente al filtro ${np.filtro}` : nome}>
       <EtichettaKpi etichetta={etichetta} icona={icona} tono={tono} badge={badge} />
-      <ValoreKpi valore={valore} unita={unita} assente={assente} pieno={valorePieno} />
+      <CorpoKpi valore={valore} righe={righe} unita={unita} assente={assente} pieno={valorePieno} />
       {nota && <p className="ui-kpi__nota">{nota}</p>}
       {!assente && <BarraQuota quota={quota} />}
       <MotivoSeDovuto />
@@ -101,6 +107,24 @@ function ValoreKpi({ valore, unita, assente, pieno }: { valore?: string; unita?:
       {valore}
       {unita && <small>{unita}</small>}
     </p>
+  );
+}
+
+/** Il valore della tessera: piu' numeri uno per riga, oppure il valore singolo (o l'assenza col suo motivo, che prevale). */
+function CorpoKpi({ righe, ...valore }: { righe?: readonly { valore: string; voce: string }[]; valore?: string; unita?: string; assente?: string; pieno?: string }) {
+  return righe && !valore.assente ? <RigheKpi righe={righe} /> : <ValoreKpi {...valore} />;
+}
+
+/** Piu' numeri della tessera, uno per riga con la sua voce: l'elenco si legge anche senza l'etichetta. */
+function RigheKpi({ righe }: { righe: readonly { valore: string; voce: string }[] }) {
+  return (
+    <ul className="ui-kpi__righe">
+      {righe.map((r) => (
+        <li key={r.voce}>
+          <strong>{r.valore}</strong> {r.voce}
+        </li>
+      ))}
+    </ul>
   );
 }
 
