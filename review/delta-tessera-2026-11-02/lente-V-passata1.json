@@ -1,0 +1,20 @@
+[
+  {
+    "id": "V1",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/tema.css:208",
+    "titolo": "La riga piu' lunga della tessera non va mai a capo: con 6-7 cifre la voce viene tagliata dentro le tessere strette del sinottico",
+    "evidenza": "Il wireframe approvato (domande.md:44-46) chiede i tre numeri 'anche con numeri grandi: mai [...] fuori dalla tessera'; nel wireframe (domande.html:156, wireframe.css:58) la riga non ha nowrap e la voce puo' andare a capo. Nel codice `.ui-kpi__righe li { white-space: nowrap }` (tema.css:208) dentro `.ui-kpi { overflow: hidden }` (tema.css:200); il numero scende al minimo 1.05rem (8cqi arriva a 16,8px solo con contenuto >= 210px) e la voce e' fissa a 16px 600. Il sinottico usa colonne da 170px (tema.css:468): con le metriche reali di Titillium Web (ttf di bootstrap-italia) e tessera da 170-173px (viewport 1280 con menu: 5 colonne da ~172px) il contenuto e' ~130px e la parte visibile fino al bordo di padding ~150px. '3191 senza importi' misura ~135px (entra nel padding), '123.456 senza importi' ~157px e '1.234.567 senza importi' ~170px vengono troncati senza ellissi; '1.234.567 da pagare' ~145px sfiora il taglio. Con i numeri attuali (5 cifre) la resa e' corretta, quindi il rischio e' limitato a volumi futuri o a voci piu' lunghe passate al kit.",
+    "fix": "Lasciare andare a capo la voce tenendo unito il numero: `.ui-kpi__righe li { white-space: normal }` e `.ui-kpi__righe strong { white-space: nowrap }` (oppure `overflow-wrap: anywhere` sulla voce), cosi' la riga lunga va su due linee invece di essere tagliata da overflow: hidden."
+  },
+  {
+    "id": "V2",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/kpi/Kpi.tsx:114",
+    "titolo": "Il ramo del kit 'righe con assente: prevale l'assenza col motivo' non e' provato da nessun test",
+    "evidenza": "CorpoKpi (Kpi.tsx:114-116) dichiara nella JSDoc e nel brief che con `righe` e `assente` insieme si mostra l'assenza col motivo (mai i numeri). L'unico test del delta (src/pages/elenco-operativo/domande/page.test.tsx:23-37) copre solo il caso con tre righe valorizzate; il kit non ha un test proprio di Kpi (nessun Kpi.test.tsx in src/shared/ui/kpi, nessun altro test usa `righe`). Oggi nessun chiamante passa `righe` con `assente` (SinotticoDomande.tsx:49-60), quindi il ramo e' scoperto ma non raggiungibile in produzione; la resa delle altre tessere (ramo ValoreKpi invariato, stesse prop) resta coperta indirettamente dai test di pagina delle cinque feature.",
+    "fix": "Aggiungere un test di unita' del kit (es. src/shared/ui/kpi/Kpi.test.tsx) con `righe` + `assente`: si vede il testo dell'assenza in `.ui-kpi__valore--assente`, nessun listitem; e un caso senza `righe` che verifica il paragrafo `.ui-kpi__valore` col valore e l'unita' come prima."
+  }
+]

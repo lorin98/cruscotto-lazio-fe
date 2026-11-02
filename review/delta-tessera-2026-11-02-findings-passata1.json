@@ -1,0 +1,65 @@
+[
+  {
+    "id": "J-01",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/tema.css:208",
+    "titolo": "Righe della tessera in nowrap dentro una tessera con overflow hidden: la voce piu' lunga si taglia senza segnale invece di andare a capo (assorbe V1, H3, A2)",
+    "evidenza": "`.ui-kpi__righe li { white-space: nowrap }` (tema.css:208) sta dentro `.ui-kpi { overflow: hidden }` (:200), con tracce del sinottico da 170 px (:468) e numero gia' al minimo del clamp (:209): una riga piu' larga della tessera viene ritagliata, senza title ne' testo pieno. Con i dati di oggi ('3191 senza importi', circa 147 px su 150-168 px visibili) la resa regge, ma 'senza importi' a cinque cifre si taglia a 1280 px, e con la spaziatura del testo di WCAG 1.4.12 (NFR-70; SF-02 la cita) si taglia gia' oggi a 1366 e 1920 px (stima coi metrici di Titillium Web, non vista in un browser). Il wireframe approvato (wireframe.css:58) non ha nowrap e il commento di SinotticoDomande.tsx:48 promette 'mai fuori dalla tessera'.",
+    "fix": "In tema.css:208 togliere `white-space: nowrap` dal `li` e metterlo sul solo `.ui-kpi__righe strong` (:209): il numero resta intero e nel caso peggiore la voce va a capo. Fissare la regola con `regolaDelTema` (tests/kit-comune-procedurale.test.tsx:20), come le altre regole del tema."
+  },
+  {
+    "id": "J-02",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/tema.css:207",
+    "titolo": "Voce piu' grande del numero: l'elenco eredita 1,125rem da Bootstrap Italia mentre il numero resta a 1,05rem (A1)",
+    "evidenza": "`.ui-kpi__righe` (tema.css:207) non fissa font-size e Bootstrap Italia da' a `ul` 1.125rem da 576 px in su (`@media(min-width: 576px){p,ul,ol,dl{font-size:1.125rem;line-height:1.75rem}}`): la voce e' a 18 px, il numero (`strong`, :209, `clamp(1.05rem, 8cqi, 1.35rem)`) resta a 16,8 px perche' 8cqi supera 1.05rem solo oltre 210 px di contenuto, che le tracce del sinottico non raggiungono. Il wireframe approvato (domande.html:156, wireframe.css:58) ha il numero a 1.7rem e la voce in `<small>`: la gerarchia e' rovesciata, e la riga e' piu' larga di circa il 12% (peggiora J-01).",
+    "fix": "Dare a `.ui-kpi__righe` (tema.css:207) `font-size: .95rem`, la misura della voce accanto al valore (`.ui-kpi__valore small`, :204): la voce torna piu' piccola del numero su tutte le larghezze."
+  },
+  {
+    "id": "J-03",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "tests/shared-ui-kit.test.tsx:466",
+    "titolo": "Il ramo nuovo del kit (righe, e assenza che prevale sulle righe) non ha un test del kit (assorbe V2, H5 e la parte di test di A4)",
+    "evidenza": "Il describe('Kpi') di tests/shared-ui-kit.test.tsx (466-487) prova valore, assente e quota, non `righe`; l'unico test della prop e' quello di pagina (src/pages/elenco-operativo/domande/page.test.tsx:23-37), con tre righe e senza assenza. La precedenza dichiarata in Kpi.tsx:113 e nel messaggio di a5a03ec ('l'assenza col motivo prevale') non e' provata da nessun test; oggi nessun chiamante passa `righe` con `assente` (SinotticoDomande.tsx:49-60).",
+    "fix": "Aggiungere al describe('Kpi') di tests/shared-ui-kit.test.tsx: (1) con `righe` un listitem per riga col testo 'numero voce' e nessun `.ui-kpi__valore`; (2) con `righe` e `assente` il testo dell'assenza, nessun listitem e nessuna barra; (3) dopo J-04, con `righe={[]}` nessuna lista."
+  },
+  {
+    "id": "J-04",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/kpi/Kpi.tsx:115",
+    "titolo": "Contratto di `righe` aperto: un elenco vuoto rende un `ul` vuoto; valore, unita' e valore pieno ignorati in silenzio (H2 e la parte di codice di A4)",
+    "evidenza": "CorpoKpi sceglie l'elenco con `righe && !valore.assente` (Kpi.tsx:115): `[]` e' truthy, quindi `righe={[]}` rende un `<ul>` vuoto. Con `righe` presenti, `valore`, `unita` e `valorePieno` passati insieme si scartano senza segnale: il tipo li ammette (31-40) e la JSDoc (35-38) dice solo 'al posto di valore'. Latente: l'unico chiamante (SinotticoDomande.tsx:52-56) passa tre righe fisse.",
+    "fix": "In Kpi.tsx:115 scegliere l'elenco con `righe?.length && !valore.assente` (righe vuote = ramo di ValoreKpi, come una tessera senza valore) e dire nella JSDoc di `righe` (Kpi.tsx:35-38) che con le righe `valore`, `unita` e `valorePieno` non si rendono."
+  },
+  {
+    "id": "J-05",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/kpi/Kpi.tsx:39",
+    "titolo": "Tipo della riga della tessera ripetuto tre volte e non esportato dal kit (H1)",
+    "evidenza": "La forma `{ valore: string; voce: string }` e' scritta in linea in Kpi.tsx:39 (prop di Kpi), :114 (CorpoKpi) e :119 (RigheKpi). Il kit esporta con un nome i tipi degli elementi delle sue prop (`TonoKpi` in src/shared/ui/index.ts:32, `RigaPiede` :47, `RigaConfronto` :55); per `righe` no.",
+    "fix": "Dichiarare in Kpi.tsx `export type RigaKpi = { valore: string; voce: string }`, usarlo nelle tre firme (`readonly RigaKpi[]`) ed esportarlo da src/shared/ui/index.ts:32 accanto a `TonoKpi`."
+  },
+  {
+    "id": "J-06",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/kpi/Kpi.tsx:121",
+    "titolo": "Elenco con list-style none senza role=\"list\": su WebKit (iOS, profilo dichiarato) VoiceOver non lo annuncia come elenco (A3)",
+    "evidenza": "`<ul className=\"ui-kpi__righe\">` (Kpi.tsx:121) prende `list-style: none` (tema.css:207); WebKit toglie il ruolo di elenco alle liste senza marcatori fuori da un `nav`, quindi VoiceOver legge le tre righe come testo. README (233-244) e playwright.config.ts:13 trattano WebKit iOS come profilo da coprire; il test di page.test.tsx:33 (`getAllByRole('listitem')`) gira in jsdom, che non applica l'euristica. Il contenuto resta leggibile, si perde la struttura (WCAG 1.3.1).",
+    "fix": "Aggiungere `role=\"list\"` all'`ul` di RigheKpi (Kpi.tsx:121)."
+  },
+  {
+    "id": "J-07",
+    "feature": "comune",
+    "severity": "COSMETICO",
+    "file": "src/shared/ui/tema.css:502",
+    "titolo": "Lo stato non pertinente (F3) della tessera non mette in grigio le righe nuove (H4)",
+    "evidenza": "Il selettore di tema.css:502 mette in grigio `.ui-kpi__valore`, `.ui-barra` e `.ui-kpi__icona` delle tessere non pertinenti, non `.ui-kpi__righe` (:207-209). Oggi nessun effetto: l'elenco operativo non usa <NonPertinente> e i colori delle righe (--ui-testo #17212b, --ui-attenuato #546474) sono quasi neutri.",
+    "fix": "Aggiungere `.ui-kpi--non-pertinente .ui-kpi__righe` al selettore di tema.css:502."
+  }
+]

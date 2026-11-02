@@ -1,0 +1,38 @@
+[
+  {
+    "id": "A1",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/tema.css:207",
+    "titolo": "Le voci delle righe sono piu' grandi dei numeri: l'elenco eredita 1,125rem da Bootstrap Italia e il numero resta a 1,05rem su tutte le larghezze desktop del sinottico",
+    "evidenza": "`.ui-kpi__righe` (tema.css:207) imposta margin, padding, list-style e line-height, ma non font-size. Bootstrap Italia ha `@media (min-width: 576px) { p, ul, ol, dl { font-size: 1.125rem; line-height: 1.75rem } }` (bootstrap-italia.min.css). Quindi da 576 px in su `ul` e `li` stanno a 18 px, e la voce ('pagate', 'da pagare', 'senza importi', peso 600) e' a 18 px. Il numero (`strong`, tema.css:209) ha `clamp(1.05rem, 8cqi, 1.35rem)`, con cqi riferito alla `.ui-kpi` (container-type, tema.css:200). Le tracce del sinottico (`minmax(170px, 1fr)`, tema.css:468) alle larghezze comuni sono di 172-205 px: corpo di circa 130-163 px, quindi 8cqi vale 10-13 px e il clamp resta a 16,8 px fino a una traccia di circa 252 px. Risultato: numero a 16,8 px, voce a 18 px. E' la gerarchia opposta al wireframe approvato (domande.html:156: numero nella misura di `.ui-kpi__valore`, voce in `<small>`, cioe' .95rem in tema.css:204). Le altre p della Kpi (etichetta, valore, nota) fissano tutte il proprio font-size; questa e' la sola che lo eredita. L'eredita' allarga anche ogni riga di circa il 12% (\"senza importi\" e' 108,5 px a 18 px e 91,7 px a .95rem, misurato coi metrici di Titillium Web dai ttf di bootstrap-italia), e questo peggiora A2.",
+    "fix": "Dare a `.ui-kpi__righe` un font-size esplicito per la voce, per esempio .95rem come `.ui-kpi__valore small`, e tenere il numero piu' grande della voce, come nel wireframe. Va valutato anche di alzare il minimo del clamp del `strong`, che con le tracce del sinottico non si muove mai dal minimo."
+  },
+  {
+    "id": "A2",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/tema.css:208",
+    "titolo": "Righe in nowrap dentro una tessera con overflow hidden: la voce 'senza importi' si taglia senza segnale con 5-7 cifre alle tracce strette del sinottico, e con la spaziatura del testo (WCAG 1.4.12) anche coi dati di oggi",
+    "evidenza": "Il `li` ha `white-space: nowrap` (tema.css:208) e la `.ui-kpi` ha `overflow: hidden` (tema.css:200). Una riga che supera il corpo invade il padding destro (20 px), poi viene tagliata, e non c'e' title ne' testo pieno di riserva come con valorePieno. Ho misurato coi metrici di Titillium Web 700/600 (ttf di bootstrap-italia), con numero a 16,8 px e letter-spacing -0,02em e voce a 18 px (vedi A1). Larghezza della riga: '3191 senza importi' 147,2 px, '36.846 senza importi' 160,3 px, '313.191 senza importi' 169,3 px, '1.234.567 senza importi' 182,4 px, '1.234.567 da pagare' 153,6 px. Spazio visibile = traccia - 22 px. A 1280 px la traccia e' 172,6 px (menu 280, pagina 2 x 28, scrollbar 17, cinque colonne), quindi 150,6 px visibili. A 1680 px e' 175,9 px (153,9 visibili). A 1366 e 1920 px e' circa 189,7 px (167,7 visibili). A 768 px, senza menu, e' 172 px. Quindi: con 'senza importi' da 10.000 in su la voce si taglia a 1280, 1680 e 768 px; da 100.000 in su anche a 1366 e 1920 px; con 7 cifre si taglia anche 'da pagare' a 1280. Con la spaziatura di WCAG 1.4.12 (lettere 0,12em, parole 0,16em) gia' '3191 senza importi' arriva a circa 191 px: a 1366 e 1920 px si perdono circa 24 px ('senza impo'), a 1440 px (traccia 204,6) circa 9 px. Il commento di SinotticoDomande.tsx:48 dice 'mai fuori dalla tessera' e il test di page.test.tsx:23 dice 'anche con numeri grandi', ma jsdom non fa layout e nessuna regola del tema e' fissata da un test. Lo zoom al 200% e al 400% della pagina intera regge (a 320 px una colonna, traccia 271 px). E' lo stesso meccanismo di A-01 della card istituzionale del 31/10 (MINORE), chiuso togliendo il nowrap.",
+    "fix": "Lasciare andare a capo la voce: `white-space: normal` sul `li` (il numero non ha spazi, quindi resta intero), oppure `nowrap` solo sullo `strong`. Fissare la regola con `regolaDelTema` (tests/kit-comune-procedurale.test.tsx:20), come per le altre regole del tema. Correggere il commento di SinotticoDomande.tsx:48 se resta un caso di taglio."
+  },
+  {
+    "id": "A3",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/kpi/Kpi.tsx:121",
+    "titolo": "Elenco con list-style none senza role=\"list\": con VoiceOver su WebKit (iOS, dichiarato nel README) l'elenco non viene annunciato, e il test lo verifica solo in jsdom",
+    "evidenza": "`<ul className=\"ui-kpi__righe\">` (Kpi.tsx:121) prende `list-style: none` (tema.css:207). WebKit/Safari toglie il ruolo di elenco agli `ul` senza marcatori fuori da un `nav`, e VoiceOver legge le tre righe come testo senza 'elenco, 3 elementi'. Il README (righe 233-244) e playwright.config.ts:13 trattano WebKit iOS come piattaforma da coprire. Il commento di RigheKpi (Kpi.tsx:118: 'l'elenco si legge anche senza l'etichetta') e il test di page.test.tsx:33 (`getAllByRole('listitem')`) danno per certa la semantica di elenco, ma jsdom non applica l'euristica di WebKit. Il contenuto resta leggibile, si perde solo la struttura (WCAG 1.3.1).",
+    "fix": "Aggiungere `role=\"list\"` all'`ul` di RigheKpi. E' un attributo, non cambia la resa ne' i test esistenti."
+  },
+  {
+    "id": "A4",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/kpi/Kpi.tsx:115",
+    "titolo": "Ramo nuovo del kit senza test di kit: 'l'assenza prevale' non e' provata, e con righe vuote la tessera resta senza valore e senza assenza",
+    "evidenza": "CorpoKpi sceglie `righe && !valore.assente ? <RigheKpi/> : <ValoreKpi/>` (Kpi.tsx:115). Un array vuoto e' truthy: `righe={[]}` rende un `ul` vuoto, la tessera mostra solo l'etichetta, e il valore sparisce senza 'non disponibile'. Questo e' contro la regola della testata del componente (Kpi.tsx:1-2: 'Un valore assente non diventa mai zero: la tessera dice non disponibile con il motivo'). Quando ci sono le righe, anche `valore`, `unita` e `valorePieno` passati insieme vengono ignorati in silenzio. I test di kit della Kpi (tests/shared-ui-kit.test.tsx:466-486) coprono valore, assente e quota, non `righe`. L'unico test della prop e' quello di pagina (page.test.tsx:23), senza assente. Il ramo 'assente con righe', dichiarato nel commento di Kpi.tsx:113 e nel messaggio di a5a03ec, non ha prove. Oggi l'unico chiamante (SinotticoDomande.tsx:52-56) passa sempre tre righe con voci distinte (la key `r.voce` di Kpi.tsx:123 e' quindi unica), percio' il difetto non si vede in produzione.",
+    "fix": "In CorpoKpi usare `righe?.length` invece di `righe`. Aggiungere in tests/shared-ui-kit.test.tsx due casi: righe resa come elenco con voci e numeri; assente con righe che mostra il motivo e nessun `listitem`. Facoltativo: tipizzare `righe` e `valore` come alternative esclusive."
+  }
+]

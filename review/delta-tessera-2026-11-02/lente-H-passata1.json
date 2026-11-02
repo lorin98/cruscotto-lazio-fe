@@ -1,0 +1,47 @@
+[
+  {
+    "id": "H1",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/kpi/Kpi.tsx:39",
+    "titolo": "Tipo della riga della tessera ripetuto tre volte e non esportato dal kit",
+    "evidenza": "La forma `{ valore: string; voce: string }` e' scritta in linea tre volte nello stesso file: nella prop `righe` di Kpi (riga 39), nei parametri di CorpoKpi (riga 114) e di RigheKpi (riga 119). Il kit da' un nome ed esporta i tipi degli elementi delle sue prop (`TonoKpi` in index.ts:32, `RigaPiede` in index.ts:47, `RigaConfronto`/`ColonnaConfronto` in index.ts:55); per `righe` una feature che vuole costruire o tipizzare l'elenco fuori dal JSX deve passare da `ComponentProps<typeof Kpi>['righe']`. Ogni estensione della riga (es. un valore pieno per riga, R09) va ripetuta in tre punti.",
+    "fix": "Dichiarare una volta `export type RigaKpi = { valore: string; voce: string }` in Kpi.tsx, usarlo nelle tre firme (`readonly RigaKpi[]`) ed esportarlo da src/shared/ui/index.ts accanto a `TonoKpi`."
+  },
+  {
+    "id": "H2",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/kpi/Kpi.tsx:115",
+    "titolo": "Contratto di `righe` aperto: un elenco vuoto rende una tessera senza valore e senza motivo; valore, unita' e valore pieno ignorati in silenzio",
+    "evidenza": "CorpoKpi sceglie l'elenco con `righe && !valore.assente`: un array vuoto e' truthy, quindi `righe={[]}` rende un `<ul>` vuoto e la tessera mostra solo l'etichetta, senza valore e senza 'non disponibile', contro l'invariante dichiarato nella testata del file (righe 1-2: 'Un valore assente non diventa mai zero: la tessera dice non disponibile con il motivo'). Con `righe` presenti, `valore`, `unita` e `valorePieno` passati insieme vengono scartati senza alcun segnale: il tipo li ammette tutti (righe 31-40) e la JSDoc dice solo 'al posto di valore'. Oggi l'unico chiamante (SinotticoDomande.tsx:52-56) passa tre righe fisse, quindi il difetto e' latente, ma la prop e' nel kit comune usato da cinque feature.",
+    "fix": "Scegliere l'elenco solo con `righe && righe.length > 0 && !valore.assente` (righe vuote = ramo di ValoreKpi, che senza valore va gestito come assente dal chiamante) e dire nella JSDoc di `righe` che `valore`, `unita` e `valorePieno` non si rendono; in alternativa rendere esclusive le due forme nel tipo (`righe?: never` quando c'e' `valore` e viceversa)."
+  },
+  {
+    "id": "H3",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/tema.css:208",
+    "titolo": "Le righe non hanno via d'uscita in larghezza: voce non scalabile e `nowrap` su tutta la riga dentro una tessera con `overflow: hidden`",
+    "evidenza": "Nel sinottico le tessere sono larghe almeno 170 px (tema.css:468), con padding 1.25rem e bordo (tema.css:161): con tre o piu' colonne l'area di contenuto sta fra 128 e 190 px (a 1280 px di viewport col menu da 280 px: 5 colonne da ~173 px, contenuto ~131 px; su un telefono da 390 px: 2 colonne da ~171 px, contenuto ~129 px). Il numero usa `clamp(1.05rem, 8cqi, 1.35rem)` (riga 209), ma 8cqi scende sotto 1.05rem appena il contenuto e' sotto 210 px: nel sinottico il numero e' sempre al minimo e la container query non riduce nulla. La voce eredita 1rem (16 px, semibold), non scala, e `white-space: nowrap` vale per tutto il `li` (riga 208); oltre il padding la `.ui-kpi` ritaglia (`overflow: hidden`, riga 200). Con le metriche di Titillium Web del pacchetto bootstrap-italia (SVG: cifre 560/1000 nel 700, 'senza importi' 5810/1000 nel 600) la riga '3191 senza importi' misura ~135 px (sborda nel padding), '36.846 senza importi' ~148 px (al limite di ritaglio, ~148-151 px) e '123.456 senza importi' ~157 px: con sei cifre la voce viene tagliata a 1280 px e sul telefono. Le righe 'pagate' e 'da pagare' entrano anche a sette cifre. Con i volumi attuali (3191 su ~71.600 domande) il caso non si presenta, ma la promessa del wireframe ('anche con numeri grandi: mai fuori dalla tessera', domande.md righe 44-46) si regge solo sul fatto che i numeri restino piccoli.",
+    "fix": "Tenere `white-space: nowrap` solo sullo `strong` (il numero non si spezza) e lasciare che la voce vada a capo (li con `white-space: normal`, o `display: flex; flex-wrap: wrap; column-gap`), cosi' il caso peggiore e' una riga in piu' e non un ritaglio; per coerenza col kit dare alla voce la misura della voce accanto al valore (`.ui-kpi__valore small`, tema.css:204: .95rem)."
+  },
+  {
+    "id": "H4",
+    "feature": "comune",
+    "severity": "COSMETICO",
+    "file": "src/shared/ui/tema.css:502",
+    "titolo": "Lo stato non pertinente (F3) della tessera non comprende le righe nuove",
+    "evidenza": "La regola F3 della tessera elenca le parti da mettere in grigio: `.ui-kpi--non-pertinente .ui-kpi__valore, .ui-kpi--non-pertinente .ui-barra, .ui-kpi--non-pertinente .ui-kpi__icona { filter: grayscale(1); }`; `.ui-kpi__righe` (righe 207-209) non c'e'. Oggi nessun effetto: l'elenco operativo non usa <NonPertinente> e i colori delle righe (--ui-testo #17212b, --ui-attenuato #546474) sono quasi neutri, ma un Kpi con `righe` dentro <NonPertinente> sarebbe l'unica tessera del kit con il valore fuori dalla regola.",
+    "fix": "Aggiungere `.ui-kpi--non-pertinente .ui-kpi__righe` al selettore di tema.css:502."
+  },
+  {
+    "id": "H5",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "tests/shared-ui-kit.test.tsx:466",
+    "titolo": "Il ramo nuovo del kit (righe, e assenza che prevale sulle righe) non ha un test del kit",
+    "evidenza": "Ogni comportamento di Kpi ha il suo test nel describe('Kpi') di tests/shared-ui-kit.test.tsx (righe 466-488: valore e quota, assente al posto del valore, quota oltre 1), piu' kit-comune.test.tsx:114 e kit-sigc.test.tsx:158/258. Il delta aggiunge a Kpi un secondo modo di rendere il valore (CorpoKpi/RigheKpi, Kpi.tsx:113-129) e una precedenza dichiarata ('l'assenza col motivo prevale', riga 113), ma l'unico test e' quello di pagina dell'elenco operativo (src/pages/elenco-operativo/domande/page.test.tsx:23-37), che copre solo tre righe senza assenza. La precedenza `assente` su `righe` non e' provata da nessun test, e una regressione del kit si vedrebbe solo da una pagina di una feature.",
+    "fix": "Aggiungere al describe('Kpi') di tests/shared-ui-kit.test.tsx due casi: con `righe` un listitem per riga col testo 'numero voce' e nessun `.ui-kpi__valore`; con `righe` e `assente` il testo dell'assenza, nessuna lista e nessuna barra."
+  }
+]
