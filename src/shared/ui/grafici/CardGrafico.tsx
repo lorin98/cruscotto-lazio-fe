@@ -120,6 +120,8 @@ function CorpoCard({
 interface PropsCardGrafico {
   titolo: string;
   sottotitolo?: string;
+  /** Le istruzioni d'uso dopo il sottotitolo ("Clic su una barra: ..."): la card non pertinente non le mostra (M-04). */
+  istruzione?: string;
   dati: DatiGrafico;
   fonte: string;
   altezza?: AltezzaGrafico;
@@ -172,7 +174,8 @@ export function CardGrafico(props: PropsCardGrafico) {
 }
 
 function CardNormale(props: PropsCardGrafico) {
-  const { titolo, sottotitolo, dati, fonte, altezza = 'normale', onClic, strumenti, scaricamenti = [], livello = 2, tabella, nomeFile: base, oggettoDati, oggettoPng, senzaPng } = props;
+  const { titolo, dati, fonte, altezza = 'normale', onClic, strumenti, scaricamenti = [], livello = 2, tabella, nomeFile: base, oggettoDati, oggettoPng, senzaPng } = props;
+  const sottotitolo = [props.sottotitolo, props.istruzione].filter(Boolean).join('. ') || undefined;
   const id = useId();
   const [vista, setVista] = useVista(props.vistaIniziale, props.onVista);
   const disegnabile = dati.opzioni !== null;

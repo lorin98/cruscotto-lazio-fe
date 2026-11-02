@@ -44,8 +44,11 @@ export function MotivoNonPertinente({ np }: { np: NonPertinenza }) {
 }
 
 const ATTIVABILI = 'a[href], button, input, select, textarea, summary, [tabindex], [contenteditable="true"]';
-/** La paginazione delle tabelle: leggere le righe oltre la prima pagina non e' un'azione sul dato (review X-05). */
-const PAGINAZIONE = '.ui-paginazione';
+/**
+ * Le zone di lettura che restano attive: la paginazione delle tabelle (leggere le righe oltre la prima pagina non e'
+ * un'azione sul dato, review X-05) e le voci omesse dei grafici, anche delle card annidate (review M-01).
+ */
+const LETTURA = '.ui-paginazione, .ui-omessi';
 /** Il riquadro scorrevole di una tabella: resta focalizzabile per scorrere da tastiera (axe scrollable-region-focusable). */
 const RIQUADRO = '.ui-tabella-contenitore';
 
@@ -60,7 +63,7 @@ function nativo(el: HTMLElement): el is HTMLButtonElement | HTMLInputElement | H
 
 /** Le zone di lettura restano: la paginazione; il riquadro scorrevole a vista (nascosto alla vista non prende il focus). */
 function restaDiLettura(el: HTMLElement): boolean {
-  if (el.closest(PAGINAZIONE)) return true;
+  if (el.closest(LETTURA)) return true;
   if (!el.matches(RIQUADRO)) return false;
   if (el.closest('.visually-hidden')) imposta(el, 'tabindex', '-1');
   return true;
@@ -89,7 +92,7 @@ function disattiva(radice: HTMLElement): void {
 
 /** Vero se l'evento nasce in una zona di lettura (la paginazione), che resta attiva. */
 function diLettura(e: SyntheticEvent): boolean {
-  return e.target instanceof Element && e.target.closest(PAGINAZIONE) !== null;
+  return e.target instanceof Element && e.target.closest(LETTURA) !== null;
 }
 
 /** Clic e tasti di attivazione: niente azione ne' propagazione, fuori dalle zone di lettura. */
@@ -128,6 +131,10 @@ export function CorpoNonPertinente({ children }: { children: ReactNode }) {
       onPointerDownCapture={nonPropagare}
       onMouseDownCapture={nonPropagare}
       onWheelCapture={nonPropagare}
+      // al tocco i grafici (zrender) ascoltano touchstart, touchmove e touchend: niente legenda ne' zoom (review M-03)
+      onTouchStartCapture={nonPropagare}
+      onTouchMoveCapture={nonPropagare}
+      onTouchEndCapture={nonPropagare}
       onKeyDownCapture={(e) => {
         if (e.key === 'Enter' || e.key === ' ') ferma(e);
       }}

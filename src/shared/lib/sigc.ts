@@ -68,7 +68,7 @@ export function senzaIstruzioni(testo: string | undefined): string | undefined {
   const restano = frasi.filter((f) => !/^(clic|trascina)\b/i.test(f.trim()));
   if (restano.length === frasi.length) return testo;
   const unito = restano.join(' ').trim().replace(/;$/, '.');
-  return unito || undefined;
+  return unito ? unito.charAt(0).toUpperCase() + unito.slice(1) : undefined;
 }
 
 /** Una card (o una pagina) di un solo tipo col filtro opposto: il filtro scelto e il motivo leggibile. */

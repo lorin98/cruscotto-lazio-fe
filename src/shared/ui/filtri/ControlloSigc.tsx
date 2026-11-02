@@ -1,6 +1,6 @@
 // ControlloSigc — il controllo "Tutti | SIGC | NO SIGC" della barra dei filtri (revisioni del 31/10/2026, R01, F1-F3): un
 // gruppo di tre bottoni con aria-pressed (l'interruttore del kit) che legge e scrive il parametro `sigc` dell'indirizzo,
-// lasciando gli altri (i filtri della pagina) e riportando la tabella alla prima pagina. Ogni report lo legge dal suo
+// lasciando gli altri (i filtri della pagina) (la prima pagina delle tabelle la garantiscono le pagine con la chiave dei criteri). Ogni report lo legge dal suo
 // indirizzo insieme agli altri criteri; il menu lo porta da una pagina e da un'area all'altra. Il cambio non sposta il
 // focus (il bottone premuto resta al suo posto). Una pagina che scrive i criteri a modo suo (l'elenco operativo: replace, state
 // della vista, bozza del debounce) lo controlla con valore e onCambia (review J-04): allora l'indirizzo non lo tocca qui.

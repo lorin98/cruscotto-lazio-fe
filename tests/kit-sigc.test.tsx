@@ -23,7 +23,7 @@ describe('R01 SIGC: lib pura del filtro', () => {
     expect(etichettaSigc(undefined)).toBeUndefined();
   });
 
-  it('cambiare il filtro lascia gli altri parametri e riporta la tabella alla prima pagina', () => {
+  it('cambiare il filtro lascia gli altri parametri (la prima pagina la garantiscono le pagine); percorso col solo SIGC', () => {
     expect(ricercaConSigc('intervento=SRA01', 'false')).toBe('intervento=SRA01&sigc=false');
     expect(percorsoConSigc('/fisico/superfici', 'true')).toBe('/fisico/superfici?sigc=true');
     expect(percorsoConSigc('/fisico/superfici', undefined)).toBe('/fisico/superfici');
@@ -267,5 +267,31 @@ describe('R09 e F5: valore pieno dei sinottici e tipo dell intervento nei dettag
     expect(screen.getByText('Tipo di intervento: NO SIGC (dalla programmazione; il filtro SIGC non si applica al dettaglio)')).toBeTruthy();
     rerender(<BarraRiferimenti perimetro="Perimetro: regionale" ultimi={undefined} inErrore={false} tipo={null} />);
     expect(screen.queryByText(/^Tipo di intervento/)).toBeNull();
+  });
+});
+
+describe('Residui della passata 3: zone di lettura del corpo non pertinente (review M-01, M-02, M-03)', () => {
+  it('le voci omesse di un grafico dentro una Sezione non pertinente si aprono; il riquadro della tabella resta scorrevole; la didascalia non promette righe apribili', () => {
+    const tocco = vi.fn();
+    render(
+      <NonPertinente np={NP}>
+        <Sezione titolo="Superfici">
+          <CardGrafico titolo="Domande SIGC" dati={{ ...DATI, omessi: ['SRA02: non valorizzato'] }} fonte="Fonte: TX-0018" />
+          <TabellaInterattiva caption="Superfici per intervento" righe={[{ c: 'SRA01' }]} colonne={[{ chiave: 'c', titolo: 'Intervento', valore: (r: { c: string }) => r.c }]} chiaveRiga={(r) => r.c} testoRicerca={(r) => r.c} onRiga={() => undefined} etichettaRiga={(r) => `Apri ${r.c}`} />
+          <div data-testid="grafico" ref={(el) => el?.addEventListener('touchstart', tocco)} />
+        </Sezione>
+      </NonPertinente>,
+    );
+    const summary = screen.getByText('1 voce non nel grafico');
+    expect(summary.getAttribute('aria-disabled')).toBeNull();
+    fireEvent.click(summary);
+    expect((summary.closest('details') as HTMLDetailsElement).open).toBe(true);
+    const riquadro = screen.getByRole('region', { name: 'Superfici per intervento' });
+    expect(riquadro.getAttribute('tabindex')).toBe('0');
+    expect(riquadro.getAttribute('aria-disabled')).toBeNull();
+    expect(within(riquadro).getByRole('table').querySelector('caption')?.textContent).not.toMatch(/Clic o Invio/);
+    // al tocco i grafici non ricevono gli eventi (zrender ascolta touchstart, touchmove e touchend)
+    fireEvent.touchStart(screen.getByTestId('grafico'));
+    expect(tocco).not.toHaveBeenCalled();
   });
 });

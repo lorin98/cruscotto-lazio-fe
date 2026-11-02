@@ -251,11 +251,23 @@ function partenza<T>(props: PropsTabellaInterattiva<T>): Required<StatoTabella> 
   return { cercato: s?.cercato ?? '', ordine: s?.ordine ?? props.ordineIniziale ?? { chiave: props.colonne[0].chiave, verso: 'crescente' }, pagina: s?.pagina ?? 0 };
 }
 
+/**
+ * Nel corpo non pertinente la tabella e' di sola lettura: il riquadro resta scorrevole da tastiera (l'unico elemento
+ * focalizzabile, review M-02) e la didascalia non promette righe da aprire (review M-04).
+ */
+function inLettura(nonPertinente: boolean, caption: string, conRighe: boolean) {
+  return {
+    riquadro: nonPertinente ? { tabIndex: 0, role: 'region', 'aria-label': caption } : {},
+    apribile: conRighe && !nonPertinente,
+    conStrumenti: !nonPertinente,
+  };
+}
+
 export function TabellaInterattiva<T>(props: PropsTabellaInterattiva<T>) {
   // 25 righe per pagina (R12, revisioni del 31/10/2026: prima 10, la tabella non riempiva mai il riquadro)
   const { caption, righe, colonne, chiaveRiga, testoRicerca, onRiga, etichettaRiga, totali, righePiede = [], perPagina = 25, onStato } = props;
   const id = useId();
-  const np = useNonPertinenza();
+  const lettura = inLettura(useNonPertinenza() !== null, caption, onRiga !== undefined);
   const [iniziale] = useState(() => partenza(props));
   const [cercato, setCercato] = useState(iniziale.cercato);
   const [ordine, setOrdine] = useState<Ordine>(iniziale.ordine);
@@ -284,7 +296,7 @@ export function TabellaInterattiva<T>(props: PropsTabellaInterattiva<T>) {
   return (
     <div>
       {/* nel corpo non pertinente niente ricerca, colonne ne' Scarica: il wireframe li vuole assenti (review V2-03) */}
-      {!np && (
+      {lettura.conStrumenti && (
         <Strumenti
           id={id}
           cercato={cercato}
@@ -297,10 +309,12 @@ export function TabellaInterattiva<T>(props: PropsTabellaInterattiva<T>) {
           onColonna={(chiave, visibile) => setNascoste((s) => conColonna(s, chiave, visibile))}
         />
       )}
-      <div className="ui-tabella-contenitore">
+      {/* nel corpo non pertinente il riquadro resta scorrevole da tastiera: e' l'unico elemento focalizzabile (review M-02) */}
+      <div className="ui-tabella-contenitore" {...lettura.riquadro}>
         {/* tabella larga (oltre 6 colonne): la prima colonna resta ferma scorrendo in orizzontale (R12) */}
         <table className={visibili.length > COLONNE_TABELLA_STRETTA ? 'ui-tabella ui-tabella--larga' : 'ui-tabella'}>
-          <caption>{didascalia(caption, filtrate.length, cercato, !!onRiga)}</caption>
+          {/* nel corpo non pertinente le righe non si aprono: la didascalia non lo promette (review M-04) */}
+          <caption>{didascalia(caption, filtrate.length, cercato, lettura.apribile)}</caption>
           <Intestazioni colonne={visibili} ordine={ordine} onOrdina={ordina} />
           <tbody>
             {corrente.righe.map((r) => (
