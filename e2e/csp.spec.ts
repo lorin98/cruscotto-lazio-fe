@@ -23,6 +23,11 @@ const rigaRiepilogo = (codiceIntervento: string, domandePresentate: number, dota
   impegnatoCofinanziatoFeasr: nonAttiva('IMPEGNI'),
   impegnatoCofinanziatoFeasrENon: nonAttiva('IMPEGNI'),
   pagamentiNettoRettifiche: euro(pagati),
+  // R08 (31/10/2026): lordi e rettifiche, senza i quali la cascata del dettaglio non si disegna
+  pagamentiLordi: euro(pagati),
+  importoRettifiche: euro(0),
+  conRettifiche: false,
+  rettifiche: [],
   dotazioneResiduaSuImpegni: nonAttiva('IMPEGNI'),
   dotazioneResiduaSuPagamenti: euro(dotazione - pagati),
 });
@@ -153,7 +158,7 @@ test('home: quattro ambiti nella stessa riga, numeri chiave animati, nessuna vio
   await page.goto('/');
   const ambiti = page.getByRole('navigation', { name: 'Aree del cruscotto' }).locator('.ui-ambiti__griglia > li');
   await expect(ambiti).toHaveCount(4);
-  await expect(page.getByRole('group', { name: 'Il finanziario in cifre' })).toContainText('1200');
+  await expect(page.getByRole('group', { name: 'Il finanziario in cifre' })).toContainText('1.200');
   // griglia bilanciata: con lo schermo largo le quattro card stanno sulla stessa riga
   const alti = await ambiti.evaluateAll((li) => li.map((el) => Math.round(el.getBoundingClientRect().top)));
   expect(new Set(alti).size).toBe(1);
@@ -177,8 +182,8 @@ test('domande: tooltip di un asse (piu serie) senza violazioni, numeri degli ass
   await expect(page.getByRole('heading', { level: 1, name: 'Finanziario: domande e importi per anno' })).toBeVisible();
   const grafico = page.locator('.ui-grafico').first();
   await expect(grafico.locator('svg')).toBeVisible();
-  // asse delle domande con i numeri in italiano: "6000" (it-IT non raggruppa le quattro cifre), mai "6,000"
-  await expect(grafico.getByText('6000', { exact: true })).toBeVisible();
+  // asse delle domande con i numeri in italiano: "6.000" (separatore delle migliaia sempre, revisione del 04/11/2026), mai "6,000"
+  await expect(grafico.getByText('6.000', { exact: true })).toBeVisible();
   await expect(grafico.getByText(/^\d{1,3},\d{3}$/)).toHaveCount(0);
   await apriTooltip(page, 0, /^20\d\d$|Prima annualità/);
   expect(await violazioni(page)).toEqual([]);
@@ -194,10 +199,10 @@ test('pannello dei filtri e anteprima: dialoghi senza violazioni (react-aria con
   await expect(filtri).toBeHidden();
   expect(await violazioniConModale(page)).toEqual([]);
 
-  // review v2 N-25: anche l'anteprima laterale del riepilogo, aperta dalla riga della tabella. Dal 19/10 il riepilogo si
-  // apre sul grafico: prima si sceglie la vista Tabella (review delta 21/10 X1)
+  // review v2 N-25: anche l'anteprima laterale del riepilogo, aperta dalla riga della tabella. Dal 04/11/2026 la tabella
+  // RF011 sta in testa alla pagina, senza interruttore di vista (review step9 del 04/11/2026, J-03)
   await page.goto('/finanziario/riepilogo');
-  await page.getByRole('group', { name: 'Vista del riepilogo' }).getByRole('button', { name: 'Tabella' }).click();
+  await expect(page.getByRole('table', { name: /^Tabella di riepilogo per intervento \(RF011\)/ })).toBeVisible();
   await page.getByRole('row', { name: "Apri l'anteprima dell'intervento SRA01" }).click();
   const anteprima = page.getByRole('dialog', { name: 'SRA01' });
   await expect(anteprima).toBeVisible();
