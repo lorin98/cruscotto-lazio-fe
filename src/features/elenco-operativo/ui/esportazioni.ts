@@ -15,7 +15,7 @@ const TITOLI: Record<Elenco, string> = {
   pagamenti: 'Elenco operativo dei pagamenti tx-0059',
 };
 
-const UNITA: Record<Elenco, string> = { domande: 'domande', pagamenti: 'righe di pagamento' };
+const UNITA: Record<Elenco, string> = { domande: 'domande', pagamenti: 'pagamenti' };
 
 /** Avviso prima del clic: l'insieme supera le righe di un file; null se il file si puo' produrre. */
 export function avvisoLimite(elenco: Elenco, totaleRighe: number | undefined): string | null {
@@ -28,7 +28,7 @@ export function avvisoLimite(elenco: Elenco, totaleRighe: number | undefined): s
 function messaggioLimite(elenco: Elenco, totaleRighe: number | undefined) {
   return (errore: unknown): string | null =>
     rispostaRichiestaNonValida(errore) && totaleRighe !== undefined && totaleRighe > LIMITE_ESPORTAZIONE[elenco]
-      ? `Troppe righe per un file: al più ${formatNumber(LIMITE_ESPORTAZIONE[elenco])} ${UNITA[elenco]}. Restringi i filtri e riprova.`
+      ? `Troppi dati per un file: al più ${formatNumber(LIMITE_ESPORTAZIONE[elenco])} ${UNITA[elenco]}. Restringi i filtri e riprova.`
       : null;
 }
 

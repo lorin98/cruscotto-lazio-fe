@@ -140,7 +140,7 @@ function Contenuto({ i, l, vista, nascoste, onNascoste, onFiltra }: { i: Interro
               aggiornando={l.aggiornando}
               tabella={{
                 chiave: vista.id,
-                caption: `Elenco operativo delle domande, vista ${vista.etichetta.toLowerCase()}: ordinabile dal server con un clic sull'intestazione. Clic o Invio su una riga per l'anteprima.`,
+                caption: `Elenco operativo delle domande, vista ${vista.etichetta.toLowerCase()}: ordinabile dal server con un clic sull'intestazione. Clic o Invio su una domanda per l'anteprima.`,
                 // l'atto di concessione mancante: "nessun atto" solo con la fonte attiva, senza la fonte l'assenza con la fonte
                 // (review delta 21/10 X2, F1), con TX-0060 non letto "non disponibile" (passata 2 V1)
                 colonne: colonneDomande(vista.colonne, { attoConcessioneDisponibile: i.valori?.data?.attoConcessioneDisponibile }),

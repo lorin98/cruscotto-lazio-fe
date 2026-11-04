@@ -45,7 +45,7 @@ export function importoCompatto(importo: ImportoLike | null | undefined): { valo
 
 /** Motivo dell'assenza di un aggregato del sinottico (D-05 Rev. 1 del backend): non e' il "non valorizzato" della domanda. */
 const MOTIVI_AGGREGATO: Readonly<Record<'liquidato' | 'recuperato', string>> = {
-  liquidato: "una riga di liquidazione dell'insieme non ha l'importo",
+  liquidato: "un pagamento dell'insieme non ha l'importo",
   recuperato: "un recupero dell'insieme non ha l'importo",
 };
 

@@ -99,7 +99,7 @@ export function RisultatiInterrogazione<T>({ elenco, idTitolo, titolo, oggetto, 
       </div>
       <AvvisoAggiornamento attivo={aggiornando} />
       <OrdinamentoAttivo
-        testo={testoOrdinamento(titoloDelCampo(elenco, ordinamento.campo), ordinamento)}
+        testo={testoOrdinamento(titoloDelCampo(elenco, ordinamento.campo), ordinamento, elenco === 'pagamenti')}
         predefinito={ordinamentoPredefinito(ordinamento, elenco)}
         onPredefinito={() => eSulTitolo(senzaOrdinamento(criteri))}
       />

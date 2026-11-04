@@ -117,7 +117,7 @@ const COLONNE_PAGAMENTI: readonly ColonnaStatica<PagamentoElenco>[] = [
 ];
 
 export function TabellaPagamentiDomanda({ pagamenti }: { pagamenti: PagamentoElenco[] }) {
-  return <Tabella caption="Righe correnti degli elenchi di liquidazione della domanda" colonne={COLONNE_PAGAMENTI} righe={pagamenti} vuoto="Nessuna riga negli elenchi di liquidazione per questa domanda." />;
+  return <Tabella caption="Pagamenti della domanda (elenchi di liquidazione correnti)" colonne={COLONNE_PAGAMENTI} righe={pagamenti} vuoto="Nessun pagamento negli elenchi di liquidazione per questa domanda." />;
 }
 
 export function TabellaRecuperi({ recuperi }: { recuperi: RecuperoDellaDomanda[] }) {

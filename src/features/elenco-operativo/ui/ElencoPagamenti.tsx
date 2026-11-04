@@ -1,5 +1,6 @@
-// ElencoPagamenti — pagina /elenco-operativo/pagamenti (flusso pagamenti approvato, pattern interrogazione ADR 0029): una
-// riga per riga corrente degli elenchi di liquidazione (D-07), anche di domande chiuse (lo dice in testo). Sinottico di
+// ElencoPagamenti — pagina /elenco-operativo/pagamenti (flusso pagamenti approvato, pattern interrogazione ADR 0029): un
+// pagamento per riga corrente degli elenchi di liquidazione (D-07), anche di domande chiuse (lo dice in testo). Dal
+// 04/11/2026 nei testi i pagamenti non si chiamano "righe" (secondo feedback di Leonardo/Deloitte). Sinottico di
 // quattro indicatori e totali nel piede da TotaliPagamenti dell'intero insieme filtrato (TX-0059, mai somme della
 // pagina), tabella paginata e ordinata dal server con le colonne a scelta (restano tornando dalla scheda), anteprima
 // della riga con il link alla scheda solo per le domande correnti, file CSV e XLSX, link alle domande degli stessi
@@ -26,7 +27,7 @@ import { useInterrogazione } from './useInterrogazione';
 /** I totali vengono dalla stessa lettura delle righe: mentre arrivano quelli nuovi restano i precedenti, dichiarati. */
 function SinotticoPagamenti({ totali, inAggiornamento }: { totali: TotaliPagamenti | undefined; inAggiornamento: boolean }) {
   // importi in forma compatta su una riga col valore pieno (R09)
-  const decretato = testoSommaCompatta(totali?.importoDecretato, ['riga', 'righe']);
+  const decretato = testoSommaCompatta(totali?.importoDecretato, ['pagamento', 'pagamenti']);
   const pagato = importoCompatto(totali?.importoPagato);
   const feasr = importoCompatto(totali?.quotaFeasr);
   const quotaFeasr = { valore: feasr.valore, valorePieno: feasr.pieno };
@@ -35,7 +36,7 @@ function SinotticoPagamenti({ totali, inAggiornamento }: { totali: TotaliPagamen
       <h2 id="t-sinottico-pagamenti">Sinottico dell’insieme filtrato</h2>
       <AvvisoAggiornamento attivo={inAggiornamento} testo="Aggiornamento del sinottico: restano visibili i numeri precedenti finché arrivano i nuovi." />
       <Griglia colonne={4}>
-        <Kpi etichetta="Righe pagate / escluse" valore={`${formatNumber(totali?.pagate ?? 0)} / ${formatNumber(totali?.escluse ?? 0)}`} icona="it-list" />
+        <Kpi etichetta="Pagamenti: pagati / esclusi" valore={`${formatNumber(totali?.pagate ?? 0)} / ${formatNumber(totali?.escluse ?? 0)}`} icona="it-list" />
         <Kpi etichetta="Decretato" valore={decretato.valore} valorePieno={decretato.pieno} nota={decretato.nota} icona="it-file-signed" tono="scuro" />
         <Kpi etichetta="Pagato" valore={pagato.valore} valorePieno={pagato.pieno} icona="it-card" tono="verde" />
         <Kpi
@@ -48,14 +49,14 @@ function SinotticoPagamenti({ totali, inAggiornamento }: { totali: TotaliPagamen
           tono="ambra"
         />
       </Griglia>
-      <p className="ui-fonte">Fonte: totali dell’insieme filtrato (TX-0059), calcolati dal server sulle righe PAGATA di tutto l’insieme, non sulla pagina.</p>
+      <p className="ui-fonte">Fonte: totali dell’insieme filtrato (TX-0059), calcolati dal server sui pagamenti con esito Pagata di tutto l’insieme, non sulla pagina.</p>
     </section>
   );
 }
 
 function piedePagamenti(t: TotaliPagamenti | undefined, totaleRighe: number): Partial<Record<string, ReactNode>> {
   return {
-    decreto: `Totale dell'insieme filtrato: ${plurale(totaleRighe, 'riga', 'righe')}`,
+    decreto: `Totale dell'insieme filtrato: ${plurale(totaleRighe, 'pagamento', 'pagamenti')}`,
     importoDecretato: testoSomma(t?.importoDecretato).valore,
     importoPagato: cellaImporto(t?.importoPagato),
     quotaFeasr: cellaImporto(t?.quotaFeasr),
@@ -77,15 +78,15 @@ function useLetturaPagamenti(i: Interrogazione) {
 function Contenuto({ i, l, nascoste, onNascoste }: { i: Interrogazione; l: ReturnType<typeof useLetturaPagamenti>; nascoste: string[] | undefined; onNascoste: (n: string[]) => void }) {
   if (!l.conPagamenti) return <AccessoNonDisponibile cosa="l'elenco dei pagamenti" profiloLetto={i.auth !== undefined} />;
   return (
-    <VistaQuery stato={l.stato} eVuoto={(d) => (d.totaleRighe ?? 0) === 0} vuoto={<VuotoFiltri testo="Nessuna riga di pagamento per questi filtri." onApriFiltri={i.pannello.apri} />}>
+    <VistaQuery stato={l.stato} eVuoto={(d) => (d.totaleRighe ?? 0) === 0} vuoto={<VuotoFiltri testo="Nessun pagamento per questi filtri." onApriFiltri={i.pannello.apri} />}>
       {(pagina) => (
         <>
           <SinotticoPagamenti totali={pagina.totali} inAggiornamento={l.aggiornando} />
           <RisultatiInterrogazione
             elenco="pagamenti"
             idTitolo="t-pagamenti"
-            titolo="Righe di pagamento"
-            oggetto="righe"
+            titolo="Elenco dei pagamenti"
+            oggetto="pagamenti"
             oggettoFile="l'elenco dei pagamenti"
             totale={pagina.totaleRighe ?? 0}
             righe={pagina.righe ?? []}
@@ -93,7 +94,7 @@ function Contenuto({ i, l, nascoste, onNascoste }: { i: Interrogazione; l: Retur
             applica={i.applica}
             aggiornando={l.aggiornando}
             tabella={{
-              caption: "Elenco operativo dei pagamenti: righe correnti degli elenchi di liquidazione, ordinabili dal server con un clic sull'intestazione. Clic o Invio su una riga per l'anteprima.",
+              caption: "Elenco operativo dei pagamenti: pagamenti correnti degli elenchi di liquidazione, ordinabili dal server con un clic sull'intestazione. Clic o Invio su un pagamento per l'anteprima.",
               colonne: colonnePagamenti(),
               chiaveRiga,
               etichettaRiga: (p) => `Apri l'anteprima del pagamento ${p.decreto ?? ''} della domanda ${p.codiceABarre ?? ''}`,
@@ -122,7 +123,7 @@ export function ElencoPagamenti() {
         onApri={i.pannello.apri}
         onTogliTutti={i.togliTutti}
         sigc={i.sigc}
-        vuoto="Nessun filtro: tutte le righe di pagamento del perimetro"
+        vuoto="Nessun filtro: tutto l'elenco dei pagamenti del perimetro"
         perimetro={dati?.perimetro}
         ultimi={dati?.ultimiDatiSincronizzati}
         ultimiInErrore={l.stato.isError}
@@ -132,7 +133,7 @@ export function ElencoPagamenti() {
         <TestaPagina
           titolo="Elenco operativo dei pagamenti"
           titoloDocumento="Pagamenti"
-          sottotitolo="Le righe correnti degli elenchi di liquidazione (pagate o escluse) delle domande del tuo perimetro: ogni filtro cambia subito righe e totali."
+          sottotitolo="I pagamenti correnti degli elenchi di liquidazione (pagati o esclusi) delle domande del tuo perimetro: ogni filtro cambia subito l'elenco dei pagamenti e i totali."
           azioni={
             puoLeggere(i.auth, 'domande') ? (
               <Link className="btn btn-outline-primary" to={percorsoDomandeDeiPagamenti(i.criteri)}>
@@ -147,7 +148,7 @@ export function ElencoPagamenti() {
           </AvvisoPagina>
         </ContestoIntestazione.Provider>
       </main>
-      <PannelloInterrogazione i={i} elenco="pagamenti" lettura={l.stato} aggiornando={l.aggiornando} unita={['riga di pagamento', 'righe di pagamento']} />
+      <PannelloInterrogazione i={i} elenco="pagamenti" lettura={l.stato} aggiornando={l.aggiornando} unita={['pagamento', 'pagamenti']} />
     </>
   );
 }

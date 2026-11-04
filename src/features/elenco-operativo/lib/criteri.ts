@@ -285,9 +285,12 @@ export function senzaOrdinamento(criteri: Criteri): Criteri {
   return senza(criteri, ['pagina', 'ordina']);
 }
 
-/** "Ordinate per Ancora da pagare, decrescente": l'ordinamento attivo in parole (review v1 X-04). */
-export function testoOrdinamento(titolo: string, o: Ordinamento): string {
-  return `Ordinate per ${titolo}, ${o.verso === 'asc' ? 'crescente' : 'decrescente'}`;
+/**
+ * "Ordinate per Ancora da pagare, decrescente" (le domande) o "Ordinati per Pagato, decrescente" (i pagamenti: non piu' "righe"
+ * dal 04/11/2026): l'ordinamento attivo in parole (review v1 X-04), concordato con cio' che l'elenco conta.
+ */
+export function testoOrdinamento(titolo: string, o: Ordinamento, maschile = false): string {
+  return `${maschile ? 'Ordinati' : 'Ordinate'} per ${titolo}, ${o.verso === 'asc' ? 'crescente' : 'decrescente'}`;
 }
 
 /** Ultima pagina (da 0) per un totale di righe e la dimensione richiesta. */
