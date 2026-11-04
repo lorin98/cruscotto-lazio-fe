@@ -1,7 +1,7 @@
 // primitive.ts — mattoni generici e PURI dei builder di grafici: numeri, testi in italiano, descrizione accessibile,
 // scorrimento delle barre, dato di una serie con i testi gia' composti e i callback che li leggono. Nessun dominio.
 import type { DataZoomComponentOption, EChartsOption, GridComponentOption, TooltipComponentOption, YAXisComponentOption } from 'echarts';
-import { ettari, formatEttari, formatEuro, formatNumber, formatPercentuale } from '../format';
+import { MIGLIAIA, ettari, formatEttari, formatEuro, formatNumber, formatPercentuale } from '../format';
 
 export const NON_DISPONIBILE = 'non disponibile';
 export const NON_CALCOLABILE = 'non calcolabile';
@@ -81,7 +81,7 @@ export function maiuscolaIniziale(testo: string): string {
 
 /** Importo in milioni di euro con una cifra decimale: 12345678 -> "12,3 M€". Sotto il milione si usa importoBreve. */
 export function milioni(v: number): string {
-  return `${(v / 1_000_000).toLocaleString('it-IT', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} M€`;
+  return `${(v / 1_000_000).toLocaleString('it-IT', { ...MIGLIAIA, minimumFractionDigits: 1, maximumFractionDigits: 1 })} M€`;
 }
 
 /**
@@ -110,7 +110,7 @@ export function valoreEttari(v: unknown): string {
 
 /** Tacca di un asse di superfici: ettari senza decimali oltre i 10 ha, con due decimali sotto. */
 export function asseEttari(v: number): string {
-  return Math.abs(v) >= 10 ? `${v.toLocaleString('it-IT', { maximumFractionDigits: 0 })} ha` : `${formatEttari(v)} ha`;
+  return Math.abs(v) >= 10 ? `${v.toLocaleString('it-IT', { ...MIGLIAIA, maximumFractionDigits: 0 })} ha` : `${formatEttari(v)} ha`;
 }
 
 export function valoreInNumero(v: unknown): string {
@@ -142,7 +142,7 @@ export function assePercentuale(v: number): string {
 
 /** Tacca di un asse di importi: in milioni da un milione in su, sotto in euro senza decimali (mai "0,0 M€" ripetuto). */
 export function asseImporti(v: number): string {
-  return Math.abs(v) >= 1_000_000 ? milioni(v) : v.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
+  return Math.abs(v) >= 1_000_000 ? milioni(v) : v.toLocaleString('it-IT', { ...MIGLIAIA, style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
 }
 
 /** Descrizione accessibile: ECharts la mette sull'SVG del grafico. */

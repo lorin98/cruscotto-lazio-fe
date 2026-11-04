@@ -9,6 +9,8 @@ import type { EChartsType } from 'echarts/core';
 import { BarChart, FunnelChart, GaugeChart, LineChart, PieChart, SankeyChart, SunburstChart, TreemapChart } from 'echarts/charts';
 import { AriaComponent, DataZoomComponent, GraphicComponent, GridComponent, LegendComponent, MarkAreaComponent, MarkLineComponent, TooltipComponent } from 'echarts/components';
 import { CanvasRenderer, SVGRenderer } from 'echarts/renderers';
+// posizione delle etichette calcolata a ogni disegno (labelLayout): le etichette che non entrano nel segmento escono accanto
+import { LabelLayout } from 'echarts/features';
 import { COLORI, PALETTE } from '../../lib/grafici';
 import { aCapo } from '../../lib/intestazione';
 import { radiciDiVista } from './vista';
@@ -18,7 +20,7 @@ const FONT = "'Titillium Web', Geneva, Tahoma, sans-serif";
 echarts.use([
   BarChart, FunnelChart, GaugeChart, LineChart, PieChart, SankeyChart, SunburstChart, TreemapChart,
   AriaComponent, DataZoomComponent, GraphicComponent, GridComponent, LegendComponent, MarkAreaComponent, MarkLineComponent, TooltipComponent,
-  CanvasRenderer, SVGRenderer,
+  CanvasRenderer, SVGRenderer, LabelLayout,
 ]);
 
 export const TEMA = 'ui';

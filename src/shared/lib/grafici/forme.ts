@@ -71,6 +71,8 @@ export interface SerieRaggruppata {
   nome: string;
   /** Soggetto nei messaggi delle voci omesse: "SRA01, <soggetto>: non disponibile (...)". */
   soggetto: string;
+  /** Il colore della serie, quando non basta quello della palette in ordine (es. una serie aggiunta in mezzo). */
+  colore?: string;
 }
 
 export interface VoceRaggruppata {
@@ -123,8 +125,17 @@ export interface OpzioniBarre {
 }
 
 /** Gli assi delle barre raggruppate e lo scorrimento lungo le categorie; le orizzontali con l'asse e la griglia comuni. */
-function assiBarre(categorie: string[], misura: MisuraBarre, orizzontale: boolean): Pick<EChartsOption, 'xAxis' | 'yAxis' | 'dataZoom' | 'grid'> {
-  const valori = { type: 'value' as const, axisLabel: { formatter: misura.asse } };
+/**
+ * L'asse dei valori: parte da zero, o dal valore piu' basso vero se c'e' un negativo (revisione del 04/11/2026: un netto
+ * negativo di 79 mila euro portava l'asse a -20 M); l'etichetta del minimo, che si sovrapporrebbe allo zero, non si scrive.
+ */
+function asseValori(misura: MisuraBarre, minimo: number) {
+  if (minimo >= 0) return { type: 'value' as const, axisLabel: { formatter: misura.asse } };
+  return { type: 'value' as const, min: minimo, axisLabel: { formatter: misura.asse, showMinLabel: false } };
+}
+
+function assiBarre(categorie: string[], misura: MisuraBarre, orizzontale: boolean, minimo = 0): Pick<EChartsOption, 'xAxis' | 'yAxis' | 'dataZoom' | 'grid'> {
+  const valori = asseValori(misura, minimo);
   if (orizzontale) return { ...zoomSeMolti(categorie.length, 'y'), grid: GRIGLIA_CON_ETICHETTE, xAxis: valori, yAxis: asseCategorieOrizzontale(categorie) };
   // barre verticali: tutte le etichette (R02), inclinate oltre 8, al piu' 140 px (il testo intero nel suggerimento)
   return { ...zoomSeMolti(categorie.length), xAxis: { type: 'category', data: categorie, axisLabel: { interval: 0, hideOverlap: false, rotate: categorie.length > 8 ? 45 : 0, width: 140, overflow: 'truncate' } }, yAxis: valori };
@@ -162,8 +173,8 @@ export function barreRaggruppate(voci: readonly VoceRaggruppata[], definizioni: 
     aria: aria(descrizione),
     legend: {},
     tooltip: { trigger: 'axis', valueFormatter: misura.valore },
-    ...assiBarre(categorie, misura, orizzontale),
-    series: definizioni.map((def, k): BarSeriesOption => ({ type: 'bar', name: def.nome, data: datiSerie[k] })),
+    ...assiBarre(categorie, misura, orizzontale, Math.min(0, ...datiSerie.flat().map((d) => d?.value ?? 0))),
+    series: definizioni.map((def, k): BarSeriesOption => ({ type: 'bar', name: def.nome, data: datiSerie[k], ...(def.colore ? { itemStyle: { color: def.colore } } : {}) })),
   };
   return { opzioni, tabella, omessi };
 }

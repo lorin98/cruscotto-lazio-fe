@@ -1,15 +1,22 @@
 // format.ts — formattatori PURI (input nullable -> string, nessun side-effect, zero React).
 // Locale it-IT. Un input non parsabile ritorna il grezzo, non lancia (fail-soft di visualizzazione).
 
+/**
+ * Separatore delle migliaia sempre, anche sotto 10.000 (revisione del 04/11/2026): in it-IT il raggruppamento predefinito
+ * di Intl parte da cinque cifre ("4617,41 €", "1035"); true (in Intl.NumberFormat v3 vale "always": il tipo di TypeScript
+ * non conosce ancora le stringhe) scrive "4.617,41 €" e "1.035" come nei documenti.
+ */
+export const MIGLIAIA: Intl.NumberFormatOptions = { useGrouping: true };
+
 export function formatNumber(value: number | null | undefined): string {
   if (value == null) return '-';
-  return value.toLocaleString('it-IT');
+  return value.toLocaleString('it-IT', MIGLIAIA);
 }
 
 // Euro al centesimo, come gli importi del backend (Importo.valore: "due decimali").
 export function formatEuro(value: number | null | undefined): string {
   if (value == null) return '-';
-  return value.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return value.toLocaleString('it-IT', { ...MIGLIAIA, style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 // Superficie in ettari con due decimali (D-01 del backend fisico: "ettari, due decimali"), senza unita': "15,50", "-0,50".
@@ -17,7 +24,7 @@ export function formatEuro(value: number | null | undefined): string {
 // scritto: un valore negativo si riconosce anche senza colore.
 export function formatEttari(value: number | null | undefined, { segno = false }: { segno?: boolean } = {}): string {
   if (value == null) return '-';
-  const testo = value.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const testo = value.toLocaleString('it-IT', { ...MIGLIAIA, minimumFractionDigits: 2, maximumFractionDigits: 2 });
   return segno && value > 0 && testo !== '0,00' ? `+${testo}` : testo;
 }
 
@@ -44,7 +51,7 @@ export function intero(v: number): string {
 export function formatPercentuale(value: number | null | undefined): string {
   if (value == null) return '-';
   if (value !== 0 && Math.abs(value) < 0.005) return value > 0 ? '< 0,01 %' : '> -0,01 %';
-  return `${value.toLocaleString('it-IT', { maximumFractionDigits: 2 })} %`;
+  return `${value.toLocaleString('it-IT', { ...MIGLIAIA, maximumFractionDigits: 2 })} %`;
 }
 
 const DATA_ISO = /^(\d{4})-(\d{2})-(\d{2})$/;
