@@ -6,13 +6,13 @@
     {
       "slice": "fisico",
       "path": "handover/openapi-fisico.json",
-      "sha256": "sha256:79264c79075db3de0cec28f3aca39fa963ec86148d9acab842f8f6e4870b3564",
+      "sha256": "sha256:d0436e16d83a4dac1e3f81351936cc0dbfd66e214b7073d05f18595906f75815",
       "manifest_hash_match": true
     },
     {
       "slice": "elenco-operativo",
       "path": "handover/openapi-elenco-operativo.json",
-      "sha256": "sha256:bf5c831398dbd82875a66c4cdcdf0ddfaffa05424cc978dc683e4e1f3f7c407d",
+      "sha256": "sha256:2efb6b612dab95051d80f45bce283c19f0c1afa9a3cb9885fea62b469db0af82",
       "manifest_hash_match": true
     }
   ],

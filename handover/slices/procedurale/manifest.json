@@ -45,7 +45,7 @@
       "ownership": "procedurale",
       "path": "./openapi/openapi-procedurale.json",
       "role": "adapter-in-rest",
-      "sha256": "sha256:fc6433807a3eecb8d1f802a9a0c2cb40fa802a004b1ef09f42e7547d1e99fbfa",
+      "sha256": "sha256:b7724d1635d4ce377a1ddc4a2b4cc534794d2c8fece8e3efcd94ed8b9e07077d",
       "step": "step8-rest"
     }
   ],
@@ -100,7 +100,7 @@
     "step9-functions.functions": "pass"
   },
   "openapi": {
-    "hash": "sha256:fc6433807a3eecb8d1f802a9a0c2cb40fa802a004b1ef09f42e7547d1e99fbfa",
+    "hash": "sha256:b7724d1635d4ce377a1ddc4a2b4cc534794d2c8fece8e3efcd94ed8b9e07077d",
     "path": "./openapi/openapi-procedurale.json"
   },
   "pack_hash": "sha256:b606aaee3b2f7add11e8b239ea50e03b3f206913e8b013e5ec7604cb3b4a310f",

@@ -15,18 +15,18 @@
     {
       "slice": "istituzionale",
       "spec_path": "handover/openapi-istituzionale.json",
-      "spec_sha256": "sha256:bd522bd06607138597caa5f4dfbd15b3d7d950c005f1682c6a84799c42c541f2",
+      "spec_sha256": "sha256:63d84c3c5dd9d752e177d2221568502838cae256873621b67c045d8799a75b1f",
       "manifest_path": "handover/slices/istituzionale/manifest.json",
-      "manifest_openapi_hash": "sha256:bd522bd06607138597caa5f4dfbd15b3d7d950c005f1682c6a84799c42c541f2",
+      "manifest_openapi_hash": "sha256:63d84c3c5dd9d752e177d2221568502838cae256873621b67c045d8799a75b1f",
       "manifest_hash_match": true,
       "backend_gates_ok": true
     },
     {
       "slice": "elenco-operativo",
       "spec_path": "handover/openapi-elenco-operativo.json",
-      "spec_sha256": "sha256:bf5c831398dbd82875a66c4cdcdf0ddfaffa05424cc978dc683e4e1f3f7c407d",
+      "spec_sha256": "sha256:2efb6b612dab95051d80f45bce283c19f0c1afa9a3cb9885fea62b469db0af82",
       "manifest_path": "handover/slices/elenco-operativo/manifest.json",
-      "manifest_openapi_hash": "sha256:bf5c831398dbd82875a66c4cdcdf0ddfaffa05424cc978dc683e4e1f3f7c407d",
+      "manifest_openapi_hash": "sha256:2efb6b612dab95051d80f45bce283c19f0c1afa9a3cb9885fea62b469db0af82",
       "manifest_hash_match": true,
       "backend_gates_ok": true
     }

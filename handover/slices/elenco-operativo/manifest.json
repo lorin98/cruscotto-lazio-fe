@@ -181,7 +181,7 @@
       "ownership": "elenco-operativo",
       "path": "openapi/openapi-elenco-operativo.json",
       "role": "adapter-in-rest",
-      "sha256": "sha256:bf5c831398dbd82875a66c4cdcdf0ddfaffa05424cc978dc683e4e1f3f7c407d",
+      "sha256": "sha256:2efb6b612dab95051d80f45bce283c19f0c1afa9a3cb9885fea62b469db0af82",
       "step": "step8-rest"
     }
   ],
@@ -232,7 +232,7 @@
     "step9-functions.functions": "pass"
   },
   "openapi": {
-    "hash": "sha256:bf5c831398dbd82875a66c4cdcdf0ddfaffa05424cc978dc683e4e1f3f7c407d",
+    "hash": "sha256:2efb6b612dab95051d80f45bce283c19f0c1afa9a3cb9885fea62b469db0af82",
     "path": "./openapi/openapi-elenco-operativo.json"
   },
   "pack_hash": "sha256:b606aaee3b2f7add11e8b239ea50e03b3f206913e8b013e5ec7604cb3b4a310f",

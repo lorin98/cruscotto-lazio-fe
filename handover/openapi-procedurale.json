@@ -949,7 +949,7 @@
       "get": {
         "parameters": [
           {
-            "description": "Formato del file: csv (UTF-8 con BOM, punto e virgola) o xlsx (foglio Office Open XML: numeri come numeri, testi mai formule)",
+            "description": "Formato del file: csv (UTF-8 con BOM, punto e virgola) o xlsx (Office Open XML coi fogli Informazioni e Dati: numeri come numeri, date come date, testi mai formule)",
             "in": "path",
             "name": "formato",
             "required": true,
@@ -1044,7 +1044,7 @@
                 }
               }
             },
-            "description": "File CSV (UTF-8 con BOM, separatore punto e virgola, virgola decimale, testi tra virgolette) o XLSX (un foglio, stesso contenuto): intestazione con fonte, filtri, data di estrazione, profili, ultimo dato sincronizzato per flusso e uso interno, poi la tabella. Registrato in AUDIT_ESPORTAZIONE col formato",
+            "description": "File CSV (UTF-8 con BOM, separatore punto e virgola, virgola decimale, testi tra virgolette): intestazione con fonte, filtri, data di estrazione, profili, ultimo dato sincronizzato per flusso e uso interno, poi la tabella; oppure XLSX con lo stesso contenuto su due fogli, Informazioni (l'intestazione) e Dati (la tabella). Registrato in AUDIT_ESPORTAZIONE col formato",
             "headers": {
               "Content-Disposition": {
                 "description": "attachment, con il nome del file CSV o XLSX da salvare",
@@ -1776,7 +1776,7 @@
       "get": {
         "parameters": [
           {
-            "description": "Formato del file: csv (UTF-8 con BOM, punto e virgola) o xlsx (foglio Office Open XML: numeri come numeri, testi mai formule)",
+            "description": "Formato del file: csv (UTF-8 con BOM, punto e virgola) o xlsx (Office Open XML coi fogli Informazioni e Dati: numeri come numeri, date come date, testi mai formule)",
             "in": "path",
             "name": "formato",
             "required": true,
@@ -1871,7 +1871,7 @@
                 }
               }
             },
-            "description": "File CSV (UTF-8 con BOM, separatore punto e virgola, virgola decimale, testi tra virgolette) o XLSX (un foglio, stesso contenuto): intestazione con fonte, filtri, data di estrazione, profili, ultimo dato sincronizzato per flusso e uso interno, poi la tabella. Registrato in AUDIT_ESPORTAZIONE col formato",
+            "description": "File CSV (UTF-8 con BOM, separatore punto e virgola, virgola decimale, testi tra virgolette): intestazione con fonte, filtri, data di estrazione, profili, ultimo dato sincronizzato per flusso e uso interno, poi la tabella; oppure XLSX con lo stesso contenuto su due fogli, Informazioni (l'intestazione) e Dati (la tabella). Registrato in AUDIT_ESPORTAZIONE col formato",
             "headers": {
               "Content-Disposition": {
                 "description": "attachment, con il nome del file CSV o XLSX da salvare",
@@ -2128,7 +2128,7 @@
       "get": {
         "parameters": [
           {
-            "description": "Formato del file: csv (UTF-8 con BOM, punto e virgola) o xlsx (foglio Office Open XML: numeri come numeri, testi mai formule)",
+            "description": "Formato del file: csv (UTF-8 con BOM, punto e virgola) o xlsx (Office Open XML coi fogli Informazioni e Dati: numeri come numeri, date come date, testi mai formule)",
             "in": "path",
             "name": "formato",
             "required": true,
@@ -2223,7 +2223,7 @@
                 }
               }
             },
-            "description": "File CSV (UTF-8 con BOM, separatore punto e virgola, virgola decimale, testi tra virgolette) o XLSX (un foglio, stesso contenuto): intestazione con fonte, filtri, data di estrazione, profili, ultimo dato sincronizzato per flusso e uso interno, poi la tabella. Registrato in AUDIT_ESPORTAZIONE col formato",
+            "description": "File CSV (UTF-8 con BOM, separatore punto e virgola, virgola decimale, testi tra virgolette): intestazione con fonte, filtri, data di estrazione, profili, ultimo dato sincronizzato per flusso e uso interno, poi la tabella; oppure XLSX con lo stesso contenuto su due fogli, Informazioni (l'intestazione) e Dati (la tabella). Registrato in AUDIT_ESPORTAZIONE col formato",
             "headers": {
               "Content-Disposition": {
                 "description": "attachment, con il nome del file CSV o XLSX da salvare",
@@ -2480,7 +2480,7 @@
       "get": {
         "parameters": [
           {
-            "description": "Formato del file: csv (UTF-8 con BOM, punto e virgola) o xlsx (foglio Office Open XML: numeri come numeri, testi mai formule)",
+            "description": "Formato del file: csv (UTF-8 con BOM, punto e virgola) o xlsx (Office Open XML coi fogli Informazioni e Dati: numeri come numeri, date come date, testi mai formule)",
             "in": "path",
             "name": "formato",
             "required": true,
@@ -2575,7 +2575,7 @@
                 }
               }
             },
-            "description": "File CSV (UTF-8 con BOM, separatore punto e virgola, virgola decimale, testi tra virgolette) o XLSX (un foglio, stesso contenuto): intestazione con fonte, filtri, data di estrazione, profili, ultimo dato sincronizzato per flusso e uso interno, poi la tabella. Registrato in AUDIT_ESPORTAZIONE col formato",
+            "description": "File CSV (UTF-8 con BOM, separatore punto e virgola, virgola decimale, testi tra virgolette): intestazione con fonte, filtri, data di estrazione, profili, ultimo dato sincronizzato per flusso e uso interno, poi la tabella; oppure XLSX con lo stesso contenuto su due fogli, Informazioni (l'intestazione) e Dati (la tabella). Registrato in AUDIT_ESPORTAZIONE col formato",
             "headers": {
               "Content-Disposition": {
                 "description": "attachment, con il nome del file CSV o XLSX da salvare",
@@ -2832,7 +2832,7 @@
       "get": {
         "parameters": [
           {
-            "description": "Formato del file: csv (UTF-8 con BOM, punto e virgola) o xlsx (foglio Office Open XML: numeri come numeri, testi mai formule)",
+            "description": "Formato del file: csv (UTF-8 con BOM, punto e virgola) o xlsx (Office Open XML coi fogli Informazioni e Dati: numeri come numeri, date come date, testi mai formule)",
             "in": "path",
             "name": "formato",
             "required": true,
@@ -2927,7 +2927,7 @@
                 }
               }
             },
-            "description": "File CSV (UTF-8 con BOM, separatore punto e virgola, virgola decimale, testi tra virgolette) o XLSX (un foglio, stesso contenuto): intestazione con fonte, filtri, data di estrazione, profili, ultimo dato sincronizzato per flusso e uso interno, poi la tabella. Registrato in AUDIT_ESPORTAZIONE col formato",
+            "description": "File CSV (UTF-8 con BOM, separatore punto e virgola, virgola decimale, testi tra virgolette): intestazione con fonte, filtri, data di estrazione, profili, ultimo dato sincronizzato per flusso e uso interno, poi la tabella; oppure XLSX con lo stesso contenuto su due fogli, Informazioni (l'intestazione) e Dati (la tabella). Registrato in AUDIT_ESPORTAZIONE col formato",
             "headers": {
               "Content-Disposition": {
                 "description": "attachment, con il nome del file CSV o XLSX da salvare",
@@ -3184,7 +3184,7 @@
       "get": {
         "parameters": [
           {
-            "description": "Formato del file: csv (UTF-8 con BOM, punto e virgola) o xlsx (foglio Office Open XML: numeri come numeri, testi mai formule)",
+            "description": "Formato del file: csv (UTF-8 con BOM, punto e virgola) o xlsx (Office Open XML coi fogli Informazioni e Dati: numeri come numeri, date come date, testi mai formule)",
             "in": "path",
             "name": "formato",
             "required": true,
@@ -3279,7 +3279,7 @@
                 }
               }
             },
-            "description": "File CSV (UTF-8 con BOM, separatore punto e virgola, virgola decimale, testi tra virgolette) o XLSX (un foglio, stesso contenuto): intestazione con fonte, filtri, data di estrazione, profili, ultimo dato sincronizzato per flusso e uso interno, poi la tabella. Registrato in AUDIT_ESPORTAZIONE col formato",
+            "description": "File CSV (UTF-8 con BOM, separatore punto e virgola, virgola decimale, testi tra virgolette): intestazione con fonte, filtri, data di estrazione, profili, ultimo dato sincronizzato per flusso e uso interno, poi la tabella; oppure XLSX con lo stesso contenuto su due fogli, Informazioni (l'intestazione) e Dati (la tabella). Registrato in AUDIT_ESPORTAZIONE col formato",
             "headers": {
               "Content-Disposition": {
                 "description": "attachment, con il nome del file CSV o XLSX da salvare",

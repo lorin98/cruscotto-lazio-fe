@@ -45,7 +45,7 @@
       "ownership": "istituzionale",
       "path": "./openapi/openapi-istituzionale.json",
       "role": "adapter-in-rest",
-      "sha256": "sha256:bd522bd06607138597caa5f4dfbd15b3d7d950c005f1682c6a84799c42c541f2",
+      "sha256": "sha256:63d84c3c5dd9d752e177d2221568502838cae256873621b67c045d8799a75b1f",
       "step": "step8-rest"
     }
   ],
@@ -96,7 +96,7 @@
     "step9-functions.functions": "pass"
   },
   "openapi": {
-    "hash": "sha256:bd522bd06607138597caa5f4dfbd15b3d7d950c005f1682c6a84799c42c541f2",
+    "hash": "sha256:63d84c3c5dd9d752e177d2221568502838cae256873621b67c045d8799a75b1f",
     "path": "./openapi/openapi-istituzionale.json"
   },
   "pack_hash": "sha256:b606aaee3b2f7add11e8b239ea50e03b3f206913e8b013e5ec7604cb3b4a310f",

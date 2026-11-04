@@ -45,7 +45,7 @@
       "ownership": "fisico",
       "path": "./openapi/openapi-fisico.json",
       "role": "adapter-in-rest",
-      "sha256": "sha256:79264c79075db3de0cec28f3aca39fa963ec86148d9acab842f8f6e4870b3564",
+      "sha256": "sha256:d0436e16d83a4dac1e3f81351936cc0dbfd66e214b7073d05f18595906f75815",
       "step": "step8-rest"
     }
   ],
@@ -96,7 +96,7 @@
     "step9-functions.functions": "pass"
   },
   "openapi": {
-    "hash": "sha256:79264c79075db3de0cec28f3aca39fa963ec86148d9acab842f8f6e4870b3564",
+    "hash": "sha256:d0436e16d83a4dac1e3f81351936cc0dbfd66e214b7073d05f18595906f75815",
     "path": "./openapi/openapi-fisico.json"
   },
   "pack_hash": "sha256:b606aaee3b2f7add11e8b239ea50e03b3f206913e8b013e5ec7604cb3b4a310f",
