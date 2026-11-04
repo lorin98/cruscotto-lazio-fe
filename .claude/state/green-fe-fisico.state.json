@@ -129,7 +129,7 @@
     },
     "step8-gate": {
       "status": "done",
-      "completed_at": "2026-11-04T22:36:17Z",
+      "completed_at": "2026-11-04T23:19:36Z",
       "artifacts": [
         "./plan/fisico/fe-gate-report.json"
       ],
@@ -148,9 +148,11 @@
       }
     },
     "step9-review": {
-      "status": "in_progress",
-      "completed_at": "2026-11-01T14:11:43Z",
-      "gates": {}
+      "status": "done",
+      "completed_at": "2026-11-04T23:23:13Z",
+      "gates": {
+        "review": "pass"
+      }
     }
   },
   "open_blockers": [],

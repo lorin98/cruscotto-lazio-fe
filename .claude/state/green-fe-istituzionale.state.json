@@ -130,7 +130,7 @@
     },
     "step8-gate": {
       "status": "done",
-      "completed_at": "2026-11-04T22:38:09Z",
+      "completed_at": "2026-11-04T23:21:14Z",
       "artifacts": [
         "./plan/istituzionale/fe-gate-report.json"
       ],
@@ -149,9 +149,11 @@
       }
     },
     "step9-review": {
-      "status": "in_progress",
-      "completed_at": "2026-11-01T14:11:45Z",
-      "gates": {}
+      "status": "done",
+      "completed_at": "2026-11-04T23:23:15Z",
+      "gates": {
+        "review": "pass"
+      }
     }
   },
   "open_blockers": [],
