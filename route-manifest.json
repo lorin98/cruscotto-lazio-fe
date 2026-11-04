@@ -106,6 +106,11 @@
           "gating": "hide-by-role",
           "grant": "csr.tx-0003.read",
           "operationId": "TX-0003"
+        },
+        {
+          "gating": "hide-by-role",
+          "grant": "csr.tx-0011.read",
+          "operationId": "TX-0011"
         }
       ],
       "component": "src/pages/finanziario/dotazione/page.tsx",
@@ -218,7 +223,7 @@
     {
       "manifest_hash_match": true,
       "path": "handover/openapi-finanziario.json",
-      "sha256": "sha256:8de1b5dd66ff721e97a59d5e8d91faf6b515949599de2d1d23b36b6394bd3cda",
+      "sha256": "sha256:1851c53b001ad90db6f5a8825d644660489a83a0f2d3e62a3d7cd8c5d161f821",
       "slice": "finanziario"
     }
   ]
