@@ -1,0 +1,75 @@
+[
+  {
+    "id": "J-10",
+    "feature": "istituzionale",
+    "severity": "MAGGIORE",
+    "file": "src/features/istituzionale/ui/ReportVerifica.tsx:32",
+    "titolo": "Verifica SMP non SIGC con l'anno obbligatorio: lo stato approvato 'nessun file per l'anno scelto' non si raggiunge mai e la pill dice che il file c'e' anche quando manca (V-03)",
+    "evidenza": "Il FE rende lo stato solo con `d.annoRiferimento === null` (riga 32; SchedeIntervento.tsx:66), ma il backend con l'anno risponde sempre l'anno chiesto (ConsultaIstituzionaleService.verificaSmpNonSigc: null solo senza anno e senza alcun file; AnniAmmessi controlla solo 2000-2100) e dal 04/11 il FE non legge mai senza anno. Con un anno senza file (2029 e' fra le scelte, criteri.ts:41) la pagina mostra 'Anno di riferimento del file SMP non SIGC: 2029' (VerificaSmpNonSigc.tsx:67) e '2029 (l'anno scelto)', voci 'non valorizzato' e nessuno stato, mentre il wireframe approvato il 04/11 (verifica-smp-non-sigc.html:157-158) chiede 'Nessun file SMP non SIGC acquisito per l'anno scelto'. Il test (verifica-smp-non-sigc/page.test.tsx:266-275) forza annoRiferimento null su una richiesta con anno, risposta che il backend non da'.",
+    "fix": "Richiede una scelta dell'utente e un cambio del backend. (a) Coerente col wireframe: punto per il backend perche' TX-0016 con un anno senza file NOSIGC risponda annoRiferimento null (come dice il contratto); il FE resta com'e' (stato e pill gia' legati a null) e il test si riscrive su anno=2029 con risposta null. (b) Backend invariato: la pill dice l'anno scelto senza dire che il file c'e' ('Anno di riferimento scelto: aaaa') e lo stato 'per l'anno scelto' esce dal wireframe, da riapprovare. In entrambi i casi il titolo del test dice cio' che prova (risposta null).",
+    "assorbe": [
+      "V-03"
+    ]
+  },
+  {
+    "id": "J-11",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/pages/istituzionale/interventi/page.test.tsx:428",
+    "titolo": "Scheda non SIGC del dettaglio senza anno: nessun test prova che TX-0016 non si legga (V-07, A-02)",
+    "evidenza": "L'unica guardia e' `leggeVerifica = conVerifica && aperta('verifica') && anno !== undefined` (DettaglioIntervento.tsx:136), ma SchedaVerifica mostra 'Scegli l'anno di riferimento da consultare.' anche guardando solo `anno === undefined` (SchedeIntervento.tsx:94). I due test della scheda senza anno (interventi/page.test.tsx:421-428, tests/istituzionale-ui.test.tsx:358-364) controllano il testo e lette.verificaSigc, non lette.verifica: tolta la guardia passerebbero lo stesso. La pagina invece e' provata (verifica-smp-non-sigc/page.test.tsx:54).",
+    "fix": "In entrambi i test, dopo il findByText, un tick (act + setTimeout, come in interventi/page.test.tsx:155) e `expect(lette.verifica).toEqual([])`; in interventi/page.test.tsx poi scegliere 2025, premere Mostra e volere `['?intervento=SRA01&anno=2025']`.",
+    "assorbe": [
+      "V-07",
+      "A-02"
+    ]
+  },
+  {
+    "id": "J-12",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/api/index.ts:64",
+    "titolo": "Anno obbligatorio di TX-0016 imposto in due componenti e non nel wrapper api/, a differenza dell'esercizio di TX-0015 (H-04)",
+    "evidenza": "La regola 'nessuna lettura senza anno' sta in VerificaSmpNonSigc.tsx:54 e DettaglioIntervento.tsx:136; useVerificaSmpNonSigc (righe 64-65) legge con qualunque criterio, e il suo commento (60-63) e il tipo CriteriVerifica (riga 50: 'assente = l'ultimo con un file') non dicono dell'anno obbligatorio. useVerificaSmpSigc (72-79) tiene invece la regola nel wrapper (esercizio a parte, enabled && esercizio !== undefined). L'unica lettura senza anno legittima e' la card della Home (AnteprimaIstituzionale.tsx:87).",
+    "fix": "Dare a TX-0016 la forma di TX-0015: `useVerificaSmpNonSigc(filtri, anno: number | undefined, opzioni)` con `enabled: abilitato && anno !== undefined`, e un wrapper esplicito per la card (per esempio useUltimaVerificaSmpNonSigc) che legge senza anno; togliere i due `anno !== undefined` dai componenti e aggiornare commento e tipo del wrapper.",
+    "assorbe": [
+      "H-04"
+    ]
+  },
+  {
+    "id": "J-13",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/lib/formato.ts:41",
+    "titolo": "Anno obbligatorio: rami morti per l'anno assente e un commento falso lasciati da 88eb799 (H-05)",
+    "evidenza": "ReportVerifica e' reso solo con l'anno (VerificaSmpNonSigc.tsx:71) ma tiene `anno: number | undefined` (ReportVerifica.tsx:25) col ramo `anno === undefined` (riga 28) e lo passa a vociRiferimenti/testoAnnoDiRiferimento, il cui ramo `scelto === undefined` (formato.ts:46) non si raggiunge piu'; il doc (formato.ts:41-43) dice che serve 'per una lettura senza anno (la card della Home)', ma la card non lo usa (unico chiamante: ReportVerifica, via verifica.ts:109). Lo stesso per testoAggiornamentoAnno (lib/intervento.ts:137-138), chiamato solo con l'anno (SchedeIntervento.tsx:98).",
+    "fix": "Restringere a `anno: number` ReportVerifica, vociRiferimenti, testoAnnoDiRiferimento e testoAggiornamentoAnno, togliere i rami irraggiungibili e correggere il doc di formato.ts:41-43 e quello di statoDellaPagina (intervento.ts:89-93); aggiornare i test di lib che provano i rami tolti.",
+    "assorbe": [
+      "H-05"
+    ]
+  },
+  {
+    "id": "J-14",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/ui/DettaglioIntervento.tsx:113",
+    "titolo": "Dettaglio dell'intervento senza dati: 'Torna alla verifica SMP non SIGC' perde l'anno appena scelto, che la verifica ora chiede di nuovo (X-05, accolto in parte)",
+    "evidenza": "Con l'anno obbligatorio lo stato 'intervento senza dati' (AT001, codici fuori dal report) arriva solo dopo la scelta dell'anno; il suo link va a PERCORSI.verifica senza parametri (riga 113), quindi la verifica mostra 'Scegli l'anno di riferimento da consultare.' e l'utente rifa' la scelta. Il link della testata della stessa pagina porta invece l'anno (verificaDellIntervento(codice, anno), riga 94): link incoerenti, punto del brief 'link e indirizzi coerenti'.",
+    "fix": "Passare `anno` a SenzaDati e usare un indirizzo con l'anno, con un costruttore in lib/collegamenti.ts come verificaDellIntervento ma senza l'intervento (che non ha dati). Test: AT001 con anno=2025, il link porta `?anno=2025`.",
+    "assorbe": [
+      "X-05"
+    ]
+  },
+  {
+    "id": "J-15",
+    "feature": "istituzionale",
+    "severity": "COSMETICO",
+    "file": "src/features/istituzionale/lib/criteri.ts:107",
+    "titolo": "'Stessa cache della pagina' della card della Home istituzionale non vale piu' (V-09)",
+    "evidenza": "criteri.ts:107 ('la card della Home legge con questi, nella stessa cache'), AnteprimaIstituzionale.tsx:7-8 ('coi criteri della pagina aperta senza filtri ne' anno (stessa cache, a lettura finita, D2)') e il detail di OP-IS-11 (plan/istituzionale/uiplan.json:1184, 'letta senza filtri e senza anno (stessa cache della pagina)') descrivono una lettura che la pagina dal 04/11 non fa piu'. Il comportamento e' quello approvato, il testo no.",
+    "fix": "Correggere i due commenti: la card legge TX-0016 senza anno (ultimo anno con un file), la pagina solo con l'anno scelto, nessuna cache condivisa. Il detail dell'uiplan al prossimo giro che lo risigilla (cambiarlo ora invalida i pin degli step).",
+    "assorbe": [
+      "V-09"
+    ]
+  }
+]

@@ -1,0 +1,74 @@
+[
+  {
+    "id": "H-01",
+    "feature": "finanziario",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/lib/grafici/sigc.ts:267",
+    "titolo": "Importi SIGC: etichetta del segmento Pagato bianca su verde COLORI.positivo a 4,22:1, sotto l'AA (4,5:1) dichiarato dal codice",
+    "evidenza": "Il segmento 'Pagato' / 'Pagato entro l'ammesso' ha colore COLORI.positivo (#4e8a1f) e testo COLORI.superficie (#ffffff); serieSegmento (riga 238) mette quel testo su backgroundColor = colore del segmento, dentro e fuori dalla barra. Contrasto misurato con la formula WCAG: #ffffff su #4e8a1f = 4,22:1; nemmeno il testo scuro COLORI.testo (#17212b) basta (3,86:1). Le etichette di ECharts sono di 12 px non in grassetto (il tema non le ingrandisce), quindi vale la soglia 4,5:1 (WCAG 1.4.3). Il doc di Segmento.testo (riga 193) dichiara 'contrasto AA'. Gli altri tre accoppiamenti passano (bianco su #0066cc 5,57:1; #17212b su #c9d3de 10,75:1 e su #8fb8e6 7,89:1). Il test nuovo di finanziario-grafici verifica solo backgroundColor === itemStyle.color, non il contrasto.",
+    "fix": "Dare all'etichetta del Pagato un fondo che regge il bianco (es. un verde piu' scuro come #437a1b, 5,2:1, o #3d6b18, 6,34:1, da mettere fra i COLORI) oppure fondo COLORI.superficie con testo COLORI.testo e bordo del colore del segmento; aggiungere un test che, per ogni serie di graficoImportiSigc, calcola il contrasto fra label.color e label.backgroundColor e lo vuole >= 4,5."
+  },
+  {
+    "id": "H-02",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/shared/ui/tabella/TabellaInterattiva.tsx:275",
+    "titolo": "Riepilogo: tornando dal dettaglio o dall'elenco l'ordine si ritrova ma le colonne scelte no (ordine su una colonna di nuovo nascosta)",
+    "evidenza": "StatoTabella (TabellaInterattiva.tsx:221-226) porta solo ordine, pagina e ricerca; le colonne nascoste sono stato locale inizializzato da c.nascosta (riga 275). Il Riepilogo e' l'unico uso di statoIniziale/onStato (RiepilogoReport.tsx:217, 240) e dal 04/11 ha quattro colonne nascoste all'apertura (righe 114-119). Chi mostra 'Pagamenti lordi', ordina per quella colonna e apre il dettaglio (o il link all'elenco dei pagamenti, che sta proprio sulla cella dei lordi) al ritorno trova la tabella ordinata per una colonna invisibile: statoTabellaValido accetta la chiave perche' controlla tutte le colonne, l'aria-sort non sta su nessuna intestazione visibile e la didascalia (lib/tabella.ts:57) non dice l'ordine; il link ai pagamenti torna nascosto. L'elenco operativo invece conserva le colonne scelte tornando dalla scheda (commento di ElencoPagamenti.tsx:5).",
+    "fix": "Aggiungere a StatoTabella un campo facoltativo `nascoste?: string[]` (validato in statoTabellaValido contro le chiavi, assente = quelle di partenza), inizializzare `nascoste` da statoIniziale e notificarlo in onStato al cambio di 'Colonne'; in alternativa minima, mostrare la colonna dell'ordine ritrovato quando e' fra quelle nascoste di partenza."
+  },
+  {
+    "id": "H-03",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "tests/revisioni-20261104.test.tsx:39",
+    "titolo": "Avviso degli impegnati in Dotazione: nessun test della lettura di TX-0011 che fallisce",
+    "evidenza": "AvvisoImpegnatiDellaSelezione (ui/AvvisoImpegnati.tsx:27-35) rende null quando useRiepilogo non ha dati, quindi anche in errore: e' il comportamento voluto ('nessun errore visibile'), ma i due test nuovi coprono solo il caso con differenze e i casi senza differenze / senza grant. Nessun test (ne' qui ne' in src/pages/finanziario/dotazione/page.test.tsx) fa rispondere /api/finanziario/riepilogo con un problem+json 500 o 403 e verifica che la pagina resti senza note ne' alert e con grafico e tabella di TX-0002. Un domani un VistaQuery o un errorePersonalizzato messo attorno all'avviso porterebbe un errore in pagina senza che un test lo dica.",
+    "fix": "Aggiungere in tests/revisioni-20261104.test.tsx un caso con TX-0011 in errore (500 e 403 problem+json): nessun role=note, nessun role=alert dovuto a TX-0011, tabella 'Dotazione, impegni e pagamenti per intervento' e grafico presenti; facoltativo un caso che apre Riepilogo e poi Dotazione con gli stessi filtri e conta una sola lettura di TX-0011 (cache condivisa)."
+  },
+  {
+    "id": "H-04",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/api/index.ts:64",
+    "titolo": "Anno obbligatorio di TX-0016 imposto in due punti della ui e non nel wrapper api/, a differenza dell'esercizio di TX-0015",
+    "evidenza": "La regola 'nessuna lettura senza anno' sta in VerificaSmpNonSigc.tsx:54 (abilitato: !pagina.inAttesa && anno !== undefined) e in DettaglioIntervento.tsx:136 (leggeVerifica ... && anno !== undefined); il wrapper useVerificaSmpNonSigc (api/index.ts:64-65) legge con qualunque criterio e il suo commento (righe 60-63) non dice dell'anno obbligatorio. La verifica gemella TX-0015 ha la stessa regola dentro il wrapper (useVerificaSmpSigc, righe 72-79: enabled = abilitato && esercizio !== undefined, esercizio come parametro a parte). Un nuovo chiamante di useVerificaSmpNonSigc (o un refactor di uno dei due) legge senza anno senza che il tipo lo impedisca; l'unica lettura senza anno legittima e' quella della card della Home (AnteprimaIstituzionale.tsx:87).",
+    "fix": "Dare a TX-0016 la forma di TX-0015: un wrapper per pagina e scheda con `anno: number | undefined` separato dai filtri e `enabled: abilitato && anno !== undefined`, e un wrapper esplicito per la card della Home (es. useUltimaVerificaSmpNonSigc) che legge senza anno; togliere i due `anno !== undefined` dai componenti e aggiornare il commento del wrapper."
+  },
+  {
+    "id": "H-05",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/lib/formato.ts:41",
+    "titolo": "Anno obbligatorio: rami morti per l'anno assente e un commento falso lasciati da 88eb799",
+    "evidenza": "ReportVerifica e' reso solo con l'anno (VerificaSmpNonSigc.tsx:71) ma tiene `anno: number | undefined` (ReportVerifica.tsx:25) col ramo `anno === undefined ? 'Verifica SMP non SIGC'` (riga 28) e passa l'anno a vociRiferimenti (riga 33, lib/verifica.ts:107), il cui ramo `scelto === undefined` di testoAnnoDiRiferimento (formato.ts:46) non e' piu' raggiungibile; il doc aggiornato (formato.ts:41-43) dice che serve 'per una lettura senza anno (la card della Home)', ma la card non chiama ne' testoAnnoDiRiferimento ne' vociRiferimenti (unico chiamante: ReportVerifica). Anche testoAggiornamentoAnno (lib/intervento.ts:137-138, ramo \"dell'ultimo anno con un file\") e' chiamato solo con l'anno (SchedeIntervento.tsx:98); il commento di statoDellaPagina (intervento.ts:89-93) cita solo la scheda SIGC come scheda che non legge.",
+    "fix": "Restringere i tipi a `anno: number` in ReportVerifica, vociRiferimenti/testoAnnoDiRiferimento (o farne a meno del parametro) e testoAggiornamentoAnno, togliere i rami irraggiungibili e correggere i due commenti: cosi' il compilatore fa da guardia all'invariante 'nessun report senza anno'."
+  },
+  {
+    "id": "H-06",
+    "feature": "elenco-operativo",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/lib/criteri.ts:292",
+    "titolo": "testoOrdinamento col booleano `maschile` deciso dalla ui; il nome dell'oggetto dell'elenco ripetuto in sei punti",
+    "evidenza": "La concordanza 'Ordinate'/'Ordinati' entra come flag booleano (criteri.ts:292) e il chiamante ricava la grammatica dal tipo di elenco (`elenco === 'pagamenti'`, ui/interrogazione.tsx:102), mentre le funzioni sorelle della stessa lib prendono gia' l'Elenco (ordinamentoDi, ordinamentoPredefinito, ordinaPer, righe 100-105 di interrogazione.tsx). Il nome di cio' che l'elenco conta e' scritto a mano in piu' posti: ElencoPagamenti.tsx:30 (['pagamento','pagamenti']), :59 (plurale 'pagamento','pagamenti'), :89 (oggetto=\"pagamenti\"), :151 (unita ['pagamento','pagamenti']), esportazioni.ts:18 (UNITA), e l'analogo per le domande in ElencoDomande.tsx:55, :134, :209: la revisione dei 'righe' ha dovuto toccarli uno per uno, e un prossimo cambio puo' lasciarne indietro uno.",
+    "fix": "Una sola tabella in lib/formato.ts, es. `NOMI_ELENCO: Record<Elenco, { singolare: string; plurale: string; maschile: boolean }>`; testoOrdinamento(titolo, o, elenco) la legge; oggetto, unita, UNITA e i plurale() dei piedi la usano invece delle stringhe ripetute."
+  },
+  {
+    "id": "H-07",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici/sigc.ts:221",
+    "titolo": "Importi SIGC: lo spazio a destra per l'etichetta dell'ultimo segmento e' proporzionale ai dati, l'etichetta ha larghezza fissa in pixel",
+    "evidenza": "massimoConSpazio riserva almeno un quinto del massimo dei dati (1/6 della larghezza dell'asse) e posizioneEtichettaSegmento (righe 211-212) mette fuori a destra l'etichetta dell'ultimo segmento che non entra; l'etichetta ('41,9 M€ (24,3 %)' con padding [2, 4]) e' larga circa 100 px a 12 px di corpo. Su una card stretta (smartphone, 360 px) lo spazio fra la fine della barra piu' lunga e il bordo del disegno e' stimabile in 60-75 px (1/6 dell'asse piu' il margine destro predefinito della griglia, che con outerBoundsContain: 'axisLabel' non conta le etichette delle serie): proprio li' il segmento e' piu' stretto e l'etichetta esce, quindi verrebbe tagliata, anche nel PNG che copia larghezza e opzioni. La funzione pura non puo' conoscere la larghezza del grafico e il callback di labelLayout non controlla il bordo destro.",
+    "fix": "Verificare a 360 px; se l'etichetta esce, per l'ultimo segmento usare lo stesso ripiego degli altri (sopra il segmento) quando rect.x + rect.width + labelRect.width supera lo spazio riservato, oppure riservare lo spazio in pixel (grid.right fisso pari alla larghezza massima dell'etichetta) invece che in proporzione ai dati, e aggiungere un caso di test col grafico stretto."
+  },
+  {
+    "id": "H-08",
+    "feature": "comune",
+    "severity": "COSMETICO",
+    "file": "src/shared/ui/tabella/Paginazione.tsx:47",
+    "titolo": "Paginazione riscrive in linea maiuscolaIniziale del kit",
+    "evidenza": "L'etichetta nuova e' `${oggetto.charAt(0).toUpperCase()}${oggetto.slice(1)} per pagina`, identica a maiuscolaIniziale (shared/lib/grafici/primitive.ts:78-80), esportata dal barrel shared/lib da cui Paginazione importa gia' formatNumber (riga 6) e gia' usata dalle feature (es. finanziario/lib/riserva.ts:7).",
+    "fix": "Importare maiuscolaIniziale da '../../lib' e scrivere `${maiuscolaIniziale(oggetto)} per pagina`."
+  }
+]

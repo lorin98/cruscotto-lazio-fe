@@ -1,0 +1,62 @@
+[
+  {
+    "id": "J-16",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/app/aree.ts:150",
+    "titolo": "Home: la card dell'Elenco operativo chiama ancora i pagamenti 'Righe degli elenchi di liquidazione' (X-03)",
+    "evidenza": "La revisione del 04/11 toglie 'riga/righe' dai testi dei pagamenti dell'elenco operativo e dai link che ci portano (brief; wf-note di pagamenti.html:62). La card dello strumento Elenco operativo elenca 'Righe degli elenchi di liquidazione' (aree.ts:150); STRUMENTI non ha Anteprima, quindi home.tsx:53 rende sempre i contenuti: e' la prima descrizione dei pagamenti che l'utente legge, accanto a 'Entra in Elenco operativo'. Non e' una didascalia generica del kit.",
+    "fix": "Scrivere 'Pagamenti degli elenchi di liquidazione' (come il sottotitolo della pagina) e aggiungere in tests/app-aree.test.tsx il controllo che la card dell'Elenco operativo non contenga 'righe'.",
+    "assorbe": [
+      "X-03"
+    ]
+  },
+  {
+    "id": "J-17",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/tabella/Paginazione.tsx:29",
+    "titolo": "Paginazione: con un solo risultato scrive 'Pagina 1 di 1 - 1 pagamenti' ('1 domande') (X-04)",
+    "evidenza": "La pill scrive `${formatNumber(totale)} ${oggetto}` con l'oggetto sempre al plurale (oggetto='pagamenti' a ElencoPagamenti.tsx:89, 'domande' a ElencoDomande.tsx:134), unico uso del componente (elenco-operativo/ui/interrogazione.tsx:131). Il resto dell'elenco concorda gia' (unita ['pagamento','pagamenti'] a ElencoPagamenti.tsx:151, plurale(...) nel piede a :59). Il difetto c'era anche con 'righe', ma il delta ha riscritto questi testi e il brief chiede le concordanze; il test nuovo prova solo 62.370.",
+    "fix": "Dare a Paginazione l'unita' `[singolare, plurale]` (la stessa del pannello, o dalla tabella dei nomi di J-18) e scrivere `plurale(totale, ...)` nella pill; l'etichetta resta '<Plurale> per pagina'. Test con totale 1: '1 pagamento' e '1 domanda'.",
+    "assorbe": [
+      "X-04"
+    ]
+  },
+  {
+    "id": "J-18",
+    "feature": "elenco-operativo",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/lib/criteri.ts:292",
+    "titolo": "testoOrdinamento con un booleano `maschile` deciso dalla ui e il nome di cio' che l'elenco conta ripetuto in otto punti (H-06)",
+    "evidenza": "La concordanza 'Ordinate'/'Ordinati' entra come flag (riga 292) che il chiamante ricava da `elenco === 'pagamenti'` (ui/interrogazione.tsx:102), mentre le funzioni sorelle della stessa lib prendono gia' l'Elenco. Il nome dell'oggetto e' scritto a mano in ElencoPagamenti.tsx:30, :59, :89, :151, esportazioni.ts:18 e ElencoDomande.tsx:55, :134, :209: la revisione dei 'righe' ha dovuto toccarli uno per uno.",
+    "fix": "Una sola tabella in lib/formato.ts, `NOMI_ELENCO: Record<Elenco, { singolare: string; plurale: string; maschile: boolean }>`; testoOrdinamento(titolo, o, elenco) la legge, e oggetto, unita, UNITA e i plurale() dei piedi la usano al posto delle stringhe ripetute.",
+    "assorbe": [
+      "H-06"
+    ]
+  },
+  {
+    "id": "J-19",
+    "feature": "comune",
+    "severity": "COSMETICO",
+    "file": "src/shared/ui/tabella/Paginazione.tsx:47",
+    "titolo": "Paginazione riscrive in linea maiuscolaIniziale del kit (H-08)",
+    "evidenza": "L'etichetta nuova e' `${oggetto.charAt(0).toUpperCase()}${oggetto.slice(1)} per pagina`, identica a maiuscolaIniziale (shared/lib/grafici/primitive.ts:78-80), esportata dal barrel shared/lib da cui Paginazione importa gia' formatNumber (riga 6) e gia' usata dalle feature (finanziario/lib/riserva.ts:7).",
+    "fix": "Importare maiuscolaIniziale da '../../lib' e scrivere `${maiuscolaIniziale(oggetto)} per pagina`.",
+    "assorbe": [
+      "H-08"
+    ]
+  },
+  {
+    "id": "J-20",
+    "feature": "elenco-operativo",
+    "severity": "COSMETICO",
+    "file": "wireframes/elenco-operativo/pagamenti/pagamenti.html:151",
+    "titolo": "Wireframe approvati: l'etichetta della select dice ancora 'Righe per pagina' (V-10)",
+    "evidenza": "La label della paginazione in pagamenti.html:151 e domande.html:249 resta 'Righe per pagina', come pagamenti.md:25, :66, :92 e domande.md:84, :112, mentre la nota sotto e le sezioni del 04/11 dei .md dicono 'Pagamenti per pagina' e 'Domande per pagina'. Il codice segue la revisione (Paginazione.tsx:47); il wireframe approvato si contraddice proprio sul punto della revisione.",
+    "fix": "Correggere la label nelle due pagine .html e le cinque righe dei .md ('Pagamenti per pagina', 'Domande per pagina') e riapprovare al prossimo giro di wireframe.",
+    "assorbe": [
+      "V-10"
+    ]
+  }
+]

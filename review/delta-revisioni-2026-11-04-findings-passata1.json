@@ -1,0 +1,202 @@
+[
+  {
+    "id": "J-01",
+    "feature": "finanziario",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/ui/RiepilogoReport.tsx:188",
+    "titolo": "Riepilogo: nell'anteprima e nella tabella 'di cui stimato', lordi e rettifiche finiscono dopo le dotazioni residue, fuori dall'ordine del wireframe approvato (V-01)",
+    "evidenza": "L'anteprima rende `[...CAMPI_RF011, ...CAMPI_IN_PIU]` (riga 188): dopo 'Dotazione residua sui pagamenti' vengono 'di cui stimato', 'Pagamenti lordi', 'Rettifiche' e 'Con rettifiche', cosi' lo stimato si legge come parte del residuo e lordi e rettifiche seguono il netto che ne e' la differenza; la tabella accoda le stesse colonne dopo le residue (riga 126). Il wireframe riapprovato il 04/11 (riepilogo.html:118-128) ha lo stimato nel dd dell'impegnato FEASR e non e lordi e rettifiche prima del netto, e riepilogo.md (R08, righe 85-88) le vuole 'accanto ai pagamenti netti' e lo stimato con l'impegnato. A 304dc1e (un solo array CAMPI) l'ordine era giusto: regressione del delta.",
+    "fix": "Anteprima: CAMPI_PROGRAMMA, Domande, impegnato FEASR, impegnato FEASR e non con 'di cui stimato' subito dopo, Pagamenti lordi, Rettifiche, Con rettifiche, netto, le due residue. Tabella: inserire le colonne nascoste al loro posto (stimato dopo l'impegnato FEASR e non; lordi, rettifiche e 'Con rettifiche' prima del netto): all'apertura le nove visibili restano nell'ordine di RF011. Aggiornare i test con l'ordine completo (riepilogo/page.test.tsx:83, finanziario-ui.test.tsx:830, voci dell'anteprima in finanziario-casi-limite.test.tsx:~300).",
+    "assorbe": ["V-01"]
+  },
+  {
+    "id": "J-02",
+    "feature": "finanziario",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/lib/grafici/sigc.ts:267",
+    "titolo": "Importi SIGC: etichetta del segmento 'Pagato' bianca su #4e8a1f a 4,22:1, sotto il 4,5:1 AA di NFR-70 che il codice dichiara (V-02, H-01, A-01)",
+    "evidenza": "Il segmento 'Pagato'/'Pagato entro l'ammesso' ha `colore: COLORI.positivo` (#4e8a1f) e `testo: COLORI.superficie` (#ffffff), e serieSegmento (riga 238) usa lo stesso colore come sfondo dell'etichetta anche fuori dal segmento: contrasto WCAG 4,22:1 (ricalcolato; col testo scuro 3,86:1). Le etichette sono a 12 px normali (il tema in shared/ui/grafici/echarts.ts non fissa fontSize), quindi serve 4,5:1 (WCAG 1.4.3, NFR-70), e Segmento.testo (riga 193) dichiara 'contrasto AA'. axe non misura il testo SVG di ECharts e il test nuovo (finanziario-grafici.test.ts:1348) controlla solo backgroundColor === colore del segmento.",
+    "fix": "Per il segmento 'Pagato' del solo grafico SIGC usare un verde che regge il bianco, costante locale per segmento ed etichetta insieme, per esempio #437a1b (5,2:1) o #3d6b18 (6,3:1): il test dello sfondo resta vero e COLORI.positivo non cambia per gli altri grafici. In finanziario-grafici.test.ts aggiungere un test che, per ogni serie di graficoImportiSigc, calcola il contrasto fra label.color e label.backgroundColor e lo vuole >= 4,5.",
+    "assorbe": ["V-02", "H-01", "A-01"]
+  },
+  {
+    "id": "J-03",
+    "feature": "comune",
+    "severity": "MAGGIORE",
+    "file": "e2e/csp.spec.ts:200",
+    "titolo": "E2e della CSP rotto dal delta: clicca l'interruttore 'Vista del riepilogo' tolto da a8c42f8 e aspetta '1200' nella card della Home, che ora scrive '1.200' (X-01)",
+    "evidenza": "La riga 200 fa `getByRole('group', { name: 'Vista del riepilogo' })...click()` su /finanziario/riepilogo, ma RiepilogoReport.tsx non ha piu' InterruttoreVista (ritornoAlRiepilogo.ts senza VISTA_RIEPILOGO): il clic va in timeout e il controllo CSP dell'anteprima (review v2 N-25) non si esegue. La riga 156 aspetta `toContainText('1200')`, ma con MIGLIAIA (format.ts) la card rende '1.200', come gia' corretto in tests/anteprime-home.test.tsx:543. Lo step8 non lancia e2e/: la rottura si vedrebbe solo allo step10 (stesso schema di X1 del 21/10, MAGGIORE).",
+    "fix": "In e2e/csp.spec.ts togliere la riga 200 e la frase del commento 197-198 sulla vista Tabella: aspettare la tabella 'Tabella di riepilogo per intervento (RF011)' prima del clic sulla riga SRA01. Alla riga 156 aspettare '1.200'. Lanciare `npm run test:e2e` e registrarne l'esito prima di chiudere il giro.",
+    "assorbe": ["X-01"]
+  },
+  {
+    "id": "J-04",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici/sigc.ts:221",
+    "titolo": "Importi SIGC: lo spazio a destra per l'etichetta dell'ultimo segmento e' proporzionale all'asse, l'etichetta ha larghezza fissa: su card strette puo' uscire dal disegno (V-06, H-07)",
+    "evidenza": "posizioneEtichettaSegmento(true) (riga 212) mette l'etichetta a rect.x + rect.width + 4 senza guardare il bordo; lo spazio oltre la barra piu' lunga e' massimoConSpazio = max x 1,2 arrotondato (riga 221), circa un sesto dell'asse, piu' il margine destro predefinito (GRIGLIA_CON_ETICHETTE, primitive.ts:185, conta solo le etichette degli assi). Un'etichetta come '41,9 M€ (24,3 %)' con padding [2, 4] e' larga circa 100 px a qualunque larghezza: a 320-400 px lo spazio e' stimabile in 60-90 px, quindi l'etichetta di 'Non ammesso' o di 'Ancora da pagare' puo' essere tagliata, anche nel PNG che copia larghezza e opzioni (stima, non osservata). Il test (finanziario-grafici.test.ts:1355) prova la callback con un rect fisso.",
+    "fix": "In graficoImportiSigc riservare lo spazio in pixel: `grid: { ...GRIGLIA_CON_ETICHETTE, right: <larghezza stimata della piu' lunga etichetta degli ultimi segmenti> }` (caratteri x circa 7 px + 8 di padding + MARGINE_ETICHETTA), lasciando a massimoConSpazio solo l'arrotondamento della tacca. Aggiungere un test che con un'etichetta lunga vuole grid.right >= la sua larghezza stimata; verificare a 360 px e nel PNG.",
+    "assorbe": ["V-06", "H-07"]
+  },
+  {
+    "id": "J-05",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/pages/finanziario/riepilogo/page.test.tsx:86",
+    "titolo": "Avviso degli impegnati: i test di pagina non provano l'assenza con impegnati uguali ne' l'errore di TX-0011 (V-04, H-03)",
+    "evidenza": "Il test del Riepilogo (righe 86-95) si intitola '... niente avviso se coincidono' ma usa una riga diversa e una con gli impegnati assenti (fixture.ts:41-42, nd('IMPEGNI')), mai due impegnati uguali. In Dotazione 'senza differenze nessun avviso' (tests/revisioni-20261104.test.tsx:38-42) usa le stesse righe e controlla queryByRole('note') appena compare la tabella di TX-0002, senza aspettare TX-0011: l'assenza puo' passare perche' il dato non e' ancora arrivato. Nessun test fa fallire TX-0011 (AvvisoImpegnati.tsx:29 rende null anche in errore, come voluto); la regola resta provata in lib (impegnatiDiversi con SRG06 uguale, finanziario-grafici.test.ts:1367).",
+    "fix": "Nei due test aggiungere una riga con i due impegnati valorizzati e uguali (13.879.326,08 su entrambi) e, prima di queryByRole('note'), aspettare la lettura di TX-0011 (`await waitFor(() => expect(letture()).toBe(1))`, poi un tick con act + setTimeout). In tests/revisioni-20261104.test.tsx aggiungere TX-0011 in errore 500 e 403 problem+json: nessun role=note, nessun alert dovuto a TX-0011, tabella e grafico di TX-0002 presenti.",
+    "assorbe": ["V-04", "H-03"]
+  },
+  {
+    "id": "J-06",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici/spesa.ts:269",
+    "titolo": "Perimetro ADA: 'Dotazione, impegnato e pagamenti per intervento' toglie anche l'impegnato e non lo dice (V-05)",
+    "evidenza": "Nel ramo ADA (righe 269-271) graficoDotazionePagamenti disegna solo il pagato con il solo motivo OMESSO_ADA_DOTAZIONE. Il wireframe approvato (dotazione.html:76) vuole tre barre e in ADA esclude solo la dotazione ('la dotazione regionale non si affianca ai pagamenti dell'area'); impegni e pagamenti in ADA sono entrambi dell'area (comuni.tsx:74), quindi confrontabili. Il profilo ADA vede una card intitolata con l'impegnato, senza impegnato e senza motivo.",
+    "fix": "Nel ramo ADA disegnare le serie IMPEGNATO_SPESA_PUBBLICA e pagato (`voce(r, [r.impegnato, r.pagato])`, caption e colonne coerenti) tenendo il solo omesso OMESSO_ADA_DOTAZIONE. Aggiungere a finanziario-grafici.test.ts il caso ADA: due serie, impegnato e pagato, e la dotazione fra le voci omesse.",
+    "assorbe": ["V-05"]
+  },
+  {
+    "id": "J-07",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/RiepilogoReport.tsx:125",
+    "titolo": "Riepilogo: la cella dell'impegnato cofinanziato FEASR riportato alla dotazione non lo dice; il wireframe riapprovato scrive 'n,nn (alla dotazione)' (X-02)",
+    "evidenza": "riepilogo.html:96 (approvato il 04/11, 18:56:08Z) disegna la cella 'Impegnato cofinanziato FEASR' di SRA03 come 'n,nn (alla dotazione)'. Il codice rende le colonne di CAMPI_RF011 con colonneImporti (riga 125; comuni.tsx:122, solo ValoreImporto) e la voce dell'anteprima con VoceImporto (riga 188): dopo una ricerca, un ordinamento o un cambio di pagina la riga ridotta non si distingue, l'informazione resta solo nell'avviso sopra la tabella.",
+    "fix": "In colonne() avvolgere la resa di impegnatoCofinanziatoFeasr: l'importo piu' il testo ' (alla dotazione)' quando `impegnatiDiversi([r]).length > 0` (la stessa regola dell'avviso, lib/impegnati.ts); lo stesso nella voce dell'anteprima. Test: con impegnati diversi cella e voce hanno '(alla dotazione)', con impegnati uguali no.",
+    "assorbe": ["X-02"]
+  },
+  {
+    "id": "J-08",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/tabella/TabellaInterattiva.tsx:275",
+    "titolo": "Riepilogo: tornando dal dettaglio o dall'elenco l'ordine si ritrova ma le colonne scelte no, e l'ordine puo' stare su una colonna di nuovo nascosta (H-02)",
+    "evidenza": "StatoTabella (righe 221-226) porta solo ordine, pagina e ricerca; le colonne nascoste sono stato locale inizializzato da c.nascosta (riga 275). Il Riepilogo e' l'unico uso di statoIniziale/onStato (RiepilogoReport.tsx:240-241) e dal 04/11 ha quattro colonne nascoste all'apertura: chi mostra 'Pagamenti lordi', ordina per quella colonna e apre il dettaglio o il link all'elenco (che sta su quella cella) al ritorno trova la tabella ordinata su una colonna invisibile, senza aria-sort su un'intestazione visibile, e il link di nuovo nascosto.",
+    "fix": "Aggiungere a StatoTabella `nascoste?: string[]` (validato in statoTabellaValido contro le chiavi; assente = quelle di partenza), inizializzare `nascoste` da statoIniziale e notificarlo in onStato al cambio di 'Colonne'. Test nel Riepilogo: mostra 'Pagamenti lordi', ordina, apri il dettaglio, torna: la colonna e' visibile e ordinata.",
+    "assorbe": ["H-02"]
+  },
+  {
+    "id": "J-09",
+    "feature": "finanziario",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/ui/AvvisoImpegnati.tsx:19",
+    "titolo": "Prima frase dell'avviso degli impegnati diversa dal wireframe riapprovato (V-08)",
+    "evidenza": "riepilogo.html:70 e dotazione.html:67 (riapprovati alle 18:56:08Z) scrivono '... diverso dall'impegnato FEASR e non in 4 interventi.'; il codice (riga 19) e i due test che lo fissano dicono '... diverso dall'impegnato cofinanziato FEASR e non in N interventi.'. Quantita', resto del testo e role=note coincidono.",
+    "fix": "Allineare la riga 19 al wireframe ('dall'impegnato FEASR e non') e i due test (riepilogo/page.test.tsx:93, tests/revisioni-20261104.test.tsx:34); oppure, se si preferisce il nome completo del campo di RF011, correggere i due wireframe al prossimo giro di approvazione.",
+    "assorbe": ["V-08"]
+  },
+  {
+    "id": "J-10",
+    "feature": "istituzionale",
+    "severity": "MAGGIORE",
+    "file": "src/features/istituzionale/ui/ReportVerifica.tsx:32",
+    "titolo": "Verifica SMP non SIGC con l'anno obbligatorio: lo stato approvato 'nessun file per l'anno scelto' non si raggiunge mai e la pill dice che il file c'e' anche quando manca (V-03)",
+    "evidenza": "Il FE rende lo stato solo con `d.annoRiferimento === null` (riga 32; SchedeIntervento.tsx:66), ma il backend con l'anno risponde sempre l'anno chiesto (ConsultaIstituzionaleService.verificaSmpNonSigc: null solo senza anno e senza alcun file; AnniAmmessi controlla solo 2000-2100) e dal 04/11 il FE non legge mai senza anno. Con un anno senza file (2029 e' fra le scelte, criteri.ts:41) la pagina mostra 'Anno di riferimento del file SMP non SIGC: 2029' (VerificaSmpNonSigc.tsx:67) e '2029 (l'anno scelto)', voci 'non valorizzato' e nessuno stato, mentre il wireframe approvato il 04/11 (verifica-smp-non-sigc.html:157-158) chiede 'Nessun file SMP non SIGC acquisito per l'anno scelto'. Il test (verifica-smp-non-sigc/page.test.tsx:266-275) forza annoRiferimento null su una richiesta con anno, risposta che il backend non da'.",
+    "fix": "Richiede una scelta dell'utente e un cambio del backend. (a) Coerente col wireframe: punto per il backend perche' TX-0016 con un anno senza file NOSIGC risponda annoRiferimento null (come dice il contratto); il FE resta com'e' (stato e pill gia' legati a null) e il test si riscrive su anno=2029 con risposta null. (b) Backend invariato: la pill dice l'anno scelto senza dire che il file c'e' ('Anno di riferimento scelto: aaaa') e lo stato 'per l'anno scelto' esce dal wireframe, da riapprovare. In entrambi i casi il titolo del test dice cio' che prova (risposta null).",
+    "assorbe": ["V-03"]
+  },
+  {
+    "id": "J-11",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/pages/istituzionale/interventi/page.test.tsx:428",
+    "titolo": "Scheda non SIGC del dettaglio senza anno: nessun test prova che TX-0016 non si legga (V-07, A-02)",
+    "evidenza": "L'unica guardia e' `leggeVerifica = conVerifica && aperta('verifica') && anno !== undefined` (DettaglioIntervento.tsx:136), ma SchedaVerifica mostra 'Scegli l'anno di riferimento da consultare.' anche guardando solo `anno === undefined` (SchedeIntervento.tsx:94). I due test della scheda senza anno (interventi/page.test.tsx:421-428, tests/istituzionale-ui.test.tsx:358-364) controllano il testo e lette.verificaSigc, non lette.verifica: tolta la guardia passerebbero lo stesso. La pagina invece e' provata (verifica-smp-non-sigc/page.test.tsx:54).",
+    "fix": "In entrambi i test, dopo il findByText, un tick (act + setTimeout, come in interventi/page.test.tsx:155) e `expect(lette.verifica).toEqual([])`; in interventi/page.test.tsx poi scegliere 2025, premere Mostra e volere `['?intervento=SRA01&anno=2025']`.",
+    "assorbe": ["V-07", "A-02"]
+  },
+  {
+    "id": "J-12",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/api/index.ts:64",
+    "titolo": "Anno obbligatorio di TX-0016 imposto in due componenti e non nel wrapper api/, a differenza dell'esercizio di TX-0015 (H-04)",
+    "evidenza": "La regola 'nessuna lettura senza anno' sta in VerificaSmpNonSigc.tsx:54 e DettaglioIntervento.tsx:136; useVerificaSmpNonSigc (righe 64-65) legge con qualunque criterio, e il suo commento (60-63) e il tipo CriteriVerifica (riga 50: 'assente = l'ultimo con un file') non dicono dell'anno obbligatorio. useVerificaSmpSigc (72-79) tiene invece la regola nel wrapper (esercizio a parte, enabled && esercizio !== undefined). L'unica lettura senza anno legittima e' la card della Home (AnteprimaIstituzionale.tsx:87).",
+    "fix": "Dare a TX-0016 la forma di TX-0015: `useVerificaSmpNonSigc(filtri, anno: number | undefined, opzioni)` con `enabled: abilitato && anno !== undefined`, e un wrapper esplicito per la card (per esempio useUltimaVerificaSmpNonSigc) che legge senza anno; togliere i due `anno !== undefined` dai componenti e aggiornare commento e tipo del wrapper.",
+    "assorbe": ["H-04"]
+  },
+  {
+    "id": "J-13",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/lib/formato.ts:41",
+    "titolo": "Anno obbligatorio: rami morti per l'anno assente e un commento falso lasciati da 88eb799 (H-05)",
+    "evidenza": "ReportVerifica e' reso solo con l'anno (VerificaSmpNonSigc.tsx:71) ma tiene `anno: number | undefined` (ReportVerifica.tsx:25) col ramo `anno === undefined` (riga 28) e lo passa a vociRiferimenti/testoAnnoDiRiferimento, il cui ramo `scelto === undefined` (formato.ts:46) non si raggiunge piu'; il doc (formato.ts:41-43) dice che serve 'per una lettura senza anno (la card della Home)', ma la card non lo usa (unico chiamante: ReportVerifica, via verifica.ts:109). Lo stesso per testoAggiornamentoAnno (lib/intervento.ts:137-138), chiamato solo con l'anno (SchedeIntervento.tsx:98).",
+    "fix": "Restringere a `anno: number` ReportVerifica, vociRiferimenti, testoAnnoDiRiferimento e testoAggiornamentoAnno, togliere i rami irraggiungibili e correggere il doc di formato.ts:41-43 e quello di statoDellaPagina (intervento.ts:89-93); aggiornare i test di lib che provano i rami tolti.",
+    "assorbe": ["H-05"]
+  },
+  {
+    "id": "J-14",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/ui/DettaglioIntervento.tsx:113",
+    "titolo": "Dettaglio dell'intervento senza dati: 'Torna alla verifica SMP non SIGC' perde l'anno appena scelto, che la verifica ora chiede di nuovo (X-05, accolto in parte)",
+    "evidenza": "Con l'anno obbligatorio lo stato 'intervento senza dati' (AT001, codici fuori dal report) arriva solo dopo la scelta dell'anno; il suo link va a PERCORSI.verifica senza parametri (riga 113), quindi la verifica mostra 'Scegli l'anno di riferimento da consultare.' e l'utente rifa' la scelta. Il link della testata della stessa pagina porta invece l'anno (verificaDellIntervento(codice, anno), riga 94): link incoerenti, punto del brief 'link e indirizzi coerenti'.",
+    "fix": "Passare `anno` a SenzaDati e usare un indirizzo con l'anno, con un costruttore in lib/collegamenti.ts come verificaDellIntervento ma senza l'intervento (che non ha dati). Test: AT001 con anno=2025, il link porta `?anno=2025`.",
+    "assorbe": ["X-05"]
+  },
+  {
+    "id": "J-15",
+    "feature": "istituzionale",
+    "severity": "COSMETICO",
+    "file": "src/features/istituzionale/lib/criteri.ts:107",
+    "titolo": "'Stessa cache della pagina' della card della Home istituzionale non vale piu' (V-09)",
+    "evidenza": "criteri.ts:107 ('la card della Home legge con questi, nella stessa cache'), AnteprimaIstituzionale.tsx:7-8 ('coi criteri della pagina aperta senza filtri ne' anno (stessa cache, a lettura finita, D2)') e il detail di OP-IS-11 (plan/istituzionale/uiplan.json:1184, 'letta senza filtri e senza anno (stessa cache della pagina)') descrivono una lettura che la pagina dal 04/11 non fa piu'. Il comportamento e' quello approvato, il testo no.",
+    "fix": "Correggere i due commenti: la card legge TX-0016 senza anno (ultimo anno con un file), la pagina solo con l'anno scelto, nessuna cache condivisa. Il detail dell'uiplan al prossimo giro che lo risigilla (cambiarlo ora invalida i pin degli step).",
+    "assorbe": ["V-09"]
+  },
+  {
+    "id": "J-16",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/app/aree.ts:150",
+    "titolo": "Home: la card dell'Elenco operativo chiama ancora i pagamenti 'Righe degli elenchi di liquidazione' (X-03)",
+    "evidenza": "La revisione del 04/11 toglie 'riga/righe' dai testi dei pagamenti dell'elenco operativo e dai link che ci portano (brief; wf-note di pagamenti.html:62). La card dello strumento Elenco operativo elenca 'Righe degli elenchi di liquidazione' (aree.ts:150); STRUMENTI non ha Anteprima, quindi home.tsx:53 rende sempre i contenuti: e' la prima descrizione dei pagamenti che l'utente legge, accanto a 'Entra in Elenco operativo'. Non e' una didascalia generica del kit.",
+    "fix": "Scrivere 'Pagamenti degli elenchi di liquidazione' (come il sottotitolo della pagina) e aggiungere in tests/app-aree.test.tsx il controllo che la card dell'Elenco operativo non contenga 'righe'.",
+    "assorbe": ["X-03"]
+  },
+  {
+    "id": "J-17",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/tabella/Paginazione.tsx:29",
+    "titolo": "Paginazione: con un solo risultato scrive 'Pagina 1 di 1 - 1 pagamenti' ('1 domande') (X-04)",
+    "evidenza": "La pill scrive `${formatNumber(totale)} ${oggetto}` con l'oggetto sempre al plurale (oggetto='pagamenti' a ElencoPagamenti.tsx:89, 'domande' a ElencoDomande.tsx:134), unico uso del componente (elenco-operativo/ui/interrogazione.tsx:131). Il resto dell'elenco concorda gia' (unita ['pagamento','pagamenti'] a ElencoPagamenti.tsx:151, plurale(...) nel piede a :59). Il difetto c'era anche con 'righe', ma il delta ha riscritto questi testi e il brief chiede le concordanze; il test nuovo prova solo 62.370.",
+    "fix": "Dare a Paginazione l'unita' `[singolare, plurale]` (la stessa del pannello, o dalla tabella dei nomi di J-18) e scrivere `plurale(totale, ...)` nella pill; l'etichetta resta '<Plurale> per pagina'. Test con totale 1: '1 pagamento' e '1 domanda'.",
+    "assorbe": ["X-04"]
+  },
+  {
+    "id": "J-18",
+    "feature": "elenco-operativo",
+    "severity": "MINORE",
+    "file": "src/features/elenco-operativo/lib/criteri.ts:292",
+    "titolo": "testoOrdinamento con un booleano `maschile` deciso dalla ui e il nome di cio' che l'elenco conta ripetuto in otto punti (H-06)",
+    "evidenza": "La concordanza 'Ordinate'/'Ordinati' entra come flag (riga 292) che il chiamante ricava da `elenco === 'pagamenti'` (ui/interrogazione.tsx:102), mentre le funzioni sorelle della stessa lib prendono gia' l'Elenco. Il nome dell'oggetto e' scritto a mano in ElencoPagamenti.tsx:30, :59, :89, :151, esportazioni.ts:18 e ElencoDomande.tsx:55, :134, :209: la revisione dei 'righe' ha dovuto toccarli uno per uno.",
+    "fix": "Una sola tabella in lib/formato.ts, `NOMI_ELENCO: Record<Elenco, { singolare: string; plurale: string; maschile: boolean }>`; testoOrdinamento(titolo, o, elenco) la legge, e oggetto, unita, UNITA e i plurale() dei piedi la usano al posto delle stringhe ripetute.",
+    "assorbe": ["H-06"]
+  },
+  {
+    "id": "J-19",
+    "feature": "comune",
+    "severity": "COSMETICO",
+    "file": "src/shared/ui/tabella/Paginazione.tsx:47",
+    "titolo": "Paginazione riscrive in linea maiuscolaIniziale del kit (H-08)",
+    "evidenza": "L'etichetta nuova e' `${oggetto.charAt(0).toUpperCase()}${oggetto.slice(1)} per pagina`, identica a maiuscolaIniziale (shared/lib/grafici/primitive.ts:78-80), esportata dal barrel shared/lib da cui Paginazione importa gia' formatNumber (riga 6) e gia' usata dalle feature (finanziario/lib/riserva.ts:7).",
+    "fix": "Importare maiuscolaIniziale da '../../lib' e scrivere `${maiuscolaIniziale(oggetto)} per pagina`.",
+    "assorbe": ["H-08"]
+  },
+  {
+    "id": "J-20",
+    "feature": "elenco-operativo",
+    "severity": "COSMETICO",
+    "file": "wireframes/elenco-operativo/pagamenti/pagamenti.html:151",
+    "titolo": "Wireframe approvati: l'etichetta della select dice ancora 'Righe per pagina' (V-10)",
+    "evidenza": "La label della paginazione in pagamenti.html:151 e domande.html:249 resta 'Righe per pagina', come pagamenti.md:25, :66, :92 e domande.md:84, :112, mentre la nota sotto e le sezioni del 04/11 dei .md dicono 'Pagamenti per pagina' e 'Domande per pagina'. Il codice segue la revisione (Paginazione.tsx:47); il wireframe approvato si contraddice proprio sul punto della revisione.",
+    "fix": "Correggere la label nelle due pagine .html e le cinque righe dei .md ('Pagamenti per pagina', 'Domande per pagina') e riapprovare al prossimo giro di wireframe.",
+    "assorbe": ["V-10"]
+  }
+]

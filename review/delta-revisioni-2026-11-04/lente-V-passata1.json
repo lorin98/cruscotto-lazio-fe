@@ -1,0 +1,92 @@
+[
+  {
+    "id": "V-01",
+    "feature": "finanziario",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/ui/RiepilogoReport.tsx:188",
+    "titolo": "Anteprima del Riepilogo e colonne in piu': 'di cui stimato', lordi e rettifiche finiscono dopo le dotazioni residue, fuori dall'ordine del wireframe approvato",
+    "evidenza": "Wireframe riepilogo approvato il 04/11 (riepilogo.html, aside 'Anteprima'): Dotazione, Quota FEASR, Stanziato, Domande, Impegnato cofinanziato FEASR, Impegnato cofinanziato FEASR e non 'n,nn euro, di cui stimato n,nn euro', Pagamenti lordi, Rettifiche, Pagamenti al netto, Dotazione residua sugli impegni, Dotazione residua sui pagamenti; riepilogo.md R08 (ancora valido): lordi, rettifiche e 'Con rettifiche' 'accanto ai pagamenti netti', impegnato 'con la colonna di cui stimato'. Il codice, dopo lo split CAMPI_RF011/CAMPI_IN_PIU, rende l'anteprima come [...CAMPI_RF011, ...CAMPI_IN_PIU] (riga 188): ... netto, residuo sugli impegni, residuo sui pagamenti, poi 'di cui stimato', 'Pagamenti lordi', 'Rettifiche', 'Con rettifiche'. Il dt 'di cui stimato' segue cosi' 'Dotazione residua sui pagamenti' e si legge come parte del residuo; lordi e rettifiche vengono dopo il netto che ne e' la differenza. Prima del delta (CAMPI unico) l'ordine era giusto: e' una regressione. Lo stesso nella tabella (riga 126, '...inPiu' in coda): mostrate dal selettore, le quattro colonne compaiono dopo le residue (i test lo fissano: riepilogo/page.test.tsx 'intestazioni().slice(-4)', finanziario-ui.test.tsx 'slice(10)'); il test dell'anteprima (finanziario-casi-limite.test.tsx ~300) controlla solo voci[3] e la lunghezza.",
+    "fix": "Anteprima nell'ordine del wireframe: programma, Domande, Impegnato FEASR, Impegnato FEASR e non con 'di cui stimato' subito dopo (o nel dd come nel wireframe), Pagamenti lordi, Rettifiche/Con rettifiche, Pagamenti al netto, le due residue. Nella tabella inserire le colonne nascoste al loro posto (stimato dopo l'impegnato FEASR e non; lordi, rettifiche e 'Con rettifiche' prima del netto): restano nascoste all'apertura, quindi le nove visibili restano nell'ordine di RF011. Aggiornare i test con l'ordine completo delle voci dell'anteprima e delle 14 intestazioni."
+  },
+  {
+    "id": "V-02",
+    "feature": "finanziario",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/lib/grafici/sigc.ts:267",
+    "titolo": "Importi SIGC: etichetta del segmento 'Pagato' bianca su verde #4e8a1f a 4,22:1, sotto il 4,5:1 di WCAG AA (NFR-70) che il codice dichiara",
+    "evidenza": "Il delta fissa il colore del testo delle etichette (campo 'testo', commento a riga 193: 'contrasto AA') e lo sfondo dell'etichetta uguale al segmento, anche fuori dal segmento (serieSegmento, riga 238). Per 'Pagato'/'Pagato entro l'ammesso': testo COLORI.superficie #ffffff su COLORI.positivo #4e8a1f. Luminanza relativa di #4e8a1f = 0,199, contrasto col bianco = 1,05/0,249 = 4,22:1; le etichette sono testo normale (12 px, peso normale: il tema non le ingrandisce), quindi serve 4,5:1 (WCAG 1.4.3, NFR-70 del pack: livello AA). Nemmeno il testo scuro COLORI.testo #17212b arriva al minimo su quel verde (3,86:1). Gli altri tre sono a posto (bianco su #0066cc 5,57:1; #17212b su #c9d3de e su #8fb8e6 oltre 7:1). axe non misura il testo del canvas/SVG di ECharts, e il test del delta (finanziario-grafici.test.ts, 'l'etichetta ha lo sfondo del suo segmento') verifica solo che lo sfondo sia uguale al colore della serie.",
+    "fix": "Dare all'etichetta (o al segmento) del pagato un verde piu' scuro con contrasto almeno 4,5:1 col bianco (per esempio #3b6b16, circa 6,4:1), oppure etichetta in grassetto ad almeno 18,66 px (testo grande, 3:1). Aggiungere un test che calcola il contrasto testo/sfondo di ogni segmento e richiede almeno 4,5."
+  },
+  {
+    "id": "V-03",
+    "feature": "istituzionale",
+    "severity": "MAGGIORE",
+    "file": "src/features/istituzionale/ui/ReportVerifica.tsx:32",
+    "titolo": "Verifica SMP non SIGC con l'anno obbligatorio: lo stato approvato 'nessun file per l'anno scelto' non compare mai, e la pill dice che il file c'e' anche quando manca",
+    "evidenza": "Wireframe verifica-smp-non-sigc approvato il 04/11: 'Stato: nessun file SMP non SIGC per l'anno scelto' ('Nessun file SMP non SIGC acquisito per l'anno scelto: ...'). Il FE lo rende solo con d.annoRiferimento === null (ReportVerifica.tsx:32, SchedeIntervento.tsx:66). Il backend (ConsultaIstituzionaleService.verificaSmpNonSigc) con il parametro anno restituisce sempre annoRiferimento = l'anno chiesto, mai null: vale null solo senza anno, e dal 04/11 il FE non legge mai senza anno. Il selettore propone 2023-2029 (criteri.ts:41, anniDiRiferimento) senza sapere quali anni hanno un file. Scegliendo un anno senza file (per esempio 2029) la pagina mostra la pill 'Anno di riferimento del file SMP non SIGC: 2029' (VerificaSmpNonSigc.tsx:67, pillAnnoDelFile) e '2029 (l'anno scelto)', con le voci 'non valorizzato' e nessuno stato che dica che il file manca. Il test che dovrebbe provarlo (src/pages/istituzionale/verifica-smp-non-sigc/page.test.tsx:269) forza una risposta con annoRiferimento null a una richiesta con anno=2025, cosa che il backend non fa piu' (lo ammette il commento del test): prova uno stato che in esercizio non si raggiunge.",
+    "fix": "Con il backend invariato: aprire un punto per il backend (un campo come filePresente, o annoRiferimento null quando l'anno chiesto non ha file); intanto il FE non dica che il file c'e' (pill 'Anno di riferimento scelto: aaaa' finche' il backend non lo conferma) e il wireframe/dossier dichiari che lo stato 'nessun file per l'anno scelto' dipende da quel punto. Riscrivere il test su una risposta che il backend puo' dare, oppure legarlo al nuovo campo."
+  },
+  {
+    "id": "V-04",
+    "feature": "finanziario",
+    "severity": "MAGGIORE",
+    "file": "src/pages/finanziario/riepilogo/page.test.tsx:86",
+    "titolo": "Avviso degli impegnati: i test dichiarano 'niente avviso se coincidono' ma non lo provano",
+    "evidenza": "Riepilogo: il test 'avviso degli impegnati diversi: ...; niente avviso se coincidono' (righe 86-95) verifica solo il testo dell'avviso con una riga diversa; nessuna asserzione sull'assenza con impegnati uguali. Dotazione: 'senza differenze nessun avviso' (tests/revisioni-20261104.test.tsx:38-42) usa RIEPILOGO, le cui righe hanno i due impegnati assenti (nd('IMPEGNI'), fixture.ts ~41-62), non uguali; inoltre controlla queryByRole('note') appena compare la tabella di RF002 (TX-0002), senza aspettare che TX-0011, lettura indipendente, sia arrivata e resa. letture() > 0 si controlla solo alla fine, dopo il secondo render. Quindi l'assenza puo' passare perche' i dati non ci sono ancora. Il caso reale (SRG06, impegnati uguali) e' provato solo nel test di impegnatiDiversi, non nelle pagine.",
+    "fix": "Nei due test aggiungere una riga con i due impegnati valorizzati e uguali (per esempio 13.879.326,08 su entrambi) e, prima di queryByRole('note'), aspettare che TX-0011 sia letto e reso (waitFor(() => expect(letture()).toBe(1)) e poi un elemento che dipende dalla risposta, o un flush delle query). Oppure correggere il titolo del test del Riepilogo."
+  },
+  {
+    "id": "V-05",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici/spesa.ts:269",
+    "titolo": "Perimetro ADA: il grafico 'Dotazione, impegnato e pagamenti per intervento' toglie anche l'impegnato senza dirlo",
+    "evidenza": "Nel ramo ADA graficoDotazionePagamenti disegna solo il pagato, con il solo motivo OMESSO_ADA_DOTAZIONE ('la dotazione regionale non si affianca ai pagamenti dell'area'). Impegnato e pagamenti in ADA sono entrambi dell'area (comuni.tsx:74: 'domande, impegni e pagamenti sono della tua area'; MOTIVO_ADA_FLUSSO in avanzamento.ts), quindi confrontabili. I wireframe approvati di Riepilogo e Dotazione chiedono tre barre e per l'ADA escludono solo la dotazione. Il profilo ADA vede la card intitolata 'Dotazione, impegnato e pagamenti per intervento' con i soli pagamenti, e l'omissione dell'impegnato non e' dichiarata.",
+    "fix": "In ADA disegnare impegnato e pagato (serie IMPEGNATO_SPESA_PUBBLICA e pagato), togliendo e dichiarando la sola dotazione; oppure, se si sceglie di toglierlo, dichiararlo nel motivo e nella caption. Aggiungere il caso ADA ai test del grafico."
+  },
+  {
+    "id": "V-06",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici/sigc.ts:208",
+    "titolo": "Importi SIGC: l'etichetta messa a destra dell'ultimo segmento ha uno spazio proporzionale (20% dell'asse) ma una larghezza fissa: su card strette puo' uscire dal grafico",
+    "evidenza": "posizioneEtichettaSegmento(true) mette l'etichetta a x = rect.x + rect.width + 4 senza controllare il bordo destro; lo spazio oltre la barra piu' lunga e' massimoConSpazio = max x 1,2 arrotondato (riga 221), cioe' una frazione della larghezza del grafico, mentre l'etichetta (es. '41,9 M EUR (24,3 %)' con padding [2,4]) e' larga circa 100 px a qualunque larghezza. L'etichetta di 'Non ammesso' finisce in fondo alla barra piu' lunga (Richiesto): su una card di circa 450 px restano circa 50 px nell'area del grafico piu' il margine destro, e su card piu' strette o ridimensionando l'etichetta puo' superare il bordo e venire tagliata. Il brief chiede la verifica 'anche ridimensionando'; il test prova la callback solo con un rect fisso (finanziario-grafici.test.ts, 'Importi SIGC: l'etichetta ha lo sfondo ...').",
+    "fix": "Riservare a destra uno spazio in pixel pari all'etichetta piu' lunga stimata dal testo (grid.right o un massimo calcolato sulla larghezza del contenitore), non una percentuale. Verificare con un render a 320-480 px, anche nel PNG esportato."
+  },
+  {
+    "id": "V-07",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "tests/istituzionale-ui.test.tsx:358",
+    "titolo": "Scheda dell'intervento senza anno: nessun test prova che TX-0016 non si legga",
+    "evidenza": "La guardia e' in DettaglioIntervento.tsx:136 (leggeVerifica ... && anno !== undefined), ma SchedaVerifica mostra 'Scegli l'anno di riferimento da consultare.' anche guardando solo anno === undefined (SchedeIntervento.tsx:94). I due test della scheda senza anno (tests/istituzionale-ui.test.tsx:358-364 e src/pages/istituzionale/interventi/page.test.tsx:421-428) controllano il testo e lette.verificaSigc, non lette.verifica: togliendo la guardia la scheda leggerebbe TX-0016 e i test passerebbero lo stesso. La pagina invece lo prova (verifica-smp-non-sigc/page.test.tsx, 'nessuna lettura di TX-0016').",
+    "fix": "Nei due test aggiungere expect(lette.verifica).toEqual([]) dopo 'Scegli l'anno di riferimento da consultare.'."
+  },
+  {
+    "id": "V-08",
+    "feature": "finanziario",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/ui/AvvisoImpegnati.tsx:49",
+    "titolo": "Testo dell'avviso diverso da quello del wireframe riapprovato",
+    "evidenza": "Wireframe riepilogo.html e dotazione.html (riapprovati alle 18:56:08Z): 'Impegnato cofinanziato FEASR diverso dall'impegnato FEASR e non in 4 interventi.' Il codice (e i due test che lo fissano) dice '... diverso dall'impegnato cofinanziato FEASR e non in N interventi.' Il resto del testo, le quantita' ('SRA03 x su y') e role=note coincidono.",
+    "fix": "Allineare il testo al wireframe, oppure, se si preferisce il nome completo del campo di RF011, correggere il wireframe al prossimo giro di approvazione."
+  },
+  {
+    "id": "V-09",
+    "feature": "istituzionale",
+    "severity": "COSMETICO",
+    "file": "src/features/istituzionale/lib/criteri.ts:107",
+    "titolo": "'Stessa cache della pagina' della card della Home istituzionale non vale piu'",
+    "evidenza": "criteri.ts:107 ('I criteri della verifica aperta senza filtri ne' anno: la card della Home legge con questi, nella stessa cache'), AnteprimaIstituzionale.tsx:8 ('stessa cache, a lettura finita, D2') e il detail della card nell'uiplan (plan/istituzionale/uiplan.json:1184, 'letta senza filtri e senza anno (stessa cache della pagina)') descrivono una lettura senza anno che la pagina dal 04/11 non fa piu': la card e la pagina non condividono piu' la lettura. Il comportamento e' corretto (scelta approvata), il testo no.",
+    "fix": "Aggiornare commenti e detail dell'uiplan: la card legge TX-0016 senza anno (ultimo anno con un file), la pagina solo con l'anno scelto; la decisione D2 sulla cache condivisa resta valida per gli altri ambiti."
+  },
+  {
+    "id": "V-10",
+    "feature": "elenco-operativo",
+    "severity": "COSMETICO",
+    "file": "wireframes/elenco-operativo/pagamenti/pagamenti.html:151",
+    "titolo": "Wireframe approvati: l'etichetta della select dice ancora 'Righe per pagina'",
+    "evidenza": "Nella nav della paginazione di pagamenti.html:151 e domande.html:249 la label resta 'Righe per pagina', mentre la nota subito sotto e i .md (revisioni del 04/11) dicono 'Pagamenti per pagina' e 'Domande per pagina'. Il codice segue i .md (Paginazione.tsx: '<Oggetto> per pagina'), ma il wireframe approvato si contraddice proprio sul punto della revisione.",
+    "fix": "Correggere la label nelle due pagine .html ('Pagamenti per pagina', 'Domande per pagina') e riapprovare insieme al prossimo giro di wireframe."
+  }
+]

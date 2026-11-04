@@ -1,0 +1,52 @@
+[
+  {
+    "id": "X-01",
+    "tipo": "nuovo",
+    "feature": "finanziario",
+    "severity": "MAGGIORE",
+    "file": "e2e/csp.spec.ts:200",
+    "titolo": "E2e della CSP non allineata al delta: clicca l'interruttore 'Vista del riepilogo' che non c'e' piu' e cerca '1200' nella card della Home, che ora scrive '1.200'",
+    "evidenza": "a8c42f8 toglie l'interruttore di pagina del Riepilogo (RiepilogoReport.tsx senza InterruttoreVista; VISTA_RIEPILOGO tolto da ritornoAlRiepilogo.ts), ma il test 'pannello dei filtri e anteprima' fa ancora page.getByRole('group', { name: 'Vista del riepilogo' }).getByRole('button', { name: 'Tabella' }).click() (e2e/csp.spec.ts:200). Il gruppo non esiste piu': il clic aspetta fino al timeout di playwright.config.ts e il controllo della CSP sull'anteprima del riepilogo (review v2 N-25) non arriva a eseguirsi. Poi f0e36d5 mette il separatore delle migliaia sempre: la card Finanziario della Home rende le domande presentate con intero -> formatNumber (AnteprimaFinanziario.tsx:48), quindi '1.200'. Il test vitest gemello e' stato aggiornato da '1200' a '1.200' (tests/anteprime-home.test.tsx). e2e/csp.spec.ts:156 invece aspetta ancora toContainText('1200') sulla risposta finta presentate: 1200 (riga 53), quindi fallisce anche il test della Home. e2e/ sta fuori dal perimetro del delta e dal gate step8 (fe-gate-report senza e2e), percio' la rottura si vedra' solo allo step10. E' lo stesso schema del finding X1 del 21/10 (review/delta-2026-10-21/antagonista-passata1.json, MAGGIORE, accettato e corretto con proprio questa riga 200).",
+    "fix": "In e2e/csp.spec.ts togliere la riga 200: la tabella e' gia' in pagina, basta aspettare la tabella 'Tabella di riepilogo per intervento (RF011)' prima del clic sulla riga SRA01. Alla riga 156 aspettare '1.200'. Poi lanciare npm run test:e2e (step10) e registrarne l'esito prima di chiudere il giro. Quando un delta toglie testi o controlli, includere e2e/ nella ricerca dei testi tolti."
+  },
+  {
+    "id": "X-02",
+    "tipo": "nuovo",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/RiepilogoReport.tsx:125",
+    "titolo": "Riepilogo: la cella dell'impegnato cofinanziato FEASR riportato alla dotazione non lo dice; il wireframe riapprovato lo scrive ('n,nn (alla dotazione)')",
+    "evidenza": "Il wireframe wireframes/riepilogo/riepilogo.html:96, riapprovato il 04/11 alle 18:56:08Z, disegna la riga SRA03 con la cella 'Impegnato cofinanziato FEASR' = 'n,nn (alla dotazione)': il valore ridotto dal tetto (D-27) si riconosce nella riga, non solo nell'avviso in testa. Il codice rende le colonne di CAMPI_RF011 con colonneImporti (RiepilogoReport.tsx:125 -> ui/comuni.tsx:122, dove la resa e' solo <ValoreImporto>). L'anteprima fa lo stesso (riga 188, VoceImporto). Nessuna cella porta un segno. Dopo una ricerca, un riordino o un cambio di pagina (25 righe) l'avviso resta sopra la tabella, ma la riga dell'intervento ridotto non si distingue: mostra un impegnato FEASR uguale alla dotazione della stessa riga, senza spiegazione. Le lenti non lo segnalano (V-01 riguarda l'ordine dell'anteprima, V-08 il testo dell'avviso).",
+    "fix": "Nella colonna impegnatoCofinanziatoFeasr del Riepilogo e nella sua voce dell'anteprima, aggiungere al valore il testo ' (alla dotazione)' quando la riga e' in impegnatiDiversi (lib/impegnati.ts, la stessa regola dell'avviso: i due impegnati differiscono al centesimo). Deve essere testo, non solo colore. Test: con impegnati diversi la cella e la voce dell'anteprima hanno '(alla dotazione)', con impegnati uguali no."
+  },
+  {
+    "id": "X-03",
+    "tipo": "nuovo",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/app/aree.ts:150",
+    "titolo": "Home: la card dell'Elenco operativo chiama ancora i pagamenti 'Righe degli elenchi di liquidazione'",
+    "evidenza": "La revisione del 04/11 toglie 'riga/righe' dai testi dei pagamenti dell'elenco operativo e dai link che ci portano. Lo dicono il brief e la wf-note di pagamenti.html: 'nei testi della pagina non si usa riga/righe per i pagamenti ... lo stesso nei link degli altri report verso questa pagina'. La card dello strumento Elenco operativo, nella Home, elenca invece i contenuti ['Domande di sostegno e di pagamento con il beneficiario', 'Righe degli elenchi di liquidazione', ...] (src/app/aree.ts:150). STRUMENTI non ha un'Anteprima, quindi home.tsx:53 rende sempre <Contenuti voci={area.contenuti} />: e' la prima descrizione dell'elenco dei pagamenti che l'utente legge, accanto a 'Entra in Elenco operativo'. Le lenti hanno cercato i testi rimasti in src/features, non in src/app.",
+    "fix": "Scrivere 'Pagamenti degli elenchi di liquidazione', in linea col sottotitolo della pagina ('I pagamenti correnti degli elenchi di liquidazione'). In tests/app-aree.test.tsx aggiungere il controllo che la card dell'Elenco operativo non contenga 'righe'."
+  },
+  {
+    "id": "X-04",
+    "tipo": "nuovo",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/tabella/Paginazione.tsx:29",
+    "titolo": "Paginazione: con un solo risultato scrive 'Pagina 1 di 1 - 1 pagamenti' ('1 domande')",
+    "evidenza": "La pill scrive `${formatNumber(totale)} ${oggetto}` con l'oggetto sempre al plurale: oggetto=\"pagamenti\" (ElencoPagamenti.tsx:89) e oggetto=\"domande\" (ElencoDomande.tsx:134). Con un solo risultato esce 'Pagina 1 di 1 - 1 pagamenti' o '1 domande'. Il delta ha riscritto proprio questi testi (da 'righe' a 'pagamenti', 'Pagamenti/Domande per pagina') e il brief chiede di verificare le concordanze. Il resto dell'elenco usa gia' singolare e plurale: PannelloInterrogazione con unita=['pagamento','pagamenti'] (ElencoPagamenti.tsx:151) e il piede con plurale(totaleRighe, 'pagamento', 'pagamenti') (riga 59). Il test nuovo (tests/revisioni-20261104.test.tsx) prova solo il totale 62.370.",
+    "fix": "Passare a Paginazione l'unita' [singolare, plurale] (la stessa del pannello) e scrivere plurale(totale, ...) nella pill. L'etichetta resta '<Plurale> per pagina'. Aggiungere un test con totale 1 che si aspetta '1 pagamento' e '1 domanda'."
+  },
+  {
+    "id": "X-05",
+    "tipo": "nuovo",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/ui/DettaglioIntervento.tsx:136",
+    "titolo": "Dettaglio con l'anno obbligatorio: lo stato 'intervento senza dati' non si vede piu' all'apertura, e dopo la scelta dell'anno toglie schede e selettore; il test di AT001 passa solo perche' l'helper aggiunge anno=2025",
+    "evidenza": "Prima del delta lo stato vuoto del dettaglio lo decideva la lettura di TX-0016 senza anno, appena aperta la pagina: SENZA_DATI, wireframe intervento.html:181-182 'Stato: intervento senza dati', per esempio AT001. Ora leggeVerifica richiede l'anno (riga 136). Chi apre /istituzionale/interventi/AT001, o un codice valido nel formato ma inesistente, dal menu, da un segnalibro o dalla verifica SIGC, non ha letture: statoDellaPagina restituisce 'dati' (lib/intervento.ts:96) e la pagina mostra le schede con 'Scegli l'anno di riferimento da consultare.' per un intervento che non ha dati. Scelto l'anno, statoDelDettaglio restituisce 'vuoto' (shared/lib/dettaglio.ts:56-57) e CorpoDelDettaglio (shared/ui/pagina/Dettaglio.tsx:43) sostituisce tutte le schede, compresi il selettore dell'anno e la scheda SIGC: non si puo' piu' scegliere un altro anno. 'Torna alla verifica SMP non SIGC' (riga 113) apre PERCORSI.verifica senza l'anno appena scelto, e la verifica lo chiede di nuovo. La scheda SIGC gemella tiene invece il vuoto dentro la scheda, accanto al suo selettore ('Nessun dato SIGC ... Scegli un altro esercizio'). Il test 'intervento senza dati nel report (AT001)' (src/pages/istituzionale/interventi/page.test.tsx:161-169) apre la pagina con apri(), che passa da conAnno (righe 29-31): conAnno aggiunge anno=2025 a ogni indirizzo senza anno ne' esercizio. L'apertura reale senza anno non e' provata.",
+    "fix": "Due interventi: (1) decidere il vuoto del dettaglio senza dipendere dall'anno, per esempio dal codice assente fra le voci di TX-0060 gia' lette per la descrizione, oppure tenendo il vuoto di TX-0016 letto con l'anno dentro la scheda non SIGC, accanto al selettore, come per la SIGC (decideIlVuoto: false); (2) portare l'anno scelto nel link di ritorno. Aggiungere test senza conAnno: AT001 senza anno e con anno."
+  }
+]

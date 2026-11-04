@@ -1,0 +1,20 @@
+[
+  {
+    "id": "A-01",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici/sigc.ts:267",
+    "titolo": "Importi SIGC: l'etichetta del segmento Pagato (testo bianco su #4e8a1f) ha contrasto 4,22:1, sotto il 4,5:1 AA dichiarato",
+    "evidenza": "Il delta da' a ogni etichetta lo sfondo del suo segmento e un colore di testo dichiarato 'contrasto AA' (sigc.ts:193). Per 'Pagato' / \"Pagato entro l'ammesso\" (riga 267) il testo e' COLORI.superficie (#ffffff) e lo sfondo COLORI.positivo (#4e8a1f): rapporto WCAG 4,22:1. Le etichette sono a 12 px normali (il tema in shared/ui/grafici/echarts.ts non imposta fontSize, default ECharts 12), quindi testo normale: serve 4,5:1 (WCAG 1.4.3). Gli altri tre segmenti passano: bianco su #0066cc 5,57:1, #17212b su #c9d3de 10,75:1, #17212b su #8fb8e6 7,89:1. L'etichetta resta col suo sfondo anche fuori dal segmento (labelLayout), quindi il contrasto basso c'e' in tutte le posizioni. axe non lo vede (testo SVG del grafico) e il test nuovo (tests/finanziario-grafici.test.ts, 'Importi SIGC: l'etichetta ha lo sfondo del suo segmento') controlla solo backgroundColor === colore del segmento, non il rapporto. Non e' un debito gia' accettato (nessuna review precedente lo cita); la tabella equivalente attenua l'impatto.",
+    "fix": "Per il segmento Pagato dare all'etichetta uno sfondo verde piu' scuro con testo bianco (es. #3f7a14, 5,24:1, o #3d7518, 5,59:1), con un campo separato per lo sfondo dell'etichetta se il segmento deve restare #4e8a1f, oppure scurire il segmento stesso; aggiungere al test un controllo del rapporto di contrasto fra label.color e label.backgroundColor (>= 4,5) per ogni serie."
+  },
+  {
+    "id": "A-02",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/ui/DettaglioIntervento.tsx:136",
+    "titolo": "Nessun test prova che la scheda non SIGC del dettaglio senza anno non legge TX-0016",
+    "evidenza": "La guardia nuova `leggeVerifica = conVerifica && aperta('verifica') && anno !== undefined` (riga 136) e' l'unica cosa che impedisce una lettura di TX-0016 senza anno dalla scheda, cioe' la lettura dell'ultimo anno con un file, la stessa chiave della card della Home. I due test che aprono la scheda non SIGC senza anno (src/pages/istituzionale/interventi/page.test.tsx:421-428 e tests/istituzionale-ui.test.tsx:358-364, profilo col solo TX-0016 e ?esercizio=2025) verificano solo il testo \"Scegli l'anno di riferimento da consultare.\" e lette.verificaSigc, non lette.verifica. Il testo non prova l'assenza della lettura: SchedaVerifica lo mostra quando `stato === null || anno === undefined` (SchedeIntervento.tsx:94), quindi anche con la guardia tolta i due test resterebbero verdi. Gli altri `lette.verifica).toEqual([])` del dettaglio (interventi/page.test.tsx:156, 390, 444; istituzionale-ui.test.tsx:326) riguardano un codice non valido, la scheda SIGC attiva (scheda non SIGC mai aperta) o un profilo senza TX-0016. La pagina invece e' coperta (verifica-smp-non-sigc/page.test.tsx:54).",
+    "fix": "In src/pages/istituzionale/interventi/page.test.tsx:422-428 (dove `lette` e' gia' nuovo dopo il cambio di profilo), dopo il findByText aspettare un tick (act + setTimeout, come alla riga 155) e aggiungere `expect(lette.verifica).toEqual([])`; poi scegliere un anno, premere Mostra e verificare `['?intervento=SRA01&anno=2025']`, come fa il test della pagina."
+  }
+]

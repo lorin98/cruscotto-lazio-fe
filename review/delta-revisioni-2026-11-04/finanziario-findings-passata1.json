@@ -1,0 +1,114 @@
+[
+  {
+    "id": "J-01",
+    "feature": "finanziario",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/ui/RiepilogoReport.tsx:188",
+    "titolo": "Riepilogo: nell'anteprima e nella tabella 'di cui stimato', lordi e rettifiche finiscono dopo le dotazioni residue, fuori dall'ordine del wireframe approvato (V-01)",
+    "evidenza": "L'anteprima rende `[...CAMPI_RF011, ...CAMPI_IN_PIU]` (riga 188): dopo 'Dotazione residua sui pagamenti' vengono 'di cui stimato', 'Pagamenti lordi', 'Rettifiche' e 'Con rettifiche', cosi' lo stimato si legge come parte del residuo e lordi e rettifiche seguono il netto che ne e' la differenza; la tabella accoda le stesse colonne dopo le residue (riga 126). Il wireframe riapprovato il 04/11 (riepilogo.html:118-128) ha lo stimato nel dd dell'impegnato FEASR e non e lordi e rettifiche prima del netto, e riepilogo.md (R08, righe 85-88) le vuole 'accanto ai pagamenti netti' e lo stimato con l'impegnato. A 304dc1e (un solo array CAMPI) l'ordine era giusto: regressione del delta.",
+    "fix": "Anteprima: CAMPI_PROGRAMMA, Domande, impegnato FEASR, impegnato FEASR e non con 'di cui stimato' subito dopo, Pagamenti lordi, Rettifiche, Con rettifiche, netto, le due residue. Tabella: inserire le colonne nascoste al loro posto (stimato dopo l'impegnato FEASR e non; lordi, rettifiche e 'Con rettifiche' prima del netto): all'apertura le nove visibili restano nell'ordine di RF011. Aggiornare i test con l'ordine completo (riepilogo/page.test.tsx:83, finanziario-ui.test.tsx:830, voci dell'anteprima in finanziario-casi-limite.test.tsx:~300).",
+    "assorbe": [
+      "V-01"
+    ]
+  },
+  {
+    "id": "J-02",
+    "feature": "finanziario",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/lib/grafici/sigc.ts:267",
+    "titolo": "Importi SIGC: etichetta del segmento 'Pagato' bianca su #4e8a1f a 4,22:1, sotto il 4,5:1 AA di NFR-70 che il codice dichiara (V-02, H-01, A-01)",
+    "evidenza": "Il segmento 'Pagato'/'Pagato entro l'ammesso' ha `colore: COLORI.positivo` (#4e8a1f) e `testo: COLORI.superficie` (#ffffff), e serieSegmento (riga 238) usa lo stesso colore come sfondo dell'etichetta anche fuori dal segmento: contrasto WCAG 4,22:1 (ricalcolato; col testo scuro 3,86:1). Le etichette sono a 12 px normali (il tema in shared/ui/grafici/echarts.ts non fissa fontSize), quindi serve 4,5:1 (WCAG 1.4.3, NFR-70), e Segmento.testo (riga 193) dichiara 'contrasto AA'. axe non misura il testo SVG di ECharts e il test nuovo (finanziario-grafici.test.ts:1348) controlla solo backgroundColor === colore del segmento.",
+    "fix": "Per il segmento 'Pagato' del solo grafico SIGC usare un verde che regge il bianco, costante locale per segmento ed etichetta insieme, per esempio #437a1b (5,2:1) o #3d6b18 (6,3:1): il test dello sfondo resta vero e COLORI.positivo non cambia per gli altri grafici. In finanziario-grafici.test.ts aggiungere un test che, per ogni serie di graficoImportiSigc, calcola il contrasto fra label.color e label.backgroundColor e lo vuole >= 4,5.",
+    "assorbe": [
+      "V-02",
+      "H-01",
+      "A-01"
+    ]
+  },
+  {
+    "id": "J-03",
+    "feature": "comune",
+    "severity": "MAGGIORE",
+    "file": "e2e/csp.spec.ts:200",
+    "titolo": "E2e della CSP rotto dal delta: clicca l'interruttore 'Vista del riepilogo' tolto da a8c42f8 e aspetta '1200' nella card della Home, che ora scrive '1.200' (X-01)",
+    "evidenza": "La riga 200 fa `getByRole('group', { name: 'Vista del riepilogo' })...click()` su /finanziario/riepilogo, ma RiepilogoReport.tsx non ha piu' InterruttoreVista (ritornoAlRiepilogo.ts senza VISTA_RIEPILOGO): il clic va in timeout e il controllo CSP dell'anteprima (review v2 N-25) non si esegue. La riga 156 aspetta `toContainText('1200')`, ma con MIGLIAIA (format.ts) la card rende '1.200', come gia' corretto in tests/anteprime-home.test.tsx:543. Lo step8 non lancia e2e/: la rottura si vedrebbe solo allo step10 (stesso schema di X1 del 21/10, MAGGIORE).",
+    "fix": "In e2e/csp.spec.ts togliere la riga 200 e la frase del commento 197-198 sulla vista Tabella: aspettare la tabella 'Tabella di riepilogo per intervento (RF011)' prima del clic sulla riga SRA01. Alla riga 156 aspettare '1.200'. Lanciare `npm run test:e2e` e registrarne l'esito prima di chiudere il giro.",
+    "assorbe": [
+      "X-01"
+    ]
+  },
+  {
+    "id": "J-04",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici/sigc.ts:221",
+    "titolo": "Importi SIGC: lo spazio a destra per l'etichetta dell'ultimo segmento e' proporzionale all'asse, l'etichetta ha larghezza fissa: su card strette puo' uscire dal disegno (V-06, H-07)",
+    "evidenza": "posizioneEtichettaSegmento(true) (riga 212) mette l'etichetta a rect.x + rect.width + 4 senza guardare il bordo; lo spazio oltre la barra piu' lunga e' massimoConSpazio = max x 1,2 arrotondato (riga 221), circa un sesto dell'asse, piu' il margine destro predefinito (GRIGLIA_CON_ETICHETTE, primitive.ts:185, conta solo le etichette degli assi). Un'etichetta come '41,9 M€ (24,3 %)' con padding [2, 4] e' larga circa 100 px a qualunque larghezza: a 320-400 px lo spazio e' stimabile in 60-90 px, quindi l'etichetta di 'Non ammesso' o di 'Ancora da pagare' puo' essere tagliata, anche nel PNG che copia larghezza e opzioni (stima, non osservata). Il test (finanziario-grafici.test.ts:1355) prova la callback con un rect fisso.",
+    "fix": "In graficoImportiSigc riservare lo spazio in pixel: `grid: { ...GRIGLIA_CON_ETICHETTE, right: <larghezza stimata della piu' lunga etichetta degli ultimi segmenti> }` (caratteri x circa 7 px + 8 di padding + MARGINE_ETICHETTA), lasciando a massimoConSpazio solo l'arrotondamento della tacca. Aggiungere un test che con un'etichetta lunga vuole grid.right >= la sua larghezza stimata; verificare a 360 px e nel PNG.",
+    "assorbe": [
+      "V-06",
+      "H-07"
+    ]
+  },
+  {
+    "id": "J-05",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/pages/finanziario/riepilogo/page.test.tsx:86",
+    "titolo": "Avviso degli impegnati: i test di pagina non provano l'assenza con impegnati uguali ne' l'errore di TX-0011 (V-04, H-03)",
+    "evidenza": "Il test del Riepilogo (righe 86-95) si intitola '... niente avviso se coincidono' ma usa una riga diversa e una con gli impegnati assenti (fixture.ts:41-42, nd('IMPEGNI')), mai due impegnati uguali. In Dotazione 'senza differenze nessun avviso' (tests/revisioni-20261104.test.tsx:38-42) usa le stesse righe e controlla queryByRole('note') appena compare la tabella di TX-0002, senza aspettare TX-0011: l'assenza puo' passare perche' il dato non e' ancora arrivato. Nessun test fa fallire TX-0011 (AvvisoImpegnati.tsx:29 rende null anche in errore, come voluto); la regola resta provata in lib (impegnatiDiversi con SRG06 uguale, finanziario-grafici.test.ts:1367).",
+    "fix": "Nei due test aggiungere una riga con i due impegnati valorizzati e uguali (13.879.326,08 su entrambi) e, prima di queryByRole('note'), aspettare la lettura di TX-0011 (`await waitFor(() => expect(letture()).toBe(1))`, poi un tick con act + setTimeout). In tests/revisioni-20261104.test.tsx aggiungere TX-0011 in errore 500 e 403 problem+json: nessun role=note, nessun alert dovuto a TX-0011, tabella e grafico di TX-0002 presenti.",
+    "assorbe": [
+      "V-04",
+      "H-03"
+    ]
+  },
+  {
+    "id": "J-06",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici/spesa.ts:269",
+    "titolo": "Perimetro ADA: 'Dotazione, impegnato e pagamenti per intervento' toglie anche l'impegnato e non lo dice (V-05)",
+    "evidenza": "Nel ramo ADA (righe 269-271) graficoDotazionePagamenti disegna solo il pagato con il solo motivo OMESSO_ADA_DOTAZIONE. Il wireframe approvato (dotazione.html:76) vuole tre barre e in ADA esclude solo la dotazione ('la dotazione regionale non si affianca ai pagamenti dell'area'); impegni e pagamenti in ADA sono entrambi dell'area (comuni.tsx:74), quindi confrontabili. Il profilo ADA vede una card intitolata con l'impegnato, senza impegnato e senza motivo.",
+    "fix": "Nel ramo ADA disegnare le serie IMPEGNATO_SPESA_PUBBLICA e pagato (`voce(r, [r.impegnato, r.pagato])`, caption e colonne coerenti) tenendo il solo omesso OMESSO_ADA_DOTAZIONE. Aggiungere a finanziario-grafici.test.ts il caso ADA: due serie, impegnato e pagato, e la dotazione fra le voci omesse.",
+    "assorbe": [
+      "V-05"
+    ]
+  },
+  {
+    "id": "J-07",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/RiepilogoReport.tsx:125",
+    "titolo": "Riepilogo: la cella dell'impegnato cofinanziato FEASR riportato alla dotazione non lo dice; il wireframe riapprovato scrive 'n,nn (alla dotazione)' (X-02)",
+    "evidenza": "riepilogo.html:96 (approvato il 04/11, 18:56:08Z) disegna la cella 'Impegnato cofinanziato FEASR' di SRA03 come 'n,nn (alla dotazione)'. Il codice rende le colonne di CAMPI_RF011 con colonneImporti (riga 125; comuni.tsx:122, solo ValoreImporto) e la voce dell'anteprima con VoceImporto (riga 188): dopo una ricerca, un ordinamento o un cambio di pagina la riga ridotta non si distingue, l'informazione resta solo nell'avviso sopra la tabella.",
+    "fix": "In colonne() avvolgere la resa di impegnatoCofinanziatoFeasr: l'importo piu' il testo ' (alla dotazione)' quando `impegnatiDiversi([r]).length > 0` (la stessa regola dell'avviso, lib/impegnati.ts); lo stesso nella voce dell'anteprima. Test: con impegnati diversi cella e voce hanno '(alla dotazione)', con impegnati uguali no.",
+    "assorbe": [
+      "X-02"
+    ]
+  },
+  {
+    "id": "J-08",
+    "feature": "comune",
+    "severity": "MINORE",
+    "file": "src/shared/ui/tabella/TabellaInterattiva.tsx:275",
+    "titolo": "Riepilogo: tornando dal dettaglio o dall'elenco l'ordine si ritrova ma le colonne scelte no, e l'ordine puo' stare su una colonna di nuovo nascosta (H-02)",
+    "evidenza": "StatoTabella (righe 221-226) porta solo ordine, pagina e ricerca; le colonne nascoste sono stato locale inizializzato da c.nascosta (riga 275). Il Riepilogo e' l'unico uso di statoIniziale/onStato (RiepilogoReport.tsx:240-241) e dal 04/11 ha quattro colonne nascoste all'apertura: chi mostra 'Pagamenti lordi', ordina per quella colonna e apre il dettaglio o il link all'elenco (che sta su quella cella) al ritorno trova la tabella ordinata su una colonna invisibile, senza aria-sort su un'intestazione visibile, e il link di nuovo nascosto.",
+    "fix": "Aggiungere a StatoTabella `nascoste?: string[]` (validato in statoTabellaValido contro le chiavi; assente = quelle di partenza), inizializzare `nascoste` da statoIniziale e notificarlo in onStato al cambio di 'Colonne'. Test nel Riepilogo: mostra 'Pagamenti lordi', ordina, apri il dettaglio, torna: la colonna e' visibile e ordinata.",
+    "assorbe": [
+      "H-02"
+    ]
+  },
+  {
+    "id": "J-09",
+    "feature": "finanziario",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/ui/AvvisoImpegnati.tsx:19",
+    "titolo": "Prima frase dell'avviso degli impegnati diversa dal wireframe riapprovato (V-08)",
+    "evidenza": "riepilogo.html:70 e dotazione.html:67 (riapprovati alle 18:56:08Z) scrivono '... diverso dall'impegnato FEASR e non in 4 interventi.'; il codice (riga 19) e i due test che lo fissano dicono '... diverso dall'impegnato cofinanziato FEASR e non in N interventi.'. Quantita', resto del testo e role=note coincidono.",
+    "fix": "Allineare la riga 19 al wireframe ('dall'impegnato FEASR e non') e i due test (riepilogo/page.test.tsx:93, tests/revisioni-20261104.test.tsx:34); oppure, se si preferisce il nome completo del campo di RF011, correggere i due wireframe al prossimo giro di approvazione.",
+    "assorbe": [
+      "V-08"
+    ]
+  }
+]
