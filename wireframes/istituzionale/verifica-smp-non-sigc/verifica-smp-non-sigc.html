@@ -91,14 +91,14 @@
     </aside>
     <form action="#" method="get">
       <label class="form-label" for="anno">Anno di riferimento del monitoraggio SMP non SIGC</label>
-      <select class="form-select" id="anno" name="anno" aria-describedby="anno-aiuto"><option>Ultimo anno con un file (predefinito)</option><option>aaaa</option></select>
-      <p class="form-text" id="anno-aiuto">Facoltativo. Vale per indicatori, output e dati dell'avviso; domande e spesa sono cumulative (tutte le domande correnti).</p>
+      <select class="form-select" id="anno" name="anno" aria-describedby="anno-aiuto"><option>Scegli un anno</option><option>aaaa</option></select>
+      <p class="form-text" id="anno-aiuto">Obbligatorio, come l'esercizio della verifica SMP SIGC (revisione del 04/11/2026: niente anno predefinito). Vale per indicatori, output e dati dell'avviso; domande e spesa sono cumulative (tutte le domande correnti).</p>
       <button class="btn btn-primary" type="submit">Mostra</button>
     </form>
     <table class="ui-tabella">
       <caption>Riferimenti della risposta</caption>
       <tbody>
-        <tr><th scope="row">Anno di riferimento</th><td>aaaa (ultimo anno con un file SMP non SIGC presente, se non scelto)</td></tr>
+        <tr><th scope="row">Anno di riferimento</th><td>aaaa (l'anno scelto)</td></tr>
         <tr><th scope="row">Output erogato</th><td>valore del file, cumulativo per anno di riferimento</td></tr>
         <tr><th scope="row">Perimetro</th><td>regionale</td></tr>
       </tbody>
@@ -148,12 +148,14 @@
         </tbody>
       </table>
       <nav class="ui-paginazione" aria-label="Pagine della tabella"><button class="btn" type="button" aria-current="page">1</button></nav>
-      <p class="ui-fonte">Definizioni del backend: domande ricevute = domande di sostegno correnti (non SIGC per costruzione), contate anche senza importo richiesto ma escluse dal valore; finanziate = importo ammesso maggiore di zero; pagate = pratiche con un saldo pagato, solo saldate al 100% (definizione da confermare con ARSIAL); spesa erogata = righe pagate non SIGC, anticipi inclusi, al lordo dei recuperi; output erogato = valore del file non SIGC, cumulativo per anno di riferimento (da confermare con ARSIAL e AGEA).</p>
+      <p class="ui-fonte">Definizioni del backend: domande ricevute = domande di sostegno correnti (non SIGC per costruzione), contate anche senza importo richiesto ma escluse dal valore; finanziate = importo ammesso maggiore di zero; pagate = pratiche con un saldo pagato, solo saldate al 100% (definizione da confermare con ARSIAL); spesa erogata = pagamenti non SIGC con esito Pagata, anticipi inclusi, al lordo dei recuperi; output erogato = valore del file non SIGC, cumulativo per anno di riferimento (da confermare con ARSIAL e AGEA).</p>
     </section>
     <h2>Stato: caricamento</h2>
     <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro delle card): le letture partono al piu' due alla volta</div>
-    <h2>Stato: nessun file SMP non SIGC</h2>
-    <div class="ui-vuoto" role="status">Nessun file SMP non SIGC acquisito: gli indicatori, gli output e i dati dell'avviso sono non valorizzati; domande e spesa sono calcolate dalle pratiche.</div>
+    <h2>Stato: anno non scelto</h2>
+    <div class="ui-vuoto" role="status">Scegli l'anno di riferimento da consultare. (Nessuna lettura di TX-0016 finche' l'anno manca, come per l'esercizio della verifica SMP SIGC; e' anche il caso di chi arriva dalla verifica SMP SIGC, che porta i soli filtri.)</div>
+    <h2>Stato: nessun file SMP non SIGC per l'anno scelto</h2>
+    <div class="ui-vuoto" role="status">Nessun file SMP non SIGC acquisito per l'anno scelto: gli indicatori, gli output e i dati dell'avviso sono non valorizzati; domande e spesa sono calcolate dalle pratiche.</div>
     <h2>Stato: vuoto</h2>
     <div class="ui-vuoto" role="status">Nessun intervento per i filtri scelti (per esempio un'azione portante senza interventi collegati). <a class="btn btn-primary" href="#pannello-filtri">Modifica i filtri</a></div>
     <h2>Stato: valori dei filtri non disponibili</h2>

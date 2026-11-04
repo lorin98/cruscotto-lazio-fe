@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "istituzionale",
-  "current_step": 9,
+  "current_step": 2,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -13,9 +13,9 @@
       ],
       "gates": {
         "handover_verified": {
-          "approved_hash": "sha256:b83c17d2f0e3a8a62b8ecb97ac795241b16cf58983a8a6a031da0fa93d17ae82",
+          "approved_hash": "sha256:a6b48a34bd8bd00b20bdb78997bb457c844b3d35a36c23910ea0be82eb769f11",
           "baseline_ref": "./plan/istituzionale/handover.json",
-          "approved_at": "2026-11-01T09:08:11Z"
+          "approved_at": "2026-11-04T17:45:01Z"
         }
       }
     },
@@ -23,14 +23,15 @@
       "status": "done",
       "gates": {
         "wireframe_verifica-smp-non-sigc": {
-          "approved_hash": "sha256:f1a61879d14a841ba5e70663aadc391d47293777e0c82a42d5c87271c3a00cff",
+          "approved_hash": "sha256:6b7a5bf0a2056f762e9d71d30182f673866edcbff8f43a7afd0909da06aa2406",
           "baseline_ref": "./wireframes/istituzionale/verifica-smp-non-sigc",
-          "approved_at": "2026-11-01T09:50:39Z",
-          "time_to_approve_s": 354,
+          "approved_at": "2026-11-04T15:28:14Z",
+          "time_to_approve_s": 193,
           "deviations_reviewed": [
             "V-01 (review step9 FULL della card a tabella, 31/10/2026; decisione D1 dell utente: testo nuovo solo nel codice, nessun rework 3): ai lettori di schermo il trattino delle domande pagate della colonna non SIGC dice \"dato non confrontabile: la verifica non SIGC conta solo le domande saldate al 100%\" invece di \"dato non previsto nella verifica non SIGC\" del wireframe (falso: TX-0016 ha domandeSaldate)",
             "X-01 (stessa review; decisione D2 dell utente: testo nuovo solo nel codice): la parte SIGC della nota sotto la tabella dice \"SIGC: pagate e spesa dal 16/10/aaaa-1 al 15/10/aaaa; ricevute e finanziate, domande dell anno aaaa-1.\" invece di \"SIGC: dal 16/10/aaaa-1 al 15/10/aaaa, domande dell anno aaaa-1.\"",
-            "A-01/X-02 (stessa review, conseguenza di D1-D2 senza rework): il residuo WCAG della sezione Tabella a confronto del doc dice \"quattro card per riga sotto i 1300 px circa\"; la fascia vera e da circa 1376 px (correzione nel resoconto review/card-istituzionale-2026-10-31, il doc del wireframe resta invariato)"
+            "A-01/X-02 (stessa review, conseguenza di D1-D2 senza rework): il residuo WCAG della sezione Tabella a confronto del doc dice \"quattro card per riga sotto i 1300 px circa\"; la fascia vera e da circa 1376 px (correzione nel resoconto review/card-istituzionale-2026-10-31, il doc del wireframe resta invariato)",
+            "Revisioni del 04/11/2026 (secondo feedback di Leonardo/Deloitte), approvate dall'utente sulle bozze di analisi-2026-11-04/wireframe-bozze (LEGGIMI.md); stessa resa del tema dei wireframe precedenti"
           ]
         },
         "wireframe_verifica-smp-sigc": {
@@ -41,108 +42,79 @@
           "deviations_reviewed": []
         },
         "wireframe_intervento": {
-          "approved_hash": "sha256:1e5a767887afd3187aa19e07ebd7d76e991e684df40e3a710342fcb714137d3b",
+          "approved_hash": "sha256:8b80feda30419804511aa9b532565ddff28fb5b103b41c713228a93b3aa01d0d",
           "baseline_ref": "./wireframes/istituzionale/intervento",
-          "approved_at": "2026-11-01T09:50:39Z",
-          "time_to_approve_s": 354,
-          "deviations_reviewed": []
+          "approved_at": "2026-11-04T14:36:02Z",
+          "time_to_approve_s": 79,
+          "deviations_reviewed": [
+            "Revisioni del 04/11/2026 (secondo feedback di Leonardo/Deloitte), approvate dall'utente sulle bozze di analisi-2026-11-04/wireframe-bozze (LEGGIMI.md); stessa resa del tema dei wireframe precedenti"
+          ]
         }
       },
-      "completed_at": "2026-11-01T09:51:14Z",
+      "completed_at": "2026-11-04T18:58:18Z",
       "artifacts": [
         "./plan/istituzionale/uiplan.json"
       ]
     },
     "step2-codegen": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-01T11:02:37Z",
       "artifacts": [
         "./specs/.spec-lock.json",
         "./src/shared/api/generated"
       ],
-      "gates": {
-        "codegen_compiles": "pass",
-        "orval_types": "pass",
-        "csrf_static": "pass"
-      }
+      "gates": {}
     },
     "step3-api": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-01T11:30:16Z",
       "artifacts": [
         "./src/features"
       ],
-      "gates": {
-        "api_wrappers_compile": "pass",
-        "querykey_from_factory": "pass"
-      }
+      "gates": {}
     },
     "step4-lib": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-01T11:30:23Z",
       "artifacts": [
         "./src/shared/lib"
       ],
-      "gates": {
-        "lib_pure_compile": "pass",
-        "lib_zero_react": "pass"
-      }
+      "gates": {}
     },
     "step5-ui": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-01T11:30:29Z",
       "artifacts": [
         "./src/features"
       ],
-      "gates": {
-        "ui_components_compile": "pass",
-        "ui_a11y_axe": "pass"
-      }
+      "gates": {}
     },
     "step6-page": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-01T11:30:36Z",
       "artifacts": [
         "./src/pages",
         "./plan/istituzionale/route-manifest.json"
       ],
-      "gates": {
-        "pages_compile": "pass",
-        "route_manifest_valid": "pass"
-      }
+      "gates": {}
     },
     "step7-test": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-01T11:30:45Z",
       "artifacts": [
         "./src/shared/test",
         "./src/shared/api/mock",
         "./src/shared/testing/axe.ts"
       ],
-      "gates": {
-        "tests_generated": "pass",
-        "msw_fail_closed": "pass"
-      }
+      "gates": {}
     },
     "step8-gate": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-02T15:04:32Z",
       "artifacts": [
         "./plan/istituzionale/fe-gate-report.json"
       ],
-      "gates": {
-        "lint": "pass",
-        "typecheck": "pass",
-        "test": "pass",
-        "a11y": "pass",
-        "build": "pass",
-        "fsd_import": "pass",
-        "orval_types": "pass",
-        "security": "pass",
-        "authz": "pass",
-        "wireframe_approved": "pass",
-        "req_coverage_ui": "pass"
-      }
+      "gates": {}
     },
     "step9-review": {
       "status": "in_progress",

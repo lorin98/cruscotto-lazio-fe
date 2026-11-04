@@ -222,7 +222,7 @@
       </div>
       <p class="form-text">Colonne: le colonne di partenza della vista e le altre a scelta (il codice a barre e' fisso). La scelta resta quando la tabella sparisce (zero righe, errore, pagina oltre l'ultima) e tornando dalla scheda.</p>
       <table class="ui-tabella">
-        <caption>Elenco operativo delle domande, vista generale: ordinabile dal server con un clic sull'intestazione. Clic o Invio su una riga per l'anteprima.</caption>
+        <caption>Elenco operativo delle domande, vista generale: ordinabile dal server con un clic sull'intestazione. Clic o Invio su una domanda per l'anteprima.</caption>
         <thead>
           <tr>
             <th scope="col"><button class="btn" type="button">Codice a barre</button></th>
@@ -247,7 +247,7 @@
         </tfoot>
       </table>
       <nav class="ui-paginazione" aria-label="Pagine dei risultati"><span class="ui-pill">Pagina 1 di 52 - 1284 domande</span> <button class="btn" type="button" aria-label="Pagina precedente">&lsaquo;</button> <button class="btn" type="button" aria-current="page">1</button> <button class="btn" type="button">2</button> <button class="btn" type="button">3</button> <span>...</span> <button class="btn" type="button">52</button> <button class="btn" type="button" aria-label="Pagina successiva">&rsaquo;</button> <label class="form-label" for="f-dimensione">Righe per pagina</label> <select class="form-select" id="f-dimensione" name="dimensione"><option>10</option><option selected>25</option><option>50</option><option>100</option></select></nav>
-      <p class="form-text">Righe per pagina: 10, 25, 50 o 100 (la scelta resta nell'indirizzo e non sposta il focus dalla select). Un cambio di pagina porta il focus sul titolo della sezione.</p>
+      <p class="form-text">Domande per pagina: 10, 25, 50 o 100 (la scelta resta nell'indirizzo e non sposta il focus dalla select). Un cambio di pagina porta il focus sul titolo della sezione.</p>
     </section>
     <aside class="ui-drawer" aria-label="Anteprima della domanda 54230000001">
       <h2>Anteprima: 54230000001</h2>
@@ -267,7 +267,7 @@
     <div class="ui-vuoto" role="status">La pagina 99 non c'e': i risultati arrivano a pagina 52. <button class="btn btn-primary" type="button">Vai all'ultima pagina</button></div>
     <p class="form-text">Da un segnalibro vecchio o da filtri cambiati altrove: al posto della tabella, con il comando che porta all'ultima pagina (il focus va poi sul titolo della sezione).</p>
     <h2>Stato: caricamento</h2>
-    <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro di sinottico e righe)</div>
+    <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro di sinottico ed elenco delle domande)</div>
     <h2>Stato: vuoto</h2>
     <div class="ui-vuoto" role="status">Nessuna domanda per questi filtri. <a class="btn btn-primary" href="domande.html#pannello-filtri">Modifica i filtri</a></div>
     <h2>Stato: errore</h2>

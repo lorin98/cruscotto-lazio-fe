@@ -56,13 +56,14 @@
     </nav>
     <div class="ui-titolo">
       <h1>Elenco operativo dei pagamenti</h1>
-      <p>Le righe correnti degli elenchi di liquidazione (pagate o escluse) delle domande del tuo perimetro: ogni filtro cambia subito righe e totali. L'indirizzo della pagina conserva la ricerca.</p>
+      <p>I pagamenti correnti degli elenchi di liquidazione (pagati o esclusi) delle domande del tuo perimetro: ogni filtro cambia subito l'elenco dei pagamenti e i totali. L'indirizzo della pagina conserva la ricerca.</p>
       <a class="btn" href="../domande/domande.html">Vedi le domande di questi pagamenti</a>
     </div>
+    <p class="wf-note">Revisione del 04/11/2026 (secondo feedback di Leonardo/Deloitte): nei testi della pagina non si usa "riga/righe" per i pagamenti, ma "pagamenti" o "elenco dei pagamenti" (titolo, sinottico, conteggi, totale, paginazione, anteprima, nota dei file, filtro vuoto). Lo stesso nei link degli altri report verso questa pagina ("elenco dei pagamenti") e, per coerenza, "Domande per pagina" nell'elenco delle domande.</p>
     <p class="wf-note">Ruoli (grant verbatim): csr.tx-0059.read, csr.tx-0060.read - Transazioni: TX-0059 (righe e totali, RA002 RA005 RA006), TX-0060 (valori dei filtri, RA006). Filtri, ordinamento e pagina sono parametri di query di TX-0059 (url_params); sinottico e totali sono TotaliPagamenti sull'intero insieme filtrato. Contano anche le righe correnti di domande chiuse (D-07). CUAA e denominazione in chiaro a tutti i profili (OP-033).</p>
     <aside class="ui-pannello" id="pannello-filtri" aria-label="Pannello dei filtri">
       <h2>Filtri</h2>
-      <p class="ui-conteggio" role="status" aria-live="polite">2.316 righe di pagamento con questi filtri</p>
+      <p class="ui-conteggio" role="status" aria-live="polite">2.316 pagamenti con questi filtri</p>
       <p class="wf-note">Il conteggio dice "Conteggio in corso..." finche' non e' dei filtri appena scelti (mai il numero precedente). Con un errore delle letture mentre il pannello e' aperto, l'avviso compare qui (role=alert nel dialogo: il resto della pagina e' nascosto ai lettori di schermo):</p>
       <div class="alert alert-danger" role="alert">Risultati non disponibili con questi filtri: Richiesta non valida: decreto non valido. Correggila e riprova.</div>
       <label class="form-label" for="f-testo">Cerca per codice a barre, CUAA o denominazione</label>
@@ -95,14 +96,14 @@
     <section class="ui-sinottico" aria-labelledby="t-sinottico" aria-busy="false">
       <h2 id="t-sinottico">Sinottico dell'insieme filtrato</h2>
       <div class="ui-griglia ui-griglia--4">
-        <section class="ui-kpi" aria-label="Righe pagate ed escluse">
-          <p>Righe pagate / escluse</p>
+        <section class="ui-kpi" aria-label="Pagamenti pagati ed esclusi">
+          <p>Pagamenti: pagati / esclusi</p>
           <p class="ui-kpi__valore">2.201 / 115</p>
         </section>
         <section class="ui-kpi" aria-label="Importo decretato">
           <p>Decretato</p>
           <p class="ui-kpi__valore">n,n M euro</p>
-          <p class="ui-barra">3 righe senza importo</p>
+          <p class="ui-barra">3 pagamenti senza importo</p>
         </section>
         <section class="ui-kpi" aria-label="Importo pagato">
           <p>Pagato</p>
@@ -117,15 +118,15 @@
       <p class="wf-note">I totali arrivano con le righe (stessa lettura): durante l'aggiornamento anche il sinottico e' dichiarato (aria-busy e "Aggiornamento del sinottico: restano visibili i numeri precedenti finche' arrivano i nuovi.").</p>
     </section>
     <section class="ui-card" aria-labelledby="t-elenco" aria-busy="false">
-      <div class="ui-card__testa"><h2 id="t-elenco">Righe di pagamento</h2></div>
-      <p class="form-text">Ordinate per Pagato, decrescente <button class="btn" type="button">Ordine predefinito</button></p>
+      <div class="ui-card__testa"><h2 id="t-elenco">Elenco dei pagamenti</h2></div>
+      <p class="form-text">Ordinati per Pagato, decrescente <button class="btn" type="button">Ordine predefinito</button></p>
       <p class="wf-note">L'ordinamento attivo e' sempre detto in testo, anche su una colonna che la vista non mostra; "Ordine predefinito" c'e' solo fuori dall'ordine predefinito e, sparendo col proprio clic, porta il focus sul titolo della sezione.</p>
       <div class="ui-strumenti">
         <button class="btn" type="button">Scarica CSV</button> <button class="btn" type="button">Scarica XLSX</button> <button class="btn" type="button">Colonne</button>
       </div>
       <p class="form-text">Colonne: quelle di partenza e le altre a scelta; la scelta resta quando la tabella sparisce (zero righe, errore, pagina oltre l'ultima) e tornando dalla scheda.</p>
       <table class="ui-tabella">
-        <caption>Elenco dei pagamenti: ordinabile dal server con un clic sull'intestazione (decreto, data, codice a barre, denominazione, intervento, importi). Clic o Invio su una riga per l'anteprima.</caption>
+        <caption>Elenco dei pagamenti: ordinabile dal server con un clic sull'intestazione (decreto, data, codice a barre, denominazione, intervento, importi). Clic o Invio su un pagamento per l'anteprima.</caption>
         <thead>
           <tr>
             <th scope="col"><button class="btn" type="button">Decreto</button></th>
@@ -144,19 +145,19 @@
           <tr class="ui-riga"><th scope="row">D84-1</th><td>15/06/2025</td><td>54230000077</td><td>BNCLCU75B02D612X</td><td>Bianchi Luca</td><td>SRA01</td><td>Pagata - domanda chiusa</td><td class="ui-num">700,00</td><td class="ui-num">700,00</td></tr>
         </tbody>
         <tfoot>
-          <tr class="ui-totali"><th scope="row">Totale dell'insieme filtrato (dal server)</th><td>2.316 righe</td><td></td><td></td><td></td><td></td><td></td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td></tr>
+          <tr class="ui-totali"><th scope="row">Totale dell'insieme filtrato (dal server)</th><td>2.316 pagamenti</td><td></td><td></td><td></td><td></td><td></td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td></tr>
         </tfoot>
       </table>
-      <nav class="ui-paginazione" aria-label="Pagine dei risultati"><span class="ui-pill">Pagina 1 di 93 - 2316 righe</span> <button class="btn" type="button" aria-label="Pagina precedente">&lsaquo;</button> <button class="btn" type="button" aria-current="page">1</button> <button class="btn" type="button">2</button> <button class="btn" type="button">3</button> <span>...</span> <button class="btn" type="button">93</button> <button class="btn" type="button" aria-label="Pagina successiva">&rsaquo;</button> <label class="form-label" for="f-dimensione">Righe per pagina</label> <select class="form-select" id="f-dimensione" name="dimensione"><option>10</option><option selected>25</option><option>50</option><option>100</option></select></nav>
-      <p class="form-text">Righe per pagina: 10, 25, 50 o 100 (la scelta resta nell'indirizzo e non sposta il focus dalla select). Un cambio di pagina porta il focus sul titolo della sezione.</p>
+      <nav class="ui-paginazione" aria-label="Pagine dei risultati"><span class="ui-pill">Pagina 1 di 93 - 2.316 pagamenti</span> <button class="btn" type="button" aria-label="Pagina precedente">&lsaquo;</button> <button class="btn" type="button" aria-current="page">1</button> <button class="btn" type="button">2</button> <button class="btn" type="button">3</button> <span>...</span> <button class="btn" type="button">93</button> <button class="btn" type="button" aria-label="Pagina successiva">&rsaquo;</button> <label class="form-label" for="f-dimensione">Righe per pagina</label> <select class="form-select" id="f-dimensione" name="dimensione"><option>10</option><option selected>25</option><option>50</option><option>100</option></select></nav>
+      <p class="form-text">Pagamenti per pagina: 10, 25, 50 o 100 (la scelta resta nell'indirizzo e non sposta il focus dalla select). Un cambio di pagina porta il focus sul titolo della sezione.</p>
     </section>
-    <aside class="ui-drawer" aria-label="Anteprima della riga D84-1 54230000001">
+    <aside class="ui-drawer" aria-label="Anteprima del pagamento D84-1 54230000001">
       <h2>Anteprima: D84-1 - 54230000001</h2>
       <dl>
         <dt>Elenco</dt><dd>D84-1, protocollo P-123, tipologia saldo</dd>
         <dt>Beneficiario</dt><dd>Azienda agricola Rossi (RSSMRA80A01H501U)</dd>
         <dt>Quote FEASR, nazionale, regionale</dt><dd>1.000,00 - 1.050,00 - 450,00</dd>
-        <dt>Motivi di esclusione</dt><dd>nessuno (riga pagata)</dd>
+        <dt>Motivi di esclusione</dt><dd>nessuno (pagamento con esito Pagata)</dd>
       </dl>
       <a class="btn btn-primary" href="../dettaglio-domanda/dettaglio-domanda.html">Apri la domanda</a>
       <p class="form-text">Per una domanda chiusa il link non c'e': la domanda non e' piu' consultabile (404 di TX-0058).</p>
@@ -167,7 +168,7 @@
     <div class="ui-vuoto" role="status">La pagina 99 non c'e': i risultati arrivano a pagina 93. <button class="btn btn-primary" type="button">Vai all'ultima pagina</button></div>
     <p class="form-text">Da un segnalibro vecchio o da filtri cambiati altrove: al posto della tabella, con il comando che porta all'ultima pagina (il focus va poi sul titolo della sezione).</p>
     <h2>Stato: caricamento</h2>
-    <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro di sinottico e righe)</div>
+    <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro di sinottico ed elenco dei pagamenti)</div>
     <h2>Stato: vuoto</h2>
     <div class="ui-vuoto" role="status">Nessun pagamento per questi filtri. <a class="btn btn-primary" href="pagamenti.html#pannello-filtri">Modifica i filtri</a></div>
     <h2>Stato: errore</h2>

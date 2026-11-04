@@ -107,3 +107,10 @@ Dotazione, risorse FEASR, stanziato, impegnato e residui non sono collegati (non
 - **Tabelle medio-grandi (R12)**: intestazione ferma scorrendo, riquadro alto quanto la finestra, 25 righe per pagina,
   prima colonna ferma nelle tabelle larghe.
 - **Ciambelle (R05, R06)**: importo e percentuale nelle etichette, totale al centro.
+
+## Revisioni del 04/11/2026 (secondo feedback di Leonardo/Deloitte, decisioni dell'utente)
+
+- Tutto RF011 in questa pagina, senza interruttore di pagina: prima la "Tabella di riepilogo per intervento (RF011)" con i nove campi nell'ordine del requisito (dotazione, quota FEASR, stanziato, domande presentate, impegnato cofinanziato FEASR, impegnato cofinanziato FEASR e non, pagamenti al netto delle rettifiche, dotazione residua sugli impegni e sui pagamenti); di cui stimato, pagamenti lordi, rettifiche e con rettifiche nel selettore Colonne, nascoste all'apertura (l'anteprima e il CSV le hanno tutte).
+- Avviso sempre visibile sopra la tabella quando nella selezione i due impegnati differiscono (cofinanziato FEASR riportato alla dotazione): elenca intervento, cofinanziato FEASR e FEASR e non. Regola del tetto invariata (tutti gli interventi). Nel wireframe e' un `alert` con `role="note"` (vocabolario dei template); nel codice il kit lo rende come avviso di attenzione (giallo) con la prima frase in grassetto.
+- Sotto la tabella il grafico "Dotazione, impegnato e pagamenti per intervento" (tre barre); l'asse parte dal valore piu' basso vero.
+- "Si': n rettifiche" al posto di "Si': n righe"; il link ai pagamenti dice "elenco dei pagamenti".

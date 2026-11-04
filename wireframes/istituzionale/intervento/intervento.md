@@ -184,3 +184,7 @@ approvata: scelta di disegno 2 del dossier).
 - **Tabelle medio-grandi (R12)**: intestazione ferma scorrendo, riquadro alto quanto la finestra, 25 righe per pagina,
   prima colonna ferma nelle tabelle larghe.
 - **Ciambelle (R05, R06)**: importo e percentuale nelle etichette, totale al centro.
+
+## Revisioni del 04/11/2026 (secondo feedback di Leonardo/Deloitte, decisioni dell'utente)
+
+- Scheda non SIGC dell'intervento: anno di riferimento obbligatorio, come nella pagina Verifica SMP non SIGC.

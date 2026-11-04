@@ -6,7 +6,7 @@
     {
       "slice": "elenco-operativo",
       "path": "handover/openapi-elenco-operativo.json",
-      "sha256": "sha256:bf5c831398dbd82875a66c4cdcdf0ddfaffa05424cc978dc683e4e1f3f7c407d",
+      "sha256": "sha256:2efb6b612dab95051d80f45bce283c19f0c1afa9a3cb9885fea62b469db0af82",
       "manifest_hash_match": true
     }
   ],
@@ -1625,10 +1625,10 @@
         "Grafici del sinottico con la tabella equivalente; il clic su una barra aggiunge il filtro (chip) e lo annuncia"
       ],
       "approval": {
-        "approved_hash": "sha256:2894040bbb1b458d1d8ca235ffc9b991d6ca091ba32d449cdcb06915ec05c2e7",
+        "approved_hash": "sha256:caf3f7be91c3ca6d36defae157218023667fc96fc84294f6b50c59c8a14fb972",
         "baseline_ref": "./wireframes/elenco-operativo/domande",
-        "approved_at": "2026-11-02T15:49:46Z",
-        "time_to_approve_s": 54,
+        "approved_at": "2026-11-04T14:36:02Z",
+        "time_to_approve_s": 79,
         "rework_rounds": 0
       }
     },
@@ -1646,10 +1646,10 @@
         "Il link alle determine dice nel testo dove porta, area compresa ('nell'area Procedurale'): scopo chiaro dal solo testo (WCAG 2.4.4), cambio di area annunciato prima del clic"
       ],
       "approval": {
-        "approved_hash": "sha256:4555d1e5508ddb3923d617adaf7079635f38d2e5b030ea8e4f585a85fecf77b2",
+        "approved_hash": "sha256:e415df4471388d608fa1bdbb23879422732cdf8bb57cb98d3b71dda3a1ed00ed",
         "baseline_ref": "./wireframes/elenco-operativo/dettaglio-domanda",
-        "approved_at": "2026-11-01T09:50:39Z",
-        "time_to_approve_s": 354,
+        "approved_at": "2026-11-04T14:36:02Z",
+        "time_to_approve_s": 79,
         "rework_rounds": 0
       }
     },
@@ -1668,10 +1668,10 @@
         "La riga di una domanda chiusa dice in testo 'domanda chiusa' (non solo col colore) e non offre il link al dettaglio"
       ],
       "approval": {
-        "approved_hash": "sha256:327903337fe2e2b69e6c0d6f8d842e7be28f24c85a049ba268cad72cdb4bae1a",
+        "approved_hash": "sha256:20451a34c0975ca690256588d4de3dbe40b7c19c0b696051212e2e0e48c47708",
         "baseline_ref": "./wireframes/elenco-operativo/pagamenti",
-        "approved_at": "2026-11-01T09:50:39Z",
-        "time_to_approve_s": 354,
+        "approved_at": "2026-11-04T15:28:14Z",
+        "time_to_approve_s": 193,
         "rework_rounds": 0
       }
     }

@@ -340,3 +340,8 @@ descritta sopra; letture, somme, motivi, grant, stati e perimetro restano quelli
 - **Tabelle medio-grandi (R12)**: intestazione ferma scorrendo, riquadro alto quanto la finestra, 25 righe per pagina,
   prima colonna ferma nelle tabelle larghe.
 - **Ciambelle (R05, R06)**: importo e percentuale nelle etichette, totale al centro.
+
+## Revisioni del 04/11/2026 (secondo feedback di Leonardo/Deloitte, decisioni dell'utente)
+
+- Anno di riferimento obbligatorio, senza "Ultimo anno con un file (predefinito)": senza anno la pagina dice "Scegli l'anno di riferimento da consultare." e non legge TX-0016, come l'esercizio della verifica SMP SIGC.
+- Definizioni: "spesa erogata = pagamenti non SIGC con esito Pagata" (non "righe pagate"), aggiunta dopo l'approvazione delle 14:36Z: flusso da riapprovare.

@@ -6,13 +6,13 @@
     {
       "slice": "istituzionale",
       "path": "handover/openapi-istituzionale.json",
-      "sha256": "sha256:bd522bd06607138597caa5f4dfbd15b3d7d950c005f1682c6a84799c42c541f2",
+      "sha256": "sha256:63d84c3c5dd9d752e177d2221568502838cae256873621b67c045d8799a75b1f",
       "manifest_hash_match": true
     },
     {
       "slice": "elenco-operativo",
       "path": "handover/openapi-elenco-operativo.json",
-      "sha256": "sha256:bf5c831398dbd82875a66c4cdcdf0ddfaffa05424cc978dc683e4e1f3f7c407d",
+      "sha256": "sha256:2efb6b612dab95051d80f45bce283c19f0c1afa9a3cb9885fea62b469db0af82",
       "manifest_hash_match": true
     }
   ],
@@ -1065,10 +1065,10 @@
         "Card della Home (home.html, decisione dell'utente del 26/10/2026; tabella a confronto dal rework 2 del 31/10/2026): numeri in una tabella con intestazioni di riga (domande ricevute, finanziate, pagate, spesa pubblica erogata) e di colonna (Non SIGC, SIGC) dentro un gruppo con nome (\"L'istituzionale in cifre\"), trattino della riga senza dato detto ai lettori di schermo, motivi delle assenze sotto la tabella con riga e colonna; numero animato letto solo nel valore finale e fermo con prefers-reduced-motion; barra della spesa sul valore finanziato nascosta ai lettori di schermo, percentuale nel testo; totale di un dato motivato assente in una riga detto 'non disponibile' col motivo, mai una somma parziale; errore detto in una frase senza fermare la Home."
       ],
       "approval": {
-        "approved_hash": "sha256:f1a61879d14a841ba5e70663aadc391d47293777e0c82a42d5c87271c3a00cff",
+        "approved_hash": "sha256:6b7a5bf0a2056f762e9d71d30182f673866edcbff8f43a7afd0909da06aa2406",
         "baseline_ref": "./wireframes/istituzionale/verifica-smp-non-sigc",
-        "approved_at": "2026-11-01T09:50:39Z",
-        "time_to_approve_s": 354,
+        "approved_at": "2026-11-04T15:28:14Z",
+        "time_to_approve_s": 193,
         "rework_rounds": 0
       }
     },
@@ -1112,10 +1112,10 @@
         "Residuo manuale: ordine di lettura di testata e schede; comprensibilita' della differenza di periodo fra le due schede; etichette lunghe delle voci; contrasto della resa finale; axe rinviato allo step8"
       ],
       "approval": {
-        "approved_hash": "sha256:1e5a767887afd3187aa19e07ebd7d76e991e684df40e3a710342fcb714137d3b",
+        "approved_hash": "sha256:8b80feda30419804511aa9b532565ddff28fb5b103b41c713228a93b3aa01d0d",
         "baseline_ref": "./wireframes/istituzionale/intervento",
-        "approved_at": "2026-11-01T09:50:39Z",
-        "time_to_approve_s": 354,
+        "approved_at": "2026-11-04T14:36:02Z",
+        "time_to_approve_s": 79,
         "rework_rounds": 0
       }
     }

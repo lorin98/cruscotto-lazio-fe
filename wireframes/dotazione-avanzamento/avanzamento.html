@@ -64,6 +64,7 @@
       <p>Stanziato, impegnato, pagato e residui. Dove una fonte non e' attiva, il grafico lo dice invece di inventare proporzioni.</p>
     </div>
     <p class="wf-note">Ruoli (grant verbatim): csr.tx-0004.read, csr.tx-0005.read, csr.tx-0006.read, csr.tx-0007.read - Transazioni: TX-0004..TX-0007 (RF004-RF007).</p>
+    <p class="wf-note">Revisione del 04/11/2026 (secondo feedback di Leonardo/Deloitte): il quarto box diventa "Dotazione spesa pubblica" (prima "Dotazione residua sui pagamenti", che resta nella ciambella RF007 e nella tabella per intervento); nel Sankey l'impegnato torna un solo nodo.</p>
     <div class="ui-griglia ui-griglia--4">
       <section class="ui-kpi" aria-label="Importo stanziato">
         <p>Importo stanziato</p>
@@ -80,10 +81,10 @@
         <p class="ui-kpi__valore">n,n M euro</p>
         <p class="ui-barra">TX-0007</p>
       </section>
-      <section class="ui-kpi" aria-label="Dotazione residua sui pagamenti">
-        <p>Dotazione residua sui pagamenti</p>
+      <section class="ui-kpi" aria-label="Dotazione spesa pubblica">
+        <p>Dotazione spesa pubblica</p>
         <p class="ui-kpi__valore">n,n M euro</p>
-        <p class="ui-barra">TX-0007: dotazione meno i pagamenti al netto delle rettifiche</p>
+        <p class="ui-barra">TX-0007: dotazione degli interventi selezionati (lo stesso totale delle ciambelle e della Panoramica)</p>
       </section>
     </div>
     <div class="ui-griglia ui-griglia--2">
@@ -93,7 +94,7 @@
           <div class="ui-seg" role="group" aria-label="Vista di Dove va la dotazione"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
         </div>
         <figure class="ui-grafico ui-grafico--sankey">
-          <figcaption>Sankey: dotazione, impegnato (rilevato e stimato in due tonalita') e da impegnare, pagato e da pagare. Se una fonte manca il suo ramo non si disegna e il grafico lo dichiara.</figcaption>
+          <figcaption>Sankey: dotazione, impegnato (un solo nodo: rilevato piu' stimato, come prima delle revisioni del 31/10) e da impegnare, pagato e da pagare. La parte stimata resta nel tooltip del nodo Impegnato, nella tabella equivalente e nella nota di lettura. Se una fonte manca il suo ramo non si disegna e il grafico lo dichiara.</figcaption>
         </figure>
         <p class="ui-fonte">Fonte: TX-0005, TX-0006, TX-0007. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati.</p>
       </section>
@@ -129,11 +130,11 @@
         <caption>Per intervento: pagato lordo, rettifiche, pagamenti al netto delle rettifiche e dotazione residua (R08)</caption>
         <thead><tr><th scope="col">Intervento</th><th scope="col">Dotazione</th><th scope="col">Pagato lordo</th><th scope="col">Rettifiche</th><th scope="col">Pagato netto</th><th scope="col">Dotazione residua</th><th scope="col">Rettificato</th></tr></thead>
         <tbody>
-          <tr><th scope="row">SRA29</th><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td><button class="btn" type="button">Si': 2 righe</button></td></tr>
+          <tr><th scope="row">SRA29</th><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td><button class="btn" type="button">Si': 2 rettifiche</button></td></tr>
           <tr><th scope="row">SRA01</th><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">0,00</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td>No</td></tr>
         </tbody>
       </table>
-      <p class="ui-fonte">Fonte: TX-0007 (interventi[]). "Si': n righe" apre il dettaglio delle rettifiche dell'intervento (azione, progressivo, importo, programmazione, riferimento) nel pannello laterale; le rettifiche dei trascinamenti PSR sono nel dettaglio ma fuori dal netto. Senza file delle rettifiche: colonne con "fonte non attiva: rettifiche".</p>
+      <p class="ui-fonte">Fonte: TX-0007 (interventi[]). "Si': n rettifiche" apre il dettaglio delle rettifiche dell'intervento (azione, progressivo, importo, programmazione, riferimento) nel pannello laterale; le rettifiche dei trascinamenti PSR sono nel dettaglio ma fuori dal netto. Senza file delle rettifiche: colonne con "fonte non attiva: rettifiche".</p>
     </section>
     <h2>Stato: caricamento</h2>
     <div class="ui-skeleton" role="status" aria-live="polite">Caricamento in corso (scheletro delle card): le letture partono al piu' due alla volta</div>

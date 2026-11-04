@@ -61,72 +61,71 @@
     </nav>
     <div class="ui-titolo">
       <h1>Finanziario: riepilogo per intervento</h1>
-      <p>Grafico per intervento: clic su una barra per il dettaglio; nella vista Tabella cerca, ordina, scegli le colonne e apri l'anteprima.</p>
+      <p>La tabella di riepilogo del requisito RF011 per intervento (cerca, ordina, scegli le colonne, apri l'anteprima) e sotto il grafico per intervento: clic su una barra per il dettaglio.</p>
     </div>
     <p class="wf-note">Ruoli (grant verbatim): csr.tx-0011.read - Transazioni: TX-0011 (RF011), export CSV con X-Requested-With. Perimetro ADA: le colonne di programma sono regionali, segnalate nell'intestazione.</p>
-    <p class="wf-note">Vista iniziale: Grafico, come ogni card (richiesta dell'utente del 19/10/2026). L'interruttore di pagina "Vista del riepilogo" (Grafico | Tabella, nello stesso ordine di quello delle card) sceglie fra il grafico e la tabella del riepilogo; la scelta resta tornando dal dettaglio dell'intervento o dall'elenco operativo. L'interruttore della card del grafico mostra invece la tabella equivalente del grafico (intervento, dotazione, pagamenti netti: il canale accessibile del grafico).</p>
-    <section class="ui-card" aria-labelledby="t-riep">
-      <div class="ui-card__testa"><h2 id="t-riep">Riepilogo per intervento</h2></div>
-      <div class="ui-seg" role="group" aria-label="Vista del riepilogo"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button></div>
-      <section class="ui-card" aria-labelledby="g-riep">
-        <div class="ui-card__testa">
-          <h2 id="g-riep">Dotazione e pagamenti per intervento</h2>
-          <div class="ui-seg" role="group" aria-label="Vista di Dotazione e pagamenti per intervento"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
-        </div>
-        <figure class="ui-grafico ui-grafico--barre">
-          <figcaption>Barre raggruppate: dotazione e pagamenti netti per intervento, tutte le etichette (R02). Clic su una barra: dettaglio dell'intervento.</figcaption>
-        </figure>
-        <p class="ui-fonte">Fonte: TX-0011. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati.</p>
-      </section>
-    </section>
-    <h2>Vista: Tabella</h2>
-    <p class="wf-note">Con il bottone Tabella di "Vista del riepilogo" la tabella prende il posto del grafico nella stessa card. Totali, dotazione dell'Assistenza tecnica (AT001, intero programma: non dipende dai filtri) e link all'elenco operativo stanno nella tabella, come nel flusso approvato il 13/10/2026.</p>
+    <p class="wf-note">Revisione del 04/11/2026 (secondo feedback di Leonardo/Deloitte, decisione dell'utente): tutto il requisito RF011 sta in questa pagina, senza interruttore di pagina. Prima la tabella di riepilogo con i nove campi di RF011 nell'ordine del requisito, poi il grafico per intervento con dotazione, impegnato e pagamenti netti. Le colonne in piu' (di cui stimato, pagamenti lordi, rettifiche, con rettifiche) restano disponibili nel selettore Colonne, nascoste all'apertura; l'anteprima le mostra tutte.</p>
     <section class="ui-card" aria-labelledby="t-riep-tabella">
-      <div class="ui-card__testa"><h2 id="t-riep-tabella">Riepilogo per intervento</h2></div>
-      <div class="ui-seg" role="group" aria-label="Vista del riepilogo"><button class="btn" type="button" aria-pressed="false">Grafico</button> <button class="btn" type="button" aria-pressed="true">Tabella</button></div>
+      <div class="ui-card__testa"><h2 id="t-riep-tabella">Tabella di riepilogo per intervento (RF011)</h2></div>
+      <div class="alert" role="note">Impegnato cofinanziato FEASR diverso dall'impegnato FEASR e non in 4 interventi. Il cofinanziato FEASR e' riportato alla dotazione quando l'impegnato la supera: SRA03 n,nn euro su n,nn euro; SRA15 n,nn euro su n,nn euro; SRA30 n,nn euro su n,nn euro; SRB01 n,nn euro su n,nn euro. Negli altri interventi i due impegnati coincidono con l'impegnato di spesa pubblica.</div>
+      <p class="wf-note">Avviso sempre visibile (non un tooltip) e solo se almeno un intervento della selezione ha i due impegnati diversi; elenca intervento, cofinanziato FEASR e FEASR e non. Lo stesso avviso sta nella pagina Dotazione e spesa.</p>
       <div class="ui-strumenti">
         <label class="form-label" for="t-cerca">Cerca nella tabella</label>
         <input class="form-control" type="search" id="t-cerca" name="t">
-        <button class="btn" type="button">Colonne (13)</button> <button class="btn" type="button">Esporta CSV</button>
+        <button class="btn" type="button">Colonne (10 di 14)</button> <button class="btn" type="button">Esporta CSV</button>
       </div>
-      <p class="wf-note">R08: "Con rettifiche" dice si' o no; "Si': n righe" apre nell'anteprima il dettaglio delle rettifiche (azione, progressivo, importo, programmazione, riferimento). Senza file delle rettifiche: rettifiche e netto con "fonte non attiva: rettifiche". Nota di lettura dell'impegnato stimato sopra la tabella (stimaImpegni), solo se c'e' una parte stimata. L'export CSV aggiunge Pagamenti lordi, Rettifiche e Con rettifiche.</p>
+      <p class="wf-note">R08: con la colonna "Con rettifiche" scelta, "Si': n rettifiche" apre nell'anteprima il dettaglio delle rettifiche (azione, progressivo, importo, programmazione, riferimento). Senza file delle rettifiche: rettifiche e netto con "fonte non attiva: rettifiche". Nota di lettura dell'impegnato stimato sopra la tabella (stimaImpegni), solo se c'e' una parte stimata. L'export CSV ha tutte le colonne.</p>
       <table class="ui-tabella">
-        <caption>Riepilogo per intervento: i campi finanziari di RF011 con pagato lordo, rettifiche e parte stimata dell'impegnato, e le domande presentate. Intestazione ferma scorrendo, 25 righe per pagina, prima colonna ferma (R12). Clic o Invio su una riga per l'anteprima.</caption>
+        <caption>Tabella di riepilogo per intervento (RF011): dotazione, quota FEASR, stanziato, domande presentate, i due impegnati, pagamenti al netto delle rettifiche e le due dotazioni residue. Intestazione ferma scorrendo, 25 interventi per pagina, prima colonna ferma (R12). Clic o Invio su un intervento per l'anteprima.</caption>
         <thead>
           <tr>
             <th scope="col"><button class="btn" type="button">Intervento</button></th>
-            <th scope="col" class="ui-num"><button class="btn" type="button">Domande</button></th>
-            <th scope="col" class="ui-num"><button class="btn" type="button">Dotazione</button></th>
-            <th scope="col" class="ui-num"><button class="btn" type="button">Quota FEASR</button></th>
-            <th scope="col" class="ui-num"><button class="btn" type="button">Pagamenti lordi</button></th>
-            <th scope="col" class="ui-num"><button class="btn" type="button">Rettifiche</button></th>
-            <th scope="col"><button class="btn" type="button">Con rettifiche</button></th>
-            <th scope="col" class="ui-num"><button class="btn" type="button">Pagamenti netti</button></th>
-            <th scope="col" class="ui-num"><button class="btn" type="button">Residuo sui pagamenti</button></th>
-            <th scope="col" class="ui-num"><button class="btn" type="button">Impegnato</button></th>
-            <th scope="col" class="ui-num"><button class="btn" type="button">di cui stimato</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Dotazione spesa pubblica</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Risorse quota FEASR</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Importo stanziato</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Domande presentate</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Impegnato cofinanziato FEASR</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Impegnato cofinanziato FEASR e non</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Pagamenti al netto delle rettifiche</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Dotazione residua sugli impegni</button></th>
+            <th scope="col" class="ui-num"><button class="btn" type="button">Dotazione residua sui pagamenti</button></th>
           </tr>
         </thead>
         <tbody>
-          <tr class="ui-riga"><th scope="row">SRA01</th><td class="ui-num">n</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">0,00</td><td>No</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td></tr>
-          <tr class="ui-riga"><th scope="row">SRA29</th><td class="ui-num">n</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td><button class="btn" type="button">Si': 2 righe</button></td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td></tr>
+          <tr class="ui-riga"><th scope="row">SRA01</th><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td></tr>
+          <tr class="ui-riga"><th scope="row">SRA03</th><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n</td><td class="ui-num">n,nn (alla dotazione)</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td></tr>
         </tbody>
         <tfoot>
-          <tr><th scope="row">Totale (n interventi)</th><td class="ui-num">n</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td></td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td></tr>
-          <tr><th scope="row">Dotazione dell'Assistenza tecnica (il filtro SIGC non si applica)</th><td></td><td class="ui-num">n,nn</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><th scope="row">Totale (n interventi)</th><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td></tr>
+          <tr><th scope="row">Dotazione dell'Assistenza tecnica (il filtro SIGC non si applica)</th><td class="ui-num">n,nn</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
         </tfoot>
       </table>
       <nav class="ui-paginazione" aria-label="Pagine della tabella"><button class="btn" type="button" aria-current="page">1</button> <button class="btn" type="button">2</button></nav>
+    </section>
+    <section class="ui-card" aria-labelledby="g-riep">
+      <div class="ui-card__testa">
+        <h2 id="g-riep">Dotazione, impegnato e pagamenti per intervento</h2>
+        <div class="ui-seg" role="group" aria-label="Vista di Dotazione, impegnato e pagamenti per intervento"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+      </div>
+      <figure class="ui-grafico ui-grafico--barre">
+        <figcaption>Barre raggruppate orizzontali: dotazione, impegnato cofinanziato FEASR e non (uguale all'impegnato di spesa pubblica) e pagamenti netti per intervento, tutte le etichette (R02). L'asse parte dal valore piu' basso vero (zero se nessun netto e' negativo). Clic su una barra: dettaglio dell'intervento.</figcaption>
+      </figure>
+      <p class="ui-fonte">Fonte: TX-0011. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati.</p>
     </section>
     <aside class="ui-drawer" aria-label="Anteprima dell'intervento SRA01">
       <h2>Anteprima: SRA01</h2>
       <dl>
         <dt>Dotazione spesa pubblica</dt><dd>n,nn euro</dd>
-        <dt>Pagamenti lordi</dt><dd>n,nn euro</dd>
-        <dt>Rettifiche</dt><dd>n,nn euro (2 righe: SRA29.2 progressivo 1, progressivo 2)</dd>
-        <dt>Pagamenti al netto delle rettifiche</dt><dd>n,nn euro</dd>
+        <dt>Risorse quota FEASR</dt><dd>n,nn euro</dd>
+        <dt>Importo stanziato</dt><dd>n,nn euro</dd>
         <dt>Domande presentate</dt><dd>n</dd>
-        <dt>Impegnato</dt><dd>n,nn euro, di cui stimato n,nn euro</dd>
+        <dt>Impegnato cofinanziato FEASR</dt><dd>n,nn euro</dd>
+        <dt>Impegnato cofinanziato FEASR e non</dt><dd>n,nn euro, di cui stimato n,nn euro</dd>
+        <dt>Pagamenti lordi</dt><dd>n,nn euro</dd>
+        <dt>Rettifiche</dt><dd>n,nn euro (2 rettifiche: SRA29.2 progressivo 1, progressivo 2)</dd>
+        <dt>Pagamenti al netto delle rettifiche</dt><dd>n,nn euro</dd>
+        <dt>Dotazione residua sugli impegni</dt><dd>n,nn euro</dd>
+        <dt>Dotazione residua sui pagamenti</dt><dd>n,nn euro</dd>
       </dl>
       <a class="btn btn-primary" href="../panoramica/intervento.html">Apri il dettaglio dell'intervento</a>
     </aside>

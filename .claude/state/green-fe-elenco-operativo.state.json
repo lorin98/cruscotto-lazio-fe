@@ -13,44 +13,48 @@
       ],
       "gates": {
         "handover_verified": {
-          "approved_hash": "sha256:0c5494221af7b70ad7d5598f910f32a5421780a77656cb9a4e35392bb7087f67",
+          "approved_hash": "sha256:690cd8d54ec1aa0227a9dcf4a7e5792e4d4af883019f62e040bd1965b22d5dc2",
           "baseline_ref": "./plan/elenco-operativo/handover.json",
-          "approved_at": "2026-11-01T09:08:07Z"
+          "approved_at": "2026-11-04T17:44:10Z"
         }
       }
     },
     "step1-uiplan": {
       "status": "done",
       "gates": {
-        "wireframe_dettaglio-domanda": {
-          "approved_hash": "sha256:4555d1e5508ddb3923d617adaf7079635f38d2e5b030ea8e4f585a85fecf77b2",
-          "baseline_ref": "./wireframes/elenco-operativo/dettaglio-domanda",
-          "approved_at": "2026-11-01T09:50:39Z",
-          "time_to_approve_s": 354,
-          "deviations_reviewed": []
-        },
-        "wireframe_pagamenti": {
-          "approved_hash": "sha256:327903337fe2e2b69e6c0d6f8d842e7be28f24c85a049ba268cad72cdb4bae1a",
-          "baseline_ref": "./wireframes/elenco-operativo/pagamenti",
-          "approved_at": "2026-11-01T09:50:39Z",
-          "time_to_approve_s": 354,
-          "deviations_reviewed": [
-            "F3 della review FULL sul delta FE (21/10/2026, decisione dell'utente): stato 'atto di concessione non disponibile' non disegnato nel wireframe, come la nota delle azioni portanti; registrato come OP-EO-06 nello uiplan"
-          ]
-        },
         "wireframe_domande": {
-          "approved_hash": "sha256:2894040bbb1b458d1d8ca235ffc9b991d6ca091ba32d449cdcb06915ec05c2e7",
+          "approved_hash": "sha256:caf3f7be91c3ca6d36defae157218023667fc96fc84294f6b50c59c8a14fb972",
           "baseline_ref": "./wireframes/elenco-operativo/domande",
-          "approved_at": "2026-11-02T15:49:46Z",
-          "time_to_approve_s": 54,
+          "approved_at": "2026-11-04T14:36:02Z",
+          "time_to_approve_s": 79,
           "deviations_reviewed": [
             "F3 della review FULL sul delta FE (21/10/2026, decisione dell'utente): stato 'atto di concessione non disponibile' non disegnato nel wireframe, come la nota delle azioni portanti; registrato come OP-EO-06 nello uiplan",
             "Tessera Pagate / da pagare / senza importi su tre righe col numero e la sua voce (decisione dell utente del 02/11/2026). wireframe-lint: aggiunge i tag br e small alla deviazione preesistente dal vocabolario dei template (i wireframe del progetto usano tag e classi del tema, verdetto fail gia' prima della modifica)",
-            "Nota sotto i numeri: una domanda pagata in parte e' tra le pagate e tra le da pagare (sovrapposizione di D-09, decisione dell utente del 02/11/2026 dopo la review step9; tempi dal transcript)"
+            "Nota sotto i numeri: una domanda pagata in parte e' tra le pagate e tra le da pagare (sovrapposizione di D-09, decisione dell utente del 02/11/2026 dopo la review step9; tempi dal transcript)",
+            "Revisioni del 04/11/2026 (secondo feedback di Leonardo/Deloitte), approvate dall'utente sulle bozze di analisi-2026-11-04/wireframe-bozze (LEGGIMI.md); stessa resa del tema dei wireframe precedenti"
+          ]
+        },
+        "wireframe_dettaglio-domanda": {
+          "approved_hash": "sha256:e415df4471388d608fa1bdbb23879422732cdf8bb57cb98d3b71dda3a1ed00ed",
+          "baseline_ref": "./wireframes/elenco-operativo/dettaglio-domanda",
+          "approved_at": "2026-11-04T14:36:02Z",
+          "time_to_approve_s": 79,
+          "deviations_reviewed": [
+            "Revisioni del 04/11/2026 (secondo feedback di Leonardo/Deloitte), approvate dall'utente sulle bozze di analisi-2026-11-04/wireframe-bozze (LEGGIMI.md); stessa resa del tema dei wireframe precedenti"
+          ]
+        },
+        "wireframe_pagamenti": {
+          "approved_hash": "sha256:20451a34c0975ca690256588d4de3dbe40b7c19c0b696051212e2e0e48c47708",
+          "baseline_ref": "./wireframes/elenco-operativo/pagamenti",
+          "approved_at": "2026-11-04T15:28:14Z",
+          "time_to_approve_s": 193,
+          "deviations_reviewed": [
+            "F3 della review FULL sul delta FE (21/10/2026, decisione dell'utente): stato 'atto di concessione non disponibile' non disegnato nel wireframe, come la nota delle azioni portanti; registrato come OP-EO-06 nello uiplan",
+            "Revisioni del 04/11/2026 (secondo feedback di Leonardo/Deloitte), approvate dall'utente sulle bozze di analisi-2026-11-04/wireframe-bozze (LEGGIMI.md); stessa resa del tema dei wireframe precedenti"
           ]
         }
       },
-      "completed_at": "2026-11-02T15:53:04Z",
+      "completed_at": "2026-11-04T18:58:54Z",
       "artifacts": [
         "./plan/elenco-operativo/uiplan.json"
       ]

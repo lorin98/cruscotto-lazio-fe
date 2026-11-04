@@ -27,7 +27,7 @@ Vocabolario del kit UI v2 (ADR 0027 di green-fe), resa approvata nel prototipo `
 | /finanziario/avanzamento | Dove va la dotazione | sankey | TX-0005, TX-0006, TX-0007 | nessuno | ramo con fonte assente non disegnato, dichiarato |
 | /finanziario/avanzamento | Avanzamento rispetto ai pagamenti effettuati | gauge | TX-0007 (pagamenti al netto delle rettifiche) | nessuno | non disegnato se manca un termine |
 | /finanziario/avanzamento | Stanziato, impegnato, pagato e residui | 4 ciambelle (importo e percentuale, totale al centro) | TX-0004..TX-0007 | nessuno | ciambella con un termine assente non disegnata, motivo |
-| /finanziario/avanzamento | Dotazione residua sui pagamenti per intervento | tabella | TX-0007 (interventi[], fonteRettifiche) | "Si': n righe" apre il dettaglio delle rettifiche | rettifiche non caricate: fonte non attiva |
+| /finanziario/avanzamento | Dotazione residua sui pagamenti per intervento | tabella | TX-0007 (interventi[], fonteRettifiche) | "Si': n rettifiche" apre il dettaglio delle rettifiche | rettifiche non caricate: fonte non attiva |
 
 Stanziato (dai bandi), impegnato (dagli import, con la parte stimata) e rettifiche hanno ora una fonte; se manca, le card lo dicono con il motivo, mai uno zero. Quote Stato e Regione e vincolo LEADER non esistono piu' (R21, X3).
 
@@ -86,3 +86,9 @@ Stanziato (dai bandi), impegnato (dagli import, con la parte stimata) e rettific
 - **Tabelle medio-grandi (R12)**: intestazione ferma scorrendo, riquadro alto quanto la finestra, 25 righe per pagina,
   prima colonna ferma nelle tabelle larghe.
 - **Ciambelle (R05, R06)**: importo e percentuale nelle etichette, totale al centro.
+
+## Revisioni del 04/11/2026 (secondo feedback di Leonardo/Deloitte, decisioni dell'utente)
+
+- Dotazione: il grafico per intervento diventa "Dotazione, impegnato e pagamenti per intervento" con la barra dell'impegnato di spesa pubblica (TX-0002); avviso degli impegnati diversi come nel Riepilogo (legge TX-0011, col suo grant; nel wireframe un `alert` con `role="note"`, nel codice l'avviso di attenzione del kit).
+- Avanzamento: il quarto box e' "Dotazione spesa pubblica" (dotazione degli interventi selezionati, TX-0007) al posto di "Dotazione residua sui pagamenti"; nel Sankey "Dove va la dotazione" l'impegnato torna un solo nodo (rilevato piu' stimato), la parte stimata resta nel tooltip, nella tabella equivalente e nella nota di lettura.
+- Tabella RF007: "Si': n rettifiche" al posto di "Si': n righe", come nel Riepilogo (aggiunta dopo l'approvazione delle 14:36Z: flusso da riapprovare).

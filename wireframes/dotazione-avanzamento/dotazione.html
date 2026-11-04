@@ -61,17 +61,19 @@
     </nav>
     <div class="ui-titolo">
       <h1>Finanziario: dotazione e spesa per intervento</h1>
-      <p>Dotazione, pagamenti e quota FEASR per intervento.</p>
+      <p>Dotazione, impegnato, pagamenti e quota FEASR per intervento.</p>
     </div>
     <p class="wf-note">Ruoli (grant verbatim): csr.tx-0002.read, csr.tx-0003.read - Transazioni: TX-0002 (RF002), TX-0003 (RF003). R14, R21 e X3: tolti la card del contributo ambientale e, dalla tabella della spesa pubblica (RF002), le colonne contributo ambientale, quota Stato, quota Regione e vincolo LEADER. Restano dotazione, quota FEASR, pagamenti e impegnato (di cui stimato).</p>
+    <div class="alert" role="note">Impegnato cofinanziato FEASR diverso dall'impegnato FEASR e non in 4 interventi. Il cofinanziato FEASR e' riportato alla dotazione quando l'impegnato la supera: SRA03 n,nn euro su n,nn euro; SRA15 n,nn euro su n,nn euro; SRA30 n,nn euro su n,nn euro; SRB01 n,nn euro su n,nn euro. Negli altri interventi i due impegnati coincidono con l'impegnato di spesa pubblica.</div>
+    <p class="wf-note">Revisione del 04/11/2026 (secondo feedback di Leonardo/Deloitte, decisione dell'utente): barra dell'impegnato nel grafico per intervento e avviso sempre visibile, solo se almeno un intervento della selezione ha i due impegnati diversi (regola del tetto alla dotazione per tutti gli interventi, invariata). L'avviso legge TX-0011 (cofinanziato FEASR), con il suo grant: senza il grant non compare. Lo stesso avviso sta nel Riepilogo per intervento.</p>
     <div class="ui-griglia ui-griglia--2">
       <section class="ui-card" aria-labelledby="g-dot">
         <div class="ui-card__testa">
-          <h2 id="g-dot">Dotazione e pagamenti per intervento</h2>
-          <div class="ui-seg" role="group" aria-label="Vista di Dotazione e pagamenti per intervento"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+          <h2 id="g-dot">Dotazione, impegnato e pagamenti per intervento</h2>
+          <div class="ui-seg" role="group" aria-label="Vista di Dotazione, impegnato e pagamenti per intervento"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
         </div>
         <figure class="ui-grafico ui-grafico--barre">
-          <figcaption>Barre raggruppate (36 interventi, tutte le etichette, R02): dotazione spesa pubblica e pagamenti totali. Clic: dettaglio dell'intervento. In perimetro ADA la dotazione regionale non si affianca ai pagamenti dell'area.</figcaption>
+          <figcaption>Barre raggruppate (36 interventi, tutte le etichette, R02): dotazione spesa pubblica, impegnato di spesa pubblica (uguale al cofinanziato FEASR e non) e pagamenti totali. Clic: dettaglio dell'intervento. In perimetro ADA la dotazione regionale non si affianca ai pagamenti dell'area.</figcaption>
         </figure>
         <p class="ui-fonte">Fonte: TX-0002. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati.</p>
       </section>

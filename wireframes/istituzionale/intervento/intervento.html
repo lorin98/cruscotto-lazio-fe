@@ -72,10 +72,11 @@
     <section role="tabpanel" aria-label="Verifica SMP non SIGC">
       <form action="#" method="get">
         <label class="form-label" for="anno">Anno di riferimento del monitoraggio SMP non SIGC</label>
-        <select class="form-select" id="anno" name="anno" aria-describedby="anno-aiuto"><option>Ultimo anno con un file (predefinito)</option><option>aaaa</option></select>
-        <p class="form-text" id="anno-aiuto">Facoltativo. Vale per indicatori, output e dati dell'avviso; domande e spesa sono cumulative.</p>
+        <select class="form-select" id="anno" name="anno" aria-describedby="anno-aiuto"><option>Scegli un anno</option><option>aaaa</option></select>
+        <p class="form-text" id="anno-aiuto">Obbligatorio, come l'esercizio della scheda SIGC (revisione del 04/11/2026). Vale per indicatori, output e dati dell'avviso; domande e spesa sono cumulative.</p>
         <button class="btn btn-primary" type="submit">Mostra</button>
       </form>
+      <div class="ui-vuoto" role="status">Senza anno: "Scegli l'anno di riferimento da consultare." (nessuna lettura di TX-0016).</div>
       <div class="ui-griglia ui-griglia--4">
         <section class="ui-kpi" aria-label="Domande ricevute non SIGC">
           <p>Domande ricevute non SIGC</p>
