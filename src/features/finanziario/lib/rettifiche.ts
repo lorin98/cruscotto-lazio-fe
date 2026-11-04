@@ -3,11 +3,11 @@
 // dettaglio (review H-07: prima tre copie con grafie diverse). conRettifiche null = nessuna rettifica nel database (fonte
 // non attiva); false o nessuna riga = "No"; altrimenti quante righe.
 
-/** "Sì: 2 righe", "Sì: 1 riga", "No", oppure "fonte non attiva: rettifiche". */
-export function testoRettificato(conRettifiche: boolean | null | undefined, righe: number): string {
+/** "Sì: 2 rettifiche", "Sì: 1 rettifica", "No", oppure "fonte non attiva: rettifiche" ("righe" fino al 04/11/2026). */
+export function testoRettificato(conRettifiche: boolean | null | undefined, rettifiche: number): string {
   if (conRettifiche == null) return 'fonte non attiva: rettifiche';
-  if (!conRettifiche || righe === 0) return 'No';
-  return righe === 1 ? 'Sì: 1 riga' : `Sì: ${righe} righe`;
+  if (!conRettifiche || rettifiche === 0) return 'No';
+  return rettifiche === 1 ? 'Sì: 1 rettifica' : `Sì: ${rettifiche} rettifiche`;
 }
 
 /** La sezione delle rettifiche senza righe da mostrare: la fonte non attiva o nessuna rettifica. */

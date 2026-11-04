@@ -5,7 +5,7 @@
 // dal riallineamento degli ambiti del 29/10/2026.
 // Gli importi SIGC sono somme per domanda: NON_VALORIZZATO vuol dire che l'importo manca su tutte le domande della
 // selezione (D-09 del backend), quindi si rende come il dato assente nella fonte, non come un totale per intervento.
-import type { EChartsOption } from 'echarts';
+import type { EChartsOption, LabelLayoutOptionCallback } from 'echarts';
 import { ETICHETTE_ESITO_PAGAMENTO } from '../../../../entities/domanda';
 import type { EsitoPagamentoDomanda } from '../../../../entities/domanda';
 import {
@@ -190,6 +190,40 @@ interface Segmento {
   /** Il totale della barra: la percentuale dell'etichetta. */
   totale: number;
   colore: string;
+  /** Il colore del testo dell'etichetta sul colore del segmento (contrasto AA). */
+  testo: string;
+  /** L'ultimo segmento della sua barra: un'etichetta che non entra va a destra della barra. */
+  ultimo: boolean;
+}
+
+/** Spazio fra l'etichetta e il bordo del segmento (px): sotto questo margine l'etichetta non entra. */
+const MARGINE_ETICHETTA = 4;
+
+/**
+ * Posizione dell'etichetta di un segmento (revisione del 04/11/2026: "Ancora da pagare" sforava di qualche pixel): dentro
+ * il segmento se ci sta, altrimenti accanto, a destra della barra per l'ultimo segmento e sopra il segmento per gli altri.
+ * ECharts la chiama a ogni disegno, anche quando il grafico cambia larghezza; l'etichetta ha lo sfondo del suo segmento,
+ * quindi resta leggibile e riconoscibile anche fuori.
+ */
+export function posizioneEtichettaSegmento(ultimo: boolean): LabelLayoutOptionCallback {
+  return ({ rect, labelRect }) => {
+    if (labelRect.width + 2 * MARGINE_ETICHETTA <= rect.width && labelRect.height <= rect.height) return {};
+    return ultimo
+      ? { x: rect.x + rect.width + MARGINE_ETICHETTA, y: rect.y + rect.height / 2, align: 'left', verticalAlign: 'middle' }
+      : { x: rect.x, y: rect.y - MARGINE_ETICHETTA, align: 'left', verticalAlign: 'bottom' };
+  };
+}
+
+/**
+ * Il massimo dell'asse degli importi con almeno un quinto di spazio oltre la barra piu' lunga (per l'etichetta dell'ultimo
+ * segmento messa a destra), arrotondato a un passo di 1, 2, 2,5 o 5 per una potenza di dieci (al piu' otto passi).
+ */
+export function massimoConSpazio({ max }: { max: number }): number {
+  const obiettivo = max * 1.2;
+  if (!(obiettivo > 0)) return max;
+  const potenza = 10 ** Math.floor(Math.log10(obiettivo / 6));
+  const passo = [1, 2, 2.5, 5, 10].map((m) => m * potenza).find((s) => obiettivo / s <= 8) ?? 10 * potenza;
+  return Math.ceil(obiettivo / passo) * passo;
 }
 
 function serieSegmento(seg: Segmento, barre: readonly string[]) {
@@ -201,7 +235,8 @@ function serieSegmento(seg: Segmento, barre: readonly string[]) {
     stack: 'importi',
     barMaxWidth: 46,
     itemStyle: { color: seg.colore },
-    label: { show: true, position: 'inside' as const, formatter: etichettaDato },
+    label: { show: true, position: 'inside' as const, formatter: etichettaDato, color: seg.testo, backgroundColor: seg.colore, padding: [2, 4], borderRadius: 3 },
+    labelLayout: posizioneEtichettaSegmento(seg.ultimo),
     data: barre.map((b) => (b === seg.barra ? dato : null)),
   };
 }
@@ -224,13 +259,13 @@ export function graficoImportiSigc(i: ImportiSigcLike): DatiGrafico {
   const segmenti: Segmento[] = [
     ...('valore' in escluso
       ? [
-          { nome: 'Ammesso', barra: 'Richiesto' as const, valore: ammesso, totale: richiestoTotale, colore: COLORI.primario },
-          { nome: 'Non ammesso', barra: 'Richiesto' as const, valore: escluso.valore, totale: richiestoTotale, colore: COLORI.neutro },
+          { nome: 'Ammesso', barra: 'Richiesto' as const, valore: ammesso, totale: richiestoTotale, colore: COLORI.primario, testo: COLORI.superficie, ultimo: false },
+          { nome: 'Non ammesso', barra: 'Richiesto' as const, valore: escluso.valore, totale: richiestoTotale, colore: COLORI.neutro, testo: COLORI.testo, ultimo: true },
         ]
       : []),
     // col pagato oltre l'ammesso il segmento e' la parte entro l'ammesso, e lo dice (review X-13)
-    { nome: oltre > 0 ? "Pagato entro l'ammesso" : 'Pagato', barra: 'Ammesso', valore: centesimi(pagato - oltre), totale: ammesso, colore: COLORI.positivo },
-    { nome: 'Ancora da pagare', barra: 'Ammesso', valore: daPagare, totale: ammesso, colore: '#8fb8e6' },
+    { nome: oltre > 0 ? "Pagato entro l'ammesso" : 'Pagato', barra: 'Ammesso', valore: centesimi(pagato - oltre), totale: ammesso, colore: COLORI.positivo, testo: COLORI.superficie, ultimo: false },
+    { nome: 'Ancora da pagare', barra: 'Ammesso', valore: daPagare, totale: ammesso, colore: '#8fb8e6', testo: COLORI.testo, ultimo: true },
   ];
   if (oltre > 0) omessi.push(`Pagato oltre l'ammesso: ${formatEuro(oltre)} (fuori dalla barra dell'ammesso)`);
   const barre = 'valore' in escluso ? ['Richiesto', 'Ammesso'] : ['Ammesso'];
@@ -242,7 +277,8 @@ export function graficoImportiSigc(i: ImportiSigcLike): DatiGrafico {
     tooltip: { trigger: 'item', formatter: tooltipDettaglio },
     legend: { bottom: 0 },
     grid: GRIGLIA_CON_ETICHETTE,
-    xAxis: { type: 'value', axisLabel: { formatter: asseImporti } },
+    // il massimo e' spazio per le etichette messe a destra: non e' sempre una tacca, la sua etichetta non si scrive
+    xAxis: { type: 'value', max: massimoConSpazio, axisLabel: { formatter: asseImporti, showMaxLabel: false } },
     yAxis: asseCategorieOrizzontale(barre),
     series: segmenti.map((seg) => serieSegmento(seg, barre)),
   };

@@ -1,5 +1,5 @@
-// avanzamento.ts — grafici dell'avanzamento finanziario (RF003-RF007): flusso della dotazione (sankey, con l'impegnato
-// rilevato e stimato in due tonalita' dalle revisioni del 31/10/2026), indicatore del
+// avanzamento.ts — grafici dell'avanzamento finanziario (RF003-RF007): flusso della dotazione (sankey, con l'impegnato in un solo nodo: rilevato e
+// stimato insieme dal 04/11/2026), indicatore del
 // pagato netto sulla dotazione, ciambelle di due parti di un totale (quote FEASR, sezioni RF004-RF007). Ogni valore
 // viene dal contratto: nessun residuo ricalcolato nel browser. Col perimetro ADA la dotazione (regionale) non si
 // confronta con impegni e pagamenti (dell'area): i grafici che li mettono in rapporto non si disegnano.
@@ -66,41 +66,20 @@ function tabellaFlusso(i: ResiduoSuImpegniLike, p: AvanzamentoPagamentiLike, r: 
 
 type Ramo = [string, string, ImportoLike | null | undefined];
 
-const IMPEGNATO_RILEVATO = 'Impegnato rilevato';
-export const IMPEGNATO_STIMATO = 'Impegnato stimato';
+const IMPEGNATO = 'Impegnato';
 
 /**
- * I rami con la parte stimata (R04): dotazione -> impegnato rilevato / stimato / da impegnare, il rilevato -> pagato e da
- * pagare, lo stimato -> da pagare (la previsione non e' ancora pagata). Null se la parte stimata non c'e' o se il pagato
- * supera il rilevato (i rami non tornerebbero: si disegna l'impegnato intero).
+ * I rami del flusso: con gli impegni dalla dotazione all'impegnato e al pagato; senza, dalla dotazione al pagato (TX-0007).
+ * L'impegnato e' un solo nodo, rilevato piu' stimato (revisione del 04/11/2026: com'era prima delle revisioni del 31/10); la
+ * parte stimata sta nel tooltip del nodo, nella tabella equivalente e nella nota di lettura.
  */
-function ramiConStima(i: ResiduoSuImpegniLike, p: AvanzamentoPagamentiLike): Ramo[] | null {
-  const [impegnato, stimato, pagato, daPagare] = [valoreDi(i.importoImpegnato), valoreDi(i.impegnatoStimato), valoreDi(p.pagamentiTotali), valoreDi(p.impegnatoDaPagare)];
-  if (impegnato == null || stimato == null || stimato <= 0 || pagato == null || daPagare == null) return null;
-  const rilevato = centesimi(impegnato - stimato);
-  const rilevatoDaPagare = centesimi(daPagare - stimato);
-  if (rilevato < pagato || rilevatoDaPagare < 0) return null;
-  const importo = (valore: number): ImportoLike => ({ valore });
-  return [
-    ['Dotazione', IMPEGNATO_RILEVATO, importo(rilevato)],
-    ['Dotazione', IMPEGNATO_STIMATO, importo(stimato)],
-    ['Dotazione', 'Da impegnare', i.dotazioneResidua],
-    [IMPEGNATO_RILEVATO, 'Pagato', p.pagamentiTotali],
-    [IMPEGNATO_RILEVATO, 'Da pagare', importo(rilevatoDaPagare)],
-    [IMPEGNATO_STIMATO, 'Da pagare', importo(stimato)],
-  ];
-}
-
-/** I rami del flusso: con gli impegni dalla dotazione all'impegnato e al pagato; senza, dalla dotazione al pagato (TX-0007). */
 function ramiFlusso(i: ResiduoSuImpegniLike, p: AvanzamentoPagamentiLike, r: ResiduoSuPagamentiLike): { rami: Ramo[]; omessi: string[] } {
-  const conStima = ramiConStima(i, p);
-  if (conStima) return { rami: conStima, omessi: [] };
   if (valoreDi(i.importoImpegnato) != null) {
-    const rami: Array<[string, string, ImportoLike | null | undefined]> = [
-      ['Dotazione', 'Impegnato', i.importoImpegnato],
+    const rami: Ramo[] = [
+      ['Dotazione', IMPEGNATO, i.importoImpegnato],
       ['Dotazione', 'Da impegnare', i.dotazioneResidua],
-      ['Impegnato', 'Pagato', p.pagamentiTotali],
-      ['Impegnato', 'Da pagare', p.impegnatoDaPagare],
+      [IMPEGNATO, 'Pagato', p.pagamentiTotali],
+      [IMPEGNATO, 'Da pagare', p.impegnatoDaPagare],
     ];
     return { rami, omessi: [] };
   }
@@ -116,7 +95,7 @@ export function sottotitoloFlusso(impegni: ResiduoSuImpegniLike): string {
 
 function motivoFlusso(rami: readonly Ramo[]): string | null {
   // i rami che escono dalla dotazione verso l'impegnato (o i pagamenti netti) e il residuo
-  const assenti = rami.filter(([s, t]) => s === 'Dotazione' && t !== IMPEGNATO_STIMATO).slice(0, 2).filter(([, , x]) => valoreDi(x) == null);
+  const assenti = rami.filter(([s]) => s === 'Dotazione').slice(0, 2).filter(([, , x]) => valoreDi(x) == null);
   if (assenti.length > 0) return `il flusso richiede ${assenti.map(([, t, x]) => `${t.toLowerCase()}: ${assenzaImporto(x, true)}`).join('; ')}`;
   return rami.some(([, , x]) => (valoreDi(x) ?? 0) < 0) ? 'valori negativi: il flusso non si può disegnare' : null;
 }
@@ -142,9 +121,10 @@ export function graficoSankey(impegni: ResiduoSuImpegniLike, pagamenti: Avanzame
   const nomi = [...new Set(collegamenti.flatMap((c) => [c.source, c.target]))];
   const entrata = (n: string) => centesimi(collegamenti.filter((c) => c.target === n).reduce((a, c) => a + c.value, 0));
   const valoreNodo = (n: string) => (n === 'Dotazione' ? dotazione : entrata(n));
-  // l'impegnato stimato in una tonalita' piu' chiara del rilevato (wireframe: "rilevato e stimato in due tonalita'")
-  const colore = (n: string) => (n === IMPEGNATO_STIMATO ? { itemStyle: { color: '#8fb8e6' } } : n === IMPEGNATO_RILEVATO ? { itemStyle: { color: COLORI.primario } } : {});
-  const nodi = nomi.map((n) => ({ name: n, etichetta: `${n}: ${importoBreve(valoreNodo(n))}`, dettaglio: `${n}: ${importoBreve(valoreNodo(n))}`, ...colore(n) }));
+  // la parte stimata dell'impegnato nel tooltip del suo nodo (un solo nodo dal 04/11/2026)
+  const stimato = valoreDi(impegni.impegnatoStimato);
+  const diCuiStimato = (n: string) => (n === IMPEGNATO && stimato != null && stimato > 0 ? `, di cui stimato ${importoBreve(stimato)}` : '');
+  const nodi = nomi.map((n) => ({ name: n, etichetta: `${n}: ${importoBreve(valoreNodo(n))}`, dettaglio: `${n}: ${importoBreve(valoreNodo(n))}${diCuiStimato(n)}`, ...(n === IMPEGNATO ? { itemStyle: { color: COLORI.primario } } : {}) }));
   const descrizione = `Flusso della dotazione (${importoBreve(dotazione)}): ${collegamenti.map((c) => `${c.target.toLowerCase()} ${importoBreve(c.value)}`).join(', ')}.${notaOmessi(omessi)}`;
   const serie: SankeySeriesOption = { type: 'sankey', name: 'Flusso della dotazione', data: nodi, links: collegamenti, nodeAlign: 'left', emphasis: { focus: 'adjacency' }, lineStyle: { color: 'gradient', curveness: 0.5 }, label: { formatter: etichettaDato } };
   return { opzioni: { aria: aria(descrizione), tooltip: { trigger: 'item', formatter: tooltipDettaglio }, series: [serie] }, tabella, omessi };

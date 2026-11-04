@@ -1,7 +1,8 @@
 // riserva.ts — resa PURA della riserva al 5% (RF014) allineata al backend: la FASE e' calcolata al giorno della
 // consultazione, gli IMPORTI sono quelli dell'istantanea estratta il giorno dataEstrazione (MonitoraggioRiserva).
-// Congelato e residuo sono null finche' l'istantanea precede il congelamento (30/6/n+1); il residuo c'e' gia' dal
-// congelamento ma diventa disponibile solo dal 1/1/n+2, se la riserva non e' utilizzata tutta entro il 31/12/n+1.
+// Congelato e residuo sono null finche' l'istantanea precede il congelamento (30/06/n+1); il residuo c'e' gia' dal
+// congelamento ma diventa disponibile solo dal 01/01/n+2, se la riserva non e' utilizzata tutta entro il 31/12/n+1. Le date
+// dei testi sono in gg/mm/aaaa come ogni data del cruscotto (dal 04/11/2026; prima "1/10/2025").
 // Date ISO (AAAA-MM-GG): il confronto fra stringhe ISO e' cronologico.
 import { centesimi, formatDate, formatEuro, maiuscolaIniziale, numeroDi } from '../../../shared/lib';
 import type { RiservaLike } from './dto';
@@ -72,10 +73,9 @@ export function calendarioRiserva(n: number) {
   };
 }
 
-/** Data ISO nella forma breve dei testi della riserva: 2025-10-01 -> "1/10/2025". */
+/** Data ISO nei testi e nelle fasce della riserva, in gg/mm/aaaa come ogni data del cruscotto: 2025-10-01 -> "01/10/2025". */
 export function dataBreve(iso: string): string {
-  const [a, m, g] = iso.split('-').map(Number);
-  return `${g}/${m}/${a}`;
+  return formatDate(iso);
 }
 
 const FASI_RISERVA: Record<FaseRiserva, (n: number) => string> = {

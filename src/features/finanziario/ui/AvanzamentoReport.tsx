@@ -6,7 +6,9 @@
 // (RF004 e RF006 regionali, RF005 e RF007 seguono il perimetro ADA); lo stato vuoto viene dalle righe di TX-0002
 // (segnale), mai da importi a zero. Le letture stanno nei figli di ConGrant (R-09). Revisioni del 31/10/2026: stanziato dai
 // bandi, impegnato con la parte stimata (nota di lettura, ramo stimato nel flusso), gauge "Avanzamento rispetto ai
-// pagamenti effettuati" (R15), rettifiche al posto del recuperato e residuo sui pagamenti per intervento (R08).
+// pagamenti effettuati" (R15), rettifiche al posto del recuperato e residuo sui pagamenti per intervento (R08). Revisione
+// del 04/11/2026: il quarto box e' la dotazione spesa pubblica (il residuo resta nella ciambella e nella tabella di RF007)
+// e nel flusso l'impegnato torna un solo nodo.
 import type { ReactNode } from 'react';
 import type { ImportoLike } from '../../../entities/importo';
 import { Caricamento, CardGrafico, Griglia, VistaQuery } from '../../../shared/ui';
@@ -46,14 +48,15 @@ function KpiImpegnato({ filtri }: { filtri: Filtri }) {
   return <VistaQuery stato={usePagamentiSuImpegnato(filtri)} errorePersonalizzato={silenzioso}>{(d) => <KpiImporto etichetta="Totale impegnato" importo={d.totaleImpegnato} icona="it-files" tono="blu" nota={notaDiCuiStimato(d.impegnatoStimato)} />}</VistaQuery>;
 }
 
-function KpiResiduo({ filtri, voce }: { filtri: Filtri; voce: 'pagato' | 'residuo' }) {
+/** I due box da TX-0007: il pagato lordo e la dotazione spesa pubblica della selezione (revisione del 04/11/2026: prima il residuo). */
+function KpiResiduo({ filtri, voce }: { filtri: Filtri; voce: 'pagato' | 'dotazione' }) {
   return (
     <VistaQuery stato={useResiduoPagamenti(filtri)} errorePersonalizzato={silenzioso}>
       {(d) =>
         voce === 'pagato' ? (
           <KpiImporto etichetta={PAGATO_LORDO} importo={d.importoPagato} icona="it-chart-line" tono="verde" />
         ) : (
-          <KpiImporto etichetta="Dotazione residua sui pagamenti" importo={d.dotazioneResidua} icona="it-presentation" tono="ambra" />
+          <KpiImporto etichetta={diProgramma('Dotazione spesa pubblica', d.perimetro)} importo={d.dotazioneSpesaPubblica} icona="it-presentation" tono="ambra" />
         )
       }
     </VistaQuery>
@@ -72,8 +75,8 @@ function Indicatori({ filtri }: { filtri: Filtri }) {
       <ConGrant grant={GRANT.residuoPagamenti} titolo={PAGATO_LORDO}>
         <KpiResiduo filtri={filtri} voce="pagato" />
       </ConGrant>
-      <ConGrant grant={GRANT.residuoPagamenti} titolo="Dotazione residua sui pagamenti">
-        <KpiResiduo filtri={filtri} voce="residuo" />
+      <ConGrant grant={GRANT.residuoPagamenti} titolo="Dotazione spesa pubblica">
+        <KpiResiduo filtri={filtri} voce="dotazione" />
       </ConGrant>
     </Griglia>
   );

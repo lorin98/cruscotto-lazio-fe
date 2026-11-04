@@ -245,8 +245,13 @@ const OMESSO_ADA_DOTAZIONE = "perimetro ADA: la dotazione regionale non si affia
 export interface RigaDotazionePagato {
   codiceIntervento?: string;
   dotazione?: ImportoLike | null;
+  /** L'impegnato di spesa pubblica (uguale al cofinanziato FEASR e non), rilevato piu' stimato. */
+  impegnato?: ImportoLike | null;
   pagato?: ImportoLike | null;
 }
+
+/** La serie dell'impegnato nel grafico per intervento (revisione del 04/11/2026). */
+export const IMPEGNATO_SPESA_PUBBLICA = 'Impegnato spesa pubblica';
 
 function voce(r: RigaDotazionePagato, importi: Array<ImportoLike | null | undefined>) {
   const codice = codiceDi(r);
@@ -254,7 +259,8 @@ function voce(r: RigaDotazionePagato, importi: Array<ImportoLike | null | undefi
 }
 
 /**
- * Barre raggruppate dotazione / pagato per intervento; nel perimetro ADA solo il pagato. `nomePagato` dice quale
+ * Barre raggruppate dotazione / impegnato / pagato per intervento (l'impegnato dal 04/11/2026); nel perimetro ADA solo il
+ * pagato. `nomePagato` dice quale
  * pagato e': i pagamenti totali lordi degli elenchi di liquidazione (TX-0002) o i pagamenti al netto delle rettifiche
  * (TX-0011), mai l'uno per l'altro.
  */
@@ -264,7 +270,19 @@ export function graficoDotazionePagamenti(righe: RigaDotazionePagato[], perimetr
     const testi = { caption: `${nomePagato} per intervento`, colonne: ['Intervento', nomePagato], titolo: `Barre dei ${pagato.soggetto}`, vuoto: `nessun intervento con ${pagato.soggetto} valorizzati`, unita: INTERVENTI };
     return barreRaggruppate(righe.map((r) => voce(r, [r.pagato])), [pagato], testi, { omessi: [OMESSO_ADA_DOTAZIONE], orizzontale: true });
   }
-  const testi = { caption: `Dotazione e ${pagato.soggetto} per intervento`, colonne: ['Intervento', 'Dotazione', nomePagato], titolo: `Barre raggruppate di dotazione e ${pagato.soggetto}`, vuoto: `nessun intervento con dotazione o ${pagato.soggetto} valorizzati`, unita: INTERVENTI };
+  const testi = {
+    caption: `Dotazione, impegnato e ${pagato.soggetto} per intervento`,
+    colonne: ['Intervento', 'Dotazione', IMPEGNATO_SPESA_PUBBLICA, nomePagato],
+    titolo: `Barre raggruppate di dotazione, impegnato e ${pagato.soggetto}`,
+    vuoto: `nessun intervento con dotazione, impegnato o ${pagato.soggetto} valorizzati`,
+    unita: INTERVENTI,
+  };
+  // i pagamenti restano verdi come prima del 04/11/2026; l'impegnato, aggiunto in mezzo, ha il suo colore
+  const serie = [
+    { nome: 'Dotazione', soggetto: 'dotazione', colore: COLORI.primario },
+    { nome: IMPEGNATO_SPESA_PUBBLICA, soggetto: 'impegnato di spesa pubblica', colore: COLORI.attenzione },
+    { ...pagato, colore: COLORI.positivo },
+  ];
   // in orizzontale: tutti gli interventi con la loro etichetta, uno per riga (R02, wireframe "tutte le etichette"; review K-01)
-  return barreRaggruppate(righe.map((r) => voce(r, [r.dotazione, r.pagato])), [{ nome: 'Dotazione', soggetto: 'dotazione' }, pagato], testi, { orizzontale: true });
+  return barreRaggruppate(righe.map((r) => voce(r, [r.dotazione, r.impegnato, r.pagato])), serie, testi, { orizzontale: true });
 }

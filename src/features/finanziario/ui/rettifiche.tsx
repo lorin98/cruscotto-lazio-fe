@@ -1,7 +1,7 @@
 // rettifiche.tsx — le rettifiche dei pagamenti (revisioni del 31/10/2026, R08, R1): il pagato netto e' il lordo degli
 // elenchi di liquidazione meno le rettifiche del report "recuperi e variazioni" (FEASR 23.27); le rettifiche dei
 // trascinamenti PSR si vedono nel dettaglio ma restano fuori dal netto. Qui: la fonte (documento e data di riferimento), la
-// tabella delle righe di un intervento, l'indicatore "Si': n righe" che le apre e la tabella del residuo sui pagamenti per
+// tabella delle righe di un intervento, l'indicatore "Si': n rettifiche" che le apre e la tabella del residuo sui pagamenti per
 // intervento (RF007, TX-0007 interventi[]) con il pannello laterale del dettaglio. Senza righe nel database il backend
 // risponde "fonte non attiva: rettifiche" sugli importi (ValoreImporto lo dice).
 import { useState } from 'react';
@@ -36,7 +36,7 @@ export function FonteDelleRettifiche({ fonte }: { fonte: FonteRettifiche | null 
   return <p className="ui-pill mb-2">{`Rettifiche: ${documento}, data di riferimento ${formatDate(fonte.dataRiferimento)}`}</p>;
 }
 
-/** "Si': n righe" (apre il dettaglio), "No", o il dato assente (nessuna rettifica nel database). */
+/** "Si': n rettifiche" (apre il dettaglio), "No", o il dato assente (nessuna rettifica nel database). */
 function Rettificato({ r, onApri }: { r: ResiduoSuPagamentiIntervento; onApri: () => void }) {
   const n = (r.rettifiche ?? []).length;
   const testo = testoRettificato(r.conRettifiche, n);

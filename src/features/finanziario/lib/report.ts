@@ -82,14 +82,14 @@ export const REPORT_FINANZIARIO: VoceReport[] = [
     titolo: 'Riepilogo per intervento',
     voceMenu: 'Riepilogo per intervento',
     // la pagina si apre sul grafico (19/10/2026): il sottotitolo descrive la vista iniziale (review delta 21/10 V6)
-    sottotitolo: "Grafico per intervento: clic su una barra per il dettaglio; nella vista Tabella cerca, ordina, scegli le colonne e apri l'anteprima.",
+    sottotitolo: "La tabella di riepilogo del requisito RF011 per intervento (cerca, ordina, scegli le colonne, apri l'anteprima) e sotto il grafico per intervento: clic su una barra per il dettaglio.",
     grant: [G.riepilogo],
   },
   {
     percorso: PERCORSI.dotazione,
     titolo: 'Dotazione e spesa per intervento',
     voceMenu: 'Dotazione e spesa',
-    sottotitolo: 'Dotazione, pagamenti e quota FEASR per intervento.',
+    sottotitolo: 'Dotazione, impegnato, pagamenti e quota FEASR per intervento.',
     grant: [G.spesaPerIntervento, G.distribuzioneDotazione],
   },
   {

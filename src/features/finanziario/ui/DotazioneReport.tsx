@@ -4,7 +4,8 @@
 // ambientale, le quote Stato e Regione e il vincolo LEADER, R14, R21, X3; impegnato con la parte stimata). Ogni sezione ha il suo grant e il suo perimetro; con il
 // perimetro ADA la dotazione regionale non sta sullo stesso grafico dei pagamenti dell'area. Lo stato vuoto di RF003 si
 // ricava dalle righe di RF002. Tutte le colonne si vedono, con il motivo di ogni assenza (wireframe dotazione). Clic su
-// un intervento: il suo dettaglio.
+// un intervento: il suo dettaglio. Revisione del 04/11/2026: barra dell'impegnato nel grafico per intervento e avviso degli
+// impegnati diversi (da TX-0011, col suo grant) sopra il grafico.
 import { CardGrafico, PulsantiScarica, Sezione, TabellaInterattiva, VistaQuery } from '../../../shared/ui';
 import type { ColonnaTabella } from '../../../shared/ui';
 import { useDistribuzioneDotazione, useSpesaPerIntervento } from '../api';
@@ -18,6 +19,7 @@ import { GRANT } from '../lib/report';
 import { ConGrant, NotaPerimetroMisto, NotaStima, PerimetroSezione, colonneImporti, vuotoConPerimetro } from './comuni';
 import type { CampoImporto } from './comuni';
 import { useSelezioneSenzaInterventi } from './selezione';
+import { AvvisoImpegnatiDellaSelezione } from './AvvisoImpegnati';
 import { useApriIntervento } from './useApriIntervento';
 
 type Riga = SpesaPerInterventoRiga;
@@ -31,6 +33,7 @@ const CAMPI: CampoImporto<Riga>[] = [
 ];
 
 const TITOLO_SPESA = 'Spesa pubblica per intervento (RF002)';
+const TITOLO_GRAFICO = 'Dotazione, impegnato e pagamenti per intervento';
 const TITOLO_QUOTE = 'Quota FEASR e non FEASR della dotazione';
 const VUOTO = vuotoConPerimetro('Nessun intervento per i filtri scelti.', { programma: true });
 
@@ -50,13 +53,13 @@ function CardDotazione({ filtri }: { filtri: Filtri }) {
     <VistaQuery stato={useSpesaPerIntervento(filtri)} eVuoto={senzaRighe} vuoto={VUOTO}>
       {(d) => (
         <CardGrafico
-          titolo="Dotazione e pagamenti per intervento"
+          titolo={TITOLO_GRAFICO}
           sottotitolo="Un intervento per riga, tutti con la loro etichetta; clic su una barra per il dettaglio"
-          dati={graficoDotazionePagamenti((d.righe ?? []).map((r) => ({ codiceIntervento: r.codiceIntervento, dotazione: r.dotazioneSpesaPubblica, pagato: r.pagamentiTotali })), d.perimetro, PAGAMENTI_LORDI)}
+          dati={graficoDotazionePagamenti((d.righe ?? []).map((r) => ({ codiceIntervento: r.codiceIntervento, dotazione: r.dotazioneSpesaPubblica, impegnato: r.impegnatoSpesaPubblica, pagato: r.pagamentiTotali })), d.perimetro, PAGAMENTI_LORDI)}
           fonte={`Fonte: TX-0002 · Perimetro ${d.perimetro ?? 'non indicato'}`}
           altezza="alto"
           onClic={dalClic}
-          scaricamenti={datiDelReport('Dotazione e pagamenti per intervento', 'spesaPerIntervento', filtri)}
+          scaricamenti={datiDelReport(TITOLO_GRAFICO, 'spesaPerIntervento', filtri)}
         />
       )}
     </VistaQuery>
@@ -112,7 +115,8 @@ function Distribuzione({ filtri }: { filtri: Filtri }) {
 export function DotazioneReport({ filtri }: { filtri: Filtri }) {
   return (
     <>
-      <ConGrant grant={GRANT.spesaPerIntervento} titolo="Dotazione e pagamenti per intervento">
+      <AvvisoImpegnatiDellaSelezione filtri={filtri} />
+      <ConGrant grant={GRANT.spesaPerIntervento} titolo={TITOLO_GRAFICO}>
         <CardDotazione filtri={filtri} />
       </ConGrant>
       <ConGrant grant={GRANT.distribuzioneDotazione} titolo={TITOLO_QUOTE}>
