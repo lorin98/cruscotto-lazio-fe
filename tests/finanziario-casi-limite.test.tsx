@@ -299,7 +299,23 @@ describe('RiepilogoReport: casi limite', () => {
     const voci = Array.from(dl.children, (c) => [c.querySelector('dt')?.textContent, testo(c.querySelector('dd')?.textContent)]);
     // i campi di prima, di cui stimato, lordi, rettifiche e "Con rettifiche" (R08)
     expect(voci).toHaveLength(13);
-    // i campi di RF011 nell'ordine del requisito: le domande dopo i tre dati di programma (04/11/2026)
+    // l'ordine del wireframe (J-01, P2-01): i nove di RF011 nell'ordine del requisito, lo stimato dopo l'impegnato che lo
+    // contiene, lordi, rettifiche e "Con rettifiche" prima dei pagamenti netti
+    expect(voci.map((v) => v[0])).toEqual([
+      'Dotazione spesa pubblica (regionale)',
+      'Risorse quota FEASR (regionale)',
+      'Importo stanziato (regionale)',
+      'Domande presentate',
+      'Impegnato cofinanziato FEASR',
+      'Impegnato cofinanziato FEASR e non',
+      'di cui stimato',
+      'Pagamenti lordi',
+      'Rettifiche',
+      'Con rettifiche',
+      'Pagamenti al netto delle rettifiche',
+      'Dotazione residua sugli impegni',
+      'Dotazione residua sui pagamenti',
+    ]);
     expect(voci[3]).toEqual(['Domande presentate', '12']);
     expect(voci).toContainEqual(['Dotazione spesa pubblica (regionale)', '1.000.000,00 €']);
     expect(voci).toContainEqual(['Importo stanziato (regionale)', 'non disponibilefonte quadro sinottico non attiva']);

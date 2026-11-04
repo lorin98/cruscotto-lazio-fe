@@ -266,10 +266,16 @@ describe('RF016: i dati ASR non SIGC per intervento, da confrontare con SMP - Da
   it("anno scelto senza file SMP: la pill dice l'anno scelto e non che il file c'e', nessuno stato inventato, i dati delle pratiche restano (J-10)", async () => {
     // con l'anno chiesto il backend risponde sempre con quell'anno, anche senza file: la pagina non puo' dire "nessun file"
     // e non dice nemmeno "del file" (scelta dell'utente del 04/11/2026, punto aperto verso il backend)
+    // il handler di servi() come il backend: con un anno senza file (2029) indicatori e output NON_VALORIZZATO (P2-03)
     servi();
-    server.use(http.get('*/api/istituzionale/verifica-smp-non-sigc', ({ request }) => HttpResponse.json({ ...VERIFICA, annoRiferimento: Number(new URL(request.url).searchParams.get('anno')) })));
     apri(`${PERCORSO}?anno=2029`);
-    expect(within(await tabella()).getAllByRole('rowheader')).toHaveLength(3);
+    const t = await tabella();
+    expect(within(t).getAllByRole('rowheader')).toHaveLength(3);
+    const srd01 = testo(within(t).getByRole('rowheader', { name: 'SRD01' }).closest('tr')?.textContent);
+    // senza file l'output erogato e' non valorizzato e l'avviso non vale per l'anno; domande e spesa vengono dalle pratiche
+    expect(srd01).toMatch(/non valorizzatoil dato non è presente nella fonte$/);
+    expect(srd01).toContain("non disponibile per l'anno scelto");
+    expect(srd01).toContain('90.000,00 €');
     expect(screen.getByText('Anno di riferimento scelto: 2029')).toBeTruthy();
     expect(screen.queryByText(/file SMP non SIGC: /)).toBeNull();
     expect(screen.queryByText(/^Nessun file SMP non SIGC/)).toBeNull();

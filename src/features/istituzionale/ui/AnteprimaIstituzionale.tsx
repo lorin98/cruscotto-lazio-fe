@@ -4,8 +4,9 @@
 // erogata, una colonna per verifica, ognuna col grant della sua transazione, che legge e fallisce in modo indipendente
 // (scheletro nelle sue celle, "non disponibile" e frase d'errore sotto la tabella):
 // - non SIGC (csr.tx-0016.read): domande ricevute, domande finanziate e spesa pubblica erogata, totali della verifica SMP
-//   non SIGC (lib/anteprima), valori cumulativi (D3), dalla lettura di TX-0016 coi criteri della pagina aperta senza
-//   filtri ne' anno (stessa cache, a lettura finita, D2); niente domande pagate (un trattino). Sotto la tabella la quota
+//   non SIGC (lib/anteprima), valori cumulativi (D3), da TX-0016 senza filtri ne' anno (useUltimaVerificaSmpNonSigc:
+//   l'ultimo anno con un file; la pagina legge solo con l'anno scelto, nessuna cache in comune dal 04/11/2026); niente
+//   domande pagate (un trattino). Sotto la tabella la quota
 //   della spesa sul valore delle domande finanziate (barra);
 // - SIGC (csr.tx-0015.read): domande ricevute e finanziate (domande dell'anno n-1), domande pagate e spesa pubblica
 //   erogata nell'esercizio (campagna precedente + campagne anteriori), da TX-0015 senza filtri con l'ultimo esercizio

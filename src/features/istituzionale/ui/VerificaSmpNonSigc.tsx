@@ -1,6 +1,6 @@
 // VerificaSmpNonSigc — pagina /istituzionale/verifica-smp-non-sigc (flusso verifica-smp-non-sigc approvato, pattern report
 // v2 come la verifica SMP SIGC della stessa area, RF016): barra dei filtri a chip col pannello (voci da TX-0060, G2), le
-// pill del perimetro regionale, dell'anno di riferimento del file e "Dati al" (ultimiDatiSincronizzati di TX-0016, G3);
+// pill del perimetro regionale, dell'anno di riferimento scelto e "Dati al" (ultimiDatiSincronizzati di TX-0016, G3);
 // percorso e un solo h1 col focus, con sotto la frase verso la verifica SMP SIGC coi filtri comuni e senza l'anno (link
 // verifica-smp-sigc, scelta di disegno 1 del 30/10/2026, al posto della decisione G4), resa solo col grant di TX-0015; lo
 // stato dei valori dei filtri non disponibili; il selettore dell'anno (obbligatorio dal 04/11/2026, come l'esercizio della

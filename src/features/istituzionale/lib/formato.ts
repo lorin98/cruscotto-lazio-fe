@@ -1,4 +1,4 @@
-// formato.ts — testi PURI dell'istituzionale (zero React): perimetro, anno di riferimento del file ed esercizio della
+// formato.ts — testi PURI dell'istituzionale (zero React): perimetro, anno di riferimento scelto ed esercizio della
 // barra (l'esercizio coi suoi estremi), quantita' di output col codice dell'indicatore accanto (l'unita' di misura veniva
 // da TX-0017, ora del fisico: OP-IS-12), si'/no, stati vuoti e note sulle definizioni del backend (OP-IS-07: note fisse,
 // non un dato). I testi sono quelli dei wireframe approvati (22/10/2026 e, per le due verifiche e il dettaglio, 30/10/2026),
@@ -13,7 +13,10 @@ export const PILL_PERIMETRO = 'Perimetro: regionale (i report istituzionali non 
 /** Il perimetro dei report istituzionali in parole (sempre REGIONALE), nelle righe di contesto del PNG. */
 export const PERIMETRO_IN_PAROLE = testoPerimetro('REGIONALE');
 
-/** Pill dell'anno di riferimento del file della verifica (annoRiferimento della risposta; null = nessun file). */
+/**
+ * Pill dell'anno di riferimento scelto (dall'indirizzo), non l'anno del file della risposta: con l'anno chiesto il backend
+ * risponde sempre con quell'anno, anche senza file (J-10, scelta dell'utente del 04/11/2026).
+ */
 export function pillAnnoScelto(anno: number | undefined): string {
   return `Anno di riferimento scelto: ${anno ?? 'non scelto'}`;
 }

@@ -499,5 +499,8 @@ describe('RF016, RF018, RF026 e RF027: le card della Home coi profili del catalo
     expect(await screen.findByRole('heading', { level: 1, name: 'Istituzionale: verifica SMP non SIGC' })).toBeTruthy();
     expect(await screen.findByText("Scegli l'anno di riferimento da consultare.")).toBeTruthy();
     expect(letture['/api/istituzionale/verifica-smp-non-sigc']).toBe(1);
+    // P2-02: la pagina senza anno non prende i dati della card della Home (chiave diversa): niente pill dell'anno ne' "Dati al"
+    expect(screen.queryByText(/^Anno di riferimento scelto/)).toBeNull();
+    expect(screen.queryByRole('button', { name: /^Ultimo dato sincronizzato/ })).toBeNull();
   });
 });

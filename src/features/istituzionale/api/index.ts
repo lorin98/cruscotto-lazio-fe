@@ -68,7 +68,9 @@ export const useVerificaSmpNonSigc = (
   anno: number | undefined,
   { abilitato = true, mantieniDati = false }: Opzioni & { mantieniDati?: boolean } = {},
 ) =>
-  useTx0016(anno === undefined ? filtri : { ...filtri, anno }, {
+  // senza anno una chiave propria (anno 0, mai letta), come l'esercizio di TX-0015: la lettura disabilitata della pagina
+  // non incontra quella della card della Home, senza anno (review step9 del 04/11/2026, passata 2, P2-02)
+  useTx0016({ ...filtri, anno: anno ?? 0 }, {
     query: { enabled: abilitato && anno !== undefined, ...(mantieniDati ? { placeholderData: keepPreviousData } : {}) },
   });
 

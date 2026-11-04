@@ -114,6 +114,17 @@ describe('RF011: tabella di riepilogo per intervento con i nove campi finanziari
     const cella = (codice: string) => within(within(tabella).getByRole('rowheader', { name: codice }).closest('tr') as HTMLElement).getAllByRole('cell')[4].textContent?.replace(/\s/g, ' ');
     expect(cella(diverso.codiceIntervento)).toBe('1.000,00 € (alla dotazione)');
     expect(cella(uguale.codiceIntervento)).toBe('13.879.326,08 €');
+    // anche nella voce dell'anteprima, e solo per la riga coi due impegnati diversi (P2-01)
+    const voceFeasr = async (codice: string) => {
+      await userEvent.click(within(tabella).getByRole('row', { name: `Apri l'anteprima dell'intervento ${codice}` }));
+      const dl = (await screen.findByRole('dialog', { name: codice })).querySelector('dl') as HTMLDListElement;
+      const voce = Array.from(dl.children).find((c) => c.querySelector('dt')?.textContent === 'Impegnato cofinanziato FEASR');
+      const dd = voce?.querySelector('dd')?.textContent?.replace(/\s/g, ' ');
+      await userEvent.keyboard('{Escape}');
+      return dd;
+    };
+    expect(await voceFeasr(diverso.codiceIntervento)).toBe('1.000,00 € (alla dotazione)');
+    expect(await voceFeasr(uguale.codiceIntervento)).toBe('13.879.326,08 €');
   });
 
   it("niente avviso quando i due impegnati sono valorizzati e uguali in tutte le righe (J-05)", async () => {

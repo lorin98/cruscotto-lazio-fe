@@ -1223,7 +1223,9 @@ describe('DotazioneReport (TX-0002, TX-0003)', () => {
     const titolo = 'Dotazione, impegnato e pagamenti per intervento';
     await waitFor(() => expect(graficoDi(titolo).opzioni.length).toBeGreaterThan(0));
     const barre = card(titolo);
-    expect(within(barre).getByText(/^\d+ voc[ei] non nel grafico$/)).toBeTruthy();
+    // la dotazione regionale e le assenze dell'impegnato dell'area, fissate (P2-01)
+    expect(within(barre).getByText('2 voci non nel grafico')).toBeTruthy();
+    expect(within(barre).getByText(/^SRA01, impegnato di spesa pubblica: non disponibile/)).toBeTruthy();
     expect(within(barre).getByText("perimetro ADA: la dotazione regionale non si affianca ai pagamenti dell'area")).toBeTruthy();
     await vediTabella(titolo);
     // impegnato e pagamenti dell'area, senza la dotazione regionale (J-06)
