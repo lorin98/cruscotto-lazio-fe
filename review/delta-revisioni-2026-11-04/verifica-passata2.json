@@ -1,0 +1,151 @@
+{
+  "esiti": [
+    {
+      "id": "J-01",
+      "esito": "chiuso",
+      "evidenza": "Codice: un solo array CAMPI nell'ordine del wireframe (src/features/finanziario/ui/RiepilogoReport.tsx:47-61): 'di cui stimato' dopo l'impegnato FEASR e non, lordi e rettifiche prima del netto. La tabella mette le colonne nascoste al loro posto (:112-137, nascoste tramite IN_PIU :64), e 'Con rettifiche' sta subito dopo 'Rettifiche' (:127-128). L'anteprima scorre CAMPI_DOPO_LE_DOMANDE con 'Con rettifiche' dopo 'Rettifiche' (:199-209), come riepilogo.html:118-128. I totali sono per chiave (:141-148), quindi l'ordine nuovo non li sposta. Test: src/pages/finanziario/riepilogo/page.test.tsx:83-100 (le 14 intestazioni nell'ordine completo) e tests/finanziario-ui.test.tsx:830-831. Residuo: nessun test fissa l'ordine delle voci dell'anteprima, che il fix chiedeva (tests/finanziario-casi-limite.test.tsx:300-305 controlla solo 13 voci e voci[3]). L'ordine viene dallo stesso array della tabella, quindi e' giusto per costruzione: vedi N-01."
+    },
+    {
+      "id": "J-02",
+      "esito": "chiuso",
+      "evidenza": "src/features/finanziario/lib/grafici/sigc.ts:221: VERDE_PAGATO = '#437a1b'. Ricalcolato: luminanza 0,152, contrasto col bianco 5,20:1. Lo usano il segmento e lo sfondo dell'etichetta del 'Pagato' (:275), mentre COLORI.positivo resta invariato negli altri grafici. Test: tests/finanziario-grafici.test.ts:1362-1372, che misura per ognuna delle quattro serie il contrasto WCAG fra label.color e label.backgroundColor (>= 4,5) e vuole lo sfondo del pagato uguale a VERDE_PAGATO; anche il test dello sfondo uguale al segmento (:1348-1349) resta vero."
+    },
+    {
+      "id": "J-03",
+      "esito": "chiuso",
+      "evidenza": "e2e/csp.spec.ts:205: prima del clic sulla riga SRA01 aspetta la tabella 'Tabella di riepilogo per intervento (RF011)', e l'interruttore 'Vista del riepilogo' non c'e' piu'. :161 aspetta '1.200' nella card della Home. In piu' e' corretto :186 ('6.000' sull'asse, che il passaggio 1 non aveva visto) e nel fixture ci sono lordi e rettifiche (:26-30), senza i quali l'e2e del dettaglio non disegnava la cascata. Esito `npm run test:e2e` 8/8, registrato nel brief."
+    },
+    {
+      "id": "J-04",
+      "esito": "chiuso",
+      "evidenza": "Come la scelta dell'utente. sigc.ts:224-226: larghezzaEtichetta = caratteri x 7 + 8 di riquadro + MARGINE_ETICHETTA. :289: grid.right = la larghezza della piu' lunga etichetta degli ultimi segmenti, sempre riservata. :290: l'asse torna al massimo di ECharts, senza showMaxLabel: false. Con outerBoundsMode 'same' di GRIGLIA_CON_ETICHETTE (shared/lib/grafici/primitive.ts:185), un'etichetta messa a rect.x + rect.width + 4 dalla barra piu' lunga sta nello spazio riservato. Test: tests/finanziario-grafici.test.ts:1374-1381 (grid.right >= larghezza di entrambe le etichette, 124 px per '41,9 M€ (24,3 %)') e :1350-1351 (nessun max forzato). La verifica nel browser a 360 px e nel PNG non e' fra gli esiti misurati: resta un controllo umano, non un difetto del codice."
+    },
+    {
+      "id": "J-05",
+      "esito": "chiuso",
+      "evidenza": "Riepilogo: src/pages/finanziario/riepilogo/page.test.tsx:103-117 ha una riga con i due impegnati valorizzati e uguali. Il test dedicato :119-128 controlla che manchino la nota e '(alla dotazione)' a tabella resa: avviso e tabella vengono dalla stessa lettura, quindi i dati sono arrivati. Dotazione: tests/revisioni-20261104.test.tsx:38-49 usa righe uguali e, prima di controllare l'assenza, aspetta letture() === 1 e poi un tick. :58-82 fa fallire TX-0011 con 500 e con 403 problem+json: nessuna role=note, nessun alert, la card di TX-0002 resta. Il client di test e' senza retry (src/shared/testing/render.tsx:8) e quello di produzione non ha un onError per le query (src/app/query-client.ts:27-45), quindi il comportamento provato e' quello reale."
+    },
+    {
+      "id": "J-06",
+      "esito": "chiuso",
+      "evidenza": "src/features/finanziario/lib/grafici/spesa.ts:272-281: nel perimetro ADA il grafico disegna impegnato e pagato, l'impegnato con lo stesso colore del ramo normale (:269-271), e tiene come unica voce omessa OMESSO_ADA_DOTAZIONE. Il testo e' quello di dotazione.html:76. Didascalia, colonne, titolo e vuoto sono concordati. Test: tests/finanziario-grafici.test.ts:1159-1167 (due serie, SRA01 e SRA02, la dotazione fra le omesse, colonne e didascalia), :1178-1179 (pagamenti netti), :1185 (non disegnabile); tests/finanziario-ui.test.tsx:1220-1230 (tabella equivalente 'Impegnato e pagamenti totali ...'); tests/finanziario-casi-limite.test.tsx:329. Residuo: il conteggio delle voci omesse ADA e' stato allentato a una regex (vedi N-01)."
+    },
+    {
+      "id": "J-07",
+      "esito": "chiuso",
+      "evidenza": "src/features/finanziario/ui/RiepilogoReport.tsx:66-71: ALLA_DOTAZIONE con la stessa regola dell'avviso (impegnatiDiversi). La cella dell'impegnato cofinanziato FEASR (:114-116) e la voce dell'anteprima (:179) aggiungono ' (alla dotazione)'. Ordinamento e ricerca non cambiano, perche' valore resta numerico. Come riepilogo.html:96. Test: src/pages/finanziario/riepilogo/page.test.tsx:113-116 (cella '1.000,00 € (alla dotazione)' con impegnati diversi, '13.879.326,08 €' con impegnati uguali) e :127 (nessun '(alla dotazione)' con tutti gli impegnati uguali). Residuo: la voce dell'anteprima non e' provata da nessun test, che il fix chiedeva (vedi N-01)."
+    },
+    {
+      "id": "J-08",
+      "esito": "chiuso",
+      "evidenza": "src/shared/ui/tabella/TabellaInterattiva.tsx:227-228: StatoTabella.nascoste. :246: il valore e' convalidato contro le chiavi; senza nascoste valgono quelle di partenza, quindi resta compatibile con gli stati salvati prima. :281: le nascoste partono da statoIniziale. :296-297: ogni cambio le notifica. :316: il selettore Colonne passa da cambia. Unico uso con statoIniziale/onStato: RiepilogoReport.tsx:255-256. Lo stato viaggia gia' verso il dettaglio con ritornoAlRiepilogo. Test: src/pages/finanziario/riepilogo/page.test.tsx:365-382 (mostra 'Pagamenti lordi', la ordina, va all'elenco e torna indietro: la colonna e' visibile con lo stesso aria-sort, lo stimato resta nascosto) e tests/shared-ui-kit.test.tsx:198-202 (notifiche con nascoste)."
+    },
+    {
+      "id": "J-09",
+      "esito": "chiuso",
+      "evidenza": "src/features/finanziario/ui/AvvisoImpegnati.tsx:19 ora dice '... diverso dall'impegnato FEASR e non in N interventi.', identico a riepilogo.html:70 e a dotazione.html:67. Test: src/pages/finanziario/riepilogo/page.test.tsx:111 e tests/revisioni-20261104.test.tsx:34."
+    },
+    {
+      "id": "J-10",
+      "esito": "chiuso",
+      "evidenza": "Corretto come la scelta (b) dell'utente. src/features/istituzionale/lib/formato.ts:17-19: pillAnnoScelto, 'Anno di riferimento scelto: aaaa'. src/features/istituzionale/ui/VerificaSmpNonSigc.tsx:67: la pill legge l'anno dell'indirizzo, non la risposta. NESSUN_FILE e lo stato annoRiferimento === null sono tolti da ReportVerifica.tsx e SchedeIntervento.tsx. Wireframe riapprovato (hash 3ee85d18): verifica-smp-non-sigc.html:54 ha la pill nuova, lo stato non c'e' piu' (prima :157-158), md:273 e :347-351. Test: src/pages/istituzionale/verifica-smp-non-sigc/page.test.tsx:266-276 (anno=2029: pill dell'anno scelto, nessun 'file SMP non SIGC: ', nessun 'Nessun file'), :71; tests/istituzionale-lib.test.ts:210; tests/istituzionale-ui.test.tsx:90. La card della Home dice ancora 'nessun file SMP' (lib/anteprima.ts:168): e' la scelta dell'utente. Il ramo 'nessun file' della didascalia della scheda (lib/intervento.ts:124) con il backend di oggi non si raggiunge, ma e' coerente col punto aperto verso il backend. Residui nuovi: N-02 (il test non risponde come un anno senza file), N-03 (la pill nello stato senza anno dipende dalla cache della Home), N-04 (testi non aggiornati)."
+    },
+    {
+      "id": "J-11",
+      "esito": "chiuso",
+      "evidenza": "src/pages/istituzionale/interventi/page.test.tsx:431-436: dopo un tick di 30 ms lette.verifica e' []. Poi sceglie 2025 e preme Mostra: ['?intervento=SRA01&anno=2025']. tests/istituzionale-ui.test.tsx:365-367: un tick e lette.verifica e' []. La regola ora sta nel wrapper (J-12): se si toglie, questi test falliscono."
+    },
+    {
+      "id": "J-12",
+      "esito": "chiuso",
+      "evidenza": "src/features/istituzionale/api/index.ts:66-73: useVerificaSmpNonSigc(filtri, anno, opzioni) con enabled: abilitato && anno !== undefined, e il commento :60-65 dice la regola. :76-77: useUltimaVerificaSmpNonSigc, il wrapper esplicito della card (AnteprimaIstituzionale.tsx:87). La guardia e' tolta da VerificaSmpNonSigc.tsx:54. DettaglioIntervento.tsx:139-142 usa l'anno solo per lo stato della pagina. Test: tests/istituzionale-api.test.tsx:53-62 (senza anno fetchStatus idle), :32, :66, :124-133. Rispetto a TX-0015 la forma differisce sulla chiave del caso disabilitato (esercizio ?? 0 contro chiave senza anno): vedi N-03."
+    },
+    {
+      "id": "J-13",
+      "esito": "chiuso",
+      "evidenza": "ReportVerifica.tsx:24, anno: number. lib/verifica.ts:107-109: vociRiferimenti(d, scelto: number). lib/formato.ts:40-43: testoAnnoDiRiferimento(scelto: number) con un solo ramo, e il doc non cita piu' la card. lib/intervento.ts:137-140: testoAggiornamentoAnno(anno: number). Il doc di statoDellaPagina e' corretto (:89-93). VociVerifica ha anno: number (SchedeIntervento.tsx:58). Test aggiornati: tests/istituzionale-lib.test.ts:214, :304-308, :411-414. Il doc di pillAnnoScelto e' rimasto vecchio: vedi N-04."
+    },
+    {
+      "id": "J-14",
+      "esito": "chiuso",
+      "evidenza": "src/features/istituzionale/lib/collegamenti.ts:47-50: verificaDellAnno(anno). DettaglioIntervento.tsx:111-120 e :125: SenzaDati riceve l'anno delle schede e il link 'Torna alla verifica SMP non SIGC' lo porta. Test: src/pages/istituzionale/interventi/page.test.tsx:170-171 (AT001 con anno=2025: il ritorno ha search '?anno=2025')."
+    },
+    {
+      "id": "J-15",
+      "esito": "parziale",
+      "evidenza": "Il doc di src/features/istituzionale/lib/criteri.ts:106-110 e' corretto, anche se 'nessuna cache in comune' e' impreciso (vedi N-03). Il secondo commento indicato dal fix non e' toccato: src/features/istituzionale/ui/AnteprimaIstituzionale.tsx:7-8 dice ancora che la card legge 'dalla lettura di TX-0016 coi criteri della pagina aperta senza filtri ne' anno (stessa cache, a lettura finita, D2)', ma la pagina senza anno non legge. Il detail dell'uiplan (plan/istituzionale/uiplan.json:1184) e' rinviato per scelta dell'utente e non conta come residuo. Severita' del residuo: COSMETICO."
+    },
+    {
+      "id": "J-16",
+      "esito": "chiuso",
+      "evidenza": "src/app/aree.ts:150: 'Pagamenti degli elenchi di liquidazione', come il sottotitolo della pagina. Test: tests/app-aree.test.tsx:166-170 (la voce c'e', e descrizione e contenuti della card non hanno 'riga/righe')."
+    },
+    {
+      "id": "J-17",
+      "esito": "chiuso",
+      "evidenza": "src/shared/ui/tabella/Paginazione.tsx:23: unita [singolare, plurale]. :30: la pill usa plurale(totale, ...). src/features/elenco-operativo/ui/interrogazione.tsx:133 passa unitaElenco(elenco). Test: tests/revisioni-20261104.test.tsx:91-98 ('Pagina 1 di 1 - 1 pagamento', '1 domanda', combobox 'Domande per pagina') e :85-89 ('62.370 pagamenti')."
+    },
+    {
+      "id": "J-18",
+      "esito": "chiuso",
+      "evidenza": "src/features/elenco-operativo/lib/criteri.ts:54-66: NOMI_ELENCO (singolare, plurale, maschile) e unitaElenco. :306-307: testoOrdinamento(titolo, o, elenco) senza il booleano. Le stringhe ripetute sono sostituite: ElencoPagamenti.tsx:31, :60, :151; ElencoDomande.tsx:55, :208; esportazioni.ts:22, :29 (UNITA tolta); SinotticoDomande.tsx:159; interrogazione.tsx:100, :133 (prop oggetto tolta). Test: tests/elenco-operativo-lib.test.ts:433-435. La tabella sta in criteri.ts e non in formato.ts come proponeva il fix: e' equivalente."
+    },
+    {
+      "id": "J-19",
+      "esito": "chiuso",
+      "evidenza": "src/shared/ui/tabella/Paginazione.tsx:7 importa maiuscolaIniziale dal barrel shared/lib e :48 scrive `${maiuscolaIniziale(unita[1])} per pagina`. Provato dai test della combobox 'Pagamenti per pagina' e 'Domande per pagina' (tests/revisioni-20261104.test.tsx:87, :97)."
+    },
+    {
+      "id": "J-20",
+      "esito": "chiuso",
+      "evidenza": "La label e' corretta in wireframes/elenco-operativo/pagamenti/pagamenti.html:151 ('Pagamenti per pagina') e domande.html:249 ('Domande per pagina'). Anche le righe dei .md: pagamenti.md:25, :66, :92, :133 e domande.md:84, :112, :160, con la nota in fondo (:141, :167). Riapprovati: plan/elenco-operativo/uiplan.json, hash 8d289fad e b746e290 del 04/11 22:06:16Z. Nuovo difetto sulla stessa riga di domande.html: vedi N-05."
+    }
+  ],
+  "nuovi": [
+    {
+      "id": "N-01",
+      "feature": "finanziario",
+      "severity": "MINORE",
+      "file": "tests/finanziario-casi-limite.test.tsx:301",
+      "titolo": "Test delle correzioni del Riepilogo e del grafico ADA meno precisi di quanto chiesto: ordine e '(alla dotazione)' dell'anteprima non provati, conteggio delle voci omesse ADA allentato",
+      "evidenza": "I fix di J-01 e J-07 chiedevano di provare l'anteprima. Il test delle voci (finanziario-casi-limite.test.tsx:292-306) controlla pero' solo 13 voci, voci[3] = 'Domande presentate' e due toContainEqual: se lo stimato o 'Con rettifiche' tornassero in fondo (era il cuore di J-01, RiepilogoReport.tsx:188 a 5222fae), il test passerebbe. Nessun test apre l'anteprima di una riga con impegnati diversi per vedere ' (alla dotazione)' nella voce (RiepilogoReport.tsx:179). Inoltre la correzione J-06 ha cambiato tests/finanziario-ui.test.tsx:1226 da '1 voce non nel grafico' a /^\\d+ voc[ei] non nel grafico$/, che accetta qualunque numero. Le omissioni dell'impegnato nel perimetro ADA, nuove con J-06, non sono fissate da nessuna parte: con F.SPESA (impegnato di SRA01 non disponibile) le voci sono la dotazione ADA e l'impegnato di SRA01, ma il test di lib (finanziario-grafici.test.ts:1159-1167) guarda solo omessi[0]. Il codice e' corretto: non e' MAGGIORE, perche' l'ordine dell'anteprima viene dallo stesso array CAMPI della tabella, provato per intero (riepilogo/page.test.tsx:83-100).",
+      "fix": "In finanziario-casi-limite.test.tsx:301 fissare l'ordine completo dei dt dell'anteprima ([..., 'Domande presentate', 'Impegnato cofinanziato FEASR', 'Impegnato cofinanziato FEASR e non', 'di cui stimato', 'Pagamenti lordi', 'Rettifiche', 'Con rettifiche', 'Pagamenti al netto delle rettifiche', 'Dotazione residua sugli impegni', 'Dotazione residua sui pagamenti']). Nel test J-07 (riepilogo/page.test.tsx:103) aprire l'anteprima della riga diversa e volere il dd '1.000,00 € (alla dotazione)', e senza il segno per la riga uguale. In finanziario-ui.test.tsx:1226 tornare al conteggio esatto e alla voce dell'impegnato di SRA01, oppure fissare l'intero array omessi del caso ADA in finanziario-grafici.test.ts:1159."
+    },
+    {
+      "id": "N-02",
+      "feature": "istituzionale",
+      "severity": "MINORE",
+      "file": "src/pages/istituzionale/verifica-smp-non-sigc/page.test.tsx:270",
+      "titolo": "Il test di J-10 dichiara 'anno scelto senza file SMP' ma risponde coi dati del file del 2025 rietichettati 2029",
+      "evidenza": "Il titolo (:266) promette 'anno scelto senza file SMP: ... i dati delle pratiche restano'. La riga :270 pero' sostituisce il handler con `{ ...VERIFICA, annoRiferimento: <anno> }`: per il 2029 la risposta porta indicatori, output e avviso del file del 2025, quindi non e' la risposta di un anno senza file. Il handler predefinito di servi() (verificaPer, poi conAnno, in src/features/istituzionale/testing/fixture.ts:125-136) per un anno senza file risponde gia' come il backend: SENZA_FILE_DELL_ANNO, con indicatori e output NON_VALORIZZATO e i dati dell'avviso ANNO_NON_CONSERVATO. Il test controlla solo la pill, l'assenza di due testi e 3 intestazioni di riga. Non prova cio' che il wireframe riapprovato dice di questo caso (md:347-351: 'senza file gli indicatori, gli output e i dati dell'avviso restano non valorizzati con il loro motivo'; domande e spesa restano). Resta MINORE, come V-04 del passaggio 1: il FE non ha logica propria per l'anno senza file, e la resa dei motivi e' provata altrove (tests/istituzionale-ui.test.tsx:199).",
+      "fix": "Togliere l'override di :270 e usare il handler di servi() con anno=2029. Sulla riga di SRD01 volere 'non valorizzato' per indicatore di output, indicatore di risultato e output erogato, e i valori di domande e spesa. Lasciare le asserzioni sulla pill e sull'assenza dello stato."
+    },
+    {
+      "id": "N-03",
+      "feature": "istituzionale",
+      "severity": "MINORE",
+      "file": "src/features/istituzionale/api/index.ts:71",
+      "titolo": "Senza anno la pagina della verifica legge la cache della card della Home: dopo 'Entra in Istituzionale', nello stato 'Scegli l'anno' compaiono la pill 'Anno di riferimento scelto: non scelto' e 'Dati al' della lettura della card",
+      "evidenza": "Senza anno il wrapper chiama useTx0016(filtri, { enabled: false }) con la chiave getTx0016QueryKey({}) = ['/api/istituzionale/verifica-smp-non-sigc', {}]. E' la stessa chiave di useUltimaVerificaSmpNonSigc(criteriVerificaSenzaFiltri()) della card (AnteprimaIstituzionale.tsx:87). Una query disabilitata restituisce i dati in cache (gcTime predefinito 5 minuti, src/app/query-client.ts non lo cambia). Sul percorso di tests/app-aree.test.tsx:493-502 (Home, poi 'Entra in Istituzionale') stato.data e' quindi la risposta della card. PaginaReport.tsx:66 rende `pill(d)`: 'Anno di riferimento scelto: non scelto', dal ramo di formato.ts:18 che si raggiunge solo cosi'. PaginaReportProgramma.tsx:83-84 rende 'Dati al' di quella lettura. Chi arriva dal menu o da un link vede invece la sola pill del perimetro. Il test non guarda la barra. Il commento di J-15 (criteri.ts:109, 'nessuna cache in comune') non e' esatto. TX-0015, il modello indicato da J-12, evita il problema con `esercizio: esercizio ?? 0` nella chiave (api/index.ts:90). Il meccanismo c'era gia' a 5222fae, ma le correzioni J-10, J-12 e J-15 ci hanno costruito sopra. L'effetto e' innocuo nei contenuti, perche' la pill dice 'non scelto' e la data e' vera, ma dipende dalla navigazione.",
+      "fix": "In useVerificaSmpNonSigc leggere con `useTx0016({ ...filtri, anno: anno ?? 0 }, ...)`, come TX-0015: la chiave disabilitata non incontra piu' quella della card e la pagina senza anno non ha dati. Poi restringere pillAnnoScelto a `anno: number` e allineare il commento di criteri.ts:106-110. Test in app-aree.test.tsx:493: dopo 'Entra in Istituzionale' la barra non ha 'Anno di riferimento scelto' e la lettura resta una sola."
+    },
+    {
+      "id": "N-04",
+      "feature": "istituzionale",
+      "severity": "COSMETICO",
+      "file": "src/features/istituzionale/lib/formato.ts:16",
+      "titolo": "Testi non aggiornati dopo J-10: il doc di pillAnnoScelto, l'intestazione della pagina e il corpo del .md riapprovato parlano ancora dell'anno del file della risposta",
+      "evidenza": "formato.ts:16: 'Pill dell'anno di riferimento del file della verifica (annoRiferimento della risposta; null = nessun file)', sopra una funzione che riceve l'anno scelto nell'indirizzo (undefined = 'non scelto'). VerificaSmpNonSigc.tsx:2-3: 'le pill del perimetro regionale, dell'anno di riferimento del file e \"Dati al\"'. Nel .md del wireframe riapprovato il corpo contraddice la pill di html:54. verifica-smp-non-sigc.md:70 dice 'anno di riferimento del file (annoRiferimento della risposta)' nella barra; :113 'annoRiferimento (barra filtri e riferimenti; null = nessun file)'; :49 la barra con 'anno di riferimento del file'. La sezione in fondo (:347-351) li supera, ma per J-20 le righe del corpo del .md sono state corrette.",
+      "fix": "Riscrivere il doc di formato.ts:16 ('Pill dell'anno di riferimento scelto, dall'indirizzo; non e' l'anno del file della risposta') e l'intestazione di VerificaSmpNonSigc.tsx. Le righe :49, :70 e :113 del .md vanno corrette al prossimo giro di approvazione del wireframe."
+    },
+    {
+      "id": "N-05",
+      "feature": "elenco-operativo",
+      "severity": "COSMETICO",
+      "file": "wireframes/elenco-operativo/domande/domande.html:249",
+      "titolo": "Wireframe delle domande riapprovato per J-20: la pill della paginazione scrive '1284 domande' senza separatore delle migliaia",
+      "evidenza": "La riga riscritta e riapprovata in b4a82df (hash 8d289fad) ha 'Pagina 1 di 52 - 1284 domande'. Il piede dello stesso wireframe (:246) scrive '1.284 domande', pagamenti.html:151 '2.316 pagamenti', il codice 'Pagina 1 di 52 - 1.284 domande' (Paginazione.tsx:30 con plurale e formatNumber). La scelta dell'utente del 04/11 vuole il separatore sempre. Il testo c'era gia' prima, ma la riga e' stata toccata e riapprovata proprio per la paginazione.",
+      "fix": "Scrivere 'Pagina 1 di 52 - 1.284 domande' in domande.html:249 al prossimo giro di approvazione del wireframe."
+    }
+  ]
+}

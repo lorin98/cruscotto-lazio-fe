@@ -1,0 +1,17 @@
+[
+  {
+    "id": "P2-01",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "tests/finanziario-casi-limite.test.tsx:301",
+    "titolo": "Correzioni J-01, J-06 e J-07 provate meno di quanto chiesto: ordine e '(alla dotazione)' dell'anteprima non fissati, conteggio delle voci omesse ADA allentato a una regex",
+    "evidenza": "Il test dell'anteprima (righe 292-306) controlla 13 voci, voci[3] e due toContainEqual: se lo stimato o 'Con rettifiche' tornassero in fondo (il cuore di J-01, logica propria del Fragment di RiepilogoReport.tsx:199-209) passerebbe ancora. Nessun test apre l'anteprima di una riga con impegnati diversi (voce di RiepilogoReport.tsx:179). tests/finanziario-ui.test.tsx:1226 e' passato da '1 voce non nel grafico' a /^\\d+ voc[ei] non nel grafico$/, e con F.SPESA le voci ADA omesse sono ora due (dotazione e impegnato di SRA01) senza che nessun test lo fissi. Il codice e' corretto.",
+    "fix": "finanziario-casi-limite.test.tsx:301: volere l'elenco completo dei dt dell'anteprima nell'ordine del wireframe (... 'Impegnato cofinanziato FEASR e non', 'di cui stimato', 'Pagamenti lordi', 'Rettifiche', 'Con rettifiche', 'Pagamenti al netto delle rettifiche', le due residue). Nel test J-07 di riepilogo/page.test.tsx:103 aprire l'anteprima della riga diversa e volere il dd '1.000,00 € (alla dotazione)', e niente segno per la riga uguale. finanziario-ui.test.tsx:1226: '2 voci non nel grafico', oppure fissare l'intero array omessi del caso ADA in finanziario-grafici.test.ts:1159.",
+    "da": [
+      "N-01",
+      "J-01",
+      "J-06",
+      "J-07"
+    ]
+  }
+]

@@ -1,0 +1,53 @@
+[
+  {
+    "id": "P2-02",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/features/istituzionale/api/index.ts:71",
+    "titolo": "Senza anno la verifica SMP non SIGC usa la stessa chiave di cache della card della Home: dopo 'Entra in Istituzionale' la barra dello stato 'Scegli l'anno' mostra 'Anno di riferimento scelto: non scelto' e 'Dati al' della lettura della card",
+    "evidenza": "Senza anno il wrapper chiama useTx0016(filtri, { enabled: false }) con chiave ['/api/istituzionale/verifica-smp-non-sigc', {}], identica a quella di useUltimaVerificaSmpNonSigc(criteriVerificaSenzaFiltri()) della card (AnteprimaIstituzionale.tsx:87); una query disabilitata restituisce i dati in cache. PaginaReport.tsx:66 e PaginaReportProgramma.tsx:84-85 rendono pill e 'Dati al' da stato.data anche con senzaLettura, e il pannello prende i codici da quella risposta: la barra cambia secondo da dove si arriva. TX-0015 lo evita con `esercizio ?? 0` nella chiave (riga 90).",
+    "fix": "In useVerificaSmpNonSigc leggere con `useTx0016({ ...filtri, anno: anno ?? 0 }, ...)`, come TX-0015: la chiave disabilitata non incontra piu' quella della card. In tests/app-aree.test.tsx:493, dopo 'Entra in Istituzionale', volere la barra senza 'Anno di riferimento scelto' e senza 'Dati al', e una sola lettura. Il ramo 'non scelto' di pillAnnoScelto (formato.ts:18) diventa irraggiungibile e si puo' togliere.",
+    "da": [
+      "N-03",
+      "J-12"
+    ]
+  },
+  {
+    "id": "P2-03",
+    "feature": "istituzionale",
+    "severity": "MINORE",
+    "file": "src/pages/istituzionale/verifica-smp-non-sigc/page.test.tsx:270",
+    "titolo": "Il test di J-10 promette 'anno scelto senza file SMP ... i dati delle pratiche restano' ma risponde coi dati del file 2025 rietichettati 2029",
+    "evidenza": "La riga 270 sostituisce il handler con `{ ...VERIFICA, annoRiferimento: <anno> }`: per il 2029 arrivano indicatori, output e avviso del file 2025. Il handler predefinito di servi() (fixture.ts:125-136, conAnno) per un anno senza file risponde gia' come il backend (SENZA_FILE_DELL_ANNO, avviso ANNO_NON_CONSERVATO). Il test guarda solo la pill, due assenze e 3 intestazioni di riga, non cio' che il wireframe riapprovato dice di questo caso (md:347-351).",
+    "fix": "Togliere l'override di riga 270 e usare il handler di servi() con anno=2029. Sulla riga di SRD01 volere 'non valorizzato' per indicatore di output, indicatore di risultato e output erogato, e i valori di domande e spesa; lasciare le asserzioni sulla pill e sull'assenza dello stato.",
+    "da": [
+      "N-02",
+      "J-10"
+    ]
+  },
+  {
+    "id": "P2-04",
+    "feature": "istituzionale",
+    "severity": "COSMETICO",
+    "file": "src/features/istituzionale/ui/AnteprimaIstituzionale.tsx:7",
+    "titolo": "Residuo di J-15: l'intestazione della card dice ancora che legge TX-0016 'coi criteri della pagina aperta senza filtri ne' anno (stessa cache, a lettura finita, D2)'",
+    "evidenza": "Righe 7-8. La pagina senza anno non legge (J-12) e la card ha il suo wrapper useUltimaVerificaSmpNonSigc (riga 87). Il commento di criteri.ts:106-110 e' stato corretto, questo no; il detail dell'uiplan e' rinviato per scelta dell'utente e non conta.",
+    "fix": "Righe 7-8: 'da TX-0016 senza filtri ne' anno (useUltimaVerificaSmpNonSigc: l'ultimo anno con un file); la pagina legge solo con l'anno scelto, nessuna cache in comune'.",
+    "da": [
+      "J-15"
+    ]
+  },
+  {
+    "id": "P2-05",
+    "feature": "istituzionale",
+    "severity": "COSMETICO",
+    "file": "src/features/istituzionale/lib/formato.ts:16",
+    "titolo": "Testi non aggiornati dopo J-10: doc di pillAnnoScelto, intestazioni di formato.ts e VerificaSmpNonSigc.tsx e tre righe del .md riapprovato parlano ancora dell'anno del file della risposta",
+    "evidenza": "formato.ts:16 'Pill dell'anno di riferimento del file della verifica (annoRiferimento della risposta; null = nessun file)' sopra una funzione che riceve l'anno dell'indirizzo; formato.ts:1 e VerificaSmpNonSigc.tsx:2-3 'anno di riferimento del file'. Nel wireframe riapprovato (hash 3ee85d18) verifica-smp-non-sigc.md:49, :70 e :113 descrivono la barra con l'anno del file e 'null = nessun file', contro la pill di html:54 e la nota finale :347-351.",
+    "fix": "Subito: doc di formato.ts:16 'Pill dell'anno di riferimento scelto (dall'indirizzo), non l'anno del file della risposta', e le intestazioni di formato.ts:1 e VerificaSmpNonSigc.tsx:2-3. Le righe 49, 70 e 113 del .md solo con una nuova approvazione dell'utente al prossimo giro del wireframe: fino ad allora debito dichiarato (la nota finale del .md e l'.html sono gia' giusti).",
+    "da": [
+      "N-04",
+      "J-10"
+    ]
+  }
+]
