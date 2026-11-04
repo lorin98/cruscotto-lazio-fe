@@ -22,7 +22,7 @@ domande nel perimetro, anche se la domanda e' chiusa (D-07).
 
 Comandi della pagina (come costruita, gli stessi dell'elenco delle domande): nel pannello "Azzera" e "Chiudi" con
 l'avviso d'errore delle letture dentro il pannello aperto; sopra la tabella l'ordinamento attivo in testo con "Ordine
-predefinito", "Scarica CSV", "Scarica XLSX" e "Colonne"; sotto la paginazione con "Righe per pagina" (10, 25, 50, 100);
+predefinito", "Scarica CSV", "Scarica XLSX" e "Colonne"; sotto la paginazione con "Pagamenti per pagina" (10, 25, 50, 100);
 "Vai all'ultima pagina" quando la pagina chiesta e' oltre l'ultima. Il focus dopo i comandi che spariscono col proprio
 clic va sul titolo della sezione delle righe. Le colonne scelte restano tornando dalla scheda della domanda.
 
@@ -63,7 +63,7 @@ durante l'aggiornamento restano i dati precedenti.
 | /elenco-operativo/pagamenti | statoSostegno, statoPagamento, voceProgrammazione (drill-down dai report procedurali: solo chip, nessun controllo nel pannello; statoSostegno e statoPagamento in alternativa a stato, voceProgrammazione a statoProgrammazione) | TX-0059.<parametro> | si' | no |
 | /elenco-operativo/pagamenti | presentata, sigc, concessione, anomalie | TX-0059.<parametro> | no (true/false) | no |
 | /elenco-operativo/pagamenti | richiestoDa, richiestoA, ammessoDa, ammessoA, pagatoDa, pagatoA, testo | TX-0059.<parametro> | no | no |
-| /elenco-operativo/pagamenti | ordina, pagina, dimensione (10, 25, 50 o 100: le scelte di "Righe per pagina"; predefinita 25) | TX-0059.<parametro> | no | no |
+| /elenco-operativo/pagamenti | ordina, pagina, dimensione (10, 25, 50 o 100: le scelte di "Pagamenti per pagina"; predefinita 25) | TX-0059.<parametro> | no | no |
 
 Oltre a decreto ed esito, i 27 filtri della domanda (le righe sopra tranne decreto, esito, ordina, pagina e dimensione),
 gli stessi dei link fra i due elenchi. Importi scritti all'italiana (10.000, 1.500,50), il campo resta come scritto; un
@@ -89,7 +89,7 @@ Esportazione: "Scarica CSV" e "Scarica XLSX" con gli stessi filtri e ordinamento
   drawer, axe (deferito a step8: il lint di step1 e' statico).
 - Filtri dal vivo: conteggio del pannello `aria-live="polite"`; il cambio dei risultati non sposta il focus.
 - Il focus non finisce mai sul body: "Ordine predefinito", "Vai all'ultima pagina" e il cambio di pagina lo portano
-  sull'h2 della sezione delle righe; "Righe per pagina" non sposta il focus dalla select.
+  sull'h2 della sezione delle righe; "Pagamenti per pagina" non sposta il focus dalla select.
 - Animazioni solo con classi CSS (150-700 ms), spente da `prefers-reduced-motion`.
 - La riga di una domanda chiusa lo dice in testo (non solo col colore) e non offre il link al dettaglio.
 - RESIDUO umano da verificare qui: ordine di lettura di sinottico, tabella e totali; etichette dei filtri; contrasto della
@@ -130,7 +130,7 @@ Esportazione: "Scarica CSV" e "Scarica XLSX" con gli stessi filtri e ordinamento
 - **Sinottici (R09)**: valore su una riga (carattere adattivo, formato compatto con il valore pieno accessibile), unita' non
   separabile dal numero.
 - **Barra dei filtri (R11)**: attaccata al bordo superiore scorrendo (e il menu laterale con lei).
-- **Tabelle medio-grandi (R12)**: intestazione ferma scorrendo, riquadro alto quanto la finestra, 25 righe per pagina,
+- **Tabelle medio-grandi (R12)**: intestazione ferma scorrendo, riquadro alto quanto la finestra, 25 pagamenti per pagina,
   prima colonna ferma nelle tabelle larghe.
 - **Ciambelle (R05, R06)**: importo e percentuale nelle etichette, totale al centro.
 
@@ -138,3 +138,4 @@ Esportazione: "Scarica CSV" e "Scarica XLSX" con gli stessi filtri e ordinamento
 
 - Nei testi non si usa "riga/righe" per i pagamenti: "pagamenti" ed "Elenco dei pagamenti" (titolo della sezione, sinottico "Pagamenti: pagati / esclusi", conteggi, totale, "Pagamenti per pagina", anteprima, nota dei file, filtro vuoto).
 - "Ordinati per Pagato, decrescente" (concordato con "pagamenti"), aggiunta dopo l'approvazione delle 14:36Z: flusso da riapprovare.
+- Paginazione: "Pagamenti per pagina" anche nel wireframe (prima "Righe per pagina") e il totale al singolare con un solo risultato ("1 pagamento"): review step9 del 04/11/2026 (J-17, J-20).

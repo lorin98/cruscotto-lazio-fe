@@ -1065,10 +1065,10 @@
         "Card della Home (home.html, decisione dell'utente del 26/10/2026; tabella a confronto dal rework 2 del 31/10/2026): numeri in una tabella con intestazioni di riga (domande ricevute, finanziate, pagate, spesa pubblica erogata) e di colonna (Non SIGC, SIGC) dentro un gruppo con nome (\"L'istituzionale in cifre\"), trattino della riga senza dato detto ai lettori di schermo, motivi delle assenze sotto la tabella con riga e colonna; numero animato letto solo nel valore finale e fermo con prefers-reduced-motion; barra della spesa sul valore finanziato nascosta ai lettori di schermo, percentuale nel testo; totale di un dato motivato assente in una riga detto 'non disponibile' col motivo, mai una somma parziale; errore detto in una frase senza fermare la Home."
       ],
       "approval": {
-        "approved_hash": "sha256:6b7a5bf0a2056f762e9d71d30182f673866edcbff8f43a7afd0909da06aa2406",
+        "approved_hash": "sha256:3ee85d18bf805ec784ec54250413ceaf6a37cd545760be3b13ebf3fb653c3168",
         "baseline_ref": "./wireframes/istituzionale/verifica-smp-non-sigc",
-        "approved_at": "2026-11-04T15:28:14Z",
-        "time_to_approve_s": 193,
+        "approved_at": "2026-11-04T22:06:16Z",
+        "time_to_approve_s": 4757,
         "rework_rounds": 0
       }
     },

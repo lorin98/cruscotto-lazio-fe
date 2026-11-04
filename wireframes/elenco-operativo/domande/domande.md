@@ -81,7 +81,7 @@ filtrato; durante l'aggiornamento restano i dati precedenti.
 | /elenco-operativo/domande | presentata, sigc, concessione, anomalie | TX-0056.<parametro> | no (true/false) | no |
 | /elenco-operativo/domande | richiestoDa, richiestoA, ammessoDa, ammessoA, pagatoDa, pagatoA | TX-0056.<parametro> | no | no |
 | /elenco-operativo/domande | testo (3-100 caratteri: codice a barre o CUAA per inizio, denominazione per contenuto) | TX-0056.testo | no | no |
-| /elenco-operativo/domande | ordina, pagina, dimensione (10, 25, 50 o 100: le scelte di "Righe per pagina"; predefinita 25) | TX-0056.<parametro> | no | no |
+| /elenco-operativo/domande | ordina, pagina, dimensione (10, 25, 50 o 100: le scelte di "Domande per pagina"; predefinita 25) | TX-0056.<parametro> | no | no |
 
 In tutto 27 filtri della domanda (le righe sopra tranne ordina, pagina e dimensione), gli stessi dei link fra i due
 elenchi. Gli importi si scrivono all'italiana (10.000, 1.500,50) e il campo resta come scritto; un valore non valido
@@ -109,7 +109,7 @@ di NFR-06 il backend rifiuta e il messaggio invita a restringere i filtri).
 - Filtri dal vivo: il conteggio del pannello e' `aria-live="polite"`; il cambio dei risultati non sposta il focus.
 - Il focus non finisce mai sul body: "Ordine predefinito", "Vai all'ultima pagina" e il cambio di pagina lo portano
   sull'h2 della sezione dei risultati; la riga della tabella di un grafico ha la chiave della voce (dopo "Filtra per" il
-  focus resta sul comando); "Righe per pagina" non sposta il focus dalla select.
+  focus resta sul comando); "Domande per pagina" non sposta il focus dalla select.
 - Il filtro aggiunto da un grafico si annuncia in una regione `role="status"`, anche ripetuto, e l'annuncio si spegne
   quando il chip si toglie.
 - Animazioni solo con classi CSS (150-700 ms), spente da `prefers-reduced-motion`; i numeri che scorrono espongono
@@ -157,10 +157,11 @@ di NFR-06 il backend rifiuta e il messaggio invita a restringere i filtri).
 - **Sinottici (R09)**: valore su una riga (carattere adattivo, formato compatto con il valore pieno accessibile), unita' non
   separabile dal numero.
 - **Barra dei filtri (R11)**: attaccata al bordo superiore scorrendo (e il menu laterale con lei).
-- **Tabelle medio-grandi (R12)**: intestazione ferma scorrendo, riquadro alto quanto la finestra, 25 righe per pagina,
+- **Tabelle medio-grandi (R12)**: intestazione ferma scorrendo, riquadro alto quanto la finestra, 25 domande per pagina,
   prima colonna ferma nelle tabelle larghe.
 - **Ciambelle (R05, R06)**: importo e percentuale nelle etichette, totale al centro.
 
 ## Revisioni del 04/11/2026 (secondo feedback di Leonardo/Deloitte, decisioni dell'utente)
 
 - "Domande per pagina" e "Clic o Invio su una domanda", come nell'elenco dei pagamenti.
+- Paginazione: "Domande per pagina" anche nel wireframe (prima "Righe per pagina") e il totale al singolare con un solo risultato ("1 domanda"): review step9 del 04/11/2026 (J-17, J-20).

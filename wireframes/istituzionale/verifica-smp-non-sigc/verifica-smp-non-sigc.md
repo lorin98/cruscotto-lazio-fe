@@ -270,8 +270,7 @@ descritta sopra; letture, somme, motivi, grant, stati e perimetro restano quelli
 
 ## Stati resi (obbligatori)
 
-- vuoto: "Nessun intervento per i filtri scelti" con "Modifica i filtri" (mai schermo bianco); nessun file SMP non SIGC
-  (annoRiferimento null): stato dichiarato, i dati di programma sono non valorizzati e domande e spesa restano
+- vuoto: "Nessun intervento per i filtri scelti" con "Modifica i filtri" (mai schermo bianco)
 - caricamento: scheletro delle card, `role="status"` + `aria-live="polite"`; letture al piu' due alla volta
 - valori dei filtri non disponibili (TX-0060 in errore): `role="status"`, chip dell'indirizzo invariati, Riprova
 - errore: `role="alert"`, discriminato sul problem-type `urn:cruscottocsr:problem:*` (400 DATO_NON_VALIDO col nome del
@@ -345,3 +344,8 @@ descritta sopra; letture, somme, motivi, grant, stati e perimetro restano quelli
 
 - Anno di riferimento obbligatorio, senza "Ultimo anno con un file (predefinito)": senza anno la pagina dice "Scegli l'anno di riferimento da consultare." e non legge TX-0016, come l'esercizio della verifica SMP SIGC.
 - Definizioni: "spesa erogata = pagamenti non SIGC con esito Pagata" (non "righe pagate"), aggiunta dopo l'approvazione delle 14:36Z: flusso da riapprovare.
+- Review step9 del 04/11/2026 (J-10, scelta dell'utente): la pill dice "Anno di riferimento scelto: aaaa", non che il file
+  c'e': con l'anno chiesto il backend risponde sempre con quell'anno (annoRiferimento mai null), quindi lo stato "nessun
+  file SMP non SIGC per l'anno scelto" non si puo' riconoscere e esce dal wireframe; senza file gli indicatori, gli output
+  e i dati dell'avviso restano non valorizzati con il loro motivo. Punto aperto verso il backend: annoRiferimento null se
+  l'anno scelto non ha un file (poi lo stato potra' tornare).

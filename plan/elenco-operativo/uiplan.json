@@ -1625,10 +1625,10 @@
         "Grafici del sinottico con la tabella equivalente; il clic su una barra aggiunge il filtro (chip) e lo annuncia"
       ],
       "approval": {
-        "approved_hash": "sha256:caf3f7be91c3ca6d36defae157218023667fc96fc84294f6b50c59c8a14fb972",
+        "approved_hash": "sha256:8d289fad4bbd7f695e292a019f32ee79dbefbf50c06297f8b2b959b5c5cf76fe",
         "baseline_ref": "./wireframes/elenco-operativo/domande",
-        "approved_at": "2026-11-04T14:36:02Z",
-        "time_to_approve_s": 79,
+        "approved_at": "2026-11-04T22:06:16Z",
+        "time_to_approve_s": 4757,
         "rework_rounds": 0
       }
     },
@@ -1668,10 +1668,10 @@
         "La riga di una domanda chiusa dice in testo 'domanda chiusa' (non solo col colore) e non offre il link al dettaglio"
       ],
       "approval": {
-        "approved_hash": "sha256:20451a34c0975ca690256588d4de3dbe40b7c19c0b696051212e2e0e48c47708",
+        "approved_hash": "sha256:b746e2906f75ad4382a99f0be3c1ed8b9393191be19c72bf10e9c1fe880ba98b",
         "baseline_ref": "./wireframes/elenco-operativo/pagamenti",
-        "approved_at": "2026-11-04T15:28:14Z",
-        "time_to_approve_s": 193,
+        "approved_at": "2026-11-04T22:06:16Z",
+        "time_to_approve_s": 4757,
         "rework_rounds": 0
       }
     }

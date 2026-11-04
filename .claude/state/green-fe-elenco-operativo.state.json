@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "elenco-operativo",
-  "current_step": 9,
+  "current_step": 2,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -23,14 +23,15 @@
       "status": "done",
       "gates": {
         "wireframe_domande": {
-          "approved_hash": "sha256:caf3f7be91c3ca6d36defae157218023667fc96fc84294f6b50c59c8a14fb972",
+          "approved_hash": "sha256:8d289fad4bbd7f695e292a019f32ee79dbefbf50c06297f8b2b959b5c5cf76fe",
           "baseline_ref": "./wireframes/elenco-operativo/domande",
-          "approved_at": "2026-11-04T14:36:02Z",
-          "time_to_approve_s": 79,
+          "approved_at": "2026-11-04T22:06:16Z",
+          "time_to_approve_s": 4757,
           "deviations_reviewed": [
             "F3 della review FULL sul delta FE (21/10/2026, decisione dell'utente): stato 'atto di concessione non disponibile' non disegnato nel wireframe, come la nota delle azioni portanti; registrato come OP-EO-06 nello uiplan",
             "Tessera Pagate / da pagare / senza importi su tre righe col numero e la sua voce (decisione dell utente del 02/11/2026). wireframe-lint: aggiunge i tag br e small alla deviazione preesistente dal vocabolario dei template (i wireframe del progetto usano tag e classi del tema, verdetto fail gia' prima della modifica)",
             "Nota sotto i numeri: una domanda pagata in parte e' tra le pagate e tra le da pagare (sovrapposizione di D-09, decisione dell utente del 02/11/2026 dopo la review step9; tempi dal transcript)",
+            "Revisioni del 04/11/2026 (secondo feedback di Leonardo/Deloitte), approvate dall'utente sulle bozze di analisi-2026-11-04/wireframe-bozze (LEGGIMI.md); stessa resa del tema dei wireframe precedenti",
             "Revisioni del 04/11/2026 (secondo feedback di Leonardo/Deloitte), approvate dall'utente sulle bozze di analisi-2026-11-04/wireframe-bozze (LEGGIMI.md); stessa resa del tema dei wireframe precedenti"
           ]
         },
@@ -44,111 +45,81 @@
           ]
         },
         "wireframe_pagamenti": {
-          "approved_hash": "sha256:20451a34c0975ca690256588d4de3dbe40b7c19c0b696051212e2e0e48c47708",
+          "approved_hash": "sha256:b746e2906f75ad4382a99f0be3c1ed8b9393191be19c72bf10e9c1fe880ba98b",
           "baseline_ref": "./wireframes/elenco-operativo/pagamenti",
-          "approved_at": "2026-11-04T15:28:14Z",
-          "time_to_approve_s": 193,
+          "approved_at": "2026-11-04T22:06:16Z",
+          "time_to_approve_s": 4757,
           "deviations_reviewed": [
             "F3 della review FULL sul delta FE (21/10/2026, decisione dell'utente): stato 'atto di concessione non disponibile' non disegnato nel wireframe, come la nota delle azioni portanti; registrato come OP-EO-06 nello uiplan",
+            "Revisioni del 04/11/2026 (secondo feedback di Leonardo/Deloitte), approvate dall'utente sulle bozze di analisi-2026-11-04/wireframe-bozze (LEGGIMI.md); stessa resa del tema dei wireframe precedenti",
             "Revisioni del 04/11/2026 (secondo feedback di Leonardo/Deloitte), approvate dall'utente sulle bozze di analisi-2026-11-04/wireframe-bozze (LEGGIMI.md); stessa resa del tema dei wireframe precedenti"
           ]
         }
       },
-      "completed_at": "2026-11-04T18:58:54Z",
+      "completed_at": "2026-11-04T22:16:40Z",
       "artifacts": [
         "./plan/elenco-operativo/uiplan.json"
       ]
     },
     "step2-codegen": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-04T19:07:31Z",
       "artifacts": [
         "./specs/.spec-lock.json",
         "./src/shared/api/generated"
       ],
-      "gates": {
-        "codegen_compiles": "pass",
-        "orval_types": "pass",
-        "csrf_static": "pass"
-      }
+      "gates": {}
     },
     "step3-api": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-04T19:15:14Z",
       "artifacts": [
         "./src/features"
       ],
-      "gates": {
-        "api_wrappers_compile": "pass",
-        "querykey_from_factory": "pass"
-      }
+      "gates": {}
     },
     "step4-lib": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-04T19:15:22Z",
       "artifacts": [
         "./src/shared/lib"
       ],
-      "gates": {
-        "lib_pure_compile": "pass",
-        "lib_zero_react": "pass"
-      }
+      "gates": {}
     },
     "step5-ui": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-04T19:15:29Z",
       "artifacts": [
         "./src/features"
       ],
-      "gates": {
-        "ui_components_compile": "pass",
-        "ui_a11y_axe": "pass"
-      }
+      "gates": {}
     },
     "step6-page": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-04T19:15:37Z",
       "artifacts": [
         "./src/pages",
         "./plan/elenco-operativo/route-manifest.json"
       ],
-      "gates": {
-        "pages_compile": "pass",
-        "route_manifest_valid": "pass"
-      }
+      "gates": {}
     },
     "step7-test": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-04T19:15:46Z",
       "artifacts": [
         "./src/shared/test",
         "./src/shared/api/mock",
         "./src/shared/testing/axe.ts"
       ],
-      "gates": {
-        "tests_generated": "pass",
-        "msw_fail_closed": "pass"
-      }
+      "gates": {}
     },
     "step8-gate": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-04T19:22:31Z",
       "artifacts": [
         "./plan/elenco-operativo/fe-gate-report.json"
       ],
-      "gates": {
-        "lint": "pass",
-        "typecheck": "pass",
-        "test": "pass",
-        "a11y": "pass",
-        "build": "pass",
-        "fsd_import": "pass",
-        "orval_types": "pass",
-        "security": "pass",
-        "authz": "pass",
-        "wireframe_approved": "pass",
-        "req_coverage_ui": "pass"
-      }
+      "gates": {}
     },
     "step9-review": {
       "status": "in_progress",

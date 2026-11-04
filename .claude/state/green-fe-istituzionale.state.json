@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "istituzionale",
-  "current_step": 9,
+  "current_step": 2,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -23,14 +23,15 @@
       "status": "done",
       "gates": {
         "wireframe_verifica-smp-non-sigc": {
-          "approved_hash": "sha256:6b7a5bf0a2056f762e9d71d30182f673866edcbff8f43a7afd0909da06aa2406",
+          "approved_hash": "sha256:3ee85d18bf805ec784ec54250413ceaf6a37cd545760be3b13ebf3fb653c3168",
           "baseline_ref": "./wireframes/istituzionale/verifica-smp-non-sigc",
-          "approved_at": "2026-11-04T15:28:14Z",
-          "time_to_approve_s": 193,
+          "approved_at": "2026-11-04T22:06:16Z",
+          "time_to_approve_s": 4757,
           "deviations_reviewed": [
             "V-01 (review step9 FULL della card a tabella, 31/10/2026; decisione D1 dell utente: testo nuovo solo nel codice, nessun rework 3): ai lettori di schermo il trattino delle domande pagate della colonna non SIGC dice \"dato non confrontabile: la verifica non SIGC conta solo le domande saldate al 100%\" invece di \"dato non previsto nella verifica non SIGC\" del wireframe (falso: TX-0016 ha domandeSaldate)",
             "X-01 (stessa review; decisione D2 dell utente: testo nuovo solo nel codice): la parte SIGC della nota sotto la tabella dice \"SIGC: pagate e spesa dal 16/10/aaaa-1 al 15/10/aaaa; ricevute e finanziate, domande dell anno aaaa-1.\" invece di \"SIGC: dal 16/10/aaaa-1 al 15/10/aaaa, domande dell anno aaaa-1.\"",
             "A-01/X-02 (stessa review, conseguenza di D1-D2 senza rework): il residuo WCAG della sezione Tabella a confronto del doc dice \"quattro card per riga sotto i 1300 px circa\"; la fascia vera e da circa 1376 px (correzione nel resoconto review/card-istituzionale-2026-10-31, il doc del wireframe resta invariato)",
+            "Revisioni del 04/11/2026 (secondo feedback di Leonardo/Deloitte), approvate dall'utente sulle bozze di analisi-2026-11-04/wireframe-bozze (LEGGIMI.md); stessa resa del tema dei wireframe precedenti",
             "Revisioni del 04/11/2026 (secondo feedback di Leonardo/Deloitte), approvate dall'utente sulle bozze di analisi-2026-11-04/wireframe-bozze (LEGGIMI.md); stessa resa del tema dei wireframe precedenti"
           ]
         },
@@ -51,101 +52,70 @@
           ]
         }
       },
-      "completed_at": "2026-11-04T18:58:18Z",
+      "completed_at": "2026-11-04T22:16:05Z",
       "artifacts": [
         "./plan/istituzionale/uiplan.json"
       ]
     },
     "step2-codegen": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-04T19:07:44Z",
       "artifacts": [
         "./specs/.spec-lock.json",
         "./src/shared/api/generated"
       ],
-      "gates": {
-        "codegen_compiles": "pass",
-        "orval_types": "pass",
-        "csrf_static": "pass"
-      }
+      "gates": {}
     },
     "step3-api": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-04T19:16:38Z",
       "artifacts": [
         "./src/features"
       ],
-      "gates": {
-        "api_wrappers_compile": "pass",
-        "querykey_from_factory": "pass"
-      }
+      "gates": {}
     },
     "step4-lib": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-04T19:16:47Z",
       "artifacts": [
         "./src/shared/lib"
       ],
-      "gates": {
-        "lib_pure_compile": "pass",
-        "lib_zero_react": "pass"
-      }
+      "gates": {}
     },
     "step5-ui": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-04T19:16:54Z",
       "artifacts": [
         "./src/features"
       ],
-      "gates": {
-        "ui_components_compile": "pass",
-        "ui_a11y_axe": "pass"
-      }
+      "gates": {}
     },
     "step6-page": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-04T19:17:01Z",
       "artifacts": [
         "./src/pages",
         "./plan/istituzionale/route-manifest.json"
       ],
-      "gates": {
-        "pages_compile": "pass",
-        "route_manifest_valid": "pass"
-      }
+      "gates": {}
     },
     "step7-test": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-04T19:17:08Z",
       "artifacts": [
         "./src/shared/test",
         "./src/shared/api/mock",
         "./src/shared/testing/axe.ts"
       ],
-      "gates": {
-        "tests_generated": "pass",
-        "msw_fail_closed": "pass"
-      }
+      "gates": {}
     },
     "step8-gate": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-04T19:26:14Z",
       "artifacts": [
         "./plan/istituzionale/fe-gate-report.json"
       ],
-      "gates": {
-        "lint": "pass",
-        "typecheck": "pass",
-        "test": "pass",
-        "a11y": "pass",
-        "build": "pass",
-        "fsd_import": "pass",
-        "orval_types": "pass",
-        "security": "pass",
-        "authz": "pass",
-        "wireframe_approved": "pass",
-        "req_coverage_ui": "pass"
-      }
+      "gates": {}
     },
     "step9-review": {
       "status": "in_progress",
