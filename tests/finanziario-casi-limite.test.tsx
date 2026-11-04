@@ -46,6 +46,11 @@ const valoreKpi = (nome: string) => testo(screen.getByRole('region', { name: nom
 const notaKpi = (nome: string) => testo(screen.getByRole('region', { name: nome }).querySelector('.ui-kpi__nota')?.textContent);
 // il valore della voce, senza il link di drill-down verso l'elenco operativo che la cella puo' portare (senzaLinkElenco)
 const valoreDi = (tabella: HTMLElement, voce: string) => testo(senzaLinkElenco(within(tabella).getByRole('rowheader', { name: voce }).nextElementSibling));
+/** Le quattro colonne in piu' del riepilogo, nascoste all'apertura dal 04/11/2026: si mostrano dal selettore Colonne. */
+async function mostraColonneInPiu() {
+  await userEvent.click(screen.getByText('Colonne'));
+  for (const nome of ['di cui stimato', 'Pagamenti lordi', 'Rettifiche', 'Con rettifiche']) await userEvent.click(screen.getByRole('checkbox', { name: nome }));
+}
 const intestazioni = (tabella: HTMLElement) => within(tabella).getAllByRole('columnheader').map((c) => c.textContent?.replace(/[▲▼↕]/g, ''));
 // Cella di una tabella interattiva: la riga per nome (l'etichetta della riga apribile), la colonna per intestazione.
 function cella(tabella: HTMLElement, riga: string, colonna: string) {
@@ -242,7 +247,9 @@ describe('RiepilogoReport: casi limite', () => {
     };
     server.use(rispondi('/api/finanziario/riepilogo', { perimetro: 'REGIONALE', righe: [piena] }));
     conRouter(<RiepilogoReport filtri={{}} />);
-    // 14 colonne: le 10 di prima con di cui stimato, pagamenti lordi, rettifiche e "Con rettifiche" (R08)
+    // le 10 colonne di RF011; di cui stimato, pagamenti lordi, rettifiche e "Con rettifiche" (R08) nascoste all'apertura
+    expect(within(await tabella()).getAllByRole('columnheader')).toHaveLength(10);
+    await mostraColonneInPiu();
     expect(within(await tabella()).getAllByRole('columnheader')).toHaveLength(14);
     expect(screen.queryByText(/^Colonne nascoste/)).toBeNull();
   });
@@ -261,6 +268,8 @@ describe('RiepilogoReport: casi limite', () => {
     server.use(rispondi('/api/finanziario/riepilogo', { perimetro: 'ADA', righe: [riga] }));
     conRouter(<RiepilogoReport filtri={{}} />);
     const t = await tabella();
+    expect(intestazioni(t)).toHaveLength(10);
+    await mostraColonneInPiu();
     expect(intestazioni(t)).toHaveLength(14);
     // senza rettifiche nel database (conRettifiche assente): la colonna lo dice
     expect(cella(t, "Apri l'anteprima dell'intervento SRA01", 'Con rettifiche')).toBe('fonte non attiva: rettifiche');
@@ -290,7 +299,8 @@ describe('RiepilogoReport: casi limite', () => {
     const voci = Array.from(dl.children, (c) => [c.querySelector('dt')?.textContent, testo(c.querySelector('dd')?.textContent)]);
     // i campi di prima, di cui stimato, lordi, rettifiche e "Con rettifiche" (R08)
     expect(voci).toHaveLength(13);
-    expect(voci[0]).toEqual(['Domande presentate', '12']);
+    // i campi di RF011 nell'ordine del requisito: le domande dopo i tre dati di programma (04/11/2026)
+    expect(voci[3]).toEqual(['Domande presentate', '12']);
     expect(voci).toContainEqual(['Dotazione spesa pubblica (regionale)', '1.000.000,00 €']);
     expect(voci).toContainEqual(['Importo stanziato (regionale)', 'non disponibilefonte quadro sinottico non attiva']);
   });
@@ -303,7 +313,8 @@ describe('RiepilogoReport: casi limite', () => {
     server.use(rispondi('/api/finanziario/riepilogo', { ...F.RIEPILOGO, righe: [prima, senzaConteggio] }));
     conRouter(<RiepilogoReport filtri={{}} />);
     const t = (await tabella()) as HTMLTableElement;
-    expect(t.tFoot?.rows[0].cells[1].textContent).toBe('non calcolabile');
+    // la colonna delle domande e' la quinta (dopo intervento e i tre dati di programma, 04/11/2026)
+    expect(t.tFoot?.rows[0].cells[4].textContent).toBe('non calcolabile');
   });
 });
 
@@ -315,7 +326,7 @@ describe('DotazioneReport: casi limite', () => {
       rispondi('/api/finanziario/distribuzione-dotazione', { perimetro: 'ADA' }),
     );
     conRouter(<DotazioneReport filtri={{}} />);
-    expect(within(await trovaCard('Dotazione e pagamenti per intervento')).getByText('Grafico non disponibile: nessun intervento con pagamenti totali (lordi, elenchi di liquidazione) valorizzati.')).toBeTruthy();
+    expect(within(await trovaCard('Dotazione, impegnato e pagamenti per intervento')).getByText('Grafico non disponibile: nessun intervento con pagamenti totali (lordi, elenchi di liquidazione) valorizzati.')).toBeTruthy();
     // R14: la card del contributo ambientale non c'e' piu'
     expect(screen.queryByRole('region', { name: 'Contributo ambientale per intervento' })).toBeNull();
     const quote = await trovaCard('Quota FEASR e non FEASR della dotazione');
@@ -383,7 +394,7 @@ describe('AvanzamentoReport: casi limite', () => {
     expect(within(rf007).getByText(/^Grafico non disponibile: manca una delle due parti/)).toBeTruthy();
     expect(valoreDi(within(rf007).getByRole('table'), 'Rettifiche')).toBe('non disponibile');
     await waitFor(() => expect(valoreKpi('Importo pagato (lordo, elenchi di liquidazione)')).toBe('Non disponibile'));
-    for (const kpi of ['Importo stanziato', 'Totale impegnato', 'Dotazione residua sui pagamenti']) expect(valoreKpi(kpi)).toBe('Non disponibile');
+    for (const kpi of ['Importo stanziato', 'Totale impegnato', 'Dotazione spesa pubblica']) expect(valoreKpi(kpi)).toBe('Non disponibile');
     expect(within(await trovaCard('Avanzamento rispetto ai pagamenti effettuati')).getByText(NON_DISPONIBILE_GRAFICO).textContent).toBe(
       'Grafico non disponibile: la percentuale richiede pagamenti netti e dotazione; pagamenti netti: non disponibile; dotazione: non disponibile.',
     );
@@ -475,9 +486,9 @@ describe('RiservaReport: casi limite', () => {
     renderConQuery(<RiservaReport anno={2027} onCambiaAnno={nessunaAzione} />);
     expect(await screen.findByText('Nessun utilizzo registrato.')).toBeTruthy();
     const voci = screen.getByRole('table', { name: "Riserva dell'anno 2027" }).textContent ?? '';
-    expect(voci).toContain("non iniziata (l'accumulo parte il 1/10/2027)");
+    expect(voci).toContain("non iniziata (l'accumulo parte il 01/10/2027)");
     expect(voci).toContain('non disponibile');
-    expect(voci).toContain("non ancora congelato nell'istantanea: si congela al 30/6/2028");
+    expect(voci).toContain("non ancora congelato nell'istantanea: si congela al 30/06/2028");
     expect(screen.queryByText(/precedente all'inizio della fase attuale/)).toBeNull();
     expect(graficiVivi()).toHaveLength(0);
   });
@@ -488,10 +499,10 @@ describe('RiservaReport: casi limite', () => {
     renderConQuery(<RiservaReport anno={2027} onCambiaAnno={nessunaAzione} />);
     await screen.findByText('Nessun utilizzo registrato.');
     expect(valoreKpi('Importo accumulato')).toBe('Non disponibile');
-    expect(notaKpi('Importo accumulato')).toBe("Fase: non iniziata (l'accumulo parte il 1/10/2027)");
-    expect(valoreKpi('Importo congelato')).toBe("Non ancora congelato nell'istantanea: si congela al 30/6/2028");
+    expect(notaKpi('Importo accumulato')).toBe("Fase: non iniziata (l'accumulo parte il 01/10/2027)");
+    expect(valoreKpi('Importo congelato')).toBe("Non ancora congelato nell'istantanea: si congela al 30/06/2028");
     expect(valoreKpi('Importo utilizzato')).toBe('Non disponibile');
-    expect(valoreKpi('Residuo disponibile')).toBe("Non ancora calcolato nell'istantanea: si calcola al congelamento del 30/6/2028");
+    expect(valoreKpi('Residuo disponibile')).toBe("Non ancora calcolato nell'istantanea: si calcola al congelamento del 30/06/2028");
     expect(screen.queryAllByText(/0,0 M€/)).toHaveLength(0);
   });
 

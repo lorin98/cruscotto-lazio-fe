@@ -28,6 +28,8 @@ import {
 } from '../src/features/finanziario/lib/grafici';
 import type { RigaRiepilogo, RigaSpesa } from '../src/features/finanziario/lib/grafici';
 import { avanzamentoPonderato } from '../src/features/finanziario/lib/avanzamento';
+import { massimoConSpazio, posizioneEtichettaSegmento } from '../src/features/finanziario/lib/grafici/sigc';
+import { impegnatiDiversi } from '../src/features/finanziario/lib/impegnati';
 import { assenzaImporto, cellaImporto } from '../src/features/finanziario/lib/importi';
 import { COLORI, milioni, opzioniSicure } from '../src/shared/lib';
 import type { DatiGrafico } from '../src/shared/lib';
@@ -270,7 +272,7 @@ describe('graficoAvanzamento', () => {
   it('quota piccola ma non nulla: due decimali sotto l 1 %, mai "0 %"', () => {
     const g = graficoAvanzamento([{ codiceIntervento: 'SRA01', dotazioneSpesaPubblica: imp(10_000_000), pagamentiTotali: imp(4_000) }]);
     expect(valoriDi(opzioniDi(g).series[0])).toEqual([0.04]);
-    expect(righeN(g)[0]).toEqual(['SRA01', '10.000.000,00 €', '4000,00 €', '0,04 %']);
+    expect(righeN(g)[0]).toEqual(['SRA01', '10.000.000,00 €', '4.000,00 €', '0,04 %']);
   });
 
   it('perimetro ADA: non disegnabile, tabella comunque con dotazione e pagato', () => {
@@ -451,14 +453,14 @@ describe('graficoDomandeSigc', () => {
     expect(o.yAxis?.inverse).toBe(true);
     expect(valoriDi(s)).toEqual([10_000, 6_000, 4_500, 500]);
     expect(item(s.data?.[0]).etichetta).toBe('10.000');
-    expect(n(item(s.data?.[1]).etichetta ?? '')).toBe('6000 (60 %)');
-    expect(n(item(s.data?.[2]).dettaglio ?? '')).toBe('Da pagare: 4500 domande (45 % delle presentate)');
+    expect(n(item(s.data?.[1]).etichetta ?? '')).toBe('6.000 (60 %)');
+    expect(n(item(s.data?.[2]).dettaglio ?? '')).toBe('Da pagare: 4.500 domande (45 % delle presentate)');
   });
 
   it('pagate e da pagare si sovrappongono: la descrizione lo dice, nessuna partizione delle presentate', () => {
     // 6000 + 4500 + 500 supera le presentate: le pagate in parte sono anche da pagare
     expect(n(opzioniDi(graficoDomandeSigc(domande)).aria.label.description)).toBe(
-      'Barre delle domande SIGC: presentate 10.000, pagate 6000 (60 %), da pagare 4500 (45 %), senza importi 500 (5 %). ' +
+      'Barre delle domande SIGC: presentate 10.000, pagate 6.000 (60 %), da pagare 4.500 (45 %), senza importi 500 (5 %). ' +
         'Pagate e da pagare si sovrappongono (domande pagate in parte): le voci non sommano alle presentate.',
     );
   });
@@ -468,8 +470,8 @@ describe('graficoDomandeSigc', () => {
     expect(g.tabella.colonne).toEqual(['Voce', 'Domande', 'Quota sulle presentate']);
     expect(righeN(g)).toEqual([
       ['Presentate', '10.000', '100 %'],
-      ['Pagate (ammesso e pagato valorizzati, pagato maggiore di zero)', '6000', '60 %'],
-      ['Da pagare (ammesse con importo ancora da pagare, anche se pagate in parte)', '4500', '45 %'],
+      ['Pagate (ammesso e pagato valorizzati, pagato maggiore di zero)', '6.000', '60 %'],
+      ['Da pagare (ammesse con importo ancora da pagare, anche se pagate in parte)', '4.500', '45 %'],
       ['Senza importi (non classificabili)', '500', '5 %'],
     ]);
   });
@@ -941,8 +943,8 @@ describe('graficoCascataIntervento e vociIntervento (R08: lordi e rettifiche)', 
 
   it('"Con rettifiche" dopo le rettifiche, come nel riepilogo (V1-07): Sì con le righe, No, fonte non attiva', () => {
     const voce = (r: RigaRiepilogo) => vociIntervento(r).righe[8];
-    expect(voce({ ...rigaIntervento, conRettifiche: true, rettifiche: [{}, {}] })).toEqual(['Con rettifiche', 'Sì: 2 righe']);
-    expect(voce({ ...rigaIntervento, conRettifiche: true, rettifiche: [{}] })).toEqual(['Con rettifiche', 'Sì: 1 riga']);
+    expect(voce({ ...rigaIntervento, conRettifiche: true, rettifiche: [{}, {}] })).toEqual(['Con rettifiche', 'Sì: 2 rettifiche']);
+    expect(voce({ ...rigaIntervento, conRettifiche: true, rettifiche: [{}] })).toEqual(['Con rettifiche', 'Sì: 1 rettifica']);
     expect(voce({ ...rigaIntervento, conRettifiche: false, rettifiche: [] })).toEqual(['Con rettifiche', 'No']);
     expect(voce({ ...rigaIntervento, conRettifiche: null })).toEqual(['Con rettifiche', 'fonte non attiva: rettifiche']);
   });
@@ -1096,39 +1098,52 @@ describe('graficoPartiImporto', () => {
 
 describe('graficoDotazionePagamenti', () => {
   const righe = [
-    { codiceIntervento: 'SRA01', dotazione: imp(10_000_000), pagato: imp(6_000_000) },
-    { codiceIntervento: 'SRA02', dotazione: imp(20_000_000), pagato: assente('NON_VALORIZZATO') },
-    { codiceIntervento: 'SRA03', dotazione: assente('FONTE_NON_ATTIVA'), pagato: assente('FONTE_NON_ATTIVA') },
+    { codiceIntervento: 'SRA01', dotazione: imp(10_000_000), impegnato: imp(8_000_000), pagato: imp(6_000_000) },
+    { codiceIntervento: 'SRA02', dotazione: imp(20_000_000), impegnato: imp(15_000_000), pagato: assente('NON_VALORIZZATO') },
+    { codiceIntervento: 'SRA03', dotazione: assente('FONTE_NON_ATTIVA'), impegnato: assente('FONTE_NON_ATTIVA'), pagato: assente('FONTE_NON_ATTIVA') },
   ];
   const quarantuno = Array.from({ length: 41 }, (_, k) => ({
     codiceIntervento: `SRB${String(k + 1).padStart(2, '0')}`,
     dotazione: imp(1_000_000),
+    impegnato: imp(800_000),
     pagato: imp(500_000),
   }));
 
-  it('barre raggruppate Dotazione e Pagamenti totali lordi, codice nel dato, assenti vuoti (mai zero) e dichiarati', () => {
+  it('barre raggruppate Dotazione, Impegnato spesa pubblica (04/11/2026) e Pagamenti totali lordi, codice nel dato, assenti vuoti (mai zero) e dichiarati', () => {
     const g = graficoDotazionePagamenti(righe, 'REGIONALE');
     const o = opzioniDi(g);
     controllaAria(o);
     expect(o.series.map((s) => [s.type, s.name, s.stack])).toEqual([
       ['bar', 'Dotazione', undefined],
+      ['bar', 'Impegnato spesa pubblica', undefined],
       ['bar', 'Pagamenti totali (lordi, elenchi di liquidazione)', undefined],
     ]);
     expect(o.yAxis?.data).toEqual(['SRA01', 'SRA02']);
     expect(item(o.series[0].data?.[0]).codice).toBe('SRA01');
-    expect(o.series[1].data?.[1]).toBeNull();
+    expect(item(o.series[1].data?.[1]).value).toBe(15_000_000);
+    expect(o.series[2].data?.[1]).toBeNull();
     expect(g.omessi).toEqual([
       `SRA02, pagamenti totali (lordi, elenchi di liquidazione): ${NON_VALORIZZATO_RIGA}`,
       'SRA03, dotazione: non disponibile (fonte non attiva)',
+      'SRA03, impegnato di spesa pubblica: non disponibile (fonte non attiva)',
       'SRA03, pagamenti totali (lordi, elenchi di liquidazione): non disponibile (fonte non attiva)',
     ]);
     expect(o.dataZoom).toBeUndefined();
-    expect(g.tabella.colonne).toEqual(['Intervento', 'Dotazione', 'Pagamenti totali (lordi, elenchi di liquidazione)']);
+    // l'asse parte da zero senza valori negativi
+    expect((o.xAxis as { min?: number }).min).toBeUndefined();
+    expect(g.tabella.colonne).toEqual(['Intervento', 'Dotazione', 'Impegnato spesa pubblica', 'Pagamenti totali (lordi, elenchi di liquidazione)']);
     expect(righeN(g)).toEqual([
-      ['SRA01', '10.000.000,00 €', '6.000.000,00 €'],
-      ['SRA02', '20.000.000,00 €', NON_VALORIZZATO_RIGA],
-      ['SRA03', 'non disponibile (fonte non attiva)', 'non disponibile (fonte non attiva)'],
+      ['SRA01', '10.000.000,00 €', '8.000.000,00 €', '6.000.000,00 €'],
+      ['SRA02', '20.000.000,00 €', '15.000.000,00 €', NON_VALORIZZATO_RIGA],
+      ['SRA03', 'non disponibile (fonte non attiva)', 'non disponibile (fonte non attiva)', 'non disponibile (fonte non attiva)'],
     ]);
+  });
+
+  it("un netto negativo: l'asse parte dal valore piu' basso vero, senza l'etichetta del minimo (04/11/2026: prima -20 M per -79 mila)", () => {
+    const negativo = [...righe.slice(0, 2), { codiceIntervento: 'SRD11', dotazione: imp(3_689_186.11), impegnato: imp(0), pagato: imp(-79_432.83) }];
+    const asse = opzioniDi(graficoDotazionePagamenti(negativo, 'REGIONALE', 'Pagamenti al netto delle rettifiche')).xAxis as { min?: number; axisLabel?: { showMinLabel?: boolean } };
+    expect(asse.min).toBe(-79_432.83);
+    expect(asse.axisLabel?.showMinLabel).toBe(false);
   });
 
   it('barre orizzontali: fino a 40 interventi tutti con la loro etichetta, oltre lo scorrimento verticale (R02; review K-01)', () => {
@@ -1153,18 +1168,18 @@ describe('graficoDotazionePagamenti', () => {
   it('il nome del pagato dice quale pagato e (V-19): serie, colonne, didascalia e omessi', () => {
     const g = graficoDotazionePagamenti(righe, 'REGIONALE', 'Pagamenti netti');
     const o = opzioniDi(g);
-    expect(o.series.map((s) => s.name)).toEqual(['Dotazione', 'Pagamenti netti']);
-    expect(g.tabella.colonne).toEqual(['Intervento', 'Dotazione', 'Pagamenti netti']);
-    expect(g.tabella.caption).toBe('Dotazione e pagamenti netti per intervento');
+    expect(o.series.map((s) => s.name)).toEqual(['Dotazione', 'Impegnato spesa pubblica', 'Pagamenti netti']);
+    expect(g.tabella.colonne).toEqual(['Intervento', 'Dotazione', 'Impegnato spesa pubblica', 'Pagamenti netti']);
+    expect(g.tabella.caption).toBe('Dotazione, impegnato e pagamenti netti per intervento');
     expect(g.omessi[0]).toBe(`SRA02, pagamenti netti: ${NON_VALORIZZATO_RIGA}`);
-    expect(o.aria.label.description).toMatch(/^Barre raggruppate di dotazione e pagamenti netti per 2 interventi, da SRA01 a SRA02/);
+    expect(o.aria.label.description).toMatch(/^Barre raggruppate di dotazione, impegnato e pagamenti netti per 2 interventi, da SRA01 a SRA02/);
     const ada = graficoDotazionePagamenti(righe, 'ADA', 'Pagamenti netti');
     expect(opzioniDi(ada).series.map((s) => s.name)).toEqual(['Pagamenti netti']);
     expect(ada.tabella.caption).toBe('Pagamenti netti per intervento');
   });
 
   it('nessun valore: non disegnabile', () => {
-    controllaNonDisegnabile(graficoDotazionePagamenti([righe[2]]), 'nessun intervento con dotazione o pagamenti totali (lordi, elenchi di liquidazione) valorizzati');
+    controllaNonDisegnabile(graficoDotazionePagamenti([righe[2]]), 'nessun intervento con dotazione, impegnato o pagamenti totali (lordi, elenchi di liquidazione) valorizzati');
     controllaNonDisegnabile(graficoDotazionePagamenti([]), /^nessun intervento/);
     controllaNonDisegnabile(graficoDotazionePagamenti([righe[2]], 'ADA'), 'nessun intervento con pagamenti totali (lordi, elenchi di liquidazione) valorizzati');
   });
@@ -1311,5 +1326,57 @@ describe('sottotitoloFlusso (N-18)', () => {
     expect(sottotitoloFlusso({ importoImpegnato: { valore: null, motivo: 'FONTE_NON_ATTIVA', fonte: 'IMPEGNI' } })).toBe(
       'Dalla dotazione ai pagamenti netti e al residuo; impegnato: non disponibile (fonte impegni non attiva)',
     );
+  });
+});
+
+// ---------------------------------------------------------------- revisioni del 04/11/2026 (secondo feedback di Leonardo/Deloitte)
+
+describe('revisioni del 04/11/2026', () => {
+  it('Sankey: un solo nodo Impegnato anche con la parte stimata, che sta nel tooltip del nodo', () => {
+    const o = opzioniDi(graficoSankey({ ...impegni, impegnatoStimato: imp(10_000_000) }, pagamenti));
+    const s = o.series[0];
+    expect(nomiDi(s)).toEqual(['Dotazione', 'Impegnato', 'Da impegnare', 'Pagato', 'Da pagare']);
+    const nodo = (s.data ?? []).map(item).find((d) => d.name === 'Impegnato');
+    expect(n(nodo?.dettaglio ?? '')).toBe('Impegnato: 60,0 M€, di cui stimato 10,0 M€');
+    // senza parte stimata il tooltip dice il solo impegnato
+    const senza = (opzioniDi(graficoSankey(impegni, pagamenti)).series[0].data ?? []).map(item).find((d) => d.name === 'Impegnato');
+    expect(n(senza?.dettaglio ?? '')).toBe('Impegnato: 60,0 M€');
+  });
+
+  it("Importi SIGC: l'etichetta ha lo sfondo del suo segmento; dentro se ci sta, altrimenti a destra della barra (ultimo segmento) o sopra", () => {
+    const o = opzioniDi(graficoImportiSigc(sigcBase)) as unknown as { series: Array<{ name: string; itemStyle: { color: string }; label: { backgroundColor?: string }; labelLayout: (p: unknown) => unknown }>; xAxis: { max?: unknown } };
+    for (const serie of o.series) expect(serie.label.backgroundColor).toBe(serie.itemStyle.color);
+    expect(typeof o.xAxis.max).toBe('function');
+    expect((o.xAxis as { axisLabel?: { showMaxLabel?: boolean } }).axisLabel?.showMaxLabel).toBe(false);
+    const ultimo = o.series.find((x) => x.name === 'Ancora da pagare');
+    const primo = o.series.find((x) => x.name.startsWith('Pagato'));
+    const rect = { x: 100, y: 50, width: 40, height: 30 };
+    expect(ultimo?.labelLayout({ rect, labelRect: { x: 0, y: 0, width: 30, height: 14 } })).toEqual({});
+    expect(ultimo?.labelLayout({ rect, labelRect: { x: 0, y: 0, width: 110, height: 14 } })).toEqual({ x: 144, y: 65, align: 'left', verticalAlign: 'middle' });
+    expect(primo?.labelLayout({ rect, labelRect: { x: 0, y: 0, width: 110, height: 14 } })).toEqual({ x: 100, y: 46, align: 'left', verticalAlign: 'bottom' });
+    // il caso visto nell'app: "41,9 M€ (24,3 %)" sforava di qualche pixel il segmento
+    expect(posizioneEtichettaSegmento(true)({ rect: { x: 0, y: 0, width: 96, height: 30 }, labelRect: { x: 0, y: 0, width: 98, height: 14 } } as never)).toMatchObject({ align: 'left' });
+  });
+
+  it("massimoConSpazio: almeno un quinto oltre la barra piu' lunga, a passi di 1, 2, 2,5 o 5", () => {
+    expect(massimoConSpazio({ max: 260_200_000 })).toBe(350_000_000);
+    expect(massimoConSpazio({ max: 100 })).toBe(120);
+    expect(massimoConSpazio({ max: 0 })).toBe(0);
+  });
+
+  it('impegnatiDiversi: gli interventi coi due impegnati valorizzati e diversi al centesimo, in ordine di codice', () => {
+    expect(
+      impegnatiDiversi([
+        { codiceIntervento: 'SRB01', impegnatoCofinanziatoFeasr: imp(52_622_658.68), impegnatoCofinanziatoFeasrENon: imp(54_967_054.76) },
+        { codiceIntervento: 'SRA03', impegnatoCofinanziatoFeasr: imp(24_323_222.99), impegnatoCofinanziatoFeasrENon: imp(45_273_920.69) },
+        { codiceIntervento: 'SRG06', impegnatoCofinanziatoFeasr: imp(13_879_326.08), impegnatoCofinanziatoFeasrENon: imp(13_879_326.08) },
+        { codiceIntervento: 'SRA14', impegnatoCofinanziatoFeasr: imp(0.1 + 0.2), impegnatoCofinanziatoFeasrENon: imp(0.3) },
+        { codiceIntervento: 'SRA15', impegnatoCofinanziatoFeasr: assente('FONTE_NON_ATTIVA', 'IMPEGNI'), impegnatoCofinanziatoFeasrENon: imp(1) },
+        { impegnatoCofinanziatoFeasr: imp(1), impegnatoCofinanziatoFeasrENon: imp(2) },
+      ]),
+    ).toEqual([
+      { codice: 'SRA03', feasr: 24_323_222.99, feasrENon: 45_273_920.69 },
+      { codice: 'SRB01', feasr: 52_622_658.68, feasrENon: 54_967_054.76 },
+    ]);
   });
 });

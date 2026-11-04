@@ -514,7 +514,7 @@ describe('barreRaggruppate in ettari (MISURA_ETTARI, superfici del fisico)', () 
     expect(n(ettari(15.5))).toBe('15,50 ha');
     expect(n(ettari(-0.5))).toBe('-0,50 ha');
     expect(valoreEttari('x')).toBe('non disponibile');
-    expect(n(asseEttari(1250))).toBe('1250 ha');
+    expect(n(asseEttari(1250))).toBe('1.250 ha');
     expect(n(asseEttari(2.5))).toBe('2,50 ha');
   });
 });

@@ -18,8 +18,8 @@ describe("RF014: monitoraggio della riserva al 5% dell'anno n nelle quattro fasi
     expect(router.state.location.search).toBe('');
     await userEvent.click(screen.getByRole('button', { name: 'Mostra' }));
     await waitFor(() => expect(router.state.location.search).toBe('?anno=2025'));
-    expect(screen.getByText('Per il 2025: accumulo dal 1/10/2025 al 30/6/2026, utilizzo fino al 31/12/2026, residuo dal 1/1/2027.')).toBeTruthy();
-    expect(await screen.findByText('residuo (2% del montante, dal 1/1/2027)')).toBeTruthy();
+    expect(screen.getByText('Per il 2025: accumulo dal 01/10/2025 al 30/06/2026, utilizzo fino al 31/12/2026, residuo dal 01/01/2027.')).toBeTruthy();
+    expect(await screen.findByText('residuo (2% del montante, dal 01/01/2027)')).toBeTruthy();
     expect(screen.queryByRole('region', { name: 'Filtri attivi' })).toBeNull();
   });
   it('fase, valori, utilizzo progressivo in grafico e tabella', async () => {
@@ -61,7 +61,7 @@ describe('Revisioni del 31/10/2026: montante e riserve (R17 forma A) e utilizzo 
     const riserva = screen.getByRole('region', { name: 'Riserva di efficacia (5%)' });
     expect(riserva.textContent).toContain('Consuntivo');
     // it-IT senza separatore delle migliaia sotto 10.000
-    expect(riserva.textContent).toMatch(/1000,00.€/);
+    expect(riserva.textContent).toMatch(/1\.000,00.€/);
     expect(riserva.textContent).not.toMatch(/(^|[^.\d])500,00/);
     const residuo = screen.getByRole('region', { name: 'Residuo (2%)' });
     expect(residuo.textContent).toContain('Previsione');

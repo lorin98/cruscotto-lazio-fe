@@ -59,13 +59,17 @@ function PaginaDettaglio() {
   return <DettaglioIntervento codice={codice} />;
 }
 
+/** Dal 04/11/2026 l'anno e' obbligatorio: un indirizzo senza anno ne' esercizio si apre col 2025 (l'anno della fixture). */
+const conAnno = (indirizzo: string) =>
+  /[?&](anno|esercizio)=/.test(indirizzo) ? indirizzo : `${indirizzo}${indirizzo.includes('?') ? '&' : '?'}anno=2025`;
+
 function apriDettaglio(indirizzo: string) {
   const router = createMemoryRouter(
     [
       { path: '/istituzionale/interventi/:codice', Component: PaginaDettaglio },
       { path: '*', element: <p>altra pagina</p> },
     ],
-    { initialEntries: [indirizzo] },
+    { initialEntries: [conAnno(indirizzo)] },
   );
   return { ...renderConQuery(<RouterProvider router={router} />), router };
 }
@@ -78,7 +82,7 @@ function inRouter(ui: ReactElement) {
 describe('VerificaSmpNonSigc (pagina della verifica SMP non SIGC, componente)', () => {
   it('barra con chip e pill, frase verso la verifica SIGC, riferimenti, card a barre, tabella; nessuna violazione axe', async () => {
     servi();
-    const { container } = renderPagina(VerificaSmpNonSigc, '/istituzionale/verifica-smp-non-sigc', '/istituzionale/verifica-smp-non-sigc?intervento=SRD01');
+    const { container } = renderPagina(VerificaSmpNonSigc, '/istituzionale/verifica-smp-non-sigc', conAnno('/istituzionale/verifica-smp-non-sigc?intervento=SRD01'));
     const card = await trovaCard('Spesa pubblica erogata per intervento (anticipi inclusi)');
     const barra = screen.getByRole('region', { name: 'Filtri attivi' });
     expect(within(barra).getByRole('button', { name: 'Togli il filtro Intervento SRD01' })).toBeTruthy();
@@ -88,7 +92,7 @@ describe('VerificaSmpNonSigc (pagina della verifica SMP non SIGC, componente)', 
     // link verifica-smp-sigc: la verifica SMP SIGC della stessa area coi filtri comuni (scelta di disegno 1)
     expect(screen.getByRole('link', { name: 'Verifica SMP SIGC' }).getAttribute('href')).toBe('/istituzionale/verifica-smp-sigc?intervento=SRD01');
     const riferimenti = screen.getByRole('table', { name: 'Riferimenti della risposta' });
-    expect(testo(riferimenti.textContent)).toContain('2025 (ultimo anno con un file SMP non SIGC presente)');
+    expect(testo(riferimenti.textContent)).toContain("2025 (l'anno scelto)");
     expect(within(card).getAllByRole('button', { name: /^Scarica / }).map((b) => b.textContent)).toEqual(['PNG', 'CSV', 'XLSX']);
     expect(within(card).getByRole('button', { name: 'Scarica i dati della verifica SMP non SIGC in CSV' })).toBeTruthy();
     expect(screen.getByRole('table', { name: /^Verifica SMP non SIGC: / })).toBeTruthy();
@@ -97,7 +101,7 @@ describe('VerificaSmpNonSigc (pagina della verifica SMP non SIGC, componente)', 
 
   it('il clic su una barra apre il dettaglio dell intervento con l anno scelto (codice codificato)', async () => {
     servi();
-    const { router } = renderPagina(VerificaSmpNonSigc, '/istituzionale/verifica-smp-non-sigc', '/istituzionale/verifica-smp-non-sigc?anno=2024');
+    const { router } = renderPagina(VerificaSmpNonSigc, '/istituzionale/verifica-smp-non-sigc', conAnno('/istituzionale/verifica-smp-non-sigc?anno=2024'));
     const grafico = graficoDi(await trovaCard('Spesa pubblica erogata per intervento (anticipi inclusi)'));
     if (!grafico) throw new Error('grafico assente');
     clicSulDato(grafico, 0, 2);
@@ -106,7 +110,7 @@ describe('VerificaSmpNonSigc (pagina della verifica SMP non SIGC, componente)', 
 
   it('valori dei filtri non disponibili (TX-0060 in errore): lo stato col motivo e Riprova, il report si legge', async () => {
     servi(null);
-    renderPagina(VerificaSmpNonSigc, '/istituzionale/verifica-smp-non-sigc');
+    renderPagina(VerificaSmpNonSigc, '/istituzionale/verifica-smp-non-sigc', conAnno('/istituzionale/verifica-smp-non-sigc'));
     const stato = await screen.findByText(/^Valori dei filtri non disponibili: /);
     expect(stato.closest('[role="status"]')).not.toBeNull();
     expect(within(stato.closest('[role="status"]') as HTMLElement).getByRole('button', { name: 'Riprova' })).toBeTruthy();
@@ -172,7 +176,7 @@ describe('ValoreDelDatoSigc (i venti dati di TX-0015 nella tabella e nella sched
 describe('TabellaVerifica e CellaDato (i ventuno dati di TX-0016)', () => {
   it('colonne visibili del wireframe, assenze col motivo in badge, link verso l elenco solo con un valore positivo', async () => {
     servi();
-    const { container } = renderPagina(VerificaSmpNonSigc, '/istituzionale/verifica-smp-non-sigc');
+    const { container } = renderPagina(VerificaSmpNonSigc, '/istituzionale/verifica-smp-non-sigc', conAnno('/istituzionale/verifica-smp-non-sigc'));
     const tabella = await screen.findByRole('table', { name: /^Verifica SMP non SIGC: / });
     expect(within(tabella).getAllByRole('columnheader').map((c) => c.textContent?.replace(/[▲▼↕]/g, '').trim())).toEqual([
       'Intervento',
@@ -237,7 +241,7 @@ describe('TabellaVerifica e CellaDato (i ventuno dati di TX-0016)', () => {
 describe('PannelloFiltriIstituzionale e ValoriFiltriNonDisponibili (entities/filtri, nato qui)', () => {
   it('il pannello ha le voci di TX-0060 e l azione portante disabilitata senza il legame; nessuna violazione axe', async () => {
     servi();
-    renderPagina(VerificaSmpNonSigc, '/istituzionale/verifica-smp-non-sigc');
+    renderPagina(VerificaSmpNonSigc, '/istituzionale/verifica-smp-non-sigc', conAnno('/istituzionale/verifica-smp-non-sigc'));
     await trovaCard('Spesa pubblica erogata per intervento (anticipi inclusi)');
     await userEvent.click(screen.getByRole('button', { name: /^Filtri/ }));
     const pannello = await screen.findByRole('dialog', { name: 'Filtri dei report istituzionali' });
@@ -290,7 +294,7 @@ describe('DettaglioIntervento e SchedeIntervento (dettaglio dell intervento)', (
     expect(kpi.closest('[role="tabpanel"]')).not.toBeNull();
     // gli indicatori stanno nelle voci di ogni scheda (dipendono dall'anno o dall'esercizio): nella testata il solo perimetro
     expect(within(screen.getByRole('list', { name: 'Dati principali' })).getAllByRole('listitem').map((l) => l.textContent)).toEqual(['Perimetro regionale']);
-    expect(screen.getByRole('link', { name: 'Verifica SMP non SIGC filtrata su questo intervento' }).getAttribute('href')).toBe('/istituzionale/verifica-smp-non-sigc?intervento=SRD01');
+    expect(screen.getByRole('link', { name: 'Verifica SMP non SIGC filtrata su questo intervento' }).getAttribute('href')).toBe('/istituzionale/verifica-smp-non-sigc?intervento=SRD01&anno=2025');
     expect(screen.getByRole('link', { name: 'Verifica SMP SIGC filtrata su questo intervento' }).getAttribute('href')).toBe('/istituzionale/verifica-smp-sigc?intervento=SRD01');
     // l'output regionale (TX-0017: schede Output per anno e Importi unitari, KPI del target) e' del fisico dal 29/10/2026
     expect(screen.queryByRole('link', { name: 'Output regionale filtrato su questo intervento' })).toBeNull();
@@ -300,7 +304,7 @@ describe('DettaglioIntervento e SchedeIntervento (dettaglio dell intervento)', (
     ]);
     expect(screen.queryByRole('region', { name: 'Target di fine periodo' })).toBeNull();
     // la scheda SIGC legge solo quando si apre
-    expect([lette.verifica, lette.verificaSigc]).toEqual([['?intervento=SRD01'], []]);
+    expect([lette.verifica, lette.verificaSigc]).toEqual([['?intervento=SRD01&anno=2025'], []]);
     await screen.findByRole('table', { name: /^I dati ASR non SIGC dell'intervento/ });
     await expectNoA11yViolations(container);
   });
@@ -332,7 +336,7 @@ describe('DettaglioIntervento e SchedeIntervento (dettaglio dell intervento)', (
     expect(lette.verificaSigc).toEqual([]);
     await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Esercizio finanziario' }), '2025');
     await userEvent.click(screen.getByRole('button', { name: 'Mostra' }));
-    await waitFor(() => expect(router.state.location.search).toBe('?esercizio=2025'));
+    await waitFor(() => expect(router.state.location.search).toBe('?anno=2025&esercizio=2025'));
     const voci = await screen.findByRole('table', { name: /^I dati SIGC dell'intervento da confrontare con SMP \(esercizio 2025, domande della campagna 2024\)/ });
     expect(lette.verificaSigc).toEqual(['?intervento=SRA01&esercizio=2025']);
     expect(within(voci).getAllByRole('rowheader')).toHaveLength(23);
@@ -353,7 +357,8 @@ describe('DettaglioIntervento e SchedeIntervento (dettaglio dell intervento)', (
 
     profilo(['csr.tx-0016.read', 'csr.tx-0060.read']);
     apriDettaglio('/istituzionale/interventi/SRA01?esercizio=2025');
-    await screen.findByRole('table', { name: /^I dati ASR non SIGC dell'intervento/ });
+    // senza la scheda SIGC resta la non SIGC, che senza anno chiede di sceglierlo (04/11/2026)
+    await screen.findByText("Scegli l'anno di riferimento da consultare.");
     expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Verifica SMP non SIGC']);
     expect(screen.queryByRole('link', { name: 'Verifica SMP SIGC filtrata su questo intervento' })).toBeNull();
     expect(lette.verificaSigc).toEqual(['?intervento=SRA01&esercizio=2025']);

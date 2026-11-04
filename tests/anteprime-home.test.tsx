@@ -540,7 +540,7 @@ describe('RF002 e RF009: card Finanziario della Home, stati d errore (review V-0
     const spesa = renderConQuery(<AnteprimaFinanziario altrimenti={ALTRIMENTI} />);
     const cifre = await screen.findByRole('group', { name: 'Il finanziario in cifre' });
     expect(await within(cifre).findByText('Dotazione e pagamenti non disponibili in questo momento.')).toBeTruthy();
-    await waitFor(() => expect(valoreDi(cifre, 'Domande presentate')).toBe('1200'));
+    await waitFor(() => expect(valoreDi(cifre, 'Domande presentate')).toBe('1.200'));
     expect(screen.queryByRole('alert')).toBeNull();
     spesa.unmount();
 
@@ -558,7 +558,7 @@ describe('RF002 e RF009: card Finanziario della Home, stati d errore (review V-0
     const client = clientDiTest();
     renderConQuery(<AnteprimaFinanziario altrimenti={ALTRIMENTI} />, client);
     const cifre = await screen.findByRole('group', { name: 'Il finanziario in cifre' });
-    await waitFor(() => expect(valoreDi(cifre, 'Domande presentate')).toBe('1200'));
+    await waitFor(() => expect(valoreDi(cifre, 'Domande presentate')).toBe('1.200'));
     server.use(indisponibile('/api/finanziario/totale-domande'));
     await act(async () => {
       await client.refetchQueries();

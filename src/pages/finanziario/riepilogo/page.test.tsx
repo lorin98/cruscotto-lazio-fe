@@ -14,7 +14,7 @@ import { renderConQuery } from '../../../shared/testing/render';
 import PaginaDettaglio from '../interventi/page';
 import Pagina from './page';
 
-const TABELLA = /^Riepilogo per intervento \(RF011\): 2 righe\./;
+const TABELLA = /^Tabella di riepilogo per intervento \(RF011\): 2 righe\./;
 
 /** 12 interventi SRB01..SRB12 (due pagine con la ricerca «SRB») piu' SRA01. */
 const RIEPILOGO_LUNGO = {
@@ -43,19 +43,55 @@ function renderRiepilogoEDettaglio(indirizzo: string) {
 }
 
 describe('RF011: tabella di riepilogo per intervento con i nove campi finanziari', () => {
-  it('senza una scelta salvata il riepilogo parte dal grafico, come ogni card (19/10/2026)', async () => {
+  it('tutto RF011 nella pagina (04/11/2026): prima la tabella, poi il grafico, senza interruttore di pagina', async () => {
     server.use(http.get('*/api/finanziario/riepilogo', () => HttpResponse.json(RIEPILOGO)));
     renderPagina(Pagina, '/finanziario/riepilogo');
-    const gruppo = await screen.findByRole('group', { name: 'Vista del riepilogo' });
-    expect(within(gruppo).getByRole('button', { name: 'Grafico' }).getAttribute('aria-pressed')).toBe('true');
-    expect(screen.queryByRole('table', { name: TABELLA })).toBeNull();
-    // review delta 21/10 X3-b: Grafico | Tabella, nello stesso ordine dell'interruttore della card
-    const card = await trovaCard('Dotazione e pagamenti per intervento');
-    const ordine = (g: HTMLElement) => within(g).getAllByRole('button').map((b) => b.textContent);
-    expect(ordine(gruppo)).toEqual(['Grafico', 'Tabella']);
-    expect(ordine(within(card).getByRole('group', { name: 'Vista di Dotazione e pagamenti per intervento' }))).toEqual(['Grafico', 'Tabella']);
-    // review delta 21/10 V6: il sottotitolo descrive la vista iniziale, non la tabella
-    expect(screen.getByText("Grafico per intervento: clic su una barra per il dettaglio; nella vista Tabella cerca, ordina, scegli le colonne e apri l'anteprima.")).toBeTruthy();
+    const tabella = await tabellaDelRiepilogo(TABELLA);
+    expect(screen.queryByRole('group', { name: 'Vista del riepilogo' })).toBeNull();
+    const card = await trovaCard('Dotazione, impegnato e pagamenti per intervento');
+    expect(graficoDi(card)).toBeTruthy();
+    // la tabella viene prima del grafico nel documento
+    expect(tabella.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // l'interruttore della card resta: Grafico | Tabella equivalente
+    expect(within(within(card).getByRole('group', { name: 'Vista di Dotazione, impegnato e pagamenti per intervento' })).getAllByRole('button').map((b) => b.textContent)).toEqual(['Grafico', 'Tabella']);
+    expect(screen.getByText("La tabella di riepilogo del requisito RF011 per intervento (cerca, ordina, scegli le colonne, apri l'anteprima) e sotto il grafico per intervento: clic su una barra per il dettaglio.")).toBeTruthy();
+  });
+
+  it("le colonne di RF011 nell'ordine del requisito; stimato, lordi, rettifiche e con rettifiche nascoste all'apertura", async () => {
+    server.use(http.get('*/api/finanziario/riepilogo', () => HttpResponse.json(RIEPILOGO)));
+    renderPagina(Pagina, '/finanziario/riepilogo');
+    const tabella = await tabellaDelRiepilogo(TABELLA);
+    const intestazioni = () => within(tabella).getAllByRole('columnheader').map((c) => c.textContent?.replace(/[▲▼↕]/g, '').trim());
+    expect(intestazioni()).toEqual([
+      'Intervento',
+      'Dotazione spesa pubblica',
+      'Risorse quota FEASR',
+      'Importo stanziato',
+      'Domande presentate',
+      'Impegnato cofinanziato FEASR',
+      'Impegnato cofinanziato FEASR e non',
+      'Pagamenti al netto delle rettifiche',
+      'Dotazione residua sugli impegni',
+      'Dotazione residua sui pagamenti',
+    ]);
+    await userEvent.click(screen.getByText('Colonne'));
+    for (const nome of ['di cui stimato', 'Pagamenti lordi', 'Rettifiche', 'Con rettifiche']) {
+      const scelta = screen.getByRole('checkbox', { name: nome });
+      expect((scelta as HTMLInputElement).checked).toBe(false);
+      await userEvent.click(scelta);
+    }
+    expect(intestazioni().slice(-4)).toEqual(['di cui stimato', 'Pagamenti lordi', 'Rettifiche', 'Con rettifiche']);
+  });
+
+  it('avviso degli impegnati diversi: intervento, cofinanziato FEASR e FEASR e non; niente avviso se coincidono', async () => {
+    const diverso = { ...RIEPILOGO.righe[0], impegnatoCofinanziatoFeasr: { valore: 1000 }, impegnatoCofinanziatoFeasrENon: { valore: 1500.5 } };
+    server.use(http.get('*/api/finanziario/riepilogo', () => HttpResponse.json({ ...RIEPILOGO, righe: [diverso, RIEPILOGO.righe[1]] })));
+    renderPagina(Pagina, '/finanziario/riepilogo');
+    await tabellaDelRiepilogo(TABELLA);
+    const avviso = screen.getByRole('note');
+    expect(avviso.textContent?.replace(/\s/g, ' ')).toBe(
+      `Impegnato cofinanziato FEASR diverso dall'impegnato cofinanziato FEASR e non in 1 intervento. Il cofinanziato FEASR è riportato alla dotazione quando l'impegnato la supera: ${diverso.codiceIntervento} 1.000,00 € su 1.500,50 €. Negli altri interventi i due impegnati coincidono con l'impegnato di spesa pubblica.`,
+    );
   });
 
   it('una riga per intervento con i nove campi, le assenze spiegate, totali e Assistenza tecnica nel piede', async () => {
@@ -137,12 +173,12 @@ describe('RF011: tabella di riepilogo per intervento con i nove campi finanziari
   });
 
   // review delta 21/10 V5: la pagina com'e' all'apertura (vista Grafico, interruttore di pagina e card del grafico)
-  it('nessuna violazione axe sulla pagina appena aperta, nella vista Grafico', async () => {
+  it('nessuna violazione axe sulla pagina appena aperta, con la tabella e il grafico', async () => {
     server.use(http.get('*/api/finanziario/riepilogo', () => HttpResponse.json(RIEPILOGO)));
     const { container } = renderPagina(Pagina, '/finanziario/riepilogo');
-    const card = await trovaCard('Dotazione e pagamenti per intervento');
+    await tabellaDelRiepilogo(TABELLA);
+    const card = await trovaCard('Dotazione, impegnato e pagamenti per intervento');
     expect(graficoDi(card)).toBeTruthy();
-    expect(within(screen.getByRole('group', { name: 'Vista del riepilogo' })).getByRole('button', { name: 'Grafico' }).getAttribute('aria-pressed')).toBe('true');
     await expectNoA11yViolations(container);
   });
 
@@ -167,7 +203,7 @@ describe('RF001: i filtri valgono per il riepilogo e per gli altri report', () =
       http.get('*/api/finanziario/filtri', () => HttpResponse.json(FILTRI)),
     );
     const { router } = renderPagina(Pagina, '/finanziario/riepilogo', '/finanziario/riepilogo?intervento=SRA01&op=OP2&intervento=%3Cx%3E');
-    await tabellaDelRiepilogo(/^Riepilogo per intervento/);
+    await tabellaDelRiepilogo(/^Tabella di riepilogo per intervento/);
     // il valore fuori formato non arriva al backend
     await waitFor(() => expect(query).toBe('?intervento=SRA01&op=OP2'));
     const barra = screen.getByRole('region', { name: 'Filtri attivi' });
@@ -180,16 +216,19 @@ describe('RF001: i filtri valgono per il riepilogo e per gli altri report', () =
 });
 
 describe("RA003: drill-down dal riepilogo all'elenco operativo", () => {
-  it("celle Domande presentate e Pagamenti al netto: elenco delle domande e righe di pagamento (lordi) dell'intervento", async () => {
+  it("celle Domande presentate e Pagamenti lordi: elenco delle domande ed elenco dei pagamenti (lordi) dell'intervento", async () => {
     server.use(http.get('*/api/finanziario/riepilogo', () => HttpResponse.json(RIEPILOGO)));
     renderPagina(Pagina, '/finanziario/riepilogo', '/finanziario/riepilogo?os=OS4');
     const tabella = await tabellaDelRiepilogo(TABELLA);
     expect(within(tabella).getByRole('link', { name: "Apri nell'elenco operativo le domande presentate dell'intervento SRA01" }).getAttribute('href')).toBe(
       '/elenco-operativo/domande?presentata=true&intervento=SRA01',
     );
-    const pagamenti = within(tabella).getByRole('link', { name: "righe di pagamento: apri nell'elenco operativo le righe di pagamento dell'intervento SRA01" });
+    // la colonna dei lordi e' nascosta all'apertura (04/11/2026): il link c'e' quando la si sceglie
+    await userEvent.click(screen.getByText('Colonne'));
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Pagamenti lordi' }));
+    const pagamenti = within(tabella).getByRole('link', { name: "elenco dei pagamenti: apri nell'elenco operativo l'elenco dei pagamenti dell'intervento SRA01" });
     expect(pagamenti.getAttribute('href')).toBe('/elenco-operativo/pagamenti?esito=PAGATA&intervento=SRA01');
-    expect(screen.getByText(/come la colonna Pagamenti lordi; le rettifiche sono nella loro colonna e nell'anteprima\.$/)).toBeTruthy();
+    expect(screen.getByText(/come la colonna Pagamenti lordi \(nel selettore Colonne\); le rettifiche sono nella loro colonna e nell'anteprima\.$/)).toBeTruthy();
     // la riga dell'Assistenza tecnica (piede) non ha link
     const piede = within(tabella).getByRole('rowheader', { name: /Dotazione assistenza tecnica/ }).closest('tr');
     expect(piede && within(piede).queryByRole('link')).toBeNull();
@@ -218,7 +257,7 @@ describe("RA003: drill-down dal riepilogo all'elenco operativo", () => {
     await userEvent.click(within(tabella).getByRole('rowheader', { name: 'SRA01' }));
     expect(await screen.findByRole('dialog', { name: 'SRA01' })).toBeTruthy();
   });
-  it("dall'anteprima: domande presentate e righe di pagamento dell'intervento", async () => {
+  it("dall'anteprima: domande presentate ed elenco dei pagamenti dell'intervento", async () => {
     server.use(http.get('*/api/finanziario/riepilogo', () => HttpResponse.json(RIEPILOGO)));
     renderPagina(Pagina, '/finanziario/riepilogo');
     const tabella = await tabellaDelRiepilogo(TABELLA);
@@ -227,7 +266,7 @@ describe("RA003: drill-down dal riepilogo all'elenco operativo", () => {
     expect(within(anteprima).getByRole('link', { name: "domande presentate: apri nell'elenco operativo dell'intervento SRA01" }).getAttribute('href')).toBe(
       '/elenco-operativo/domande?presentata=true&intervento=SRA01',
     );
-    expect(within(anteprima).getByRole('link', { name: /^righe di pagamento: / }).getAttribute('href')).toBe('/elenco-operativo/pagamenti?esito=PAGATA&intervento=SRA01');
+    expect(within(anteprima).getByRole('link', { name: /^elenco dei pagamenti: / }).getAttribute('href')).toBe('/elenco-operativo/pagamenti?esito=PAGATA&intervento=SRA01');
   });
   it("anteprima: con il focus su un link Esc chiude il pannello e Tab resta nel pannello (focus trap)", async () => {
     server.use(http.get('*/api/finanziario/riepilogo', () => HttpResponse.json(RIEPILOGO)));
@@ -235,7 +274,7 @@ describe("RA003: drill-down dal riepilogo all'elenco operativo", () => {
     const tabella = await tabellaDelRiepilogo(TABELLA);
     await userEvent.click(within(tabella).getByRole('row', { name: "Apri l'anteprima dell'intervento SRA01" }));
     let anteprima = await screen.findByRole('dialog');
-    const ultimo = within(anteprima).getByRole('link', { name: /^righe di pagamento: / });
+    const ultimo = within(anteprima).getByRole('link', { name: /^elenco dei pagamenti: / });
     ultimo.focus();
     await userEvent.tab();
     expect(anteprima.contains(document.activeElement)).toBe(true);
@@ -245,7 +284,7 @@ describe("RA003: drill-down dal riepilogo all'elenco operativo", () => {
     // riaperta: Esc funziona anche dall'ultimo link
     await userEvent.click(within(tabella).getByRole('row', { name: "Apri l'anteprima dell'intervento SRA01" }));
     anteprima = await screen.findByRole('dialog');
-    within(anteprima).getByRole('link', { name: /^righe di pagamento: / }).focus();
+    within(anteprima).getByRole('link', { name: /^elenco dei pagamenti: / }).focus();
     await userEvent.keyboard('{Escape}');
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
   });
@@ -271,9 +310,11 @@ describe("RA003: drill-down dal riepilogo all'elenco operativo", () => {
     renderPagina(Pagina, '/finanziario/riepilogo');
     const tabella = await tabellaDelRiepilogo(TABELLA);
     expect(within(tabella).getByRole('link', { name: "Apri nell'elenco operativo le domande presentate dell'intervento SRA01" })).toBeTruthy();
-    expect(within(tabella).queryByRole('link', { name: /^righe di pagamento: / })).toBeNull();
+    await userEvent.click(screen.getByText('Colonne'));
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Pagamenti lordi' }));
+    expect(within(tabella).queryByRole('link', { name: /^elenco dei pagamenti: / })).toBeNull();
     // la nota attuale sui lordi (R08; review V1-11: prima si cercava il testo di prima, che non c'e' piu')
-    expect(screen.queryByText(/come la colonna Pagamenti lordi; le rettifiche sono nella loro colonna/)).toBeNull();
+    expect(screen.queryByText(/come la colonna Pagamenti lordi \(nel selettore Colonne\); le rettifiche sono nella loro colonna/)).toBeNull();
   });
   it("tornando indietro dall'elenco operativo l'ordinamento della tabella e' quello scelto", async () => {
     server.use(http.get('*/api/finanziario/riepilogo', () => HttpResponse.json(RIEPILOGO)));
@@ -292,16 +333,16 @@ describe("RA003: drill-down dal riepilogo all'elenco operativo", () => {
   it("tornando indietro dall'elenco operativo ricerca e pagina sono quelle lasciate (stesse righe)", async () => {
     server.use(http.get('*/api/finanziario/riepilogo', () => HttpResponse.json(RIEPILOGO_LUNGO)));
     const { router } = renderPagina(Pagina, '/finanziario/riepilogo');
-    await tabellaDelRiepilogo(/^Riepilogo per intervento \(RF011\): 28 righe\./);
+    await tabellaDelRiepilogo(/^Tabella di riepilogo per intervento \(RF011\): 28 righe\./);
     await userEvent.type(screen.getByRole('searchbox', { name: 'Cerca nella tabella' }), 'SRB');
     await userEvent.click(screen.getByRole('button', { name: 'Pagina 2' }));
-    let tabella = screen.getByRole('table', { name: /^Riepilogo per intervento \(RF011\): 27 righe per «SRB»\./ });
+    let tabella = screen.getByRole('table', { name: /^Tabella di riepilogo per intervento \(RF011\): 27 righe per «SRB»\./ });
     const righe = righeDi(tabella);
     expect(righe).toEqual(['SRB26', 'SRB27']);
     await userEvent.click(within(tabella).getByRole('link', { name: "Apri nell'elenco operativo le domande presentate dell'intervento SRB26" }));
     await waitFor(() => expect(router.state.location.pathname).toBe('/elenco-operativo/domande'));
     await act(() => router.navigate(-1));
-    tabella = await screen.findByRole('table', { name: /^Riepilogo per intervento \(RF011\): 27 righe per «SRB»\./ });
+    tabella = await screen.findByRole('table', { name: /^Tabella di riepilogo per intervento \(RF011\): 27 righe per «SRB»\./ });
     expect((screen.getByRole('searchbox', { name: 'Cerca nella tabella' }) as HTMLInputElement).value).toBe('SRB');
     expect(righeDi(tabella)).toEqual(righe);
   });
@@ -315,7 +356,7 @@ describe("RA003: drill-down dal riepilogo all'elenco operativo", () => {
       http.get('*/api/finanziario/domande-per-anno', () => HttpResponse.json(DOMANDE_PER_ANNO)),
     );
     const { router } = renderRiepilogoEDettaglio('/finanziario/riepilogo?os=OS4');
-    await tabellaDelRiepilogo(/^Riepilogo per intervento \(RF011\): 28 righe\./);
+    await tabellaDelRiepilogo(/^Tabella di riepilogo per intervento \(RF011\): 28 righe\./);
     await userEvent.type(screen.getByRole('searchbox', { name: 'Cerca nella tabella' }), 'SRB');
     const ordina = () => within(screen.getByRole('columnheader', { name: /^Intervento/ })).getByRole('button');
     // decrescente sul codice, cosi' l'ordine non e' quello iniziale (per dotazione)
@@ -356,26 +397,22 @@ describe("RA003: drill-down dal riepilogo all'elenco operativo", () => {
     await userEvent.keyboard('{Enter}');
     await ritrovato();
   });
-  // review v4 iter3 X-01. Dal 19/10 il grafico e' anche la vista predefinita (review delta 21/10 X4): il test prova che la
-  // scelta Grafico sostituisce la Tabella salvata e che "Torna al riepilogo" riporta la vista nello state della history;
-  // che lo state viaggi davvero lo prova anche il test X-04 qui sopra (ritrovato(), con la Tabella)
-  it('la scelta Grafico sostituisce la Tabella salvata; dal dettaglio aperto dal grafico "Torna al riepilogo" la riporta nello state', async () => {
+  // review v4 iter3 X-01, adattato il 04/11/2026: non c'e' piu' la vista da riportare; dal dettaglio aperto dal grafico
+  // "Torna al riepilogo" riporta la pagina con la tabella e il grafico, e nello state non c'e' una vista
+  it('dal dettaglio aperto dal grafico "Torna al riepilogo" riporta la tabella e il grafico', async () => {
     server.use(http.get('*/api/finanziario/riepilogo', () => HttpResponse.json(RIEPILOGO)), http.get('*/api/finanziario/filtri', () => HttpResponse.json(FILTRI)));
     const { router } = renderRiepilogoEDettaglio('/finanziario/riepilogo');
     await tabellaDelRiepilogo(TABELLA);
-    const vistaRiepilogo = () => within(screen.getByRole('group', { name: 'Vista del riepilogo' }));
-    await userEvent.click(vistaRiepilogo().getByRole('button', { name: 'Grafico' }));
-    const grafico = graficoDi(await trovaCard('Dotazione e pagamenti per intervento'));
+    const grafico = graficoDi(await trovaCard('Dotazione, impegnato e pagamenti per intervento'));
     expect(grafico).toBeTruthy();
     clicSulDato(grafico!, 0, 0);
     await waitFor(() => expect(router.state.location.pathname).toBe('/finanziario/interventi/SRA01'));
     (await screen.findAllByRole('link', { name: 'Torna al riepilogo' }))[0].focus();
     await userEvent.keyboard('{Enter}');
     await waitFor(() => expect(router.state.location.pathname).toBe('/finanziario/riepilogo'));
-    await screen.findByRole('group', { name: 'Vista del riepilogo' });
-    expect(vistaRiepilogo().getByRole('button', { name: 'Grafico' }).getAttribute('aria-pressed')).toBe('true');
-    expect(screen.queryByRole('table', { name: TABELLA })).toBeNull();
-    expect(router.state.location.state).toMatchObject({ vistaRiepilogo: { valore: 'grafico' } });
+    expect(await tabellaDelRiepilogo(TABELLA)).toBeTruthy();
+    expect(await trovaCard('Dotazione, impegnato e pagamenti per intervento')).toBeTruthy();
+    expect((router.state.location.state ?? {}) as Record<string, unknown>).not.toHaveProperty('vistaRiepilogo');
   });
   it("senza i grant dell'elenco nessun link", async () => {
     server.use(

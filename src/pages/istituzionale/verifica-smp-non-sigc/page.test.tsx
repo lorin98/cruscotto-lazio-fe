@@ -32,7 +32,10 @@ function servi(basi?: Parameters<typeof lettureIstituzionale>[0]) {
   return lette;
 }
 
-const apri = (indirizzo = PERCORSO) => renderPagina(Pagina, PERCORSO, indirizzo);
+/** Dal 04/11/2026 l'anno e' obbligatorio: un indirizzo senza anno si apre col 2025 (l'anno della fixture). */
+const conAnno = (indirizzo: string) => (/[?&]anno=/.test(indirizzo) ? indirizzo : `${indirizzo}${indirizzo.includes('?') ? '&' : '?'}anno=2025`);
+const apri = (indirizzo = PERCORSO) => renderPagina(Pagina, PERCORSO, conAnno(indirizzo));
+const apriSenzaAnno = (indirizzo = PERCORSO) => renderPagina(Pagina, PERCORSO, indirizzo);
 const h1 = () => screen.getByRole('heading', { level: 1, name: TITOLO });
 const tabella = () => screen.findByRole('table', { name: /^Verifica SMP non SIGC: / });
 /** La card "Dati per intervento" della tabella: i suoi CSV e XLSX hanno lo stesso nome di quelli della card del grafico. */
@@ -41,6 +44,20 @@ const sezioneDellaTabella = (t: HTMLElement) => t.closest('section') as HTMLElem
 afterEach(() => vi.restoreAllMocks());
 
 describe('RF016: i dati ASR non SIGC per intervento, da confrontare con SMP - Data Platform (TX-0016)', () => {
+  it("senza anno nell'indirizzo (obbligatorio dal 04/11/2026): 'Scegli l'anno di riferimento da consultare.', nessuna lettura di TX-0016", async () => {
+    const lette = servi();
+    apriSenzaAnno(`${PERCORSO}?intervento=SRD01`);
+    expect(await screen.findByText("Scegli l'anno di riferimento da consultare.")).toBeTruthy();
+    const selettore = screen.getByRole('combobox', { name: 'Anno di riferimento del monitoraggio SMP non SIGC' }) as HTMLSelectElement;
+    expect(selettore.options[0].textContent).toBe('Scegli un anno');
+    expect(screen.queryByRole('table', { name: /^Verifica SMP non SIGC: / })).toBeNull();
+    expect(lette.verifica).toEqual([]);
+    await userEvent.selectOptions(selettore, '2025');
+    await userEvent.click(screen.getByRole('button', { name: 'Mostra' }));
+    expect(await tabella()).toBeTruthy();
+    expect(lette.verifica).toEqual(['?intervento=SRD01&anno=2025']);
+  });
+
   it('una lettura coi criteri dell indirizzo; con l anno i dati dell avviso del file piu recente non ci sono (ANNO_NON_CONSERVATO)', async () => {
     const lette = servi();
     apri(`${PERCORSO}?intervento=SRD01&os=OS4&anno=2024`);
@@ -116,7 +133,7 @@ describe('RF016: i dati ASR non SIGC per intervento, da confrontare con SMP - Da
     apri(`${PERCORSO}?intervento=SRD01&azione=3`);
     await tabella();
     // qui l'azione non si applica (TX-0016 letta senza), ma resta nell'indirizzo e passa all'altra verifica
-    expect(lette.verifica).toEqual(['?intervento=SRD01']);
+    expect(lette.verifica).toEqual(['?intervento=SRD01&anno=2025']);
     expect(screen.getByRole('link', { name: 'Verifica SMP SIGC' }).getAttribute('href')).toBe('/istituzionale/verifica-smp-sigc?intervento=SRD01&azione=3');
   });
 
@@ -134,7 +151,7 @@ describe('RF016: i dati ASR non SIGC per intervento, da confrontare con SMP - Da
     const { router } = apri(`${PERCORSO}?intervento=SRD01`);
     await tabella();
     const select = screen.getByRole('combobox', { name: 'Anno di riferimento del monitoraggio SMP non SIGC' });
-    expect(within(select).getAllByRole('option')[0].textContent).toBe('Ultimo anno con un file (predefinito)');
+    expect(within(select).getAllByRole('option')[0].textContent).toBe('Scegli un anno');
     expect(select.getAttribute('aria-describedby')).toBe('f-anno-smp-aiuto');
     await userEvent.selectOptions(select, '2024');
     expect(lette.verifica).toHaveLength(1);
@@ -155,13 +172,14 @@ describe('RF016: i dati ASR non SIGC per intervento, da confrontare con SMP - Da
     await waitFor(() => expect(`${router.state.location.pathname}${router.state.location.search}`).toBe('/istituzionale/interventi/SRA16?anno=2024'));
   });
 
-  it('clic su una barra del grafico: il dettaglio dell intervento (senza anno scelto, nessun anno nell indirizzo)', async () => {
+  it('clic su una barra del grafico: il dettaglio dell intervento (con l anno scelto nell indirizzo)', async () => {
     servi();
     const { router } = apri();
     const grafico = graficoDi(await trovaCard(CARD));
     if (!grafico) throw new Error('grafico assente');
     clicSulDato(grafico, 0, 2);
-    await waitFor(() => expect(`${router.state.location.pathname}${router.state.location.search}`).toBe('/istituzionale/interventi/SRD01'));
+    // l'anno e' sempre scelto (obbligatorio dal 04/11/2026): il dettaglio si apre con quell'anno
+    await waitFor(() => expect(`${router.state.location.pathname}${router.state.location.search}`).toBe('/istituzionale/interventi/SRD01?anno=2025'));
   });
 
   it('OP-IS-09: Apri nell elenco e Apri nei pagamenti solo con un valore positivo (zero: nessun link verso un elenco vuoto)', async () => {
@@ -246,9 +264,11 @@ describe('RF016: i dati ASR non SIGC per intervento, da confrontare con SMP - Da
   });
 
   it('nessun file SMP non SIGC (annoRiferimento null): lo stato dichiarato e i dati delle pratiche restano', async () => {
-    servi({ verifica: { ...VERIFICA, annoRiferimento: null } });
+    // con l'anno scelto il backend risponde con quell'anno: lo stato resta per una risposta senza anno di riferimento
+    servi();
+    server.use(http.get('*/api/istituzionale/verifica-smp-non-sigc', () => HttpResponse.json({ ...VERIFICA, annoRiferimento: null })));
     apri();
-    const stato = await screen.findByText(/^Nessun file SMP non SIGC acquisito: /);
+    const stato = await screen.findByText(/^Nessun file SMP non SIGC acquisito per l'anno scelto: /);
     expect(stato.closest('[role="status"]')).not.toBeNull();
     expect(screen.getByText('Anno di riferimento del file SMP non SIGC: nessun file')).toBeTruthy();
     expect(within(await tabella()).getAllByRole('rowheader')).toHaveLength(3);
@@ -306,13 +326,14 @@ describe('RF016: i dati ASR non SIGC per intervento, da confrontare con SMP - Da
     let pannello = await screen.findByRole('dialog', { name: 'Filtri dei report istituzionali' });
     await userEvent.click(within(pannello).getByRole('button', { name: 'Applica i filtri' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
-    expect(router.state.location.search).toBe('?azione=3');
+    expect(router.state.location.search).toBe('?azione=3&anno=2025');
     await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Modifica i filtri' })));
     await userEvent.click(screen.getByRole('button', { name: 'Modifica i filtri' }));
     pannello = await screen.findByRole('dialog', { name: 'Filtri dei report istituzionali' });
     await userEvent.click(within(pannello).getByRole('button', { name: 'Azzera' }));
     await userEvent.click(within(pannello).getByRole('button', { name: 'Applica i filtri' }));
-    await waitFor(() => expect(router.state.location.search).toBe(''));
+    // Azzera toglie i filtri, non l'anno (parametro della pagina)
+    await waitFor(() => expect(router.state.location.search).toBe('?anno=2025'));
     await waitFor(() => expect(document.activeElement).toBe(h1()));
     await tabella();
     expect(document.activeElement).toBe(h1());
@@ -356,7 +377,7 @@ describe("RA006: valori dei filtri della verifica da TX-0060 dell'elenco operati
     expect(within(pannello).getByRole('status').textContent).toMatch(/^Valori dei filtri non disponibili/);
     expect(within(pannello).getByRole('checkbox', { name: 'SRD01' })).toBeTruthy();
     expect(lette.filtri).toBe(0);
-    expect(lette.verifica).toEqual(['']);
+    expect(lette.verifica).toEqual(['?anno=2025']);
   });
 
   it('TX-0060 in errore: lo stato della pagina col motivo e Riprova; riuscito il nuovo tentativo lo stato sparisce e il focus va sul titolo', async () => {
@@ -394,7 +415,7 @@ describe("RA006: valori dei filtri della verifica da TX-0060 dell'elenco operati
     expect(lette.verifica).toEqual([]);
     await act(async () => t.libera());
     await tabella();
-    expect(lette.verifica).toEqual(['?os=OS4']);
+    expect(lette.verifica).toEqual(['?os=OS4&anno=2025']);
     expect(screen.getByText(/3 \(non applicato: il legame con le azioni portanti viene da una fonte non attiva\)/)).toBeTruthy();
   });
 

@@ -51,10 +51,10 @@ describe('RA006: interrogazione libera delle domande con il sinottico sopra e i 
     renderPagina(ElencoDomande, '/elenco-operativo/domande');
     expect(await screen.findByRole('heading', { level: 1, name: 'Elenco operativo delle domande' })).toBeTruthy();
     const kpi = await screen.findByRole('region', { name: 'Domande' });
-    expect(kpi.textContent).toContain('1284');
+    expect(kpi.textContent).toContain('1.284');
     expect(kpi.textContent).toContain('di sostegno 412 - di pagamento 872');
     const tabella = await screen.findByRole('table', { name: /Elenco operativo delle domande, vista generale/ });
-    expect(within(tabella).getAllByRole('rowheader').map((c) => c.textContent)).toEqual(['04230000001', '54230000001', "Totale dell'insieme filtrato: 1284 domande"]);
+    expect(within(tabella).getAllByRole('rowheader').map((c) => c.textContent)).toEqual(['04230000001', '54230000001', "Totale dell'insieme filtrato: 1.284 domande"]);
     // il piede porta il richiesto del sinottico (12.345.678,90), non la somma delle due righe (15.000)
     const piede = tabella.querySelector('tfoot');
     expect(piede?.textContent?.replace(/\s/g, ' ')).toContain('12.345.678,90');
@@ -182,7 +182,7 @@ describe('RA006: filtri dal vivo nel pannello, senza Applica', () => {
     await screen.findByRole('table', { name: /Elenco operativo delle domande/ });
     await userEvent.click(screen.getByRole('button', { name: /Filtri/ }));
     const dialogo = await screen.findByRole('dialog');
-    expect(within(dialogo).getByRole('status').textContent).toBe('1284 domande con questi filtri');
+    expect(within(dialogo).getByRole('status').textContent).toBe('1.284 domande con questi filtri');
     await userEvent.click(await within(dialogo).findByRole('button', { name: 'Solo presentate' }));
     // dopo il ritardo del debounce (RITARDO_MS)
     await waitFor(() => expect(router.state.location.search).toBe('?presentata=true'));
@@ -193,8 +193,8 @@ describe('RA006: filtri dal vivo nel pannello, senza Applica', () => {
 
   // review v2 X-05: il conteggio dal vivo non dice mai il numero vecchio come se fosse dei filtri nuovi
   it.each([
-    [ElencoDomande, '/elenco-operativo/domande', '*/api/elenco-operativo/domande', PAGINA_DOMANDE, '1284 domande con questi filtri', '17 domande con questi filtri'],
-    [ElencoPagamenti, '/elenco-operativo/pagamenti', '*/api/elenco-operativo/pagamenti', PAGINA_PAGAMENTI, '3 righe di pagamento con questi filtri', '17 righe di pagamento con questi filtri'],
+    [ElencoDomande, '/elenco-operativo/domande', '*/api/elenco-operativo/domande', PAGINA_DOMANDE, '1.284 domande con questi filtri', '17 domande con questi filtri'],
+    [ElencoPagamenti, '/elenco-operativo/pagamenti', '*/api/elenco-operativo/pagamenti', PAGINA_PAGAMENTI, '3 pagamenti con questi filtri', '17 pagamenti con questi filtri'],
   ])("%#: dopo una scelta il pannello dice 'Conteggio in corso…' finche' arriva il numero nuovo", async (Pagina, percorso, api, pagina, prima, dopo) => {
     servi();
     const r = trattenuta();
@@ -242,8 +242,8 @@ describe('RA002: elenco operativo dei pagamenti del perimetro (TX-0059)', () => 
     servi();
     renderPagina(ElencoPagamenti, '/elenco-operativo/pagamenti');
     expect(await screen.findByRole('heading', { level: 1, name: 'Elenco operativo dei pagamenti' })).toBeTruthy();
-    expect((await screen.findByRole('region', { name: 'Righe pagate / escluse' })).textContent).toContain('2 / 1');
-    expect(screen.getByRole('region', { name: 'Decretato' }).textContent).toContain('1 riga senza importo');
+    expect((await screen.findByRole('region', { name: 'Pagamenti: pagati / esclusi' })).textContent).toContain('2 / 1');
+    expect(screen.getByRole('region', { name: 'Decretato' }).textContent).toContain('1 pagamento senza importo');
     const tabella = screen.getByRole('table', { name: /Elenco operativo dei pagamenti/ });
     expect(within(tabella).getByText('Pagata (domanda chiusa)')).toBeTruthy();
     expect(screen.getByText('Perimetro: ADA del tuo profilo')).toBeTruthy();

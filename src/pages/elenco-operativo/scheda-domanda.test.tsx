@@ -188,7 +188,7 @@ describe('RA004: schede Determine e Pagamenti con le colonne del wireframe appro
     apri('/elenco-operativo/domande/PAGAMENTO/54230000001');
     await screen.findByRole('heading', { level: 1, name: 'COOPERATIVA VERDI' });
     await userEvent.click(screen.getByRole('tab', { name: 'Pagamenti (1)' }));
-    const nome = 'Righe correnti degli elenchi di liquidazione della domanda';
+    const nome = 'Pagamenti della domanda (elenchi di liquidazione correnti)';
     const tabella = await screen.findByRole('table', { name: nome });
     expect(within(tabella).getAllByRole('columnheader').map((c) => c.textContent)).toEqual([
       'Decreto',
@@ -201,8 +201,8 @@ describe('RA004: schede Determine e Pagamenti con le colonne del wireframe appro
       'Quota regionale',
     ]);
     const riga = within(tabella).getAllByRole('row')[1];
-    // formato italiano degli importi: le migliaia si separano da 10.000 (minimumGroupingDigits 2)
-    expect(riga.textContent).toMatch(/1000,00.*1050,00.*450,00/);
+    // formato italiano degli importi: le migliaia si separano sempre (dal 04/11/2026, anche sotto 10.000)
+    expect(riga.textContent).toMatch(/1\.000,00.*1\.050,00.*450,00/);
     const pannello = screen.getByRole('tabpanel');
     await userEvent.click(within(pannello).getByText('Colonne'));
     await userEvent.click(within(pannello).getByRole('checkbox', { name: 'Protocollo' }));
@@ -217,7 +217,7 @@ describe('RA004: schede Determine e Pagamenti con le colonne del wireframe appro
     apri('/elenco-operativo/domande/PAGAMENTO/54230000001');
     await screen.findByRole('heading', { level: 1, name: 'COOPERATIVA VERDI' });
     await userEvent.click(screen.getByRole('tab', { name: 'Pagamenti (1)' }));
-    const tabella = await screen.findByRole('table', { name: 'Righe correnti degli elenchi di liquidazione della domanda' });
+    const tabella = await screen.findByRole('table', { name: 'Pagamenti della domanda (elenchi di liquidazione correnti)' });
     const celle = within(within(tabella).getAllByRole('row')[1]).getAllByRole('cell').map((c) => c.textContent);
     expect(celle).toEqual(['30/06/2025', 'Esclusa', 'Motivi di esclusione: M01, M02', '-', '-', '-', '-']);
   });
@@ -237,7 +237,7 @@ describe('RA004: schede Determine e Pagamenti con le colonne del wireframe appro
       'Contributo ammesso',
       'Differenza',
     ]);
-    expect(within(tabella).getAllByRole('row')[1].textContent).toMatch(/2000,00/);
+    expect(within(tabella).getAllByRole('row')[1].textContent).toMatch(/2\.000,00/);
     const pannello = screen.getByRole('tabpanel');
     await userEvent.click(within(pannello).getByText('Colonne'));
     expect(within(pannello).getAllByRole('checkbox').filter((c) => !(c as HTMLInputElement).checked).map((c) => c.parentElement?.textContent)).toEqual([

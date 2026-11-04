@@ -162,7 +162,7 @@ describe('TessereKpi, TabellaVoci e le card delle distribuzioni (CardStati, Card
     const atto = screen.getByRole('region', { name: 'Domande con atto di concessione' });
     expect(testo(atto.textContent)).toContain('Non disponibile: fonte atto di concessione non attiva');
     expect(within(atto).queryByRole('link')).toBeNull();
-    expect(testo(screen.getByRole('region', { name: 'Contributo ammesso' }).textContent)).toContain('su importo richiesto 1500,00 €: 53,3 %');
+    expect(testo(screen.getByRole('region', { name: 'Contributo ammesso' }).textContent)).toContain('su importo richiesto 1.500,00 €: 53,3 %');
     expect(testo(screen.getByRole('region', { name: 'Interventi attivati' }).textContent)).toContain('1 su 1');
   });
 

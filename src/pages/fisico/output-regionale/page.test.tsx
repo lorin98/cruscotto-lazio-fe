@@ -43,7 +43,7 @@ describe('RF017: output programmato e realizzato della Regione Lazio per interve
     expect(within(t).getAllByRole('rowheader').map((c) => c.textContent)).toEqual(['SRA01', 'SRD01']);
     expect(intestazioni(t).slice(5)).toEqual(['2023', '2024', '2025', '2026', '2027', '2028', '2029']);
     const sra01 = within(t).getByRole('row', { name: "Apri l'anteprima dell'intervento SRA01" });
-    expect(testo(sra01.textContent)).toContain('1500 ettari');
+    expect(testo(sra01.textContent)).toContain('1.500 ettari');
     expect(testo(sra01.textContent)).toContain('500 ettari');
     expect(testo(sra01.textContent)).toContain('non valorizzatoil dato non è presente nella fonte');
     expect(screen.getByText('Periodo: 2023 - 2029')).toBeTruthy();
@@ -105,7 +105,7 @@ describe('RF017: output programmato e realizzato della Regione Lazio per interve
     riga.focus();
     await userEvent.keyboard('{Enter}');
     const drawer = await screen.findByRole('dialog', { name: 'Anteprima: SRA01' });
-    expect(testo(drawer.textContent)).toContain('Target di fine periodo1500 ettari al 2029');
+    expect(testo(drawer.textContent)).toContain('Target di fine periodo1.500 ettari al 2029');
     const mini = await trovaCard('Output di SRA01 per anno');
     expect(within(await tabellaDi(mini)).getAllByRole('rowheader').map((c) => c.textContent)).toEqual(['2023', '2024', '2025', '2026', '2027', '2028', '2029', 'Target di fine periodo']);
     expect(within(mini).queryByRole('group', { name: /^Scarica/ })).toBeNull();

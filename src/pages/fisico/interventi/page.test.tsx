@@ -62,7 +62,7 @@ describe("RF017: output programmato e realizzato dell'intervento per anno (TX-00
     const lette = servi();
     apri('/fisico/interventi/SRA01');
     expect(await screen.findByRole('heading', { level: 1, name: 'Produzione integrata' })).toBeTruthy();
-    expect(testo((await kpi('Target di fine periodo')).textContent)).toContain('1500 ettari al 2029');
+    expect(testo((await kpi('Target di fine periodo')).textContent)).toContain('1.500 ettari al 2029');
     expect(lette.output).toEqual(['?intervento=SRA01']);
     expect(lette.superfici).toEqual(['?intervento=SRA01']);
     expect(lette.unitAmount).toEqual([]);
@@ -109,7 +109,7 @@ describe("RF017: output programmato e realizzato dell'intervento per anno (TX-00
     servi();
     apri('/fisico/interventi/SRA01');
     const card = await trovaCard(OUTPUT_SRA01);
-    expect(descrizioneDi(card)).toMatch(/Target di fine periodo: 1500 ettari al 2029\.$/);
+    expect(descrizioneDi(card)).toMatch(/Target di fine periodo: 1.500 ettari al 2029\.$/);
     expect(within(card).getAllByRole('button', { name: /^Scarica / }).map((b) => b.getAttribute('aria-label'))).toEqual([
       'Scarica il grafico Output programmato e realizzato per anno in PNG',
       "Scarica l'output e gli importi unitari dell'intervento SRA01 in CSV",

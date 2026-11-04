@@ -128,7 +128,7 @@ describe('Revisioni del 31/10/2026: residuo sui pagamenti per intervento con le 
     expect(await screen.findByRole('region', { name: 'Avanzamento rispetto ai pagamenti effettuati' })).toBeTruthy();
     const riga = within(sezione).getByRole('row', { name: /SRA01/ });
     expect(riga.textContent).toContain('220.000,00');
-    await userEvent.click(within(riga).getByRole('button', { name: "Sì: 2 righe: apri le rettifiche dell'intervento SRA01" }));
+    await userEvent.click(within(riga).getByRole('button', { name: "Sì: 2 rettifiche: apri le rettifiche dell'intervento SRA01" }));
     const pannello = await screen.findByRole('dialog', { name: 'SRA01' });
     const righe = within(pannello).getByRole('table', { name: "Rettifiche dell'intervento SRA01" });
     expect(righe.textContent).toContain('CSR 2023-2027 (nel netto)');

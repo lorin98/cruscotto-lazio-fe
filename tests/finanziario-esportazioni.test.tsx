@@ -109,7 +109,7 @@ describe('ogni pulsante CSV delle pagine scarica la transazione della sua card (
     const richieste = registraEsportazioni();
     conRouter(<DotazioneReport filtri={SRA01} />);
     expect(await scaricaOgniCsv(richieste, 3)).toEqual([
-      ['Scarica il grafico Dotazione e pagamenti per intervento in CSV', 'spesa-per-intervento'],
+      ['Scarica il grafico Dotazione, impegnato e pagamenti per intervento in CSV', 'spesa-per-intervento'],
       ['Scarica il grafico Quota FEASR e non FEASR della dotazione in CSV', 'distribuzione-dotazione'],
       ['Scarica la tabella Spesa pubblica per intervento (RF002) in CSV', 'spesa-per-intervento'],
     ]);

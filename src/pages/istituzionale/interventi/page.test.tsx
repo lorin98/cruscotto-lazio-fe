@@ -25,7 +25,10 @@ function servi(basi?: Parameters<typeof lettureIstituzionale>[0]) {
   return lette;
 }
 
-const apri = (indirizzo: string) => renderPagina(Pagina, PERCORSO, indirizzo);
+/** Dal 04/11/2026 l'anno e' obbligatorio: un indirizzo senza anno ne' esercizio si apre col 2025 (l'anno della fixture). */
+const conAnno = (indirizzo: string) =>
+  /[?&](anno|esercizio)=/.test(indirizzo) ? indirizzo : `${indirizzo}${indirizzo.includes('?') ? '&' : '?'}anno=2025`;
+const apri = (indirizzo: string) => renderPagina(Pagina, PERCORSO, conAnno(indirizzo));
 const kpi = (nome: string) => screen.findByRole('region', { name: nome });
 const voci = () => screen.findByRole('table', { name: /^I dati ASR non SIGC dell'intervento/ });
 /** La riga della voce con l'etichetta data (intestazione di riga esatta). */
@@ -39,7 +42,7 @@ describe("RF016: testata, KPI e scheda dell'intervento (TX-0016 filtrata sull'in
     const lette = servi();
     apri('/istituzionale/interventi/SRA01');
     expect(await screen.findByRole('heading', { level: 1, name: 'Produzione integrata' })).toBeTruthy();
-    expect(lette.verifica).toEqual(['?intervento=SRA01']);
+    expect(lette.verifica).toEqual(['?intervento=SRA01&anno=2025']);
     expect(screen.getByText('Istituzionale - intervento SRA01')).toBeTruthy();
     expect(within(screen.getByRole('list', { name: 'Dati principali' })).getAllByRole('listitem').map((l) => l.textContent)).toEqual(['Perimetro regionale']);
     // SRA01 e' SIGC: zero domande e zero spesa non SIGC, conteggi veri
@@ -52,7 +55,7 @@ describe("RF016: testata, KPI e scheda dell'intervento (TX-0016 filtrata sull'in
     ]);
     expect(screen.queryByRole('link', { name: 'Output regionale filtrato su questo intervento' })).toBeNull();
     await voci();
-    expect(lette.verifica).toEqual(['?intervento=SRA01']);
+    expect(lette.verifica).toEqual(['?intervento=SRA01&anno=2025']);
   });
 
   it('un solo h1 col focus e il titolo del documento dal codice; la barra dei riferimenti; nessuna violazione axe', async () => {
@@ -122,7 +125,7 @@ describe("RF016: la verifica SMP non SIGC dell'intervento (TX-0016 filtrata sull
     server.use(
       http.get('*/api/istituzionale/verifica-smp-non-sigc', async ({ request }) => {
         const p = new URL(request.url).searchParams;
-        if (p.has('anno')) await t.attesa;
+        if (p.get('anno') === '2024') await t.attesa;
         return HttpResponse.json(verificaPer(VERIFICA, p));
       }),
     );
@@ -161,7 +164,7 @@ describe("RF016: la verifica SMP non SIGC dell'intervento (TX-0016 filtrata sull
     const stato = (await screen.findByText(/^Nessun dato per questo intervento nella verifica SMP/)).closest('[role="status"]') as HTMLElement;
     expect(screen.queryAllByRole('tab')).toHaveLength(0);
     expect(within(stato).queryByRole('link', { name: "Torna all'output regionale" })).toBeNull();
-    expect(lette.verifica).toEqual(['?intervento=AT001']);
+    expect(lette.verifica).toEqual(['?intervento=AT001&anno=2025']);
     await userEvent.click(within(stato).getByRole('link', { name: 'Torna alla verifica SMP non SIGC' }));
     await waitFor(() => expect(router.state.location.pathname).toBe('/istituzionale/verifica-smp-non-sigc'));
   });
@@ -280,7 +283,7 @@ describe("RF015: la scheda Verifica SMP SIGC dell'intervento (TX-0015 filtrata s
     await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Esercizio finanziario' }), '2025');
     const mostra = screen.getByRole('button', { name: 'Mostra' });
     await userEvent.click(mostra);
-    await waitFor(() => expect(router.state.location.search).toBe('?esercizio=2025'));
+    await waitFor(() => expect(router.state.location.search).toBe('?anno=2025&esercizio=2025'));
     await vociSigc();
     expect(lette.verificaSigc).toEqual(['?intervento=SRA01&esercizio=2025']);
     expect(document.activeElement).toBe(mostra);
@@ -289,7 +292,7 @@ describe("RF015: la scheda Verifica SMP SIGC dell'intervento (TX-0015 filtrata s
     await userEvent.keyboard('{ArrowLeft}');
     await waitFor(() => expect(nonSigc.getAttribute('aria-selected')).toBe('true'));
     await voci();
-    expect(lette.verifica).toEqual(['?intervento=SRA01']);
+    expect(lette.verifica).toEqual(['?intervento=SRA01&anno=2025']);
   });
 
   it('un altro esercizio con Mostra: i dati di prima restano con lo stato detto in role=status e aria-busy, poi quelli nuovi', async () => {
@@ -418,7 +421,8 @@ describe("RF015: la scheda Verifica SMP SIGC dell'intervento (TX-0015 filtrata s
     profilo(['csr.tx-0016.read', 'csr.tx-0060.read']);
     const lette = servi();
     apri('/istituzionale/interventi/SRA01?esercizio=2025');
-    await voci();
+    // senza la scheda SIGC resta la non SIGC, che senza anno chiede di sceglierlo (04/11/2026)
+    await screen.findByText("Scegli l'anno di riferimento da consultare.");
     expect(screen.queryByRole('link', { name: 'Verifica SMP SIGC filtrata su questo intervento' })).toBeNull();
     expect(screen.getAllByRole('tab').map((s) => s.textContent)).toEqual(['Verifica SMP non SIGC']);
     expect(lette.verificaSigc).toEqual([]);

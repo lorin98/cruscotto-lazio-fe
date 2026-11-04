@@ -226,10 +226,10 @@ describe('etichette e anni', () => {
     expect(perimetroBreve('REGIONALE')).toBe('regionale');
   });
   it('etichettaFaseRiserva con le date dell anno n', () => {
-    expect(etichettaFaseRiserva('NON_INIZIATA', 2025)).toBe("non iniziata (l'accumulo parte il 1/10/2025)");
-    expect(etichettaFaseRiserva('ACCUMULO', 2025)).toBe('accumulo (dal 1/10/2025 al 30/6/2026)');
+    expect(etichettaFaseRiserva('NON_INIZIATA', 2025)).toBe("non iniziata (l'accumulo parte il 01/10/2025)");
+    expect(etichettaFaseRiserva('ACCUMULO', 2025)).toBe('accumulo (dal 01/10/2025 al 30/06/2026)');
     expect(etichettaFaseRiserva('UTILIZZO', 2025)).toBe('utilizzo (fino al 31/12/2026)');
-    expect(etichettaFaseRiserva('RESIDUO', 2025)).toBe('residuo (2% del montante, dal 1/1/2027)');
+    expect(etichettaFaseRiserva('RESIDUO', 2025)).toBe('residuo (2% del montante, dal 01/01/2027)');
     expect(etichettaFaseRiserva(null, 2025)).toBe('non disponibile');
   });
   it('etichettaFaseRiserva: una fase che il contratto non conosce resta "non disponibile", anche un nome del prototipo', () => {
@@ -344,13 +344,13 @@ describe('riserva: calendario, fase di oggi, importi dell istantanea', () => {
     expect(calendarioRiserva(2029).inizioResiduo).toBe('2031-01-01');
   });
   it('dataBreve: giorno e mese senza zeri iniziali', () => {
-    expect(dataBreve('2025-10-01')).toBe('1/10/2025');
-    expect(dataBreve('2026-06-30')).toBe('30/6/2026');
+    expect(dataBreve('2025-10-01')).toBe('01/10/2025');
+    expect(dataBreve('2026-06-30')).toBe('30/06/2026');
     expect(dataBreve('2026-12-31')).toBe('31/12/2026');
   });
   it('aiutoRiserva: le fasi in generale, o con le date dell anno scelto', () => {
     expect(aiutoRiserva()).toBe('Accumulo dal 1 ottobre n al 30 giugno n+1, utilizzo fino al 31 dicembre n+1, residuo dal 1 gennaio n+2.');
-    expect(aiutoRiserva(2025)).toBe('Per il 2025: accumulo dal 1/10/2025 al 30/6/2026, utilizzo fino al 31/12/2026, residuo dal 1/1/2027.');
+    expect(aiutoRiserva(2025)).toBe('Per il 2025: accumulo dal 01/10/2025 al 30/06/2026, utilizzo fino al 31/12/2026, residuo dal 01/01/2027.');
   });
   it('inizioFase e istantaneaAnteriore', () => {
     expect(inizioFase('ACCUMULO', 2025)).toBe('2025-10-01');
@@ -363,12 +363,12 @@ describe('riserva: calendario, fase di oggi, importi dell istantanea', () => {
     expect(istantaneaAnteriore('ACCUMULO', 2025, null)).toBe(false);
   });
   it('testoCongelato e testoResiduo', () => {
-    expect(testoCongelato(null, 2025, null)).toBe("non ancora congelato nell'istantanea: si congela al 30/6/2026");
-    expect(testoCongelato(null, 2025, '2026-03-01')).toBe("non ancora congelato all'estrazione del 01/03/2026: si congela al 30/6/2026");
+    expect(testoCongelato(null, 2025, null)).toBe("non ancora congelato nell'istantanea: si congela al 30/06/2026");
+    expect(testoCongelato(null, 2025, '2026-03-01')).toBe("non ancora congelato all'estrazione del 01/03/2026: si congela al 30/06/2026");
     expect(n(testoCongelato(500, 2025, '2026-12-31'))).toBe('500,00 €');
-    expect(testoResiduo(null, 2025, null, '2026-05-01')).toBe("non ancora calcolato nell'istantanea: si calcola al congelamento del 30/6/2026");
+    expect(testoResiduo(null, 2025, null, '2026-05-01')).toBe("non ancora calcolato nell'istantanea: si calcola al congelamento del 30/06/2026");
     expect(n(testoResiduo(200, 2025, '2026-09-30', '2026-10-08'))).toBe(
-      '200,00 € previsto: disponibile dal 1/1/2027 se la riserva non è utilizzata completamente entro il 31/12/2026',
+      '200,00 € previsto: disponibile dal 01/01/2027 se la riserva non è utilizzata completamente entro il 31/12/2026',
     );
     expect(n(testoResiduo(200, 2025, '2026-12-31', '2027-01-01'))).toBe('200,00 €');
   });

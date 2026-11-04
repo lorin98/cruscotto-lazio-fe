@@ -450,7 +450,7 @@ describe('procedurale: testi, KPI e assenze', () => {
     ]);
     expect(kpi[0].elenco).toEqual({ id: 'elenco-ammesse-panoramica', punto: { voceProgrammazione: 'AMMESSA', intervento: undefined }, descrizione: 'le domande ammesse' });
     expect(kpi[1].elenco).toBeUndefined();
-    expect(n(kpi[2].nota ?? '')).toBe('su importo richiesto 1500,00 €: 53,3 %');
+    expect(n(kpi[2].nota ?? '')).toBe('su importo richiesto 1.500,00 €: 53,3 %');
     const conAtto = kpiDelleAmmesse(RIGA('SRD01'), { criteri: { stato: ['REVOCATA'] }, link: { ammesse: 'elenco-ammesse-intervento', conAtto: 'elenco-con-atto-intervento' }, intervento: 'SRD01' });
     expect(conAtto[0].elenco).toBeUndefined();
     const atto = kpiDelleAmmesse(ammessePer(q('intervento=SRD01'), { atto: true }).righe?.[0] as RigaAmmesse, { criteri: {}, link: { ammesse: 'elenco-ammesse-intervento', conAtto: 'elenco-con-atto-intervento' }, intervento: 'SRD01' });
@@ -592,7 +592,7 @@ describe('procedurale: builder dei grafici (tabella equivalente, valori assenti 
     const righe = AMMESSE.righe ?? [];
     const importi = graficoImporti(righe, 'Importo richiesto e contributo ammesso per intervento');
     expect(importi.omessi).toEqual(['SRA01, importo richiesto: non valorizzato (il dato non è presente nella fonte)', 'SRA01, contributo ammesso: non valorizzato (il dato non è presente nella fonte)']);
-    expect(n(importi.tabella.righe[1].join('|'))).toBe('SRD01|1500,00 €|800,00 €');
+    expect(n(importi.tabella.righe[1].join('|'))).toBe('SRD01|1.500,00 €|800,00 €');
     expect(n(testoImporto({ valore: 300 }))).toBe('300,00 €');
     const atto = graficoAmmesseConAtto(righe, 'Domande ammesse e con atto di concessione per intervento');
     expect(serie(atto.opzioni).map((s) => s.name)).toEqual(['Domande ammesse']);

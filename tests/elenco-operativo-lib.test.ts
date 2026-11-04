@@ -431,6 +431,8 @@ describe("elenco operativo, l'indirizzo dice solo cio' che il backend accetta (r
 
   it("ordinamento attivo in parole, ritorno al predefinito, ultima pagina (review v1 X-04)", () => {
     expect(testoOrdinamento('Liquidato', { campo: 'liquidato', verso: 'desc' })).toBe('Ordinate per Liquidato, decrescente');
+    // i pagamenti (04/11/2026: non piu' righe) concordano al maschile
+    expect(testoOrdinamento('Pagato', { campo: 'pagato', verso: 'desc' }, true)).toBe('Ordinati per Pagato, decrescente');
     expect(ordinamentoPredefinito({ campo: 'codiceABarre', verso: 'asc' }, 'domande')).toBe(true);
     expect(ordinamentoPredefinito({ campo: 'codiceABarre', verso: 'desc' }, 'domande')).toBe(false);
     expect(senzaOrdinamento({ intervento: ['SRA01'], ordina: ['liquidato:desc'], pagina: ['2'] })).toEqual({ intervento: ['SRA01'] });
@@ -456,7 +458,7 @@ describe('elenco operativo, testi rivisti di chip, aggregati e contesto (review 
     expect(testoAggregato(euro(5000), 'liquidato')).toEqual({ valore: formatEuro(5000), pieno: formatEuro(5000) });
     expect(testoAggregato(euro(5_000_000), 'liquidato').valore).toMatch(/^5,0\s?M€$/);
     expect(testoAggregato(euro(null, 'NON_VALORIZZATO'), 'recuperato')).toEqual({ valore: 'non calcolabile', nota: "un recupero dell'insieme non ha l'importo" });
-    expect(testoAggregato(undefined, 'liquidato').nota).toBe("una riga di liquidazione dell'insieme non ha l'importo");
+    expect(testoAggregato(undefined, 'liquidato').nota).toBe("un pagamento dell'insieme non ha l'importo");
   });
 
   it("righe di contesto dei PNG col perimetro della risposta", () => {

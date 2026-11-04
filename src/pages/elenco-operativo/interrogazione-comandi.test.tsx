@@ -143,7 +143,7 @@ describe('RA006: filtri dal vivo nel pannello, col ritardo dichiarato e senza Ap
 describe("RA006: importi scritti all'italiana, mai riscritti mentre si scrive (review v2 X-01)", () => {
   it.each([
     ['10.000', '10000', /^Togli il filtro Richiesto da 10\.000,00/],
-    ['1.500,50', '1500.50', /^Togli il filtro Richiesto da 1500,50/],
+    ['1.500,50', '1500.50', /^Togli il filtro Richiesto da 1\.500,50/],
     ['10,5', '10.5', /^Togli il filtro Richiesto da 10,50/],
   ])('"%s" resta nel campo come scritto; indirizzo %s e chip', async (testo, inIndirizzo, chip) => {
     const { router, dialogo } = await pannelloAperto();
@@ -163,13 +163,13 @@ describe('RA002: tastiera, ordinamento e colonne della tabella (review v1 X-02, 
     const richieste = servi();
     const { router } = renderPagina(ElencoDomande, '/elenco-operativo/domande');
     await tabellaDomande();
-    const select = screen.getByRole('combobox', { name: 'Righe per pagina' });
+    const select = screen.getByRole('combobox', { name: 'Domande per pagina' });
     select.focus();
     // come una freccia sulla select chiusa in Windows: il valore cambia ed emette change
     fireEvent.change(select, { target: { value: '50' } });
     await waitFor(() => expect(router.state.location.search).toBe('?dimensione=50'));
     await waitFor(() => expect(richieste).toContain('domande?dimensione=50'));
-    expect(document.activeElement).toBe(screen.getByRole('combobox', { name: 'Righe per pagina' }));
+    expect(document.activeElement).toBe(screen.getByRole('combobox', { name: 'Domande per pagina' }));
   });
 
   // review v2 X-02: la navigazione e' una transizione; la select mostra subito la scelta, senza tornare indietro
@@ -177,7 +177,7 @@ describe('RA002: tastiera, ordinamento e colonne della tabella (review v1 X-02, 
     servi();
     const { router } = renderPagina(ElencoDomande, '/elenco-operativo/domande');
     await tabellaDomande();
-    const select = screen.getByRole('combobox', { name: 'Righe per pagina' }) as HTMLSelectElement;
+    const select = screen.getByRole('combobox', { name: 'Domande per pagina' }) as HTMLSelectElement;
     // l'evento nativo, fuori da act() come nel browser: act() scaricherebbe anche la navigazione
     const scegli = (valore: string) => {
       select.value = valore;

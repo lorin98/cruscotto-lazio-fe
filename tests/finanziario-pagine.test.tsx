@@ -112,16 +112,16 @@ describe('pagine del finanziario (step6)', () => {
     renderPagina(PaginaDotazione, '/finanziario/dotazione', '/finanziario/dotazione?intervento=SRA01');
     // la data dell'ultimo dato arriva con TX-0001: la pill la mostra quando la lettura e' in cache
     await screen.findByRole('button', { name: /^Ultimo dato sincronizzato: dati al/ });
-    await userEvent.click(await screen.findByRole('button', { name: 'Scarica il grafico Dotazione e pagamenti per intervento in PNG' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Scarica il grafico Dotazione, impegnato e pagamenti per intervento in PNG' }));
     const intestazione = png.mock.calls[0][1].intestazione;
     expect(intestazione.slice(0, 5)).toEqual([
-      'Cruscotto CSR Lazio - Dotazione e pagamenti per intervento',
+      'Cruscotto CSR Lazio - Dotazione, impegnato e pagamenti per intervento',
       'Fonte: TX-0002 · Perimetro REGIONALE',
       'Filtri applicati: Intervento: SRA01',
       'Profilo: P1',
       'Ultimo dato sincronizzato: DS-12 02/03/2026 10:15; PROSA DS-04 03/03/2026 09:30',
     ]);
-    expect((clic.mock.contexts[0] as HTMLAnchorElement).download).toBe('dotazione-e-pagamenti-per-intervento-tx-0002.png');
+    expect((clic.mock.contexts[0] as HTMLAnchorElement).download).toBe('dotazione-impegnato-e-pagamenti-per-intervento-tx-0002.png');
     clic.mockRestore();
   });
 

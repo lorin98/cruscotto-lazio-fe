@@ -213,7 +213,7 @@ describe('RF016 e RF015: testi (perimetro, anno, esercizio, quantita, assenze, d
     expect(periodoEsercizio(2023)).toBe('dal 16/10/2022 al 15/10/2023');
     expect(pillEsercizio(undefined)).toBe('Esercizio finanziario: non indicato');
     expect(testoAnnoDiRiferimento(2025, undefined)).toBe('2025 (ultimo anno con un file SMP non SIGC presente)');
-    expect(testoAnnoDiRiferimento(2024, 2024)).toBe('2024');
+    expect(testoAnnoDiRiferimento(2024, 2024)).toBe("2024 (l'anno scelto)");
     expect(testoAnnoDiRiferimento(null, 2023)).toBe('nessun file SMP non SIGC presente');
     expect([testoOutputErogato(true), testoOutputErogato(false)]).toEqual(['valore del file, cumulativo per anno di riferimento', 'valore del file per anno di riferimento']);
   });
@@ -232,7 +232,7 @@ describe('RF016 e RF015: testi (perimetro, anno, esercizio, quantita, assenze, d
   it('stati e definizioni dei wireframe approvati', () => {
     expect(testoVuoto(true)).toBe("Nessun intervento per i filtri scelti (per esempio un'azione portante senza interventi collegati).");
     expect(testoVuoto(false)).toBe('Nessun intervento nei report istituzionali.');
-    expect(NESSUN_FILE).toMatch(/^Nessun file SMP non SIGC acquisito: /);
+    expect(NESSUN_FILE).toMatch(/^Nessun file SMP non SIGC acquisito per l'anno scelto: /);
     expect(DEFINIZIONI_VERIFICA).toContain('solo saldate al 100% (definizione da confermare con ARSIAL)');
     expect(SCEGLI_ESERCIZIO).toBe("Scegli l'esercizio finanziario da consultare.");
     expect(NESSUN_DATO_SIGC).toBe("Nessun dato SIGC per l'esercizio e i filtri scelti. Scegli un altro esercizio oppure");
@@ -301,7 +301,7 @@ describe('RF016: i ventuno dati della verifica SMP non SIGC (TX-0016)', () => {
       expect(indirizzoDelDato({ ...SRD01, codiceIntervento: codice }, dato('spesaErogata'), tutto)).toBeNull();
     }
     expect(TESTI_LINK.ricevute('SRD01')).toEqual({ descrizione: "le domande di sostegno correnti dell'intervento SRD01" });
-    expect(TESTI_LINK.spesa('SRD01')).toEqual({ testo: 'Apri nei pagamenti', descrizione: "le righe pagate non SIGC dell'intervento SRD01" });
+    expect(TESTI_LINK.spesa('SRD01')).toEqual({ testo: 'Apri nei pagamenti', descrizione: "i pagamenti non SIGC con esito Pagata dell'intervento SRD01" });
   });
 
   it('riferimenti della risposta e testo della ricerca', () => {

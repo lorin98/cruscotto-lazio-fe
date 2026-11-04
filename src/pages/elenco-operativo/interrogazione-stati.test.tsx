@@ -146,7 +146,7 @@ describe('RA006: aggiornamento dichiarato, i dati precedenti restano visibili (r
     expect(piede?.textContent).not.toMatch(/12\.345\.678,90/);
     r.libera();
     await waitFor(() => expect(sinottico.getAttribute('aria-busy')).toBe('false'));
-    expect(within(sinottico).getByText('1284 domande con questi filtri')).toBeTruthy();
+    expect(within(sinottico).getByText('1.284 domande con questi filtri')).toBeTruthy();
   });
 
   it("pagamenti: righe e totali precedenti, aria-busy e avviso sulla card e sul sinottico finche' arrivano i nuovi (review v2 V-05)", async () => {
@@ -161,7 +161,7 @@ describe('RA006: aggiornamento dichiarato, i dati precedenti restano visibili (r
     renderPagina(ElencoPagamenti, '/elenco-operativo/pagamenti', '/elenco-operativo/pagamenti?esito=PAGATA');
     await screen.findByRole('table', { name: /Elenco operativo dei pagamenti/ });
     await userEvent.click(within(screen.getByRole('region', { name: 'Filtri attivi' })).getByRole('button', { name: /^Togli il filtro Esito/ }));
-    const sezione = screen.getByRole('region', { name: 'Righe di pagamento' });
+    const sezione = screen.getByRole('region', { name: 'Elenco dei pagamenti' });
     const sinottico = screen.getByRole('region', { name: /^Sinottico dell/ });
     await waitFor(() => expect(sezione.getAttribute('aria-busy')).toBe('true'));
     expect(sinottico.getAttribute('aria-busy')).toBe('true');
@@ -212,7 +212,7 @@ describe('RA006: fascia di importo ed errori delle letture nel pannello (review 
     expect(a.getAttribute('aria-invalid')).toBeNull();
     expect(a).toHaveProperty('value', '5000');
     const barra = screen.getByRole('region', { name: 'Filtri attivi', hidden: true });
-    expect(within(barra).getByRole('button', { name: /^Togli il filtro Richiesto fino a 5000,00/, hidden: true })).toBeTruthy();
+    expect(within(barra).getByRole('button', { name: /^Togli il filtro Richiesto fino a 5\.000,00/, hidden: true })).toBeTruthy();
   });
 
   it('un 400 del sinottico col pannello aperto si legge nel pannello (role=alert nel dialogo)', async () => {
@@ -412,7 +412,7 @@ describe('RA006: ogni lettura col suo grant (review v1 A-06)', () => {
     const richieste = servi(['csr.tx-0057.read', 'csr.tx-0060.read']);
     renderPagina(ElencoDomande, '/elenco-operativo/domande');
     expect((await screen.findByRole('alert')).textContent).toBe("Il tuo profilo non consulta l'elenco delle domande.");
-    expect((await screen.findByRole('region', { name: 'Domande' })).textContent).toContain('1284');
+    expect((await screen.findByRole('region', { name: 'Domande' })).textContent).toContain('1.284');
     expect(richieste.some((r) => r.startsWith('domande'))).toBe(false);
   });
 
@@ -441,10 +441,10 @@ describe("RA005: esportazione dell'elenco filtrato, limite delle righe e pagamen
     );
     const clic = salvataggio();
     renderPagina(ElencoDomande, '/elenco-operativo/domande');
-    // formato italiano: le migliaia si separano da 10.000
-    expect(await screen.findByText('I file contengono al più 2173 domande: restringi i filtri per scaricarli (ora 3000).')).toBeTruthy();
+    // formato italiano: le migliaia si separano sempre (dal 04/11/2026 anche sotto 10.000)
+    expect(await screen.findByText('I file contengono al più 2.173 domande: restringi i filtri per scaricarli (ora 3.000).')).toBeTruthy();
     await userEvent.click(screen.getByRole('button', { name: "Scarica l'elenco delle domande in CSV" }));
-    expect((await screen.findByRole('alert')).textContent).toBe('File CSV non scaricato. Troppe righe per un file: al più 2173 domande. Restringi i filtri e riprova.');
+    expect((await screen.findByRole('alert')).textContent).toBe('File CSV non scaricato. Troppi dati per un file: al più 2.173 domande. Restringi i filtri e riprova.');
     expect(clic).not.toHaveBeenCalled();
     clic.mockRestore();
   });

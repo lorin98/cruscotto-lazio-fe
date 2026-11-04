@@ -42,7 +42,7 @@ describe('RF026: domande ammesse, atto di concessione, importi e interventi atti
     const t = await tabella();
     expect(lette.ammesse).toEqual(['?og=OG2']);
     expect(within(t).getAllByRole('rowheader').map((c) => c.textContent)).toEqual(['SRA01 - Produzione integrata', 'SRD01 - Investimenti produttivi agricoli per la competitività', 'Totale (2 interventi del perimetro ufficiale, 2 attivati)']);
-    expect(testo(screen.getByRole('region', { name: 'Contributo ammesso' }).textContent)).toContain('su importo richiesto 1500,00 €: 53,3 %');
+    expect(testo(screen.getByRole('region', { name: 'Contributo ammesso' }).textContent)).toContain('su importo richiesto 1.500,00 €: 53,3 %');
     expect(document.activeElement).toBe(h1());
     expect(document.title).toBe('Domande ammesse - Procedurale - Cruscotto CSR 2023-2027');
     await trovaCard('Domande ammesse e con atto di concessione per intervento');

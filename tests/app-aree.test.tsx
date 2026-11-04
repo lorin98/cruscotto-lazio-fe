@@ -484,14 +484,14 @@ describe('RF016, RF018, RF026 e RF027: le card della Home coi profili del catalo
     expect(lette.sostegno).toEqual(['']);
   });
 
-  it('istituzionale: dalla Home alla verifica senza filtri ne anno, a lettura finita, una sola lettura di TX-0016', async () => {
+  it('istituzionale: dalla Home alla verifica senza filtri ne anno: la pagina chiede l anno (obbligatorio dal 04/11/2026), una sola lettura di TX-0016', async () => {
     const letture = registra(['/api/istituzionale/verifica-smp-non-sigc'], { '/api/istituzionale/verifica-smp-non-sigc': VERIFICA });
     apriHomeCon(['csr.tx-0016.read']);
     const card = await screen.findByRole('region', { name: 'Istituzionale' });
     expect(await within(card).findByText('Non SIGC: ultimo file SMP 2025.')).toBeTruthy();
     await userEvent.click(within(card).getByRole('link', { name: 'Entra in Istituzionale' }));
     expect(await screen.findByRole('heading', { level: 1, name: 'Istituzionale: verifica SMP non SIGC' })).toBeTruthy();
-    expect(await screen.findByRole('rowheader', { name: 'SRD01' })).toBeTruthy();
+    expect(await screen.findByText("Scegli l'anno di riferimento da consultare.")).toBeTruthy();
     expect(letture['/api/istituzionale/verifica-smp-non-sigc']).toBe(1);
   });
 });

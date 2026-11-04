@@ -20,7 +20,7 @@ describe('RF002: grafico e tabella per intervento con dotazione, impegnato e pag
   it('grafico con descrizione accessibile, tabella equivalente e tabella interattiva con le assenze dichiarate', async () => {
     servi();
     renderPagina(Pagina, '/finanziario/dotazione');
-    const card = await trovaCard('Dotazione e pagamenti per intervento');
+    const card = await trovaCard('Dotazione, impegnato e pagamenti per intervento');
     expect(graficoDi(card)).toBeTruthy();
     expect(descrizioneDi(card)).toMatch(/SRA01/);
     expect(within(await tabellaDi(card)).getAllByRole('rowheader').map((c) => c.textContent)).toEqual(['SRA01']);
@@ -36,7 +36,7 @@ describe('RF002: grafico e tabella per intervento con dotazione, impegnato e pag
   it("drill-down: il clic su una barra e su una riga apre il dettaglio dell'intervento, con la selezione nell'indirizzo", async () => {
     servi();
     const { router } = renderPagina(Pagina, '/finanziario/dotazione', '/finanziario/dotazione?os=SO4');
-    const card = await trovaCard('Dotazione e pagamenti per intervento');
+    const card = await trovaCard('Dotazione, impegnato e pagamenti per intervento');
     const grafico = graficoDi(card);
     expect(grafico).toBeTruthy();
     if (grafico) clicSu(grafico, { name: 'SRA01' });
@@ -51,7 +51,7 @@ describe('RF002: grafico e tabella per intervento con dotazione, impegnato e pag
   it('un clic fuori dagli interventi (nome non valido) non naviga', async () => {
     servi();
     const { router } = renderPagina(Pagina, '/finanziario/dotazione');
-    const grafico = graficoDi(await trovaCard('Dotazione e pagamenti per intervento'));
+    const grafico = graficoDi(await trovaCard('Dotazione, impegnato e pagamenti per intervento'));
     if (grafico) clicSu(grafico, { name: '../riepilogo' });
     expect(router.state.location.pathname).toBe('/finanziario/dotazione');
   });

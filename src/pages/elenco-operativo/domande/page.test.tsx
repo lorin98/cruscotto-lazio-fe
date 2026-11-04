@@ -31,7 +31,7 @@ describe('RA002: pagina /elenco-operativo/domande (TX-0056, TX-0057, TX-0060)', 
     const { container } = renderPagina(Pagina, '/elenco-operativo/domande');
     const tessera = await screen.findByRole('region', { name: 'Pagate / da pagare / senza importi' });
     const righe = within(tessera).getAllByRole('listitem').map((li) => li.textContent);
-    expect(righe).toEqual(['36.846 pagate', '31.595 da pagare', '3191 senza importi']);
+    expect(righe).toEqual(['36.846 pagate', '31.595 da pagare', '3.191 senza importi']);
     expect(tessera.textContent).not.toContain(' / 31.595');
     // pagate e da pagare si sovrappongono: la nota lo dice (decisione dell'utente del 02/11/2026)
     expect(tessera.textContent).toContain("una domanda pagata in parte e' tra le pagate e tra le da pagare");

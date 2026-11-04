@@ -20,7 +20,7 @@ describe('lib/format — puro, nullable-safe, locale it-IT', () => {
     expect(formatNumber(undefined)).toBe('-');
   });
   it('formatNumber: usa il locale it-IT', () => {
-    expect(formatNumber(1234)).toBe((1234).toLocaleString('it-IT'));
+    expect(formatNumber(1234)).toBe('1.234');
   });
   it('formatDate: vuoto -> ""; data non parsabile -> grezzo (non lancia)', () => {
     expect(formatDate(null)).toBe('');

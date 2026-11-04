@@ -39,7 +39,7 @@ describe("RF009: totale delle domande presentate e di prima annualita'", () => {
     servi();
     renderPagina(Pagina, '/finanziario/domande');
     // it-IT non raggruppa le migliaia nei numeri di quattro cifre
-    expect((await screen.findByRole('region', { name: 'Domande presentate' })).textContent).toContain('1200');
+    expect((await screen.findByRole('region', { name: 'Domande presentate' })).textContent).toContain('1.200');
     expect(screen.getByRole('region', { name: 'di cui prima annualità' }).textContent).toContain('400');
   });
   it('senza il grant di TX-0009 la sezione lo dice e non legge', async () => {

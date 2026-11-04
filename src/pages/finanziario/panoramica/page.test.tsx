@@ -110,7 +110,7 @@ describe('panoramica: indicatori, grafici e drill-down', () => {
     renderPagina(Pagina, '/finanziario');
     expect((await screen.findByRole('region', { name: 'Dotazione spesa pubblica' })).textContent).toContain('1 intervento nella selezione');
     expect(screen.getByRole('region', { name: 'Pagato lordo sulla dotazione' }).textContent).toMatch(/20\s?%/);
-    expect((await screen.findByRole('region', { name: 'Domande presentate' })).textContent).toContain('1200');
+    expect((await screen.findByRole('region', { name: 'Domande presentate' })).textContent).toContain('1.200');
   });
 
   it("clic su un intervento: dettaglio dell'intervento con la selezione nell'indirizzo; clic sulle barre delle domande SIGC: pagina SIGC con i filtri", async () => {

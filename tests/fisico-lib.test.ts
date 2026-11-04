@@ -458,7 +458,7 @@ describe('RF017: l output regionale (TX-0017)', () => {
     expect(captionOutput('realizzatoSigc', true)).toMatch(/^Output realizzato SIGC per anno/);
     expect(vociAnteprima(SRA01_OUTPUT, true)).toEqual([
       { termine: 'Indicatore di output', valore: 'O.14 (ettari)' },
-      { termine: 'Target di fine periodo', valore: '1500 ettari al 2029' },
+      { termine: 'Target di fine periodo', valore: '1.500 ettari al 2029' },
       { termine: 'Realizzato non SIGC', valore: 'cumulativo per anno di riferimento' },
     ]);
     const srg01 = OUTPUT.righe[3];
@@ -469,9 +469,9 @@ describe('RF017: l output regionale (TX-0017)', () => {
   });
 
   it('testi: quantita con l unita, periodo, target; mai uno zero al posto di un assente; stato vuoto e definizioni', () => {
-    expect([quantita(1500, 'ettari'), quantita(12, null), quantita(12345, 'UBA')]).toEqual(['1500 ettari', '12', '12.345 UBA']);
+    expect([quantita(1500, 'ettari'), quantita(12, null), quantita(12345, 'UBA')]).toEqual(['1.500 ettari', '12', '12.345 UBA']);
     expect(pillPeriodo(2023, 2029)).toBe('Periodo: 2023 - 2029');
-    expect(testoTarget({ valore: 1500 }, 2029, 'ettari')).toBe('1500 ettari al 2029');
+    expect(testoTarget({ valore: 1500 }, 2029, 'ettari')).toBe('1.500 ettari al 2029');
     expect(testoTarget({ valore: 10 }, null, null)).toBe('10');
     expect(testoTarget({ valore: null, motivo: 'NON_VALORIZZATO' }, null, null)).toBe('non valorizzato (il dato non è presente nella fonte)');
     expect(ANNO_TARGET_ASSENTE).toEqual({ disponibile: false, testo: 'non valorizzato', nota: 'nessun target' });
@@ -486,13 +486,13 @@ describe('RF017: l output regionale (TX-0017)', () => {
     const serie = g.opzioni?.series as Array<{ name: string; markLine?: { data: unknown[] } }>;
     expect(serie.map((x) => x.name)).toEqual(['Programmato', 'Realizzato SIGC', 'Realizzato non SIGC (cumulativo)']);
     expect((g.opzioni?.xAxis as { data: string[] }).data).toEqual(['2023', '2024']);
-    expect(serie[0].markLine?.data).toEqual([{ name: 'Target 1500 ettari al 2029', yAxis: 1500 }]);
+    expect(serie[0].markLine?.data).toEqual([{ name: 'Target 1.500 ettari al 2029', yAxis: 1500 }]);
     // il target supera le barre: l'asse lo contiene
     expect((g.opzioni?.yAxis as { max?: number }).max).toBe(1500);
-    expect((g.opzioni?.aria as { label: { description: string } }).label.description).toMatch(/Target di fine periodo: 1500 ettari al 2029\.$/);
+    expect((g.opzioni?.aria as { label: { description: string } }).label.description).toMatch(/Target di fine periodo: 1\.500 ettari al 2029\.$/);
     expect(g.tabella.caption).toBe("Tabella equivalente: output dell'intervento SRA01 per anno, in ettari");
     expect(g.tabella.righe[1]).toEqual(['2024', '500 ettari', 'non valorizzato (il dato non è presente nella fonte)', 'non valorizzato (il dato non è presente nella fonte)']);
-    expect(g.tabella.righe.at(-1)).toEqual(['Target di fine periodo', '1500 ettari al 2029', '', '']);
+    expect(g.tabella.righe.at(-1)).toEqual(['Target di fine periodo', '1.500 ettari al 2029', '', '']);
     expect(g.omessi).toContain('2027, realizzato SIGC: non valorizzato (il dato non è presente nella fonte)');
   });
 
@@ -636,7 +636,7 @@ describe("RF017, RF018, RF030: il dettaglio dell'intervento come dati (flusso in
   it('KPI: il target da TX-0017 e le superfici della campagna piu recente da TX-0018, le sigle sciolte nel nome accessibile', () => {
     expect(campagnaDeiKpi(sra01)).toBe(2025);
     expect(kpi.map((k) => [k.chiave, k.etichetta, k.valore, k.nota])).toEqual([
-      ['target', 'Target di fine periodo', '1500 ettari al 2029', 'TX-0017'],
+      ['target', 'Target di fine periodo', '1.500 ettari al 2029', 'TX-0017'],
       ['ds', 'Superficie ammissibile DS, campagna 2025', ettari(10.5), 'TX-0018, 1 domanda di sostegno'],
       ['dp', 'Superficie ammissibile DP, campagna 2025', ettari(10.2), 'TX-0018, 2 domande di pagamento'],
       ['oltre', 'Domande con DP oltre la DS, campagna 2025', '0', 'TX-0018, su 2 domande di pagamento: 0 %'],

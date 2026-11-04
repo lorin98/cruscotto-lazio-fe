@@ -179,7 +179,7 @@ describe('OutputRegionale, TabellaOutput e AnteprimaOutput (output regionale)', 
     const tabella = screen.getByRole('table', { name: /^Output programmato per anno/ });
     expect(intestazioni(tabella)).toEqual(['Intervento', 'Indicatore di output', 'Unità di misura', 'Target di fine periodo', 'Anno del target', '2023', '2024', '2025', '2026', '2027', '2028', '2029']);
     const sra01 = within(tabella).getByRole('row', { name: "Apri l'anteprima dell'intervento SRA01" });
-    expect(testo(sra01.textContent)).toContain('1500 ettari');
+    expect(testo(sra01.textContent)).toContain('1.500 ettari');
     expect(testo(sra01.textContent)).toContain('500 ettari');
     await userEvent.click(within(misura).getByRole('button', { name: 'Realizzato SIGC' }));
     expect(screen.getByRole('table', { name: /^Output realizzato SIGC per anno/ })).toBeTruthy();
@@ -202,7 +202,7 @@ describe('OutputRegionale, TabellaOutput e AnteprimaOutput (output regionale)', 
     const drawer = await screen.findByRole('dialog', { name: 'Anteprima: SRA01' });
     expect(within(drawer).getByText('SRA01 - Produzione integrata')).toBeTruthy();
     expect(testo(drawer.textContent)).toContain('O.14 (ettari)');
-    expect(testo(drawer.textContent)).toContain('1500 ettari al 2029');
+    expect(testo(drawer.textContent)).toContain('1.500 ettari al 2029');
     const card = await trovaCard('Output di SRA01 per anno');
     expect(within(card).queryByRole('group', { name: /^Scarica/ })).toBeNull();
     expect(within(await tabellaDi(card)).getAllByRole('rowheader').map((c) => c.textContent)).toContain('Target di fine periodo');
@@ -313,7 +313,7 @@ describe('DettaglioIntervento e SchedeIntervento (dettaglio dell intervento del 
     expect(await screen.findByRole('heading', { level: 1, name: 'Produzione integrata' })).toBeTruthy();
     expect(screen.getByText('Fisico - intervento SRA01')).toBeTruthy();
     expect(within(screen.getByRole('list', { name: 'Dati principali' })).getAllByRole('listitem').map((l) => l.textContent)).toEqual(['Perimetro regionale', 'Indicatore di output O.14 (ettari)']);
-    expect(testo((await screen.findByRole('region', { name: 'Target di fine periodo' })).textContent)).toContain('1500 ettari al 2029');
+    expect(testo((await screen.findByRole('region', { name: 'Target di fine periodo' })).textContent)).toContain('1.500 ettari al 2029');
     expect(testo(screen.getByRole('region', { name: 'Superficie ammissibile DS, campagna 2025: superficie delle domande di sostegno' }).textContent)).toContain('10,50 ha');
     expect(screen.getAllByRole('tab').map((t) => [t.textContent, t.getAttribute('aria-selected')])).toEqual([
       ['Output per anno', 'true'],
