@@ -259,16 +259,25 @@ function voce(r: RigaDotazionePagato, importi: Array<ImportoLike | null | undefi
 }
 
 /**
- * Barre raggruppate dotazione / impegnato / pagato per intervento (l'impegnato dal 04/11/2026); nel perimetro ADA solo il
- * pagato. `nomePagato` dice quale
- * pagato e': i pagamenti totali lordi degli elenchi di liquidazione (TX-0002) o i pagamenti al netto delle rettifiche
+ * Barre raggruppate dotazione / impegnato / pagato per intervento (l'impegnato dal 04/11/2026); nel perimetro ADA impegnato e
+ * pagato, misure per domanda dell'area, senza la dotazione regionale (review step9 del 04/11/2026, J-06). `nomePagato` dice
+ * quale pagato e': i pagamenti totali lordi degli elenchi di liquidazione (TX-0002) o i pagamenti al netto delle rettifiche
  * (TX-0011), mai l'uno per l'altro.
  */
 export function graficoDotazionePagamenti(righe: RigaDotazionePagato[], perimetro?: string | null, nomePagato = PAGAMENTI_LORDI): DatiGrafico {
   const pagato = { nome: nomePagato, soggetto: nomePagato.toLowerCase() };
+  // i pagamenti restano verdi come prima del 04/11/2026; l'impegnato, aggiunto in mezzo, ha il suo colore
+  const impegnato = { nome: IMPEGNATO_SPESA_PUBBLICA, soggetto: 'impegnato di spesa pubblica', colore: COLORI.attenzione };
+  const pagatoVerde = { ...pagato, colore: COLORI.positivo };
   if (perimetro === PERIMETRO_ADA) {
-    const testi = { caption: `${nomePagato} per intervento`, colonne: ['Intervento', nomePagato], titolo: `Barre dei ${pagato.soggetto}`, vuoto: `nessun intervento con ${pagato.soggetto} valorizzati`, unita: INTERVENTI };
-    return barreRaggruppate(righe.map((r) => voce(r, [r.pagato])), [pagato], testi, { omessi: [OMESSO_ADA_DOTAZIONE], orizzontale: true });
+    const testi = {
+      caption: `Impegnato e ${pagato.soggetto} per intervento`,
+      colonne: ['Intervento', IMPEGNATO_SPESA_PUBBLICA, nomePagato],
+      titolo: `Barre raggruppate di impegnato e ${pagato.soggetto}`,
+      vuoto: `nessun intervento con impegnato o ${pagato.soggetto} valorizzati`,
+      unita: INTERVENTI,
+    };
+    return barreRaggruppate(righe.map((r) => voce(r, [r.impegnato, r.pagato])), [impegnato, pagatoVerde], testi, { omessi: [OMESSO_ADA_DOTAZIONE], orizzontale: true });
   }
   const testi = {
     caption: `Dotazione, impegnato e ${pagato.soggetto} per intervento`,
@@ -277,12 +286,7 @@ export function graficoDotazionePagamenti(righe: RigaDotazionePagato[], perimetr
     vuoto: `nessun intervento con dotazione, impegnato o ${pagato.soggetto} valorizzati`,
     unita: INTERVENTI,
   };
-  // i pagamenti restano verdi come prima del 04/11/2026; l'impegnato, aggiunto in mezzo, ha il suo colore
-  const serie = [
-    { nome: 'Dotazione', soggetto: 'dotazione', colore: COLORI.primario },
-    { nome: IMPEGNATO_SPESA_PUBBLICA, soggetto: 'impegnato di spesa pubblica', colore: COLORI.attenzione },
-    { ...pagato, colore: COLORI.positivo },
-  ];
+  const serie = [{ nome: 'Dotazione', soggetto: 'dotazione', colore: COLORI.primario }, impegnato, pagatoVerde];
   // in orizzontale: tutti gli interventi con la loro etichetta, uno per riga (R02, wireframe "tutte le etichette"; review K-01)
   return barreRaggruppate(righe.map((r) => voce(r, [r.dotazione, r.impegnato, r.pagato])), serie, testi, { orizzontale: true });
 }

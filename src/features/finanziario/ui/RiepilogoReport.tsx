@@ -8,7 +8,7 @@
 // non prende il filtro SIGC. Revisione del 04/11/2026 (secondo feedback di Leonardo/Deloitte): tutto RF011 in pagina senza
 // interruttore, prima la tabella e poi il grafico (dotazione, impegnato, pagamenti netti); stimato, lordi, rettifiche e "Con
 // rettifiche" nascoste all'apertura (selettore Colonne); avviso degli impegnati diversi.
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { Link } from 'react-router';
 import { ApriNellElenco } from '../../../entities/domanda';
 import { ValoreImporto } from '../../../entities/importo';
@@ -22,6 +22,7 @@ import { cellaTotale, sommaSeCompleta } from '../lib/aggregati';
 import { ricercaDaFiltri } from '../lib/filtri';
 import type { Filtri } from '../lib/filtri';
 import { graficoDotazionePagamenti } from '../lib/grafici';
+import { impegnatiDiversi } from '../lib/impegnati';
 import type { Perimetro } from '../lib/perimetro';
 import { conFiltri, percorsoIntervento } from '../lib/report';
 import { NotaPerimetroMisto, NotaStima, PerimetroSezione, colonneImporti, diProgramma, vuotoConPerimetro } from './comuni';
@@ -38,30 +39,36 @@ import type { CampoImporto } from './comuni';
 
 type Riga = RiepilogoFinanziarioRiga;
 
-/** I campi di programma di RF011, prima delle domande presentate. */
-const CAMPI_PROGRAMMA: CampoImporto<Riga>[] = [
+/**
+ * I campi Importo del riepilogo nell'ordine del wireframe approvato: i nove di RF011 nell'ordine del requisito, con le voci in
+ * piu' al loro posto (lo stimato dopo l'impegnato che lo contiene, lordi e rettifiche accanto ai pagamenti netti, R08). I
+ * campi di programma vengono prima delle domande presentate, gli altri dopo.
+ */
+const CAMPI: CampoImporto<Riga>[] = [
   { chiave: 'dotazioneSpesaPubblica', titolo: 'Dotazione spesa pubblica', programma: true },
   { chiave: 'risorseQuotaFeasr', titolo: 'Risorse quota FEASR', programma: true },
   { chiave: 'importoStanziato', titolo: 'Importo stanziato', programma: true },
-];
-
-/** Gli altri campi di RF011, dopo le domande presentate, nell'ordine del requisito. */
-const CAMPI_RF011: CampoImporto<Riga>[] = [
   { chiave: 'impegnatoCofinanziatoFeasr', titolo: 'Impegnato cofinanziato FEASR' },
   { chiave: 'impegnatoCofinanziatoFeasrENon', titolo: 'Impegnato cofinanziato FEASR e non' },
+  { chiave: 'impegnatoStimato', titolo: 'di cui stimato' },
+  { chiave: 'pagamentiLordi', titolo: 'Pagamenti lordi' },
+  { chiave: 'importoRettifiche', titolo: 'Rettifiche' },
   { chiave: 'pagamentiNettoRettifiche', titolo: 'Pagamenti al netto delle rettifiche' },
   { chiave: 'dotazioneResiduaSuImpegni', titolo: 'Dotazione residua sugli impegni' },
   { chiave: 'dotazioneResiduaSuPagamenti', titolo: 'Dotazione residua sui pagamenti' },
 ];
+const CAMPI_PROGRAMMA = CAMPI.filter((c) => c.programma);
+const CAMPI_DOPO_LE_DOMANDE = CAMPI.filter((c) => !c.programma);
 
-/** Le colonne in piu' di RF011 (R08 e stima): nascoste all'apertura, nel selettore Colonne, nell'anteprima e nei file. */
-const CAMPI_IN_PIU: CampoImporto<Riga>[] = [
-  { chiave: 'impegnatoStimato', titolo: 'di cui stimato' },
-  { chiave: 'pagamentiLordi', titolo: 'Pagamenti lordi' },
-  { chiave: 'importoRettifiche', titolo: 'Rettifiche' },
-];
+/** Le voci in piu' di RF011 (stima e R08): nascoste all'apertura (selettore Colonne), sempre nell'anteprima e nei file. */
+const IN_PIU: ReadonlySet<string> = new Set(['impegnatoStimato', 'pagamentiLordi', 'importoRettifiche']);
 
-const CAMPI: CampoImporto<Riga>[] = [...CAMPI_PROGRAMMA, ...CAMPI_RF011, ...CAMPI_IN_PIU];
+/** Accanto all'impegnato cofinanziato FEASR riportato alla dotazione (wireframe riepilogo, stessa regola dell'avviso). */
+const ALLA_DOTAZIONE = ' (alla dotazione)';
+
+function riportatoAllaDotazione(r: Riga): boolean {
+  return impegnatiDiversi([r]).length > 0;
+}
 
 const TITOLO_TABELLA = 'Tabella di riepilogo per intervento (RF011)';
 const TITOLO_GRAFICO = 'Dotazione, impegnato e pagamenti per intervento';
@@ -102,7 +109,11 @@ function colonne(perimetro: Perimetro | undefined, link: LinkDelReport): Colonna
     ),
     numerica: true,
   };
-  const inPiu = colonneImporti(CAMPI_IN_PIU, perimetro).flatMap((c): ColonnaTabella<Riga>[] => {
+  const dopoLeDomande = colonneImporti(CAMPI_DOPO_LE_DOMANDE, perimetro).flatMap((c): ColonnaTabella<Riga>[] => {
+    const nascosta = IN_PIU.has(c.chiave);
+    if (c.chiave === 'impegnatoCofinanziatoFeasr') {
+      return [{ ...c, resa: (r: Riga) => <>{c.resa?.(r)}{riportatoAllaDotazione(r) && ALLA_DOTAZIONE}</> }];
+    }
     // il link all'elenco dei pagamenti sta sulla cella dei lordi: stesso importo dell'elenco (scelta dell'utente del 01/11/2026)
     if (c.chiave === 'pagamentiLordi') {
       const resa = (r: Riga) => (
@@ -111,19 +122,18 @@ function colonne(perimetro: Perimetro | undefined, link: LinkDelReport): Colonna
           <ApriNellElenco variante="testo" indirizzo={linkDellaRiga(link, r).pagamenti} testo={PAGAMENTI_LORDI_ELENCO} descrizione={`l'elenco dei pagamenti dell'intervento ${r.codiceIntervento ?? ''}`} />
         </>
       );
-      return [{ ...c, resa, nascosta: true }];
+      return [{ ...c, resa, nascosta }];
     }
     if (c.chiave === 'importoRettifiche') {
-      return [{ ...c, nascosta: true }, { chiave: 'conRettifiche', titolo: 'Con rettifiche', valore: (r) => (r.rettifiche ?? []).length, resa: testoConRettifiche, nascosta: true }];
+      return [{ ...c, nascosta }, { chiave: 'conRettifiche', titolo: 'Con rettifiche', valore: (r) => (r.rettifiche ?? []).length, resa: testoConRettifiche, nascosta }];
     }
-    return [{ ...c, nascosta: true }];
+    return [nascosta ? { ...c, nascosta } : c];
   });
   return [
     { chiave: 'codice', titolo: 'Intervento', valore: (r) => r.codiceIntervento ?? null, fissa: true },
     ...colonneImporti(CAMPI_PROGRAMMA, perimetro),
     domande,
-    ...colonneImporti(CAMPI_RF011, perimetro),
-    ...inPiu,
+    ...dopoLeDomande,
   ];
 }
 
@@ -166,6 +176,7 @@ function VoceImporto({ riga, campo, perimetro }: { riga: Riga; campo: CampoImpor
       <dt>{campo.programma ? diProgramma(campo.titolo, perimetro) : campo.titolo}</dt>
       <dd>
         <ValoreImporto importo={riga[campo.chiave] as Riga['dotazioneSpesaPubblica']} />
+        {campo.chiave === 'impegnatoCofinanziatoFeasr' && riportatoAllaDotazione(riga) && ALLA_DOTAZIONE}
       </dd>
     </div>
   );
@@ -185,13 +196,17 @@ function Anteprima({ riga, perimetro, filtri, onChiudi }: { riga: Riga | null; p
               <dt>Domande presentate</dt>
               <dd>{formatNumber(riga.domandePresentate)}</dd>
             </div>
-            {[...CAMPI_RF011, ...CAMPI_IN_PIU].map((c) => (
-              <VoceImporto key={c.chiave} riga={riga} campo={c} perimetro={perimetro} />
+            {CAMPI_DOPO_LE_DOMANDE.map((c) => (
+              <Fragment key={c.chiave}>
+                <VoceImporto riga={riga} campo={c} perimetro={perimetro} />
+                {c.chiave === 'importoRettifiche' && (
+                  <div>
+                    <dt>Con rettifiche</dt>
+                    <dd>{testoConRettifiche(riga)}</dd>
+                  </div>
+                )}
+              </Fragment>
             ))}
-            <div>
-              <dt>Con rettifiche</dt>
-              <dd>{testoConRettifiche(riga)}</dd>
-            </div>
           </dl>
           {(riga.rettifiche ?? []).length > 0 && <TabellaRettifiche codice={riga.codiceIntervento ?? ''} rettifiche={riga.rettifiche ?? []} />}
           {riga.codiceIntervento && (

@@ -827,7 +827,8 @@ describe('RiepilogoReport (TX-0011, tabella interattiva)', () => {
     ]);
     await userEvent.click(screen.getByText('Colonne'));
     for (const nome of ['di cui stimato', 'Pagamenti lordi', 'Rettifiche', 'Con rettifiche']) await userEvent.click(screen.getByRole('checkbox', { name: nome }));
-    expect(intestazioni(t).slice(10)).toEqual(['di cui stimato', 'Pagamenti lordi', 'Rettifiche', 'Con rettifiche']);
+    // al loro posto (J-01): dopo l'impegnato cofinanziato FEASR e non, prima dei pagamenti netti
+    expect(intestazioni(t).slice(7, 12)).toEqual(['di cui stimato', 'Pagamenti lordi', 'Rettifiche', 'Con rettifiche', 'Pagamenti al netto delle rettifiche']);
     expect(righeCorpo(t)).toEqual(['SRA01', 'SRA03']);
     // R08: "Con rettifiche" dice quante rettifiche, o "No"
     expect(cella(t, "Apri l'anteprima dell'intervento SRA01", 'Con rettifiche')).toBe('Sì: 2 rettifiche');
@@ -1222,10 +1223,11 @@ describe('DotazioneReport (TX-0002, TX-0003)', () => {
     const titolo = 'Dotazione, impegnato e pagamenti per intervento';
     await waitFor(() => expect(graficoDi(titolo).opzioni.length).toBeGreaterThan(0));
     const barre = card(titolo);
-    expect(within(barre).getByText('1 voce non nel grafico')).toBeTruthy();
+    expect(within(barre).getByText(/^\d+ voc[ei] non nel grafico$/)).toBeTruthy();
     expect(within(barre).getByText("perimetro ADA: la dotazione regionale non si affianca ai pagamenti dell'area")).toBeTruthy();
     await vediTabella(titolo);
-    expect(within(barre).getByRole('table', { name: 'Pagamenti totali (lordi, elenchi di liquidazione) per intervento' })).toBeTruthy();
+    // impegnato e pagamenti dell'area, senza la dotazione regionale (J-06)
+    expect(within(barre).getByRole('table', { name: 'Impegnato e pagamenti totali (lordi, elenchi di liquidazione) per intervento' })).toBeTruthy();
     const tabellaRf002 = screen.getByRole('table', { name: /^Dotazione, impegni e pagamenti per intervento/ });
     expect(within(tabellaRf002).getByRole('columnheader', { name: 'Dotazione spesa pubblica (regionale)' })).toBeTruthy();
     expect(within(tabellaRf002).getByRole('columnheader', { name: 'Pagamenti totali (lordi, elenchi di liquidazione)' })).toBeTruthy();

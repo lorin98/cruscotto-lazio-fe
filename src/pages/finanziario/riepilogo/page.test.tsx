@@ -80,18 +80,51 @@ describe('RF011: tabella di riepilogo per intervento con i nove campi finanziari
       expect((scelta as HTMLInputElement).checked).toBe(false);
       await userEvent.click(scelta);
     }
-    expect(intestazioni().slice(-4)).toEqual(['di cui stimato', 'Pagamenti lordi', 'Rettifiche', 'Con rettifiche']);
+    // le colonne in piu' compaiono al loro posto (J-01): lo stimato dopo l'impegnato che lo contiene, lordi e rettifiche
+    // prima dei pagamenti netti; le nove di RF011 restano nell'ordine del requisito
+    expect(intestazioni()).toEqual([
+      'Intervento',
+      'Dotazione spesa pubblica',
+      'Risorse quota FEASR',
+      'Importo stanziato',
+      'Domande presentate',
+      'Impegnato cofinanziato FEASR',
+      'Impegnato cofinanziato FEASR e non',
+      'di cui stimato',
+      'Pagamenti lordi',
+      'Rettifiche',
+      'Con rettifiche',
+      'Pagamenti al netto delle rettifiche',
+      'Dotazione residua sugli impegni',
+      'Dotazione residua sui pagamenti',
+    ]);
   });
 
-  it('avviso degli impegnati diversi: intervento, cofinanziato FEASR e FEASR e non; niente avviso se coincidono', async () => {
+  it('avviso degli impegnati diversi: intervento, cofinanziato FEASR e FEASR e non; "(alla dotazione)" solo nella sua cella', async () => {
     const diverso = { ...RIEPILOGO.righe[0], impegnatoCofinanziatoFeasr: { valore: 1000 }, impegnatoCofinanziatoFeasrENon: { valore: 1500.5 } };
-    server.use(http.get('*/api/finanziario/riepilogo', () => HttpResponse.json({ ...RIEPILOGO, righe: [diverso, RIEPILOGO.righe[1]] })));
+    const uguale = { ...RIEPILOGO.righe[1], impegnatoCofinanziatoFeasr: { valore: 13_879_326.08 }, impegnatoCofinanziatoFeasrENon: { valore: 13_879_326.08 } };
+    server.use(http.get('*/api/finanziario/riepilogo', () => HttpResponse.json({ ...RIEPILOGO, righe: [diverso, uguale] })));
     renderPagina(Pagina, '/finanziario/riepilogo');
-    await tabellaDelRiepilogo(TABELLA);
+    const tabella = await tabellaDelRiepilogo(TABELLA);
     const avviso = screen.getByRole('note');
     expect(avviso.textContent?.replace(/\s/g, ' ')).toBe(
-      `Impegnato cofinanziato FEASR diverso dall'impegnato cofinanziato FEASR e non in 1 intervento. Il cofinanziato FEASR è riportato alla dotazione quando l'impegnato la supera: ${diverso.codiceIntervento} 1.000,00 € su 1.500,50 €. Negli altri interventi i due impegnati coincidono con l'impegnato di spesa pubblica.`,
+      `Impegnato cofinanziato FEASR diverso dall'impegnato FEASR e non in 1 intervento. Il cofinanziato FEASR è riportato alla dotazione quando l'impegnato la supera: ${diverso.codiceIntervento} 1.000,00 € su 1.500,50 €. Negli altri interventi i due impegnati coincidono con l'impegnato di spesa pubblica.`,
     );
+    // J-07: la cella del cofinanziato FEASR riportato alla dotazione lo dice, quella con gli impegnati uguali no
+    const cella = (codice: string) => within(within(tabella).getByRole('rowheader', { name: codice }).closest('tr') as HTMLElement).getAllByRole('cell')[4].textContent?.replace(/\s/g, ' ');
+    expect(cella(diverso.codiceIntervento)).toBe('1.000,00 € (alla dotazione)');
+    expect(cella(uguale.codiceIntervento)).toBe('13.879.326,08 €');
+  });
+
+  it("niente avviso quando i due impegnati sono valorizzati e uguali in tutte le righe (J-05)", async () => {
+    const righe = RIEPILOGO.righe.map((r) => ({ ...r, impegnatoCofinanziatoFeasr: { valore: 13_879_326.08 }, impegnatoCofinanziatoFeasrENon: { valore: 13_879_326.08 } }));
+    server.use(http.get('*/api/finanziario/riepilogo', () => HttpResponse.json({ ...RIEPILOGO, righe })));
+    renderPagina(Pagina, '/finanziario/riepilogo');
+    // l'avviso e la tabella vengono dalla stessa lettura: a tabella resa i dati ci sono
+    const tabella = await tabellaDelRiepilogo(TABELLA);
+    expect(within(tabella).getAllByText('13.879.326,08 €').length).toBeGreaterThan(0);
+    expect(screen.queryByRole('note')).toBeNull();
+    expect(screen.queryByText(/alla dotazione\)/)).toBeNull();
   });
 
   it('una riga per intervento con i nove campi, le assenze spiegate, totali e Assistenza tecnica nel piede', async () => {
@@ -328,6 +361,24 @@ describe("RA003: drill-down dal riepilogo all'elenco operativo", () => {
     await act(() => router.navigate(-1));
     tabella = await tabellaDelRiepilogo(TABELLA);
     expect(within(tabella).getByRole('columnheader', { name: /^Intervento/ }).getAttribute('aria-sort')).toBe(verso);
+  });
+  // J-08 (review step9 del 04/11/2026): le colonne scelte tornano con l'ordine, anche quando l'ordine sta su una di loro
+  it("tornando indietro si ritrovano le colonne mostrate dal selettore e l'ordine su una di loro", async () => {
+    server.use(http.get('*/api/finanziario/riepilogo', () => HttpResponse.json(RIEPILOGO)));
+    const { router } = renderPagina(Pagina, '/finanziario/riepilogo');
+    let tabella = await tabellaDelRiepilogo(TABELLA);
+    await userEvent.click(screen.getByText('Colonne'));
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Pagamenti lordi' }));
+    await userEvent.click(within(within(tabella).getByRole('columnheader', { name: /^Pagamenti lordi/ })).getByRole('button'));
+    const verso = within(tabella).getByRole('columnheader', { name: /^Pagamenti lordi/ }).getAttribute('aria-sort');
+    expect(verso).not.toBe('none');
+    await userEvent.click(within(tabella).getByRole('link', { name: "Apri nell'elenco operativo le domande presentate dell'intervento SRA01" }));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/elenco-operativo/domande'));
+    await act(() => router.navigate(-1));
+    tabella = await tabellaDelRiepilogo(TABELLA);
+    expect(within(tabella).getByRole('columnheader', { name: /^Pagamenti lordi/ }).getAttribute('aria-sort')).toBe(verso);
+    // le altre colonne in piu' restano nascoste
+    expect(within(tabella).queryByRole('columnheader', { name: /^di cui stimato/ })).toBeNull();
   });
   // review v4 V-03: la pagina vale per la sua ricerca; tornando indietro si ritrovano ricerca, pagina e quindi le stesse righe
   it("tornando indietro dall'elenco operativo ricerca e pagina sono quelle lasciate (stesse righe)", async () => {

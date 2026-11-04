@@ -215,20 +215,28 @@ export function posizioneEtichettaSegmento(ultimo: boolean): LabelLayoutOptionCa
 }
 
 /**
- * Il massimo dell'asse degli importi con almeno un quinto di spazio oltre la barra piu' lunga (per l'etichetta dell'ultimo
- * segmento messa a destra), arrotondato a un passo di 1, 2, 2,5 o 5 per una potenza di dieci (al piu' otto passi).
+ * Il verde del pagato in questo grafico: l'etichetta bianca ci sta sopra a 5,2:1 (AA per il testo di 12 px, NFR-70); il
+ * verde dei pagamenti negli altri grafici (#4e8a1f) col bianco arriva a 4,22:1 (review step9 del 04/11/2026, J-02).
  */
-export function massimoConSpazio({ max }: { max: number }): number {
-  const obiettivo = max * 1.2;
-  if (!(obiettivo > 0)) return max;
-  const potenza = 10 ** Math.floor(Math.log10(obiettivo / 6));
-  const passo = [1, 2, 2.5, 5, 10].map((m) => m * potenza).find((s) => obiettivo / s <= 8) ?? 10 * potenza;
-  return Math.ceil(obiettivo / passo) * passo;
+export const VERDE_PAGATO = '#437a1b';
+
+/** Larghezza stimata (px) di un'etichetta di segmento a 12 px: circa 7 px per carattere, piu' il riquadro e il margine. */
+export function larghezzaEtichetta(testo: string): number {
+  return Math.ceil(testo.length * 7) + 8 + MARGINE_ETICHETTA;
+}
+
+/** "41,9 M€ (24,3 %)": l'importo del segmento e la sua quota della barra. */
+function quotaDellaBarra(seg: Segmento): string {
+  return seg.totale > 0 ? ` (${formatPercentuale(percentuale(seg.valore, seg.totale))})` : '';
+}
+
+function testoEtichetta(seg: Segmento): string {
+  return `${importoBreve(seg.valore)}${quotaDellaBarra(seg)}`;
 }
 
 function serieSegmento(seg: Segmento, barre: readonly string[]) {
-  const quota = seg.totale > 0 ? ` (${formatPercentuale(percentuale(seg.valore, seg.totale))})` : '';
-  const dato: DatoSerie = { value: seg.valore, name: seg.barra, etichetta: `${importoBreve(seg.valore)}${quota}`, dettaglio: `${seg.barra}, ${seg.nome.toLowerCase()}: ${formatEuro(seg.valore)}${quota}` };
+  const quota = quotaDellaBarra(seg);
+  const dato: DatoSerie = { value: seg.valore, name: seg.barra, etichetta: testoEtichetta(seg), dettaglio: `${seg.barra}, ${seg.nome.toLowerCase()}: ${formatEuro(seg.valore)}${quota}` };
   return {
     type: 'bar' as const,
     name: seg.nome,
@@ -264,7 +272,7 @@ export function graficoImportiSigc(i: ImportiSigcLike): DatiGrafico {
         ]
       : []),
     // col pagato oltre l'ammesso il segmento e' la parte entro l'ammesso, e lo dice (review X-13)
-    { nome: oltre > 0 ? "Pagato entro l'ammesso" : 'Pagato', barra: 'Ammesso', valore: centesimi(pagato - oltre), totale: ammesso, colore: COLORI.positivo, testo: COLORI.superficie, ultimo: false },
+    { nome: oltre > 0 ? "Pagato entro l'ammesso" : 'Pagato', barra: 'Ammesso', valore: centesimi(pagato - oltre), totale: ammesso, colore: VERDE_PAGATO, testo: COLORI.superficie, ultimo: false },
     { nome: 'Ancora da pagare', barra: 'Ammesso', valore: daPagare, totale: ammesso, colore: '#8fb8e6', testo: COLORI.testo, ultimo: true },
   ];
   if (oltre > 0) omessi.push(`Pagato oltre l'ammesso: ${formatEuro(oltre)} (fuori dalla barra dell'ammesso)`);
@@ -276,9 +284,10 @@ export function graficoImportiSigc(i: ImportiSigcLike): DatiGrafico {
     aria: aria(descrizione),
     tooltip: { trigger: 'item', formatter: tooltipDettaglio },
     legend: { bottom: 0 },
-    grid: GRIGLIA_CON_ETICHETTE,
-    // il massimo e' spazio per le etichette messe a destra: non e' sempre una tacca, la sua etichetta non si scrive
-    xAxis: { type: 'value', max: massimoConSpazio, axisLabel: { formatter: asseImporti, showMaxLabel: false } },
+    // a destra lo spazio in pixel per l'etichetta piu' lunga degli ultimi segmenti, se non entra nel suo segmento (J-04):
+    // non dipende dalla larghezza del grafico ne' dalla scala
+    grid: { ...GRIGLIA_CON_ETICHETTE, right: Math.max(...segmenti.filter((s) => s.ultimo).map((s) => larghezzaEtichetta(testoEtichetta(s)))) },
+    xAxis: { type: 'value', axisLabel: { formatter: asseImporti } },
     yAxis: asseCategorieOrizzontale(barre),
     series: segmenti.map((seg) => serieSegmento(seg, barre)),
   };

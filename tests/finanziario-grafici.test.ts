@@ -28,7 +28,7 @@ import {
 } from '../src/features/finanziario/lib/grafici';
 import type { RigaRiepilogo, RigaSpesa } from '../src/features/finanziario/lib/grafici';
 import { avanzamentoPonderato } from '../src/features/finanziario/lib/avanzamento';
-import { massimoConSpazio, posizioneEtichettaSegmento } from '../src/features/finanziario/lib/grafici/sigc';
+import { VERDE_PAGATO, larghezzaEtichetta, posizioneEtichettaSegmento } from '../src/features/finanziario/lib/grafici/sigc';
 import { impegnatiDiversi } from '../src/features/finanziario/lib/impegnati';
 import { assenzaImporto, cellaImporto } from '../src/features/finanziario/lib/importi';
 import { COLORI, milioni, opzioniSicure } from '../src/shared/lib';
@@ -1156,13 +1156,14 @@ describe('graficoDotazionePagamenti', () => {
     expect((tutti.yAxis as { axisLabel?: { interval?: number } } | undefined)?.axisLabel?.interval).toBe(0);
   });
 
-  it('perimetro ADA: solo il pagato, la dotazione dichiarata come non affiancabile', () => {
+  it("perimetro ADA: impegnato e pagato dell'area, la dotazione dichiarata come non affiancabile (J-06)", () => {
     const g = graficoDotazionePagamenti(righe, 'ADA');
     const o = opzioniDi(g);
-    expect(o.series.map((s) => s.name)).toEqual(['Pagamenti totali (lordi, elenchi di liquidazione)']);
-    expect(o.yAxis?.data).toEqual(['SRA01']);
+    expect(o.series.map((s) => s.name)).toEqual(['Impegnato spesa pubblica', 'Pagamenti totali (lordi, elenchi di liquidazione)']);
+    expect(o.yAxis?.data).toEqual(['SRA01', 'SRA02']);
     expect(g.omessi[0]).toBe("perimetro ADA: la dotazione regionale non si affianca ai pagamenti dell'area");
-    expect(g.tabella.colonne).toEqual(['Intervento', 'Pagamenti totali (lordi, elenchi di liquidazione)']);
+    expect(g.tabella.colonne).toEqual(['Intervento', 'Impegnato spesa pubblica', 'Pagamenti totali (lordi, elenchi di liquidazione)']);
+    expect(g.tabella.caption).toBe('Impegnato e pagamenti totali (lordi, elenchi di liquidazione) per intervento');
   });
 
   it('il nome del pagato dice quale pagato e (V-19): serie, colonne, didascalia e omessi', () => {
@@ -1174,14 +1175,14 @@ describe('graficoDotazionePagamenti', () => {
     expect(g.omessi[0]).toBe(`SRA02, pagamenti netti: ${NON_VALORIZZATO_RIGA}`);
     expect(o.aria.label.description).toMatch(/^Barre raggruppate di dotazione, impegnato e pagamenti netti per 2 interventi, da SRA01 a SRA02/);
     const ada = graficoDotazionePagamenti(righe, 'ADA', 'Pagamenti netti');
-    expect(opzioniDi(ada).series.map((s) => s.name)).toEqual(['Pagamenti netti']);
-    expect(ada.tabella.caption).toBe('Pagamenti netti per intervento');
+    expect(opzioniDi(ada).series.map((s) => s.name)).toEqual(['Impegnato spesa pubblica', 'Pagamenti netti']);
+    expect(ada.tabella.caption).toBe('Impegnato e pagamenti netti per intervento');
   });
 
   it('nessun valore: non disegnabile', () => {
     controllaNonDisegnabile(graficoDotazionePagamenti([righe[2]]), 'nessun intervento con dotazione, impegnato o pagamenti totali (lordi, elenchi di liquidazione) valorizzati');
     controllaNonDisegnabile(graficoDotazionePagamenti([]), /^nessun intervento/);
-    controllaNonDisegnabile(graficoDotazionePagamenti([righe[2]], 'ADA'), 'nessun intervento con pagamenti totali (lordi, elenchi di liquidazione) valorizzati');
+    controllaNonDisegnabile(graficoDotazionePagamenti([righe[2]], 'ADA'), 'nessun intervento con impegnato o pagamenti totali (lordi, elenchi di liquidazione) valorizzati');
   });
 });
 
@@ -1346,8 +1347,8 @@ describe('revisioni del 04/11/2026', () => {
   it("Importi SIGC: l'etichetta ha lo sfondo del suo segmento; dentro se ci sta, altrimenti a destra della barra (ultimo segmento) o sopra", () => {
     const o = opzioniDi(graficoImportiSigc(sigcBase)) as unknown as { series: Array<{ name: string; itemStyle: { color: string }; label: { backgroundColor?: string }; labelLayout: (p: unknown) => unknown }>; xAxis: { max?: unknown } };
     for (const serie of o.series) expect(serie.label.backgroundColor).toBe(serie.itemStyle.color);
-    expect(typeof o.xAxis.max).toBe('function');
-    expect((o.xAxis as { axisLabel?: { showMaxLabel?: boolean } }).axisLabel?.showMaxLabel).toBe(false);
+    // nessun massimo forzato: lo spazio per l'etichetta messa a destra e' in pixel nella griglia (J-04)
+    expect(o.xAxis.max).toBeUndefined();
     const ultimo = o.series.find((x) => x.name === 'Ancora da pagare');
     const primo = o.series.find((x) => x.name.startsWith('Pagato'));
     const rect = { x: 100, y: 50, width: 40, height: 30 };
@@ -1358,10 +1359,25 @@ describe('revisioni del 04/11/2026', () => {
     expect(posizioneEtichettaSegmento(true)({ rect: { x: 0, y: 0, width: 96, height: 30 }, labelRect: { x: 0, y: 0, width: 98, height: 14 } } as never)).toMatchObject({ align: 'left' });
   });
 
-  it("massimoConSpazio: almeno un quinto oltre la barra piu' lunga, a passi di 1, 2, 2,5 o 5", () => {
-    expect(massimoConSpazio({ max: 260_200_000 })).toBe(350_000_000);
-    expect(massimoConSpazio({ max: 100 })).toBe(120);
-    expect(massimoConSpazio({ max: 0 })).toBe(0);
+  it("Importi SIGC: ogni etichetta regge il suo fondo (AA, 4,5:1 per il testo di 12 px) anche nel segmento del pagato (J-02)", () => {
+    const luminanza = (hex: string) => {
+      const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    };
+    const contrasto = (a: string, b: string) => (Math.max(luminanza(a), luminanza(b)) + 0.05) / (Math.min(luminanza(a), luminanza(b)) + 0.05);
+    const o = opzioniDi(graficoImportiSigc(sigcBase)) as unknown as { series: Array<{ name: string; label: { color: string; backgroundColor: string } }> };
+    expect(o.series).toHaveLength(4);
+    for (const s of o.series) expect(contrasto(s.label.color, s.label.backgroundColor), s.name).toBeGreaterThanOrEqual(4.5);
+    expect(o.series.find((s) => s.name.startsWith('Pagato'))?.label.backgroundColor).toBe(VERDE_PAGATO);
+  });
+
+  it("Importi SIGC: a destra della griglia lo spazio in pixel per l'etichetta piu' lunga degli ultimi segmenti (J-04)", () => {
+    const o = opzioniDi(graficoImportiSigc(sigcBase)) as unknown as { grid: { right: number }; series: Array<{ name: string; data: Array<{ etichetta?: string } | null> }> };
+    const etichette = o.series.filter((s) => s.name === 'Non ammesso' || s.name === 'Ancora da pagare').flatMap((s) => s.data.flatMap((d) => (d?.etichetta ? [d.etichetta] : [])));
+    expect(etichette).toHaveLength(2);
+    for (const e of etichette) expect(o.grid.right).toBeGreaterThanOrEqual(larghezzaEtichetta(e));
+    // "41,9 M€ (24,3 %)": 16 caratteri, circa 124 px col riquadro e il margine
+    expect(larghezzaEtichetta('41,9 M€ (24,3 %)')).toBe(124);
   });
 
   it('impegnatiDiversi: gli interventi coi due impegnati valorizzati e diversi al centesimo, in ordine di codice', () => {

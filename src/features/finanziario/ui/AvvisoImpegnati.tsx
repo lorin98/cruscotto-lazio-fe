@@ -16,7 +16,7 @@ export function AvvisoImpegnati({ righe }: { righe: readonly RigaImpegnati[] }) 
   if (diversi.length === 0) return null;
   return (
     <div className="alert alert-warning my-3" role="note">
-      <strong>{`Impegnato cofinanziato FEASR diverso dall'impegnato cofinanziato FEASR e non in ${plurale(diversi.length, 'intervento', 'interventi')}.`}</strong>{' '}
+      <strong>{`Impegnato cofinanziato FEASR diverso dall'impegnato FEASR e non in ${plurale(diversi.length, 'intervento', 'interventi')}.`}</strong>{' '}
       {"Il cofinanziato FEASR è riportato alla dotazione quando l'impegnato la supera: "}
       {diversi.map((d) => `${d.codice} ${formatEuro(d.feasr)} su ${formatEuro(d.feasrENon)}`).join('; ')}
       {". Negli altri interventi i due impegnati coincidono con l'impegnato di spesa pubblica."}

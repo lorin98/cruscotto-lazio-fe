@@ -326,7 +326,7 @@ describe('DotazioneReport: casi limite', () => {
       rispondi('/api/finanziario/distribuzione-dotazione', { perimetro: 'ADA' }),
     );
     conRouter(<DotazioneReport filtri={{}} />);
-    expect(within(await trovaCard('Dotazione, impegnato e pagamenti per intervento')).getByText('Grafico non disponibile: nessun intervento con pagamenti totali (lordi, elenchi di liquidazione) valorizzati.')).toBeTruthy();
+    expect(within(await trovaCard('Dotazione, impegnato e pagamenti per intervento')).getByText('Grafico non disponibile: nessun intervento con impegnato o pagamenti totali (lordi, elenchi di liquidazione) valorizzati.')).toBeTruthy();
     // R14: la card del contributo ambientale non c'e' piu'
     expect(screen.queryByRole('region', { name: 'Contributo ambientale per intervento' })).toBeNull();
     const quote = await trovaCard('Quota FEASR e non FEASR della dotazione');
