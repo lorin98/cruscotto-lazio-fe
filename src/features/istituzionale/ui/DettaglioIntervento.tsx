@@ -24,8 +24,8 @@ import { ultimiDelDettaglio, ultimoDatoInErrore } from '../../../shared/lib';
 import type { StatoDettaglio } from '../../../shared/lib';
 import { AvvisoPagina, BarraRiferimenti, Briciole, ContestoIntestazione, CorpoDelDettaglio, ErroriDelleLetture, TestataDettaglio, Vuoto, useAnnoNellIndirizzo, useFocusTitolo, useRigheContesto, useStatoDelDettaglio } from '../../../shared/ui';
 import { useValoriFiltri, useVerificaSmpNonSigc, useVerificaSmpSigc } from '../api';
-import { verificaDellIntervento, verificaSigcDellIntervento } from '../lib/collegamenti';
-import { PARAMETRO_ANNO, PARAMETRO_ESERCIZIO, criteriVerifica, soloIntervento, testiCriteri } from '../lib/criteri';
+import { verificaDellAnno, verificaDellIntervento, verificaSigcDellIntervento } from '../lib/collegamenti';
+import { PARAMETRO_ANNO, PARAMETRO_ESERCIZIO, soloIntervento, testiCriteri } from '../lib/criteri';
 import { PERIMETRO_IN_PAROLE, PILL_PERIMETRO } from '../lib/formato';
 import { puoLeggere } from '../lib/grant';
 import {
@@ -40,7 +40,6 @@ import {
   titoloIntervento,
 } from '../lib/intervento';
 import type { IdScheda } from '../lib/intervento';
-import { PERCORSI } from '../lib/pagine';
 import { useIngressoArea } from './navigazione';
 import { SchedeIntervento } from './SchedeIntervento';
 import type { PropsSchede } from './SchedeIntervento';
@@ -105,12 +104,15 @@ function TestataIntervento({ h1, codice, titolo, anno, esercizio, conVerifica, c
   return <TestataDettaglio idTitolo={ID_TITOLO_INTERVENTO} titolo={titolo} h1={h1} sopratitolo={sopratitoloIntervento(codice)} badge={BADGE_INTERVENTO} azioni={azioni} />;
 }
 
-/** Intervento senza righe nella verifica non SIGC: lo stato col ritorno alla verifica SMP non SIGC. */
-function SenzaDati() {
+/**
+ * Intervento senza righe nella verifica non SIGC: lo stato col ritorno alla verifica SMP non SIGC, con l'anno appena scelto
+ * (la verifica lo chiede: review step9 del 04/11/2026, J-14).
+ */
+function SenzaDati({ anno }: { anno: number | undefined }) {
   return (
     <Vuoto>
       <span className="me-2">{SENZA_DATI}</span>
-      <Link className="btn btn-primary btn-sm" to={PERCORSI.verifica}>
+      <Link className="btn btn-primary btn-sm" to={verificaDellAnno(anno)}>
         Torna alla verifica SMP non SIGC
       </Link>
     </Vuoto>
@@ -120,7 +122,7 @@ function SenzaDati() {
 /** Il corpo secondo lo stato delle letture (CorpoDelDettaglio del kit): scheletro, errore, senza dati, le schede. */
 function CorpoDettaglio({ stato, ...schede }: PropsSchede & { stato: StatoDettaglio }) {
   return (
-    <CorpoDelDettaglio stato={stato} vuoto={<SenzaDati />}>
+    <CorpoDelDettaglio stato={stato} vuoto={<SenzaDati anno={schede.anno} />}>
       <SchedeIntervento {...schede} />
     </CorpoDelDettaglio>
   );
@@ -133,11 +135,11 @@ function Dettaglio({ codice }: { codice: string }) {
   const { schede, attiva, aperta, onScheda } = useSchede(conVerifica, conSigc, anno, esercizio);
   // ogni lettura parte col grant della sua transazione quando la sua scheda si apre; al cambio d'anno o d'esercizio restano
   // i dati di prima: la scheda col selettore resta montata (focus su "Mostra")
-  const leggeVerifica = conVerifica && aperta('verifica') && anno !== undefined;
+  const leggeVerifica = conVerifica && aperta('verifica');
   const leggeSigc = conSigc && aperta('verificaSigc') && esercizio !== undefined;
-  const statoVerifica = useVerificaSmpNonSigc(criteriVerifica(soloIntervento(codice), anno), { abilitato: leggeVerifica, mantieniDati: true });
+  const statoVerifica = useVerificaSmpNonSigc(soloIntervento(codice), anno, { abilitato: leggeVerifica, mantieniDati: true });
   const statoSigc = useVerificaSmpSigc(soloIntervento(codice), esercizio, { abilitato: leggeSigc, mantieniDati: true });
-  const verifica = leggeVerifica ? statoVerifica : null;
+  const verifica = leggeVerifica && anno !== undefined ? statoVerifica : null;
   const verificaSigc = leggeSigc ? statoSigc : null;
   const voci = useValoriFiltri(conValori).data?.interventi;
   const descrizione = descrizioneIntervento(voci, codice);

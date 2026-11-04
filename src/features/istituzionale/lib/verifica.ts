@@ -104,9 +104,9 @@ export function indirizzoDelDato(r: RigaVerifica, d: DatoVerifica, puo: (l: Link
 }
 
 /** I riferimenti della risposta (tabella sopra la card): anno di riferimento, come si legge l'output erogato, perimetro. */
-export function vociRiferimenti(d: Pick<Verifica, 'annoRiferimento' | 'outputCumulativo' | 'perimetro'>, scelto: number | undefined): { etichetta: string; valore: string }[] {
+export function vociRiferimenti(d: Pick<Verifica, 'outputCumulativo' | 'perimetro'>, scelto: number): { etichetta: string; valore: string }[] {
   return [
-    { etichetta: 'Anno di riferimento', valore: testoAnnoDiRiferimento(d.annoRiferimento, scelto) },
+    { etichetta: 'Anno di riferimento', valore: testoAnnoDiRiferimento(scelto) },
     { etichetta: 'Output erogato', valore: testoOutputErogato(d.outputCumulativo) },
     { etichetta: 'Perimetro', valore: testoPerimetro(d.perimetro) },
   ];

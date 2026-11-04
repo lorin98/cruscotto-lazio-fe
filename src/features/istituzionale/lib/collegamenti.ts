@@ -44,6 +44,11 @@ export function verificaDellIntervento(codice: string, annoScelto?: number): str
   return conQuery(PERCORSI.verifica, ['intervento', PARAMETRO_ANNO], { intervento: codice, [PARAMETRO_ANNO]: anno(annoScelto) });
 }
 
+/** La verifica SMP non SIGC senza filtri, con l'anno scelto nel dettaglio (dall'intervento senza dati: J-14). */
+export function verificaDellAnno(annoScelto?: number): string {
+  return conQuery(PERCORSI.verifica, [PARAMETRO_ANNO], { [PARAMETRO_ANNO]: anno(annoScelto) });
+}
+
 /** link:verifica-smp-sigc-intervento: la verifica SMP SIGC filtrata sull'intervento, con l'esercizio scelto nel dettaglio. */
 export function verificaSigcDellIntervento(codice: string, esercizio?: number): string {
   return conQuery(PERCORSI.verificaSigc, ['intervento', PARAMETRO_ESERCIZIO], { intervento: codice, [PARAMETRO_ESERCIZIO]: anno(esercizio) });

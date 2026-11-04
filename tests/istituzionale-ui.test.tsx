@@ -5,7 +5,7 @@
 import { createRef } from 'react';
 import type { ReactElement } from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { createMemoryRouter, RouterProvider, useParams } from 'react-router';
@@ -87,7 +87,7 @@ describe('VerificaSmpNonSigc (pagina della verifica SMP non SIGC, componente)', 
     const barra = screen.getByRole('region', { name: 'Filtri attivi' });
     expect(within(barra).getByRole('button', { name: 'Togli il filtro Intervento SRD01' })).toBeTruthy();
     expect(within(barra).getByText('Perimetro: regionale (i report istituzionali non hanno perimetro ADA)')).toBeTruthy();
-    expect(within(barra).getByText('Anno di riferimento del file SMP non SIGC: 2025')).toBeTruthy();
+    expect(within(barra).getByText('Anno di riferimento scelto: 2025')).toBeTruthy();
     expect(within(barra).getByRole('button', { name: /^Ultimo dato sincronizzato: dati al 02\/03\/2026 per tutti i flussi/ })).toBeTruthy();
     // link verifica-smp-sigc: la verifica SMP SIGC della stessa area coi filtri comuni (scelta di disegno 1)
     expect(screen.getByRole('link', { name: 'Verifica SMP SIGC' }).getAttribute('href')).toBe('/istituzionale/verifica-smp-sigc?intervento=SRD01');
@@ -362,6 +362,9 @@ describe('DettaglioIntervento e SchedeIntervento (dettaglio dell intervento)', (
     expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Verifica SMP non SIGC']);
     expect(screen.queryByRole('link', { name: 'Verifica SMP SIGC filtrata su questo intervento' })).toBeNull();
     expect(lette.verificaSigc).toEqual(['?intervento=SRA01&esercizio=2025']);
+    // J-11: senza anno la scheda non SIGC non legge TX-0016
+    await act(async () => new Promise((r) => setTimeout(r, 30)));
+    expect(lette.verifica).toEqual([]);
   });
 });
 

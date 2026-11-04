@@ -29,7 +29,7 @@ describe('feature istituzionale, wrapper api (step3) su MSW', () => {
         return HttpResponse.json(VERIFICA);
       }),
     );
-    const { result } = renderHook(() => useVerificaSmpNonSigc({ intervento: ['SRD01', 'SRA01'], os: ['OS4'], anno: 2024 }), { wrapper: wrapper() });
+    const { result } = renderHook(() => useVerificaSmpNonSigc({ intervento: ['SRD01', 'SRA01'], os: ['OS4'] }, 2024), { wrapper: wrapper() });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(query).toBe('?intervento=SRD01&intervento=SRA01&os=OS4&anno=2024');
     expect(result.current.data?.annoRiferimento).toBe(2025);
@@ -50,17 +50,20 @@ describe('feature istituzionale, wrapper api (step3) su MSW', () => {
   });
 
   it('le letture non abilitate, e la verifica SIGC senza esercizio, non chiamano il backend', () => {
-    const verifica = renderHook(() => useVerificaSmpNonSigc({}, { abilitato: false }), { wrapper: wrapper() });
+    const verifica = renderHook(() => useVerificaSmpNonSigc({}, 2025, { abilitato: false }), { wrapper: wrapper() });
+    // J-12: senza anno TX-0016 non parte, la regola e' nel wrapper come per l'esercizio di TX-0015
+    const senzaAnno = renderHook(() => useVerificaSmpNonSigc({}, undefined), { wrapper: wrapper() });
     const sigc = renderHook(() => useVerificaSmpSigc({}, 2025, { abilitato: false }), { wrapper: wrapper() });
     const senzaEsercizio = renderHook(() => useVerificaSmpSigc({}, undefined), { wrapper: wrapper() });
     expect(verifica.result.current.fetchStatus).toBe('idle');
+    expect(senzaAnno.result.current.fetchStatus).toBe('idle');
     expect(sigc.result.current.fetchStatus).toBe('idle');
     expect(senzaEsercizio.result.current.fetchStatus).toBe('idle');
   });
 
   it('il 400 DATO_NON_VALIDO si riconosce dal problem-type, non dal solo status', async () => {
     server.use(http.get('*/api/istituzionale/verifica-smp-non-sigc', () => HttpResponse.json(problema(400, 'DATO_NON_VALIDO', 'anno: valore non ammesso'), { status: 400 })));
-    const nonValido = renderHook(() => useVerificaSmpNonSigc({ anno: 2025 }), { wrapper: wrapper() });
+    const nonValido = renderHook(() => useVerificaSmpNonSigc({}, 2025), { wrapper: wrapper() });
     await waitFor(() => expect(nonValido.result.current.isError).toBe(true));
     expect(eProblema(nonValido.result.current.error, 'invalid-data')).toBe(true);
     // un 400 senza il problem-type del contratto non e' DATO_NON_VALIDO
@@ -118,13 +121,13 @@ describe('feature istituzionale: i dati di prima durante la lettura di un altro 
   it('con mantieniDati la risposta di prima resta (placeholderData) finche arriva quella del nuovo anno; senza, no', async () => {
     server.use(http.get('*/api/istituzionale/verifica-smp-non-sigc', ({ request }) => HttpResponse.json({ ...VERIFICA, annoRiferimento: Number(new URL(request.url).searchParams.get('anno')) })));
     const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-    const con = renderHook((p: { anno: number }) => useVerificaSmpNonSigc({ anno: p.anno }, { mantieniDati: true }), { initialProps: { anno: 2025 }, wrapper: wrapper(client) });
+    const con = renderHook((p: { anno: number }) => useVerificaSmpNonSigc({}, p.anno, { mantieniDati: true }), { initialProps: { anno: 2025 }, wrapper: wrapper(client) });
     await waitFor(() => expect(con.result.current.data?.annoRiferimento).toBe(2025));
     con.rerender({ anno: 2024 });
     expect(con.result.current.data?.annoRiferimento).toBe(2025);
     expect(con.result.current.isPlaceholderData).toBe(true);
     await waitFor(() => expect(con.result.current.data?.annoRiferimento).toBe(2024));
-    const senza = renderHook((p: { anno: number }) => useVerificaSmpNonSigc({ anno: p.anno }), { initialProps: { anno: 2023 }, wrapper: wrapper(client) });
+    const senza = renderHook((p: { anno: number }) => useVerificaSmpNonSigc({}, p.anno), { initialProps: { anno: 2023 }, wrapper: wrapper(client) });
     await waitFor(() => expect(senza.result.current.data?.annoRiferimento).toBe(2023));
     senza.rerender({ anno: 2022 });
     expect(senza.result.current.data).toBeUndefined();

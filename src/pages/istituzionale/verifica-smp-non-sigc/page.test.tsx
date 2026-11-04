@@ -68,7 +68,7 @@ describe('RF016: i dati ASR non SIGC per intervento, da confrontare con SMP - Da
     expect(testo(srd01.textContent)).toContain("non disponibile per l'anno sceltol'avviso porta i dati del file più recente");
     expect(testo(srd01.textContent)).toContain('7');
     expect(testo(screen.getByRole('table', { name: 'Riferimenti della risposta' }).textContent)).toContain('Anno di riferimento2024');
-    expect(screen.getByText('Anno di riferimento del file SMP non SIGC: 2024')).toBeTruthy();
+    expect(screen.getByText('Anno di riferimento scelto: 2024')).toBeTruthy();
   });
 
   it('un solo h1 col focus e il titolo del documento; card con PNG, CSV e XLSX; la spesa assente fuori dal grafico; nessuna violazione axe', async () => {
@@ -263,15 +263,16 @@ describe('RF016: i dati ASR non SIGC per intervento, da confrontare con SMP - Da
     expect(document.activeElement).toBe(pulsante);
   });
 
-  it('nessun file SMP non SIGC (annoRiferimento null): lo stato dichiarato e i dati delle pratiche restano', async () => {
-    // con l'anno scelto il backend risponde con quell'anno: lo stato resta per una risposta senza anno di riferimento
+  it("anno scelto senza file SMP: la pill dice l'anno scelto e non che il file c'e', nessuno stato inventato, i dati delle pratiche restano (J-10)", async () => {
+    // con l'anno chiesto il backend risponde sempre con quell'anno, anche senza file: la pagina non puo' dire "nessun file"
+    // e non dice nemmeno "del file" (scelta dell'utente del 04/11/2026, punto aperto verso il backend)
     servi();
-    server.use(http.get('*/api/istituzionale/verifica-smp-non-sigc', () => HttpResponse.json({ ...VERIFICA, annoRiferimento: null })));
-    apri();
-    const stato = await screen.findByText(/^Nessun file SMP non SIGC acquisito per l'anno scelto: /);
-    expect(stato.closest('[role="status"]')).not.toBeNull();
-    expect(screen.getByText('Anno di riferimento del file SMP non SIGC: nessun file')).toBeTruthy();
+    server.use(http.get('*/api/istituzionale/verifica-smp-non-sigc', ({ request }) => HttpResponse.json({ ...VERIFICA, annoRiferimento: Number(new URL(request.url).searchParams.get('anno')) })));
+    apri(`${PERCORSO}?anno=2029`);
     expect(within(await tabella()).getAllByRole('rowheader')).toHaveLength(3);
+    expect(screen.getByText('Anno di riferimento scelto: 2029')).toBeTruthy();
+    expect(screen.queryByText(/file SMP non SIGC: /)).toBeNull();
+    expect(screen.queryByText(/^Nessun file SMP non SIGC/)).toBeNull();
   });
 
   it('vuoto: nessun intervento per i filtri (azione portante senza interventi collegati), con Modifica i filtri', async () => {

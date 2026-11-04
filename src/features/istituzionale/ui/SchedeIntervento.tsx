@@ -20,7 +20,7 @@ import { useVerificaSmpNonSigc, useVerificaSmpSigc } from '../api';
 import type { VerificaSmp } from '../api';
 import { anniDiRiferimento, criteriVerifica, criteriVerificaSigc, eserciziProposti, soloIntervento } from '../lib/criteri';
 import type { Verifica } from '../lib/dto';
-import { DEFINIZIONI_VERIFICA, DEFINIZIONI_VERIFICA_SIGC, NESSUN_FILE, SCEGLI_ANNO, SCEGLI_ESERCIZIO } from '../lib/formato';
+import { DEFINIZIONI_VERIFICA, DEFINIZIONI_VERIFICA_SIGC, SCEGLI_ANNO, SCEGLI_ESERCIZIO } from '../lib/formato';
 import { SENZA_DATI_SIGC, TITOLI_SCHEDE, captionVociVerifica, captionVociVerificaSigc, kpiVerifica, kpiVerificaSigc, testoAggiornamentoAnno, testoAggiornamentoEsercizio } from '../lib/intervento';
 import type { ChiaveKpi, IdScheda, KpiIntervento } from '../lib/intervento';
 import { DATI_VERIFICA, titoloDato } from '../lib/verifica';
@@ -55,7 +55,7 @@ function KpiScheda({ kpi }: { kpi: readonly KpiIntervento[] }) {
 }
 
 /** I KPI, i file e le venti voci della verifica non SIGC dell'intervento e dell'anno, coi link verso l'elenco. */
-function VociVerifica({ d, codice, anno }: { d: Verifica; codice: string; anno: number | undefined }) {
+function VociVerifica({ d, codice, anno }: { d: Verifica; codice: string; anno: number }) {
   const puo = usePuoAprireElenco();
   const tipo = useTipoDegliInterventi()(codice);
   const r = rigaDellIntervento(d.righe, codice);
@@ -63,7 +63,6 @@ function VociVerifica({ d, codice, anno }: { d: Verifica; codice: string; anno: 
   const voci = DATI_VERIFICA.map((x) => ({ etichetta: titoloDato(x, 'voce', d.outputCumulativo), valore: <CellaDato r={r} d={x} indicatore={r.indicatoreOutput.valore} puo={puo} tipo={tipo} /> }));
   return (
     <>
-      {d.annoRiferimento === null && <Vuoto>{NESSUN_FILE}</Vuoto>}
       <KpiScheda kpi={kpiVerifica(r)} />
       <div className="ui-strumenti">
         <PulsantiScarica oggetto={`la verifica SMP non SIGC dell'intervento ${codice}`} scaricamenti={fileVerifica(`Verifica SMP non SIGC ${codice}`, criteriVerifica(soloIntervento(codice), anno))} />

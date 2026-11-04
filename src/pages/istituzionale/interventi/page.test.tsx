@@ -167,6 +167,8 @@ describe("RF016: la verifica SMP non SIGC dell'intervento (TX-0016 filtrata sull
     expect(lette.verifica).toEqual(['?intervento=AT001&anno=2025']);
     await userEvent.click(within(stato).getByRole('link', { name: 'Torna alla verifica SMP non SIGC' }));
     await waitFor(() => expect(router.state.location.pathname).toBe('/istituzionale/verifica-smp-non-sigc'));
+    // J-14: la verifica chiede l'anno, il ritorno porta quello appena scelto
+    expect(router.state.location.search).toBe('?anno=2025');
   });
 
   it('caricamento con lo scheletro e aria-live, poi i dati', async () => {
@@ -426,6 +428,12 @@ describe("RF015: la scheda Verifica SMP SIGC dell'intervento (TX-0015 filtrata s
     expect(screen.queryByRole('link', { name: 'Verifica SMP SIGC filtrata su questo intervento' })).toBeNull();
     expect(screen.getAllByRole('tab').map((s) => s.textContent)).toEqual(['Verifica SMP non SIGC']);
     expect(lette.verificaSigc).toEqual([]);
+    // J-11: senza anno TX-0016 non si legge; scelto l'anno, una lettura con l'intervento e l'anno
+    await act(async () => new Promise((r) => setTimeout(r, 30)));
+    expect(lette.verifica).toEqual([]);
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: /^Anno di riferimento del monitoraggio SMP non SIGC/ }), '2025');
+    await userEvent.click(screen.getByRole('button', { name: 'Mostra' }));
+    await waitFor(() => expect(lette.verifica).toEqual(['?intervento=SRA01&anno=2025']));
   });
 
   it('col solo grant di TX-0015: la sola scheda SIGC; senza esercizio la pagina mostra la scheda (nessuno scheletro) e non legge nulla', async () => {

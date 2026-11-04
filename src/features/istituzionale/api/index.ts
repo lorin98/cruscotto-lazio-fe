@@ -58,11 +58,23 @@ interface Opzioni {
 }
 
 // TX-0016 (RF016): i dati non SIGC dei file ASR per intervento, da confrontare con SMP, con l'ultimo dato sincronizzato.
-// Una lettura per pagina coi criteri dell'indirizzo; il dettaglio dell'intervento la fa col solo intervento della route e,
-// con `mantieniDati`, durante la lettura di un altro anno tiene i dati di prima (placeholderData, come gli elenchi
+// La pagina e la scheda dell'intervento leggono per l'anno scelto, obbligatorio dal 04/11/2026 come l'esercizio di TX-0015:
+// senza anno nessuna richiesta, e la regola sta qui, non nei componenti (review step9 del 04/11/2026, J-12). Una lettura per
+// pagina coi criteri dell'indirizzo; il dettaglio dell'intervento la fa col solo intervento della route e, con
+// `mantieniDati`, durante la lettura di un altro anno tiene i dati di prima (placeholderData, come gli elenchi
 // dell'elenco operativo): la scheda col selettore d'anno resta montata e il focus resta sul suo "Mostra".
-export const useVerificaSmpNonSigc = (criteri: CriteriVerifica, { abilitato = true, mantieniDati = false }: Opzioni & { mantieniDati?: boolean } = {}) =>
-  useTx0016(criteri, { query: { enabled: abilitato, ...(mantieniDati ? { placeholderData: keepPreviousData } : {}) } });
+export const useVerificaSmpNonSigc = (
+  filtri: Omit<CriteriVerifica, 'anno'>,
+  anno: number | undefined,
+  { abilitato = true, mantieniDati = false }: Opzioni & { mantieniDati?: boolean } = {},
+) =>
+  useTx0016(anno === undefined ? filtri : { ...filtri, anno }, {
+    query: { enabled: abilitato && anno !== undefined, ...(mantieniDati ? { placeholderData: keepPreviousData } : {}) },
+  });
+
+/** La card della Home: TX-0016 senza anno, cioe' l'ultimo anno con un file (la card non ha un selettore d'anno). */
+export const useUltimaVerificaSmpNonSigc = (filtri: Omit<CriteriVerifica, 'anno'>, { abilitato = true }: Opzioni = {}) =>
+  useTx0016(filtri, { query: { enabled: abilitato } });
 
 // TX-0015 (RF015): i dati SIGC per intervento da confrontare con SMP, per l'esercizio scelto (obbligatorio); senza
 // esercizio nessuna richiesta (come nel finanziario, da cui la pagina viene). La pagina la legge coi criteri

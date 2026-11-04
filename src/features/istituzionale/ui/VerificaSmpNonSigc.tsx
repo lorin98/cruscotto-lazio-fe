@@ -17,8 +17,8 @@ import { letturaDelTipo } from '../../../shared/lib';
 import { SelettoreAnno, useAnnoNellIndirizzo } from '../../../shared/ui';
 import { useVerificaSmpNonSigc } from '../api';
 import { verificaSigcConFiltri } from '../lib/collegamenti';
-import { PARAMETRO_ANNO, anniDiRiferimento, criteriVerifica } from '../lib/criteri';
-import { SCEGLI_ANNO, pillAnnoDelFile } from '../lib/formato';
+import { PARAMETRO_ANNO, anniDiRiferimento } from '../lib/criteri';
+import { SCEGLI_ANNO, pillAnnoScelto } from '../lib/formato';
 import { puoLeggere } from '../lib/grant';
 import { PaginaReport } from './PaginaReport';
 import { ReportVerifica } from './ReportVerifica';
@@ -51,7 +51,7 @@ export function VerificaSmpNonSigc() {
   const [anno, impostaAnno] = useAnnoNellIndirizzo(PARAMETRO_ANNO);
   // solo NO SIGC (TX-0016): col filtro SIGC il report e' non pertinente, letto senza filtro (il dato reale, in grigio)
   const { np, criteri: lettura } = letturaDelTipo(pagina.filtri, 'nosigc', MOTIVO_SOLO_NO_SIGC);
-  const stato = useVerificaSmpNonSigc(criteriVerifica(lettura, anno), { abilitato: !pagina.inAttesa && anno !== undefined });
+  const stato = useVerificaSmpNonSigc(lettura, anno, { abilitato: !pagina.inAttesa });
   const nota = puoLeggere(useAuthStatus().data, 'verificaSigc') ? <FraseVerificaSigc /> : undefined;
   const selettore = <SelettoreAnno id="f-anno-smp" etichetta="Anno di riferimento del monitoraggio SMP non SIGC" aiuto={AIUTO_ANNO} anni={anniDiRiferimento(stato.data?.annoRiferimento, anno)} voceVuota="Scegli un anno" anno={anno} onCambia={impostaAnno} />;
   return (
@@ -64,7 +64,7 @@ export function VerificaSmpNonSigc() {
       sottotitolo={SOTTOTITOLO}
       nota={nota}
       senzaLettura={anno === undefined ? SCEGLI_ANNO : undefined}
-      pill={(d) => pillAnnoDelFile(d.annoRiferimento)}
+      pill={() => pillAnnoScelto(anno)}
       sopra={selettore}
       np={np}
     >

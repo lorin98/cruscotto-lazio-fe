@@ -19,7 +19,7 @@ import type { ReactNode } from 'react';
 import { useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { AnteprimaArea, AvanzamentoArea, ConfrontoArea, NotaArea } from '../../../shared/ui';
 import type { CellaConfronto, ColonnaConfronto, StatoColonnaConfronto } from '../../../shared/ui';
-import { useVerificaSmpNonSigc, useVerificaSmpSigc } from '../api';
+import { useUltimaVerificaSmpNonSigc, useVerificaSmpSigc } from '../api';
 import { QUOTA_NON_SIGC, SENZA_DATO_NON_SIGC, anteprimaVerifica, anteprimaVerificaSigc, celleNonSigc, celleSigc, intestazioneNonSigc, intestazioneSigc, notaRiferimenti, righeCard, titoloTabella } from '../lib/anteprima';
 import type { AnteprimaVerifica, AnteprimaVerificaSigc } from '../lib/anteprima';
 import { criteriVerificaSenzaFiltri, esercizioUltimoChiuso, filtriVerificaSigcSenzaFiltri } from '../lib/criteri';
@@ -84,7 +84,7 @@ function colonnaSigc(s: Stato<DatiSigc>, esercizio: number): ColonnaConfronto {
 /** Le due letture e la tabella a confronto, con le sole colonne dei grant dell'utente. */
 function Confronto({ conVerifica, conSigc }: { conVerifica: boolean; conSigc: boolean }) {
   const esercizio = esercizioUltimoChiuso(new Date());
-  const nonSigc = statoDi(conVerifica, useVerificaSmpNonSigc(criteriVerificaSenzaFiltri(), { abilitato: conVerifica }), (d) => ({ a: anteprimaVerifica(d), annoRiferimento: d.annoRiferimento, perimetro: d.perimetro }));
+  const nonSigc = statoDi(conVerifica, useUltimaVerificaSmpNonSigc(criteriVerificaSenzaFiltri(), { abilitato: conVerifica }), (d) => ({ a: anteprimaVerifica(d), annoRiferimento: d.annoRiferimento, perimetro: d.perimetro }));
   const sigc = statoDi(conSigc, useVerificaSmpSigc(filtriVerificaSigcSenzaFiltri(), esercizio, { abilitato: conSigc }), (d) => ({ a: anteprimaVerificaSigc(d), periodo: periodoDellaRisposta(d, esercizio), perimetro: d.perimetro }));
   const colonne = [...(nonSigc ? [colonnaNonSigc(nonSigc)] : []), ...(sigc ? [colonnaSigc(sigc, esercizio)] : [])];
   const datiNonSigc = datiDi(nonSigc);

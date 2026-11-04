@@ -104,7 +104,10 @@ export function criteriVerificaSigc(filtri: Filtri, esercizio: number): CriteriD
   return { ...filtri, esercizio };
 }
 
-/** I criteri della verifica aperta senza filtri ne' anno: la card della Home legge con questi, nella stessa cache. */
+/**
+ * I criteri della verifica senza filtri ne' anno: la card della Home legge TX-0016 con questi, cioe' l'ultimo anno con un file;
+ * la pagina legge solo con l'anno scelto, quindi nessuna cache in comune (review step9 del 04/11/2026, J-15).
+ */
 export function criteriVerificaSenzaFiltri(): CriteriDellaVerifica {
   return criteriVerifica(filtriDaRicerca(''), undefined);
 }

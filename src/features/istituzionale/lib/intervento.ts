@@ -87,7 +87,7 @@ export function lettureDelloStato(verifica: LetturaDettaglio | null, sigc: Lettu
 
 /**
  * Lo stato della pagina: quello delle letture partite; con una scheda visibile le schede, non lo scheletro, se nessuna
- * lettura e' partita (la scheda SIGC aperta senza esercizio, che non legge), e non il solo testo statico se le letture
+ * lettura e' partita (la scheda aperta senza anno o senza esercizio, che non legge), e non il solo testo statico se le letture
  * partite sono in errore: le schede leggono quando si aprono, e l'errore dell'unica partita toglierebbe tablist, l'altra
  * scheda e il selettore dell'anno o dell'esercizio. La scheda in errore dice il testo statico col suo selettore e l'avviso
  * della pagina tiene Riprova (review del riallineamento IST-01).
@@ -134,10 +134,9 @@ export function captionVociVerificaSigc(esercizio: number, annoDomande: number):
  * quello dei dati che restano in pagina (`mostrato`, l'anno di riferimento della risposta mostrata), lo stesso della
  * didascalia (captionVociVerifica): annuncio e didascalia non possono divergere (review X1).
  */
-export function testoAggiornamentoAnno(anno: number | undefined, mostrato: number | null | undefined): string {
-  const lettura = anno === undefined ? "dell'ultimo anno con un file" : `dell'anno ${anno}`;
-  const restano = typeof mostrato === 'number' ? `i dati dell'anno di riferimento ${mostrato}` : `i dati di prima${mostrato === null ? ' (nessun file)' : ''}`;
-  return `Lettura ${lettura} in corso: restano ${restano}.`;
+export function testoAggiornamentoAnno(anno: number, mostrato: number | null | undefined): string {
+  const restano = typeof mostrato === 'number' ? `i dati dell'anno di riferimento ${mostrato}` : 'i dati di prima';
+  return `Lettura dell'anno ${anno} in corso: restano ${restano}.`;
 }
 
 /** Lo stato della scheda SIGC mentre si legge un altro esercizio: i dati dell'esercizio mostrato restano, detto in role=status. */

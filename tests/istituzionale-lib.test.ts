@@ -24,13 +24,12 @@ import {
   DEFINIZIONI_VERIFICA,
   DEFINIZIONI_VERIFICA_SIGC,
   NESSUN_DATO_SIGC,
-  NESSUN_FILE,
   PERIMETRO_IN_PAROLE,
   PILL_PERIMETRO,
   SCEGLI_ESERCIZIO,
   estremiEsercizio,
   periodoEsercizio,
-  pillAnnoDelFile,
+  pillAnnoScelto,
   pillEsercizio,
   quantitaConIndicatore,
   siNo,
@@ -207,14 +206,12 @@ describe('RF016 e RF015: testi (perimetro, anno, esercizio, quantita, assenze, d
   it('perimetro, anno del file ed esercizio della barra', () => {
     expect(PILL_PERIMETRO).toBe('Perimetro: regionale (i report istituzionali non hanno perimetro ADA)');
     expect(PERIMETRO_IN_PAROLE).toBe('regionale');
-    expect(pillAnnoDelFile(2025)).toBe('Anno di riferimento del file SMP non SIGC: 2025');
-    expect(pillAnnoDelFile(null)).toBe('Anno di riferimento del file SMP non SIGC: nessun file');
+    // J-10: la pill dice l'anno scelto, non che il file c'e' (il backend risponde sempre con l'anno chiesto)
+    expect(pillAnnoScelto(2025)).toBe('Anno di riferimento scelto: 2025');
     expect(pillEsercizio(2025)).toBe('Esercizio finanziario: 2025 (dal 16/10/2024 al 15/10/2025)');
     expect(periodoEsercizio(2023)).toBe('dal 16/10/2022 al 15/10/2023');
     expect(pillEsercizio(undefined)).toBe('Esercizio finanziario: non indicato');
-    expect(testoAnnoDiRiferimento(2025, undefined)).toBe('2025 (ultimo anno con un file SMP non SIGC presente)');
-    expect(testoAnnoDiRiferimento(2024, 2024)).toBe("2024 (l'anno scelto)");
-    expect(testoAnnoDiRiferimento(null, 2023)).toBe('nessun file SMP non SIGC presente');
+    expect(testoAnnoDiRiferimento(2024)).toBe("2024 (l'anno scelto)");
     expect([testoOutputErogato(true), testoOutputErogato(false)]).toEqual(['valore del file, cumulativo per anno di riferimento', 'valore del file per anno di riferimento']);
   });
 
@@ -232,7 +229,6 @@ describe('RF016 e RF015: testi (perimetro, anno, esercizio, quantita, assenze, d
   it('stati e definizioni dei wireframe approvati', () => {
     expect(testoVuoto(true)).toBe("Nessun intervento per i filtri scelti (per esempio un'azione portante senza interventi collegati).");
     expect(testoVuoto(false)).toBe('Nessun intervento nei report istituzionali.');
-    expect(NESSUN_FILE).toMatch(/^Nessun file SMP non SIGC acquisito per l'anno scelto: /);
     expect(DEFINIZIONI_VERIFICA).toContain('solo saldate al 100% (definizione da confermare con ARSIAL)');
     expect(SCEGLI_ESERCIZIO).toBe("Scegli l'esercizio finanziario da consultare.");
     expect(NESSUN_DATO_SIGC).toBe("Nessun dato SIGC per l'esercizio e i filtri scelti. Scegli un altro esercizio oppure");
@@ -305,8 +301,8 @@ describe('RF016: i ventuno dati della verifica SMP non SIGC (TX-0016)', () => {
   });
 
   it('riferimenti della risposta e testo della ricerca', () => {
-    expect(vociRiferimenti(VERIFICA, undefined)).toEqual([
-      { etichetta: 'Anno di riferimento', valore: '2025 (ultimo anno con un file SMP non SIGC presente)' },
+    expect(vociRiferimenti(VERIFICA, 2025)).toEqual([
+      { etichetta: 'Anno di riferimento', valore: "2025 (l'anno scelto)" },
       { etichetta: 'Output erogato', valore: 'valore del file, cumulativo per anno di riferimento' },
       { etichetta: 'Perimetro', valore: 'regionale' },
     ]);
@@ -414,8 +410,7 @@ describe('RF016 e RF015: il dettaglio dell intervento (testata, schede, KPI per 
     // lo stato dice l'anno dei dati che restano, lo stesso della didascalia (review X1): indietro, avanti, senza file
     expect(testoAggiornamentoAnno(2024, 2025)).toBe("Lettura dell'anno 2024 in corso: restano i dati dell'anno di riferimento 2025.");
     expect(testoAggiornamentoAnno(2025, 2024)).toBe("Lettura dell'anno 2025 in corso: restano i dati dell'anno di riferimento 2024.");
-    expect(testoAggiornamentoAnno(undefined, 2023)).toBe("Lettura dell'ultimo anno con un file in corso: restano i dati dell'anno di riferimento 2023.");
-    expect(testoAggiornamentoAnno(2024, null)).toBe("Lettura dell'anno 2024 in corso: restano i dati di prima (nessun file).");
+    expect(testoAggiornamentoAnno(2024, null)).toBe("Lettura dell'anno 2024 in corso: restano i dati di prima.");
     expect(testoAggiornamentoAnno(2024, undefined)).toBe("Lettura dell'anno 2024 in corso: restano i dati di prima.");
     expect(testoAggiornamentoEsercizio(2024, 2025)).toBe("Lettura dell'esercizio 2024 in corso: restano i dati dell'esercizio 2025.");
     expect(testoAggiornamentoEsercizio(2024, undefined)).toBe("Lettura dell'esercizio 2024 in corso: restano i dati di prima.");

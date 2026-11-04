@@ -14,8 +14,8 @@ export const PILL_PERIMETRO = 'Perimetro: regionale (i report istituzionali non 
 export const PERIMETRO_IN_PAROLE = testoPerimetro('REGIONALE');
 
 /** Pill dell'anno di riferimento del file della verifica (annoRiferimento della risposta; null = nessun file). */
-export function pillAnnoDelFile(anno: number | null): string {
-  return `Anno di riferimento del file SMP non SIGC: ${anno ?? 'nessun file'}`;
+export function pillAnnoScelto(anno: number | undefined): string {
+  return `Anno di riferimento scelto: ${anno ?? 'non scelto'}`;
 }
 
 /**
@@ -37,13 +37,9 @@ export function pillEsercizio(esercizio: number | undefined): string {
   return `Esercizio finanziario: ${esercizio === undefined ? 'non indicato' : `${esercizio} (${periodoEsercizio(esercizio)})`}`;
 }
 
-/**
- * L'anno di riferimento nei riferimenti della risposta: quello scelto (wireframe del 04/11/2026: "aaaa (l'anno scelto)"),
- * oppure l'ultimo con un file per una lettura senza anno (la card della Home); null = nessun file.
- */
-export function testoAnnoDiRiferimento(risposta: number | null, scelto: number | undefined): string {
-  if (risposta === null) return 'nessun file SMP non SIGC presente';
-  return scelto === undefined ? `${risposta} (ultimo anno con un file SMP non SIGC presente)` : `${risposta} (l'anno scelto)`;
+/** L'anno di riferimento nei riferimenti della risposta: quello scelto (wireframe del 04/11/2026: "aaaa (l'anno scelto)"). */
+export function testoAnnoDiRiferimento(scelto: number): string {
+  return `${scelto} (l'anno scelto)`;
 }
 
 /** Come si legge l'output erogato della verifica (outputCumulativo della risposta, D-04 del backend). */
@@ -51,8 +47,6 @@ export function testoOutputErogato(cumulativo: boolean): string {
   return cumulativo ? 'valore del file, cumulativo per anno di riferimento' : 'valore del file per anno di riferimento';
 }
 
-/** Nessun file SMP non SIGC (annoRiferimento null): lo stato dichiarato accanto ai dati, che restano (SC-IS_SMP_NESSUN_FILE). */
-export const NESSUN_FILE = "Nessun file SMP non SIGC acquisito per l'anno scelto: gli indicatori, gli output e i dati dell'avviso sono non valorizzati; domande e spesa sono calcolate dalle pratiche.";
 
 /** Lo stato vuoto di un report: coi filtri dice di cambiarli; senza filtri non parla di filtri. */
 export function testoVuoto(conFiltri: boolean): string {
