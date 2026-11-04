@@ -287,7 +287,9 @@ export function graficoImportiSigc(i: ImportiSigcLike): DatiGrafico {
     // a destra lo spazio in pixel per l'etichetta piu' lunga degli ultimi segmenti, se non entra nel suo segmento (J-04):
     // non dipende dalla larghezza del grafico ne' dalla scala
     grid: { ...GRIGLIA_CON_ETICHETTE, right: Math.max(...segmenti.filter((s) => s.ultimo).map((s) => larghezzaEtichetta(testoEtichetta(s)))) },
-    xAxis: { type: 'value', axisLabel: { formatter: asseImporti } },
+    // con lo spazio riservato a destra l'area e' piu' stretta: al piu' tre intervalli e nessuna etichetta dell'asse sopra
+    // un'altra (verifica a vista del 05/11/2026: "50,0 M€100,0 M€150,0 M€" attaccate, illeggibili a 360 px)
+    xAxis: { type: 'value', splitNumber: 3, axisLabel: { formatter: asseImporti, hideOverlap: true } },
     yAxis: asseCategorieOrizzontale(barre),
     series: segmenti.map((seg) => serieSegmento(seg, barre)),
   };

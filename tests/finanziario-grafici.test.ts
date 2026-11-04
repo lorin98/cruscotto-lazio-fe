@@ -1347,8 +1347,10 @@ describe('revisioni del 04/11/2026', () => {
   it("Importi SIGC: l'etichetta ha lo sfondo del suo segmento; dentro se ci sta, altrimenti a destra della barra (ultimo segmento) o sopra", () => {
     const o = opzioniDi(graficoImportiSigc(sigcBase)) as unknown as { series: Array<{ name: string; itemStyle: { color: string }; label: { backgroundColor?: string }; labelLayout: (p: unknown) => unknown }>; xAxis: { max?: unknown } };
     for (const serie of o.series) expect(serie.label.backgroundColor).toBe(serie.itemStyle.color);
-    // nessun massimo forzato: lo spazio per l'etichetta messa a destra e' in pixel nella griglia (J-04)
+    // nessun massimo forzato: lo spazio per l'etichetta messa a destra e' in pixel nella griglia (J-04); nell'area piu'
+    // stretta al piu' tre intervalli e le etichette dell'asse non si sovrappongono (verifica a vista del 05/11/2026)
     expect(o.xAxis.max).toBeUndefined();
+    expect(o.xAxis).toMatchObject({ splitNumber: 3, axisLabel: { hideOverlap: true } });
     const ultimo = o.series.find((x) => x.name === 'Ancora da pagare');
     const primo = o.series.find((x) => x.name.startsWith('Pagato'));
     const rect = { x: 100, y: 50, width: 40, height: 30 };
