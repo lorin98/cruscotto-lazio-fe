@@ -1,7 +1,8 @@
 // SchedeIntervento — le schede del dettaglio dell'intervento (flusso intervento approvato, ricomposto il 30/10/2026), ognuna
 // col suo periodo e i suoi tre KPI (nessun KPI in testa: i periodi sono diversi e non si sommano):
-// - "Verifica SMP non SIGC" (TX-0016): selettore dell'anno di riferimento, KPI cumulativi, CSV e XLSX, le venti voci come
-//   tabella a due colonne con intestazione di riga, i link verso l'elenco e le definizioni;
+// - "Verifica SMP non SIGC" (TX-0016): selettore dell'anno di riferimento (obbligatorio dal 04/11/2026: senza, la scheda
+//   chiede di sceglierlo e non legge), KPI cumulativi, CSV e XLSX, le venti voci come tabella a due colonne con
+//   intestazione di riga, i link verso l'elenco e le definizioni;
 // - "Verifica SMP SIGC" (TX-0015): selettore dell'esercizio (obbligatorio: senza, la scheda chiede di sceglierlo e non
 //   legge), KPI della campagna n-1 e dell'esercizio n, CSV e XLSX, i riferimenti e le venti voci, le definizioni.
 // Le quantita' di output hanno accanto il codice dell'indicatore (l'unita' di misura veniva da TX-0017, ora del fisico:
@@ -19,7 +20,7 @@ import { useVerificaSmpNonSigc, useVerificaSmpSigc } from '../api';
 import type { VerificaSmp } from '../api';
 import { anniDiRiferimento, criteriVerifica, criteriVerificaSigc, eserciziProposti, soloIntervento } from '../lib/criteri';
 import type { Verifica } from '../lib/dto';
-import { DEFINIZIONI_VERIFICA, DEFINIZIONI_VERIFICA_SIGC, NESSUN_FILE, SCEGLI_ESERCIZIO } from '../lib/formato';
+import { DEFINIZIONI_VERIFICA, DEFINIZIONI_VERIFICA_SIGC, NESSUN_FILE, SCEGLI_ANNO, SCEGLI_ESERCIZIO } from '../lib/formato';
 import { SENZA_DATI_SIGC, TITOLI_SCHEDE, captionVociVerifica, captionVociVerificaSigc, kpiVerifica, kpiVerificaSigc, testoAggiornamentoAnno, testoAggiornamentoEsercizio } from '../lib/intervento';
 import type { ChiaveKpi, IdScheda, KpiIntervento } from '../lib/intervento';
 import { DATI_VERIFICA, titoloDato } from '../lib/verifica';
@@ -31,7 +32,7 @@ import { usePuoAprireElenco, useTipoDegliInterventi } from './navigazione';
 type StatoVerifica = ReturnType<typeof useVerificaSmpNonSigc>;
 type StatoVerificaSigc = ReturnType<typeof useVerificaSmpSigc>;
 
-const AIUTO_ANNO = "Facoltativo. Vale per indicatori, output e dati dell'avviso; domande e spesa sono cumulative.";
+const AIUTO_ANNO = "Obbligatorio. Vale per indicatori, output e dati dell'avviso; domande e spesa sono cumulative.";
 const AIUTO_ESERCIZIO = "Obbligatorio. Esercizio n dal 16 ottobre n-1 al 15 ottobre n; le domande sono quelle dell'anno n-1.";
 /** L'errore senza risposta nella scheda: il solo testo statico, senza registrarlo di nuovo nell'avviso della pagina. */
 const nellaPagina = () => <ErroreNellaPagina />;
@@ -74,7 +75,8 @@ function VociVerifica({ d, codice, anno }: { d: Verifica; codice: string; anno: 
 }
 
 interface PropsVerifica {
-  stato: StatoVerifica;
+  /** La lettura di TX-0016 dell'intervento; null senza anno (la scheda non legge). */
+  stato: StatoVerifica | null;
   codice: string;
   anno: number | undefined;
   onAnno: (anno: number | undefined) => void;
@@ -88,13 +90,19 @@ interface PropsVerifica {
 function SchedaVerifica({ stato, codice, anno, onAnno }: PropsVerifica) {
   return (
     <>
-      <SelettoreAnno id="f-anno-intervento" etichetta="Anno di riferimento del monitoraggio SMP non SIGC" aiuto={AIUTO_ANNO} anni={anniDiRiferimento(stato.data?.annoRiferimento, anno)} voceVuota="Ultimo anno con un file (predefinito)" anno={anno} onCambia={onAnno} />
-      <AvvisoAggiornamento attivo={stato.isPlaceholderData} testo={testoAggiornamentoAnno(anno, stato.data?.annoRiferimento)} />
-      <div className="ui-risultati" aria-busy={stato.isPlaceholderData || undefined}>
-        <VistaQuery stato={stato} errorePersonalizzato={nellaPagina}>
-          {(d) => <VociVerifica d={d} codice={codice} anno={anno} />}
-        </VistaQuery>
-      </div>
+      <SelettoreAnno id="f-anno-intervento" etichetta="Anno di riferimento del monitoraggio SMP non SIGC" aiuto={AIUTO_ANNO} anni={anniDiRiferimento(stato?.data?.annoRiferimento, anno)} voceVuota="Scegli un anno" anno={anno} onCambia={onAnno} />
+      {stato === null || anno === undefined ? (
+        <Vuoto>{SCEGLI_ANNO}</Vuoto>
+      ) : (
+        <>
+          <AvvisoAggiornamento attivo={stato.isPlaceholderData} testo={testoAggiornamentoAnno(anno, stato.data?.annoRiferimento)} />
+          <div className="ui-risultati" aria-busy={stato.isPlaceholderData || undefined}>
+            <VistaQuery stato={stato} errorePersonalizzato={nellaPagina}>
+              {(d) => <VociVerifica d={d} codice={codice} anno={anno} />}
+            </VistaQuery>
+          </div>
+        </>
+      )}
     </>
   );
 }
@@ -183,7 +191,7 @@ export function SchedeIntervento({ codice, anno, onAnno, esercizio, onEsercizio,
   return (
     <Tabs selectedKey={attiva} onSelectionChange={(k) => onScheda(String(k) as IdScheda)}>
       <ListaSchede schede={schede} />
-      {schede.includes('verifica') && <TabPanel id="verifica">{verifica && <SchedaVerifica stato={verifica} codice={codice} anno={anno} onAnno={onAnno} />}</TabPanel>}
+      {schede.includes('verifica') && <TabPanel id="verifica"><SchedaVerifica stato={verifica} codice={codice} anno={anno} onAnno={onAnno} /></TabPanel>}
       {schede.includes('verificaSigc') && (
         <TabPanel id="verificaSigc">
           <SchedaVerificaSigc stato={verificaSigc} codice={codice} esercizio={esercizio} onEsercizio={onEsercizio} />

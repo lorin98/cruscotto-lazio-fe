@@ -87,7 +87,7 @@ export function testoValore(tipo: TipoDato, v: number | string | boolean, indica
 /** Il nome accessibile e il testo visibile di un link verso l'elenco, per il codice dell'intervento. */
 export const TESTI_LINK: Record<LinkDato, (codice: string) => { testo?: string; descrizione: string }> = {
   ricevute: (codice) => ({ descrizione: `le domande di sostegno correnti dell'intervento ${codice}` }),
-  spesa: (codice) => ({ testo: 'Apri nei pagamenti', descrizione: `le righe pagate non SIGC dell'intervento ${codice}` }),
+  spesa: (codice) => ({ testo: 'Apri nei pagamenti', descrizione: `i pagamenti non SIGC con esito Pagata dell'intervento ${codice}` }),
 };
 
 /**

@@ -37,10 +37,13 @@ export function pillEsercizio(esercizio: number | undefined): string {
   return `Esercizio finanziario: ${esercizio === undefined ? 'non indicato' : `${esercizio} (${periodoEsercizio(esercizio)})`}`;
 }
 
-/** L'anno di riferimento nei riferimenti della risposta: quello scelto, oppure l'ultimo con un file; null = nessun file. */
+/**
+ * L'anno di riferimento nei riferimenti della risposta: quello scelto (wireframe del 04/11/2026: "aaaa (l'anno scelto)"),
+ * oppure l'ultimo con un file per una lettura senza anno (la card della Home); null = nessun file.
+ */
 export function testoAnnoDiRiferimento(risposta: number | null, scelto: number | undefined): string {
   if (risposta === null) return 'nessun file SMP non SIGC presente';
-  return scelto === undefined ? `${risposta} (ultimo anno con un file SMP non SIGC presente)` : String(risposta);
+  return scelto === undefined ? `${risposta} (ultimo anno con un file SMP non SIGC presente)` : `${risposta} (l'anno scelto)`;
 }
 
 /** Come si legge l'output erogato della verifica (outputCumulativo della risposta, D-04 del backend). */
@@ -49,7 +52,7 @@ export function testoOutputErogato(cumulativo: boolean): string {
 }
 
 /** Nessun file SMP non SIGC (annoRiferimento null): lo stato dichiarato accanto ai dati, che restano (SC-IS_SMP_NESSUN_FILE). */
-export const NESSUN_FILE = "Nessun file SMP non SIGC acquisito: gli indicatori, gli output e i dati dell'avviso sono non valorizzati; domande e spesa sono calcolate dalle pratiche.";
+export const NESSUN_FILE = "Nessun file SMP non SIGC acquisito per l'anno scelto: gli indicatori, gli output e i dati dell'avviso sono non valorizzati; domande e spesa sono calcolate dalle pratiche.";
 
 /** Lo stato vuoto di un report: coi filtri dice di cambiarli; senza filtri non parla di filtri. */
 export function testoVuoto(conFiltri: boolean): string {
@@ -71,10 +74,13 @@ export function quantitaConIndicatore(v: number, indicatore: string | null | und
 
 /** Definizioni del backend accanto alla tabella della verifica (D-02, D-04, D-05; da confermare: OP-IS-07). */
 export const DEFINIZIONI_VERIFICA =
-  'Definizioni del backend: domande ricevute = domande di sostegno correnti (non SIGC per costruzione), contate anche senza importo richiesto ma escluse dal valore; finanziate = importo ammesso maggiore di zero; pagate = pratiche con un saldo pagato, solo saldate al 100% (definizione da confermare con ARSIAL); spesa erogata = righe pagate non SIGC, anticipi inclusi, al lordo dei recuperi; output erogato = valore del file non SIGC, cumulativo per anno di riferimento (da confermare con ARSIAL e AGEA).';
+  'Definizioni del backend: domande ricevute = domande di sostegno correnti (non SIGC per costruzione), contate anche senza importo richiesto ma escluse dal valore; finanziate = importo ammesso maggiore di zero; pagate = pratiche con un saldo pagato, solo saldate al 100% (definizione da confermare con ARSIAL); spesa erogata = pagamenti non SIGC con esito Pagata, anticipi inclusi, al lordo dei recuperi; output erogato = valore del file non SIGC, cumulativo per anno di riferimento (da confermare con ARSIAL e AGEA).';
 
 /** La verifica SMP SIGC senza l'esercizio: la pagina non legge e chiede di sceglierlo (TX-0015, esercizio obbligatorio). */
 export const SCEGLI_ESERCIZIO = "Scegli l'esercizio finanziario da consultare.";
+
+/** La verifica SMP non SIGC senza anno di riferimento: obbligatorio dal 04/11/2026, come l'esercizio (nessuna lettura). */
+export const SCEGLI_ANNO = "Scegli l'anno di riferimento da consultare.";
 
 /** La verifica SMP SIGC senza righe per l'esercizio e i filtri scelti: segue il pulsante "Modifica i filtri" (wireframe). */
 export const NESSUN_DATO_SIGC = "Nessun dato SIGC per l'esercizio e i filtri scelti. Scegli un altro esercizio oppure";

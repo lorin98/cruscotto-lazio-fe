@@ -133,7 +133,7 @@ function Dettaglio({ codice }: { codice: string }) {
   const { schede, attiva, aperta, onScheda } = useSchede(conVerifica, conSigc, anno, esercizio);
   // ogni lettura parte col grant della sua transazione quando la sua scheda si apre; al cambio d'anno o d'esercizio restano
   // i dati di prima: la scheda col selettore resta montata (focus su "Mostra")
-  const leggeVerifica = conVerifica && aperta('verifica');
+  const leggeVerifica = conVerifica && aperta('verifica') && anno !== undefined;
   const leggeSigc = conSigc && aperta('verificaSigc') && esercizio !== undefined;
   const statoVerifica = useVerificaSmpNonSigc(criteriVerifica(soloIntervento(codice), anno), { abilitato: leggeVerifica, mantieniDati: true });
   const statoSigc = useVerificaSmpSigc(soloIntervento(codice), esercizio, { abilitato: leggeSigc, mantieniDati: true });
