@@ -147,7 +147,7 @@ export const STRUMENTI: readonly Area[] = [
     descrizione: 'Tutte le domande e i pagamenti del tuo perimetro: filtri liberi, sinottico e totali sempre aggiornati, scheda di ogni domanda.',
     icona: 'it-list',
     tono: 'blu',
-    contenuti: ['Domande di sostegno e di pagamento con il beneficiario', 'Righe degli elenchi di liquidazione', 'Scheda della domanda con determine, pagamenti e recuperi'],
+    contenuti: ['Domande di sostegno e di pagamento con il beneficiario', 'Pagamenti degli elenchi di liquidazione', 'Scheda della domanda con determine, pagamenti e recuperi'],
     pagineVisibili: pagineElenco,
   },
 ];

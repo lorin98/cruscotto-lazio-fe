@@ -12,6 +12,7 @@ import type { TabellaEquivalente } from '../../../shared/lib';
 import { AvvisoAggiornamento, CardGrafico, Griglia, Kpi, TabellaStatica } from '../../../shared/ui';
 import type { ClicGrafico, ColonnaStatica } from '../../../shared/ui';
 import type { SinotticoElenco } from '../api';
+import { unitaElenco } from '../lib/criteri';
 import type { Voce } from '../lib/dto';
 import { TESTI_RIPARTIZIONE, filtroDalClic, filtroDellaVoce, graficoRipartizione, nomeVoce } from '../lib/grafici';
 import type { Ripartizione } from '../lib/grafici';
@@ -155,7 +156,7 @@ export function SinotticoDomande({
       <h2 id="t-sinottico">Sinottico dell’insieme filtrato</h2>
       <AvvisoAggiornamento attivo={inAggiornamento} testo="Aggiornamento del sinottico: restano visibili i numeri precedenti finché arrivano i nuovi." />
       {/* mai il numero precedente detto "con questi filtri" mentre arriva il nuovo (review v2 V-04) */}
-      <p className="visually-hidden">{testoConteggio(sinottico.domande ?? 0, ['domanda', 'domande'], { inAggiornamento })}</p>
+      <p className="visually-hidden">{testoConteggio(sinottico.domande ?? 0, unitaElenco('domande'), { inAggiornamento })}</p>
       <Griglia colonne={4}>
         {vista.indicatori.map((id) => (
           <Fragment key={id}>{INDICATORI[id](sinottico, vista)}</Fragment>

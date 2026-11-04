@@ -163,6 +163,12 @@ describe('catalogo delle aree', () => {
     expect(chiavi).not.toContain(fuori);
   });
 
+  it("la card dell'Elenco operativo chiama i pagamenti col loro nome, mai \"righe\" (revisione del 04/11/2026, J-16)", () => {
+    const elenco = catalogo.STRUMENTI.find((a) => a.chiave === 'elenco-operativo');
+    expect(elenco?.contenuti).toContain('Pagamenti degli elenchi di liquidazione');
+    expect(`${elenco?.descrizione} ${elenco?.contenuti.join(' ')}`).not.toMatch(/\brigh[ea]\b/i);
+  });
+
   it('nessun meccanismo delle aree "presto": i quattro ambiti sono realizzati (review H8 del procedurale)', () => {
     expect(Object.keys(catalogo)).not.toContain('AREE_FUTURE');
     expect(Object.keys(catalogo)).not.toContain('eRealizzata');

@@ -430,9 +430,9 @@ describe("elenco operativo, l'indirizzo dice solo cio' che il backend accetta (r
   });
 
   it("ordinamento attivo in parole, ritorno al predefinito, ultima pagina (review v1 X-04)", () => {
-    expect(testoOrdinamento('Liquidato', { campo: 'liquidato', verso: 'desc' })).toBe('Ordinate per Liquidato, decrescente');
+    expect(testoOrdinamento('Liquidato', { campo: 'liquidato', verso: 'desc' }, 'domande')).toBe('Ordinate per Liquidato, decrescente');
     // i pagamenti (04/11/2026: non piu' righe) concordano al maschile
-    expect(testoOrdinamento('Pagato', { campo: 'pagato', verso: 'desc' }, true)).toBe('Ordinati per Pagato, decrescente');
+    expect(testoOrdinamento('Pagato', { campo: 'pagato', verso: 'desc' }, 'pagamenti')).toBe('Ordinati per Pagato, decrescente');
     expect(ordinamentoPredefinito({ campo: 'codiceABarre', verso: 'asc' }, 'domande')).toBe(true);
     expect(ordinamentoPredefinito({ campo: 'codiceABarre', verso: 'desc' }, 'domande')).toBe(false);
     expect(senzaOrdinamento({ intervento: ['SRA01'], ordina: ['liquidato:desc'], pagina: ['2'] })).toEqual({ intervento: ['SRA01'] });

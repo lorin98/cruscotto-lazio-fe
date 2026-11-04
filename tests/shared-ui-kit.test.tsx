@@ -195,11 +195,11 @@ describe('TabellaInterattiva', () => {
     const notifiche: unknown[] = [];
     tabella({ onStato: (s) => notifiche.push(s) });
     await userEvent.click(screen.getByRole('button', { name: 'Pagina 2' }));
-    expect(notifiche.at(-1)).toEqual({ ordine: { chiave: 'codice', verso: 'crescente' }, pagina: 1, cercato: '' });
+    expect(notifiche.at(-1)).toEqual({ ordine: { chiave: 'codice', verso: 'crescente' }, pagina: 1, cercato: '', nascoste: ['nota'] });
     await userEvent.click(within(screen.getAllByRole('columnheader')[1]).getByRole('button'));
-    expect(notifiche.at(-1)).toEqual({ ordine: { chiave: 'importo', verso: 'decrescente' }, pagina: 0, cercato: '' });
+    expect(notifiche.at(-1)).toEqual({ ordine: { chiave: 'importo', verso: 'decrescente' }, pagina: 0, cercato: '', nascoste: ['nota'] });
     await userEvent.type(screen.getByRole('searchbox', { name: 'Cerca nella tabella' }), 'x1');
-    expect(notifiche.at(-1)).toEqual({ ordine: { chiave: 'importo', verso: 'decrescente' }, pagina: 0, cercato: 'x1' });
+    expect(notifiche.at(-1)).toEqual({ ordine: { chiave: 'importo', verso: 'decrescente' }, pagina: 0, cercato: 'x1', nascoste: ['nota'] });
   });
   it('statoTabellaValido: uno stato salvato fuori forma vale come assente', () => {
     const valido = statoTabellaValido(['codice', 'importo']);

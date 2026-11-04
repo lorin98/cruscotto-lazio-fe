@@ -7,7 +7,7 @@ import { scaricamentiDalBackend } from '../../../shared/ui';
 import type { Scaricamento } from '../../../shared/ui';
 import { LIMITE_ESPORTAZIONE, esportaDomande, esportaPagamenti, rispostaRichiestaNonValida } from '../api';
 import type { FormatoEsportazione } from '../api';
-import { criteriEsportazione } from '../lib/criteri';
+import { NOMI_ELENCO, criteriEsportazione } from '../lib/criteri';
 import type { Criteri, Elenco } from '../lib/criteri';
 
 const TITOLI: Record<Elenco, string> = {
@@ -15,20 +15,18 @@ const TITOLI: Record<Elenco, string> = {
   pagamenti: 'Elenco operativo dei pagamenti tx-0059',
 };
 
-const UNITA: Record<Elenco, string> = { domande: 'domande', pagamenti: 'pagamenti' };
-
 /** Avviso prima del clic: l'insieme supera le righe di un file; null se il file si puo' produrre. */
 export function avvisoLimite(elenco: Elenco, totaleRighe: number | undefined): string | null {
   const limite = LIMITE_ESPORTAZIONE[elenco];
   if (totaleRighe === undefined || totaleRighe <= limite) return null;
-  return `I file contengono al più ${formatNumber(limite)} ${UNITA[elenco]}: restringi i filtri per scaricarli (ora ${formatNumber(totaleRighe)}).`;
+  return `I file contengono al più ${formatNumber(limite)} ${NOMI_ELENCO[elenco].plurale}: restringi i filtri per scaricarli (ora ${formatNumber(totaleRighe)}).`;
 }
 
 /** Il 400 dell'esportazione oltre il limite, detto per esteso; gli altri errori col messaggio del problem-type. */
 function messaggioLimite(elenco: Elenco, totaleRighe: number | undefined) {
   return (errore: unknown): string | null =>
     rispostaRichiestaNonValida(errore) && totaleRighe !== undefined && totaleRighe > LIMITE_ESPORTAZIONE[elenco]
-      ? `Troppi dati per un file: al più ${formatNumber(LIMITE_ESPORTAZIONE[elenco])} ${UNITA[elenco]}. Restringi i filtri e riprova.`
+      ? `Troppi dati per un file: al più ${formatNumber(LIMITE_ESPORTAZIONE[elenco])} ${NOMI_ELENCO[elenco].plurale}. Restringi i filtri e riprova.`
       : null;
 }
 

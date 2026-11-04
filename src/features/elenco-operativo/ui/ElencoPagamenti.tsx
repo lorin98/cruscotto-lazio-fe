@@ -14,6 +14,7 @@ import { AvvisoAggiornamento, AvvisoPagina, ContestoIntestazione, Griglia, Kpi, 
 import { usePagamenti } from '../api';
 import type { PagamentoElenco, TotaliPagamenti } from '../api';
 import { percorsoDomandeDeiPagamenti } from '../lib/collegamenti';
+import { unitaElenco } from '../lib/criteri';
 import { cellaImporto, importoCompatto, perimetroDellaRisposta, testoSomma, testoSommaCompatta } from '../lib/formato';
 import { puoLeggere } from '../lib/grant';
 import { AnteprimaPagamento } from './anteprime';
@@ -27,7 +28,7 @@ import { useInterrogazione } from './useInterrogazione';
 /** I totali vengono dalla stessa lettura delle righe: mentre arrivano quelli nuovi restano i precedenti, dichiarati. */
 function SinotticoPagamenti({ totali, inAggiornamento }: { totali: TotaliPagamenti | undefined; inAggiornamento: boolean }) {
   // importi in forma compatta su una riga col valore pieno (R09)
-  const decretato = testoSommaCompatta(totali?.importoDecretato, ['pagamento', 'pagamenti']);
+  const decretato = testoSommaCompatta(totali?.importoDecretato, unitaElenco('pagamenti'));
   const pagato = importoCompatto(totali?.importoPagato);
   const feasr = importoCompatto(totali?.quotaFeasr);
   const quotaFeasr = { valore: feasr.valore, valorePieno: feasr.pieno };
@@ -56,7 +57,7 @@ function SinotticoPagamenti({ totali, inAggiornamento }: { totali: TotaliPagamen
 
 function piedePagamenti(t: TotaliPagamenti | undefined, totaleRighe: number): Partial<Record<string, ReactNode>> {
   return {
-    decreto: `Totale dell'insieme filtrato: ${plurale(totaleRighe, 'pagamento', 'pagamenti')}`,
+    decreto: `Totale dell'insieme filtrato: ${plurale(totaleRighe, ...unitaElenco('pagamenti'))}`,
     importoDecretato: testoSomma(t?.importoDecretato).valore,
     importoPagato: cellaImporto(t?.importoPagato),
     quotaFeasr: cellaImporto(t?.quotaFeasr),
@@ -86,7 +87,6 @@ function Contenuto({ i, l, nascoste, onNascoste }: { i: Interrogazione; l: Retur
             elenco="pagamenti"
             idTitolo="t-pagamenti"
             titolo="Elenco dei pagamenti"
-            oggetto="pagamenti"
             oggettoFile="l'elenco dei pagamenti"
             totale={pagina.totaleRighe ?? 0}
             righe={pagina.righe ?? []}
@@ -148,7 +148,7 @@ export function ElencoPagamenti() {
           </AvvisoPagina>
         </ContestoIntestazione.Provider>
       </main>
-      <PannelloInterrogazione i={i} elenco="pagamenti" lettura={l.stato} aggiornando={l.aggiornando} unita={['pagamento', 'pagamenti']} />
+      <PannelloInterrogazione i={i} elenco="pagamenti" lettura={l.stato} aggiornando={l.aggiornando} unita={unitaElenco('pagamenti')} />
     </>
   );
 }

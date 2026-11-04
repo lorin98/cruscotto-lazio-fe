@@ -51,6 +51,20 @@ export type Criteri = Partial<Record<NomeParametro, string[]>>;
 
 export type Elenco = 'domande' | 'pagamenti';
 
+/**
+ * Cosa conta ciascun elenco, in un solo punto (review step9 del 04/11/2026, J-18): il nome al singolare e al plurale e il
+ * genere per le concordanze ("Ordinate per", "Ordinati per"). I pagamenti non sono piu' "righe" dal 04/11/2026.
+ */
+export const NOMI_ELENCO: Record<Elenco, { singolare: string; plurale: string; maschile: boolean }> = {
+  domande: { singolare: 'domanda', plurale: 'domande', maschile: false },
+  pagamenti: { singolare: 'pagamento', plurale: 'pagamenti', maschile: true },
+};
+
+/** ['pagamento', 'pagamenti']: l'unita' dei conteggi di un elenco. */
+export function unitaElenco(elenco: Elenco): readonly [string, string] {
+  return [NOMI_ELENCO[elenco].singolare, NOMI_ELENCO[elenco].plurale];
+}
+
 /** Parametri ammessi nell'indirizzo di ciascun elenco (gli url_params dello uiplan, nell'ordine del contratto). */
 export const PARAMETRI: Record<Elenco, readonly NomeParametro[]> = {
   domande: [...FILTRI_DOMANDA, ...PARAMETRI_PAGINA],
@@ -289,8 +303,8 @@ export function senzaOrdinamento(criteri: Criteri): Criteri {
  * "Ordinate per Ancora da pagare, decrescente" (le domande) o "Ordinati per Pagato, decrescente" (i pagamenti: non piu' "righe"
  * dal 04/11/2026): l'ordinamento attivo in parole (review v1 X-04), concordato con cio' che l'elenco conta.
  */
-export function testoOrdinamento(titolo: string, o: Ordinamento, maschile = false): string {
-  return `${maschile ? 'Ordinati' : 'Ordinate'} per ${titolo}, ${o.verso === 'asc' ? 'crescente' : 'decrescente'}`;
+export function testoOrdinamento(titolo: string, o: Ordinamento, elenco: Elenco): string {
+  return `${NOMI_ELENCO[elenco].maschile ? 'Ordinati' : 'Ordinate'} per ${titolo}, ${o.verso === 'asc' ? 'crescente' : 'decrescente'}`;
 }
 
 /** Ultima pagina (da 0) per un totale di righe e la dimensione richiesta. */

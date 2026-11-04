@@ -12,7 +12,7 @@ import { AvvisoAggiornamento, Paginazione, PulsantiScarica, TabellaServer, colon
 import type { ColonnaServer } from '../../../shared/ui';
 import { CHIAVE_STATO_ELENCO, FIRMA_STATO_ELENCO, statoElencoValido } from '../lib/collegamenti';
 import type { StatoElenco } from '../lib/collegamenti';
-import { conDimensione, conPagina, dimensioneDi, ordinaPer, ordinamentoDi, ordinamentoPredefinito, paginaDi, senzaOrdinamento, testoOrdinamento, ultimaPagina } from '../lib/criteri';
+import { conDimensione, conPagina, dimensioneDi, ordinaPer, ordinamentoDi, ordinamentoPredefinito, paginaDi, senzaOrdinamento, testoOrdinamento, ultimaPagina, unitaElenco } from '../lib/criteri';
 import type { Criteri, Elenco, NomeFiltro } from '../lib/criteri';
 import { testoConteggio } from '../lib/formato';
 import { titoloDelCampo } from './colonne';
@@ -53,8 +53,6 @@ interface PropsRisultati<T> {
   elenco: Elenco;
   idTitolo: string;
   titolo: string;
-  /** "domande", "righe": cosa conta la paginazione. */
-  oggetto: string;
   /** Oggetto dei file ("l'elenco delle domande"). */
   oggettoFile: string;
   totale: number;
@@ -78,7 +76,7 @@ interface PropsRisultati<T> {
   anteprima: (riga: T | null, chiudi: () => void) => ReactNode;
 }
 
-export function RisultatiInterrogazione<T>({ elenco, idTitolo, titolo, oggetto, oggettoFile, totale, righe, criteri, applica, aggiornando, tabella, nascoste, onNascoste, anteprima }: PropsRisultati<T>) {
+export function RisultatiInterrogazione<T>({ elenco, idTitolo, titolo, oggettoFile, totale, righe, criteri, applica, aggiornando, tabella, nascoste, onNascoste, anteprima }: PropsRisultati<T>) {
   const [aperta, setAperta] = useState<T | null>(null);
   const h2 = useRef<HTMLHeadingElement>(null);
   const ordinamento = ordinamentoDi(criteri, elenco);
@@ -99,7 +97,7 @@ export function RisultatiInterrogazione<T>({ elenco, idTitolo, titolo, oggetto, 
       </div>
       <AvvisoAggiornamento attivo={aggiornando} />
       <OrdinamentoAttivo
-        testo={testoOrdinamento(titoloDelCampo(elenco, ordinamento.campo), ordinamento, elenco === 'pagamenti')}
+        testo={testoOrdinamento(titoloDelCampo(elenco, ordinamento.campo), ordinamento, elenco)}
         predefinito={ordinamentoPredefinito(ordinamento, elenco)}
         onPredefinito={() => eSulTitolo(senzaOrdinamento(criteri))}
       />
@@ -132,7 +130,7 @@ export function RisultatiInterrogazione<T>({ elenco, idTitolo, titolo, oggetto, 
         pagina={paginaDi(criteri)}
         dimensione={dimensione}
         totale={totale}
-        oggetto={oggetto}
+        unita={unitaElenco(elenco)}
         onPagina={(p) => eSulTitolo(conPagina(criteri, p))}
         // la dimensione cambia senza spostare il focus dalla select (WCAG 3.2.2)
         onDimensione={(d) => applica(conDimensione(criteri, d))}

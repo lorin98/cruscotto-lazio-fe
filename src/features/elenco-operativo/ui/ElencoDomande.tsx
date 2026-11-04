@@ -15,7 +15,7 @@ import { useDomande, useSinottico } from '../api';
 import type { SinotticoElenco } from '../api';
 import { ETICHETTE_FILTRI, valoreLeggibile } from '../lib/chip';
 import { percorsoPagamentiDelleDomande } from '../lib/collegamenti';
-import { conValore, criteriSinottico } from '../lib/criteri';
+import { conValore, criteriSinottico, unitaElenco } from '../lib/criteri';
 import type { Criteri, NomeFiltro } from '../lib/criteri';
 import { perimetroDellaRisposta, testoAggregato, testoSomma } from '../lib/formato';
 import { TESTI_RIPARTIZIONE } from '../lib/grafici';
@@ -52,7 +52,7 @@ function SceltaVista({ vista, onVista }: { vista: Vista; onVista: (v: IdVista) =
  * il sinottico dei criteri precedenti le somme non si mostrano: il totale delle domande e' gia' quello nuovo (V-03).
  */
 function piedeDomande(s: SinotticoElenco | undefined, totaleRighe: number, sinotticoAttuale: boolean): Partial<Record<string, ReactNode>> {
-  const totale = `Totale dell'insieme filtrato: ${plurale(totaleRighe, 'domanda', 'domande')}`;
+  const totale = `Totale dell'insieme filtrato: ${plurale(totaleRighe, ...unitaElenco('domande'))}`;
   if (!s) return { codiceABarre: totale };
   const testo = (valore: () => string) => (sinotticoAttuale ? valore() : 'in aggiornamento');
   return {
@@ -131,7 +131,6 @@ function Contenuto({ i, l, vista, nascoste, onNascoste, onFiltra }: { i: Interro
               elenco="domande"
               idTitolo="t-elenco"
               titolo="Elenco delle domande"
-              oggetto="domande"
               oggettoFile="l'elenco delle domande"
               totale={pagina.totaleRighe ?? 0}
               righe={pagina.righe ?? []}
@@ -206,7 +205,7 @@ export function ElencoDomande() {
           <Contenuto i={i} l={l} vista={vista} nascoste={scelte.nascoste} onNascoste={(n) => setScelte({ ...scelte, nascoste: n })} onFiltra={grafico.filtra} />
         </ContestoIntestazione.Provider>
       </main>
-      <PannelloInterrogazione i={i} elenco="domande" lettura={l.stato} aggiornando={l.aggiornando} altriErrori={[l.sinottico.error]} unita={['domanda', 'domande']} />
+      <PannelloInterrogazione i={i} elenco="domande" lettura={l.stato} aggiornando={l.aggiornando} altriErrori={[l.sinottico.error]} unita={unitaElenco('domande')} />
     </>
   );
 }

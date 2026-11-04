@@ -215,29 +215,35 @@ interface PropsTabellaInterattiva<T> {
 }
 
 /**
- * Ricerca, ordine e pagina della tabella: cio' che vale la pena ritrovare tornando alla pagina. La pagina vale per la sua
- * ricerca: ritrovarla senza la ricerca mostrerebbe altre righe (review v4 V-03).
+ * Ricerca, ordine, pagina e colonne della tabella: cio' che vale la pena ritrovare tornando alla pagina. La pagina vale per
+ * la sua ricerca: ritrovarla senza la ricerca mostrerebbe altre righe (review v4 V-03); le colonne scelte tornano con
+ * l'ordine, che puo' stare su una di loro (review step9 del 04/11/2026, J-08).
  */
 export interface StatoTabella {
   ordine: Ordine;
   pagina: number;
   /** Testo della ricerca (assente in uno stato salvato prima della ricerca: nessuna ricerca). */
   cercato?: string;
+  /** Chiavi delle colonne nascoste dal selettore Colonne (assente: quelle nascoste all'apertura). */
+  nascoste?: string[];
 }
 
 /**
  * Convalida di uno stato salvato fuori dal componente (es. nello state della history, che e' `unknown`): pagina intera non
- * negativa, ordine su una delle colonne `chiavi` con un verso noto, ricerca testuale se presente.
+ * negativa, ordine su una delle colonne `chiavi` con un verso noto, ricerca testuale e colonne nascoste fra le `chiavi`
+ * se presenti.
  */
 export function statoTabellaValido(chiavi: readonly string[]): (v: unknown) => v is StatoTabella {
   return (v: unknown): v is StatoTabella => {
     if (typeof v !== 'object' || v === null) return false;
-    const { ordine, pagina, cercato } = v as Record<string, unknown>;
-    return paginaValida(pagina) && (cercato === undefined || typeof cercato === 'string') && ordineValido(ordine, chiavi);
+    const { ordine, pagina, cercato, nascoste } = v as Record<string, unknown>;
+    return paginaValida(pagina) && (cercato === undefined || typeof cercato === 'string') && ordineValido(ordine, chiavi) && nascosteValide(nascoste, chiavi);
   };
 }
 
 const paginaValida = (p: unknown) => typeof p === 'number' && Number.isInteger(p) && p >= 0;
+
+const nascosteValide = (n: unknown, chiavi: readonly string[]) => n === undefined || (Array.isArray(n) && n.every((c) => typeof c === 'string' && chiavi.includes(c)));
 
 function ordineValido(o: unknown, chiavi: readonly string[]): boolean {
   if (typeof o !== 'object' || o === null) return false;
@@ -246,7 +252,7 @@ function ordineValido(o: unknown, chiavi: readonly string[]): boolean {
 }
 
 /** Ricerca, ordine e pagina di partenza: lo stato ricevuto, altrimenti l'ordine iniziale sulla prima colonna. */
-function partenza<T>(props: PropsTabellaInterattiva<T>): Required<StatoTabella> {
+function partenza<T>(props: PropsTabellaInterattiva<T>): Required<Omit<StatoTabella, 'nascoste'>> {
   const s = props.statoIniziale;
   return { cercato: s?.cercato ?? '', ordine: s?.ordine ?? props.ordineIniziale ?? { chiave: props.colonne[0].chiave, verso: 'crescente' }, pagina: s?.pagina ?? 0 };
 }
@@ -272,7 +278,7 @@ export function TabellaInterattiva<T>(props: PropsTabellaInterattiva<T>) {
   const [cercato, setCercato] = useState(iniziale.cercato);
   const [ordine, setOrdine] = useState<Ordine>(iniziale.ordine);
   const [pagina, setPagina] = useState(iniziale.pagina);
-  const [nascoste, setNascoste] = useState<Set<string>>(() => new Set(colonne.filter((c) => c.nascosta).map((c) => c.chiave)));
+  const [nascoste, setNascoste] = useState<Set<string>>(() => new Set(props.statoIniziale?.nascoste ?? colonne.filter((c) => c.nascosta).map((c) => c.chiave)));
 
   const visibili = colonne.filter((c) => c.fissa || !nascoste.has(c.chiave));
   // l'intestazione di riga: la colonna data se e' visibile, altrimenti la prima visibile (nascosta da "Colonne", le righe
@@ -287,7 +293,8 @@ export function TabellaInterattiva<T>(props: PropsTabellaInterattiva<T>) {
     setCercato(prossimo.cercato ?? '');
     setOrdine(prossimo.ordine);
     setPagina(prossimo.pagina);
-    onStato?.(prossimo);
+    if (prossimo.nascoste) setNascoste(new Set(prossimo.nascoste));
+    onStato?.({ ...prossimo, nascoste: prossimo.nascoste ?? [...nascoste] });
   };
   const cerca = (testo: string) => cambia({ ordine, pagina: 0, cercato: testo });
   const ordina = (chiave: string) => cambia({ ordine: versoSuccessivo(ordine, chiave), pagina: 0, cercato });
@@ -306,7 +313,7 @@ export function TabellaInterattiva<T>(props: PropsTabellaInterattiva<T>) {
           notaRicerca={props.notaRicerca}
           colonne={colonne}
           nascoste={nascoste}
-          onColonna={(chiave, visibile) => setNascoste((s) => conColonna(s, chiave, visibile))}
+          onColonna={(chiave, visibile) => cambia({ ordine, pagina, cercato, nascoste: [...conColonna(nascoste, chiave, visibile)] })}
         />
       )}
       {/* nel corpo non pertinente il riquadro resta scorrevole da tastiera: e' l'unico elemento focalizzabile (review M-02) */}
