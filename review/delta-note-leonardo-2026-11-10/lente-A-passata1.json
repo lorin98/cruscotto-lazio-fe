@@ -1,0 +1,20 @@
+[
+  {
+    "id": "A-01",
+    "feature": "finanziario",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/lib/grafici/intervento.ts:86",
+    "titolo": "Dalla dotazione al residuo: l'etichetta della barra 'Pagamenti lordi' intera e' bianca su #b26b00 a 4,20:1, sotto il 4,5:1 AA (NFR-70); il test di contrasto J-02 non copre il grafico nuovo",
+    "evidenza": "Quando netti o rettifiche mancano (caso R08 'senza rettifiche caricate', fonte rettifiche non attiva, provato in tests/finanziario-grafici.test.ts:947-955) segmentiIntervento disegna la barra dei lordi intera con `segmento(LORDI, LORDI, lordi, lordi, COLORI.attenzione, COLORI.superficie, true)` (riga 86). serieSegmento (sigc.ts:247) usa il campo `testo` come colore dell'etichetta e il colore del segmento come suo sfondo, anche quando l'etichetta esce dal segmento: testo #ffffff su COLORI.attenzione #b26b00, rapporto WCAG 4,20:1 (luminanza 0,200; ricalcolato). Le etichette sono a 12 px normali (il tema in shared/ui/grafici/echarts.ts non fissa fontSize), quindi serve 4,5:1 (WCAG 1.4.3). Gli altri accoppiamenti del delta passano: bianco su #9a5c00 (rettifiche) 5,38:1, bianco su #0066cc 5,57:1, bianco su #0b2d4e 14,00:1, #17212b su #c9d3de 10,75:1, l'etichetta blu del gauge (#0066cc su bianco) 5,57:1, il testo attenuato del centro 6,08:1. E' lo stesso difetto gia' accettato come MAGGIORE nella review del 04/11 (J-02, bianco su #4e8a1f a 4,22:1): il test aggiunto allora (tests/finanziario-grafici.test.ts:1406-1416) misura il contrasto solo per graficoImportiSigc, non per graficoBarreIntervento, che riusa serieSegmento; axe non vede il testo SVG di ECharts. Il commento di ARANCIO_RETTIFICHE (riga 24: 'testo bianco con contrasto AA') mostra che il controllo e' stato fatto solo sulle rettifiche.",
+    "fix": "Per la barra dei lordi intera usare un fondo con contrasto AA col bianco (es. lo stesso ARANCIO_RETTIFICHE #9a5c00, 5,38:1, oppure un arancio di luminanza <= 0,183) o il testo scuro su un arancio chiaro; aggiungere in tests/finanziario-grafici.test.ts lo stesso controllo di J-02 (contrasto label.color/label.backgroundColor >= 4,5 per ogni serie) su graficoBarreIntervento in tutte le varianti: quattro segmenti, senza rettifiche (barre intere), residuo assente."
+  },
+  {
+    "id": "A-02",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici/intervento.ts:85",
+    "titolo": "Barra dei lordi: 'Pagamenti netti' (#0066cc) e 'Rettifiche' (#9a5c00) adiacenti hanno la stessa luminanza (1,04:1), senza separatore: il confine fra i due segmenti si perde senza la percezione del colore",
+    "evidenza": "Nella barra 'Pagamenti lordi' i due segmenti sono COLORI.primario #0066cc e ARANCIO_RETTIFICHE #9a5c00 (riga 85), contigui nello stack 'importi'; serieSegmento (sigc.ts:246) imposta solo itemStyle.color, nessun bordo. Rapporto fra i due colori 1,04:1 (luminanze 0,139 e 0,145), sotto il 3:1 che WCAG 1.4.11 chiede alle parti grafiche adiacenti necessarie a capire il dato; in scala di grigi (stampa del PNG, acromatopsia) la barra appare un solo blocco. Le etichette dei segmenti hanno importo e percentuale ma non il nome della voce, e la legenda ha gli stessi due colori, quindi quale parte e' la rettifica si capisce solo dall'ordine dichiarato nel sottotitolo. Le altre coppie adiacenti dei grafici a barre impilate del finanziario reggono (primario/neutro 3,67:1 nella barra della dotazione e negli Importi SIGC). Attenuato dalla tabella equivalente e dalla descrizione aria, che elencano le voci.",
+    "fix": "In serieSegmento aggiungere un separatore bianco fra i segmenti (itemStyle: { color: seg.colore, borderColor: COLORI.superficie, borderWidth: 1 }), che da' 5,57:1 col blu e 5,38:1 con l'arancio, oppure scegliere per le rettifiche un colore di luminanza diversa da quella del blu (mantenendo il 4,5:1 dell'etichetta, eventualmente con testo scuro); in alternativa mettere il nome della voce nell'etichetta del segmento."
+  }
+]

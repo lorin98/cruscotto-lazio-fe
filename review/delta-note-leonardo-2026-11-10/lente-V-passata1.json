@@ -1,0 +1,56 @@
+[
+  {
+    "id": "V-01",
+    "feature": "finanziario",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/lib/grafici/intervento.ts:86",
+    "titolo": "Dalla dotazione al residuo, rettifiche non caricate: l'etichetta bianca della barra intera 'Pagamenti lordi' su #b26b00 ha contrasto 4,20:1, sotto il 4,5:1 AA (NFR-70). E' lo stesso difetto di J-02 del 04/11",
+    "evidenza": "Senza netti o senza rettifiche (stato dichiarato dal wireframe approvato intervento.html: 'Senza rettifiche caricate le due barre sono intere') la barra sotto e' segmento(LORDI, LORDI, lordi, lordi, COLORI.attenzione, COLORI.superficie, true). In serieSegmento (sigc.ts:238-251) l'etichetta e' position 'inside' con color = testo (#ffffff) e backgroundColor = colore del segmento (#b26b00, colori.ts:9), anche quando l'etichetta finisce fuori dalla barra. Luminanza relativa di #b26b00 = 0,1998, contrasto col bianco 1,05/0,2498 = 4,20:1. Le etichette sono a 12 px normali (il TEMA in shared/ui/grafici/echarts.ts fissa il fontSize solo del tooltip), quindi serve 4,5:1 (WCAG 1.4.3, NFR-70). Segmento.testo (sigc.ts:195) dichiara 'contrasto AA', e il commento di ARANCIO_RETTIFICHE (intervento.ts:24) lo cura solo per le rettifiche (#9a5c00, 5,38:1). La vecchia cascata metteva le etichette sopra le barre (opzioniCascata, position 'top', testo scuro): il difetto nasce col delta e43f7f9. Nessun test lo prende: il test di contrasto del 04/11 (finanziario-grafici.test.ts:1406-1416) controlla solo graficoImportiSigc, e i test di graficoBarreIntervento controllano solo nomi e valori dei segmenti.",
+    "fix": "Per la barra intera dei lordi usare un arancio che regge il bianco a 4,5:1 (per esempio #9a5c00, 5,38:1, o un'altra costante locale scura), oppure testo scuro su un arancio chiaro. In finanziario-grafici.test.ts aggiungere, come per J-02, un test che per ogni serie di graficoBarreIntervento calcola il contrasto fra label.color e label.backgroundColor e lo vuole >= 4,5, nelle tre configurazioni: barre divise, barre intere (rettifiche FONTE_NON_ATTIVA), dotazione intera col residuo assente."
+  },
+  {
+    "id": "V-02",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/DettaglioIntervento.tsx:174",
+    "titolo": "Dalla dotazione al residuo: il sottotitolo dice sempre 'Dotazione: pagamenti netti e residuo ...; pagamenti lordi: pagamenti netti e rettifiche', anche quando le barre sono intere o il grafico non si disegna",
+    "evidenza": "BARRE_INTERVENTO (riga 46) si mostra senza condizioni (riga 174). segmentiIntervento (intervento.ts:77-87) divide le barre solo con netti e residuo (sopra) o netti e rettifiche (sotto): senza rettifiche caricate, col residuo assente o coi netti assenti le barre restano intere, e con ADA, importi negativi (SRD11) o dotazione/lordi assenti il grafico non c'e'. Il wireframe approvato (intervento.html, figcaption di 'Dalla dotazione al residuo') per quel caso dice 'le due barre sono intere (dotazione e pagamenti lordi) e netto e residuo sono fra le voci non nel grafico': il sottotitolo descrive invece una scomposizione che non e' disegnata. Il progetto ha gia' la regola opposta: sottotitoloFlusso (avanzamento.ts:95-98, N-18) 'dice il ramo disegnato', e il sottotitolo di Importi SIGC 'non promette il clic' quando il grafico manca (interventi/page.test.tsx:216).",
+    "fix": "Spostare il sottotitolo nella lib, accanto a graficoBarreIntervento (per esempio sottotitoloBarreIntervento(riga, perimetro)), costruito dagli stessi segmenti: la composizione di ogni barra solo se e' divisa; con le barre intere 'Dotazione e pagamenti lordi; pagamenti netti e residuo non nel grafico (rettifiche non caricate)'; nessuna composizione se il grafico non si disegna. Aggiungere i casi ai test della lib."
+  },
+  {
+    "id": "V-03",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici/avanzamento.ts:202",
+    "titolo": "Gauge dei pagamenti netti a 390 px: l'etichetta della fine dell'arco esce dal grafico (e dal PNG) per importi sotto il milione fra circa 2-25 % e 75-100 %",
+    "evidenza": "puntoFineArco porta l'etichetta a 112 + 30|cos| + 12|sin| per cento del raggio, e il raggio e' 58% di meta' del lato minore (serieGaugeConDotazione, righe 213-215). A 390 px: .ui-pagina ha 1rem di padding sotto 992 px (tema.css:319) e la card 1,25rem + bordo (tema.css:163), quindi il grafico e' largo circa 316 px; nel dettaglio e' alto 340 px (tema.css:183): r = 0,58 x 158 = 91,6 px, centro x = 158. A 5-10 % l'offset e' -142% (circa -130 px): centro dell'etichetta a circa 28 px. Sotto il milione importoBreve (primitive.ts:91) da' formatEuro, quindi la seconda riga e' '(50.000,00 €)' o '(100.000,00 €)', circa 80-90 px a 13 px semibold: il bordo sinistro cade a circa -12/-15 px e la parentesi con la prima cifra spariscono (il root SVG taglia, e pngDelGrafico, echarts.ts:99-107, copia il grafico alle stesse dimensioni). Simmetrico a destra fra 75 e 100 % (a 100 %: centro a 283 px, bordo destro oltre 316). Il caso e' tipico del dettaglio di un intervento piccolo; con importi in M€ (circa 60 px) si sfiora il bordo intorno al 5 %. Il test (finanziario-grafici.test.ts:889-897) controlla solo gli offset, non che l'etichetta stia nel grafico. Desktop e tablet (grafico largo almeno 470 px) sono a posto.",
+    "fix": "Tenere l'etichetta dentro il grafico alle larghezze strette: per esempio un'opzione media di ECharts (query maxWidth circa 360) col raggio ridotto (intorno a 48%: l'offset scala col raggio), oppure ridurre il fattore orizzontale quando l'importo e' in euro, oppure title.width con overflow. Verificare a vista a 390 px, schermo e PNG, con 5 %, 25 %, 95 % e un netto sotto il milione."
+  },
+  {
+    "id": "V-04",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici/avanzamento.ts:135",
+    "titolo": "Sankey 'il pagato sopra il da pagare': la scelta approvata dipende solo da layoutIterations: 0 e nessun test la prova",
+    "evidenza": "L'ordine visivo dei nodi lo fissa solo layoutIterations: 0 (riga 135; senza, ECharts riordinava mettendo il da pagare, piu' grande, sopra, come dice il commento alle righe 133-134). I test del Sankey (finanziario-grafici.test.ts:725 e 1381) controllano l'ordine dei nodi nei dati, ['Dotazione', 'Impegnato', 'Da impegnare', 'Pagato', 'Da pagare'], che era identico anche prima del delta, quando il disegno metteva il da pagare sopra. Nessun test in src/ o tests/ cita layoutIterations: togliere l'opzione non romperebbe nulla e la scelta approvata dall'utente (Sankey col pagato sopra) regredirebbe senza segnale. Nel merito il codice e' a posto: con layoutIterations 0 ECharts tiene i nodi di ogni colonna nell'ordine dei dati, anche nel flusso ridotto (Pagamenti netti sopra Dotazione residua) e coi rami omessi.",
+    "fix": "Nel test 'nodi e collegamenti dalla dotazione al pagato' aggiungere expect(s.layoutIterations).toBe(0) e l'indice di 'Pagato' minore di quello di 'Da pagare'; nel test del flusso ridotto lo stesso per 'Pagamenti netti' prima di 'Dotazione residua'."
+  },
+  {
+    "id": "V-05",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/AvvisoImpegnati.tsx:22",
+    "titolo": "Avviso degli impegnati: 'importo ammesso o, per le domande ancora in istruttoria, importo richiesto' e 'contributo ammesso di PROSA' semplificano il backend in modo inesatto",
+    "evidenza": "Il testo e' quello del wireframe approvato (dotazione.html, riepilogo.html), ma il brief chiede di verificarne la verita'. SIGC, AlgoritmoRichiestoAmmesso (BE domain/impegnato): con procedimento CHIUSO l'importo e' il PAGATO (CHIUSO_PAGATO, righe 104-116), non l'ammesso; il richiesto vale per tutti gli stati 'no' della tabella (righe 52-54, 119-131), compresi NON AMMISSIBILE AL PAGAMENTO e NON AMMISSIBILE AL SOSTEGNO non chiusi, che non sono 'in istruttoria', per i LIQUIDATO con istruttoria IADP e per gli stati non censiti; nella campagna 2023 i liquidati prendono il richiesto salvo la soglia del 62,5 %, e con unita' NP c'e' il tetto di 700 €. NO SIGC, PostgresImpegnatoAdapter.rilevatiNoSigc: contributo ammesso della determina PROSA piu' recente che lo valorizza, altrimenti l'importo ammesso SIAN (coalesce con DOMANDA.IMPORTO_AMMESSO), per le domande di sostegno AMMESSA o con atto di concessione. L'avviso risponde proprio alla domanda di Leonardo sull'impegnato oltre la dotazione (note del 10/11, punti aperti): dire 'ancora in istruttoria' nasconde che anche domande non ammissibili e liquidate IADP pesano col richiesto, cioe' una delle cause probabili dell'impegnato alto. La scelta approvata nel brief dice 'ammesso o richiesto secondo lo stato', che e' esatta; e' la precisazione del wireframe a non esserlo.",
+    "fix": "Correggere il testo nel wireframe (riapprovazione di dotazione-avanzamento e riepilogo) e nel componente, per esempio: 'per gli interventi SIGC dalle domande dell'ASR2-20, con l'importo che l'algoritmo assegna secondo lo stato della domanda (ammesso; pagato se il procedimento e' chiuso; richiesto se la domanda non e' ancora ammessa o non e' ammissibile) piu' la stima ...; per gli interventi NO SIGC dal contributo ammesso delle determine PROSA (in sua assenza l'importo ammesso SIAN)'. Aggiornare i due test col testo esatto (riepilogo/page.test.tsx:111, revisioni-20261104.test.tsx:34)."
+  },
+  {
+    "id": "V-06",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici/intervento.ts:85",
+    "titolo": "Barra dei pagamenti lordi: 'Pagamenti netti' (#0066cc) e 'Rettifiche' (#9a5c00) adiacenti hanno la stessa luminanza (1,03:1) e nessun separatore",
+    "evidenza": "Il brief chiede di valutare il contrasto del colore delle rettifiche. Il testo regge (bianco su #9a5c00 5,38:1), ma i due segmenti attigui della stessa barra hanno luminanza 0,139 e 0,145: rapporto 1,03:1, e serieSegmento (sigc.ts:238-251) non mette bordo fra i segmenti impilati. In scala di grigi (PNG stampato in bianco e nero) o con acromatopsia il confine fra netti e rettifiche sparisce, e le due etichette e i due quadratini della legenda hanno lo stesso grigio. Le etichette con importo e percentuale e la tabella equivalente attenuano (WCAG 1.4.11 chiede 3:1 fra parti adiacenti di un grafico necessarie a capirlo), per questo MINORE.",
+    "fix": "Separare i segmenti con un bordo bianco (itemStyle borderColor COLORI.superficie, borderWidth 1 in serieSegmento: vale anche per Importi SIGC) oppure dare alle rettifiche un colore di luminanza diversa con testo scuro (per esempio un arancio chiaro con #17212b, contrasto del testo >= 4,5:1 e almeno 3:1 col blu). Coprire col test di contrasto proposto in V-01."
+  }
+]

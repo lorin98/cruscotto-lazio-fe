@@ -1,0 +1,74 @@
+[
+  {
+    "id": "H-01",
+    "feature": "finanziario",
+    "severity": "MAGGIORE",
+    "file": "src/features/finanziario/lib/grafici/intervento.ts:86",
+    "titolo": "Dalla dotazione al residuo: etichetta bianca sulla barra intera dei 'Pagamenti lordi' (#b26b00) a 4,20:1, sotto il 4,5:1 AA di NFR-70 (stesso difetto di J-02 del 04/11)",
+    "evidenza": "Quando netti o rettifiche mancano (fonte rettifiche non attiva, netto non valorizzato) segmentiIntervento rende 'Pagamenti lordi' come barra intera con colore COLORI.attenzione (#b26b00) e testo COLORI.superficie (#ffffff) (riga 86). serieSegmento, riusato da sigc.ts:247, usa quel colore anche come backgroundColor dell'etichetta, dentro e fuori dalla barra. Contrasto WCAG ricalcolato con la formula del test di finanziario-grafici.test.ts:1407-1411: bianco su #b26b00 = 4,20:1 (col testo scuro #17212b 3,88:1). Le etichette sono a 12 px normali: il tema (shared/ui/grafici/echarts.ts:31) fissa fontSize solo nel tooltip. Lo stato e' raggiungibile ed e' proprio quello disegnato dal test 'senza rettifiche caricate' (finanziario-grafici.test.ts:947, serie ['Pagamenti lordi', [null, 4_500_000]]). Prima del delta la cascata metteva l'etichetta dei lordi sopra la barra (testo scuro su bianco): la regressione nasce dal riuso di serieSegmento senza la verifica di contrasto che J-02 aveva aggiunto. Le altre coppie passano (bianco su #9a5c00 5,38:1, su #0b2d4e 14,0:1, su #0066cc 5,57:1; #17212b su #c9d3de 10,75:1). Il test di contrasto J-02 (riga 1406) copre solo graficoImportiSigc.",
+    "fix": "Dare alla barra intera dei lordi un fondo che regga il testo e resti distinto dalle rettifiche, come costante locale accanto ad ARANCIO_RETTIFICHE: per esempio #a46300 col bianco (4,81:1) oppure un ambra chiaro #f0b866 con COLORI.testo (9,12:1). Poi estendere il test della riga 1406 a graficoBarreIntervento in tutte le sue forme (barre divise, senza rettifiche, residuo assente), calcolando il contrasto fra label.color e label.backgroundColor di ogni serie."
+  },
+  {
+    "id": "H-02",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici/intervento.ts:16",
+    "titolo": "Barre impilate generiche dentro sigc.ts: intervento.ts dipende dagli helper del grafico SIGC, ne copia il costruttore delle opzioni e Segmento.barra e' allargato a string",
+    "evidenza": "intervento.ts:16-17 importa Segmento, serieSegmento, testoEtichetta e larghezzaEtichetta da './sigc', il modulo del grafico TX-0013. In sigc.ts:185-251 sta la parte generica delle due barre impilate, documentata con i casi SIGC e con lo stack fisso 'importi'. Le righe 113-122 di intervento.ts ricopiano quasi alla lettera sigc.ts:284-296: tooltip, legend, grid.right in pixel (J-04), xAxis con splitNumber 3 e hideOverlap (verifica a vista del 05/11), yAxis e series. Le correzioni di J-04 e del 05/11 vivono quindi in due copie, e i test che le fissano (finanziario-grafici.test.ts:1389 e 1418) girano solo su graficoImportiSigc. Per ospitare il secondo uso, Segmento.barra e' passato da 'Richiesto' | 'Ammesso' a string (sigc.ts:189): un nome di barra assente da barre produce senza errore di tipo una serie tutta null, cioe' un segmento invisibile ma presente in legenda; gli 'as const' di sigc.ts:271-272 non servono piu'. Non e' una violazione FSD (stesso slice, stesso segmento lib), ma un modulo di dominio e' diventato la libreria di un altro.",
+    "fix": "Spostare Segmento (generico: Segmento<B extends string>), posizioneEtichettaSegmento, larghezzaEtichetta, testoEtichetta e serieSegmento in un modulo neutro (es. lib/grafici/barre-impilate.ts), insieme a un opzioniBarreImpilate(segmenti, barre, descrizione) che costruisce tooltip, legend, grid, assi e serie. sigc.ts e intervento.ts lo importano e passano solo segmenti e descrizione. Poi parametrizzare su tutti e due i grafici i test J-04, degli assi e dello sfondo dell'etichetta (righe 1389 e 1418)."
+  },
+  {
+    "id": "H-03",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici/avanzamento.ts:250",
+    "titolo": "Gauge: graficoGauge resta esportato e testato ma in produzione esegue solo il ramo ADA, mentre i rami 'valore negativo' e 'totale zero' del nuovo graficoPagatoNetto non hanno test (SRD11 ha netti negativi)",
+    "evidenza": "Dopo il delta graficoPagatoNetto non delega piu' a graficoGauge: lo chiama solo con (null, null, ..., 'ADA') (riga 243). Le righe 182-188 di graficoGauge non le raggiunge nessuna UI, e lo stesso vale per title e detail di serieGauge (righe 168-169), che serieGaugeConDotazione sovrascrive sempre. Eppure graficoGauge resta nel barrel (index.ts:10) e ha 4 test (finanziario-grafici.test.ts:830-867) piu' 5 righe nella regola dei motivi (1341-1345). Il ramo vivo che ne ha preso il posto, alle righe 250-251 (motivoGauge -> nonDisegnabile con la tabella a tre righe), non lo chiama nessun test: graficoPagatoNetto non e' mai chiamato con netti negativi o dotazione zero (righe 879-914 e 1346-1347). SRD11 (netti -79.432,83 nei dati dell'11/11) e' provato per le barre accanto (riga 1005) ma non per il gauge della stessa scheda Sintesi. Anche puntoFineArco (riga 198) e' esportato senza usi fuori dal modulo.",
+    "fix": "Ridurre graficoGauge a un helper privato del ramo ADA, oppure toglierlo e dare a tabellaPagatoNetto la riga 'non confrontabile'; toglierlo dal barrel e spostarne i test su graficoPagatoNetto. Aggiungere i casi netti negativi (SRD11) e dotazione zero o negativa, col motivo e con la tabella a tre righe, anche nella regola dei motivi. Togliere l'export di puntoFineArco oppure testarlo direttamente."
+  },
+  {
+    "id": "H-04",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/DettaglioIntervento.tsx:174",
+    "titolo": "Sottotitolo delle barre fisso nel componente: descrive segmenti che la lib non disegna (rettifiche non caricate, residuo assente, perimetro ADA)",
+    "evidenza": "BARRE_INTERVENTO (riga 46) dice sempre 'Dotazione: pagamenti netti e residuo sui pagamenti; pagamenti lordi: pagamenti netti e rettifiche'. La scomposizione pero' la decide segmentiIntervento (lib/grafici/intervento.ts:77-88): senza rettifiche o netti la barra dei lordi e' intera, senza residuo e' intera la dotazione, e con ADA il grafico non c'e' (riga 105). Nel caso senza rettifiche il sottotitolo annuncia netti e rettifiche mentre la nota sotto il grafico dice 'pagamenti netti e residuo non si disegnano' (omessiBarre, riga 63). Cosi' la conoscenza di cosa somma ciascuna barra sta in due layer. Per il flusso il progetto ha gia' la regola opposta: sottotitoloFlusso, in lib, 'dice il ramo disegnato' (avanzamento.ts:91-98, N-18). La descrizione aria, che sta in lib, segue invece i segmenti (descrizioneBarra, intervento.ts:91).",
+    "fix": "Aggiungere in lib/grafici/intervento.ts un sottotitoloBarreIntervento(riga, perimetro) che componga il testo dagli stessi segmenti: la scomposizione solo per le barre divise, la barra intera altrimenti, nessuna scomposizione con ADA. Esportarlo dal barrel e usarlo in Sintesi al posto di BARRE_INTERVENTO (la coda sullo stimato resta nel componente), con un test per ciascuno dei tre casi."
+  },
+  {
+    "id": "H-05",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/ui/DomandeReport.tsx:219",
+    "titolo": "Le intestazioni di Importi per anno 'uguali a quelle del dettaglio' restano uguali solo per copia: due elenchi di stringhe, uno in lib e uno in ui",
+    "evidenza": "La vista Tabella prende i titoli da COLONNE_IMPORTI_PER_ANNO e 'Anno di raccolta' da lib/grafici/domande.ts (righe 110-115 e 123). La tabella di dettaglio li riscrive in ui: COLONNE_IMPORTI (DomandeReport.tsx:219-224) con le stesse stringhe, DECRETATO (riga 37) che ripete 'Importo decretato (elenchi di liquidazione)' di domande.ts:113, e intestazione=\"Anno di raccolta\" (riga 281). Il doc di COLONNE_IMPORTI_PER_ANNO (domande.ts:104-108) promette 'una sola definizione', ma la mantiene solo fra le due varianti della vista Tabella. La scelta approvata (stesse intestazioni del dettaglio) e' garantita solo da letterali ripetuti nei test (domande/page.test.tsx:123, finanziario-ui.test.tsx:667): nessun test confronta le due tabelle della pagina.",
+    "fix": "Esportare dalla lib i titoli (es. TITOLI_IMPORTI_PER_ANNO con anno, stanziato, ammesso, decretato e senza ammesso). Li usano COLONNE_IMPORTI_PER_ANNO e la tabella del grafico da una parte, COLONNE_IMPORTI, DECRETATO e intestazione in DomandeReport dall'altra. Aggiungere in domande/page.test.tsx un test che confronti le intestazioni della vista Tabella con quelle della tabella 'Importi per anno di raccolta', esclusa la colonna 'Elenco operativo'."
+  },
+  {
+    "id": "H-06",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "src/features/finanziario/lib/grafici/avanzamento.ts:135",
+    "titolo": "Due scelte approvate senza un test che le fissi: layoutIterations 0 del Sankey e Domande a una colonna con le tabelle compatte",
+    "evidenza": "L'ordine 'pagato sopra il da pagare' dipende solo da layoutIterations: 0 (riga 135). L'ordine dei nodi nei dati (nomiDi, finanziario-grafici.test.ts:1381) era gia' quello prima, ed era ECharts a riordinarli in disegno. Nessun test cerca layoutIterations (grep su tests e src): toglierlo non farebbe fallire nulla. Lo stesso vale per la pagina Domande (DomandeReport.tsx:301-302, div.ui-tabelle-compatte e Griglia colonne={1}): nessun test controlla la classe o la griglia, e i casi limite di DomandeReport (finanziario-casi-limite.test.tsx:425) non lo verificano. Tornare a <Griglia> riporterebbe lo scorrimento orizzontale da 1366 px senza un test rosso.",
+    "fix": "In finanziario-grafici.test.ts, nel describe del Sankey, verificare series[0].layoutIterations === 0 sia col ramo dell'impegnato sia col flusso ridotto da TX-0007, con un commento che dica il perche'. In domande/page.test.tsx verificare che le due sezioni RF009/RF010 stiano in un .ui-griglia--1 dentro .ui-tabelle-compatte e che le altre pagine del finanziario non abbiano .ui-tabelle-compatte."
+  },
+  {
+    "id": "H-07",
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "tests/finanziario-grafici.test.ts:995",
+    "titolo": "Il test 'lordi oltre la dotazione' dichiara che la barra dei lordi e' piu' lunga ma controlla solo l'ultimo segmento",
+    "evidenza": "Il caso (righe 995-998) verifica soltanto che l'ultima serie sia ['Rettifiche', [null, 7_000_000]], oltre al 'disegnabile' implicito in opzioniDi. Non controlla la somma delle due barre (11 M contro 10 M) ne' l'assenza di un massimo sull'asse x. Un xAxis.max fissato alla dotazione taglierebbe la barra dei lordi, cioe' proprio il caso che la scelta approvata dell'11/11 rende disegnabile, e il test resterebbe verde.",
+    "fix": "Nel test sommare i valori delle serie per categoria (Dotazione 10 M, Pagamenti lordi 11 M) e verificare che xAxis.max sia assente."
+  },
+  {
+    "id": "H-08",
+    "feature": "finanziario",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/ui/DettaglioIntervento.tsx:44",
+    "titolo": "Titolo e sottotitolo del gauge duplicati fra Avanzamento e dettaglio dell'intervento",
+    "evidenza": "'Avanzamento dei pagamenti rispetto alla dotazione' e' la costante AVANZAMENTO_PAGAMENTI sia in AvanzamentoReport.tsx:36 sia in DettaglioIntervento.tsx:44, dove e' rimasto il commento 'R15'. Il sottotitolo e' SOTTOTITOLO_GAUGE in AvanzamentoReport.tsx:37 e un letterale in DettaglioIntervento.tsx:167. La scelta approvata e' 'stesso gauge nel dettaglio', e il delta ha dovuto cambiare le due copie insieme.",
+    "fix": "Esportare titolo e sottotitolo del gauge da un solo punto (es. lib/grafici/avanzamento.ts accanto a TITOLO_PAGATO_NETTO, oppure ui/comuni.tsx) e usarli nei due componenti."
+  }
+]
