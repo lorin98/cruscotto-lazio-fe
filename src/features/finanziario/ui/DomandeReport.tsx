@@ -296,7 +296,10 @@ export function DomandeReport({ filtri }: { filtri: Filtri }) {
           <KpiImporti filtri={filtri} />
         </ConGrant>
       </Griglia>
-      <Griglia>
+      {/* le due sezioni una sotto l'altra e le tabelle compatte: nessuno scorrimento orizzontale da 1366 px (note di Leonardo
+          del 10/11/2026; affiancate, le tabelle degli importi scorrevano anche compatte) */}
+      <div className="ui-tabelle-compatte">
+      <Griglia colonne={1}>
         <ConGrant grant={GRANT.domandePerAnno} titolo={TITOLI.perAnno}>
           {/* una selezione nuova e' un dettaglio nuovo: l'anno scelto prima non resta (N-01) */}
           <DomandePerAnnoSezione key={ricercaDaFiltri(filtri)} filtri={filtri} />
@@ -305,6 +308,7 @@ export function DomandeReport({ filtri }: { filtri: Filtri }) {
           <ImportiPerAnnoSezione filtri={filtri} />
         </ConGrant>
       </Griglia>
+      </div>
     </>
   );
 }

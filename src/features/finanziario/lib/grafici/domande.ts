@@ -104,12 +104,13 @@ function lineaImporti(def: (typeof IMPORTI)[number], righe: readonly RigaImporti
 /**
  * Colonne della tabella equivalente di Importi per anno (dopo quella dell'anno): titolo e testo della cella. Una sola
  * definizione per la tabella generata dal grafico e per quella con i link all'elenco operativo (review v4 V-06): con o senza
- * il grant la vista Tabella ha le stesse intestazioni e gli stessi testi.
+ * il grant la vista Tabella ha le stesse intestazioni e gli stessi testi. Dall'11/11/2026 (note di Leonardo del 10/11) le
+ * intestazioni sono quelle della tabella di dettaglio della pagina.
  */
 export const COLONNE_IMPORTI_PER_ANNO: readonly { titolo: string; cella: (r: RigaImportiAnno) => string }[] = [
-  { titolo: 'Stanziato', cella: (r) => cellaImporto(r.importoStanziato, true) },
-  { titolo: 'Ammesso', cella: (r) => cellaImporto(r.importoAmmesso) },
-  { titolo: 'Decretato', cella: (r) => cellaImporto(r.importoDecretato, true) },
+  { titolo: 'Importo stanziato', cella: (r) => cellaImporto(r.importoStanziato, true) },
+  { titolo: 'Importo ammesso', cella: (r) => cellaImporto(r.importoAmmesso) },
+  { titolo: 'Importo decretato (elenchi di liquidazione)', cella: (r) => cellaImporto(r.importoDecretato, true) },
   { titolo: 'Domande senza importo ammesso', cella: (r) => numeroOpzionale(r.domandeSenzaAmmesso) },
 ];
 
@@ -119,7 +120,7 @@ export function graficoImportiPerAnno(righe: RigaImportiAnno[]): DatiGrafico {
   const categorie = ordinate.map((r) => annoDiRaccolta(r.annoRaccolta));
   const tabella = {
     caption: 'Importi per anno di raccolta: stanziato, ammesso e decretato',
-    colonne: ['Anno', ...COLONNE_IMPORTI_PER_ANNO.map((c) => c.titolo)],
+    colonne: ['Anno di raccolta', ...COLONNE_IMPORTI_PER_ANNO.map((c) => c.titolo)],
     righe: ordinate.map((r, k) => [categorie[k], ...COLONNE_IMPORTI_PER_ANNO.map((c) => c.cella(r))]),
   };
   if (ordinate.length === 0) return nonDisegnabile('nessun importo per anno di raccolta', tabella, []);
