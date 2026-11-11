@@ -10,16 +10,15 @@ import {
   COLORI,
   NON_CALCOLABILE,
   aria,
-  assePercentuale,
   centesimi,
   etichettaDato,
   formatEuro,
+  formatNumber,
   formatPercentuale,
   graficoDueParti,
   importoBreve,
   nonDisegnabile,
   notaOmessi,
-  numeroDi,
   percentuale,
   tooltipDettaglio,
 } from '../../../../shared/lib';
@@ -79,7 +78,8 @@ function ramiFlusso(i: ResiduoSuImpegniLike, p: AvanzamentoPagamentiLike, r: Res
     const rami: Ramo[] = [
       ['Dotazione', IMPEGNATO, i.importoImpegnato],
       ['Dotazione', 'Da impegnare', i.dotazioneResidua],
-      [IMPEGNATO, 'Pagato', p.pagamentiTotali],
+      // il pagato dei pagamenti sull'impegnato e' lordo (elenchi di liquidazione): lo dice (J-06, scelta dell'utente dell'11/11/2026)
+      [IMPEGNATO, 'Pagato (lordo)', p.pagamentiTotali],
       [IMPEGNATO, 'Da pagare', p.impegnatoDaPagare],
     ];
     return { rami, omessi: [] };
@@ -128,7 +128,9 @@ export function graficoSankey(impegni: ResiduoSuImpegniLike, pagamenti: Avanzame
   // la parte stimata dell'impegnato nel tooltip del suo nodo (un solo nodo dal 04/11/2026)
   const stimato = valoreDi(impegni.impegnatoStimato);
   const diCuiStimato = (n: string) => (n === IMPEGNATO && stimato != null && stimato > 0 ? `, di cui stimato ${importoBreve(stimato)}` : '');
-  const nodi = nomi.map((n) => ({ name: n, etichetta: `${n}: ${importoBreve(valoreNodo(n))}`, dettaglio: `${n}: ${importoBreve(valoreNodo(n))}${diCuiStimato(n)}`, ...(n === IMPEGNATO ? { itemStyle: { color: COLORI.primario } } : {}) }));
+  // etichetta su due righe (nome, importo): entra a destra dell'ultima colonna anche con "Pagato (lordo)" (verifica a vista
+  // dell'11/11/2026: su una riga era tagliata)
+  const nodi = nomi.map((n) => ({ name: n, etichetta: `${n}\n${importoBreve(valoreNodo(n))}`, dettaglio: `${n}: ${importoBreve(valoreNodo(n))}${diCuiStimato(n)}`, ...(n === IMPEGNATO ? { itemStyle: { color: COLORI.primario } } : {}) }));
   const descrizione = `Flusso della dotazione (${importoBreve(dotazione)}): ${collegamenti.map((c) => `${c.target.toLowerCase()} ${importoBreve(c.value)}`).join(', ')}.${notaOmessi(omessi)}`;
   // layoutIterations 0: i nodi di ogni colonna restano nell'ordine dei rami, il pagato sopra il da pagare (note di Leonardo
   // del 10/11/2026: ECharts li riordinava mettendo il da pagare, piu' grande, in alto)
@@ -136,11 +138,17 @@ export function graficoSankey(impegni: ResiduoSuImpegniLike, pagamenti: Avanzame
   return { opzioni: { aria: aria(descrizione), tooltip: { trigger: 'item', formatter: tooltipDettaglio }, series: [serie] }, tabella, omessi };
 }
 
-// ---------------------------------------------------------------- 2. indicatore percentuale
+// ---------------------------------------------------------------- 2. indicatore dei pagamenti netti sulla dotazione
 
-function motivoGauge(p: number | null, t: number | null): string | null {
-  if (p == null) return 'valore non disponibile: la percentuale non si può calcolare';
-  if (t == null) return 'totale non disponibile: la percentuale non si può calcolare';
+/** Titolo e sottotitolo del gauge in Avanzamento e nel dettaglio di un intervento (note di Leonardo del 10/11/2026, J-15). */
+export const TITOLO_GAUGE_PAGAMENTI = 'Avanzamento dei pagamenti rispetto alla dotazione';
+export const SOTTOTITOLO_GAUGE_PAGAMENTI = 'Percentuale di pagamenti al netto di rettifiche sulla dotazione spesa pubblica';
+
+/** Caption della tabella equivalente e voce della percentuale (frasi, non frammenti: review step9 dell'11/11/2026, J-07). */
+const CAPTION_PAGATO_NETTO = 'Pagamenti netti sulla dotazione spesa pubblica';
+const VOCE_PERCENTUALE = 'Percentuale della dotazione pagata (netto)';
+
+function motivoGauge(p: number, t: number): string | null {
   if (t <= 0) return 'totale pari a zero o negativo: la percentuale non si può calcolare';
   return p < 0 ? 'valore negativo: la percentuale non si può calcolare' : null;
 }
@@ -149,14 +157,46 @@ function motivoGauge(p: number | null, t: number | null): string | null {
 const INIZIO_ARCO = 200;
 const FINE_ARCO = -20;
 
-function serieGauge(titolo: string, valore: number): GaugeSeriesOption {
+/**
+ * Dove sta l'etichetta della fine dell'arco (offsetCenter, in % del raggio dal centro): fuori dall'arco, alla fine della
+ * parte pagata. L'etichetta e' su due righe e centrata nel suo punto: si allontana di piu' in orizzontale (fianchi
+ * dell'arco) che in verticale (sommita'), cosi' non copre l'arco; col raggio al 48 % entra anche a 390 px (J-05).
+ */
+export function puntoFineArco(valore: number): [string, string] {
+  const gradi = INIZIO_ARCO - ((INIZIO_ARCO - FINE_ARCO) * Math.min(Math.max(valore, 0), 100)) / 100;
+  const radianti = (gradi * Math.PI) / 180;
+  const [cos, sin] = [Math.cos(radianti), Math.sin(radianti)];
+  const distanza = 112 + 50 * Math.abs(cos) + 26 * Math.abs(sin);
+  return [`${Math.round(cos * distanza)}%`, `${Math.round(-sin * distanza)}%`];
+}
+
+/**
+ * L'importo dell'etichetta della fine dell'arco, al piu' otto caratteri perche' entri anche a 390 px (J-05): in milioni come
+ * nel mock di Leonardo ("134,6 M€"; da 10.000 € con due decimali, "0,19 M€"), sotto in migliaia intere ("9 mila €") o in
+ * euro; il valore pieno sta nella tabella equivalente.
+ */
+export function importoEtichettaGauge(v: number): string {
+  const a = Math.abs(v);
+  if (a >= 1_000_000) return importoBreve(v);
+  if (a >= 10_000) return `${(v / 1_000_000).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} M€`;
+  if (a >= 1_000) return `${formatNumber(Math.round(v / 1_000))} mila €`;
+  return formatEuro(v);
+}
+
+/**
+ * Il gauge dei pagamenti netti (note di Leonardo del 10/11/2026): al centro la dotazione, alla fine dell'arco blu la
+ * percentuale e l'importo dei pagamenti netti. Arco piu' piccolo e piu' in basso per fare posto all'etichetta esterna.
+ */
+function serieGauge(valore: number, etichetta: string, dotazione: string): GaugeSeriesOption {
   return {
     type: 'gauge',
-    name: titolo,
+    name: CAPTION_PAGATO_NETTO,
     min: 0,
     max: 100,
     startAngle: INIZIO_ARCO,
     endAngle: FINE_ARCO,
+    radius: '48%',
+    center: ['50%', '58%'],
     progress: { show: true, width: 16 },
     itemStyle: { color: COLORI.primario },
     axisLine: { lineStyle: { width: 16, color: [[1, COLORI.neutro]] } },
@@ -165,58 +205,12 @@ function serieGauge(titolo: string, valore: number): GaugeSeriesOption {
     axisTick: { show: false },
     splitLine: { show: false },
     axisLabel: { show: false },
-    title: { show: true, offsetCenter: [0, '35%'] },
-    detail: { offsetCenter: [0, '-5%'], formatter: assePercentuale },
-    data: [{ value: valore, name: titolo }],
-  };
-}
-
-function tabellaGauge(titolo: string, valore: string): TabellaEquivalente {
-  return { caption: titolo, colonne: ['Misura', 'Valore'], righe: [[titolo, valore]] };
-}
-
-/** Indicatore 0-100 della parte sul totale; col perimetro ADA (parte dell'area su un totale regionale) non si disegna. */
-export function graficoGauge(parte: number | null | undefined, totale: number | null | undefined, titolo: string, perimetro?: string | null): DatiGrafico {
-  const tabellaCon = (valore: string) => tabellaGauge(titolo, valore);
-  if (perimetro === PERIMETRO_ADA) return nonDisegnabile(MOTIVO_ADA_RAPPORTO, tabellaCon('non confrontabile (perimetro ADA)'), []);
-  const p = numeroDi(parte);
-  const t = numeroDi(totale);
-  const motivo = motivoGauge(p, t);
-  if (motivo || p == null || t == null) return nonDisegnabile(motivo ?? 'la percentuale non si può calcolare', tabellaCon(NON_CALCOLABILE), []);
-  const valore = percentuale(p, t);
-  const opzioni: EChartsOption = { aria: aria(`Indicatore da 0 a 100 %: ${titolo} ${formatPercentuale(valore)}.`), series: [serieGauge(titolo, valore)] };
-  return { opzioni, tabella: tabellaCon(formatPercentuale(valore)), omessi: [] };
-}
-
-const TITOLO_PAGATO_NETTO = 'della dotazione pagato (netto)';
-
-/**
- * Dove sta l'etichetta della fine dell'arco (offsetCenter, in % del raggio dal centro): fuori dall'arco, alla fine della
- * parte pagata. L'etichetta e' su due righe e centrata nel suo punto: si allontana di piu' in orizzontale (fianchi
- * dell'arco) che in verticale (sommita'), cosi' non copre l'arco.
- */
-export function puntoFineArco(valore: number): [string, string] {
-  const gradi = INIZIO_ARCO - ((INIZIO_ARCO - FINE_ARCO) * Math.min(Math.max(valore, 0), 100)) / 100;
-  const radianti = (gradi * Math.PI) / 180;
-  const [cos, sin] = [Math.cos(radianti), Math.sin(radianti)];
-  const distanza = 112 + 30 * Math.abs(cos) + 12 * Math.abs(sin);
-  return [`${Math.round(cos * distanza)}%`, `${Math.round(-sin * distanza)}%`];
-}
-
-/**
- * Il gauge dei pagamenti netti (note di Leonardo del 10/11/2026): al centro la dotazione, alla fine dell'arco blu la
- * percentuale e l'importo dei pagamenti netti. Arco piu' piccolo e piu' in basso per fare posto all'etichetta esterna.
- */
-function serieGaugeConDotazione(valore: number, etichetta: string, dotazione: string): GaugeSeriesOption {
-  return {
-    ...serieGauge(TITOLO_PAGATO_NETTO, valore),
-    radius: '58%',
-    center: ['50%', '58%'],
-    title: { show: true, offsetCenter: puntoFineArco(valore), color: COLORI.primario, fontSize: 13, fontWeight: 600, lineHeight: 17 },
+    title: { show: true, offsetCenter: puntoFineArco(valore), color: COLORI.primario, fontSize: 12, fontWeight: 600, lineHeight: 16 },
     detail: {
       offsetCenter: [0, '0%'],
-      formatter: () => `{v|${dotazione}}\n{n|dotazione spesa pubblica}`,
-      rich: { v: { fontSize: 24, fontWeight: 700, color: COLORI.testo, lineHeight: 30 }, n: { fontSize: 12, color: COLORI.attenuato, lineHeight: 16 } },
+      // "dotazione" e non "dotazione spesa pubblica": a 390 px il testo lungo toccava l'arco (verifica a vista dell'11/11/2026)
+      formatter: () => `{v|${dotazione}}\n{n|dotazione}`,
+      rich: { v: { fontSize: 22, fontWeight: 700, color: COLORI.testo, lineHeight: 28 }, n: { fontSize: 12, color: COLORI.attenuato, lineHeight: 16 } },
     },
     data: [{ value: valore, name: etichetta }],
   };
@@ -225,9 +219,9 @@ function serieGaugeConDotazione(valore: number, etichetta: string, dotazione: st
 /** La tabella equivalente del gauge: dotazione, pagamenti netti (con le assenze dichiarate) e la percentuale. */
 function tabellaPagatoNetto(pagato: ImportoLike | null | undefined, dotazione: ImportoLike | null | undefined, aggregato: boolean, valore: string): TabellaEquivalente {
   return {
-    caption: TITOLO_PAGATO_NETTO,
+    caption: CAPTION_PAGATO_NETTO,
     colonne: ['Misura', 'Valore'],
-    righe: [['Dotazione spesa pubblica', cellaImporto(dotazione, aggregato)], ['Pagamenti al netto delle rettifiche', cellaImporto(pagato, aggregato)], [TITOLO_PAGATO_NETTO, valore]],
+    righe: [['Dotazione spesa pubblica', cellaImporto(dotazione, aggregato)], ['Pagamenti al netto delle rettifiche', cellaImporto(pagato, aggregato)], [VOCE_PERCENTUALE, valore]],
   };
 }
 
@@ -235,12 +229,12 @@ function tabellaPagatoNetto(pagato: ImportoLike | null | undefined, dotazione: I
  * Indicatore dei pagamenti al netto delle rettifiche sulla dotazione (TX-0007, TX-0011): lo stesso netto del residuo
  * sui pagamenti accanto, mai il pagato lordo degli elenchi di liquidazione. Al centro la dotazione, alla fine dell'arco la
  * percentuale con l'importo netto (note di Leonardo del 10/11/2026). Un importo assente rende la percentuale non
- * calcolabile e dice il suo motivo, come le barre dell'intervento. `aggregato`: totale su piu' interventi (TX-0007),
- * false per la riga di un intervento (TX-0011). Col perimetro ADA (pagamenti dell'area su una dotazione regionale) non si
- * disegna e la tabella dice solo che il rapporto non e' confrontabile.
+ * calcolabile e dice il suo motivo, come le barre dell'intervento; un netto negativo o una dotazione nulla anche.
+ * `aggregato`: totale su piu' interventi (TX-0007), false per la riga di un intervento (TX-0011). Col perimetro ADA
+ * (pagamenti dell'area su una dotazione regionale) non si disegna e la tabella dice solo che il rapporto non e' confrontabile.
  */
 export function graficoPagatoNetto(pagato: ImportoLike | null | undefined, dotazione: ImportoLike | null | undefined, perimetro?: string | null, aggregato = true): DatiGrafico {
-  if (perimetro === PERIMETRO_ADA) return graficoGauge(null, null, TITOLO_PAGATO_NETTO, perimetro);
+  if (perimetro === PERIMETRO_ADA) return nonDisegnabile(MOTIVO_ADA_RAPPORTO, { caption: CAPTION_PAGATO_NETTO, colonne: ['Misura', 'Valore'], righe: [[VOCE_PERCENTUALE, 'non confrontabile (perimetro ADA)']] }, []);
   const [p, t] = [valoreDi(pagato), valoreDi(dotazione)];
   const tabellaCon = (valore: string) => tabellaPagatoNetto(pagato, dotazione, aggregato, valore);
   if (p == null || t == null) {
@@ -250,8 +244,8 @@ export function graficoPagatoNetto(pagato: ImportoLike | null | undefined, dotaz
   const motivo = motivoGauge(p, t);
   if (motivo) return nonDisegnabile(motivo, tabellaCon(NON_CALCOLABILE), []);
   const valore = percentuale(p, t);
-  const descrizione = `Indicatore da 0 a 100 %: ${TITOLO_PAGATO_NETTO} ${formatPercentuale(valore)}, pagamenti netti ${importoBreve(p)} su una dotazione di ${importoBreve(t)}.`;
-  const opzioni: EChartsOption = { aria: aria(descrizione), series: [serieGaugeConDotazione(valore, `${formatPercentuale(valore)}\n(${importoBreve(p)})`, importoBreve(t))] };
+  const descrizione = `Indicatore da 0 a 100 %: pagamenti al netto delle rettifiche ${formatPercentuale(valore)} della dotazione spesa pubblica, ${importoBreve(p)} su ${importoBreve(t)}.`;
+  const opzioni: EChartsOption = { aria: aria(descrizione), series: [serieGauge(valore, `${formatPercentuale(valore)}\n(${importoEtichettaGauge(p)})`, importoBreve(t))] };
   return { opzioni, tabella: tabellaCon(formatPercentuale(valore)), omessi: [] };
 }
 

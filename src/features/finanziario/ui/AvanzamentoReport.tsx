@@ -18,7 +18,7 @@ import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-statu
 import { usePagamentiSuImpegnato, useResiduoImpegni, useResiduoPagamenti, useStanziato } from '../api';
 import { datiDelReport } from './esportazioni';
 import type { Filtri } from '../lib/filtri';
-import { PAGAMENTI_LORDI, graficoPagatoNetto, graficoPartiImporto, graficoSankey, sottotitoloFlusso } from '../lib/grafici';
+import { PAGAMENTI_LORDI, SOTTOTITOLO_GAUGE_PAGAMENTI, TITOLO_GAUGE_PAGAMENTI, graficoPagatoNetto, graficoPartiImporto, graficoSankey, sottotitoloFlusso } from '../lib/grafici';
 import { PERIMETRO_ADA, perimetroCombinato } from '../lib/perimetro';
 import type { Perimetro } from '../lib/perimetro';
 import { GRANT } from '../lib/report';
@@ -32,9 +32,6 @@ type Voce = [string, ImportoLike | undefined];
 const VUOTO = vuotoConPerimetro('Nessun intervento per i filtri scelti.', { programma: true });
 // l'importo pagato di TX-0007: lordo, dagli elenchi di liquidazione dei decreti (il netto sottrae le rettifiche, R08)
 const PAGATO_LORDO = 'Importo pagato (lordo, elenchi di liquidazione)';
-// il titolo del gauge dei pagamenti netti sulla dotazione (R15, rinominato con le note di Leonardo del 10/11/2026)
-const AVANZAMENTO_PAGAMENTI = 'Avanzamento dei pagamenti rispetto alla dotazione';
-const SOTTOTITOLO_GAUGE = 'Percentuale di pagamenti al netto di rettifiche sulla dotazione spesa pubblica';
 // il titolo del flusso della dotazione (prima "Dove va la dotazione")
 const FLUSSO = 'Distribuzione dotazione spesa pubblica';
 
@@ -118,12 +115,12 @@ function PagatoSullaDotazione({ filtri }: { filtri: Filtri }) {
     <VistaQuery stato={useResiduoPagamenti(filtri)} errorePersonalizzato={silenzioso}>
       {(d) => (
         <CardGrafico
-          titolo={AVANZAMENTO_PAGAMENTI}
-          sottotitolo={SOTTOTITOLO_GAUGE}
+          titolo={TITOLO_GAUGE_PAGAMENTI}
+          sottotitolo={SOTTOTITOLO_GAUGE_PAGAMENTI}
           dati={graficoPagatoNetto(d.pagamentiNettoRettifiche, d.dotazioneSpesaPubblica, d.perimetro)}
           fonte={`Fonte: TX-0007, pagamenti al netto delle rettifiche · Perimetro ${d.perimetro ?? 'non indicato'}`}
           altezza="alto"
-          scaricamenti={datiDelReport(AVANZAMENTO_PAGAMENTI, 'residuoPagamenti', filtri)}
+          scaricamenti={datiDelReport(TITOLO_GAUGE_PAGAMENTI, 'residuoPagamenti', filtri)}
         />
       )}
     </VistaQuery>
@@ -137,7 +134,7 @@ function Flussi({ filtri }: { filtri: Filtri }) {
       <ConGrant grant={[GRANT.residuoImpegni, GRANT.pagamentiSuImpegnato, GRANT.residuoPagamenti]} titolo={FLUSSO}>
         <FlussoDotazione filtri={filtri} />
       </ConGrant>
-      <ConGrant grant={GRANT.residuoPagamenti} titolo={AVANZAMENTO_PAGAMENTI}>
+      <ConGrant grant={GRANT.residuoPagamenti} titolo={TITOLO_GAUGE_PAGAMENTI}>
         <PagatoSullaDotazione filtri={filtri} />
       </ConGrant>
     </Griglia>
@@ -197,7 +194,7 @@ function Parti<T extends { perimetro?: Perimetro }>(props: {
         <CardGrafico
           titolo={titolo}
           sottotitolo={misto && d.perimetro === PERIMETRO_ADA ? `${grafico}. La dotazione è regionale, i pagamenti sono della tua area: non confrontabili.` : grafico}
-          dati={graficoPartiImporto(grafico, parti(d), voci(d))}
+          dati={graficoPartiImporto(`${titolo}, ${grafico.charAt(0).toLowerCase()}${grafico.slice(1)}`, parti(d), voci(d))}
           fonte={`${fonte} · Perimetro ${d.perimetro ?? 'non indicato'}`}
           scaricamenti={scaricamenti}
         />

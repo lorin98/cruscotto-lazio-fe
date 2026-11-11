@@ -21,7 +21,7 @@ import type { DomandePerAnno as DomandePerAnnoDto, RiepilogoFinanziarioRiga } fr
 import { datiDelReport } from './esportazioni';
 import { conParametroDiPagina } from '../lib/filtri';
 import type { Filtri } from '../lib/filtri';
-import { VOCI_DOMANDE_SIGC, graficoBarreIntervento, graficoDomandePerAnno, graficoDomandeSigc, graficoImportiPerAnno, graficoImportiSigc, graficoPagatoNetto, vociIntervento } from '../lib/grafici';
+import { VOCI_DOMANDE_SIGC, SOTTOTITOLO_GAUGE_PAGAMENTI, TITOLO_GAUGE_PAGAMENTI, graficoBarreIntervento, graficoDomandePerAnno, graficoDomandeSigc, graficoImportiPerAnno, graficoImportiSigc, graficoPagatoNetto, sottotitoloBarreIntervento, vociIntervento } from '../lib/grafici';
 import { perAnno } from '../lib/importi';
 import { annoDiRaccolta } from '../lib/formato';
 import { criteriAnnoAnnualita, criteriDomandePerAnno, criteriVoceSigc } from '../lib/link-elenco';
@@ -40,10 +40,6 @@ import { conRigheDiRettifiche, testoSenzaRighe } from '../lib/rettifiche';
 import { notaDiCuiStimato } from '../lib/stima';
 import type { FiltroSigc } from '../../../shared/lib';
 
-// R15: il titolo del gauge dei pagamenti netti sulla dotazione
-const AVANZAMENTO_PAGAMENTI = 'Avanzamento dei pagamenti rispetto alla dotazione';
-// le due barre di "Dalla dotazione al residuo": cosa somma ciascuna
-const BARRE_INTERVENTO = 'Dotazione: pagamenti netti e residuo sui pagamenti; pagamenti lordi: pagamenti netti e rettifiche';
 
 /** I link verso l'elenco portano la selezione da cui si e' arrivati, con l'intervento del dettaglio al posto del filtro. */
 interface Provenienza {
@@ -159,19 +155,21 @@ function RettificheIntervento({ r }: { r: RiepilogoFinanziarioRiga }) {
 // pagato lordo degli elenchi di liquidazione su una dotazione il cui residuo e' calcolato sul netto
 function Sintesi({ filtri, r, perimetro }: { filtri: Filtri; r: RiepilogoFinanziarioRiga; perimetro?: Perimetro }) {
   const stimato = notaDiCuiStimato(r.impegnatoStimato);
+  // il sottotitolo dice come sono fatte le barre disegnate (J-03): nulla se il grafico non si disegna
+  const barre = sottotitoloBarreIntervento(r, perimetro);
   return (
     <>
       <Griglia>
         <CardGrafico
-          titolo={AVANZAMENTO_PAGAMENTI}
-          sottotitolo="Percentuale di pagamenti al netto di rettifiche sulla dotazione spesa pubblica"
+          titolo={TITOLO_GAUGE_PAGAMENTI}
+          sottotitolo={SOTTOTITOLO_GAUGE_PAGAMENTI}
           dati={graficoPagatoNetto(r.pagamentiNettoRettifiche, r.dotazioneSpesaPubblica, perimetro, false)}
-          fonte="Fonte: TX-0011, riepilogo per intervento"
-          scaricamenti={datiDelReport(AVANZAMENTO_PAGAMENTI, 'riepilogo', filtri)}
+          fonte="Fonte: TX-0011, pagamenti al netto delle rettifiche"
+          scaricamenti={datiDelReport(TITOLO_GAUGE_PAGAMENTI, 'riepilogo', filtri)}
         />
         <CardGrafico
           titolo="Dalla dotazione al residuo"
-          sottotitolo={stimato ? `${BARRE_INTERVENTO}. Impegnato e residuo sugli impegni nella tabella; impegnato ${stimato}` : BARRE_INTERVENTO}
+          sottotitolo={[barre, stimato ? `Impegnato e residuo sugli impegni nella tabella; impegnato ${stimato}` : null].filter(Boolean).join('. ') || undefined}
           dati={graficoBarreIntervento(r, perimetro)}
           fonte="Fonte: TX-0011, riepilogo per intervento"
           scaricamenti={datiDelReport(`Riepilogo ${r.codiceIntervento ?? 'intervento'}`, 'riepilogo', filtri)}
@@ -352,6 +350,8 @@ function Schede({ filtri, r, perimetro, da }: { filtri: Filtri; r: RiepilogoFina
         <Sintesi filtri={filtri} r={r} perimetro={perimetro} />
       </TabPanel>
       <TabPanel id="domande">
+        {/* tabelle compatte come nella pagina Domande e importi (review step9 dell'11/11/2026, J-10) */}
+        <div className="ui-tabelle-compatte">
         <Griglia>
           <ConGrant grant={GRANT.domandePerAnno} titolo="Domande per anno di raccolta">
             <DomandePerAnno filtri={filtri} da={da} />
@@ -360,6 +360,7 @@ function Schede({ filtri, r, perimetro, da }: { filtri: Filtri; r: RiepilogoFina
             <ImportiPerAnno filtri={filtri} />
           </ConGrant>
         </Griglia>
+        </div>
       </TabPanel>
       <TabPanel id="sigc">
         <Griglia>
