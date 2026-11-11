@@ -16,7 +16,7 @@
 Vocabolario del kit UI v2 (ADR 0027 di green-fe), resa approvata nel prototipo `prototipo/finanziario/`.
 
 - /finanziario: Shell > Barra filtri (controllo SIGC, chip, perimetro, ultimo dato sincronizzato) > Breadcrumb > Titolo > KPI x6 (3 x 2) > Card avanzamento (barre) + Card famiglie (treemap) > Card SIGC domande (barre orizzontali) + Card SIGC importi (forma scelta per R13) > Pannello filtri > Stati
-- /finanziario/interventi/:codice: Shell > Barra filtri (senza controllo SIGC: tipo dell'intervento) > Breadcrumb > Testata (codice, descrizione, perimetro, tipo SIGC / NO SIGC, azioni) > KPI x4 > Schede: Sintesi (gauge, cascata, rettifiche) | Domande (barre impilate, linea) | SIGC (barre orizzontali, importi nella forma di R13) | Tutte le voci (tabella con i motivi) > Stati
+- /finanziario/interventi/:codice: Shell > Barra filtri (senza controllo SIGC: tipo dell'intervento) > Breadcrumb > Testata (codice, descrizione, perimetro, tipo SIGC / NO SIGC, azioni) > KPI x4 > Schede: Sintesi (gauge, due barre impilate, rettifiche) | Domande (barre impilate, linea) | SIGC (barre orizzontali, importi nella forma di R13) | Tutte le voci (tabella con i motivi) > Stati
 
 ## Grafici del flusso
 
@@ -26,8 +26,8 @@ Vocabolario del kit UI v2 (ADR 0027 di green-fe), resa approvata nel prototipo `
 | /finanziario | Dotazione per famiglia di intervento | treemap | TX-0002 | famiglia: entra; intervento: dettaglio | dotazione assente: intervento omesso e dichiarato |
 | /finanziario | Domande SIGC | barre orizzontali (presentate, pagate, da pagare, senza importi: pagate e da pagare si sovrappongono) | TX-0012 | pagina SIGC | nessuno (conteggi) |
 | /finanziario | Importi SIGC | due barre impilate (R13 B: richiesto = ammesso + non ammesso; ammesso = pagato + ancora da pagare) | TX-0013 | nessuno | importo assente: passo omesso e dichiarato |
-| /finanziario/interventi/:codice | Avanzamento rispetto ai pagamenti effettuati | gauge | TX-0011 (pagamenti al netto delle rettifiche) | nessuno | non disegnato se manca un termine |
-| /finanziario/interventi/:codice | Dalla dotazione al residuo | cascata | TX-0011 | nessuno | rettifiche non caricate: netto e residuo non disegnati, fonte non attiva dichiarata |
+| /finanziario/interventi/:codice | Avanzamento dei pagamenti rispetto alla dotazione | gauge (dotazione al centro, percentuale e importo netto accanto all'arco) | TX-0011 (pagamenti al netto delle rettifiche) | nessuno | non disegnato se manca un termine |
+| /finanziario/interventi/:codice | Dalla dotazione al residuo | due barre orizzontali impilate (Dotazione = netti + residuo; Pagamenti lordi = netti + rettifiche) | TX-0011 | nessuno | rettifiche non caricate: barre intere, netto e residuo fra le voci non nel grafico; importo negativo: non disegnato col motivo |
 | /finanziario/interventi/:codice | Rettifiche dell'intervento | tabella | TX-0011 (rettifiche[]) | nessuno | nessuna rettifica: "Nessuna rettifica" |
 | /finanziario/interventi/:codice | Domande per anno | barre | TX-0008 | link:elenco-anno-intervento (elenco-operativo: /elenco-operativo/domande) | riga senza anno: barra a parte |
 | /finanziario/interventi/:codice | Importi ammessi e decretati | linea | TX-0010 | nessuno | stanziato dai bandi: non valorizzato negli anni senza bandi, dichiarato |
@@ -54,7 +54,7 @@ questi profili misti esistono; se si', un parametro del backend restringera' l'e
 | /finanziario/interventi/:codice | elenco-sigc-intervento | passo di Domande SIGC o di Importi SIGC | elenco-operativo: /elenco-operativo/domande | - | sigc=true, intervento=:codice e, per pagate, da pagare e senza importi, pagamento=PAGATA, DA_PAGARE, SENZA_IMPORTI + filtri correnti |
 
 Non collegati, perche' l'insieme non e' di domande: Avanzamento per intervento e Dotazione per famiglia (TX-0002, dotazione e
-pagamenti per intervento), Avanzamento rispetto ai pagamenti effettuati e Dalla dotazione al residuo (TX-0011), Importi ammessi e decretati
+pagamenti per intervento), Avanzamento dei pagamenti rispetto alla dotazione e Dalla dotazione al residuo (TX-0011), Importi ammessi e decretati
 (stanziato e decretato non sono campi dell'elenco). Sulla panoramica le card SIGC restano il passaggio alla pagina SIGC, da cui
 parte il drill-down.
 
@@ -107,6 +107,10 @@ parte il drill-down.
 - Dettaglio: testata col tipo dell'intervento al posto del contributo ambientale (R14, F5), niente lettura di TX-0002; R15
   "Avanzamento rispetto ai pagamenti effettuati"; rettifiche nella Sintesi e in Tutte le voci (R08); impegnato con la parte
   stimata; stanziato dai bandi.
+- Revisione dell'11/11/2026 (note di Leonardo del 10/11/2026, scelte dell'utente): gauge del dettaglio "Avanzamento dei pagamenti rispetto alla dotazione"
+  (dotazione al centro, percentuale e importo dei pagamenti netti accanto all'arco); "Dalla dotazione al residuo" a due barre
+  impilate (Dotazione = pagamenti netti + residuo sui pagamenti; Pagamenti lordi = pagamenti netti + rettifiche) al posto della
+  cascata: il disegno di Leonardo (lordi + residuo) supererebbe la dotazione dell'importo delle rettifiche.
 
 ### Regole comuni (kit, tutte le aree)
 

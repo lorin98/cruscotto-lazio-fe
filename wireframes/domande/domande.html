@@ -64,6 +64,7 @@
       <p>Domande per anno di raccolta e importi ammessi e decretati.</p>
     </div>
     <p class="wf-note">Ruoli (grant verbatim): csr.tx-0008.read, csr.tx-0009.read, csr.tx-0010.read - Transazioni: TX-0008 (RF008), TX-0009 (RF009), TX-0010 (RF010).</p>
+    <p class="wf-note">Revisione dell'11/11/2026 (note di Leonardo del 10/11/2026): le due sezioni (domande e importi, ognuna col grafico e la tabella di dettaglio) stanno una sotto l'altra a tutta larghezza; tabelle compatte (intestazioni su piu' righe, meno spazio fra le colonne), senza scorrimento orizzontale da 1366 px in su; la vista Tabella di Importi per anno ha le intestazioni della tabella di dettaglio.</p>
     <div class="ui-griglia ui-griglia--4">
       <section class="ui-kpi" aria-label="Domande presentate">
         <p>Domande presentate</p>
@@ -88,7 +89,7 @@
         <p class="ui-barra">TX-0010, dai bandi (quadro sinottico); per anno: non valorizzato finche' i bandi non hanno l'importo annuo</p>
       </section>
     </div>
-    <div class="ui-griglia ui-griglia--2">
+    <div class="ui-griglia">
       <section class="ui-card" aria-labelledby="g-dom">
         <div class="ui-card__testa">
           <h2 id="g-dom">Domande per anno di raccolta</h2>
@@ -107,6 +108,11 @@
         <figure class="ui-grafico ui-grafico--linea">
           <figcaption>Linee con zoom: importo ammesso, decretato (dagli elenchi di liquidazione: OP-FE-05) e stanziato dai bandi; gli anni con lo stanziato non valorizzato non hanno il punto e lo dichiarano.</figcaption>
         </figure>
+        <table class="ui-tabella">
+          <caption>Vista Tabella di Importi per anno: le stesse intestazioni della tabella di dettaglio</caption>
+          <thead><tr><th scope="col">Anno di raccolta</th><th scope="col">Importo stanziato</th><th scope="col">Importo ammesso</th><th scope="col">Importo decretato (elenchi di liquidazione)</th><th scope="col">Domande senza importo ammesso</th><th scope="col">Elenco operativo</th></tr></thead>
+          <tbody><tr><th scope="row">2024</th><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n,nn</td><td class="ui-num">n</td><td><a href="../elenco-operativo/domande/domande.html">Apri nell'elenco</a></td></tr></tbody>
+        </table>
         <p class="ui-fonte">Fonte: TX-0010. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati; ogni riga (anno) ha l'azione Apri nell'elenco, che apre l'elenco operativo con le domande presentate di quell'anno.</p>
       </section>
     </div>

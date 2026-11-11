@@ -83,6 +83,11 @@ Importo ammesso e Importo stanziato non hanno l'azione (il secondo ha fonte non 
 
 - Stanziato dai bandi (quadro sinottico); per anno "non valorizzato" col motivo finche' i bandi non danno l'importo
   annuo (P2).
+- Revisione dell'11/11/2026 (note di Leonardo del 10/11/2026): la vista Tabella di Importi per anno ha le intestazioni della
+  tabella di dettaglio (Anno di raccolta, Importo stanziato, Importo ammesso, Importo decretato (elenchi di liquidazione),
+  Domande senza importo ammesso, Elenco operativo); le due sezioni stanno una sotto l'altra a tutta larghezza e le tabelle
+  della pagina sono compatte (intestazioni su piu' righe, meno spazio fra le colonne): nessuno scorrimento orizzontale da
+  1366 px in su (misurato: con le due sezioni affiancate le tabelle degli importi scorrevano anche compatte).
 
 ### Regole comuni (kit, tutte le aree)
 

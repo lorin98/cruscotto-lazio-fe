@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "plugin": "green-fe",
   "slice": "finanziario",
-  "current_step": 9,
+  "current_step": 2,
   "status": "in_progress",
   "steps": {
     "step0-config": {
@@ -23,44 +23,48 @@
       "status": "done",
       "gates": {
         "wireframe_panoramica": {
-          "approved_hash": "sha256:64f922e0d0db3c41ba930b0a428304b95cac48245e63a90272184ac8e87d1f45",
+          "approved_hash": "sha256:8f1050292da9dbf364e1eace3ff696092dabe3dec7e389a6337cb7ada7e10acd",
           "baseline_ref": "./wireframes/panoramica",
-          "approved_at": "2026-11-04T14:36:02Z",
-          "time_to_approve_s": 79,
+          "approved_at": "2026-11-11T14:06:24Z",
+          "time_to_approve_s": 19,
           "deviations_reviewed": [
             "V-22 (review step9 v2, scelta dell utente del 09/10/2026): il pulsante del pannello dei filtri resta Applica i filtri e non Mostra n interventi; il conteggio richiede il legame intervento-OS-OG-OP (OP-FE-07), che TX-0001 non espone",
             "V-07 (review step9 v3, download per formato chiesto dall utente il 09/10/2026, deviazione confermata il 12/10/2026): al posto del solo Scarica per card e di Esporta CSV per le tabelle, un pulsante per formato con la sigla visibile; PNG del grafico come si vede con l intestazione di NFR-50 (V-01), CSV e XLSX scritti dal backend (D-08). Il PNG non e registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08, scelta dell utente del 12/10/2026",
-            "Revisioni del 04/11/2026 (secondo feedback di Leonardo/Deloitte), approvate dall'utente sulle bozze di analisi-2026-11-04/wireframe-bozze (LEGGIMI.md); stessa resa del tema dei wireframe precedenti"
+            "Revisioni del 04/11/2026 (secondo feedback di Leonardo/Deloitte), approvate dall'utente sulle bozze di analisi-2026-11-04/wireframe-bozze (LEGGIMI.md); stessa resa del tema dei wireframe precedenti",
+            "Note di Leonardo del 10/11/2026 (titoli e sottotitoli di Avanzamento, gauge con la dotazione al centro, Sankey col pagato sopra, tabelle di Domande compatte e a tutta larghezza, barre impilate al posto della cascata del dettaglio, avviso sulla provenienza dell'impegnato), approvate dall'utente l'11/11/2026 sulle bozze di analisi-2026-11-11/wireframe-bozze"
           ]
         },
         "wireframe_riepilogo": {
-          "approved_hash": "sha256:bd41173e220123ff0cba2bc04e7fcee309e3225d32a0d807f8e57bc068bfb383",
+          "approved_hash": "sha256:61fac2df973b2399c9db64e4ec9b6a047dff37f288b8eba15341c3c2342ee17f",
           "baseline_ref": "./wireframes/riepilogo",
-          "approved_at": "2026-11-04T18:56:08Z",
-          "time_to_approve_s": 3221,
+          "approved_at": "2026-11-11T14:06:24Z",
+          "time_to_approve_s": 19,
           "deviations_reviewed": [
             "V-07 (review step9 v3, download per formato chiesto dall utente il 09/10/2026, deviazione confermata il 12/10/2026): al posto del solo Scarica per card e di Esporta CSV per le tabelle, un pulsante per formato con la sigla visibile; PNG del grafico come si vede con l intestazione di NFR-50 (V-01), CSV e XLSX scritti dal backend (D-08). Il PNG non e registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08, scelta dell utente del 12/10/2026",
             "F2 della review FULL sul delta FE (21/10/2026): vista iniziale a grafico con interruttore di pagina Grafico | Tabella, tabella approvata invariata nella vista Tabella; due interruttori nella vista Grafico nello stesso ordine; riapprovato dall'utente il 21/10/2026",
-            "Revisioni del 04/11/2026 (secondo feedback di Leonardo/Deloitte), approvate dall'utente sulle bozze di analisi-2026-11-04/wireframe-bozze (LEGGIMI.md); stessa resa del tema dei wireframe precedenti"
+            "Revisioni del 04/11/2026 (secondo feedback di Leonardo/Deloitte), approvate dall'utente sulle bozze di analisi-2026-11-04/wireframe-bozze (LEGGIMI.md); stessa resa del tema dei wireframe precedenti",
+            "Note di Leonardo del 10/11/2026 (titoli e sottotitoli di Avanzamento, gauge con la dotazione al centro, Sankey col pagato sopra, tabelle di Domande compatte e a tutta larghezza, barre impilate al posto della cascata del dettaglio, avviso sulla provenienza dell'impegnato), approvate dall'utente l'11/11/2026 sulle bozze di analisi-2026-11-11/wireframe-bozze"
           ]
         },
         "wireframe_dotazione-avanzamento": {
-          "approved_hash": "sha256:74be05935b1cd4d4b6a2d8620115735ca64a597733671c69109bcd425c2b085d",
+          "approved_hash": "sha256:11dedc8ebe11671d7de14829874470892c602d9d3af69ff6213afae47ba553f6",
           "baseline_ref": "./wireframes/dotazione-avanzamento",
-          "approved_at": "2026-11-04T18:56:08Z",
-          "time_to_approve_s": 3221,
+          "approved_at": "2026-11-11T14:06:24Z",
+          "time_to_approve_s": 19,
           "deviations_reviewed": [
             "V-07 (review step9 v3, download per formato chiesto dall utente il 09/10/2026, deviazione confermata il 12/10/2026): al posto del solo Scarica per card e di Esporta CSV per le tabelle, un pulsante per formato con la sigla visibile; PNG del grafico come si vede con l intestazione di NFR-50 (V-01), CSV e XLSX scritti dal backend (D-08). Il PNG non e registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08, scelta dell utente del 12/10/2026",
-            "Revisioni del 04/11/2026 (secondo feedback di Leonardo/Deloitte), approvate dall'utente sulle bozze di analisi-2026-11-04/wireframe-bozze (LEGGIMI.md); stessa resa del tema dei wireframe precedenti"
+            "Revisioni del 04/11/2026 (secondo feedback di Leonardo/Deloitte), approvate dall'utente sulle bozze di analisi-2026-11-04/wireframe-bozze (LEGGIMI.md); stessa resa del tema dei wireframe precedenti",
+            "Note di Leonardo del 10/11/2026 (titoli e sottotitoli di Avanzamento, gauge con la dotazione al centro, Sankey col pagato sopra, tabelle di Domande compatte e a tutta larghezza, barre impilate al posto della cascata del dettaglio, avviso sulla provenienza dell'impegnato), approvate dall'utente l'11/11/2026 sulle bozze di analisi-2026-11-11/wireframe-bozze"
           ]
         },
         "wireframe_domande": {
-          "approved_hash": "sha256:078555864f049b03fae3723801d1abe0755caaabcf727741a1f1ff6c81ba642e",
+          "approved_hash": "sha256:73693c5b189d8061e9c31f8077326def2f841ed7d25928eed251f6e6baefc692",
           "baseline_ref": "./wireframes/domande",
-          "approved_at": "2026-11-01T09:50:39Z",
-          "time_to_approve_s": 354,
+          "approved_at": "2026-11-11T14:06:24Z",
+          "time_to_approve_s": 19,
           "deviations_reviewed": [
-            "V-07 (review step9 v3, download per formato chiesto dall utente il 09/10/2026, deviazione confermata il 12/10/2026): al posto del solo Scarica per card e di Esporta CSV per le tabelle, un pulsante per formato con la sigla visibile; PNG del grafico come si vede con l intestazione di NFR-50 (V-01), CSV e XLSX scritti dal backend (D-08). Il PNG non e registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08, scelta dell utente del 12/10/2026"
+            "V-07 (review step9 v3, download per formato chiesto dall utente il 09/10/2026, deviazione confermata il 12/10/2026): al posto del solo Scarica per card e di Esporta CSV per le tabelle, un pulsante per formato con la sigla visibile; PNG del grafico come si vede con l intestazione di NFR-50 (V-01), CSV e XLSX scritti dal backend (D-08). Il PNG non e registrato in AUDIT_ESPORTAZIONE: punto aperto OP-FE-08, scelta dell utente del 12/10/2026",
+            "Note di Leonardo del 10/11/2026 (titoli e sottotitoli di Avanzamento, gauge con la dotazione al centro, Sankey col pagato sopra, tabelle di Domande compatte e a tutta larghezza, barre impilate al posto della cascata del dettaglio, avviso sulla provenienza dell'impegnato), approvate dall'utente l'11/11/2026 sulle bozze di analisi-2026-11-11/wireframe-bozze"
           ]
         },
         "wireframe_sigc": {
@@ -73,108 +77,75 @@
           ]
         }
       },
-      "completed_at": "2026-11-04T18:57:40Z",
+      "completed_at": "2026-11-11T14:18:26Z",
       "artifacts": [
         "./uiplan.json"
       ]
     },
     "step2-codegen": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-04T19:07:24Z",
       "artifacts": [
         "./specs/.spec-lock.json",
         "./src/shared/api/generated"
       ],
-      "gates": {
-        "codegen_compiles": "pass",
-        "orval_types": "pass",
-        "csrf_static": "pass"
-      }
+      "gates": {}
     },
     "step3-api": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-04T19:14:29Z",
       "artifacts": [
         "./src/features"
       ],
-      "gates": {
-        "api_wrappers_compile": "pass",
-        "querykey_from_factory": "pass"
-      }
+      "gates": {}
     },
     "step4-lib": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-04T19:14:35Z",
       "artifacts": [
         "./src/shared/lib"
       ],
-      "gates": {
-        "lib_pure_compile": "pass",
-        "lib_zero_react": "pass"
-      }
+      "gates": {}
     },
     "step5-ui": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-04T19:14:47Z",
       "artifacts": [
         "./src/features"
       ],
-      "gates": {
-        "ui_components_compile": "pass",
-        "ui_a11y_axe": "pass"
-      }
+      "gates": {}
     },
     "step6-page": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-04T19:14:54Z",
       "artifacts": [
         "./src/pages",
         "./route-manifest.json"
       ],
-      "gates": {
-        "pages_compile": "pass",
-        "route_manifest_valid": "pass"
-      }
+      "gates": {}
     },
     "step7-test": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-04T19:15:01Z",
       "artifacts": [
         "./src/shared/test",
         "./src/shared/api/mock",
         "./src/shared/testing/axe.ts"
       ],
-      "gates": {
-        "tests_generated": "pass",
-        "msw_fail_closed": "pass"
-      }
+      "gates": {}
     },
     "step8-gate": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-04T23:32:52Z",
       "artifacts": [
         "./fe-gate-report.json"
       ],
-      "gates": {
-        "lint": "pass",
-        "typecheck": "pass",
-        "test": "pass",
-        "a11y": "pass",
-        "build": "pass",
-        "fsd_import": "pass",
-        "orval_types": "pass",
-        "security": "pass",
-        "authz": "pass",
-        "wireframe_approved": "pass",
-        "req_coverage_ui": "pass"
-      }
+      "gates": {}
     },
     "step9-review": {
-      "status": "done",
+      "status": "in_progress",
       "completed_at": "2026-11-04T23:23:08Z",
-      "gates": {
-        "review": "pass"
-      }
+      "gates": {}
     }
   },
   "open_blockers": [],

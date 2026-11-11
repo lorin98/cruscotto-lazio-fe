@@ -114,3 +114,7 @@ Dotazione, risorse FEASR, stanziato, impegnato e residui non sono collegati (non
 - Avviso sempre visibile sopra la tabella quando nella selezione i due impegnati differiscono (cofinanziato FEASR riportato alla dotazione): elenca intervento, cofinanziato FEASR e FEASR e non. Regola del tetto invariata (tutti gli interventi). Nel wireframe e' un `alert` con `role="note"` (vocabolario dei template); nel codice il kit lo rende come avviso di attenzione (giallo) con la prima frase in grassetto.
 - Sotto la tabella il grafico "Dotazione, impegnato e pagamenti per intervento" (tre barre); l'asse parte dal valore piu' basso vero.
 - "Si': n rettifiche" al posto di "Si': n righe"; il link ai pagamenti dice "elenco dei pagamenti".
+
+## Revisioni dell'11/11/2026 (note di Leonardo del 10/11/2026)
+
+- L'avviso dice da dove viene l'impegnato: calcolato dal cruscotto, per gli interventi SIGC dalle domande dell'ASR2-20 (ammesso o, per le domande ancora in istruttoria, richiesto) piu' la stima delle annualita' future dei bandi pluriennali, per gli interventi NO SIGC dal contributo ammesso di PROSA; il cofinanziato FEASR e' lo stesso importo riportato alla dotazione quando la supera. Lo stesso testo nella pagina Dotazione e spesa.

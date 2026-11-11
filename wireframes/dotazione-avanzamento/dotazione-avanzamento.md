@@ -16,7 +16,7 @@
 Vocabolario del kit UI v2 (ADR 0027 di green-fe), resa approvata nel prototipo `prototipo/finanziario/`.
 
 - /finanziario/dotazione: Shell > Barra filtri (controllo SIGC) > Breadcrumb > Titolo > Card dotazione e pagamenti (barre) + Card quota FEASR (ciambella con importi e totale) > Stati
-- /finanziario/avanzamento: Shell > Barra filtri (controllo SIGC) > Breadcrumb > Titolo > KPI x4 (stanziato dai bandi, impegnato con la parte stimata, pagato lordo, dotazione residua sui pagamenti) > Card dove va la dotazione (sankey) + Card avanzamento rispetto ai pagamenti effettuati (gauge) > Nota di lettura dell'impegnato > Card RF004-RF007 (quattro ciambelle) > Card residuo sui pagamenti per intervento con le rettifiche (tabella, pannello laterale del dettaglio) > Stati
+- /finanziario/avanzamento: Shell > Barra filtri (controllo SIGC) > Breadcrumb > Titolo > KPI x4 (stanziato dai bandi, impegnato con la parte stimata, pagato lordo, dotazione residua sui pagamenti) > Card distribuzione dotazione spesa pubblica (sankey) + Card avanzamento dei pagamenti rispetto alla dotazione (gauge) > Nota di lettura dell'impegnato > Card RF004-RF007 (quattro ciambelle) > Card residuo sui pagamenti per intervento con le rettifiche (tabella, pannello laterale del dettaglio) > Stati
 
 ## Grafici del flusso
 
@@ -24,8 +24,8 @@ Vocabolario del kit UI v2 (ADR 0027 di green-fe), resa approvata nel prototipo `
 |---|---|---|---|---|---|
 | /finanziario/dotazione | Dotazione e pagamenti per intervento | barre | TX-0002 | dettaglio dell'intervento | perimetro ADA: dotazione regionale non affiancata |
 | /finanziario/dotazione | Quota FEASR e non FEASR | ciambella (importo e percentuale nelle etichette, totale al centro) | TX-0003 | nessuno | 'grafico non disponibile' con il motivo |
-| /finanziario/avanzamento | Dove va la dotazione | sankey | TX-0005, TX-0006, TX-0007 | nessuno | ramo con fonte assente non disegnato, dichiarato |
-| /finanziario/avanzamento | Avanzamento rispetto ai pagamenti effettuati | gauge | TX-0007 (pagamenti al netto delle rettifiche) | nessuno | non disegnato se manca un termine |
+| /finanziario/avanzamento | Distribuzione dotazione spesa pubblica | sankey (pagato sopra, da pagare sotto) | TX-0005, TX-0006, TX-0007 | nessuno | ramo con fonte assente non disegnato, dichiarato |
+| /finanziario/avanzamento | Avanzamento dei pagamenti rispetto alla dotazione | gauge (dotazione al centro, percentuale e importo netto accanto all'arco) | TX-0007 (pagamenti al netto delle rettifiche) | nessuno | non disegnato se manca un termine |
 | /finanziario/avanzamento | Stanziato, impegnato, pagato e residui | 4 ciambelle (importo e percentuale, totale al centro) | TX-0004..TX-0007 | nessuno | ciambella con un termine assente non disegnata, motivo |
 | /finanziario/avanzamento | Dotazione residua sui pagamenti per intervento | tabella | TX-0007 (interventi[], fonteRettifiche) | "Si': n rettifiche" apre il dettaglio delle rettifiche | rettifiche non caricate: fonte non attiva |
 
@@ -56,7 +56,7 @@ Stanziato (dai bandi), impegnato (dagli import, con la parte stimata) e rettific
 | pagina | elementi | natura |
 |---|---|---|
 | /finanziario/dotazione | Dotazione e pagamenti per intervento, Quota FEASR e non FEASR, tabella della spesa pubblica | misto (per intervento) |
-| /finanziario/avanzamento | KPI, Dove va la dotazione, Avanzamento rispetto ai pagamenti effettuati, ciambelle RF004-RF007 | misto |
+| /finanziario/avanzamento | KPI, Distribuzione dotazione spesa pubblica, Avanzamento dei pagamenti rispetto alla dotazione, ciambelle RF004-RF007 | misto |
 
 ### Modifiche del flusso
 
@@ -92,3 +92,18 @@ Stanziato (dai bandi), impegnato (dagli import, con la parte stimata) e rettific
 - Dotazione: il grafico per intervento diventa "Dotazione, impegnato e pagamenti per intervento" con la barra dell'impegnato di spesa pubblica (TX-0002); avviso degli impegnati diversi come nel Riepilogo (legge TX-0011, col suo grant; nel wireframe un `alert` con `role="note"`, nel codice l'avviso di attenzione del kit).
 - Avanzamento: il quarto box e' "Dotazione spesa pubblica" (dotazione degli interventi selezionati, TX-0007) al posto di "Dotazione residua sui pagamenti"; nel Sankey "Dove va la dotazione" l'impegnato torna un solo nodo (rilevato piu' stimato), la parte stimata resta nel tooltip, nella tabella equivalente e nella nota di lettura.
 - Tabella RF007: "Si': n rettifiche" al posto di "Si': n righe", come nel Riepilogo (aggiunta dopo l'approvazione delle 14:36Z: flusso da riapprovare).
+
+## Revisioni dell'11/11/2026 (note di Leonardo del 10/11/2026, scelte dell'utente)
+
+- Titoli e sottotitoli dei sei grafici di Avanzamento (i codici RF restano nei titoli per riferimento):
+  1. "Distribuzione dotazione spesa pubblica" - ripartizione fra importo impegnato pagato e da pagare e importo da impegnare;
+  2. "Avanzamento dei pagamenti rispetto alla dotazione" - percentuale di pagamenti al netto di rettifiche sulla dotazione spesa pubblica;
+  3. "Importo stanziato e da stanziare (RF004)" - suddivisione della dotazione fra importo stanziato e da stanziare;
+  4. "Pagamenti sull'importo impegnato (RF005)" - avanzamento dei pagamenti rispetto all'importo impegnato;
+  5. "Dotazione residua sugli impegni (RF006)" - avanzamento dell'importo impegnato rispetto alla dotazione;
+  6. "Dotazione residua sui pagamenti (RF007)" - avanzamento dei pagamenti rispetto alla dotazione.
+- Sankey: il pagato sopra il da pagare (ordine fisso dei nodi).
+- Gauge tenuto (scelta dell'utente, benche' simile al grafico 6): al centro la dotazione, accanto alla fine dell'arco la
+  percentuale con l'importo dei pagamenti netti (il mock di Leonardo riportava 135,9 M euro, che e' il pagato lordo: la
+  percentuale e' sul netto, 134,6 M euro).
+- Dotazione: L'avviso dice da dove viene l'impegnato: calcolato dal cruscotto, per gli interventi SIGC dalle domande dell'ASR2-20 (ammesso o, per le domande ancora in istruttoria, richiesto) piu' la stima delle annualita' future dei bandi pluriennali, per gli interventi NO SIGC dal contributo ammesso di PROSA; il cofinanziato FEASR e' lo stesso importo riportato alla dotazione quando la supera.

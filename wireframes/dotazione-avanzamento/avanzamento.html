@@ -65,6 +65,7 @@
     </div>
     <p class="wf-note">Ruoli (grant verbatim): csr.tx-0004.read, csr.tx-0005.read, csr.tx-0006.read, csr.tx-0007.read - Transazioni: TX-0004..TX-0007 (RF004-RF007).</p>
     <p class="wf-note">Revisione del 04/11/2026 (secondo feedback di Leonardo/Deloitte): il quarto box diventa "Dotazione spesa pubblica" (prima "Dotazione residua sui pagamenti", che resta nella ciambella RF007 e nella tabella per intervento); nel Sankey l'impegnato torna un solo nodo.</p>
+    <p class="wf-note">Revisione dell'11/11/2026 (note di Leonardo del 10/11/2026, scelte dell'utente): titoli e sottotitoli nuovi dei sei grafici (i codici RF restano nei titoli per riferimento); nel Sankey il pagato sta sopra il da pagare; il gauge resta, con la dotazione al centro e la percentuale con l'importo dei pagamenti netti accanto all'arco.</p>
     <div class="ui-griglia ui-griglia--4">
       <section class="ui-kpi" aria-label="Importo stanziato">
         <p>Importo stanziato</p>
@@ -90,21 +91,21 @@
     <div class="ui-griglia ui-griglia--2">
       <section class="ui-card" aria-labelledby="g-sankey">
         <div class="ui-card__testa">
-          <h2 id="g-sankey">Dove va la dotazione</h2>
-          <div class="ui-seg" role="group" aria-label="Vista di Dove va la dotazione"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+          <h2 id="g-sankey">Distribuzione dotazione spesa pubblica</h2>
+          <div class="ui-seg" role="group" aria-label="Vista di Distribuzione dotazione spesa pubblica"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
         </div>
         <figure class="ui-grafico ui-grafico--sankey">
-          <figcaption>Sankey: dotazione, impegnato (un solo nodo: rilevato piu' stimato, come prima delle revisioni del 31/10) e da impegnare, pagato e da pagare. La parte stimata resta nel tooltip del nodo Impegnato, nella tabella equivalente e nella nota di lettura. Se una fonte manca il suo ramo non si disegna e il grafico lo dichiara.</figcaption>
+          <figcaption>Sottotitolo: "Ripartizione fra importo impegnato pagato e da pagare e importo da impegnare". Sankey: dotazione, impegnato (un solo nodo: rilevato piu' stimato, come prima delle revisioni del 31/10) e da impegnare, pagato e da pagare. La parte stimata resta nel tooltip del nodo Impegnato, nella tabella equivalente e nella nota di lettura. Il ramo del pagato sta sopra quello del da pagare (ordine fisso dei nodi). Se una fonte manca il suo ramo non si disegna e il grafico lo dichiara.</figcaption>
         </figure>
         <p class="ui-fonte">Fonte: TX-0005, TX-0006, TX-0007. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati.</p>
       </section>
       <section class="ui-card" aria-labelledby="g-gauge">
         <div class="ui-card__testa">
-          <h2 id="g-gauge">Avanzamento rispetto ai pagamenti effettuati</h2>
-          <div class="ui-seg" role="group" aria-label="Vista di Avanzamento rispetto ai pagamenti effettuati"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+          <h2 id="g-gauge">Avanzamento dei pagamenti rispetto alla dotazione</h2>
+          <div class="ui-seg" role="group" aria-label="Vista di Avanzamento dei pagamenti rispetto alla dotazione"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
         </div>
         <figure class="ui-grafico ui-grafico--gauge">
-          <figcaption>Gauge (titolo nuovo, R15): pagamenti al netto delle rettifiche sulla dotazione spesa pubblica (TX-0007), come il residuo sui pagamenti.</figcaption>
+          <figcaption>Gauge. Sottotitolo: "Percentuale di pagamenti al netto di rettifiche sulla dotazione spesa pubblica" (TX-0007). Al centro la dotazione (n,n M euro); accanto alla fine dell'arco blu la percentuale e l'importo dei pagamenti netti (nn,n % (n,n M euro)), mai il pagato lordo. La tabella equivalente ha dotazione, pagamenti netti e percentuale.</figcaption>
         </figure>
         <p class="ui-fonte">Fonte: TX-0007, pagamenti al netto delle rettifiche. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati.</p>
       </section>
@@ -116,7 +117,7 @@
         <div class="ui-seg" role="group" aria-label="Vista di Stanziato, impegnato, pagato e residui"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
       </div>
       <figure class="ui-grafico ui-grafico--ciambella">
-        <figcaption>Quattro ciambelle (R06): stanziato e da stanziare, impegnato e da impegnare, pagato su impegnato, residuo sui pagamenti. Ogni etichetta con l'importo e la percentuale, al centro il totale; una ciambella con un termine assente non si disegna e dice il motivo.</figcaption>
+        <figcaption>Quattro ciambelle (R06), ognuna in una card con titolo e sottotitolo: "Importo stanziato e da stanziare (RF004)" - suddivisione della dotazione fra importo stanziato e da stanziare; "Pagamenti sull'importo impegnato (RF005)" - avanzamento dei pagamenti rispetto all'importo impegnato; "Dotazione residua sugli impegni (RF006)" - avanzamento dell'importo impegnato rispetto alla dotazione; "Dotazione residua sui pagamenti (RF007)" - avanzamento dei pagamenti rispetto alla dotazione. Ogni etichetta con l'importo e la percentuale, al centro il totale; una ciambella con un termine assente non si disegna e dice il motivo.</figcaption>
       </figure>
       <p class="ui-fonte">Fonte: TX-0004, TX-0005, TX-0006, TX-0007.</p>
     </section>

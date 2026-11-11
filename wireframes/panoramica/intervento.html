@@ -67,6 +67,7 @@
       <a class="btn btn-primary" href="../panoramica/panoramica.html">Filtra i report su questo intervento</a> <a class="btn" href="../riepilogo/riepilogo.html">Torna al riepilogo</a>
     </section>
     <p class="wf-note">Ruoli (grant verbatim): csr.tx-0011.read, csr.tx-0008.read, csr.tx-0010.read, csr.tx-0012.read, csr.tx-0013.read - Transazioni: le stesse dei report, filtrate su intervento = codice della route (nessuna transazione nuova). R14: la lettura di TX-0002 serviva solo al contributo ambientale e si toglie. Le schede leggono i dati solo quando si aprono.</p>
+    <p class="wf-note">Revisione dell'11/11/2026 (note di Leonardo del 10/11/2026): il gauge diventa "Avanzamento dei pagamenti rispetto alla dotazione", con la dotazione al centro e accanto alla fine dell'arco la percentuale con l'importo dei pagamenti netti; "Dalla dotazione al residuo" passa dalla cascata a due barre orizzontali impilate sulla stessa scala.</p>
     <div class="ui-griglia ui-griglia--4">
       <section class="ui-kpi" aria-label="Dotazione spesa pubblica">
         <p>Dotazione spesa pubblica</p>
@@ -96,11 +97,11 @@
     <div class="ui-griglia ui-griglia--2">
       <section class="ui-card" aria-labelledby="g-d-gauge">
         <div class="ui-card__testa">
-          <h2 id="g-d-gauge">Avanzamento rispetto ai pagamenti effettuati</h2>
-          <div class="ui-seg" role="group" aria-label="Vista di Avanzamento rispetto ai pagamenti effettuati"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
+          <h2 id="g-d-gauge">Avanzamento dei pagamenti rispetto alla dotazione</h2>
+          <div class="ui-seg" role="group" aria-label="Vista di Avanzamento dei pagamenti rispetto alla dotazione"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
         </div>
         <figure class="ui-grafico ui-grafico--gauge">
-          <figcaption>Gauge (titolo nuovo, R15): pagamenti al netto delle rettifiche sulla dotazione (TX-0011), come il residuo sui pagamenti. Non disegnato se uno dei due manca.</figcaption>
+          <figcaption>Gauge. Sottotitolo: "Percentuale di pagamenti al netto di rettifiche sulla dotazione spesa pubblica" (TX-0011). Al centro la dotazione (n,n M euro); accanto alla fine dell'arco blu la percentuale e l'importo dei pagamenti netti (nn,n % (n,n M euro)), mai il pagato lordo. Non disegnato se uno dei due manca; la tabella equivalente ha dotazione, pagamenti netti e percentuale.</figcaption>
         </figure>
         <p class="ui-fonte">Fonte: TX-0011, riepilogo per intervento. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati.</p>
       </section>
@@ -109,8 +110,8 @@
           <h2 id="g-d-cascata">Dalla dotazione al residuo</h2>
           <div class="ui-seg" role="group" aria-label="Vista di Dalla dotazione al residuo"><button class="btn" type="button" aria-pressed="true">Grafico</button> <button class="btn" type="button" aria-pressed="false">Tabella</button> <button class="btn" type="button">Scarica</button></div>
         </div>
-        <figure class="ui-grafico ui-grafico--cascata">
-          <figcaption>Cascata: dotazione, pagamenti lordi, rettifiche, pagamenti netti, dotazione residua sui pagamenti; a parte impegnato (di cui stimato) e residuo sugli impegni. Senza rettifiche caricate il netto e il residuo non si disegnano (fonte non attiva: rettifiche, dichiarata), mai il lordo al posto del netto.</figcaption>
+        <figure class="ui-grafico ui-grafico--barre">
+          <figcaption>Due barre orizzontali impilate sulla stessa scala (al posto della cascata). Sopra "Dotazione" = pagamenti netti + residuo sui pagamenti; sotto "Pagamenti lordi" = pagamenti netti + rettifiche. I pagamenti netti sono il primo segmento di tutte e due le barre, allineati a sinistra; ogni etichetta ha l'importo e la percentuale della sua barra. Valori del contratto, nessun calcolo nel browser. Senza rettifiche caricate le due barre sono intere (dotazione e pagamenti lordi) e netto e residuo sono fra le voci non nel grafico (fonte non attiva: rettifiche), mai il lordo al posto del netto; con un importo negativo il grafico non si disegna e dice il motivo. Impegnato (di cui stimato) e residuo sugli impegni restano nella tabella equivalente.</figcaption>
         </figure>
         <p class="ui-fonte">Fonte: TX-0011. La tabella equivalente mostra gli stessi valori, con i valori assenti dichiarati.</p>
       </section>
