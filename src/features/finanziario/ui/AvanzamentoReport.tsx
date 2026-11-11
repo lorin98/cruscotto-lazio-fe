@@ -8,7 +8,8 @@
 // bandi, impegnato con la parte stimata (nota di lettura, ramo stimato nel flusso), gauge "Avanzamento rispetto ai
 // pagamenti effettuati" (R15), rettifiche al posto del recuperato e residuo sui pagamenti per intervento (R08). Revisione
 // del 04/11/2026: il quarto box e' la dotazione spesa pubblica (il residuo resta nella ciambella e nella tabella di RF007)
-// e nel flusso l'impegnato torna un solo nodo.
+// e nel flusso l'impegnato torna un solo nodo. Note di Leonardo del 10/11/2026: titoli e sottotitoli dei sei grafici (i codici
+// RF restano per riferimento), nel flusso il pagato sopra il da pagare, gauge con la dotazione al centro.
 import type { ReactNode } from 'react';
 import type { ImportoLike } from '../../../entities/importo';
 import { Caricamento, CardGrafico, Griglia, VistaQuery } from '../../../shared/ui';
@@ -31,8 +32,11 @@ type Voce = [string, ImportoLike | undefined];
 const VUOTO = vuotoConPerimetro('Nessun intervento per i filtri scelti.', { programma: true });
 // l'importo pagato di TX-0007: lordo, dagli elenchi di liquidazione dei decreti (il netto sottrae le rettifiche, R08)
 const PAGATO_LORDO = 'Importo pagato (lordo, elenchi di liquidazione)';
-// R15: il titolo del gauge dei pagamenti netti sulla dotazione
-const AVANZAMENTO_PAGAMENTI = 'Avanzamento rispetto ai pagamenti effettuati';
+// il titolo del gauge dei pagamenti netti sulla dotazione (R15, rinominato con le note di Leonardo del 10/11/2026)
+const AVANZAMENTO_PAGAMENTI = 'Avanzamento dei pagamenti rispetto alla dotazione';
+const SOTTOTITOLO_GAUGE = 'Percentuale di pagamenti al netto di rettifiche sulla dotazione spesa pubblica';
+// il titolo del flusso della dotazione (prima "Dove va la dotazione")
+const FLUSSO = 'Distribuzione dotazione spesa pubblica';
 
 // ---------------------------------------------------------------- KPI e flussi
 
@@ -94,7 +98,7 @@ function FlussoDotazione({ filtri }: { filtri: Filtri }) {
             <VistaQuery stato={residuo} errorePersonalizzato={silenzioso}>
               {(r) => (
                 <CardGrafico
-                  titolo="Dove va la dotazione"
+                  titolo={FLUSSO}
                   sottotitolo={sottotitoloFlusso(i)}
                   dati={graficoSankey(i, p, r, perimetroCombinato([i.perimetro, p.perimetro, r.perimetro]))}
                   fonte="Fonte: TX-0006 (impegni), TX-0005 (pagamenti sull'impegnato), TX-0007 (residuo sui pagamenti)"
@@ -115,7 +119,7 @@ function PagatoSullaDotazione({ filtri }: { filtri: Filtri }) {
       {(d) => (
         <CardGrafico
           titolo={AVANZAMENTO_PAGAMENTI}
-          sottotitolo="Pagamenti al netto delle rettifiche sulla dotazione, come il residuo sui pagamenti"
+          sottotitolo={SOTTOTITOLO_GAUGE}
           dati={graficoPagatoNetto(d.pagamentiNettoRettifiche, d.dotazioneSpesaPubblica, d.perimetro)}
           fonte={`Fonte: TX-0007, pagamenti al netto delle rettifiche · Perimetro ${d.perimetro ?? 'non indicato'}`}
           altezza="alto"
@@ -130,7 +134,7 @@ function Flussi({ filtri }: { filtri: Filtri }) {
   return (
     <Griglia>
       {/* il flusso combina impegni (TX-0006), pagamenti sull'impegnato (TX-0005) e residuo sui pagamenti (TX-0007) */}
-      <ConGrant grant={[GRANT.residuoImpegni, GRANT.pagamentiSuImpegnato, GRANT.residuoPagamenti]} titolo="Dove va la dotazione">
+      <ConGrant grant={[GRANT.residuoImpegni, GRANT.pagamentiSuImpegnato, GRANT.residuoPagamenti]} titolo={FLUSSO}>
         <FlussoDotazione filtri={filtri} />
       </ConGrant>
       <ConGrant grant={GRANT.residuoPagamenti} titolo={AVANZAMENTO_PAGAMENTI}>
@@ -206,12 +210,12 @@ type PropsSezione = { filtri: Filtri; titolo: string };
 
 function Stanziato({ filtri, titolo }: PropsSezione) {
   const parti = (d: { importoStanziato?: ImportoLike; importoDaStanziare?: ImportoLike }): [Voce, Voce] => [['Importo stanziato', d.importoStanziato], ['Importo da stanziare', d.importoDaStanziare]];
-  return <Parti titolo={titolo} grafico="Stanziato e da stanziare" stato={useStanziato(filtri)} segnale={useSelezioneSenzaInterventi(filtri)} parti={parti} voci={parti} fonte="Fonte: TX-0004" scaricamenti={datiDelReport(titolo, 'stanziato', filtri)} />;
+  return <Parti titolo={titolo} grafico="Suddivisione della dotazione fra importo stanziato e da stanziare" stato={useStanziato(filtri)} segnale={useSelezioneSenzaInterventi(filtri)} parti={parti} voci={parti} fonte="Fonte: TX-0004" scaricamenti={datiDelReport(titolo, 'stanziato', filtri)} />;
 }
 
 function PagamentiSuImpegnato({ filtri, titolo }: PropsSezione) {
   return (
-    <Parti titolo={titolo} grafico="Impegnato tra pagamenti e ancora da pagare" stato={usePagamentiSuImpegnato(filtri)} segnale={useSelezioneSenzaInterventi(filtri)} fonte="Fonte: TX-0005"
+    <Parti titolo={titolo} grafico="Avanzamento dei pagamenti rispetto all'importo impegnato" stato={usePagamentiSuImpegnato(filtri)} segnale={useSelezioneSenzaInterventi(filtri)} fonte="Fonte: TX-0005"
       scaricamenti={datiDelReport(titolo, 'pagamentiSuImpegnato', filtri)}
       parti={(d) => [[PAGAMENTI_LORDI, d.pagamentiTotali], ['Impegnato ancora da pagare', d.impegnatoDaPagare]]}
       voci={(d) => [['Totale impegnato', d.totaleImpegnato], [PAGAMENTI_LORDI, d.pagamentiTotali], ['Impegnato ancora da pagare', d.impegnatoDaPagare]]} />
@@ -220,7 +224,7 @@ function PagamentiSuImpegnato({ filtri, titolo }: PropsSezione) {
 
 function ResiduoImpegni({ filtri, titolo }: PropsSezione) {
   return (
-    <Parti titolo={titolo} grafico="Dotazione tra impegnato e residuo" stato={useResiduoImpegni(filtri)} segnale={useSelezioneSenzaInterventi(filtri)} fonte="Fonte: TX-0006"
+    <Parti titolo={titolo} grafico="Avanzamento dell'importo impegnato rispetto alla dotazione" stato={useResiduoImpegni(filtri)} segnale={useSelezioneSenzaInterventi(filtri)} fonte="Fonte: TX-0006"
       scaricamenti={datiDelReport(titolo, 'residuoImpegni', filtri)}
       parti={(d) => [['Importo impegnato', d.importoImpegnato], ['Dotazione residua', d.dotazioneResidua]]}
       voci={(d) => [['Dotazione spesa pubblica', d.dotazioneSpesaPubblica], ['Importo impegnato', d.importoImpegnato], ['Dotazione residua', d.dotazioneResidua]]} />
@@ -229,7 +233,7 @@ function ResiduoImpegni({ filtri, titolo }: PropsSezione) {
 
 function ResiduoPagamenti({ filtri, titolo }: PropsSezione) {
   return (
-    <Parti titolo={titolo} grafico="Dotazione tra pagato e residuo" stato={useResiduoPagamenti(filtri)} segnale={useSelezioneSenzaInterventi(filtri)} misto fonte="Fonte: TX-0007"
+    <Parti titolo={titolo} grafico="Avanzamento dei pagamenti rispetto alla dotazione" stato={useResiduoPagamenti(filtri)} segnale={useSelezioneSenzaInterventi(filtri)} misto fonte="Fonte: TX-0007"
       scaricamenti={datiDelReport(titolo, 'residuoPagamenti', filtri)}
       parti={(d) => [['Pagamenti al netto delle rettifiche', d.pagamentiNettoRettifiche], ['Dotazione residua', d.dotazioneResidua]]}
       voci={(d) => [
@@ -241,7 +245,7 @@ function ResiduoPagamenti({ filtri, titolo }: PropsSezione) {
 
 const SEZIONI: { titolo: string; grant: string; Componente: (p: PropsSezione) => ReactNode }[] = [
   { titolo: 'Importo stanziato e da stanziare (RF004)', grant: GRANT.stanziato, Componente: Stanziato },
-  { titolo: "Pagamenti sull'impegnato (RF005)", grant: GRANT.pagamentiSuImpegnato, Componente: PagamentiSuImpegnato },
+  { titolo: "Pagamenti sull'importo impegnato (RF005)", grant: GRANT.pagamentiSuImpegnato, Componente: PagamentiSuImpegnato },
   { titolo: 'Dotazione residua sugli impegni (RF006)', grant: GRANT.residuoImpegni, Componente: ResiduoImpegni },
   { titolo: 'Dotazione residua sui pagamenti (RF007)', grant: GRANT.residuoPagamenti, Componente: ResiduoPagamenti },
 ];

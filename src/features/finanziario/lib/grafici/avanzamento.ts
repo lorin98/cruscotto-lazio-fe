@@ -1,6 +1,7 @@
 // avanzamento.ts — grafici dell'avanzamento finanziario (RF003-RF007): flusso della dotazione (sankey, con l'impegnato in un solo nodo: rilevato e
-// stimato insieme dal 04/11/2026), indicatore del
-// pagato netto sulla dotazione, ciambelle di due parti di un totale (quote FEASR, sezioni RF004-RF007). Ogni valore
+// stimato insieme dal 04/11/2026; dall'11/11/2026 il pagato sopra il da pagare), indicatore del
+// pagato netto sulla dotazione (dall'11/11/2026 con la dotazione al centro e l'importo netto alla fine dell'arco),
+// ciambelle di due parti di un totale (quote FEASR, sezioni RF004-RF007). Ogni valore
 // viene dal contratto: nessun residuo ricalcolato nel browser. Col perimetro ADA la dotazione (regionale) non si
 // confronta con impegni e pagamenti (dell'area): i grafici che li mettono in rapporto non si disegnano.
 import type { EChartsOption, GaugeSeriesOption, SankeySeriesOption } from 'echarts';
@@ -87,9 +88,12 @@ function ramiFlusso(i: ResiduoSuImpegniLike, p: AvanzamentoPagamentiLike, r: Res
   return { rami: [['Dotazione', 'Pagamenti netti', r.pagamentiNettoRettifiche], ['Dotazione', 'Dotazione residua', r.dotazioneResidua]], omessi };
 }
 
-/** Sottotitolo del flusso: dice il ramo disegnato (con l'impegnato, oppure dalla dotazione ai pagamenti netti). */
+/**
+ * Sottotitolo del flusso: dice il ramo disegnato (con l'impegnato, oppure dalla dotazione ai pagamenti netti). Con
+ * l'impegnato il testo e' quello delle note di Leonardo del 10/11/2026.
+ */
 export function sottotitoloFlusso(impegni: ResiduoSuImpegniLike): string {
-  if (valoreDi(impegni.importoImpegnato) != null) return "Dalla dotazione all'impegnato e al pagato";
+  if (valoreDi(impegni.importoImpegnato) != null) return 'Ripartizione fra importo impegnato pagato e da pagare e importo da impegnare';
   return `Dalla dotazione ai pagamenti netti e al residuo; impegnato: ${assenzaImporto(impegni.importoImpegnato, true)}`;
 }
 
@@ -126,7 +130,9 @@ export function graficoSankey(impegni: ResiduoSuImpegniLike, pagamenti: Avanzame
   const diCuiStimato = (n: string) => (n === IMPEGNATO && stimato != null && stimato > 0 ? `, di cui stimato ${importoBreve(stimato)}` : '');
   const nodi = nomi.map((n) => ({ name: n, etichetta: `${n}: ${importoBreve(valoreNodo(n))}`, dettaglio: `${n}: ${importoBreve(valoreNodo(n))}${diCuiStimato(n)}`, ...(n === IMPEGNATO ? { itemStyle: { color: COLORI.primario } } : {}) }));
   const descrizione = `Flusso della dotazione (${importoBreve(dotazione)}): ${collegamenti.map((c) => `${c.target.toLowerCase()} ${importoBreve(c.value)}`).join(', ')}.${notaOmessi(omessi)}`;
-  const serie: SankeySeriesOption = { type: 'sankey', name: 'Flusso della dotazione', data: nodi, links: collegamenti, nodeAlign: 'left', emphasis: { focus: 'adjacency' }, lineStyle: { color: 'gradient', curveness: 0.5 }, label: { formatter: etichettaDato } };
+  // layoutIterations 0: i nodi di ogni colonna restano nell'ordine dei rami, il pagato sopra il da pagare (note di Leonardo
+  // del 10/11/2026: ECharts li riordinava mettendo il da pagare, piu' grande, in alto)
+  const serie: SankeySeriesOption = { type: 'sankey', name: 'Flusso della dotazione', data: nodi, links: collegamenti, nodeAlign: 'left', layoutIterations: 0, emphasis: { focus: 'adjacency' }, lineStyle: { color: 'gradient', curveness: 0.5 }, label: { formatter: etichettaDato } };
   return { opzioni: { aria: aria(descrizione), tooltip: { trigger: 'item', formatter: tooltipDettaglio }, series: [serie] }, tabella, omessi };
 }
 
@@ -139,14 +145,18 @@ function motivoGauge(p: number | null, t: number | null): string | null {
   return p < 0 ? 'valore negativo: la percentuale non si può calcolare' : null;
 }
 
+/** Gli estremi dell'arco del gauge, in gradi (0 = ore 3, in senso antiorario). */
+const INIZIO_ARCO = 200;
+const FINE_ARCO = -20;
+
 function serieGauge(titolo: string, valore: number): GaugeSeriesOption {
   return {
     type: 'gauge',
     name: titolo,
     min: 0,
     max: 100,
-    startAngle: 200,
-    endAngle: -20,
+    startAngle: INIZIO_ARCO,
+    endAngle: FINE_ARCO,
     progress: { show: true, width: 16 },
     itemStyle: { color: COLORI.primario },
     axisLine: { lineStyle: { width: 16, color: [[1, COLORI.neutro]] } },
@@ -181,18 +191,68 @@ export function graficoGauge(parte: number | null | undefined, totale: number | 
 const TITOLO_PAGATO_NETTO = 'della dotazione pagato (netto)';
 
 /**
+ * Dove sta l'etichetta della fine dell'arco (offsetCenter, in % del raggio dal centro): fuori dall'arco, alla fine della
+ * parte pagata. L'etichetta e' su due righe e centrata nel suo punto: si allontana di piu' in orizzontale (fianchi
+ * dell'arco) che in verticale (sommita'), cosi' non copre l'arco.
+ */
+export function puntoFineArco(valore: number): [string, string] {
+  const gradi = INIZIO_ARCO - ((INIZIO_ARCO - FINE_ARCO) * Math.min(Math.max(valore, 0), 100)) / 100;
+  const radianti = (gradi * Math.PI) / 180;
+  const [cos, sin] = [Math.cos(radianti), Math.sin(radianti)];
+  const distanza = 112 + 30 * Math.abs(cos) + 12 * Math.abs(sin);
+  return [`${Math.round(cos * distanza)}%`, `${Math.round(-sin * distanza)}%`];
+}
+
+/**
+ * Il gauge dei pagamenti netti (note di Leonardo del 10/11/2026): al centro la dotazione, alla fine dell'arco blu la
+ * percentuale e l'importo dei pagamenti netti. Arco piu' piccolo e piu' in basso per fare posto all'etichetta esterna.
+ */
+function serieGaugeConDotazione(valore: number, etichetta: string, dotazione: string): GaugeSeriesOption {
+  return {
+    ...serieGauge(TITOLO_PAGATO_NETTO, valore),
+    radius: '58%',
+    center: ['50%', '58%'],
+    title: { show: true, offsetCenter: puntoFineArco(valore), color: COLORI.primario, fontSize: 13, fontWeight: 600, lineHeight: 17 },
+    detail: {
+      offsetCenter: [0, '0%'],
+      formatter: () => `{v|${dotazione}}\n{n|dotazione spesa pubblica}`,
+      rich: { v: { fontSize: 24, fontWeight: 700, color: COLORI.testo, lineHeight: 30 }, n: { fontSize: 12, color: COLORI.attenuato, lineHeight: 16 } },
+    },
+    data: [{ value: valore, name: etichetta }],
+  };
+}
+
+/** La tabella equivalente del gauge: dotazione, pagamenti netti (con le assenze dichiarate) e la percentuale. */
+function tabellaPagatoNetto(pagato: ImportoLike | null | undefined, dotazione: ImportoLike | null | undefined, aggregato: boolean, valore: string): TabellaEquivalente {
+  return {
+    caption: TITOLO_PAGATO_NETTO,
+    colonne: ['Misura', 'Valore'],
+    righe: [['Dotazione spesa pubblica', cellaImporto(dotazione, aggregato)], ['Pagamenti al netto delle rettifiche', cellaImporto(pagato, aggregato)], [TITOLO_PAGATO_NETTO, valore]],
+  };
+}
+
+/**
  * Indicatore dei pagamenti al netto delle rettifiche sulla dotazione (TX-0007, TX-0011): lo stesso netto del residuo
- * sui pagamenti accanto, mai il pagato lordo degli elenchi di liquidazione. Un importo assente rende la percentuale non
- * calcolabile e dice il suo motivo, come la cascata dell'intervento. `aggregato`: totale su piu' interventi (TX-0007),
- * false per la riga di un intervento (TX-0011).
+ * sui pagamenti accanto, mai il pagato lordo degli elenchi di liquidazione. Al centro la dotazione, alla fine dell'arco la
+ * percentuale con l'importo netto (note di Leonardo del 10/11/2026). Un importo assente rende la percentuale non
+ * calcolabile e dice il suo motivo, come le barre dell'intervento. `aggregato`: totale su piu' interventi (TX-0007),
+ * false per la riga di un intervento (TX-0011). Col perimetro ADA (pagamenti dell'area su una dotazione regionale) non si
+ * disegna e la tabella dice solo che il rapporto non e' confrontabile.
  */
 export function graficoPagatoNetto(pagato: ImportoLike | null | undefined, dotazione: ImportoLike | null | undefined, perimetro?: string | null, aggregato = true): DatiGrafico {
+  if (perimetro === PERIMETRO_ADA) return graficoGauge(null, null, TITOLO_PAGATO_NETTO, perimetro);
   const [p, t] = [valoreDi(pagato), valoreDi(dotazione)];
-  if (perimetro !== PERIMETRO_ADA && (p == null || t == null)) {
+  const tabellaCon = (valore: string) => tabellaPagatoNetto(pagato, dotazione, aggregato, valore);
+  if (p == null || t == null) {
     const mancanti = [p == null ? `pagamenti netti: ${assenzaImporto(pagato, aggregato)}` : null, t == null ? `dotazione: ${assenzaImporto(dotazione, aggregato)}` : null];
-    return nonDisegnabile(`la percentuale richiede pagamenti netti e dotazione; ${mancanti.filter(Boolean).join('; ')}`, tabellaGauge(TITOLO_PAGATO_NETTO, NON_CALCOLABILE), []);
+    return nonDisegnabile(`la percentuale richiede pagamenti netti e dotazione; ${mancanti.filter(Boolean).join('; ')}`, tabellaCon(NON_CALCOLABILE), []);
   }
-  return graficoGauge(p, t, TITOLO_PAGATO_NETTO, perimetro);
+  const motivo = motivoGauge(p, t);
+  if (motivo) return nonDisegnabile(motivo, tabellaCon(NON_CALCOLABILE), []);
+  const valore = percentuale(p, t);
+  const descrizione = `Indicatore da 0 a 100 %: ${TITOLO_PAGATO_NETTO} ${formatPercentuale(valore)}, pagamenti netti ${importoBreve(p)} su una dotazione di ${importoBreve(t)}.`;
+  const opzioni: EChartsOption = { aria: aria(descrizione), series: [serieGaugeConDotazione(valore, `${formatPercentuale(valore)}\n(${importoBreve(p)})`, importoBreve(t))] };
+  return { opzioni, tabella: tabellaCon(formatPercentuale(valore)), omessi: [] };
 }
 
 // ---------------------------------------------------------------- 3. due parti di un totale
