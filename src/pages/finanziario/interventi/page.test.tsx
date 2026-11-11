@@ -72,7 +72,7 @@ describe("dettaglio dell'intervento (flusso panoramica)", () => {
   it('le schede leggono solo quando si aprono; la scheda delle voci dice il motivo dei valori assenti', async () => {
     const lette = servi();
     renderPagina(Pagina, PERCORSO, '/finanziario/interventi/SRA01');
-    await trovaCard('Avanzamento rispetto ai pagamenti effettuati');
+    await trovaCard('Avanzamento dei pagamenti rispetto alla dotazione');
     expect(graficoDi(await trovaCard('Dalla dotazione al residuo'))).toBeTruthy();
     expect(lette['domande-per-anno']).toBeUndefined();
     expect(lette['sigc/domande']).toBeUndefined();

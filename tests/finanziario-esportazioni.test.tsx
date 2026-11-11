@@ -127,10 +127,10 @@ describe('ogni pulsante CSV delle pagine scarica la transazione della sua card (
     conRouter(<AvanzamentoReport filtri={SRA01} />);
     const esiti = await scaricaOgniCsv(richieste, 6);
     expect(Object.fromEntries(esiti)).toEqual({
-      'Scarica il grafico Avanzamento rispetto ai pagamenti effettuati in CSV': 'residuo-pagamenti',
+      'Scarica il grafico Avanzamento dei pagamenti rispetto alla dotazione in CSV': 'residuo-pagamenti',
       'Scarica la tabella Dotazione residua sui pagamenti per intervento (RF007) in CSV': 'residuo-pagamenti',
       'Scarica il grafico Importo stanziato e da stanziare (RF004) in CSV': 'stanziato',
-      "Scarica il grafico Pagamenti sull'impegnato (RF005) in CSV": 'pagamenti-su-impegnato',
+      "Scarica il grafico Pagamenti sull'importo impegnato (RF005) in CSV": 'pagamenti-su-impegnato',
       'Scarica il grafico Dotazione residua sugli impegni (RF006) in CSV': 'residuo-impegni',
       'Scarica il grafico Dotazione residua sui pagamenti (RF007) in CSV': 'residuo-pagamenti',
     });

@@ -38,7 +38,7 @@ describe('RF005: totale impegnato tra pagamenti e impegnato ancora da pagare', (
   it("voci del pagato sull'impegnato", async () => {
     servi();
     renderPagina(Pagina, '/finanziario/avanzamento');
-    const t = await voci("Pagamenti sull'impegnato (RF005)");
+    const t = await voci("Pagamenti sull'importo impegnato (RF005)");
     expect(t).toContain('Totale impegnato');
     expect(t).toContain('Pagamenti totali (lordi, elenchi di liquidazione)');
     expect(t.replace(/\s/g, ' ')).toContain('200.000,00 €');
@@ -51,7 +51,7 @@ describe('RF006: dotazione tra importo impegnato e dotazione residua', () => {
     servi();
     renderPagina(Pagina, '/finanziario/avanzamento');
     expect(await voci('Dotazione residua sugli impegni (RF006)')).toContain('Dotazione residua');
-    const flusso = await trovaCard('Dove va la dotazione');
+    const flusso = await trovaCard('Distribuzione dotazione spesa pubblica');
     expect(graficoDi(flusso)).toBeTruthy();
     expect(descrizioneDi(flusso)).toMatch(/pagamenti netti .*dotazione residua/);
     expect(within(flusso).getByText(/Impegnato non disponibile \(fonte impegni non attiva\): il ramo dell'impegnato non si disegna/)).toBeTruthy();
@@ -64,12 +64,12 @@ describe('RF007: dotazione tra importo pagato e dotazione residua', () => {
     renderPagina(Pagina, '/finanziario/avanzamento');
     const card = await trovaCard('Dotazione residua sui pagamenti (RF007)');
     // R06: importi e percentuali, il totale al centro; R08: le rettifiche al posto del recuperato
-    expect(descrizioneDi(card)).toMatch(/^Dotazione tra pagato e residuo: totale [^;]+; Pagamenti al netto delle rettifiche [^(]+\(20\s?%\), Dotazione residua [^(]+\(80\s?%\)\.$/);
+    expect(descrizioneDi(card)).toMatch(/^Avanzamento dei pagamenti rispetto alla dotazione: totale [^;]+; Pagamenti al netto delle rettifiche [^(]+\(20\s?%\), Dotazione residua [^(]+\(80\s?%\)\.$/);
     const t = await voci('Dotazione residua sui pagamenti (RF007)');
     expect(t).toContain('Rettifiche');
     expect(t).toContain('Importo pagato (lordo, elenchi di liquidazione)');
     // il gauge usa il netto (200.000 su 1.000.000), come il residuo e la ciambella accanto, non il lordo (220.000)
-    expect(descrizioneDi(await trovaCard('Avanzamento rispetto ai pagamenti effettuati'))).toMatch(/20\s?%/);
+    expect(descrizioneDi(await trovaCard('Avanzamento dei pagamenti rispetto alla dotazione'))).toMatch(/20\s?%/);
   });
   it('perimetro ADA: dotazione regionale dichiarata nella tabella e grafico dichiarato non confrontabile', async () => {
     servi();
@@ -112,7 +112,7 @@ describe('RF007: dotazione tra importo pagato e dotazione residua', () => {
     servi();
     const { container } = renderPagina(Pagina, '/finanziario/avanzamento');
     await trovaCard('Dotazione residua sui pagamenti (RF007)');
-    await trovaCard("Pagamenti sull'impegnato (RF005)");
+    await trovaCard("Pagamenti sull'importo impegnato (RF005)");
     await expectNoA11yViolations(container);
   });
 });
@@ -125,7 +125,7 @@ describe('Revisioni del 31/10/2026: residuo sui pagamenti per intervento con le 
     await screen.findByText('Rettifiche: documento "FEASR 23.27 Report", data di riferimento 28/02/2026');
     const sezione = screen.getByRole('region', { name: 'Dotazione residua sui pagamenti per intervento (RF007)' });
     // R15: il titolo nuovo del gauge (prima di aprire il pannello, che rende inerte il resto della pagina)
-    expect(await screen.findByRole('region', { name: 'Avanzamento rispetto ai pagamenti effettuati' })).toBeTruthy();
+    expect(await screen.findByRole('region', { name: 'Avanzamento dei pagamenti rispetto alla dotazione' })).toBeTruthy();
     const riga = within(sezione).getByRole('row', { name: /SRA01/ });
     expect(riga.textContent).toContain('220.000,00');
     await userEvent.click(within(riga).getByRole('button', { name: "Sì: 2 rettifiche: apri le rettifiche dell'intervento SRA01" }));

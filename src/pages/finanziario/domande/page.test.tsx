@@ -120,7 +120,7 @@ describe("RA003: drill-down dalla pagina domande all'elenco operativo", () => {
       '/elenco-operativo/domande?presentata=true&anno=2024&annualita=ALTRE',
     );
     const importi = await tabellaDi(await trovaCard('Importi per anno di raccolta (RF010)'));
-    expect(within(importi).getAllByRole('columnheader').map((c) => c.textContent)).toEqual(['Anno', 'Stanziato', 'Ammesso', 'Decretato', 'Domande senza importo ammesso', 'Elenco operativo']);
+    expect(within(importi).getAllByRole('columnheader').map((c) => c.textContent)).toEqual(['Anno di raccolta', 'Importo stanziato', 'Importo ammesso', 'Importo decretato (elenchi di liquidazione)', 'Domande senza importo ammesso', 'Elenco operativo']);
     expect(within(importi).getByRole('link', { name: "Apri nell'elenco operativo le domande presentate del 2024" }).getAttribute('href')).toBe('/elenco-operativo/domande?presentata=true&anno=2024');
   });
   it("tornando indietro dall'elenco operativo l'anno scelto e' ancora quello", async () => {

@@ -9,7 +9,7 @@ import type { ImportoLike } from '../src/entities/importo';
 import { FAMIGLIA_ALTRO, famigliaDi } from '../src/features/finanziario/lib/famiglie';
 import {
   graficoAvanzamento,
-  graficoCascataIntervento,
+  graficoBarreIntervento,
   graficoImportiSigc,
   graficoDomandePerAnno,
   graficoDomandeSigc,
@@ -652,9 +652,9 @@ describe('graficoImportiPerAnno', () => {
     expect(g.omessi).toEqual(['Importo stanziato: non disponibile per tutti gli anni', `2023: importo decretato ${NON_CALCOLABILE_AGGREGATO}`]);
   });
 
-  it('tabella: Anno, Stanziato, Ammesso, Decretato, Domande senza importo ammesso', () => {
+  it('tabella con le intestazioni della tabella di dettaglio (note di Leonardo del 10/11/2026)', () => {
     const g = graficoImportiPerAnno(righe);
-    expect(g.tabella.colonne).toEqual(['Anno', 'Stanziato', 'Ammesso', 'Decretato', 'Domande senza importo ammesso']);
+    expect(g.tabella.colonne).toEqual(['Anno di raccolta', 'Importo stanziato', 'Importo ammesso', 'Importo decretato (elenchi di liquidazione)', 'Domande senza importo ammesso']);
     expect(righeN(g)).toEqual([
       ['2023', 'non disponibile', '4.000.000,00 €', NON_CALCOLABILE_AGGREGATO, 'non disponibile'],
       ['2024', 'non disponibile', '6.000.000,00 €', '3.000.000,00 €', 'non disponibile'],
@@ -871,16 +871,34 @@ describe('graficoGauge', () => {
 describe('graficoPagatoNetto', () => {
   const TITOLO = 'della dotazione pagato (netto)';
 
-  it('pagamenti al netto delle rettifiche sulla dotazione: indicatore 0-100', () => {
+  // la serie del gauge con l'etichetta della fine dell'arco (title) e il centro (detail) delle note di Leonardo del 10/11/2026
+  type SerieGauge = { data: Array<{ name: string }>; title: { offsetCenter: [string, string] }; detail: { formatter: () => string } };
+  const gauge = (g: DatiGrafico) => opzioniDi(g).series[0] as unknown as SerieGauge;
+
+  it('pagamenti al netto delle rettifiche sulla dotazione: indicatore 0-100, la dotazione al centro e il netto alla fine dell arco', () => {
     const g = graficoPagatoNetto(imp(200_000), imp(1_000_000));
     expect(valoriDi(opzioniDi(g).series[0])).toEqual([20]);
-    expect(g.tabella).toEqual({ caption: TITOLO, colonne: ['Misura', 'Valore'], righe: [[TITOLO, '20 %']] });
+    // due righe: la percentuale e, sotto, l'importo netto; al centro l'importo della dotazione e, sotto, cosa e'
+    expect(gauge(g).data[0].name.split('\n').map(n)).toEqual(['20 %', '(200.000,00 €)']);
+    expect(gauge(g).detail.formatter().split('\n').map(n)).toEqual(['{v|1,0 M€}', '{n|dotazione spesa pubblica}']);
+    expect(n(opzioniDi(g).aria.label.description)).toBe('Indicatore da 0 a 100 %: della dotazione pagato (netto) 20 %, pagamenti netti 200.000,00 € su una dotazione di 1,0 M€.');
+    expect(g.tabella.caption).toBe(TITOLO);
+    expect(righeN(g)).toEqual([['Dotazione spesa pubblica', '1.000.000,00 €'], ['Pagamenti al netto delle rettifiche', '200.000,00 €'], [TITOLO, '20 %']]);
+  });
+
+  it("l'etichetta segue la fine dell'arco, fuori dall'arco: a sinistra in basso a 0 %, in alto a 50 %, a destra in basso a 100 %", () => {
+    const punto = (pagato: number) => gauge(graficoPagatoNetto(imp(pagato), imp(100))).title.offsetCenter;
+    expect(punto(0)).toEqual(['-136%', '49%']);
+    expect(punto(50)).toEqual(['0%', '-124%']);
+    expect(punto(100)).toEqual(['136%', '49%']);
+    // oltre il 100 % l'etichetta resta alla fine dell'arco
+    expect(punto(150)).toEqual(punto(100));
   });
 
   it('netto o dotazione assenti: "non calcolabile" con il motivo dell importo (totale o riga di un intervento)', () => {
     const totale = graficoPagatoNetto(assente('NON_VALORIZZATO'), imp(1_000_000));
     controllaNonDisegnabile(totale, `la percentuale richiede pagamenti netti e dotazione; pagamenti netti: ${NON_CALCOLABILE_AGGREGATO}`);
-    expect(totale.tabella.righe).toEqual([[TITOLO, 'non calcolabile']]);
+    expect(totale.tabella.righe.slice(1)).toEqual([['Pagamenti al netto delle rettifiche', NON_CALCOLABILE_AGGREGATO], [TITOLO, 'non calcolabile']]);
     controllaNonDisegnabile(
       graficoPagatoNetto(assente('NON_VALORIZZATO'), null, null, false),
       `la percentuale richiede pagamenti netti e dotazione; pagamenti netti: ${NON_VALORIZZATO_RIGA}; dotazione: non disponibile`,
@@ -894,35 +912,50 @@ describe('graficoPagatoNetto', () => {
 
   it('pagamento piccolo ma non nullo: mai "0 %"', () => {
     const g = graficoPagatoNetto(imp(300), imp(1_000_000));
-    expect(g.tabella.righe).toEqual([[TITOLO, '0,03 %']]);
+    expect(g.tabella.righe.at(-1)).toEqual([TITOLO, '0,03 %']);
     expect(valoriDi(opzioniDi(g).series[0])).toEqual([0.03]);
     expect(n(opzioniDi(g).aria.label.description)).toContain('0,03 %');
   });
 });
 
-// ---------------------------------------------------------------- 9. cascata intervento
+// ---------------------------------------------------------------- 9. barre dell'intervento (al posto della cascata dall'11/11/2026)
 
-describe('graficoCascataIntervento e vociIntervento (R08: lordi e rettifiche)', () => {
-  it('dotazione -> pagamenti lordi -> rettifiche -> pagamenti netti -> residuo, impegnato assente dichiarato', () => {
-    const g = graficoCascataIntervento(rigaIntervento);
+describe('graficoBarreIntervento e vociIntervento (R08: lordi e rettifiche)', () => {
+  const segmentiBarre = (o: ReturnType<typeof opzioniDi>) => o.series.map((s) => [s.name, valoriDi(s)]);
+
+  it('Dotazione = pagamenti netti + residuo, Pagamenti lordi = pagamenti netti + rettifiche; impegnato assente dichiarato', () => {
+    const g = graficoBarreIntervento(rigaIntervento);
     const o = opzioniDi(g);
     controllaAria(o);
-    expect(o.xAxis?.data).toEqual(['Dotazione', 'Pagamenti lordi', 'Rettifiche', 'Pagamenti netti', 'Residuo sui pagamenti']);
-    expect(valoriDi(o.series[0])).toEqual([0, 5_500_000, 5_500_000, 6_000_000, 0]);
-    expect(valoriDi(o.series[1])).toEqual([10_000_000, 4_500_000, 500_000, 4_000_000, 6_000_000]);
-    expect(o.series.every((s) => s.type === 'bar' && s.stack === 'cascata')).toBe(true);
+    expect(o.yAxis?.data).toEqual(['Dotazione', 'Pagamenti lordi']);
+    // i pagamenti netti sono il primo segmento di tutte e due le barre (allineati a sinistra)
+    expect(segmentiBarre(o)).toEqual([
+      ['Pagamenti netti', [4_000_000, null]],
+      ['Residuo sui pagamenti', [6_000_000, null]],
+      ['Pagamenti netti', [null, 4_000_000]],
+      ['Rettifiche', [null, 500_000]],
+    ]);
+    expect(o.series.every((s) => s.type === 'bar' && s.stack === 'importi')).toBe(true);
+    expect(n(item(o.series[0].data?.[0]).etichetta ?? '')).toBe('4,0 M€ (40 %)');
+    expect(n(item(o.series[3].data?.[1]).etichetta ?? '')).toBe('500.000,00 € (11,1 %)');
+    expect(n(o.aria.label.description)).toBe(
+      "Due barre impilate dell'intervento SRA01: dotazione 10,0 M€ = pagamenti netti 4,0 M€ + residuo sui pagamenti 6,0 M€; pagamenti lordi 4,5 M€ = pagamenti netti 4,0 M€ + rettifiche 500.000,00 €. 1 voce omessa per dati mancanti o non utilizzabili.",
+    );
     expect(g.omessi).toEqual(['Impegnato FEASR e non FEASR non disponibile (fonte impegni non attiva)']);
   });
 
-  it('senza rettifiche caricate: la cascata si ferma ai lordi e lo dichiara (mai il lordo al posto del netto)', () => {
+  it('senza rettifiche caricate: le due barre restano intere e lo dichiarano (mai il lordo al posto del netto)', () => {
     const senza = { ...rigaIntervento, importoRettifiche: assente('FONTE_NON_ATTIVA', 'RETTIFICHE'), pagamentiNettoRettifiche: assente('FONTE_NON_ATTIVA', 'RETTIFICHE'), dotazioneResiduaSuPagamenti: assente('FONTE_NON_ATTIVA', 'RETTIFICHE') };
-    const g = graficoCascataIntervento(senza);
-    expect(opzioniDi(g).xAxis?.data).toEqual(['Dotazione', 'Pagamenti lordi']);
+    const g = graficoBarreIntervento(senza);
+    expect(segmentiBarre(opzioniDi(g))).toEqual([
+      ['Dotazione', [10_000_000, null]],
+      ['Pagamenti lordi', [null, 4_500_000]],
+    ]);
     expect(g.omessi).toContain('Rettifiche non disponibile (fonte rettifiche non attiva): pagamenti netti e residuo non si disegnano');
   });
 
   it('tabella con tutte le voci della riga e il motivo degli assenti: e vociIntervento', () => {
-    const g = graficoCascataIntervento(rigaIntervento);
+    const g = graficoBarreIntervento(rigaIntervento);
     expect(g.tabella.caption).toMatch(/SRA01/);
     expect(righeN(g)).toEqual([
       ['Dotazione di spesa pubblica', '10.000.000,00 €'],
@@ -949,26 +982,36 @@ describe('graficoCascataIntervento e vociIntervento (R08: lordi e rettifiche)', 
     expect(voce({ ...rigaIntervento, conRettifiche: null })).toEqual(['Con rettifiche', 'fonte non attiva: rettifiche']);
   });
 
-  it('residuo assente: barra omessa e dichiarata come dato della riga', () => {
-    const g = graficoCascataIntervento({ ...rigaIntervento, dotazioneResiduaSuPagamenti: assente('NON_VALORIZZATO') });
-    expect(opzioniDi(g).xAxis?.data).toEqual(['Dotazione', 'Pagamenti lordi', 'Rettifiche', 'Pagamenti netti']);
+  it('residuo assente: la dotazione resta intera, il residuo e dichiarato come dato della riga', () => {
+    const g = graficoBarreIntervento({ ...rigaIntervento, dotazioneResiduaSuPagamenti: assente('NON_VALORIZZATO') });
+    expect(segmentiBarre(opzioniDi(g))).toEqual([
+      ['Dotazione', [10_000_000, null]],
+      ['Pagamenti netti', [null, 4_000_000]],
+      ['Rettifiche', [null, 500_000]],
+    ]);
     expect(g.omessi).toContain(`Residuo sui pagamenti ${NON_VALORIZZATO_RIGA}`);
   });
 
-  it('dotazione o lordi assenti, negativi, lordi oltre la dotazione: non disegnabile', () => {
-    const senza = graficoCascataIntervento({ ...rigaIntervento, pagamentiLordi: assente('FUORI_PERIMETRO') });
-    controllaNonDisegnabile(senza, `la cascata di SRA01 richiede dotazione e pagamenti lordi; pagamenti lordi: ${FUORI_PERIMETRO}`);
+  it('lordi oltre la dotazione con i netti entro la dotazione: si disegna, la barra dei lordi e piu lunga', () => {
+    const g = graficoBarreIntervento({ ...rigaIntervento, pagamentiLordi: imp(11_000_000), importoRettifiche: imp(7_000_000) });
+    expect(segmentiBarre(opzioniDi(g)).at(-1)).toEqual(['Rettifiche', [null, 7_000_000]]);
+  });
+
+  it('dotazione o lordi assenti, importi negativi: non disegnabile', () => {
+    const senza = graficoBarreIntervento({ ...rigaIntervento, pagamentiLordi: assente('FUORI_PERIMETRO') });
+    controllaNonDisegnabile(senza, `il grafico di SRA01 richiede dotazione e pagamenti lordi; pagamenti lordi: ${FUORI_PERIMETRO}`);
     expect(senza.tabella.righe).toHaveLength(12);
-    controllaNonDisegnabile(graficoCascataIntervento({ ...rigaIntervento, pagamentiLordi: imp(11_000_000) }), 'i pagamenti lordi di SRA01 superano la dotazione: la cascata non si può disegnare');
-    controllaNonDisegnabile(graficoCascataIntervento({ ...rigaIntervento, dotazioneResiduaSuPagamenti: imp(-1) }), 'importi negativi per SRA01: la cascata non si può disegnare');
+    controllaNonDisegnabile(graficoBarreIntervento({ ...rigaIntervento, dotazioneResiduaSuPagamenti: imp(-1) }), 'importi negativi per SRA01: il grafico non si può disegnare');
+    // SRD11 nei dati dell'11/11/2026: lordi zero e rettifiche positive, netti negativi
+    controllaNonDisegnabile(graficoBarreIntervento({ ...rigaIntervento, pagamentiLordi: imp(0), importoRettifiche: imp(79_432.83), pagamentiNettoRettifiche: imp(-79_432.83) }), 'importi negativi per SRA01: il grafico non si può disegnare');
   });
 
   it('perimetro ADA (V-03): non si disegna, la tabella resta con i dati di programma regionali', () => {
-    const g = graficoCascataIntervento(rigaIntervento, 'ADA');
+    const g = graficoBarreIntervento(rigaIntervento, 'ADA');
     controllaNonDisegnabile(g, "perimetro ADA: la dotazione è regionale, i pagamenti sono dell'area e il residuo è fuori perimetro");
     expect(g.omessi).toEqual([]);
     expect(g.tabella).toEqual(vociIntervento(rigaIntervento, 'ADA'));
-    expect(graficoCascataIntervento(rigaIntervento, 'REGIONALE').opzioni).not.toBeNull();
+    expect(graficoBarreIntervento(rigaIntervento, 'REGIONALE').opzioni).not.toBeNull();
   });
 
   it('vociIntervento: "(regionale)" sui dati di programma solo per ADA, le assenze con il motivo della riga', () => {
@@ -1306,11 +1349,10 @@ describe('regola dei motivi: segue "Grafico non disponibile: ", iniziale minusco
     ['quota FEASR, quota negativa', graficoQuotaFeasr({ quotaFeasr: imp(-1), quotaNonFeasr: imp(10) })],
     ['quota FEASR, totale zero', graficoQuotaFeasr({ quotaFeasr: imp(0), quotaNonFeasr: imp(0) })],
     ['parti di un importo, parte assente', graficoPartiImporto('Prova', [['Importo A', undefined], ['Importo B', imp(10)]], [])],
-    ['cascata intervento, perimetro ADA', graficoCascataIntervento(rigaIntervento, 'ADA')],
-    ['cascata intervento, pagamenti assenti', graficoCascataIntervento({ ...rigaIntervento, pagamentiLordi: assente('FUORI_PERIMETRO') })],
-    ['cascata intervento, senza codice e senza dotazione', graficoCascataIntervento({})],
-    ['cascata intervento, importi negativi', graficoCascataIntervento({ ...rigaIntervento, pagamentiNettoRettifiche: imp(-1) })],
-    ['cascata intervento, pagamenti oltre la dotazione', graficoCascataIntervento({ ...rigaIntervento, pagamentiLordi: imp(11_000_000) })],
+    ['barre intervento, perimetro ADA', graficoBarreIntervento(rigaIntervento, 'ADA')],
+    ['barre intervento, pagamenti assenti', graficoBarreIntervento({ ...rigaIntervento, pagamentiLordi: assente('FUORI_PERIMETRO') })],
+    ['barre intervento, senza codice e senza dotazione', graficoBarreIntervento({})],
+    ['barre intervento, importi negativi', graficoBarreIntervento({ ...rigaIntervento, pagamentiNettoRettifiche: imp(-1) })],
     ['riserva, nessun utilizzo', graficoUtilizzoRiserva({}, 2024)],
   ];
 
@@ -1323,7 +1365,7 @@ describe('regola dei motivi: segue "Grafico non disponibile: ", iniziale minusco
 
 describe('sottotitoloFlusso (N-18)', () => {
   it("dice il ramo disegnato: con l'impegnato fino al pagato, senza dalla dotazione ai pagamenti netti col motivo", () => {
-    expect(sottotitoloFlusso({ importoImpegnato: { valore: 10, motivo: null, fonte: null } })).toBe("Dalla dotazione all'impegnato e al pagato");
+    expect(sottotitoloFlusso({ importoImpegnato: { valore: 10, motivo: null, fonte: null } })).toBe('Ripartizione fra importo impegnato pagato e da pagare e importo da impegnare');
     expect(sottotitoloFlusso({ importoImpegnato: { valore: null, motivo: 'FONTE_NON_ATTIVA', fonte: 'IMPEGNI' } })).toBe(
       'Dalla dotazione ai pagamenti netti e al residuo; impegnato: non disponibile (fonte impegni non attiva)',
     );

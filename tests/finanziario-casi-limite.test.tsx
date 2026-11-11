@@ -211,11 +211,11 @@ describe('DettaglioIntervento: casi limite', () => {
     for (const kpi of ['Dotazione spesa pubblica', 'Risorse quota FEASR', 'Pagamenti al netto delle rettifiche']) expect(valoreKpi(kpi)).toBe('Non disponibile');
     // un conteggio a zero e' un dato
     expect(valoreKpi('Domande presentate')).toBe('0');
-    const cascata = await trovaCard('Dalla dotazione al residuo');
-    expect(within(cascata).getByText(NON_DISPONIBILE_GRAFICO).textContent).toBe(
-      'Grafico non disponibile: la cascata di SRD99 richiede dotazione e pagamenti lordi; dotazione: non disponibile; pagamenti lordi: non disponibile.',
+    const barre = await trovaCard('Dalla dotazione al residuo');
+    expect(within(barre).getByText(NON_DISPONIBILE_GRAFICO).textContent).toBe(
+      'Grafico non disponibile: il grafico di SRD99 richiede dotazione e pagamenti lordi; dotazione: non disponibile; pagamenti lordi: non disponibile.',
     );
-    expect(within(await trovaCard('Avanzamento rispetto ai pagamenti effettuati')).getByText(NON_DISPONIBILE_GRAFICO).textContent).toBe(
+    expect(within(await trovaCard('Avanzamento dei pagamenti rispetto alla dotazione')).getByText(NON_DISPONIBILE_GRAFICO).textContent).toBe(
       'Grafico non disponibile: la percentuale richiede pagamenti netti e dotazione; pagamenti netti: non disponibile; dotazione: non disponibile.',
     );
     expect(screen.queryByText(/^Contributo ambientale/)).toBeNull();
@@ -411,11 +411,11 @@ describe('AvanzamentoReport: casi limite', () => {
     expect(valoreDi(within(rf007).getByRole('table'), 'Rettifiche')).toBe('non disponibile');
     await waitFor(() => expect(valoreKpi('Importo pagato (lordo, elenchi di liquidazione)')).toBe('Non disponibile'));
     for (const kpi of ['Importo stanziato', 'Totale impegnato', 'Dotazione spesa pubblica']) expect(valoreKpi(kpi)).toBe('Non disponibile');
-    expect(within(await trovaCard('Avanzamento rispetto ai pagamenti effettuati')).getByText(NON_DISPONIBILE_GRAFICO).textContent).toBe(
+    expect(within(await trovaCard('Avanzamento dei pagamenti rispetto alla dotazione')).getByText(NON_DISPONIBILE_GRAFICO).textContent).toBe(
       'Grafico non disponibile: la percentuale richiede pagamenti netti e dotazione; pagamenti netti: non disponibile; dotazione: non disponibile.',
     );
     // nemmeno il flusso ridotto da TX-0007: senza pagamenti netti e residuo non si disegna
-    expect(within(await trovaCard('Dove va la dotazione')).getByText(NON_DISPONIBILE_GRAFICO).textContent).toBe(
+    expect(within(await trovaCard('Distribuzione dotazione spesa pubblica')).getByText(NON_DISPONIBILE_GRAFICO).textContent).toBe(
       'Grafico non disponibile: il flusso richiede pagamenti netti: non disponibile; dotazione residua: non disponibile.',
     );
     expect(graficiVivi()).toHaveLength(0);
