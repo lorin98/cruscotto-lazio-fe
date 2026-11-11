@@ -19,7 +19,7 @@ import { ricercaDaFiltri } from '../lib/filtri';
 import type { Filtri } from '../lib/filtri';
 import { annoDiRaccolta } from '../lib/formato';
 import { perAnno } from '../lib/importi';
-import { COLONNE_IMPORTI_PER_ANNO, graficoDomandePerAnno, graficoImportiPerAnno } from '../lib/grafici';
+import { COLONNE_IMPORTI_PER_ANNO, IMPORTI_PER_ANNO, TITOLO_ANNO_DI_RACCOLTA, TITOLO_SENZA_AMMESSO, graficoDomandePerAnno, graficoImportiPerAnno } from '../lib/grafici';
 import { GRANT } from '../lib/report';
 import { ConGrant, KpiImporto, Numero, PerimetroSezione, ScaricaKpi, colonnaImporto, erroreGiaMostrato, vuotoConPerimetro } from './comuni';
 import { useLinkElenco } from './LinkElenco';
@@ -216,11 +216,11 @@ function DomandePerAnnoSezione({ filtri }: { filtri: Filtri }) {
 
 // ---------------------------------------------------------------- importi per anno
 
+// le colonne della tabella di dettaglio dalla stessa definizione della vista Tabella (J-09): stesse intestazioni e stessa
+// resa delle assenze (ValoreImporto di una riga = "non valorizzato", come cellaImporto con aggregato false)
 const COLONNE_IMPORTI: Colonna<ImportiPerAnnoRiga>[] = [
-  colonnaImporto<ImportiPerAnnoRiga>('Importo stanziato', (r) => r.importoStanziato),
-  colonnaImporto<ImportiPerAnnoRiga>('Importo ammesso', (r) => r.importoAmmesso),
-  colonnaImporto<ImportiPerAnnoRiga>(DECRETATO, (r) => r.importoDecretato),
-  ['Domande senza importo ammesso', (r) => <Numero valore={r.domandeSenzaAmmesso} />],
+  ...IMPORTI_PER_ANNO.map((d) => colonnaImporto<ImportiPerAnnoRiga>(d.titolo, (r) => r[d.campo])),
+  [TITOLO_SENZA_AMMESSO, (r) => <Numero valore={r.domandeSenzaAmmesso} />],
 ];
 
 /** Colonna "Elenco operativo": per ogni riga (anno) le domande presentate dell'anno (stanziato e decretato non ci sono). */
@@ -278,7 +278,7 @@ function CardImportiPerAnno({ d, filtri, link }: { d: ImportiPerAnno; filtri: Fi
       />
       <Sezione titolo="Importi per anno: dettaglio" strumenti={<PulsantiScarica oggetto="la tabella Importi per anno" scaricamenti={datiDelReport('Importi per anno', 'importiPerAnno', filtri)} />}>
         <PerimetroSezione perimetro={d.perimetro} />
-        <TabellaRighe caption="Importi per anno di raccolta" intestazione="Anno di raccolta" chiave={(r) => annoDiRaccolta(r.annoRaccolta)} colonne={colonneImporti(link)} righe={d.righe ?? []} />
+        <TabellaRighe caption="Importi per anno di raccolta" intestazione={TITOLO_ANNO_DI_RACCOLTA} chiave={(r) => annoDiRaccolta(r.annoRaccolta)} colonne={colonneImporti(link)} righe={d.righe ?? []} />
       </Sezione>
     </div>
   );

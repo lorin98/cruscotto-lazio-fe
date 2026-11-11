@@ -79,12 +79,22 @@ export function graficoDomandePerAnno(righe: RigaDomandeAnno[]): DatiGrafico {
 
 // ---------------------------------------------------------------- 2. importi per anno di raccolta
 
-// `aggregato`: resa di NON_VALORIZZATO come totale (stanziato, decretato) o come dato assente su tutte le domande (ammesso)
-const IMPORTI = [
-  { nome: 'Importo stanziato', campo: 'importoStanziato', aggregato: true },
-  { nome: 'Importo ammesso', campo: 'importoAmmesso', aggregato: false },
-  { nome: 'Importo decretato', campo: 'importoDecretato', aggregato: true },
+/**
+ * Gli importi per anno di raccolta: una sola definizione per le linee del grafico, la vista Tabella e la tabella di dettaglio
+ * (review step9 dell'11/11/2026, J-09). `titolo`: l'intestazione delle due tabelle; `aggregato`: resa di NON_VALORIZZATO.
+ * Scelta dell'utente dell'11/11/2026: "non valorizzato" (dato assente nella fonte) per tutti e tre, come lo stanziato per
+ * anno del wireframe domande; prima stanziato e decretato erano resi come totali ("non calcolabile").
+ */
+export const IMPORTI_PER_ANNO = [
+  { nome: 'Importo stanziato', titolo: 'Importo stanziato', campo: 'importoStanziato', aggregato: false },
+  { nome: 'Importo ammesso', titolo: 'Importo ammesso', campo: 'importoAmmesso', aggregato: false },
+  { nome: 'Importo decretato', titolo: 'Importo decretato (elenchi di liquidazione)', campo: 'importoDecretato', aggregato: false },
 ] as const;
+const IMPORTI = IMPORTI_PER_ANNO;
+
+/** Le intestazioni della prima e dell'ultima colonna delle due tabelle di Importi per anno. */
+export const TITOLO_ANNO_DI_RACCOLTA = 'Anno di raccolta';
+export const TITOLO_SENZA_AMMESSO = 'Domande senza importo ammesso';
 
 function lineaImporti(def: (typeof IMPORTI)[number], righe: readonly RigaImportiAnno[], categorie: readonly string[], omessi: string[]): LineSeriesOption | null {
   const importi: Array<ImportoLike | null | undefined> = righe.map((r) => r[def.campo]);
@@ -108,10 +118,8 @@ function lineaImporti(def: (typeof IMPORTI)[number], righe: readonly RigaImporti
  * intestazioni sono quelle della tabella di dettaglio della pagina.
  */
 export const COLONNE_IMPORTI_PER_ANNO: readonly { titolo: string; cella: (r: RigaImportiAnno) => string }[] = [
-  { titolo: 'Importo stanziato', cella: (r) => cellaImporto(r.importoStanziato, true) },
-  { titolo: 'Importo ammesso', cella: (r) => cellaImporto(r.importoAmmesso) },
-  { titolo: 'Importo decretato (elenchi di liquidazione)', cella: (r) => cellaImporto(r.importoDecretato, true) },
-  { titolo: 'Domande senza importo ammesso', cella: (r) => numeroOpzionale(r.domandeSenzaAmmesso) },
+  ...IMPORTI_PER_ANNO.map((d) => ({ titolo: d.titolo, cella: (r: RigaImportiAnno) => cellaImporto(r[d.campo], d.aggregato) })),
+  { titolo: TITOLO_SENZA_AMMESSO, cella: (r) => numeroOpzionale(r.domandeSenzaAmmesso) },
 ];
 
 /** Linee degli importi per anno di raccolta; i punti assenti sono vuoti (mai zero) e dichiarati, come le domande senza ammesso. */
@@ -120,7 +128,7 @@ export function graficoImportiPerAnno(righe: RigaImportiAnno[]): DatiGrafico {
   const categorie = ordinate.map((r) => annoDiRaccolta(r.annoRaccolta));
   const tabella = {
     caption: 'Importi per anno di raccolta: stanziato, ammesso e decretato',
-    colonne: ['Anno di raccolta', ...COLONNE_IMPORTI_PER_ANNO.map((c) => c.titolo)],
+    colonne: [TITOLO_ANNO_DI_RACCOLTA, ...COLONNE_IMPORTI_PER_ANNO.map((c) => c.titolo)],
     righe: ordinate.map((r, k) => [categorie[k], ...COLONNE_IMPORTI_PER_ANNO.map((c) => c.cella(r))]),
   };
   if (ordinate.length === 0) return nonDisegnabile('nessun importo per anno di raccolta', tabella, []);
