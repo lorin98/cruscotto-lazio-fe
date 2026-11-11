@@ -2,7 +2,8 @@
 // riepilogo e dotazione-avanzamento) quando nella selezione l'impegnato cofinanziato FEASR differisce dall'impegnato
 // cofinanziato FEASR e non: elenca gli interventi con le due quantita'. Nel Riepilogo legge le righe gia' caricate di
 // TX-0011; in Dotazione e spesa le legge da TX-0011 col suo grant, senza mostrare nulla mentre carica, in errore o
-// senza il grant (l'avviso accompagna il grafico, non e' una sezione).
+// senza il grant (l'avviso accompagna il grafico, non e' una sezione). Dall'11/11/2026 (note di Leonardo del 10/11) dice
+// anche da dove viene l'impegnato: ASR2-20 per gli interventi SIGC, contributo ammesso PROSA per i NO SIGC.
 import { formatEuro, plurale } from '../../../shared/lib';
 import { hasGrant, useAuthStatus } from '../../../shared/api/auth/use-auth-status';
 import { useRiepilogo } from '../api';
@@ -17,7 +18,9 @@ export function AvvisoImpegnati({ righe }: { righe: readonly RigaImpegnati[] }) 
   return (
     <div className="alert alert-warning my-3" role="note">
       <strong>{`Impegnato cofinanziato FEASR diverso dall'impegnato FEASR e non in ${plurale(diversi.length, 'intervento', 'interventi')}.`}</strong>{' '}
-      {"Il cofinanziato FEASR è riportato alla dotazione quando l'impegnato la supera: "}
+      {
+        "L'impegnato è calcolato dal cruscotto: per gli interventi SIGC dalle domande dell'ASR2-20 (importo ammesso o, per le domande ancora in istruttoria, importo richiesto) più la stima delle annualità future dei bandi pluriennali; per gli interventi NO SIGC dal contributo ammesso di PROSA. Il cofinanziato FEASR è lo stesso importo, riportato alla dotazione quando la supera: "
+      }
       {diversi.map((d) => `${d.codice} ${formatEuro(d.feasr)} su ${formatEuro(d.feasrENon)}`).join('; ')}
       {". Negli altri interventi i due impegnati coincidono con l'impegnato di spesa pubblica."}
     </div>
