@@ -1,0 +1,125 @@
+[
+  {
+    "id": "J-01",
+    "stato": "chiuso",
+    "file": "src/features/finanziario/lib/grafici/intervento.ts:30",
+    "titolo": "Contrasto dell'etichetta della barra intera 'Pagamenti lordi'",
+    "evidenza": "LORDI_INTERA = COLORI.attenuato (#546474, intervento.ts:26-30), usato solo dalla barra intera dei lordi (intera(), :79-81 e :103) col testo COLORI.superficie: bianco su #546474 ricalcolato 6,08:1 (>= 4,5 AA per il testo di 12 px). E' distinto dall'arancio delle rettifiche (#9a5c00, :24), che resta solo nella barra divisa (scelta dell'utente dell'11/11). Le altre coppie reggono: netti 5,57, rettifiche 5,38, dotazione intera 14,0 e residuo col testo scuro 10,75. Test tests/finanziario-grafici.test.ts:1008-1028: per ogni serie di graficoBarreIntervento nelle tre forme (divise, senza rettifiche, residuo assente) misura il contrasto WCAG fra label.color e label.backgroundColor (>= 4,5) e lo sfondo dell'etichetta uguale al colore del segmento. Prima della correzione la forma 'senza rettifiche' falliva (4,20:1)."
+  },
+  {
+    "id": "J-02",
+    "stato": "chiuso",
+    "file": "src/features/finanziario/lib/grafici/barre-impilate.ts:88",
+    "titolo": "Separatore fra pagamenti netti e rettifiche",
+    "evidenza": "serieSegmento mette itemStyle { borderColor: COLORI.superficie, borderWidth: 1 } (barre-impilate.ts:88): un bordo bianco fra i segmenti attigui, nel modulo comune ai due grafici (bianco su blu 5,57:1, su arancio 5,38:1). Il test tests/finanziario-grafici.test.ts:1024 asserisce il bordo su ogni serie di graficoBarreIntervento nelle tre forme. Residuo non bloccante: per graficoImportiSigc il bordo non e' asserito (il fix lo chiedeva per tutti e due), ma la serie viene dalla stessa serieSegmento; i test di Importi SIGC su sfondo e contrasto (:1437-1464) restano veri."
+  },
+  {
+    "id": "J-03",
+    "stato": "chiuso",
+    "file": "src/features/finanziario/lib/grafici/intervento.ts:111",
+    "titolo": "Sottotitolo di 'Dalla dotazione al residuo' costruito da cio' che e' disegnato",
+    "evidenza": "sottotitoloBarreIntervento (intervento.ts:111-121) usa le stesse divisioni() (:84-87) di segmentiIntervento (:95) e le stesse condizioni di graficoBarreIntervento (ADA :138, motivoBarre :141): la composizione solo per le barre divise, 'Dotazione' o 'pagamenti lordi' per quelle intere, null se il grafico non si disegna. E' esportato dal barrel (index.ts:11) e usato in Sintesi (DettaglioIntervento.tsx:159 e :172, con la coda sullo stimato e undefined se vuoto); BARRE_INTERVENTO non esiste piu'. Test tests/finanziario-grafici.test.ts:1030-1037: divise, senza rettifiche ('Dotazione; pagamenti lordi'), residuo assente, ADA e netti negativi (null). E' coerente con panoramica.md:139-144, riapprovato."
+  },
+  {
+    "id": "J-04",
+    "stato": "chiuso",
+    "file": "src/features/finanziario/ui/DettaglioIntervento.tsx:167",
+    "titolo": "Il PNG del gauge del dettaglio dice che l'importo e' netto",
+    "evidenza": "La fonte del gauge del dettaglio e' 'Fonte: TX-0011, pagamenti al netto delle rettifiche' (DettaglioIntervento.tsx:167), come in Avanzamento (AvanzamentoReport.tsx:121). righeIntestazione la mette nel PNG (shared/lib/intestazione.ts:15-17). Il wireframe panoramica/intervento.html:106 e' allineato e riapprovato. Test src/pages/finanziario/interventi/page.test.tsx:76."
+  },
+  {
+    "id": "J-05",
+    "stato": "chiuso",
+    "file": "src/features/finanziario/lib/grafici/avanzamento.ts:198",
+    "titolo": "Etichetta della fine dell'arco dentro il grafico a 390 px",
+    "evidenza": "Il raggio passa al 48 % (avanzamento.ts:198), puntoFineArco a 112 + 50|cos| + 26|sin| (:165-171) e l'importo dell'etichetta e' corto (importoEtichettaGauge, :178-184), con title a 12 px. Ricalcolo a 390 px (lato minore 318 px, raggio 76 px): a 0 % il centro dell'etichetta e' a 120,6 px dal centro e un'etichetta di 10 caratteri lascia circa 6 px dal bordo; alla sommita' (50 %) resta circa 5 px sopra l'arco. Verifica a vista a 390 e 1600 px negli esiti misurati (brief). Il test tests/finanziario-grafici.test.ts:868-883 controlla la geometria da 0 a 100 % a passi di 5, ma usa un raggio scritto nel test: vedi N-02. Le soglie di importoEtichettaGauge sono in N-01."
+  },
+  {
+    "id": "J-06",
+    "stato": "chiuso",
+    "file": "src/features/finanziario/lib/grafici/avanzamento.ts:82",
+    "titolo": "Nodo 'Pagato (lordo)' nel Sankey",
+    "evidenza": "Il ramo e' [IMPEGNATO, 'Pagato (lordo)', p.pagamentiTotali] (avanzamento.ts:82), una scelta dell'utente dell'11/11. Le etichette dei nodi sono su due righe (:133). La descrizione aria (:134) e il suggerimento (dettaglio, :133) restano su una riga e usano il nome: 'pagato (lordo) 45,0 M€'. Lo stesso vale per i collegamenti ('Impegnato → Pagato (lordo)') e per le voci omesse ('Pagato (lordo) non disponibile ...'). La tabella equivalente (:53-64) non cambia e dice gia' 'lordi, elenchi di liquidazione'. Nessun altro codice cita il nodo per nome (grep su src ed e2e). Test tests/finanziario-grafici.test.ts:727-737 e :1418; wireframe avanzamento.html:98 e dotazione-avanzamento.md:110-113 riapprovati."
+  },
+  {
+    "id": "J-07",
+    "stato": "chiuso",
+    "file": "src/features/finanziario/ui/AvanzamentoReport.tsx:197",
+    "titolo": "Nomi delle regioni di RF007 e del gauge distinti",
+    "evidenza": "Parti passa a graficoPartiImporto `${titolo}, ${grafico}` (AvanzamentoReport.tsx:197). La caption di RF007 diventa quindi 'Dotazione residua sui pagamenti (RF007), avanzamento dei pagamenti rispetto alla dotazione'; il sottotitolo visibile (:196) non cambia. La tabella del gauge ha caption 'Pagamenti netti sulla dotazione spesa pubblica' e voce 'Percentuale della dotazione pagata (netto)' (avanzamento.ts:148-149). Il test src/pages/finanziario/avanzamento/page.test.tsx:82 prova davvero il caso. Prima voci() -> tabellaDi passa RF007 alla vista Tabella (shared/testing/card-grafico.ts:37-41), poi il test vuole una sola regione col nome della card del gauge: prima della correzione le regioni erano due. Regex aggiornate a :67 e in tests/finanziario-ui.test.tsx:1307."
+  },
+  {
+    "id": "J-08",
+    "stato": "chiuso",
+    "file": "src/features/finanziario/ui/AvvisoImpegnati.tsx:23",
+    "titolo": "Testo dell'avviso degli impegnati fedele al backend",
+    "evidenza": "Il testo nuovo (AvvisoImpegnati.tsx:23) dice: 'con l'importo che lo stato della domanda indica (il pagato se il procedimento e' chiuso, altrimenti l'ammesso o il richiesto secondo lo stato di avanzamento)' e 'dal contributo ammesso delle determine PROSA (in sua assenza dall'importo ammesso SIAN)'. Riletto AlgoritmoRichiestoAmmesso del BE in sola lettura: CHIUSO prende il pagato (righe 105-116); AMMESSO, RICHIESTO, LIQUIDATI e stati non censiti vanno per stato (119-131). Restano fuori dal testo l'ammesso col pagato zero, la soglia 2023 e il tetto NP: e' un riassunto, non un errore. Il testo e' uguale a quello dei wireframe riapprovati (dotazione.html:67, riepilogo.html:70, i due .md). Test src/pages/finanziario/riepilogo/page.test.tsx:111 e tests/revisioni-20261104.test.tsx:34."
+  },
+  {
+    "id": "J-09",
+    "stato": "chiuso",
+    "file": "src/features/finanziario/lib/grafici/domande.ts:88",
+    "titolo": "Una sola definizione delle colonne di Importi per anno",
+    "evidenza": "IMPORTI_PER_ANNO (domande.ts:88-92: nome, titolo, campo e aggregato false per tutti e tre, scelta dell'utente 'non valorizzato') alimenta:\n- le linee e le voci omesse del grafico (lineaImporti :99-111);\n- COLONNE_IMPORTI_PER_ANNO (:120-123) della vista Tabella, con e senza il grant dell'elenco (DomandeReport.tsx:249);\n- COLONNE_IMPORTI della tabella di dettaglio (DomandeReport.tsx:221-224, ValoreImporto non aggregato: lo stesso testo di cellaImporto(x, false), entities/importo/lib/importo.ts:71-74).\nTITOLO_ANNO_DI_RACCOLTA e TITOLO_SENZA_AMMESSO valgono per le due tabelle (:281). Test src/pages/finanziario/domande/page.test.tsx:126-148: stesse intestazioni; per uno stanziato NON_VALORIZZATO, 'non valorizzato' e 'il dato non e' presente nella fonte' in tutte e due le tabelle, mai 'non calcolabile'. Prima della correzione la vista Tabella diceva 'non calcolabile'. Wireframe domande.md:112-115 riapprovato. Residuo non bloccante: DECRETATO (DomandeReport.tsx:37) resta solo per la riga della fonte (:271)."
+  },
+  {
+    "id": "J-10",
+    "stato": "chiuso",
+    "file": "src/features/finanziario/ui/DettaglioIntervento.tsx:354",
+    "titolo": "Tabelle compatte nella scheda Domande del dettaglio",
+    "evidenza": "La Griglia della scheda Domande e' avvolta in <div className='ui-tabelle-compatte'> (DettaglioIntervento.tsx:354-364). Le regole di tema.css:372-374 valgono anche per la TabellaDati della vista Tabella. Nessuna regola CSS dipende dalla Griglia figlia diretta del TabPanel. Test src/pages/finanziario/interventi/page.test.tsx:81-83. Restano due cose. Primo, la verifica a vista a 1366 px che il fix chiedeva non e' fra gli esiti misurati (390 e 1600 px). Secondo, la Griglia resta a due colonne: il commento di DomandeReport.tsx:299-300 dice che affiancate le tabelle degli importi scorrevano anche compatte. La tabella del dettaglio pero' ha 5 colonne, senza 'Elenco operativo'. Stima: circa 470 px di contenuto contro circa 465 px utili, al limite. Se scorre ancora, la card a tutta larghezza e' una decisione dell'utente, come diceva il fix."
+  },
+  {
+    "id": "J-11",
+    "stato": "chiuso",
+    "file": "tests/finanziario-grafici.test.ts:736",
+    "titolo": "Le scelte approvate l'11/11 fissate dai test",
+    "evidenza": "I test fissano tutte e tre le scelte.\n- Sankey: series[0].layoutIterations === 0 e 'Pagato (lordo)' prima di 'Da pagare' (finanziario-grafici.test.ts:736-737); l'ordine del flusso ridotto e' a :788.\n- Domande: le card RF010 e RF008 sono dentro .ui-tabelle-compatte e .ui-griglia--1 (src/pages/finanziario/domande/page.test.tsx:144-147); in Avanzamento nessuna .ui-tabelle-compatte (avanzamento/page.test.tsx:84).\n- Lordi oltre la dotazione: le somme per barra sono 10 M e 11 M ed e' assente xAxis.max (finanziario-grafici.test.ts:999-1006).\nResiduo minimo: l'assenza della classe compatta e' controllata solo in Avanzamento. Il grep su src trova la classe solo in DomandeReport.tsx:301 e DettaglioIntervento.tsx:354."
+  },
+  {
+    "id": "J-12",
+    "stato": "chiuso",
+    "file": "src/features/finanziario/lib/grafici/barre-impilate.ts:101",
+    "titolo": "Barre impilate in un modulo comune",
+    "evidenza": "barre-impilate.ts contiene:\n- Segmento<B extends string>, con intera opzionale (:23-37);\n- posizioneEtichettaSegmento, larghezzaEtichetta, testoEtichetta e serieSegmento (:49-94);\n- opzioniBarreImpilate (:101-111), che costruisce aria, tooltip, legend, grid.right in pixel, xAxis con splitNumber 3 e hideOverlap, yAxis e serie.\nsigc.ts:206 e :222 e intervento.ts:74-104 e :146 lo usano, coi nomi di barra tipizzati per grafico ('Richiesto' | 'Ammesso' e Barra). Nessuna copia resta in sigc.ts. Importi SIGC e' invariato salvo il bordo:\n- stesse etichette, quota e suggerimento per i segmenti non interi;\n- stessa griglia, stessi assi, stessa legenda.\nTest parametrizzato sui due grafici (finanziario-grafici.test.ts:1426-1435); sfondo e contrasto sono coperti per tutti e due (:1008-1028 e :1437-1464). Residuo non bloccante: opzioniBarreImpilate riceve barre: readonly string[] senza legarle a B (:101). Un segmento con una barra assente da barre compila ancora, ma i nomi sono ora controllati alla costruzione dei segmenti."
+  },
+  {
+    "id": "J-13",
+    "stato": "chiuso",
+    "file": "src/features/finanziario/lib/grafici/avanzamento.ts:237",
+    "titolo": "graficoGauge tolto, rami del netto testati",
+    "evidenza": "graficoGauge e serieGaugeConDotazione non esistono piu' (grep su src e tests): il ramo ADA e' inline in graficoPagatoNetto (avanzamento.ts:237) e motivoGauge lavora solo sui numeri (:151-154). Il barrel non esporta piu' il gauge generico (index.ts:10). I nuovi test coprono:\n- netti negativi SRD11 (-79.432,83) con tabella a tre righe, dotazione 0 e -5 (finanziario-grafici.test.ts:896-902);\n- ADA con la tabella a una riga (:904-911);\n- la regola dei motivi su graficoPagatoNetto (:1380-1382).\npuntoFineArco resta esportato ma e' testato direttamente (:865 e :868-883)."
+  },
+  {
+    "id": "J-14",
+    "stato": "chiuso",
+    "file": "src/features/finanziario/lib/grafici/barre-impilate.ts:63",
+    "titolo": "Barre intere senza '(100 %)' e senza 'Dotazione, dotazione'",
+    "evidenza": "Segmento.intera (barre-impilate.ts:36): quotaDellaBarra non mette la quota (:63-65) e dettaglioSegmento da' 'Dotazione: 10.000.000,00 €' (:73-75). intervento.ts:79-81 crea le barre intere con intera: true. La descrizione aria (descrizioneBarra :124-128) era gia' giusta. grid.right si calcola sull'etichetta senza quota. Test tests/finanziario-grafici.test.ts:955-957 ('10,0 M€' e 'Pagamenti lordi: 4.500.000,00 €')."
+  },
+  {
+    "id": "J-15",
+    "stato": "chiuso",
+    "file": "src/features/finanziario/lib/grafici/avanzamento.ts:144",
+    "titolo": "Titolo e sottotitolo del gauge in un punto",
+    "evidenza": "TITOLO_GAUGE_PAGAMENTI e SOTTOTITOLO_GAUGE_PAGAMENTI (avanzamento.ts:144-145) passano dal barrel (index.ts:10). Li usano AvanzamentoReport.tsx:118-119, :123 e :137 e DettaglioIntervento.tsx:164-165 e :168. Le due costanti locali e il commento 'R15' sono tolti (grep: nessun AVANZAMENTO_PAGAMENTI)."
+  },
+  {
+    "id": "N-01",
+    "stato": "nuovo",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/lib/grafici/avanzamento.ts:178",
+    "titolo": "Gauge: l'importo corto della fine dell'arco ha soglie che danno '1 mila €' e '0,01 M€' per 14.999 €, e sotto il milione il centro e' in euro pieni accanto a un arco in M€",
+    "evidenza": "Le soglie di importoEtichettaGauge (:178-184) danno quattro difetti.\n1. Fra 1.000 e 1.499 € la forma e' 'N mila €' con le migliaia arrotondate (:182): 1.200 € diventa '1 mila €', che in italiano e' 'mille'.\n2. Da 10.000 € ci sono i milioni a due decimali (:181), quindi una risoluzione di 10.000 €. 14.999 € diventa '0,01 M€' (scarto del 33 %) e 24.999 € diventa '0,02 M€', mentre 9.320 € resta piu' preciso ('9 mila €'). Con una dotazione di 100.000 € la stessa etichetta dice '15 %' e '(0,01 M€)', due numeri che non tornano fra loro.\n3. Fra 9.500 e 9.999 € viene '10 mila €': 9 caratteri contro 'al piu' otto' del commento (:174-177). Con le parentesi sono 11 caratteri contro i dieci del test di J-05 (:868); a 0 % resta dentro di circa 3 px, quindi non si taglia.\n4. Il centro e' importoBreve(t) (:248): sotto il milione e' in euro pieni. Per un intervento con dotazione 950.000 € e netti 187.415 € il gauge mostra '950.000,00 €' al centro e '(0,19 M€)' all'arco: due unita' nello stesso grafico, e l'importo piu' piccolo e' in M€. Inoltre '950.000,00 €' (12 caratteri a 22 px grassetto) e' il testo piu' largo per il centro, che col raggio al 48 % ha circa 60 px di raggio libero a 390 px. Questa e' una stima al limite, non osservata.\nTabella equivalente e aria hanno i valori pieni e la percentuale e' esatta: e' COSMETICO. Gli esempi approvati dall'utente ('134,6 M€', '0,19 M€', '9 mila €', euro sotto mille) restano veri anche col fix.",
+    "fix": "In importoEtichettaGauge, restando in 8 caratteri:\n- fra 1.000 e 1.999 € l'euro intero ('1.200 €') al posto di '1 mila €';\n- fra 9.500 e 99.999 € tre decimali di milione ('0,015 M€') al posto di '10 mila €', '0,01 M€' e '0,02 M€';\n- dove oggi ci sono due decimali, dai 100.000 € in su, nessun cambio.\nPer il centro, sotto il milione la stessa forma corta, cosi' le due cifre del gauge hanno la stessa unita'. In tests/finanziario-grafici.test.ts un caso sui bordi delle fasce (999,99; 1.000; 1.499; 9.499; 9.500; 14.999; 99.999; 999.999; 1.000.000): valore atteso e lunghezza <= 8. Le forme corte sono una scelta approvata: va confermato con l'utente."
+  },
+  {
+    "id": "N-02",
+    "stato": "nuovo",
+    "severity": "MINORE",
+    "file": "tests/finanziario-grafici.test.ts:871",
+    "titolo": "Il test di J-05 dichiara che a 390 px l'etichetta del gauge resta dentro il grafico, ma usa un raggio scritto nel test e non quello delle opzioni",
+    "evidenza": "Il test di :868-883 calcola `const raggio = 0.48 * meta` (:871-872), presume il centro al 50 % e chiama solo puntoFineArco e importoEtichettaGauge. Non legge radius e center della serie prodotta da graficoPagatoNetto (avanzamento.ts:198-199). Nessun test asserisce il raggio del gauge: nei test, grep di '48%' e radius trova solo le ciambelle. La correzione di J-05 sta pero' per meta' nel raggio (da '58%' a 9b759da a '48%'). Riportandolo al 58 %, a 0 % il centro dell'etichetta andrebbe a 1,58 x 0,58 x 159 = 146 px dal centro: con 32,5 px di mezza etichetta uscirebbe di circa 19 px dal bordo sinistro, e il test passerebbe lo stesso. Oggi il comportamento e' giusto (verificato a vista): e' un test che prova la promessa solo per un raggio supposto. Metro di J-11: MINORE.",
+    "fix": "Nel test leggere raggio e centro dalle opzioni: `const s = gauge(graficoPagatoNetto(imp(v), imp(100)))`, raggio = parseFloat(s.radius) / 100 * meta, e un'asserzione che center[0] sia '50%'. Va fatto per ogni v del ciclo, oppure una volta con un toMatchObject({ radius: '48%', center: ['50%', '58%'] }) accanto al calcolo, che usi quei valori."
+  }
+]

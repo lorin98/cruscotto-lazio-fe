@@ -1,0 +1,22 @@
+[
+  {
+    "id": "P2-01",
+    "origine": ["N-02", "J-05"],
+    "feature": "finanziario",
+    "severity": "MINORE",
+    "file": "tests/finanziario-grafici.test.ts:871",
+    "titolo": "Il test di J-05 prova che a 390 px l'etichetta del gauge entra solo per un raggio scritto nel test: il raggio delle opzioni (48 %) non e' asserito da nessun test",
+    "evidenza": "Il test di :868-883 calcola raggio = 0.48 * meta (:871-872) e chiama solo puntoFineArco, senza leggere radius e center della serie di graficoPagatoNetto (avanzamento.ts:198-199); nessun altro test asserisce il raggio del gauge (il tipo SerieGauge di :840 non ha radius ne' center). Meta' della correzione di J-05 e' il raggio, da '58%' a '48%': riportandolo al 58 % l'etichetta a 0 % finirebbe a circa 178 px dal centro su 159 disponibili (fuori di circa 19 px) e il test passerebbe lo stesso. Il comportamento di oggi e' giusto (verifica a vista a 390 px).",
+    "fix": "In tests/finanziario-grafici.test.ts aggiungere radius: string e center: [string, string] a SerieGauge (:840); nel ciclo di :874 leggere la serie, s = gauge(graficoPagatoNetto(imp(v), imp(100))), con raggio = (parseFloat(s.radius) / 100) * meta al posto di 0.48 * meta (:872) e expect(s.center).toEqual(['50%', '58%'])."
+  },
+  {
+    "id": "P2-02",
+    "origine": ["N-01"],
+    "feature": "finanziario",
+    "severity": "COSMETICO",
+    "file": "src/features/finanziario/lib/grafici/avanzamento.ts:178",
+    "titolo": "Gauge: ai bordi delle fasce importoEtichettaGauge da' '1 mila €', '0,01 M€' per 14.999 € e '10 mila €' (9 caratteri, oltre gli otto del commento), e sotto il milione il centro resta in euro pieni accanto a un arco in M€",
+    "evidenza": "Le fasce di :180-183 danno '1 mila €' per 1.200 €, '0,01 M€' per 14.999 € (con 100.000 € di dotazione l'etichetta dice '15 %' e '(0,01 M€)') e '10 mila €' fra 9.500 e 9.999 €, 9 caratteri contro gli otto promessi a :174 (entra ancora, di circa 3 px). Il centro e' importoBreve(t) (:248): con dotazione 950.000 € e netti 187.415 € il gauge mostra '950.000,00 €' al centro e '(0,19 M€)' all'arco, due unita' nate con la correzione di J-05 (prima l'arco usava importoBreve), e a 390 px quel centro a 22 px grassetto e' al limite dei circa 60 px di raggio libero (stima, non osservata). Tabella equivalente e aria hanno i valori pieni.",
+    "fix": "In importoEtichettaGauge (:178-184), entro otto caratteri: fra 1.000 e 1.999 € `${formatNumber(Math.round(v))} €` ('1.200 €'); fra 9.500 e 99.999 € tre decimali di milione ('0,015 M€'); invariato altrove, cosi' restano gli esempi approvati ('134,6 M€', '0,19 M€', '9 mila €', euro sotto mille). A :248 il centro con importoEtichettaGauge(t) sotto il milione. In tests/finanziario-grafici.test.ts un caso sui bordi (999,99; 1.000; 1.999; 9.499; 9.500; 14.999; 99.999; 999.999; 1.000.000) col valore atteso e lunghezza <= 8. Le fasce toccano forme approvate l'11/11: prima la conferma dell'utente."
+  }
+]
