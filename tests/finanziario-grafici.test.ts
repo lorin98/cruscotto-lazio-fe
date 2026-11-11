@@ -866,10 +866,13 @@ describe('graficoPagatoNetto', () => {
   });
 
   it("a 390 px l'etichetta (al piu' dieci caratteri) resta dentro il grafico e fuori dall'arco per ogni percentuale (J-05)", () => {
-    // card a 390 px: grafico largo circa 318 px e alto 340, raggio al 48 % della meta' del lato minore; testo a 12 px, circa
-    // 6,5 px per carattere, due righe da 16 px
+    // card a 390 px: grafico largo circa 318 px e alto 340, raggio della serie (percentuale della meta' del lato minore) letto
+    // dalle opzioni, non riscritto qui (review step9 dell'11/11/2026, P2-01); testo a 12 px, circa 6,5 px per carattere, due
+    // righe da 16 px
     const meta = 159;
-    const raggio = 0.48 * meta;
+    const serie = opzioniDi(graficoPagatoNetto(imp(10), imp(100))).series[0] as unknown as { radius: string; center: [string, string] };
+    expect(serie.center).toEqual(['50%', '58%']);
+    const raggio = (parseFloat(serie.radius) / 100) * meta;
     const [larga, alta] = [(10 * 6.5) / 2, 16];
     for (let v = 0; v <= 100; v += 5) {
       const [x, y] = puntoFineArco(v).map((c) => (parseFloat(c) / 100) * raggio);
