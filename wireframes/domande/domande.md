@@ -108,3 +108,8 @@ Importo ammesso e Importo stanziato non hanno l'azione (il secondo ha fonte non 
 - **Tabelle medio-grandi (R12)**: intestazione ferma scorrendo, riquadro alto quanto la finestra, 25 righe per pagina,
   prima colonna ferma nelle tabelle larghe.
 - **Ciambelle (R05, R06)**: importo e percentuale nelle etichette, totale al centro.
+
+## Revisioni dell'11/11/2026 dopo la review step9 (passata 1)
+
+- le due tabelle di Importi per anno (vista Tabella e dettaglio) hanno una sola definizione delle colonne e
+  lo stesso testo per un importo assente: "non valorizzato" (il dato non e' presente nella fonte), scelta dell'utente.

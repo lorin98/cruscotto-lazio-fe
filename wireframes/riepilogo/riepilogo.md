@@ -117,4 +117,6 @@ Dotazione, risorse FEASR, stanziato, impegnato e residui non sono collegati (non
 
 ## Revisioni dell'11/11/2026 (note di Leonardo del 10/11/2026)
 
-- L'avviso dice da dove viene l'impegnato: calcolato dal cruscotto, per gli interventi SIGC dalle domande dell'ASR2-20 (ammesso o, per le domande ancora in istruttoria, richiesto) piu' la stima delle annualita' future dei bandi pluriennali, per gli interventi NO SIGC dal contributo ammesso di PROSA; il cofinanziato FEASR e' lo stesso importo riportato alla dotazione quando la supera. Lo stesso testo nella pagina Dotazione e spesa.
+- L'avviso dice da dove viene l'impegnato: calcolato dal cruscotto, per gli interventi SIGC dalle domande dell'ASR2-20 (il pagato se il procedimento e' chiuso, altrimenti l'ammesso o il richiesto secondo lo stato di avanzamento) piu' la stima delle annualita' future dei bandi pluriennali, per gli interventi NO SIGC dal contributo ammesso delle determine PROSA (in sua assenza dall'importo ammesso SIAN); il cofinanziato FEASR e' lo stesso importo riportato alla dotazione quando la supera. Lo stesso testo nella pagina Dotazione e spesa.
+- Revisione dell'11/11/2026 dopo la review step9 (passata 1): l'avviso dice la regola esatta del backend per l'impegnato SIGC (pagato se il procedimento e' chiuso,
+  altrimenti ammesso o richiesto secondo lo stato di avanzamento) e NO SIGC (contributo ammesso PROSA, in sua assenza l'ammesso SIAN).

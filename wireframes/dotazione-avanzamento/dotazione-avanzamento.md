@@ -106,4 +106,8 @@ Stanziato (dai bandi), impegnato (dagli import, con la parte stimata) e rettific
 - Gauge tenuto (scelta dell'utente, benche' simile al grafico 6): al centro la dotazione, accanto alla fine dell'arco la
   percentuale con l'importo dei pagamenti netti (il mock di Leonardo riportava 135,9 M euro, che e' il pagato lordo: la
   percentuale e' sul netto, 134,6 M euro).
-- Dotazione: L'avviso dice da dove viene l'impegnato: calcolato dal cruscotto, per gli interventi SIGC dalle domande dell'ASR2-20 (ammesso o, per le domande ancora in istruttoria, richiesto) piu' la stima delle annualita' future dei bandi pluriennali, per gli interventi NO SIGC dal contributo ammesso di PROSA; il cofinanziato FEASR e' lo stesso importo riportato alla dotazione quando la supera.
+- Dotazione: L'avviso dice da dove viene l'impegnato: calcolato dal cruscotto, per gli interventi SIGC dalle domande dell'ASR2-20 (il pagato se il procedimento e' chiuso, altrimenti l'ammesso o il richiesto secondo lo stato di avanzamento) piu' la stima delle annualita' future dei bandi pluriennali, per gli interventi NO SIGC dal contributo ammesso delle determine PROSA (in sua assenza dall'importo ammesso SIAN); il cofinanziato FEASR e' lo stesso importo riportato alla dotazione quando la supera.
+- Revisione dell'11/11/2026 dopo la review step9 (passata 1): nel Sankey il nodo del pagato si chiama "Pagato (lordo)" (scelta dell'utente: accanto al gauge, che e' sul netto) e
+  le etichette dei nodi vanno su due righe; al centro del gauge l'importo della dotazione con la parola "dotazione"; l'importo
+  netto alla fine dell'arco e' corto ("134,6 M€", "0,19 M€", "9 mila €"), il valore pieno e' nella tabella equivalente; l'avviso
+  dell'impegnato dice la regola esatta del backend (pagato, ammesso o richiesto secondo lo stato; PROSA o ammesso SIAN).

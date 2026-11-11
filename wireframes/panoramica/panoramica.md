@@ -135,3 +135,10 @@ parte il drill-down.
 ## Revisioni del 04/11/2026 (secondo feedback di Leonardo/Deloitte, decisioni dell'utente)
 
 - Importi SIGC (Panoramica e dettaglio dell'intervento): un'etichetta che non entra nel suo segmento esce accanto, a destra della barra se il segmento e' l'ultimo, sopra il segmento negli altri casi.
+
+## Revisioni dell'11/11/2026 dopo la review step9 (passata 1)
+
+- la fonte del gauge del dettaglio dice "pagamenti al netto delle rettifiche" (resta nel PNG); al centro
+  la dotazione con la parola "dotazione"; il sottotitolo di "Dalla dotazione al residuo" dice come sono fatte le barre disegnate
+  ("Dotazione; pagamenti lordi" se intere, nessuno se il grafico non si disegna); le barre intere non hanno la quota "(100 %)";
+  la scheda Domande del dettaglio ha le tabelle compatte come la pagina Domande e importi.
