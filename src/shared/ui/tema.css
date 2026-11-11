@@ -153,6 +153,8 @@ html:has(.ui-filtri) { scroll-padding-top: calc(var(--ui-altezza-barra-filtri, 3
 @media (max-width: 899.98px) { .ui-griglia--3 { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: none; grid-auto-flow: row; } }
 @media (max-width: 575.98px) { .ui-griglia--3 { grid-template-columns: minmax(0, 1fr); } }
 .ui-griglia--2 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); }
+/* una card per riga, a tutta larghezza (pagina Domande e importi: tabelle senza scorrimento orizzontale) */
+.ui-griglia--1 { grid-template-columns: minmax(0, 1fr); }
 /* Card alte quanto la riga della griglia senza height: 100% (con due card impilate nella stessa cella ognuna diventava
    alta quanto la cella e la pagina sbordava sul footer): la card figlia diretta la allunga la griglia; dentro un
    contenitore (sezione con grafico e voci, stati della vista) il contenitore e' una colonna e l'ultima card prende il resto. */
@@ -365,6 +367,11 @@ h1[tabindex='-1']:focus { outline: none !important; box-shadow: none !important;
 .ui-laterale .ui-dl dd { overflow-wrap: anywhere; }
 /* tabelle semplici (N-12): le assenze col motivo vanno a capo; gli importi no (spazio indivisibile prima di €) */
 .ui-tabella--semplice td.ui-num { white-space: normal; min-width: 8rem; }
+/* tabelle compatte (pagina Domande e importi, note di Leonardo del 10/11/2026): intestazioni su piu' righe e meno spazio
+   fra le colonne, per non scorrere in orizzontale */
+.ui-tabelle-compatte .ui-tabella thead th { white-space: normal; padding: .5rem .45rem; vertical-align: bottom; }
+.ui-tabelle-compatte .ui-tabella td, .ui-tabelle-compatte .ui-tabella tbody th { padding: .5rem .45rem; }
+.ui-tabelle-compatte .ui-tabella--semplice td.ui-num { min-width: 0; }
 .ui-tabella-contenitore:focus-visible { outline: 3px solid var(--ui-fuoco); outline-offset: 2px; }
 /* AvvisoPagina: il contenitore riceve il focus solo da programma, quando l'avviso sparisce col pulsante (M-02) */
 .ui-avviso-pagina:focus { outline: none; }

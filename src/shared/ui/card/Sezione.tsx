@@ -38,6 +38,6 @@ export function Sezione({ titolo, sottotitolo, livello, strumenti, children }: {
  * Griglia delle card (2 colonne su schermi larghi, 4 per i KPI; una su schermi piccoli). Con 3: sei tessere 3 x 2 a coppie
  * per colonna (l'ordine del DOM e' per colonna), 2 colonne a coppie per riga sotto 900 px, una sotto 576 px (R03).
  */
-export function Griglia({ colonne = 2, children }: { colonne?: 2 | 3 | 4; children: ReactNode }) {
+export function Griglia({ colonne = 2, children }: { colonne?: 1 | 2 | 3 | 4; children: ReactNode }) {
   return <div className={`ui-griglia ui-griglia--${colonne}`}>{children}</div>;
 }
