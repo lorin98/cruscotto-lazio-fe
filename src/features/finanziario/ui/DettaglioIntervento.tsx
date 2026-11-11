@@ -1,12 +1,14 @@
 // DettaglioIntervento — contenuto della pagina di dettaglio di un intervento (route /finanziario/interventi/:codice,
 // flusso panoramica v2): le transazioni dei report filtrate sull'intervento (nessuna transazione nuova). Il titolo (h1)
 // e' della pagina; qui la testata con i badge e le azioni, i KPI dalla riga del riepilogo (TX-0011), le schede: Sintesi
-// (gauge, cascata), Domande (TX-0008, TX-0010), SIGC (TX-0012, TX-0013), Tutte le voci (con il motivo dei valori
+// (gauge, due barre impilate), Domande (TX-0008, TX-0010), SIGC (TX-0012, TX-0013), Tutte le voci (con il motivo dei valori
 // assenti). Le schede leggono solo quando si aprono e solo con il grant (letture nei figli di ConGrant, R-09). I dati
 // sono del solo intervento; i link di ritorno conservano la selezione della pagina (filtri dell'indirizzo, N-03).
 // Revisioni del 31/10/2026: testata col tipo dell'intervento al posto del contributo ambientale (R14, F5: niente lettura di
 // TX-0002), gauge "Avanzamento rispetto ai pagamenti effettuati" (R15), cascata con lordi e rettifiche e le righe delle
-// rettifiche (R08), importi SIGC in due barre impilate (R13 forma B), nessun "flusso ASR2-20" nei testi (R16).
+// rettifiche (R08), importi SIGC in due barre impilate (R13 forma B), nessun "flusso ASR2-20" nei testi (R16). Note di
+// Leonardo del 10/11/2026: gauge "Avanzamento dei pagamenti rispetto alla dotazione" (dotazione al centro, importo netto alla
+// fine dell'arco) e "Dalla dotazione al residuo" in due barre impilate al posto della cascata.
 import { useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router';
 import { Tab, TabList, TabPanel, Tabs } from 'react-aria-components';
@@ -19,7 +21,7 @@ import type { DomandePerAnno as DomandePerAnnoDto, RiepilogoFinanziarioRiga } fr
 import { datiDelReport } from './esportazioni';
 import { conParametroDiPagina } from '../lib/filtri';
 import type { Filtri } from '../lib/filtri';
-import { VOCI_DOMANDE_SIGC, graficoCascataIntervento, graficoDomandePerAnno, graficoDomandeSigc, graficoImportiPerAnno, graficoImportiSigc, graficoPagatoNetto, vociIntervento } from '../lib/grafici';
+import { VOCI_DOMANDE_SIGC, graficoBarreIntervento, graficoDomandePerAnno, graficoDomandeSigc, graficoImportiPerAnno, graficoImportiSigc, graficoPagatoNetto, vociIntervento } from '../lib/grafici';
 import { perAnno } from '../lib/importi';
 import { annoDiRaccolta } from '../lib/formato';
 import { criteriAnnoAnnualita, criteriDomandePerAnno, criteriVoceSigc } from '../lib/link-elenco';
@@ -39,7 +41,9 @@ import { notaDiCuiStimato } from '../lib/stima';
 import type { FiltroSigc } from '../../../shared/lib';
 
 // R15: il titolo del gauge dei pagamenti netti sulla dotazione
-const AVANZAMENTO_PAGAMENTI = 'Avanzamento rispetto ai pagamenti effettuati';
+const AVANZAMENTO_PAGAMENTI = 'Avanzamento dei pagamenti rispetto alla dotazione';
+// le due barre di "Dalla dotazione al residuo": cosa somma ciascuna
+const BARRE_INTERVENTO = 'Dotazione: pagamenti netti e residuo sui pagamenti; pagamenti lordi: pagamenti netti e rettifiche';
 
 /** I link verso l'elenco portano la selezione da cui si e' arrivati, con l'intervento del dettaglio al posto del filtro. */
 interface Provenienza {
@@ -151,7 +155,7 @@ function RettificheIntervento({ r }: { r: RiepilogoFinanziarioRiga }) {
   );
 }
 
-// il gauge usa i pagamenti al netto delle rettifiche della riga (TX-0011), come il KPI e la cascata accanto: mai il
+// il gauge usa i pagamenti al netto delle rettifiche della riga (TX-0011), come il KPI e le barre accanto: mai il
 // pagato lordo degli elenchi di liquidazione su una dotazione il cui residuo e' calcolato sul netto
 function Sintesi({ filtri, r, perimetro }: { filtri: Filtri; r: RiepilogoFinanziarioRiga; perimetro?: Perimetro }) {
   const stimato = notaDiCuiStimato(r.impegnatoStimato);
@@ -160,15 +164,15 @@ function Sintesi({ filtri, r, perimetro }: { filtri: Filtri; r: RiepilogoFinanzi
       <Griglia>
         <CardGrafico
           titolo={AVANZAMENTO_PAGAMENTI}
-          sottotitolo="Pagamenti al netto delle rettifiche sulla dotazione, come il residuo sui pagamenti"
+          sottotitolo="Percentuale di pagamenti al netto di rettifiche sulla dotazione spesa pubblica"
           dati={graficoPagatoNetto(r.pagamentiNettoRettifiche, r.dotazioneSpesaPubblica, perimetro, false)}
           fonte="Fonte: TX-0011, riepilogo per intervento"
           scaricamenti={datiDelReport(AVANZAMENTO_PAGAMENTI, 'riepilogo', filtri)}
         />
         <CardGrafico
           titolo="Dalla dotazione al residuo"
-          sottotitolo={stimato ? `Impegnato e residuo sugli impegni nella tabella; impegnato ${stimato}` : undefined}
-          dati={graficoCascataIntervento(r, perimetro)}
+          sottotitolo={stimato ? `${BARRE_INTERVENTO}. Impegnato e residuo sugli impegni nella tabella; impegnato ${stimato}` : BARRE_INTERVENTO}
+          dati={graficoBarreIntervento(r, perimetro)}
           fonte="Fonte: TX-0011, riepilogo per intervento"
           scaricamenti={datiDelReport(`Riepilogo ${r.codiceIntervento ?? 'intervento'}`, 'riepilogo', filtri)}
         />

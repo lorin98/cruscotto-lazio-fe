@@ -183,9 +183,10 @@ function omessoRichiesto(i: ImportiSigcLike, escluso: { valore: number } | { mot
 }
 
 /** Un segmento di una delle due barre impilate: il dato nella sua barra, nulla nell'altra. */
-interface Segmento {
+export interface Segmento {
   nome: string;
-  barra: 'Richiesto' | 'Ammesso';
+  /** La barra (categoria dell'asse) del segmento. */
+  barra: string;
   valore: number;
   /** Il totale della barra: la percentuale dell'etichetta. */
   totale: number;
@@ -230,11 +231,11 @@ function quotaDellaBarra(seg: Segmento): string {
   return seg.totale > 0 ? ` (${formatPercentuale(percentuale(seg.valore, seg.totale))})` : '';
 }
 
-function testoEtichetta(seg: Segmento): string {
+export function testoEtichetta(seg: Segmento): string {
   return `${importoBreve(seg.valore)}${quotaDellaBarra(seg)}`;
 }
 
-function serieSegmento(seg: Segmento, barre: readonly string[]) {
+export function serieSegmento(seg: Segmento, barre: readonly string[]) {
   const quota = quotaDellaBarra(seg);
   const dato: DatoSerie = { value: seg.valore, name: seg.barra, etichetta: testoEtichetta(seg), dettaglio: `${seg.barra}, ${seg.nome.toLowerCase()}: ${formatEuro(seg.valore)}${quota}` };
   return {
