@@ -1,11 +1,11 @@
-// sigc.ts — grafici SIGC: barre delle domande (TX-0012: presentate, pagate, da pagare e senza importi, insiemi che si
+// sigc.ts — grafici SIGC (dall'11/11/2026 le barre impilate generiche sono in barre-impilate.ts): barre delle domande (TX-0012: presentate, pagate, da pagare e senza importi, insiemi che si
 // sovrappongono), importi in due barre impilate (TX-0013, R13 forma B scelta dall'utente il 01/11/2026 al posto della
 // cascata: richiesto = ammesso + non ammesso, ammesso = pagato + ancora da pagare, con i valori del contratto e le domande
 // senza uno degli importi dichiarate: le somme sono parziali). La verifica SMP SIGC (TX-0015) e' dell'istituzionale
 // dal riallineamento degli ambiti del 29/10/2026.
 // Gli importi SIGC sono somme per domanda: NON_VALORIZZATO vuol dire che l'importo manca su tutte le domande della
 // selezione (D-09 del backend), quindi si rende come il dato assente nella fonte, non come un totale per intervento.
-import type { EChartsOption, LabelLayoutOptionCallback } from 'echarts';
+import type { EChartsOption } from 'echarts';
 import { ETICHETTE_ESITO_PAGAMENTO } from '../../../../entities/domanda';
 import type { EsitoPagamentoDomanda } from '../../../../entities/domanda';
 import {
@@ -26,12 +26,12 @@ import {
   plurale,
   tooltipDettaglio,
   asseCategorieOrizzontale,
-  asseImporti,
   importoBreve,
-  GRIGLIA_CON_ETICHETTE,
 } from '../../../../shared/lib';
 import type { DatiGrafico, DatoSerie } from '../../../../shared/lib';
 import type { DomandeSigcLike, ImportiSigcLike } from '../dto';
+import { opzioniBarreImpilate } from './barre-impilate';
+import type { Segmento } from './barre-impilate';
 import { assenzaImporto, cellaImporto, valoreDi } from '../importi';
 
 // ---------------------------------------------------------------- 1. domande SIGC
@@ -182,73 +182,11 @@ function omessoRichiesto(i: ImportiSigcLike, escluso: { valore: number } | { mot
   return valoreDi(i.ammesso) != null && 'motivo' in escluso ? [`Richiesto e non ammesso: ${escluso.motivo}`] : [];
 }
 
-/** Un segmento di una delle due barre impilate: il dato nella sua barra, nulla nell'altra. */
-export interface Segmento {
-  nome: string;
-  /** La barra (categoria dell'asse) del segmento. */
-  barra: string;
-  valore: number;
-  /** Il totale della barra: la percentuale dell'etichetta. */
-  totale: number;
-  colore: string;
-  /** Il colore del testo dell'etichetta sul colore del segmento (contrasto AA). */
-  testo: string;
-  /** L'ultimo segmento della sua barra: un'etichetta che non entra va a destra della barra. */
-  ultimo: boolean;
-}
-
-/** Spazio fra l'etichetta e il bordo del segmento (px): sotto questo margine l'etichetta non entra. */
-const MARGINE_ETICHETTA = 4;
-
-/**
- * Posizione dell'etichetta di un segmento (revisione del 04/11/2026: "Ancora da pagare" sforava di qualche pixel): dentro
- * il segmento se ci sta, altrimenti accanto, a destra della barra per l'ultimo segmento e sopra il segmento per gli altri.
- * ECharts la chiama a ogni disegno, anche quando il grafico cambia larghezza; l'etichetta ha lo sfondo del suo segmento,
- * quindi resta leggibile e riconoscibile anche fuori.
- */
-export function posizioneEtichettaSegmento(ultimo: boolean): LabelLayoutOptionCallback {
-  return ({ rect, labelRect }) => {
-    if (labelRect.width + 2 * MARGINE_ETICHETTA <= rect.width && labelRect.height <= rect.height) return {};
-    return ultimo
-      ? { x: rect.x + rect.width + MARGINE_ETICHETTA, y: rect.y + rect.height / 2, align: 'left', verticalAlign: 'middle' }
-      : { x: rect.x, y: rect.y - MARGINE_ETICHETTA, align: 'left', verticalAlign: 'bottom' };
-  };
-}
-
 /**
  * Il verde del pagato in questo grafico: l'etichetta bianca ci sta sopra a 5,2:1 (AA per il testo di 12 px, NFR-70); il
  * verde dei pagamenti negli altri grafici (#4e8a1f) col bianco arriva a 4,22:1 (review step9 del 04/11/2026, J-02).
  */
 export const VERDE_PAGATO = '#437a1b';
-
-/** Larghezza stimata (px) di un'etichetta di segmento a 12 px: circa 7 px per carattere, piu' il riquadro e il margine. */
-export function larghezzaEtichetta(testo: string): number {
-  return Math.ceil(testo.length * 7) + 8 + MARGINE_ETICHETTA;
-}
-
-/** "41,9 M€ (24,3 %)": l'importo del segmento e la sua quota della barra. */
-function quotaDellaBarra(seg: Segmento): string {
-  return seg.totale > 0 ? ` (${formatPercentuale(percentuale(seg.valore, seg.totale))})` : '';
-}
-
-export function testoEtichetta(seg: Segmento): string {
-  return `${importoBreve(seg.valore)}${quotaDellaBarra(seg)}`;
-}
-
-export function serieSegmento(seg: Segmento, barre: readonly string[]) {
-  const quota = quotaDellaBarra(seg);
-  const dato: DatoSerie = { value: seg.valore, name: seg.barra, etichetta: testoEtichetta(seg), dettaglio: `${seg.barra}, ${seg.nome.toLowerCase()}: ${formatEuro(seg.valore)}${quota}` };
-  return {
-    type: 'bar' as const,
-    name: seg.nome,
-    stack: 'importi',
-    barMaxWidth: 46,
-    itemStyle: { color: seg.colore },
-    label: { show: true, position: 'inside' as const, formatter: etichettaDato, color: seg.testo, backgroundColor: seg.colore, padding: [2, 4], borderRadius: 3 },
-    labelLayout: posizioneEtichettaSegmento(seg.ultimo),
-    data: barre.map((b) => (b === seg.barra ? dato : null)),
-  };
-}
 
 /**
  * Importi SIGC in due barre impilate della stessa scala (R13, forma B): "Richiesto" = ammesso + non ammesso (solo se
@@ -265,7 +203,7 @@ export function graficoImportiSigc(i: ImportiSigcLike): DatiGrafico {
   if ('motivo' in esito) return nonDisegnabile(esito.motivo, tabella, omessi);
   const { ammesso, oltre, pagato, daPagare } = esito.valori;
   const richiestoTotale = valoreDi(i.richiesto) ?? 0;
-  const segmenti: Segmento[] = [
+  const segmenti: Segmento<'Richiesto' | 'Ammesso'>[] = [
     ...('valore' in escluso
       ? [
           { nome: 'Ammesso', barra: 'Richiesto' as const, valore: ammesso, totale: richiestoTotale, colore: COLORI.primario, testo: COLORI.superficie, ultimo: false },
@@ -273,26 +211,14 @@ export function graficoImportiSigc(i: ImportiSigcLike): DatiGrafico {
         ]
       : []),
     // col pagato oltre l'ammesso il segmento e' la parte entro l'ammesso, e lo dice (review X-13)
-    { nome: oltre > 0 ? "Pagato entro l'ammesso" : 'Pagato', barra: 'Ammesso', valore: centesimi(pagato - oltre), totale: ammesso, colore: VERDE_PAGATO, testo: COLORI.superficie, ultimo: false },
-    { nome: 'Ancora da pagare', barra: 'Ammesso', valore: daPagare, totale: ammesso, colore: '#8fb8e6', testo: COLORI.testo, ultimo: true },
+    { nome: oltre > 0 ? "Pagato entro l'ammesso" : 'Pagato', barra: 'Ammesso' as const, valore: centesimi(pagato - oltre), totale: ammesso, colore: VERDE_PAGATO, testo: COLORI.superficie, ultimo: false },
+    { nome: 'Ancora da pagare', barra: 'Ammesso' as const, valore: daPagare, totale: ammesso, colore: '#8fb8e6', testo: COLORI.testo, ultimo: true },
   ];
   if (oltre > 0) omessi.push(`Pagato oltre l'ammesso: ${formatEuro(oltre)} (fuori dalla barra dell'ammesso)`);
   const barre = 'valore' in escluso ? ['Richiesto', 'Ammesso'] : ['Ammesso'];
   const richiesto = 'valore' in escluso ? `richiesto ${importoBreve(valoreDi(i.richiesto) as number)} = ammesso ${importoBreve(ammesso)} + non ammesso ${importoBreve(escluso.valore)}; ` : '';
   const sopra = oltre > 0 ? ` (più ${importoBreve(oltre)} pagati oltre l'ammesso)` : '';
   const descrizione = `Due barre impilate degli importi SIGC: ${richiesto}ammesso ${importoBreve(ammesso)} = pagato ${importoBreve(centesimi(pagato - oltre))} + ancora da pagare ${importoBreve(daPagare)}${sopra}.${notaOmessi(omessi)}`;
-  const opzioni: EChartsOption = {
-    aria: aria(descrizione),
-    tooltip: { trigger: 'item', formatter: tooltipDettaglio },
-    legend: { bottom: 0 },
-    // a destra lo spazio in pixel per l'etichetta piu' lunga degli ultimi segmenti, se non entra nel suo segmento (J-04):
-    // non dipende dalla larghezza del grafico ne' dalla scala
-    grid: { ...GRIGLIA_CON_ETICHETTE, right: Math.max(...segmenti.filter((s) => s.ultimo).map((s) => larghezzaEtichetta(testoEtichetta(s)))) },
-    // con lo spazio riservato a destra l'area e' piu' stretta: al piu' tre intervalli e nessuna etichetta dell'asse sopra
-    // un'altra (verifica a vista del 05/11/2026: "50,0 M€100,0 M€150,0 M€" attaccate, illeggibili a 360 px)
-    xAxis: { type: 'value', splitNumber: 3, axisLabel: { formatter: asseImporti, hideOverlap: true } },
-    yAxis: asseCategorieOrizzontale(barre),
-    series: segmenti.map((seg) => serieSegmento(seg, barre)),
-  };
+  const opzioni = opzioniBarreImpilate(segmenti, barre, descrizione);
   return { opzioni, tabella, omessi };
 }

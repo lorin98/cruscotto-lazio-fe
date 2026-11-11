@@ -5,24 +5,29 @@
 // browser (R08: senza rettifiche caricate netto e residuo non ci sono, le barre restano intere e lo dichiarano; mai il
 // lordo al posto del netto). Col perimetro ADA la dotazione e' regionale e il residuo FUORI_PERIMETRO: il grafico non si
 // disegna (suggerirebbe un residuo che il backend nega), la tabella delle voci resta.
-import type { EChartsOption } from 'echarts';
 import type { ImportoLike } from '../../../../entities/importo';
-import { COLORI, GRIGLIA_CON_ETICHETTE, aria, asseCategorieOrizzontale, asseImporti, importoBreve, nonDisegnabile, notaOmessi, tooltipDettaglio } from '../../../../shared/lib';
+import { COLORI, importoBreve, nonDisegnabile, notaOmessi } from '../../../../shared/lib';
 import type { DatiGrafico, TabellaEquivalente } from '../../../../shared/lib';
 import type { RigaRiepilogo } from '../dto';
 import { assenzaImporto, cellaImporto, codiceDi, valoreDi } from '../importi';
 import { PERIMETRO_ADA, etichettaDiProgramma } from '../perimetro';
 import { testoRettificato } from '../rettifiche';
-import { larghezzaEtichetta, serieSegmento, testoEtichetta } from './sigc';
-import type { Segmento } from './sigc';
+import { opzioniBarreImpilate } from './barre-impilate';
+import type { Segmento } from './barre-impilate';
 
 const MOTIVO_ADA_BARRE = "perimetro ADA: la dotazione è regionale, i pagamenti sono dell'area e il residuo è fuori perimetro";
 
 const DOTAZIONE = 'Dotazione';
 const LORDI = 'Pagamenti lordi';
 const NETTI = 'Pagamenti netti';
-/** Le rettifiche: arancio scuro, testo bianco con contrasto AA. */
+type Barra = typeof DOTAZIONE | typeof LORDI;
+/** Le rettifiche: arancio scuro, testo bianco a 5,38:1 (AA per il testo di 12 px, NFR-70). */
 const ARANCIO_RETTIFICHE = '#9a5c00';
+/**
+ * La barra intera dei lordi (senza rettifiche o senza netto): grigio ardesia, distinto dall'arancio delle rettifiche, testo
+ * bianco a 6,1:1 (review step9 dell'11/11/2026, J-01: l'arancio #b26b00 col bianco arrivava a 4,20:1).
+ */
+const LORDI_INTERA = COLORI.attenuato;
 
 /** Tutte le voci della riga, con le assenze dichiarate: tabella del grafico e scheda "Tutte le voci" del dettaglio. */
 export function vociIntervento(riga: RigaRiepilogo, perimetro?: string | null): TabellaEquivalente {
@@ -66,29 +71,57 @@ function omessiBarre(riga: RigaRiepilogo): string[] {
   ].filter((x): x is string => x != null);
 }
 
-function segmento(nome: string, barra: string, valore: number, totale: number, colore: string, testo: string, ultimo: boolean): Segmento {
+function segmento(nome: string, barra: Barra, valore: number, totale: number, colore: string, testo: string, ultimo: boolean): Segmento<Barra> {
   return { nome, barra, valore, totale, colore, testo, ultimo };
+}
+
+/** Una barra di un solo segmento: niente quota nell'etichetta (sarebbe 100 %), suggerimento col solo importo (J-14). */
+function intera(barra: Barra, valore: number, colore: string): Segmento<Barra> {
+  return { ...segmento(barra, barra, valore, valore, colore, COLORI.superficie, true), intera: true };
+}
+
+/** Le due barre sono divise (dotazione in netti e residuo, lordi in netti e rettifiche) o restano intere. */
+function divisioni(riga: RigaRiepilogo): { dotazione: boolean; lordi: boolean } {
+  const [rettifiche, netti, residuo] = [riga.importoRettifiche, riga.pagamentiNettoRettifiche, riga.dotazioneResiduaSuPagamenti].map(valoreDi);
+  return { dotazione: netti != null && residuo != null, lordi: netti != null && rettifiche != null };
 }
 
 /**
  * I segmenti delle due barre: la dotazione divisa in pagamenti netti e residuo se ci sono tutti e due, i lordi divisi in
  * pagamenti netti e rettifiche se ci sono tutti e due; altrimenti la barra resta intera.
  */
-function segmentiIntervento(riga: RigaRiepilogo, dotazione: number, lordi: number): Segmento[] {
+function segmentiIntervento(riga: RigaRiepilogo, dotazione: number, lordi: number): Segmento<Barra>[] {
   const [rettifiche, netti, residuo] = [riga.importoRettifiche, riga.pagamentiNettoRettifiche, riga.dotazioneResiduaSuPagamenti].map(valoreDi);
+  const divise = divisioni(riga);
   const sopra =
-    netti != null && residuo != null
+    divise.dotazione && netti != null && residuo != null
       ? [segmento(NETTI, DOTAZIONE, netti, dotazione, COLORI.primario, COLORI.superficie, false), segmento('Residuo sui pagamenti', DOTAZIONE, residuo, dotazione, COLORI.neutro, COLORI.testo, true)]
-      : [segmento(DOTAZIONE, DOTAZIONE, dotazione, dotazione, COLORI.scuro, COLORI.superficie, true)];
+      : [intera(DOTAZIONE, dotazione, COLORI.scuro)];
   const sotto =
-    netti != null && rettifiche != null
+    divise.lordi && netti != null && rettifiche != null
       ? [segmento(NETTI, LORDI, netti, lordi, COLORI.primario, COLORI.superficie, false), segmento('Rettifiche', LORDI, rettifiche, lordi, ARANCIO_RETTIFICHE, COLORI.superficie, true)]
-      : [segmento(LORDI, LORDI, lordi, lordi, COLORI.attenzione, COLORI.superficie, true)];
+      : [intera(LORDI, lordi, LORDI_INTERA)];
   return [...sopra, ...sotto];
 }
 
+/**
+ * Il sottotitolo di "Dalla dotazione al residuo": dice come sono fatte le barre disegnate (review step9 dell'11/11/2026, J-03,
+ * regola N-18); null se il grafico non si disegna (il motivo lo dice il grafico).
+ */
+export function sottotitoloBarreIntervento(riga: RigaRiepilogo, perimetro?: string | null): string | null {
+  const disegnabile = perimetro !== PERIMETRO_ADA && motivoBarre(codiceDi(riga), valoreDi(riga.dotazioneSpesaPubblica), valoreDi(riga.pagamentiLordi), riga) == null;
+  if (!disegnabile) return null;
+  const divise = divisioni(riga);
+  const parti = [
+    divise.dotazione ? 'dotazione: pagamenti netti e residuo sui pagamenti' : 'dotazione',
+    divise.lordi ? 'pagamenti lordi: pagamenti netti e rettifiche' : 'pagamenti lordi',
+  ];
+  const testo = parti.join('; ');
+  return testo.charAt(0).toUpperCase() + testo.slice(1);
+}
+
 /** "dotazione 10,0 M€ = pagamenti netti 2,0 M€ + residuo sui pagamenti 8,0 M€" (o la sola barra se intera). */
-function descrizioneBarra(barra: string, totale: number, segmenti: readonly Segmento[]): string {
+function descrizioneBarra(barra: Barra, totale: number, segmenti: readonly Segmento<Barra>[]): string {
   const suoi = segmenti.filter((s) => s.barra === barra);
   const testa = `${barra.toLowerCase()} ${importoBreve(totale)}`;
   return suoi.length > 1 ? `${testa} = ${suoi.map((s) => `${s.nome.toLowerCase()} ${importoBreve(s.valore)}`).join(' + ')}` : testa;
@@ -108,17 +141,8 @@ export function graficoBarreIntervento(riga: RigaRiepilogo, perimetro?: string |
   const motivo = motivoBarre(codice, dotazione, lordi, riga);
   if (motivo || dotazione == null || lordi == null) return nonDisegnabile(motivo ?? 'il grafico non si può disegnare', tabella, omessi);
   const segmenti = segmentiIntervento(riga, dotazione, lordi);
-  const barre = [DOTAZIONE, LORDI];
+  const barre: Barra[] = [DOTAZIONE, LORDI];
   const descrizione = `Due barre impilate dell'intervento ${codice}: ${descrizioneBarra(DOTAZIONE, dotazione, segmenti)}; ${descrizioneBarra(LORDI, lordi, segmenti)}.${notaOmessi(omessi)}`;
-  const opzioni: EChartsOption = {
-    aria: aria(descrizione),
-    tooltip: { trigger: 'item', formatter: tooltipDettaglio },
-    legend: { bottom: 0 },
-    // a destra lo spazio per l'etichetta piu' lunga degli ultimi segmenti, se non entra nel suo (come Importi SIGC)
-    grid: { ...GRIGLIA_CON_ETICHETTE, right: Math.max(...segmenti.filter((s) => s.ultimo).map((s) => larghezzaEtichetta(testoEtichetta(s)))) },
-    xAxis: { type: 'value', splitNumber: 3, axisLabel: { formatter: asseImporti, hideOverlap: true } },
-    yAxis: asseCategorieOrizzontale(barre),
-    series: segmenti.map((s) => serieSegmento(s, barre)),
-  };
+  const opzioni = opzioniBarreImpilate(segmenti, barre, descrizione);
   return { opzioni, tabella, omessi };
 }
