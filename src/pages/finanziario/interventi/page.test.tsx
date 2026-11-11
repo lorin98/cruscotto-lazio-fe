@@ -72,12 +72,15 @@ describe("dettaglio dell'intervento (flusso panoramica)", () => {
   it('le schede leggono solo quando si aprono; la scheda delle voci dice il motivo dei valori assenti', async () => {
     const lette = servi();
     renderPagina(Pagina, PERCORSO, '/finanziario/interventi/SRA01');
-    await trovaCard('Avanzamento dei pagamenti rispetto alla dotazione');
+    // la fonte del gauge dice che i pagamenti sono netti: resta anche nel PNG scaricato (J-04)
+    expect((await trovaCard('Avanzamento dei pagamenti rispetto alla dotazione')).textContent).toContain('Fonte: TX-0011, pagamenti al netto delle rettifiche');
     expect(graficoDi(await trovaCard('Dalla dotazione al residuo'))).toBeTruthy();
     expect(lette['domande-per-anno']).toBeUndefined();
     expect(lette['sigc/domande']).toBeUndefined();
     await userEvent.click(screen.getByRole('tab', { name: 'Domande' }));
-    await trovaCard('Domande per anno di raccolta');
+    const perAnno = await trovaCard('Domande per anno di raccolta');
+    // tabelle compatte come nella pagina Domande e importi (J-10)
+    expect(perAnno.closest('.ui-tabelle-compatte')).not.toBeNull();
     expect(lette['domande-per-anno']).toBe('?intervento=SRA01');
     expect(lette['importi-per-anno']).toBe('?intervento=SRA01');
     await userEvent.click(screen.getByRole('tab', { name: 'SIGC' }));

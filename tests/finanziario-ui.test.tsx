@@ -753,7 +753,7 @@ describe('DettaglioIntervento (route /finanziario/interventi/:codice)', () => {
     expect(
       within(gauge).getByText('Grafico non disponibile: la percentuale richiede pagamenti netti e dotazione; pagamenti netti: non valorizzato (il dato non è presente nella fonte).'),
     ).toBeTruthy();
-    expect(valoreDi(within(gauge).getByRole('table'), 'della dotazione pagato (netto)')).toBe('non calcolabile');
+    expect(valoreDi(within(gauge).getByRole('table'), 'Percentuale della dotazione pagata (netto)')).toBe('non calcolabile');
   });
 
   // V-03: dotazione regionale e pagamenti dell'area non si sottraggono; i dati di programma si dichiarano regionali
@@ -1304,7 +1304,7 @@ describe('AvanzamentoReport (TX-0004..TX-0007)', () => {
     expect(valoreDi(within(rf005).getByRole('table'), 'Pagamenti totali (lordi, elenchi di liquidazione)')).toBe('200.000,00 €');
     expect(within(await trovaCard(RF006)).getByText(/^Grafico non disponibile: manca una delle due parti/)).toBeTruthy();
     // R06: importi e percentuali nelle etichette, il totale al centro
-    await waitFor(() => expect(descrizione(graficoDi(RF007))).toMatch(/^Avanzamento dei pagamenti rispetto alla dotazione: totale 1,0 M€; Pagamenti al netto delle rettifiche 200\.000,00\s€ \(20\s%\), Dotazione residua 800\.000,00\s€ \(80\s%\)\.$/));
+    await waitFor(() => expect(descrizione(graficoDi(RF007))).toMatch(/^Dotazione residua sui pagamenti \(RF007\), avanzamento dei pagamenti rispetto alla dotazione: totale 1,0 M€; Pagamenti al netto delle rettifiche 200\.000,00\s€ \(20\s%\), Dotazione residua 800\.000,00\s€ \(80\s%\)\.$/));
     for (const s of [RF004, RF005, RF006]) expect(() => graficoDi(s)).toThrow();
     await vediTabella(RF007);
     expect(valoreDi(within(card(RF007)).getByRole('table'), 'Rettifiche')).toBe('20.000,00 €');
@@ -1379,7 +1379,7 @@ describe('AvanzamentoReport (TX-0004..TX-0007)', () => {
         'Grafico non disponibile: la percentuale richiede pagamenti netti e dotazione; pagamenti netti: non calcolabile (manca per almeno un intervento della selezione: vedi il riepilogo per intervento).',
       ),
     ).toBeTruthy();
-    expect(valoreDi(within(gauge).getByRole('table'), 'della dotazione pagato (netto)')).toBe('non calcolabile');
+    expect(valoreDi(within(gauge).getByRole('table'), 'Percentuale della dotazione pagata (netto)')).toBe('non calcolabile');
   });
 
   it('perimetro per sezione: dati di programma regionali accanto a misure ADA', async () => {

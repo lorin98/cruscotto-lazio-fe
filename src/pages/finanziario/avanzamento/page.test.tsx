@@ -64,7 +64,7 @@ describe('RF007: dotazione tra importo pagato e dotazione residua', () => {
     renderPagina(Pagina, '/finanziario/avanzamento');
     const card = await trovaCard('Dotazione residua sui pagamenti (RF007)');
     // R06: importi e percentuali, il totale al centro; R08: le rettifiche al posto del recuperato
-    expect(descrizioneDi(card)).toMatch(/^Avanzamento dei pagamenti rispetto alla dotazione: totale [^;]+; Pagamenti al netto delle rettifiche [^(]+\(20\s?%\), Dotazione residua [^(]+\(80\s?%\)\.$/);
+    expect(descrizioneDi(card)).toMatch(/^Dotazione residua sui pagamenti \(RF007\), avanzamento dei pagamenti rispetto alla dotazione: totale [^;]+; Pagamenti al netto delle rettifiche [^(]+\(20\s?%\), Dotazione residua [^(]+\(80\s?%\)\.$/);
     const t = await voci('Dotazione residua sui pagamenti (RF007)');
     expect(t).toContain('Rettifiche');
     expect(t).toContain('Importo pagato (lordo, elenchi di liquidazione)');
@@ -78,6 +78,10 @@ describe('RF007: dotazione tra importo pagato e dotazione residua', () => {
     const card = await trovaCard('Dotazione residua sui pagamenti (RF007)');
     expect(card.textContent).toContain('La dotazione è regionale, i pagamenti sono della tua area: non confrontabili.');
     expect(await voci('Dotazione residua sui pagamenti (RF007)')).toContain('Dotazione spesa pubblica (regionale)');
+    // la tabella della ciambella non disegnata non prende il nome della card del gauge (J-07)
+    expect(screen.getAllByRole('region', { name: 'Avanzamento dei pagamenti rispetto alla dotazione' })).toHaveLength(1);
+    // le tabelle compatte sono solo di Domande e importi (J-11)
+    expect(document.querySelector('.ui-tabelle-compatte')).toBeNull();
   });
   it('errore di un report: un solo avviso nella pagina, le altre sezioni si vedono', async () => {
     servi();

@@ -15,7 +15,6 @@ import {
   graficoDomandeSigc,
   graficoDotazionePagamenti,
   graficoFamiglie,
-  graficoGauge,
   graficoImportiPerAnno,
   graficoPagatoNetto,
   graficoPartiImporto,
@@ -28,7 +27,10 @@ import {
 } from '../src/features/finanziario/lib/grafici';
 import type { RigaRiepilogo, RigaSpesa } from '../src/features/finanziario/lib/grafici';
 import { avanzamentoPonderato } from '../src/features/finanziario/lib/avanzamento';
-import { VERDE_PAGATO, larghezzaEtichetta, posizioneEtichettaSegmento } from '../src/features/finanziario/lib/grafici/sigc';
+import { VERDE_PAGATO } from '../src/features/finanziario/lib/grafici/sigc';
+import { larghezzaEtichetta, posizioneEtichettaSegmento } from '../src/features/finanziario/lib/grafici/barre-impilate';
+import { importoEtichettaGauge, puntoFineArco } from '../src/features/finanziario/lib/grafici/avanzamento';
+import { sottotitoloBarreIntervento } from '../src/features/finanziario/lib/grafici/intervento';
 import { impegnatiDiversi } from '../src/features/finanziario/lib/impegnati';
 import { assenzaImporto, cellaImporto } from '../src/features/finanziario/lib/importi';
 import { COLORI, milioni, opzioniSicure } from '../src/shared/lib';
@@ -649,14 +651,14 @@ describe('graficoImportiPerAnno', () => {
   it('punto assente: null nella serie (mai zero) e dichiarato; la serie tutta assente una volta sola', () => {
     const g = graficoImportiPerAnno(righe);
     expect(opzioniDi(g).series[1].data).toEqual([null, 3_000_000, 500_000]);
-    expect(g.omessi).toEqual(['Importo stanziato: non disponibile per tutti gli anni', `2023: importo decretato ${NON_CALCOLABILE_AGGREGATO}`]);
+    expect(g.omessi).toEqual(['Importo stanziato: non disponibile per tutti gli anni', `2023: importo decretato ${NON_VALORIZZATO_RIGA}`]);
   });
 
   it('tabella con le intestazioni della tabella di dettaglio (note di Leonardo del 10/11/2026)', () => {
     const g = graficoImportiPerAnno(righe);
     expect(g.tabella.colonne).toEqual(['Anno di raccolta', 'Importo stanziato', 'Importo ammesso', 'Importo decretato (elenchi di liquidazione)', 'Domande senza importo ammesso']);
     expect(righeN(g)).toEqual([
-      ['2023', 'non disponibile', '4.000.000,00 €', NON_CALCOLABILE_AGGREGATO, 'non disponibile'],
+      ['2023', 'non disponibile', '4.000.000,00 €', NON_VALORIZZATO_RIGA, 'non disponibile'],
       ['2024', 'non disponibile', '6.000.000,00 €', '3.000.000,00 €', 'non disponibile'],
       ['senza anno di raccolta', 'non disponibile', '1.000.000,00 €', '500.000,00 €', 'non disponibile'],
     ]);
@@ -709,7 +711,7 @@ describe('graficoImportiPerAnno', () => {
     expect(g.omessi).toEqual(['Importo stanziato: non disponibile (fonte quadro sinottico non attiva) per tutti gli anni']);
     // assente in un solo anno: dichiarato per quell'anno
     const unAnno = graficoImportiPerAnno([conStanziato[0], { ...conStanziato[1], importoStanziato: assente('NON_VALORIZZATO') }]);
-    expect(unAnno.omessi[0]).toBe(`2023: importo stanziato ${NON_CALCOLABILE_AGGREGATO}`);
+    expect(unAnno.omessi[0]).toBe(`2023: importo stanziato ${NON_VALORIZZATO_RIGA}`);
   });
 });
 
@@ -722,14 +724,17 @@ describe('graficoSankey', () => {
     controllaAria(o);
     const s = o.series[0];
     expect(s.type).toBe('sankey');
-    expect(nomiDi(s)).toEqual(['Dotazione', 'Impegnato', 'Da impegnare', 'Pagato', 'Da pagare']);
+    expect(nomiDi(s)).toEqual(['Dotazione', 'Impegnato', 'Da impegnare', 'Pagato (lordo)', 'Da pagare']);
     expect(collegamentiDi(s)).toEqual([
       ['Dotazione', 'Impegnato', 60_000_000],
       ['Dotazione', 'Da impegnare', 40_000_000],
-      ['Impegnato', 'Pagato', 45_000_000],
+      ['Impegnato', 'Pagato (lordo)', 45_000_000],
       ['Impegnato', 'Da pagare', 15_000_000],
     ]);
-    expect(n(o.aria.label.description)).toBe('Flusso della dotazione (100,0 M€): impegnato 60,0 M€, da impegnare 40,0 M€, pagato 45,0 M€, da pagare 15,0 M€.');
+    expect(n(o.aria.label.description)).toBe('Flusso della dotazione (100,0 M€): impegnato 60,0 M€, da impegnare 40,0 M€, pagato (lordo) 45,0 M€, da pagare 15,0 M€.');
+    // nodi nell'ordine dei rami, senza riordino di ECharts: il pagato sopra il da pagare (note di Leonardo del 10/11/2026, J-11)
+    expect((s as unknown as { layoutIterations?: number }).layoutIterations).toBe(0);
+    expect(nomiDi(s).indexOf('Pagato (lordo)')).toBeLessThan(nomiDi(s).indexOf('Da pagare'));
     expect(g.omessi).toEqual([]);
   });
 
@@ -825,94 +830,89 @@ describe('graficoSankey', () => {
   });
 });
 
-// ---------------------------------------------------------------- 8. gauge
-
-describe('graficoGauge', () => {
-  it('indicatore 0-100 con progress e valore a un decimale', () => {
-    const g = graficoGauge(45, 100, 'Pagato sulla dotazione');
-    const o = opzioniDi(g);
-    controllaAria(o);
-    const s = o.series[0];
-    expect(s.type).toBe('gauge');
-    expect([s.min, s.max]).toEqual([0, 100]);
-    expect(s.progress?.show).toBe(true);
-    expect(item(s.data?.[0])).toEqual({ value: 45, name: 'Pagato sulla dotazione' });
-    expect(g.tabella).toEqual({ caption: 'Pagato sulla dotazione', colonne: ['Misura', 'Valore'], righe: [['Pagato sulla dotazione', '45 %']] });
-    expect(valoriDi(opzioniDi(graficoGauge(1, 3, 'Un terzo')).series[0])).toEqual([33.3]);
-  });
-
-  it('perimetro ADA: pagamenti dell area su dotazione regionale, non disegnabile anche con i due valori', () => {
-    const g = graficoGauge(40, 100, 'della dotazione pagato', 'ADA');
-    controllaNonDisegnabile(g, /^perimetro ADA: .*il rapporto non è confrontabile$/);
-    expect(g.tabella.righe).toEqual([['della dotazione pagato', 'non confrontabile (perimetro ADA)']]);
-    expect(g.omessi).toEqual([]);
-    expect(graficoGauge(40, 100, 'della dotazione pagato', 'REGIONALE').opzioni).not.toBeNull();
-  });
-
-  it('perimetro ADA senza valori: non confrontabile, non "non calcolabile"', () => {
-    const g = graficoGauge(null, undefined, 'Quota', 'ADA');
-    controllaNonDisegnabile(g, "perimetro ADA: la dotazione è regionale, i pagamenti sono dell'area: il rapporto non è confrontabile");
-    expect(g.tabella.righe).toEqual([['Quota', 'non confrontabile (perimetro ADA)']]);
-  });
-
-  it('parte o totale assenti, totale non positivo, parte negativa: non disegnabile, motivo senza il titolo davanti', () => {
-    controllaNonDisegnabile(graficoGauge(null, 100, 'Quota'), 'valore non disponibile: la percentuale non si può calcolare');
-    controllaNonDisegnabile(graficoGauge(Number.NaN, 100, 'Quota'), 'valore non disponibile: la percentuale non si può calcolare');
-    controllaNonDisegnabile(graficoGauge(10, undefined, 'Quota'), 'totale non disponibile: la percentuale non si può calcolare');
-    controllaNonDisegnabile(graficoGauge(10, 0, 'Quota'), 'totale pari a zero o negativo: la percentuale non si può calcolare');
-    controllaNonDisegnabile(graficoGauge(10, -5, 'Quota'), /^totale pari a zero o negativo/);
-    const negativa = graficoGauge(-1, 100, 'Quota');
-    controllaNonDisegnabile(negativa, 'valore negativo: la percentuale non si può calcolare');
-    expect(negativa.motivoAssenza).not.toContain('Quota');
-    expect(negativa.tabella.righe).toEqual([['Quota', 'non calcolabile']]);
-  });
-});
+// ---------------------------------------------------------------- 8. gauge dei pagamenti netti
 
 describe('graficoPagatoNetto', () => {
-  const TITOLO = 'della dotazione pagato (netto)';
+  const CAPTION = 'Pagamenti netti sulla dotazione spesa pubblica';
+  const VOCE = 'Percentuale della dotazione pagata (netto)';
 
   // la serie del gauge con l'etichetta della fine dell'arco (title) e il centro (detail) delle note di Leonardo del 10/11/2026
-  type SerieGauge = { data: Array<{ name: string }>; title: { offsetCenter: [string, string] }; detail: { formatter: () => string } };
+  type SerieGauge = { type: string; min: number; max: number; progress: { show: boolean }; data: Array<{ value: number; name: string }>; title: { offsetCenter: [string, string] }; detail: { formatter: () => string } };
   const gauge = (g: DatiGrafico) => opzioniDi(g).series[0] as unknown as SerieGauge;
 
   it('pagamenti al netto delle rettifiche sulla dotazione: indicatore 0-100, la dotazione al centro e il netto alla fine dell arco', () => {
     const g = graficoPagatoNetto(imp(200_000), imp(1_000_000));
+    controllaAria(opzioniDi(g));
+    expect(gauge(g)).toMatchObject({ type: 'gauge', min: 0, max: 100, progress: { show: true } });
     expect(valoriDi(opzioniDi(g).series[0])).toEqual([20]);
-    // due righe: la percentuale e, sotto, l'importo netto; al centro l'importo della dotazione e, sotto, cosa e'
-    expect(gauge(g).data[0].name.split('\n').map(n)).toEqual(['20 %', '(200.000,00 €)']);
-    expect(gauge(g).detail.formatter().split('\n').map(n)).toEqual(['{v|1,0 M€}', '{n|dotazione spesa pubblica}']);
-    expect(n(opzioniDi(g).aria.label.description)).toBe('Indicatore da 0 a 100 %: della dotazione pagato (netto) 20 %, pagamenti netti 200.000,00 € su una dotazione di 1,0 M€.');
-    expect(g.tabella.caption).toBe(TITOLO);
-    expect(righeN(g)).toEqual([['Dotazione spesa pubblica', '1.000.000,00 €'], ['Pagamenti al netto delle rettifiche', '200.000,00 €'], [TITOLO, '20 %']]);
+    // due righe: la percentuale e, sotto, l'importo netto corto; al centro l'importo della dotazione e, sotto, cosa e'
+    expect(gauge(g).data[0].name.split('\n').map(n)).toEqual(['20 %', '(0,20 M€)']);
+    expect(gauge(g).detail.formatter().split('\n').map(n)).toEqual(['{v|1,0 M€}', '{n|dotazione}']);
+    expect(n(opzioniDi(g).aria.label.description)).toBe('Indicatore da 0 a 100 %: pagamenti al netto delle rettifiche 20 % della dotazione spesa pubblica, 200.000,00 € su 1,0 M€.');
+    // caption e voce sono frasi (J-07): nessun nome di regione uguale al titolo di un'altra card
+    expect(g.tabella.caption).toBe(CAPTION);
+    expect(righeN(g)).toEqual([['Dotazione spesa pubblica', '1.000.000,00 €'], ['Pagamenti al netto delle rettifiche', '200.000,00 €'], [VOCE, '20 %']]);
+    expect(valoriDi(opzioniDi(graficoPagatoNetto(imp(1), imp(3))).series[0])).toEqual([33.3]);
   });
 
   it("l'etichetta segue la fine dell'arco, fuori dall'arco: a sinistra in basso a 0 %, in alto a 50 %, a destra in basso a 100 %", () => {
     const punto = (pagato: number) => gauge(graficoPagatoNetto(imp(pagato), imp(100))).title.offsetCenter;
-    expect(punto(0)).toEqual(['-136%', '49%']);
-    expect(punto(50)).toEqual(['0%', '-124%']);
-    expect(punto(100)).toEqual(['136%', '49%']);
+    expect(punto(0)).toEqual(['-158%', '57%']);
+    expect(punto(50)).toEqual(['0%', '-138%']);
+    expect(punto(100)).toEqual(['158%', '57%']);
     // oltre il 100 % l'etichetta resta alla fine dell'arco
     expect(punto(150)).toEqual(punto(100));
+    expect(puntoFineArco(25)).toEqual(['-138%', '-96%']);
+  });
+
+  it("a 390 px l'etichetta (al piu' dieci caratteri) resta dentro il grafico e fuori dall'arco per ogni percentuale (J-05)", () => {
+    // card a 390 px: grafico largo circa 318 px e alto 340, raggio al 48 % della meta' del lato minore; testo a 12 px, circa
+    // 6,5 px per carattere, due righe da 16 px
+    const meta = 159;
+    const raggio = 0.48 * meta;
+    const [larga, alta] = [(10 * 6.5) / 2, 16];
+    for (let v = 0; v <= 100; v += 5) {
+      const [x, y] = puntoFineArco(v).map((c) => (parseFloat(c) / 100) * raggio);
+      expect(Math.abs(x) + larga, `${v} %`).toBeLessThanOrEqual(meta);
+      // il riquadro dell'etichetta non tocca il bordo esterno dell'arco (raggio + meta' spessore)
+      const dx = Math.max(Math.abs(x) - larga, 0);
+      const dy = Math.max(Math.abs(y) - alta, 0);
+      expect(Math.hypot(dx, dy), `${v} %`).toBeGreaterThanOrEqual(raggio + 8);
+    }
+    // gli importi dell'etichetta restano corti
+    expect([importoEtichettaGauge(134_624_909.16), importoEtichettaGauge(187_415.27), importoEtichettaGauge(9_320.43), importoEtichettaGauge(300)].map(n)).toEqual(['134,6 M€', '0,19 M€', '9 mila €', '300,00 €']);
   });
 
   it('netto o dotazione assenti: "non calcolabile" con il motivo dell importo (totale o riga di un intervento)', () => {
     const totale = graficoPagatoNetto(assente('NON_VALORIZZATO'), imp(1_000_000));
     controllaNonDisegnabile(totale, `la percentuale richiede pagamenti netti e dotazione; pagamenti netti: ${NON_CALCOLABILE_AGGREGATO}`);
-    expect(totale.tabella.righe.slice(1)).toEqual([['Pagamenti al netto delle rettifiche', NON_CALCOLABILE_AGGREGATO], [TITOLO, 'non calcolabile']]);
+    expect(totale.tabella.righe.slice(1)).toEqual([['Pagamenti al netto delle rettifiche', NON_CALCOLABILE_AGGREGATO], [VOCE, 'non calcolabile']]);
     controllaNonDisegnabile(
       graficoPagatoNetto(assente('NON_VALORIZZATO'), null, null, false),
       `la percentuale richiede pagamenti netti e dotazione; pagamenti netti: ${NON_VALORIZZATO_RIGA}; dotazione: non disponibile`,
     );
   });
 
-  it('perimetro ADA: non confrontabile, anche senza valori', () => {
+  it('netti negativi (SRD11: lordi zero, rettifiche positive) o dotazione nulla: non disegnabile, la tabella resta a tre righe (J-13)', () => {
+    const negativi = graficoPagatoNetto(imp(-79_432.83), imp(1_000_000), null, false);
+    controllaNonDisegnabile(negativi, 'valore negativo: la percentuale non si può calcolare');
+    expect(righeN(negativi)).toEqual([['Dotazione spesa pubblica', '1.000.000,00 €'], ['Pagamenti al netto delle rettifiche', '-79.432,83 €'], [VOCE, 'non calcolabile']]);
+    controllaNonDisegnabile(graficoPagatoNetto(imp(10), imp(0)), 'totale pari a zero o negativo: la percentuale non si può calcolare');
+    controllaNonDisegnabile(graficoPagatoNetto(imp(10), imp(-5)), /^totale pari a zero o negativo/);
+  });
+
+  it('perimetro ADA: non confrontabile, anche senza valori; la tabella non mescola dotazione regionale e pagamenti dell area', () => {
+    const ada = graficoPagatoNetto(imp(200_000), imp(1_000_000), 'ADA');
+    controllaNonDisegnabile(ada, "perimetro ADA: la dotazione è regionale, i pagamenti sono dell'area: il rapporto non è confrontabile");
+    expect(ada.tabella).toEqual({ caption: CAPTION, colonne: ['Misura', 'Valore'], righe: [[VOCE, 'non confrontabile (perimetro ADA)']] });
+    expect(ada.omessi).toEqual([]);
     controllaNonDisegnabile(graficoPagatoNetto(null, null, 'ADA'), /^perimetro ADA: .*il rapporto non è confrontabile$/);
-    controllaNonDisegnabile(graficoPagatoNetto(imp(200_000), imp(1_000_000), 'ADA'), /^perimetro ADA: /);
+    expect(graficoPagatoNetto(imp(200_000), imp(1_000_000), 'REGIONALE').opzioni).not.toBeNull();
   });
 
   it('pagamento piccolo ma non nullo: mai "0 %"', () => {
     const g = graficoPagatoNetto(imp(300), imp(1_000_000));
-    expect(g.tabella.righe.at(-1)).toEqual([TITOLO, '0,03 %']);
+    expect(g.tabella.righe.at(-1)).toEqual([VOCE, '0,03 %']);
     expect(valoriDi(opzioniDi(g).series[0])).toEqual([0.03]);
     expect(n(opzioniDi(g).aria.label.description)).toContain('0,03 %');
   });
@@ -947,10 +947,14 @@ describe('graficoBarreIntervento e vociIntervento (R08: lordi e rettifiche)', ()
   it('senza rettifiche caricate: le due barre restano intere e lo dichiarano (mai il lordo al posto del netto)', () => {
     const senza = { ...rigaIntervento, importoRettifiche: assente('FONTE_NON_ATTIVA', 'RETTIFICHE'), pagamentiNettoRettifiche: assente('FONTE_NON_ATTIVA', 'RETTIFICHE'), dotazioneResiduaSuPagamenti: assente('FONTE_NON_ATTIVA', 'RETTIFICHE') };
     const g = graficoBarreIntervento(senza);
-    expect(segmentiBarre(opzioniDi(g))).toEqual([
+    const o = opzioniDi(g);
+    expect(segmentiBarre(o)).toEqual([
       ['Dotazione', [10_000_000, null]],
       ['Pagamenti lordi', [null, 4_500_000]],
     ]);
+    // barra intera: niente "(100 %)" nell'etichetta e suggerimento col solo importo (J-14)
+    expect(n(item(o.series[0].data?.[0]).etichetta ?? '')).toBe('10,0 M€');
+    expect(n(item(o.series[1].data?.[1]).dettaglio ?? '')).toBe('Pagamenti lordi: 4.500.000,00 €');
     expect(g.omessi).toContain('Rettifiche non disponibile (fonte rettifiche non attiva): pagamenti netti e residuo non si disegnano');
   });
 
@@ -992,9 +996,44 @@ describe('graficoBarreIntervento e vociIntervento (R08: lordi e rettifiche)', ()
     expect(g.omessi).toContain(`Residuo sui pagamenti ${NON_VALORIZZATO_RIGA}`);
   });
 
-  it('lordi oltre la dotazione con i netti entro la dotazione: si disegna, la barra dei lordi e piu lunga', () => {
+  it('lordi oltre la dotazione con i netti entro la dotazione: si disegna, la barra dei lordi e piu lunga (J-11)', () => {
     const g = graficoBarreIntervento({ ...rigaIntervento, pagamentiLordi: imp(11_000_000), importoRettifiche: imp(7_000_000) });
-    expect(segmentiBarre(opzioniDi(g)).at(-1)).toEqual(['Rettifiche', [null, 7_000_000]]);
+    const o = opzioniDi(g);
+    const somma = (barra: number) => o.series.reduce((a, x) => a + Number((x.data?.[barra] as { value?: number } | null)?.value ?? 0), 0);
+    expect([somma(0), somma(1)]).toEqual([10_000_000, 11_000_000]);
+    // nessun massimo forzato sull'asse: la barra piu' lunga detta la scala
+    expect(o.xAxis?.max).toBeUndefined();
+  });
+
+  it("ogni etichetta regge il suo fondo (AA, 4,5:1) in tutte le forme, anche la barra intera dei lordi; segmenti separati da un bordo (J-01, J-02)", () => {
+    const luminanza = (hex: string) => {
+      const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    };
+    const contrasto = (a: string, b: string) => (Math.max(luminanza(a), luminanza(b)) + 0.05) / (Math.min(luminanza(a), luminanza(b)) + 0.05);
+    const fonteNonAttiva = assente('FONTE_NON_ATTIVA', 'RETTIFICHE');
+    const forme = [
+      rigaIntervento,
+      { ...rigaIntervento, importoRettifiche: fonteNonAttiva, pagamentiNettoRettifiche: fonteNonAttiva, dotazioneResiduaSuPagamenti: fonteNonAttiva },
+      { ...rigaIntervento, dotazioneResiduaSuPagamenti: assente('NON_VALORIZZATO') },
+    ];
+    for (const riga of forme) {
+      const o = opzioniDi(graficoBarreIntervento(riga)) as unknown as { series: Array<{ name: string; itemStyle: { color: string; borderColor: string; borderWidth: number }; label: { color: string; backgroundColor: string } }> };
+      for (const x of o.series) {
+        expect(contrasto(x.label.color, x.label.backgroundColor), x.name).toBeGreaterThanOrEqual(4.5);
+        expect(x.label.backgroundColor).toBe(x.itemStyle.color);
+        expect(x.itemStyle).toMatchObject({ borderColor: '#ffffff', borderWidth: 1 });
+      }
+    }
+  });
+
+  it('sottotitolo: dice come sono fatte le barre disegnate; nulla se il grafico non si disegna (J-03)', () => {
+    const fonteNonAttiva = assente('FONTE_NON_ATTIVA', 'RETTIFICHE');
+    expect(sottotitoloBarreIntervento(rigaIntervento)).toBe('Dotazione: pagamenti netti e residuo sui pagamenti; pagamenti lordi: pagamenti netti e rettifiche');
+    expect(sottotitoloBarreIntervento({ ...rigaIntervento, importoRettifiche: fonteNonAttiva, pagamentiNettoRettifiche: fonteNonAttiva, dotazioneResiduaSuPagamenti: fonteNonAttiva })).toBe('Dotazione; pagamenti lordi');
+    expect(sottotitoloBarreIntervento({ ...rigaIntervento, dotazioneResiduaSuPagamenti: assente('NON_VALORIZZATO') })).toBe('Dotazione; pagamenti lordi: pagamenti netti e rettifiche');
+    expect(sottotitoloBarreIntervento(rigaIntervento, 'ADA')).toBeNull();
+    expect(sottotitoloBarreIntervento({ ...rigaIntervento, pagamentiNettoRettifiche: imp(-1) })).toBeNull();
   });
 
   it('dotazione o lordi assenti, importi negativi: non disegnabile', () => {
@@ -1338,11 +1377,9 @@ describe('regola dei motivi: segue "Grafico non disponibile: ", iniziale minusco
     ['sankey, rami principali assenti', graficoSankey({}, {}, {})],
     ['sankey, residuo del DTO assente', graficoSankey({ ...impegni, dotazioneResidua: null }, pagamenti)],
     ['sankey, valori negativi', graficoSankey({ ...impegni, dotazioneResidua: imp(-20_000_000) }, pagamenti)],
-    ['gauge, perimetro ADA', graficoGauge(40, 100, 'Quota', 'ADA')],
-    ['gauge, valore assente', graficoGauge(null, 100, 'Quota')],
-    ['gauge, totale assente', graficoGauge(10, null, 'Quota')],
-    ['gauge, totale zero', graficoGauge(10, 0, 'Quota')],
-    ['gauge, valore negativo', graficoGauge(-1, 100, 'Quota')],
+    ['pagato netto, dotazione assente', graficoPagatoNetto(imp(10), null)],
+    ['pagato netto, dotazione zero', graficoPagatoNetto(imp(10), imp(0))],
+    ['pagato netto, netti negativi', graficoPagatoNetto(imp(-79_432.83), imp(100))],
     ['pagato netto, netto assente', graficoPagatoNetto(assente('NON_VALORIZZATO'), imp(100))],
     ['pagato netto, perimetro ADA', graficoPagatoNetto(imp(10), imp(100), 'ADA')],
     ['quota FEASR, quota assente', graficoQuotaFeasr({ quotaFeasr: assente('NON_VALORIZZATO'), quotaNonFeasr: imp(10) })],
@@ -1378,12 +1415,23 @@ describe('revisioni del 04/11/2026', () => {
   it('Sankey: un solo nodo Impegnato anche con la parte stimata, che sta nel tooltip del nodo', () => {
     const o = opzioniDi(graficoSankey({ ...impegni, impegnatoStimato: imp(10_000_000) }, pagamenti));
     const s = o.series[0];
-    expect(nomiDi(s)).toEqual(['Dotazione', 'Impegnato', 'Da impegnare', 'Pagato', 'Da pagare']);
+    expect(nomiDi(s)).toEqual(['Dotazione', 'Impegnato', 'Da impegnare', 'Pagato (lordo)', 'Da pagare']);
     const nodo = (s.data ?? []).map(item).find((d) => d.name === 'Impegnato');
     expect(n(nodo?.dettaglio ?? '')).toBe('Impegnato: 60,0 M€, di cui stimato 10,0 M€');
     // senza parte stimata il tooltip dice il solo impegnato
     const senza = (opzioniDi(graficoSankey(impegni, pagamenti)).series[0].data ?? []).map(item).find((d) => d.name === 'Impegnato');
     expect(n(senza?.dettaglio ?? '')).toBe('Impegnato: 60,0 M€');
+  });
+
+  it.each([
+    ['Importi SIGC', () => graficoImportiSigc(sigcBase)],
+    ["Dalla dotazione al residuo", () => graficoBarreIntervento(rigaIntervento)],
+  ])("%s: stesso costruttore delle barre impilate (J-12): griglia con lo spazio a destra in pixel, asse con al piu' tre intervalli", (_nome, grafico) => {
+    const o = opzioniDi(grafico()) as unknown as { grid: { right: number }; xAxis: { max?: unknown }; series: Array<{ stack: string; type: string; labelLayout: unknown }> };
+    expect(o.xAxis.max).toBeUndefined();
+    expect(o.xAxis).toMatchObject({ splitNumber: 3, axisLabel: { hideOverlap: true } });
+    expect(o.grid.right).toBeGreaterThan(0);
+    expect(o.series.every((x) => x.type === 'bar' && x.stack === 'importi' && typeof x.labelLayout === 'function')).toBe(true);
   });
 
   it("Importi SIGC: l'etichetta ha lo sfondo del suo segmento; dentro se ci sta, altrimenti a destra della barra (ultimo segmento) o sopra", () => {

@@ -31,7 +31,7 @@ describe('Dotazione e spesa: avviso degli impegnati diversi (TX-0011)', () => {
     renderPagina(PaginaDotazione, '/finanziario/dotazione');
     const avviso = await screen.findByRole('note');
     expect(testo(avviso.textContent)).toBe(
-      "Impegnato cofinanziato FEASR diverso dall'impegnato FEASR e non in 1 intervento. L'impegnato è calcolato dal cruscotto: per gli interventi SIGC dalle domande dell'ASR2-20 (importo ammesso o, per le domande ancora in istruttoria, importo richiesto) più la stima delle annualità future dei bandi pluriennali; per gli interventi NO SIGC dal contributo ammesso di PROSA. Il cofinanziato FEASR è lo stesso importo, riportato alla dotazione quando la supera: SRA03 24.323.222,99 € su 45.273.920,69 €. Negli altri interventi i due impegnati coincidono con l'impegnato di spesa pubblica.",
+      "Impegnato cofinanziato FEASR diverso dall'impegnato FEASR e non in 1 intervento. L'impegnato è calcolato dal cruscotto: per gli interventi SIGC dalle domande dell'ASR2-20, con l'importo che lo stato della domanda indica (il pagato se il procedimento è chiuso, altrimenti l'ammesso o il richiesto secondo lo stato di avanzamento), più la stima delle annualità future dei bandi pluriennali; per gli interventi NO SIGC dal contributo ammesso delle determine PROSA (in sua assenza dall'importo ammesso SIAN). Il cofinanziato FEASR è lo stesso importo, riportato alla dotazione quando la supera: SRA03 24.323.222,99 € su 45.273.920,69 €. Negli altri interventi i due impegnati coincidono con l'impegnato di spesa pubblica.",
     );
   });
 

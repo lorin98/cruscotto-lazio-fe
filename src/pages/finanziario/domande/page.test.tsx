@@ -123,6 +123,29 @@ describe("RA003: drill-down dalla pagina domande all'elenco operativo", () => {
     expect(within(importi).getAllByRole('columnheader').map((c) => c.textContent)).toEqual(['Anno di raccolta', 'Importo stanziato', 'Importo ammesso', 'Importo decretato (elenchi di liquidazione)', 'Domande senza importo ammesso', 'Elenco operativo']);
     expect(within(importi).getByRole('link', { name: "Apri nell'elenco operativo le domande presentate del 2024" }).getAttribute('href')).toBe('/elenco-operativo/domande?presentata=true&anno=2024');
   });
+  it('Importi per anno: le due tabelle hanno le stesse intestazioni e lo stesso testo per uno stanziato assente; sezioni a tutta larghezza e tabelle compatte (J-09, J-11)', async () => {
+    servi();
+    const righe = (IMPORTI_PER_ANNO.righe ?? []).map((r, i) => (i === 0 ? { ...r, importoStanziato: { valore: null, motivo: 'NON_VALORIZZATO', fonte: null } } : r));
+    server.use(http.get('*/api/finanziario/importi-per-anno', () => HttpResponse.json({ ...IMPORTI_PER_ANNO, righe })));
+    renderPagina(Pagina, '/finanziario/domande');
+    const card = await trovaCard('Importi per anno di raccolta (RF010)');
+    const equivalente = await tabellaDi(card);
+    const dettaglio = within(screen.getByRole('region', { name: 'Importi per anno: dettaglio' })).getByRole('table', { name: 'Importi per anno di raccolta' });
+    const intestazioni = (t: HTMLElement) => within(t).getAllByRole('columnheader').map((c) => c.textContent);
+    expect(intestazioni(dettaglio)).toEqual(intestazioni(equivalente));
+    const anno = String(righe[0].annoRaccolta);
+    for (const t of [equivalente, dettaglio]) {
+      const riga = within(t).getByRole('rowheader', { name: anno }).closest('tr') as HTMLElement;
+      const stanziato = within(riga).getAllByRole('cell')[0].textContent ?? '';
+      expect(stanziato).toContain('non valorizzato');
+      expect(stanziato).toContain('il dato non è presente nella fonte');
+      expect(stanziato).not.toContain('non calcolabile');
+    }
+    const compatte = card.closest('.ui-tabelle-compatte');
+    expect(compatte).not.toBeNull();
+    expect(card.closest('.ui-griglia--1')).not.toBeNull();
+    expect(compatte?.contains(await trovaCard('Domande per anno di raccolta (RF008)'))).toBe(true);
+  });
   it("tornando indietro dall'elenco operativo l'anno scelto e' ancora quello", async () => {
     servi();
     const { router } = renderPagina(Pagina, '/finanziario/domande');
